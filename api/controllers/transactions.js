@@ -81,13 +81,6 @@ TransactionsController.getTransactions = function (context, next) {
 TransactionsController.postTransactions = function (context, next) {
 	var transactions = context.request.swagger.params.transactions.value;
 
-	transactions = _.map(transactions, function (transaction) {
-		transaction.amount = parseInt(transaction.amount);
-		transaction.fee = parseInt(transaction.fee);
-
-		return transaction;
-	});
-
 	modules.transactions.shared.postTransactions(transactions, function (err, data) {
 		if (err) {
 			if (err instanceof ApiError) {

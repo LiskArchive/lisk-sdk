@@ -271,8 +271,16 @@ describe('transaction', function () {
 		});
 
 		it('should return same result of getBytes using /logic/transaction and lisk-js package (without data field)', function () {
+
 			var transactionBytesFromLogic = transactionLogic.getBytes(validTransaction);
-			var transactionBytesFromLiskJs = lisk.crypto.getBytes(validTransaction);
+			
+			var transactionTemp = _.cloneDeep(validTransaction);
+			transactionTemp.recipientId = transactionTemp.recipientAddress || '';
+			transactionTemp.senderId = transactionTemp.senderAddress || '';
+			delete transactionTemp.recipientAddress;
+			delete transactionTemp.senderAddress;
+
+			var transactionBytesFromLiskJs = lisk.crypto.getBytes(transactionTemp);
 
 			expect(transactionBytesFromLogic.equals(transactionBytesFromLiskJs)).to.be.ok;
 		});
@@ -440,7 +448,9 @@ describe('transaction', function () {
 
 		function createAndProcess (transactionData, sender, cb) {
 			var transaction = lisk.transaction.createTransaction(transactionData.recipientAddress, transactionData.amount, transactionData.secret, transactionData.secondSecret);
-
+			transaction.recipientAddress = transaction.recipientId || '';
+			delete transaction.recipientId;
+			
 			transactionLogic.process(transaction, sender, function (err, transaction) {
 				cb(err, transaction);
 			});

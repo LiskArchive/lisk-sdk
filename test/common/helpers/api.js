@@ -137,8 +137,10 @@ function normalizeTransactionObject (transaction) {
 	if (_.isObject(transaction)) {
 		transaction = _.cloneDeep(transaction);
 
-		transaction.recipientAddress = transaction.recipientAddress || '';
-		transaction.senderAddress = transaction.senderAddress || '';
+		transaction.recipientAddress = transaction.recipientId || '';
+		transaction.senderAddress = transaction.senderId || '';
+		delete transaction.recipientId;
+		delete transaction.senderId;
 
 		if (_.has(transaction, 'amount')) {
 			transaction.amount = transaction.amount.toString();
@@ -332,5 +334,6 @@ module.exports = {
 	getAccountsPromise: getAccountsPromise,
 	getBlocksPromise: getBlocksPromise,
 	expectSwaggerParamError: expectSwaggerParamError,
-	createSignatureObject: createSignatureObject
+	createSignatureObject: createSignatureObject,
+	normalizeTransactionObject: normalizeTransactionObject
 };

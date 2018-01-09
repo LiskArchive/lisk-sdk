@@ -63,7 +63,7 @@ describe('cached endpoints', function () {
 
 		it('should not cache if response is not a success', function () {
 			var params = {
-				'whateversenderId': accountFixtures.genesis.address
+				'whateversenderAddress': accountFixtures.genesis.address
 			};
 
 			return transactionsEndpoint.makeRequest(params, 400).then(function (res) {
@@ -197,4 +197,3 @@ describe('cached endpoints', function () {
 		});
 	});
 });
-

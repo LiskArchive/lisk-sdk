@@ -947,6 +947,15 @@ Transaction.prototype.schema = {
  * @throws {string} error message
  */
 Transaction.prototype.objectNormalize = function (transaction) {
+	
+	if (transaction.amount) {
+		transaction.amount = parseInt(transaction.amount);
+	}
+
+	if (transaction.fee) {
+		transaction.fee = parseInt(transaction.fee);
+	}
+
 	if (_.isEmpty(transaction)) {
 		throw 'Empty trs passed';
 	}

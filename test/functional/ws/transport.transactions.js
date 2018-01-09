@@ -9,6 +9,8 @@ var phases = require('../common/phases');
 
 var ws = require('../../common/ws/communication');
 var randomUtil = require('../../common/utils/random');
+var ws = require('../../common/ws/communication');
+var apiHelpers = require('../../common/helpers/api');
 
 function postTransaction (transaction, done) {
 	ws.call('postTransactions', {
@@ -25,12 +27,14 @@ describe('Posting transaction (type 0)', function () {
 
 	beforeEach(function () {
 		transaction = randomUtil.transaction();
+		transaction = apiHelpers.normalizeTransactionObject(transaction);
 	});
 
 	describe('transaction processing', function () {
 
 		it('when sender has no funds should fail', function (done) {
 			var transaction = lisk.transaction.createTransaction('1L', 1, account.password);
+			transaction = apiHelpers.normalizeTransactionObject(transaction);
 
 			postTransaction(transaction, function (err, res) {
 				expect(res).to.have.property('success').to.be.not.ok;
