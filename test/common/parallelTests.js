@@ -27,6 +27,9 @@ function parallelTests (tag, suite, section) {
 				case 'system':
 					suiteFolder = 'test/functional/system/';
 					break;
+				case undefined:
+					suiteFolder = 'test/functional/';
+					break;
 				default:
 					console.warn('Invalid section argument. Options are: get, post, ws or system');
 					process.exit();
