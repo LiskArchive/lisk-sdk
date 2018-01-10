@@ -215,18 +215,6 @@ Transfer.prototype.objectNormalize = function (transaction) {
 	return transaction;
 };
 
-Transfer.prototype.dbTable = 'transfer';
-
-Transfer.prototype.dbFields = [
-	'data',
-	'transactionId'
-];
-
-/**
- * @typedef transferAsset
- * @property {string} data
- */
-
 /**
  * Checks if asset exists, if so, returns value, otherwise returns null.
  * @param {Object} raw
@@ -240,40 +228,6 @@ Transfer.prototype.dbRead = function (raw) {
 	return null;
 };
 
-/**
- * @typedef trsPromise
- * @property {string} table
- * @property {Array} fields
- * @property {Object} values
- */
-
-/**
- * Checks if asset exists, if so, returns transfer table promise, otherwise returns null.
- * @param {transaction} transaction
- * @return {trsPromise|null}
- */
-Transfer.prototype.dbSave = function (transaction) {
-	if (transaction.asset && transaction.asset.data) {
-		var data;
-
-		try {
-			data = Buffer.from(transaction.asset.data, 'utf8');
-		} catch (ex) {
-			throw ex;
-		}
-
-		return {
-			table: this.dbTable,
-			fields: this.dbFields,
-			values: {
-				data: data,
-				transactionId: transaction.id
-			}
-		};
-	}
-
-	return null;
-};
 
 /**
  * Checks if transaction has enough signatures to be confirmed.

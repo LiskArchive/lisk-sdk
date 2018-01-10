@@ -394,34 +394,6 @@ Multisignature.prototype.dbRead = function (raw) {
 	}
 };
 
-Multisignature.prototype.dbTable = 'multisignatures';
-
-Multisignature.prototype.dbFields = [
-	'min',
-	'lifetime',
-	'keysgroup',
-	'transactionId'
-];
-
-/**
- * Creates database Object based on transaction data.
- * @param {transaction} transaction - Contains multisignature object.
- * @returns {Object} {table:multisignatures, values: multisignature and transaction id}.
- * @todo check if this function is called.
- */
-Multisignature.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			min: transaction.asset.multisignature.min,
-			lifetime: transaction.asset.multisignature.lifetime,
-			keysgroup: transaction.asset.multisignature.keysgroup.join(','),
-			transactionId: transaction.id
-		}
-	};
-};
-
 /**
  * Emits a 'multisignatures/change' socket signal with transaction info.
  * @param {transaction} transaction

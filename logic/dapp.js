@@ -395,42 +395,6 @@ DApp.prototype.dbRead = function (raw) {
 	}
 };
 
-DApp.prototype.dbTable = 'dapps';
-
-DApp.prototype.dbFields = [
-	'type',
-	'name',
-	'description',
-	'tags',
-	'link',
-	'category',
-	'icon',
-	'transactionId'
-];
-
-/**
- * Creates db operation object based on dapp data.
- * @see privateTypes
- * @param {transaction} transaction
- * @return {Object[]} table, fields, values.
- */
-DApp.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			type: transaction.asset.dapp.type,
-			name: transaction.asset.dapp.name,
-			description: transaction.asset.dapp.description || null,
-			tags: transaction.asset.dapp.tags || null,
-			link: transaction.asset.dapp.link || null,
-			icon: transaction.asset.dapp.icon || null,
-			category: transaction.asset.dapp.category,
-			transactionId: transaction.id
-		}
-	};
-};
-
 /**
  * Emits 'dapps/change' signal.
  * @implements {library.network.io.sockets}

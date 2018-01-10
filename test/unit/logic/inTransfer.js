@@ -651,35 +651,6 @@ describe('inTransfer', function () {
 		});
 	});
 
-	describe('dbSave', function () {
-
-		var dbSaveResult;
-
-		beforeEach(function () {
-			dbSaveResult = inTransfer.dbSave(trs);
-		});
-
-		it('should return result containing table = "intransfer"', function () {
-			expect(dbSaveResult).to.have.property('table').equal('intransfer');
-		});
-
-		it('should return result containing fields = ["dappId", "transactionId"]', function () {
-			expect(dbSaveResult).to.have.property('fields').eql(['dappId', 'transactionId']);
-		});
-
-		it('should return result containing values', function () {
-			expect(dbSaveResult).to.have.property('values');
-		});
-
-		it('should return result containing values.dappId = trs.asset.inTransfer.dappId', function () {
-			expect(dbSaveResult).to.have.nested.property('values.dappId').equal(trs.asset.inTransfer.dappId);
-		});
-
-		it('should return result containing values.transactionId = trs.id', function () {
-			expect(dbSaveResult).to.have.nested.property('values.transactionId').equal(trs.id);
-		});
-	});
-
 	describe('afterSave', function () {
 
 		it('should call callback with error = undefined', function () {

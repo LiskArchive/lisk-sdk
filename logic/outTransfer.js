@@ -280,32 +280,6 @@ OutTransfer.prototype.dbRead = function (raw) {
 	}
 };
 
-OutTransfer.prototype.dbTable = 'outtransfer';
-
-OutTransfer.prototype.dbFields = [
-	'dappId',
-	'outTransactionId',
-	'transactionId'
-];
-
-/**
- * Creates db operation object to 'outtransfer' table based on
- * outTransfer data.
- * @param {transaction} transaction
- * @return {Object[]} table, fields, values.
- */
-OutTransfer.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			dappId: transaction.asset.outTransfer.dappId,
-			outTransactionId: transaction.asset.outTransfer.transactionId,
-			transactionId: transaction.id
-		}
-	};
-};
-
 /**
  * Checks if transaction has enough signatures to be confirmed.
  * @param {transaction} transaction

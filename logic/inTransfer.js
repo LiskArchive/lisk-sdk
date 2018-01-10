@@ -239,30 +239,6 @@ InTransfer.prototype.dbRead = function (raw) {
 	}
 };
 
-InTransfer.prototype.dbTable = 'intransfer';
-
-InTransfer.prototype.dbFields = [
-	'dappId',
-	'transactionId'
-];
-
-/**
- * Creates db operation object to 'intransfer' table based on 
- * inTransfer data.
- * @param {transaction} transaction
- * @return {Object[]} table, fields, values.
- */
-InTransfer.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			dappId: transaction.asset.inTransfer.dappId,
-			transactionId: transaction.id
-		}
-	};
-};
-
 /**
  * @param {transaction} transaction
  * @param {function} cb

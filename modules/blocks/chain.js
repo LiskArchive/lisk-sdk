@@ -140,69 +140,6 @@ __private.afterSave = function (block, cb) {
 };
 
 /**
- * Build a sequence of transaction queries
- * // FIXME: Processing here is not clean
- *
- * @private
- * @method promiseTransactions
- * @param  {Object} t SQL connection object
- * @param  {Object} block Full normalized block
- * @param  {Object} blockPromises Not used
- * @return {Object} t SQL connection object filled with inserts
- * @throws Will throw 'Invalid promise' when no promise, promise.values or promise.table
- */
-__private.promiseTransactions = function (t, block) {
-	if (_.isEmpty(block.transactions)) {
-		return t;
-	}
-
-	block.transactions.map(function (transaction) {
-		transaction.blockId = block.id;
-
-		return transaction;
-	});
-
-	return t.transactions.save(block.transactions);
-
-	// var transactionIterator = function (transaction) {
-	// 	// Apply block ID to transaction
-	// 	transaction.blockId = block.id;
-	// 	// Create bytea fileds (buffers), and returns pseudo-row promise-like object
-	// 	return library.db.transactions.save(transaction);
-	// };
-
-	// var promiseGrouper = function (promise) {
-	// 	if (promise && promise.table) {
-	// 		return promise.table;
-	// 	} else {
-	// 		throw 'Invalid promise';
-	// 	}
-	// };
-	//
-	// var typeIterator = function (type) {
-	// 	var values = [];
-	//
-	// 	_.each(type, function (promise) {
-	// 		if (promise && promise.values) {
-	// 			values = values.concat(promise.values);
-	// 		} else {
-	// 			throw 'Invalid promise';
-	// 		}
-	// 	});
-	//
-	// 	// Initialize insert helper
-	// 	var inserts = new Inserts(type[0], values, true);
-	// 	// Prepare insert SQL query
-	// 	t.none(inserts.template(), inserts);
-	// };
-
-	// var promises = _.flatMap(block.transactions, transactionIterator);
-	// _.each(_.groupBy(promises, promiseGrouper), typeIterator);
-
-	// return _.flatMap(block.transactions, transactionIterator);
-};
-
-/**
  * Deletes block from blocks table
  *
  * @private

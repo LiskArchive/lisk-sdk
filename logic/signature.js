@@ -228,38 +228,6 @@ Signature.prototype.dbRead = function (raw) {
 	}
 };
 
-Signature.prototype.dbTable = 'signatures';
-
-Signature.prototype.dbFields = [
-	'transactionId',
-	'publicKey'
-];
-
-/**
- * Creates database Object based on transaction data.
- * @param {transaction} transaction - Contains signature object.
- * @returns {Object} {table:signatures, values: publicKey and transaction id}.
- * @todo check if this function is called.
- */
-Signature.prototype.dbSave = function (transaction) {
-	var publicKey;
-
-	try {
-		publicKey = Buffer.from(transaction.asset.signature.publicKey, 'hex');
-	} catch (e) {
-		throw e;
-	}
-
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			transactionId: transaction.id,
-			publicKey: publicKey
-		}
-	};
-};
-
 /**
  * Checks if transaction has enough signatures to be confirmed.
  * @param {transaction} transaction

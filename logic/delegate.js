@@ -345,29 +345,6 @@ Delegate.prototype.dbRead = function (raw) {
 	}
 };
 
-Delegate.prototype.dbTable = 'delegates';
-
-Delegate.prototype.dbFields = [
-	'username',
-	'transactionId'
-];
-
-/**
- * Creates object based on transaction data.
- * @param {transaction} transaction - Contains delegate username.
- * @returns {Object} {table:delegates, username and transaction id}.
- */
-Delegate.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			username: transaction.asset.delegate.username,
-			transactionId: transaction.id
-		}
-	};
-};
-
 /**
  * Checks if transaction has enough signatures to be confirmed.
  * @param {transaction} transaction

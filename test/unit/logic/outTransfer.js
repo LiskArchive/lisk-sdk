@@ -767,35 +767,6 @@ describe('outTransfer', function () {
 		});
 	});
 
-	describe('dbSave', function () {
-
-		var dbSaveResult;
-
-		beforeEach(function () {
-			dbSaveResult = outTransfer.dbSave(transaction);
-		});
-
-		it('should return result containing table = "outtransfer"', function () {
-			expect(dbSaveResult).to.have.property('table').equal('outtransfer');
-		});
-
-		it('should return result containing fields = ["dappId", "outTransactionId", "transactionId"]', function () {
-			expect(dbSaveResult).to.have.property('fields').eql(['dappId', 'outTransactionId', 'transactionId']);
-		});
-
-		it('should return result containing values', function () {
-			expect(dbSaveResult).to.have.property('values');
-		});
-
-		it('should return result containing values.dappId = transaction.asset.outTransfer.dappId', function () {
-			expect(dbSaveResult).to.have.nested.property('values.dappId').equal(transaction.asset.outTransfer.dappId);
-		});
-
-		it('should return result containing values.transactionId = transaction.id', function () {
-			expect(dbSaveResult).to.have.nested.property('values.transactionId').equal(transaction.id);
-		});
-	});
-
 	describe('ready', function () {
 
 		it('should return true for single signature transaction', function () {

@@ -352,29 +352,6 @@ Vote.prototype.dbRead = function (raw) {
 	}
 };
 
-Vote.prototype.dbTable = 'votes';
-
-Vote.prototype.dbFields = [
-	'votes',
-	'transactionId'
-];
-
-/**
- * Creates db operation object to 'votes' table based on votes data.
- * @param {transaction} transaction
- * @return {Object[]} table, fields, values.
- */
-Vote.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			votes: Array.isArray(transaction.asset.votes) ? transaction.asset.votes.join(',') : null,
-			transactionId: transaction.id
-		}
-	};
-};
-
 /**
  * Checks if transaction has enough signatures to be confirmed.
  * @param {transaction} transaction
