@@ -19,17 +19,18 @@ __private.assetTypes = {};
  * - DApp
  * - InTransfer
  * - OutTransfer
+ *
  * Calls logic.transaction.attachAssetType().
  *
- * Listens `exit` signal.
+ * Listens for an `exit` signal.
  * @memberof module:dapps
  * @class
  * @classdesc Main dapps methods.
  * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
  * @return {setImmediateCallback} Callback function with `self` as data.
- * @todo apply node pattern for callbacks: callback always at the end.
- * @todo add 'use strict';
+ * @todo Apply node pattern for callbacks: callback always at the end.
+ * @todo Add 'use strict';
  */
 // Constructor
 function DApps (cb, scope) {
@@ -75,8 +76,9 @@ function DApps (cb, scope) {
 			scope.logger
 		)
 	);
+
 	/**
-	 * Receives an 'exit' signal and calls stopDApp for each launched app.
+	 * Receives an 'exit' signal and calls stopDApp for each launched application.
 	 * @listens exit
 	 */
 	process.on('exit', function () {
@@ -87,13 +89,13 @@ function DApps (cb, scope) {
 
 // Private methods
 /**
- * Gets records from `dapps` table based on filter
+ * Gets applications based on a given filter object
  * @private
  * @implements {library.db.query}
- * @param {Object} filter - Could contains type, name, category, link, limit,
+ * @param {Object} filter - May contain type, name, category, link, limit,
  * offset, sort
- * @param {function} cb
- * @return {setImmediateCallback} error description | rows data
+ * @param {function} cb - Callback function
+ * @return {setImmediateCallback} cb, error | cb, null, application
  */
 __private.list = function (filter, cb) {
 	var params = {}, where = [];
