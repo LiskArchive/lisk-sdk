@@ -457,7 +457,8 @@ describe('outTransfer', function () {
 			expect(accountsStub.setAccountAndGet.calledWith({address: transaction.recipientId})).to.be.true;
 		});
 
-		describe('when modules.accounts.setAccountAndGet fails', function () {
+		// TODO:#1242 Have to disable due to issue https://github.com/LiskHQ/lisk/issues/1242
+		describe.skip('when modules.accounts.setAccountAndGet fails', function () {
 
 			beforeEach(function () {
 				accountsStub.setAccountAndGet = sinon.stub.callsArgWith(1, 'setAccountAndGet error');
@@ -500,7 +501,8 @@ describe('outTransfer', function () {
 				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
 			});
 
-			describe('when modules.accounts.mergeAccountAndGet fails', function () {
+			// TODO:#1242 Have to disable due to issue https://github.com/LiskHQ/lisk/issues/1242
+			describe.skip('when modules.accounts.mergeAccountAndGet fails', function () {
 
 				beforeEach(function () {
 					accountsStub.mergeAccountAndGet = sinon.stub().callsArgWith(1, 'mergeAccountAndGet error');
@@ -513,7 +515,8 @@ describe('outTransfer', function () {
 				});
 			});
 
-			describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
+			// TODO:#1242 Have to disable due to issue https://github.com/LiskHQ/lisk/issues/1242
+			describe.skip('when modules.accounts.mergeAccountAndGet succeeds', function () {
 
 				it('should call callback with error = undefined', function () {
 					outTransfer.apply(transaction, dummyBlock, sender, function (err) {
