@@ -60,7 +60,7 @@ Vote.prototype.calculateFee = function (transaction, sender) {
  * @returns {setImmediateCallback|function} returns error if invalid field | 
  * calls checkConfirmedDelegates.
  */
-Vote.prototype.verify = function (transaction, sender, cb) {
+Vote.prototype.verify = function (transaction, sender, cb, tx) {
 	if (transaction.recipientId !== transaction.senderId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
@@ -88,7 +88,7 @@ Vote.prototype.verify = function (transaction, sender, cb) {
 			} else {
 				return setImmediate(eachSeriesCb);
 			}
-		});
+		}, tx);
 	}, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -98,7 +98,7 @@ Vote.prototype.verify = function (transaction, sender, cb) {
 				return setImmediate(cb, 'Multiple votes for same delegate are not allowed');
 			}
 
-			return self.checkConfirmedDelegates(transaction, cb);
+			return self.checkConfirmedDelegates(transaction, cb, tx);
 		}
 	});
 };
@@ -109,7 +109,7 @@ Vote.prototype.verify = function (transaction, sender, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error message | cb.
  */
-Vote.prototype.verifyVote = function (vote, cb) {
+Vote.prototype.verifyVote = function (vote, cb, tx) {
 	if (typeof vote !== 'string') {
 		return setImmediate(cb, 'Invalid vote type');
 	}
@@ -133,7 +133,7 @@ Vote.prototype.verifyVote = function (vote, cb) {
  * @return {setImmediateCallback} cb, err(if transaction id is not in 
  * exceptions votes list)
  */
-Vote.prototype.checkConfirmedDelegates = function (transaction, cb) {
+Vote.prototype.checkConfirmedDelegates = function (transaction, cb, tx) {
 	modules.delegates.checkConfirmedDelegates(transaction.senderPublicKey, transaction.asset.votes, function (err) {
 		if (err && exceptions.votes.indexOf(transaction.id) > -1) {
 			library.logger.debug(err);
@@ -142,7 +142,7 @@ Vote.prototype.checkConfirmedDelegates = function (transaction, cb) {
 		}
 
 		return setImmediate(cb, err);
-	});
+	}, tx);
 };
 
 /**
@@ -153,7 +153,7 @@ Vote.prototype.checkConfirmedDelegates = function (transaction, cb) {
  * @return {setImmediateCallback} cb, err(if transaction id is not in 
  * exceptions votes list)
  */
-Vote.prototype.checkUnconfirmedDelegates = function (transaction, cb) {
+Vote.prototype.checkUnconfirmedDelegates = function (transaction, cb, tx) {
 	modules.delegates.checkUnconfirmedDelegates(transaction.senderPublicKey, transaction.asset.votes, function (err) {
 		if (err && exceptions.votes.indexOf(transaction.id) > -1) {
 			library.logger.debug(err);
@@ -162,7 +162,7 @@ Vote.prototype.checkUnconfirmedDelegates = function (transaction, cb) {
 		}
 
 		return setImmediate(cb, err);
-	});
+	}, tx);
 };
 
 /**
@@ -205,12 +205,12 @@ Vote.prototype.getBytes = function (transaction) {
  * @param {function} cb - Callback function
  * @todo delete unnecessary var parent = this
  */
-Vote.prototype.apply = function (transaction, block, sender, cb) {
+Vote.prototype.apply = function (transaction, block, sender, cb, tx) {
 	var parent = this;
 
 	async.series([
 		function (seriesCb) {
-			self.checkConfirmedDelegates(transaction, seriesCb);
+			self.checkConfirmedDelegates(transaction, seriesCb, tx);
 		},
 		function (seriesCb) {
 			parent.scope.account.merge(sender.address, {
@@ -219,7 +219,7 @@ Vote.prototype.apply = function (transaction, block, sender, cb) {
 				round: slots.calcRound(block.height)
 			}, function (err) {
 				return setImmediate(cb, err);
-			});
+			}, tx);
 		}
 	], cb);
 };
@@ -260,19 +260,19 @@ Vote.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb - Callback function
  * @todo delete unnecessary var parent = this
  */
-Vote.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+Vote.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 	var parent = this;
 
 	async.series([
 		function (seriesCb) {
-			self.checkUnconfirmedDelegates(transaction, seriesCb);
+			self.checkUnconfirmedDelegates(transaction, seriesCb, tx);
 		},
 		function (seriesCb) {
 			parent.scope.account.merge(sender.address, {
 				u_delegates: transaction.asset.votes
 			}, function (err) {
 				return setImmediate(seriesCb, err);
-			});
+			}, tx);
 		}
 	], cb);
 };
@@ -288,14 +288,14 @@ Vote.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} cb, err
  */
-Vote.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+Vote.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
 	if (transaction.asset.votes === null) { return setImmediate(cb); }
 
 	var votesInvert = Diff.reverse(transaction.asset.votes);
 
 	this.scope.account.merge(sender.address, {u_delegates: votesInvert}, function (err) {
 		return setImmediate(cb, err);
-	});
+	}, tx);
 };
 
 /**
@@ -350,29 +350,6 @@ Vote.prototype.dbRead = function (raw) {
 
 		return {votes: votes};
 	}
-};
-
-Vote.prototype.dbTable = 'votes';
-
-Vote.prototype.dbFields = [
-	'votes',
-	'transactionId'
-];
-
-/**
- * Creates db operation object to 'votes' table based on votes data.
- * @param {transaction} transaction
- * @return {Object[]} table, fields, values.
- */
-Vote.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			votes: Array.isArray(transaction.asset.votes) ? transaction.asset.votes.join(',') : null,
-			transactionId: transaction.id
-		}
-	};
 };
 
 /**

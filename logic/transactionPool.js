@@ -153,7 +153,7 @@ TransactionPool.prototype.getMultisignatureTransaction = function (id) {
  * @param {number} [limit]
  * @return {getTransactionList} Calls getTransactionList
  */
-TransactionPool.prototype.getUnconfirmedTransactionList = function (reverse, limit) {
+TransactionPool.prototype.getUnconfirmedTransactionList = function (reverse, limit, tx) {
 	return __private.getTransactionList(self.unconfirmed.transactions, reverse, limit);
 };
 
@@ -534,8 +534,8 @@ TransactionPool.prototype.applyUnconfirmedList = function (cb) {
  * @param {function} cb - Callback function.
  * @return {applyUnconfirmedList}
  */
-TransactionPool.prototype.applyUnconfirmedIds = function (ids, cb) {
-	return __private.applyUnconfirmedList(ids, cb);
+TransactionPool.prototype.applyUnconfirmedIds = function (ids, cb, tx) {
+	return __private.applyUnconfirmedList(ids, cb, tx);
 };
 
 /**
@@ -546,7 +546,7 @@ TransactionPool.prototype.applyUnconfirmedIds = function (ids, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | ids[]
  */
-TransactionPool.prototype.undoUnconfirmedList = function (cb) {
+TransactionPool.prototype.undoUnconfirmedList = function (cb, tx) {
 	var ids = [];
 
 	async.eachSeries(self.getUnconfirmedTransactionList(false), function (transaction, eachSeriesCb) {
@@ -558,7 +558,7 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 					self.removeUnconfirmedTransaction(transaction.id);
 				}
 				return setImmediate(eachSeriesCb);
-			});
+			}, tx);
 		} else {
 			return setImmediate(eachSeriesCb);
 		}
@@ -677,14 +677,14 @@ __private.getTransactionList = function (transactions, reverse, limit) {
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} errors | sender
  */
-__private.processVerifyTransaction = function (transaction, broadcast, cb) {
+__private.processVerifyTransaction = function (transaction, broadcast, cb, tx) {
 	if (!transaction) {
 		return setImmediate(cb, 'Missing transaction');
 	}
 
 	async.waterfall([
 		function setAccountAndGet (waterCb) {
-			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb);
+			modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, waterCb, tx);
 		},
 		function getRequester (sender, waterCb) {
 			var multisignatures = Array.isArray(sender.multisignatures) && sender.multisignatures.length;
@@ -700,7 +700,7 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 					} else {
 						return setImmediate(waterCb, null, sender, requester);
 					}
-				});
+				}, tx);
 			} else {
 				return setImmediate(waterCb, null, sender, null);
 			}
@@ -712,7 +712,7 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 				} else {
 					return setImmediate(waterCb, null, sender);
 				}
-			});
+			}, tx);
 		},
 		function normalizeTransaction (sender, waterCb) {
 			try {
@@ -729,7 +729,7 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 				} else {
 					return setImmediate(waterCb, null, sender);
 				}
-			});
+			}, tx);
 		}
 	], function (err, sender) {
 		if (!err) {
@@ -752,7 +752,7 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb) {
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} error | cb
  */
-__private.applyUnconfirmedList = function (transactions, cb) {
+__private.applyUnconfirmedList = function (transactions, cb, tx) {
 	async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 		if (typeof transaction === 'string') {
 			transaction = self.getUnconfirmedTransaction(transaction);
@@ -772,8 +772,8 @@ __private.applyUnconfirmedList = function (transactions, cb) {
 					self.removeUnconfirmedTransaction(transaction.id);
 				}
 				return setImmediate(eachSeriesCb);
-			});
-		});
+			}, tx);
+		}, tx);
 	}, cb);
 };
 
