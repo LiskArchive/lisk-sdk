@@ -183,6 +183,7 @@ var modulesLoader = new function () {
 			{loader: require('../../modules/loader')},
 			{multisignatures: require('../../modules/multisignatures')},
 			{peers: require('../../modules/peers')},
+			{rounds: require('../../modules/rounds')},
 			{signatures: require('../../modules/signatures')},
 			{system: require('../../modules/system')},
 			{transactions: require('../../modules/transactions')},

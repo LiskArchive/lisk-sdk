@@ -32,11 +32,19 @@ var Queries = {
 		'WITH',
 		'delegate AS (SELECT',
 		'1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE($1, \'hex\') LIMIT 1),',
-		'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards, SUM(fees) AS fees FROM rounds_rewards WHERE pk = DECODE($1, \'hex\')',
+		'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards FROM blocks WHERE "generatorPublicKey" = DECODE($1, \'hex\')',
+		'AND ($2 IS NULL OR timestamp >= $2)',
+		'AND ($3 IS NULL OR timestamp <= $3)',
+		'),',
+		'fees AS (SELECT SUM(fees) AS fees FROM rounds_fees WHERE "publicKey" = DECODE($1, \'hex\')',
 		'AND ($2 IS NULL OR timestamp >= $2)',
 		'AND ($3 IS NULL OR timestamp <= $3)',
 		')',
-		'SELECT (SELECT * FROM delegate) AS delegate, * FROM rewards'
+		'SELECT',
+		'(SELECT * FROM delegate) AS delegate,',
+		'(SELECT count FROM rewards) AS count,',
+		'(SELECT fees FROM fees) AS fees,',
+		'(SELECT rewards FROM rewards) AS rewards'
 	].filter(Boolean).join(' ')),
 
 	list: function (params) {
@@ -106,7 +114,7 @@ BlocksRepo.prototype.getGenesisBlockId = function (id) {
 };
 
 BlocksRepo.prototype.deleteBlock = function (id) {
-	return this.db.none(Queries.deleteBlock[id]);
+	return this.db.none(Queries.deleteBlock, [id]);
 };
 
 BlocksRepo.prototype.aggregateBlocksReward = function (params) {
