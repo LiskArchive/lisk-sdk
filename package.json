@@ -28,16 +28,17 @@
   "scripts": {
     "start": "node app.js",
     "console": "node scripts/console.js",
-    "eslint": "./node_modules/.bin/grunt eslint-nofix --verbose",
-    "fetchCoverage": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
-    "coverageReport": "./node_modules/.bin/grunt coverageReport --verbose",
+    "lint": "./node_modules/.bin/grunt eslint-nofix --verbose",
+    "cover:fetch": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
+    "cover:report": "./node_modules/.bin/grunt coverageReport --verbose",
     "test": "./node_modules/.bin/grunt",
     "grunt": "./node_modules/.bin/grunt",
     "mocha": "./node_modules/.bin/mocha",
-    "jsdoc": "jsdoc -c docs/conf.json --verbose --pedantic",
-    "create-bundles": "webpack",
-    "server-docs": "npm run jsdoc && http-server docs/jsdoc/",
-    "precommit": "npm run eslint"
+    "build": "webpack",
+    "docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
+    "docs:serve": "npm run jsdoc && http-server docs/jsdoc/",
+    "precommit": "npm run lint",
+    "prepush": "npm run lint"
   },
   "dependencies": {
     "async": "=2.4.1",
