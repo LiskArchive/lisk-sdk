@@ -71,7 +71,6 @@ describe('Lisk API module', () => {
 	let checkOptionsStub;
 	let handleTimestampIsInFutureFailuresStub;
 	let handleSendRequestFailuresStub;
-	let getFullURLStub;
 	let LSK;
 
 	beforeEach(() => {
@@ -91,7 +90,6 @@ describe('Lisk API module', () => {
 			privateApi,
 			'handleSendRequestFailures',
 		);
-		getFullURLStub = sandbox.stub(utils, 'getFullURL').returns(defaultUrl);
 
 		LSK = new LiskAPI({});
 	});
@@ -470,53 +468,87 @@ describe('Lisk API module', () => {
 		});
 	});
 
-	describe('#broadcastSignedTransaction', () => {
-		let transaction;
-		let requestObject;
+	describe('#broadcastTransactions', () => {
+		let transactions;
 
 		beforeEach(() => {
-			transaction = {
-				key1: 'value1',
-				key2: 2,
-			};
-			requestObject = {
-				requestUrl: `${defaultUrl}/api/transactions`,
-				nethash: defaultNethash,
-				requestParams: { transaction },
-			};
-		});
-
-		it('should use getFullURL to get the url', () => {
-			return LSK.broadcastSignedTransaction({}).then(() => {
-				getFullURLStub.should.be.calledWithExactly(LSK);
-			});
+			transactions = [
+				{
+					key1: 'value1',
+					key2: 2,
+				},
+				{
+					key3: 'value3',
+					key4: 4,
+				},
+			];
 		});
 
 		it('should call sendRequestPromise with a prepared request object', () => {
-			return LSK.broadcastSignedTransaction(transaction).then(() => {
+			return LSK.broadcastTransactions(transactions).then(() => {
 				sendRequestPromiseStub.should.be.calledOn(LSK);
-				sendRequestPromiseStub.should.be.calledWithExactly(POST, requestObject);
+				sendRequestPromiseStub.should.be.calledWithExactly(
+					POST,
+					'transactions',
+					transactions,
+				);
 			});
 		});
 
 		it('should resolve to the body of the result of sendRequestPromise', () => {
-			return LSK.broadcastSignedTransaction(transaction).then(result =>
+			return LSK.broadcastTransactions(transactions).then(result =>
 				result.should.be.equal(defaultRequestPromiseResult.body),
 			);
 		});
 
 		it('should call the callback with the body of the result of sendRequestPromise', () => {
 			return new Promise(resolve => {
-				LSK.broadcastSignedTransaction({}, resolve);
+				LSK.broadcastTransactions([], resolve);
 			}).then(result => {
 				result.should.be.equal(defaultRequestPromiseResult.body);
 			});
 		});
 	});
 
+	describe('#broadcastTransaction', () => {
+		let transaction;
+		let broadcastTransactionsResult;
+		let result;
+
+		beforeEach(() => {
+			transaction = {
+				key1: 'value1',
+				key2: 2,
+			};
+			broadcastTransactionsResult = { success: true };
+			sandbox
+				.stub(LSK, 'broadcastTransactions')
+				.returns(broadcastTransactionsResult);
+			result = LSK.broadcastTransaction(transaction);
+			return result;
+		});
+
+		it('should wrap the transaction in an array and call broadcastTransactions', () => {
+			return LSK.broadcastTransactions.should.be.calledWithExactly(
+				[transaction],
+				undefined,
+			);
+		});
+		it('should return the result of broadcasting the transaction', () => {
+			return result.should.equal(broadcastTransactionsResult);
+		});
+		it('should pass on the callback', () => {
+			LSK.broadcastTransactions.callsArgWith(1, broadcastTransactionsResult);
+			return new Promise(resolve => {
+				LSK.broadcastTransaction(transaction, resolve);
+			}).then(resultViaCallback =>
+				resultViaCallback.should.equal(broadcastTransactionsResult),
+			);
+		});
+	});
+
 	describe('#broadcastSignatures', () => {
 		let signatures;
-		let requestObject;
 
 		beforeEach(() => {
 			signatures = [
@@ -529,23 +561,14 @@ describe('Lisk API module', () => {
 					key4: 4,
 				},
 			];
-			requestObject = {
-				requestUrl: `${defaultUrl}/api/signatures`,
-				nethash: defaultNethash,
-				requestParams: { signatures },
-			};
-		});
-
-		it('should use getFullURL to get the url', () => {
-			return LSK.broadcastSignatures({}).then(() => {
-				getFullURLStub.should.be.calledWithExactly(LSK);
-			});
 		});
 
 		it('should call sendRequestPromise with a prepared request object', () => {
 			return LSK.broadcastSignatures(signatures).then(() => {
 				sendRequestPromiseStub.should.be.calledOn(LSK);
-				sendRequestPromiseStub.should.be.calledWithExactly(POST, requestObject);
+				sendRequestPromiseStub.should.be.calledWithExactly(POST, 'signatures', {
+					signatures,
+				});
 			});
 		});
 
