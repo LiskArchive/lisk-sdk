@@ -85,7 +85,7 @@ def archive_logs() {
 
 def run_action(action) {
 	try {
-		if (action == 'eslint') {
+		if (action == 'lint') {
 			sh """
 			cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
 			npm run ${action}
@@ -275,7 +275,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			parallel(
 				"ESLint" : {
 					node('node-01'){
-						run_action('eslint')
+						run_action('lint')
 					}
 				},
 				"Functional HTTP GET tests" : {
