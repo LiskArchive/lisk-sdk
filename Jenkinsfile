@@ -85,7 +85,7 @@ def archive_logs() {
 
 def run_action(action) {
 	try {
-		if (action == 'eslint') {
+		if (action == 'lint') {
 			sh """
 			cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
 			npm run ${action}
@@ -110,8 +110,8 @@ def report_coverage(node) {
 		sh """
 		export HOST=127.0.0.1:4000
 		# Gathers tests into single lcov.info
-		npm run coverageReport
-		npm run fetchCoverage
+		npm run cover:report
+		npm run cover:fetch
 		# Submit coverage reports to Master
 		scp -r test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
 		scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-${node}.zip
@@ -275,7 +275,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			parallel(
 				"ESLint" : {
 					node('node-01'){
-						run_action('eslint')
+						run_action('lint')
 					}
 				},
 				"Functional HTTP GET tests" : {
