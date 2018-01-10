@@ -68,11 +68,11 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 	if (!transaction) {
 		return setImmediate(cb, 'Unable to process signature. Signature is undefined.');
 	}
-	var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(transaction.transaction);
+	var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(transaction.transactionId);
 
 	function done (cb) {
 		library.balancesSequence.add(function (cb) {
-			var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(transaction.transaction);
+			var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(transaction.transactionId);
 
 			if (!multisignatureTransaction) {
 				return setImmediate(cb, 'Transaction not found');
@@ -90,7 +90,7 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 					multisignatureTransaction.signatures.push(transaction.signature);
 					multisignatureTransaction.ready = Multisignature.prototype.ready(multisignatureTransaction, sender);
 
-					library.bus.message('signature', {transaction: transaction.transaction, signature: transaction.signature}, true);
+					library.bus.message('signature', transaction, true);
 					return setImmediate(cb);
 				}
 			});

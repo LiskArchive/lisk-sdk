@@ -319,7 +319,7 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '(d."rank")'
+			expression: 'row_number() OVER (ORDER BY a."vote" DESC, a."publicKey" ASC)::int'
 		},
 		{
 			name: 'rewards',
@@ -328,7 +328,7 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '(d."rewards")::bigint'
+			expression: '(a."rewards")::bigint'
 		},
 		{
 			name: 'vote',
@@ -337,19 +337,19 @@ function Account (db, schema, logger, cb) {
 				type: 'integer'
 			},
 			conv: Number,
-			expression: '(d."voters_balance")::bigint'
+			expression: '(a."vote")::bigint'
 		},
 		{
 			name: 'producedBlocks',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(d."blocks_forged_cnt")::bigint'
+			expression: '(a."producedblocks")::bigint'
 		},
 		{
 			name: 'missedBlocks',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(d."blocks_missed_cnt")::bigint'
+			expression: '(a."missedblocks")::bigint'
 		},
 		{
 			name: 'virgin',
@@ -450,6 +450,7 @@ Account.prototype.bind = function (blocks) {
 /**
  * Creates memory tables related to accounts:
  * - mem_accounts
+ * - mem_round
  * - mem_accounts2delegates
  * - mem_accounts2u_delegates
  * - mem_accounts2multisignatures
@@ -470,6 +471,7 @@ Account.prototype.createTables = function (cb) {
 
 /**
  * Deletes the contents of these tables:
+ * - mem_round
  * - mem_accounts2delegates
  * - mem_accounts2u_delegates
  * - mem_accounts2multisignatures
@@ -481,6 +483,7 @@ Account.prototype.removeTables = function (cb) {
 	var sqles = [], sql;
 
 	[this.table,
+		'mem_round',
 		'mem_accounts2delegates',
 		'mem_accounts2u_delegates',
 		'mem_accounts2multisignatures',
@@ -569,8 +572,9 @@ Account.prototype.toDB = function (raw) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Returns null or Object with database data.
  */
-Account.prototype.get = function (filter, fields, cb) {
+Account.prototype.get = function (filter, fields, cb, tx) {
 	if (typeof(fields) === 'function') {
+		tx = cb;
 		cb = fields;
 		fields = this.fields.map(function (field) {
 			return field.alias || field.field;
@@ -579,7 +583,7 @@ Account.prototype.get = function (filter, fields, cb) {
 
 	this.getAll(filter, fields, function (err, data) {
 		return setImmediate(cb, err, data && data.length ? data[0] : null);
-	});
+	}, tx);
 };
 
 /**
@@ -589,7 +593,7 @@ Account.prototype.get = function (filter, fields, cb) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
  */
-Account.prototype.getAll = function (filter, fields, cb) {
+Account.prototype.getAll = function (filter, fields, cb, tx) {
 	if (typeof fields === 'function') {
 		cb = fields;
 		fields = this.fields.map(function (field) {
@@ -679,21 +683,12 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		sort: sort,
 		condition: filter,
 		fields: realFields,
-		alias: 'a',
-		join: {
-			delegates: {
-				type: 'left',
-				on: {
-					'a.address': 'd.address'
-				},
-				alias: 'd'
-			}
-		}
+		alias: 'a'
 	});
 
 	var self = this;
 
-	this.scope.db.query(sql.query, sql.values).then(function (rows) {
+	(tx || this.scope.db).query(sql.query, sql.values).then(function (rows) {
 		var lastBlock = modules.blocks.lastBlock.get();
 		// If the last block height is undefined, it means it's a genesis block with height = 1
 		// look for a constant for total supply
@@ -761,7 +756,7 @@ Account.prototype.calculateProductivity = function (producedBlocks, missedBlocks
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} cb | 'Account#set error'.
  */
-Account.prototype.set = function (address, fields, cb) {
+Account.prototype.set = function (address, fields, cb, tx) {
 	// Verify public key
 	this.verifyPublicKey(fields.publicKey);
 
@@ -777,7 +772,7 @@ Account.prototype.set = function (address, fields, cb) {
 		modifier: this.toDB(fields)
 	});
 
-	this.scope.db.none(sql.query, sql.values).then(function () {
+	(tx || this.scope.db).none(sql.query, sql.values).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -787,13 +782,14 @@ Account.prototype.set = function (address, fields, cb) {
 
 /**
  * Updates account from mem_account with diff data belonging to an editable field.
+ * Inserts into mem_round "address", "amount", "delegate", "blockId", "round" based on balance or delegates fields.
  * @param {address} address
  * @param {Object} diff - Must contains only mem_account editable fields.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
  */
-Account.prototype.merge = function (address, diff, cb) {
-	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {};
+Account.prototype.merge = function (address, diff, cb, tx) {
+	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {}, round = [];
 
 	// Verify public key
 	this.verifyPublicKey(diff.publicKey);
@@ -816,6 +812,17 @@ Account.prototype.merge = function (address, diff, cb) {
 					} else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
 						update.$inc = update.$inc || {};
 						update.$inc[value] = Math.floor(trueValue);
+						if (value === 'balance') {
+							round.push({
+								query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
+								values: {
+									address: address,
+									amount: trueValue,
+									blockId: diff.blockId,
+									round: diff.round
+								}
+							});
+						}
 					} else if (trueValue < 0) {
 						update.$dec = update.$dec || {};
 						update.$dec[value] = Math.floor(Math.abs(trueValue));
@@ -823,6 +830,17 @@ Account.prototype.merge = function (address, diff, cb) {
 						if (update.$dec.u_balance) {
 							// Remove virginity and ensure marked columns become immutable
 							update.virgin = 0;
+						}
+						if (value === 'balance') {
+							round.push({
+								query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
+								values: {
+									address: address,
+									amount: trueValue,
+									blockId: diff.blockId,
+									round: diff.round
+								}
+							});
 						}
 					}
 					break;
@@ -852,14 +870,47 @@ Account.prototype.merge = function (address, diff, cb) {
 								val = trueValue[i].slice(1);
 								remove[value] = remove[value] || [];
 								remove[value].push(val);
+								if (value === 'delegates') {
+									round.push({
+										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (-balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
+										values: {
+											address: address,
+											delegate: val,
+											blockId: diff.blockId,
+											round: diff.round
+										}
+									});
+								}
 							} else if (math === '+') {
 								val = trueValue[i].slice(1);
 								insert[value] = insert[value] || [];
 								insert[value].push(val);
+								if (value === 'delegates') {
+									round.push({
+										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
+										values: {
+											address: address,
+											delegate: val,
+											blockId: diff.blockId,
+											round: diff.round
+										}
+									});
+								}
 							} else {
 								val = trueValue[i];
 								insert[value] = insert[value] || [];
 								insert[value].push(val);
+								if (value === 'delegates') {
+									round.push({
+										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
+										values: {
+											address: address,
+											delegate: val,
+											blockId: diff.blockId,
+											round: diff.round
+										}
+									});
+								}
 							}
 						}
 					}
@@ -945,11 +996,11 @@ Account.prototype.merge = function (address, diff, cb) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			self.get({address: address}, cb);
+			self.get({address: address}, cb, tx);
 		}
 	}
 
-	var queries = sqles.map(function (sql) {
+	var queries = sqles.concat(round).map(function (sql) {
 		return pgp.as.format(sql.query, sql.values);
 	}).join('');
 
@@ -961,7 +1012,7 @@ Account.prototype.merge = function (address, diff, cb) {
 		return done();
 	}
 
-	this.scope.db.none(queries).then(function () {
+	(tx || this.scope.db).none(queries).then(function () {
 		return done();
 	}).catch(function (err) {
 		library.logger.error(err.stack);

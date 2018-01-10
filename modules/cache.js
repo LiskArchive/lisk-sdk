@@ -8,7 +8,7 @@ var logger;
 var cacheEnabled;
 
 /**
- * Cache module
+ * Cache module.
  * @constructor
  * @param {function} cb
  * @param {Object} scope
@@ -22,16 +22,16 @@ function Cache (cb, scope) {
 }
 
 /**
- * It gets the status of the redis connection
+ * Gets redis connection status.
  * @returns {boolean} status
  */
 Cache.prototype.isConnected = function () {
-	// using client.ready because this variable is updated on client connected
+	// Use client.ready because this variable is updated on client connection
 	return cacheEnabled && client && client.ready;
 };
 
 /**
- * It gets the caching readiness and the connection of redis
+ * Gets caching readiness and the redis connection status.
  * @returns {boolean} status
  */
 Cache.prototype.isReady = function () {
@@ -39,27 +39,27 @@ Cache.prototype.isReady = function () {
 };
 
 /**
- * It gets the json value for a key from redis
+ * Gets json value for a key from redis.
  * @param {string} key
  * @param {function} cb
  * @returns {function} cb
  */
 Cache.prototype.getJsonForKey = function (key, cb) {
 	logger.debug(['Cache - Get value for key:', key, '| Status:', self.isConnected()].join(' '));
-	if (!self.isConnected()) { 
-		return cb(errorCacheDisabled); 
+	if (!self.isConnected()) {
+		return cb(errorCacheDisabled);
 	}
 	client.get(key, function (err, value) {
 		if (err) {
 			return cb(err, value);
 		}
-		// parsing string to json
+		// Parse string to json
 		return cb(null, JSON.parse(value));
 	});
 };
- 
+
 /**
- * It sets json value for a key in redis
+ * Sets json value for a key in redis.
  * @param {string} key
  * @param {Object} value
  * @param {function} cb
@@ -74,12 +74,12 @@ Cache.prototype.setJsonForKey = function (key, value, cb) {
 		return cb(errorCacheDisabled);
 	}
 
-	// redis calls toString on objects, which converts it to object [object] so calling stringify before saving
+	// Redis calls toString on objects, which converts it to object [object] so calling stringify before saving
 	client.set(key, JSON.stringify(value), cb);
 };
 
 /**
- * It deletes json value for a key in redis
+ * Deletes json value for a key in redis.
  * @param {string} key
  */
 Cache.prototype.deleteJsonForKey = function (key, cb) {
@@ -91,7 +91,7 @@ Cache.prototype.deleteJsonForKey = function (key, cb) {
 };
 
 /**
- * It scans keys with provided pattern in redis db and deletes the entries that match
+ * Scans keys with provided pattern in redis db and deletes the entries that match.
  * @param {string} pattern
  * @param {function} cb
  */
@@ -120,19 +120,19 @@ Cache.prototype.removeByPattern = function (pattern, cb) {
 };
 
 /**
- * It removes all entries from redis db
+ * Removes all entries from redis db.
  * @param {function} cb
  */
 Cache.prototype.flushDb = function (cb) {
 	logger.debug('Cache - Flush database');
-	if (!self.isConnected()) { 
-		return cb(errorCacheDisabled); 
+	if (!self.isConnected()) {
+		return cb(errorCacheDisabled);
 	}
 	client.flushdb(cb);
 };
 
 /**
- * On application clean event, it quits the redis connection
+ * Quits established redis connection upon process exit.
  * @param {function} cb
  */
 Cache.prototype.cleanup = function (cb) {
@@ -141,29 +141,32 @@ Cache.prototype.cleanup = function (cb) {
 };
 
 /**
- * it quits the redis connection
+ * Quits established redis connection.
  * @param {function} cb
  */
 Cache.prototype.quit = function (cb) {
 	logger.debug('Cache - Quit database');
 	if (!self.isConnected()) {
-		// because connection isn't established in the first place.
+		// Because connection is not established in the first place
 		return cb();
 	}
 	client.quit(cb);
 };
 
 /**
- * This function will be triggered on new block, it will clear all cache entires.
+ * Clears all cache entries upon new block.
  * @param {Block} block
  * @param {Broadcast} broadcast
  * @param {function} cb
  */
-Cache.prototype.onNewBlock = function (block, broadcast, cb) {
+Cache.prototype.onNewBlock = function (cb) {
 	cb = cb || function () {};
 
 	logger.debug(['Cache - onNewBlock', '| Status:', self.isConnected()].join(' '));
-	if(!self.isReady()) { return cb(errorCacheDisabled); }
+	if (!self.isReady()) {
+		logger.debug(errorCacheDisabled);
+		return cb(errorCacheDisabled);
+	}
 	async.map(['/api/blocks*', '/api/transactions*'], function (pattern, mapCb) {
 		self.removeByPattern(pattern, function (err) {
 			if (err) {
@@ -177,16 +180,14 @@ Cache.prototype.onNewBlock = function (block, broadcast, cb) {
 };
 
 /**
- * This function will be triggered when round has changed, it will clear all cache entries.
- * @param {Object} data Data received from postgres
- * @param {Object} data.round Current round
- * @param {Object} data.list Delegates list used for slot calculations
+ * Clears all cache entries upon round finish.
+ * @param {Object} round - Current round.
  * @param {function} cb
  */
-Cache.prototype.onRoundChanged = function (data, cb) {
+Cache.prototype.onFinishRound = function (round, cb) {
 	cb = cb || function () {};
 
-	logger.debug(['Cache - onRoundChanged', '| Status:', self.isConnected()].join(' '));
+	logger.debug(['Cache - onFinishRound', '| Status:', self.isConnected()].join(' '));
 	if(!self.isReady()) { return cb(errorCacheDisabled); }
 	var pattern = '/api/delegates*';
 	self.removeByPattern(pattern, function (err) {
@@ -200,8 +201,8 @@ Cache.prototype.onRoundChanged = function (data, cb) {
 };
 
 /**
- * This function will be triggered when transactions are processed, it will clear all cache entires if there is a delegate type transaction.
- * @param {Transactions[]} transactions
+ * Clears all cache entries if there is a delegate type transaction after transactions saved.
+ * @param {transactions[]} transactions
  * @param {function} cb
  */
 Cache.prototype.onTransactionsSaved = function (transactions, cb) {
@@ -230,14 +231,14 @@ Cache.prototype.onTransactionsSaved = function (transactions, cb) {
 };
 
 /**
- * Disable any changes in cache while syncing
+ * Disables any changes in cache while syncing.
  */
 Cache.prototype.onSyncStarted = function () {
 	cacheReady = false;
 };
 
 /**
- * Enable changes in cache after syncing finished
+ * Enables changes in cache after syncing finished.
  */
 Cache.prototype.onSyncFinished = function () {
 	cacheReady = true;

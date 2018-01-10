@@ -2,9 +2,7 @@
 
 var async = require('async');
 var crypto = require('crypto');
-var extend = require('extend');
 var ip = require('ip');
-var zlib = require('zlib');
 
 var Broadcaster = require('../logic/broadcaster.js');
 var bignum = require('../helpers/bignum.js');
@@ -156,7 +154,7 @@ __private.receiveSignatures = function (query, cb) {
  * @return {setImmediateCallback} cb | error messages
  */
 __private.receiveSignature = function (query, cb) {
-	library.schema.validate(query, definitions.WSSignature, function (err) {
+	library.schema.validate(query, definitions.Signature, function (err) {
 		if (err) {
 			return setImmediate(cb, 'Invalid signature body ' + err[0].message);
 		}
@@ -369,7 +367,7 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
  * @param {Object} broadcast
  * @emits blocks/change
  */
-Transport.prototype.onNewBlock = function (block, broadcast) {
+Transport.prototype.onBroadcastBlock = function (block, broadcast) {
 	if (broadcast) {
 		modules.system.update(function () {
 			if (__private.broadcaster.maxRelays(block)) {
