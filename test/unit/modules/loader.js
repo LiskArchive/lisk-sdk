@@ -33,7 +33,7 @@ describe('loader', function () {
 						transaction: sinon.mock(),
 						account: sinon.mock(),
 						peers: {
-							create: sinon.stub.returnsArg(0)
+							create: sinon.stub().returnsArg(0)
 						}
 					}
 				}),
