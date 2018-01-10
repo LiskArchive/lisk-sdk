@@ -295,7 +295,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 		});
 	};
 
-	// Apply transactions to unconfirmed mem_accounts fields.
+	// Apply transactions to unconfirmed mem_accounts fields
 	var applyUnconfirmedStep = function (tx) {
 		return Promise.mapSeries(block.transactions, function (transaction) {
 			return new Promise(function (resolve, reject) {
@@ -312,7 +312,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 
 						appliedTransactions[transaction.id] = transaction;
 
-						// Remove the transaction from the node queue, if it was present.
+						// Remove the transaction from the node queue, if it was present
 						var index = unconfirmedTransactionIds.indexOf(transaction.id);
 						if (index >= 0) {
 							unconfirmedTransactionIds.splice(index, 1);
@@ -325,8 +325,8 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 		}).catch(function (reason) {
 			return Promise.mapSeries(block.transactions, function (transaction) {
 				return new Promise(function (resolve, reject) {
-					// Rewind any already applied unconfirmed transactions.
-					// Leaves the database state as per the previous block.
+					// Rewind any already applied unconfirmed transactions
+					// Leaves the database state as per the previous block
 					modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 						if (err) {
 							return setImmediate(reject, err);
@@ -372,7 +372,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 
 							reject(err);
 						}
-						// Transaction applied, removed from the unconfirmed list.
+						// Transaction applied, removed from the unconfirmed list
 						modules.transactions.removeUnconfirmedTransaction(transaction.id);
 						return setImmediate(resolve);
 					}, tx);

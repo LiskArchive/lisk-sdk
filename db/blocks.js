@@ -195,9 +195,9 @@ BlocksRepo.prototype.getBlocksForTransport = function (ids) {
 };
 
 /**
- * Create a transaction to create a block
+ * Create a transaction to create a block.
  *
- * @param {Object} block - JSON Object for block
+ * @param {Object} block - JSON object for block.
  * @return {Promise}
  */
 BlocksRepo.prototype.save = function (block) {

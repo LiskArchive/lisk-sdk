@@ -376,7 +376,7 @@ describe('inTransfer', function () {
 			expect(sharedStub.getGenesis.calledWith({dappid: trs.asset.inTransfer.dappId})).to.be.true;
 		});
 
-		// TODO:#1242 Have to disable due to issue https://github.com/LiskHQ/lisk/issues/1242
+		// TODO: #1242 Have to disabled due to issue https://github.com/LiskHQ/lisk/issues/1242
 		describe.skip('when shared.getGenesis fails', function () {
 
 			beforeEach(function () {
@@ -390,7 +390,7 @@ describe('inTransfer', function () {
 			});
 		});
 
-		// TODO:#1242 Have to disable due to issue https://github.com/LiskHQ/lisk/issues/1242
+		// TODO: #1242 Have to disabled due to issue https://github.com/LiskHQ/lisk/issues/1242
 		describe.skip('when shared.getGenesis succeeds', function () {
 
 			beforeEach(function () {
