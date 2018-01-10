@@ -110,8 +110,8 @@ def report_coverage(node) {
 		sh """
 		export HOST=127.0.0.1:4000
 		# Gathers tests into single lcov.info
-		npm run coverageReport
-		npm run fetchCoverage
+		npm run cover:report
+		npm run cover:fetch
 		# Submit coverage reports to Master
 		scp -r test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
 		scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-${node}.zip
