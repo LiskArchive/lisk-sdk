@@ -24,8 +24,10 @@ module.exports = function configureGrunt(grunt) {
 		exec: {
 			coverageSingle:
 				'./node_modules/.bin/nyc --report-dir=coverage --reporter=lcov ./node_modules/.bin/_mocha test --recursive',
+			prepareBrowsertest: 'cp package.json browsertest/',
 			prepareDistNode: 'rm -r dist-node/* || mkdir dist-node | echo',
-			prepareDistBrowser: 'rm dist-browser/*.js || mkdir dist-browser | echo',
+			prepareDistBrowser:
+				'rm dist-browser/*.{js,json} || mkdir dist-browser | echo; cp package.json dist-browser/ | echo',
 			babel: './node_modules/.bin/babel src --out-dir ./dist-node',
 			babelTest:
 				'./node_modules/.bin/babel src --out-dir ./browsertest/src && BABEL_ENV=browsertest ./node_modules/.bin/babel test --ignore test/transactions/dapp.js --out-dir ./browsertest/test',
@@ -92,6 +94,7 @@ module.exports = function configureGrunt(grunt) {
 		'uglify:dist',
 	]);
 	grunt.registerTask('build-browsertest', [
+		'exec:prepareBrowsertest',
 		'exec:babelTest',
 		'browserify:test',
 		'uglify:test',

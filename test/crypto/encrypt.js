@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { version } from '../../package.json';
 import {
 	encryptMessageWithPassphrase,
 	decryptMessageWithPassphrase,
@@ -203,6 +204,10 @@ describe('encrypt', () => {
 					.property('tag')
 					.and.be.hexString()
 					.and.have.length(32);
+			});
+
+			it('should output the current version of LiskJS', () => {
+				return cipher.should.have.property('version').which.is.equal(version);
 			});
 
 			it('should take more than 0.05 seconds', () => {

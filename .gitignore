@@ -51,8 +51,10 @@ jspm_packages
 
 # Distribution folders
 dist-browser/*.js
+dist-browser/*.json
 dist-node
 
 # Built test files
+browsertest/package.json
 browsertest/browsertest.js
 browsertest/browsertest.min.js

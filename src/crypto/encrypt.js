@@ -13,6 +13,7 @@
  *
  */
 import crypto from 'crypto';
+import { version } from '../../package.json';
 import {
 	hexToBuffer,
 	bufferToHex,
@@ -118,6 +119,7 @@ const encryptAES256GCMWithPassword = (plainText, password) => {
 		iv: iv.toString('hex'),
 		salt: salt.toString('hex'),
 		tag: tag.toString('hex'),
+		version,
 	};
 };
 
