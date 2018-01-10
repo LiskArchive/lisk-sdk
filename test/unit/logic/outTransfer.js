@@ -460,7 +460,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.setAccountAndGet fails', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArgWith(1, 'setAccountAndGet error');
+				accountsStub.setAccountAndGet = sinon.stub().callsArgWith(1, 'setAccountAndGet error');
 			});
 
 			it('should call callback with error', function () {
@@ -473,7 +473,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.setAccountAndGet succeeds', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArg(1);
+				accountsStub.setAccountAndGet = sinon.stub().callsArg(1);
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {
@@ -552,7 +552,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.setAccountAndGet fails', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArgWith(1, 'setAccountAndGet error');
+				accountsStub.setAccountAndGet = sinon.stub().callsArgWith(1, 'setAccountAndGet error');
 			});
 
 			it('should call callback with error', function () {
@@ -565,7 +565,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.setAccountAndGet succeeds', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArg(1);
+				accountsStub.setAccountAndGet = sinon.stub().callsArg(1);
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {
