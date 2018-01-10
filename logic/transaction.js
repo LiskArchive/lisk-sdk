@@ -756,10 +756,10 @@ Transaction.prototype.undo = function (transaction, block, sender, cb) {
  */
 Transaction.prototype.applyUnconfirmed = function (transaction, sender, requester, cb, tx) {
 	if (typeof requester === 'function') {
-		if(cb) {
+		if (cb) {
 			tx = cb;
 		}
-		
+
 		cb = requester;
 	}
 

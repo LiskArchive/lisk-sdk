@@ -163,7 +163,7 @@ TransactionsRepo.prototype.getOutTransferByIds = function (ids) {
 TransactionsRepo.prototype.save = function (transactions) {
 	var self = this;
 
-	if(!_.isArray(transactions)) {
+	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
@@ -197,6 +197,5 @@ TransactionsRepo.prototype.save = function (transactions) {
 		});
 	}
 };
-
 
 module.exports = TransactionsRepo;

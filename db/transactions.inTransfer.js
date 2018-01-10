@@ -25,7 +25,7 @@ function InTransferTransactionsRepo (db, pgp) {
 }
 
 InTransferTransactionsRepo.prototype.save = function (transactions) {
-	if(!_.isArray(transactions)) {
+	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
@@ -38,6 +38,5 @@ InTransferTransactionsRepo.prototype.save = function (transactions) {
 
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
-
 
 module.exports = InTransferTransactionsRepo;

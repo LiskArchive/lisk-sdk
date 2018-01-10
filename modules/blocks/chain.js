@@ -82,7 +82,6 @@ Chain.prototype.saveGenesisBlock = function (cb) {
  * @return {string}   cb.err Error if occurred
  */
 Chain.prototype.saveBlock = function (block, cb, tx) {
-
 	block.transactions.map(function (transaction) {
 		transaction.blockId = block.id;
 
@@ -90,7 +89,6 @@ Chain.prototype.saveBlock = function (block, cb, tx) {
 	});
 
 	function saveBlockBatch (tx) {
-
 		var promises = [
 			tx.blocks.save(block)
 		];
@@ -108,7 +106,7 @@ Chain.prototype.saveBlock = function (block, cb, tx) {
 	}
 
 	// If there is already a running transaction use it
-	if(tx) {
+	if (tx) {
 		saveBlockBatch(tx);
 	} else {
 		// Prepare and execute SQL transaction
@@ -275,7 +273,6 @@ __private.applyTransaction = function (block, transaction, sender, cb) {
 };
 
 Chain.prototype.applyBlock = function (block, saveBlock, cb) {
-
 	// Transactions to rewind in case of error.
 	var appliedTransactions = {};
 
@@ -283,9 +280,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 	var unconfirmedTransactionIds = [];
 
 	var undoUnconfirmedListStep = function (tx) {
-
 		return new Promise(function (resolve, reject) {
-
 			modules.transactions.undoUnconfirmedList(function (err, ids) {
 				if (err) {
 					// Fatal error, memory tables will be inconsistent
@@ -328,10 +323,8 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 				}, tx);
 			});
 		}).catch(function (reason) {
-
 			return Promise.mapSeries(block.transactions, function (transaction) {
 				return new Promise(function (resolve, reject) {
-
 					// Rewind any already applied unconfirmed transactions.
 					// Leaves the database state as per the previous block.
 					modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
@@ -360,7 +353,6 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 	var applyConfirmedStep = function (tx) {
 		return Promise.mapSeries(block.transactions, function (transaction) {
 			return new Promise(function (resolve, reject) {
-
 				modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 					if (err) {
 						// Fatal error, memory tables will be inconsistent
@@ -430,9 +422,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 		});
 	};
 
-
 	library.db.tx('Chain:applyBlock', function (tx) {
-
 		modules.blocks.isActive.set(true);
 
 		return undoUnconfirmedListStep(tx)
@@ -448,15 +438,12 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 			.then(function () {
 				return applyUnconfirmedIdsStep(tx);
 			});
-
 	}).then(function (value) {
 		modules.blocks.isActive.set(false);
 		appliedTransactions = unconfirmedTransactionIds = block = null;
 
 		return setImmediate(cb, null);
-
 	}).catch(function (reason) {
-
 		modules.blocks.isActive.set(false);
 		appliedTransactions = unconfirmedTransactionIds = block = null;
 
@@ -466,6 +453,7 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 			library.logger.info(reason);
 			process.emit('SIGTERM');
 		}
+
 		return setImmediate(cb, reason);
 	});
 };

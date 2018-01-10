@@ -274,7 +274,6 @@ __private.decryptSecret = function (encryptedSecret, key) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} cb | error messages
  */
-
 __private.checkDelegates = function (publicKey, votes, state, cb, tx) {
 	if (!Array.isArray(votes)) {
 		return setImmediate(cb, 'Votes must be an array');

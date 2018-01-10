@@ -27,8 +27,7 @@ function MultiSigTransactionsRepo (db, pgp) {
 }
 
 MultiSigTransactionsRepo.prototype.save = function (transactions) {
-
-	if(!_.isArray(transactions)) {
+	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
@@ -40,8 +39,8 @@ MultiSigTransactionsRepo.prototype.save = function (transactions) {
 			transactionId: transaction.id
 		};
 	});
+
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
-
 
 module.exports = MultiSigTransactionsRepo;

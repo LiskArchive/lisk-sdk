@@ -24,8 +24,7 @@ function VoteTransactionsRepo (db, pgp) {
 }
 
 VoteTransactionsRepo.prototype.save = function (transactions) {
-
-	if(!_.isArray(transactions)) {
+	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
@@ -38,6 +37,5 @@ VoteTransactionsRepo.prototype.save = function (transactions) {
 
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
-
 
 module.exports = VoteTransactionsRepo;

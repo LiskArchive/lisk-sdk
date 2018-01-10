@@ -52,7 +52,6 @@ describe('blocks/chain', function () {
 		application.cleanup(done);
 	});
 
-
 	describe('constructor', function () {
 
 		describe('library', function () {
@@ -382,8 +381,7 @@ describe('blocks/chain', function () {
 			block = createBlock(blocksModule, blockLogic, secret, 32578370, transactions);
 
 			blocksChainModule.applyBlock(block, true, function (err) {
-
-				if(err) {
+				if (err) {
 					return done(err);
 				}
 
@@ -400,7 +398,6 @@ describe('blocks/chain', function () {
 			block = createBlock(blocksModule, blockLogic, secret, 32578370, transactions);
 
 			db.$config.options.query = function (event) {
-
 				if (!(event.ctx && event.ctx.isTX && event.ctx.txLevel === 0 && event.ctx.tag === 'Chain:applyBlock')) {
 					return done('Some query executed outside transaction context: ' + event.query, event);
 				}
@@ -413,7 +410,7 @@ describe('blocks/chain', function () {
 			db.$config.options.disconnect = disconnect;
 
 			blocksChainModule.applyBlock(block, true, function (err) {
-				if(err) {
+				if (err) {
 					done(err);
 				}
 
@@ -429,7 +426,6 @@ describe('blocks/chain', function () {
 				});
 			});
 		});
-
 
 		it('should call modules.blocks.isActive');
 
