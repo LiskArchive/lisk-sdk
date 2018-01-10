@@ -1005,54 +1005,6 @@ describe('dapp', function () {
 			});
 		});
 
-		describe('dbSave', function () {
-
-			var dbSaveResult;
-
-			beforeEach(function () {
-				dbSaveResult = dapp.dbSave(transaction);
-			});
-
-			it('should return result containing table = "dapps"', function () {
-				expect(dbSaveResult).to.have.property('table').equal('dapps');
-			});
-			it('should return result containing fields = ["type", "name", "description", "tags", "link", "category", "icon", "transactionId"]', function () {
-				expect(dbSaveResult).to.have.property('fields').eql(['type', 'name', 'description', 'tags', 'link', 'category', 'icon', 'transactionId']);
-			});
-
-			it('should return result containing values', function () {
-				expect(dbSaveResult).to.have.property('values');
-			});
-
-			it('should return result containing values.type = transaction.asset.dapp.type', function () {
-				expect(dbSaveResult).to.have.nested.property('values.type').equal(transaction.asset.dapp.type);
-			});
-
-			it('should return result containing values.name = transaction.asset.dapp.name', function () {
-				expect(dbSaveResult).to.have.nested.property('values.name').equal(transaction.asset.dapp.name);
-			});
-
-			it('should return result containing values.description = transaction.asset.dapp.description', function () {
-				expect(dbSaveResult).to.have.nested.property('values.description').equal(transaction.asset.dapp.description);
-			});
-
-			it('should return result containing values.tags = transaction.asset.dapp.tags', function () {
-				expect(dbSaveResult).to.have.nested.property('values.tags').equal(transaction.asset.dapp.tags);
-			});
-
-			it('should return result containing values.icon = transaction.asset.dapp.icon', function () {
-				expect(dbSaveResult).to.have.nested.property('values.icon').equal(transaction.asset.dapp.icon);
-			});
-
-			it('should return result containing values.category = transaction.asset.dapp.category', function () {
-				expect(dbSaveResult).to.have.nested.property('values.category').equal(transaction.asset.dapp.category);
-			});
-
-			it('should return result containing values.transactionId = trs.id', function () {
-				expect(dbSaveResult).to.have.nested.property('values.transactionId').equal(transaction.id);
-			});
-		});
-
 		describe('ready', function () {
 
 			it('should return true for single signature transaction', function () {

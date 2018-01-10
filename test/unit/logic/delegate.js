@@ -872,27 +872,6 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('dbSave', function () {
-
-		it('should return promise object for delegate transaction', function () {
-			expect(delegate.dbSave(transaction)).to.eql({
-				table: 'delegates',
-				fields: [
-					'tx_id',
-					'name',
-					'pk',
-					'address'
-				],
-				values: {
-					tx_id: transaction.id,
-					name: transaction.asset.delegate.username,
-					pk: Buffer.from(transaction.senderPublicKey, 'hex'),
-					address: transaction.senderId
-				}
-			});
-		});
-	});
-
 	describe('ready', function () {
 
 		it('should return true for single signature transasction', function () {

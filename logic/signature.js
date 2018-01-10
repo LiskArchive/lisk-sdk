@@ -121,13 +121,13 @@ Signature.prototype.getBytes = function (transaction) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} for errors
  */
-Signature.prototype.apply = function (transaction, block, sender, cb) {
+Signature.prototype.apply = function (transaction, block, sender, cb, tx) {
 	modules.accounts.setAccountAndGet({
 		address: sender.address,
 		secondSignature: 1,
 		u_secondSignature: 0,
 		secondPublicKey: transaction.asset.signature.publicKey
-	}, cb);
+	}, cb, tx);
 };
 
 /**
@@ -156,12 +156,12 @@ Signature.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Error if second signature is already enabled.
  */
-Signature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+Signature.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 	if (sender.u_secondSignature || sender.secondSignature) {
 		return setImmediate(cb, 'Second signature already enabled');
 	}
 
-	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 1}, cb);
+	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 1}, cb, tx);
 };
 
 /**
@@ -172,8 +172,8 @@ Signature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
-Signature.prototype.undoUnconfirmed = function (transaction, sender, cb) {
-	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 0}, cb);
+Signature.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
+	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 0}, cb, tx);
 };
 /**
  * @typedef signature
@@ -226,38 +226,6 @@ Signature.prototype.dbRead = function (raw) {
 
 		return {signature: signature};
 	}
-};
-
-Signature.prototype.dbTable = 'signatures';
-
-Signature.prototype.dbFields = [
-	'transactionId',
-	'publicKey'
-];
-
-/**
- * Creates database Object based on transaction data.
- * @param {transaction} transaction - Contains signature object.
- * @returns {Object} {table:signatures, values: publicKey and transaction id}.
- * @todo check if this function is called.
- */
-Signature.prototype.dbSave = function (transaction) {
-	var publicKey;
-
-	try {
-		publicKey = Buffer.from(transaction.asset.signature.publicKey, 'hex');
-	} catch (e) {
-		throw e;
-	}
-
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			transactionId: transaction.id,
-			publicKey: publicKey
-		}
-	};
 };
 
 /**

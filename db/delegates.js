@@ -8,17 +8,15 @@ function DelegatesRepo (db, pgp) {
 }
 
 var DelegatesSql = {
-	delegateList: 'SELECT getDelegatesList() AS list',
+	countDuplicatedDelegates: 'WITH duplicates AS (SELECT COUNT(1) FROM delegates GROUP BY "transactionId" HAVING COUNT(1) > 1) SELECT count(1) FROM duplicates',
 
 	insertFork: new PQ('INSERT INTO forks_stat ("delegatePublicKey", "blockTimestamp", "blockId", "blockHeight", "previousBlock", "cause") VALUES ($1, $2, $3, $4, $5, $6)'),
 
-	getDelegatesByPublicKeys: 'SELECT ENCODE(pk, \'hex\') as "publicKey", name AS username, address FROM delegates WHERE ENCODE(pk, \'hex\') IN ($1:csv) ORDER BY rank ASC'
+	getDelegatesByPublicKeys: 'SELECT ENCODE("publicKey", \'hex\') as "publicKey", username, address FROM mem_accounts WHERE "isDelegate" = 1 AND ENCODE("publicKey", \'hex\') IN ($1:csv) ORDER BY vote ASC, "publicKey" DESC'
 };
 
-DelegatesRepo.prototype.list = function () {
-	return this.db.query(DelegatesSql.delegateList).then(function (result) {
-		return result[0].list;
-	});
+DelegatesRepo.prototype.countDuplicatedDelegates = function (task) {
+	return (task || this.db).query(DelegatesSql.countDuplicatedDelegates);
 };
 
 DelegatesRepo.prototype.insertFork = function (fork) {
