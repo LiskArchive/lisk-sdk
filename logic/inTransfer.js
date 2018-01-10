@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var constants = require('../helpers/constants.js');
@@ -141,7 +154,7 @@ InTransfer.prototype.apply = function (transaction, block, sender, cb) {
 
 /**
  * Calls getGenesis with dappid to obtain authorId.
- * Calls mergeAccountAndGet with authorId as address and unconfirmed 
+ * Calls mergeAccountAndGet with authorId as address and unconfirmed
  * transaction amount and balance both negatives.
  * @implements {shared.getGenesis}
  * @implements {modules.accounts.mergeAccountAndGet}
@@ -247,7 +260,7 @@ InTransfer.prototype.dbFields = [
 ];
 
 /**
- * Creates db operation object to 'intransfer' table based on 
+ * Creates db operation object to 'intransfer' table based on
  * inTransfer data.
  * @param {transaction} transaction
  * @return {Object[]} table, fields, values.

@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var ByteBuffer = require('bytebuffer');
@@ -49,7 +62,7 @@ DApp.prototype.calculateFee = function (transaction, sender) {
 };
 
 /**
- * Verifies transaction and dapp fields. Checks dapp name and link in 
+ * Verifies transaction and dapp fields. Checks dapp name and link in
  * `dapps` table.
  * @implements {library.db.query}
  * @param {transaction} transaction
@@ -242,7 +255,7 @@ DApp.prototype.getBytes = function (transaction) {
 DApp.prototype.apply = function (transaction, block, sender, cb) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
-	
+
 	return setImmediate(cb);
 };
 
@@ -258,7 +271,7 @@ DApp.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * Checks if dapp name and link exists, if not adds them to private 
+ * Checks if dapp name and link exists, if not adds them to private
  * unconfirmed variables.
  * @param {transaction} transaction
  * @param {account} sender
