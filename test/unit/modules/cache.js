@@ -183,7 +183,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.onNewBlock(null, null, function (err) {
+				cache.onNewBlock(function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -202,7 +202,7 @@ describe('cache', function () {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onNewBlock(null, null, function (err) {
+				cache.onNewBlock(function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -221,7 +221,7 @@ describe('cache', function () {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onNewBlock(null, null, function (err) {
+				cache.onNewBlock(function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -241,7 +241,7 @@ describe('cache', function () {
 				expect(status).to.equal('OK');
 
 				cache.onSyncStarted();
-				cache.onNewBlock(null, null, function (err) {
+				cache.onNewBlock(function (err) {
 					expect(err).to.equal('Cache Unavailable');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {
@@ -254,7 +254,7 @@ describe('cache', function () {
 		});
 	});
 
-	describe('onRoundChanged', function (done) {
+	describe('onFinishRound', function (done) {
 
 		it('should remove all keys matching pattern /api/delegates', function (done) {
 			var key = '/api/delegates?123';
@@ -263,7 +263,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.onRoundChanged(null, function (err) {
+				cache.onFinishRound(null, function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -282,7 +282,7 @@ describe('cache', function () {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onRoundChanged(null, function (err) {
+				cache.onFinishRound(null, function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -302,7 +302,7 @@ describe('cache', function () {
 				expect(status).to.equal('OK');
 
 				cache.onSyncStarted();
-				cache.onRoundChanged(null, function (err) {
+				cache.onFinishRound(null, function (err) {
 					expect(err).to.equal('Cache Unavailable');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {

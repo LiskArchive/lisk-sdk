@@ -702,7 +702,6 @@ describe('peers', function () {
 		});
 
 		it('should update peers during onBlockchainReady', function (done) {
-			
 			peers.onBlockchainReady();
 			setTimeout(function () {
 				expect(peers.discover.calledOnce).to.be.ok;
@@ -715,7 +714,11 @@ describe('peers', function () {
 
 		before(function () {
 			peersLogicMock.list = sinon.stub().returns([]);
-			peers.discover = sinon.stub().callsArgWith(0, null);
+			sinon.stub(peers, 'discover').callsArgWith(0, null);
+		});
+
+		after(function () {
+			peers.discover.restore();
 		});
 
 		it('should update peers during onBlockchainReady', function (done) {
@@ -724,6 +727,39 @@ describe('peers', function () {
 				expect(peers.discover.calledOnce).to.be.ok;
 				done();
 			}, 100);
+		});
+	});
+
+	describe('discover', function () {
+
+		var randomPeerStub;
+		var revertPrivateStubs;
+
+		beforeEach(function () {
+			revertPrivateStubs = PeersRewired.__set__({
+				__private: {
+					updatePeerStatus: sinon.spy()
+				}
+			});
+			randomPeerStub = {
+				rpc: {
+					status: sinon.stub().callsArgWith(0, 'Failed to get peer status'),
+					list: sinon.spy()
+				}
+			};
+			peers.list = sinon.stub().callsArgWith(1, null, [randomPeerStub]);
+		});
+
+		afterEach(function () {
+			revertPrivateStubs();
+		});
+
+		it('should not call randomPeer.rpc.list if randomPeer.rpc.status operation has failed', function (done) {
+			peers.discover(function (err) {
+				expect(err).to.equal('Failed to get peer status');
+				expect(randomPeerStub.rpc.list.called).to.be.false;
+				done();
+			});
 		});
 	});
 });

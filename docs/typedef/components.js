@@ -10,6 +10,7 @@
  * @property {Multisignatures} multisignatures
  * @property {Node} node
  * @property {Peers} peers
+ * @property {Rounds} rounds
  * @property {Server} server
  * @property {Signatures} signatures
  * @property {Sql} sql
