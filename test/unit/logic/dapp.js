@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';/*eslint*/
 
 var crypto = require('crypto');
@@ -35,7 +48,7 @@ describe('dapp', function () {
 	var dbStub;
 
 	var transaction;
-	var rawTransaction; 
+	var rawTransaction;
 	var sender;
 
 	beforeEach(function () {
@@ -171,7 +184,7 @@ describe('dapp', function () {
 						});
 					});
 				});
-				
+
 				describe('when dapp icon link is invalid', function () {
 
 					it('should call callback with error = "Invalid application icon file type"', function (done) {
@@ -293,7 +306,7 @@ describe('dapp', function () {
 
 				describe('when dbStub rejects proimse', function () {
 
-					var dbError = new Error(); 
+					var dbError = new Error();
 
 					it('should call callback with error = "DApp#verify error"', function (done) {
 						dbStub.dapps.getExisting.withArgs({
@@ -662,7 +675,7 @@ describe('dapp', function () {
 
 				describe('category', function () {
 
-					var invalidTypes = _.difference(typeRepresentatives.allTypes, 
+					var invalidTypes = _.difference(typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
 						typeRepresentatives.negativeIntegers,
 						typeRepresentatives.others
@@ -707,7 +720,7 @@ describe('dapp', function () {
 
 				describe('name', function () {
 
-					var invalidTypes = _.difference(typeRepresentatives.allTypes, 
+					var invalidTypes = _.difference(typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
@@ -753,7 +766,7 @@ describe('dapp', function () {
 
 				describe('description', function () {
 
-					var invalidTypes = _.difference(typeRepresentatives.allTypes, 
+					var invalidTypes = _.difference(typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
@@ -790,7 +803,7 @@ describe('dapp', function () {
 
 				describe('tags', function () {
 
-					var invalidTypes = _.difference(typeRepresentatives.allTypes, 
+					var invalidTypes = _.difference(typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
@@ -826,7 +839,7 @@ describe('dapp', function () {
 
 				describe('type', function () {
 
-					var invalidTypes = _.difference(typeRepresentatives.allTypes, 
+					var invalidTypes = _.difference(typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
 						typeRepresentatives.negativeIntegers,
 						typeRepresentatives.others
@@ -836,8 +849,8 @@ describe('dapp', function () {
 
 					var invalidTypesValues = [-0, -1, -2].concat(typeRepresentatives.negativeIntegers);
 
-					// No max limit set on type. Type verification is partially handled here 
-					// and the rest is handled in verify function. 
+					// No max limit set on type. Type verification is partially handled here
+					// and the rest is handled in verify function.
 					// TODO: Do stronger schema checks
 					var validTypes = [1, 2, 4, 11].concat(_.map(typeRepresentatives.positiveIntegers, 'input'));
 					invalidTypes.forEach(function (type) {
@@ -874,12 +887,12 @@ describe('dapp', function () {
 
 				describe('link', function () {
 
-					var invalidTypes = _.difference(typeRepresentatives.allTypes, 
+					var invalidTypes = _.difference(typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
 
-					// TODO: Schema checks only check whether property is a string or not, 
+					// TODO: Schema checks only check whether property is a string or not,
 					// and not whether value is actually a link. We need to handle it here.
 					var invalidLinks = [_.fill(new Array(2002), 'a'), _.fill(new Array(2001), 'a')];
 					var validLinks = _.fill(new Array(5), '').map(function () {
@@ -913,12 +926,12 @@ describe('dapp', function () {
 
 				describe('icon', function () {
 
-					var invalidTypes = _.difference(typeRepresentatives.allTypes, 
+					var invalidTypes = _.difference(typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
 
-					// TODO: Schema checks only check whether property is a string or not, 
+					// TODO: Schema checks only check whether property is a string or not,
 					// and not whether value is actually a link. We need to handle it here.
 					var invalidIcons = [_.fill(new Array(2002), 'a'), _.fill(new Array(2001), 'a')];
 					var validIcons = _.fill(new Array(5), '').map(function () {

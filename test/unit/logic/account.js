@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';/*eslint*/
 
 var chai = require('chai');
@@ -516,13 +529,13 @@ describe('account', function () {
 					account.merge(validAccount.address, {publicKey: 1});
 				}).to.throw('Invalid public key, must be a string');
 			});
-	
+
 			it('should throw error if parameter is of invalid length', function () {
 				expect(function () {
 					account.merge(validAccount.address, {publicKey: '231312312321'});
 				}).to.throw('Invalid public key, must be 64 characters long');
 			});
-	
+
 			it('should throw error if parameter is not a hex string', function () {
 				expect(function () {
 					account.merge(validAccount.address, {publicKey: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az'});
