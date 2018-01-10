@@ -11,10 +11,8 @@ function DelegateTransactionsRepo (db, pgp) {
 	this.dbTable = 'delegates';
 
 	this.dbFields = [
-		'tx_id',
-		'name',
-		'pk',
-		'address'
+		'transactionId',
+		'username'
 	];
 
 	if (!columnSet) {
@@ -33,10 +31,8 @@ DelegateTransactionsRepo.prototype.save = function (transactions) {
 
 	transactions = transactions.map(function (transaction) {
 		return {
-			tx_id: transaction.id,
-			name: transaction.asset.delegate.username,
-			pk: Buffer.from(transaction.senderPublicKey, 'hex'),
-			address: transaction.senderId
+			transactionId: transaction.id,
+			username: transaction.asset.delegate.username
 		};
 	});
 
