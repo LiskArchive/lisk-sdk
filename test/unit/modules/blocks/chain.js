@@ -395,7 +395,7 @@ describe('blocks/chain', function () {
 			});
 		});
 
-		// TODO: Need to enable it after making block part of the single transaction  
+		// TODO: Need to enable it after making block part of the single transaction
 		it.skip('should apply block in a single transaction', function (done) {
 			block = createBlock(blocksModule, blockLogic, secret, 32578370, transactions);
 
