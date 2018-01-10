@@ -377,7 +377,7 @@ describe('blocks/chain', function () {
 			previousBlock = block;
 		});
 
-		it('should apply a valid with success', function (done) {
+		it('should apply a valid block successfully', function (done) {
 			block = createBlock(blocksModule, blockLogic, secret, 32578370, transactions);
 
 			blocksChainModule.applyBlock(block, true, function (err) {
