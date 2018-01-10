@@ -210,63 +210,74 @@ describe('encrypt', () => {
 				return cipher.should.have.property('version').which.is.equal(version);
 			});
 
-			it('should take more than 0.05 seconds', () => {
+			it('should take more than 0.5 seconds @node-only', () => {
 				const endTime = Date.now();
-				return (endTime - startTime).should.be.above(50);
+				return (endTime - startTime).should.be.above(500);
 			});
 
-			it('should take less than 2 seconds', () => {
+			it('should take less than 2 seconds @node-only', () => {
 				const endTime = Date.now();
 				return (endTime - startTime).should.be.below(2e3);
 			});
 		});
 
 		describe('#decryptPassphraseWithPassword', () => {
-			let cipherIvSaltAndTag;
+			let cipherIvSaltTagAndVersion;
 
 			beforeEach(() => {
-				cipherIvSaltAndTag = {
+				cipherIvSaltTagAndVersion = {
 					cipher:
-						'5c1adc330adeb6c0696134a28d8e32a257211564b6a09b8a51128f34739f0a39f1d3e0de3701124084d29843f6a48bb1b23c5804a64be6e854bd875d3ac30c99228a5335f3',
-					iv: '9d48f3461863c48068e725526ddec7eb',
-					salt: 'cf9e6302999a3181fc3aa782183c1d69',
-					tag: '77ed2c755e34cb559dcf2c1595765b03',
+						'c3b3a101f1c2a09c7ffd0ea207a7802d728e74027836de195be665e8e41c27ffe1fe1eebdf40874447c26cf8942c72db3252c2d76168137f2fc99c84b8ac353af4a64392a1',
+					iv: '8be18e58b5a0ca8d56d84db439041167',
+					salt: '598e2f237bf7b58ae00bc6fc006c6963',
+					tag: '7498e143aba4335b942c7c5f68f90402',
+					version,
 				};
 			});
 
 			it('should decrypt a text with a password', () => {
 				const decrypted = decryptPassphraseWithPassword(
-					cipherIvSaltAndTag,
+					cipherIvSaltTagAndVersion,
 					defaultPassword,
 				);
 				return decrypted.should.be.eql(defaultPassphrase);
 			});
 
 			it('should inform the user if the salt has been altered', () => {
-				cipherIvSaltAndTag.salt = `00${cipherIvSaltAndTag.salt.slice(2)}`;
+				cipherIvSaltTagAndVersion.salt = `00${cipherIvSaltTagAndVersion.salt.slice(
+					2,
+				)}`;
 				return decryptPassphraseWithPassword
-					.bind(null, cipherIvSaltAndTag, defaultPassword)
+					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
 					.should.throw('Unsupported state or unable to authenticate data');
 			});
 
 			it('should inform the user if the tag has been shortened', () => {
-				cipherIvSaltAndTag.tag = cipherIvSaltAndTag.tag.slice(0, 30);
+				cipherIvSaltTagAndVersion.tag = cipherIvSaltTagAndVersion.tag.slice(
+					0,
+					30,
+				);
 				return decryptPassphraseWithPassword
-					.bind(null, cipherIvSaltAndTag, defaultPassword)
+					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
 					.should.throw('Tag must be 16 bytes.');
 			});
 
 			it('should inform the user if the tag is not a hex string', () => {
-				cipherIvSaltAndTag.tag = `${cipherIvSaltAndTag.tag.slice(0, 30)}gg`;
+				cipherIvSaltTagAndVersion.tag = `${cipherIvSaltTagAndVersion.tag.slice(
+					0,
+					30,
+				)}gg`;
 				return decryptPassphraseWithPassword
-					.bind(null, cipherIvSaltAndTag, defaultPassword)
+					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
 					.should.throw('Tag must be a hex string.');
 			});
 
 			it('should inform the user if the tag has been altered', () => {
-				cipherIvSaltAndTag.tag = `00${cipherIvSaltAndTag.tag.slice(2)}`;
+				cipherIvSaltTagAndVersion.tag = `00${cipherIvSaltTagAndVersion.tag.slice(
+					2,
+				)}`;
 				return decryptPassphraseWithPassword
-					.bind(null, cipherIvSaltAndTag, defaultPassword)
+					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
 					.should.throw('Unsupported state or unable to authenticate data');
 			});
 		});

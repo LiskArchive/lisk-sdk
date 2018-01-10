@@ -22,7 +22,7 @@ import {
 } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
 
-const PBKDF2_ITERATIONS = 100e3;
+const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
 const PBKDF2_HASH_FUNCTION = 'sha256';
 
