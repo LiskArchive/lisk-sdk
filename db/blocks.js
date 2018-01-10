@@ -154,9 +154,9 @@ BlocksRepo.prototype.loadLastBlock = function () {
 };
 
 BlocksRepo.prototype.blockExists = function (id) {
-	return this.db.one(Queries.blockExists, [id]).then(function (row) {
-		return row;
-	}).catch(function (reason) { return false; });
+	return this.db.query(Queries.blockExists, [id]).then(function (rows) {
+		return (rows.length > 0);
+	});
 };
 
 BlocksRepo.prototype.deleteAfterBlock = function (id) {
