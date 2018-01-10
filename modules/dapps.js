@@ -234,8 +234,8 @@ DApps.prototype.shared = {
 };
 
 // Shared API
-shared.getGenesis = function (req, cb) {
-	library.db.dapps.getGenesis(req.dappid).then(function (rows) {
+shared.getGenesis = function (req, cb, tx) {
+	(tx || library.db).dapps.getGenesis(req.dappid).then(function (rows) {
 		if (rows.length === 0) {
 			return setImmediate(cb, 'Application genesis block not found');
 		} else {
