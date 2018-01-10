@@ -3,7 +3,6 @@
 var _ = require('lodash');
 var async = require('async');
 var crypto = require('crypto');
-var Inserts = require('../../helpers/inserts.js');
 var transactionTypes = require('../../helpers/transactionTypes.js');
 var Promise = require('bluebird');
 
