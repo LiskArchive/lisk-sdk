@@ -13,7 +13,7 @@ var randomUtil = require('../../common/utils/random');
 
 var localCommon = require('./common');
 
-describe('multisignature', function () {
+describe.skip('multisignature', function () {
 
 	var library;
 
