@@ -27,14 +27,14 @@ var modules, library, self, __private = {};
  * transaction expiry timer.
  * @memberof module:transactions
  * @class
- * @classdesc Main transactionPool logic.
+ * @classdesc Transaction pool logic.
  * @implements {processBundled}
  * @implements {expireTransactions}
- * @param {number} broadcastInterval
- * @param {number} releaseLimit
- * @param {Transaction} transaction - Logic instance
- * @param {bus} bus
- * @param {Object} logger
+ * @param {number} broadcastInterval - Broadcast interval in seconds, used for bundling.
+ * @param {number} releaseLimit - Release limit for transactions broadcasts, used for bundling.
+ * @param {Transaction} transaction - Transaction logic instance.
+ * @param {bus} bus - Bus instance.
+ * @param {Object} logger - Logger instance.
  */
 // Constructor
 function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, logger) {
@@ -90,9 +90,9 @@ function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, log
 // Public methods
 /**
  * Bounds input parameters to private variable modules.
- * @param {Accounts} accounts
- * @param {Transactions} transactions
- * @param {Loader} loader
+ * @param {Accounts} accounts - Accounts module instance.
+ * @param {Transactions} transactions - Transactions module instance.
+ * @param {Loader} loader - Loader module instance.
  */
 TransactionPool.prototype.bind = function (accounts, transactions, loader) {
 	modules = {
@@ -120,9 +120,9 @@ TransactionPool.prototype.transactionInPool = function (id) {
 };
 
 /**
- * Gets unconfirmed transactions based on transaction id.
- * @param {string} id
- * @return {transaction[]}
+ * Gets an unconfirmed transaction based on transaction id.
+ * @param {string} id - Transaction id.
+ * @return {(Object|undefined)} - Transaction or undefined.
  */
 TransactionPool.prototype.getUnconfirmedTransaction = function (id) {
 	var index = self.unconfirmed.index[id];
@@ -130,9 +130,9 @@ TransactionPool.prototype.getUnconfirmedTransaction = function (id) {
 };
 
 /**
- * Gets bundled transactions based on transaction id.
- * @param {string} id
- * @return {transaction[]}
+ * Gets a bundled transaction based on transaction id.
+ * @param {string} id - Transaction id.
+ * @return {(Object|undefined)} - Transaction or undefined.
  * @todo This function is never called
  */
 TransactionPool.prototype.getBundledTransaction = function (id) {
@@ -141,9 +141,9 @@ TransactionPool.prototype.getBundledTransaction = function (id) {
 };
 
 /**
- * Gets queued transactions based on transaction id.
- * @param {string} id
- * @return {transaction[]}
+ * Gets a queued transaction based on transaction id.
+ * @param {string} id - Transaction id.
+ * @return {(Object|undefined)} - Transaction or undefined.
  */
 TransactionPool.prototype.getQueuedTransaction = function (id) {
 	var index = self.queued.index[id];
@@ -162,9 +162,9 @@ TransactionPool.prototype.getMultisignatureTransaction = function (id) {
 
 /**
  * Gets unconfirmed transactions based on limit and reverse option.
- * @param {boolean} reverse
- * @param {number} [limit]
- * @return {getTransactionList} Calls getTransactionList
+ * @param {boolean} reverse - Reverse order of results.
+ * @param {number} limit - Limit applied to results.
+ * @return {Object[]} - Of bundled transactions.
  */
 TransactionPool.prototype.getUnconfirmedTransactionList = function (reverse, limit, tx) {
 	return __private.getTransactionList(self.unconfirmed.transactions, reverse, limit);
@@ -172,9 +172,9 @@ TransactionPool.prototype.getUnconfirmedTransactionList = function (reverse, lim
 
 /**
  * Gets bundled transactions based on limit and reverse option.
- * @param {boolean} reverse
- * @param {number} [limit]
- * @return {getTransactionList} Calls getTransactionList
+ * @param {boolean} reverse - Reverse order of results.
+ * @param {number} limit - Limit applied to results.
+ * @return {Object[]} - Of bundled transactions.
  */
 TransactionPool.prototype.getBundledTransactionList  = function (reverse, limit) {
 	return __private.getTransactionList(self.bundled.transactions, reverse, limit);
@@ -182,9 +182,9 @@ TransactionPool.prototype.getBundledTransactionList  = function (reverse, limit)
 
 /**
  * Gets queued transactions based on limit and reverse option.
- * @param {boolean} reverse
- * @param {number} [limit]
- * @return {getTransactionList} Calls getTransactionList
+ * @param {boolean} reverse - Reverse order of results.
+ * @param {number} limit - Limit applied to results.
+ * @return {Object[]} - Of bundled transactions.
  */
 TransactionPool.prototype.getQueuedTransactionList  = function (reverse, limit) {
 	return __private.getTransactionList(self.queued.transactions, reverse, limit);
@@ -192,10 +192,11 @@ TransactionPool.prototype.getQueuedTransactionList  = function (reverse, limit) 
 
 /**
  * Gets multisignature transactions based on limit and reverse option.
- * @param {boolean} reverse
- * @param {number} [limit]
- * @return {getTransactionList} Calls getTransactionList
- * @todo Avoid mix sync/asyn implementations of the same function
+ * @param {boolean} reverse - Reverse order of results.
+ * @param {boolean} ready - Limits results to transactions deemed "ready".
+ * @param {number} limit - Limit applied to results.
+ * @implements {__private.getTransactionList}
+ * @return {Object[]} - Of bundled multisignature transactions.
  * @todo Change order extra parameter 'ready', move it to the end
  */
 TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, ready, limit) {
@@ -213,10 +214,10 @@ TransactionPool.prototype.getMultisignatureTransactionList = function (reverse, 
  * @implements {modules.transactions.getUnconfirmedTransactionList}
  * @implements {modules.transactions.getMultisignatureTransactionList}
  * @implements {modules.transactions.getQueuedTransactionList}
- * @param {boolean} reverse
- * @param {number} [limit]
- * @return {transaction[]} unconfirmed + multisignatures + queued
- * @todo limit is only implemented with queued.
+ * @param {boolean} reverse - Reverse order of results.
+ * @param {number} limit - Limit applied to results.
+ * @return {Object[]} Of unconfirmed, multisignatures, queued transactions.
+ * @todo Limit is only implemented with queued trtansactions.
  */
 TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
 	var minLimit = (constants.maxTxsPerBlock + 2);
@@ -238,8 +239,8 @@ TransactionPool.prototype.getMergedTransactionList = function (reverse, limit) {
 };
 
 /**
- * Removes transaction from multisignature or queued and add it to unconfirmed.
- * @param {transaction} transaction
+ * Adds a transaction to the unconfirmed index, removing it from the multisignature or queued indexes.
+ * @param {Object} transaction - Transaction object.
  * @implements {removeMultisignatureTransaction}
  * @implements {removeQueuedTransaction}
  */
@@ -256,12 +257,13 @@ TransactionPool.prototype.addUnconfirmedTransaction = function (transaction) {
 		self.unconfirmed.index[transaction.id] = index;
 	}
 };
+
 /**
- * Removes id from unconfirmed index and transactions.
+ * Removes a transaction from the unconfirmed index, also removing it from the multisignature or queued indexes.
  * Also removes id from queued and multisignature.
  * @implements {removeQueuedTransaction}
  * @implements {removeMultisignatureTransaction}
- * @param {string} id
+ * @param {string} id - Transaction id.
  */
 TransactionPool.prototype.removeUnconfirmedTransaction = function (id) {
 	var index = self.unconfirmed.index[id];
@@ -276,16 +278,16 @@ TransactionPool.prototype.removeUnconfirmedTransaction = function (id) {
 };
 
 /**
- * Counts unconfirmed list index.
- * @return {number} unconfirmed lenght
+ * Counts the number of transactions in the unconfirmed index.
+ * @return {number} - Of transactions in the unconfirmed index.
  */
 TransactionPool.prototype.countUnconfirmed = function () {
 	return Object.keys(self.unconfirmed.index).length;
 };
 
 /**
- * Adds transaction to bundled list (index + transactions).
- * @param {transaction} transaction
+ * Adds a transaction to the bundled index.
+ * @param {Object} transaction - Transaction object.
  */
 TransactionPool.prototype.addBundledTransaction = function (transaction) {
 	if (self.bundled.index[transaction.id] === undefined) {
@@ -296,8 +298,8 @@ TransactionPool.prototype.addBundledTransaction = function (transaction) {
 };
 
 /**
- * Deletes id from bundled list index.
- * @param {string} id
+ Removes a transaction from the bundled index.
+ * @param {string} id - Transaction id.
  */
 TransactionPool.prototype.removeBundledTransaction = function (id) {
 	var index = self.bundled.index[id];
@@ -309,16 +311,16 @@ TransactionPool.prototype.removeBundledTransaction = function (id) {
 };
 
 /**
- * Counts bundled index list.
- * @return {number} total bundled index
+ * Counts the number of transactions in the bundled index.
+ * @return {number} - Of transactions in the bundled index.
  */
 TransactionPool.prototype.countBundled = function () {
 	return Object.keys(self.bundled.index).length;
 };
 
 /**
- * Adds transaction to queued list (index + transactions).
- * @param {transaction} transaction
+ * Adds a transaction to the queued index.
+ * @param {Object} transaction - Transaction object.
  */
 TransactionPool.prototype.addQueuedTransaction = function (transaction) {
 	if (self.queued.index[transaction.id] === undefined) {
@@ -329,8 +331,8 @@ TransactionPool.prototype.addQueuedTransaction = function (transaction) {
 };
 
 /**
- * Removes id from queued index and transactions.
- * @param {string} id
+ * Removes a transaction from the queued index.
+ * @param {string} id - Transaction id.
  */
 TransactionPool.prototype.removeQueuedTransaction = function (id) {
 	var index = self.queued.index[id];
@@ -342,16 +344,16 @@ TransactionPool.prototype.removeQueuedTransaction = function (id) {
 };
 
 /**
- * Counts queued index list.
- * @return {number} total queued index
+ * Counts the number of transactions in the queued index.
+ * @return {number} - Of transactions in the queued index.
  */
 TransactionPool.prototype.countQueued = function () {
 	return Object.keys(self.queued.index).length;
 };
 
 /**
- * Adds transaction to multisignature list (index + transactions).
- * @param {transaction} transaction
+ * Adds a transaction to the multisignature index.
+ * @param {Object} transaction - Transaction object.
  */
 TransactionPool.prototype.addMultisignatureTransaction = function (transaction) {
 	if (self.multisignature.index[transaction.id] === undefined) {
@@ -362,8 +364,8 @@ TransactionPool.prototype.addMultisignatureTransaction = function (transaction) 
 };
 
 /**
- * Removes id from multisignature index and transactions.
- * @param {string} id
+ * Removes a transaction from the multisignature index.
+ * @param {string} id - Transaction id.
  */
 TransactionPool.prototype.removeMultisignatureTransaction = function (id) {
 	var index = self.multisignature.index[id];
@@ -375,18 +377,18 @@ TransactionPool.prototype.removeMultisignatureTransaction = function (id) {
 };
 
 /**
- * Counts multisignature index list.
- * @return {number} total multisignature index
+ * Counts the number of transactions in the multisignature index.
+ * @return {number} - Of transactions in the multisignature index.
  */
 TransactionPool.prototype.countMultisignature = function () {
 	return Object.keys(self.multisignature.index).length;
 };
 
 /**
- * Calls processUnconfirmedTransaction for each transaction.
+ * Receives transactions into the pool and add them to a queue.
  * @implements {processUnconfirmedTransaction}
- * @param {transaction[]} transactions
- * @param {Object} broadcast
+ * @param {Object[]} transactions - Array of received transactions.
+ * @param {boolean} broadcast - Broadcast flag.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} err, transactions
  */
@@ -399,8 +401,7 @@ TransactionPool.prototype.receiveTransactions = function (transactions, broadcas
 };
 
 /**
- * Regenerates indexes for all queues: bundled, queued,
- * multisignature and unconfirmed.
+ * Reindexes all transaction queues, accounting for previously removed/falsified entries.
  */
 TransactionPool.prototype.reindexQueues = function () {
 	['bundled', 'queued', 'multisignature', 'unconfirmed'].forEach(function (queue) {
@@ -414,14 +415,13 @@ TransactionPool.prototype.reindexQueues = function () {
 };
 
 /**
- * Gets bundled transactions based on bundled limit.
- * Removes each transaction from bundled and process it.
+ * Processes the next bundle of transactions and add them to the queued index.
  * @implements {getBundledTransactionList}
  * @implements {removeBundledTransaction}
  * @implements {processVerifyTransaction}
  * @implements {removeUnconfirmedTransaction}
  * @implements {queueTransaction}
- * @param {function} cb
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} err | cb
  */
 TransactionPool.prototype.processBundled = function (cb) {
@@ -455,16 +455,16 @@ TransactionPool.prototype.processBundled = function (cb) {
 };
 
 /**
- * If transaction is not already processed and processed is greather than 1000,
- * calls reindex queues.
- * If transaction bundled, calls queue transaction.
- * Calls processVerifyTransaction.
+ * Processes an unconfirmed transaction.
+ * If transaction is not already processed, and processed count is greather than 1000, it reindexes thequeues.
+ * If transaction was bundled, it queues the transaction for later processing.
+ * Else it immediately processes and verifies the transaction.
  * @implements {transactionInPool}
  * @implements {reindexQueues}
  * @implements {queueTransaction}
  * @implements {processVerifyTransaction}
- * @param {transaction} transaction
- * @param {Object} broadcast
+ * @param {Object} transaction - Transaction object.
+ * @param {Object} broadcast - Broadcast flag.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback|queueTransaction} error | queueTransaction
  */
@@ -493,15 +493,14 @@ TransactionPool.prototype.processUnconfirmedTransaction = function (transaction,
 };
 
 /**
- * Based on transaction bundled, type and signatures queues transaction into:
- * bundle, multisignature or queue.
+ * Places a transaction onto the bundled, multisignature, or queued index.
  * @implements {countBundled}
  * @implements {addBundledTransaction}
  * @implements {countMultisignature}
  * @implements {addMultisignatureTransaction}
  * @implements {countQueued}
  * @implements {addQueuedTransaction}
- * @param {transaction} transaction
+ * @param {Object} transaction - Transaction object.
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
@@ -532,7 +531,7 @@ TransactionPool.prototype.queueTransaction = function (transaction, cb) {
 };
 
 /**
- * Applies unconfirmed list to unconfirmed transactions list.
+ * Applies the unconfirmed queue as unconfirmed transactions.
  * @implements {getUnconfirmedTransactionList}
  * @param {function} cb - Callback function.
  * @return {applyUnconfirmedList}
@@ -542,7 +541,7 @@ TransactionPool.prototype.applyUnconfirmedList = function (cb) {
 };
 
 /**
- * Applies unconfirmed list to unconfirmed Ids.
+ * Applies a list of transaction ids as unconfirmed transactions.
  * @param {string[]} ids
  * @param {function} cb - Callback function.
  * @return {applyUnconfirmedList}
@@ -552,7 +551,7 @@ TransactionPool.prototype.applyUnconfirmedIds = function (ids, cb, tx) {
 };
 
 /**
- * Undoes unconfirmed transactions.
+ * Undoes the unconfirmed queue, reverting the unconfirmed state of each transaction.
  * @implements {getUnconfirmedTransactionList}
  * @implements {modules.transactions.undoUnconfirmed}
  * @implements {removeUnconfirmedTransaction}
@@ -581,7 +580,7 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb, tx) {
 };
 
 /**
- * expires transactions.
+ * Expires unconfirmed, queued and multisignature transactions.
  * @implements {__private.expireTransactions}
  * @implements {getUnconfirmedTransactionList}
  * @implements {getQueuedTransactionList}
@@ -608,16 +607,16 @@ TransactionPool.prototype.expireTransactions = function (cb) {
 };
 
 /**
- * Gets multisignatures and queued transactions based on pool size.
- * Adds unconfirmed transactions and returns unconfirmed list.
+ * Applies the next block of unconfirmed transactions.
+ * Including up to 5 multisignature transactions when there is spare capacity.
  * @implements {modules.loader.syncing}
  * @implements {countUnconfirmed}
  * @implements {getMultisignatureTransactionList}
  * @implements {getQueuedTransactionList}
  * @implements {addUnconfirmedTransaction}
  * @implements {applyUnconfirmedList}
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback|applyUnconfirmedList} for errors | with transactions
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback|applyUnconfirmedList}
  */
 TransactionPool.prototype.fillPool = function (cb) {
 	if (modules.loader.syncing()) { return setImmediate(cb); }
@@ -650,12 +649,12 @@ TransactionPool.prototype.fillPool = function (cb) {
 
 // Private
 /**
- * Gets reversed or limited transactions from input parameter.
+ * Returns a given list of transactions, reversed and/or limited.
  * @private
- * @param {transaction[]} transactions
- * @param {boolean} reverse
- * @param {number} [limit]
- * @return {transaction[]}
+ * @param {Object[]} transactions - Array of trasactions.
+ * @param {boolean} reverse - Reverse order of results.
+ * @param {number} limit - Limit applied to results.
+ * @return {Object[]} Of transactions, reversed and/or limited.
  */
 __private.getTransactionList = function (transactions, reverse, limit) {
 	var a = [];
@@ -678,16 +677,15 @@ __private.getTransactionList = function (transactions, reverse, limit) {
 };
 
 /**
- * Gets sender account, verifies multisignatures, gets requester,
- * process transaction and verifies.
+ * Processes and verifies a transaction.
  * @private
  * @implements {accounts.setAccountAndGet}
  * @implements {accounts.getAccount}
  * @implements {logic.transaction.process}
  * @implements {logic.transaction.verify}
- * @param {transaction} transaction
- * @param {Object} broadcast
- * @param {function} cb - Callback function
+ * @param {Object} transaction - Transaction object.
+ * @param {Object} broadcast - Broadcast flag.
+ * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} errors | sender
  */
 __private.processVerifyTransaction = function (transaction, broadcast, cb, tx) {
@@ -754,15 +752,14 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb, tx) {
 };
 
 /**
- * Calls processVerifyTransaction for each transaction and applies
- * unconfirmed transaction.
+ * Processes and verifies transactions, applying each one as unconfirmed if deemed valid.
  * @private
  * @implements {getUnconfirmedTransaction}
  * @implements {__private.processVerifyTransaction}
  * @implements {removeUnconfirmedTransaction}
  * @implements {modules.transactions.applyUnconfirmed}
- * @param {transaction[]} transactions
- * @param {function} cb - Callback function
+ * @param {Object[]} transactions - Array of transactions to be applied.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | cb
  */
 __private.applyUnconfirmedList = function (transactions, cb, tx) {
@@ -791,10 +788,10 @@ __private.applyUnconfirmedList = function (transactions, cb, tx) {
 };
 
 /**
- * Calculates timeout based on transaction.
+ * Calculates the timeout in seconds for expiry based on the given transaction type.
  * @private
- * @param {transaction} transaction
- * @return {number} timeOut
+ * @param {Object} transaction - Transaction object.
+ * @return {number} Timeout in seconds for expiry.
  */
 __private.transactionTimeOut = function (transaction) {
 	if (transaction.type === transactionTypes.MULTI) {
@@ -807,13 +804,13 @@ __private.transactionTimeOut = function (transaction) {
 };
 
 /**
- * Removes unconfirmed transactions if expired.
+ * Removes transactions from the pool if they have expired.
  * @private
  * @implements {__private.transactionTimeOut}
  * @implements {removeUnconfirmedTransaction}
- * @param {transaction[]} transactions
- * @param {string[]} parentIds
- * @param {function} cb - Callback function
+ * @param {Object[]} transactions - Array of transactions to be expired.
+ * @param {string[]} parentIds - Array of transaction ids concatenated from parent caller.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error | ids[]
  */
 __private.expireTransactions = function (transactions, parentIds, cb) {
