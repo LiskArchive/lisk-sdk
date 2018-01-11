@@ -66,14 +66,14 @@ This sections provides details on what you need install on your system in order 
     - MacOS 10.12-10.13 (Sierra/High Sierra):
 
         ```
-        brew install node@6
+        brew install node@6.12.3
         ```
 
-- _(Recommended)_ Install n -- Used for Node.js version management
-
+- _(Recommended)_ Install using a version manager such as nvm.
+    1. Install nvm following their instructions (https://github.com/creationix/nvm#installation)
+    2. Install the correct version of Node.js using nvm:
     ```
-    npm install -g n
-    n 6.12.3
+    nvm install 6.12.3
     ```
 
 - _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
