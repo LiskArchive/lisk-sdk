@@ -114,10 +114,10 @@ Round.prototype.updateVotes = function () {
 	return self.getVotes(self.scope.round).then(function (votes) {
 		var queries = votes.map(function (vote) {
 			return self.scope.library.db.rounds.updateVotes(self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate), Math.floor(vote.amount));
-		}).join('');
+		});
 
 		if (queries.length > 0) {
-			return self.t.none(queries);
+			return self.t.batch(queries);
 		} else {
 			return self.t;
 		}
