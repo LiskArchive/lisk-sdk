@@ -19,11 +19,10 @@
 import cryptoModule from '../crypto';
 import { VOTE_FEE } from '../constants';
 import {
-	prepareTransaction,
-	getTimeWithOffset,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	validatePublicKeys,
+	wrapTransactionCreator,
 } from './utils';
 
 /**
@@ -32,49 +31,28 @@ import {
  * @param {String} Object.passphrase
  * @param {Array<String>} Object.votes
  * @param {Array<String>} Object.unvotes
- * @param {String} Object.secondPassphrase
- * @param {Number} Object.timeOffset
  *
  * @return {Object}
  */
-
-const castVotes = ({
-	passphrase,
-	votes = [],
-	unvotes = [],
-	secondPassphrase,
-	timeOffset,
-	unsigned,
-}) => {
-	const senderPublicKey = unsigned
-		? null
-		: cryptoModule.getKeys(passphrase).publicKey;
-	const recipientId = unsigned
-		? null
-		: cryptoModule.getAddress(senderPublicKey);
-
+const castVotes = ({ passphrase, votes = [], unvotes = [] }) => {
 	validatePublicKeys([...votes, ...unvotes]);
+
+	const recipientId = passphrase
+		? cryptoModule.getAddressAndPublicKeyFromPassphrase(passphrase).address
+		: null;
 
 	const plusPrependedVotes = prependPlusToPublicKeys(votes);
 	const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);
-
 	const allVotes = [...plusPrependedVotes, ...minusPrependedUnvotes];
 
-	const transaction = {
+	return {
 		type: 3,
-		amount: '0',
 		fee: VOTE_FEE.toString(),
 		recipientId,
-		senderPublicKey,
-		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			votes: allVotes,
 		},
 	};
-
-	return unsigned
-		? transaction
-		: prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
-export default castVotes;
+export default wrapTransactionCreator(castVotes);

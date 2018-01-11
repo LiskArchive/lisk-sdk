@@ -29,7 +29,6 @@ describe('#registerSecondPassphrase transaction', () => {
 		'be907b4bac84fee5ce8811db2defc9bf0b2a2a2bbc3d54d8a2257ecd70441962';
 	const secondPassphraseFee = (5 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
-	const unsigned = true;
 	const fee = (5 * fixedPoint).toString();
 	const amount = '0';
 
@@ -174,14 +173,13 @@ describe('#registerSecondPassphrase transaction', () => {
 	});
 
 	describe('unsigned register second passphrase transaction', () => {
-		beforeEach(() => {
-			registerSecondPassphraseTransaction = registerSecondPassphrase({
-				secondPassphrase,
-				unsigned,
+		describe('when the register second passphrase transaction is created without a passphrase', () => {
+			beforeEach(() => {
+				registerSecondPassphraseTransaction = registerSecondPassphrase({
+					secondPassphrase,
+				});
 			});
-		});
 
-		describe('when the register second passphrase transaction is created without signature', () => {
 			it('should have the type', () => {
 				return registerSecondPassphraseTransaction.should.have
 					.property('type')

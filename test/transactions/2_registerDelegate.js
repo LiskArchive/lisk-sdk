@@ -26,7 +26,6 @@ describe('#registerDelegate transaction', () => {
 	const username = 'test_delegate_1@\\';
 	const fee = (25 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
-	const unsigned = true;
 	const amount = '0';
 
 	let getTimeWithOffsetStub;
@@ -40,7 +39,10 @@ describe('#registerDelegate transaction', () => {
 
 	describe('with first passphrase', () => {
 		beforeEach(() => {
-			registerDelegateTransaction = registerDelegate({ passphrase, username });
+			registerDelegateTransaction = registerDelegate({
+				passphrase,
+				username,
+			});
 		});
 
 		it('should create a register delegate transaction', () => {
@@ -160,14 +162,13 @@ describe('#registerDelegate transaction', () => {
 	});
 
 	describe('unsigned register delegate transaction', () => {
-		beforeEach(() => {
-			registerDelegateTransaction = registerDelegate({
-				username,
-				unsigned,
+		describe('when the register delegate transaction is created without a passphrase', () => {
+			beforeEach(() => {
+				registerDelegateTransaction = registerDelegate({
+					username,
+				});
 			});
-		});
 
-		describe('when the register delegate transaction is created without signature', () => {
 			it('should have the type', () => {
 				return registerDelegateTransaction.should.have
 					.property('type')

@@ -16,9 +16,8 @@
  * Dapp module provides functions used to create dapp registration transactions.
  * @class dapp
  */
-import cryptoModule from '../crypto';
 import { DAPP_FEE } from '../constants';
-import { prepareTransaction, getTimeWithOffset } from './utils';
+import { wrapTransactionCreator } from './utils';
 
 const isInt = n => parseInt(n, 10) === n;
 
@@ -45,34 +44,17 @@ const validateOptions = options => {
 /**
  * @method createDapp
  * @param {Object} Object - Object
- * @param {String} Object.passphrase
- * @param {String} Object.secondPassphrase
  * @param {Object} Object.options
- * @param {Number} Objec.timeOffset
  *
  * @return {Object}
  */
 
-const createDapp = ({
-	passphrase,
-	secondPassphrase,
-	options,
-	timeOffset,
-	unsigned,
-}) => {
+const createDapp = ({ options }) => {
 	validateOptions(options);
 
-	const senderPublicKey = unsigned
-		? null
-		: cryptoModule.getKeys(passphrase).publicKey;
-
-	const transaction = {
+	return {
 		type: 5,
-		amount: '0',
 		fee: DAPP_FEE.toString(),
-		recipientId: null,
-		senderPublicKey,
-		timestamp: getTimeWithOffset(timeOffset),
 		asset: {
 			dapp: {
 				category: options.category,
@@ -85,10 +67,6 @@ const createDapp = ({
 			},
 		},
 	};
-
-	return unsigned
-		? transaction
-		: prepareTransaction(transaction, passphrase, secondPassphrase);
 };
 
-export default createDapp;
+export default wrapTransactionCreator(createDapp);

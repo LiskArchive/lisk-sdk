@@ -37,7 +37,6 @@ describe('#castVotes transaction', () => {
 	const unvotePublicKeys = [thirdPublicKey, fourthPublicKey];
 	const address = '18160565574430594874L';
 	const timeWithOffset = 38350076;
-	const unsigned = true;
 	const amount = '0';
 	const fee = (1 * fixedPoint).toString();
 
@@ -52,7 +51,10 @@ describe('#castVotes transaction', () => {
 
 	describe('when the transaction is created with one passphrase and the votes', () => {
 		beforeEach(() => {
-			castVotesTransaction = castVotes({ passphrase, votes: votePublicKeys });
+			castVotesTransaction = castVotes({
+				passphrase,
+				votes: votePublicKeys,
+			});
 		});
 
 		it('should create a cast votes transaction', () => {
@@ -293,15 +295,14 @@ describe('#castVotes transaction', () => {
 	});
 
 	describe('unsigned cast votes transaction', () => {
-		beforeEach(() => {
-			castVotesTransaction = castVotes({
-				votes: votePublicKeys,
-				unvotes: unvotePublicKeys,
-				unsigned,
+		describe('when the cast votes transaction is created without a passphrase', () => {
+			beforeEach(() => {
+				castVotesTransaction = castVotes({
+					votes: votePublicKeys,
+					unvotes: unvotePublicKeys,
+				});
 			});
-		});
 
-		describe('when the cast votes transaction is created without signature', () => {
 			it('should have the type', () => {
 				return castVotesTransaction.should.have
 					.property('type')

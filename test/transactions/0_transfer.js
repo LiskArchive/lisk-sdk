@@ -29,7 +29,6 @@ describe('#transfer transaction', () => {
 	const fee = (0.1 * fixedPoint).toString();
 	const feeWithData = (0.2 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
-	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let transferTransaction;
@@ -211,14 +210,14 @@ describe('#transfer transaction', () => {
 	});
 
 	describe('unsigned transfer transaction', () => {
-		beforeEach(() => {
-			transferTransaction = transfer({
-				recipientId,
-				amount,
-				unsigned,
+		describe('when the transfer transaction is created without a passphrase', () => {
+			beforeEach(() => {
+				transferTransaction = transfer({
+					recipientId,
+					amount,
+				});
 			});
-		});
-		describe('when the transfer transaction is created without signature', () => {
+
 			it('should have the type', () => {
 				return transferTransaction.should.have
 					.property('type')
