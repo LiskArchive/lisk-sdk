@@ -20,23 +20,6 @@ import {
 	prependMinusToPublicKeys,
 } from '../../../src/utils/helpers';
 
-export function itShouldCreateACastVoteTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithTheCorrectModifier() {
-	const {
-		passphrase,
-		secondPassphrase,
-		votePublicKeys,
-		unvotePublicKeys,
-	} = this.test.ctx;
-	const votes = prependPlusToPublicKeys(votePublicKeys);
-	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
-	const allVotes = [...votes, ...unvotes];
-	return transactions.castVotes.should.be.calledWithExactly({
-		passphrase,
-		delegates: allVotes,
-		secondPassphrase,
-	});
-}
-
 export function itShouldCreateACastVotesTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAMinus() {
 	const { passphrase, secondPassphrase, unvotePublicKeys } = this.test.ctx;
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);

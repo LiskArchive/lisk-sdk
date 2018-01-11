@@ -87,13 +87,6 @@ export function aParametersObjectWithTheOptions() {
 export function aVorpalInstance() {
 	const vorpal = new Vorpal();
 	const capturedOutput = [];
-	const handleOutput = output => capturedOutput.push(output);
-	vorpal.pipe(outputs => {
-		if (capturedOutput) {
-			outputs.forEach(handleOutput);
-		}
-		return '';
-	});
 	this.test.ctx.capturedOutput = capturedOutput;
 	this.test.ctx.vorpal = vorpal;
 }

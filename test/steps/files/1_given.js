@@ -143,6 +143,7 @@ export function theFileCanBeRead() {
 	const { fileContents } = this.test.ctx;
 	const streamStub = createStreamStub(
 		(type, callback) =>
+			// istanbul ignore next
 			type === 'data' && setImmediate(() => callback(fileContents)),
 	);
 

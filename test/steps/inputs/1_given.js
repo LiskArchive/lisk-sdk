@@ -125,23 +125,6 @@ export function thePassphraseAndMessageCanBeRetrievedFromTheirSources() {
 	});
 }
 
-export function thePassphraseAndTheSecondPassphraseAreProvidedViaStdIn() {
-	const { passphrase, secondPassphrase } = this.test.ctx;
-	inputUtils.getStdIn.resolves({ passphrase, data: secondPassphrase });
-	inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-	inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
-}
-
-export function thePassphraseAndThePasswordAreProvidedViaStdIn() {
-	const { passphrase, password, stdInInputs = [] } = this.test.ctx;
-
-	inputUtils.getStdIn.resolves({ passphrase, data: password });
-	inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-	inputUtils.getPassphrase.onSecondCall().resolves(password);
-
-	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase', 'password'];
-}
-
 export function thePasswordIsProvidedViaStdIn() {
 	const { password } = this.test.ctx;
 
@@ -154,18 +137,6 @@ export function thePasswordIsProvidedViaStdIn() {
 	}
 
 	this.test.ctx.passwordIsRequired = true;
-}
-
-export function thePassphraseAndTheMessageAreProvidedViaStdIn() {
-	const { passphrase, message, stdInInputs = [] } = this.test.ctx;
-	inputUtils.getStdIn.resolves({ passphrase, data: message });
-	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase', 'message'];
-}
-
-export function theMessageIsProvidedViaStdIn() {
-	const { message, stdInInputs = [] } = this.test.ctx;
-	inputUtils.getStdIn.resolves({ data: message });
-	this.test.ctx.stdInInputs = [...stdInInputs, 'message'];
 }
 
 export function inputs() {
@@ -195,16 +166,7 @@ export function aPromptDisplayName() {
 
 export function thePassphraseIsProvidedViaThePrompt() {
 	const { vorpal, passphrase } = this.test.ctx;
-
 	vorpal.activeCommand.prompt.onFirstCall().resolves({ passphrase });
-	this.test.ctx.getPromptPassphraseCall = () =>
-		vorpal.activeCommand.prompt.firstCall;
-
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-		this.test.ctx.getGetPassphrasePassphraseCall = () =>
-			inputUtils.getPassphrase.firstCall;
-	}
 }
 
 export function thePassphraseShouldNotBeRepeated() {
@@ -272,9 +234,7 @@ export function theDataIsProvidedViaStdIn() {
 export function theSecondPassphraseAndTheDataAreProvidedViaStdIn() {
 	const { secondPassphrase, data } = this.test.ctx;
 
-	if (typeof inputUtils.getStdIn.resolves === 'function') {
-		inputUtils.getStdIn.resolves({ secondPassphrase, data });
-	}
+	inputUtils.getStdIn.resolves({ secondPassphrase, data });
 
 	this.test.ctx.secondPassphraseIsRequired = true;
 	this.test.ctx.dataIsRequired = true;

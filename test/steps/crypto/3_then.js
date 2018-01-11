@@ -17,11 +17,6 @@ import lisk from 'lisk-js';
 import cryptoInstance from '../../../src/utils/cryptoModule';
 import { getFirstQuotedString } from '../utils';
 
-export function itShouldGetTheKeysForThePassphrase() {
-	const { passphrase } = this.test.ctx;
-	return cryptoInstance.getKeys.should.be.calledWithExactly(passphrase);
-}
-
 export function itShouldResolveToTheResultOfDecryptingThePassphrase() {
 	const { returnValue, cryptoResult } = this.test.ctx;
 	return returnValue.should.be.fulfilledWith(cryptoResult);

@@ -25,6 +25,7 @@ process.env.LISKY_CONFIG_DIR =
 	process.env.LISKY_CONFIG_DIR || `${os.homedir()}/.lisky`;
 
 should.use((_, Assertion) => {
+	// istanbul ignore next
 	Assertion.add('hexString', function hexString() {
 		this.params = {
 			operator: 'to be hex string',

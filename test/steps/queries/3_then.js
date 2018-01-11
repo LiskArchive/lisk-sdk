@@ -41,13 +41,3 @@ export function itShouldResolveToAnArrayOfQueryResults() {
 	const arrayOfQueryResults = inputs.map(() => queryResult);
 	return returnValue.should.be.fulfilledWith(arrayOfQueryResults);
 }
-
-export function theResultShouldBeReturned() {
-	const { returnValue, result } = this.test.ctx;
-	return returnValue.should.equal(result);
-}
-
-export function theResultStrippedOfANSICodesShouldBeReturned() {
-	const { returnValue, resultWithoutANSICodes } = this.test.ctx;
-	return returnValue.should.eql(resultWithoutANSICodes);
-}

@@ -30,7 +30,9 @@ export function theValidationErrorIsThrown() {
 	const { validationErrorFn } = this.test.ctx;
 	try {
 		const returnValue = validationErrorFn();
+		// istanbul ignore next
 		this.test.ctx.returnValue = returnValue;
+		// istanbul ignore next
 		return returnValue;
 	} catch (error) {
 		const testFunction = validationErrorFn.bind(null);

@@ -65,13 +65,8 @@ export function theArrayIsTablified() {
 
 export function shouldUseJSONOutputIsCalledWithTheConfigAndOptions() {
 	const { config, options } = this.test.ctx;
-	try {
-		const returnValue = shouldUseJSONOutput(config, options);
-		this.test.ctx.returnValue = returnValue;
-	} catch (error) {
-		const testFunction = shouldUseJSONOutput.bind(null, config, options);
-		this.test.ctx.testFunction = testFunction;
-	}
+	const returnValue = shouldUseJSONOutput(config, options);
+	this.test.ctx.returnValue = returnValue;
 }
 
 export function shouldUsePrettyOutputIsCalledWithTheConfigAndOptions() {

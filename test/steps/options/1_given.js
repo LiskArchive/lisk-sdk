@@ -13,13 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as inputUtils from '../../../src/utils/input/utils';
 import {
 	getFirstQuotedString,
 	getQuotedStrings,
 	getFirstBoolean,
 	getBooleans,
-	hasAncestorWithTitleMatching,
 } from '../utils';
 
 export function anArrayOfOptions() {
@@ -75,14 +73,9 @@ export function anOptionsObjectWithVotesSetTo() {
 }
 
 export function anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo() {
-	const { secondPassphrase, passphrase } = this.test.ctx;
 	const [passphraseSource, secondPassphraseSource] = getQuotedStrings(
 		this.test.parent.title,
 	);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-		inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
-	}
 	this.test.ctx.options = {
 		passphrase: passphraseSource,
 		'second-passphrase': secondPassphraseSource,
@@ -128,31 +121,14 @@ export function anOptionsObjectWithPassphraseSetToAndPasswordSetTo() {
 }
 
 export function anOptionsObjectWithPasswordSetTo() {
-	const { password } = this.test.ctx;
 	const passwordSource = getFirstQuotedString(this.test.parent.title);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		if (
-			hasAncestorWithTitleMatching(
-				this.test,
-				/Given an action "decrypt passphrase"/,
-			)
-		) {
-			inputUtils.getPassphrase.onFirstCall().resolves(password);
-		} else {
-			inputUtils.getPassphrase.onSecondCall().resolves(password);
-		}
-	}
 	this.test.ctx.options = { password: passwordSource };
 }
 
 export function anOptionsObjectWithPassphraseSetToAndMessageSetTo() {
-	const { passphrase } = this.test.ctx;
 	const [passphraseSource, messageSource] = getQuotedStrings(
 		this.test.parent.title,
 	);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.resolves(passphrase);
-	}
 	this.test.ctx.options = {
 		passphrase: passphraseSource,
 		message: messageSource,
@@ -165,29 +141,12 @@ export function anOptionsObjectWithMessageSetTo() {
 }
 
 export function anOptionsObjectWithPassphraseSetTo() {
-	const { passphrase } = this.test.ctx;
 	const passphraseSource = getFirstQuotedString(this.test.parent.title);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		if (
-			!hasAncestorWithTitleMatching(
-				this.test,
-				/Given an action "decrypt passphrase"/,
-			)
-		) {
-			inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-			this.test.ctx.getGetPassphrasePassphraseCall = () =>
-				inputUtils.getPassphrase.firstCall;
-		}
-	}
 	this.test.ctx.options = { passphrase: passphraseSource };
 }
 
 export function anOptionsObjectWithSecondPassphraseSetTo() {
-	const { secondPassphrase } = this.test.ctx;
 	const secondPassphraseSource = getFirstQuotedString(this.test.parent.title);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
-	}
 	this.test.ctx.options = { 'second-passphrase': secondPassphraseSource };
 }
 
