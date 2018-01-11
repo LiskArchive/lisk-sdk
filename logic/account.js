@@ -567,10 +567,6 @@ Account.prototype.removeTables = function (cb) {
  * @throws {string} If schema.validate fails, throws 'Failed to validate account schema'.
  */
 Account.prototype.objectNormalize = function (account) {
-	var requiredProperties = this.model.filter(function (prop) {
-		return prop.filter && prop.filter.required;
-	}).map(function (prop) { return prop.name; });
-
 	var report = this.scope.schema.validate(account, Account.prototype.schema);
 
 	if (!report) {
