@@ -1,10 +1,13 @@
 'use strict';
 
 var PQ = require('pg-promise').ParameterizedQuery;
+var columnSet;
 
 function BlocksRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
+
+	this.dbTable = 'blocks';
 
 	this.sortFields = [
 		'id',
@@ -17,6 +20,30 @@ function BlocksRepo (db, pgp) {
 		'numberOfTransactions',
 		'generatorPublicKey'
 	];
+
+	this.dbFields = [
+		'id',
+		'version',
+		'timestamp',
+		'height',
+		'previousBlock',
+		'numberOfTransactions',
+		'totalAmount',
+		'totalFee',
+		'reward',
+		'payloadLength',
+		'payloadHash',
+		'generatorPublicKey',
+		'blockSignature'
+	];
+
+	if (!columnSet) {
+		columnSet = {};
+		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, table);
+	}
+
+	this.cs = columnSet;
 }
 
 var Queries = {
@@ -165,6 +192,25 @@ BlocksRepo.prototype.deleteAfterBlock = function (id) {
 
 BlocksRepo.prototype.getBlocksForTransport = function (ids) {
 	return this.db.query(Queries.getBlocksForTransport, [ids]);
+};
+
+/**
+ * Create a transaction to create a block.
+ *
+ * @param {Object} block - JSON object for block.
+ * @return {Promise}
+ */
+BlocksRepo.prototype.save = function (block) {
+	try {
+		block.payloadHash = Buffer.from(block.payloadHash, 'hex');
+		block.generatorPublicKey = Buffer.from(block.generatorPublicKey, 'hex');
+		block.blockSignature = Buffer.from(block.blockSignature, 'hex');
+		block.reward = block.reward || 0;
+	} catch (e) {
+		throw e;
+	}
+
+	return this.db.none(this.pgp.helpers.insert(block, this.cs.insert));
 };
 
 module.exports = BlocksRepo;

@@ -54,7 +54,7 @@ InTransfer.prototype.calculateFee = function (transaction, sender) {
  * @param {function} cb
  * @return {setImmediateCallback} errors message | transaction
  */
-InTransfer.prototype.verify = function (transaction, sender, cb) {
+InTransfer.prototype.verify = function (transaction, sender, cb, tx) {
 	if (transaction.recipientId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
@@ -67,7 +67,7 @@ InTransfer.prototype.verify = function (transaction, sender, cb) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	library.db.dapps.countByTransactionId(transaction.asset.inTransfer.dappId).then(function (row) {
+	(tx || library.db).dapps.countByTransactionId(transaction.asset.inTransfer.dappId).then(function (row) {
 		if (row.count === 0) {
 			return setImmediate(cb, 'Application not found: ' + transaction.asset.inTransfer.dappId);
 		} else {
@@ -122,7 +122,7 @@ InTransfer.prototype.getBytes = function (transaction) {
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} error, cb
  */
-InTransfer.prototype.apply = function (transaction, block, sender, cb) {
+InTransfer.prototype.apply = function (transaction, block, sender, cb, tx) {
 	shared.getGenesis({dappid: transaction.asset.inTransfer.dappId}, function (err, res) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -135,8 +135,8 @@ InTransfer.prototype.apply = function (transaction, block, sender, cb) {
 			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
-		});
-	});
+		}, tx);
+	}, tx);
 };
 
 /**
@@ -175,7 +175,7 @@ InTransfer.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-InTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+InTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 	return setImmediate(cb);
 };
 
@@ -185,7 +185,7 @@ InTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-InTransfer.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+InTransfer.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
 	return setImmediate(cb);
 };
 
@@ -237,30 +237,6 @@ InTransfer.prototype.dbRead = function (raw) {
 
 		return {inTransfer: inTransfer};
 	}
-};
-
-InTransfer.prototype.dbTable = 'intransfer';
-
-InTransfer.prototype.dbFields = [
-	'dappId',
-	'transactionId'
-];
-
-/**
- * Creates db operation object to 'intransfer' table based on 
- * inTransfer data.
- * @param {transaction} transaction
- * @return {Object[]} table, fields, values.
- */
-InTransfer.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			dappId: transaction.asset.inTransfer.dappId,
-			transactionId: transaction.id
-		}
-	};
 };
 
 /**

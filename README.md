@@ -252,7 +252,8 @@ npm test -- mocha:<tag>:<suite>:[section]
 
 - Where **tag** can be one of `slow | unstable | untagged | extensive` (required)
 - Where **suite** can be one of `unit | functional | integration`  (required)
-- Where **section** can be one of `get | post | ws | system` (optional)
+- Where **section** depending of the chosen suite can be:
+    - when `functional` --> `get | post | ws | system` (optional)
 
 Individual test files can be run using the following command:
 
