@@ -89,12 +89,11 @@ function DApps (cb, scope) {
 
 // Private methods
 /**
- * Gets applications based on a given filter object
+ * Gets applications based on a given filter object.
  * @private
  * @implements {library.db.query}
- * @param {Object} filter - May contain type, name, category, link, limit,
- * offset, sort
- * @param {function} cb - Callback function
+ * @param {Object} filter - May contain type, name, category, link, limit, offset, sort.
+ * @param {function} cb - Callback function.
  * @return {setImmediateCallback} cb, error | cb, null, application
  */
 __private.list = function (filter, cb) {
@@ -207,7 +206,7 @@ DApps.prototype.isLoaded = function () {
  * Internal & Shared
  * - DApps.prototype.internal
  * - shared.
- * @todo implement API comments with apidoc.
+ * @todo Implement API comments with apidoc.
  * @see {@link http://apidocjs.com/}
  */
 DApps.prototype.shared = {
@@ -215,13 +214,13 @@ DApps.prototype.shared = {
 	/**
 	 * Utility method to get dapps.
 	 *
-	 * @param {Object} parameters - Object of all parameters
-	 * @param {string} parameters.transactionId - Registration transaction ID to query
-	 * @param {string} parameters.name - Name to query - Fuzzy search
-	 * @param {string} parameters.sort - Sort field
-	 * @param {int} parameters.limit - Limit applied to results
-	 * @param {int} parameters.offset - Offset value for results
-	 * @param {function} cb - Callback function
+	 * @param {Object} parameters - Object of all parameters.
+	 * @param {string} parameters.transactionId - Registration transaction ID to query.
+	 * @param {string} parameters.name - Name to query - Fuzzy search.
+	 * @param {string} parameters.sort - Sort field.
+	 * @param {int} parameters.limit - Limit applied to results.
+	 * @param {int} parameters.offset - Offset value for results.
+	 * @param {function} cb - Callback function.
 	 * @return {Array.<Object>}
 	 */
 	getDapps: function (parameters, cb) {
