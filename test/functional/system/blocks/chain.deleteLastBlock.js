@@ -395,6 +395,97 @@ describe('blocks/chain', function () {
 					});
 				});
 			});
+
+			describe('(type 4) register multisignature', function () {
+
+				before('create account with funds', function (done) {
+					createAccountWithFunds(done);
+					fieldsToCompare = ['balance', 'u_balance', 'blockId', 'virgin', 'publicKey', 'multilifetime', 'u_multilifetime', 'multimin', 'u_multimin', 'multisignatures', 'u_multisignatures'];
+				});
+
+				it('should validate account data from sender', function (done) {
+					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						testAccountData = res;
+						expect(res.virgin).to.equal(1);
+						expect(res.publicKey).to.be.null;
+						expect(res.multilifetime).to.equal(0);
+						expect(res.u_multilifetime).to.equal(0);
+						expect(res.multimin).to.equal(0);
+						expect(res.u_multimin).to.equal(0);
+						expect(res.multisignatures).to.be.null;
+						expect(res.u_multisignatures).to.be.null;
+						done();
+					});
+				});
+
+				it('should forge a block', function (done) {
+					var multisigTransaction = lisk.multisignature.createMultisignature(testAccount.password, null, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
+					var signTransaction = lisk.multisignature.signTransaction(multisigTransaction, accountFixtures.existingDelegate.password);
+					multisigTransaction.signatures = [signTransaction];
+					multisigTransaction.ready = true;
+					localCommon.addTransactionsAndForge(library, [multisigTransaction], done);
+				});
+
+				it('should validate account data from sender', function (done) {
+					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						testAccountDataAfterBlock = res;
+						expect(res.virgin).to.equal(0);
+						expect(res.publicKey).to.not.be.null;
+						expect(res.multilifetime).to.equal(1);
+						expect(res.u_multilifetime).to.equal(1);
+						expect(res.multimin).to.equal(1);
+						expect(res.u_multimin).to.equal(1);
+						expect(res.multisignatures[0]).to.equal(accountFixtures.existingDelegate.publicKey);
+						expect(res.u_multisignatures[0]).to.equal(accountFixtures.existingDelegate.publicKey);
+						done();
+					});
+				});
+
+				it('should delete last block', function (done) {
+					library.modules.blocks.chain.deleteLastBlock(function (err, res) {
+						expect(err).to.not.exist;
+						done();
+					});
+				});
+
+				it('should validate account data from sender', function (done) {
+					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						expect(res.balance).to.equal(testAccountData.balance);
+						expect(res.u_balance).to.equal(testAccountData.u_balance);
+						expect(res.multilifetime).to.equal(0);
+						expect(res.u_multilifetime).to.equal(0);
+						expect(res.multimin).to.equal(0);
+						expect(res.u_multimin).to.equal(0);
+						expect(res.multisignatures).to.be.null;
+						expect(res.u_multisignatures).to.be.null;
+						// FIXME: incorrect blockId
+						// CHECKME: publicKey should be null
+						// CHECKME: virgin should be 1
+						done();
+					});
+				});
+
+				it('should forge a block with pool transaction', function (done) {
+					localCommon.addTransactionsAndForge(library, [], done);
+				});
+
+				it('should validate account data from sender', function (done) {
+					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
+						expect(res.u_balance).to.equal(testAccountDataAfterBlock.u_balance);
+						expect(res.publicKey).to.equal(testAccountDataAfterBlock.publicKey);
+						expect(res.multilifetime).to.equal(1);
+						expect(res.u_multilifetime).to.equal(1);
+						expect(res.multimin).to.equal(1);
+						expect(res.u_multimin).to.equal(1);
+						expect(res.multisignatures[0]).to.equal(accountFixtures.existingDelegate.publicKey);
+						expect(res.u_multisignatures[0]).to.equal(accountFixtures.existingDelegate.publicKey);
+						expect(res.virgin).to.equal(0);
+						// CHECKME: blockId
+						done();
+					});
+				});
+			});
 		});
 
 		describe('multiple transactions scenarios: create transactions, forge, delete block, forge again', function () {
