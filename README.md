@@ -66,27 +66,14 @@ This sections provides details on what you need install on your system in order 
     - MacOS 10.12-10.13 (Sierra/High Sierra):
 
         ```
-        brew install node@6
+        brew install node@6.12.3
         ```
 
-- _(Recommended)_ Install nvm -- Used for Node.js version management
+- _(Recommended)_ Install nvm(<https://github.com/creationix/nvm#install-script>) -- Used for Node.js version management
 
-    - Linux
-
-        ```
-        curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
-        nvm install 6.12.3
-        ```
-
-    - Mac
-        ```
-        brew update
-        brew install nvm
-        mkdir ~/.nvm
-        echo "export NVM_DIR=~/.nvm" >> ~/.bash_profile
-        echo "source $(brew --prefix nvm)/nvm.sh" >> ~/.bash_profile
-        nvm install 6.12.3
-        ```
+    ```
+    nvm install 6.12.3
+    ```
 
 - _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
 
