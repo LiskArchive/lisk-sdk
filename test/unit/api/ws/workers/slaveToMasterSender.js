@@ -13,10 +13,6 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
-var sinon = require('sinon');
-
 var SlaveToMasterSender = require('../../../../../api/ws/workers/slaveToMasterSender');
 
 describe('SlaveToMasterSender', function () {

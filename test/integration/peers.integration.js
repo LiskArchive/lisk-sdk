@@ -13,11 +13,9 @@
  */
 'use strict';
 
-var _ = require('lodash');
+var _ = testSuite._;
 var async = require('async');
 var child_process = require('child_process');
-var chai = require('chai');
-var expect = require('chai').expect;
 var fs = require('fs');
 var popsicle = require('popsicle');
 var Promise = require('bluebird');

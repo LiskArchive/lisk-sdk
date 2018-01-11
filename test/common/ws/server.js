@@ -14,7 +14,6 @@
 'use strict';
 
 var randomstring = require('randomstring');
-var sinon = require('sinon');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');
 var SocketCluster = require('socketcluster');

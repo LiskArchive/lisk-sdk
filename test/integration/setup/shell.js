@@ -44,6 +44,9 @@ module.exports = {
 		child.stdout.pipe(process.stdout);
 
 		child.on('close', function (code) {
+			console.log('==================================');
+			console.log(code);
+			console.log('==================================');
 			if (code === 0) {
 				return cb();
 			} else {

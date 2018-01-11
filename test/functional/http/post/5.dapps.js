@@ -17,7 +17,7 @@ var test = require('../../functional.js');
 
 var randomstring = require('randomstring');
 var lisk = require('lisk-js');
-var expect = require('chai').expect;
+
 var Promise = require('bluebird');
 
 var common = require('./common');

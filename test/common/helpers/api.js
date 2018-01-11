@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var test = require('../../test');
+var test = testSuite;
 
 var lisk = require('lisk-js');
 var Promise = require('bluebird');

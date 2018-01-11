@@ -13,11 +13,11 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
+
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
-var test = require('../../test');
+var test = testSuite;
 var _ = test._;
 var accountFixtures = require('../../fixtures/accounts');
 

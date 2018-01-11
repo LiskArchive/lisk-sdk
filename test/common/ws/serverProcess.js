@@ -16,7 +16,6 @@
 var randomstring = require('randomstring');
 var SocketCluster = require('socketcluster');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-var sinon = require('sinon');
 var WSClient = require('./client');
 var Promise = require('bluebird');
 

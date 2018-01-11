@@ -19,8 +19,6 @@ var application = require('../../../common/application');
 var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
-var chai = require('chai');
-var should = chai.should();
 
 var previousBlock;
 

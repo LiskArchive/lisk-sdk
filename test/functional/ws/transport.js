@@ -19,7 +19,6 @@ var _ = test._;
 var async = require('async');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var scClient = require('socketcluster-client');
-var expect = require('chai').expect;
 
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 

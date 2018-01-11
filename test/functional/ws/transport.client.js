@@ -15,11 +15,8 @@
 
 var test = require('../functional.js');
 
-var chai = require('chai');
-var expect = require('chai').expect;
 var express = require('express');
 var randomstring = require('randomstring');
-var sinon = require('sinon');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var config = require('../../data/config.json');

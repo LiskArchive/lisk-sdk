@@ -14,8 +14,6 @@
 'use strict';
 
 var httpMocks = require('node-mocks-http');
-var chai = require('chai');
-var should = chai.should();
 
 var fitting = require('../../../../api/fittings/lisk_cors');
 

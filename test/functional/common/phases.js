@@ -13,11 +13,9 @@
  */
 'use strict';
 
-var test = require('../functional.js');
-
-var expect = require('chai').expect;
 var Promise = require('bluebird');
 
+var test = require('../functional.js');
 var apiHelpers = require('../../common/helpers/api');
 var waitFor = require('../../common/utils/waitFor');
 

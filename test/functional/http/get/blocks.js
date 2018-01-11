@@ -15,7 +15,6 @@
 
 var test = require('../../functional.js');
 
-var expect = require('chai').expect;
 var Promise = require('bluebird');
 
 var _ = test._;

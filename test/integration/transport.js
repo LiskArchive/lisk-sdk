@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var _ = require('lodash');
+var _ = testSuite._;
 
 var devConfig = require('../data/config.json');
 

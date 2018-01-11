@@ -13,8 +13,7 @@
  */
 'use strict';
 
-var _ = require('lodash');
-var expect = require('chai').expect;
+var _ = testSuite._;
 var Promise = require('bluebird');
 
 module.exports = function (params) {

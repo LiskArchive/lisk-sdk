@@ -93,7 +93,7 @@ testSuite._.mixin({
 }, { chain: false });
 
 // See https://github.com/shouldjs/should.js/issues/41
-Object.defineProperty(global, 'should', { value: chai.should });
+Object.defineProperty(global, 'should', { value: chai.should() });
 global.chai = chai;
 global.expect = chai.expect;
 global.sinon = sinon;

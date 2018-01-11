@@ -16,7 +16,6 @@
 var test = require('../../functional.js');
 var _ = test._;
 var lisk = require('lisk-js');
-var expect = require('chai').expect;
 
 var Scenarios = require('../../common/scenarios');
 var accountFixtures = require('../../../fixtures/accounts');

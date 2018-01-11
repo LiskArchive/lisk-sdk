@@ -13,16 +13,12 @@
  */
 'use strict';
 
-var test = require('../../../functional.js');
-
 var lisk = require('lisk-js');
-var expect = require('chai').expect;
 var Promise = require('bluebird');
 
+var test = require('../../../functional.js');
 var accountFixtures = require('../../../../fixtures/accounts');
-
 var apiCodes = require('../../../../../helpers/apiCodes');
-
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
 var waitFor = require('../../../../common/utils/waitFor');

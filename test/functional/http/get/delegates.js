@@ -16,8 +16,6 @@
 var test = require('../../functional.js');
 
 var lisk = require('lisk-js');
-var chai = require('chai');
-var should = chai.should();
 var Promise = require('bluebird');
 
 var _ = test._;

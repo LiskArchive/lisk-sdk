@@ -16,8 +16,6 @@
 var test = require('../functional.js');
 
 var _ = test._;
-var expect = require('chai').expect;
-var sinon = require('sinon');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var randomstring = require('randomstring');
 var scClient = require('socketcluster-client');

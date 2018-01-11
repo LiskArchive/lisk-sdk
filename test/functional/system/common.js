@@ -16,7 +16,7 @@
 var async = require('async');
 var Promise = require('bluebird');
 
-var test = require('../../test');
+var test = testSuite;
 
 var slots = require('../../../helpers/slots');
 
