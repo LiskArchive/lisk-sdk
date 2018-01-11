@@ -211,17 +211,18 @@ BlocksRepo.prototype.getBlocksForTransport = function (ids) {
  * @param {Object} block - JSON object for block.
  * @return {Promise}
  */
-BlocksRepo.prototype.save = function (block) {
-	try {
-		block.payloadHash = Buffer.from(block.payloadHash, 'hex');
-		block.generatorPublicKey = Buffer.from(block.generatorPublicKey, 'hex');
-		block.blockSignature = Buffer.from(block.blockSignature, 'hex');
-		block.reward = block.reward || 0;
-	} catch (e) {
-		throw e;
-	}
+ BlocksRepo.prototype.save = function (block) {
+ 	try {
+ 		var saveBlock = Object.assign({}, block);
+ 		saveBlock.payloadHash = Buffer.from(block.payloadHash, 'hex');
+ 		saveBlock.generatorPublicKey = Buffer.from(block.generatorPublicKey, 'hex');
+ 		saveBlock.blockSignature = Buffer.from(block.blockSignature, 'hex');
+ 		saveBlock.reward = block.reward || 0;
+ 	} catch (e) {
+ 		throw e;
+ 	}
 
-	return this.db.none(this.pgp.helpers.insert(block, this.cs.insert));
-};
+ 	return this.db.none(this.pgp.helpers.insert(saveBlock, this.cs.insert));
+ };
 
 module.exports = BlocksRepo;

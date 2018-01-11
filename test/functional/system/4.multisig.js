@@ -20,7 +20,7 @@ var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
 
-describe.skip('multisignature', function () {
+describe('multisignature', function () {
 
 	var library;
 
