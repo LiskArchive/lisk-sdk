@@ -13,9 +13,6 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
-var sinon = require('sinon');
-
 var checkIpInList = require('../../../helpers/checkIpInList');
 var httpApi = require('../../../helpers/httpApi');
 const apiCodes = require('../../../helpers/apiCodes');

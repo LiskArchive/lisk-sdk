@@ -14,9 +14,6 @@
 'use strict';
 
 // Init tests dependencies
-var chai = require('chai');
-var expect = require('chai').expect;
-var sinon = require('sinon');
 var rewire = require('rewire');
 
 // Init tests subject

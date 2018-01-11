@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 'use strict';
-
-var _ = require('lodash');
-var chai = require('chai');
-var expect = require('chai').expect;
-var sinon = require('sinon');
-
+var _ = testSuite._;
 var failureCodes = require('../../../../../api/ws/rpc/failureCodes');
 var PeerUpdateError = require('../../../../../api/ws/rpc/failureCodes').PeerUpdateError;
 var prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;

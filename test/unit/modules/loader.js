@@ -13,12 +13,9 @@
  */
 'use strict';
 
-var _ = require('lodash');
-var chai = require('chai');
-var expect = require('chai').expect;
+var _  = testSuite._;
 var express = require('express');
 var rewire  = require('rewire');
-var sinon = require('sinon');
 
 var jobsQueue = require('../../../helpers/jobsQueue');
 var modulesLoader = require('../../common/modulesLoader');

@@ -16,9 +16,7 @@
 var crypto = require('crypto');
 var async = require('async');
 var lisk = require('lisk-js');
-var chai = require('chai');
-var expect = require('chai').expect;
-var _  = require('lodash');
+var _ = testSuite._;
 
 var accountFixtures = require('../../fixtures/accounts');
 

@@ -14,11 +14,9 @@
 'use strict';/*eslint*/
 
 var crypto = require('crypto');
-var _  = require('lodash');
+var _  = testSuite._;
 
-var expect = require('chai').expect;
 var rewire = require('rewire');
-var sinon   = require('sinon');
 var randomstring = require('randomstring');
 
 

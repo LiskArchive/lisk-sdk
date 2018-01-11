@@ -14,16 +14,11 @@
 'use strict';
 
 var async = require('async');
-var chai = require('chai');
-var expect = require('chai').expect;
 var express = require('express');
 var randomstring = require('randomstring');
-var sinon = require('sinon');
 
-var test = require('../../test');
-
-var config = test.config;
-var _ = test._;
+var config = testSuite.config;
+var _ = testSuite._;
 var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
 
 var wsApi = require('../../../helpers/wsApi');

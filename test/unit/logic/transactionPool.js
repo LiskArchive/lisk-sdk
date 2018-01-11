@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
-var sinon = require('sinon');
 var lisk = require('lisk-js');
 
 var accountFixtures = require('../../fixtures/accounts');

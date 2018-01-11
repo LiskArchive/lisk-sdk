@@ -1,41 +1,33 @@
-/*
- * Copyright © 2018 Lisk Foundation
- *
- * See the LICENSE file at the top-level directory of this distribution
- * for licensing information.
- *
- * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
- * no part of this software, including this file, may be copied, modified,
- * propagated, or distributed except according to the terms contained in the
- * LICENSE file.
- *
- * Removal or modification of this copyright notice is prohibited.
- */
 'use strict';
 
 require('colors');
+var chai = require('chai');
+var sinon = require('sinon');
+var sinonChai = require('sinon-chai');
 var supertest = require('supertest');
+process.env.NODE_ENV = 'test';
 
 // Root object
-var test = {};
+var testSuite = {};
 
-test.config = require('./data/config.json');
-test.config.root = process.cwd();
+testSuite.config = require('./data/config.json');
+testSuite.config.root = process.cwd();
 
 // Optional logging
 if (process.env.SILENT === 'true') {
-	test.debug = function () { };
+	testSuite.debug = function () { };
 } else {
-	test.debug = console.log;
+	testSuite.debug = console.log;
 }
 
 // Node configuration
-test.baseUrl = 'http://' + test.config.address + ':' + test.config.httpPort;
-test.api = supertest(test.baseUrl);
+testSuite.baseUrl = 'http://' + testSuite.config.address + ':' + testSuite.config.httpPort;
+testSuite.api = supertest(testSuite.baseUrl);
 
-test._ = require('lodash');
+// Custom lodash mixin
+testSuite._ = require('lodash');
 
-test._.mixin({
+testSuite._.mixin({
 	/**
 	 * Lodash mixin to sort collection case-insensitively.
 	 * @param {Array} arr - Array to be sorted.
@@ -45,15 +37,15 @@ test._.mixin({
 	dbSort: function (arr, sortOrder) {
 		var sortFactor = (sortOrder === 'desc' ? -1 : 1);
 
-		return test._.clone(arr).sort(function (a, b) {
+		return testSuite._.clone(arr).sort(function (a, b) {
 			// If first element is empty push it downard
-			if (!test._.isEmpty(a) && test._.isEmpty(b)) { return sortFactor * -1; }
+			if (!testSuite._.isEmpty(a) && testSuite._.isEmpty(b)) { return sortFactor * -1; }
 
 			// If second element is empty pull it upward
-			if (test._.isEmpty(a) && !test._.isEmpty(b)) { return sortFactor * 1; }
+			if (testSuite._.isEmpty(a) && !testSuite._.isEmpty(b)) { return sortFactor * 1; }
 
 			// If both are empty keep same order
-			if (test._.isEmpty(a) && test._.isEmpty(b)) { return sortFactor * 0; }
+			if (testSuite._.isEmpty(a) && testSuite._.isEmpty(b)) { return sortFactor * 0; }
 
 			// Convert to lower case and remove special characters
 			var s1lower = a.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -71,7 +63,7 @@ test._.mixin({
 	 */
 	appearsInLast: function (arr, valueCheck) {
 		// Get list of indexes of desired value
-		var indices = test._.compact(arr.map(function (data, index) {
+		var indices = testSuite._.compact(arr.map(function (data, index) {
 			if (data === valueCheck) { return index; }
 		}));
 
@@ -100,5 +92,12 @@ test._.mixin({
 	}
 }, { chain: false });
 
-// Exports
-module.exports = test;
+// See https://github.com/shouldjs/should.js/issues/41
+Object.defineProperty(global, 'should', { value: chai.should });
+global.chai = chai;
+global.expect = chai.expect;
+global.sinon = sinon;
+global.sinonChai = sinonChai;
+global.sandbox = sinon.sandbox.create();
+global.supertest = supertest;
+global.testSuite = testSuite;

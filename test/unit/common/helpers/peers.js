@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var _ = require('lodash');
+var _ = testSuite._;
 var randomstring = require('randomstring');
 
 module.exports = {

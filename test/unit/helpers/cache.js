@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
-var sinon = require('sinon');
 var redis = require('redis');
 
 var cache = require('../../../helpers/cache');

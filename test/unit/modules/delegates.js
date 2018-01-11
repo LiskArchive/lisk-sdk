@@ -13,9 +13,6 @@
  */
 'use strict';/*eslint*/
 
-var expect = require('chai').expect;
-
-
 var genesisDelegates = require('../../data/genesisDelegates.json');
 var accountFixtures = require('../../fixtures/accounts');
 

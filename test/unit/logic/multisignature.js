@@ -17,10 +17,7 @@ var lisk = require('lisk-js');
 var crypto = require('crypto');
 var async = require('async');
 var rewire = require('rewire');
-var sinon = require('sinon');
-var chai = require('chai');
-var expect = require('chai').expect;
-var _  = require('lodash');
+var _  = testSuite._;
 
 var testData = require('./testData/multisignature');
 var accountFixtures = require('../../fixtures/accounts');

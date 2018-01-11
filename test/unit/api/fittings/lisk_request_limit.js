@@ -13,11 +13,10 @@
  */
 'use strict';
 
+var httpMocks = require('node-mocks-http');
 var chai = require('chai');
 var should = chai.should();
-var sinon = require('sinon');
-var sinonChai = require('sinon-chai');
-var httpMocks = require('node-mocks-http');
+
 var fitting = require('../../../../api/fittings/lisk_request_limit');
 
 chai.use(sinonChai);

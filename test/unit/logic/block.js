@@ -11,12 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-var _ = require('lodash');
+'use strict';
+
 var rewire = require('rewire');
-var sinon = require('sinon');
-var expect = require('chai').expect;
 var ed = require('../../../helpers/ed');
 var crypto = require('crypto');
+var _ = testSuite._;
 
 var modulesLoader = require('../../common/modulesLoader');
 var transactionTypes = require('../../../helpers/transactionTypes.js');

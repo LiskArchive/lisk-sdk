@@ -14,13 +14,8 @@
 'use strict';/*eslint*/
 
 var crypto = require('crypto');
-var _  = require('lodash');
-
-var expect = require('chai').expect;
 var rewire = require('rewire');
-var sinon   = require('sinon');
-
-
+var _  = testSuite._;
 
 var modulesLoader = require('../../common/modulesLoader');
 var typesRepresentatives = require('../../fixtures/typesRepresentatives');

@@ -13,12 +13,10 @@
  */
 'use strict';
 
-var _ = require('lodash');
+var _ = testSuite._;
 var assign = _.assign;
 var difference = _.difference;
 var set = _.set;
-var chai = require('chai');
-var expect = require('chai').expect;
 var util = require('util');
 
 var typesRepresentatives = require('../../fixtures/typesRepresentatives');

@@ -16,7 +16,7 @@
 var express = require('express');
 var path = require('path');
 var randomstring = require('randomstring');
-var _ = require('lodash');
+var _ = testSuite._;
 var async = require('async');
 
 var dirname = path.join(__dirname, '..', '..');

@@ -13,11 +13,9 @@
  */
 'use strict';/*eslint*/
 
-var _  = require('lodash');
+var _  = testSuite._;
 var crypto = require('crypto');
-var expect = require('chai').expect;
 var rewire = require('rewire');
-var sinon   = require('sinon');
 
 var accounts = require('../../fixtures/accounts');
 var constants = require('../../../helpers/constants');

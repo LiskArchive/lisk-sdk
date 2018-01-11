@@ -13,13 +13,10 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
 var rewire = require('rewire');
 var randomstring = require('randomstring');
-var sinon = require('sinon');
 
-var test = require('../../test');
-var _ = test._;
+var _ = testSuite._;
 
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var generateRandomActivePeer = require('../../fixtures/peers').generateRandomActivePeer;

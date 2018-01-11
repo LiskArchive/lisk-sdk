@@ -13,11 +13,8 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
 var express = require('express');
-var _  = require('lodash');
-var sinon = require('sinon');
+var _  = testSuite._;
 
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var modulesLoader = require('../../common/modulesLoader');

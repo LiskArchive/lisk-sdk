@@ -33,7 +33,15 @@
     "before": true,
     "beforeEach": true,
     "after": true,
-    "afterEach": true
+    "afterEach": true,
+    "chai": true,
+    "sinonChai": true,
+    "expect": true,
+    "should": true,
+    "sinon": true,
+    "sandbox": true,
+    "supertest": true,
+    "testSuite": true
   },
   "plugins": []
 

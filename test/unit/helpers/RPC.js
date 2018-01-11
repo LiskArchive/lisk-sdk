@@ -15,10 +15,7 @@
 
 var config = require('../../data/config.json');
 
-var chai = require('chai');
-var expect = require('chai').expect;
 var express = require('express');
-var sinon = require('sinon');
 
 var constants = require('../../../helpers/constants');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');

@@ -13,12 +13,9 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
 var express = require('express');
 var ip = require('ip');
-var _  = require('lodash');
-var sinon = require('sinon');
+var _  = testSuite._;
 
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var Peer = require('../../../logic/peer.js');

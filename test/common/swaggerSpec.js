@@ -13,13 +13,9 @@
  */
 'use strict';
 
-var chai = require('chai');
-var should = chai.should();
-var supertest = require('supertest');
 var Promise = require('bluebird');
 
-var test = require('../test');
-var _ = test._;
+var _ = testSuite._;
 
 var swaggerHelper = require('../../helpers/swagger');
 
@@ -167,7 +163,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 			}
 		});
 
-		var req = supertest(test.baseUrl);
+		var req = supertest(testSuite.baseUrl);
 
 		if (self.method === 'post') {
 			req = req.post(callPath);
@@ -190,18 +186,18 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 			req = req.send(post);
 		}
 
-		test.debug(['> URI:'.grey, req.method, req.url].join(' '));
+		testSuite.debug(['> URI:'.grey, req.method, req.url].join(' '));
 
 		if(!_.isEmpty(query)) {
-			test.debug(['> Query:'.grey, JSON.stringify(query)].join(' '));
+			testSuite.debug(['> Query:'.grey, JSON.stringify(query)].join(' '));
 		}
 		if(!_.isEmpty(post)) {
-			test.debug(['> Data:'.grey, JSON.stringify(post)].join(' '));
+			testSuite.debug(['> Data:'.grey, JSON.stringify(post)].join(' '));
 		}
 		return req;
 	}).then(function (res) {
 
-		test.debug('> Response:'.grey, res.statusCode, JSON.stringify(res.body));
+		testSuite.debug('> Response:'.grey, res.statusCode, JSON.stringify(res.body));
 
 		var expectedResponseCode = responseCode || self.responseCode;
 
@@ -212,7 +208,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		return res;
 	})
 		.catch(function (eror){
-			test.debug('> Response Error:'.grey, JSON.stringify((validator.getLastErrors())));
+			testSuite.debug('> Response Error:'.grey, JSON.stringify((validator.getLastErrors())));
 			throw eror;
 		});
 };

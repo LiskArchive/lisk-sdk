@@ -13,9 +13,6 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
-var sinon = require('sinon');
-
 var z_schema_express = require('../../../helpers/z_schema-express');
 
 describe('z_schema.express', function () {

@@ -13,16 +13,13 @@
  */
 'use strict';/*eslint*/
 
-var _  = require('lodash');
+var _  = testSuite._;
 
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var crypto = require('crypto');
 var async = require('async');
-var sinon = require('sinon');
 
-var chai = require('chai');
-var expect = require('chai').expect;
 var constants = require('../../../helpers/constants.js');
 var application = require('../../common/application.js');
 var AccountModule = require('../../../modules/accounts.js');

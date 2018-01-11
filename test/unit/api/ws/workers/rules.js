@@ -13,10 +13,6 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
-var sinon = require('sinon');
-
 var failureCodes = require('../../../../../api/ws/rpc/failureCodes');
 var Rules = require('../../../../../api/ws/workers/rules');
 
