@@ -361,13 +361,14 @@ Transactions.prototype.getQueuedTransactionList = function (reverse, limit) {
 };
 
 /**
- * Gets multisignature transactions based on limit and reverse option.
- * @param {boolean} reverse
- * @param {number} limit
+ * Gets multisignature transactions.
+ * @param {boolean} reverse- If true transactions order will be reversed.
+ * @param {number} limit- When supplied list will be cut off.
+ * @param {boolean} ready - If true get only transactions that are ready.
  * @return {function} Calls transactionPool.getQueuedTransactionList
  */
-Transactions.prototype.getMultisignatureTransactionList = function (reverse, limit) {
-	return __private.transactionPool.getMultisignatureTransactionList(reverse, limit);
+Transactions.prototype.getMultisignatureTransactionList = function (reverse, limit, ready) {
+	return __private.transactionPool.getMultisignatureTransactionList(reverse, limit, ready);
 };
 
 /**
