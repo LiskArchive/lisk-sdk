@@ -67,12 +67,12 @@ describe('GET /api/transactions', function () {
 			it('using valid array-like parameters should fail', function () {
 				return transactionsEndpoint.makeRequest({
 					blockId: '1',
-					senderAddress: accountFixtures.genesis.address + ',' + account.address,
+					senderId: accountFixtures.genesis.address + ',' + account.address,
 					senderPublicKey: accountFixtures.genesis.publicKey,
 					recipientPublicKey: accountFixtures.genesis.publicKey + ',' + account.publicKey,
 					sort: 'amount:asc'
 				}, 400).then(function (res) {
-					expectSwaggerParamError(res, 'senderAddress');
+					expectSwaggerParamError(res, 'senderId');
 				});
 			});
 
@@ -87,17 +87,17 @@ describe('GET /api/transactions', function () {
 
 			it('using invalid condition should fail', function () {
 				return transactionsEndpoint.makeRequest({
-					'whatever:senderAddress': accountFixtures.genesis.address
+					'whatever:senderId': accountFixtures.genesis.address
 				}, 400).then(function (res) {
-					expectSwaggerParamError(res, 'whatever:senderAddress');
+					expectSwaggerParamError(res, 'whatever:senderId');
 				});
 			});
 
 			it('using invalid field name (x:z) should fail', function () {
 				return transactionsEndpoint.makeRequest({
-					'and:senderAddress': accountFixtures.genesis.address
+					'and:senderId': accountFixtures.genesis.address
 				}, 400).then(function (res) {
-					expectSwaggerParamError(res, 'and:senderAddress');
+					expectSwaggerParamError(res, 'and:senderId');
 				});
 			});
 
@@ -112,15 +112,15 @@ describe('GET /api/transactions', function () {
 			it('using completely invalid fields should fail', function () {
 				return transactionsEndpoint.makeRequest({
 					blockId: 'invalid',
-					senderAddress: 'invalid',
-					recipientAddress: 'invalid',
+					senderId: 'invalid',
+					recipientId: 'invalid',
 					limit: 'invalid',
 					offset: 'invalid',
 					sort: 'invalid'
 				}, 400).then(function (res) {
 					expectSwaggerParamError(res, 'blockId');
-					expectSwaggerParamError(res, 'senderAddress');
-					expectSwaggerParamError(res, 'recipientAddress');
+					expectSwaggerParamError(res, 'senderId');
+					expectSwaggerParamError(res, 'recipientId');
 					expectSwaggerParamError(res, 'limit');
 					expectSwaggerParamError(res, 'offset');
 					expectSwaggerParamError(res, 'sort');
@@ -130,14 +130,14 @@ describe('GET /api/transactions', function () {
 			it('using partially invalid fields should fail', function () {
 				return transactionsEndpoint.makeRequest({
 					blockId: 'invalid',
-					senderAddress: 'invalid',
-					recipientAddress: account.address,
+					senderId: 'invalid',
+					recipientId: account.address,
 					limit: 'invalid',
 					offset: 'invalid',
 					sort: 'invalid'
 				}, 400).then(function (res) {
 					expectSwaggerParamError(res, 'blockId');
-					expectSwaggerParamError(res, 'senderAddress');
+					expectSwaggerParamError(res, 'senderId');
 					expectSwaggerParamError(res, 'limit');
 					expectSwaggerParamError(res, 'offset');
 					expectSwaggerParamError(res, 'sort');
@@ -186,8 +186,8 @@ describe('GET /api/transactions', function () {
 					transaction.type.should.be.equal(transactionInCheck.type);
 					transaction.amount.should.be.equal(transactionInCheck.amount.toString());
 					transaction.fee.should.be.equal(transactionInCheck.fee.toString());
-					transaction.recipientAddress.should.be.equal(transactionInCheck.recipientId);
-					transaction.senderAddress.should.be.equal(transactionInCheck.senderId);
+					transaction.recipientId.should.be.equal(transactionInCheck.recipientId);
+					transaction.senderId.should.be.equal(transactionInCheck.senderId);
 					transaction.asset.should.be.eql(transactionInCheck.asset);
 				});
 			});
@@ -211,27 +211,27 @@ describe('GET /api/transactions', function () {
 			});
 		});
 
-		describe('senderAddress', function () {
+		describe('senderId', function () {
 
-			it('using invalid senderAddress should fail', function () {
-				return transactionsEndpoint.makeRequest({senderAddress: ''}, 400).then(function (res) {
-					expectSwaggerParamError(res, 'senderAddress');
+			it('using invalid senderId should fail', function () {
+				return transactionsEndpoint.makeRequest({senderId: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'senderId');
 				});
 			});
 
-			it('using one senderAddress should return transactions', function () {
-				return transactionsEndpoint.makeRequest({senderAddress: accountFixtures.genesis.address}, 200).then(function (res) {
+			it('using one senderId should return transactions', function () {
+				return transactionsEndpoint.makeRequest({senderId: accountFixtures.genesis.address}, 200).then(function (res) {
 					res.body.data.should.not.empty;
 
 					res.body.data.map(function (transaction) {
-						transaction.senderAddress.should.be.equal(accountFixtures.genesis.address);
+						transaction.senderId.should.be.equal(accountFixtures.genesis.address);
 					});
 				});
 			});
 
-			it('using multiple senderAddress should fail', function () {
-				return transactionsEndpoint.makeRequest({senderAddress: [accountFixtures.genesis.address, accountFixtures.existingDelegate.address]}, 400).then(function (res) {
-					expectSwaggerParamError(res, 'senderAddress');
+			it('using multiple senderId should fail', function () {
+				return transactionsEndpoint.makeRequest({senderId: [accountFixtures.genesis.address, accountFixtures.existingDelegate.address]}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'senderId');
 				});
 			});
 		});
@@ -261,27 +261,27 @@ describe('GET /api/transactions', function () {
 			});
 		});
 
-		describe('recipientAddress', function () {
+		describe('recipientId', function () {
 
-			it('using invalid recipientAddress should fail', function () {
-				return transactionsEndpoint.makeRequest({recipientAddress: ''}, 400).then(function (res) {
-					expectSwaggerParamError(res, 'recipientAddress');
+			it('using invalid recipientId should fail', function () {
+				return transactionsEndpoint.makeRequest({recipientId: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'recipientId');
 				});
 			});
 
-			it('using one recipientAddress should return transactions', function () {
-				return transactionsEndpoint.makeRequest({recipientAddress: accountFixtures.genesis.address}, 200).then(function (res) {
+			it('using one recipientId should return transactions', function () {
+				return transactionsEndpoint.makeRequest({recipientId: accountFixtures.genesis.address}, 200).then(function (res) {
 					res.body.data.should.not.empty;
 
 					res.body.data.map(function (transaction) {
-						transaction.recipientAddress.should.be.equal(accountFixtures.genesis.address);
+						transaction.recipientId.should.be.equal(accountFixtures.genesis.address);
 					});
 				});
 			});
 
-			it('using multiple recipientAddress should fail', function () {
-				return transactionsEndpoint.makeRequest({recipientAddress: [accountFixtures.genesis.address, accountFixtures.existingDelegate.address]}, 400).then(function (res) {
-					expectSwaggerParamError(res, 'recipientAddress');
+			it('using multiple recipientId should fail', function () {
+				return transactionsEndpoint.makeRequest({recipientId: [accountFixtures.genesis.address, accountFixtures.existingDelegate.address]}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'recipientId');
 				});
 			});
 		});
@@ -577,8 +577,8 @@ describe('GET /api/transactions', function () {
 
 			it('using valid parameters should be ok', function () {
 				return transactionsEndpoint.makeRequest({
-					senderAddress: accountFixtures.genesis.address,
-					recipientAddress: account.address,
+					senderId: accountFixtures.genesis.address,
+					recipientId: account.address,
 					limit: 10,
 					offset: 0,
 					sort: 'amount:asc'
@@ -588,8 +588,8 @@ describe('GET /api/transactions', function () {
 					_(_.clone(values)).sortNumbers('asc').should.be.eql(values);
 
 					res.body.data.forEach(function (transaction) {
-						transaction.senderAddress.should.be.eql(accountFixtures.genesis.address);
-						transaction.recipientAddress.should.be.eql(account.address);
+						transaction.senderId.should.be.eql(accountFixtures.genesis.address);
+						transaction.recipientId.should.be.eql(account.address);
 					});
 				});
 			});
