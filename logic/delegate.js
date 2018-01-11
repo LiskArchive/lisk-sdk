@@ -52,7 +52,7 @@ Delegate.prototype.calculateFee = function (transaction, sender) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|Object} Returns error if invalid parameter | transaction validated.
  */
-Delegate.prototype.verify = function (transaction, sender, cb) {
+Delegate.prototype.verify = function (transaction, sender, cb, tx) {
 	if (transaction.recipientId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
@@ -100,7 +100,7 @@ Delegate.prototype.verify = function (transaction, sender, cb) {
 
 	self.checkConfirmed(transaction, function (err) {
 		return setImmediate(cb, err, transaction);
-	});
+	}, tx);
 };
 
 /**
@@ -144,18 +144,18 @@ Delegate.prototype.getBytes = function (transaction) {
  * @param {string} isDelegate - Key to check transaction with (isDelegate / u_isDelegate).
  * @param {function} cb - Callback function.
  */
-Delegate.prototype.checkDuplicates = function (transaction, username, isDelegate, cb) {
+Delegate.prototype.checkDuplicates = function (transaction, username, isDelegate, cb, tx) {
 	async.parallel({
 		duplicatedDelegate: function (eachCb) {
 			var query = {};
 			query[isDelegate] = 1;
 			query.publicKey = transaction.senderPublicKey;
-			return modules.accounts.getAccount(query, [username], eachCb);
+			return modules.accounts.getAccount(query, [username], eachCb, tx);
 		},
 		duplicatedUsername: function (eachCb) {
 			var query = {};
 			query[username] = transaction.asset.delegate.username;
-			return modules.accounts.getAccount(query, [username], eachCb);
+			return modules.accounts.getAccount(query, [username], eachCb, tx);
 		}
 	}, function (err, res) {
 		if (err) {
@@ -176,7 +176,7 @@ Delegate.prototype.checkDuplicates = function (transaction, username, isDelegate
  * @param {transaction} transaction
  * @param {function} cb - Callback function.
  */
-Delegate.prototype.checkConfirmed = function (transaction, cb) {
+Delegate.prototype.checkConfirmed = function (transaction, cb, tx) {
 	self.checkDuplicates(transaction, 'username', 'isDelegate', function (err) {
 		if (err && exceptions.delegates.indexOf(transaction.id) > -1) {
 			library.logger.debug(err);
@@ -184,7 +184,7 @@ Delegate.prototype.checkConfirmed = function (transaction, cb) {
 			err = null;
 		}
 		return setImmediate(cb, err, transaction);
-	});
+	}, tx);
 };
 
 /**
@@ -192,10 +192,10 @@ Delegate.prototype.checkConfirmed = function (transaction, cb) {
  * @param {transaction} transaction
  * @param {function} cb - Callback function.
  */
-Delegate.prototype.checkUnconfirmed = function (transaction, cb) {
+Delegate.prototype.checkUnconfirmed = function (transaction, cb, tx) {
 	self.checkDuplicates(transaction, 'u_username', 'u_isDelegate', function (err) {
 		return setImmediate(cb, err, transaction);
-	});
+	}, tx);
 };
 
 /**
@@ -207,7 +207,7 @@ Delegate.prototype.checkUnconfirmed = function (transaction, cb) {
  * @param {function} cb - Callback function.
  * @todo Delete unused block parameter.
  */
-Delegate.prototype.apply = function (transaction, block, sender, cb) {
+Delegate.prototype.apply = function (transaction, block, sender, cb, tx) {
 	var data = {
 		publicKey: transaction.senderPublicKey,
 		address: sender.address,
@@ -220,10 +220,10 @@ Delegate.prototype.apply = function (transaction, block, sender, cb) {
 
 	async.series([
 		function (seriesCb) {
-			self.checkConfirmed(transaction, seriesCb);
+			self.checkConfirmed(transaction, seriesCb, tx);
 		},
 		function (seriesCb) {
-			modules.accounts.setAccountAndGet(data, seriesCb);
+			modules.accounts.setAccountAndGet(data, seriesCb, tx);
 		}
 	], cb);
 };
@@ -257,7 +257,7 @@ Delegate.prototype.undo = function (transaction, block, sender, cb) {
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
-Delegate.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+Delegate.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 	var data = {
 		publicKey: transaction.senderPublicKey,
 		address: sender.address,
@@ -269,10 +269,10 @@ Delegate.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 
 	async.series([
 		function (seriesCb) {
-			self.checkUnconfirmed(transaction, seriesCb);
+			self.checkUnconfirmed(transaction, seriesCb, tx);
 		},
 		function (seriesCb) {
-			modules.accounts.setAccountAndGet(data, seriesCb);
+			modules.accounts.setAccountAndGet(data, seriesCb, tx);
 		}
 	], cb);
 };
@@ -284,7 +284,7 @@ Delegate.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
-Delegate.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+Delegate.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
 	var data = {
 		address: sender.address,
 		u_isDelegate: 0,
@@ -293,7 +293,7 @@ Delegate.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 		u_username: null
 	};
 
-	modules.accounts.setAccountAndGet(data, cb);
+	modules.accounts.setAccountAndGet(data, cb, tx);
 };
 
 Delegate.prototype.schema = {
@@ -343,29 +343,6 @@ Delegate.prototype.dbRead = function (raw) {
 
 		return {delegate: delegate};
 	}
-};
-
-Delegate.prototype.dbTable = 'delegates';
-
-Delegate.prototype.dbFields = [
-	'username',
-	'transactionId'
-];
-
-/**
- * Creates object based on transaction data.
- * @param {transaction} transaction - Contains delegate username.
- * @returns {Object} {table:delegates, username and transaction id}.
- */
-Delegate.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			username: transaction.asset.delegate.username,
-			transactionId: transaction.id
-		}
-	};
 };
 
 /**
