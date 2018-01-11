@@ -73,7 +73,7 @@ This sections provides details on what you need install on your system in order 
 
         ```
         curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
-        nvm install v6.12.3
+        nvm install 6.12.3
         ```
 
     - Mac
@@ -83,7 +83,7 @@ This sections provides details on what you need install on your system in order 
         mkdir ~/.nvm
         echo "export NVM_DIR=~/.nvm" >> ~/.bash_profile
         echo "source $(brew --prefix nvm)/nvm.sh" >> ~/.bash_profile
-        nvm install v6.12.3
+        nvm install 6.12.3
         ```
 
 - _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
