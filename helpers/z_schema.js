@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var ip = require('ip');
@@ -33,9 +46,9 @@ var liskFormats = {
 		if (str.length === 0) {
 			return true;
 		}
-	
+
 		return /^[0-9]+$/g.test(str);
-	}, 
+	},
 
 	additionalData: function (str) {
 		return Buffer.from(str).length <= constants.additionalData.maxLength;
@@ -45,7 +58,7 @@ var liskFormats = {
 		if (str.length === 0) {
 			return true;
 		}
-	
+
 		return /^[0-9]+[L]$/ig.test(str);
 	},
 
@@ -53,7 +66,7 @@ var liskFormats = {
 		if (str.length === 0) {
 			return true;
 		}
-	
+
 		return /^[a-z0-9!@$&_.]+$/ig.test(str);
 	},
 
@@ -65,7 +78,7 @@ var liskFormats = {
 		if (str.length === 0) {
 			return true;
 		}
-	
+
 		return /^[a-f0-9]{64}$/i.test(str);
 	},
 
@@ -86,7 +99,7 @@ var liskFormats = {
 		if (str.length === 0) {
 			return true;
 		}
-	
+
 		return /^[a-f0-9]{128}$/i.test(str);
 	},
 
@@ -118,7 +131,7 @@ var liskFormats = {
 		if (str.length === 0) {
 			return true;
 		}
-	
+
 		return /^[a-z0-9-_.+]+$/ig.test(str);
 	},
 
@@ -130,7 +143,7 @@ var liskFormats = {
 		if (str.length === 0) {
 			return true;
 		}
-	
+
 		return /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str);
 	},
 
@@ -139,15 +152,15 @@ var liskFormats = {
 	},
 };
 
-// Register the formats 
+// Register the formats
 Object.keys(liskFormats).forEach(function (formatName) {
 	z_schema.registerFormat(formatName, liskFormats[formatName]);
 });
 
 
-// Assigned as custom attribute to be used later 
+// Assigned as custom attribute to be used later
 // since z_schema.getRegisteredFormats() only resturns keys not the methods
-z_schema.formatsCache = liskFormats;	
+z_schema.formatsCache = liskFormats;
 
 // Exports
 module.exports = z_schema;

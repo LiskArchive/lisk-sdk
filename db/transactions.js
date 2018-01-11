@@ -1,6 +1,22 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var PQ = require('pg-promise').ParameterizedQuery;
+var _ = require('lodash');
+var transactionTypes = require('../helpers/transactionTypes');
+var columnSet;
 
 function TransactionsRepo (db, pgp) {
 	this.db = db;
@@ -19,6 +35,43 @@ function TransactionsRepo (db, pgp) {
 		'confirmations',
 		'height'
 	];
+
+	this.dbTable = 'trs';
+
+	this.dbFields = [
+		'id',
+		'blockId',
+		'type',
+		'timestamp',
+		'senderPublicKey',
+		'requesterPublicKey',
+		'senderId',
+		'recipientId',
+		'amount',
+		'fee',
+		'signature',
+		'signSignature',
+		'signatures'
+	];
+
+	if (!columnSet) {
+		columnSet = {};
+		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, table);
+		columnSet.insert = columnSet.insert.merge([{ name: 'recipientId', def: null }]);
+	}
+
+	this.cs = columnSet;
+
+	this.transactionsRepoMap = {};
+	this.transactionsRepoMap[transactionTypes.SEND] = 'transactions.transfer';
+	this.transactionsRepoMap[transactionTypes.DAPP] = 'transactions.dapp';
+	this.transactionsRepoMap[transactionTypes.DELEGATE] = 'transactions.delegate';
+	this.transactionsRepoMap[transactionTypes.IN_TRANSFER] = 'transactions.inTransfer';
+	this.transactionsRepoMap[transactionTypes.OUT_TRANSFER] = 'transactions.outTransfer';
+	this.transactionsRepoMap[transactionTypes.MULTI] = 'transactions.multisignature';
+	this.transactionsRepoMap[transactionTypes.SIGNATURE] = 'transactions.signature';
+	this.transactionsRepoMap[transactionTypes.VOTE] = 'transactions.vote';
 }
 
 var Queries = {
@@ -55,7 +108,7 @@ var Queries = {
 
 	getVotesByIds: 'SELECT "transactionId" AS "transaction_id", votes AS "v_votes" FROM votes WHERE "transactionId" IN ($1:csv)',
 
-	getDelegateByIds: 'SELECT "tx_id" AS "transaction_id", name AS "d_username" FROM delegates WHERE "tx_id" IN ($1:csv)',
+	getDelegateByIds: 'SELECT "transactionId" AS "transaction_id", username AS "d_username" FROM delegates WHERE "transactionId" IN ($1:csv)',
 
 	getSignatureByIds: 'SELECT "transactionId" AS "transaction_id", ENCODE ("publicKey", \'hex\') AS "s_publicKey" FROM signatures WHERE "transactionId" IN ($1:csv)',
 
@@ -118,6 +171,44 @@ TransactionsRepo.prototype.getInTransferByIds = function (ids) {
 
 TransactionsRepo.prototype.getOutTransferByIds = function (ids) {
 	return this.db.query(Queries.getOutTransferByIds, [ids]);
+};
+
+TransactionsRepo.prototype.save = function (transactions) {
+	var self = this;
+
+	if (!_.isArray(transactions)) {
+		transactions = [transactions];
+	}
+
+	transactions.forEach(function (transaction) {
+		try {
+			transaction.senderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
+			transaction.signature = Buffer.from(transaction.signature, 'hex');
+			transaction.signSignature = transaction.signSignature ? Buffer.from(transaction.signSignature, 'hex') : null;
+			transaction.requesterPublicKey = transaction.requesterPublicKey ? Buffer.from(transaction.requesterPublicKey, 'hex') : null;
+			transaction.signatures = transaction.signatures ? transaction.signatures.join(',') : null;
+		} catch (e) {
+			throw e;
+		}
+	});
+
+	var batch = [];
+	batch.push(self.db.none(self.pgp.helpers.insert(transactions, self.cs.insert)));
+
+	var groupedTransactions = _.groupBy(transactions, 'type');
+
+	Object.keys(groupedTransactions).forEach(function (type) {
+		batch.push(self.db[self.transactionsRepoMap[type]].save(groupedTransactions[type]));
+	});
+
+	// To avoid nested transactions aka transactions checkpoints
+	if(this.db.batch) {
+		return this.db.batch(batch);
+	} else {
+		return this.db.tx(function (t) {
+			return t.batch(batch);
+		});
+	}
 };
 
 module.exports = TransactionsRepo;

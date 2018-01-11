@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var apiCodes = require('../helpers/apiCodes.js');
@@ -84,13 +97,7 @@ Signatures.prototype.shared = {
 	 * @return {setImmediateCallback}
 	 */
 	postSignatures: function (signatures, cb) {
-		var modifiedSignatures = _.map(signatures, function (signature) {
-			signature.transaction = signature.transactionId;
-			delete signature.transactionId;
-			return signature;
-		});
-
-		return modules.transport.shared.postSignatures({signatures: modifiedSignatures}, function (err, res) {
+		return modules.transport.shared.postSignatures({signatures: signatures}, function (err, res) {
 			var processingError = /(error|processing)/ig;
 			var badRequestBodyError = /(invalid|signature)/ig;
 

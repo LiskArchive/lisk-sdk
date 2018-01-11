@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';/*eslint*/
 
 var crypto = require('crypto');
@@ -35,7 +48,7 @@ var validSender = {
 	username: 'i3Hb0kYEbk$r',
 	publicKey: '65eac2bdd725a0a294e3a48de235108ff1a18a829e6d125ad50815a7c5356470',
 	multimin: 0,
-	address: '2262452491031990877L' 
+	address: '2262452491031990877L'
 
 };
 
@@ -57,21 +70,21 @@ var validTransactionData = {
 	votes: transactionVotes
 };
 
-var validTransaction = { 
+var validTransaction = {
 	type: 3,
 	amount: 0,
 	senderPublicKey: '65eac2bdd725a0a294e3a48de235108ff1a18a829e6d125ad50815a7c5356470',
 	requesterPublicKey: null,
 	timestamp: 34253582,
 	asset: {
-		votes: [ '-9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f' ] 
+		votes: [ '-9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f' ]
 	},
 	data: undefined,
 	recipientId: '2262452491031990877L',
 	signature: 'de668e2722fbc2fd02bac1bb66ff1238d75354f64ca0adc5b1967f5f4e67038336cee6a85af43ed9fa5f3a091890738de14c857bd7b1f9bade7ff1da1c395a0e',
 	id: '5962289265698105102',
 	fee: 100000000,
-	senderId: '2262452491031990877L' 
+	senderId: '2262452491031990877L'
 };
 
 describe('vote', function () {
@@ -582,16 +595,6 @@ describe('vote', function () {
 		});
 	});
 
-	describe('dbSave', function () {
-
-		it('should create return db save promise', function () {
-			var valuesKeys = ['votes', 'transactionId'];
-			var savePromise = vote.dbSave(validTransaction);
-			expect(savePromise).to.be.an('object').with.keys(['table', 'fields', 'values']);
-			expect(savePromise.values).to.have.keys(valuesKeys);
-			expect(savePromise.values.votes).to.eql(validTransaction.asset.votes.join(','));
-		});
-	});
 	describe('ready', function () {
 
 		it('should return true for single signature transaction', function () {

@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var ByteBuffer = require('bytebuffer');
@@ -49,7 +62,7 @@ DApp.prototype.calculateFee = function (transaction, sender) {
 };
 
 /**
- * Verifies transaction and dapp fields. Checks dapp name and link in 
+ * Verifies transaction and dapp fields. Checks dapp name and link in
  * `dapps` table.
  * @implements {library.db.query}
  * @param {transaction} transaction
@@ -57,7 +70,7 @@ DApp.prototype.calculateFee = function (transaction, sender) {
  * @param {function} cb
  * @return {setImmediateCallback} errors | transaction
  */
-DApp.prototype.verify = function (transaction, sender, cb) {
+DApp.prototype.verify = function (transaction, sender, cb, tx) {
 	var i;
 
 	if (transaction.recipientId) {
@@ -146,7 +159,7 @@ DApp.prototype.verify = function (transaction, sender, cb) {
 		}
 	}
 
-	library.db.dapps.getExisting({
+	(tx || library.db).dapps.getExisting({
 		name: transaction.asset.dapp.name,
 		link: transaction.asset.dapp.link || null,
 		transactionId: transaction.id
@@ -239,10 +252,10 @@ DApp.prototype.getBytes = function (transaction) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.apply = function (transaction, block, sender, cb) {
+DApp.prototype.apply = function (transaction, block, sender, cb, tx) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
-	
+
 	return setImmediate(cb);
 };
 
@@ -258,14 +271,14 @@ DApp.prototype.undo = function (transaction, block, sender, cb) {
 };
 
 /**
- * Checks if dapp name and link exists, if not adds them to private 
+ * Checks if dapp name and link exists, if not adds them to private
  * unconfirmed variables.
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
  * @return {setImmediateCallback} cb|errors
  */
-DApp.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+DApp.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
 		return setImmediate(cb, 'Application name already exists');
 	}
@@ -287,7 +300,7 @@ DApp.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+DApp.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 
@@ -393,42 +406,6 @@ DApp.prototype.dbRead = function (raw) {
 
 		return {dapp: dapp};
 	}
-};
-
-DApp.prototype.dbTable = 'dapps';
-
-DApp.prototype.dbFields = [
-	'type',
-	'name',
-	'description',
-	'tags',
-	'link',
-	'category',
-	'icon',
-	'transactionId'
-];
-
-/**
- * Creates db operation object based on dapp data.
- * @see privateTypes
- * @param {transaction} transaction
- * @return {Object[]} table, fields, values.
- */
-DApp.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			type: transaction.asset.dapp.type,
-			name: transaction.asset.dapp.name,
-			description: transaction.asset.dapp.description || null,
-			tags: transaction.asset.dapp.tags || null,
-			link: transaction.asset.dapp.link || null,
-			icon: transaction.asset.dapp.icon || null,
-			category: transaction.asset.dapp.category,
-			transactionId: transaction.id
-		}
-	};
 };
 
 /**

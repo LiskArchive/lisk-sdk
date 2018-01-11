@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var ChildProcess = require('child_process');
@@ -5,6 +18,7 @@ var path = require('path');
 var Promise = require('bluebird');
 var randomstring = require('randomstring');
 var testConfig = require('../../data/config.json');
+var random = require('../../common/utils/random');
 
 /**
  * WSServerMaster
@@ -73,16 +87,17 @@ WSServerMaster.generatePeerHeaders = function (headers) {
 	}
 
 	var operatingSystems = ['win32', 'win64', 'ubuntu', 'debian', 'centos'];
+	var httpPort = random.number(1025, 65536);
 
 	var defaults = {
 		broadhash: testConfig.nethash,
 		nethash: testConfig.nethash,
 		state: 2,
 		height: 1,
-		wsPort: (Math.floor(Math.random() * 65535) + 1),
-		httpPort: (Math.floor(Math.random() * 65535) + 1),
+		wsPort: httpPort - 1,
+		httpPort: httpPort,
 		nonce: randomstring.generate(16),
-		os: operatingSystems[((Math.floor(Math.random() * operatingSystems.length)))],
+		os: operatingSystems[random.number(0, operatingSystems.length)],
 		version: testConfig.version,
 		minVersion: testConfig.minVersion
 	};

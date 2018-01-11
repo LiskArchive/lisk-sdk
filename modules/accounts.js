@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var bignum = require('../helpers/bignum.js');
@@ -80,13 +93,13 @@ Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
  * @param {function} fields - Fields to get.
  * @param {function} cb - Callback function.
  */
-Accounts.prototype.getAccount = function (filter, fields, cb) {
+Accounts.prototype.getAccount = function (filter, fields, cb, tx) {
 	if (filter.publicKey) {
 		filter.address = self.generateAddressByPublicKey(filter.publicKey);
 		delete filter.publicKey;
 	}
 
-	library.logic.account.get(filter, fields, cb);
+	library.logic.account.get(filter, fields, cb, tx);
 };
 
 /**
@@ -109,7 +122,7 @@ Accounts.prototype.getAccounts = function (filter, fields, cb) {
  * @returns {setImmediateCallback} Errors.
  * @returns {function()} Call to logic.account.get().
  */
-Accounts.prototype.setAccountAndGet = function (data, cb) {
+Accounts.prototype.setAccountAndGet = function (data, cb, tx) {
 	var address = data.address || null;
 	var err;
 
@@ -137,8 +150,8 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		return library.logic.account.get({address: address}, cb);
-	});
+		return library.logic.account.get({address: address}, cb, tx);
+	}, tx);
 };
 
 /**
@@ -150,7 +163,7 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
  * @returns {function} calls to logic.account.merge().
  * @todo improve publicKey validation try/catch
  */
-Accounts.prototype.mergeAccountAndGet = function (data, cb) {
+Accounts.prototype.mergeAccountAndGet = function (data, cb, tx) {
 	var address = data.address || null;
 	var err;
 
@@ -174,7 +187,7 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 		}
 	}
 
-	return library.logic.account.merge(address, data, cb);
+	return library.logic.account.merge(address, data, cb, tx);
 };
 
 // Events

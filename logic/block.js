@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var slots = require('../helpers/slots.js');
@@ -244,62 +257,6 @@ Block.prototype.verifySignature = function (block) {
 	}
 
 	return res;
-};
-
-Block.prototype.dbTable = 'blocks';
-
-Block.prototype.dbFields = [
-	'id',
-	'version',
-	'timestamp',
-	'height',
-	'previousBlock',
-	'numberOfTransactions',
-	'totalAmount',
-	'totalFee',
-	'reward',
-	'payloadLength',
-	'payloadHash',
-	'generatorPublicKey',
-	'blockSignature'
-];
-
-/**
- * Creates db object transaction to `blocks` table.
- * @param {block} block
- * @return {Object} created object {table, fields, values}
- * @throws {error} catch error
- */
-Block.prototype.dbSave = function (block) {
-	var payloadHash, generatorPublicKey, blockSignature;
-
-	try {
-		payloadHash = Buffer.from(block.payloadHash, 'hex');
-		generatorPublicKey = Buffer.from(block.generatorPublicKey, 'hex');
-		blockSignature = Buffer.from(block.blockSignature, 'hex');
-	} catch (e) {
-		throw e;
-	}
-
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			id: block.id,
-			version: block.version,
-			timestamp: block.timestamp,
-			height: block.height,
-			previousBlock: block.previousBlock || null,
-			numberOfTransactions: block.numberOfTransactions,
-			totalAmount: block.totalAmount,
-			totalFee: block.totalFee,
-			reward: block.reward || 0,
-			payloadLength: block.payloadLength,
-			payloadHash: payloadHash,
-			generatorPublicKey: generatorPublicKey,
-			blockSignature: blockSignature
-		}
-	};
 };
 
 /**

@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var async = require('async');
@@ -12,7 +25,7 @@ function forge (library, cb) {
 		offset = !offset ? 1 : offset;
 		var last_block = library.modules.blocks.lastBlock.get();
 		var slot = slots.getSlotNumber(last_block.timestamp);
-		library.modules.delegates.generateDelegateList(function (err, delegateList) {
+		library.modules.delegates.generateDelegateList(last_block.height, null, function (err, delegateList) {
 			if (err) { return cb(err); }
 			var nextForger = delegateList[(slot + offset) % slots.delegates];
 			return cb(nextForger);

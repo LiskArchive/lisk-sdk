@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 var expect = require('chai').expect;
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var Promise = require('bluebird');
@@ -40,7 +53,7 @@ describe('cached endpoints', function () {
 		cache.quit(done);
 	});
 
-	describe('GET /transactions', function () { 
+	describe('GET /transactions', function () {
 
 		var transactionsEndpoint = new swaggerEndpoint('GET /transactions');
 		var account = randomUtil.account();
@@ -145,7 +158,7 @@ describe('cached endpoints', function () {
 
 		var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
 		var params = {
-			username: 'genesis_89' 
+			username: 'genesis_89'
 		};
 
 		it('should cache delegates when response is successful', function () {
@@ -197,4 +210,3 @@ describe('cached endpoints', function () {
 		});
 	});
 });
-

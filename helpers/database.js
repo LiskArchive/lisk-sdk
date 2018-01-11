@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var async = require('async');
@@ -77,7 +90,7 @@ function Migrator (pgp, db) {
 	};
 
 	/**
-	 * Reads folder `sql/migrations` and returns files grather than 
+	 * Reads folder `sql/migrations` and returns files grather than
 	 * lastMigration id.
 	 * @method
 	 * @param {Object} lastMigration
@@ -128,7 +141,7 @@ function Migrator (pgp, db) {
 	/**
 	 * Creates and execute a db query for each pending migration.
 	 * @method
-	 * @param {Array} pendingMigrations 
+	 * @param {Array} pendingMigrations
 	 * @param {function} waterCb - Callback function
 	 * @return {function} waterCb with error | appliedMigrations
 	 */
@@ -154,7 +167,7 @@ function Migrator (pgp, db) {
 	/**
 	 * Inserts into `migrations` table the previous applied migrations.
 	 * @method
-	 * @param {Array} appliedMigrations 
+	 * @param {Array} appliedMigrations
 	 * @param {function} waterCb - Callback function
 	 * @return {function} waterCb with error
 	 */
@@ -212,7 +225,7 @@ module.exports.connect = function (config, logger, cb) {
 	try {
 		monitor.detach();
 	} catch (ex) {}
-	
+
 	monitor.attach(pgOptions, config.logEvents);
 	monitor.setTheme('matrix');
 

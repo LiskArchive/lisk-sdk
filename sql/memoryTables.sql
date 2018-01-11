@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 /* Lisk Memory Tables
  *
  */
@@ -37,6 +50,17 @@ CREATE TABLE IF NOT EXISTS "mem_accounts"(
 );
 
 CREATE INDEX IF NOT EXISTS "mem_accounts_balance" ON "mem_accounts"("balance");
+
+CREATE TABLE IF NOT EXISTS "mem_round"(
+  "address" VARCHAR(22),
+  "amount" BIGINT,
+  "delegate" VARCHAR(64),
+  "blockId" VARCHAR(20),
+  "round" BIGINT
+);
+
+CREATE INDEX IF NOT EXISTS "mem_round_address" ON "mem_round"("address");
+CREATE INDEX IF NOT EXISTS "mem_round_round" ON "mem_round"("round");
 
 CREATE TABLE IF NOT EXISTS "mem_accounts2delegates"(
   "accountId" VARCHAR(22) NOT NULL,
