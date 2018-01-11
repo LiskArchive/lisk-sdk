@@ -69,8 +69,9 @@ This sections provides details on what you need install on your system in order 
         brew install node@6.12.3
         ```
 
-- _(Recommended)_ Install nvm(<https://github.com/creationix/nvm#install-script>) -- Used for Node.js version management
-
+- _(Recommended)_ Install using a version manager such as nvm.
+    1. Install nvm following their instructions (https://github.com/creationix/nvm#installation)
+    2. Install the correct version of Node.js using nvm:
     ```
     nvm install 6.12.3
     ```
