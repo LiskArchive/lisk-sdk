@@ -41,8 +41,8 @@ var validTransaction =  {
 	timestamp: 40420761,
 	senderPublicKey: '6dc3f3f8bcf9fb689a1ec6703ed08c649cdc98619ac4689794bf72b579d6cf25',
 	requesterPublicKey: undefined,
-	senderId: '2623857243537009424L',
-	recipientId: null,
+	senderAddress: '2623857243537009424L',
+	recipientAddress: null,
 	recipientPublicKey: null,
 	amount: 999,
 	fee: 10000000,
@@ -65,8 +65,8 @@ var rawValidTransaction = {
 	t_timestamp: 40420761,
 	t_senderPublicKey: '6dc3f3f8bcf9fb689a1ec6703ed08c649cdc98619ac4689794bf72b579d6cf25',
 	m_recipientPublicKey: null,
-	t_senderId: '2623857243537009424L',
-	t_recipientId: null,
+	t_senderAddress: '2623857243537009424L',
+	t_recipientAddress: null,
 	t_amount: '999',
 	t_fee: '10000000',
 	t_signature: '46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
@@ -176,10 +176,10 @@ describe('inTransfer', function () {
 
 	describe('verify', function () {
 
-		describe('when trs.recipientId exists', function () {
+		describe('when trs.recipientAddress exists', function () {
 
 			it('should call callback with error = "Invalid recipient"', function (done) {
-				trs.recipientId = '4835566122337813671L';
+				trs.recipientAddress = '4835566122337813671L';
 				inTransfer.verify(trs, sender, function (err) {
 					expect(err).to.equal('Invalid recipient');
 					done();

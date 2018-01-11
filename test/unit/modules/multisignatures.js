@@ -54,7 +54,7 @@ describe('multisignatures', function () {
 
 				it('should call modules.accounts.getAccount');
 
-				it('should call modules.accounts.getAccount with {address: transaction.senderId}');
+				it('should call modules.accounts.getAccount with {address: transaction.senderAddress}');
 
 				describe('when modules.accounts.getAccount fails', function () {
 
@@ -114,7 +114,7 @@ describe('multisignatures', function () {
 
 					it('should call modules.accounts.getAccount');
 
-					it('should call modules.accounts.getAccount with {address: transaction.senderId}');
+					it('should call modules.accounts.getAccount with {address: transaction.senderAddress}');
 
 					describe('when modules.accounts.getAccount fails', function () {
 

@@ -57,8 +57,8 @@ describe('WS transport blocks', function () {
 					expect(block).to.have.property('t_type');
 					expect(block).to.have.property('t_timestamp');
 					expect(block).to.have.property('t_senderPublicKey');
-					expect(block).to.have.property('t_senderId');
-					expect(block).to.have.property('t_recipientId');
+					expect(block).to.have.property('t_senderAddress');
+					expect(block).to.have.property('t_recipientAddress');
 					expect(block).to.have.property('t_amount');
 					expect(block).to.have.property('t_fee');
 					expect(block).to.have.property('t_signature');

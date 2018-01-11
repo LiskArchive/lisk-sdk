@@ -115,7 +115,7 @@ describe('dapp', function () {
 				describe('when receipientId exists', function () {
 
 					it('should call callback with error = "Invalid recipient"', function (done) {
-						transaction.recipientId = '4835566122337813671L';
+						transaction.recipientAddress = '4835566122337813671L';
 
 						dapp.verify(transaction, sender, function (err) {
 							expect(err).to.equal('Invalid recipient');

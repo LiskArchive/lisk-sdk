@@ -50,7 +50,7 @@ var validTransactionData = {
 	type: 3,
 	amount: 8067474861277,
 	sender: validSender,
-	senderId: '2262452491031990877L',
+	senderAddress: '2262452491031990877L',
 	fee: 10000000,
 	keypair: senderKeypair,
 	publicKey: '65eac2bdd725a0a294e3a48de235108ff1a18a829e6d125ad50815a7c5356470',
@@ -67,11 +67,11 @@ var validTransaction = {
 		votes: [ '-9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f' ] 
 	},
 	data: undefined,
-	recipientId: '2262452491031990877L',
+	recipientAddress: '2262452491031990877L',
 	signature: 'de668e2722fbc2fd02bac1bb66ff1238d75354f64ca0adc5b1967f5f4e67038336cee6a85af43ed9fa5f3a091890738de14c857bd7b1f9bade7ff1da1c395a0e',
 	id: '5962289265698105102',
 	fee: 100000000,
-	senderId: '2262452491031990877L' 
+	senderAddress: '2262452491031990877L' 
 };
 
 describe('vote', function () {
@@ -161,11 +161,11 @@ describe('vote', function () {
 			timestamp: 34251006,
 			asset: {},
 			data: undefined,
-			recipientId: '2262452491031990877L',
+			recipientAddress: '2262452491031990877L',
 			signature: 'f2910e221d88134265974d9fc8efee0532e7e14ffdb22a9674c64bfd01863e70da75db51f7e0adcfbe87d9efdaef9f914f577ca08a7664db290e8e5ad89eb30c',
 			id: '4802102241260248478',
 			fee: 10000000,
-			senderId: '16313739661670634666L'
+			senderAddress: '16313739661670634666L'
 		};
 
 		var sender = {
@@ -212,7 +212,7 @@ describe('vote', function () {
 	describe('verify', function () {
 		it('should return error when receipientId and sender id are different', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.recipientId = accountFixtures.genesis.address;
+			transaction.recipientAddress = accountFixtures.genesis.address;
 			vote.verify(transaction, validSender, function (err) {
 				expect(err).to.equal('Invalid recipient');
 				done();

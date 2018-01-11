@@ -26,7 +26,7 @@ var DappsSql = {
 		].filter(Boolean).join(' ');
 	},
 
-	getGenesis: new PQ('SELECT b."height" AS "height", b."id" AS "id", t."senderId" AS "authorId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" WHERE t."id" = $1')
+	getGenesis: new PQ('SELECT b."height" AS "height", b."id" AS "id", t."senderAddress" AS "authorId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" WHERE t."id" = $1')
 };
 
 DappsRepo.prototype.countByTransactionId = function (id) {

@@ -61,8 +61,8 @@ var transactionData = {
 	type: 0,
 	amount: 8067474861277,
 	sender: sender,
-	senderId: '16313739661670634666L',
-	recipientId: '5649948960790668770L',
+	senderAddress: '16313739661670634666L',
+	recipientAddress: '5649948960790668770L',
 	fee: 10000000,
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	secret: senderPassword
@@ -75,8 +75,8 @@ var validTransaction = {
 	type: 0,
 	timestamp: 33363661,
 	senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-	senderId: '16313739661670634666L',
-	recipientId: '5649948960790668770L',
+	senderAddress: '16313739661670634666L',
+	recipientAddress: '5649948960790668770L',
 	amount: 8067474861277,
 	fee: 10000000,
 	signature: '7ff5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008',
@@ -94,8 +94,8 @@ var rawTransaction = {
 	t_timestamp: 33363661,
 	t_senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	m_recipientPublicKey: null,
-	t_senderId: '16313739661670634666L',
-	t_recipientId: '5649948960790668770L',
+	t_senderAddress: '16313739661670634666L',
+	t_recipientAddress: '5649948960790668770L',
 	t_amount: 8067474861277,
 	t_fee: 10000000,
 	t_signature: '7ff5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008',
@@ -108,8 +108,8 @@ var genesisTransaction = {
 	amount: 10000000000000000,
 	fee: 0,
 	timestamp: 0,
-	recipientId: '16313739661670634666L',
-	senderId: '1085993630748340485L',
+	recipientAddress: '16313739661670634666L',
+	senderAddress: '1085993630748340485L',
 	senderPublicKey: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 	signature: 'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
 	blockId: '9314232245035524467',
@@ -120,12 +120,12 @@ var unconfirmedTransaction = {
 	type: 0,
 	amount: 8067474861277,
 	senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-	senderId: '16313739661670634666L',
+	senderAddress: '16313739661670634666L',
 	requesterPublicKey: null,
 	timestamp: 33641482,
 	asset: {},
 	data: undefined,
-	recipientId: '5649948960790668770L',
+	recipientAddress: '5649948960790668770L',
 	signature: '24c65ac5562a8ae252aa308926b60342829e82f285e704814d0d3c3954078c946d113aa0bd5388b2c863874e63f71e8e0a284a03274e66c719e69d443d91f309',
 	fee: 10000000,
 	id: '16580139363949197645'
@@ -271,8 +271,16 @@ describe('transaction', function () {
 		});
 
 		it('should return same result of getBytes using /logic/transaction and lisk-js package (without data field)', function () {
+
 			var transactionBytesFromLogic = transactionLogic.getBytes(validTransaction);
-			var transactionBytesFromLiskJs = lisk.crypto.getBytes(validTransaction);
+			
+			var transactionTemp = _.cloneDeep(validTransaction);
+			transactionTemp.recipientId = transactionTemp.recipientAddress || '';
+			transactionTemp.senderId = transactionTemp.senderAddress || '';
+			delete transactionTemp.recipientAddress;
+			delete transactionTemp.senderAddress;
+
+			var transactionBytesFromLiskJs = lisk.crypto.getBytes(transactionTemp);
 
 			expect(transactionBytesFromLogic.equals(transactionBytesFromLiskJs)).to.be.ok;
 		});
@@ -339,7 +347,7 @@ describe('transaction', function () {
 		});
 
 		it('should not return error when transaction is not confirmed', function (done) {
-			var transaction = lisk.transaction.createTransaction(transactionData.recipientId, transactionData.amount, transactionData.secret);
+			var transaction = lisk.transaction.createTransaction(transactionData.recipientAddress, transactionData.amount, transactionData.secret);
 
 			transactionLogic.checkConfirmed(transaction, function (err) {
 				expect(err).to.not.exist;
@@ -430,7 +438,7 @@ describe('transaction', function () {
 			transactionLogic.process(validTransaction, sender, function (err, res) {
 				expect(err).to.not.be.ok;
 				expect(res).to.be.an('object');
-				expect(res.senderId).to.be.a('string').which.is.equal(sender.address);
+				expect(res.senderAddress).to.be.a('string').which.is.equal(sender.address);
 				done();
 			});
 		});
@@ -439,8 +447,10 @@ describe('transaction', function () {
 	describe('verify', function () {
 
 		function createAndProcess (transactionData, sender, cb) {
-			var transaction = lisk.transaction.createTransaction(transactionData.recipientId, transactionData.amount, transactionData.secret, transactionData.secondSecret);
-
+			var transaction = lisk.transaction.createTransaction(transactionData.recipientAddress, transactionData.amount, transactionData.secret, transactionData.secondSecret);
+			transaction.recipientAddress = transaction.recipientId || '';
+			delete transaction.recipientId;
+			
 			transactionLogic.process(transaction, sender, function (err, transaction) {
 				cb(err, transaction);
 			});
@@ -523,7 +533,7 @@ describe('transaction', function () {
 
 		it('should return error on different sender address in transaction and sender', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.senderId = '2581762640681118072L';
+			transaction.senderAddress = '2581762640681118072L';
 
 			transactionLogic.verify(transaction, sender, {}, function (err) {
 				expect(err).to.include('Invalid sender address');
@@ -855,7 +865,7 @@ describe('transaction', function () {
 		it('should not update sender balance when transaction is invalid', function (done) {
 			var transaction = _.cloneDeep(validTransaction);
 			var amount = new bignum(transaction.amount.toString()).plus(transaction.fee.toString());
-			delete transaction.recipientId;
+			delete transaction.recipientAddress;
 
 			accountModule.getAccount({publicKey: transaction.senderPublicKey}, function (err, accountBefore) {
 				var balanceBefore = new bignum(accountBefore.balance.toString());
@@ -1025,8 +1035,8 @@ describe('transaction', function () {
 				'timestamp',
 				'senderPublicKey',
 				'requesterPublicKey',
-				'senderId',
-				'recipientId',
+				'senderAddress',
+				'recipientAddress',
 				'recipientPublicKey',
 				'amount',
 				'fee',

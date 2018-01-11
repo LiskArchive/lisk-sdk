@@ -66,7 +66,7 @@ transactionsByTypes[transactionTypes.MULTI] = {
 	signature: '3b064ec3b4d21311c5ab3b6621eecf91b9c9398fafdd743e05d53b75a2a37aedb8c0f81e3f32981f7bc42b1a5d4f8aa697e1684e55d853dc2c4964538fedf101',
 	id: '4505208715241906348',
 	fee: 8000000000,
-	senderId: '8885132815244884080L',
+	senderAddress: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.532Z',
 	signatures: [
@@ -108,7 +108,7 @@ transactionsByTypes[transactionTypes.DAPP] = {
 	signature: '655fd2c24c490f9a540dfe833561e4b8f85c4dafce6fe7f696f52c5a3535ba562e11ffeb1479b01967d8f20ed87fe8c9ac58522ea28948e52ec1eba57f675104',
 	id: '16047960743788123485',
 	fee: 2500000000,
-	senderId: '8885132815244884080L',
+	senderAddress: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.801Z'
 };
@@ -123,11 +123,11 @@ transactionsByTypes[transactionTypes.VOTE] = {
 			'+addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9'
 		]
 	},
-	recipientId: '8885132815244884080L',
+	recipientAddress: '8885132815244884080L',
 	signature: 'e8fb21b923ed5b5d2ad0eced31b0a966d9dfb71f710ec6e745c96c9e806ac42225a81e8140614541b0b9055c5511ea8f2d82008f9ccb1bb432772960614d9602',
 	id: '17417762698516786715',
 	fee: 100000000,
-	senderId: '8885132815244884080L',
+	senderAddress: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.780Z'
 };
@@ -146,7 +146,7 @@ transactionsByTypes[transactionTypes.DELEGATE] = {
 	signature: '77b0fcb420450e2d02e98d05af50d3577438ba19f38249ac301e9da07ec65a0889309b242642d3b4df7570d70be09adc80e56e68a0ecb9eb72b3ab5070248c0d',
 	id: '14164546323350881168',
 	fee: 2500000000,
-	senderId: '8885132815244884080L',
+	senderAddress: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.752Z'
 };
@@ -164,7 +164,7 @@ transactionsByTypes[transactionTypes.SIGNATURE] = {
 	signature: 'a54c6adf96879163ac0b36563f2ff701a9f033bedf7746cef79e8f4de503fbb461322b8b8ebe07c40d5dd484f073e69256fac284af5b507952e7666b693c9b07',
 	id: '17912996692061248739',
 	fee: 500000000,
-	senderId: '8885132815244884080L',
+	senderAddress: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.718Z'
 };
@@ -175,11 +175,11 @@ transactionsByTypes[transactionTypes.SEND] = {
 	senderPublicKey: '7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
 	asset: {},
-	recipientId: '10881167371402274308L',
+	recipientAddress: '10881167371402274308L',
 	signature: 'ec703b28601a0aaf4141a85493dda1b00a3604fc4903513cc311dbf995b39b41b30241b17d6be2ac281c0b8b2ff5b7031b86ce9a5e0c3a545b76e935f372da06',
 	id: '18141417978934746512',
 	fee: 10000000,
-	senderId: '8885132815244884080L',
+	senderAddress: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.689Z'
 };
@@ -189,8 +189,8 @@ transactionsByTypes[transactionTypes.IN_TRANSFER] = {
 	type: 6,
 	timestamp: 40420761,
 	senderPublicKey: '6dc3f3f8bcf9fb689a1ec6703ed08c649cdc98619ac4689794bf72b579d6cf25',
-	senderId: '2623857243537009424L',
-	recipientId: null,
+	senderAddress: '2623857243537009424L',
+	recipientAddress: null,
 	recipientPublicKey: null,
 	amount: 999,
 	fee: 10000000,
@@ -207,8 +207,8 @@ transactionsByTypes[transactionTypes.OUT_TRANSFER] = {
 	type: 7,
 	timestamp: 41287231,
 	senderPublicKey: '8d556dca10bb8294895df5477117ca2ceaae7795e7ffc4f7c7d51398a65e4911',
-	senderId: '12566082625150495618L',
-	recipientId: '477547807936790449L',
+	senderAddress: '12566082625150495618L',
+	recipientAddress: '477547807936790449L',
 	amount: 100,
 	fee: 10000000,
 	signature: '126de9603da232b0ada5158c43640849a62736351be1f39cd98606f6d81bedff895183f12c517c96dcc71368af111e7ddde04f62c54ecd1ea47d557af69f330d',

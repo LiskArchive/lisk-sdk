@@ -139,6 +139,8 @@ function normalizeTransactionObject (transaction) {
 
 		transaction.recipientAddress = transaction.recipientId || '';
 		transaction.senderAddress = transaction.senderId || '';
+		delete transaction.recipientId;
+		delete transaction.senderId;
 
 		if (_.has(transaction, 'amount')) {
 			transaction.amount = transaction.amount.toString();
@@ -147,9 +149,6 @@ function normalizeTransactionObject (transaction) {
 		if (_.has(transaction, 'fee')) {
 			transaction.fee = transaction.fee.toString();
 		}
-
-		delete transaction.recipientId;
-		delete transaction.senderId;
 	}
 	return transaction;
 }
@@ -335,5 +334,6 @@ module.exports = {
 	getAccountsPromise: getAccountsPromise,
 	getBlocksPromise: getBlocksPromise,
 	expectSwaggerParamError: expectSwaggerParamError,
-	createSignatureObject: createSignatureObject
+	createSignatureObject: createSignatureObject,
+	normalizeTransactionObject: normalizeTransactionObject
 };

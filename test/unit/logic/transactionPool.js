@@ -65,6 +65,8 @@ describe('txPool', function () {
 		it('should process transaction if valid and insert transaction into queue', function (done) {
 			var account = randomUtil.account();
 			var transaction = lisk.transaction.createTransaction(account.address, 100000000000, accountFixtures.genesis.password);
+			transaction.recipientAddress = transaction.recipientId || '';
+			delete transaction.recipientId;
 
 			txPool.receiveTransactions([transaction], false, function (err) {
 				expect(err).to.not.exist;

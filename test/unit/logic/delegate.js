@@ -34,8 +34,8 @@ var validTransaction = {
 	amount: 0,
 	fee: 0,
 	timestamp: 0,
-	recipientId: null,
-	senderId: '10881167371402274308L',
+	recipientAddress: null,
+	senderAddress: '10881167371402274308L',
 	senderPublicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	asset: {
 		delegate: {
@@ -55,8 +55,8 @@ var rawValidTransaction = {
 	t_timestamp: 0,
 	t_senderPublicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	m_recipientPublicKey: null,
-	t_senderId: '10881167371402274308L',
-	t_recipientId: null,
+	t_senderAddress: '10881167371402274308L',
+	t_recipientAddress: null,
 	t_amount: '0',
 	t_fee: '0',
 	t_signature: '5495bea66b026b0d6b72bab8611fca9c655c1f023267f3c51453c950aa3d0e0eb08b0bc04e6355909abd75cd1d4df8c3048a55c3a98d0719b4b71e5d527e580a',
@@ -148,8 +148,8 @@ describe('delegate', function () {
 
 		describe('when transaction is not valid', function () {
 
-			it('should call callback with error if recipientId exists', function (done) {
-				transaction.recipientId = '123456';
+			it('should call callback with error if recipientAddress exists', function (done) {
+				transaction.recipientAddress = '123456';
 
 				delegate.verify(transaction, sender, function (err) {
 					expect(err).to.equal('Invalid recipient');
@@ -863,7 +863,7 @@ describe('delegate', function () {
 
 		it('should return delegate asset for raw transaction passed', function () {
 			var expectedAsset = {
-				address: rawValidTransaction.t_senderId,
+				address: rawValidTransaction.t_senderAddress,
 				publicKey: rawValidTransaction.t_senderPublicKey,
 				username: rawValidTransaction.d_username
 			};

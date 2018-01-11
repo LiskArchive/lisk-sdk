@@ -369,7 +369,7 @@ describe('blocks/chain', function () {
 				randomUtil.number(100000000, 1000000000),
 				accountFixtures.genesis.password
 			);
-			transaction.senderId = accountFixtures.genesis.address;
+			transaction.senderAddress = accountFixtures.genesis.address;
 			transactions.push(transaction);
 		});
 

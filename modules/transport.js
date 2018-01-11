@@ -559,7 +559,7 @@ Transport.prototype.shared = {
 	},
 
 	postTransactions: function (query, cb) {
-		library.schema.validate(query, definitions.WSTransactionsReqeuest, function (err) {
+		library.schema.validate(query, definitions.WSTransactionsRequest, function (err) {
 			if (err) {
 				return setImmediate(cb, null, {success: false, message: err});
 			}

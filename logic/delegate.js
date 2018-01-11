@@ -53,7 +53,7 @@ Delegate.prototype.calculateFee = function (transaction, sender) {
  * @returns {setImmediateCallback|Object} Returns error if invalid parameter | transaction validated.
  */
 Delegate.prototype.verify = function (transaction, sender, cb, tx) {
-	if (transaction.recipientId) {
+	if (transaction.recipientAddress) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
@@ -328,7 +328,7 @@ Delegate.prototype.objectNormalize = function (transaction) {
 
 /**
  * Creates delegate Object based on raw data.
- * @param {Object} raw - Contains d_username, t_senderPK, t_senderId.
+ * @param {Object} raw - Contains d_username, t_senderPK, t_senderAddress.
  * @returns {null|Object} Null if no d_username, otherwise created delegate object.
  */
 Delegate.prototype.dbRead = function (raw) {
@@ -338,7 +338,7 @@ Delegate.prototype.dbRead = function (raw) {
 		var delegate = {
 			username: raw.d_username,
 			publicKey: raw.t_senderPublicKey,
-			address: raw.t_senderId
+			address: raw.t_senderAddress
 		};
 
 		return {delegate: delegate};

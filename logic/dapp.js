@@ -60,7 +60,7 @@ DApp.prototype.calculateFee = function (transaction, sender) {
 DApp.prototype.verify = function (transaction, sender, cb, tx) {
 	var i;
 
-	if (transaction.recipientId) {
+	if (transaction.recipientAddress) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 

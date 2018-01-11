@@ -48,14 +48,14 @@ OutTransfer.prototype.calculateFee = function (transaction, sender) {
 };
 
 /**
- * Verifies recipientId, amount and outTransfer object content.
+ * Verifies recipientAddress, amount and outTransfer object content.
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
  * @return {setImmediateCallback} errors messages | transaction
  */
 OutTransfer.prototype.verify = function (transaction, sender, cb) {
-	if (!transaction.recipientId) {
+	if (!transaction.recipientAddress) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
@@ -136,7 +136,7 @@ OutTransfer.prototype.getBytes = function (transaction) {
 
 /**
  * Sets unconfirmed out transfers to false.
- * Calls setAccountAndGet based on transaction recipientId and
+ * Calls setAccountAndGet based on transaction recipientAddress and
  * mergeAccountAndGet with unconfirmed transaction amount.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
@@ -150,13 +150,13 @@ OutTransfer.prototype.getBytes = function (transaction) {
 OutTransfer.prototype.apply = function (transaction, block, sender, cb, tx) {
 	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false;
 
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
+	modules.accounts.setAccountAndGet({ address: transaction.recipientAddress}, function (err, recipient) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
 		modules.accounts.mergeAccountAndGet({
-			address: transaction.recipientId,
+			address: transaction.recipientAddress,
 			balance: transaction.amount,
 			u_balance: transaction.amount,
 			blockId: block.id,
@@ -169,7 +169,7 @@ OutTransfer.prototype.apply = function (transaction, block, sender, cb, tx) {
 
 /**
  * Sets unconfirmed out transfers to true.
- * Calls setAccountAndGet based on transaction recipientId and
+ * Calls setAccountAndGet based on transaction recipientAddress and
  * mergeAccountAndGet with unconfirmed transaction amount and balance both negatives.
  * @implements {modules.accounts.setAccountAndGet}
  * @implements {modules.accounts.mergeAccountAndGet}
@@ -183,12 +183,12 @@ OutTransfer.prototype.apply = function (transaction, block, sender, cb, tx) {
 OutTransfer.prototype.undo = function (transaction, block, sender, cb) {
 	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true;
 
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
+	modules.accounts.setAccountAndGet({ address: transaction.recipientAddress}, function (err, recipient) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 		modules.accounts.mergeAccountAndGet({
-			address: transaction.recipientId,
+			address: transaction.recipientAddress,
 			balance: -transaction.amount,
 			u_balance: -transaction.amount,
 			blockId: block.id,
