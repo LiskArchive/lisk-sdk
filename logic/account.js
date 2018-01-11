@@ -75,80 +75,38 @@ function Account (db, schema, logger, cb) {
 		{
 			name: 'username',
 			type: 'String',
-			filter: {
-				type: 'string',
-				case: 'lower',
-				maxLength: 20,
-				minLength: 1
-			},
 			conv: String,
 			immutable: true
 		},
 		{
 			name: 'isDelegate',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				maximum: 32767
-			},
 			conv: Boolean
 		},
 		{
 			name: 'u_isDelegate',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				maximum: 32767
-			},
 			conv: Boolean
 		},
 		{
 			name: 'secondSignature',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				maximum: 32767
-			},
 			conv: Boolean
 		},
 		{
 			name: 'u_secondSignature',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				maximum: 32767
-			},
 			conv: Boolean
 		},
 		{
 			name: 'u_username',
 			type: 'String',
-			filter: {
-				anyOf: [
-					{
-						type: 'string',
-						case: 'lower',
-						maxLength: 20,
-						minLength: 1
-					},
-					{
-						type: 'null'
-					}
-				]
-			},
 			conv: String,
 			immutable: true
 		},
 		{
 			name: 'address',
 			type: 'String',
-			filter: {
-				required: true,
-				type: 'string',
-				case: 'upper',
-				minLength: 1,
-				maxLength: 22
-			},
 			conv: String,
 			immutable: true,
 			expression: 'UPPER(a.address)'
@@ -156,10 +114,6 @@ function Account (db, schema, logger, cb) {
 		{
 			name: 'publicKey',
 			type: 'Binary',
-			filter: {
-				type: 'string',
-				format: 'publicKey'
-			},
 			conv: String,
 			immutable: true,
 			expression: 'ENCODE("publicKey", \'hex\')'
@@ -167,17 +121,6 @@ function Account (db, schema, logger, cb) {
 		{
 			name: 'secondPublicKey',
 			type: 'Binary',
-			filter: {
-				anyOf: [
-					{
-						type: 'string',
-						format: 'publicKey'
-					},
-					{
-						type: 'null'
-					}
-				]
-			},
 			conv: String,
 			immutable: true,
 			expression: 'ENCODE("secondPublicKey", \'hex\')'
@@ -185,205 +128,101 @@ function Account (db, schema, logger, cb) {
 		{
 			name: 'balance',
 			type: 'BigInt',
-			filter: {
-				required: true,
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.totalAmount
-			},
 			conv: Number,
 			expression: '("balance")::bigint'
 		},
 		{
 			name: 'u_balance',
 			type: 'BigInt',
-			filter: {
-				required: true,
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.totalAmount
-			},
 			conv: Number,
 			expression: '("u_balance")::bigint'
 		},
 		{
 			name: 'rate',
 			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
 			conv: Number,
 			expression: '("rate")::bigint'
 		},
 		{
 			name: 'delegates',
 			type: 'Text',
-			filter: {
-				anyOf: [
-					{
-						type: 'array',
-						uniqueItems: true
-					},
-					{
-						type: 'null'
-					}
-				]
-			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2delegates WHERE "accountId" = a."address")'
 		},
 		{
 			name: 'u_delegates',
 			type: 'Text',
-			filter: {
-				anyOf: [
-					{
-						type: 'array',
-						uniqueItems: true
-					},
-					{
-						type: 'null'
-					}
-				]
-			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_delegates WHERE "accountId" = a."address")'
 		},
 		{
 			name: 'multisignatures',
 			type: 'Text',
-			filter: {
-				anyOf: [
-					{
-						type: 'array',
-						uniqueItems: true
-					},
-					{
-						type: 'null'
-					}
-				]
-			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2multisignatures WHERE "accountId" = a."address")'
 		},
 		{
 			name: 'u_multisignatures',
 			type: 'Text',
-			filter: {
-				anyOf: [
-					{
-						type: 'array',
-						uniqueItems: true
-					},
-					{
-						type: 'null'
-					}
-				]
-			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_multisignatures WHERE "accountId" = a."address")'
 		},
 		{
 			name: 'multimin',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 17
-			},
 			conv: Number
 		},
 		{
 			name: 'u_multimin',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 17
-			},
 			conv: Number
 		},
 		{
 			name: 'multilifetime',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 72
-			},
 			conv: Number
 		},
 		{
 			name: 'u_multilifetime',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 72
-			},
 			conv: Number
 		},
 		{
 			name: 'blockId',
 			type: 'String',
-			filter: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 20
-			},
 			conv: String
 		},
 		{
 			name: 'nameexist',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				maximum: 32767
-			},
 			conv: Boolean
 		},
 		{
 			name: 'u_nameexist',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				maximum: 32767
-			},
 			conv: Boolean
 		},
 		{
 			name: 'fees',
 			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
 			conv: Number,
 			expression: '(a."fees")::bigint'
 		},
 		{
 			name: 'rank',
 			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
 			conv: Number,
 			expression: '(d."rank")'
 		},
 		{
 			name: 'rewards',
 			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
 			conv: Number,
 			expression: '(d."rewards")::bigint'
 		},
 		{
 			name: 'vote',
 			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
 			conv: Number,
 			expression: '(d."voters_balance")::bigint'
 		},
@@ -402,10 +241,6 @@ function Account (db, schema, logger, cb) {
 		{
 			name: 'virgin',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				maximum: 32767
-			},
 			conv: Boolean,
 			immutable: true
 		},
@@ -462,19 +297,6 @@ function Account (db, schema, logger, cb) {
 		}
 	}.bind(this));
 
-	// Obtains filters from model
-	this.filter = {};
-	this.model.filter(p => p.filter).forEach(function (field) {
-		var filterField = Object.assign({}, field.filter);
-
-		// 'required' is expected to be an array of properties in JSON Schema
-		if ('required' in filterField) {
-			delete filterField.required;
-		}
-
-		this.filter[field.name] = filterField;
-	}.bind(this));
-
 	// Obtains conv from model
 	this.conv = {};
 	this.model.forEach(function (field) {
@@ -491,6 +313,188 @@ function Account (db, schema, logger, cb) {
 
 	return setImmediate(cb, null, this);
 }
+
+Account.prototype.schema = {
+	id: 'Account',
+	type: 'object',
+	properties: {
+		username: {
+			type: 'string',
+			case: 'lower',
+			maxLength: 20,
+			minLength: 1
+		},
+		isDelegate: {
+			type: 'integer',
+			maximum: 32767
+		},
+		u_isDelegate: {
+			type: 'integer',
+			maximum: 32767
+		},
+		secondSignature: {
+			type: 'integer',
+			maximum: 32767
+		},
+		u_secondSignature: {
+			type: 'integer',
+			maximum: 32767
+		},
+		u_username: {
+			anyOf: [
+				{
+					type: 'string',
+					case: 'lower',
+					maxLength: 20,
+					minLength: 1
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		address: {
+			type: 'string',
+			case: 'upper',
+			minLength: 1,
+			maxLength: 22
+		},
+		publicKey: {
+			type: 'string',
+			format: 'publicKey'
+		},
+		secondPublicKey: {
+			anyOf: [
+				{
+					type: 'string',
+					format: 'publicKey'
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		balance: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount
+		},
+		u_balance: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount
+		},
+		rate: {
+			type: 'integer'
+		},
+		delegates: {
+			anyOf: [
+				{
+					type: 'array',
+					uniqueItems: true
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		u_delegates: {
+			anyOf: [
+				{
+					type: 'array',
+					uniqueItems: true
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		multisignatures: {
+			anyOf: [
+				{
+					type: 'array',
+					uniqueItems: true
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		u_multisignatures: {
+			anyOf: [
+				{
+					type: 'array',
+					uniqueItems: true
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		multimin: {
+			type: 'integer',
+			minimum: 0,
+			maximum: 17
+		},
+		u_multimin: {
+			type: 'integer',
+			minimum: 0,
+			maximum: 17
+		},
+		multilifetime: {
+			type: 'integer',
+			minimum: 1,
+			maximum: 72
+		},
+		u_multilifetime: {
+			type: 'integer',
+			minimum: 1,
+			maximum: 72
+		},
+		blockId: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 20
+		},
+		nameexist: {
+			type: 'integer',
+			maximum: 32767
+		},
+		u_nameexist: {
+			type: 'integer',
+			maximum: 32767
+		},
+		fees: {
+			type: 'integer'
+		},
+		rank: {
+			type: 'integer'
+		},
+		rewards: {
+			type: 'integer'
+		},
+		vote: {
+			type: 'integer'
+		},
+		producedBlocks: {
+			type: 'integer'
+		},
+		missedBlocks: {
+			type: 'integer'
+		},
+		virgin: {
+			type: 'integer',
+			maximum: 32767
+		},
+		approval: {
+			type: 'integer'
+		},
+		productivity: {
+			type: 'integer'
+		}
+	},
+	required: ['address', 'balance', 'u_balance']
+};
 
 // Public methods
 /**
@@ -567,17 +571,12 @@ Account.prototype.objectNormalize = function (account) {
 		return prop.filter && prop.filter.required;
 	}).map(function (prop) { return prop.name; });
 
-	var report = this.scope.schema.validate(account, {
-		id: 'Account',
-		type: 'object',
-		required: requiredProperties,
-		properties: this.filter
-	});
+	var report = this.scope.schema.validate(account, Account.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to validate account schema: ' + this.scope.schema.getLastErrors().map(function (err) {
 			var path = err.path.replace('#/', '').trim();
-			return [path, ': ', err.message, ' (', typeof(account[path]), ' ', account[path], ')'].join('');
+			return [path, ': ', err.message, ' (', account[path], ')'].join('');
 		}).join(', ');
 	}
 

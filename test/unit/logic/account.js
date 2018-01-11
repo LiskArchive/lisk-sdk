@@ -45,8 +45,8 @@ var validAccount = {
 	rank: 70,
 	rewards: 0,
 	vote: 10000000000000000,
-	producedBlocks: '0',
-	missedBlocks: '0',
+	producedBlocks: 0,
+	missedBlocks: 0,
 	virgin: 1,
 	approval: 100,
 	productivity: 0
