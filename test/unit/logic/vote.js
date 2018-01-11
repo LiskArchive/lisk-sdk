@@ -595,16 +595,6 @@ describe('vote', function () {
 		});
 	});
 
-	describe('dbSave', function () {
-
-		it('should create return db save promise', function () {
-			var valuesKeys = ['votes', 'transactionId'];
-			var savePromise = vote.dbSave(validTransaction);
-			expect(savePromise).to.be.an('object').with.keys(['table', 'fields', 'values']);
-			expect(savePromise.values).to.have.keys(valuesKeys);
-			expect(savePromise.values.votes).to.eql(validTransaction.asset.votes.join(','));
-		});
-	});
 	describe('ready', function () {
 
 		it('should return true for single signature transaction', function () {

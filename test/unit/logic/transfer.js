@@ -407,50 +407,6 @@ describe('transfer', function () {
 		});
 	});
 
-	describe('dbSave', function () {
-
-		it('should return null when transaction does not contain asset', function () {
-			expect(transfer.dbSave(validTransaction)).to.eql(null);
-		});
-
-		it('should return transfer promise when transaction contains asset', function () {
-			var transaction = _.cloneDeep(validTransaction);
-			var data = '123';
-			transaction.asset = {
-				data: data
-			};
-			var transferPromise = transfer.dbSave(transaction);
-
-			expect(transferPromise.table).to.equal('transfer');
-			expect(transferPromise.fields).to.eql([
-				'data',
-				'transactionId'
-			]);
-			expect(transferPromise.values).to.eql({
-				data: Buffer.from(data, 'utf8'),
-				transactionId: transaction.id
-			});
-		});
-
-		it('should not return promise when data field is undefined', function () {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset = {
-				data: undefined
-			};
-
-			expect(transfer.dbSave(transaction)).to.eql(null);
-		});
-
-		it('should not return promise when data field is null', function () {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset = {
-				data: null
-			};
-
-			expect(transfer.dbSave(transaction)).to.eql(null);
-		});
-	});
-
 	describe('ready', function () {
 
 		it('should return true for single signature transaction', function () {

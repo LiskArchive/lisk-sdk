@@ -585,8 +585,9 @@ Account.prototype.toDB = function (raw) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Returns null or Object with database data.
  */
-Account.prototype.get = function (filter, fields, cb) {
+Account.prototype.get = function (filter, fields, cb, tx) {
 	if (typeof(fields) === 'function') {
+		tx = cb;
 		cb = fields;
 		fields = this.fields.map(function (field) {
 			return field.alias || field.field;
@@ -595,7 +596,7 @@ Account.prototype.get = function (filter, fields, cb) {
 
 	this.getAll(filter, fields, function (err, data) {
 		return setImmediate(cb, err, data && data.length ? data[0] : null);
-	});
+	}, tx);
 };
 
 /**
@@ -605,7 +606,7 @@ Account.prototype.get = function (filter, fields, cb) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
  */
-Account.prototype.getAll = function (filter, fields, cb) {
+Account.prototype.getAll = function (filter, fields, cb, tx) {
 	if (typeof fields === 'function') {
 		cb = fields;
 		fields = this.fields.map(function (field) {
@@ -700,7 +701,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
 
 	var self = this;
 
-	this.scope.db.query(sql.query, sql.values).then(function (rows) {
+	(tx || this.scope.db).query(sql.query, sql.values).then(function (rows) {
 		var lastBlock = modules.blocks.lastBlock.get();
 		// If the last block height is undefined, it means it's a genesis block with height = 1
 		// look for a constant for total supply
@@ -768,7 +769,7 @@ Account.prototype.calculateProductivity = function (producedBlocks, missedBlocks
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} cb | 'Account#set error'.
  */
-Account.prototype.set = function (address, fields, cb) {
+Account.prototype.set = function (address, fields, cb, tx) {
 	// Verify public key
 	this.verifyPublicKey(fields.publicKey);
 
@@ -784,7 +785,7 @@ Account.prototype.set = function (address, fields, cb) {
 		modifier: this.toDB(fields)
 	});
 
-	this.scope.db.none(sql.query, sql.values).then(function () {
+	(tx || this.scope.db).none(sql.query, sql.values).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -800,7 +801,7 @@ Account.prototype.set = function (address, fields, cb) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
  */
-Account.prototype.merge = function (address, diff, cb) {
+Account.prototype.merge = function (address, diff, cb, tx) {
 	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {}, round = [];
 
 	// Verify public key
@@ -1008,7 +1009,7 @@ Account.prototype.merge = function (address, diff, cb) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			self.get({address: address}, cb);
+			self.get({address: address}, cb, tx);
 		}
 	}
 
@@ -1024,7 +1025,7 @@ Account.prototype.merge = function (address, diff, cb) {
 		return done();
 	}
 
-	this.scope.db.none(queries).then(function () {
+	(tx || this.scope.db).none(queries).then(function () {
 		return done();
 	}).catch(function (err) {
 		library.logger.error(err.stack);

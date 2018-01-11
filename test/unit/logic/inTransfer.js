@@ -389,7 +389,8 @@ describe('inTransfer', function () {
 			expect(sharedStub.getGenesis.calledWith({dappid: trs.asset.inTransfer.dappId})).to.be.true;
 		});
 
-		describe('when shared.getGenesis fails', function () {
+		// TODO: #1242 Have to disabled due to issue https://github.com/LiskHQ/lisk/issues/1242
+		describe.skip('when shared.getGenesis fails', function () {
 
 			beforeEach(function () {
 				sharedStub.getGenesis = sinon.stub.callsArgWith(1, 'getGenesis error');
@@ -402,7 +403,8 @@ describe('inTransfer', function () {
 			});
 		});
 
-		describe('when shared.getGenesis succeeds', function () {
+		// TODO: #1242 Have to disabled due to issue https://github.com/LiskHQ/lisk/issues/1242
+		describe.skip('when shared.getGenesis succeeds', function () {
 
 			beforeEach(function () {
 				sharedStub.getGenesis = sinon.stub.callsArg(1);
@@ -661,35 +663,6 @@ describe('inTransfer', function () {
 			it('should return result containing inTransfer.dappId = raw.dapp_id', function () {
 				expect(inTransfer.dbRead(rawTrs)).to.have.nested.property('inTransfer.dappId').equal(rawTrs.in_dappId);
 			});
-		});
-	});
-
-	describe('dbSave', function () {
-
-		var dbSaveResult;
-
-		beforeEach(function () {
-			dbSaveResult = inTransfer.dbSave(trs);
-		});
-
-		it('should return result containing table = "intransfer"', function () {
-			expect(dbSaveResult).to.have.property('table').equal('intransfer');
-		});
-
-		it('should return result containing fields = ["dappId", "transactionId"]', function () {
-			expect(dbSaveResult).to.have.property('fields').eql(['dappId', 'transactionId']);
-		});
-
-		it('should return result containing values', function () {
-			expect(dbSaveResult).to.have.property('values');
-		});
-
-		it('should return result containing values.dappId = trs.asset.inTransfer.dappId', function () {
-			expect(dbSaveResult).to.have.nested.property('values.dappId').equal(trs.asset.inTransfer.dappId);
-		});
-
-		it('should return result containing values.transactionId = trs.id', function () {
-			expect(dbSaveResult).to.have.nested.property('values.transactionId').equal(trs.id);
 		});
 	});
 

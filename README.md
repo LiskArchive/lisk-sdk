@@ -155,7 +155,7 @@ npm install -g npm@5.3.0
 
 1. **Change the Lisk configuration**
 
-  Update the redis port configuration in both `config.json` and `test/config.json`. Note that this is the easiest option, however, be mindful of reverting the changes should you make a pull request.
+  Update the redis port configuration in both `config.json` and `test/data/config.json`. Note that this is the easiest option, however, be mindful of reverting the changes should you make a pull request.
 
 2. **Change the Redis launch configuration**
 
@@ -252,7 +252,8 @@ npm test -- mocha:<tag>:<suite>:[section]
 
 - Where **tag** can be one of `slow | unstable | untagged | extensive` (required)
 - Where **suite** can be one of `unit | functional | integration`  (required)
-- Where **section** can be one of `get | post | ws | system` (optional)
+- Where **section** depending of the chosen suite can be:
+    - when `functional` --> `get | post | ws | system` (optional)
 
 Individual test files can be run using the following command:
 

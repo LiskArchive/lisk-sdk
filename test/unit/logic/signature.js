@@ -522,40 +522,6 @@ describe('signature', function () {
 			});
 		});
 
-		describe('dbSave', function () {
-
-			it('should return an error when publicKey is a number', function () {
-				var invalidPublicKey = 12;
-				transaction.asset.signature.publicKey = invalidPublicKey;
-				expect(function () {
-					signature.dbSave(transaction);
-				}).to.throw();
-			});
-
-			describe('for valid transaction', function () {
-
-				var expectedPromise;
-
-				beforeEach(function () {
-					expectedPromise = {
-						table: 'signatures',
-						fields: [
-							'transactionId',
-							'publicKey'
-						],
-						values: {
-							transactionId: transaction.id,
-							publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex')
-						}
-					};
-				});
-
-				it('should return signature db promise for signature transaction', function () {
-					expect(signature.dbSave(transaction)).to.eql(expectedPromise);
-				});
-			});
-		});
-
 		describe('ready', function () {
 
 			it('should return true for single signature transaction', function () {

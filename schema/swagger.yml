@@ -2452,25 +2452,9 @@ definitions:
       signatures:
         type: array
         items:
-          $ref: '#/definitions/WSSignature'
+          $ref: '#/definitions/Signature'
         minItems: 1
         maxItems: 25
-
-  WSSignature:
-    x-private: true
-    type: object
-    required:
-      - transaction
-      - signature
-    properties:
-      transaction:
-        type: string
-        format: id
-        minLength: 1
-        maxLength: 20
-      signature:
-        type: string
-        format: signature
 
   WSBlocksCommonRequest:
     x-private: true

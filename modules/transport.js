@@ -15,9 +15,7 @@
 
 var async = require('async');
 var crypto = require('crypto');
-var extend = require('extend');
 var ip = require('ip');
-var zlib = require('zlib');
 
 var Broadcaster = require('../logic/broadcaster.js');
 var bignum = require('../helpers/bignum.js');
@@ -169,7 +167,7 @@ __private.receiveSignatures = function (query, cb) {
  * @return {setImmediateCallback} cb | error messages
  */
 __private.receiveSignature = function (query, cb) {
-	library.schema.validate(query, definitions.WSSignature, function (err) {
+	library.schema.validate(query, definitions.Signature, function (err) {
 		if (err) {
 			return setImmediate(cb, 'Invalid signature body ' + err[0].message);
 		}
@@ -394,7 +392,7 @@ Transport.prototype.onBroadcastBlock = function (block, broadcast) {
 				if (!peers || peers.length === 0) {
 					return library.logger.debug('Broadcasting block aborted - active peer list empty');
 				}
-				async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
+				async.each(peers, function (peer, cb) {
 					peer.rpc.updateMyself(library.logic.peers.me(), function (err) {
 						if (err) {
 							library.logger.debug('Failed to notify peer about self',  err);

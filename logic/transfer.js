@@ -67,7 +67,7 @@ Transfer.prototype.calculateFee = function (transaction, sender) {
  * @param {function} cb
  * @return {setImmediateCallback} errors | transaction
  */
-Transfer.prototype.verify = function (transaction, sender, cb) {
+Transfer.prototype.verify = function (transaction, sender, cb, tx) {
 	if (!transaction.recipientId) {
 		return setImmediate(cb, 'Missing recipient');
 	}
@@ -119,7 +119,7 @@ Transfer.prototype.getBytes = function (transaction) {
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} error, cb
  */
-Transfer.prototype.apply = function (transaction, block, sender, cb) {
+Transfer.prototype.apply = function (transaction, block, sender, cb, tx) {
 	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -133,8 +133,8 @@ Transfer.prototype.apply = function (transaction, block, sender, cb) {
 			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
-		});
-	});
+		}, tx);
+	}, tx);
 };
 
 /**
@@ -173,7 +173,7 @@ Transfer.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-Transfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+Transfer.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 	return setImmediate(cb);
 };
 
@@ -183,7 +183,7 @@ Transfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-Transfer.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+Transfer.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
 	return setImmediate(cb);
 };
 
@@ -228,18 +228,6 @@ Transfer.prototype.objectNormalize = function (transaction) {
 	return transaction;
 };
 
-Transfer.prototype.dbTable = 'transfer';
-
-Transfer.prototype.dbFields = [
-	'data',
-	'transactionId'
-];
-
-/**
- * @typedef transferAsset
- * @property {string} data
- */
-
 /**
  * Checks if asset exists, if so, returns value, otherwise returns null.
  * @param {Object} raw
@@ -253,40 +241,6 @@ Transfer.prototype.dbRead = function (raw) {
 	return null;
 };
 
-/**
- * @typedef trsPromise
- * @property {string} table
- * @property {Array} fields
- * @property {Object} values
- */
-
-/**
- * Checks if asset exists, if so, returns transfer table promise, otherwise returns null.
- * @param {transaction} transaction
- * @return {trsPromise|null}
- */
-Transfer.prototype.dbSave = function (transaction) {
-	if (transaction.asset && transaction.asset.data) {
-		var data;
-
-		try {
-			data = Buffer.from(transaction.asset.data, 'utf8');
-		} catch (ex) {
-			throw ex;
-		}
-
-		return {
-			table: this.dbTable,
-			fields: this.dbFields,
-			values: {
-				data: data,
-				transactionId: transaction.id
-			}
-		};
-	}
-
-	return null;
-};
 
 /**
  * Checks if transaction has enough signatures to be confirmed.

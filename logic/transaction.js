@@ -314,7 +314,7 @@ Transaction.prototype.checkBalance = function (amount, balance, transaction, sen
  * @param {function} cb
  * @return {setImmediateCallback} validation errors | transaction
  */
-Transaction.prototype.process = function (transaction, sender, requester, cb) {
+Transaction.prototype.process = function (transaction, sender, requester, cb, tx) {
 	if (typeof requester === 'function') {
 		cb = requester;
 	}
@@ -360,7 +360,7 @@ Transaction.prototype.process = function (transaction, sender, requester, cb) {
 		} else {
 			return setImmediate(cb, null, transaction);
 		}
-	}.bind(this));
+	}.bind(this), tx);
 };
 
 /**
@@ -374,7 +374,7 @@ Transaction.prototype.process = function (transaction, sender, requester, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} validation errors | transaction
  */
-Transaction.prototype.verify = function (transaction, sender, requester, cb) {
+Transaction.prototype.verify = function (transaction, sender, requester, cb, tx) {
 	var valid = false;
 	var err = null;
 
@@ -561,7 +561,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb) {
 			// Check for already confirmed transaction
 			return self.checkConfirmed(transaction, cb);
 		}
-	});
+	}, tx);
 };
 
 /**
@@ -666,7 +666,7 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} for errors | cb
  */
-Transaction.prototype.apply = function (transaction, block, sender, cb) {
+Transaction.prototype.apply = function (transaction, block, sender, cb, tx) {
 	if (!this.ready(transaction, sender)) {
 		return setImmediate(cb, 'Transaction is not ready');
 	}
@@ -702,12 +702,12 @@ Transaction.prototype.apply = function (transaction, block, sender, cb) {
 					round: slots.calcRound(block.height)
 				}, function (err) {
 					return setImmediate(cb, err);
-				});
+				}, tx);
 			} else {
 				return setImmediate(cb);
 			}
-		}.bind(this));
-	}.bind(this));
+		}.bind(this), tx);
+	}.bind(this), tx);
 };
 
 /**
@@ -767,8 +767,12 @@ Transaction.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} for errors | cb
  */
-Transaction.prototype.applyUnconfirmed = function (transaction, sender, requester, cb) {
+Transaction.prototype.applyUnconfirmed = function (transaction, sender, requester, cb, tx) {
 	if (typeof requester === 'function') {
+		if (cb) {
+			tx = cb;
+		}
+
 		cb = requester;
 	}
 
@@ -791,12 +795,12 @@ Transaction.prototype.applyUnconfirmed = function (transaction, sender, requeste
 			if (err) {
 				this.scope.account.merge(sender.address, {u_balance: amount}, function (err2) {
 					return setImmediate(cb, err2 || err);
-				});
+				}, tx);
 			} else {
 				return setImmediate(cb);
 			}
-		}.bind(this));
-	}.bind(this));
+		}.bind(this), tx);
+	}.bind(this), tx);
 };
 
 /**
@@ -811,7 +815,7 @@ Transaction.prototype.applyUnconfirmed = function (transaction, sender, requeste
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} for errors | cb
  */
-Transaction.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+Transaction.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
 	var amount = new bignum(transaction.amount.toString());
 	    amount = amount.plus(transaction.fee.toString()).toNumber();
 
@@ -824,84 +828,12 @@ Transaction.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 			if (err) {
 				this.scope.account.merge(sender.address, {u_balance: -amount}, function (err2) {
 					return setImmediate(cb, err2 || err);
-				});
+				}, tx);
 			} else {
 				return setImmediate(cb);
 			}
-		}.bind(this));
-	}.bind(this));
-};
-
-Transaction.prototype.dbTable = 'trs';
-
-Transaction.prototype.dbFields = [
-	'id',
-	'blockId',
-	'type',
-	'timestamp',
-	'senderPublicKey',
-	'requesterPublicKey',
-	'senderId',
-	'recipientId',
-	'amount',
-	'fee',
-	'signature',
-	'signSignature',
-	'signatures'
-];
-
-/**
- * Creates db trs object transaction. Calls `dbSave` based on transaction type (privateTypes).
- * @see privateTypes
- * @param {transaction} transaction
- * @return {Object[]} dbSave result + created object
- * @throws {String|error} error string | catch error
- */
-Transaction.prototype.dbSave = function (transaction) {
-	if (!__private.types[transaction.type]) {
-		throw 'Unknown transaction type ' + transaction.type;
-	}
-
-	var senderPublicKey, signature, signSignature, requesterPublicKey;
-
-	try {
-		senderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
-		signature = Buffer.from(transaction.signature, 'hex');
-		signSignature = transaction.signSignature ? Buffer.from(transaction.signSignature, 'hex') : null;
-		requesterPublicKey = transaction.requesterPublicKey ? Buffer.from(transaction.requesterPublicKey, 'hex') : null;
-	} catch (e) {
-		throw e;
-	}
-
-	var promises = [
-		{
-			table: this.dbTable,
-			fields: this.dbFields,
-			values: {
-				id: transaction.id,
-				blockId: transaction.blockId,
-				type: transaction.type,
-				timestamp: transaction.timestamp,
-				senderPublicKey: senderPublicKey,
-				requesterPublicKey: requesterPublicKey,
-				senderId: transaction.senderId,
-				recipientId: transaction.recipientId || null,
-				amount: transaction.amount,
-				fee: transaction.fee,
-				signature: signature,
-				signSignature: signSignature,
-				signatures: transaction.signatures ? transaction.signatures.join(',') : null,
-			}
-		}
-	];
-
-	var promise = __private.types[transaction.type].dbSave(transaction);
-
-	if (promise) {
-		promises.push(promise);
-	}
-
-	return promises;
+		}.bind(this), tx);
+	}.bind(this), tx);
 };
 
 /**

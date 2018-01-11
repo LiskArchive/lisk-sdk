@@ -160,7 +160,7 @@ OutTransfer.prototype.getBytes = function (transaction) {
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} error, cb
  */
-OutTransfer.prototype.apply = function (transaction, block, sender, cb) {
+OutTransfer.prototype.apply = function (transaction, block, sender, cb, tx) {
 	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false;
 
 	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
@@ -176,8 +176,8 @@ OutTransfer.prototype.apply = function (transaction, block, sender, cb) {
 			round: slots.calcRound(block.height)
 		}, function (err) {
 			return setImmediate(cb, err);
-		});
-	});
+		}, tx);
+	}, tx);
 };
 
 /**
@@ -219,7 +219,7 @@ OutTransfer.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-OutTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+OutTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true;
 	return setImmediate(cb);
 };
@@ -231,7 +231,7 @@ OutTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-OutTransfer.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+OutTransfer.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
 	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false;
 	return setImmediate(cb);
 };
@@ -291,32 +291,6 @@ OutTransfer.prototype.dbRead = function (raw) {
 
 		return {outTransfer: outTransfer};
 	}
-};
-
-OutTransfer.prototype.dbTable = 'outtransfer';
-
-OutTransfer.prototype.dbFields = [
-	'dappId',
-	'outTransactionId',
-	'transactionId'
-];
-
-/**
- * Creates db operation object to 'outtransfer' table based on
- * outTransfer data.
- * @param {transaction} transaction
- * @return {Object[]} table, fields, values.
- */
-OutTransfer.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			dappId: transaction.asset.outTransfer.dappId,
-			outTransactionId: transaction.asset.outTransfer.transactionId,
-			transactionId: transaction.id
-		}
-	};
 };
 
 /**

@@ -70,7 +70,7 @@ DApp.prototype.calculateFee = function (transaction, sender) {
  * @param {function} cb
  * @return {setImmediateCallback} errors | transaction
  */
-DApp.prototype.verify = function (transaction, sender, cb) {
+DApp.prototype.verify = function (transaction, sender, cb, tx) {
 	var i;
 
 	if (transaction.recipientId) {
@@ -159,7 +159,7 @@ DApp.prototype.verify = function (transaction, sender, cb) {
 		}
 	}
 
-	library.db.dapps.getExisting({
+	(tx || library.db).dapps.getExisting({
 		name: transaction.asset.dapp.name,
 		link: transaction.asset.dapp.link || null,
 		transactionId: transaction.id
@@ -252,7 +252,7 @@ DApp.prototype.getBytes = function (transaction) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.apply = function (transaction, block, sender, cb) {
+DApp.prototype.apply = function (transaction, block, sender, cb, tx) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 
@@ -278,7 +278,7 @@ DApp.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb|errors
  */
-DApp.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+DApp.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
 		return setImmediate(cb, 'Application name already exists');
 	}
@@ -300,7 +300,7 @@ DApp.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+DApp.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 
@@ -406,42 +406,6 @@ DApp.prototype.dbRead = function (raw) {
 
 		return {dapp: dapp};
 	}
-};
-
-DApp.prototype.dbTable = 'dapps';
-
-DApp.prototype.dbFields = [
-	'type',
-	'name',
-	'description',
-	'tags',
-	'link',
-	'category',
-	'icon',
-	'transactionId'
-];
-
-/**
- * Creates db operation object based on dapp data.
- * @see privateTypes
- * @param {transaction} transaction
- * @return {Object[]} table, fields, values.
- */
-DApp.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			type: transaction.asset.dapp.type,
-			name: transaction.asset.dapp.name,
-			description: transaction.asset.dapp.description || null,
-			tags: transaction.asset.dapp.tags || null,
-			link: transaction.asset.dapp.link || null,
-			icon: transaction.asset.dapp.icon || null,
-			category: transaction.asset.dapp.category,
-			transactionId: transaction.id
-		}
-	};
 };
 
 /**

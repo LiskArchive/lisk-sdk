@@ -885,23 +885,6 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('dbSave', function () {
-
-		it('should return promise object for delegate transaction', function () {
-			expect(delegate.dbSave(transaction)).to.eql({
-				table: 'delegates',
-				fields: [
-					'username',
-					'transactionId'
-				],
-				values: {
-					username: transaction.asset.delegate.username,
-					transactionId: transaction.id
-				}
-			});
-		});
-	});
-
 	describe('ready', function () {
 
 		it('should return true for single signature transasction', function () {

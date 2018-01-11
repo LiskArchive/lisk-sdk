@@ -992,43 +992,6 @@ describe('multisignature', function () {
 		});
 	});
 
-	describe('dbSave', function () {
-
-		var dbSaveResult;
-
-		beforeEach(function () {
-			dbSaveResult = multisignature.dbSave(transaction);
-		});
-
-		it('should return result containing table = "multisignatures"', function () {
-			expect(dbSaveResult).to.have.property('table').equal('multisignatures');
-		});
-
-		it('should return result containing fields = ["min", "lifetime", "keysgroup", "transactionId"]', function () {
-			expect(dbSaveResult).to.have.property('fields').eql(['min', 'lifetime', 'keysgroup', 'transactionId']);
-		});
-
-		it('should return result containing values', function () {
-			expect(dbSaveResult).to.have.property('values');
-		});
-
-		it('should return result containing values.min = transaction.asset.multisignature.min', function () {
-			expect(dbSaveResult).to.have.nested.property('values.min').equal(transaction.asset.multisignature.min);
-		});
-
-		it('should return result containing values.lifetime = transaction.asset.multisignature.lifetime', function () {
-			expect(dbSaveResult).to.have.nested.property('values.lifetime').equal(transaction.asset.multisignature.lifetime);
-		});
-
-		it('should return result containing values.keysgroup equal joined keysgroup as string', function () {
-			expect(dbSaveResult).to.have.nested.property('values.keysgroup').equal(transaction.asset.multisignature.keysgroup.join(','));
-		});
-
-		it('should return result containing values.transactionId = transaction.id', function () {
-			expect(dbSaveResult).to.have.nested.property('values.transactionId').equal(transaction.id);
-		});
-	});
-
 	describe('ready', function () {
 
 		it('should return true for single signature transaction', function () {
