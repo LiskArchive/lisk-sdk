@@ -31,16 +31,15 @@ import {
  * @param {String} Object.passphrase
  * @param {Array<String>} Object.votes
  * @param {Array<String>} Object.unvotes
- * @param {Boolean} Object.unsigned
  *
  * @return {Object}
  */
-const castVotes = ({ passphrase, votes = [], unvotes = [], unsigned }) => {
+const castVotes = ({ passphrase, votes = [], unvotes = [] }) => {
 	validatePublicKeys([...votes, ...unvotes]);
 
-	const recipientId = unsigned
-		? null
-		: cryptoModule.getAddressAndPublicKeyFromPassphrase(passphrase).address;
+	const recipientId = passphrase
+		? cryptoModule.getAddressAndPublicKeyFromPassphrase(passphrase).address
+		: null;
 
 	const plusPrependedVotes = prependPlusToPublicKeys(votes);
 	const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);

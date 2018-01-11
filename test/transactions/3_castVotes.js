@@ -37,7 +37,6 @@ describe('#castVotes transaction', () => {
 	const unvotePublicKeys = [thirdPublicKey, fourthPublicKey];
 	const address = '18160565574430594874L';
 	const timeWithOffset = 38350076;
-	const unsigned = true;
 	const amount = '0';
 	const fee = (1 * fixedPoint).toString();
 
@@ -133,9 +132,7 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('should not have the second signature property', () => {
-				return castVotesTransaction.should.not.have.property(
-					'signSignature',
-				);
+				return castVotesTransaction.should.not.have.property('signSignature');
 			});
 
 			it('should have asset', () => {
@@ -152,19 +149,12 @@ describe('#castVotes transaction', () => {
 				});
 
 				it('should contain two elements', () => {
-					return castVotesTransaction.asset.votes.should.have.length(
-						2,
-					);
+					return castVotesTransaction.asset.votes.should.have.length(2);
 				});
 
 				it('should have a vote for the delegate public key', () => {
-					const expectedArray = [
-						`+${firstPublicKey}`,
-						`+${secondPublicKey}`,
-					];
-					return castVotesTransaction.asset.votes.should.be.eql(
-						expectedArray,
-					);
+					const expectedArray = [`+${firstPublicKey}`, `+${secondPublicKey}`];
+					return castVotesTransaction.asset.votes.should.be.eql(expectedArray);
 				});
 			});
 		});
@@ -291,11 +281,7 @@ describe('#castVotes transaction', () => {
 
 		describe('Given unvotes with duplication', () => {
 			it('should throw a duplication error for unvotes', () => {
-				const unvotes = [
-					firstPublicKey,
-					secondPublicKey,
-					firstPublicKey,
-				];
+				const unvotes = [firstPublicKey, secondPublicKey, firstPublicKey];
 				return castVotes
 					.bind(null, {
 						passphrase,
@@ -309,15 +295,14 @@ describe('#castVotes transaction', () => {
 	});
 
 	describe('unsigned cast votes transaction', () => {
-		beforeEach(() => {
-			castVotesTransaction = castVotes({
-				votes: votePublicKeys,
-				unvotes: unvotePublicKeys,
-				unsigned,
+		describe('when the cast votes transaction is created without a passphrase', () => {
+			beforeEach(() => {
+				castVotesTransaction = castVotes({
+					votes: votePublicKeys,
+					unvotes: unvotePublicKeys,
+				});
 			});
-		});
 
-		describe('when the cast votes transaction is created without signature', () => {
 			it('should have the type', () => {
 				return castVotesTransaction.should.have
 					.property('type')
@@ -331,9 +316,7 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('should have the fee', () => {
-				return castVotesTransaction.should.have
-					.property('fee')
-					.equal(fee);
+				return castVotesTransaction.should.have.property('fee').equal(fee);
 			});
 
 			it('should have the recipient id', () => {
@@ -359,9 +342,7 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('should not have the signature', () => {
-				return castVotesTransaction.should.not.have.property(
-					'signature',
-				);
+				return castVotesTransaction.should.not.have.property('signature');
 			});
 
 			it('should not have the id', () => {

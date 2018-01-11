@@ -28,7 +28,6 @@ describe('#transferIntoDapp transaction', () => {
 	const transferFee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const offset = -10;
-	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let transferIntoDappTransaction;
@@ -161,15 +160,14 @@ describe('#transferIntoDapp transaction', () => {
 	});
 
 	describe('unsigned transfer into dapp transaction', () => {
-		beforeEach(() => {
-			transferIntoDappTransaction = transferIntoDapp({
-				dappId,
-				amount,
-				unsigned,
+		describe('when the transfer into dapp transaction is created without a passphrase', () => {
+			beforeEach(() => {
+				transferIntoDappTransaction = transferIntoDapp({
+					dappId,
+					amount,
+				});
 			});
-		});
 
-		describe('when the transfer into dapp transaction is created without signature', () => {
 			it('should have the type', () => {
 				return transferIntoDappTransaction.should.have
 					.property('type')

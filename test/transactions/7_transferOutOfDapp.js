@@ -30,7 +30,6 @@ describe('#transferOutOfDapp', () => {
 	const fee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 	const offset = -10;
-	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let transferOutOfDappTransaction;
@@ -181,17 +180,16 @@ describe('#transferOutOfDapp', () => {
 	});
 
 	describe('unsigned transfer out of dapp transaction', () => {
-		beforeEach(() => {
-			transferOutOfDappTransaction = transferOutOfDapp({
-				dappId,
-				transactionId,
-				recipientId,
-				amount,
-				unsigned,
+		describe('when the transfer out of dapp transaction is created without a passphrase', () => {
+			beforeEach(() => {
+				transferOutOfDappTransaction = transferOutOfDapp({
+					dappId,
+					transactionId,
+					recipientId,
+					amount,
+				});
 			});
-		});
 
-		describe('when the transfer out of dapp transaction is created without signature', () => {
 			it('should have the type', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('type')

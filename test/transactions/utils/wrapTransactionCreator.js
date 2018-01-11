@@ -27,23 +27,27 @@ describe('#wrapTransactionCreator', () => {
 		return wrappedTransactionCreator.should.have.type('function');
 	});
 
-	describe('when an unsigned transaction is created with no passphrase', () => {
+	describe('when a transaction is created with no passphrase', () => {
 		beforeEach(() => {
-			result = wrappedTransactionCreator({ unsigned: true });
+			result = wrappedTransactionCreator({});
 		});
 
 		it('should set a default amount of 0', () => {
 			return result.should.have.property('amount').equal('0');
 		});
+
 		it('should set a default recipientId of null', () => {
 			return result.should.have.property('recipientId').be.null();
 		});
+
 		it('should set a default senderPublicKey of null', () => {
 			return result.should.have.property('senderPublicKey').be.null();
 		});
+
 		it('should set a timestamp', () => {
 			return result.should.have.property('timestamp').have.type('number');
 		});
+
 		it('should not prepare the transaction', () => {
 			return prepareTransactionStub.should.not.have.been.called();
 		});
@@ -59,7 +63,7 @@ describe('#wrapTransactionCreator', () => {
 				recipientId: defaultRecipientId,
 			});
 			wrappedTransactionCreator = wrapTransactionCreator(transactionCreator);
-			result = wrappedTransactionCreator({ unsigned: true });
+			result = wrappedTransactionCreator({});
 		});
 
 		it('should have the amount', () => {
@@ -81,17 +85,21 @@ describe('#wrapTransactionCreator', () => {
 		it('should set a default amount of 0', () => {
 			return result.should.have.property('amount').equal('0');
 		});
+
 		it('should set a default recipientId of null', () => {
 			return result.should.have.property('recipientId').be.null();
 		});
+
 		it('should set a default senderPublicKey using the passphrase', () => {
 			return result.should.have
 				.property('senderPublicKey')
 				.equal(defaultSenderPublicKey);
 		});
+
 		it('should set a timestamp', () => {
 			return result.should.have.property('timestamp').have.type('number');
 		});
+
 		it('should prepare the transaction with the passphrase', () => {
 			return prepareTransactionStub.args[0][1].should.equal(defaultPassphrase);
 		});
@@ -108,17 +116,21 @@ describe('#wrapTransactionCreator', () => {
 		it('should set a default amount of 0', () => {
 			return result.should.have.property('amount').equal('0');
 		});
+
 		it('should set a default recipientId of null', () => {
 			return result.should.have.property('recipientId').be.null();
 		});
+
 		it('should set a default senderPublicKey using the passphrase', () => {
 			return result.should.have
 				.property('senderPublicKey')
 				.equal(defaultSenderPublicKey);
 		});
+
 		it('should set a timestamp', () => {
 			return result.should.have.property('timestamp').have.type('number');
 		});
+
 		it('should prepare the transaction with the passphrase and the second passphrase', () => {
 			return prepareTransactionStub.args[0]
 				.slice(1)

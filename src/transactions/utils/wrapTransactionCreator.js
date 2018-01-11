@@ -17,16 +17,11 @@ import prepareTransaction from './prepareTransaction';
 import { getTimeWithOffset } from './time';
 
 const wrapTransactionCreator = transactionCreator => transactionParameters => {
-	const {
-		passphrase,
-		secondPassphrase,
-		timeOffset,
-		unsigned,
-	} = transactionParameters;
+	const { passphrase, secondPassphrase, timeOffset } = transactionParameters;
 
-	const senderPublicKey = unsigned
-		? null
-		: cryptoModule.getKeys(passphrase).publicKey;
+	const senderPublicKey = passphrase
+		? cryptoModule.getKeys(passphrase).publicKey
+		: null;
 	const timestamp = getTimeWithOffset(timeOffset);
 
 	const transaction = Object.assign(
@@ -39,9 +34,9 @@ const wrapTransactionCreator = transactionCreator => transactionParameters => {
 		transactionCreator(transactionParameters),
 	);
 
-	return unsigned
-		? transaction
-		: prepareTransaction(transaction, passphrase, secondPassphrase);
+	return passphrase
+		? prepareTransaction(transaction, passphrase, secondPassphrase)
+		: transaction;
 };
 
 export default wrapTransactionCreator;

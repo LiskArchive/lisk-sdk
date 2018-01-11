@@ -41,7 +41,6 @@ describe('#createDapp transaction', () => {
 	const nameStringError = 'Dapp name must be a string.';
 	const typeIntegerError = 'Dapp type must be an integer.';
 	const linkStringError = 'Dapp link must be a string.';
-	const unsigned = true;
 
 	let getTimeWithOffsetStub;
 	let options;
@@ -283,14 +282,13 @@ describe('#createDapp transaction', () => {
 	});
 
 	describe('unsigned create dapp transaction', () => {
-		beforeEach(() => {
-			createDappTransaction = createDapp({
-				options,
-				unsigned,
+		describe('when the create dapp transaction is created without a passphrase', () => {
+			beforeEach(() => {
+				createDappTransaction = createDapp({
+					options,
+				});
 			});
-		});
 
-		describe('when the create dapp transaction is created without signature', () => {
 			it('should have the type', () => {
 				return createDappTransaction.should.have
 					.property('type')

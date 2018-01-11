@@ -33,7 +33,6 @@ describe('#registerMultisignatureAccount transaction', () => {
 	const amount = '0';
 	const lifetime = 5;
 	const minimum = 2;
-	const unsigned = true;
 
 	let tooShortPublicKeyKeysgroup;
 	let plusPrependedPublicKeyKeysgroup;
@@ -303,16 +302,15 @@ describe('#registerMultisignatureAccount transaction', () => {
 	});
 
 	describe('unsigned register multisignature account transaction', () => {
-		beforeEach(() => {
-			registerMultisignatureTransaction = registerMultisignatureAccount({
-				keysgroup,
-				lifetime,
-				minimum,
-				unsigned,
+		describe('when the register multisignature transaction is created without a passphrase', () => {
+			beforeEach(() => {
+				registerMultisignatureTransaction = registerMultisignatureAccount({
+					keysgroup,
+					lifetime,
+					minimum,
+				});
 			});
-		});
 
-		describe('when the register multisignature transaction is created without signature', () => {
 			it('should have the type', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('type')
