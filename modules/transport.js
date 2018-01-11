@@ -379,7 +379,7 @@ Transport.prototype.onBroadcastBlock = function (block, broadcast) {
 				if (!peers || peers.length === 0) {
 					return library.logger.debug('Broadcasting block aborted - active peer list empty');
 				}
-				async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
+				async.each(peers, function (peer, cb) {
 					peer.rpc.updateMyself(library.logic.peers.me(), function (err) {
 						if (err) {
 							library.logger.debug('Failed to notify peer about self',  err);
