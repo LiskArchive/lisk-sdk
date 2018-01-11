@@ -18,6 +18,30 @@ import * as inputUtils from '../../../src/utils/input/utils';
 import execFile from '../../../src/execFile';
 import { getFirstQuotedString } from '../utils';
 
+export function theActionIsCalledWithTheSignatureAndTheStringifiedErrorObjectViaVorpalStdIn() {
+	const { action, signature, errorObject } = this.test.ctx;
+	const returnValue = action({
+		signature,
+		stdin: [JSON.stringify(errorObject)],
+	});
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function theActionIsCalledWithTheSignature() {
+	const { action, signature } = this.test.ctx;
+	const returnValue = action({ signature });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function theActionIsCalledWithTheSignatureViaVorpalStdIn() {
+	const { action, signature } = this.test.ctx;
+	const returnValue = action({ stdin: [signature] });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
 export function theActionIsCalledWithTheTransactionAndTheStringifiedErrorObjectViaVorpalStdIn() {
 	const { action, transaction, errorObject } = this.test.ctx;
 	const returnValue = action({
@@ -25,14 +49,14 @@ export function theActionIsCalledWithTheTransactionAndTheStringifiedErrorObjectV
 		stdin: [JSON.stringify(errorObject)],
 	});
 	this.test.ctx.returnValue = returnValue;
-	return returnValue;
+	return returnValue.catch(e => e);
 }
 
 export function theActionIsCalledWithTheStringifiedErrorObjectViaVorpalStdIn() {
 	const { action, errorObject } = this.test.ctx;
 	const returnValue = action({ stdin: [JSON.stringify(errorObject)] });
 	this.test.ctx.returnValue = returnValue;
-	return returnValue;
+	return returnValue.catch(e => e);
 }
 
 export function theActionIsCalledWithTheTransaction() {

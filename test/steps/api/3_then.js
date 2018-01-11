@@ -40,6 +40,18 @@ export function itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingThe
 	);
 }
 
+export function itShouldNotBroadcastTheSignature() {
+	const { liskAPIInstance } = this.test.ctx;
+	return liskAPIInstance.broadcastSignatures.should.not.be.called();
+}
+
+export function itShouldBroadcastTheSignature() {
+	const { liskAPIInstance, signature } = this.test.ctx;
+	return liskAPIInstance.broadcastSignatures.should.be.calledWithExactly([
+		JSON.parse(signature),
+	]);
+}
+
 export function itShouldNotBroadcastTheTransaction() {
 	const { liskAPIInstance } = this.test.ctx;
 	return liskAPIInstance.broadcastSignedTransaction.should.not.be.called();
