@@ -181,9 +181,7 @@ BlocksRepo.prototype.loadLastBlock = function () {
 };
 
 BlocksRepo.prototype.blockExists = function (id) {
-	return this.db.query(Queries.blockExists, [id]).then(function (rows) {
-		return (rows.length > 0);
-	});
+	return this.db.oneOrNone(Queries.blockExists, [id]);
 };
 
 BlocksRepo.prototype.deleteAfterBlock = function (id) {
