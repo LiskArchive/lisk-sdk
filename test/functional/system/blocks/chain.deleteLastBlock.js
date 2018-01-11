@@ -31,6 +31,12 @@ describe('blocks/chain', function () {
 
 		describe('errors', function () {
 
+			it('should fail when try to delete genesis block', function (done) {
+				library.modules.blocks.chain.deleteLastBlock(function (err, res) {
+					expect(err).to.equal('Cannot delete genesis block');
+					done();
+				});
+			});
 		});
 
 		describe('single transaction scenarios: create transaction, forge, delete block, forge again', function () {
