@@ -80,7 +80,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('dappId', function () {
 
 			it('without should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 				delete transaction.asset.outTransfer.dappId;
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -90,7 +90,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 				transaction.asset.outTransfer.dappId = 1;
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -100,7 +100,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with number should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 				transaction.asset.outTransfer.dappId = 1.2;
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -110,7 +110,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty array should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 				transaction.asset.outTransfer.dappId = [];
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -120,7 +120,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty object should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 				transaction.asset.outTransfer.dappId = {};
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -130,7 +130,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty string should fail', function () {
-				transaction = lisk.transfer.createOutTransfer('', randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer('', randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
 					res.body.message.should.be.equal('Invalid transaction body - Failed to validate outTransfer schema: String is too short (0 chars), minimum 1');
@@ -140,7 +140,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 			it('with invalid string should fail', function () {
 				var invalidDappId = '1L';
-				transaction = lisk.transfer.createOutTransfer(invalidDappId, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(invalidDappId, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
 					res.body.message.should.be.equal('Invalid transaction body - Failed to validate outTransfer schema: Object didn\'t pass validation for format id: ' + invalidDappId);
@@ -152,7 +152,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('transactionId', function () {
 			
 			it('without should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 				delete transaction.asset.outTransfer.transactionId;
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -162,7 +162,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 				transaction.asset.outTransfer.transactionId = 1;
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -172,7 +172,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with number should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 				transaction.asset.outTransfer.transactionId = 1.2;
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -182,7 +182,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty array should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 				transaction.asset.outTransfer.transactionId = [];
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -192,7 +192,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty object should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
 				transaction.asset.outTransfer.transactionId = {};
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -212,7 +212,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 			it('with invalid string should fail', function () {
 				var invalidTransactionId = '1L';
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, invalidTransactionId, accountFixtures.genesis.address, Date.now(), account.password);
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, invalidTransactionId, accountFixtures.genesis.address, 1, account.password);
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
 					res.body.message.should.be.equal('Invalid transaction body - Failed to validate outTransfer schema: Object didn\'t pass validation for format id: ' + invalidTransactionId);
@@ -224,8 +224,8 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 		describe('recipientAddress', function () {
 
 			it('with integer should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
-				transaction.recipientAddress = 1;
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
+				transaction.recipientId = 1;
 
 				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
 					badTransactions.push(transaction);
@@ -233,8 +233,8 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with number should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
-				transaction.recipientAddress = 1.2;
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
+				transaction.recipientId = 1.2;
 
 				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
 					badTransactions.push(transaction);
@@ -242,8 +242,8 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty array should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
-				transaction.recipientAddress = [];
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
+				transaction.recipientId = [];
 
 				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
 					badTransactions.push(transaction);
@@ -251,8 +251,8 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with empty object should fail', function () {
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), account.password);
-				transaction.recipientAddress = {};
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 1, account.password);
+				transaction.recipientId = {};
 
 				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
 					badTransactions.push(transaction);
@@ -268,8 +268,8 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 			});
 
 			it('with invalid string should fail', function () {
-				var invalidRecipientAddress = '1X';
-				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, invalidRecipientAddress, Date.now(), account.password);
+				var recipientId = '1X';
+				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, recipientId, 1, account.password);
 
 				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
 					badTransactions.push(transaction);

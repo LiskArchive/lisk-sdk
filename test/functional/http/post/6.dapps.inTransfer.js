@@ -79,7 +79,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 		describe('dappId', function () {
 
 			it('without should fail', function () {
-				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
+				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 1, accountFixtures.genesis.password);
 				delete transaction.asset.inTransfer.dappId;
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -89,7 +89,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			});
 
 			it('with integer should fail', function () {
-				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
+				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 1, accountFixtures.genesis.password);
 				transaction.asset.inTransfer.dappId = 1;
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -99,7 +99,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			});
 
 			it('with number should fail', function () {
-				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
+				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 1, accountFixtures.genesis.password);
 				transaction.asset.inTransfer.dappId = 1.2;
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -109,7 +109,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			});
 
 			it('with empty array should fail', function () {
-				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
+				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 1, accountFixtures.genesis.password);
 				transaction.asset.inTransfer.dappId = [];
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -119,7 +119,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			});
 
 			it('with empty object should fail', function () {
-				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, Date.now(), accountFixtures.genesis.password);
+				transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 1, accountFixtures.genesis.password);
 				transaction.asset.inTransfer.dappId = {};
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -129,7 +129,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			});
 
 			it('with empty string should fail', function () {
-				transaction = lisk.transfer.createInTransfer('', Date.now(), account.password);
+				transaction = lisk.transfer.createInTransfer('', 1, account.password);
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
 					res.body.message.should.be.equal('Invalid transaction body - Failed to validate inTransfer schema: String is too short (0 chars), minimum 1');
