@@ -12,20 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * Delegate module provides functions to create delegate registration transactions.
- * @class delegate
- */
 import { DELEGATE_FEE } from '../constants';
 import { wrapTransactionCreator } from './utils';
-
-/**
- * @method registerDelegate
- * @param {Object} Object - Object
- * @param {String} Object.username
- *
- * @return {Object}
- */
 
 const registerDelegate = ({ username }) => ({
 	type: 2,

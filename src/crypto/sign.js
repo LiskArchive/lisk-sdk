@@ -24,14 +24,6 @@ const signatureHeader = createHeader('SIGNATURE');
 const secondSignatureHeader = createHeader('SECOND SIGNATURE');
 const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
 
-/**
- * @method signMessageWithPassphrase
- * @param message - utf8
- * @param passphrase - utf8
- *
- * @return {Object} - message, publicKey, signature
- */
-
 export const signMessageWithPassphrase = (message, passphrase) => {
 	const msgBytes = Buffer.from(message, 'utf8');
 	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromPassphrase(
@@ -45,16 +37,6 @@ export const signMessageWithPassphrase = (message, passphrase) => {
 		signature: Buffer.from(signature).toString('base64'),
 	};
 };
-
-/**
- * @method verifyMessageWithPublicKey
- * @param {Object} Object - Object
- * @param {String} Object.message - message in utf8
- * @param {String} Object.signature - signature in base64
- * @param {String} Object.publicKey - publicKey in hex
- *
- * @return {string}
- */
 
 export const verifyMessageWithPublicKey = ({
 	message,
@@ -79,15 +61,6 @@ export const verifyMessageWithPublicKey = ({
 		publicKeyBytes,
 	);
 };
-
-/**
- * @method signMessageWithTwoPassphrases
- * @param message - utf8
- * @param passphrase - utf8
- * @param secondPassphrase - utf8
- *
- * @return {Object} - message, publicKey, secondPublicKey, signature, secondSignature
- */
 
 export const signMessageWithTwoPassphrases = (
 	message,
@@ -117,15 +90,6 @@ export const signMessageWithTwoPassphrases = (
 		secondSignature: Buffer.from(secondSignature).toString('base64'),
 	};
 };
-
-/**
- * @method verifyMessageWithTwoPublicKeys
- * @param signedMessage
- * @param publicKey
- * @param secondPublicKey
- *
- * @return {string}
- */
 
 export const verifyMessageWithTwoPublicKeys = ({
 	message,
@@ -176,12 +140,6 @@ export const verifyMessageWithTwoPublicKeys = ({
 	return verifyFirstSignature() && verifySecondSignature();
 };
 
-/**
- * @method printSignedMessage
- * @param {object}
- * @return {string}
- */
-
 export const printSignedMessage = ({
 	message,
 	signature,
@@ -206,15 +164,6 @@ export const printSignedMessage = ({
 		.filter(Boolean)
 		.join('\n');
 
-/**
- * @method signAndPrintMessage
- * @param message
- * @param passphrase
- * @param secondPassphrase
- *
- * @return {string}
- */
-
 export const signAndPrintMessage = (message, passphrase, secondPassphrase) => {
 	const signedMessage = secondPassphrase
 		? signMessageWithTwoPassphrases(message, passphrase, secondPassphrase)
@@ -223,27 +172,11 @@ export const signAndPrintMessage = (message, passphrase, secondPassphrase) => {
 	return printSignedMessage(signedMessage);
 };
 
-/**
- * @method signData
- * @param data Buffer
- * @param passphrase string
- *
- * @return {string}
- */
-
 export const signData = (data, passphrase) => {
 	const { privateKey } = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const signature = naclInstance.crypto_sign_detached(data, privateKey);
 	return bufferToHex(signature);
 };
-
-/**
- * @method verifyData
- * @param data Buffer
- * @param secondPublicKey
- *
- * @return {boolean}
- */
 
 export const verifyData = (data, signature, publicKey) =>
 	naclInstance.crypto_sign_verify_detached(

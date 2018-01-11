@@ -12,10 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * Transaction module provides functions for creating balance transfer transactions.
- * @class transaction
- */
 import { TRANSFER_FEE, DATA_FEE } from '../constants';
 import {
 	getAddressAndPublicKeyFromRecipientData,
@@ -32,17 +28,6 @@ const createAsset = data => {
 	}
 	return {};
 };
-
-/**
- * @method transfer
- * @param {Object} Object - Object
- * @param {String} Object.amount
- * @param {String} Object.recipientId
- * @param {String} Object.recipientPublicKey
- * @param {String} Object.data
- *
- * @return {Object}
- */
 
 const transfer = ({ amount, recipientId, recipientPublicKey, data }) => {
 	const { address, publicKey } = getAddressAndPublicKeyFromRecipientData({

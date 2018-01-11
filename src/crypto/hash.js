@@ -12,15 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-/**
- * @method hash
- * @param data
- * @param format
- *
- * @return {string}
- */
-
 const hash = (data, format) => {
 	if (Buffer.isBuffer(data)) {
 		return Buffer.from(naclInstance.crypto_hash_sha256(data));

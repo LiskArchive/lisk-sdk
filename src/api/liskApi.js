@@ -12,42 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-/**
- * LiskAPI module provides functions for interfacing with the Lisk network.
- * Providing mechanisms for:
- *
- * - Retrieval of blockchain data: accounts, blocks, transactions.
- * - Enhancing Lisk security by local signing of transactions and immediate network transmission.
- * - Connecting to Lisk nodes or to localhost instance of Lisk core.
- * - Configurable network settings to work in different Lisk environments.
- *
- *     var lisk = require('lisk-js');
- *
- *     var options = {
- *         ssl: true,
- *         node: '',
- *         randomNode: true,
- *         testnet: true,
- *         port: '7000',
- *         bannedNodes: [],
- *         nodes: [],
- *         nethash: ''
- *     };
- *
- *
- *     var LSK = lisk.api(options);
-*/
 import config from '../../config.json';
 import { LIVE_PORT, TEST_PORT, GET, POST } from '../constants';
 import * as privateApi from './privateApi';
 import * as utils from './utils';
-
-/**
-*
-* @class LiskAPI
-* @param {Object} options - Initialization Object for the LiskAPI instance.
- */
 
 export default class LiskAPI {
 	constructor(providedOptions) {
@@ -72,12 +40,6 @@ export default class LiskAPI {
 		this.nethash = this.getNethash(options.nethash);
 	}
 
-	/**
-	 * @method getNethash
-	 * @return {Object}
-	 * @public
-	 */
-
 	getNethash(providedNethash) {
 		const { port } = this;
 		const NetHash = this.testnet
@@ -92,11 +54,6 @@ export default class LiskAPI {
 		return NetHash;
 	}
 
-	/**
-	 * @method getNodes
-	 * @return {Object}
-	 */
-
 	getNodes() {
 		return {
 			official: this.defaultNodes.map(node => ({ node })),
@@ -108,21 +65,10 @@ export default class LiskAPI {
 		};
 	}
 
-	/**
-	 * @method setNode
-	 * @param {String} node
-	 * @return {Object}
-	 */
-
 	setNode(node) {
 		this.node = node || privateApi.selectNewNode.call(this);
 		return this.node;
 	}
-
-	/**
-	 * @method setTestnet
-	 * @param {Boolean} testnet
-	 */
 
 	setTestnet(testnet) {
 		if (this.testnet !== testnet) {
@@ -134,11 +80,6 @@ export default class LiskAPI {
 		privateApi.selectNewNode.call(this);
 	}
 
-	/**
-	 * @method setSSL
-	 * @param {Boolean} ssl
-	 */
-
 	setSSL(ssl) {
 		if (this.ssl !== ssl) {
 			this.ssl = ssl;
@@ -146,14 +87,6 @@ export default class LiskAPI {
 			privateApi.selectNewNode.call(this);
 		}
 	}
-
-	/**
-	 * @method broadcastTransactions
-	 * @param transactions
-	 * @param callback
-	 *
-	 * @return {Object}
-	 */
 
 	broadcastTransactions(transactions, callback) {
 		return privateApi.sendRequestPromise
@@ -172,16 +105,6 @@ export default class LiskAPI {
 			.then(result => result.body)
 			.then(utils.optionallyCallCallback.bind(null, callback));
 	}
-
-	/**
-	 * @method sendRequest
-	 * @param requestMethod
-	 * @param requestType
-	 * @param optionsOrCallback
-	 * @param callbackIfOptions
-	 *
-	 * @return {Object}
-	 */
 
 	sendRequest(
 		requestMethod,
@@ -218,17 +141,6 @@ export default class LiskAPI {
 			.then(utils.optionallyCallCallback.bind(null, callback));
 	}
 
-	/**
-	 * @method transferLSK
-	 * @param recipientId
-	 * @param amount
-	 * @param passphrase
-	 * @param secondPassphrase
-	 * @param callback
-	 *
-	 * @return {Object}
-	 */
-
 	transferLSK(recipientId, amount, passphrase, secondPassphrase, callback) {
 		return this.sendRequest(
 			POST,
@@ -239,44 +151,17 @@ export default class LiskAPI {
 	}
 }
 
-/**
- * @method getAccount
- * @param address
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
-
 LiskAPI.prototype.getAccount = utils.wrapSendRequest(
 	GET,
 	'accounts',
 	address => ({ address }),
 );
 
-/**
- * @method getActiveDelegates
- * @param limit
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
-
 LiskAPI.prototype.getActiveDelegates = utils.wrapSendRequest(
 	GET,
 	'delegates',
 	limit => ({ limit }),
 );
-
-/**
- * @method getStandbyDelegates
- * @param limit
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
 
 LiskAPI.prototype.getStandbyDelegates = utils.wrapSendRequest(
 	GET,
@@ -288,42 +173,15 @@ LiskAPI.prototype.getStandbyDelegates = utils.wrapSendRequest(
 	}),
 );
 
-/**
- * @method searchDelegatesByUsername
- * @param username
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
-
 LiskAPI.prototype.searchDelegatesByUsername = utils.wrapSendRequest(
 	GET,
 	'delegates',
 	search => ({ search }),
 );
 
-/**
- * @method getBlocks
- * @param limit
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
-
 LiskAPI.prototype.getBlocks = utils.wrapSendRequest(GET, 'blocks', limit => ({
 	limit,
 }));
-
-/**
- * @method getForgedBlocks
- * @param generatorPublicKey
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
 
 LiskAPI.prototype.getForgedBlocks = utils.wrapSendRequest(
 	GET,
@@ -331,27 +189,9 @@ LiskAPI.prototype.getForgedBlocks = utils.wrapSendRequest(
 	generatorPublicKey => ({ generatorPublicKey }),
 );
 
-/**
- * @method getBlock
- * @param height
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
-
 LiskAPI.prototype.getBlock = utils.wrapSendRequest(GET, 'blocks', height => ({
 	height,
 }));
-
-/**
- * @method getTransactions
- * @param recipientId
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
 
 LiskAPI.prototype.getTransactions = utils.wrapSendRequest(
 	GET,
@@ -359,42 +199,15 @@ LiskAPI.prototype.getTransactions = utils.wrapSendRequest(
 	recipientId => ({ recipientId }),
 );
 
-/**
- * @method getTransaction
- * @param transactionId
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
-
 LiskAPI.prototype.getTransaction = utils.wrapSendRequest(
 	GET,
 	'transactions',
 	transactionId => ({ transactionId }),
 );
 
-/**
- * @method getVotes
- * @param address
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
-
 LiskAPI.prototype.getVotes = utils.wrapSendRequest(GET, 'votes', address => ({
 	address,
 }));
-
-/**
- * @method getVoters
- * @param username
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
 
 LiskAPI.prototype.getVoters = utils.wrapSendRequest(
 	GET,
@@ -402,29 +215,11 @@ LiskAPI.prototype.getVoters = utils.wrapSendRequest(
 	username => ({ username }),
 );
 
-/**
- * @method getUnsignedMultisignatureTransactions
- * @param data
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
-
 LiskAPI.prototype.getUnsignedMultisignatureTransactions = utils.wrapSendRequest(
 	GET,
 	'transactions/unsigned',
 	data => data,
 );
-
-/**
- * @method getDapp
- * @param transactionId
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
 
 LiskAPI.prototype.getDapp = utils.wrapSendRequest(
 	GET,
@@ -432,25 +227,7 @@ LiskAPI.prototype.getDapp = utils.wrapSendRequest(
 	transactionId => ({ transactionId }),
 );
 
-/**
- * @method getDapps
- * @param data
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
-
 LiskAPI.prototype.getDapps = utils.wrapSendRequest(GET, 'dapps', data => data);
-
-/**
- * @method getDappsByCategory
- * @param category
- * @param optionsOrCallback
- * @param callbackIfOptions
- *
- * @return {Object}
- */
 
 LiskAPI.prototype.getDappsByCategory = utils.wrapSendRequest(
 	GET,

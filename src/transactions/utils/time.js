@@ -15,23 +15,11 @@
 
 import { EPOCH_TIME_MILLISECONDS } from '../../constants';
 
-/**
- * @method getTimeFromBlockchainEpoch
- * @param {Number} givenTimestamp
- * @return {Number}
- */
-
 export const getTimeFromBlockchainEpoch = givenTimestamp => {
 	const startingPoint = givenTimestamp || new Date().getTime();
 	const blockchainInitialTime = EPOCH_TIME_MILLISECONDS;
 	return Math.floor((startingPoint - blockchainInitialTime) / 1000);
 };
-
-/**
-* @method getTimeWithOffset
-* @param {Number} offset
-* @return {Number}
-*/
 
 export const getTimeWithOffset = offset => {
 	const now = new Date().getTime();

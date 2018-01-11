@@ -27,14 +27,6 @@ export const BYTESIZES = {
 	DATA: 64,
 };
 
-/**
- * @method checkRequiredFields
- * @param  {Array} requiredFields
- * @param  {Object} data
- * @throws
- * @return {Boolean}
- */
-
 export const checkRequiredFields = (requiredFields, data) => {
 	const dataFields = Object.keys(data);
 	requiredFields.forEach(parameter => {
@@ -48,20 +40,8 @@ export const checkRequiredFields = (requiredFields, data) => {
 	return true;
 };
 
-/**
- * @method getAssetDataForTransferTransaction
- * @param {Object} transactionAsset
- * @return {Buffer}
- */
-
 export const getAssetDataForTransferTransaction = ({ data }) =>
 	data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
-
-/**
- * @method getAssetDataForRegisterSecondSignatureTransaction
- * @param {Object} transactionAsset
- * @return {Buffer}
- */
 
 export const getAssetDataForRegisterSecondSignatureTransaction = ({
 	signature,
@@ -71,23 +51,11 @@ export const getAssetDataForRegisterSecondSignatureTransaction = ({
 	return Buffer.from(publicKey, 'hex');
 };
 
-/**
- * @method getAssetDataForRegisterDelegateTransaction
- * @param {Object} transactionAsset
- * @return {Buffer}
- */
-
 export const getAssetDataForRegisterDelegateTransaction = ({ delegate }) => {
 	checkRequiredFields(['username'], delegate);
 	const { username } = delegate;
 	return Buffer.from(username, 'utf8');
 };
-
-/**
- * @method getAssetDataForCastVotesTransaction
- * @param {Object} transactionAsset
- * @return {Buffer}
- */
 
 export const getAssetDataForCastVotesTransaction = ({ votes }) => {
 	if (!Array.isArray(votes)) {
@@ -95,12 +63,6 @@ export const getAssetDataForCastVotesTransaction = ({ votes }) => {
 	}
 	return Buffer.from(votes.join(''), 'utf8');
 };
-
-/**
- * @method getAssetDataForRegisterMultisignatureAccountTransaction
- * @param {Object} transactionAsset
- * @return {Buffer}
- */
 
 export const getAssetDataForRegisterMultisignatureAccountTransaction = ({
 	multisignature,
@@ -113,12 +75,6 @@ export const getAssetDataForRegisterMultisignatureAccountTransaction = ({
 
 	return Buffer.concat([minBuffer, lifetimeBuffer, keysgroupBuffer]);
 };
-
-/**
- * @method getAssetDataForCreateDappTransaction
- * @param {Object} transactionAsset
- * @return {Buffer}
- */
 
 export const getAssetDataForCreateDappTransaction = ({ dapp }) => {
 	checkRequiredFields(['name', 'link', 'type', 'category'], dapp);
@@ -145,23 +101,11 @@ export const getAssetDataForCreateDappTransaction = ({ dapp }) => {
 	]);
 };
 
-/**
- * @method getAssetDataForTransferIntoDappTransaction
- * @param {Object} transactionAsset
- * @return {Buffer}
- */
-
 export const getAssetDataForTransferIntoDappTransaction = ({ inTransfer }) => {
 	checkRequiredFields(['dappId'], inTransfer);
 	const { dappId } = inTransfer;
 	return Buffer.from(dappId, 'utf8');
 };
-
-/**
- * @method getAssetDataForTransferOutOfDappTransaction
- * @param {Object} transactionAsset
- * @return {Buffer}
- */
 
 export const getAssetDataForTransferOutOfDappTransaction = ({
 	outTransfer,
@@ -173,12 +117,6 @@ export const getAssetDataForTransferOutOfDappTransaction = ({
 
 	return Buffer.concat([outAppIdBuffer, outTransactionIdBuffer]);
 };
-
-/**
- * @method getAssetBytes
- * @param {Object} transaction
- * @return {Buffer}
- */
 
 export const getAssetBytes = transaction =>
 	({
@@ -199,11 +137,6 @@ const REQUIRED_TRANSACTION_PARAMETERS = [
 	'amount',
 ];
 
-/**
- * @method checkTransaction
- * @throws
- */
-
 export const checkTransaction = transaction => {
 	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETERS, transaction);
 	const { asset: { data } } = transaction;
@@ -214,14 +147,6 @@ export const checkTransaction = transaction => {
 	}
 	return true;
 };
-
-/**
-* A utility method to get transaction bytes
-*
-* @method TransactionBytes
-* @param {Object} transaction
-*
-*/
 
 const getTransactionBytes = transaction => {
 	checkTransaction(transaction);

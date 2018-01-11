@@ -15,13 +15,6 @@
 import cryptoModule from '../../crypto';
 import getTransactionBytes from './getTransactionBytes';
 
-/**
- * @method getTransactionId
- * @param transaction Object
- *
- * @return {string}
- */
-
 const getTransactionId = transaction => {
 	const transactionBytes = getTransactionBytes(transaction);
 	const transactionHash = cryptoModule.hash(transactionBytes);

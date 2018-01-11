@@ -12,14 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * `constants` are the objects containing information about the fee size for different tranasctions.
- *
- * @property constants
- * @static
- * @type object
- */
-
 export const FIXED_POINT = 10 ** 8;
 
 export const TRANSFER_FEE = 0.1 * FIXED_POINT;

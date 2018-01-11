@@ -12,10 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * Vote module provides functions for creating vote transactions.
- * @class vote
- */
 import cryptoModule from '../crypto';
 import { VOTE_FEE } from '../constants';
 import {
@@ -25,15 +21,6 @@ import {
 	wrapTransactionCreator,
 } from './utils';
 
-/**
- * @method castVotes
- * @param {Object} Object - Object
- * @param {String} Object.passphrase
- * @param {Array<String>} Object.votes
- * @param {Array<String>} Object.unvotes
- *
- * @return {Object}
- */
 const castVotes = ({ passphrase, votes = [], unvotes = [] }) => {
 	validatePublicKeys([...votes, ...unvotes]);
 

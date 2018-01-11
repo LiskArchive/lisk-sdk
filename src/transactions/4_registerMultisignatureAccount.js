@@ -18,15 +18,6 @@ import {
 	validateKeysgroup,
 	wrapTransactionCreator,
 } from './utils';
-/**
- * @method registerMultisignatureAccount
- * @param {Object} Object - Object
- * @param {Array<String>} Object.keysgroup
- * @param {Number} Object.lifetime
- * @param {Number} Object.minimum
- *
- * @return {Object}
- */
 
 const registerMultisignatureAccount = ({ keysgroup, lifetime, minimum }) => {
 	validateKeysgroup(keysgroup);
