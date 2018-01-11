@@ -13,6 +13,7 @@
  */
 'use strict';
 
+var _ = require('lodash');
 var async = require('async');
 var pgp = require('pg-promise');
 var path = require('path');
@@ -659,7 +660,13 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 	delete filter.limit;
 
 	if (filter.sort) {
-		sort = sortBy.sortQueryToJsonSqlFormat(filter.sort, ['username', 'balance', 'rank', 'missedBlocks']);
+		var allowedSortFields = ['username', 'balance', 'rank', 'missedBlocks', 'vote', 'publicKey'];
+
+		if (typeof filter.sort === 'string') {
+			sort = sortBy.sortQueryToJsonSqlFormat(filter.sort, allowedSortFields);
+		} else if (typeof filter.sort === 'object') {
+			sort = _.pick(filter.sort, allowedSortFields);
+		}
 	}
 
 	delete filter.sort;
