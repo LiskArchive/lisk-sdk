@@ -495,6 +495,16 @@ Transactions.prototype.undoUnconfirmed = function (transaction, cb) {
 };
 
 /**
+ * Adds transaction back to .
+ * @param {transaction} transaction
+ * @return {function} Calls transactionPool.addUnconfirmedTransaction
+ */
+Transactions.prototype.addReady = function (transaction) {
+	library.logger.debug('Adding ready transaction', transaction.id);
+	return __private.transactionPool.addReady(transaction);
+};
+
+/**
  * Receives transactions
  * @param {transaction[]} transactions
  * @param {Object} broadcast

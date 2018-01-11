@@ -519,6 +519,20 @@ TransactionPool.prototype.queueTransaction = function (transaction, cb) {
 };
 
 /**
+ * Adds transaction to multisignature or queue list.
+ * @implements {addMultisignatureTransaction}
+ * @implements {addQueuedTransaction}
+ * @param {transaction} transaction
+ */
+TransactionPool.prototype.addReady = function (transaction) {
+	if (transaction.type === transactionTypes.MULTI || Array.isArray(transaction.signatures)) {
+		self.addMultisignatureTransaction(transaction);
+	} else {
+		self.addQueuedTransaction(transaction);
+	}
+};
+
+/**
  * Applies unconfirmed list to unconfirmed transactions list.
  * @implements {getUnconfirmedTransactionList}
  * @param {function} cb - Callback function.
