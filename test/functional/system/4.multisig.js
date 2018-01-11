@@ -13,17 +13,11 @@
  */
 'use strict';
 
-
-
 var lisk = require('lisk-js');
 
-var test = testSuite;
-var _  = test._;
 var accountFixtures = require('../../fixtures/accounts');
-
 var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
-
 var localCommon = require('./common');
 
 describe.skip('multisignature', function () {

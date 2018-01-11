@@ -13,7 +13,6 @@
  */
 'use strict';
 
-var _ = testSuite._;
 var randomstring = require('randomstring');
 
 module.exports = {

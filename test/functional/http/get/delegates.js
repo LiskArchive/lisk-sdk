@@ -18,7 +18,6 @@ var test = require('../../functional.js');
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
-var _ = test._;
 var genesisDelegates = require('../../../data/genesisDelegates.json');
 var accountFixtures = require('../../../fixtures/accounts');
 

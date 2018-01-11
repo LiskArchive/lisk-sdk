@@ -15,7 +15,6 @@
 
 var express = require('express');
 var ip = require('ip');
-var _  = testSuite._;
 
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var Peer = require('../../../logic/peer.js');

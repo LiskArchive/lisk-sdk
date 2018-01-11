@@ -13,7 +13,6 @@
  */
 'use strict';
 
-var _ = testSuite._;
 var assign = _.assign;
 var difference = _.difference;
 var set = _.set;

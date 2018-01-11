@@ -23,7 +23,6 @@ var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 var sendTransactionsPromise = apiHelpers.sendTransactionsPromise;
 var accountFixtures = require('../../../fixtures/accounts');
 var Promise = require('bluebird');
-var _ = test._;
 
 describe('GET /api/node', function () {
 

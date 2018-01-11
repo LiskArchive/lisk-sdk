@@ -18,6 +18,7 @@ var SocketCluster = require('socketcluster');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 var WSClient = require('./client');
 var Promise = require('bluebird');
+var sinon = require('sinon');
 
 function WSServer (headers) {
 	this.headers = headers;

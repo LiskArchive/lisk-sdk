@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var test = testSuite;
+var test = testContext;
 
 before(function (done) {
 	require('../common/utils/waitFor').blockchainReady(done);

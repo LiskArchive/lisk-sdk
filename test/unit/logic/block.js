@@ -14,10 +14,9 @@
 'use strict';
 
 var rewire = require('rewire');
-var ed = require('../../../helpers/ed');
 var crypto = require('crypto');
-var _ = testSuite._;
 
+var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/modulesLoader');
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 var Block = rewire('../../../logic/block.js');

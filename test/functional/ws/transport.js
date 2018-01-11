@@ -15,7 +15,6 @@
 
 var test = require('../functional.js');
 
-var _ = test._;
 var async = require('async');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var scClient = require('socketcluster-client');

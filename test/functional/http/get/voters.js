@@ -19,7 +19,6 @@ var randomstring = require('randomstring');
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
-var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 
 var apiCodes = require('../../../../helpers/apiCodes');

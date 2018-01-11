@@ -13,7 +13,6 @@
  */
 'use strict';
 
-var _ = testSuite._;
 var async = require('async');
 var Promise = require('bluebird');
 var lisk = require('lisk-js');

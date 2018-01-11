@@ -13,11 +13,8 @@
  */
 'use strict';
 
-var _ = testSuite._;
-
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var Peer = require('../../../logic/peer');
-
 var peersManager = require('../../../helpers/peersManager');
 
 describe('PeersManager', function () {

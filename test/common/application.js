@@ -36,7 +36,7 @@ function init (options, cb) {
 	options.scope.waitForGenesisBlock = options.waitForGenesisBlock !== false;
 
 	if (options.sandbox) {
-		dbSandbox = new DBSandbox(options.sandbox.config || testSuite.config.db, options.sandbox.name);
+		dbSandbox = new DBSandbox(options.sandbox.config || testContext.config.db, options.sandbox.name);
 		dbSandbox.create(function (err, __db) {
 			options.scope.db = __db;
 			__init(options.scope, cb);
@@ -48,7 +48,7 @@ function init (options, cb) {
 
 // Init whole application inside tests
 function __init (initScope, done) {
-	testSuite.debug('initApplication: Application initialization inside test environment started...');
+	testContext.debug('initApplication: Application initialization inside test environment started...');
 
 	jobsQueue.jobs = {};
 	var modules = [], rewiredModules = {};
@@ -69,11 +69,11 @@ function __init (initScope, done) {
 	var db = initScope.db;
 	if (!db) {
 		var pgp = require('pg-promise')(options);
-		testSuite.config.db.user = testSuite.config.db.user || process.env.USER;
-		db = pgp(testSuite.config.db);
+		testContext.config.db.user = testContext.config.db.user || process.env.USER;
+		db = pgp(testContext.config.db);
 	}
 	
-	testSuite.debug('initApplication: Target database - ' + testSuite.config.db.database);
+	testContext.debug('initApplication: Target database - ' + testContext.config.db.database);
 
 	// Clear tables
 	db.task(function (t) {
@@ -112,7 +112,7 @@ function __init (initScope, done) {
 		// Init limited application layer
 		async.auto({
 			config: function (cb) {
-				cb(null, testSuite.config);
+				cb(null, testContext.config);
 			},
 			genesisblock: function (cb) {
 				var genesisblock = require('../data/genesisBlock.json');
@@ -294,7 +294,7 @@ function __init (initScope, done) {
 		}, function (err, scope) {
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
-			testSuite.debug('initApplication: Rewired modules available');
+			testContext.debug('initApplication: Rewired modules available');
 
 			// Overwrite syncing function to prevent interfere with tests
 			scope.modules.loader.syncing = function () {
@@ -309,17 +309,17 @@ function __init (initScope, done) {
 
 			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {
-				testSuite.debug('initApplication: Fake onBlockchainReady event called');
-				testSuite.debug('initApplication: Loading delegates...');
+				testContext.debug('initApplication: Fake onBlockchainReady event called');
+				testContext.debug('initApplication: Loading delegates...');
 
 				var loadDelegates = scope.rewiredModules.delegates.__get__('__private.loadDelegates');
 				loadDelegates(function (err) {
 					var keypairs = scope.rewiredModules.delegates.__get__('__private.keypairs');
 					var delegates_cnt = Object.keys(keypairs).length;
-					expect(delegates_cnt).to.equal(testSuite.config.forging.secret.length);
+					expect(delegates_cnt).to.equal(testContext.config.forging.secret.length);
 
-					testSuite.debug('initApplication: Delegates loaded from config file - ' + delegates_cnt);
-					testSuite.debug('initApplication: Done');
+					testContext.debug('initApplication: Delegates loaded from config file - ' + delegates_cnt);
+					testContext.debug('initApplication: Done');
 
 					if (initScope.waitForGenesisBlock) {
 						return done(err, scope);

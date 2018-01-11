@@ -13,8 +13,6 @@
  */
 'use strict';/*eslint*/
 
-var _  = testSuite._;
-
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var crypto = require('crypto');

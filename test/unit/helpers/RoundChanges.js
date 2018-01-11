@@ -15,7 +15,6 @@
 
 var express = require('express');
 var ip = require('ip');
-var _  = testSuite._;
 var RoundChanges = require('../../../helpers/RoundChanges.js');
 
 describe('RoundChanges', function () {

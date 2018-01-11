@@ -14,7 +14,6 @@
 'use strict';
 
 var express = require('express');
-var _  = testSuite._;
 
 var slots = require('../../../helpers/slots.js');
 

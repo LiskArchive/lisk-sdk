@@ -16,12 +16,9 @@
 var rewire = require('rewire');
 var randomstring = require('randomstring');
 
-var _ = testSuite._;
-
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var generateRandomActivePeer = require('../../fixtures/peers').generateRandomActivePeer;
 var config = require('../../data/config.json');
-
 var constants = require('../../../helpers/constants');
 
 var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers').generateMatchedAndUnmatchedBroadhashes;

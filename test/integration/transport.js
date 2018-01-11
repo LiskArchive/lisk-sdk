@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var _ = testSuite._;
-
 var devConfig = require('../data/config.json');
 
 var utils = require('./utils');

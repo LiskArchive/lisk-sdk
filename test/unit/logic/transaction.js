@@ -16,7 +16,6 @@
 var crypto = require('crypto');
 var async = require('async');
 var lisk = require('lisk-js');
-var _  = testSuite._;
 
 var accountFixtures = require('../../fixtures/accounts');
 

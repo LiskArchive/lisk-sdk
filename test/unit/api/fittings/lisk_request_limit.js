@@ -17,8 +17,6 @@ var httpMocks = require('node-mocks-http');
 
 var fitting = require('../../../../api/fittings/lisk_request_limit');
 
-chai.use(sinonChai);
-
 describe('lisk_request_limit', function () {
 
 	var context, limit_fititng, next;

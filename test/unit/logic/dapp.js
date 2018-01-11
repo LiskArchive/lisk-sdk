@@ -14,7 +14,6 @@
 'use strict';/*eslint*/
 
 var crypto = require('crypto');
-var _  = testSuite._;
 
 var rewire = require('rewire');
 var randomstring = require('randomstring');

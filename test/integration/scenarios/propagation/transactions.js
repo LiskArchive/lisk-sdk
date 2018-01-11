@@ -13,7 +13,6 @@
  */
 'use strict';
 
-var _ = testSuite._;
 var Promise = require('bluebird');
 
 module.exports = function (params) {

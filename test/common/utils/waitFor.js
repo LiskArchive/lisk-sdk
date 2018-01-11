@@ -17,9 +17,6 @@ var popsicle = require('popsicle');
 var async = require('async');
 var Promise = require('bluebird');
 
-var test = testSuite;
-var config = test.config;
-
 var slots = require('../../../helpers/slots');
 var apiHelpers = require('../helpers/api');
 
@@ -37,7 +34,7 @@ function blockchainReady (cb, retries, timeout, baseUrl) {
 		timeout = 1000;
 	}
 
-	baseUrl = baseUrl || 'http://' + config.address + ':' + config.httpPort;
+	baseUrl = baseUrl || 'http://' + testContext.config.address + ':' + testContext.config.httpPort;
 	(function fetchBlockchainStatus () {
 		popsicle.get(baseUrl + '/api/node/status')
 			.then(function (res) {
@@ -69,7 +66,7 @@ function blockchainReady (cb, retries, timeout, baseUrl) {
 
 // Returns current block height
 function getHeight (cb) {
-	var request = popsicle.get(test.baseUrl + '/api/node/status');
+	var request = popsicle.get(testContext.baseUrl + '/api/node/status');
 
 	request.use(popsicle.plugins.parse(['json']));
 
@@ -94,7 +91,7 @@ function newRound (cb) {
 		} else {
 			var nextRound = slots.calcRound(height);
 			var blocksToWait = nextRound * slots.delegates - height;
-			test.debug('blocks to wait: '.grey, blocksToWait);
+			testContext.debug('blocks to wait: '.grey, blocksToWait);
 			newBlock(height, blocksToWait, cb);
 		}
 	});
@@ -124,7 +121,7 @@ function newBlock (height, blocksToWait, cb) {
 
 	async.doWhilst(
 		function (cb) {
-			var request = popsicle.get(test.baseUrl + '/api/node/status');
+			var request = popsicle.get(testContext.baseUrl + '/api/node/status');
 
 			request.use(popsicle.plugins.parse(['json']));
 
@@ -133,7 +130,7 @@ function newBlock (height, blocksToWait, cb) {
 					return cb(['Received bad response code', res.status, res.url].join(' '));
 				}
 
-				test.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.data.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
+				testContext.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.data.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
 
 				if (target === res.body.data.height) {
 					height = res.body.data.height;

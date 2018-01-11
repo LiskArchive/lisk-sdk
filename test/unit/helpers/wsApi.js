@@ -17,15 +17,13 @@ var async = require('async');
 var express = require('express');
 var randomstring = require('randomstring');
 
-var config = testSuite.config;
-var _ = testSuite._;
 var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
-
 var wsApi = require('../../../helpers/wsApi');
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
-
 var WSServerMaster = require('../../common/ws/serverMaster');
 var System = require('../../../modules/system');
+
+var config = testContext.config;
 
 describe('handshake', function () {
 

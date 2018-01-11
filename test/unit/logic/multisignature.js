@@ -17,7 +17,6 @@ var lisk = require('lisk-js');
 var crypto = require('crypto');
 var async = require('async');
 var rewire = require('rewire');
-var _  = testSuite._;
 
 var testData = require('./testData/multisignature');
 var accountFixtures = require('../../fixtures/accounts');

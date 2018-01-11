@@ -25,7 +25,6 @@ var accountFixtures = require('../../../fixtures/accounts');
 var Promise = require('bluebird');
 var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/waitFor');
-var _ = test._;
 
 describe('GET /api/node', function () {
 

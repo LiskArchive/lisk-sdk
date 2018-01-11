@@ -13,7 +13,6 @@
  */
 'use strict';/*eslint*/
 
-var _ = testSuite._;
 var crypto = require('crypto');
 var async = require('async');
 var rewire = require('rewire');

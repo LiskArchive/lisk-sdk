@@ -15,7 +15,6 @@
 
 var crypto = require('crypto');
 var rewire = require('rewire');
-var _  = testSuite._;
 
 var modulesLoader = require('../../common/modulesLoader');
 

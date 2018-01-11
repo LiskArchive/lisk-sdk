@@ -14,7 +14,6 @@
 'use strict';
 
 var express = require('express');
-var _  = testSuite._;
 
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var modulesLoader = require('../../common/modulesLoader');

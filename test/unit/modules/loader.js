@@ -13,7 +13,6 @@
  */
 'use strict';
 
-var _  = testSuite._;
 var express = require('express');
 var rewire  = require('rewire');
 

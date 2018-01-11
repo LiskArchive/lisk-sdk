@@ -15,7 +15,6 @@
 
 var test = require('../functional.js');
 
-var _ = test._;
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var randomstring = require('randomstring');
 var scClient = require('socketcluster-client');

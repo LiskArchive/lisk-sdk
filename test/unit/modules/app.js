@@ -14,7 +14,7 @@
 'use strict';
 
 var constants = require('../../../helpers/constants');
-var config = testSuite.config;
+var config = testContext.config;
 
 describe('app', function () {
 

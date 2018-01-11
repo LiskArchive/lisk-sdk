@@ -13,12 +13,9 @@
  */
 'use strict';
 
-
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
-var test = testSuite;
-var _ = test._;
 var accountFixtures = require('../../fixtures/accounts');
 
 var erroCodes = require('../../../helpers/apiCodes');
