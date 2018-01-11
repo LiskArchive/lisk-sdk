@@ -15,6 +15,7 @@
  */
 import { COMMAND_TYPES } from '../utils/constants';
 import { createCommand, deAlias, processQueryResult } from '../utils/helpers';
+import commonOptions from '../utils/options';
 import query from '../utils/query';
 
 const description = `Gets information from the blockchain. Types available: account, address, block, delegate, transaction.
@@ -24,12 +25,18 @@ const description = `Gets information from the blockchain. Types available: acco
 	- get block 5510510593472232540
 `;
 
-export const actionCreator = () => async ({ type, input }) => {
+export const actionCreator = () => async ({
+	type,
+	input,
+	options: { testnet },
+}) => {
 	if (!COMMAND_TYPES.includes(type)) {
 		throw new Error('Unsupported type.');
 	}
 
-	return query.handlers[deAlias(type)](input).then(processQueryResult(type));
+	return query.handlers[deAlias(type)](input, { testnet }).then(
+		processQueryResult(type),
+	);
 };
 
 const get = createCommand({
@@ -37,6 +44,7 @@ const get = createCommand({
 	autocomplete: COMMAND_TYPES,
 	description,
 	actionCreator,
+	options: [commonOptions.testnet],
 	errorPrefix: 'Could not get',
 });
 

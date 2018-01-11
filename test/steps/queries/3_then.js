@@ -15,6 +15,11 @@
  */
 import { getFirstQuotedString } from '../utils';
 
+export function itShouldResolveToTheResultOfSendingTheRequest() {
+	const { returnValue, sendRequestResult } = this.test.ctx;
+	return returnValue.should.be.fulfilledWith(sendRequestResult);
+}
+
 export function theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient() {
 	const { queryInstance, liskAPIInstance } = this.test.ctx;
 	return queryInstance.should.have.property('client').equal(liskAPIInstance);

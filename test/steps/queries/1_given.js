@@ -15,7 +15,21 @@
  */
 import liskAPIInstance from '../../../src/utils/api';
 import queryInstance from '../../../src/utils/query';
-import { getFirstQuotedString } from '../utils';
+import { getFirstQuotedString, getQuotedStrings } from '../utils';
+
+export function theParametersObjectHasKeySetTo() {
+	const [key, value] = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.parameters[key] = value;
+}
+
+export function aParametersObject() {
+	this.test.ctx.parameters = {};
+}
+
+export function anEndpoint() {
+	const endpoint = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.endpoint = endpoint;
+}
 
 export function aResultWithError() {
 	const error = getFirstQuotedString(this.test.parent.title);
@@ -47,6 +61,13 @@ export function aQueryInstanceHasBeenInitialised() {
 }
 
 export function aQueryInstance() {
+	const sendRequestResult = {
+		someKey: 'some value',
+	};
+
+	sandbox.stub(liskAPIInstance, 'sendRequest').resolves(sendRequestResult);
+	sandbox.stub(liskAPIInstance, 'setTestnet');
+
 	this.test.ctx.queryInstance = queryInstance;
-	sandbox.stub(liskAPIInstance, 'sendRequest');
+	this.test.ctx.sendRequestResult = sendRequestResult;
 }

@@ -52,6 +52,13 @@ const prettyDescription =
 const tableDescription =
 	'Prints output in table format (default). You can change the default behaviour in your config.json file.';
 
+const testnetDescription = `Specifies whether to run the command against the testnet. You can change the default behaviour in your config.json file.
+
+	Examples:
+	- --testnet (runs against testnet)
+	- --testnet false (runs against mainnet)
+`;
+
 const votesDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
 
 	Examples:
@@ -77,6 +84,7 @@ const options = {
 	password: ['-w, --password <source>', passwordDescription],
 	pretty: ['--pretty', prettyDescription],
 	table: ['-t, --table', tableDescription],
+	testnet: ['--testnet', testnetDescription],
 	unvotes: ['--unvotes <source...>', unvotesDescription],
 	votes: ['--votes <source...>', votesDescription],
 };

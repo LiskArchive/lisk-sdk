@@ -15,6 +15,7 @@
  */
 import { COMMAND_TYPES, SINGULARS } from '../utils/constants';
 import { createCommand, deAlias, processQueryResult } from '../utils/helpers';
+import commonOptions from '../utils/options';
 import query from '../utils/query';
 
 const description = `Gets an array of information from the blockchain. Types available: accounts, addresses, blocks, delegates, transactions.
@@ -24,7 +25,11 @@ const description = `Gets an array of information from the blockchain. Types ava
 	- list blocks 5510510593472232540 16450842638530591789
 `;
 
-export const actionCreator = () => async ({ type, inputs }) => {
+export const actionCreator = () => async ({
+	type,
+	inputs,
+	options: { testnet },
+}) => {
 	const singularType = Object.keys(SINGULARS).includes(type)
 		? SINGULARS[type]
 		: type;
@@ -33,7 +38,9 @@ export const actionCreator = () => async ({ type, inputs }) => {
 		throw new Error('Unsupported type.');
 	}
 
-	const queries = inputs.map(query.handlers[deAlias(singularType)]);
+	const queries = inputs.map(input =>
+		query.handlers[deAlias(singularType)](input, { testnet }),
+	);
 
 	return Promise.all(queries).then(results =>
 		results.map(processQueryResult(singularType)),
@@ -45,6 +52,7 @@ const list = createCommand({
 	autocomplete: COMMAND_TYPES,
 	description,
 	actionCreator,
+	options: [commonOptions.testnet],
 	errorPrefix: 'Could not list',
 });
 
