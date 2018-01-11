@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var async = require('async');
@@ -379,7 +392,7 @@ Transport.prototype.onBroadcastBlock = function (block, broadcast) {
 				if (!peers || peers.length === 0) {
 					return library.logger.debug('Broadcasting block aborted - active peer list empty');
 				}
-				async.each(peers.filter(function (peer) { return peer.state === Peer.STATE.CONNECTED; }), function (peer, cb) {
+				async.each(peers, function (peer, cb) {
 					peer.rpc.updateMyself(library.logic.peers.me(), function (err) {
 						if (err) {
 							library.logger.debug('Failed to notify peer about self',  err);

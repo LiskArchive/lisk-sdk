@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var PQ = require('pg-promise').ParameterizedQuery;
@@ -83,7 +96,7 @@ var Queries = {
 		].filter(Boolean).join(' ');
 	},
 
-	getIdSequence: new PQ([
+	getIdSequence: [
 		'WITH',
 		'current_round AS (SELECT CEIL(b.height / ${delegates}::float)::bigint FROM blocks b WHERE b.height <= ${height} ORDER BY b.height DESC LIMIT 1),',
 		'rounds AS (SELECT * FROM generate_series((SELECT * FROM current_round), (SELECT * FROM current_round) - ${limit} + 1, -1))',
@@ -91,14 +104,14 @@ var Queries = {
 		'b.id, b.height, CEIL(b.height / ${delegates}::float)::bigint AS round',
 		'FROM blocks b',
 		'WHERE b.height IN (SELECT ((n - 1) * ${delegates}) + 1 FROM rounds AS s(n)) ORDER BY height DESC'
-	].filter(Boolean).join(' ')),
+	].filter(Boolean).join(' '),
 
 	getCommonBlock: function (params) {
-		return new PQ([
+		return [
 			'SELECT COUNT("id")::int FROM blocks WHERE "id" = ${id}',
 			(params.previousBlock ? 'AND "previousBlock" = ${previousBlock}' : ''),
 			'AND "height" = ${height}'
-		].filter(Boolean).join(' '));
+		].filter(Boolean).join(' ');
 	},
 
 	getBlocksForTransport: 'SELECT MAX("height") AS "height", "id", "previousBlock", "timestamp" FROM blocks WHERE "id" IN ($1:csv) GROUP BY "id" ORDER BY "height" DESC',
@@ -181,9 +194,7 @@ BlocksRepo.prototype.loadLastBlock = function () {
 };
 
 BlocksRepo.prototype.blockExists = function (id) {
-	return this.db.one(Queries.blockExists, [id]).then(function (row) {
-		return row;
-	}).catch(function (reason) { return false; });
+	return this.db.oneOrNone(Queries.blockExists, [id]);
 };
 
 BlocksRepo.prototype.deleteAfterBlock = function (id) {

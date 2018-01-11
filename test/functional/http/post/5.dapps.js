@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var test = require('../../functional.js');
@@ -79,7 +92,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		common.invalidAssets('dapp', badTransactions);
 
 		describe('category', function () {
-			
+
 			it('without should fail', function () {
 				transaction = lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				delete transaction.asset.dapp.category;
@@ -257,7 +270,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 			it('with invalid extension type should fail', function () {
 				var application = randomUtil.application();
 				application.link += '.invalid';
-				
+
 				transaction = lisk.dapp.createDapp(account.password, null, application);
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
@@ -268,7 +281,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		});
 
 		describe('name', function () {
-			
+
 			it('without should fail', function () {
 				transaction = lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				delete transaction.asset.dapp.name;
@@ -389,7 +402,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		});
 
 		describe('type', function () {
-			
+
 			it('without should fail', function () {
 				transaction = lisk.dapp.createDapp(account.password, null, randomUtil.application());
 				delete transaction.asset.dapp.type;
@@ -553,7 +566,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				});
 		});
 	});
-	
+
 	describe('confirmation', function () {
 
 		phases.confirmation(goodTransactions, badTransactions);
