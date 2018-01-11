@@ -14,6 +14,8 @@
  */
 mocha.setup({
 	ui: 'bdd',
-	timeout: 10000,
+	timeout: 30000,
 	globals: ['__$$GLOBAL_REWIRE_NEXT_MODULE_ID__'],
+	fgrep: '@node-only',
+	invert: true,
 });

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { version } from '../../package.json';
 import {
 	encryptMessageWithPassphrase,
 	decryptMessageWithPassphrase,
@@ -169,9 +170,11 @@ describe('encrypt', () => {
 		});
 
 		describe('#encryptPassphraseWithPassword', () => {
+			let startTime;
 			let cipher;
 
 			beforeEach(() => {
+				startTime = Date.now();
 				cipher = encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
@@ -179,79 +182,114 @@ describe('encrypt', () => {
 			});
 
 			it('should encrypt a passphrase', () => {
-				return cipher.should.be
-					.type('object')
-					.and.have.property('cipher')
-					.and.be.hexString();
+				return cipher.should.have.property('cipher').and.be.hexString();
 			});
 
 			it('should output the IV', () => {
-				return cipher.should.be
-					.type('object')
-					.and.have.property('iv')
+				return cipher.should.have
+					.property('iv')
+					.and.be.hexString()
+					.and.have.length(32);
+			});
+
+			it('should output the salt', () => {
+				return cipher.should.have
+					.property('salt')
 					.and.be.hexString()
 					.and.have.length(32);
 			});
 
 			it('should output the tag', () => {
-				return cipher.should.be
-					.type('object')
-					.and.have.property('tag')
+				return cipher.should.have
+					.property('tag')
 					.and.be.hexString()
 					.and.have.length(32);
+			});
+
+			it('should output the current version of LiskJS', () => {
+				return cipher.should.have.property('version').which.is.equal(version);
+			});
+
+			it('should take more than 0.5 seconds @node-only', () => {
+				const endTime = Date.now();
+				return (endTime - startTime).should.be.above(500);
+			});
+
+			it('should take less than 2 seconds @node-only', () => {
+				const endTime = Date.now();
+				return (endTime - startTime).should.be.below(2e3);
 			});
 		});
 
 		describe('#decryptPassphraseWithPassword', () => {
-			let cipherNonceAndTag;
+			let cipherIvSaltTagAndVersion;
 
 			beforeEach(() => {
-				cipherNonceAndTag = {
+				cipherIvSaltTagAndVersion = {
 					cipher:
-						'331a80ab5f9cdd21e16f60c73e9b8f3c3d7f6b44dc79f60985234fde36077080726e577cb5596ab0c885bc321efc4f6cce52f5cae134b48e1b5308232563b6180858323bcb',
-					iv: 'e249a35bb2c2fa529fdbe349496d30ac',
-					tag: 'eb318b7feaa7a7540e599984bd1bb298',
+						'c3b3a101f1c2a09c7ffd0ea207a7802d728e74027836de195be665e8e41c27ffe1fe1eebdf40874447c26cf8942c72db3252c2d76168137f2fc99c84b8ac353af4a64392a1',
+					iv: '8be18e58b5a0ca8d56d84db439041167',
+					salt: '598e2f237bf7b58ae00bc6fc006c6963',
+					tag: '7498e143aba4335b942c7c5f68f90402',
+					version,
 				};
 			});
 
 			it('should decrypt a text with a password', () => {
 				const decrypted = decryptPassphraseWithPassword(
-					cipherNonceAndTag,
+					cipherIvSaltTagAndVersion,
 					defaultPassword,
 				);
 				return decrypted.should.be.eql(defaultPassphrase);
 			});
 
-			it('should inform the user if the tag has been shortened', () => {
-				cipherNonceAndTag.tag = cipherNonceAndTag.tag.slice(0, 30);
+			it('should inform the user if the salt has been altered', () => {
+				cipherIvSaltTagAndVersion.salt = `00${cipherIvSaltTagAndVersion.salt.slice(
+					2,
+				)}`;
 				return decryptPassphraseWithPassword
-					.bind(null, cipherNonceAndTag, defaultPassword)
+					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
+					.should.throw('Unsupported state or unable to authenticate data');
+			});
+
+			it('should inform the user if the tag has been shortened', () => {
+				cipherIvSaltTagAndVersion.tag = cipherIvSaltTagAndVersion.tag.slice(
+					0,
+					30,
+				);
+				return decryptPassphraseWithPassword
+					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
 					.should.throw('Tag must be 16 bytes.');
 			});
 
 			it('should inform the user if the tag is not a hex string', () => {
-				cipherNonceAndTag.tag = `${cipherNonceAndTag.tag.slice(0, 30)}gg`;
+				cipherIvSaltTagAndVersion.tag = `${cipherIvSaltTagAndVersion.tag.slice(
+					0,
+					30,
+				)}gg`;
 				return decryptPassphraseWithPassword
-					.bind(null, cipherNonceAndTag, defaultPassword)
+					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
 					.should.throw('Tag must be a hex string.');
 			});
 
 			it('should inform the user if the tag has been altered', () => {
-				cipherNonceAndTag.tag = `00${cipherNonceAndTag.tag.slice(2)}`;
+				cipherIvSaltTagAndVersion.tag = `00${cipherIvSaltTagAndVersion.tag.slice(
+					2,
+				)}`;
 				return decryptPassphraseWithPassword
-					.bind(null, cipherNonceAndTag, defaultPassword)
+					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
 					.should.throw('Unsupported state or unable to authenticate data');
 			});
 		});
 
 		describe('integration test', () => {
 			it('should encrypt a given passphrase with a password and decrypt it back to the original passphrase', () => {
-				const encryptedString = encryptPassphraseWithPassword(
+				const cipher = encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
 				);
 				const decryptedString = decryptPassphraseWithPassword(
-					encryptedString,
+					cipher,
 					defaultPassword,
 				);
 				return decryptedString.should.be.eql(defaultPassphrase);
