@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var crypto = require('crypto');
@@ -261,7 +274,7 @@ describe('blocks/chain', function () {
 			it('should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}');
 
 			describe('when modules.accounts.setAccountAndGet fails', function () {
-				
+
 				describe('error object', function () {
 
 					it('should assign message');

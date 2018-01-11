@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var test = require('../../functional.js');
@@ -17,19 +30,19 @@ var normalizer = require('../../../common/utils/normalizer');
 var errorCodes = require('../../../../helpers/apiCodes');
 
 describe('POST /api/transactions (type 0) transfer funds', function () {
-	
+
 	var transaction;
 	var goodTransaction = randomUtil.transaction();
 	var badTransactions = [];
 	var goodTransactions = [];
 	// Low-frills deep copy
 	var cloneGoodTransaction = JSON.parse(JSON.stringify(goodTransaction));
-	
+
 	var account = randomUtil.account();
 	var accountOffset = randomUtil.account();
 
 	describe('schema validations', function () {
-		
+
 		typesRepresentatives.allTypes.forEach(function (test) {
 			it('using ' + test.description + ' should fail', function () {
 				return sendTransactionPromise(test.input, 400).then(function (res) {
@@ -128,7 +141,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		});
 
 		describe('with offset', function () {
-			
+
 			it('using -1 should be ok', function () {
 				transaction = lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, -1);
 
@@ -138,7 +151,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 					// goodTransactions.push(transaction);
 				});
 			});
-			
+
 			it('using future timestamp should fail', function () {
 				transaction = lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, 1000);
 
@@ -175,12 +188,12 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 				var validCases = typesRepresentatives.additionalDataValidCases
 					.concat(typesRepresentatives.strings);
-					
+
 				validCases.forEach(function (test) {
 					it('using ' + test.description + ' should be ok', function () {
 						var accountAdditionalData = randomUtil.account();
 						transaction = lisk.transaction.createTransaction(accountAdditionalData.address, 1, accountFixtures.genesis.password, null, test.input);
-						
+
 						return sendTransactionPromise(transaction).then(function (res) {
 							res.body.data.message.should.be.equal('Transaction(s) accepted');
 							goodTransactions.push(transaction);

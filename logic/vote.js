@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var async = require('async');
@@ -57,7 +70,7 @@ Vote.prototype.calculateFee = function (transaction, sender) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|function} returns error if invalid field | 
+ * @returns {setImmediateCallback|function} returns error if invalid field |
  * calls checkConfirmedDelegates.
  */
 Vote.prototype.verify = function (transaction, sender, cb, tx) {
@@ -130,7 +143,7 @@ Vote.prototype.verifyVote = function (vote, cb, tx) {
  * @implements {modules.delegates.checkConfirmedDelegates}
  * @param {transaction} transaction
  * @param {function} cb - Callback function.
- * @return {setImmediateCallback} cb, err(if transaction id is not in 
+ * @return {setImmediateCallback} cb, err(if transaction id is not in
  * exceptions votes list)
  */
 Vote.prototype.checkConfirmedDelegates = function (transaction, cb, tx) {
@@ -150,7 +163,7 @@ Vote.prototype.checkConfirmedDelegates = function (transaction, cb, tx) {
  * @implements {modules.delegates.checkUnconfirmedDelegates}
  * @param {Object} transaction
  * @param {function} cb
- * @return {setImmediateCallback} cb, err(if transaction id is not in 
+ * @return {setImmediateCallback} cb, err(if transaction id is not in
  * exceptions votes list)
  */
 Vote.prototype.checkUnconfirmedDelegates = function (transaction, cb, tx) {
@@ -225,7 +238,7 @@ Vote.prototype.apply = function (transaction, block, sender, cb, tx) {
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs and merges account to 
+ * Calls Diff.reverse to change asset.votes signs and merges account to
  * sender address with inverted votes as delegates.
  * @implements {Diff}
  * @implements {scope.account.merge}
@@ -278,7 +291,7 @@ Vote.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs and merges account to 
+ * Calls Diff.reverse to change asset.votes signs and merges account to
  * sender address with inverted votes as unconfirmed delegates.
  * @implements {Diff}
  * @implements {scope.account.merge}
