@@ -15,13 +15,6 @@
 import { bufferToHex, getAddress } from './convert';
 import hash from './hash';
 
-/**
- * @method getPrivateAndPublicKeyBytesFromPassphrase
- * @param passphrase
- *
- * @return {object}
- */
-
 export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
 	const hashed = hash(passphrase, 'utf8');
 
@@ -32,13 +25,6 @@ export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
 		publicKey: signPk,
 	};
 };
-
-/**
- * @method getPrivateAndPublicKeyFromPassphrase
- * @param passphrase
- *
- * @return {object}
- */
 
 export const getPrivateAndPublicKeyFromPassphrase = passphrase => {
 	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromPassphrase(
@@ -51,21 +37,7 @@ export const getPrivateAndPublicKeyFromPassphrase = passphrase => {
 	};
 };
 
-/**
- * @method getKeys
- * @param passphrase string
- *
- * @return {object}
- */
-
 export const getKeys = getPrivateAndPublicKeyFromPassphrase;
-
-/**
- * @method getAddressAndPublicKeyFromPassphrase
- * @param passphrase
- *
- * @return {object}
- */
 
 export const getAddressAndPublicKeyFromPassphrase = passphrase => {
 	const accountKeys = getKeys(passphrase);

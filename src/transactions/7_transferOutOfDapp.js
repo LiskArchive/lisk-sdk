@@ -12,24 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * Transfer module provides functions for creating "in" transfer transactions (balance transfers to
- * an individual dapp account).
- * @class transfer
- */
 import { OUT_TRANSFER_FEE } from '../constants';
 import { wrapTransactionCreator } from './utils';
-
-/**
- * @method transferOutOfDapp
- * @param {Object} Object - Object
- * @param {String} Object.amount
- * @param {String} Object.dappId
- * @param {String} Object.transactionId
- * @param {String} Object.recipientId
- *
- * @return {Object}
- */
 
 const transferOutOfDapp = ({ amount, dappId, transactionId, recipientId }) => ({
 	type: 7,

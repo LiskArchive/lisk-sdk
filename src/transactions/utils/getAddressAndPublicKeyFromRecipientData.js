@@ -14,14 +14,6 @@
  */
 import crypto from '../../crypto';
 
-/**
-* @method getAddressAndPublicKeyFromRecipientData
-* @param {String} recipientId
-* @param {String} recipientPublicKey
-*
-* @return {String}
-*/
-
 const getAddressAndPublicKeyFromRecipientData = ({
 	recipientId,
 	recipientPublicKey,

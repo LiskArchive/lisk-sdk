@@ -12,21 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * Signature module provides functions for creating second signature registration transactions.
- * @class signature
- */
 import cryptoModule from '../crypto';
 import { SIGNATURE_FEE } from '../constants';
 import { wrapTransactionCreator } from './utils';
-
-/**
- * @method registerSecondPassphrase
- * @param {Object} Object - Object
- * @param {String} Object.secondPassphrase
- *
- * @return {Object}
- */
 
 const registerSecondPassphrase = ({ secondPassphrase }) => {
 	const { publicKey } = cryptoModule.getKeys(secondPassphrase);

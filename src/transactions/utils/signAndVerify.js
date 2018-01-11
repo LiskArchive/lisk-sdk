@@ -15,26 +15,10 @@
 import crypto from '../../crypto';
 import getTransactionHash from './getTransactionHash';
 
-/**
- * @method signTransaction
- * @param transaction Object
- * @param passphrase string
- *
- * @return {string}
- */
-
 export const signTransaction = (transaction, passphrase) => {
 	const transactionHash = getTransactionHash(transaction);
 	return crypto.signData(transactionHash, passphrase);
 };
-
-/**
- * @method multiSignTransaction
- * @param transaction Object
- * @param passphrase string
- *
- * @return {string}
- */
 
 export const multiSignTransaction = (transaction, passphrase) => {
 	const transactionToSign = Object.assign({}, transaction);
@@ -45,14 +29,6 @@ export const multiSignTransaction = (transaction, passphrase) => {
 
 	return crypto.signData(transactionHash, passphrase);
 };
-
-/**
- * @method verifyTransaction
- * @param transaction Object
- * @param secondPublicKey
- *
- * @return {boolean}
- */
 
 export const verifyTransaction = (transaction, secondPublicKey) => {
 	const secondSignaturePresent = !!transaction.signSignature;

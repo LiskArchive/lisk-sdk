@@ -12,11 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * Index module comprising all submodules of lisk-js.
- * @module lisk
- * @main lisk
- */
 import naclFactory from 'js-nacl';
 import Mnemonic from 'bip39';
 import api from './api/liskApi';

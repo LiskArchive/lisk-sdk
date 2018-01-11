@@ -12,10 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/**
- * Dapp module provides functions used to create dapp registration transactions.
- * @class dapp
- */
 import { DAPP_FEE } from '../constants';
 import { wrapTransactionCreator } from './utils';
 
@@ -40,14 +36,6 @@ const validateOptions = options => {
 		throw new Error('Dapp link must be a string.');
 	}
 };
-
-/**
- * @method createDapp
- * @param {Object} Object - Object
- * @param {Object} Object.options
- *
- * @return {Object}
- */
 
 const createDapp = ({ options }) => {
 	validateOptions(options);

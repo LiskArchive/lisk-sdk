@@ -15,13 +15,6 @@
 import crypto from '../../crypto';
 import getTransactionBytes from './getTransactionBytes';
 
-/**
-* @method getTransactionHash
-* @param transaction Object
-*
-* @return {string}
-*/
-
 const getTransactionHash = transaction => {
 	const bytes = getTransactionBytes(transaction);
 	return crypto.hash(bytes);

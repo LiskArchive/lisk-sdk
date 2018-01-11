@@ -52,16 +52,6 @@ export const encryptMessageWithPassphrase = (
 	};
 };
 
-/**
- * @method decryptMessageWithPassphrase
- * @param cipherHex
- * @param nonce
- * @param passphrase
- * @param senderPublicKey
- *
- * @return {string}
- */
-
 export const decryptMessageWithPassphrase = (
 	cipherHex,
 	nonce,
@@ -101,14 +91,6 @@ export const decryptMessageWithPassphrase = (
 	}
 };
 
-/**
- * @method encryptAES256GCMWithPassword
- * @param {String} plainText utf8 - any utf8 string
- * @param {String} password utf8 - the password used to encrypt the passphrase
- *
- * @return {Object} - { cipher: '...', iv: '...', tag: '...' }
- */
-
 const encryptAES256GCMWithPassword = (plainText, password) => {
 	const iv = crypto.randomBytes(16);
 	const passwordHash = hash(password, 'utf8');
@@ -135,17 +117,6 @@ const getTagBuffer = tag => {
 	return tagBuffer;
 };
 
-/**
- * @method decryptAES256GCMWithPassword
- * @param {Object} Object - Object with cipher, iv and tag as hex strings
- * @param {String} Object.cipher - hex string AES-256-GCM cipher
- * @param {String} Object.iv - hex string for the initialisation vector
- * @param {String} Object.tag - hex string for the tag
- * @param {String} password utf8 - the password used to encrypt the passphrase
- *
- * @return {String} utf8
- */
-
 const decryptAES256GCMWithPassword = ({ cipher, iv, tag }, password) => {
 	const tagBuffer = getTagBuffer(tag);
 	const passwordHash = hash(password, 'utf8');
@@ -161,25 +132,6 @@ const decryptAES256GCMWithPassword = ({ cipher, iv, tag }, password) => {
 	return decrypted.toString();
 };
 
-/**
- * @method encryptPassphraseWithPassword
- * @param {String} passphrase utf8 - twelve word secret passphrase
- * @param {String} password utf8 - the password used to encrypt the passphrase
- *
- * @return {Object} - { cipher: '...', iv: '...', tag: '...' }
- */
-
 export const encryptPassphraseWithPassword = encryptAES256GCMWithPassword;
-
-/**
- * @method decryptPassphraseWithPassword
- * @param {Object} Object - Object with cipher, iv and tag as hex strings
- * @param {String} Object.cipher - hex string AES-256-GCM cipher
- * @param {String} Object.iv - hex string for the initialisation vector
- * @param {String} Object.tag - hex string for the tag
- * @param {String} password utf8 - the password used to encrypt the passphrase
- *
- * @return {String}
- */
 
 export const decryptPassphraseWithPassword = decryptAES256GCMWithPassword;

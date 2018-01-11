@@ -20,12 +20,6 @@ export const getDefaultPort = options => {
 	return LIVE_PORT;
 };
 
-/**
-  * @method netHashOptions
-  * @return {Object}
-  * @private
-  */
-
 export const netHashOptions = ({ port }) => {
 	const testnetNethash =
 		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
@@ -52,32 +46,12 @@ export const netHashOptions = ({ port }) => {
 	};
 };
 
-/**
-  * @method getURLPrefix
-  * @return {String}
-  * @private
-  */
-
 export const getURLPrefix = ({ ssl }) => (ssl ? 'https' : 'http');
-
-/**
-  * @method getFullURL
-  * @return {String}
-  * @private
-  */
 
 export const getFullURL = ({ node, port, ssl }) => {
 	const nodeUrl = port ? `${node}:${port}` : node;
 	return `${getURLPrefix({ ssl })}://${nodeUrl}`;
 };
-
-/**
- * @method optionallyCallCallback
- * @param callback
- * @param result
- *
- * @return result object
- */
 
 export const optionallyCallCallback = (callback, result) => {
 	if (typeof callback === 'function') {
@@ -85,14 +59,6 @@ export const optionallyCallCallback = (callback, result) => {
 	}
 	return result;
 };
-
-/**
- * @method constructRequestData
- * @param providedObject
- * @param optionsOrCallback
- *
- * @return request object
- */
 
 export const constructRequestData = (providedObject, optionsOrCallback) => {
 	const providedOptions =
@@ -102,15 +68,6 @@ export const constructRequestData = (providedObject, optionsOrCallback) => {
 			: {};
 	return Object.assign({}, providedOptions, providedObject);
 };
-
-/**
- * @method wrapSendRequest
- * @param method
- * @param endpoint
- * @param getDataFn
- *
- * @return function wrappedSendRequest
- */
 
 export const wrapSendRequest = (method, endpoint, getDataFn) =>
 	function wrappedSendRequest(value, optionsOrCallback, callbackIfOptions) {
@@ -122,12 +79,6 @@ export const wrapSendRequest = (method, endpoint, getDataFn) =>
 		return this.sendRequest(method, endpoint, data, callback);
 	};
 
-/**
- * @method checkOptions
- * @private
- * @return options object
- */
-
 export const checkOptions = options => {
 	Object.entries(options).forEach(([key, value]) => {
 		if (value === undefined || Number.isNaN(value)) {
@@ -138,12 +89,6 @@ export const checkOptions = options => {
 	return options;
 };
 
-/**
- * @method toQueryString
- * @param obj
- *
- * @return query string
- */
 export const toQueryString = obj => {
 	const parts = Object.entries(obj).reduce(
 		(accumulator, [key, value]) => [

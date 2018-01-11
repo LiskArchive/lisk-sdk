@@ -7,7 +7,6 @@ cypress.json
 Gruntfile.js
 Jenkinsfile
 index.html
-yuidoc.json
 
 .nyc_output/
 bin/

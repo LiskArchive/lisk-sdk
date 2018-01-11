@@ -16,33 +16,15 @@ import * as popsicle from 'popsicle';
 import { GET } from '../constants';
 import * as utils from './utils';
 
-/**
- * @method getNodes
- * @return {Array}
- * @private
- */
-
 export function getNodes() {
 	if (this.testnet) return this.defaultTestnetNodes;
 	if (this.ssl) return this.defaultSSLNodes;
 	return this.defaultNodes;
 }
 
-/**
- * @method isBanned
- * @return {Boolean}
- * @private
- */
-
 export function isBanned(node) {
 	return this.bannedNodes.includes(node);
 }
-
-/**
- * @method getRandomNode
- * @return  {String}
- * @private
- */
 
 export function getRandomNode() {
 	const nodes = getNodes.call(this).filter(node => !isBanned.call(this, node));
@@ -56,12 +38,6 @@ export function getRandomNode() {
 	const randomIndex = Math.floor(Math.random() * nodes.length);
 	return nodes[randomIndex];
 }
-
-/**
- * @method selectNewNode
- * @return {String}
- * @private
- */
 
 export function selectNewNode() {
 	const providedNode = this.options.node;
@@ -82,11 +58,6 @@ export function selectNewNode() {
 	);
 }
 
-/**
- * @method banActiveNode
- * @private
- */
-
 export function banActiveNode() {
 	if (!isBanned.call(this, this.node)) {
 		this.bannedNodes.push(this.node);
@@ -95,12 +66,6 @@ export function banActiveNode() {
 	return false;
 }
 
-/**
- * @method hasAvailableNodes
- * @return {Boolean}
- * @private
- */
-
 export function hasAvailableNodes() {
 	const nodes = getNodes.call(this);
 
@@ -108,16 +73,6 @@ export function hasAvailableNodes() {
 		? nodes.some(node => !isBanned.call(this, node))
 		: false;
 }
-
-/**
- * @method createRequestObject
- * @param method
- * @param requestType
- * @param providedOptions
- * @private
- *
- * @return {Object}
- */
 
 export function createRequestObject(method, requestType, providedOptions) {
 	const options = providedOptions || {};
@@ -135,16 +90,6 @@ export function createRequestObject(method, requestType, providedOptions) {
 	};
 }
 
-/**
- * @method sendRequestPromise
- * @param requestMethod
- * @param requestType
- * @param options
- * @private
- *
- * @return {Promise}
- */
-
 export function sendRequestPromise(requestMethod, requestType, options) {
 	const requestObject = createRequestObject.call(
 		this,
@@ -157,17 +102,6 @@ export function sendRequestPromise(requestMethod, requestType, options) {
 		.request(requestObject)
 		.use(popsicle.plugins.parse(['json', 'urlencoded']));
 }
-
-/**
- * @method handleTimestampIsInFutureFailures
- * @param requestMethod
- * @param requestType
- * @param options
- * @param result
- * @private
- *
- * @return {Promise}
- */
 
 export function handleTimestampIsInFutureFailures(
 	requestMethod,
@@ -189,17 +123,6 @@ export function handleTimestampIsInFutureFailures(
 	}
 	return Promise.resolve(result);
 }
-
-/**
- * @method handleSendRequestFailures
- * @param requestMethod
- * @param requestType
- * @param options
- * @param result
- * @private
- *
- * @return {Promise}
- */
 
 export function handleSendRequestFailures(
 	requestMethod,
