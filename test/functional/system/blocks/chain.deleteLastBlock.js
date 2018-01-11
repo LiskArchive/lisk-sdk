@@ -222,6 +222,107 @@ describe('blocks/chain', function () {
 					});
 				});
 			});
+
+			describe('(type 2) register delegate', function () {
+
+				before('create account with funds', function (done) {
+					createAccountWithFunds(done);
+					fieldsToCompare = ['balance', 'u_balance', 'blockId', 'virgin', 'publicKey', 'isDelegate', 'u_isDelegate', 'username', 'u_username', 'missedBlocks', 'producedBlocks', 'rank', 'rewards', 'vote'];
+					//CHECKME: nameexist and u_nameexist when are they use?
+				});
+
+				it('should validate account data from sender', function (done) {
+					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						testAccountData = res;
+						expect(res.virgin).to.equal(1);
+						expect(res.publicKey).to.be.null;
+						expect(res.isDelegate).to.equal(0);
+						expect(res.u_isDelegate).to.equal(0);
+						expect(res.username).to.be.null;
+						expect(res.u_username).to.be.null;
+						expect(res.missedBlocks).to.be.null;
+						expect(res.producedBlocks).to.be.null;
+						expect(res.rank).to.be.null;
+						expect(res.rewards).to.be.null;
+						expect(res.vote).to.be.null;
+						done();
+					});
+				});
+
+				it('should forge a block', function (done) {
+					var delegateTransaction = lisk.delegate.createDelegate(testAccount.password, testAccount.username);
+					localCommon.addTransactionsAndForge(library, [delegateTransaction], done);
+				});
+
+				it('should validate account data from sender', function (done) {
+					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						testAccountDataAfterBlock = res;
+						expect(res.virgin).to.equal(0);
+						expect(res.publicKey).to.not.be.null;
+						expect(res.isDelegate).to.equal(1);
+						expect(res.u_isDelegate).to.equal(0);
+						expect(res.username).to.be.equal(testAccount.username);
+						expect(res.u_username).to.be.null;
+						expect(res.missedBlocks).to.equal('0');
+						expect(res.producedBlocks).to.equal('0');
+						expect(res.rank).to.equal(102);
+						expect(res.rewards).to.equal('0');
+						expect(res.vote).to.equal('0');
+						done();
+					});
+				});
+
+				it('should delete last block', function (done) {
+					library.modules.blocks.chain.deleteLastBlock(function (err, res) {
+						expect(err).to.not.exist;
+						done();
+					});
+				});
+
+				it('should validate account data from sender', function (done) {
+					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						expect(res.balance).to.equal(testAccountData.balance);
+						expect(res.u_balance).to.equal(testAccountData.u_balance);
+						expect(res.isDelegate).to.equal(0);
+						expect(res.u_isDelegate).to.equal(0);
+						expect(res.username).to.be.null;
+						expect(res.u_username).to.be.null;
+						expect(res.missedBlocks).to.be.null;
+						expect(res.producedBlocks).to.be.null;
+						expect(res.rank).to.be.null;
+						expect(res.rewards).to.be.null;
+						expect(res.vote).to.be.null;
+						// FIXME: incorrect blockId
+						// CHECKME: publicKey should be null
+						// CHECKME: virgin should be 1
+						done();
+					});
+				});
+
+				it('should forge a block with pool transaction', function (done) {
+					localCommon.addTransactionsAndForge(library, [], done);
+				});
+
+				it('should validate account data from sender', function (done) {
+					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
+						expect(res.u_balance).to.equal(testAccountDataAfterBlock.u_balance);
+						expect(res.publicKey).to.equal(testAccountDataAfterBlock.publicKey);
+						expect(res.isDelegate).to.equal(1);
+						expect(res.u_isDelegate).to.equal(0);
+						expect(res.username).to.be.equal(testAccountDataAfterBlock.username);
+						expect(res.u_username).to.be.null;
+						expect(res.virgin).to.equal(0);
+						expect(res.missedBlocks).to.equal('0');
+						expect(res.producedBlocks).to.equal('0');
+						expect(res.rank).to.equal(102);
+						expect(res.rewards).to.equal('0');
+						expect(res.vote).to.equal('0');
+						// CHECKME: blockId
+						done();
+					});
+				});
+			});
 		});
 
 		describe('multiple transactions scenarios: create transactions, forge, delete block, forge again', function () {
