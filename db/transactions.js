@@ -57,7 +57,7 @@ function TransactionsRepo (db, pgp) {
 	if (!columnSet) {
 		columnSet = {};
 		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, table);
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
 		columnSet.insert = columnSet.insert.merge([{ name: 'recipientId', def: null }]);
 	}
 

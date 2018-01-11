@@ -20,12 +20,15 @@ function PeersRepo (db, pgp) {
 	this.pgp = pgp;
 
 	// Setup all ColumnSet objects, if needed:
+	this.dbTable = 'peers';
+
+	var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
 	this.cs = new pgp.helpers.ColumnSet([
 		'ip', 'wsPort', 'state', 'height', 'os', 'version', 'clock',
 		{name: 'broadhash', init: function (col) {
 			return col.value ? Buffer.from(col.value, 'hex') : null;
 		}}
-	], {table: 'peers'});
+	], {table: table});
 }
 
 var PeersSql = {
