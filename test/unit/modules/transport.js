@@ -285,7 +285,21 @@ describe('transport', function () {
 
 			describe('when library.schema.validate fails', function () {
 
-				it('should call series callback with error = "Invalid signatures body"');
+				it('should call series callback with error = "Invalid signatures body"', function (done) {
+					__private.receiveSignature = sinon.stub().callsArg(1);
+
+					var err = new Error('Transaction did not match schema');
+					err.code = 'INVALID_FORMAT';
+					library.schema.validate = sinon.stub().callsArgWith(2, err);
+
+					__private.receiveSignatures({
+						signatures: ['SIGNATURE123', 'SIGNATURE456']
+					}, function (err) {
+						expect(library.schema.validate.called).to.be.true;
+						expect(err).to.equal('Invalid signatures body');
+						done();
+					});
+				});
 			});
 
 			describe('when library.schema.validate succeeds', function () {
