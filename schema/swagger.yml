@@ -2466,7 +2466,7 @@ definitions:
         type: string
         format: csv
 
-  WSTransactionsReqeuest:
+  WSTransactionsRequest:
     x-private: true
     type: object
     required:
