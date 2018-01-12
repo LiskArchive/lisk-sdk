@@ -14,19 +14,29 @@
  *
  */
 import { getFirstQuotedString, getQuotedStrings } from '../utils';
-import { ValidationError } from '../../../src/utils/error';
+import { FileSystemError, ValidationError } from '../../../src/utils/error';
 
 export function stringArguments() {
 	this.test.ctx.testArguments = getQuotedStrings(this.test.parent.title);
 }
 
-export function aFunctionThatThrowsAValidationError() {
-	const validationErrorMessage = getFirstQuotedString(this.test.parent.title);
-	const validationErrorFn = () => {
-		throw new ValidationError(validationErrorMessage);
+export function aFunctionThatThrowsAFileSystemError() {
+	const errorMessage = getFirstQuotedString(this.test.parent.title);
+	const fileSystemErrorFn = () => {
+		throw new FileSystemError(errorMessage);
 	};
 
-	this.test.ctx.validationErrorMessage = validationErrorMessage;
+	this.test.ctx.errorMessage = errorMessage;
+	this.test.ctx.fileSystemErrorFn = fileSystemErrorFn;
+}
+
+export function aFunctionThatThrowsAValidationError() {
+	const errorMessage = getFirstQuotedString(this.test.parent.title);
+	const validationErrorFn = () => {
+		throw new ValidationError(errorMessage);
+	};
+
+	this.test.ctx.errorMessage = errorMessage;
 	this.test.ctx.validationErrorFn = validationErrorFn;
 }
 
