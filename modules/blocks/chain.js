@@ -409,13 +409,13 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
-					library.bus.message('newBlock');
+					library.bus.message('newBlock', block);
 
 					// DATABASE write. Update delegates accounts
 					modules.rounds.tick(block, resolve);
 				}, tx);
 			} else {
-				library.bus.message('newBlock');
+				library.bus.message('newBlock', block);
 
 				// DATABASE write. Update delegates accounts
 				modules.rounds.tick(block, resolve);

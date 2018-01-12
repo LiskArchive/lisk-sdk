@@ -172,7 +172,7 @@ Cache.prototype.quit = function (cb) {
  * @param {Broadcast} broadcast
  * @param {function} cb
  */
-Cache.prototype.onNewBlock = function (cb) {
+Cache.prototype.onNewBlock = function (block, cb) {
 	cb = cb || function () {};
 
 	logger.debug(['Cache - onNewBlock', '| Status:', self.isConnected()].join(' '));
