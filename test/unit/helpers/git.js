@@ -26,7 +26,7 @@ describe('git', function () {
 			var spawnSyncStub;
 
 			beforeEach(function () {
-				spawnSyncStub = sinon.stub(childProcess, 'spawnSync').returns({stderr: validErrorMessage});
+				spawnSyncStub = sinonSandbox.stub(childProcess, 'spawnSync').returns({stderr: validErrorMessage});
 			});
 
 			afterEach(function () {
@@ -44,7 +44,7 @@ describe('git', function () {
 			var spawnSyncStub;
 
 			beforeEach(function () {
-				spawnSyncStub = sinon.stub(childProcess, 'spawnSync').returns({stderr: '', stdout: validCommitHash});
+				spawnSyncStub = sinonSandbox.stub(childProcess, 'spawnSync').returns({stderr: '', stdout: validCommitHash});
 			});
 
 			afterEach(function () {

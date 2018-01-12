@@ -31,9 +31,8 @@
   "globals": {
     "expect": true,
     "should": true,
-    "sinon": true,
-    "sandbox": true,
-    "testContext": true,
+    "sinonSandbox": true,
+    "__testContext": true,
     "_": true
   },
   "plugins": []

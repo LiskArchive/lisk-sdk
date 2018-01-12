@@ -413,8 +413,8 @@ describe('blocks/chain', function () {
 				}
 			};
 
-			var connect = sinon.stub();
-			var disconnect = sinon.stub();
+			var connect = sinonSandbox.stub();
+			var disconnect = sinonSandbox.stub();
 
 			db.$config.options.connect = connect;
 			db.$config.options.disconnect = disconnect;

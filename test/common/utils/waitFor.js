@@ -34,7 +34,7 @@ function blockchainReady (cb, retries, timeout, baseUrl) {
 		timeout = 1000;
 	}
 
-	baseUrl = baseUrl || 'http://' + testContext.config.address + ':' + testContext.config.httpPort;
+	baseUrl = baseUrl || 'http://' + __testContext.config.address + ':' + __testContext.config.httpPort;
 	(function fetchBlockchainStatus () {
 		popsicle.get(baseUrl + '/api/node/status')
 			.then(function (res) {
@@ -66,7 +66,7 @@ function blockchainReady (cb, retries, timeout, baseUrl) {
 
 // Returns current block height
 function getHeight (cb) {
-	var request = popsicle.get(testContext.baseUrl + '/api/node/status');
+	var request = popsicle.get(__testContext.baseUrl + '/api/node/status');
 
 	request.use(popsicle.plugins.parse(['json']));
 
@@ -91,7 +91,7 @@ function newRound (cb) {
 		} else {
 			var nextRound = slots.calcRound(height);
 			var blocksToWait = nextRound * slots.delegates - height;
-			testContext.debug('blocks to wait: '.grey, blocksToWait);
+			__testContext.debug('blocks to wait: '.grey, blocksToWait);
 			newBlock(height, blocksToWait, cb);
 		}
 	});
@@ -121,7 +121,7 @@ function newBlock (height, blocksToWait, cb) {
 
 	async.doWhilst(
 		function (cb) {
-			var request = popsicle.get(testContext.baseUrl + '/api/node/status');
+			var request = popsicle.get(__testContext.baseUrl + '/api/node/status');
 
 			request.use(popsicle.plugins.parse(['json']));
 
@@ -130,7 +130,7 @@ function newBlock (height, blocksToWait, cb) {
 					return cb(['Received bad response code', res.status, res.url].join(' '));
 				}
 
-				testContext.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.data.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
+				__testContext.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.data.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
 
 				if (target === res.body.data.height) {
 					height = res.body.data.height;

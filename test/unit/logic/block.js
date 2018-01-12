@@ -270,8 +270,8 @@ describe('block', function () {
 
 	before(function () {
 		transactionStub = {
-			getBytes: sinon.stub(),
-			objectNormalize: sinon.stub()
+			getBytes: sinonSandbox.stub(),
+			objectNormalize: sinonSandbox.stub()
 		};
 
 		block = new Block(modulesLoader.scope.ed, modulesLoader.scope.schema, transactionStub);
@@ -289,7 +289,7 @@ describe('block', function () {
 			var blockNormalizeStub;
 
 			before(function () {
-				blockNormalizeStub = sinon.stub(block, 'objectNormalize').returnsArg(0);
+				blockNormalizeStub = sinonSandbox.stub(block, 'objectNormalize').returnsArg(0);
 
 				transactionStub.getBytes.returns(Buffer.from('dummy transaction bytes'));
 				transactionStub.objectNormalize.returnsArg(0);

@@ -103,19 +103,19 @@ describe('inTransfer', function () {
 	beforeEach(function () {
 		dbStub = {
 			dapps: {
-				countByTransactionId: sinon.stub().resolves(),
-				countByOutTransactionId: sinon.stub().resolves(),
-				getExisting: sinon.stub().resolves(),
-				list: sinon.stub().resolves(),
-				getGenesis: sinon.stub().resolves()
+				countByTransactionId: sinonSandbox.stub().resolves(),
+				countByOutTransactionId: sinonSandbox.stub().resolves(),
+				getExisting: sinonSandbox.stub().resolves(),
+				list: sinonSandbox.stub().resolves(),
+				getGenesis: sinonSandbox.stub().resolves()
 			}
 		};
 		sharedStub = {
-			getGenesis: sinon.stub().callsArgWith(1, null, validGetGensisResult)
+			getGenesis: sinonSandbox.stub().callsArgWith(1, null, validGetGensisResult)
 		};
 		accountsStub = {
-			mergeAccountAndGet: sinon.stub().callsArg(1),
-			getAccount: sinon.stub()
+			mergeAccountAndGet: sinonSandbox.stub().callsArg(1),
+			getAccount: sinonSandbox.stub()
 		};
 		inTransfer = new InTransfer(dbStub, modulesLoader.scope.schema);
 		inTransfer.bind(accountsStub, sharedStub);
@@ -274,7 +274,7 @@ describe('inTransfer', function () {
 		describe('when library.db.one fails', function () {
 
 			beforeEach(function () {
-				dbStub.dapps.countByTransactionId = sinon.stub().rejects('Rejection error');
+				dbStub.dapps.countByTransactionId = sinonSandbox.stub().rejects('Rejection error');
 			});
 
 			it('should call callback with error', function (done) {
@@ -290,7 +290,7 @@ describe('inTransfer', function () {
 			describe('when dapp does not exist', function () {
 
 				beforeEach(function () {
-					dbStub.dapps.countByTransactionId = sinon.stub().resolves({count: 0});
+					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 0});
 				});
 
 				it('should call callback with error', function (done) {
@@ -304,7 +304,7 @@ describe('inTransfer', function () {
 			describe('when dapp exists', function () {
 
 				beforeEach(function () {
-					dbStub.dapps.countByTransactionId = sinon.stub().resolves({count: 1});
+					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 1});
 				});
 
 				it('should call callback with error = undefined', function (done) {
@@ -384,11 +384,10 @@ describe('inTransfer', function () {
 			expect(sharedStub.getGenesis.calledWith({dappid: trs.asset.inTransfer.dappId})).to.be.true;
 		});
 
-		// TODO: #1242 Have to disabled due to issue https://github.com/LiskHQ/lisk/issues/1242
-		describe.skip('when shared.getGenesis fails', function () {
+		describe('when shared.getGenesis fails', function () {
 
 			beforeEach(function () {
-				sharedStub.getGenesis = sinon.stub.callsArgWith(1, 'getGenesis error');
+				sharedStub.getGenesis = sinonSandbox.stub().callsArgWith(1, 'getGenesis error');
 			});
 
 			it('should call callback with error', function () {
@@ -398,11 +397,10 @@ describe('inTransfer', function () {
 			});
 		});
 
-		// TODO: #1242 Have to disabled due to issue https://github.com/LiskHQ/lisk/issues/1242
-		describe.skip('when shared.getGenesis succeeds', function () {
+		describe('when shared.getGenesis succeeds', function () {
 
 			beforeEach(function () {
-				sharedStub.getGenesis = sinon.stub.callsArg(1);
+				sharedStub.getGenesis = sinonSandbox.stub().callsArg(1);
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {
@@ -410,50 +408,50 @@ describe('inTransfer', function () {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: validGetGensisResult.authorId}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({address: validGetGensisResult.authorId}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with balance = trs.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({balance: trs.amount}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({balance: trs.amount}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({u_balance: trs.amount}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({u_balance: trs.amount}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({blockId: dummyBlock.id}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({blockId: dummyBlock.id}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
+			});
+		});
+
+		describe('when modules.accounts.mergeAccountAndGet fails', function () {
+
+			beforeEach(function () {
+				accountsStub.mergeAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'mergeAccountAndGet error');
 			});
 
-			describe('when modules.accounts.mergeAccountAndGet fails', function () {
-
-				beforeEach(function () {
-					accountsStub.mergeAccountAndGet = sinon.stub().callsArgWith(1, 'mergeAccountAndGet error');
+			it('should call callback with error', function () {
+				inTransfer.apply(trs, dummyBlock, sender, function (err) {
+					expect(err).not.to.be.empty;
 				});
+			});
+		});
 
-				it('should call callback with error', function () {
-					inTransfer.apply(trs, dummyBlock, sender, function (err) {
-						expect(err).not.to.be.empty;
-					});
+		describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
+
+			it('should call callback with error = undefined', function () {
+				inTransfer.apply(trs, dummyBlock, sender, function (err) {
+					expect(err).to.be.undefined;
 				});
 			});
 
-			describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
-
-				it('should call callback with error = undefined', function () {
-					inTransfer.apply(trs, dummyBlock, sender, function (err) {
-						expect(err).to.be.undefined;
-					});
-				});
-
-				it('should call callback with result = undefined', function () {
-					inTransfer.apply(trs, dummyBlock, sender, function (err, res) {
-						expect(res).to.be.undefined;
-					});
+			it('should call callback with result = undefined', function () {
+				inTransfer.apply(trs, dummyBlock, sender, function (err, res) {
+					expect(res).to.be.undefined;
 				});
 			});
 		});
@@ -476,7 +474,7 @@ describe('inTransfer', function () {
 		describe('when shared.getGenesis fails', function () {
 
 			beforeEach(function () {
-				sharedStub.getGenesis = sinon.stub.callsArgWith(1, 'getGenesis error');
+				sharedStub.getGenesis = sinonSandbox.stub().callsArgWith(1, 'getGenesis error');
 			});
 
 			it('should call callback with error', function () {
@@ -489,7 +487,7 @@ describe('inTransfer', function () {
 		describe('when shared.getGenesis succeeds', function () {
 
 			beforeEach(function () {
-				sharedStub.getGenesis = sinon.stub.callsArg(1);
+				sharedStub.getGenesis = sinonSandbox.stub().callsArg(1);
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {
@@ -497,50 +495,50 @@ describe('inTransfer', function () {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: validGetGensisResult.authorId}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({address: validGetGensisResult.authorId}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with balance = -trs.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({balance: -trs.amount}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({balance: -trs.amount}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with u_balance = -trs.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({u_balance: -trs.amount}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({u_balance: -trs.amount}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({blockId: dummyBlock.id}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({blockId: dummyBlock.id}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
+			});
+		});
+		
+		describe('when modules.accounts.mergeAccountAndGet fails', function () {
+
+			beforeEach(function () {
+				accountsStub.mergeAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'mergeAccountAndGet error');
 			});
 
-			describe('when modules.accounts.mergeAccountAndGet fails', function () {
-
-				beforeEach(function () {
-					accountsStub.mergeAccountAndGet = sinon.stub().callsArgWith(1, 'mergeAccountAndGet error');
+			it('should call callback with error', function () {
+				inTransfer.undo(trs, dummyBlock, sender, function (err) {
+					expect(err).not.to.be.empty;
 				});
+			});
+		});
 
-				it('should call callback with error', function () {
-					inTransfer.undo(trs, dummyBlock, sender, function (err) {
-						expect(err).not.to.be.empty;
-					});
+		describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
+
+			it('should call callback with error = undefined', function () {
+				inTransfer.undo(trs, dummyBlock, sender, function (err) {
+					expect(err).to.be.undefined;
 				});
 			});
 
-			describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
-
-				it('should call callback with error = undefined', function () {
-					inTransfer.undo(trs, dummyBlock, sender, function (err) {
-						expect(err).to.be.undefined;
-					});
-				});
-
-				it('should call callback with result = undefined', function () {
-					inTransfer.undo(trs, dummyBlock, sender, function (err, res) {
-						expect(res).to.be.undefined;
-					});
+			it('should call callback with result = undefined', function () {
+				inTransfer.undo(trs, dummyBlock, sender, function (err, res) {
+					expect(res).to.be.undefined;
 				});
 			});
 		});
@@ -587,7 +585,7 @@ describe('inTransfer', function () {
 
 		beforeEach(function () {
 			library = InTransfer.__get__('library');
-			schemaSpy = sinon.spy(library.schema, 'validate');
+			schemaSpy = sinonSandbox.spy(library.schema, 'validate');
 		});
 
 		afterEach(function () {

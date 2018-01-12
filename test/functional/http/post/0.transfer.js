@@ -42,8 +42,8 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 	describe('schema validations', function () {
 
 		typesRepresentatives.allTypes.forEach(function (test) {
-			it('using ' + testContext.description + ' should fail', function () {
-				return sendTransactionPromise(testContext.input, 400).then(function (res) {
+			it('using ' + test.description + ' should fail', function () {
+				return sendTransactionPromise(test.input, 400).then(function (res) {
 					expect(res).to.have.nested.property('body.message').that.is.not.empty;
 				});
 			});
@@ -169,10 +169,10 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 					.concat(typesRepresentatives.nonStrings);
 
 				invalidCases.forEach(function (test) {
-					it('using ' + testContext.description + ' should fail', function () {
+					it('using ' + test.description + ' should fail', function () {
 						var accountAdditionalData = randomUtil.account();
 						transaction = lisk.transaction.createTransaction(accountAdditionalData.address, 1, accountFixtures.genesis.password);
-						transaction.asset.data = testContext.input;
+						transaction.asset.data = test.input;
 
 						return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
 							res.body.message.should.not.be.empty;
@@ -188,9 +188,9 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 					.concat(typesRepresentatives.strings);
 
 				validCases.forEach(function (test) {
-					it('using ' + testContext.description + ' should be ok', function () {
+					it('using ' + test.description + ' should be ok', function () {
 						var accountAdditionalData = randomUtil.account();
-						transaction = lisk.transaction.createTransaction(accountAdditionalData.address, 1, accountFixtures.genesis.password, null, testContext.input);
+						transaction = lisk.transaction.createTransaction(accountAdditionalData.address, 1, accountFixtures.genesis.password, null, test.input);
 
 						return sendTransactionPromise(transaction).then(function (res) {
 							res.body.data.message.should.be.equal('Transaction(s) accepted');

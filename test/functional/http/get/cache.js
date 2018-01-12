@@ -30,7 +30,7 @@ describe('cached endpoints', function () {
 	var getJsonForKeyPromise;
 
 	before(function (done) {
-		testContext.config.cacheEnabled = true;
+		__testContext.config.cacheEnabled = true;
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);

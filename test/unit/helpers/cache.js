@@ -49,9 +49,9 @@ describe('cache', function () {
 		});
 
 		beforeEach(function () {
-			redisCreateClientOnStub = sinon.stub();
+			redisCreateClientOnStub = sinonSandbox.stub();
 			redisCreateClientResult = {on: redisCreateClientOnStub};
-			redisCreateClientStub = sinon.stub(redis, 'createClient').returns(redisCreateClientResult);
+			redisCreateClientStub = sinonSandbox.stub(redis, 'createClient').returns(redisCreateClientResult);
 			cache.connect(validCacheEnabled, validConfig, validLogger, function (connectError, connectResult) {
 				err = connectError;
 				result = connectResult;

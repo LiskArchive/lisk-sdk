@@ -28,7 +28,7 @@ describe('cache', function () {
 	var cache;
 
 	before(function (done) {
-		testContext.config.cacheEnabled = true;
+		__testContext.config.cacheEnabled = true;
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			expect(err).to.not.exist;

@@ -163,7 +163,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 			}
 		});
 
-		var req = supertest(testContext.baseUrl);
+		var req = supertest(__testContext.baseUrl);
 
 		if (self.method === 'post') {
 			req = req.post(callPath);
@@ -186,18 +186,18 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 			req = req.send(post);
 		}
 
-		testContext.debug(['> URI:'.grey, req.method, req.url].join(' '));
+		__testContext.debug(['> URI:'.grey, req.method, req.url].join(' '));
 
 		if(!_.isEmpty(query)) {
-			testContext.debug(['> Query:'.grey, JSON.stringify(query)].join(' '));
+			__testContext.debug(['> Query:'.grey, JSON.stringify(query)].join(' '));
 		}
 		if(!_.isEmpty(post)) {
-			testContext.debug(['> Data:'.grey, JSON.stringify(post)].join(' '));
+			__testContext.debug(['> Data:'.grey, JSON.stringify(post)].join(' '));
 		}
 		return req;
 	}).then(function (res) {
 
-		testContext.debug('> Response:'.grey, res.statusCode, JSON.stringify(res.body));
+		__testContext.debug('> Response:'.grey, res.statusCode, JSON.stringify(res.body));
 
 		var expectedResponseCode = responseCode || self.responseCode;
 
@@ -208,7 +208,7 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 		return res;
 	})
 		.catch(function (eror){
-			testContext.debug('> Response Error:'.grey, JSON.stringify((validator.getLastErrors())));
+			__testContext.debug('> Response Error:'.grey, JSON.stringify((validator.getLastErrors())));
 			throw eror;
 		});
 };

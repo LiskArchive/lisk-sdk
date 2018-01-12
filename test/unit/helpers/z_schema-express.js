@@ -36,11 +36,11 @@ describe('z_schema.express', function () {
 			issues: validIssues
 		};
 		validZSchema = {
-			validate: sinon.stub()
+			validate: sinonSandbox.stub()
 		};
 		validReq = {};
 		validRes = null;
-		validNextCb = sinon.spy();
+		validNextCb = sinonSandbox.spy();
 	});
 
 	beforeEach(function () {

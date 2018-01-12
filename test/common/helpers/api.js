@@ -21,7 +21,7 @@ var swaggerSpec = require('../../common/swaggerSpec');
 
 var http = {
 	abstractRequest: function (options, done) {
-		var request = testContext.api[options.verb.toLowerCase()](options.path);
+		var request = __testContext.api[options.verb.toLowerCase()](options.path);
 
 		request.set('Accept', 'application/json');
 		request.expect(function (response) {
@@ -35,15 +35,15 @@ var http = {
 		}
 
 		var verb = options.verb.toUpperCase();
-		testContext.debug(['> Path:'.grey, verb, options.path].join(' '));
+		__testContext.debug(['> Path:'.grey, verb, options.path].join(' '));
 		if (verb === 'POST' || verb === 'PUT') {
-			testContext.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
+			__testContext.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
 		}
 
 		if (done) {
 			request.end(function (err, res) {
-				testContext.debug('> Status:'.grey, JSON.stringify(res ? res.statusCode : ''));
-				testContext.debug('> Response:'.grey, JSON.stringify(res ? res.body : err));
+				__testContext.debug('> Status:'.grey, JSON.stringify(res ? res.statusCode : ''));
+				__testContext.debug('> Response:'.grey, JSON.stringify(res ? res.body : err));
 				done(err, res);
 			});
 		} else {

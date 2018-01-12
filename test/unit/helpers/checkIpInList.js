@@ -31,7 +31,7 @@ describe('checkIpInList', function () {
 			validReturnListIsEmpty = true;
 			validList = ['1.2.3.4','5.6.7.8'];
 			validAddress = '1.2.3.4';
-			spyConsoleError = sinon.spy(console, 'error');
+			spyConsoleError = sinonSandbox.spy(console, 'error');
 		});
 
 		beforeEach(function () {
@@ -89,7 +89,7 @@ describe('checkIpInList', function () {
 			});
 
 			it('should call console.error with "CheckIpInList:" + error', function () {
-				sinon.assert.called(spyConsoleError);
+				sinonSandbox.assert.called(spyConsoleError);
 			});
 		});
 
@@ -100,7 +100,7 @@ describe('checkIpInList', function () {
 			});
 
 			it('should call console.error with "CheckIpInList:" + error', function () {
-				sinon.assert.called(spyConsoleError);
+				sinonSandbox.assert.called(spyConsoleError);
 			});
 		});
 

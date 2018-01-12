@@ -27,7 +27,7 @@ describe('lisk_cors', function () {
 			response: httpMocks.createResponse()
 		};
 		cors_fititng = fitting();
-		next = sinon.spy();
+		next = sinonSandbox.spy();
 	});
 
 	it('should be a factory function that names 2 arguments', function () {

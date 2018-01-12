@@ -42,7 +42,7 @@ describe('txPool', function () {
 	});
 
 	beforeEach(function () {
-		jobsQueueRegisterStub = sinon.stub(jobsQueue, 'register');
+		jobsQueueRegisterStub = sinonSandbox.stub(jobsQueue, 'register');
 	});
 
 	afterEach(function () {

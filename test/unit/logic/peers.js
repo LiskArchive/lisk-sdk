@@ -31,7 +31,7 @@ describe('peers', function () {
 	before(function (done) {
 
 		peersModuleMock = {
-			acceptable: sinon.stub().returnsArg(0)
+			acceptable: sinonSandbox.stub().returnsArg(0)
 		};
 
 		modulesLoader.initLogic(Peers, modulesLoader.scope, function (err, __peers) {
@@ -42,7 +42,7 @@ describe('peers', function () {
 	});
 
 	beforeEach(function () {
-		peersModuleMock.acceptable = sinon.stub().returnsArg(0);
+		peersModuleMock.acceptable = sinonSandbox.stub().returnsArg(0);
 		validPeer = _.assign({}, prefixedPeer);
 	});
 
@@ -219,7 +219,7 @@ describe('peers', function () {
 			});
 
 			it('NOT_ACCEPTED when called with the same as node nonce', function () {
-				peersModuleMock.acceptable = sinon.stub().returns([]);
+				peersModuleMock.acceptable = sinonSandbox.stub().returns([]);
 				validPeer.nonce = validNodeNonce;
 				expect(peers.upsert(validPeer)).to.equal(failureCodes.ON_MASTER.INSERT.NOT_ACCEPTED);
 			});

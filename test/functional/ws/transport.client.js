@@ -37,7 +37,7 @@ describe('ClientRPCStub', function () {
 
 	before(function () {
 		socketClusterMock = {
-			on: sinon.spy()
+			on: sinonSandbox.spy()
 		};
 		wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
 		// Register RPC

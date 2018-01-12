@@ -23,7 +23,7 @@ var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var WSServerMaster = require('../../common/ws/serverMaster');
 var System = require('../../../modules/system');
 
-var config = testContext.config;
+var config = __testContext.config;
 
 describe('handshake', function () {
 

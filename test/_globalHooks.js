@@ -1,0 +1,3 @@
+afterEach(() => {
+	sinonSandbox.restore();
+});

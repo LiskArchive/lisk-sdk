@@ -155,7 +155,7 @@ describe('blocks', function () {
 
 		it('should logs correctly', function () {
 			var tracker = blocks.utils.getBlockProgressLogger(5, 2, '');
-			tracker.log = sinon.spy();
+			tracker.log = sinonSandbox.spy();
 			expect(tracker.applied).to.equals(0);
 			expect(tracker.step).to.equals(2);
 			tracker.applyNext();

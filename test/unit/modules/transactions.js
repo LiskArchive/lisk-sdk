@@ -100,13 +100,13 @@ describe('transactions', function () {
 					'confirmations',
 					'height'
 				],
-				countList: sinon.stub().resolves(),
-				list: sinon.stub().resolves()
+				countList: sinonSandbox.stub().resolves(),
+				list: sinonSandbox.stub().resolves()
 			}
 		};
 
 		Object.keys(TransactionTypeMap).forEach(function (key) {
-			dbStub.transactions[TransactionTypeMap[key]] = sinon.stub().resolves();
+			dbStub.transactions[TransactionTypeMap[key]] = sinonSandbox.stub().resolves();
 		});
 
 		async.auto({

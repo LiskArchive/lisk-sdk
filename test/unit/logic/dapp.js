@@ -51,11 +51,11 @@ describe('dapp', function () {
 	beforeEach(function () {
 		dbStub = {
 			dapps: {
-				countByTransactionId: sinon.stub(),
-				countByOutTransactionId: sinon.stub(),
-				getExisting: sinon.stub(),
-				list: sinon.stub(),
-				getGenesis: sinon.stub()
+				countByTransactionId: sinonSandbox.stub(),
+				countByOutTransactionId: sinonSandbox.stub(),
+				getExisting: sinonSandbox.stub(),
+				list: sinonSandbox.stub(),
+				getGenesis: sinonSandbox.stub()
 			}
 		};
 		dapp = new Dapp(dbStub, modulesLoader.scope.logger, modulesLoader.scope.schema, modulesLoader.scope.network);
@@ -654,7 +654,7 @@ describe('dapp', function () {
 
 				beforeEach(function () {
 					library = Dapp.__get__('library');
-					schemaSpy = sinon.spy(library.schema, 'validate');
+					schemaSpy = sinonSandbox.spy(library.schema, 'validate');
 				});
 
 				afterEach(function () {

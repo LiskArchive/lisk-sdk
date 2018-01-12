@@ -54,7 +54,7 @@ describe('GET /peers', function () {
 			valid: ['999.999.999a'], invalid: ['9999.999.999ab'], checkResponse: true
 		},
 		broadhash: {
-			valid: [testContext.config.nethash], invalid: ['invalid'], checkResponse: true
+			valid: [__testContext.config.nethash], invalid: ['invalid'], checkResponse: true
 		},
 		limit: {
 			valid: [1, 100], invalid: [-1, 0]
