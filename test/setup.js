@@ -22,24 +22,21 @@ var supertest = require('supertest');
 process.env.NODE_ENV = 'test';
 
 chai.use(sinonChai);
-// Root object
+
 var testContext = {};
 
 testContext.config = require('./data/config.json');
 testContext.config.root = process.cwd();
 
-// Optional logging
 if (process.env.SILENT === 'true') {
 	testContext.debug = function () { };
 } else {
 	testContext.debug = console.log;
 }
 
-// Node configuration
 testContext.baseUrl = 'http://' + testContext.config.address + ':' + testContext.config.httpPort;
 testContext.api = supertest(testContext.baseUrl);
 
-// Custom lodash mixin
 var _ = require('lodash');
 
 _.mixin({

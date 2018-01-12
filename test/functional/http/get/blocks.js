@@ -13,9 +13,8 @@
  */
 'use strict';
 
+require('../../functional.js');
 var Promise = require('bluebird');
-
-var test = require('../../functional.js');
 
 var waitFor = require('../../../common/utils/waitFor');
 var waitForBlocksPromise = Promise.promisify(waitFor.blocks);

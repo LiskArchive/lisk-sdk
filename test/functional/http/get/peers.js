@@ -13,8 +13,7 @@
  */
 'use strict';
 
-var test = require('../../functional.js');
-
+require('../../functional.js');
 var WSServer = require('../../../common/ws/serverMaster');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/helpers/api');
@@ -55,7 +54,7 @@ describe('GET /peers', function () {
 			valid: ['999.999.999a'], invalid: ['9999.999.999ab'], checkResponse: true
 		},
 		broadhash: {
-			valid: [test.config.nethash], invalid: ['invalid'], checkResponse: true
+			valid: [testContext.config.nethash], invalid: ['invalid'], checkResponse: true
 		},
 		limit: {
 			valid: [1, 100], invalid: [-1, 0]

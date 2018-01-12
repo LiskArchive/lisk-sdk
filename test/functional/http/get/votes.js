@@ -13,8 +13,7 @@
  */
 'use strict';
 
-var test = require('../../functional.js');
-
+require('../../functional.js');
 var randomstring = require('randomstring');
 var lisk = require('lisk-js');
 var Promise = require('bluebird');

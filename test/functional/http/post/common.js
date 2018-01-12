@@ -55,10 +55,10 @@ function invalidAssets (option, badTransactions) {
 	describe('using invalid asset values', function () {
 
 		typesRepresentatives.allTypes.forEach(function (test) {
-			it('using ' + test.description + ' should fail', function () {
-				transaction.asset = test.input;
+			it('using ' + testContext.description + ' should fail', function () {
+				transaction.asset = testContext.input;
 
-				var expectedResponse = (test.expectation === 'object' && test.description !== 'date' ? errorCodes.PROCESSING_ERROR : errorCodes.BAD_REQUEST);
+				var expectedResponse = (testContext.expectation === 'object' && testContext.description !== 'date' ? errorCodes.PROCESSING_ERROR : errorCodes.BAD_REQUEST);
 
 				return apiHelpers.sendTransactionPromise(transaction, expectedResponse).then(function (res) {
 					res.body.message.should.not.be.empty;
@@ -80,8 +80,8 @@ function invalidAssets (option, badTransactions) {
 	describe('using invalid asset.' + option + ' values', function () {
 
 		typesRepresentatives.allTypes.forEach(function (test) {
-			it('using ' + test.description + ' should fail', function () {
-				transaction.asset[option] = test.input;
+			it('using ' + testContext.description + ' should fail', function () {
+				transaction.asset[option] = testContext.input;
 
 				return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
 					res.body.message.should.not.be.empty;

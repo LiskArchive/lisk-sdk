@@ -13,10 +13,6 @@
  */
 'use strict';
 
-var test = testContext;
-
 before(function (done) {
 	require('../common/utils/waitFor').blockchainReady(done);
 });
-
-module.exports = test;

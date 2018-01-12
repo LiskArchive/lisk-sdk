@@ -37,7 +37,7 @@ describe('RPC', function () {
 		validClientSocketOptions = {
 			protocol: 'http',
 			hostname: '127.0.0.1',
-			port: test.config.wsPort,
+			port: testContext.config.wsPort,
 			query: _.clone(frozenHeaders)
 		};
 		clientSocket = scClient.connect(validClientSocketOptions);
