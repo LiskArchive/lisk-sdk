@@ -127,6 +127,37 @@ describe('transport', function () {
 	});
 
 	describe('__private', function () {
+		var library, __private;
+		var libraryOriginal, __privateOriginal;
+
+		beforeEach(function (done) {
+			libraryOriginal = {};
+			__privateOriginal = {};
+
+			transportInstance = new TransportModule(function (err, transportSelf) {
+				library = TransportModule.__get__('library');
+				__private = TransportModule.__get__('__private');
+				Object.keys(library).forEach(function (field) {
+					libraryOriginal[field] = library[field];
+				});
+				Object.keys(__private).forEach(function (field) {
+					__privateOriginal[field] = __private[field];
+				});
+				done();
+			}, defaultScope);
+		});
+
+		afterEach(function (done) {
+			// Reset __private and library module variables to their
+			// original states.
+			Object.keys(libraryOriginal).forEach(function (field) {
+				library[field] = libraryOriginal[field];
+			});
+			Object.keys(__privateOriginal).forEach(function (field) {
+				__private[field] = __privateOriginal[field];
+			});
+			done();
+		});
 
 		describe('hashsum', function () {
 
