@@ -320,9 +320,7 @@ Account.prototype.schema = {
 	properties: {
 		username: {
 			type: 'string',
-			case: 'lower',
-			maxLength: 20,
-			minLength: 1
+			format: 'username'
 		},
 		isDelegate: {
 			type: 'integer',
@@ -344,9 +342,7 @@ Account.prototype.schema = {
 			anyOf: [
 				{
 					type: 'string',
-					case: 'lower',
-					maxLength: 20,
-					minLength: 1
+					format: 'username'
 				},
 				{
 					type: 'null'
@@ -355,7 +351,7 @@ Account.prototype.schema = {
 		},
 		address: {
 			type: 'string',
-			case: 'upper',
+			format: 'address',
 			minLength: 1,
 			maxLength: 22
 		},
@@ -453,6 +449,7 @@ Account.prototype.schema = {
 		},
 		blockId: {
 			type: 'string',
+			format: 'id',
 			minLength: 1,
 			maxLength: 20
 		},
@@ -465,13 +462,15 @@ Account.prototype.schema = {
 			maximum: 32767
 		},
 		fees: {
-			type: 'integer'
+			type: 'integer',
+			minimum: 0
 		},
 		rank: {
 			type: 'integer'
 		},
 		rewards: {
-			type: 'integer'
+			type: 'integer',
+			minimum: 0
 		},
 		vote: {
 			type: 'integer'
