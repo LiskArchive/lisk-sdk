@@ -13,7 +13,6 @@
  */
 'use strict';
 
-require('../../functional.js');
 var lisk = require('lisk-js');
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');

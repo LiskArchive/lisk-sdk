@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-require('../../functional.js');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var Promise = require('bluebird');
 

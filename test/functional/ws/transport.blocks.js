@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var test = require('../functional.js');
-
 var ws = require('../../common/ws/communication');
 
 var genesisblock = require('../../data/genesisBlock.json');

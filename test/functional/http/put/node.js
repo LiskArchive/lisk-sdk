@@ -13,7 +13,6 @@
  */
 'use strict';
 
-require('../../functional.js');
 var genesisDelegates = require('../../../data/genesisDelegates.json');
 
 var swaggerEndpoint = require('../../../common/swaggerSpec');

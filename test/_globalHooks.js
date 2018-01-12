@@ -1,3 +1,0 @@
-afterEach(() => {
-	sinonSandbox.restore();
-});

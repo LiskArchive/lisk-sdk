@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var test = require('../functional.js');
-
 var async = require('async');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var scClient = require('socketcluster-client');
