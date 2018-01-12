@@ -323,11 +323,37 @@ describe('transport', function () {
 
 					describe('when __private.receiveSignature fails', function () {
 
-						it('should call library.logger.debug with err');
+						it('should call library.logger.debug with err and signature', function (done) {
+							var err = 'Error processing signature: Error message';
+							__private.receiveSignature = sinon.stub().callsArgWith(1, err);
+							library.schema.validate = sinon.stub().callsArg(2);
+							library.logger.debug = sinon.spy();
 
-						it('should call library.logger.debug with signature');
+							__private.receiveSignatures({
+								signatures: ['SIGNATURE123', 'SIGNATURE456']
+							}, function (err) {
+								expect(library.schema.validate.called).to.be.true;
+								// If any of the __private.receiveSignature calls fail, the whole
+								// receiveSignatures operation should fail immediately.
+								expect(__private.receiveSignature.calledOnce).to.be.true;
+								expect(library.logger.debug.calledWith(err, 'SIGNATURE123')).to.be.true;
+								done();
+							});
+						});
 
-						it('should call callback with error');
+						it('should call callback with error', function (done) {
+							var err = 'Error processing signature: Error message';
+							__private.receiveSignature = sinon.stub().callsArgWith(1, err);
+							library.schema.validate = sinon.stub().callsArg(2);
+							library.logger.debug = sinon.spy();
+
+							__private.receiveSignatures({
+								signatures: ['SIGNATURE123', 'SIGNATURE456']
+							}, function (err) {
+								expect(err).to.be.equal(err);
+								done();
+							});
+						});
 					});
 
 					describe('when __private.receiveSignature succeeds', function () {
