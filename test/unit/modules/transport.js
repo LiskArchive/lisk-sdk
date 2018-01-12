@@ -228,11 +228,60 @@ describe('transport', function () {
 
 		describe('receiveSignatures', function () {
 
-			it('should call library.schema.validate');
+			it('should call library.schema.validate with empty query.signatures', function (done) {
+				__private.receiveSignature = sinon.stub().callsArg(1);
+				library.schema.validate = sinon.stub().callsArg(2);
 
-			it('should call library.schema.validate with query');
+				__private.receiveSignatures({
+					signatures: []
+				}, function (err) {
+					expect(library.schema.validate.called).to.be.true;
+					done();
+				});
+			});
 
-			it('should call library.schema.validate with schema.signatures');
+			it('should call library.schema.validate with query.signatures', function (done) {
+				__private.receiveSignature = sinon.stub().callsArg(1);
+				library.schema.validate = sinon.stub().callsArg(2);
+
+				__private.receiveSignatures({
+					signatures: ['SIGNATURE123', 'SIGNATURE456']
+				}, function (err) {
+					expect(library.schema.validate.called).to.be.true;
+					done();
+				});
+			});
+
+			it('should call library.schema.validate with custom schema.signatures', function (done) {
+				var restoreRewiredDeps = TransportModule.__set__({
+					schema: {
+						signatures: {
+							id: 'transport.signatures',
+							type: 'object',
+							properties: {
+								signatures: {
+									type: 'array',
+									minItems: 1,
+									maxItems: 40
+								}
+							},
+							required: ['signatures']
+						}
+					}
+				});
+
+				__private.receiveSignature = sinon.stub().callsArg(1);
+				library.schema.validate = sinon.stub().callsArg(2);
+
+				__private.receiveSignatures({
+					signatures: ['SIGNATURE123', 'SIGNATURE456']
+				}, function (err) {
+					expect(library.schema.validate.called).to.be.true;
+
+					restoreRewiredDeps();
+					done();
+				});
+			});
 
 			describe('when library.schema.validate fails', function () {
 
