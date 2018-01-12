@@ -184,11 +184,45 @@ describe('transport', function () {
 
 			describe('when options.peer is defined', function () {
 
-				it('should call library.logger.debug');
+				var removeSpy, peerData;
+				var restoreRewiredDeps;
 
-				it('should call modules.peers.remove');
+				beforeEach(function (done) {
+					removeSpy = sinon.spy();
+					restoreRewiredDeps = TransportModule.__set__({
+						modules: {
+							peers: {
+								remove: removeSpy
+							}
+						}
+					});
+					peerData = {
+						ip: '127.0.0.1',
+						wsPort: 8000
+					};
+					done();
+				});
 
-				it('should call modules.peers.remove with options.peer');
+				afterEach(function (done) {
+					restoreRewiredDeps();
+					done();
+				});
+
+				it('should call library.logger.debug', function (done) {
+					__private.removePeer({
+						peer: peerData
+					}, 'Custom peer remove message');
+					expect(loggerStub.debug.called).to.be.true;
+					done();
+				});
+
+				it('should call modules.peers.remove with options.peer', function (done) {
+					__private.removePeer({
+						peer: peerData
+					}, 'Custom peer remove message');
+					expect(removeSpy.calledWith(peerData)).to.be.true;
+					done();
+				});
 			});
 		});
 
