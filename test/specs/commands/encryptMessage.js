@@ -50,8 +50,8 @@ describe('encrypt message command', () => {
 															when.theActionIsCalledWithTheRecipientAndTheOptions,
 															() => {
 																Then(
-																	'it should reject with message "No message was provided."',
-																	then.itShouldRejectWithMessage,
+																	'it should reject with validation error and message "No message was provided."',
+																	then.itShouldRejectWithValidationErrorAndMessage,
 																);
 															},
 														);

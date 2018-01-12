@@ -33,8 +33,8 @@ describe('set command', () => {
 								when.theActionIsCalledWithTheVariableAndTheValue,
 								() => {
 									Then(
-										'it should reject with message "Unsupported variable name."',
-										then.itShouldRejectWithMessage,
+										'it should reject with validation error and message "Unsupported variable name."',
+										then.itShouldRejectWithValidationErrorAndMessage,
 									);
 								},
 							);
@@ -47,8 +47,8 @@ describe('set command', () => {
 								when.theActionIsCalledWithTheVariableAndTheValue,
 								() => {
 									Then(
-										'it should reject with message "Value must be a boolean."',
-										then.itShouldRejectWithMessage,
+										'it should reject with validation error and message "Value must be a boolean."',
+										then.itShouldRejectWithValidationErrorAndMessage,
 									);
 								},
 							);
@@ -67,8 +67,8 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should reject with message "Config file could not be written: your changes will not be persisted."',
-														then.itShouldRejectWithMessage,
+														'it should reject with file system error and message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithFileSystemErrorAndMessage,
 													);
 												},
 											);
@@ -169,8 +169,8 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should reject with message "Config file could not be written: your changes will not be persisted."',
-														then.itShouldRejectWithMessage,
+														'it should reject with file system error and message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithFileSystemErrorAndMessage,
 													);
 												},
 											);
@@ -273,8 +273,8 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should reject with message "Config file could not be written: your changes will not be persisted."',
-														then.itShouldRejectWithMessage,
+														'it should reject with file system error and message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithFileSystemErrorAndMessage,
 													);
 												},
 											);
@@ -369,8 +369,8 @@ describe('set command', () => {
 								when.theActionIsCalledWithTheVariableAndTheValue,
 								() => {
 									Then(
-										'it should reject with message "Value must be a boolean."',
-										then.itShouldRejectWithMessage,
+										'it should reject with validation error and message "Value must be a boolean."',
+										then.itShouldRejectWithValidationErrorAndMessage,
 									);
 								},
 							);
@@ -389,8 +389,8 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should reject with message "Config file could not be written: your changes will not be persisted."',
-														then.itShouldRejectWithMessage,
+														'it should reject with file system error and message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithFileSystemErrorAndMessage,
 													);
 												},
 											);
@@ -491,8 +491,8 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should reject with message "Config file could not be written: your changes will not be persisted."',
-														then.itShouldRejectWithMessage,
+														'it should reject with file system error and message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithFileSystemErrorAndMessage,
 													);
 												},
 											);
@@ -587,8 +587,8 @@ describe('set command', () => {
 								when.theActionIsCalledWithTheVariableAndTheValue,
 								() => {
 									Then(
-										'it should reject with message "Value must be a boolean."',
-										then.itShouldRejectWithMessage,
+										'it should reject with validation error and message "Value must be a boolean."',
+										then.itShouldRejectWithValidationErrorAndMessage,
 									);
 								},
 							);
@@ -607,8 +607,8 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should reject with message "Config file could not be written: your changes will not be persisted."',
-														then.itShouldRejectWithMessage,
+														'it should reject with file system error and message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithFileSystemErrorAndMessage,
 													);
 												},
 											);
@@ -709,8 +709,8 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should reject with message "Config file could not be written: your changes will not be persisted."',
-														then.itShouldRejectWithMessage,
+														'it should reject with file system error and message "Config file could not be written: your changes will not be persisted."',
+														then.itShouldRejectWithFileSystemErrorAndMessage,
 													);
 												},
 											);

@@ -14,7 +14,7 @@
  *
  */
 import { getFirstQuotedString, getFirstNumber } from '../utils';
-import { ValidationError } from '../../../src/utils/error';
+import { FileSystemError, ValidationError } from '../../../src/utils/error';
 
 export function theErrorShouldBeInstanceOfNodesBuiltInError() {
 	const { testError } = this.test.ctx;
@@ -38,10 +38,10 @@ export function itShouldThrowValidationError() {
 	return testFunction.should.throw(new ValidationError(message));
 }
 
-export function itShouldThrowError() {
+export function itShouldThrowFileSystemError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return testFunction.should.throw(message);
+	return testFunction.should.throw(new FileSystemError(message));
 }
 
 export function itShouldExitWithCode() {
@@ -77,6 +77,12 @@ export function theProcessShouldExitWithErrorCode() {
 export function itShouldRejectWithTheErrorMessage() {
 	const { returnValue, errorMessage } = this.test.ctx;
 	return returnValue.should.be.rejectedWith(errorMessage);
+}
+
+export function itShouldRejectWithFileSystemErrorAndMessage() {
+	const { returnValue } = this.test.ctx;
+	const message = getFirstQuotedString(this.test.title);
+	return returnValue.should.be.rejectedWith(new FileSystemError(message));
 }
 
 export function itShouldRejectWithValidationErrorAndMessage() {

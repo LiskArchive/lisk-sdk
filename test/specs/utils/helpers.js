@@ -372,8 +372,8 @@ describe('utils helpers', () => {
 					when.prepareOptionsIsCalledWithTheOptions,
 					() => {
 						Then(
-							'it should reject with message "Cannot output both JSON and table."',
-							then.itShouldRejectWithMessage,
+							'it should reject with validation error and message "Cannot output both JSON and table."',
+							then.itShouldRejectWithValidationErrorAndMessage,
 						);
 						Then(
 							'it should delete the json option',
@@ -396,8 +396,8 @@ describe('utils helpers', () => {
 					when.prepareOptionsIsCalledWithTheOptions,
 					() => {
 						Then(
-							'it should reject with message "Must output either JSON or table."',
-							then.itShouldRejectWithMessage,
+							'it should reject with validation error and message "Must output either JSON or table."',
+							then.itShouldRejectWithValidationErrorAndMessage,
 						);
 						Then(
 							'it should delete the json option',

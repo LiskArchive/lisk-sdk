@@ -133,8 +133,8 @@ describe('input utils utils', () => {
 								when.getPassphraseFromFileIsCalledOnThePath,
 								() => {
 									Then(
-										'it should reject with message "File at /path/to/the/passphrase.txt does not exist."',
-										then.itShouldRejectWithMessage,
+										'it should reject with file system error and message "File at /path/to/the/passphrase.txt does not exist."',
+										then.itShouldRejectWithFileSystemErrorAndMessage,
 									);
 								},
 							);
@@ -149,8 +149,8 @@ describe('input utils utils', () => {
 										when.getPassphraseFromFileIsCalledOnThePath,
 										() => {
 											Then(
-												'it should reject with message "File at /path/to/the/passphrase.txt could not be read."',
-												then.itShouldRejectWithMessage,
+												'it should reject with file system error and message "File at /path/to/the/passphrase.txt could not be read."',
+												then.itShouldRejectWithFileSystemErrorAndMessage,
 											);
 										},
 									);
@@ -213,8 +213,8 @@ describe('input utils utils', () => {
 								when.getPassphraseFromEnvVariableIsCalled,
 								() => {
 									Then(
-										'it should reject with message "Environmental variable for your custom passphrase not set."',
-										then.itShouldRejectWithMessage,
+										'it should reject with validation error and message "Environmental variable for your custom passphrase not set."',
+										then.itShouldRejectWithValidationErrorAndMessage,
 									);
 								},
 							);
@@ -316,8 +316,8 @@ describe('input utils utils', () => {
 																	then.itShouldUseOptionsWithTheMessage,
 																);
 																Then(
-																	'it should reject with message "Your custom passphrase was not successfully repeated."',
-																	then.itShouldRejectWithMessage,
+																	'it should reject with validation error and message "Your custom passphrase was not successfully repeated."',
+																	then.itShouldRejectWithValidationErrorAndMessage,
 																);
 															},
 														);
@@ -368,8 +368,8 @@ describe('input utils utils', () => {
 									when.getPassphraseFromSourceIsCalledWithTheRelevantSource,
 									() => {
 										Then(
-											'it should reject with message "Your custom passphrase was provided with an unknown source type. Must be one of `env`, `file`, or `stdin`. Leave blank for prompt."',
-											then.itShouldRejectWithMessage,
+											'it should reject with validation error and message "Your custom passphrase was provided with an unknown source type. Must be one of `env`, `file`, or `stdin`. Leave blank for prompt."',
+											then.itShouldRejectWithValidationErrorAndMessage,
 										);
 									},
 								);
@@ -439,8 +439,8 @@ describe('input utils utils', () => {
 									when.getDataIsCalledWithTheSource,
 									() => {
 										Then(
-											'it should reject with message "No data was provided."',
-											then.itShouldRejectWithMessage,
+											'it should reject with validation error and message "No data was provided."',
+											then.itShouldRejectWithValidationErrorAndMessage,
 										);
 									},
 								);
@@ -455,8 +455,8 @@ describe('input utils utils', () => {
 									when.getDataIsCalledWithTheSource,
 									() => {
 										Then(
-											'it should reject with message "Unknown data source type."',
-											then.itShouldRejectWithMessage,
+											'it should reject with validation error and message "Unknown data source type."',
+											then.itShouldRejectWithValidationErrorAndMessage,
 										);
 									},
 								);
@@ -479,8 +479,8 @@ describe('input utils utils', () => {
 													when.getDataIsCalledWithTheSource,
 													() => {
 														Then(
-															'it should reject with message "File at /path/to/the/data.txt does not exist."',
-															then.itShouldRejectWithMessage,
+															'it should reject with file system error and message "File at /path/to/the/data.txt does not exist."',
+															then.itShouldRejectWithFileSystemErrorAndMessage,
 														);
 													},
 												);
@@ -501,8 +501,8 @@ describe('input utils utils', () => {
 													when.getDataIsCalledWithTheSource,
 													() => {
 														Then(
-															'it should reject with message "File at /path/to/the/data.txt could not be read."',
-															then.itShouldRejectWithMessage,
+															'it should reject with file system error and message "File at /path/to/the/data.txt could not be read."',
+															then.itShouldRejectWithFileSystemErrorAndMessage,
 														);
 													},
 												);

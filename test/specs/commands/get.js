@@ -33,8 +33,8 @@ describe('get command', () => {
 								when.theActionIsCalledWithTheTypeTheInputAndTheOptions,
 								() => {
 									Then(
-										'it should reject with message "Unsupported type."',
-										then.itShouldRejectWithMessage,
+										'it should reject with validation error and message "Unsupported type."',
+										then.itShouldRejectWithValidationErrorAndMessage,
 									);
 								},
 							);
