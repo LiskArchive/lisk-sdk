@@ -175,12 +175,13 @@ TransactionsRepo.prototype.getOutTransferByIds = function (ids) {
 
 TransactionsRepo.prototype.save = function (transactions) {
 	var self = this;
-
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
+	var saveTransactions = _.cloneDeep(transactions);
+	
+	if (!_.isArray(saveTransactions)) {
+		saveTransactions = [saveTransactions];
 	}
 
-	transactions.forEach(function (transaction) {
+	saveTransactions.forEach(function (transaction) {
 		try {
 			transaction.senderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
 			transaction.signature = Buffer.from(transaction.signature, 'hex');
@@ -193,9 +194,9 @@ TransactionsRepo.prototype.save = function (transactions) {
 	});
 
 	var batch = [];
-	batch.push(self.db.none(self.pgp.helpers.insert(transactions, self.cs.insert)));
+	batch.push(self.db.none(self.pgp.helpers.insert(saveTransactions, self.cs.insert)));
 
-	var groupedTransactions = _.groupBy(transactions, 'type');
+	var groupedTransactions = _.groupBy(saveTransactions, 'type');
 
 	Object.keys(groupedTransactions).forEach(function (type) {
 		batch.push(self.db[self.transactionsRepoMap[type]].save(groupedTransactions[type]));
