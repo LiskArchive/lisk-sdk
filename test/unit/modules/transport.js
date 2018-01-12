@@ -159,11 +159,6 @@ describe('transport', function () {
 			done();
 		});
 
-		describe('hashsum', function () {
-
-			it('should return sha256 hash of given object');
-		});
-
 		describe('removePeer', function () {
 
 			describe('when options.peer is undefined', function () {
