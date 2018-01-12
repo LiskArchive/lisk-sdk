@@ -15,6 +15,15 @@
 
 var PQ = require('pg-promise').ParameterizedQuery;
 
+/**
+ * Rounds database interaction module
+ * @memberof module:rounds
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {RoundsRepo}
+ */
 function RoundsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -56,58 +65,128 @@ var Queries = {
 	restoreVotesSnapshot: 'UPDATE mem_accounts m SET vote = b.vote FROM mem_votes_snapshot b WHERE m.address = b.address'
 };
 
+/**
+ * Get round information from mem tables
+ * @return {Promise}
+ */
 RoundsRepo.prototype.getMemRounds = function () {
 	return this.db.query(Queries.getMemRounds);
 };
 
+/**
+ * Remove a particular round from database
+ * @param {string} round - Id of the round
+ * @return {Promise}
+ */
 RoundsRepo.prototype.flush = function (round) {
 	return this.db.none(Queries.flush, [round]);
 };
 
+//TODO: Move usage of this method to db/blocks
+/**
+ * Delete all blocks for above a particular height
+ * @param {int} height
+ * @return {Promise}
+ */
 RoundsRepo.prototype.truncateBlocks = function (height) {
 	return this.db.none(Queries.truncateBlocks, [height]);
 };
 
+/**
+ * Update the missedblocks attribute for an account
+ * @param {boolean} backwards - Backward flag
+ * @param {string} outsiders - Comma Separated string of ids
+ * @return {*}
+ */
 RoundsRepo.prototype.updateMissedBlocks = function (backwards, outsiders) {
 	return this.db.none(Queries.updateMissedBlocks(backwards), [outsiders]);
 };
 
+//TODO: Move usage of this method to db/votes
+/**
+ * Get votes for a round
+ * @param {string} round - Id of the round
+ * @return {Promise}
+ */
 RoundsRepo.prototype.getVotes = function (round) {
 	return this.db.query(Queries.getVotes, [round]);
 };
 
+//TODO: Move usage of this method to db/votes
+/**
+ * Update the votes of for a particular account
+ * @param {string} address - Address of the account
+ * @param {int} amount - Votes to update
+ */
 RoundsRepo.prototype.updateVotes = function (address, amount) {
 	return this.pgp.as.format(Queries.updateVotes, [amount, address]);
 };
 
+//TODO: Move usage of this method to db/accounts
+/**
+ * Update id of a particular block for an account
+ * @param {string} newId
+ * @param {string} oldId
+ * @return {Promise}
+ */
 RoundsRepo.prototype.updateBlockId = function (newId, oldId) {
 	return this.db.none(Queries.updateBlockId, [newId, oldId]);
 };
 
+/**
+ * Summarize the results for a round
+ * @param {string} round - Round Id
+ * @param {int} activeDelegates - Number of active delegates
+ * @return {Promise}
+ */
 RoundsRepo.prototype.summedRound = function (round, activeDelegates) {
 	return this.db.query(Queries.summedRound, [activeDelegates, round]);
 };
 
+/**
+ * Drop the table for round snapshot
+ * @return {Promise}
+ */
 RoundsRepo.prototype.clearRoundSnapshot = function () {
 	return this.db.none(Queries.clearRoundSnapshot);
 };
 
+/**
+ * Create table for the round snapshot
+ * @return {Promise}
+ */
 RoundsRepo.prototype.performRoundSnapshot = function () {
 	return this.db.none(Queries.performRoundSnapshot);
 };
 
+/**
+ * Delete table for votes snapshot
+ * @return {Promise}
+ */
 RoundsRepo.prototype.clearVotesSnapshot = function () {
 	return this.db.none(Queries.clearVotesSnapshot);
 };
 
+/**
+ * Take a snapshot of the votes by creating table and populating records from votes
+ * @return {Promise}
+ */
 RoundsRepo.prototype.performVotesSnapshot = function () {
 	return this.db.none(Queries.restoreRoundSnapshot);
 };
 
+/**
+ * Update accounts from the round snapshot
+ * @return {Promise}
+ */
 RoundsRepo.prototype.restoreRoundSnapshot = function () {
 	return this.db.none(Queries.performVotesSnapshot);
 };
 
+/**
+ * Update votes for account from a snapshot
+ * @return {Promise}
+ */
 RoundsRepo.prototype.restoreVotesSnapshot = function () {
 	return this.db.none(Queries.restoreVotesSnapshot);
 };

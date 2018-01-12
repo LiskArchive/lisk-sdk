@@ -17,6 +17,15 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var columnSet;
 
+/**
+ * Transfer Transactions database interaction module
+ * @memberof module:transactions
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {TransferTransactionsRepo}
+ */
 function TransferTransactionsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -37,6 +46,11 @@ function TransferTransactionsRepo (db, pgp) {
 	this.cs = columnSet;
 }
 
+/**
+ * Save transfer transactions
+ * @param {Array.<{id: string, asset: {data: string}}>} transactions
+ * @return {Promise}
+ */
 TransferTransactionsRepo.prototype.save = function (transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];

@@ -15,6 +15,15 @@
 
 var PQ = require('pg-promise').ParameterizedQuery;
 
+/**
+ * Multisignature database interaction module
+ * @memberof module:multisignatures
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {MultisignaturesRepo}
+ */
 function MultisignaturesRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -26,12 +35,22 @@ var Queries = {
 	getMultisignatureGroupIds: new PQ('SELECT ARRAY_AGG("accountId") AS "groupAccountIds" FROM mem_accounts2multisignatures WHERE "dependentId" = $1'),
 };
 
+/**
+ * Get list of public keys for a member address
+ * @param {string} address - Address of a member
+ * @return {Promise}
+ */
 MultisignaturesRepo.prototype.getMultisignatureMemberPublicKeys = function (address) {
 	return this.db.one(Queries.getMultisignatureMemberPublicKeys, [address]).then(function (result) {
 		return result.memberAccountKeys;
 	});
 };
 
+/**
+ * Get list of addresses for group by a public key
+ * @param {string} publicKey - Public key of a group
+ * @return {Promise}
+ */
 MultisignaturesRepo.prototype.getMultisignatureGroupIds = function (publicKey) {
 	return this.db.one(Queries.getMultisignatureGroupIds, [publicKey]).then(function (result) {
 		return result.groupAccountIds;

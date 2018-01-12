@@ -16,6 +16,15 @@
 var PQ = require('pg-promise').ParameterizedQuery;
 var columnSet;
 
+/**
+ * Accounts database interaction module
+ * @memberof module:accounts
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {AccountsRepo}
+ */
 function AccountsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -55,22 +64,44 @@ var Queries = {
 	upsert: PQ('INSERT INTO mem_accounts $1 VALUES $2 ON CONFLICT($3) DO UPDATE SET $4')
 };
 
+/**
+ * Count mem accounts
+ * @return {Promise}
+ */
 AccountsRepo.prototype.countMemAccounts = function () {
 	return this.db.one(Queries.countMemAccounts);
 };
 
+/**
+ * Update mem accounts
+ * @return {Promise}
+ */
 AccountsRepo.prototype.updateMemAccounts = function () {
 	return this.db.none(Queries.updateMemAccounts);
 };
 
+/**
+ * Get orphan mem accounts
+ * @return {Promise}
+ */
 AccountsRepo.prototype.getOrphanedMemAccounts = function () {
 	return this.db.query(Queries.getOrphanedMemAccounts);
 };
 
+/**
+ * Get delegates
+ * @return {Promise}
+ */
 AccountsRepo.prototype.getDelegates = function () {
 	return this.db.query(Queries.getDelegates);
 };
 
+/**
+ * Update or Insert in mem accounts
+ * @param {Object} data - Attributes to be inserted can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
+ * @param {Array} conflictingFields - An array of attributes to be tested against conflicts can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
+ * @return {Promise}
+ */
 AccountsRepo.prototype.upsert = function (data, conflictingFields) {
 	return this.db.none(
 		this.pgp.helpers.concat([

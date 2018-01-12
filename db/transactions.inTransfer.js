@@ -17,6 +17,15 @@ var _ = require('lodash');
 var transactionTypes = require('../helpers/transactionTypes');
 var columnSet;
 
+/**
+ * InTransfer Transactions database interaction module
+ * @memberof module:dapps
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {InTransferTransactionsRepo}
+ */
 function InTransferTransactionsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -37,6 +46,11 @@ function InTransferTransactionsRepo (db, pgp) {
 	this.cs = columnSet;
 }
 
+/**
+ * Save InTransfer transactions
+ * @param {Array.<{id: string, asset: {inTransfer: {dappId: string}}}>} transactions
+ * @return {Promise}
+ */
 InTransferTransactionsRepo.prototype.save = function (transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];

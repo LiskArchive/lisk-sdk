@@ -15,6 +15,15 @@
 
 var PQ = require('pg-promise').ParameterizedQuery;
 
+/**
+ * Peers database interaction module
+ * @memberof module:peers
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {PeersRepo}
+ */
 function PeersRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -37,14 +46,27 @@ var PeersSql = {
 	clear: 'DELETE FROM peers'
 };
 
+/**
+ * Get all peers from database
+ * @return {Promise}
+ */
 PeersRepo.prototype.list = function () {
 	return this.db.any(PeersSql.getAll);
 };
 
+/**
+ * Clear all peers from database
+ * @return {Promise}
+ */
 PeersRepo.prototype.clear = function () {
 	return this.db.any(PeersSql.clear);
 };
 
+/**
+ * Insert a new peer to database
+ * @param {Array<Object>} peers - Array of peers to be inserted. Object can contains any of fields [PeersRepo's dbFields property]{@link PeersRepo#dbFields}
+ * @return {Promise}
+ */
 PeersRepo.prototype.insert = function (peers) {
 	return this.db.none(this.pgp.helpers.insert(peers, this.cs));
 };

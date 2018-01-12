@@ -15,6 +15,15 @@
 
 var PQ = require('pg-promise').ParameterizedQuery;
 
+/**
+ * Dapps database interaction module
+ * @memberof module:dapps
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {DappsRepo}
+ */
 function DappsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -42,22 +51,56 @@ var DappsSql = {
 	getGenesis: new PQ('SELECT b."height" AS "height", b."id" AS "id", t."senderId" AS "authorId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" WHERE t."id" = $1')
 };
 
+/**
+ * Count dapps by transaction id
+ * @param {string} id
+ * @return {Promise}
+ */
 DappsRepo.prototype.countByTransactionId = function (id) {
 	return this.db.one(DappsSql.countByTransactionId, [id]);
 };
 
+/**
+ * Count dapps by out transfer transaction id
+ * @param {string} id
+ * @return {Promise}
+ */
 DappsRepo.prototype.countByOutTransactionId = function (id) {
 	return this.db.one(DappsSql.countByOutTransactionId, [id]);
 };
 
+/**
+ * Check if a dapp exists
+ * @param {Object} params
+ * @param {string} params.transactionId
+ * @param {string} params.name
+ * @param {string} params.link
+ * @return {Promise}
+ */
 DappsRepo.prototype.getExisting = function (params) {
 	return this.db.query(DappsSql.getExisting, [params.name, params.link, params.transactionId]);
 };
 
+/**
+ * Search existing dapps in database
+ * @param {Object} params
+ * @param {Array} params.where
+ * @param {string} params.sortField
+ * @param {string} params.sortMethod
+ * @param {int} params.limit
+ * @param {int} params.offset
+ * @return {Promise}
+ */
 DappsRepo.prototype.list = function (params) {
 	return this.db.query(DappsSql.list(params), params);
 };
 
+//TODO: Remove this method in use relevant method from db/blocks
+/**
+ * Get Genesis block
+ * @param {string} id
+ * @return {Promise}
+ */
 DappsRepo.prototype.getGenesis = function (id) {
 	return this.db.query(DappsSql.getGenesis, [id]);
 };

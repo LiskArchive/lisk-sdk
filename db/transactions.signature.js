@@ -16,6 +16,15 @@
 var _ = require('lodash');
 var columnSet;
 
+/**
+ * Signatures Transactions database interaction module
+ * @memberof module:signatures
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {SignatureTransactionsRepo}
+ */
 function SignatureTransactionsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -36,6 +45,11 @@ function SignatureTransactionsRepo (db, pgp) {
 	this.cs = columnSet;
 }
 
+/**
+ * Save signature transactions
+ * @param {Array.<{id: string, asset: {signature: {publicKey: string}}}>} transactions
+ * @return {Promise}
+ */
 SignatureTransactionsRepo.prototype.save = function (transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];

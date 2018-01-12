@@ -17,6 +17,15 @@ var _ = require('lodash');
 var transactionTypes = require('../helpers/transactionTypes');
 var columnSet;
 
+/**
+ * Delegates Transactions database interaction module
+ * @memberof module:delegates
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {DelegateTransactionsRepo}
+ */
 function DelegateTransactionsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -37,6 +46,11 @@ function DelegateTransactionsRepo (db, pgp) {
 	this.cs = columnSet;
 }
 
+/**
+ * Save Dapp transactions
+ * @param {Array.<{id: string, asset: {delegate: {username: string}}}>} transactions
+ * @return {Promise}
+ */
 DelegateTransactionsRepo.prototype.save = function (transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
