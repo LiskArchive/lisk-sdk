@@ -393,11 +393,11 @@ __private.loadBlockChain = function () {
 
 	function checkMemTables (t) {
 		var promises = [
-			library.db.blocks.count(t),
-			library.db.blocks.getGenesisBlock(t),
-			library.db.accounts.countMemAccounts(t),
-			library.db.rounds.getMemRounds(t),
-			library.db.delegates.countDuplicatedDelegates(t),
+			t.blocks.count(),
+			t.blocks.getGenesisBlock(),
+			t.accounts.countMemAccounts(),
+			t.rounds.getMemRounds(),
+			t.delegates.countDuplicatedDelegates()
 		];
 
 		return t.batch(promises);
@@ -486,9 +486,9 @@ __private.loadBlockChain = function () {
 
 		function updateMemAccounts (t) {
 			var promises = [
-				library.db.accounts.updateMemAccounts(t),
-				library.db.accounts.getOrphanedMemAccounts(t),
-				library.db.accounts.getDelegates(t),
+				t.accounts.updateMemAccounts(),
+				t.accounts.getOrphanedMemAccounts(),
+				t.accounts.getDelegates()
 			];
 
 			return t.batch(promises);

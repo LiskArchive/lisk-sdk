@@ -55,20 +55,20 @@ var Queries = {
 	upsert: PQ('INSERT INTO mem_accounts $1 VALUES $2 ON CONFLICT($3) DO UPDATE SET $4')
 };
 
-AccountsRepo.prototype.countMemAccounts = function (task) {
-	return (task || this.db).one(Queries.countMemAccounts);
+AccountsRepo.prototype.countMemAccounts = function () {
+	return this.db.one(Queries.countMemAccounts);
 };
 
-AccountsRepo.prototype.updateMemAccounts = function (task) {
-	return (task || this.db).none(Queries.updateMemAccounts);
+AccountsRepo.prototype.updateMemAccounts = function () {
+	return this.db.none(Queries.updateMemAccounts);
 };
 
-AccountsRepo.prototype.getOrphanedMemAccounts = function (task) {
-	return (task || this.db).query(Queries.getOrphanedMemAccounts);
+AccountsRepo.prototype.getOrphanedMemAccounts = function () {
+	return this.db.query(Queries.getOrphanedMemAccounts);
 };
 
-AccountsRepo.prototype.getDelegates = function (task) {
-	return (task || this.db).query(Queries.getDelegates);
+AccountsRepo.prototype.getDelegates = function () {
+	return this.db.query(Queries.getDelegates);
 };
 
 AccountsRepo.prototype.upsert = function (data, conflictingFields) {

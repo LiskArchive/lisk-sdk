@@ -37,16 +37,16 @@ var PeersSql = {
 	clear: 'DELETE FROM peers'
 };
 
-PeersRepo.prototype.list = function (task) {
-	return (task || this.db).any(PeersSql.getAll);
+PeersRepo.prototype.list = function () {
+	return this.db.any(PeersSql.getAll);
 };
 
-PeersRepo.prototype.clear = function (task) {
-	return (task || this.db).any(PeersSql.clear);
+PeersRepo.prototype.clear = function () {
+	return this.db.any(PeersSql.clear);
 };
 
-PeersRepo.prototype.insert = function (peers, task) {
-	return (task || this.db).none(this.pgp.helpers.insert(peers, this.cs));
+PeersRepo.prototype.insert = function (peers) {
+	return this.db.none(this.pgp.helpers.insert(peers, this.cs));
 };
 
 module.exports = PeersRepo;

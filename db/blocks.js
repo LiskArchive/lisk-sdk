@@ -145,8 +145,8 @@ var Queries = {
 	deleteAfterBlock: new PQ('DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "id" = $1)')
 };
 
-BlocksRepo.prototype.getGenesisBlock = function (task) {
-	return (task || this.db).query(Queries.getGenesisBlock);
+BlocksRepo.prototype.getGenesisBlock = function () {
+	return this.db.query(Queries.getGenesisBlock);
 };
 
 BlocksRepo.prototype.getGenesisBlockId = function (id) {
@@ -161,8 +161,8 @@ BlocksRepo.prototype.aggregateBlocksReward = function (params) {
 	return this.db.query(Queries.aggregateBlocksReward, [params.generatorPublicKey, params.start, params.end]);
 };
 
-BlocksRepo.prototype.count = function (task) {
-	return (task || this.db).one(Queries.count);
+BlocksRepo.prototype.count = function () {
+	return this.db.one(Queries.count);
 };
 
 BlocksRepo.prototype.list = function (params) {

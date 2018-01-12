@@ -202,7 +202,7 @@ TransactionsRepo.prototype.save = function (transactions) {
 	});
 
 	// To avoid nested transactions aka transactions checkpoints
-	if(this.db.batch) {
+	if(this.db.ctx.isTx) {
 		return this.db.batch(batch);
 	} else {
 		return this.db.tx(function (t) {

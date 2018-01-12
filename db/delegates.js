@@ -28,8 +28,8 @@ var DelegatesSql = {
 	getDelegatesByPublicKeys: 'SELECT ENCODE("publicKey", \'hex\') as "publicKey", username, address FROM mem_accounts WHERE "isDelegate" = 1 AND ENCODE("publicKey", \'hex\') IN ($1:csv) ORDER BY vote ASC, "publicKey" DESC'
 };
 
-DelegatesRepo.prototype.countDuplicatedDelegates = function (task) {
-	return (task || this.db).query(DelegatesSql.countDuplicatedDelegates);
+DelegatesRepo.prototype.countDuplicatedDelegates = function () {
+	return this.db.query(DelegatesSql.countDuplicatedDelegates);
 };
 
 DelegatesRepo.prototype.insertFork = function (fork) {
