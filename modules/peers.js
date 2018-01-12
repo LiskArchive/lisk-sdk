@@ -182,7 +182,14 @@ __private.getMatched = function (test, peers) {
 __private.updatePeerStatus = function (err, status, peer) {
 
 	if (err) {
-		peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
+		if (err.code === failureCodes.INCOMPATIBLE_NONCE) {
+			// If the node tries to connect to itself as a peer, the
+			// nonce will be incompatible. Here we put the peer in a BANNED
+			// state so that the node doesn't keep trying to reconnect to itself.
+			peer.applyHeaders({state: Peer.STATE.BANNED});
+		} else {
+			peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
+		}
 	} else {
 		peer.applyHeaders({
 			height: status.height,
