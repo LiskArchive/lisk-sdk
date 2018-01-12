@@ -14,6 +14,7 @@
  *
  */
 import { COMMAND_TYPES, SINGULARS } from '../utils/constants';
+import { ValidationError } from '../utils/error';
 import { createCommand, deAlias, processQueryResult } from '../utils/helpers';
 import commonOptions from '../utils/options';
 import query from '../utils/query';
@@ -35,7 +36,7 @@ export const actionCreator = () => async ({
 		: type;
 
 	if (!COMMAND_TYPES.includes(singularType)) {
-		throw new Error('Unsupported type.');
+		throw new ValidationError('Unsupported type.');
 	}
 
 	const queries = inputs.map(input =>

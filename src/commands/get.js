@@ -14,6 +14,7 @@
  *
  */
 import { COMMAND_TYPES } from '../utils/constants';
+import { ValidationError } from '../utils/error';
 import { createCommand, deAlias, processQueryResult } from '../utils/helpers';
 import commonOptions from '../utils/options';
 import query from '../utils/query';
@@ -31,7 +32,7 @@ export const actionCreator = () => async ({
 	options: { testnet },
 }) => {
 	if (!COMMAND_TYPES.includes(type)) {
-		throw new Error('Unsupported type.');
+		throw new ValidationError('Unsupported type.');
 	}
 
 	return query.handlers[deAlias(type)](input, { testnet }).then(

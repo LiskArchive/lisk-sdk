@@ -15,6 +15,7 @@
  */
 import fs from 'fs';
 import readline from 'readline';
+import { ValidationError } from '../error';
 
 const capitalise = text => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
@@ -110,7 +111,9 @@ export const getPassphraseFromPrompt = (
 			.prompt(createPromptOptions(`Please re-enter ${displayName}: `))
 			.then(({ passphrase: passphraseRepeat }) => {
 				if (passphrase !== passphraseRepeat) {
-					throw new Error(getPassphraseVerificationFailError(displayName));
+					throw new ValidationError(
+						getPassphraseVerificationFailError(displayName),
+					);
 				}
 				return passphrase;
 			});
@@ -126,7 +129,7 @@ export const getPassphraseFromPrompt = (
 export const getPassphraseFromEnvVariable = async (key, displayName) => {
 	const passphrase = process.env[key];
 	if (!passphrase) {
-		throw new Error(getPassphraseEnvVariableNotSetError(displayName));
+		throw new ValidationError(getPassphraseEnvVariableNotSetError(displayName));
 	}
 	return passphrase;
 };
@@ -171,7 +174,9 @@ export const getPassphraseFromSource = async (source, { displayName }) => {
 		case 'pass':
 			return sourceIdentifier;
 		default:
-			throw new Error(getPassphraseSourceTypeUnknownError(displayName));
+			throw new ValidationError(
+				getPassphraseSourceTypeUnknownError(displayName),
+			);
 	}
 };
 
@@ -200,13 +205,13 @@ export const getDataFromFile = async path => fs.readFileSync(path, 'utf8');
 
 export const getData = async source => {
 	if (!source) {
-		throw new Error(ERROR_DATA_MISSING);
+		throw new ValidationError(ERROR_DATA_MISSING);
 	}
 
 	const { sourceType, sourceIdentifier: path } = splitSource(source);
 
 	if (sourceType !== 'file') {
-		throw new Error(ERROR_DATA_SOURCE);
+		throw new ValidationError(ERROR_DATA_SOURCE);
 	}
 
 	return getDataFromFile(path).catch(handleReadFileErrors(path));

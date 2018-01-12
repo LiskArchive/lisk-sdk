@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { ValidationError } from '../utils/error';
 import getInputsFromSources from '../utils/input';
 import { getData } from '../utils/input/utils';
 import {
@@ -53,13 +54,15 @@ export const actionCreator = vorpal => async ({ options }) => {
 	} = options;
 
 	if (!votes && !unvotes) {
-		throw new Error(
+		throw new ValidationError(
 			'At least one of votes and/or unvotes options must be provided.',
 		);
 	}
 
 	if (votes === unvotes) {
-		throw new Error('Votes and unvotes sources must not be the same.');
+		throw new ValidationError(
+			'Votes and unvotes sources must not be the same.',
+		);
 	}
 
 	const processedVotesInput = votes

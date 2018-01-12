@@ -14,6 +14,7 @@
  *
  */
 import cryptoModule from '../utils/cryptoModule';
+import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources, { getFirstLineFromString } from '../utils/input';
 import commonOptions from '../utils/options';
@@ -44,7 +45,7 @@ export const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
 	const passwordSource = options.password;
 
 	if (!passphrase && !passphraseSource) {
-		throw new Error('No encrypted passphrase was provided.');
+		throw new ValidationError('No encrypted passphrase was provided.');
 	}
 
 	return getInputsFromSources(vorpal, {
