@@ -168,9 +168,18 @@ describe('transport', function () {
 
 			describe('when options.peer is undefined', function () {
 
-				it('should call library.logger.debug with "Cannot remove empty peer"');
+				it('should call library.logger.debug with "Cannot remove empty peer"', function (done) {
+					__private.removePeer({}, 'Custom peer remove message');
+					expect(loggerStub.debug.called).to.be.true;
+					expect(loggerStub.debug.calledWith('Cannot remove empty peer')).to.be.true;
+					done();
+				});
 
-				it('should return false');
+				it('should return false', function (done) {
+					var result = __private.removePeer({}, 'Custom peer remove message');
+					expect(result).to.be.false;
+					done();
+				});
 			});
 
 			describe('when options.peer is defined', function () {
