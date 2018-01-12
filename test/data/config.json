@@ -23,7 +23,8 @@
         "reapIntervalMillis": 1000,
         "logEvents": [
             "error"
-        ]
+        ],
+	  	"logFileName": "logs/lisk_db.log"
     },
     "redis": {
         "host": "127.0.0.1",
