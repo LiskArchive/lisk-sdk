@@ -112,7 +112,7 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 				});
 			});
 
-			describe('with different timestamp @unstable', function () {
+			describe('with different timestamp', function () {
 
 				var transactionWithoutDelay;
 				var transactionWithDelay;
