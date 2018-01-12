@@ -99,46 +99,31 @@ describe('transport', function () {
 
 		describe('library', function () {
 
-			it('should assign logger');
+			it('should assign scope variables when instantiating', function (done) {
+				var localTransportInstance = new TransportModule(function (err, transportSelf) {
+					var library = TransportModule.__get__('library');
+					var __private = TransportModule.__get__('__private');
 
-			it('should assign db');
+					expect(library).to.have.property('db').which.is.equal(dbStub);
+					expect(library).to.have.property('logger').which.is.equal(loggerStub);
+					expect(library).to.have.property('bus').which.is.equal(busStub);
+					expect(library).to.have.property('schema').which.is.equal(schemaStub);
+					expect(library).to.have.property('network').which.is.equal(networkStub);
+					expect(library).to.have.property('balancesSequence').which.is.equal(balancesSequenceStub);
+					expect(library).to.have.nested.property('logic.block').which.is.equal(blockStub);
+					expect(library).to.have.nested.property('logic.transaction').which.is.equal(transactionStub);
+					expect(library).to.have.nested.property('logic.peers').which.is.equal(peersStub);
+					expect(library).to.have.nested.property('config.peers.options.timeout').which.is.equal(1234);
 
-			it('should assign bus');
+					expect(__private).to.have.property('broadcaster').which.is.equal(broadcasterStubRef);
 
-			it('should assign schema');
+					expect(err).to.equal(null);
+					expect(transportSelf).to.equal(localTransportInstance);
 
-			it('should assign network');
-
-			it('should assign balancesSequence');
-
-			describe('should assign logic', function () {
-
-				it('should assign block');
-
-				it('should assign transaction');
-
-				it('should assign peers');
-			});
-
-			describe('should assign config', function () {
-
-				describe('should assign peers', function () {
-
-					describe('should assign options', function () {
-
-						it('should assing timeout');
-					});
-				});
+					done();
+				}, defaultScope);
 			});
 		});
-
-		it('should set self to this');
-
-		it('should set __private.broadcaster to a new instance of Broadcaster');
-
-		it('should call callback with error = null');
-
-		it('should call callback with result = self');
 	});
 
 	describe('__private', function () {
