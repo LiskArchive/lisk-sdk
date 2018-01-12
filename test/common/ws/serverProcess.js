@@ -19,6 +19,7 @@ var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 var WSClient = require('./client');
 var Promise = require('bluebird');
 var sinon = require('sinon');
+var sandbox = sinon.createSandbox();
 
 function WSServer (headers) {
 	this.headers = headers;
@@ -65,17 +66,17 @@ WSServer.prototype.start = function () {
 			self.rpcServer = new MasterWAMPServer(self.socketCluster, childProcessOptions);
 
 			self.rpcServer.registerRPCEndpoints({
-				updatePeer: sinon.stub().callsArgWith(1, null),
-				height:  sinon.stub().callsArgWith(1, null, {success: true, height: self.options.headers}),
-				status: sinon.stub().callsArgWith(1, null, self.options.headers),
-				list: sinon.stub().callsArgWith(1, null, {peers: []}),
-				blocks:  sinon.stub().callsArgWith(1, null, {blocks: []}),
-				getSignatures:  sinon.stub().callsArgWith(1, null, {signatures: []}),
-				getTransactions:  sinon.stub().callsArgWith(1, null, {transactions: []}),
-				postTransactions: sinon.stub().callsArgWith(1, null),
-				postSignatures: sinon.stub().callsArgWith(1, null),
-				postBlock: sinon.stub().callsArgWith(1, null, {success: true, blockId: null}),
-				blocksCommon: sinon.stub().callsArgWith(1, null, {success: true, common: null})
+				updatePeer: sandbox.stub().callsArgWith(1, null),
+				height:  sandbox.stub().callsArgWith(1, null, {success: true, height: self.options.headers}),
+				status: sandbox.stub().callsArgWith(1, null, self.options.headers),
+				list: sandbox.stub().callsArgWith(1, null, {peers: []}),
+				blocks:  sandbox.stub().callsArgWith(1, null, {blocks: []}),
+				getSignatures:  sandbox.stub().callsArgWith(1, null, {signatures: []}),
+				getTransactions:  sandbox.stub().callsArgWith(1, null, {transactions: []}),
+				postTransactions: sandbox.stub().callsArgWith(1, null),
+				postSignatures: sandbox.stub().callsArgWith(1, null),
+				postBlock: sandbox.stub().callsArgWith(1, null, {success: true, blockId: null}),
+				blocksCommon: sandbox.stub().callsArgWith(1, null, {success: true, common: null})
 			});
 
 			self.socketClient.start().then(resolve);
