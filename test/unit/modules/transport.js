@@ -304,15 +304,22 @@ describe('transport', function () {
 
 			describe('when library.schema.validate succeeds', function () {
 
-				it('should call async.eachSeries');
-
-				it('should call async.eachSeries with signatures');
-
 				describe('for every signature in signatures', function () {
 
-					it('should call __private.receiveSignature');
+					it('should call __private.receiveSignature with signature', function (done) {
+						__private.receiveSignature = sinon.stub().callsArg(1);
+						library.schema.validate = sinon.stub().callsArg(2);
 
-					it('should call __private.receiveSignature with signature');
+						__private.receiveSignatures({
+							signatures: ['SIGNATURE123', 'SIGNATURE456']
+						}, function (err) {
+							expect(library.schema.validate.called).to.be.true;
+							expect(__private.receiveSignature.calledTwice).to.be.true;
+							expect(__private.receiveSignature.calledWith('SIGNATURE123')).to.be.true;
+							expect(__private.receiveSignature.calledWith('SIGNATURE456')).to.be.true;
+							done();
+						});
+					});
 
 					describe('when __private.receiveSignature fails', function () {
 
