@@ -13,7 +13,87 @@
  */
 'use strict';
 
+var rewire = require('rewire');
+var sinon = require('sinon');
+var chai = require('chai');
+var expect = require('chai').expect;
+
+var modulesLoader = require('../../common/modulesLoader');
+var TransportModule = rewire('../../../modules/transport.js');
+
 describe('transport', function () {
+
+	var dbStub, loggerStub, busStub, schemaStub, networkStub, balancesSequenceStub,
+		transactionStub, blockStub, peersStub, broadcasterStubRef, transportInstance,
+		library, __private, defaultScope;
+
+	var restoreRewiredTopDeps;
+
+	beforeEach(function (done) {
+		// Recreate all the stubs and default structures before each test case to make
+		// sure that they are fresh every time; that way each test case can modify
+		// stubs without affecting other test cases.
+
+		dbStub = {
+			query: sinon.spy()
+		};
+
+		loggerStub = {
+			debug: sinon.spy(),
+			error: sinon.spy()
+		};
+
+		busStub = {};
+		schemaStub = {};
+		networkStub = {};
+		balancesSequenceStub = {};
+
+		transactionStub = {
+			attachAssetType: sinon.stub()
+		};
+
+		blockStub = {};
+		peersStub = {};
+
+		restoreRewiredTopDeps = TransportModule.__set__({
+			Broadcaster: function () {
+				broadcasterStubRef = this;
+			}
+		});
+
+		defaultScope = {
+			logic: {
+				block: blockStub,
+				transaction: transactionStub,
+				peers: peersStub
+			},
+			db: dbStub,
+			logger: loggerStub,
+			bus: busStub,
+			schema: schemaStub,
+			network: networkStub,
+			balancesSequence: balancesSequenceStub,
+			config: {
+				peers: {
+					options: {
+						timeout: 1234
+					}
+				},
+				forging: {},
+				broadcasts: {
+					broadcastInterval: 10000,
+					releaseLimit: 10
+				}
+			}
+		};
+
+		done();
+	});
+
+	afterEach(function (done) {
+		restoreRewiredTopDeps();
+		done();
+	});
 
 	describe('Transport constructor', function () {
 
