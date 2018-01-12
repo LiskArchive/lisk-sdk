@@ -15,7 +15,14 @@
  */
 import chalk from 'chalk';
 
-// eslint-disable-next-line import/prefer-default-export
+export class FileSystemError extends Error {
+	constructor(message) {
+		super(message);
+		this.message = chalk.red(message);
+		this.name = 'FileSystemError';
+	}
+}
+
 export class ValidationError extends Error {
 	constructor(message) {
 		super(message);

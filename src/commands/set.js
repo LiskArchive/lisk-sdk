@@ -15,7 +15,7 @@
  */
 import { CONFIG_VARIABLES } from '../utils/constants';
 import config, { configFilePath } from '../utils/config';
-import { ValidationError } from '../utils/error';
+import { FileSystemError, ValidationError } from '../utils/error';
 import { writeJSONSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
 import liskAPIInstance from '../utils/api';
@@ -54,7 +54,7 @@ const attemptWriteToFile = (variable, value) => {
 	const writeSuccess = writeConfigToFile(config);
 
 	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
-		throw new Error(WRITE_FAIL_WARNING);
+		throw new FileSystemError(WRITE_FAIL_WARNING);
 	}
 
 	const result = {

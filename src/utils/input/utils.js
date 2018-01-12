@@ -15,7 +15,7 @@
  */
 import fs from 'fs';
 import readline from 'readline';
-import { ValidationError } from '../error';
+import { FileSystemError, ValidationError } from '../error';
 
 const capitalise = text => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
@@ -142,10 +142,10 @@ export const getPassphraseFromFile = path =>
 			const { message } = error;
 
 			if (message.match(/ENOENT/)) {
-				return reject(new Error(getFileDoesNotExistError(path)));
+				return reject(new FileSystemError(getFileDoesNotExistError(path)));
 			}
 			if (message.match(/EACCES/)) {
-				return reject(new Error(getFileUnreadableError(path)));
+				return reject(new FileSystemError(getFileUnreadableError(path)));
 			}
 
 			return reject(error);
@@ -193,10 +193,10 @@ export const getPassphrase = async (vorpal, passphraseSource, options) => {
 export const handleReadFileErrors = path => error => {
 	const { message } = error;
 	if (message.match(/ENOENT/)) {
-		throw new Error(getFileDoesNotExistError(path));
+		throw new FileSystemError(getFileDoesNotExistError(path));
 	}
 	if (message.match(/EACCES/)) {
-		throw new Error(getFileUnreadableError(path));
+		throw new FileSystemError(getFileUnreadableError(path));
 	}
 	throw error;
 };
