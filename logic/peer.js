@@ -130,9 +130,8 @@ Peer.prototype.normalize = function (peer) {
 		peer.height = this.parseInt(peer.height, 1);
 	}
 
-	if (peer.wsPort != null) {
-		peer.wsPort = this.parseInt(peer.wsPort, 0);
-	}
+	peer.wsPort = this.parseInt(peer.wsPort, 0);
+
 	if (peer.httpPort != null) {
 		peer.httpPort = this.parseInt(peer.httpPort, 0);
 	}
