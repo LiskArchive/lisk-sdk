@@ -358,9 +358,17 @@ describe('transport', function () {
 
 					describe('when __private.receiveSignature succeeds', function () {
 
-						it('should call callback with error = undefined');
+						it('should call callback with error = undefined', function (done) {
+							__private.receiveSignature = sinon.stub().callsArg(1);
+							library.schema.validate = sinon.stub().callsArg(2);
 
-						it('should call callback with result = undefined');
+							__private.receiveSignatures({
+								signatures: ['SIGNATURE123', 'SIGNATURE456']
+							}, function (err) {
+								expect(err).to.be.equal(null);
+								done();
+							});
+						});
 					});
 				});
 			});
