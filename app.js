@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 /**
  * A node-style callback as used by {@link logic} and {@link modules}.
@@ -87,6 +100,7 @@ var config = {
 		cache: './modules/cache.js',
 		dapps: './modules/dapps.js',
 		delegates: './modules/delegates.js',
+		rounds: './modules/rounds.js',
 		loader: './modules/loader.js',
 		multisignatures: './modules/multisignatures.js',
 		node: './modules/node.js',
@@ -408,10 +422,6 @@ d.run(function () {
 			var db = require('./helpers/database.js');
 			db.connect(config.db, logger, cb);
 		},
-		pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
-			var pg_notify = require('./helpers/pg-notify.js');
-			pg_notify.init(scope.db, scope.bus, scope.logger, cb);
-		}],
 		/**
 		 * It tries to connect with redis server based on config. provided in config.json file
 		 * @param {function} cb

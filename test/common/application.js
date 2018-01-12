@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 // Global imports
@@ -64,7 +77,7 @@ function __init (initScope, done) {
 		test.config.db.user = test.config.db.user || process.env.USER;
 		db = pgp(test.config.db);
 	}
-	
+
 	test.debug('initApplication: Target database - ' + test.config.db.database);
 
 	// Clear tables
@@ -93,6 +106,7 @@ function __init (initScope, done) {
 			multisignatures: '../../modules/multisignatures.js',
 			node: '../../modules/node.js',
 			peers: '../../modules/peers.js',
+			rounds: '../../modules/rounds.js',
 			signatures: '../../modules/signatures.js',
 			system: '../../modules/system.js',
 			transactions: '../../modules/transactions.js',
@@ -197,10 +211,6 @@ function __init (initScope, done) {
 			db: function (cb) {
 				cb(null, db);
 			},
-			pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
-				var pg_notify = require('../../helpers/pg-notify.js');
-				pg_notify.init(scope.db, scope.bus, scope.logger, cb);
-			}],
 			rpc: ['db', 'bus', 'logger', function (scope, cb) {
 				var wsRPC = require('../../api/ws/rpc/wsRPC').wsRPC;
 				var transport = require('../../api/ws/transport');

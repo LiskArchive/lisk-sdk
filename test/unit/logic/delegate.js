@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';/*eslint*/
 
 var _  = require('lodash');
@@ -869,27 +882,6 @@ describe('delegate', function () {
 			};
 
 			expect(delegate.dbRead(rawTransaction).delegate).to.eql(expectedAsset);
-		});
-	});
-
-	describe('dbSave', function () {
-
-		it('should return promise object for delegate transaction', function () {
-			expect(delegate.dbSave(transaction)).to.eql({
-				table: 'delegates',
-				fields: [
-					'tx_id',
-					'name',
-					'pk',
-					'address'
-				],
-				values: {
-					tx_id: transaction.id,
-					name: transaction.asset.delegate.username,
-					pk: Buffer.from(transaction.senderPublicKey, 'hex'),
-					address: transaction.senderId
-				}
-			});
 		});
 	});
 

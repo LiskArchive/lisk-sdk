@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';/*eslint*/
 
 var crypto = require('crypto');
@@ -333,7 +346,7 @@ describe('transfer', function () {
 		it('should throw error if value is null', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
-				data: null 
+				data: null
 			};
 
 			expect(function () {
@@ -391,50 +404,6 @@ describe('transfer', function () {
 			expect(transfer.dbRead(rawTransaction)).to.eql({
 				data: data
 			});
-		});
-	});
-
-	describe('dbSave', function () {
-
-		it('should return null when transaction does not contain asset', function () {
-			expect(transfer.dbSave(validTransaction)).to.eql(null);
-		});
-
-		it('should return transfer promise when transaction contains asset', function () {
-			var transaction = _.cloneDeep(validTransaction);
-			var data = '123';
-			transaction.asset = {
-				data: data
-			};
-			var transferPromise = transfer.dbSave(transaction);
-
-			expect(transferPromise.table).to.equal('transfer');
-			expect(transferPromise.fields).to.eql([
-				'data',
-				'transactionId'
-			]);
-			expect(transferPromise.values).to.eql({
-				data: Buffer.from(data, 'utf8'),
-				transactionId: transaction.id
-			});
-		});
-
-		it('should not return promise when data field is undefined', function () {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset = {
-				data: undefined
-			};
-
-			expect(transfer.dbSave(transaction)).to.eql(null);
-		});
-
-		it('should not return promise when data field is null', function () {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset = {
-				data: null
-			};
-
-			expect(transfer.dbSave(transaction)).to.eql(null);
 		});
 	});
 

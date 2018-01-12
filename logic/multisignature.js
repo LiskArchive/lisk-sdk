@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var async = require('async');
@@ -66,7 +79,7 @@ Multisignature.prototype.calculateFee = function (transaction, sender) {
  * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
  * transaction validated.
  */
-Multisignature.prototype.verify = function (transaction, sender, cb) {
+Multisignature.prototype.verify = function (transaction, sender, cb, tx) {
 	if (!transaction.asset || !transaction.asset.multisignature) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
@@ -219,7 +232,7 @@ Multisignature.prototype.getBytes = function (transaction, skip) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} for errors
  */
-Multisignature.prototype.apply = function (transaction, block, sender, cb) {
+Multisignature.prototype.apply = function (transaction, block, sender, cb, tx) {
 	__private.unconfirmedSignatures[sender.address] = false;
 
 	library.logic.account.merge(sender.address, {
@@ -244,9 +257,9 @@ Multisignature.prototype.apply = function (transaction, block, sender, cb) {
 				publicKey: key
 			}, function (err) {
 				return setImmediate(cb, err);
-			});
+			}, tx);
 		}, cb);
-	});
+	}, tx);
 };
 
 /**
@@ -282,7 +295,7 @@ Multisignature.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} For error.
  */
-Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 	if (__private.unconfirmedSignatures[sender.address]) {
 		return setImmediate(cb, 'Signature on this account is pending confirmation');
 	}
@@ -295,7 +308,7 @@ Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 		u_multilifetime: transaction.asset.multisignature.lifetime
 	}, function (err) {
 		return setImmediate(cb);
-	});
+	}, tx);
 };
 
 /**
@@ -308,7 +321,7 @@ Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} For error.
  */
-Multisignature.prototype.undoUnconfirmed = function (transaction, sender, cb) {
+Multisignature.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
 	var multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
 	__private.unconfirmedSignatures[sender.address] = false;
@@ -319,7 +332,7 @@ Multisignature.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 		u_multilifetime: -transaction.asset.multisignature.lifetime
 	}, function (err) {
 		return setImmediate(cb, err);
-	});
+	}, tx);
 };
 
 /**
@@ -392,34 +405,6 @@ Multisignature.prototype.dbRead = function (raw) {
 
 		return {multisignature: multisignature};
 	}
-};
-
-Multisignature.prototype.dbTable = 'multisignatures';
-
-Multisignature.prototype.dbFields = [
-	'min',
-	'lifetime',
-	'keysgroup',
-	'transactionId'
-];
-
-/**
- * Creates database Object based on transaction data.
- * @param {transaction} transaction - Contains multisignature object.
- * @returns {Object} {table:multisignatures, values: multisignature and transaction id}.
- * @todo check if this function is called.
- */
-Multisignature.prototype.dbSave = function (transaction) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			min: transaction.asset.multisignature.min,
-			lifetime: transaction.asset.multisignature.lifetime,
-			keysgroup: transaction.asset.multisignature.keysgroup.join(','),
-			transactionId: transaction.id
-		}
-	};
 };
 
 /**

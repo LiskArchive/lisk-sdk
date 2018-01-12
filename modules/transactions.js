@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var _ = require('lodash');
@@ -403,8 +416,8 @@ Transactions.prototype.applyUnconfirmedList = function (cb) {
  * @param {function} cb - Callback function.
  * @return {function} Calls transactionPool.applyUnconfirmedIds
  */
-Transactions.prototype.applyUnconfirmedIds = function (ids, cb) {
-	return __private.transactionPool.applyUnconfirmedIds(ids, cb);
+Transactions.prototype.applyUnconfirmedIds = function (ids, cb, tx) {
+	return __private.transactionPool.applyUnconfirmedIds(ids, cb, tx);
 };
 
 /**
@@ -412,8 +425,8 @@ Transactions.prototype.applyUnconfirmedIds = function (ids, cb) {
  * @param {function} cb - Callback function.
  * @return {function} Calls transactionPool.undoUnconfirmedList
  */
-Transactions.prototype.undoUnconfirmedList = function (cb) {
-	return __private.transactionPool.undoUnconfirmedList(cb);
+Transactions.prototype.undoUnconfirmedList = function (cb, tx) {
+	return __private.transactionPool.undoUnconfirmedList(cb, tx);
 };
 
 /**
@@ -424,9 +437,9 @@ Transactions.prototype.undoUnconfirmedList = function (cb) {
  * @param {account} sender
  * @param {function} cb - Callback function
  */
-Transactions.prototype.apply = function (transaction, block, sender, cb) {
+Transactions.prototype.apply = function (transaction, block, sender, cb, tx) {
 	library.logger.debug('Applying confirmed transaction', transaction.id);
-	library.logic.transaction.apply(transaction, block, sender, cb);
+	library.logic.transaction.apply(transaction, block, sender, cb, tx);
 };
 
 /**
@@ -451,7 +464,7 @@ Transactions.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} for errors
  */
-Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
+Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 	library.logger.debug('Applying unconfirmed transaction', transaction.id);
 
 	if (!sender && transaction.blockId !== library.genesisblock.block.id) {
@@ -467,10 +480,10 @@ Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 					return setImmediate(cb, 'Requester not found');
 				}
 
-				library.logic.transaction.applyUnconfirmed(transaction, sender, requester, cb);
-			});
+				library.logic.transaction.applyUnconfirmed(transaction, sender, requester, cb, tx);
+			}, tx);
 		} else {
-			library.logic.transaction.applyUnconfirmed(transaction, sender, cb);
+			library.logic.transaction.applyUnconfirmed(transaction, sender, cb, tx);
 		}
 	}
 };
@@ -483,15 +496,15 @@ Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} For error
  */
-Transactions.prototype.undoUnconfirmed = function (transaction, cb) {
+Transactions.prototype.undoUnconfirmed = function (transaction, cb, tx) {
 	library.logger.debug('Undoing unconfirmed transaction', transaction.id);
 
 	modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		library.logic.transaction.undoUnconfirmed(transaction, sender, cb);
-	});
+		library.logic.transaction.undoUnconfirmed(transaction, sender, cb, tx);
+	}, tx);
 };
 
 /**

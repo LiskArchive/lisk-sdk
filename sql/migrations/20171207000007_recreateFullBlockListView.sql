@@ -1,8 +1,21 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 /**
  * Recreate full_blocks_list, add join for transfer table.
  */
 
-BEGIN; 
+BEGIN;
 
 DROP VIEW IF EXISTS full_blocks_list;
 
@@ -33,7 +46,7 @@ SELECT b."id" AS "b_id",
        ENCODE(t."signature", 'hex') AS "t_signature",
        ENCODE(t."signSignature", 'hex') AS "t_signSignature",
        ENCODE(s."publicKey", 'hex') AS "s_publicKey",
-       d."name" AS "d_username",
+       d."username" AS "d_username",
        v."votes" AS "v_votes",
        m."min" AS "m_min",
        m."lifetime" AS "m_lifetime",
@@ -55,7 +68,7 @@ SELECT b."id" AS "b_id",
 FROM blocks b
 
 LEFT OUTER JOIN trs AS t ON t."blockId" = b."id"
-LEFT OUTER JOIN delegates AS d ON d."tx_id" = t."id"
+LEFT OUTER JOIN delegates AS d ON d."transactionId" = t."id"
 LEFT OUTER JOIN votes AS v ON v."transactionId" = t."id"
 LEFT OUTER JOIN signatures AS s ON s."transactionId" = t."id"
 LEFT OUTER JOIN multisignatures AS m ON m."transactionId" = t."id"

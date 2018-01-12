@@ -1,3 +1,16 @@
+####################################################################################
+# Copyright © 2018 Lisk Foundation
+#
+# See the LICENSE file at the top-level directory of this distribution
+# for licensing information.
+#
+# Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+# no part of this software, including this file, may be copied, modified,
+# propagated, or distributed except according to the terms contained in the
+# LICENSE file.
+#
+# Removal or modification of this copyright notice is prohibited.
+####################################################################################
 # swagger configuration file
 
 # values in the swagger hash are system configuration for swagger-node
@@ -14,7 +27,7 @@ swagger:
     _request_limit:
       name: lisk_request_limit
 
-    _cors: 
+    _cors:
       name: lisk_cors
       origin: '*'
       methods:
@@ -22,9 +35,9 @@ swagger:
         - PUT
         - POST
 
-    _compression: 
+    _compression:
       name: lisk_compression
-      level: 9      
+      level: 9
 
     _router:
       name: swagger_router

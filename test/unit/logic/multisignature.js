@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';/*eslint*/
 
 var lisk = require('lisk-js');
@@ -976,43 +989,6 @@ describe('multisignature', function () {
 					expect(multisignature.dbRead(rawTransaction)).to.have.nested.property('multisignature.keysgroup').eql(['a', 'b', 'c']);
 				});
 			});
-		});
-	});
-
-	describe('dbSave', function () {
-
-		var dbSaveResult;
-
-		beforeEach(function () {
-			dbSaveResult = multisignature.dbSave(transaction);
-		});
-
-		it('should return result containing table = "multisignatures"', function () {
-			expect(dbSaveResult).to.have.property('table').equal('multisignatures');
-		});
-
-		it('should return result containing fields = ["min", "lifetime", "keysgroup", "transactionId"]', function () {
-			expect(dbSaveResult).to.have.property('fields').eql(['min', 'lifetime', 'keysgroup', 'transactionId']);
-		});
-
-		it('should return result containing values', function () {
-			expect(dbSaveResult).to.have.property('values');
-		});
-
-		it('should return result containing values.min = transaction.asset.multisignature.min', function () {
-			expect(dbSaveResult).to.have.nested.property('values.min').equal(transaction.asset.multisignature.min);
-		});
-
-		it('should return result containing values.lifetime = transaction.asset.multisignature.lifetime', function () {
-			expect(dbSaveResult).to.have.nested.property('values.lifetime').equal(transaction.asset.multisignature.lifetime);
-		});
-
-		it('should return result containing values.keysgroup equal joined keysgroup as string', function () {
-			expect(dbSaveResult).to.have.nested.property('values.keysgroup').equal(transaction.asset.multisignature.keysgroup.join(','));
-		});
-
-		it('should return result containing values.transactionId = transaction.id', function () {
-			expect(dbSaveResult).to.have.nested.property('values.transactionId').equal(transaction.id);
 		});
 	});
 

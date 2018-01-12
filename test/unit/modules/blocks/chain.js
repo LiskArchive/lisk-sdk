@@ -1,6 +1,69 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
+var crypto = require('crypto');
+var lisk = require('lisk-js');
+var chai = require('chai');
+var should = chai.should();
+var application = require('../../../common/application');
+var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
+var accountFixtures = require('../../../fixtures/accounts');
+var randomUtil = require('../../../common/utils/random');
+var sinon = require('sinon');
+
+var previousBlock;
+
+function createBlock (blocksModule, blockLogic, secret, timestamp, transactions) {
+	var keypair = blockLogic.scope.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
+	blocksModule.lastBlock.set(previousBlock);
+	var newBlock = blockLogic.create({
+		keypair: keypair,
+		timestamp: timestamp,
+		previousBlock: blocksModule.lastBlock.get(),
+		transactions: transactions
+	});
+	newBlock.id = blockLogic.getId(newBlock);
+	newBlock.height = previousBlock ? previousBlock.height + 1 : 1;
+	return newBlock;
+}
+
 describe('blocks/chain', function () {
+
+	var blocksModule, blocksChainModule, blockLogic, logger, genesisBlock, db;
+
+	before(function (done) {
+		// Force rewards start at 150-th block
+		application.init({sandbox: {name: 'lisk_test_blocks_chain'}, waitForGenesisBlock: true}, function (err, scope) {
+			db = scope.db;
+			blocksModule = scope.modules.blocks;
+			blocksChainModule = scope.modules.blocks.chain;
+			blockLogic = scope.logic.block;
+			logger = scope.logger;
+			genesisBlock = scope.genesisblock.block;
+			blocksModule.onBind(scope.modules);
+			blocksChainModule.onBind(scope.modules);
+
+			previousBlock = genesisBlock;
+
+			done();
+		});
+	});
+
+	after(function (done) {
+		application.cleanup(done);
+	});
 
 	describe('constructor', function () {
 
@@ -211,7 +274,7 @@ describe('blocks/chain', function () {
 			it('should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}');
 
 			describe('when modules.accounts.setAccountAndGet fails', function () {
-				
+
 				describe('error object', function () {
 
 					it('should assign message');
@@ -306,6 +369,76 @@ describe('blocks/chain', function () {
 	});
 
 	describe('applyBlock', function () {
+
+		var secret = 'lend crime turkey diary muscle donkey arena street industry innocent network lunar';
+		var block;
+		var transactions;
+
+		beforeEach(function () {
+			transactions = [];
+			var account = randomUtil.account();
+			var transaction = lisk.transaction.createTransaction(
+				account.address,
+				randomUtil.number(100000000, 1000000000),
+				accountFixtures.genesis.password
+			);
+			transaction.senderId = accountFixtures.genesis.address;
+			transactions.push(transaction);
+		});
+
+		afterEach(function () {
+			previousBlock = block;
+		});
+
+		it('should apply a valid block successfully', function (done) {
+			block = createBlock(blocksModule, blockLogic, secret, 32578370, transactions);
+
+			blocksChainModule.applyBlock(block, true, function (err) {
+				if (err) {
+					return done(err);
+				}
+
+				blocksModule.shared.getBlocks({id: block.id}, function (err, data) {
+					data.should.have.lengthOf(1);
+					data[0].id.should.be.equal(block.id);
+					done(err);
+				});
+			});
+		});
+
+		// TODO: Need to enable it after making block part of the single transaction
+		it.skip('should apply block in a single transaction', function (done) {
+			block = createBlock(blocksModule, blockLogic, secret, 32578370, transactions);
+
+			db.$config.options.query = function (event) {
+				if (!(event.ctx && event.ctx.isTX && event.ctx.txLevel === 0 && event.ctx.tag === 'Chain:applyBlock')) {
+					return done('Some query executed outside transaction context: ' + event.query, event);
+				}
+			};
+
+			var connect = sinon.stub();
+			var disconnect = sinon.stub();
+
+			db.$config.options.connect = connect;
+			db.$config.options.disconnect = disconnect;
+
+			blocksChainModule.applyBlock(block, true, function (err) {
+				if (err) {
+					done(err);
+				}
+
+				connect.calledOnce.should.be.true;
+				disconnect.calledOnce.should.be.true;
+
+				delete db.$config.options.connect;
+				delete db.$config.options.disconnect;
+				delete db.$config.options.query;
+
+				blocksModule.shared.getBlocks({id: block.id}, function (err, data) {
+					done(err);
+				});
+			});
+		});
 
 		it('should call modules.blocks.isActive');
 

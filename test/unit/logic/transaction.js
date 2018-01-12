@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';/*eslint*/
 
 var crypto = require('crypto');
@@ -940,79 +953,6 @@ describe('transaction', function () {
 				expect(err).to.not.exist;
 				applyUnconfirmedTransaction(validTransaction, sender, done);
 			});
-		});
-	});
-
-	describe('dbSave', function () {
-
-		it('should throw an error with no param', function () {
-			expect(transactionLogic.dbSave).to.throw();
-		});
-
-		it('should throw an error when type is not specified', function () {
-			var transaction = _.cloneDeep(validTransaction);
-			delete transaction.type;
-
-			expect(function () {
-				transactionLogic.dbSave(transaction);
-			}).to.throw();
-		});
-
-		it('should create comma separated transaction signatures', function () {
-			var transaction = _.cloneDeep(validTransaction);
-			var vs = _.cloneDeep(sender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
-
-			delete transaction.signature;
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
-			transaction.signatures = [transactionLogic.multisign(validKeypair, transaction)];
-
-			var savePromise = transactionLogic.dbSave(transaction);
-			var transactionValues = savePromise[0].values;
-
-			expect(savePromise).to.be.an('Array');
-			expect(savePromise).to.have.length(1);
-			expect(savePromise).to.be.an('Array');
-			expect(transactionValues).to.have.property('signatures').which.is.equal(transaction.signatures.join(','));
-		});
-
-		it('should return response for valid parameters with data field', function () {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset = {data : '123'};
-			var savePromise = transactionLogic.dbSave(transaction);
-
-			expect(savePromise).to.be.an('Array');
-			expect(savePromise).to.have.length(2);
-			expect(savePromise[1].values).to.have.property('data').to.eql(new Buffer('123'));
-		});
-
-		it('should return promise object for valid parameters', function () {
-			var savePromise = transactionLogic.dbSave(validTransaction);
-			var keys = [
-				'table',
-				'fields',
-				'values'
-			];
-			var valuesKeys = [
-				'id',
-				'blockId',
-				'type',
-				'timestamp',
-				'senderPublicKey',
-				'requesterPublicKey',
-				'senderId',
-				'recipientId',
-				'amount',
-				'fee',
-				'signature',
-				'signSignature',
-				'signatures'
-			];
-
-			expect(savePromise).to.be.an('Array');
-			expect(savePromise).to.have.length(1);
-			expect(savePromise[0]).to.have.keys(keys);
-			expect(savePromise[0].values).to.have.keys(valuesKeys);
 		});
 	});
 

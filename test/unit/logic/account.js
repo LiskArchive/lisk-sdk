@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';/*eslint*/
 
 var chai = require('chai');
@@ -454,19 +467,42 @@ describe('account', function () {
 			});
 		});
 
-		it('should sort the result according to field type in ascending order', function (done) {
-			account.getAll({sort: 'username:asc'}, ['username'], function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.eql(_.sortBy(res, 'username'));
-				done();
+		describe('sort using string as argument', function () {
+
+			it('should sort the result according to field type in ascending order', function (done) {
+				account.getAll({sort: 'username:asc'}, ['username'], function (err, res) {
+					expect(err).to.not.exist;
+					expect(res).to.eql(_.sortBy(res, 'username'));
+					done();
+				});
+			});
+
+
+			it('should sort the result according to field type in descending order', function (done) {
+				account.getAll({sort: 'username:desc'}, ['username'], function (err, res) {
+					expect(err).to.not.exist;
+					expect(res).to.eql(_.sortBy(res, 'username').reverse());
+					done();
+				});
 			});
 		});
 
-		it('should sort the result according to field type in descending order', function (done) {
-			account.getAll({sort: 'username:desc'}, ['username'], function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.eql(_.sortBy(res, 'username').reverse());
-				done();
+		describe('sort using object as argument', function () {
+
+			it('should sort the result according to field type in ascending order', function (done) {
+				account.getAll({sort: {'username': 1}}, ['username'], function (err, res) {
+					expect(err).to.not.exist;
+					expect(res).to.eql(_.sortBy(res, 'username'));
+					done();
+				});
+			});
+
+			it('should sort the result according to field type in descending order', function (done) {
+				account.getAll({sort: {'username': -1}}, ['username'], function (err, res) {
+					expect(err).to.not.exist;
+					expect(res).to.eql(_.sortBy(res, 'username').reverse());
+					done();
+				});
 			});
 		});
 	});
