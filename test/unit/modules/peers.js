@@ -719,13 +719,13 @@ describe('peers', function () {
 		it('should update peers list onBlockchainReady even if rpc.status call fails', function (done) {
 			var peerStub = {
 				rpc: {
-					status: sinon.stub().callsArgWith(0, 'Failed to get peer status')
+					status: sinonSandbox.stub().callsArgWith(0, 'Failed to get peer status')
 				},
-				applyHeaders: sinon.stub()
+				applyHeaders: sinonSandbox.stub()
 			};
 
 			PeersRewired.__set__('library.config.peers.list', [peerStub]);
-			peersLogicMock.upsert = sinon.spy();
+			peersLogicMock.upsert = sinonSandbox.spy();
 
 			peers.onBlockchainReady();
 			setTimeout(function () {
