@@ -43,7 +43,9 @@ var db;
 var queryFilesCommands = {};
 
 /**
- * Memoized QueryFile creation
+ * Creates memoized QueryFile object
+ * @param {string} sqlPath - Path to SQL file
+ * @return {Object} Memoized QueryFile object
  */
 var createQueryFile = function (sqlPath) {
 	if (!queryFilesCommands[sqlPath]) {
