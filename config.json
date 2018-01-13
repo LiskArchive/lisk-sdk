@@ -24,7 +24,7 @@
     "logEvents": [
       "error"
     ],
-	"logFileName": "logs/lisk_db.log"
+    "logFileName": "logs/lisk_db.log"
   },
   "redis": {
     "host": "127.0.0.1",

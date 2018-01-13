@@ -132,7 +132,8 @@ if (appConfig.db.logFileName && appConfig.db.logFileName === appConfig.logFileNa
 	dbLogger = new Logger({
 		echo: appConfig.db.consoleLogLevel || appConfig.consoleLogLevel,
 		errorLevel: appConfig.db.fileLogLevel || appConfig.fileLogLevel,
-		filename: appConfig.db.logFileName });
+		filename: appConfig.db.logFileName
+	});
 }
 
 // Trying to get last git commit
