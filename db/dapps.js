@@ -95,7 +95,7 @@ DappsRepo.prototype.list = function (params) {
 	return this.db.query(DappsSql.list(params), params);
 };
 
-//TODO: Remove this method in use relevant method from db/blocks
+// TODO: Remove DappsRepo#getGenesis and use relevant function from db/blocks
 /**
  * Get Genesis block
  * @param {string} id

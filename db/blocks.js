@@ -154,7 +154,7 @@ var Queries = {
 	deleteAfterBlock: new PQ('DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "id" = $1)')
 };
 
-//TODO: Merge both methods in one BlocksRepo#getGenesisBlock and BlocksRepo#getGenesisBlockId
+// TODO: Merge BlocksRepo#getGenesisBlock with BlocksRepo#getGenesisBlockId
 /**
  * Get the genesis block
  * @return {Promise}
@@ -239,7 +239,7 @@ BlocksRepo.prototype.getCommonBlock = function (params) {
 	return this.db.query(Queries.getCommonBlock(params), params);
 };
 
-//TODO: Merge this method with BlocksRepo#list
+// TODO: Merge BlocksRepo#getHeightByLastId with BlocksRepo#list
 /**
  * Get height of the block with id
  * @param {string} lastId - Id of the block to search

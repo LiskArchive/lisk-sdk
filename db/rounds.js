@@ -82,7 +82,7 @@ RoundsRepo.prototype.flush = function (round) {
 	return this.db.none(Queries.flush, [round]);
 };
 
-//TODO: Move usage of this method to db/blocks
+// TODO: Move usage of RoundsRepo#truncateBlocks to db/blocks
 /**
  * Delete all blocks for above a particular height
  * @param {int} height
@@ -102,7 +102,7 @@ RoundsRepo.prototype.updateMissedBlocks = function (backwards, outsiders) {
 	return this.db.none(Queries.updateMissedBlocks(backwards), [outsiders]);
 };
 
-//TODO: Move usage of this method to db/votes
+// TODO: Move usage of RoundsRepo#getVotes to db/votes
 /**
  * Get votes for a round
  * @param {string} round - Id of the round
@@ -112,7 +112,7 @@ RoundsRepo.prototype.getVotes = function (round) {
 	return this.db.query(Queries.getVotes, [round]);
 };
 
-//TODO: Move usage of this method to db/votes
+// TODO: Move usage of RoundsRepo#updateVotes to db/votes
 /**
  * Update the votes of for a particular account
  * @param {string} address - Address of the account
@@ -122,7 +122,7 @@ RoundsRepo.prototype.updateVotes = function (address, amount) {
 	return this.db.none(Queries.updateVotes, [amount, address]);
 };
 
-//TODO: Move usage of this method to db/accounts
+// TODO: Move usage of RoundsRepo#updateBlockId to db/accounts
 /**
  * Update id of a particular block for an account
  * @param {string} newId

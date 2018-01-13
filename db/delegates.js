@@ -45,7 +45,7 @@ DelegatesRepo.prototype.countDuplicatedDelegates = function () {
 	return this.db.query(DelegatesSql.countDuplicatedDelegates);
 };
 
-//TODO: Create a seperate db repo for forks_stats and move this method
+// TODO: Move DelegatesRepo#insertFork to a seperate db repos
 /**
  * Insert a fork data table entry
  * @param {Object} fork
