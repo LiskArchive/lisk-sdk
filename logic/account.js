@@ -20,6 +20,7 @@ var path = require('path');
 var jsonSql = require('json-sql')();
 jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
+var createQueryFile = require('../helpers/database.js').createQueryFile;
 var slots = require('../helpers/slots.js');
 var sortBy = require('../helpers/sort_by.js');
 var BlockReward = require('../logic/blockReward.js');
@@ -473,9 +474,10 @@ Account.prototype.bind = function (blocks) {
  * @returns {setImmediateCallback} cb|error.
  */
 Account.prototype.createTables = function (cb) {
-	var sql = new pgp.QueryFile(path.join(process.cwd(), 'sql', 'memoryTables.sql'), {minify: true});
+	var sqlPath = path.join(process.cwd(), 'sql', 'memoryTables.sql');
+	var queryFile = createQueryFile(sqlPath);
 
-	this.scope.db.query(sql).then(function () {
+	this.scope.db.query(queryFile).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
