@@ -1766,14 +1766,7 @@ definitions:
     type: object
     required:
       - ip
-      - httpPort
       - wsPort
-      - os
-      - version
-      - state
-      - height
-      - broadhash
-      - nonce
     properties:
       ip:
         type: string
