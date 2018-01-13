@@ -97,9 +97,9 @@ AccountsRepo.prototype.getDelegates = function () {
 };
 
 /**
- * Update or Insert in mem accounts
- * @param {Object} data - Attributes to be inserted can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
- * @param {Array} conflictingFields - An array of attributes to be tested against conflicts can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
+ * Update or insert into mem_accounts
+ * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
+ * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
  * @return {Promise}
  */
 AccountsRepo.prototype.upsert = function (data, conflictingFields) {

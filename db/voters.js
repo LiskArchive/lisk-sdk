@@ -42,7 +42,7 @@ var Queries = {
 };
 
 /**
- * Search the voters for a delegate with publicKey
+ * Search the voters for a delegate with a public Key
  * @param {Object} params
  * @param {string} params.publicKey
  * @param {int} params.limit

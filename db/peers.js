@@ -64,7 +64,7 @@ PeersRepo.prototype.clear = function () {
 
 /**
  * Insert a new peer to database
- * @param {Array<Object>} peers - Array of peers to be inserted. Object can contains any of fields [PeersRepo's dbFields property]{@link PeersRepo#dbFields}
+ * @param {Array<Object>} peers - Array of peer objects to be inserted. Objects can contain any of fields [PeersRepo's dbFields property]{@link PeersRepo#dbFields}
  * @return {Promise}
  */
 PeersRepo.prototype.insert = function (peers) {

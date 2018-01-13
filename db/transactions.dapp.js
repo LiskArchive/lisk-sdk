@@ -17,7 +17,7 @@ var _ = require('lodash');
 var columnSet;
 
 /**
- * Daaps Transactions database interaction module
+ * Dapps Transactions database interaction module
  * @memberof module:dapps
  * @class
  * @param {Database} db - Instance of database object from pg-promise

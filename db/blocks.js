@@ -250,7 +250,7 @@ BlocksRepo.prototype.getHeightByLastId = function (lastId) {
 };
 
 /**
- * Load block along with all transactions
+ * Load block including transactions
  * @param {Object} params
  * @param {string} params.id
  * @param {string} params.lastId
@@ -263,7 +263,7 @@ BlocksRepo.prototype.loadBlocksData = function (params) {
 };
 
 /**
- * Load blocks among transactions for a range of a height
+ * Load blocks including transactions with an offset and limit
  * @param {int} offset
  * @param {int} limit
  * @return {Promise}
@@ -273,7 +273,7 @@ BlocksRepo.prototype.loadBlocksOffset = function (offset, limit) {
 };
 
 /**
- * Load the last block along with all transactions
+ * Load the last block including transactions
  * @return {Promise}
  */
 BlocksRepo.prototype.loadLastBlock = function () {
@@ -284,7 +284,7 @@ BlocksRepo.prototype.loadLastBlock = function () {
  * Check if a block exits with a particular ID
  * @param {string} id
  * @return {Promise}
- * @throws {QueryResultError} - Multiple rows were not expected - in case found multiple blocks with same id
+ * @throws {QueryResultError} - Multiple rows were not expected - in the case of multiple blocks found with same id
  */
 BlocksRepo.prototype.blockExists = function (id) {
 	return this.db.oneOrNone(Queries.blockExists, [id]);
@@ -310,7 +310,7 @@ BlocksRepo.prototype.getBlocksForTransport = function (ids) {
 
 /**
  * Insert a block to database
- * @param {Object} block - Attributes to be inserted can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
+ * @param {Object} block - Attributes to be inserted, can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
  * @return {Promise}
  */
  BlocksRepo.prototype.save = function (block) {

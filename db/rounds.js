@@ -84,7 +84,7 @@ RoundsRepo.prototype.flush = function (round) {
 
 // TODO: Move usage of RoundsRepo#truncateBlocks to db/blocks
 /**
- * Delete all blocks for above a particular height
+ * Delete all blocks above a particular height
  * @param {int} height
  * @return {Promise}
  */
@@ -95,7 +95,7 @@ RoundsRepo.prototype.truncateBlocks = function (height) {
 /**
  * Update the missedblocks attribute for an account
  * @param {boolean} backwards - Backward flag
- * @param {string} outsiders - Comma Separated string of ids
+ * @param {string} outsiders - Comma separated string of ids
  * @return {*}
  */
 RoundsRepo.prototype.updateMissedBlocks = function (backwards, outsiders) {
@@ -135,7 +135,7 @@ RoundsRepo.prototype.updateBlockId = function (newId, oldId) {
 
 /**
  * Summarize the results for a round
- * @param {string} round - Round Id
+ * @param {string} round - Id of the round
  * @param {int} activeDelegates - Number of active delegates
  * @return {Promise}
  */
