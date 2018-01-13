@@ -111,14 +111,14 @@ describe('GET /api/node', function () {
 
 				it('using completely invalid fields should fail', function () {
 					return UnsignedEndpoint.makeRequest({
-						senderAddress: 'invalid',
-						recipientAddress: 'invalid',
+						senderId: 'invalid',
+						recipientId: 'invalid',
 						limit: 'invalid',
 						offset: 'invalid',
 						sort: 'invalid'
 					}, 400).then(function (res) {
-						expectSwaggerParamError(res, 'senderAddress');
-						expectSwaggerParamError(res, 'recipientAddress');
+						expectSwaggerParamError(res, 'senderId');
+						expectSwaggerParamError(res, 'recipientId');
 						expectSwaggerParamError(res, 'limit');
 						expectSwaggerParamError(res, 'offset');
 						expectSwaggerParamError(res, 'sort');
@@ -127,13 +127,13 @@ describe('GET /api/node', function () {
 
 				it('using partially invalid fields should fail', function () {
 					return UnsignedEndpoint.makeRequest({
-						senderAddress: 'invalid',
-						recipientAddress: senderAccount.address,
+						senderId: 'invalid',
+						recipientId: senderAccount.address,
 						limit: 'invalid',
 						offset: 'invalid',
 						sort: 'invalid'
 					}, 400).then(function (res) {
-						expectSwaggerParamError(res, 'senderAddress');
+						expectSwaggerParamError(res, 'senderId');
 						expectSwaggerParamError(res, 'limit');
 						expectSwaggerParamError(res, 'offset');
 						expectSwaggerParamError(res, 'sort');
@@ -193,27 +193,27 @@ describe('GET /api/node', function () {
 				});
 			});
 
-			describe('senderAddress', function () {
+			describe('senderId', function () {
 
-				it('using invalid senderAddress should fail', function () {
-					return UnsignedEndpoint.makeRequest({senderAddress: '79fjdfd'}, 400).then(function (res) {
-						expectSwaggerParamError(res, 'senderAddress');
+				it('using invalid senderId should fail', function () {
+					return UnsignedEndpoint.makeRequest({ senderId: '79fjdfd'}, 400).then(function (res) {
+						expectSwaggerParamError(res, 'senderId');
 					});
 				});
 
-				it('using valid senderAddress should be ok', function () {
+				it('using valid senderId should be ok', function () {
 
-					return UnsignedEndpoint.makeRequest({senderAddress: senderAccount.address}, 200).then(function (res) {
+					return UnsignedEndpoint.makeRequest({ senderId: senderAccount.address}, 200).then(function (res) {
 						res.body.data.should.not.empty;
 						res.body.data.length.should.be.at.least(numOfTransactions);
 						res.body.data.map(function (transaction) {
-							transaction.senderAddress.should.be.equal(senderAccount.address);
+							transaction.senderId.should.be.equal(senderAccount.address);
 						});
 					});
 				});
 
-				it('using valid but unknown senderAddress should be ok', function () {
-					return UnsignedEndpoint.makeRequest({senderAddress: '1631373961111634666L'}, 200).then(function (res) {
+				it('using valid but unknown senderId should be ok', function () {
+					return UnsignedEndpoint.makeRequest({ senderId: '1631373961111634666L'}, 200).then(function (res) {
 						res.body.data.should.be.empty;
 					});
 				});
@@ -244,26 +244,26 @@ describe('GET /api/node', function () {
 				});
 			});
 
-			describe('recipientAddress', function () {
+			describe('recipientId', function () {
 
-				it('using invalid recipientAddress should fail', function () {
-					return UnsignedEndpoint.makeRequest({recipientAddress: '79fjdfd'}, 400).then(function (res) {
-						expectSwaggerParamError(res, 'recipientAddress');
+				it('using invalid recipientId should fail', function () {
+					return UnsignedEndpoint.makeRequest({recipientId: '79fjdfd'}, 400).then(function (res) {
+						expectSwaggerParamError(res, 'recipientId');
 					});
 				});
 
-				it('using valid recipientAddress should be ok', function () {
-					return UnsignedEndpoint.makeRequest({recipientAddress: recipientAccount.address}, 200).then(function (res) {
+				it('using valid recipientId should be ok', function () {
+					return UnsignedEndpoint.makeRequest({recipientId: recipientAccount.address}, 200).then(function (res) {
 						res.body.data.should.not.empty;
 						res.body.data.length.should.be.at.least(numOfTransactions);
 						res.body.data.map(function (transaction) {
-							transaction.recipientAddress.should.be.equal(recipientAccount.address);
+							transaction.recipientId.should.be.equal(recipientAccount.address);
 						});
 					});
 				});
 
-				it('using valid but unknown recipientAddress should be ok', function () {
-					return UnsignedEndpoint.makeRequest({recipientAddress: '1631373961111634666L'}, 200).then(function (res) {
+				it('using valid but unknown recipientId should be ok', function () {
+					return UnsignedEndpoint.makeRequest({recipientId: '1631373961111634666L'}, 200).then(function (res) {
 						res.body.data.should.be.empty;
 					});
 				});
@@ -283,7 +283,7 @@ describe('GET /api/node', function () {
 						res.body.data.length.should.be.at.least(numOfTransactions);
 						res.body.data.map(function (transaction) {
 							// TODO: Unprocessed transactions don't have recipientPublicKey attribute, so matched address
-							transaction.recipientAddress.should.be.equal(recipientAccount.address);
+							transaction.recipientId.should.be.equal(recipientAccount.address);
 						});
 					});
 				});
