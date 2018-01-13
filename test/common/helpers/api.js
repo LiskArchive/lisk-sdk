@@ -345,5 +345,6 @@ module.exports = {
 	getAccountsPromise: getAccountsPromise,
 	getBlocksPromise: getBlocksPromise,
 	expectSwaggerParamError: expectSwaggerParamError,
-	createSignatureObject: createSignatureObject
+	createSignatureObject: createSignatureObject,
+	normalizeTransactionObject: normalizeTransactionObject
 };
