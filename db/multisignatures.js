@@ -32,7 +32,7 @@ function MultisignaturesRepo (db, pgp) {
 var Queries = {
 	getMultisignatureMemberPublicKeys: new PQ('SELECT ARRAY_AGG("dependentId") AS "memberAccountKeys" FROM mem_accounts2multisignatures WHERE "accountId" = $1'),
 
-	getMultisignatureGroupIds: new PQ('SELECT ARRAY_AGG("accountId") AS "groupAccountIds" FROM mem_accounts2multisignatures WHERE "dependentId" = $1'),
+	getMultisignatureGroupIds: new PQ('SELECT ARRAY_AGG("accountId") AS "groupAccountIds" FROM mem_accounts2multisignatures WHERE "dependentId" = $1')
 };
 
 /**

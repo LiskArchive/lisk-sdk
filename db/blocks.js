@@ -73,7 +73,7 @@ var Queries = {
 
 	getGenesisBlockId: new PQ('SELECT "id" FROM blocks WHERE "id" = $1'),
 
-	getGenesisBlock: new PQ('SELECT "id", "payloadHash", "blockSignature" FROM blocks WHERE "height" = 1'),
+	getGenesisBlock: 'SELECT "id", "payloadHash", "blockSignature" FROM blocks WHERE "height" = 1',
 
 	deleteBlock: new PQ('DELETE FROM blocks WHERE "id" = $1'),
 

@@ -459,9 +459,9 @@ paths:
             - unconfirmed
             - unsigned
         - $ref: '#/parameters/transactionId'
-        - $ref: '#/parameters/recipientAddress'
+        - $ref: '#/parameters/recipientId'
         - $ref: '#/parameters/recipientPublicKey'
-        - $ref: '#/parameters/senderAddress'
+        - $ref: '#/parameters/senderId'
         - $ref: '#/parameters/senderPublicKey'
         - $ref: '#/parameters/transactionType'
         - $ref: '#/parameters/limit'
@@ -809,9 +809,9 @@ paths:
         - application/json
       parameters:
         - $ref: '#/parameters/transactionId'
-        - $ref: '#/parameters/recipientAddress'
+        - $ref: '#/parameters/recipientId'
         - $ref: '#/parameters/recipientPublicKey'
-        - $ref: '#/parameters/senderAddress'
+        - $ref: '#/parameters/senderId'
         - $ref: '#/parameters/senderPublicKey'
         - $ref: '#/parameters/transactionType'
         - $ref: '#/parameters/height'
@@ -1014,8 +1014,8 @@ parameters:
     format: id
     minLength: 1
     maxLength: 20
-  recipientAddress:
-    name: recipientAddress
+  recipientId:
+    name: recipientId
     in: query
     description: Recipient address to query
     type: string
@@ -1029,8 +1029,8 @@ parameters:
     type: string
     format: publicKey
     minLength: 1
-  senderAddress:
-    name: senderAddress
+  senderId:
+    name: senderId
     in: query
     description: Sender address to query
     type: string
@@ -1429,7 +1429,7 @@ definitions:
       - amount
       - fee
       - senderPublicKey
-      - recipientAddress
+      - recipientId
       - timestamp
       - asset
       - signature
@@ -1462,7 +1462,7 @@ definitions:
       timestamp:
         type: integer
         example: 28227090
-      senderAddress:
+      senderId:
         type: string
         format: address
         example: 12668885769632475474L
@@ -1474,7 +1474,7 @@ definitions:
         type: string
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
-      recipientAddress:
+      recipientId:
         type: string
         format: address
         example: 12668885769632475474L
@@ -1766,14 +1766,7 @@ definitions:
     type: object
     required:
       - ip
-      - httpPort
       - wsPort
-      - os
-      - version
-      - state
-      - height
-      - broadhash
-      - nonce
     properties:
       ip:
         type: string

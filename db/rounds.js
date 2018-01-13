@@ -30,11 +30,11 @@ function RoundsRepo (db, pgp) {
 }
 
 var Queries = {
-	getMemRounds: 'SELECT "round" FROM mem_round GROUP BY "round"',
+	getMemRounds: new PQ('SELECT "round" FROM mem_round GROUP BY "round"'),
 
-	flush: 'DELETE FROM mem_round WHERE "round" = ($1)::bigint;',
+	flush: new PQ('DELETE FROM mem_round WHERE "round" = ($1)::bigint;'),
 
-	truncateBlocks: 'DELETE FROM blocks WHERE "height" > ($1)::bigint;',
+	truncateBlocks: new PQ('DELETE FROM blocks WHERE "height" > ($1)::bigint;'),
 
 	updateMissedBlocks: function (backwards) {
 		return [
@@ -44,13 +44,13 @@ var Queries = {
 		].join(' ');
 	},
 
-	getVotes: 'SELECT d."delegate", d."amount" FROM (SELECT m."delegate", SUM(m."amount") AS "amount", "round" FROM mem_round m GROUP BY m."delegate", m."round") AS d WHERE "round" = ($1)::bigint',
+	getVotes: new PQ('SELECT d."delegate", d."amount" FROM (SELECT m."delegate", SUM(m."amount") AS "amount", "round" FROM mem_round m GROUP BY m."delegate", m."round") AS d WHERE "round" = ($1)::bigint'),
 
-	updateVotes: 'UPDATE mem_accounts SET "vote" = "vote" + ($1)::bigint WHERE "address" = $2;',
+	updateVotes: new PQ('UPDATE mem_accounts SET "vote" = "vote" + ($1)::bigint WHERE "address" = $2;'),
 
-	updateBlockId: 'UPDATE mem_accounts SET "blockId" = $1 WHERE "blockId" = $2;',
+	updateBlockId: new PQ('UPDATE mem_accounts SET "blockId" = $1 WHERE "blockId" = $2;'),
 
-	summedRound: 'SELECT SUM(r.fee)::bigint AS "fees", ARRAY_AGG(r.reward) AS rewards, ARRAY_AGG(r.pk) AS delegates FROM (SELECT b."totalFee" AS fee, b.reward, ENCODE(b."generatorPublicKey", \'hex\') AS pk FROM blocks b WHERE CEIL(b.height / $1::float)::int = $2 ORDER BY b.height ASC) r;',
+	summedRound: PQ('SELECT SUM(r.fee)::bigint AS "fees", ARRAY_AGG(r.reward) AS rewards, ARRAY_AGG(r.pk) AS delegates FROM (SELECT b."totalFee" AS fee, b.reward, ENCODE(b."generatorPublicKey", \'hex\') AS pk FROM blocks b WHERE CEIL(b.height / ($1)::float)::int = $2 ORDER BY b.height ASC) r;'),
 
 	clearRoundSnapshot: 'DROP TABLE IF EXISTS mem_round_snapshot',
 
@@ -119,7 +119,7 @@ RoundsRepo.prototype.getVotes = function (round) {
  * @param {int} amount - Votes to update
  */
 RoundsRepo.prototype.updateVotes = function (address, amount) {
-	return this.pgp.as.format(Queries.updateVotes, [amount, address]);
+	return this.db.none(Queries.updateVotes, [amount, address]);
 };
 
 //TODO: Move usage of this method to db/accounts
