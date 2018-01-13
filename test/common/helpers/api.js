@@ -147,8 +147,8 @@ function normalizeTransactionObject (transaction) {
 	if (_.isObject(transaction)) {
 		transaction = _.cloneDeep(transaction);
 
-		transaction.recipientAddress = transaction.recipientId || '';
-		transaction.senderAddress = transaction.senderId || '';
+		transaction.recipientId = transaction.recipientId || '';
+		transaction.senderId = transaction.senderId || '';
 
 		if (_.has(transaction, 'amount')) {
 			transaction.amount = transaction.amount.toString();
@@ -157,9 +157,6 @@ function normalizeTransactionObject (transaction) {
 		if (_.has(transaction, 'fee')) {
 			transaction.fee = transaction.fee.toString();
 		}
-
-		delete transaction.recipientId;
-		delete transaction.senderId;
 	}
 	return transaction;
 }

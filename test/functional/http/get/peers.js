@@ -110,8 +110,8 @@ describe('GET /peers', function () {
 				});
 		});
 
-		it('using state = ' + validHeaders.status + ' should return the result', function () {
-			return peersEndpoint.makeRequest({state: validHeaders.status}, 200)
+		it('using state = ' + validHeaders.state + ' should return the result', function () {
+			return peersEndpoint.makeRequest({state: validHeaders.state}, 200)
 				.then(function (res) {
 					res.body.data[0].state.should.be.eql(2);
 				});

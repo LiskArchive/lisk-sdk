@@ -212,9 +212,6 @@ describe('peer', function () {
 					if (typeof prefixedPeer[property] !== 'object') {
 						expect(peerCopy[property]).to.equal(prefixedPeer[property]);
 					}
-					if (__peer.nullable.indexOf(property) !== -1 && !prefixedPeer[property]) {
-						expect(peerCopy[property]).to.be.null;
-					}
 				}
 			});
 		});
