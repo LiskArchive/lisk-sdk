@@ -18,6 +18,15 @@ var _ = require('lodash');
 var transactionTypes = require('../helpers/transactionTypes');
 var columnSet;
 
+/**
+ * Transactions database interaction module
+ * @memberof module:transactions
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {TransactionsRepo}
+ */
 function TransactionsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -57,7 +66,7 @@ function TransactionsRepo (db, pgp) {
 	if (!columnSet) {
 		columnSet = {};
 		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, table);
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
 		columnSet.insert = columnSet.insert.merge([{ name: 'recipientId', def: null }]);
 	}
 
@@ -121,66 +130,139 @@ var Queries = {
 	getOutTransferByIds: 'SELECT "transactionId" AS "transaction_id", "dappId" AS "ot_dappId", "outTransactionId" AS "ot_outTransactionId" FROM outtransfer WHERE "transactionId" IN ($1:csv)'
 };
 
+/**
+ * Count total transactions
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.count = function () {
 	return this.db.one(Queries.count).then(function (result) {
 		return result.count;
 	});
 };
 
+/**
+ * Count transactions by Id
+ * @param {string} id
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.countById = function (id) {
 	return this.db.one(Queries.countById, [id]).then(function (result) {
 		return result.count;
 	});
 };
 
+/**
+ * Count transactions with extended params
+ * @param {Object} params
+ * @param {Array} params.where
+ * @param {string} params.owner
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.countList = function (params) {
 	return this.db.query(Queries.countList(params), params);
 };
 
+/**
+ * Search transactions
+ * @param {Object} params
+ * @param {Array} params.where
+ * @param {string} params.owner
+ * @param {string} params.sortField
+ * @param {string} params.sortMethod
+ * @param {int} params.limit
+ * @param {int} params.offset
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.list = function (params) {
 	return this.db.query(Queries.list(params), params);
 };
 
+/**
+ * Get transfer transactions by Ids
+ * @param {Array.<string>} ids
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.getTransferByIds = function (ids) {
 	return this.db.query(Queries.getTransferByIds, [ids]);
 };
 
+/**
+ * Get vote transactions by Ids
+ * @param {Array.<string>} ids
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.getVotesByIds = function (ids) {
 	return this.db.query(Queries.getVotesByIds, [ids]);
 };
 
+/**
+ * Get delegate transactions by Ids
+ * @param {Array.<string>} ids
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.getDelegateByIds = function (ids) {
 	return this.db.query(Queries.getDelegateByIds, [ids]);
 };
 
+/**
+ * Get signature transactions by Ids
+ * @param {Array.<string>} ids
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.getSignatureByIds = function (ids) {
 	return this.db.query(Queries.getSignatureByIds, [ids]);
 };
 
+/**
+ * Get multisignature transactions by Ids
+ * @param {Array.<string>} ids
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.getMultiByIds = function (ids) {
 	return this.db.query(Queries.getMultiByIds, [ids]);
 };
 
+/**
+ * Get dapp transactions by Ids
+ * @param {Array.<string>} ids
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.getDappByIds = function (ids) {
 	return this.db.query(Queries.getDappByIds, [ids]);
 };
 
+/**
+ * Get intransfer transactions by Ids
+ * @param {Array.<string>} ids
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.getInTransferByIds = function (ids) {
 	return this.db.query(Queries.getInTransferByIds, [ids]);
 };
 
+/**
+ * Get outtransfer transactions by Ids
+ * @param {Array.<string>} ids
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.getOutTransferByIds = function (ids) {
 	return this.db.query(Queries.getOutTransferByIds, [ids]);
 };
 
+/**
+ * Save transactions to database
+ * @param {Array.<Object>} transactions - Each object should justify *logic/transaction.prototype.schema*
+ * @return {Promise}
+ */
 TransactionsRepo.prototype.save = function (transactions) {
 	var self = this;
-
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
+	var saveTransactions = _.cloneDeep(transactions);
+	
+	if (!_.isArray(saveTransactions)) {
+		saveTransactions = [saveTransactions];
 	}
 
-	transactions.forEach(function (transaction) {
+	saveTransactions.forEach(function (transaction) {
 		try {
 			transaction.senderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
 			transaction.signature = Buffer.from(transaction.signature, 'hex');
@@ -193,16 +275,16 @@ TransactionsRepo.prototype.save = function (transactions) {
 	});
 
 	var batch = [];
-	batch.push(self.db.none(self.pgp.helpers.insert(transactions, self.cs.insert)));
+	batch.push(self.db.none(self.pgp.helpers.insert(saveTransactions, self.cs.insert)));
 
-	var groupedTransactions = _.groupBy(transactions, 'type');
+	var groupedTransactions = _.groupBy(saveTransactions, 'type');
 
 	Object.keys(groupedTransactions).forEach(function (type) {
 		batch.push(self.db[self.transactionsRepoMap[type]].save(groupedTransactions[type]));
 	});
 
-	// To avoid nested transactions aka transactions checkpoints
-	if(this.db.batch) {
+	// To avoid nested transactions aka transactions savepoints
+	if(this.db.ctx.isTX) {
 		return this.db.batch(batch);
 	} else {
 		return this.db.tx(function (t) {

@@ -20,7 +20,11 @@ var phases = require('../common/phases');
 var ws = require('../../common/ws/communication');
 var randomUtil = require('../../common/utils/random');
 
+var normalizeTransactionObject = require('../../common/helpers/api').normalizeTransactionObject;
+
 function postTransaction (transaction, done) {
+	transaction = normalizeTransactionObject(transaction);
+
 	ws.call('postTransactions', {
 		transactions: [transaction]
 	}, done, true);
