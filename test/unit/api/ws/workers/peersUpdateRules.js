@@ -40,7 +40,7 @@ describe('PeersUpdateRules', function () {
 		validConnectionId  = 'ABCDEF123456789';
 		validErrorCode = 4100;
 		peersUpdateRules = new PeersUpdateRules(slaveWAMPServerMock);
-		peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArg(3, null);
+		sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArg(3, null);
 		actionCb.reset();
 		validPeer = _.clone(prefixedPeer);
 		connectionsTable.nonceToConnectionIdMap = {};
