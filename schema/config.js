@@ -93,6 +93,15 @@ module.exports = {
 					},
 					logEvents: {
 						type: 'array'
+					},
+					logFileName: {
+						type: 'string'
+					},
+					consoleLogLevel: {
+						type: 'string'
+					},
+					fileLogLevel: {
+						type: 'string'
 					}
 				},
 				required: ['host', 'port', 'database', 'user', 'password', 'min', 'max', 'poolIdleTimeout', 'reapIntervalMillis', 'logEvents']
