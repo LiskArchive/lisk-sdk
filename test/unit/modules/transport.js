@@ -18,6 +18,8 @@ var sinon = require('sinon');
 var chai = require('chai');
 var expect = require('chai').expect;
 
+var swaggerHelper = require('../../../helpers/swagger');
+
 var modulesLoader = require('../../common/modulesLoader');
 var TransportModule = rewire('../../../modules/transport.js');
 
@@ -57,6 +59,7 @@ describe('transport', function () {
 
 		restoreRewiredTopDeps = TransportModule.__set__({
 			Broadcaster: function () {
+				this.bind = function () {};
 				broadcasterStubRef = this;
 			}
 		});
@@ -87,7 +90,12 @@ describe('transport', function () {
 			}
 		};
 
-		done();
+		swaggerHelper.getResolvedSwaggerSpec().then(function (resolvedSpec) {
+			defaultScope.swagger = {
+				definitions: resolvedSpec.definitions
+			};
+			done();
+		});
 	});
 
 	afterEach(function (done) {
@@ -101,8 +109,8 @@ describe('transport', function () {
 
 			it('should assign scope variables when instantiating', function (done) {
 				var localTransportInstance = new TransportModule(function (err, transportSelf) {
-					var library = TransportModule.__get__('library');
-					var __private = TransportModule.__get__('__private');
+					library = TransportModule.__get__('library');
+					__private = TransportModule.__get__('__private');
 
 					expect(library).to.have.property('db').which.is.equal(dbStub);
 					expect(library).to.have.property('logger').which.is.equal(loggerStub);
@@ -120,6 +128,8 @@ describe('transport', function () {
 					expect(err).to.equal(null);
 					expect(transportSelf).to.equal(localTransportInstance);
 
+					transportSelf.onBind(defaultScope);
+
 					done();
 				}, defaultScope);
 			});
@@ -127,7 +137,6 @@ describe('transport', function () {
 	});
 
 	describe('__private', function () {
-		var library, __private;
 		var libraryOriginal, __privateOriginal;
 
 		beforeEach(function (done) {
@@ -143,6 +152,7 @@ describe('transport', function () {
 				Object.keys(__private).forEach(function (field) {
 					__privateOriginal[field] = __private[field];
 				});
+				transportSelf.onBind(defaultScope);
 				done();
 			}, defaultScope);
 		});
@@ -222,11 +232,13 @@ describe('transport', function () {
 		});
 
 		describe('receiveSignatures', function () {
-
-			it('should call library.schema.validate with empty query.signatures', function (done) {
+			beforeEach(function (done) {
 				__private.receiveSignature = sinon.stub().callsArg(1);
 				library.schema.validate = sinon.stub().callsArg(2);
+				done();
+			});
 
+			it('should call library.schema.validate with empty query.signatures', function (done) {
 				__private.receiveSignatures({
 					signatures: []
 				}, function (err) {
@@ -236,11 +248,8 @@ describe('transport', function () {
 			});
 
 			it('should call library.schema.validate with query.signatures', function (done) {
-				__private.receiveSignature = sinon.stub().callsArg(1);
-				library.schema.validate = sinon.stub().callsArg(2);
-
 				__private.receiveSignatures({
-					signatures: ['SIGNATURE123', 'SIGNATURE456']
+					signatures: ['SIGNATURE123', 'SIGNATURE456'] // TODO: Use realistic signatures
 				}, function (err) {
 					expect(library.schema.validate.called).to.be.true;
 					done();
@@ -249,8 +258,8 @@ describe('transport', function () {
 
 			it('should call library.schema.validate with custom schema.signatures', function (done) {
 				var restoreRewiredDeps = TransportModule.__set__({
-					schema: {
-						signatures: {
+					definitions: {
+						Signature: {
 							id: 'transport.signatures',
 							type: 'object',
 							properties: {
@@ -265,9 +274,6 @@ describe('transport', function () {
 					}
 				});
 
-				__private.receiveSignature = sinon.stub().callsArg(1);
-				library.schema.validate = sinon.stub().callsArg(2);
-
 				__private.receiveSignatures({
 					signatures: ['SIGNATURE123', 'SIGNATURE456']
 				}, function (err) {
@@ -281,7 +287,6 @@ describe('transport', function () {
 			describe('when library.schema.validate fails', function () {
 
 				it('should call series callback with error = "Invalid signatures body"', function (done) {
-					__private.receiveSignature = sinon.stub().callsArg(1);
 
 					var err = new Error('Transaction did not match schema');
 					err.code = 'INVALID_FORMAT';
@@ -302,8 +307,6 @@ describe('transport', function () {
 				describe('for every signature in signatures', function () {
 
 					it('should call __private.receiveSignature with signature', function (done) {
-						__private.receiveSignature = sinon.stub().callsArg(1);
-						library.schema.validate = sinon.stub().callsArg(2);
 
 						__private.receiveSignatures({
 							signatures: ['SIGNATURE123', 'SIGNATURE456']
@@ -320,8 +323,7 @@ describe('transport', function () {
 
 						it('should call library.logger.debug with err and signature', function (done) {
 							var err = 'Error processing signature: Error message';
-							__private.receiveSignature = sinon.stub().callsArgWith(1, err);
-							library.schema.validate = sinon.stub().callsArg(2);
+							__private.receiveSignature = sinon.stub().callsArgWith(1, err); // TODO: Also move to beforeEach
 							library.logger.debug = sinon.spy();
 
 							__private.receiveSignatures({
@@ -339,7 +341,6 @@ describe('transport', function () {
 						it('should call callback with error', function (done) {
 							var err = 'Error processing signature: Error message';
 							__private.receiveSignature = sinon.stub().callsArgWith(1, err);
-							library.schema.validate = sinon.stub().callsArg(2);
 							library.logger.debug = sinon.spy();
 
 							__private.receiveSignatures({
@@ -353,10 +354,7 @@ describe('transport', function () {
 
 					describe('when __private.receiveSignature succeeds', function () {
 
-						it('should call callback with error = undefined', function (done) {
-							__private.receiveSignature = sinon.stub().callsArg(1);
-							library.schema.validate = sinon.stub().callsArg(2);
-
+						it('should call callback with error null or undefined', function (done) {
 							__private.receiveSignatures({
 								signatures: ['SIGNATURE123', 'SIGNATURE456']
 							}, function (err) {
