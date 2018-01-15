@@ -520,26 +520,6 @@ Account.prototype.bind = function (blocks) {
 };
 
 /**
- * Creates memory tables related to accounts:
- * - mem_accounts
- * - mem_round
- * - mem_accounts2delegates
- * - mem_accounts2u_delegates
- * - mem_accounts2multisignatures
- * - mem_accounts2u_multisignatures
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb|error.
- */
-Account.prototype.createTables = function (cb) {
-	this.scope.db.migrations.createMemoryTables()
-		.then(() => setImmediate(cb))
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Account#createTables error');
-		});
-};
-
-/**
  * Deletes the contents of these tables:
  * - mem_round
  * - mem_accounts2delegates
@@ -549,27 +529,12 @@ Account.prototype.createTables = function (cb) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} cb|error.
  */
-Account.prototype.removeTables = function (cb) {
-	var sqles = [], sql;
-
-	[this.table,
-		'mem_round',
-		'mem_accounts2delegates',
-		'mem_accounts2u_delegates',
-		'mem_accounts2multisignatures',
-		'mem_accounts2u_multisignatures'].forEach(function (table) {
-		sql = jsonSql.build({
-			type: 'remove',
-			table: table
-		});
-		sqles.push(sql.query);
-	});
-
-	this.scope.db.query(sqles.join('')).then(function () {
+Account.prototype.resetMemTables = function (cb) {
+	this.scope.db.accounts.resetMemTables().then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
-		return setImmediate(cb, 'Account#removeTables error');
+		return setImmediate(cb, 'Account#resetMemTables error');
 	});
 };
 

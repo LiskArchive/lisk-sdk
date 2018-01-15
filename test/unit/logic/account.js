@@ -110,21 +110,10 @@ describe('account', function () {
 		});
 	});
 
-	describe('createTables', function () {
-
-		it('should create the tables', function (done) {
-			accountLogic.createTables(function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.be.undefined;
-				done();
-			});
-		});
-	});
-
-	describe('removeTables', function () {
+	describe('resetMemTables', function () {
 
 		it('should remove the tables', function (done) {
-			accountLogic.removeTables(function (err, res) {
+			accountLogic.resetMemTables(function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.undefined;
 				done();
