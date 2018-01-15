@@ -60,7 +60,7 @@ describe('cached endpoints', function () {
 
 		it('cache transactions by the url and parameters when response is a success', function () {
 			var params = {
-				'senderAddress': accountFixtures.genesis.address,
+				'senderId': accountFixtures.genesis.address,
 			};
 
 			return transactionsEndpoint.makeRequest(params, 200).then(function (res) {
