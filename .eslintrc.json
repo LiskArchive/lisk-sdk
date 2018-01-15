@@ -15,19 +15,19 @@
 			"anonymous": "always",
 			"named": "always",
 			"asyncArrow": "ignore"
-			}],
-			"callback-return": "off",
-			"global-require": "off",
-			"handle-callback-err": "off",
-			"no-mixed-requires": "off",
-			"no-new-require": "off",
-			"multiline-ternary": ["off", "never"]
-		},
-		"env": {
-			"browser": true,
-			"node": true
-		},
-		"globals": {
+		}],
+		"callback-return": "off",
+		"global-require": "off",
+		"handle-callback-err": "off",
+		"no-mixed-requires": "off",
+		"no-new-require": "off",
+		"multiline-ternary": ["off", "never"]
+	},
+	"env": {
+		"browser": true,
+		"node": true
+	},
+	"globals": {
 		"gc": true,
 		"it": true,
 		"describe": true,
