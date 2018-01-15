@@ -446,22 +446,22 @@ Account.prototype.schema = {
 		},
 		multimin: {
 			type: 'integer',
-			minimum: constants.multisigConstraints.min.minimum,
+			minimum: 0,
 			maximum: constants.multisigConstraints.min.maximum
 		},
 		u_multimin: {
 			type: 'integer',
-			minimum: constants.multisigConstraints.min.minimum,
+			minimum: 0,
 			maximum: constants.multisigConstraints.min.maximum
 		},
 		multilifetime: {
 			type: 'integer',
-			minimum: constants.multisigConstraints.lifetime.minimum,
+			minimum: 0,
 			maximum: constants.multisigConstraints.lifetime.maximum
 		},
 		u_multilifetime: {
 			type: 'integer',
-			minimum: constants.multisigConstraints.lifetime.minimum,
+			minimum: 0,
 			maximum: constants.multisigConstraints.lifetime.maximum
 		},
 		blockId: {
