@@ -22,7 +22,7 @@ describe('onReceiveBlock()', function () {
 		application.init({sandbox: {name: 'lisk_test_blocks_process'}}, function (err, scope) {
 			library = scope;
 			db = scope.db;
-			done();
+			setTimeout(done, 5000);
 		});
 	});
 
@@ -56,11 +56,12 @@ describe('onReceiveBlock()', function () {
 	function forge (forgingSlot, cb) {
 		var last_block = library.modules.blocks.lastBlock.get();
 		var slot = forgingSlot || slots.getSlotNumber(last_block.timestamp) + 1;
+		var delegate;
 
 		function getNextForger (offset, cb) {
 			offset = !offset ? 0 : offset;
-			var generateDelegateListPromisified = Promise.promisify(library.modules.delegates.generateDelegateList);
-			return generateDelegateListPromisified().then(function (delegateList) {
+			var keys = library.rewiredModules.delegates.__get__('__private.getKeysSortByVote');
+			library.modules.delegates.generateDelegateList(last_block.height + 1, keys, function (err, delegateList) {
 				var nextForger = delegateList[(slot + offset) % slots.delegates];
 				return cb(nextForger);
 			});
@@ -76,7 +77,7 @@ describe('onReceiveBlock()', function () {
 				});
 			},
 			function (delegatePublicKey, seriesCb) {
-				var delegate = _.find(genesisDelegates, function (delegate) {
+				delegate = _.find(genesisDelegates, function (delegate) {
 					return delegate.publicKey === delegatePublicKey;
 				});
 				var keypair = getKeypair(delegate.secret);
@@ -120,7 +121,7 @@ describe('onReceiveBlock()', function () {
 		var generateDelegateListPromisified = Promise.promisify(library.modules.delegates.generateDelegateList);
 		var lastBlock = library.modules.blocks.lastBlock.get();
 
-		return generateDelegateListPromisified().then(function (list) {
+		return generateDelegateListPromisified(lastBlock.height, null).then(function (list) {
 			var delegatePublicKey = list[slot % slots.delegates];
 			return getKeypair(_.find(genesisDelegates, function (delegate) {
 				return delegate.publicKey === delegatePublicKey;
@@ -134,6 +135,7 @@ describe('onReceiveBlock()', function () {
 		library.sequence.add(function (sequenceCb) {
 
 			db.query(new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')).then(function (rows) {
+
 				sequenceCb();
 				cb(null, _.map(rows, 'id'));
 			}).catch(function (err) {
@@ -172,7 +174,7 @@ describe('onReceiveBlock()', function () {
 					expect(blockIds).to.have.length(2);
 					expect(blockIds).to.include.members([block.id, lastBlock.id]);
 					done();
-				});
+				});;
 			});
 		});
 
@@ -485,7 +487,7 @@ describe('onReceiveBlock()', function () {
 							});
 						});
 
-						it.skip('should reject received block when blockslot is invalid', function (done) {
+						it('should reject received block when blockslot is invalid', function (done) {
 							var blockWithInvalidSlot = createBlock([], timestamp, keypair, secondLastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithInvalidSlot);
 							getBlocks(function (err, blockIds) {
