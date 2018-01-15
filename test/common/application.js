@@ -352,7 +352,7 @@ function cleanup (done) {
 		if (dbSandbox) {
 			dbSandbox.destroy();
 		}
-		done();
+		done(err);
 	});
 };
 
