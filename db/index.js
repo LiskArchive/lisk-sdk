@@ -103,7 +103,7 @@ function Migrator (pgp, db) {
 	};
 
 	/**
-	 * Reads folder `sql/migrations` and returns files grather than
+	 * Reads folder `sql/migrations` and returns files rather than
 	 * lastMigration id.
 	 * @method
 	 * @param {Object} lastMigration
@@ -111,7 +111,7 @@ function Migrator (pgp, db) {
 	 * @return {function} waterCb with error | pendingMigrations
 	 */
 	this.readPendingMigrations = function (lastMigration, waterCb) {
-		var migrationsPath = path.join(process.cwd(), 'sql', 'migrations');
+		var migrationsPath = path.join(__dirname, '../sql/migrations');
 		var pendingMigrations = [];
 
 		function matchMigrationName (file) {
