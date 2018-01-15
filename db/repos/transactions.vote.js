@@ -16,46 +16,48 @@
 var _ = require('lodash');
 var columnSet;
 
-function DappsTransactionsRepo (db, pgp) {
+/**
+ * Votes Transactions database interaction module
+ * @memberof module:accounts
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {VoteTransactionsRepo}
+ */
+function VoteTransactionsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
-	this.dbTable = 'dapps';
+	this.dbTable = 'votes';
 
 	this.dbFields = [
-		'type',
-		'name',
-		'description',
-		'tags',
-		'link',
-		'category',
-		'icon',
+		'votes',
 		'transactionId'
 	];
 
 	if (!columnSet) {
 		columnSet = {};
 		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, table);
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
 	}
 
 	this.cs = columnSet;
 }
 
-DappsTransactionsRepo.prototype.save = function (transactions) {
+/**
+ * Save vote transactions
+ * @param {Array.<{id: string, asset:{votes: Array.<string>}}>} transactions
+ * @return {Promise}
+ */
+VoteTransactionsRepo.prototype.save = function (transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
 	transactions = transactions.map(function (transaction) {
 		return {
-			type: transaction.asset.dapp.type,
-			name: transaction.asset.dapp.name,
-			description: transaction.asset.dapp.description || null,
-			tags: transaction.asset.dapp.tags || null,
-			link: transaction.asset.dapp.link || null,
-			icon: transaction.asset.dapp.icon || null,
-			category: transaction.asset.dapp.category,
+			votes: Array.isArray(transaction.asset.votes) ? transaction.asset.votes.join(',') : null,
 			transactionId: transaction.id
 		};
 	});
@@ -63,4 +65,4 @@ DappsTransactionsRepo.prototype.save = function (transactions) {
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
-module.exports = DappsTransactionsRepo;
+module.exports = VoteTransactionsRepo;
