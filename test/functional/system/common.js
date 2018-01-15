@@ -111,20 +111,20 @@ function getAccountFromDb (library, address) {
 	});
 }
 
-function beforeBlock (account, cb) {
-	var library, account, sender;
-	
-	before('init sandboxed application and credit account', function (done) {
-		application.init({ sandbox: { name: 'lisk_test_multisignatures' } }, function (err, scope) {
-			library = scope;
+function beforeBlock (account, dapp, cb) {
+	before('init sandboxed application, credit account and register dapp', function (done) {
+		application.init({ sandbox: { name: 'lisk_test_multisignatures' } }, function (err, library) {
 
 			var transaction = lisk.transaction.createTransaction(account.address, 100 * normalizer, accountFixtures.genesis.password);
+			var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
+			dapp.id = dappTransaction.id;
 
-			addTransactionsAndForge(library, [transaction], function (err, res){
-				library.logic.account.get({ address: account.address }, function (err, res) {
-					sender = res;
-					cb(library, sender);
-					done();
+			addTransactionsAndForge(library, [transaction], function (err, res) {
+				addTransactionsAndForge(library, [dappTransaction], function (err, res) {
+					library.logic.account.get({ address: account.address }, function (err, sender) {
+						cb(library, sender);
+						done();
+					});
 				});
 			});
 		});
