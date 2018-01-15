@@ -34,3 +34,7 @@ test/integration/configs/
 
 # Coverage directory used by tools like istanbul
 test/.coverage-unit/
+coverage
+
+# nyc test coverage
+.nyc_output
