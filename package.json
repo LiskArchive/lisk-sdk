@@ -13,7 +13,7 @@
 		"test:local": "NODE_ENV=test nyc mocha test/specs",
 		"test:ci":
 			"NODE_ENV=test nyc --exclude \"**/node_modules/** coverage/**\" mocha test/specs",
-		"test:watch": "npm test -- --watch",
+		"test:watch": "npm run test:local -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"cover":
 			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
