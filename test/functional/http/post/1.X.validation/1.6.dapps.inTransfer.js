@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var test = require('../../../functional.js');
-
 var lisk = require('lisk-js');
 
 var phases = require('../../../common/phases');

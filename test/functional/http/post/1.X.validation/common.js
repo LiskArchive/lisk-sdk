@@ -15,7 +15,6 @@
 
 var lisk = require('lisk-js');
 
-var test = require('../../../functional.js');
 var accountFixtures = require('../../../../fixtures/accounts');
 var apiHelpers = require('../../../../common/helpers/api');
 var waitFor = require('../../../../common/utils/waitFor');

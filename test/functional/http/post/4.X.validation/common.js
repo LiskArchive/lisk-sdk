@@ -16,7 +16,6 @@
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
-var test = require('../../../functional.js');
 var accountFixtures = require('../../../../fixtures/accounts');
 var apiCodes = require('../../../../../helpers/apiCodes');
 var apiHelpers = require('../../../../common/helpers/api');

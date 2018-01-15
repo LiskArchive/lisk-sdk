@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var config = require('../../data/config.json');
-
 var express = require('express');
 
 var constants = require('../../../helpers/constants');

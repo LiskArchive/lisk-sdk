@@ -72,7 +72,7 @@ function __init (initScope, done) {
 		__testContext.config.db.user = __testContext.config.db.user || process.env.USER;
 		db = pgp(__testContext.config.db);
 	}
-	
+
 	__testContext.debug('initApplication: Target database - ' + __testContext.config.db.database);
 
 	// Clear tables

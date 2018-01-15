@@ -15,7 +15,6 @@
 
 var lisk = require('lisk-js');
 
-var test = require('../../../functional.js');
 var phases = require('../../../common/phases');
 var Scenarios = require('../../../common/scenarios');
 var localCommon = require('./common');
