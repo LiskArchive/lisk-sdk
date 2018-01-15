@@ -129,16 +129,7 @@ module.exports = function (grunt) {
 				format: 'codeframe',
 				fix: false
 			},
-			target: [
-				'api',
-				'helpers',
-				'modules',
-				'logic',
-				'schema',
-				'tasks',
-				'test',
-				'scripts'
-			]
+			target: '.'
 		}
 	});
 
