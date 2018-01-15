@@ -26,7 +26,7 @@ var test = require('./../test');
 var DBSandbox = require('./DBSandbox').DBSandbox;
 
 var swagger = require('../../config/swagger');
-var database = require('../../helpers/database');
+var database = require('../../db');
 var jobsQueue = require('../../helpers/jobsQueue');
 var Sequence = require('../../helpers/sequence');
 var dbRepos = require('require-all')(__dirname + '/../../db');

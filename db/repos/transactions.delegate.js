@@ -14,29 +14,27 @@
 'use strict';
 
 var _ = require('lodash');
-var transactionTypes = require('../helpers/transactionTypes');
+var transactionTypes = require('../../helpers/transactionTypes');
 var columnSet;
 
 /**
- * Multisignature Transactions database interaction module
- * @memberof module:multisignatures
+ * Delegates Transactions database interaction module
+ * @memberof module:delegates
  * @class
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {MultiSigTransactionsRepo}
+ * @return {DelegateTransactionsRepo}
  */
-function MultiSigTransactionsRepo (db, pgp) {
+function DelegateTransactionsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
-	this.dbTable = 'multisignatures';
+	this.dbTable = 'delegates';
 
 	this.dbFields = [
-		'min',
-		'lifetime',
-		'keysgroup',
-		'transactionId'
+		'transactionId',
+		'username'
 	];
 
 	if (!columnSet) {
@@ -49,25 +47,23 @@ function MultiSigTransactionsRepo (db, pgp) {
 }
 
 /**
- * Save Multisignature transactions
- * @param {Array.<{id: string, {asset: {multisignature: {min: int, lifetime: int, keysgroup: Array.<string>}}}>} transactions
+ * Save Dapp transactions
+ * @param {Array.<{id: string, asset: {delegate: {username: string}}}>} transactions
  * @return {Promise}
  */
-MultiSigTransactionsRepo.prototype.save = function (transactions) {
+DelegateTransactionsRepo.prototype.save = function (transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
 	transactions = transactions.map(function (transaction) {
 		return {
-			min: transaction.asset.multisignature.min,
-			lifetime: transaction.asset.multisignature.lifetime,
-			keysgroup: transaction.asset.multisignature.keysgroup.join(','),
-			transactionId: transaction.id
+			transactionId: transaction.id,
+			username: transaction.asset.delegate.username
 		};
 	});
 
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
-module.exports = MultiSigTransactionsRepo;
+module.exports = DelegateTransactionsRepo;

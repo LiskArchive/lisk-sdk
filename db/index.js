@@ -14,11 +14,11 @@
 'use strict';
 
 var async = require('async');
-var bignum = require('./bignum');
+var bignum = require('../helpers/bignum');
 var fs = require('fs');
 var path = require('path');
 var monitor = require('pg-monitor');
-var repos = require('require-all')(__dirname + '/../db');
+var repos = require('require-all')(__dirname + '/repos');
 
 var pgOptions = {
 	pgNative: true,
