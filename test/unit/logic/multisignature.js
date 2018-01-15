@@ -700,9 +700,10 @@ describe('multisignature', function () {
 					accountMock.merge.reset();
 				});
 
-				it('should call callback with error = undefined', function (done) {
+				it('should call callback with error = merge error', function (done) {
 					multisignature.applyUnconfirmed(transaction, sender, function (err) {
-						expect(err).to.not.exist;
+						expect(err).not.to.be.empty;
+						expect(err).to.equal('merge error');
 						done();
 					});
 				});
