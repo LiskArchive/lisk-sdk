@@ -111,9 +111,9 @@ function getAccountFromDb (library, address) {
 	});
 }
 
-function beforeBlock (account, dapp, cb) {
+function beforeBlock (type, account, dapp, cb) {
 	before('init sandboxed application, credit account and register dapp', function (done) {
-		application.init({ sandbox: { name: 'lisk_test_multisignatures' } }, function (err, library) {
+		application.init({ sandbox: { name: 'lisk_test_' + type } }, function (err, library) {
 
 			var transaction = lisk.transaction.createTransaction(account.address, 100 * normalizer, accountFixtures.genesis.password);
 			var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
