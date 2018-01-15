@@ -153,7 +153,7 @@ TransactionPool.prototype.getQueuedTransaction = function (id) {
 /**
  * Gets multisignature transactions based on transaction id.
  * @param {string} id - Transaction id.
- * @return {Object[]} - Array of multisignatyure transactions.
+ * @return {Object[]} - Array of multisignature transactions.
  */
 TransactionPool.prototype.getMultisignatureTransaction = function (id) {
 	var index = self.multisignature.index[id];
@@ -192,9 +192,9 @@ TransactionPool.prototype.getQueuedTransactionList  = function (reverse, limit) 
 
 /**
  * Gets multisignature transactions based on limit and reverse option.
- * @param {boolean} reverse - If true transactions order will be reversed.
- * @param {number} limit - When supplied list will be cut off.
- * @param {boolean} ready - If true get only transactions that are ready.
+ * @param {boolean} reverse - Reverse order of results.
+ * @param {number} limit - Limit applied to results.
+ * @param {boolean} ready - Limits results to transactions deemed "ready".
  * @implements {__private.getTransactionList}
  * @return {Object[]} transactions - Array of multisignature transactions.
  */
