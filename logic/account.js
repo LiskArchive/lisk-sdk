@@ -474,7 +474,7 @@ Account.prototype.bind = function (blocks) {
  * @returns {setImmediateCallback} cb|error.
  */
 Account.prototype.createTables = function (cb) {
-	var sqlPath = path.join(process.cwd(), 'sql', 'memoryTables.sql');
+	var sqlPath = path.join(__dirname, '../db/sql/init/memoryTables.sql');
 	var queryFile = createQueryFile(sqlPath);
 
 	this.scope.db.query(queryFile).then(function () {

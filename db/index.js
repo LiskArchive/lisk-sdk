@@ -68,7 +68,7 @@ var createQueryFile = function (sqlPath) {
 function Migrator (pgp, db) {
 
 	/**
-	 * Gets one record from `migrations` trable
+	 * Gets one record from `migrations` table
 	 * @method
 	 * @param {function} waterCb - Callback function
 	 * @return {function} waterCb with error | Boolean
@@ -82,7 +82,7 @@ function Migrator (pgp, db) {
 	};
 
 	/**
-	 * Gets last migration record from `migrations` trable.
+	 * Gets last migration record from `migrations` table.
 	 * @method
 	 * @param {boolean} hasMigrations
 	 * @param {function} waterCb - Callback function
@@ -111,7 +111,7 @@ function Migrator (pgp, db) {
 	 * @return {function} waterCb with error | pendingMigrations
 	 */
 	this.readPendingMigrations = function (lastMigration, waterCb) {
-		var migrationsPath = path.join(__dirname, '../sql/migrations');
+		var migrationsPath = path.join(__dirname, './sql/init/migrations');
 		var pendingMigrations = [];
 
 		function matchMigrationName (file) {
@@ -201,7 +201,7 @@ function Migrator (pgp, db) {
 	 * @return {function} waterCb with error
 	 */
 	this.applyRuntimeQueryFile = function (waterCb) {
-		var runtimeQueryPath = path.join(__dirname, '../sql/runtime.sql');
+		var runtimeQueryPath = path.join(__dirname, './sql/init/runtime.sql');
 		var queryFile = createQueryFile(runtimeQueryPath);
 		db.query(queryFile).then(function () {
 			return waterCb();

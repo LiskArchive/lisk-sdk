@@ -34,7 +34,7 @@ module.exports = function (grunt) {
 
 		grunt.log.write('Creating migration file: ' + migration.filename);
 
-		fs.writeFile(path.join('sql', 'migrations', migration.filename), '', function (err) {
+		fs.writeFile(path.join(__dirname, '../db/sql/init/migrations', migration.filename), '', function (err) {
 			if (err) { grunt.fail.fatal(err); }
 		});
 	});
