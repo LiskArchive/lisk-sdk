@@ -249,15 +249,6 @@ Rounds.prototype.tick = function (block, done) {
 				return setImmediate(cb);
 			}
 		},
-		// Perform round tick
-		function (cb) {
-			library.db.tx(Tick).then(function () {
-				return setImmediate(cb);
-			}).catch(function (err) {
-				library.logger.error(err.stack);
-				return setImmediate(cb, err);
-			});
-		},
 		function (cb) {
 			// Check if we are one block before last block of round, if yes - perform round snapshot
 			if ((block.height+1) % slots.delegates === 0) {
@@ -268,7 +259,8 @@ Rounds.prototype.tick = function (block, done) {
 						t.rounds.clearRoundSnapshot(),
 						t.rounds.performRoundSnapshot(),
 						t.rounds.clearVotesSnapshot(),
-						t.rounds.performVotesSnapshot()
+						t.rounds.performVotesSnapshot(),
+						Tick(t)
 					]);
 				}).then(function () {
 					library.logger.trace('Round snapshot done');
