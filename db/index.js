@@ -111,7 +111,7 @@ function Migrator (pgp, db) {
 	 * @return {function} waterCb with error | pendingMigrations
 	 */
 	this.readPendingMigrations = function (lastMigration, waterCb) {
-		var migrationsPath = path.join(__dirname, './sql/init/migrations');
+		var migrationsPath = path.join(process.cwd(), './db/sql/init/migrations');
 		var pendingMigrations = [];
 
 		function matchMigrationName (file) {
@@ -201,7 +201,7 @@ function Migrator (pgp, db) {
 	 * @return {function} waterCb with error
 	 */
 	this.applyRuntimeQueryFile = function (waterCb) {
-		var runtimeQueryPath = path.join(__dirname, './sql/init/runtime.sql');
+		var runtimeQueryPath = path.join(process.cwd(), './db/sql/init/runtime.sql');
 		var queryFile = createQueryFile(runtimeQueryPath);
 		db.query(queryFile).then(function () {
 			return waterCb();
