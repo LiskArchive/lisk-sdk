@@ -14,7 +14,7 @@
 'use strict';
 
 var _ = require('lodash');
-var transactionTypes = require('../helpers/transactionTypes');
+var transactionTypes = require('../../helpers/transactionTypes');
 var columnSet;
 
 /**

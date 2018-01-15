@@ -20,7 +20,7 @@ var path = require('path');
 var jsonSql = require('json-sql')();
 jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
-var createQueryFile = require('../helpers/database.js').createQueryFile;
+var createQueryFile = require('../db').createQueryFile;
 var slots = require('../helpers/slots.js');
 var sortBy = require('../helpers/sort_by.js');
 var BlockReward = require('../logic/blockReward.js');
