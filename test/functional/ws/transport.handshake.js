@@ -13,11 +13,6 @@
  */
 'use strict';
 
-var test = require('../functional.js');
-
-var _ = test._;
-var expect = require('chai').expect;
-var sinon = require('sinon');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var randomstring = require('randomstring');
 var scClient = require('socketcluster-client');
@@ -55,17 +50,17 @@ describe('handshake', function () {
 		}
 	}
 
-	function expectDisconnect (testContext, cb) {
+	function expectDisconnect (test, cb) {
 		var disconnectHandler = function (code, description) {
 			// Prevent from calling done() multiple times
 			clientSocket.off('disconnect', disconnectHandler);
 			return cb(code, description);
 		};
 		clientSocket.on('disconnect', disconnectHandler);
-		testContext.timeout(1000);
+		test.timeout(1000);
 	}
 
-	function expectConnect (testContext, cb) {
+	function expectConnect (test, cb) {
 		var disconnectHandler = function (code, description) {
 			currentConnectedSocket = null;
 			clientSocket.off('disconnect', disconnectHandler);
@@ -85,7 +80,7 @@ describe('handshake', function () {
 		clientSocket.on('accepted', acceptedHandler);
 		clientSocket.on('connect', connectedHandler);
 		clientSocket.on('disconnect', disconnectHandler);
-		testContext.timeout(1000);
+		test.timeout(1000);
 	}
 
 	beforeEach(function () {
@@ -95,9 +90,9 @@ describe('handshake', function () {
 			port: testConfig.wsPort,
 			query: _.clone(frozenHeaders)
 		};
-		connectAbortStub = sinon.spy();
-		disconnectStub = sinon.spy();
-		errorStub = sinon.spy();
+		connectAbortStub = sinonSandbox.spy();
+		disconnectStub = sinonSandbox.spy();
+		errorStub = sinonSandbox.spy();
 	});
 
 	afterEach(function () {

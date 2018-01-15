@@ -13,9 +13,7 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
 var async = require('async');
-var sinon = require('sinon');
 var crypto = require('crypto');
 var rewire = require('rewire');
 

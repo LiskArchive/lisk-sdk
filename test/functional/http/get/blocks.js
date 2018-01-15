@@ -13,12 +13,7 @@
  */
 'use strict';
 
-var test = require('../../functional.js');
-
-var expect = require('chai').expect;
 var Promise = require('bluebird');
-
-var _ = test._;
 
 var waitFor = require('../../../common/utils/waitFor');
 var waitForBlocksPromise = Promise.promisify(waitFor.blocks);

@@ -13,19 +13,15 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
-var sinon = require('sinon');
-
 var failureCodes = require('../../../../../api/ws/rpc/failureCodes');
 var Rules = require('../../../../../api/ws/workers/rules');
 
 describe('Rules', function () {
 
 	var rules;
-	var insertMock = sinon.spy();
-	var removeMock = sinon.spy();
-	var blockMock = sinon.spy();
+	var insertMock = sinonSandbox.spy();
+	var removeMock = sinonSandbox.spy();
+	var blockMock = sinonSandbox.spy();
 
 	beforeEach(function () {
 		rules = new Rules(insertMock, removeMock, blockMock);

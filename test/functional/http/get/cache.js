@@ -11,11 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-var expect = require('chai').expect;
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var Promise = require('bluebird');
 
-var test = require('../../functional.js');
 var randomUtil = require('../../../common/utils/random');
 var accountFixtures = require('../../../fixtures/accounts');
 var modulesLoader = require('../../../common/modulesLoader');
@@ -31,7 +29,7 @@ describe('cached endpoints', function () {
 	var getJsonForKeyPromise;
 
 	before(function (done) {
-		test.config.cacheEnabled = true;
+		__testContext.config.cacheEnabled = true;
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);

@@ -15,11 +15,7 @@
 
 var crypto = require('crypto');
 var async = require('async');
-var _  = require('lodash');
 var randomstring = require('randomstring');
-var chai = require('chai');
-var expect = require('chai').expect;
-
 
 var accountFixtures = require('../../fixtures/accounts');
 

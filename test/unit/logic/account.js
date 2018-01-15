@@ -13,12 +13,8 @@
  */
 'use strict';/*eslint*/
 
-var chai = require('chai');
-var expect = require('chai').expect;
-var _ = require('lodash');
 var crypto = require('crypto');
 var async = require('async');
-var sinon = require('sinon');
 var rewire = require('rewire');
 
 var ed = require('../../../helpers/ed');
@@ -88,7 +84,7 @@ describe('account', function () {
 
 		before(function (done) {
 			dbStub = {
-				query: sinon.stub().resolves()
+				query: sinonSandbox.stub().resolves()
 			};
 
 			new Account(dbStub, modulesLoader.scope.schema, modulesLoader.scope.logger, function (err, lgAccount) {
