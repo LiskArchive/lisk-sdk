@@ -1,0 +1,23 @@
+pipeline {
+	agent { node { label 'dependencies-check' } }
+	stages {
+		stage('Prepare workspace') {
+			steps {
+				checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'scan-1', url: 'https://github.com/LiskHQ/lisk']]])
+			}
+		}
+		stage('Install dependencies') {
+			steps {
+				sh 'npm install --verbose'
+			}
+		}
+		stage('Run vulnerabilities check') {
+			steps {
+				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
+					sh 'snyk test'
+				}
+				sh 'sha1sum package.json >~/.lisk.package.json.sha1sum'
+			}
+		}
+	}
+}

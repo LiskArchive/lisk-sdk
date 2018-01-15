@@ -124,6 +124,18 @@ var config = {
 var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel,
 	filename: appConfig.logFileName });
 
+var dbLogger = null;
+
+if (appConfig.db.logFileName && appConfig.db.logFileName === appConfig.logFileName) {
+	dbLogger = logger;
+} else {
+	dbLogger = new Logger({
+		echo: appConfig.db.consoleLogLevel || appConfig.consoleLogLevel,
+		errorLevel: appConfig.db.fileLogLevel || appConfig.fileLogLevel,
+		filename: appConfig.db.logFileName
+	});
+}
+
 // Trying to get last git commit
 try {
 	lastCommit = git.getLastCommit();
@@ -340,7 +352,7 @@ d.run(function () {
 			scope.network.app.use(bodyParser.json({limit: '2mb'}));
 			scope.network.app.use(methodOverride());
 
-			var ignore = ['id', 'name', 'username', 'blockId', 'transactionId', 'address', 'recipientAddress', 'senderAddress'];
+			var ignore = ['id', 'name', 'username', 'blockId', 'transactionId', 'address', 'recipientId', 'senderId'];
 
 			scope.network.app.use(queryParser({
 				parser: function (value, radix, name) {
@@ -420,7 +432,7 @@ d.run(function () {
 		}],
 		db: function (cb) {
 			var db = require('./helpers/database.js');
-			db.connect(config.db, logger, cb);
+			db.connect(config.db, dbLogger, cb);
 		},
 		/**
 		 * It tries to connect with redis server based on config. provided in config.json file

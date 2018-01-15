@@ -42,6 +42,19 @@ var db;
  */
 var queryFilesCommands = {};
 
+/**
+ * Creates memoized QueryFile object
+ * @param {string} sqlPath - Path to SQL file
+ * @return {Object} Memoized QueryFile object
+ */
+var createQueryFile = function (sqlPath) {
+	if (!queryFilesCommands[sqlPath]) {
+		queryFilesCommands[sqlPath] = new pgp.QueryFile(sqlPath, {minify: true});
+	}
+
+	return queryFilesCommands[sqlPath];
+};
+
 // var isWin = /^win/.test(process.platform);
 // var isMac = /^darwin/.test(process.platform);
 
@@ -150,10 +163,8 @@ function Migrator (pgp, db) {
 
 
 		async.eachSeries(pendingMigrations, function (file, eachCb) {
-			if (!queryFilesCommands[file.path]) {
-				queryFilesCommands[file.path] = new pgp.QueryFile(file.path, {minify: true});
-			}
-			db.query(queryFilesCommands[file.path]).then(function () {
+			var queryFile = createQueryFile(file.path);
+			db.query(queryFile).then(function () {
 				appliedMigrations.push(file);
 				return eachCb();
 			}).catch(function (err) {
@@ -192,10 +203,8 @@ function Migrator (pgp, db) {
 	this.applyRuntimeQueryFile = function (waterCb) {
 		var dirname = path.basename(__dirname) === 'helpers' ? path.join(__dirname, '..') : __dirname;
 		var runtimeQueryPath = path.join(dirname, 'sql', 'runtime.sql');
-		if (!queryFilesCommands[runtimeQueryPath]) {
-			queryFilesCommands[runtimeQueryPath] = new pgp.QueryFile(path.join(dirname, 'sql', 'runtime.sql'), {minify: true});
-		}
-		db.query(queryFilesCommands[runtimeQueryPath]).then(function () {
+		var queryFile = createQueryFile(runtimeQueryPath);
+		db.query(queryFile).then(function () {
 			return waterCb();
 		}).catch(function (err) {
 			return waterCb(err);
@@ -265,3 +274,5 @@ module.exports.disconnect = function (logger) {
 		logger.log('database disconnect exception - ', ex);
 	}
 };
+
+module.exports.createQueryFile = createQueryFile;

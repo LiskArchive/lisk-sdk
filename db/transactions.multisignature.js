@@ -17,6 +17,15 @@ var _ = require('lodash');
 var transactionTypes = require('../helpers/transactionTypes');
 var columnSet;
 
+/**
+ * Multisignature Transactions database interaction module
+ * @memberof module:multisignatures
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {MultiSigTransactionsRepo}
+ */
 function MultiSigTransactionsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -33,12 +42,17 @@ function MultiSigTransactionsRepo (db, pgp) {
 	if (!columnSet) {
 		columnSet = {};
 		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, table);
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
 	}
 
 	this.cs = columnSet;
 }
 
+/**
+ * Save Multisignature transactions
+ * @param {Array.<{id: string, {asset: {multisignature: {min: int, lifetime: int, keysgroup: Array.<string>}}}>} transactions
+ * @return {Promise}
+ */
 MultiSigTransactionsRepo.prototype.save = function (transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
