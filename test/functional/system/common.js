@@ -15,10 +15,16 @@
 
 var async = require('async');
 var Promise = require('bluebird');
+var lisk = require('lisk-js');
 
 var test = require('../../test');
 
 var slots = require('../../../helpers/slots');
+
+var application = require('../../common/application');
+var normalizer = require('../../common/utils/normalizer');
+
+var accountFixtures = require('../../fixtures/accounts');
 
 function forge (library, cb) {
 	function getNextForger (offset, cb) {
@@ -105,7 +111,34 @@ function getAccountFromDb (library, address) {
 	});
 }
 
+function beforeBlock (account, cb) {
+	var library, account, sender;
+	
+	before('init sandboxed application and credit account', function (done) {
+		application.init({ sandbox: { name: 'lisk_test_multisignatures' } }, function (err, scope) {
+			library = scope;
+
+			var transaction = lisk.transaction.createTransaction(account.address, 100 * normalizer, accountFixtures.genesis.password);
+
+			addTransactionsAndForge(library, [transaction], function (err, res){
+				library.logic.account.get({ address: account.address }, function (err, res) {
+					sender = res;
+					cb(library, sender);
+					done();
+				});
+			});
+		});
+	});
+
+	after('cleanup sandboxed application', function (done) {
+		application.cleanup(done);
+	});
+}
+
 module.exports = {
+	forge: forge,
+	addTransaction: addTransaction,
 	addTransactionsAndForge: addTransactionsAndForge,
-	getAccountFromDb: getAccountFromDb
+	getAccountFromDb: getAccountFromDb,
+	beforeBlock: beforeBlock
 };
