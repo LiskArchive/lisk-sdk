@@ -14,13 +14,7 @@
 'use strict';/*eslint*/
 
 var crypto = require('crypto');
-var _  = require('lodash');
-
-var expect = require('chai').expect;
 var rewire = require('rewire');
-var sinon   = require('sinon');
-
-
 
 var modulesLoader = require('../../common/modulesLoader');
 var typesRepresentatives = require('../../fixtures/typesRepresentatives');
@@ -56,21 +50,21 @@ describe('outTransfer', function () {
 	beforeEach(function () {
 		dbStub = {
 			dapps: {
-				countByTransactionId: sinon.stub().resolves(),
-				countByOutTransactionId: sinon.stub().resolves(),
-				getExisting: sinon.stub().resolves(),
-				list: sinon.stub().resolves(),
-				getGenesis: sinon.stub().resolves()
+				countByTransactionId: sinonSandbox.stub().resolves(),
+				countByOutTransactionId: sinonSandbox.stub().resolves(),
+				getExisting: sinonSandbox.stub().resolves(),
+				list: sinonSandbox.stub().resolves(),
+				getGenesis: sinonSandbox.stub().resolves()
 			}
 		};
 
 		sharedStub = {
-			getGenesis: sinon.stub().callsArgWith(1, null, validGetGensisResult)
+			getGenesis: sinonSandbox.stub().callsArgWith(1, null, validGetGensisResult)
 		};
 
 		accountsStub = {
-			mergeAccountAndGet: sinon.stub().callsArg(1),
-			setAccountAndGet: sinon.stub().callsArg(1)
+			mergeAccountAndGet: sinonSandbox.stub().callsArg(1),
+			setAccountAndGet: sinonSandbox.stub().callsArg(1)
 		};
 		dummyBlock = {
 			id: '9314232245035524467',
@@ -272,7 +266,7 @@ describe('outTransfer', function () {
 		describe('when library.db.one fails', function () {
 
 			beforeEach(function () {
-				dbStub.dapps.countByTransactionId = sinon.stub().rejects('Rejection error');
+				dbStub.dapps.countByTransactionId = sinonSandbox.stub().rejects('Rejection error');
 			});
 
 			it('should call callback with error', function (done) {
@@ -288,8 +282,8 @@ describe('outTransfer', function () {
 			describe('when dapp does not exist', function () {
 
 				beforeEach(function () {
-					dbStub.dapps.countByTransactionId = sinon.stub().resolves({count: 0});
-					dbStub.dapps.countByOutTransactionId = sinon.stub().resolves({count: 0});
+					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 0});
+					dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves({count: 0});
 				});
 
 				it('should call callback with error', function (done) {
@@ -303,8 +297,8 @@ describe('outTransfer', function () {
 			describe('when dapp exists', function () {
 
 				beforeEach(function () {
-					dbStub.dapps.countByTransactionId = sinon.stub().resolves({count: 1});
-					dbStub.dapps.countByOutTransactionId = sinon.stub().resolves({count: 1});
+					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 1});
+					dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves({count: 1});
 				});
 
 				describe('when unconfirmed out transfer exists', function () {
@@ -384,8 +378,8 @@ describe('outTransfer', function () {
 						describe('when confirmed outTransfer transaction does not exist', function () {
 
 							beforeEach(function () {
-								dbStub.dapps.countByTransactionId = sinon.stub().resolves({count: 1});
-								dbStub.dapps.countByOutTransactionId = sinon.stub().resolves({count: 0});
+								dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 1});
+								dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves({count: 0});
 							});
 
 							it('should call callback with error = null', function (done) {
@@ -470,11 +464,10 @@ describe('outTransfer', function () {
 			expect(accountsStub.setAccountAndGet.calledWith({address: transaction.recipientId})).to.be.true;
 		});
 
-		// TODO: #1242 Have to disable due to issue https://github.com/LiskHQ/lisk/issues/1242
-		describe.skip('when modules.accounts.setAccountAndGet fails', function () {
+		describe('when modules.accounts.setAccountAndGet fails', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArgWith(1, 'setAccountAndGet error');
+				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'setAccountAndGet error');
 			});
 
 			it('should call callback with error', function () {
@@ -487,7 +480,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.setAccountAndGet succeeds', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArg(1);
+				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArg(1);
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {
@@ -495,30 +488,29 @@ describe('outTransfer', function () {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with address = transaction.recipientId', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: transaction.recipientId}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({address: transaction.recipientId}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with balance = transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({balance: transaction.amount}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({balance: transaction.amount}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with u_balance = transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({u_balance: transaction.amount}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({u_balance: transaction.amount}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({blockId: dummyBlock.id}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({blockId: dummyBlock.id}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
 			});
 
-			// TODO: #1242 Have to disable due to issue https://github.com/LiskHQ/lisk/issues/1242
-			describe.skip('when modules.accounts.mergeAccountAndGet fails', function () {
+			describe('when modules.accounts.mergeAccountAndGet fails', function () {
 
 				beforeEach(function () {
-					accountsStub.mergeAccountAndGet = sinon.stub().callsArgWith(1, 'mergeAccountAndGet error');
+					accountsStub.mergeAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'mergeAccountAndGet error');
 				});
 
 				it('should call callback with error', function () {
@@ -528,8 +520,7 @@ describe('outTransfer', function () {
 				});
 			});
 
-			// TODO: #1242 Have to disable due to issue https://github.com/LiskHQ/lisk/issues/1242
-			describe.skip('when modules.accounts.mergeAccountAndGet succeeds', function () {
+			describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
 
 				it('should call callback with error = undefined', function () {
 					outTransfer.apply(transaction, dummyBlock, sender, function (err) {
@@ -568,7 +559,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.setAccountAndGet fails', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArgWith(1, 'setAccountAndGet error');
+				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'setAccountAndGet error');
 			});
 
 			it('should call callback with error', function () {
@@ -581,7 +572,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.setAccountAndGet succeeds', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinon.stub.callsArg(1);
+				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArg(1);
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {
@@ -589,50 +580,50 @@ describe('outTransfer', function () {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with address = transaction.recipientId', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({address: transaction.recipientId}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({address: transaction.recipientId}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with balance = -transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({balance: -transaction.amount}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({balance: -transaction.amount}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with u_balance = -transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({u_balance: -transaction.amount}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({u_balance: -transaction.amount}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({blockId: dummyBlock.id}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({blockId: dummyBlock.id}))).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinon.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
+				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
+			});
+		});
+
+		describe('when modules.accounts.mergeAccountAndGet fails', function () {
+
+			beforeEach(function () {
+				accountsStub.mergeAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'mergeAccountAndGet error');
 			});
 
-			describe('when modules.accounts.mergeAccountAndGet fails', function () {
-
-				beforeEach(function () {
-					accountsStub.mergeAccountAndGet = sinon.stub().callsArgWith(1, 'mergeAccountAndGet error');
+			it('should call callback with error', function () {
+				outTransfer.undo(transaction, dummyBlock, sender, function (err) {
+					expect(err).not.to.be.empty;
 				});
+			});
+		});
 
-				it('should call callback with error', function () {
-					outTransfer.undo(transaction, dummyBlock, sender, function (err) {
-						expect(err).not.to.be.empty;
-					});
+		describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
+
+			it('should call callback with error = undefined', function () {
+				outTransfer.undo(transaction, dummyBlock, sender, function (err) {
+					expect(err).to.be.undefined;
 				});
 			});
 
-			describe('when modules.accounts.mergeAccountAndGet succeeds', function () {
-
-				it('should call callback with error = undefined', function () {
-					outTransfer.undo(transaction, dummyBlock, sender, function (err) {
-						expect(err).to.be.undefined;
-					});
-				});
-
-				it('should call callback with result = undefined', function () {
-					outTransfer.undo(transaction, dummyBlock, sender, function (err, res) {
-						expect(res).to.be.undefined;
-					});
+			it('should call callback with result = undefined', function () {
+				outTransfer.undo(transaction, dummyBlock, sender, function (err, res) {
+					expect(res).to.be.undefined;
 				});
 			});
 		});
@@ -695,7 +686,7 @@ describe('outTransfer', function () {
 
 		beforeEach(function () {
 			library = OutTransfer.__get__('library');
-			schemaSpy = sinon.spy(library.schema, 'validate');
+			schemaSpy = sinonSandbox.spy(library.schema, 'validate');
 		});
 
 		afterEach(function () {

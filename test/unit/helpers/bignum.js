@@ -13,7 +13,6 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
 var bignum = require('../../../helpers/bignum');
 
 describe('BigNumber', function () {

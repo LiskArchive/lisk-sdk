@@ -25,15 +25,15 @@
   },
   "env": {
     "browser": true,
-    "node": true
+    "node": true,
+    "mocha": true
   },
   "globals": {
-    "it": true,
-    "describe": true,
-    "before": true,
-    "beforeEach": true,
-    "after": true,
-    "afterEach": true
+    "expect": true,
+    "should": true,
+    "sinonSandbox": true,
+    "__testContext": true,
+    "_": true
   },
   "plugins": []
 

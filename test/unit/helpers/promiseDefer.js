@@ -13,7 +13,6 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
 var PromiseDefer = require('../../../helpers/promiseDefer');
 
 describe('PromiseDefer', function () {
