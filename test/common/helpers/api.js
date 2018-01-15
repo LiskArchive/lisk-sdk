@@ -13,18 +13,15 @@
  */
 'use strict';
 
-var test = require('../../test');
-
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
 var accountFixtures = require('../../fixtures/accounts');
 var swaggerSpec = require('../../common/swaggerSpec');
-var _ = test._;
 
 var http = {
 	abstractRequest: function (options, done) {
-		var request = test.api[options.verb.toLowerCase()](options.path);
+		var request = __testContext.api[options.verb.toLowerCase()](options.path);
 
 		request.set('Accept', 'application/json');
 		request.expect(function (response) {
@@ -38,15 +35,15 @@ var http = {
 		}
 
 		var verb = options.verb.toUpperCase();
-		test.debug(['> Path:'.grey, verb, options.path].join(' '));
+		__testContext.debug(['> Path:'.grey, verb, options.path].join(' '));
 		if (verb === 'POST' || verb === 'PUT') {
-			test.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
+			__testContext.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
 		}
 
 		if (done) {
 			request.end(function (err, res) {
-				test.debug('> Status:'.grey, JSON.stringify(res ? res.statusCode : ''));
-				test.debug('> Response:'.grey, JSON.stringify(res ? res.body : err));
+				__testContext.debug('> Status:'.grey, JSON.stringify(res ? res.statusCode : ''));
+				__testContext.debug('> Response:'.grey, JSON.stringify(res ? res.body : err));
 				done(err, res);
 			});
 		} else {

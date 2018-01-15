@@ -13,12 +13,8 @@
  */
 'use strict';
 
-var test = require('../../functional.js');
-
 var lisk = require('lisk-js');
-var expect = require('chai').expect;
 var Promise = require('bluebird');
-
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 

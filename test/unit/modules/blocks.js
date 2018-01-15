@@ -13,12 +13,7 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
-
 var express = require('express');
-var sinon = require('sinon');
-
 
 var application = require('../../common/application');
 
@@ -160,7 +155,7 @@ describe('blocks', function () {
 
 		it('should logs correctly', function () {
 			var tracker = blocks.utils.getBlockProgressLogger(5, 2, '');
-			tracker.log = sinon.spy();
+			tracker.log = sinonSandbox.spy();
 			expect(tracker.applied).to.equals(0);
 			expect(tracker.step).to.equals(2);
 			tracker.applyNext();

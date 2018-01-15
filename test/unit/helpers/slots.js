@@ -13,10 +13,7 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = chai.expect;
 var express = require('express');
-var _  = require('lodash');
 
 var slots = require('../../../helpers/slots.js');
 
