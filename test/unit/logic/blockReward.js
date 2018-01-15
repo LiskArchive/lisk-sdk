@@ -13,9 +13,6 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
-
 var BlockReward = require('../../../logic/blockReward.js');
 var constants = require('../../../helpers/constants.js');
 

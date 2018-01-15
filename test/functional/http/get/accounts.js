@@ -13,11 +13,8 @@
  */
 'use strict';
 
-var test = require('../../functional.js');
-
 var lisk = require('lisk-js');
 
-var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');

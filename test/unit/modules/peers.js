@@ -13,18 +13,12 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
 var rewire = require('rewire');
 var randomstring = require('randomstring');
-var sinon = require('sinon');
-
-var test = require('../../test');
-var _ = test._;
 
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var generateRandomActivePeer = require('../../fixtures/peers').generateRandomActivePeer;
 var config = require('../../data/config.json');
-
 var constants = require('../../../helpers/constants');
 
 var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers').generateMatchedAndUnmatchedBroadhashes;
@@ -47,19 +41,19 @@ describe('peers', function () {
 
 	before(function (done) {
 		dbMock = {
-			any: sinon.stub().resolves(),
+			any: sinonSandbox.stub().resolves(),
 			peers: {
-				list: sinon.stub().resolves()
+				list: sinonSandbox.stub().resolves()
 			}
 		};
 		PeersRewired = rewire('../../../modules/peers');
 		peersLogicMock = {
-			create: sinon.spy(),
-			exists: sinon.stub(),
-			get: sinon.stub(),
-			list: sinon.stub(),
-			upsert: sinon.stub(),
-			remove: sinon.stub()
+			create: sinonSandbox.spy(),
+			exists: sinonSandbox.stub(),
+			get: sinonSandbox.stub(),
+			list: sinonSandbox.stub(),
+			upsert: sinonSandbox.stub(),
+			remove: sinonSandbox.stub()
 		};
 		systemModuleMock = {};
 		transportModuleMock = {};
@@ -113,8 +107,8 @@ describe('peers', function () {
 		describe('when logic.peers.list returns no records', function () {
 
 			before(function () {
-				systemModuleMock.getBroadhash = sinon.stub().returns();
-				peersLogicMock.list = sinon.stub().returns([]);
+				systemModuleMock.getBroadhash = sinonSandbox.stub().returns();
+				peersLogicMock.list = sinonSandbox.stub().returns([]);
 			});
 
 			it('should return an empty array', function () {
@@ -128,7 +122,7 @@ describe('peers', function () {
 				randomPeers = _.range(1000).map(function () {
 					return generateRandomActivePeer();
 				});
-				peersLogicMock.list = sinon.stub().returns(randomPeers);
+				peersLogicMock.list = sinonSandbox.stub().returns(randomPeers);
 			});
 
 			it('should return all 1000 peers', function () {
@@ -294,7 +288,7 @@ describe('peers', function () {
 						peer.state = random.number(DISCONNECTED_STATE, CONNECTED_STATE + 1);
 						return peer;
 					});
-					peersLogicMock.list = sinon.stub().returns(randomPeers);
+					peersLogicMock.list = sinonSandbox.stub().returns(randomPeers);
 				});
 
 				after(function () {
@@ -371,7 +365,7 @@ describe('peers', function () {
 		});
 
 		beforeEach(function () {
-			peersLogicMock.upsert = sinon.stub().returns(validUpsertResult);
+			peersLogicMock.upsert = sinonSandbox.stub().returns(validUpsertResult);
 			updateResult = peers.update(validPeer);
 		});
 
@@ -400,7 +394,7 @@ describe('peers', function () {
 		});
 
 		beforeEach(function () {
-			peersLogicMock.remove = sinon.stub().returns(validLogicRemoveResult);
+			peersLogicMock.remove = sinonSandbox.stub().returns(validLogicRemoveResult);
 			removeResult = peers.remove(validPeer);
 		});
 
@@ -415,7 +409,7 @@ describe('peers', function () {
 					ip: validPeer.ip,
 					wsPort: validPeer.wsPort
 				}];
-				loggerDebugSpy = sinon.spy(modulesLoader.scope.logger, 'debug');
+				loggerDebugSpy = sinonSandbox.spy(modulesLoader.scope.logger, 'debug');
 			});
 
 			after(function () {
@@ -443,11 +437,11 @@ describe('peers', function () {
 			});
 
 			it('should call logic.peers.remove with object containing expected ip', function () {
-				expect(peersLogicMock.remove.calledWith(sinon.match({ip: validPeer.ip}))).to.be.true;
+				expect(peersLogicMock.remove.calledWith(sinonSandbox.match({ip: validPeer.ip}))).to.be.true;
 			});
 
 			it('should call logic.peers.remove with object containing expected port', function () {
-				expect(peersLogicMock.remove.calledWith(sinon.match({wsPort: validPeer.wsPort}))).to.be.true;
+				expect(peersLogicMock.remove.calledWith(sinonSandbox.match({wsPort: validPeer.wsPort}))).to.be.true;
 			});
 
 			it('should return library.logic.peers.remove result', function () {
@@ -468,8 +462,8 @@ describe('peers', function () {
 			validMatched = null;
 			getConsensusResult = null;
 			originalForgingForce = PeersRewired.__get__('library.config.forging.force');
-			systemModuleMock.getBroadhash = sinon.stub().returns();
-			peersLogicMock.list = sinon.stub().returns([]);
+			systemModuleMock.getBroadhash = sinonSandbox.stub().returns();
+			peersLogicMock.list = sinonSandbox.stub().returns([]);
 		});
 
 		after(function () {
@@ -499,7 +493,7 @@ describe('peers', function () {
 
 			before(function () {
 				PeersRewired.__set__('library.config.forging.force', false);
-				peersLogicMock.list = sinon.stub().returns([]);
+				peersLogicMock.list = sinonSandbox.stub().returns([]);
 			});
 
 			afterEach(function () {
@@ -531,7 +525,7 @@ describe('peers', function () {
 						return generateRandomActivePeer();
 					});
 					broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
-					systemModuleMock.getBroadhash = sinon.stub().returns(broadhashes.matchedBroadhash);
+					systemModuleMock.getBroadhash = sinonSandbox.stub().returns(broadhashes.matchedBroadhash);
 					validActive = oneHundredActivePeers;
 				});
 
@@ -663,7 +657,7 @@ describe('peers', function () {
 	describe('acceptable', function () {
 
 		before(function () {
-			systemModuleMock.getNonce = sinon.stub().returns(NONCE);
+			systemModuleMock.getNonce = sinonSandbox.stub().returns(NONCE);
 			process.env['NODE_ENV'] = 'DEV';
 		});
 
@@ -705,8 +699,8 @@ describe('peers', function () {
 		beforeEach(function () {
 			originalPeersList = PeersRewired.__get__('library.config.peers.list');
 			PeersRewired.__set__('library.config.peers.list', []);
-			peersLogicMock.create = sinon.stub().returnsArg(0);
-			sinon.stub(peers, 'discover');
+			peersLogicMock.create = sinonSandbox.stub().returnsArg(0);
+			sinonSandbox.stub(peers, 'discover');
 		});
 
 		afterEach(function () {
@@ -725,13 +719,13 @@ describe('peers', function () {
 		it('should update peers list onBlockchainReady even if rpc.status call fails', function (done) {
 			var peerStub = {
 				rpc: {
-					status: sinon.stub().callsArgWith(0, 'Failed to get peer status')
+					status: sinonSandbox.stub().callsArgWith(0, 'Failed to get peer status')
 				},
-				applyHeaders: sinon.stub()
+				applyHeaders: sinonSandbox.stub()
 			};
 
 			PeersRewired.__set__('library.config.peers.list', [peerStub]);
-			peersLogicMock.upsert = sinon.spy();
+			peersLogicMock.upsert = sinonSandbox.spy();
 
 			peers.onBlockchainReady();
 			setTimeout(function () {
@@ -744,8 +738,8 @@ describe('peers', function () {
 	describe('onPeersReady', function () {
 
 		before(function () {
-			peersLogicMock.list = sinon.stub().returns([]);
-			sinon.stub(peers, 'discover').callsArgWith(0, null);
+			peersLogicMock.list = sinonSandbox.stub().returns([]);
+			sinonSandbox.stub(peers, 'discover').callsArgWith(0, null);
 		});
 
 		after(function () {
@@ -769,16 +763,16 @@ describe('peers', function () {
 		beforeEach(function () {
 			revertPrivateStubs = PeersRewired.__set__({
 				__private: {
-					updatePeerStatus: sinon.spy()
+					updatePeerStatus: sinonSandbox.spy()
 				}
 			});
 			randomPeerStub = {
 				rpc: {
-					status: sinon.stub().callsArgWith(0, 'Failed to get peer status'),
-					list: sinon.spy()
+					status: sinonSandbox.stub().callsArgWith(0, 'Failed to get peer status'),
+					list: sinonSandbox.spy()
 				}
 			};
-			peers.list = sinon.stub().callsArgWith(1, null, [randomPeerStub]);
+			peers.list = sinonSandbox.stub().callsArgWith(1, null, [randomPeerStub]);
 		});
 
 		afterEach(function () {

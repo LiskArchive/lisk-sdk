@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
-var sinon = require('sinon');
 var lisk = require('lisk-js');
 
 var accountFixtures = require('../../fixtures/accounts');
@@ -44,7 +42,7 @@ describe('txPool', function () {
 	});
 
 	beforeEach(function () {
-		jobsQueueRegisterStub = sinon.stub(jobsQueue, 'register');
+		jobsQueueRegisterStub = sinonSandbox.stub(jobsQueue, 'register');
 	});
 
 	afterEach(function () {

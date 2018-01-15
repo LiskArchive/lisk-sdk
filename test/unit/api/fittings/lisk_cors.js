@@ -13,15 +13,9 @@
  */
 'use strict';
 
-var chai = require('chai');
-var should = chai.should();
-var sinon = require('sinon');
-var sinonChai = require('sinon-chai');
 var httpMocks = require('node-mocks-http');
 
 var fitting = require('../../../../api/fittings/lisk_cors');
-
-chai.use(sinonChai);
 
 describe('lisk_cors', function () {
 
@@ -33,7 +27,7 @@ describe('lisk_cors', function () {
 			response: httpMocks.createResponse()
 		};
 		cors_fititng = fitting();
-		next = sinon.spy();
+		next = sinonSandbox.spy();
 	});
 
 	it('should be a factory function that names 2 arguments', function () {

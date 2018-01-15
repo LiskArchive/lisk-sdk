@@ -13,12 +13,8 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
-
 var express = require('express');
 var ip = require('ip');
-var _  = require('lodash');
 var RoundChanges = require('../../../helpers/RoundChanges.js');
 
 describe('RoundChanges', function () {

@@ -13,12 +13,8 @@
  */
 'use strict';
 
-var test = require('../../functional.js');
-
 var lisk = require('lisk-js');
-var expect = require('chai').expect;
 
-var _ = test._;
 var common = require('./common');
 var phases = require('../../common/phases');
 var Scenarios = require('../../common/scenarios');
