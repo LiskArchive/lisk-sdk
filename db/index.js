@@ -201,8 +201,7 @@ function Migrator (pgp, db) {
 	 * @return {function} waterCb with error
 	 */
 	this.applyRuntimeQueryFile = function (waterCb) {
-		var dirname = path.basename(__dirname) === 'helpers' ? path.join(__dirname, '..') : __dirname;
-		var runtimeQueryPath = path.join(dirname, 'sql', 'runtime.sql');
+		var runtimeQueryPath = path.join(__dirname, '../sql/runtime.sql');
 		var queryFile = createQueryFile(runtimeQueryPath);
 		db.query(queryFile).then(function () {
 			return waterCb();
