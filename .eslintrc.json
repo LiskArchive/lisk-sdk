@@ -1,40 +1,40 @@
 {
-  "parserOptions": {
-    "ecmaVersion": 5,
-    "sourceType": "module"
-  },
-  "rules": {
-    "semi": "error",
-    "no-eq-null": "off",
-    "indent": ["error", "tab", { "flatTernaryExpressions": true, "SwitchCase": 1 }],
-    "eqeqeq": "off",
-    "curly": "error",
-    "no-undef": "error",
-    "quotes": ["error", "single"],
-    "space-before-function-paren": ["error", {
-      "anonymous": "always",
-      "named": "always",
-      "asyncArrow": "ignore"
-    }],
-    "callback-return": "off",
-    "global-require": "off",
-    "handle-callback-err": "off",
-    "no-mixed-requires": "off",
-    "no-new-require": "off",
-    "multiline-ternary": ["off", "never"]
-  },
-  "env": {
-    "browser": true,
-    "node": true,
-    "mocha": true
-  },
-  "globals": {
-    "expect": true,
-    "should": true,
-    "sinonSandbox": true,
-    "__testContext": true,
-    "_": true
-  },
-  "plugins": []
-
+	"parserOptions": {
+		"ecmaVersion": 5,
+		"sourceType": "module"
+	},
+	"rules": {
+		"semi": "error",
+		"no-eq-null": "off",
+		"indent": ["error", "tab", { "flatTernaryExpressions": true, "SwitchCase": 1 }],
+		"eqeqeq": "off",
+		"curly": "error",
+		"no-undef": "error",
+		"quotes": ["error", "single"],
+		"space-before-function-paren": ["error", {
+			"anonymous": "always",
+			"named": "always",
+			"asyncArrow": "ignore"
+		}],
+		"callback-return": "off",
+		"global-require": "off",
+		"handle-callback-err": "off",
+		"no-mixed-requires": "off",
+		"no-new-require": "off",
+		"multiline-ternary": ["off", "never"]
+	},
+	"env": {
+		"browser": true,
+		"node": true,
+		"mocha": true
+	},
+	"globals": {
+		"_": true,
+		"__testContext": true,
+		"expect": true,
+		"gc": true,
+		"should": true,
+		"sinonSandbox": true
+	},
+	"plugins": []
 }
