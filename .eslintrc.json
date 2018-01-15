@@ -25,16 +25,16 @@
 	},
 	"env": {
 		"browser": true,
-		"node": true
+		"node": true,
+		"mocha": true
 	},
 	"globals": {
+		"_": true,
+		"__testContext": true,
+		"expect": true,
 		"gc": true,
-		"it": true,
-		"describe": true,
-		"before": true,
-		"beforeEach": true,
-		"after": true,
-		"afterEach": true
+		"should": true,
+		"sinonSandbox": true
 	},
 	"plugins": []
 }
