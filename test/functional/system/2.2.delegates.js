@@ -48,7 +48,7 @@ describe('System test (type 2) double delegate registration', function () {
 				});
 			});
 
-			it('add to pool delegate registration from same account and different name should be ok', function (done) {
+			it('add to pool delegate registration from same account with different id should be ok', function (done) {
 				transaction2 = lisk.delegate.createDelegate(account.password, account.username);
 				localCommon.addTransaction(library, transaction2, function (err, res) {
 					expect(res).to.equal(transaction2.id);

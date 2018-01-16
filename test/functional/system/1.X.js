@@ -42,7 +42,7 @@ describe('System test (type 1) send transactions on top of unconfirmed second si
 		});
 	});
 
-	describe('add to pool another transactions from the same account', function () {
+	describe('add to pool another transactions from same account', function () {
 
 		describe('with second password', function () {
 			Object.keys(transactionTypes).forEach(function (key, index) {

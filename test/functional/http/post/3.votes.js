@@ -72,8 +72,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		var transaction3 = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1000 * normalizer, accountFixtures.genesis.password);
 		var transaction4 = lisk.transaction.createTransaction(accountMaxVotesPerTransaction.address, 1000 * normalizer, accountFixtures.genesis.password);
 		var transaction5 = lisk.transaction.createTransaction(accountMaxVotesPerAccount.address, 1000 * normalizer, accountFixtures.genesis.password);
-		transactions.push(transaction1, transaction2, transaction4, transaction4, transaction5
-		);
+		transactions.push(transaction1, transaction2, transaction4, transaction4, transaction5);
 
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));

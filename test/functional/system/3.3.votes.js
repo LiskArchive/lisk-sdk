@@ -26,10 +26,9 @@ describe('System test (type 3) voting with duplicate submissions', function () {
 	var library;
 
 	var account = randomUtil.account();
-	var dapp = randomUtil.application();
 	var transaction1, transaction2, transaction3, transacion4;
 
-	localCommon.beforeBlock('system_3_votes', account, dapp, function (lib, sender) {
+	localCommon.beforeBlock('system_3_votes', account, randomUtil.application(), function (lib, sender) {
 		library = lib;
 	});
 

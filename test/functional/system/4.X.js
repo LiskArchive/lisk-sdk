@@ -37,7 +37,7 @@ describe('System test (type 4) send transactions on top of unconfirmed multisig'
 		library = lib;
 	});
 
-	it('add to pool transaction type 4 MULTISIG should be ok', function (done) {
+	it('add to pool multisig registration should be ok', function (done) {
 		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
 			expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
 			done();
