@@ -232,6 +232,7 @@ describe('transport', function () {
 		});
 
 		describe('receiveSignatures', function () {
+			
 			beforeEach(function (done) {
 				__private.receiveSignature = sinon.stub().callsArg(1);
 				library.schema.validate = sinon.stub().callsArg(2);
