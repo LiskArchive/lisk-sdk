@@ -531,26 +531,6 @@ TransactionPool.prototype.queueTransaction = function (transaction, cb) {
 };
 
 /**
- * Applies the unconfirmed queue as unconfirmed transactions.
- * @implements {getUnconfirmedTransactionList}
- * @param {function} cb - Callback function.
- * @return {applyUnconfirmedList}
- */
-TransactionPool.prototype.applyUnconfirmedList = function (cb) {
-	return __private.applyUnconfirmedList(self.getUnconfirmedTransactionList(true), cb);
-};
-
-/**
- * Applies a list of transaction ids as unconfirmed transactions.
- * @param {string[]} ids
- * @param {function} cb - Callback function.
- * @return {applyUnconfirmedList}
- */
-TransactionPool.prototype.applyUnconfirmedIds = function (ids, cb, tx) {
-	return __private.applyUnconfirmedList(ids, cb, tx);
-};
-
-/**
  * Undoes the unconfirmed queue, reverting the unconfirmed state of each transaction.
  * @implements {getUnconfirmedTransactionList}
  * @implements {modules.transactions.undoUnconfirmed}
@@ -565,9 +545,13 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb, tx) {
 		if (transaction) {
 			ids.push(transaction.id);
 			modules.transactions.undoUnconfirmed(transaction, function (err) {
+				// Remove transaction from unconfirmed, queued and multisignature lists
+				self.removeUnconfirmedTransaction(transaction.id);
 				if (err) {
 					library.logger.error('Failed to undo unconfirmed transaction: ' + transaction.id, err);
-					self.removeUnconfirmedTransaction(transaction.id);
+				} else {
+					// Transaction successfully undone from unconfirmed states, move it to queued list
+					self.addQueuedTransaction(transaction);
 				}
 				return setImmediate(eachSeriesCb);
 			}, tx);
@@ -613,7 +597,6 @@ TransactionPool.prototype.expireTransactions = function (cb) {
  * @implements {countUnconfirmed}
  * @implements {getMultisignatureTransactionList}
  * @implements {getQueuedTransactionList}
- * @implements {addUnconfirmedTransaction}
  * @implements {applyUnconfirmedList}
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|applyUnconfirmedList}
@@ -638,10 +621,6 @@ TransactionPool.prototype.fillPool = function (cb) {
 		spare = Math.abs(spare - multisignatures.length);
 		transactions = self.getQueuedTransactionList(true, constants.maxTxsPerBlock).slice(0, spare);
 		transactions = multisignatures.concat(transactions);
-
-		transactions.forEach(function (transaction)  {
-			self.addUnconfirmedTransaction(transaction);
-		});
 
 		return __private.applyUnconfirmedList(transactions, cb);
 	}
@@ -757,6 +736,7 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb, tx) {
  * @implements {getUnconfirmedTransaction}
  * @implements {__private.processVerifyTransaction}
  * @implements {removeUnconfirmedTransaction}
+ * @implements {addUnconfirmedTransaction}
  * @implements {modules.transactions.applyUnconfirmed}
  * @param {Object[]} transactions - Array of transactions to be applied.
  * @param {function} cb - Callback function.
@@ -764,9 +744,6 @@ __private.processVerifyTransaction = function (transaction, broadcast, cb, tx) {
  */
 __private.applyUnconfirmedList = function (transactions, cb, tx) {
 	async.eachSeries(transactions, function (transaction, eachSeriesCb) {
-		if (typeof transaction === 'string') {
-			transaction = self.getUnconfirmedTransaction(transaction);
-		}
 		if (!transaction) {
 			return setImmediate(eachSeriesCb);
 		}
@@ -780,6 +757,9 @@ __private.applyUnconfirmedList = function (transactions, cb, tx) {
 				if (err) {
 					library.logger.error('Failed to apply unconfirmed transaction: ' + transaction.id, err);
 					self.removeUnconfirmedTransaction(transaction.id);
+				} else {
+					// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
+					self.addUnconfirmedTransaction(transaction);
 				}
 				return setImmediate(eachSeriesCb);
 			}, tx);
