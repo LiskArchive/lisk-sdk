@@ -19,7 +19,7 @@ var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
 
-describe('System test (type 3) voting with duplicate submissions', function () {
+describe('system test (type 3) - voting with duplicate submissions', function () {
 
 	var library;
 
@@ -30,7 +30,7 @@ describe('System test (type 3) voting with duplicate submissions', function () {
 		library = lib;
 	});
 
-	it('add to pool upvoting transaction should be ok', function (done) {
+	it('adding to pool upvoting transaction should be ok', function (done) {
 		transaction1 = lisk.vote.createVote(account.password, ['+' + accountFixtures.existingDelegate.publicKey], null, -1);
 		localCommon.addTransaction(library, transaction1, function (err, res) {
 			expect(res).to.equal(transaction1.id);
@@ -38,7 +38,7 @@ describe('System test (type 3) voting with duplicate submissions', function () {
 		});
 	});
 
-	it('add to pool upvoting transaction for same delegate from same account with different id should be ok', function (done) {
+	it('adding to pool upvoting transaction for same delegate from same account with different id should be ok', function (done) {
 		transaction2 = lisk.vote.createVote(account.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 		localCommon.addTransaction(library, transaction2, function (err, res) {
 			expect(res).to.equal(transaction2.id);
@@ -79,14 +79,14 @@ describe('System test (type 3) voting with duplicate submissions', function () {
 			});
 		});
 
-		it('add to pool upvoting transaction to same delegate from same account should fail', function (done) {
+		it('adding to pool upvoting transaction to same delegate from same account should fail', function (done) {
 			localCommon.addTransaction(library, transaction1, function (err, res) {
 				expect(err).to.equal('Failed to add vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" already voted for');
 				done();
 			});
 		});
 
-		it('add to pool downvoting transaction to same delegate from same account should be ok', function (done) {
+		it('adding to pool downvoting transaction to same delegate from same account should be ok', function (done) {
 			transaction3 = lisk.vote.createVote(account.password, ['-' + accountFixtures.existingDelegate.publicKey], null, -1);
 			localCommon.addTransaction(library, transaction3, function (err, res) {
 				expect(res).to.equal(transaction3.id);
@@ -94,7 +94,7 @@ describe('System test (type 3) voting with duplicate submissions', function () {
 			});
 		});
 
-		it('add to pool downvoting transaction to same delegate from same account with different id should be ok', function (done) {
+		it('adding to pool downvoting transaction to same delegate from same account with different id should be ok', function (done) {
 			transacion4 = lisk.vote.createVote(account.password, ['-' + accountFixtures.existingDelegate.publicKey]);
 			localCommon.addTransaction(library, transacion4, function (err, res) {
 				expect(res).to.equal(transacion4.id);
@@ -135,7 +135,7 @@ describe('System test (type 3) voting with duplicate submissions', function () {
 				});
 			});
 
-			it('add to pool downvoting transaction to same delegate from same account should fail', function (done) {
+			it('adding to pool downvoting transaction to same delegate from same account should fail', function (done) {
 				localCommon.addTransaction(library, transacion4, function (err, res) {
 					expect(err).to.equal('Failed to remove vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" was not voted for');
 					done();

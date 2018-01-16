@@ -19,7 +19,7 @@ var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
 
-describe('System test (type 4) multisignature', function () {
+describe('system test (type 4) - multisignature registration', function () {
 
 	var library, multisigSender, transaction;
 

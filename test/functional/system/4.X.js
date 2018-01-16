@@ -21,7 +21,7 @@ var Scenarios = require('../common/scenarios');
 var localCommon = require('./common');
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 
-describe('System test (type 4) send transactions on top of unconfirmed multisig', function () {
+describe('system test (type 4) - sending transactions on top of unconfirmed multisignature', function () {
 
 	var library, transaction;
 
@@ -35,14 +35,14 @@ describe('System test (type 4) send transactions on top of unconfirmed multisig'
 		library = lib;
 	});
 
-	it('add to pool multisig registration should be ok', function (done) {
+	it('adding to pool multisig registration should be ok', function (done) {
 		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
 			expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
 			done();
 		});
 	});
 
-	describe('add to pool another transactions from the same account', function () {
+	describe('adding to pool other transactions from same account', function () {
 		Object.keys(transactionTypes).forEach(function (key, index) {
 			if (key === 'MULTI') {
 				it('type ' + index + ': ' + key + ' should fail', function (done) {

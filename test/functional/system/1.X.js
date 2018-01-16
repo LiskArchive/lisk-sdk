@@ -20,7 +20,7 @@ var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 
-describe('System test (type 1) send transactions on top of unconfirmed second signature', function () {
+describe('system test (type 1) - sending transactions on top of unconfirmed second signature', function () {
 
 	var library, transaction;
 
@@ -32,7 +32,7 @@ describe('System test (type 1) send transactions on top of unconfirmed second si
 		library = lib;
 	});
 
-	it('add to pool transaction type 1 second signature should be ok', function (done) {
+	it('adding to pool transaction type 1 second signature should be ok', function (done) {
 		transaction = lisk.signature.createSignature(account.password, account.secondPassword);
 		localCommon.addTransaction(library, transaction, function (err, res) {
 			expect(res).to.equal(transaction.id);
@@ -40,7 +40,7 @@ describe('System test (type 1) send transactions on top of unconfirmed second si
 		});
 	});
 
-	describe('add to pool another transactions from same account', function () {
+	describe('adding to pool other transactions from same account', function () {
 
 		describe('with second password', function () {
 			Object.keys(transactionTypes).forEach(function (key, index) {

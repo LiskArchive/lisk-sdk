@@ -20,7 +20,7 @@ var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
 
-describe('System test (type 5) registering dapps with repeated values', function () {
+describe('system test (type 5) - registering dapps with repeated values', function () {
 
 	var library;
 
@@ -42,7 +42,7 @@ describe('System test (type 5) registering dapps with repeated values', function
 		library = lib;
 	});
 
-	it('add to pool dapp transaction 1 should be ok', function (done) {
+	it('adding to pool dapp transaction 1 should be ok', function (done) {
 		transaction1 = lisk.dapp.createDapp(account.password, null, dappDuplicate, -1);
 		badTransactions.push(transaction1);
 		localCommon.addTransaction(library, transaction1, function (err, res) {
@@ -51,7 +51,7 @@ describe('System test (type 5) registering dapps with repeated values', function
 		});
 	});
 
-	it('add to pool dapp transaction 2 with same data than 1 but different id should be ok', function (done) {
+	it('adding to pool dapp transaction 2 with same data than 1 but different id should be ok', function (done) {
 		transaction2 = lisk.dapp.createDapp(account.password, null, dappDuplicate);
 		goodTransactions.push(transaction2);
 		localCommon.addTransaction(library, transaction2, function (err, res) {
@@ -60,7 +60,7 @@ describe('System test (type 5) registering dapps with repeated values', function
 		});
 	});
 	
-	it('add to pool dapp transaction 3 should be ok', function (done) {
+	it('adding to pool dapp transaction 3 should be ok', function (done) {
 		transaction3 = lisk.dapp.createDapp(account.password, null, dappDuplicateNameFail, -1);
 		badTransactions.push(transaction3);
 		localCommon.addTransaction(library, transaction3, function (err, res) {
@@ -69,7 +69,7 @@ describe('System test (type 5) registering dapps with repeated values', function
 		});
 	});
 
-	it('add to pool dapp transaction 4 with same name than 3 should be ok', function (done) {
+	it('adding to pool dapp transaction 4 with same name than 3 should be ok', function (done) {
 		transaction4 = lisk.dapp.createDapp(account.password, null, dappDuplicateNameSuccess);
 		goodTransactions.push(transaction4);
 		localCommon.addTransaction(library, transaction4, function (err, res) {
@@ -78,7 +78,7 @@ describe('System test (type 5) registering dapps with repeated values', function
 		});
 	});
 
-	it('add to pool dapp transaction 5 should be ok', function (done) {
+	it('adding to pool dapp transaction 5 should be ok', function (done) {
 		transaction5 = lisk.dapp.createDapp(account.password, null, dappDuplicateLinkFail, -1);
 		badTransactions.push(transaction5);
 		localCommon.addTransaction(library, transaction5, function (err, res) {
@@ -87,7 +87,7 @@ describe('System test (type 5) registering dapps with repeated values', function
 		});
 	});
 
-	it('add to pool dapp transaction 6 with same link than 5 should be ok', function (done) {
+	it('adding to pool dapp transaction 6 with same link than 5 should be ok', function (done) {
 		transaction6 = lisk.dapp.createDapp(account.password, null, dappDuplicateLinkSuccess);
 		goodTransactions.push(transaction6);
 		localCommon.addTransaction(library, transaction6, function (err, res) {
@@ -139,7 +139,7 @@ describe('System test (type 5) registering dapps with repeated values', function
 			});
 		});
 
-		it('add to pool already registered dapp should fail', function (done) {
+		it('adding to pool already registered dapp should fail', function (done) {
 			transaction2 = lisk.dapp.createDapp(account.password, null, dappDuplicate);
 			localCommon.addTransaction(library, transaction2, function (err, res) {
 				expect(err).to.equal('Application name already exists: ' + dappDuplicate.name);
@@ -147,7 +147,7 @@ describe('System test (type 5) registering dapps with repeated values', function
 			});
 		});
 
-		it('add to pool already registered dapp name should fail', function (done) {
+		it('adding to pool already registered dapp name should fail', function (done) {
 			transaction4 = lisk.dapp.createDapp(account.password, null, dappDuplicateNameFail);
 			localCommon.addTransaction(library, transaction4, function (err, res) {
 				expect(err).to.equal('Application name already exists: ' + dappDuplicateNameFail.name);
@@ -155,7 +155,7 @@ describe('System test (type 5) registering dapps with repeated values', function
 			});
 		});
 
-		it('add to pool already registered dapp link should fail', function (done) {
+		it('adding to pool already registered dapp link should fail', function (done) {
 			transaction6 = lisk.dapp.createDapp(account.password, null, dappDuplicateLinkFail);
 			localCommon.addTransaction(library, transaction6, function (err, res) {
 				expect(err).to.equal('Application link already exists: ' + dappDuplicateLinkFail.link);
