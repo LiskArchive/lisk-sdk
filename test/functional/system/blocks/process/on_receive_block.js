@@ -5,7 +5,6 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var PQ = require('pg-promise').ParameterizedQuery;
 
-var test = require('../../../../test');
 var accountFixtures = require('../../../../fixtures/accounts');
 var slots = require('../../../../../helpers/slots');
 var constants = require('../../../../../helpers/constants');
@@ -82,11 +81,11 @@ describe('onReceiveBlock()', function () {
 				});
 				var keypair = getKeypair(delegate.secret);
 
-				test.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegatePublicKey + ' Next block timestamp: ' + slots.getSlotTime(slot));
+				__testContext.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegatePublicKey + ' Next block timestamp: ' + slots.getSlotTime(slot));
 				library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot) + 5, function (err) {
 					if (err) { return seriesCb(err); }
 					last_block = library.modules.blocks.lastBlock.get();
-					test.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+					__testContext.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
 					return seriesCb(err);
 				});
 			}
@@ -140,7 +139,7 @@ describe('onReceiveBlock()', function () {
 				cb(null, _.map(rows, 'id'));
 			}).catch(function (err) {
 				sequenceCb();
-				test.debug(err.stack);
+				__testContext.debug(err.stack);
 				cb(err);
 			});
 		});
@@ -587,7 +586,7 @@ describe('onReceiveBlock()', function () {
 
 							(function waitUntilSkippedSlotBlockIsValid () {
 								if (slots.getSlotNumber() < slot + 2) {
-									test.debug('Waiting for slot: ' + (slot + 2) + ', current slot: ' + slots.getSlotNumber());
+									__testContext.debug('Waiting for slot: ' + (slot + 2) + ', current slot: ' + slots.getSlotNumber());
 									setTimeout(waitUntilSkippedSlotBlockIsValid, 1000);
 								} else {
 									sendSkippedSlotBlock();
