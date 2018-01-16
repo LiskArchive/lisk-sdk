@@ -13,12 +13,8 @@
  */
 'use strict';/*eslint*/
 
-var chai = require('chai');
-var expect = require('chai').expect;
-var _ = require('lodash');
 var crypto = require('crypto');
 var async = require('async');
-var sinon = require('sinon');
 var rewire = require('rewire');
 
 var ed = require('../../../helpers/ed');
@@ -40,26 +36,26 @@ var validAccount = {
 	address: '10881167371402274308L',
 	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	secondPublicKey: null,
-	balance: '0',
-	u_balance: '0',
-	rate: '0',
+	balance: 0,
+	u_balance: 0,
+	rate: 0,
 	delegates: null,
 	u_delegates: null,
 	multisignatures: null,
 	u_multisignatures: null,
 	multimin: 0,
 	u_multimin: 0,
-	multilifetime: 0,
-	u_multilifetime: 0,
+	multilifetime: 1,
+	u_multilifetime: 1,
 	blockId: '6524861224470851795',
 	nameexist: 0,
 	u_nameexist: 0,
-	fees: '0',
-	rank: '70',
-	rewards: '0',
-	vote: '10000000000000000',
-	producedBlocks: '0',
-	missedBlocks: '0',
+	fees: 0,
+	rank: 70,
+	rewards: 0,
+	vote: 10000000000000000,
+	producedBlocks: 0,
+	missedBlocks: 0,
 	virgin: 1,
 	approval: 100,
 	productivity: 0
@@ -88,7 +84,7 @@ describe('account', function () {
 
 		before(function (done) {
 			dbStub = {
-				query: sinon.stub().resolves()
+				query: sinonSandbox.stub().resolves()
 			};
 
 			new Account(dbStub, modulesLoader.scope.schema, modulesLoader.scope.logger, function (err, lgAccount) {
@@ -134,8 +130,7 @@ describe('account', function () {
 	});
 
 	describe('objectNormalize', function () {
-
-		it.skip('should be okay for a valid account object', function () {
+		it('should be okay for a valid account object', function () {
 			expect(account.objectNormalize(validAccount)).to.be.an('object');
 		});
 	});

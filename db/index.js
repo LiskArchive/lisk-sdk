@@ -14,11 +14,11 @@
 'use strict';
 
 var async = require('async');
-var bignum = require('./bignum');
+var bignum = require('../helpers/bignum');
 var fs = require('fs');
 var path = require('path');
 var monitor = require('pg-monitor');
-var repos = require('require-all')(__dirname + '/../db');
+var repos = require('require-all')(__dirname + '/repos');
 
 var pgOptions = {
 	pgNative: true,
@@ -42,6 +42,19 @@ var db;
  */
 var queryFilesCommands = {};
 
+/**
+ * Creates memoized QueryFile object
+ * @param {string} sqlPath - Path to SQL file
+ * @return {Object} Memoized QueryFile object
+ */
+var createQueryFile = function (sqlPath) {
+	if (!queryFilesCommands[sqlPath]) {
+		queryFilesCommands[sqlPath] = new pgp.QueryFile(sqlPath, {minify: true});
+	}
+
+	return queryFilesCommands[sqlPath];
+};
+
 // var isWin = /^win/.test(process.platform);
 // var isMac = /^darwin/.test(process.platform);
 
@@ -55,7 +68,7 @@ var queryFilesCommands = {};
 function Migrator (pgp, db) {
 
 	/**
-	 * Gets one record from `migrations` trable
+	 * Gets one record from `migrations` table
 	 * @method
 	 * @param {function} waterCb - Callback function
 	 * @return {function} waterCb with error | Boolean
@@ -69,7 +82,7 @@ function Migrator (pgp, db) {
 	};
 
 	/**
-	 * Gets last migration record from `migrations` trable.
+	 * Gets last migration record from `migrations` table.
 	 * @method
 	 * @param {boolean} hasMigrations
 	 * @param {function} waterCb - Callback function
@@ -90,7 +103,7 @@ function Migrator (pgp, db) {
 	};
 
 	/**
-	 * Reads folder `sql/migrations` and returns files grather than
+	 * Reads folder `sql/migrations` and returns files rather than
 	 * lastMigration id.
 	 * @method
 	 * @param {Object} lastMigration
@@ -98,7 +111,7 @@ function Migrator (pgp, db) {
 	 * @return {function} waterCb with error | pendingMigrations
 	 */
 	this.readPendingMigrations = function (lastMigration, waterCb) {
-		var migrationsPath = path.join(process.cwd(), 'sql', 'migrations');
+		var migrationsPath = path.join(process.cwd(), './db/sql/init/migrations');
 		var pendingMigrations = [];
 
 		function matchMigrationName (file) {
@@ -150,10 +163,8 @@ function Migrator (pgp, db) {
 
 
 		async.eachSeries(pendingMigrations, function (file, eachCb) {
-			if (!queryFilesCommands[file.path]) {
-				queryFilesCommands[file.path] = new pgp.QueryFile(file.path, {minify: true});
-			}
-			db.query(queryFilesCommands[file.path]).then(function () {
+			var queryFile = createQueryFile(file.path);
+			db.query(queryFile).then(function () {
 				appliedMigrations.push(file);
 				return eachCb();
 			}).catch(function (err) {
@@ -190,12 +201,9 @@ function Migrator (pgp, db) {
 	 * @return {function} waterCb with error
 	 */
 	this.applyRuntimeQueryFile = function (waterCb) {
-		var dirname = path.basename(__dirname) === 'helpers' ? path.join(__dirname, '..') : __dirname;
-		var runtimeQueryPath = path.join(dirname, 'sql', 'runtime.sql');
-		if (!queryFilesCommands[runtimeQueryPath]) {
-			queryFilesCommands[runtimeQueryPath] = new pgp.QueryFile(path.join(dirname, 'sql', 'runtime.sql'), {minify: true});
-		}
-		db.query(queryFilesCommands[runtimeQueryPath]).then(function () {
+		var runtimeQueryPath = path.join(process.cwd(), './db/sql/init/runtime.sql');
+		var queryFile = createQueryFile(runtimeQueryPath);
+		db.query(queryFile).then(function () {
 			return waterCb();
 		}).catch(function (err) {
 			return waterCb(err);
@@ -265,3 +273,5 @@ module.exports.disconnect = function (logger) {
 		logger.log('database disconnect exception - ', ex);
 	}
 };
+
+module.exports.createQueryFile = createQueryFile;

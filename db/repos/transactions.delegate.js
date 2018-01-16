@@ -14,42 +14,56 @@
 'use strict';
 
 var _ = require('lodash');
-var transactionTypes = require('../helpers/transactionTypes');
+var transactionTypes = require('../../helpers/transactionTypes');
 var columnSet;
 
-function InTransferTransactionsRepo (db, pgp) {
+/**
+ * Delegates Transactions database interaction module
+ * @memberof module:delegates
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {DelegateTransactionsRepo}
+ */
+function DelegateTransactionsRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
-	this.dbTable = 'intransfer';
+	this.dbTable = 'delegates';
 
 	this.dbFields = [
-		'dappId',
-		'transactionId'
+		'transactionId',
+		'username'
 	];
 
 	if (!columnSet) {
 		columnSet = {};
 		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, table);
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
 	}
 
 	this.cs = columnSet;
 }
 
-InTransferTransactionsRepo.prototype.save = function (transactions) {
+/**
+ * Save Dapp transactions
+ * @param {Array.<{id: string, asset: {delegate: {username: string}}}>} transactions
+ * @return {Promise}
+ */
+DelegateTransactionsRepo.prototype.save = function (transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
 	transactions = transactions.map(function (transaction) {
 		return {
-			dappId: transaction.asset.inTransfer.dappId,
-			transactionId: transaction.id
+			transactionId: transaction.id,
+			username: transaction.asset.delegate.username
 		};
 	});
 
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
-module.exports = InTransferTransactionsRepo;
+module.exports = DelegateTransactionsRepo;

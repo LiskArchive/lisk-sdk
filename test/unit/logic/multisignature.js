@@ -17,10 +17,6 @@ var lisk = require('lisk-js');
 var crypto = require('crypto');
 var async = require('async');
 var rewire = require('rewire');
-var sinon = require('sinon');
-var chai = require('chai');
-var expect = require('chai').expect;
-var _  = require('lodash');
 
 var testData = require('./testData/multisignature');
 var accountFixtures = require('../../fixtures/accounts');
@@ -64,14 +60,14 @@ describe('multisignature', function () {
 
 	beforeEach(function () {
 		transactionMock = {
-			verifySignature: sinon.stub().returns(1)
+			verifySignature: sinonSandbox.stub().returns(1)
 		};
 		accountMock = {
-			merge: sinon.mock().callsArg(2)
+			merge: sinonSandbox.mock().callsArg(2)
 		};
 		accountsMock = {
-			generateAddressByPublicKey: sinon.stub().returns(lisk.crypto.getKeys(randomUtil.password()).publicKey),
-			setAccountAndGet: sinon.stub().callsArg(1)
+			generateAddressByPublicKey: sinonSandbox.stub().returns(lisk.crypto.getKeys(randomUtil.password()).publicKey),
+			setAccountAndGet: sinonSandbox.stub().callsArg(1)
 		};
 		transaction = _.cloneDeep(validTransaction);
 		rawTransaction = _.cloneDeep(rawValidTransaction);
@@ -460,7 +456,7 @@ describe('multisignature', function () {
 	describe('apply', function () {
 
 		beforeEach(function (done) {
-			accountMock.merge = sinon.stub().callsArg(2);
+			accountMock.merge = sinonSandbox.stub().callsArg(2);
 			multisignature.apply(transaction, dummyBlock, sender, done);
 		});
 
@@ -491,7 +487,7 @@ describe('multisignature', function () {
 		describe('when library.logic.account.merge fails', function () {
 
 			beforeEach(function () {
-				accountMock.merge = sinon.stub().callsArgWith(2, 'merge error');
+				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 			});
 
 			it('should call callback with error', function () {
@@ -530,17 +526,17 @@ describe('multisignature', function () {
 						});
 
 						it('should call library.logic.account.setAccountAndGet with {address: address}', function () {
-							expect(accountsMock.setAccountAndGet.calledWith(sinon.match({address: address}))).to.be.true;
+							expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: address}))).to.be.true;
 						});
 
 						it('should call library.logic.account.setAccountAndGet with sender.address', function () {
-							expect(accountsMock.setAccountAndGet.calledWith(sinon.match({publicKey: key}))).to.be.true;
+							expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({publicKey: key}))).to.be.true;
 						});
 
 						describe('when modules.accounts.setAccountAndGet fails', function () {
 
 							beforeEach(function () {
-								accountsMock.setAccountAndGet = sinon.stub().callsArgWith(1, 'mergeAccountAndGet error');
+								accountsMock.setAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'mergeAccountAndGet error');
 							});
 
 							it('should call callback with error', function () {
@@ -574,7 +570,7 @@ describe('multisignature', function () {
 
 		beforeEach(function (done) {
 			transaction = _.cloneDeep(validTransaction);
-			accountMock.merge = sinon.stub().callsArg(2);
+			accountMock.merge = sinonSandbox.stub().callsArg(2);
 			multisignature.undo(transaction, dummyBlock, sender, done);
 		});
 
@@ -605,7 +601,7 @@ describe('multisignature', function () {
 		describe('when library.logic.account.merge fails', function () {
 
 			beforeEach(function () {
-				accountMock.merge = sinon.stub().callsArgWith(2, 'merge error');
+				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 			});
 
 			it('should call callback with error', function () {
@@ -700,9 +696,10 @@ describe('multisignature', function () {
 					accountMock.merge.reset();
 				});
 
-				it('should call callback with error = undefined', function (done) {
+				it('should call callback with error = merge error', function (done) {
 					multisignature.applyUnconfirmed(transaction, sender, function (err) {
-						expect(err).to.not.exist;
+						expect(err).not.to.be.empty;
+						expect(err).to.equal('merge error');
 						done();
 					});
 				});
@@ -730,7 +727,7 @@ describe('multisignature', function () {
 	describe('undoUnconfirmed', function () {
 
 		beforeEach(function (done) {
-			accountMock.merge = sinon.stub().callsArg(2);
+			accountMock.merge = sinonSandbox.stub().callsArg(2);
 			multisignature.undoUnconfirmed(transaction, sender, done);
 		});
 
@@ -759,7 +756,7 @@ describe('multisignature', function () {
 		describe('when library.logic.account.merge fails', function () {
 
 			beforeEach(function () {
-				accountMock.merge = sinon.stub().callsArgWith(2, 'merge error');
+				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
 			});
 
 			it('should call callback with error', function () {
@@ -921,7 +918,7 @@ describe('multisignature', function () {
 
 		it('should use the correct format to validate against', function () {
 			var library = Multisignature.__get__('library');
-			var schemaSpy = sinon.spy(library.schema, 'validate');
+			var schemaSpy = sinonSandbox.spy(library.schema, 'validate');
 			multisignature.objectNormalize(transaction);
 			expect(schemaSpy.calledOnce).to.equal(true);
 			expect(schemaSpy.calledWithExactly(transaction.asset.multisignature, Multisignature.prototype.schema)).to.equal(true);

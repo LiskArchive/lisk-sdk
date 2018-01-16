@@ -13,10 +13,17 @@
  */
 'use strict';
 
-var test = require('../test');
+var application = require('../../common/application');
 
-before(function (done) {
-	require('../common/utils/waitFor').blockchainReady(done);
+describe('app', function () {
+
+	it('init successfully without any error', function (done) {
+		application.init({sandbox: {name: 'lisk_test_app'}}, function (err, scope) {
+			done(err);
+		});
+	});
+
+	it('cleanup sandboxed application successfully', function (done) {
+		application.cleanup(done);
+	});
 });
-
-module.exports = test;

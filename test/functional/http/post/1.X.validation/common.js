@@ -13,13 +13,9 @@
  */
 'use strict';
 
-var test = require('../../../functional.js');
-
 var lisk = require('lisk-js');
-var expect = require('chai').expect;
 
 var accountFixtures = require('../../../../fixtures/accounts');
-
 var apiHelpers = require('../../../../common/helpers/api');
 var waitFor = require('../../../../common/utils/waitFor');
 var normalizer = require('../../../../common/utils/normalizer');

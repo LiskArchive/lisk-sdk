@@ -90,7 +90,7 @@ Round.prototype.updateMissedBlocks = function () {
 		return this.t;
 	}
 
-	return this.scope.library.db.rounds.updateMissedBlocks(this.scope.backwards, this.scope.roundOutsiders, this.t);
+	return (this.t || this.scope.library.db).rounds.updateMissedBlocks(this.scope.backwards, this.scope.roundOutsiders);
 };
 
 /**
@@ -99,7 +99,7 @@ Round.prototype.updateMissedBlocks = function () {
  * @todo Round must be a param option.
  */
 Round.prototype.getVotes = function () {
-	return this.scope.library.db.rounds.getVotes(this.scope.round, this.t);
+	return (this.t || this.scope.library.db).rounds.getVotes(this.scope.round);
 };
 
 /**
@@ -114,10 +114,10 @@ Round.prototype.updateVotes = function () {
 	return self.getVotes(self.scope.round).then(function (votes) {
 		var queries = votes.map(function (vote) {
 			return self.scope.library.db.rounds.updateVotes(self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate), Math.floor(vote.amount));
-		}).join('');
+		});
 
 		if (queries.length > 0) {
-			return self.t.none(queries);
+			return self.t.batch(queries);
 		} else {
 			return self.t;
 		}
@@ -130,7 +130,7 @@ Round.prototype.updateVotes = function () {
  */
 Round.prototype.markBlockId = function () {
 	if (this.scope.backwards) {
-		return this.scope.library.db.rounds.updateBlockId(this.scope.block.id, '0', this.t);
+		return (this.t || this.scope.library.db).rounds.updateBlockId(this.scope.block.id, '0');
 	} else {
 		return this.t;
 	}
@@ -142,7 +142,7 @@ Round.prototype.markBlockId = function () {
  * @return {function} Promise
  */
 Round.prototype.flushRound = function () {
-	return this.scope.library.db.rounds.flush(this.scope.round, this.t);
+	return (this.t || this.scope.library.db).rounds.flush(this.scope.round);
 };
 
 /**
@@ -151,7 +151,7 @@ Round.prototype.flushRound = function () {
  * @return {function} Promise
  */
 Round.prototype.truncateBlocks = function () {
-	return this.scope.library.db.rounds.truncateBlocks(this.scope.block.height, this.t);
+	return (this.t || this.scope.library.db).rounds.truncateBlocks(this.scope.block.height);
 };
 
 /**
@@ -162,7 +162,7 @@ Round.prototype.truncateBlocks = function () {
  */
 Round.prototype.restoreRoundSnapshot = function () {
 	this.scope.library.logger.debug('Restoring mem_round snapshot...');
-	return this.scope.library.db.rounds.restoreRoundSnapshot(this.t);
+	return (this.t || this.scope.library.db).rounds.restoreRoundSnapshot();
 };
 
 /**
@@ -173,7 +173,7 @@ Round.prototype.restoreRoundSnapshot = function () {
  */
 Round.prototype.restoreVotesSnapshot = function () {
 	this.scope.library.logger.debug('Restoring mem_accounts.vote snapshot...');
-	return this.scope.library.db.rounds.restoreVotesSnapshot(this.t);
+	return (this.t || this.scope.library.db).rounds.restoreVotesSnapshot();
 };
 
 /**

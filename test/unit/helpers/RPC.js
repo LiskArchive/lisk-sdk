@@ -13,12 +13,7 @@
  */
 'use strict';
 
-var config = require('../../data/config.json');
-
-var chai = require('chai');
-var expect = require('chai').expect;
 var express = require('express');
-var sinon = require('sinon');
 
 var constants = require('../../../helpers/constants');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
@@ -30,7 +25,7 @@ var ConnectionState = require('../../../api/ws/rpc/wsRPC').ConnectionState;
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var socketClusterMock = {
-	on: sinon.spy()
+	on: sinonSandbox.spy()
 };
 
 describe('wsRPC', function () {
@@ -116,7 +111,7 @@ describe('wsRPC', function () {
 		var validPort = 4000, validIp = '127.0.0.1';
 
 		beforeEach(function () {
-			initializeNewConnectionStub = sinon.stub(ClientRPCStub.prototype, 'initializeNewConnection');
+			initializeNewConnectionStub = sinonSandbox.stub(ClientRPCStub.prototype, 'initializeNewConnection');
 		});
 
 		afterEach(function () {
