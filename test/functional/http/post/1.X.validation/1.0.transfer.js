@@ -38,7 +38,7 @@ describe('POST /api/transactions (validate type 0 on top of type 1)', function (
 
 	describe('sending funds', function () {
 
-		it.only('using no second passphrase on an account with second passphrase enabled should fail', function () {
+		it('using no second passphrase on an account with second passphrase enabled should fail', function () {
 			transaction = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, account.password);
 
 			return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
