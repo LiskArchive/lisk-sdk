@@ -13,12 +13,9 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
 var async = require('async');
 var lisk = require('lisk-js');
 
-var test = require('../../test');
 var accountFixtures = require('../../fixtures/accounts');
 
 var modulesLoader = require('../../common/modulesLoader');
@@ -31,7 +28,7 @@ describe('cache', function () {
 	var cache;
 
 	before(function (done) {
-		test.config.cacheEnabled = true;
+		__testContext.config.cacheEnabled = true;
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			expect(err).to.not.exist;

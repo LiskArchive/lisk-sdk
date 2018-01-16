@@ -14,23 +14,16 @@
 'use strict';
 
 var async = require('async');
-var chai = require('chai');
-var expect = require('chai').expect;
 var express = require('express');
 var randomstring = require('randomstring');
-var sinon = require('sinon');
 
-var test = require('../../test');
-
-var config = test.config;
-var _ = test._;
 var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
-
 var wsApi = require('../../../helpers/wsApi');
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
-
 var WSServerMaster = require('../../common/ws/serverMaster');
 var System = require('../../../modules/system');
+
+var config = __testContext.config;
 
 describe('handshake', function () {
 

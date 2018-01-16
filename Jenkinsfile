@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-def initBuild() {
+def initializeNode() {
 	try {
 		sh '''
 		pkill -f app.js -9 || true
@@ -29,7 +29,7 @@ def initBuild() {
 	}
 }
 
-def buildDependency() {
+def buildDependencies() {
 	try {
 		sh '''
 		rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/"
@@ -57,18 +57,18 @@ def startLisk() {
 	}
 }
 
-def cleanup() {
+def cleanUp() {
 	try {
 		sh 'pkill -f app.js -9'
 	} catch (err) {
 		echo "Error: ${err}"
 		currentBuild.result = 'FAILURE'
 		report()
-		error('Stopping build: cleanup failed')
+		error('Stopping build: clean up failed')
 	}
 }
 
-def cleanup_master() {
+def cleanUpMaster() {
 	try{
 		dir('/var/lib/jenkins/coverage/') {
 			sh '''
@@ -85,18 +85,18 @@ def cleanup_master() {
 		echo "Error: ${err}"
 		currentBuild.result = 'FAILURE'
 		report()
-		error('Stopping build: master cleanup failed')
+		error('Stopping build: master clean up failed')
 	}
 }
 
-def archive_logs() {
+def archiveLogs() {
 	sh '''
 	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
 	'''
 	archiveArtifacts "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*"
 }
 
-def run_action(action) {
+def runAction(action) {
 	try {
 		if (action == 'lint') {
 			sh """
@@ -110,7 +110,7 @@ def run_action(action) {
 			"""
 		}
 	} catch (err) {
-		archive_logs()
+		archiveLogs()
 		echo "Error: ${err}"
 		currentBuild.result = 'FAILURE'
 		report()
@@ -118,7 +118,7 @@ def run_action(action) {
 	}
 }
 
-def report_coverage(node) {
+def reportCoverage(node) {
 	try {
 		sh """
 		export HOST=127.0.0.1:4000
@@ -137,7 +137,7 @@ def report_coverage(node) {
 	}
 }
 
-def report(){
+def report() {
 	step([
 		$class: 'GitHubCommitStatusSetter',
 		errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
@@ -147,16 +147,16 @@ def report(){
 			results: [
 					[$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: 'This commit looks good :)'],
 					[$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: 'This commit failed testing :('],
-					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build some how escaped evaluation']
+					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build somehow escaped evaluation']
 			]
 		]
 	])
-	if ( currentBuild.result == 'FAILURE' ) {
-		def pr_branch = ''
+	if (currentBuild.result == 'FAILURE') {
+		def prBranch = ''
 		if (env.CHANGE_BRANCH != null) {
-			pr_branch = " (${env.CHANGE_BRANCH})"
+			prBranch = " (${env.CHANGE_BRANCH})"
 		}
-		slackSend color: 'danger', message: "Build #${env.BUILD_NUMBER} of <${env.BUILD_URL}|${env.JOB_NAME}>${pr_branch} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)", channel: '#lisk-core-jenkins'
+		slackSend color: 'danger', message: "Build #${env.BUILD_NUMBER} of <${env.BUILD_URL}|${env.JOB_NAME}>${prBranch} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)", channel: '#lisk-core-jenkins'
 	}
 }
 
@@ -164,14 +164,14 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 
 	properties([
 		parameters([
-			string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow test, change this value to jenkins-extensive.', )
+			string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow tests, change this value to jenkins-extensive.', )
 		 ])
 	])
 
-	stage ('Prepare Workspace') {
+	stage('Prepare workspace') {
 		parallel(
 			"Build cached dependencies" : {
-				node('master-01'){
+				node('master-01') {
 					try {
 						deleteDir()
 						checkout scm
@@ -190,193 +190,193 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					}
 				}
 			},
-			"Build Node-01" : {
-				node('node-01'){
-					initBuild()
+			"Initialize node-01" : {
+				node('node-01') {
+					initializeNode()
 				}
 			},
-			"Build Node-02" : {
-				node('node-02'){
-					initBuild()
+			"Initialize node-02" : {
+				node('node-02') {
+					initializeNode()
 				}
 			},
-			"Build Node-03" : {
-				node('node-03'){
-					initBuild()
+			"Initialize node-03" : {
+				node('node-03') {
+					initializeNode()
 				}
 			},
-			"Build Node-04" : {
-				node('node-04'){
-					initBuild()
+			"Initialize node-04" : {
+				node('node-04') {
+					initializeNode()
 				}
 			},
-			"Build Node-05" : {
-				node('node-05'){
-					initBuild()
+			"Initialize node-05" : {
+				node('node-05') {
+					initializeNode()
 				}
 			},
-			"Initialize Master Workspace" : {
-				node('master-01'){
-					cleanup_master()
+			"Initialize master workspace" : {
+				node('master-01') {
+					cleanUpMaster()
 				}
 			}
 		)
 	}
 
-	stage ('Build Dependencies') {
+	stage('Build dependencies') {
 		parallel(
-			"Build Dependencies Node-01" : {
-				node('node-01'){
-					buildDependency()
+			"Build dependencies node-01" : {
+				node('node-01') {
+					buildDependencies()
 				}
 			},
-			"Build Dependencies Node-02" : {
-				node('node-02'){
-					buildDependency()
+			"Build dependencies node-02" : {
+				node('node-02') {
+					buildDependencies()
 				}
 			},
-			"Build Dependencies Node-03" : {
-				node('node-03'){
-					buildDependency()
+			"Build dependencies node-03" : {
+				node('node-03') {
+					buildDependencies()
 				}
 			},
-			"Build Dependencies Node-04" : {
-				node('node-04'){
-					buildDependency()
+			"Build dependencies node-04" : {
+				node('node-04') {
+					buildDependencies()
 				}
 			},
-			"Build Dependencies Node-05" : {
-				node('node-05'){
-					buildDependency()
+			"Build dependencies node-05" : {
+				node('node-05') {
+					buildDependencies()
 				}
 			}
 		)
 	}
 
-	stage ('Start Lisk') {
+	stage('Start Lisk') {
 		parallel(
-			"Start Lisk Node-01" : {
-				node('node-01'){
+			"Start Lisk node-01" : {
+				node('node-01') {
 					startLisk()
 				}
 			},
-			"Start Lisk Node-02" : {
-				node('node-02'){
+			"Start Lisk node-02" : {
+				node('node-02') {
 					startLisk()
 				}
 			},
-			"Start Lisk Node-03" : {
-				node('node-03'){
+			"Start Lisk node-03" : {
+				node('node-03') {
 					startLisk()
 				}
 			},
-			"Start Lisk Node-04" : {
-				node('node-04'){
+			"Start Lisk node-04" : {
+				node('node-04') {
 					startLisk()
 				}
 			},
-			"Start Lisk Node-05" : {
-				node('node-05'){
+			"Start Lisk node-05" : {
+				node('node-05') {
 					startLisk()
 				}
 			}
 		)
 	}
 
-	stage ('Parallel Tests') {
+	stage('Run parallel tests') {
 		timestamps {
 			parallel(
-				"ESLint" : {
-					node('node-01'){
-						run_action('lint')
+				"Lint" : {
+					node('node-01') {
+						runAction('lint')
 					}
 				},
 				"Functional HTTP GET tests" : {
-					node('node-01'){
+					node('node-01') {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							run_action('mocha:extensive:functional:get')
+							runAction('mocha:extensive:functional:get')
 						} else {
-							run_action('mocha:untagged:functional:get')
+							runAction('mocha:untagged:functional:get')
 						}
-						archive_logs()
+						archiveLogs()
 					}
 				}, // End node-01 tests
 				"Functional HTTP POST tests" : {
-					node('node-02'){
+					node('node-02') {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							run_action('mocha:extensive:functional:post')
+							runAction('mocha:extensive:functional:post')
 						} else {
-							run_action('mocha:untagged:functional:post')
+							runAction('mocha:untagged:functional:post')
 						}
-						archive_logs()
+						archiveLogs()
 					}
-				}, // End Node-02 tests
+				}, // End node-02 tests
 				"Functional WS tests" : {
-					node('node-03'){
+					node('node-03') {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							run_action('mocha:extensive:functional:ws')
+							runAction('mocha:extensive:functional:ws')
 						} else {
-							run_action('mocha:untagged:functional:ws')
+							runAction('mocha:untagged:functional:ws')
 						}
-						archive_logs()
+						archiveLogs()
 					}
-				}, // End Node-03 tests
-				"Unit Tests" : {
-					node('node-04'){
+				}, // End node-03 tests
+				"Unit tests" : {
+					node('node-04') {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							run_action('mocha:extensive:unit')
+							runAction('mocha:extensive:unit')
 						} else {
-							run_action('mocha:untagged:unit')
+							runAction('mocha:untagged:unit')
 						}
-						archive_logs()
+						archiveLogs()
 					}
-				}, // End Node-04 unit tests
-				"Functional System" : {
-					node('node-05'){
+				}, // End node-04 tests
+				"Functional system tests" : {
+					node('node-05') {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							run_action('mocha:extensive:functional:system')
+							runAction('mocha:extensive:functional:system')
 						} else {
-							run_action('mocha:untagged:functional:system')
+							runAction('mocha:untagged:functional:system')
 						}
-						archive_logs()
+						archiveLogs()
 					}
-				} // End Node-05 tests
-			) // End Parallel
+				} // End node-05 tests
+			) // End parallel
 		} // End timestamp
 	}
 
-	stage ('Gather Coverage') {
+	stage('Gather coverage') {
 		parallel(
-			"Gather Coverage Node-01" : {
-				node('node-01'){
-					report_coverage('01')
+			"Gather coverage node-01" : {
+				node('node-01') {
+					reportCoverage('01')
 				}
 			},
-			"Gather Coverage Node-02" : {
-				node('node-02'){
-					report_coverage('02')
+			"Gather coverage node-02" : {
+				node('node-02') {
+					reportCoverage('02')
 				}
 			},
-			"Gather Coverage Node-03" : {
-				node('node-03'){
-					report_coverage('03')
+			"Gather coverage node-03" : {
+				node('node-03') {
+					reportCoverage('03')
 				}
 			},
-			"Gather Coverage Node-04" : {
-				node('node-04'){
-					report_coverage('04')
+			"Gather coverage node-04" : {
+				node('node-04') {
+					reportCoverage('04')
 				}
 			},
-			"Gather Coverage Node-05" : {
-				node('node-05'){
-					report_coverage('05')
+			"Gather coverage node-05" : {
+				node('node-05') {
+					reportCoverage('05')
 				}
 			}
 		)
 	}
 
-	stage ('Submit Coverage') {
-		node('master-01'){
+	stage('Submit coverage') {
+		node('master-01') {
 			try {
 				sh '''
 				cd /var/lib/jenkins/coverage/
@@ -384,6 +384,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				unzip coverage-func-node-02.zip -d node-02
 				unzip coverage-func-node-03.zip -d node-03
 				unzip coverage-func-node-04.zip -d node-04
+				unzip coverage-func-node-05.zip -d node-05
 				bash merge_lcov.sh . merged-lcov.info
 				cp merged-lcov.info $WORKSPACE/merged-lcov.info
 				cp .coveralls.yml $WORKSPACE/.coveralls.yml
@@ -399,43 +400,43 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 		}
 	}
 
-	stage ('Cleanup') {
+	stage('Clean up') {
 		parallel(
-			"Cleanup Node-01" : {
-				node('node-01'){
-					cleanup()
+			"Clean up node-01" : {
+				node('node-01') {
+					cleanUp()
 				}
 			},
-			"Cleanup Node-02" : {
-				node('node-02'){
-					cleanup()
+			"Clean up node-02" : {
+				node('node-02') {
+					cleanUp()
 				}
 			},
-			"Cleanup Node-03" : {
-				node('node-03'){
-					cleanup()
+			"Clean up node-03" : {
+				node('node-03') {
+					cleanUp()
 				}
 			},
-			"Cleanup Node-04" : {
-				node('node-04'){
-					cleanup()
+			"Clean up node-04" : {
+				node('node-04') {
+					cleanUp()
 				}
 			},
-			"Cleanup Node-05" : {
-				node('node-05'){
-					cleanup()
+			"Clean up node-05" : {
+				node('node-05') {
+					cleanUp()
 				}
 			},
-			"Cleanup Master" : {
-				node('master-01'){
-					cleanup_master()
+			"Clean up master" : {
+				node('master-01') {
+					cleanUpMaster()
 				}
 			}
 		)
 	}
 
-	stage ('Set milestone') {
-		node('master-01'){
+	stage('Set milestone') {
+		node('master-01') {
 			milestone 1
 			currentBuild.result = 'SUCCESS'
 			report()

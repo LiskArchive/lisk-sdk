@@ -16,13 +16,12 @@
 var express = require('express');
 var path = require('path');
 var randomstring = require('randomstring');
-var _ = require('lodash');
 var async = require('async');
 
 var dirname = path.join(__dirname, '..', '..');
 var config = require(path.join(dirname, '/test/data/config.json'));
 var Sequence = require(path.join(dirname, '/helpers', 'sequence.js'));
-var database = require(path.join(dirname, '/helpers', 'database.js'));
+var database = require(path.join(dirname, '/db'));
 var genesisblock = require(path.join(dirname, '/test/data/genesisBlock.json'));
 var Logger = require(dirname + '/logger.js');
 

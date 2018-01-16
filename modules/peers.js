@@ -182,8 +182,14 @@ __private.getMatched = function (test, peers) {
 __private.updatePeerStatus = function (err, status, peer) {
 
 	if (err) {
-		peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
-		return false;
+		if (err.code === failureCodes.INCOMPATIBLE_NONCE) {
+			// If the node tries to connect to itself as a peer, the
+			// nonce will be incompatible. Here we put the peer in a BANNED
+			// state so that the node doesn't keep trying to reconnect to itself.
+			peer.applyHeaders({state: Peer.STATE.BANNED});
+		} else {
+			peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
+		}
 	} else {
 		peer.applyHeaders({
 			height: status.height,
@@ -288,8 +294,8 @@ __private.dbSave = function (cb) {
 
 	// Wrap sql queries in transaction and execute
 	library.db.tx('modules:peers:dbSave', function (t) {
-		return library.db.peers.clear(t).then(function (value) {
-			return library.db.peers.insert(peers, t);
+		return t.peers.clear().then(function (value) {
+			return t.peers.insert(peers);
 		});
 	}).then(function (data) {
 		library.logger.info('Peers exported to database');

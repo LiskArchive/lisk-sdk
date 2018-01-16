@@ -16,6 +16,15 @@
 var PQ = require('pg-promise').ParameterizedQuery;
 var columnSet;
 
+/**
+ * Blocks database interaction module
+ * @memberof module:blocks
+ * @class
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {BlocksRepo}
+ */
 function BlocksRepo (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
@@ -53,7 +62,7 @@ function BlocksRepo (db, pgp) {
 	if (!columnSet) {
 		columnSet = {};
 		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, table);
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
 	}
 
 	this.cs = columnSet;
@@ -64,7 +73,7 @@ var Queries = {
 
 	getGenesisBlockId: new PQ('SELECT "id" FROM blocks WHERE "id" = $1'),
 
-	getGenesisBlock: new PQ('SELECT "id", "payloadHash", "blockSignature" FROM blocks WHERE "height" = 1'),
+	getGenesisBlock: 'SELECT "id", "payloadHash", "blockSignature" FROM blocks WHERE "height" = 1',
 
 	deleteBlock: new PQ('DELETE FROM blocks WHERE "id" = $1'),
 
@@ -145,85 +154,177 @@ var Queries = {
 	deleteAfterBlock: new PQ('DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "id" = $1)')
 };
 
-BlocksRepo.prototype.getGenesisBlock = function (task) {
-	return (task || this.db).query(Queries.getGenesisBlock);
+// TODO: Merge BlocksRepo#getGenesisBlock with BlocksRepo#getGenesisBlockId
+/**
+ * Get the genesis block
+ * @return {Promise}
+ */
+BlocksRepo.prototype.getGenesisBlock = function () {
+	return this.db.query(Queries.getGenesisBlock);
 };
 
+/**
+ * Get genesis block by id
+ * @param {string} id
+ * @return {Promise}
+ */
 BlocksRepo.prototype.getGenesisBlockId = function (id) {
 	return this.db.query(Queries.getGenesisBlockId, [id]);
 };
 
+/**
+ * Delete a block from database
+ * @param {string} id
+ * @return {Promise}
+ */
 BlocksRepo.prototype.deleteBlock = function (id) {
 	return this.db.none(Queries.deleteBlock, [id]);
 };
 
+/**
+ * Aggregate rewards for a block
+ * @param {Object} params
+ * @param {string} params.generatorPublicKey
+ * @param {int} params.start - Start time of aggregation period
+ * @param {int} params.end - End time for aggregation period
+ * @return {Promise}
+ */
 BlocksRepo.prototype.aggregateBlocksReward = function (params) {
 	return this.db.query(Queries.aggregateBlocksReward, [params.generatorPublicKey, params.start, params.end]);
 };
 
-BlocksRepo.prototype.count = function (task) {
-	return (task || this.db).one(Queries.count);
+/**
+ * Count blocks
+ * @return {Promise}
+ */
+BlocksRepo.prototype.count = function () {
+	return this.db.one(Queries.count);
 };
 
+/**
+ * Search blocks in database
+ * @param {Object} params
+ * @param {array} params.where
+ * @param {string} params.sortField
+ * @param {string} params.sortMethod
+ * @param {int} params.limit
+ * @param {int} params.offset
+ * @return {Promise}
+ */
 BlocksRepo.prototype.list = function (params) {
 	return this.db.query(Queries.list(params), params);
 };
 
+/**
+ * Get sequence of blocks ids for delegates
+ * @param {Object} params
+ * @param {int} params.delegates - Number of delegates
+ * @param {int} params.height
+ * @param {int} params.limit
+ * @return {Promise}
+ */
 BlocksRepo.prototype.getIdSequence = function (params) {
 	return this.db.query(Queries.getIdSequence, params);
 };
 
+/**
+ * Get common block among peers
+ * @param {Object} params
+ * @param {string} params.id
+ * @param {string} params.previousBlock
+ * @param {int} params.height
+ * @return {Promise}
+ */
 BlocksRepo.prototype.getCommonBlock = function (params) {
 	return this.db.query(Queries.getCommonBlock(params), params);
 };
 
+// TODO: Merge BlocksRepo#getHeightByLastId with BlocksRepo#list
+/**
+ * Get height of the block with id
+ * @param {string} lastId - Id of the block to search
+ * @return {Promise}
+ */
 BlocksRepo.prototype.getHeightByLastId = function (lastId) {
 	return this.db.query(Queries.getHeightByLastId, [lastId]);
 };
 
+/**
+ * Load block including transactions
+ * @param {Object} params
+ * @param {string} params.id
+ * @param {string} params.lastId
+ * @param {int} params.height
+ * @param {int} params.limit
+ * @return {Promise}
+ */
 BlocksRepo.prototype.loadBlocksData = function (params) {
 	return this.db.query(Queries.loadBlocksData(params), params);
 };
 
+/**
+ * Load blocks including transactions with an offset and limit
+ * @param {int} offset
+ * @param {int} limit
+ * @return {Promise}
+ */
 BlocksRepo.prototype.loadBlocksOffset = function (offset, limit) {
 	return this.db.query(Queries.loadBlocksOffset, [offset, limit]);
 };
 
+/**
+ * Load the last block including transactions
+ * @return {Promise}
+ */
 BlocksRepo.prototype.loadLastBlock = function () {
 	return this.db.query(Queries.loadLastBlock);
 };
 
+/**
+ * Check if a block exits with a particular ID
+ * @param {string} id
+ * @return {Promise}
+ * @throws {QueryResultError} - Multiple rows were not expected - in the case of multiple blocks found with same id
+ */
 BlocksRepo.prototype.blockExists = function (id) {
-	return this.db.one(Queries.blockExists, [id]).then(function (row) {
-		return row;
-	}).catch(function (reason) { return false; });
+	return this.db.oneOrNone(Queries.blockExists, [id]);
 };
 
+/**
+ * Delete all blocks after a particular height
+ * @param {string} id
+ * @return {Promise}
+ */
 BlocksRepo.prototype.deleteAfterBlock = function (id) {
 	return this.db.none(Queries.deleteAfterBlock, [id]);
 };
 
+/**
+ * Get multiple blocks to be transported to peers
+ * @param {string} ids - Comma separated string of ids
+ * @return {Promise}
+ */
 BlocksRepo.prototype.getBlocksForTransport = function (ids) {
 	return this.db.query(Queries.getBlocksForTransport, [ids]);
 };
 
 /**
- * Create a transaction to create a block.
- *
- * @param {Object} block - JSON object for block.
+ * Insert a block to database
+ * @param {Object} block - Attributes to be inserted, can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
  * @return {Promise}
  */
 BlocksRepo.prototype.save = function (block) {
-	try {
-		block.payloadHash = Buffer.from(block.payloadHash, 'hex');
-		block.generatorPublicKey = Buffer.from(block.generatorPublicKey, 'hex');
-		block.blockSignature = Buffer.from(block.blockSignature, 'hex');
-		block.reward = block.reward || 0;
-	} catch (e) {
-		throw e;
-	}
+ 	try {
+ 		var saveBlock = Object.assign({}, block);
+ 		saveBlock.payloadHash = Buffer.from(block.payloadHash, 'hex');
+ 		saveBlock.generatorPublicKey = Buffer.from(block.generatorPublicKey, 'hex');
+ 		saveBlock.blockSignature = Buffer.from(block.blockSignature, 'hex');
+ 		saveBlock.reward = block.reward || 0;
+ 	} catch (e) {
+ 		throw e;
+ 	}
 
-	return this.db.none(this.pgp.helpers.insert(block, this.cs.insert));
+ 	return this.db.none(this.pgp.helpers.insert(saveBlock, this.cs.insert));
 };
 
 module.exports = BlocksRepo;

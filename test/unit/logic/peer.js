@@ -13,12 +13,8 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
 var express = require('express');
 var ip = require('ip');
-var _  = require('lodash');
-var sinon = require('sinon');
 
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var Peer = require('../../../logic/peer.js');
@@ -215,9 +211,6 @@ describe('peer', function () {
 				if (__peer.properties.indexOf(property) !== -1) {
 					if (typeof prefixedPeer[property] !== 'object') {
 						expect(peerCopy[property]).to.equal(prefixedPeer[property]);
-					}
-					if (__peer.nullable.indexOf(property) !== -1 && !prefixedPeer[property]) {
-						expect(peerCopy[property]).to.be.null;
 					}
 				}
 			});

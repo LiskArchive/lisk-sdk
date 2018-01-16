@@ -16,8 +16,6 @@
 var async = require('async');
 var Promise = require('bluebird');
 
-var test = require('../../test');
-
 var slots = require('../../../helpers/slots');
 
 function forge (library, cb) {
@@ -46,11 +44,11 @@ function forge (library, cb) {
 			var last_block = library.modules.blocks.lastBlock.get();
 			var slot = slots.getSlotNumber(last_block.timestamp) + 1;
 			var keypair = keypairs[delegate];
-			test.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
+			__testContext.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
 			library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
 				if (err) { return seriesCb(err); }
 				last_block = library.modules.blocks.lastBlock.get();
-				test.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+				__testContext.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
 				return seriesCb(err);
 			});
 		}
