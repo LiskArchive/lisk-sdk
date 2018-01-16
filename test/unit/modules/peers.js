@@ -537,7 +537,7 @@ describe('peers', function () {
 						systemModuleMock.getBroadhash = sinonSandbox.stub().returns(bannedPeer.broadhash);
 					});
 
-					it('should return consensus = 100', function () {
+					it('should return consensus = 0', function () {
 						expect(getConsensusResult).to.equal(0);
 					});
 				});
@@ -551,7 +551,7 @@ describe('peers', function () {
 						systemModuleMock.getBroadhash = sinonSandbox.stub().returns(disconnectedPeer.broadhash);
 					});
 
-					it('should return consensus = 100', function () {
+					it('should return consensus = 0', function () {
 						expect(getConsensusResult).to.equal(0);
 					});
 				});
