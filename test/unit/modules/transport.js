@@ -146,7 +146,9 @@ describe('transport', function () {
 
 			transportInstance = new TransportModule(function (err, transportSelf) {
 				// Backup the library and __private variables so that properties can be overridden
-				// by individual test cases and then we will restore them after each one.
+				// by individual test cases and then we will restore them after each test case has run.
+				// This is neccessary because different test cases may want to stub out different parts of the
+				// library or __private modules while testing other parts.
 				library = TransportModule.__get__('library');
 				__private = TransportModule.__get__('__private');
 				Object.keys(library).forEach(function (field) {
@@ -409,7 +411,6 @@ describe('transport', function () {
 			});
 
 			it('should call library.schema.validate', function (done) {
-
 				__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
 					expect(err).to.be.equal(undefined);
 					expect(library.schema.validate.calledOnce).to.be.true;
