@@ -27,9 +27,10 @@ describe('transport', function () {
 
 	var dbStub, loggerStub, busStub, schemaStub, networkStub, balancesSequenceStub,
 		transactionStub, blockStub, peersStub, broadcasterStubRef, transportInstance,
-		library, __private, defaultScope;
+		library, __private, defaultScope, restoreRewiredTopDeps;
 
-	var restoreRewiredTopDeps;
+	const SAMPLE_SIGNATURE_1 = '32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739';
+	const SAMPLE_SIGNATURE_2 = '61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595';
 
 	beforeEach(function (done) {
 		// Recreate all the stubs and default structures before each test case to make
@@ -250,7 +251,7 @@ describe('transport', function () {
 
 			it('should call library.schema.validate with query.signatures', function (done) {
 				__private.receiveSignatures({
-					signatures: ['SIGNATURE123', 'SIGNATURE456'] // TODO: Use realistic signatures
+					signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2] // TODO: Use realistic signatures
 				}, function (err) {
 					expect(library.schema.validate.called).to.be.true;
 					done();
@@ -276,7 +277,7 @@ describe('transport', function () {
 				});
 
 				__private.receiveSignatures({
-					signatures: ['SIGNATURE123', 'SIGNATURE456']
+					signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
 				}, function (err) {
 					expect(library.schema.validate.called).to.be.true;
 
@@ -294,7 +295,7 @@ describe('transport', function () {
 					library.schema.validate = sinon.stub().callsArgWith(2, err);
 
 					__private.receiveSignatures({
-						signatures: ['SIGNATURE123', 'SIGNATURE456']
+						signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
 					}, function (err) {
 						expect(library.schema.validate.called).to.be.true;
 						expect(err).to.equal('Invalid signatures body');
@@ -310,12 +311,12 @@ describe('transport', function () {
 					it('should call __private.receiveSignature with signature', function (done) {
 
 						__private.receiveSignatures({
-							signatures: ['SIGNATURE123', 'SIGNATURE456']
+							signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
 						}, function (err) {
 							expect(library.schema.validate.called).to.be.true;
 							expect(__private.receiveSignature.calledTwice).to.be.true;
-							expect(__private.receiveSignature.calledWith('SIGNATURE123')).to.be.true;
-							expect(__private.receiveSignature.calledWith('SIGNATURE456')).to.be.true;
+							expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_1)).to.be.true;
+							expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2)).to.be.true;
 							done();
 						});
 					});
@@ -328,13 +329,13 @@ describe('transport', function () {
 							library.logger.debug = sinon.spy();
 
 							__private.receiveSignatures({
-								signatures: ['SIGNATURE123', 'SIGNATURE456']
+								signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
 							}, function (err) {
 								expect(library.schema.validate.called).to.be.true;
 								// If any of the __private.receiveSignature calls fail, the whole
 								// receiveSignatures operation should fail immediately.
 								expect(__private.receiveSignature.calledOnce).to.be.true;
-								expect(library.logger.debug.calledWith(err, 'SIGNATURE123')).to.be.true;
+								expect(library.logger.debug.calledWith(err, SAMPLE_SIGNATURE_1)).to.be.true;
 								done();
 							});
 						});
@@ -345,7 +346,7 @@ describe('transport', function () {
 							library.logger.debug = sinon.spy();
 
 							__private.receiveSignatures({
-								signatures: ['SIGNATURE123', 'SIGNATURE456']
+								signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
 							}, function (err) {
 								expect(err).to.be.equal(err);
 								done();
@@ -357,7 +358,7 @@ describe('transport', function () {
 
 						it('should call callback with error null or undefined', function (done) {
 							__private.receiveSignatures({
-								signatures: ['SIGNATURE123', 'SIGNATURE456']
+								signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
 							}, function (err) {
 								expect(err).to.be.equal(null);
 								done();
