@@ -25,6 +25,7 @@ export {
 	multiSignTransaction,
 	verifyTransaction,
 } from './signAndVerify';
+export { default as signRawTransaction } from './signRawTransaction';
 export { getTimeFromBlockchainEpoch, getTimeWithOffset } from './time';
 export {
 	checkPublicKeysForDuplicates,
