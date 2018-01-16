@@ -526,7 +526,16 @@ Transport.prototype.shared = {
 	},
 
 	status: function (req, cb) {
-		return setImmediate(cb, null, {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash(), nonce: modules.system.getNonce()});
+		var headers = modules.system.headers();
+		return setImmediate(cb, null, {
+			success: true,
+			height: headers.height,
+			broadhash: headers.broadhash,
+			nonce: headers.nonce,
+			httpPort: headers.httpPort,
+			version: headers.version,
+			os: headers.os
+		});
 	},
 
 	postSignatures: function (query, cb) {
