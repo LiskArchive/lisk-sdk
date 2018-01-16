@@ -43,6 +43,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	});
 
 	describe('adding to pool other transactions from same account', function () {
+
 		Object.keys(transactionTypes).forEach(function (key, index) {
 			if (key === 'MULTI') {
 				it('type ' + index + ': ' + key + ' should fail', function (done) {

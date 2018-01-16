@@ -52,6 +52,7 @@ describe('system test (type 4) - multisignature registration', function () {
 		});
 
 		describe('sender db rows', function () {
+
 			var accountRow;
 
 			before('get mem_account, mem_account2multisignature and mem_account2u_multisignature rows', function () {
@@ -136,6 +137,7 @@ describe('system test (type 4) - multisignature registration', function () {
 			});
 
 			describe('sender db rows', function () {
+
 				var accountRow;
 
 				before('get mem_account, mem_account2multisignature and mem_account2u_multisignature rows', function () {

@@ -43,6 +43,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 	describe('adding to pool other transactions from same account', function () {
 
 		describe('with second password', function () {
+
 			Object.keys(transactionTypes).forEach(function (key, index) {
 				if (key === 'SIGNATURE') {
 					it('type ' + index + ': ' + key + ' should fail', function (done) {
@@ -88,6 +89,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 		});
 
 		describe('without second password', function () {
+
 			Object.keys(transactionTypes).forEach(function (key, index) {
 				if (key != 'SIGNATURE') {
 					it('type ' + index + ': ' + key + ' should be ok', function (done) {
