@@ -120,7 +120,7 @@ function getTransactionFromModule (library, filter, cb) {
 function beforeBlock (type, account, dapp, cb) {
 	before('init sandboxed application, credit account and register dapp', function (done) {
 		application.init({ sandbox: { name: 'lisk_test_' + type } }, function (err, library) {
-			var transaction = lisk.transaction.createTransaction(account.address, 100 * normalizer, accountFixtures.genesis.password);
+			var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 			var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
 			dapp.id = dappTransaction.id;
 
