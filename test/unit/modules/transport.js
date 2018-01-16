@@ -145,6 +145,8 @@ describe('transport', function () {
 			__privateOriginal = {};
 
 			transportInstance = new TransportModule(function (err, transportSelf) {
+				// Backup the library and __private variables so that properties can be overridden
+				// by individual test cases and then we will restore them after each one.
 				library = TransportModule.__get__('library');
 				__private = TransportModule.__get__('__private');
 				Object.keys(library).forEach(function (field) {
@@ -159,8 +161,14 @@ describe('transport', function () {
 		});
 
 		afterEach(function (done) {
-			// Reset __private and library module variables to their
+			// Restore __private and library properties to their
 			// original states.
+			Object.keys(library).forEach(function (field) {
+				delete library[field];
+			});
+			Object.keys(__private).forEach(function (field) {
+				delete __private[field];
+			});
 			Object.keys(libraryOriginal).forEach(function (field) {
 				library[field] = libraryOriginal[field];
 			});
@@ -251,7 +259,7 @@ describe('transport', function () {
 
 			it('should call library.schema.validate with query.signatures', function (done) {
 				__private.receiveSignatures({
-					signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2] // TODO: Use realistic signatures
+					signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
 				}, function (err) {
 					expect(library.schema.validate.called).to.be.true;
 					done();
@@ -356,7 +364,7 @@ describe('transport', function () {
 
 					describe('when __private.receiveSignature succeeds', function () {
 
-						it('should call callback with error null or undefined', function (done) {
+						it('should call callback with error null', function (done) {
 							__private.receiveSignatures({
 								signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
 							}, function (err) {
