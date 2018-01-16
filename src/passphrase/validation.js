@@ -23,8 +23,8 @@ export const countPassphraseWords = passphrase =>
 	passphrase.split(' ').filter(Boolean).length;
 
 export const countUppercaseCharacters = passphrase => {
-	const uppercaseCharacterMatches = passphrase.match(/[A-Z]/g);
-	return uppercaseCharacterMatches ? uppercaseCharacterMatches.length : 0;
+	const uppercaseCharacterMatches = passphrase.match(/[A-Z]/g) || [];
+	return uppercaseCharacterMatches.length;
 };
 
 export const validatePassphrase = (passphrase, wordlist) => {
