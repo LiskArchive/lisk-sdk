@@ -283,7 +283,7 @@ describe('encrypt', () => {
 		});
 
 		describe('integration test', () => {
-			it('should encrypt a given passphrase with a password and decrypt it back to the original passphrase', () => {
+			it('should encrypt a given passphrase with a password and decrypt it back to the original passphrase @node-only', () => {
 				const cipher = encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
