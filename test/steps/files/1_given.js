@@ -15,6 +15,7 @@
  */
 import fs from 'fs';
 import readline from 'readline';
+import { FileSystemError } from '../../../src/utils/error';
 import * as fsUtils from '../../../src/utils/fs';
 import {
 	getFirstQuotedString,
@@ -126,7 +127,7 @@ export function theFileCanBeWritten() {}
 
 export function theFileCannotBeRead() {
 	const { filePath } = this.test.ctx;
-	const error = new Error('EACCES: permission denied');
+	const error = new FileSystemError('EACCES: permission denied');
 	const streamStub = createStreamStub(
 		(type, callback) => type === 'error' && callback(error),
 	);

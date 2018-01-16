@@ -14,6 +14,7 @@
  *
  */
 import cryptoModule from '../utils/cryptoModule';
+import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
@@ -44,7 +45,7 @@ export const actionCreator = vorpal => async ({
 	const messageSource = options.message;
 
 	if (!message && !messageSource) {
-		throw new Error('No message was provided.');
+		throw new ValidationError('No message was provided.');
 	}
 
 	return getInputsFromSources(vorpal, {

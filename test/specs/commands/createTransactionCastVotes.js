@@ -13,13 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { setUpCommandcreateTransactionCastVotes } from '../../steps/setup';
+import { setUpCommandCreateTransactionCastVotes } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('create transaction cast votes', () => {
-	beforeEach(setUpCommandcreateTransactionCastVotes);
+	beforeEach(setUpCommandCreateTransactionCastVotes);
 	Given(
 		'a Vorpal instance with a UI and an active command that can prompt',
 		given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt,
@@ -152,8 +152,8 @@ describe('create transaction cast votes', () => {
 																	when.theActionIsCalledWithTheOptions,
 																	() => {
 																		Then(
-																			'it should reject with message "At least one of votes and/or unvotes options must be provided."',
-																			then.itShouldRejectWithMessage,
+																			'it should reject with validation error and message "At least one of votes and/or unvotes options must be provided."',
+																			then.itShouldRejectWithValidationErrorAndMessage,
 																		);
 																	},
 																);
@@ -216,8 +216,8 @@ describe('create transaction cast votes', () => {
 																			when.theActionIsCalledWithTheOptions,
 																			() => {
 																				Then(
-																					'it should reject with message "Votes and unvotes sources must not be the same."',
-																					then.itShouldRejectWithMessage,
+																					'it should reject with validation error and message "Votes and unvotes sources must not be the same."',
+																					then.itShouldRejectWithValidationErrorAndMessage,
 																				);
 																			},
 																		);

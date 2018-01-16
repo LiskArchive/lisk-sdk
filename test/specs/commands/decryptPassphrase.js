@@ -43,8 +43,8 @@ describe('decrypt passphrase command', () => {
 												when.theActionIsCalledWithTheIVAndTheOptions,
 												() => {
 													Then(
-														'it should reject with message "No encrypted passphrase was provided."',
-														then.itShouldRejectWithMessage,
+														'it should reject with validation error and message "No encrypted passphrase was provided."',
+														then.itShouldRejectWithValidationErrorAndMessage,
 													);
 												},
 											);

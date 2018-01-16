@@ -26,6 +26,22 @@ export function theReturnedFunctionIsCalledWithTheObject() {
 	this.test.ctx.returnValue = returnValue(testObject);
 }
 
+export function theFileSystemErrorIsThrown() {
+	const { fileSystemErrorFn } = this.test.ctx;
+	try {
+		const returnValue = fileSystemErrorFn();
+		// istanbul ignore next
+		this.test.ctx.returnValue = returnValue;
+		// istanbul ignore next
+		return returnValue;
+	} catch (error) {
+		const testFunction = fileSystemErrorFn.bind(null);
+		this.test.ctx.testFunction = testFunction;
+		this.test.ctx.testError = error;
+		return testFunction;
+	}
+}
+
 export function theValidationErrorIsThrown() {
 	const { validationErrorFn } = this.test.ctx;
 	try {

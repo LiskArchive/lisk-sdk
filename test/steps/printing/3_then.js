@@ -51,8 +51,8 @@ export function consoleWarnShouldBeCalledWithTheStringsInYellow() {
 }
 
 export function itShouldPrintTheErrorMessageInRed() {
-	const { testError: { message }, validationErrorMessage } = this.test.ctx;
-	return message.should.be.equal(chalk.red(validationErrorMessage));
+	const { testError: { message }, errorMessage } = this.test.ctx;
+	return message.should.be.equal(chalk.red(errorMessage));
 }
 
 export function theErrorShouldBePrintedWithThePrefix() {

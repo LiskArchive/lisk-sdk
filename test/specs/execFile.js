@@ -41,8 +41,8 @@ describe('execFile', () => {
 						when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction,
 						() => {
 							Then(
-								'it should throw error "EACCES: permission denied"',
-								then.itShouldThrowError,
+								'it should throw file system error "EACCES: permission denied"',
+								then.itShouldThrowFileSystemError,
 							);
 						},
 					);

@@ -107,10 +107,10 @@ export const createErrorHandler = prefix => ({ message }) => ({
 
 const validateOutputFormatOptions = options => {
 	if (options.json && options.table) {
-		throw new Error('Cannot output both JSON and table.');
+		throw new ValidationError('Cannot output both JSON and table.');
 	}
 	if (options.json === false && options.table === false) {
-		throw new Error('Must output either JSON or table.');
+		throw new ValidationError('Must output either JSON or table.');
 	}
 	return true;
 };
