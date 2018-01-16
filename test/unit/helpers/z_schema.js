@@ -1,10 +1,53 @@
-var node = require('../../node.js');
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+'use strict';
+
+var randomstring = require('randomstring');
+
 var Z_schema = require('../../../helpers/z_schema.js');
+var constants = require('../../../helpers/constants.js');
 
 var validator = new Z_schema();
-var expect = node.expect;
 
 describe('schema - custom formats', function () {
+
+	describe('additionalData', function () {
+		var schema = {
+			format: 'additionalData'
+		};
+
+		it('should return false if string is longer than maxLength (either chars or bytes)', function () {
+			var invalidData = [];
+			invalidData.push(randomstring.generate(constants.additionalData.maxLength - 1) + '现');
+			invalidData.push(randomstring.generate(constants.additionalData.maxLength + 1));
+
+			invalidData.forEach(function (item) {
+				expect(validator.validate(item, schema)).to.equal(false);
+			});
+		});
+
+		it('should return true if string is between minLength and maxLength', function () {
+			var validData = [];
+			validData.push(randomstring.generate(constants.additionalData.minLength));
+			validData.push(randomstring.generate(constants.additionalData.maxLength));
+
+			validData.forEach(function (item) {
+				expect(validator.validate(item, schema)).to.equal(true);
+			});
+		});
+	});
+
 	describe('hex', function () {
 		var schema = {
 			format: 'hex'
@@ -85,6 +128,28 @@ describe('schema - custom formats', function () {
 		it('should return true for valid publicKey', function () {
 			var validSignature = 'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
 			expect(validator.validate(validSignature, schema)).to.equal(true);
+		});
+	});
+
+	describe('ipOrFQDN', function () {
+		var schema = {
+			format: 'ipOrFQDN'
+		};
+
+		it('should return false if value is not an IP or not a FQDN', function () {
+			var invalidData = ['192.168', 'alpha-', 'apha_server', 'alpha.server.'];
+
+			invalidData.forEach(function (item) {
+				expect(validator.validate(item, schema)).to.equal(false);
+			});
+		});
+
+		it('should return true if value is an IP or a valid FQDN', function () {
+			var validData = ['192.168.0.1', '127.0.0.1', 'localhost', 'app.server', 'alpha.server.com', '8.8.8.8'];
+
+			validData.forEach(function (item) {
+				expect(validator.validate(item, schema)).to.equal(true);
+			});
 		});
 	});
 });

@@ -1,0 +1,2515 @@
+####################################################################################
+# Copyright © 2018 Lisk Foundation
+#
+# See the LICENSE file at the top-level directory of this distribution
+# for licensing information.
+#
+# Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+# no part of this software, including this file, may be copied, modified,
+# propagated, or distributed except according to the terms contained in the
+# LICENSE file.
+#
+# Removal or modification of this copyright notice is prohibited.
+####################################################################################
+swagger: '2.0'
+
+info:
+  description: Lisk API Documentation
+  title: Lisk API Documentation
+  version: '1.0.20'
+  contact:
+    email: admin@lisk.io
+  license:
+    name: GPL v3.0
+    url: https://www.gnu.org/licenses/gpl-3.0.en.html
+
+# All paths relative to specified basePath
+# basePath: /v1
+
+basePath: /api
+
+# Tags for organizing operations
+tags:
+- name: Accounts
+  description: Account related API calls
+- name: Blocks
+  description: Block related API calls
+- name: Dapps
+  description: Dapps related API calls
+- name: Delegates
+  description: Delegates related API calls
+- name: Node
+  description: Node related API calls
+- name: Peers
+  description: Peers related API Calls
+- name: Queue
+  description: Queue related API calls
+- name: Signatures
+  description: Signatures related API calls
+- name: Transactions
+  description: Transactions related API calls
+- name: Votes
+  description: Votes related API calls
+- name: Private
+  x-private: true
+  description: Private endpoint only authorized to whitelisted IPs
+
+schemes:
+  - http
+  - https
+
+paths:
+  /accounts:
+    x-swagger-router-controller: accounts
+    get:
+      tags:
+      - Accounts
+      summary: Requests account data
+      operationId: getAccounts
+      description:
+        By passing in the appropriate parameters, you can search for
+        matching accounts in the system
+      produces:
+      - application/json
+      parameters:
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - name: sort
+          in: query
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - balance:asc
+            - balance:desc
+          default: balance:asc
+      responses:
+        200:
+          description: List of accounts
+          schema:
+            $ref: '#/definitions/AccountsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /accounts/{address}/multisignature_groups:
+    x-swagger-router-controller: accounts
+    get:
+      tags:
+      - Accounts
+      summary: Requests multisignature groups data
+      operationId: getMultisignatureGroups
+      description:
+        By passing in the appropriate options, you can search for a
+        specified account in the system and get its multisignature groups
+      produces:
+        - application/json
+      parameters:
+        - name: address
+          in: path
+          description: Address of account
+          type: string
+          format: address
+          required: true
+          minLength: 2
+          maxLength: 22
+      responses:
+        200:
+          description: List of multisignature accounts
+          schema:
+            $ref: '#/definitions/MultisignatureGroupsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Multisignature account not found
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /accounts/{address}/multisignature_memberships:
+    x-swagger-router-controller: accounts
+    get:
+      tags:
+      - Accounts
+      summary: Requests multisignature memberships data
+      operationId: getMultisignatureMemberships
+      description:
+        By passing in the appropriate options, you can search for a
+        specified account in the system and get its multisignature memberships
+      produces:
+        - application/json
+      parameters:
+        - name: address
+          in: path
+          description: Address of account
+          type: string
+          format: address
+          required: true
+          minLength: 2
+          maxLength: 22
+      responses:
+        200:
+          description: List of multisignature accounts
+          schema:
+            $ref: '#/definitions/MultisignatureGroupsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /dapps:
+    x-swagger-router-controller: dapps
+    get:
+      tags:
+      - Dapps
+      summary: Requests dapps data
+      operationId: getDapps
+      description:
+        By passing in the appropriate options, you can search for
+        a specified dapp in the system, otherwise returns a list
+      produces:
+      - application/json
+      parameters:
+        - name: transactionId
+          in: query
+          description: Registration transaction ID to query
+          required: false
+          type: string
+          format: id
+          minLength: 1
+          maxLength: 20
+        - name: name
+          in: query
+          description: Name to query - Fuzzy search
+          type: string
+          minLength: 1
+          maxLength: 32
+        - name: sort
+          in: query
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - name:asc
+            - name:desc
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/DappsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+           $ref: '#/definitions/UnexpectedError'
+
+  /peers:
+    x-swagger-router-controller: peers
+    get:
+      tags:
+      - Peers
+      summary: Requests peers data
+      operationId: getPeers
+      description: Returns peers related data
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/ip'
+        - $ref: '#/parameters/httpPort'
+        - $ref: '#/parameters/wsPort'
+        - $ref: '#/parameters/os'
+        - $ref: '#/parameters/version'
+        - $ref: '#/parameters/state'
+        - $ref: '#/parameters/height'
+        - $ref: '#/parameters/broadhash'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - height:asc
+            - height:desc
+            - version:asc
+            - version:desc
+      responses:
+        200:
+          description: List of peers
+          schema:
+            $ref: '#/definitions/PeersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  # Node
+  /node/constants:
+    x-swagger-router-controller: node
+    get:
+      tags:
+      - Node
+      summary: Requests constants data
+      operationId: getConstants
+      description: Returns all current constants data on the system
+      produces:
+      - application/json
+      responses:
+        200:
+          description: Node constants response
+          schema:
+            $ref: '#/definitions/NodeConstantsResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /node/status:
+    x-swagger-router-controller: node
+    get:
+      tags:
+      - Node
+      summary: Requests status data
+      operationId: getStatus
+      description: Returns all current constants data on the system
+      produces:
+      - application/json
+      responses:
+        200:
+          description: Node status response
+          schema:
+            $ref: '#/definitions/NodeStatusResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /node/status/forging:
+    x-swagger-router-controller: node
+    x-private: true
+    get:
+      tags:
+        - Node
+        - Delegates
+        - Private
+      summary: Requests forging status of a delegate
+      operationId: getForgingStatus
+      description:
+        By querying by publicKey, the forging status of a delegate can be determined on a node
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/publicKey'
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/ForgingStatusResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        403:
+          description: Access denied
+          schema:
+            $ref: '#/definitions/AccessDeniedError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+    put:
+      tags:
+        - Node
+        - Delegates
+        - Private
+      summary: Toggles the forging status of a delegate
+      operationId: updateForgingStatus
+      description:
+        Upon passing the correct key and publicKey, forging will be enabled or disabled
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: Secret key for the delegate account
+          required: true
+          schema:
+            type: object
+            required:
+              - decryptionKey
+              - publicKey
+            properties:
+              decryptionKey:
+                type: string
+                example: "happy tree friends"
+                minLength: 5
+              publicKey:
+                type: string
+                example: "968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b"
+                format: publicKey
+      responses:
+        200:
+          description: Delegate forging toggled on or off
+          schema:
+            $ref: '#/definitions/ForgingStatusResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        403:
+          description: Access denied
+          schema:
+            $ref: '#/definitions/AccessDeniedError'
+        404:
+          description: Provided public key not found
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /node/transactions/{state}:
+    x-swagger-router-controller: node
+    get:
+      tags:
+        - Transactions
+        - Queue
+      summary: Requests unprocessed transactions data
+      operationId: getPooledTransactions
+      description:
+        This API call returns unprocessed transactions matching filter criteria
+        If you post a batch of transactions, they will appear in the unprocessed list after a small delay, depending on server load
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: state
+          description: State of transactions to query
+          required: true
+          type: string
+          enum:
+            - unprocessed
+            - unconfirmed
+            - unsigned
+        - $ref: '#/parameters/transactionId'
+        - $ref: '#/parameters/recipientId'
+        - $ref: '#/parameters/recipientPublicKey'
+        - $ref: '#/parameters/senderId'
+        - $ref: '#/parameters/senderPublicKey'
+        - $ref: '#/parameters/transactionType'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: sort
+          description: Fields to sort on to query
+          required: false
+          type: string
+          enum:
+            - amount:asc
+            - amount:desc
+            - fee:asc
+            - fee:desc
+            - type:asc
+            - type:desc
+            - timestamp:asc
+            - timestamp:desc
+          default: amount:asc
+      responses:
+        200:
+          description: Transactions list
+          schema:
+            $ref: '#/definitions/TransactionsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /delegates:
+    x-swagger-router-controller: delegates
+    get:
+      tags:
+      - Delegates
+      summary: Requests delegates data
+      operationId: getDelegates
+      x-lisk-cache-enabled: true
+      description:
+        By passing in the appropriate options, you can search for
+        a specified delegate in the system, otherwise returns a list
+      produces:
+      - application/json
+      parameters:
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - name: search
+          in: query
+          description: Fuzzy delegate username to query
+          type: string
+          minLength: 1
+          maxLength: 20
+        - name: rank
+          in: query
+          description: Delegate rank to query
+          type: string
+          minLength: 1
+          maxLength: 20
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - rank:asc
+            - rank:desc
+            - productivity:asc
+            - productivity:desc
+            - missedBlocks:asc
+            - missedBlocks:desc
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/DelegatesResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /delegates/forgers:
+    x-swagger-router-controller: delegates
+    get:
+      tags:
+        - Delegates
+      summary: Requests next forgers data
+      operationId: getForgers
+      description:
+        By passing in the appropriate options, you can get a list of the next forgers
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/ForgersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /blocks:
+    x-swagger-router-controller: blocks
+    get:
+      tags:
+        - Blocks
+      summary: Requests blocks data
+      operationId: getBlocks
+      x-lisk-cache-enabled: true
+      description:
+        By passing in the appropriate options, you can search for
+        a specified block in the system
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/blockId'
+        - $ref: '#/parameters/height'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: generatorPublicKey
+          description: generatorPublicKey to query
+          type: string
+          format: publicKey
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - height:asc
+            - height:desc
+            - totalAmount:asc
+            - totalAmount:desc
+            - totalFee:asc
+            - totalFee:desc
+            - timestamp:asc
+            - timestamp:desc
+          default: height:desc
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/BlocksResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /voters:
+    x-swagger-router-controller: voters
+    get:
+      tags:
+        - Votes
+      summary: Requests voters data for a delegate
+      operationId: getVoters
+      description:
+        This API call returns all votes received by a delegate. At least one of the filter parameters must be provided
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - balance:asc
+            - balance:desc
+      responses:
+        200:
+          description: Voters list
+          schema:
+            $ref: '#/definitions/VotersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Requested resource not found based on provided filters
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /votes:
+    x-swagger-router-controller: voters
+    get:
+      tags:
+        - Votes
+      summary: Requests votes data for an account
+      operationId: getVotes
+      description:
+        This API call returns all votes placed by an account
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - balance:asc
+            - balance:desc
+      responses:
+        200:
+          description: Votes list
+          schema:
+            $ref: '#/definitions/VotesResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Requested resource not found based on provided filters
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /signatures:
+    x-swagger-router-controller: signatures
+    post:
+      tags:
+        - Signatures
+      summary: Submits an array of signatures objects to sign multisignature transactions
+      operationId: postSignatures
+      description:
+        Submits signature(s) to sign a multisignature transaction
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: signatures
+          description: Signatures object to submit to the network
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Signature'
+      responses:
+        200:
+          description: Signature is accepted by the node for processing
+          schema:
+            $ref: '#/definitions/SignaturesResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        409:
+          description: Some error related to processing of request
+          schema:
+            $ref: '#/definitions/ProcessingError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /transactions:
+    x-swagger-router-controller: transactions
+    get:
+      tags:
+        - Transactions
+      summary: Requests transactions data
+      operationId: getTransactions
+      x-lisk-cache-enabled: true
+      description:
+        This API call returns transactions matching filter criteria
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/transactionId'
+        - $ref: '#/parameters/recipientId'
+        - $ref: '#/parameters/recipientPublicKey'
+        - $ref: '#/parameters/senderId'
+        - $ref: '#/parameters/senderPublicKey'
+        - $ref: '#/parameters/transactionType'
+        - $ref: '#/parameters/height'
+        - $ref: '#/parameters/minAmount'
+        - $ref: '#/parameters/maxAmount'
+        - $ref: '#/parameters/fromTimestamp'
+        - $ref: '#/parameters/toTimestamp'
+        - $ref: '#/parameters/blockId'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: sort
+          description: Fields to sort on to query
+          required: false
+          type: string
+          enum:
+            - amount:asc
+            - amount:desc
+            - fee:asc
+            - fee:desc
+            - type:asc
+            - type:desc
+            - timestamp:asc
+            - timestamp:desc
+          default: amount:asc
+      responses:
+        200:
+          description: Transactions list
+          schema:
+            $ref: '#/definitions/TransactionsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+    post:
+      tags:
+        - Transactions
+      summary: Submits signed transactions for processing
+      operationId: postTransactions
+      description:
+        Submits signed transactions for processing by the transaction pool
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: transactions
+          description: Transaction object to submit to the network
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Transaction'
+      responses:
+        200:
+          description: Transaction accepted by the node for processing
+          schema:
+            $ref: '#/definitions/GeneralStatusResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        409:
+          description: Some error related to processing of request
+          schema:
+            $ref: '#/definitions/ProcessingError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+
+  /spec:
+    x-swagger-pipe: swagger_raw_pipe
+
+parameters:
+  ip:
+    name: ip
+    in: query
+    description: IP of the node or delegate
+    type: string
+    format: ip
+  httpPort:
+    name: httpPort
+    in: query
+    description: Http port of the node or delegate
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 65535
+  wsPort:
+    name: wsPort
+    in: query
+    description: Web socket port for the node or delegate
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 65535
+  os:
+    name: os
+    in: query
+    description: OS of the node
+    type: string
+  version:
+    name: version
+    in: query
+    description: Lisk version of the node
+    type: string
+    format: version
+    minLength: 5
+    maxLength: 12
+  state:
+    name: state
+    in: query
+    description: Current state of the network
+    type: integer
+    format: int32
+    minimum: 0
+    maximum: 2
+  height:
+    name: height
+    in: query
+    description: Current height of the network
+    type: integer
+    format: int32
+    minimum: 1
+  broadhash:
+    name: broadhash
+    in: query
+    description: Broadhash of the network
+    type: string
+    format: hex
+  limit:
+    in: query
+    name: limit
+    description: Limit applied to results
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 100
+    default: 10
+  offset:
+    name: offset
+    in: query
+    description: Offset value for results
+    type: integer
+    format: int32
+    minimum: 0
+    default: 0
+  address:
+    name: address
+    in: query
+    description: Address to query
+    required: false
+    type: string
+    format: address
+    minLength: 2
+    maxLength: 22
+  publicKey:
+    name: publicKey
+    in: query
+    description: Public key to query
+    type: string
+    format: publicKey
+  secondPublicKey:
+    name: secondPublicKey
+    in: query
+    description: Second public key to query
+    type: string
+    format: publicKey
+  username:
+    name: username
+    in: query
+    description: Delegate username to query
+    type: string
+    format: username
+    minLength: 1
+    maxLength: 20
+  blockId:
+    name: blockId
+    in: query
+    description: Block id to query
+    type: string
+    format: id
+    minLength: 1
+    maxLength: 20
+  transactionId:
+    name: id
+    in: query
+    description: Transaction id to query
+    type: string
+    format: id
+    minLength: 1
+    maxLength: 20
+  recipientId:
+    name: recipientId
+    in: query
+    description: Recipient address to query
+    type: string
+    format: address
+    minLength: 1
+    maxLength: 22
+  recipientPublicKey:
+    name: recipientPublicKey
+    in: query
+    description: Public key to query
+    type: string
+    format: publicKey
+    minLength: 1
+  senderId:
+    name: senderId
+    in: query
+    description: Sender address to query
+    type: string
+    format: address
+    minLength: 1
+    maxLength: 22
+  senderPublicKey:
+    name: senderPublicKey
+    in: query
+    description: Public key to query
+    type: string
+    format: publicKey
+    minLength: 1
+  transactionType:
+    name: type
+    in: query
+    description: Transaction type
+    type: integer
+    minimum: 0
+    maximum: 7
+  minAmount:
+    name: minAmount
+    in: query
+    description: Minimum transaction amount
+    type: integer
+    minimum: 0
+  maxAmount:
+    name: maxAmount
+    in: query
+    description: Maximum transaction amount
+    type: integer
+    minimum: 0
+  fromTimestamp:
+    name: fromTimestamp
+    in: query
+    description: Starting Lisk timestamp of records to query
+    type: integer
+    minimum: 0
+  toTimestamp:
+    name: toTimestamp
+    in: query
+    description: Ending Lisk timestamp of records to query
+    type: integer
+    minimum: 1
+
+definitions:
+  NodeStatusResponse:
+    type: object
+    required:
+      - data
+      - links
+      - meta
+    properties:
+      data:
+        $ref: '#/definitions/NodeStatus'
+      meta:
+        type: object
+      links:
+        type: object
+
+  NodeConstantsResponse:
+    type: object
+    required:
+      - data
+      - links
+      - meta
+    properties:
+      data:
+        $ref: '#/definitions/NodeConstants'
+      meta:
+        type: object
+      links:
+        type: object
+
+  PeersResponse:
+    description: Peers response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Peer'
+      meta:
+       type: object
+       required:
+         - offset
+         - limit
+         - total
+       properties:
+         offset:
+           description: Offset value for results
+           type: integer
+           example: 0
+         limit:
+           description: Limit applied to results
+           type: integer
+           example: 100
+         total:
+           description: Total number of available peers
+           type: integer
+           example: 100
+      links:
+        type: object
+
+  AccountsResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: List of accounts
+        type: array
+        items:
+          $ref: '#/definitions/AccountExtended'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  MultisignatureGroupsResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: List of multisignature groups
+        type: array
+        items:
+          $ref: '#/definitions/MultisignatureGroup'
+      meta:
+        type: object
+      links:
+        type: object
+
+  DappsResponse:
+    description: Dapps endpoint response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Dapp'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  DelegatesResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: List of delegates
+        type: array
+        items:
+          $ref: '#/definitions/DelegateWithAccount'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  ForgersResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        description: List of forgers
+        type: array
+        items:
+          $ref: '#/definitions/Forger'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+          - currentSlot
+          - lastBlockSlot
+          - lastBlock
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+          currentSlot:
+            description: Currently active slot
+            type: integer
+            example: 10
+          lastBlockSlot:
+            description: Slot of the last processed block
+            type: integer
+            example: 10
+          lastBlock:
+            description: ID of the last processed block
+            type: integer
+            example: 10
+      links:
+        type: object
+
+  ForgingStatusResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ForgingStatus'
+      meta:
+        type: object
+      links:
+        type: object
+
+  BlocksResponse:
+    description: Blocks response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Block'
+      meta:
+       type: object
+       required:
+         - offset
+         - limit
+       properties:
+         offset:
+           description: Offset value for results
+           type: integer
+           example: 0
+         limit:
+           description: Limit applied to results
+           type: integer
+           example: 100
+      links:
+        type: object
+
+  SignaturesResponse:
+    description: Signatures response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: object
+        required:
+          - message
+        properties:
+          message:
+            type: string
+            minLength: 1
+      meta:
+       type: object
+       required:
+         - status
+       properties:
+         status:
+           description: Acceptance status for signatures
+           type: boolean
+           example: true
+      links:
+        type: object
+
+  TransactionsResponse:
+    description: Transactions response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Transaction'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+          - count
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+          count:
+            description: Number of transactions in the response
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  GeneralStatusResponse:
+    type: object
+    required:
+      - data
+      - links
+      - meta
+    properties:
+      data:
+        type: object
+        required:
+          - message
+        properties:
+          message:
+            type: string
+            minLength: 1
+      meta:
+       type: object
+       required:
+         - status
+       properties:
+         status:
+           description: Acceptance status for transactions
+           type: boolean
+           example: true
+      links:
+        type: object
+
+  Transaction:
+    type: object
+    required:
+      - id
+      - type
+      - amount
+      - fee
+      - senderPublicKey
+      - recipientId
+      - timestamp
+      - asset
+      - signature
+    properties:
+      id:
+        type: string
+        format: id
+        example: "222675625422353767"
+        minLength: 1
+        maxLength: 20
+      amount:
+        type: string
+        example: '150000000'
+      fee:
+        type: string
+        example: '1000000'
+      type:
+        type: integer
+        minimum: 0
+        maximum: 7
+      height:
+        type: integer
+        minimum: 1
+      blockId:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+        example: "6258354802676165798"
+      timestamp:
+        type: integer
+        example: 28227090
+      senderId:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      senderPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      senderSecondPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      recipientId:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      recipientPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      signature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+      secondSignature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+      multisignatures:
+        type: array
+        items:
+          type: string
+          format: signature
+          example: 72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a
+      confirmations:
+        type: integer
+        minimum: 0
+      asset:
+        type: object
+      receivedAt:
+        type: string
+        format: 'date-time'
+      relays:
+        type: integer
+      signSignature:
+        type: string
+        format: signature
+
+  Signature:
+    type: object
+    required:
+      - transactionId
+      - publicKey
+      - signature
+    properties:
+      transactionId:
+        type: string
+        format: id
+        example: "222675625422353767"
+        minLength: 1
+        maxLength: 20
+      publicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      signature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+
+  Block:
+    type: object
+    required:
+      - id
+      - height
+      - timestamp
+      - generatorPublicKey
+      - numberOfTransactions
+      - totalAmount
+      - totalFee
+      - reward
+      - totalForged
+    properties:
+      id:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+        example: "6258354802676165798"
+      version:
+        type: integer
+        example: 0
+        minimum: 0
+      height:
+        type: integer
+        example: 123
+        minimum: 1
+      timestamp:
+        type: integer
+        example: 28227090
+      generatorAddress:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      generatorPublicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      payloadLength:
+        type: integer
+        example: 117
+        minimum: 0
+      payloadHash:
+        type: string
+        format: hex
+        example: 4e4d91be041e09a2e54bb7dd38f1f2a02ee7432ec9f169ba63cd1f193a733dd2
+      blockSignature:
+        type: string
+        format: signature
+        example: a3733254aad600fa787d6223002278c3400be5e8ed4763ae27f9a15b80e20c22ac9259dc926f4f4cabdf0e4f8cec49308fa8296d71c288f56b9d1e11dfe81e07
+      confirmations:
+        type: integer
+        example: 200
+      previousBlockId:
+        type: string
+        format: id
+        example: "15918760246746894806"
+      numberOfTransactions:
+        type: integer
+        example: 15
+      totalAmount:
+        type: string
+        example: "150000000"
+      totalFee:
+        type: string
+        example: "15000000"
+      reward:
+        type: string
+        example: "50000000"
+      totalForged:
+        type: string
+        example: "65000000"
+
+  CommonBlock:
+    x-private: true
+    type: object
+    required:
+      - id
+      - height
+      - previousBlock
+    properties:
+      id:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+        example: "6258354802676165798"
+      height:
+        type: integer
+        example: 123
+        minimum: 1
+      previousBlock:
+        type: string
+        format: id
+        example: "15918760246746894806"
+
+  BlocksList:
+    x-private: true
+    type: array
+    items:
+      $ref: '#/definitions/Block'
+
+  ForgingStatus:
+    type: object
+    required:
+      - forging
+      - publicKey
+    properties:
+      forging:
+        type: boolean
+        description: Forging status of the queried delegate
+        example: true
+      publicKey:
+        type: string
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+        format: publicKey
+
+  VotersResponse:
+    description: Voters endpoint response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        $ref: '#/definitions/DelegateWithVoters'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  VotesResponse:
+    description: Votes endpoint response
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        $ref: '#/definitions/DelegateWithVotes'
+      meta:
+        type: object
+        required:
+          - offset
+          - limit
+        properties:
+          offset:
+            description: Offset value for results
+            type: integer
+            example: 0
+          limit:
+            description: Limit applied to results
+            type: integer
+            example: 100
+      links:
+        type: object
+
+  Forger:
+    type: object
+    required:
+      - username
+      - publicKey
+      - address
+      - nextSlot
+    properties:
+      username:
+        type: string
+        format: username
+        example: isabella
+      publicKey:
+        type: string
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+        format: publicKey
+      address:
+        type: string
+        format: address
+        example: 6251001604903637008L
+      nextSlot:
+        type: number
+        example: 4368793
+
+  Dapp:
+    type: object
+    required:
+      - transactionId
+      - name
+      - type
+    properties:
+      transactionId:
+        type: string
+        format: id
+        example: '15359945250124697273'
+        minLength: 1
+        maxLength: 20
+      icon:
+        type: string
+        example: http://www.blocksafefoundation.com/header.jpg
+      category:
+        type: number
+        example: 8
+      type:
+        type: number
+        example: 8
+      link:
+        type: string
+        example: https://github.com/blocksafe/SDK-notice/archive/master.zip
+      tags:
+        type: string
+        example: Smartgun
+      description:
+        type: string
+        example: Smart Gun Netwoirk
+      name:
+        type: string
+        example: Blocksafe
+
+  Peer:
+    type: object
+    required:
+      - ip
+      - wsPort
+    properties:
+      ip:
+        type: string
+        example: 127.0.0.1
+        format: ip
+      httpPort:
+        type: integer
+        example: 8000
+        format: int32
+        minimum: 1
+        maximum: 65535
+      wsPort:
+        type: integer
+        example: 8001
+        format: int32
+        minimum: 1
+        maximum: 65535
+      os:
+        type: string
+        example: debian
+      version:
+        type: string
+        example: v0.8.0
+        format: version
+        minLength: 5
+        maxLength: 12
+      state:
+        type: integer
+        example: 2
+        format: int32
+        minimum: 0
+        maximum: 2
+      height:
+        type: integer
+        example: 123
+      broadhash:
+        type: string
+        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
+        format: hex
+      nonce:
+        type: string
+        example: sYHEDBKcScaAAAYg
+        minLength: 1
+
+  PeersList:
+    x-private: true
+    type: object
+    required:
+      - peers
+    properties:
+      peers:
+        type: array
+        items:
+          $ref: '#/definitions/Peer'
+
+  Fees:
+    type: object
+    required:
+      - send
+      - vote
+      - secondSignature
+      - delegate
+      - multisignature
+      - dappRegistration
+      - dappWithdrawal
+      - dappDeposit
+      - data
+    properties:
+      send:
+        type: string
+        example: '10000000'
+      vote:
+        type: string
+        example: '100000000'
+      secondSignature:
+        type: string
+        example: '500000000'
+      delegate:
+        type: string
+        example: '2500000000'
+      multisignature:
+        type: string
+        example: '500000000'
+      dappRegistration:
+        type: string
+        example: '2500000000'
+      dappWithdrawal:
+        type: string
+        example: '10000000'
+      dappDeposit:
+        type: string
+        example: '10000000'
+      data:
+        type: string
+        example: '10000000'
+
+  # State Related Models
+  NodeConstants:
+    type: object
+    required:
+      - epoch
+      - milestone
+      - nethash
+      - reward
+      - nonce
+      - supply
+      - build
+      - commit
+      - version
+      - fees
+    properties:
+      epoch:
+        type: string
+        format: date-time
+        example: '2016-05-24T17:00:00.000Z'
+      milestone:
+        type: string
+        example: '500000000'
+      build:
+        type: string
+        example: 'v09:54:35 12/04/2017'
+      commit:
+        type: string
+        example: 7199d4b67c3575d5f99d1c29436a02977eeb01a7
+        minLength: 40
+        maxLength: 40
+      version:
+        type: string
+        format: version
+        example: v0.8.0
+      nethash:
+        type: string
+        example: ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511
+      supply:
+        type: string
+        example: '10575384500000000'
+      reward:
+        type: string
+        example: '500000000'
+      nonce:
+        type: string
+        example: cJmXK66xxz644d67
+        minLength: 16
+        maxLength: 16
+      fees:
+        $ref: '#/definitions/Fees'
+
+  NodeStatus:
+    type: object
+    required:
+      - broadhash
+      - consensus
+      - height
+      - loaded
+      - networkHeight
+      - syncing
+      - transactions
+    properties:
+      broadhash:
+        type: string
+        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
+        minLength: 64
+        maxLength: 64
+      consensus:
+        type: integer
+        example: 95
+        minimum: 0
+        maximum: 100
+      height:
+        type: integer
+        example: 123
+        minimum: 1
+      loaded:
+        type: boolean
+        example: true
+      networkHeight:
+        type: integer
+        example: 123
+      syncing:
+        type: boolean
+        example: false
+      transactions:
+        type: object
+        required:
+          - unconfirmed
+          - unsigned
+          - unprocessed
+          - confirmed
+          - total
+        properties:
+          unconfirmed:
+            type: integer
+            example: 5
+          unsigned:
+            type: integer
+            example: 2
+          unprocessed:
+            type: integer
+            example: 3
+          confirmed:
+            type: integer
+            example: 5
+          total:
+            type: integer
+            example: 15
+
+  ProcessingError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
+
+  NotFoundError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
+
+  AccessDeniedError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
+
+  UnexpectedError:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        description: Error message containing details of the error
+        type: string
+        minLength: 1
+
+  RequestLimitError:
+    type: object
+    properties:
+      error:
+        type: string
+        example: Request limit exceeded. Please try again later
+
+  ParamErrorResponse:
+    type: object
+    description: Response generated in case of parameters validation
+    required:
+      - message
+      - errors
+    properties:
+      message:
+        type: string
+        description: Message stating some valdiation error occurred
+        example: Validation errors
+      errors:
+        type: array
+        description: Array of individual parameter errors
+        items:
+          $ref: '#/definitions/ParamError'
+
+  ParamError:
+    type: object
+    description: Collection of errors on a particular parameter
+    required:
+      - code
+      - name
+      - in
+      - message
+    properties:
+      code:
+        type: string
+        description: Valid error code explaining error
+        example: INVALID_REQUEST_PARAMETER
+      name:
+        type: string
+        description: Parameter name for which error triggered
+        example: offset
+      in:
+        type: string
+        description: Where the param was specified, e.g. path, query, form-data
+        example: query
+      message:
+        type: string
+        description: Detailed message explaining the error
+        example: Invalid parameter (offset) value failed JSON schema validation
+      errors:
+        type: array
+        description: Array of individual validation error for a particular param
+        items:
+          $ref: '#/definitions/ParamErrorMessage'
+
+  ParamErrorMessage:
+    type: object
+    description: Singular error detail for a parameter
+    required:
+      - message
+    properties:
+      code:
+        type: string
+        description: Valid error code explaining error
+        example: MINIMUM
+      message:
+        type: string
+        description: Detailed message explaining error
+        example: Value -1 is less than minimum 0
+      description:
+        type: string
+        description: Param description specified in schema
+
+  Account:
+    type: object
+    required:
+      - address
+      - publicKey
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      secondPublicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+
+  AccountExtended:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+      - unconfirmedBalance
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258
+      unconfirmedBalance:
+        type: string
+        example: 0
+      secondPublicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      delegate:
+        $ref: '#/definitions/Delegate'
+
+  MultisignatureGroup:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+      - unconfirmedBalance
+      - min
+      - lifetime
+      - members
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258
+      unconfirmedBalance:
+        type: string
+        example: 0
+      secondPublicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      min:
+        type: integer
+        example: 3
+      lifetime:
+        type: integer
+        example: 72
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/Account'
+
+  Delegate:
+    type: object
+    required:
+      - username
+      - vote
+    properties:
+      username:
+        type: string
+        example: isabella
+        format: username
+      vote:
+        type: string
+        example: 1081560729258
+      rewards:
+        type: string
+        example: 510000000
+      producedBlocks:
+        type: integer
+        example: 20131
+      missedBlocks:
+        type: integer
+        example: 427
+      rate:
+        type: integer
+        example: 91
+      approval:
+        type: number
+        example: 14.22
+      productivity:
+        type: number
+        example: 96.41
+      rank:
+        type: integer
+        example: 70
+
+  DelegateWithAccount:
+    type: object
+    required:
+      - username
+      - vote
+      - account
+    properties:
+      username:
+        type: string
+        example: isabella
+        format: username
+      vote:
+        type: string
+        example: 1081560729258
+      rewards:
+        type: string
+        example: 510000000
+      producedBlocks:
+        type: integer
+        example: 20131
+      missedBlocks:
+        type: integer
+        example: 427
+      rate:
+        type: integer
+        example: 91
+      approval:
+        type: number
+        example: 14.22
+      productivity:
+        type: number
+        example: 96.41
+      rank:
+        type: integer
+        example: 70
+      account:
+        $ref: '#/definitions/Account'
+
+  DelegateWithVoters:
+    type: object
+    required:
+      - username
+      - address
+      - votes
+      - balance
+      - voters
+    properties:
+      username:
+        type: string
+        example: isabella
+        format: username
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      votes:
+        type: integer
+        example: 108877
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      balance:
+        type: string
+        example: 1081560729258
+      voters:
+        type: array
+        items:
+          $ref: '#/definitions/Voter'
+
+  Voter:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258
+
+  DelegateWithVotes:
+    type: object
+    required:
+      - username
+      - address
+      - votesUsed
+      - votesAvailable
+      - balance
+      - votes
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      balance:
+        type: string
+        example: 1081560729258
+      username:
+        type: string
+        example: isabella
+        format: username
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      votesUsed:
+        type: integer
+        example: 2
+      votesAvailable:
+        type: integer
+        example: 40
+      votes:
+        type: array
+        items:
+          $ref: '#/definitions/Vote'
+
+  Vote:
+    type: object
+    required:
+      - address
+      - publicKey
+      - balance
+    properties:
+      address:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      publicKey:
+        description: Public key to query
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      balance:
+        type: string
+        example: 1081560729258
+
+  WSPeerHeaders:
+    x-private: true
+    type: object
+    required:
+      - httpPort
+      - wsPort
+      - os
+      - version
+      - height
+      - nethash
+      - nonce
+    properties:
+      httpPort:
+        type: integer
+        example: 8000
+        format: int32
+        minimum: 1
+        maximum: 65535
+      wsPort:
+        type: integer
+        example: 8001
+        format: int32
+        minimum: 1
+        maximum: 65535
+      os:
+        type: string
+        example: debian
+      version:
+        type: string
+        example: v0.8.0
+        format: version
+        minLength: 5
+        maxLength: 12
+      height:
+        type: integer
+        example: 123
+      nethash:
+        type: string
+        maxLength: 64
+      broadhash:
+        type: string
+        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
+        format: hex
+      nonce:
+        type: string
+        example: sYHEDBKcScaAAAYg
+        minLength: 16
+        maxLength: 16
+
+  WSPeerUpdateRequest:
+    x-private: true
+    type: object
+    required:
+      - data
+      - socketId
+    properties:
+      data:
+        type: object
+        required:
+          - nonce
+        properties:
+          nethash:
+            type: string
+            maxLength: 64
+          broadhash:
+            type: string
+            format: hex
+          height:
+            type: integer
+            minimum: 1
+          nonce:
+            type: string
+            minLength: 16
+            maxLength: 16
+      socketId:
+        type: string
+      workerId:
+        type: number
+
+  WSSignaturesList:
+    x-private: true
+    type: object
+    required:
+      - signatures
+    properties:
+      signatures:
+        type: array
+        items:
+          $ref: '#/definitions/Signature'
+        minItems: 1
+        maxItems: 25
+
+  WSBlocksCommonRequest:
+    x-private: true
+    type: object
+    required:
+      - ids
+    properties:
+      ids:
+        type: string
+        format: csv
+
+  WSTransactionsRequest:
+    x-private: true
+    type: object
+    required:
+      - transactions
+    properties:
+      transactions:
+        type: array
+        items:
+          $ref: '#/definitions/Transaction'
+        minItems: 1
+        maxItems: 25
+
+  WSAccessObject:
+    x-private: true
+    type: object
+    required:
+      - peer
+      - authKey
+      - updateType
+    properties:
+      peer:
+        type: object
+      authKey:
+        type: string
+      updateType:
+        type: integer
+        minimum: 0
+        maximum: 1
+
+  WSTransactionsResponse:
+    x-private: true
+    type: object
+    required:
+      - transactions
+    properties:
+      transactions:
+        type: array
+        uniqueItems: true
+        maxItems: 100
+        items:
+          type: object
+
+  WSSignaturesResponse:
+    x-private: true
+    required:
+      - signatures
+    properties:
+      signatures:
+        type: array
+        uniqueItems: true
+        maxItems: 100
+        items:
+          type: object

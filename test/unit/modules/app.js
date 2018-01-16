@@ -1,37 +1,35 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
-var crypto = require('crypto');
-
 var constants = require('../../../helpers/constants');
+var config = __testContext.config;
 
-// ToDo: Ensure that different app instance is not running - port collision
-describe.skip('app', function () {
-
-	var app;
+describe('app', function () {
 
 	before(function (done) {
-		// Run the app
+		// Run the app on a different than default port
+		process.argv.splice(2 ,0,'--');
+		process.argv.splice(2,0,(config.httpPort += 1).toString());
+		process.argv.splice(2,0,'-h');
+		process.argv.splice(2,0,(config.wsPort += 1).toString());
+		process.argv.splice(2,0,'-p');
+
 		require('../../../app');
 		// Wait for modules to be initialized
-		setTimeout(done, 3000);
-		done();
+		setTimeout(done, 5000);
 	});
 
-	describe('setting constants', function () {
-
-		describe('nonce', function () {
-
-			it('should be set after app starts', function () {
-				var nonce = constants.getConst('headers').nonce;
-				expect(nonce).not.to.be.empty;
-			});
-
-			it('should be a string', function () {
-				var nonce = constants.getConst('headers').nonce;
-				expect(nonce).to.be.a('string');
-			});
-		});
-	});
+	it('should be ok');
 });

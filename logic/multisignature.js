@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var async = require('async');
@@ -23,14 +36,15 @@ __private.unconfirmedSignatures = {};
  * @param {Object} logger
  */
 // Constructor
-function Multisignature (schema, network, transaction, logger) {
+function Multisignature (schema, network, transaction, account, logger) {
 	library = {
 		schema: schema,
 		network: network,
 		logger: logger,
 		logic: {
 			transaction: transaction,
-		},
+			account: account
+		}
 	};
 }
 
@@ -48,54 +62,54 @@ Multisignature.prototype.bind = function (accounts) {
 /**
  * Obtains constant fee multisignature and multiply by quantity of signatures.
  * @see {@link module:helpers~constants}
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender - Unnecessary parameter.
  * @returns {number} Quantity of multisignature keysgroup * multisignature fees.
  */
-Multisignature.prototype.calculateFee = function (trs, sender) {
-	return (trs.asset.multisignature.keysgroup.length + 1) * constants.fees.multisignature;
+Multisignature.prototype.calculateFee = function (transaction, sender) {
+	return (transaction.asset.multisignature.keysgroup.length + 1) * constants.fees.multisignature;
 };
 
 /**
  * Verifies multisignature fields from transaction asset and sender.
  * @implements module:transactions#Transaction~verifySignature
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
- * trs validated.
+ * transaction validated.
  */
-Multisignature.prototype.verify = function (trs, sender, cb) {
-	if (!trs.asset || !trs.asset.multisignature) {
+Multisignature.prototype.verify = function (transaction, sender, cb, tx) {
+	if (!transaction.asset || !transaction.asset.multisignature) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	if (!Array.isArray(trs.asset.multisignature.keysgroup)) {
+	if (!Array.isArray(transaction.asset.multisignature.keysgroup)) {
 		return setImmediate(cb, 'Invalid multisignature keysgroup. Must be an array');
 	}
 
-	if (trs.asset.multisignature.keysgroup.length === 0) {
+	if (transaction.asset.multisignature.keysgroup.length === 0) {
 		return setImmediate(cb, 'Invalid multisignature keysgroup. Must not be empty');
 	}
 
-	if (trs.asset.multisignature.min < constants.multisigConstraints.min.minimum || trs.asset.multisignature.min > constants.multisigConstraints.min.maximum) {
+	if (transaction.asset.multisignature.min < constants.multisigConstraints.min.minimum || transaction.asset.multisignature.min > constants.multisigConstraints.min.maximum) {
 		return setImmediate(cb, ['Invalid multisignature min. Must be between', constants.multisigConstraints.min.minimum,
 			'and', constants.multisigConstraints.min.maximum].join(' '));
 	}
 
-	if (trs.asset.multisignature.min > trs.asset.multisignature.keysgroup.length) {
+	if (transaction.asset.multisignature.min > transaction.asset.multisignature.keysgroup.length) {
 		var err = 'Invalid multisignature min. Must be less than or equal to keysgroup size';
 
-		if (exceptions.multisignatures.indexOf(trs.id) > -1) {
-			this.scope.logger.debug(err);
-			this.scope.logger.debug(JSON.stringify(trs));
+		if (exceptions.multisignatures.indexOf(transaction.id) > -1) {
+			library.logger.debug(err);
+			library.logger.debug(JSON.stringify(transaction));
 		} else {
 			return setImmediate(cb, err);
 		}
 	}
 
-	if (trs.asset.multisignature.lifetime < constants.multisigConstraints.lifetime.minimum  ||
-		trs.asset.multisignature.lifetime > constants.multisigConstraints.lifetime.maximum) {
+	if (transaction.asset.multisignature.lifetime < constants.multisigConstraints.lifetime.minimum  ||
+		transaction.asset.multisignature.lifetime > constants.multisigConstraints.lifetime.maximum) {
 		return setImmediate(cb, ['Invalid multisignature lifetime. Must be between', constants.multisigConstraints.lifetime.minimum, 'and',
 			constants.multisigConstraints.lifetime.maximum].join(' '));
 	}
@@ -104,17 +118,17 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Account already has multisignatures enabled');
 	}
 
-	if (this.ready(trs, sender)) {
+	if (this.ready(transaction, sender)) {
 		try {
-			for (var s = 0; s < trs.asset.multisignature.keysgroup.length; s++) {
+			for (var s = 0; s < transaction.asset.multisignature.keysgroup.length; s++) {
 				var valid = false;
 
-				if (trs.signatures) {
-					for (var d = 0; d < trs.signatures.length && !valid; d++) {
-						if (trs.asset.multisignature.keysgroup[s][0] !== '-' && trs.asset.multisignature.keysgroup[s][0] !== '+') {
+				if (transaction.signatures) {
+					for (var d = 0; d < transaction.signatures.length && !valid; d++) {
+						if (transaction.asset.multisignature.keysgroup[s][0] !== '-' && transaction.asset.multisignature.keysgroup[s][0] !== '+') {
 							valid = false;
 						} else {
-							valid = library.logic.transaction.verifySignature(trs, trs.asset.multisignature.keysgroup[s].substring(1), trs.signatures[d]);
+							valid = library.logic.transaction.verifySignature(transaction, transaction.asset.multisignature.keysgroup[s].substring(1), transaction.signatures[d]);
 						}
 					}
 				}
@@ -129,11 +143,11 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 		}
 	}
 
-	if (trs.asset.multisignature.keysgroup.indexOf('+' + sender.publicKey) !== -1) {
+	if (transaction.asset.multisignature.keysgroup.indexOf('+' + sender.publicKey) !== -1) {
 		return setImmediate(cb, 'Invalid multisignature keysgroup. Can not contain sender');
 	}
 
-	async.eachSeries(trs.asset.multisignature.keysgroup, function (key, cb) {
+	async.eachSeries(transaction.asset.multisignature.keysgroup, function (key, cb) {
 		if (!key || typeof key !== 'string') {
 			return setImmediate(cb, 'Invalid member in keysgroup');
 		}
@@ -151,7 +165,7 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 				return setImmediate(cb, 'Invalid public key in multisignature keysgroup');
 			}
 		} catch (e) {
-			library.logger.error(e.stack);
+			library.logger.trace(e.stack);
 			return setImmediate(cb, 'Invalid public key in multisignature keysgroup');
 		}
 
@@ -161,45 +175,45 @@ Multisignature.prototype.verify = function (trs, sender, cb) {
 			return setImmediate(cb, err);
 		}
 
-		var keysgroup = trs.asset.multisignature.keysgroup.reduce(function (p, c) {
+		var keysgroup = transaction.asset.multisignature.keysgroup.reduce(function (p, c) {
 			if (p.indexOf(c) < 0) { p.push(c); }
 			return p;
 		}, []);
 
-		if (keysgroup.length !== trs.asset.multisignature.keysgroup.length) {
+		if (keysgroup.length !== transaction.asset.multisignature.keysgroup.length) {
 			return setImmediate(cb, 'Encountered duplicate public key in multisignature keysgroup');
 		}
 
-		return setImmediate(cb, null, trs);
+		return setImmediate(cb, null, transaction);
 	});
 };
 
 /**
  * Returns transaction with setImmediate.
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Null error
  * @todo check extra parameter sender.
  */
-Multisignature.prototype.process = function (trs, sender, cb) {
-	return setImmediate(cb, null, trs);
+Multisignature.prototype.process = function (transaction, sender, cb) {
+	return setImmediate(cb, null, transaction);
 };
 
 /**
  * Returns a buffer with bytes from transaction asset information.
  * @requires bytebuffer
  * @see {@link https://github.com/dcodeIO/bytebuffer.js/wiki/API}
- * @param {transaction} trs - Uses multisignature from asset.
+ * @param {transaction} transaction - Uses multisignature from asset.
  * @param {boolean} skip
  * @returns {!Array} Contents as an ArrayBuffer.
  */
-Multisignature.prototype.getBytes = function (trs, skip) {
-	var keysgroupBuffer = Buffer.from(trs.asset.multisignature.keysgroup.join(''), 'utf8');
+Multisignature.prototype.getBytes = function (transaction, skip) {
+	var keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''), 'utf8');
 
 	var bb = new ByteBuffer(1 + 1 + keysgroupBuffer.length, true);
-	bb.writeByte(trs.asset.multisignature.min);
-	bb.writeByte(trs.asset.multisignature.lifetime);
+	bb.writeByte(transaction.asset.multisignature.min);
+	bb.writeByte(transaction.asset.multisignature.lifetime);
 	for (var i = 0; i < keysgroupBuffer.length; i++) {
 		bb.writeByte(keysgroupBuffer[i]);
 	}
@@ -212,19 +226,19 @@ Multisignature.prototype.getBytes = function (trs, skip) {
  * Merges transaction data into mem_accounts table.
  * Checks public keys from multisignature and creates accounts.
  * @implements module:accounts#Accounts~setAccountAndGet
- * @param {transaction} trs - Uses multisignature from asset.
+ * @param {transaction} transaction - Uses multisignature from asset.
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} for errors
  */
-Multisignature.prototype.apply = function (trs, block, sender, cb) {
+Multisignature.prototype.apply = function (transaction, block, sender, cb, tx) {
 	__private.unconfirmedSignatures[sender.address] = false;
 
-	this.scope.account.merge(sender.address, {
-		multisignatures: trs.asset.multisignature.keysgroup,
-		multimin: trs.asset.multisignature.min,
-		multilifetime: trs.asset.multisignature.lifetime,
+	library.logic.account.merge(sender.address, {
+		multisignatures: transaction.asset.multisignature.keysgroup,
+		multimin: transaction.asset.multisignature.min,
+		multilifetime: transaction.asset.multisignature.lifetime,
 		blockId: block.id,
 		round: slots.calcRound(block.height)
 	}, function (err) {
@@ -233,7 +247,7 @@ Multisignature.prototype.apply = function (trs, block, sender, cb) {
 		}
 
 		// Get public keys
-		async.eachSeries(trs.asset.multisignature.keysgroup, function (transaction, cb) {
+		async.eachSeries(transaction.asset.multisignature.keysgroup, function (transaction, cb) {
 			var key = transaction.substring(1);
 			var address = modules.accounts.generateAddressByPublicKey(key);
 
@@ -243,29 +257,29 @@ Multisignature.prototype.apply = function (trs, block, sender, cb) {
 				publicKey: key
 			}, function (err) {
 				return setImmediate(cb, err);
-			});
+			}, tx);
 		}, cb);
-	});
+	}, tx);
 };
 
 /**
  * Inverts multisignature signs and merges into sender address.
  * Stores sender address into private unconfirmedSignatures.
- * @param {transaction} trs - Uses multisignature from asset.
+ * @param {transaction} transaction - Uses multisignature from asset.
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} For error.
  */
-Multisignature.prototype.undo = function (trs, block, sender, cb) {
-	var multiInvert = Diff.reverse(trs.asset.multisignature.keysgroup);
+Multisignature.prototype.undo = function (transaction, block, sender, cb) {
+	var multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	this.scope.account.merge(sender.address, {
+	library.logic.account.merge(sender.address, {
 		multisignatures: multiInvert,
-		multimin: -trs.asset.multisignature.min,
-		multilifetime: -trs.asset.multisignature.lifetime,
+		multimin: -transaction.asset.multisignature.min,
+		multilifetime: -transaction.asset.multisignature.lifetime,
 		blockId: block.id,
 		round: slots.calcRound(block.height)
 	}, function (err) {
@@ -276,25 +290,25 @@ Multisignature.prototype.undo = function (trs, block, sender, cb) {
 /**
  * Stores sender address into private unconfirmedSignatures.
  * Merges into sender address transaction asset to unconfirmed fields.
- * @param {transaction} trs - Uses multisignature from asset.
+ * @param {transaction} transaction - Uses multisignature from asset.
  * @param {account} sender
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} For error.
  */
-Multisignature.prototype.applyUnconfirmed = function (trs, sender, cb) {
+Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 	if (__private.unconfirmedSignatures[sender.address]) {
 		return setImmediate(cb, 'Signature on this account is pending confirmation');
 	}
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	this.scope.account.merge(sender.address, {
-		u_multisignatures: trs.asset.multisignature.keysgroup,
-		u_multimin: trs.asset.multisignature.min,
-		u_multilifetime: trs.asset.multisignature.lifetime
+	library.logic.account.merge(sender.address, {
+		u_multisignatures: transaction.asset.multisignature.keysgroup,
+		u_multimin: transaction.asset.multisignature.min,
+		u_multilifetime: transaction.asset.multisignature.lifetime
 	}, function (err) {
-		return setImmediate(cb);
-	});
+		return setImmediate(cb, err);
+	}, tx);
 };
 
 /**
@@ -302,23 +316,23 @@ Multisignature.prototype.applyUnconfirmed = function (trs, sender, cb) {
  * Inverts multisignature signs and merges into sender address
  * to unconfirmed fields.
  *
- * @param {transaction} trs - Uses multisignature from asset.
+ * @param {transaction} transaction - Uses multisignature from asset.
  * @param {account} sender
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} For error.
  */
-Multisignature.prototype.undoUnconfirmed = function (trs, sender, cb) {
-	var multiInvert = Diff.reverse(trs.asset.multisignature.keysgroup);
+Multisignature.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
+	var multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
 	__private.unconfirmedSignatures[sender.address] = false;
 
-	this.scope.account.merge(sender.address, {
+	library.logic.account.merge(sender.address, {
 		u_multisignatures: multiInvert,
-		u_multimin: -trs.asset.multisignature.min,
-		u_multilifetime: -trs.asset.multisignature.lifetime
+		u_multimin: -transaction.asset.multisignature.min,
+		u_multilifetime: -transaction.asset.multisignature.lifetime
 	}, function (err) {
 		return setImmediate(cb, err);
-	});
+	}, tx);
 };
 
 /**
@@ -352,20 +366,20 @@ Multisignature.prototype.schema = {
 
 /**
  * Validates multisignature schema.
- * @param {transaction} trs - Uses multisignature from asset.
+ * @param {transaction} transaction - Uses multisignature from asset.
  * @return {transaction} Transaction validated.
  * @throws {string} Error message.
  */
-Multisignature.prototype.objectNormalize = function (trs) {
-	var report = library.schema.validate(trs.asset.multisignature, Multisignature.prototype.schema);
+Multisignature.prototype.objectNormalize = function (transaction) {
+	var report = library.schema.validate(transaction.asset.multisignature, Multisignature.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate multisignature schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw 'Failed to validate multisignature schema: ' + library.schema.getLastErrors().map(function (err) {
 			return err.message;
 		}).join(', ');
 	}
 
-	return trs;
+	return transaction;
 };
 
 /**
@@ -393,60 +407,32 @@ Multisignature.prototype.dbRead = function (raw) {
 	}
 };
 
-Multisignature.prototype.dbTable = 'multisignatures';
-
-Multisignature.prototype.dbFields = [
-	'min',
-	'lifetime',
-	'keysgroup',
-	'transactionId'
-];
-
-/**
- * Creates database Object based on trs data.
- * @param {transaction} trs - Contains multisignature object.
- * @returns {Object} {table:multisignatures, values: multisignature and transaction id}.
- * @todo check if this function is called.
- */
-Multisignature.prototype.dbSave = function (trs) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			min: trs.asset.multisignature.min,
-			lifetime: trs.asset.multisignature.lifetime,
-			keysgroup: trs.asset.multisignature.keysgroup.join(','),
-			transactionId: trs.id
-		}
-	};
-};
-
 /**
  * Emits a 'multisignatures/change' socket signal with transaction info.
- * @param {transaction} trs
+ * @param {transaction} transaction
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-Multisignature.prototype.afterSave = function (trs, cb) {
-	library.network.io.sockets.emit('multisignatures/change', trs);
+Multisignature.prototype.afterSave = function (transaction, cb) {
+	library.network.io.sockets.emit('multisignatures/change', transaction);
 	return setImmediate(cb);
 };
 
 /**
  * Evaluates transaction signatures and sender multisignatures.
- * @param {transaction} trs - signatures.
+ * @param {transaction} transaction - signatures.
  * @param {account} sender
- * @return {boolean} logic based on trs signatures and sender multisignatures.
+ * @return {boolean} logic based on transaction signatures and sender multisignatures.
  */
-Multisignature.prototype.ready = function (trs, sender) {
-	if (!Array.isArray(trs.signatures)) {
+Multisignature.prototype.ready = function (transaction, sender) {
+	if (!Array.isArray(transaction.signatures)) {
 		return false;
 	}
 
 	if (!Array.isArray(sender.multisignatures) || !sender.multisignatures.length) {
-		return trs.signatures.length === trs.asset.multisignature.keysgroup.length;
+		return transaction.signatures.length === transaction.asset.multisignature.keysgroup.length;
 	} else {
-		return trs.signatures.length >= sender.multimin;
+		return transaction.signatures.length >= sender.multimin;
 	}
 };
 

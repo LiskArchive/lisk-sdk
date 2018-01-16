@@ -1,19 +1,34 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
-var node = require('./../../node.js');
-var chai = require('chai');
-var expect = require('chai').expect;
 var async = require('async');
-var sinon = require('sinon');
-var modulesLoader = require('../../common/initModule').modulesLoader;
-var Cache = require('../../../modules/cache.js');
+var lisk = require('lisk-js');
+
+var accountFixtures = require('../../fixtures/accounts');
+
+var modulesLoader = require('../../common/modulesLoader');
+var randomUtil = require('../../common/utils/random');
+
+var Cache = require('../../../modules/cache');
 
 describe('cache', function () {
 
 	var cache;
 
 	before(function (done) {
-		node.config.cacheEnabled = true;
+		__testContext.config.cacheEnabled = true;
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			expect(err).to.not.exist;
@@ -178,7 +193,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.onNewBlock(null, null, function (err) {
+				cache.onNewBlock(function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -197,7 +212,7 @@ describe('cache', function () {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onNewBlock(null, null, function (err) {
+				cache.onNewBlock(function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -216,7 +231,7 @@ describe('cache', function () {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onNewBlock(null, null, function (err) {
+				cache.onNewBlock(function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -236,7 +251,7 @@ describe('cache', function () {
 				expect(status).to.equal('OK');
 
 				cache.onSyncStarted();
-				cache.onNewBlock(null, null, function (err) {
+				cache.onNewBlock(function (err) {
 					expect(err).to.equal('Cache Unavailable');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {
@@ -249,7 +264,7 @@ describe('cache', function () {
 		});
 	});
 
-	describe('onRoundChanged', function (done) {
+	describe('onFinishRound', function (done) {
 
 		it('should remove all keys matching pattern /api/delegates', function (done) {
 			var key = '/api/delegates?123';
@@ -258,7 +273,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.onRoundChanged(null, function (err) {
+				cache.onFinishRound(null, function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -277,7 +292,7 @@ describe('cache', function () {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onRoundChanged(null, function (err) {
+				cache.onFinishRound(null, function (err) {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, function (err, res) {
 						expect(err).to.not.exist;
@@ -297,7 +312,7 @@ describe('cache', function () {
 				expect(status).to.equal('OK');
 
 				cache.onSyncStarted();
-				cache.onRoundChanged(null, function (err) {
+				cache.onFinishRound(null, function (err) {
 					expect(err).to.equal('Cache Unavailable');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {
@@ -312,14 +327,14 @@ describe('cache', function () {
 
 	describe('onTransactionsSaved', function (done) {
 
-		it('shouldnt remove keys with pattern /api/delegate if there is no type 2 trs', function (done) {
+		it('shouldnt remove keys with pattern /api/delegate if there is no type 2 transaction', function (done) {
 			var key = '/api/delegates?123';
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.transaction.createTransaction('1L', 1, node.gAccount.password, node.gAccount.secondPassword);
+				var transaction = lisk.transaction.createTransaction('1L', 1, accountFixtures.genesis.password, accountFixtures.genesis.secondPassword);
 
 				cache.onTransactionsSaved([transaction], function (err) {
 					cache.getJsonForKey(key, function (err, res) {
@@ -331,14 +346,14 @@ describe('cache', function () {
 			});
 		});
 
-		it('should remove keys that match pattern /api/delegate on type 2 trs', function (done) {
+		it('should remove keys that match pattern /api/delegate on type 2 transaction', function (done) {
 			var key = '/api/delegates?123';
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
+				var transaction = lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
 
 				cache.onTransactionsSaved([transaction], function (err) {
 					cache.getJsonForKey(key, function (err, res) {
@@ -357,7 +372,7 @@ describe('cache', function () {
 			cache.setJsonForKey(key, value, function (err, status) {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = node.lisk.delegate.createDelegate(node.randomPassword(), node.randomDelegateName().toLowerCase());
+				var transaction = lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
 
 				cache.onSyncStarted();
 				cache.onTransactionsSaved([transaction], function (err) {

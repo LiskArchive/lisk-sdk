@@ -1,22 +1,34 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
-var _ = require('lodash');
-var expect = require('chai').expect;
-var sinon = require('sinon');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
+var randomstring = require('randomstring');
+var scClient = require('socketcluster-client');
+
+var testConfig = require('../../data/config.json');
 
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
-var node = require('../../node');
-var randomString = require('randomstring');
-var scClient = require('socketcluster-client');
-var testConfig = require('../../config.json');
-var ws = require('../../common/wsCommunication');
-var wsServer = require('../../common/wsServer');
+
+var ws = require('../../common/ws/communication');
+var wsServer = require('../../common/ws/server');
+var WSServerMaster = require('../../common/ws/serverMaster');
 
 describe('handshake', function () {
 
 	var wsServerPort = 9999;
-	var frozenHeaders = node.generatePeerHeaders('127.0.0.1', wsServerPort, wsServer.validNonce);
+	var frozenHeaders = WSServerMaster.generatePeerHeaders({wsPort: wsServerPort, nonce: wsServer.validNonce});
 	var validClientSocketOptions;
 	var clientSocket;
 	var currentConnectedSocket;
@@ -32,17 +44,23 @@ describe('handshake', function () {
 		clientSocket.on('error', errorStub);
 	}
 
-	function expectDisconnect (testContext, cb) {
+	function disconnect () {
+		if (clientSocket && clientSocket.id) {
+			clientSocket.disconnect();
+		}
+	}
+
+	function expectDisconnect (test, cb) {
 		var disconnectHandler = function (code, description) {
 			// Prevent from calling done() multiple times
 			clientSocket.off('disconnect', disconnectHandler);
 			return cb(code, description);
 		};
 		clientSocket.on('disconnect', disconnectHandler);
-		testContext.timeout(1000);
+		test.timeout(1000);
 	}
 
-	function expectConnect (testContext, cb) {
+	function expectConnect (test, cb) {
 		var disconnectHandler = function (code, description) {
 			currentConnectedSocket = null;
 			clientSocket.off('disconnect', disconnectHandler);
@@ -62,25 +80,23 @@ describe('handshake', function () {
 		clientSocket.on('accepted', acceptedHandler);
 		clientSocket.on('connect', connectedHandler);
 		clientSocket.on('disconnect', disconnectHandler);
-		testContext.timeout(1000);
+		test.timeout(1000);
 	}
 
 	beforeEach(function () {
 		validClientSocketOptions = {
 			protocol: 'http',
 			hostname: '127.0.0.1',
-			port: testConfig.port,
+			port: testConfig.wsPort,
 			query: _.clone(frozenHeaders)
 		};
-		connectAbortStub = sinon.spy();
-		disconnectStub = sinon.spy();
-		errorStub = sinon.spy();
+		connectAbortStub = sinonSandbox.spy();
+		disconnectStub = sinonSandbox.spy();
+		errorStub = sinonSandbox.spy();
 	});
 
 	afterEach(function () {
-		if (clientSocket) {
-			clientSocket.disconnect();
-		}
+		disconnect();
 	});
 
 	describe('with invalid headers', function () {
@@ -107,7 +123,7 @@ describe('handshake', function () {
 			});
 
 			it('without port', function (done) {
-				delete validClientSocketOptions.query.port;
+				delete validClientSocketOptions.query.wsPort;
 				connect();
 				expectDisconnect(this, function (code, description) {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
@@ -121,7 +137,7 @@ describe('handshake', function () {
 				connect();
 				expectDisconnect(this, function (code, description) {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('#/height: Expected type integer but found type not-a-number');
+					expect(description).contain('height: Expected type integer but found type not-a-number');
 					done();
 				});
 			});
@@ -153,14 +169,14 @@ describe('handshake', function () {
 		var originalPort;
 
 		before(function () {
-			originalPort = wsServer.options.port;
-			wsServer.options.port = wsServerPort;
+			originalPort = wsServer.options.wsPort;
+			wsServer.options.wsPort = wsServerPort;
 			wsServer.start();
 		});
 
 		after(function () {
 			wsServer.stop();
-			wsServer.options.port = originalPort;
+			wsServer.options.wsPort = originalPort;
 		});
 
 		beforeEach(function () {
@@ -169,8 +185,7 @@ describe('handshake', function () {
 			 * from: not present nonce, not present connectionId, present on master
 			 * to: present nonce, present connectionId, present on master
 			 */
-			validClientSocketOptions.query.nonce = randomString.generate(16);
-			connect();
+			validClientSocketOptions.query.nonce = randomstring.generate(16);
 		});
 
 		describe('when present on master', function () {
@@ -178,7 +193,7 @@ describe('handshake', function () {
 			describe('when nonce is not present', function () {
 
 				beforeEach(function () {
-					validClientSocketOptions.query.nonce = randomString.generate(16);
+					validClientSocketOptions.query.nonce = randomstring.generate(16);
 				});
 
 				it('should succeed when connectionId is present', function (done) {
@@ -209,11 +224,12 @@ describe('handshake', function () {
 			});
 		});
 
-		describe('when not present on master', function () {
+		describe('when not present on master @unstable', function () {
 
 			var wampClient = new WAMPClient();
 
 			beforeEach(function (done) {
+				connect();
 				wampClient.upgradeToWAMP(clientSocket);
 				setTimeout(function () {
 					validClientSocketOptions.query.state = 1;
@@ -228,10 +244,15 @@ describe('handshake', function () {
 				this.timeout(2000);
 			});
 
+			afterEach(function () {
+				disconnect();
+			});
+
 			describe('when nonce is not present', function () {
 
 				beforeEach(function () {
-					validClientSocketOptions.query.nonce = randomString.generate(16);
+					validClientSocketOptions.query.nonce = randomstring.generate(16);
+					disconnect();
 				});
 
 				it('should succeed when connectionId is present', function (done) {
@@ -247,6 +268,10 @@ describe('handshake', function () {
 			});
 
 			describe('when nonce is present', function () {
+
+				beforeEach(function () {
+					disconnect();
+				});
 
 				it('should succeed when connectionId is present', function (done) {
 					connect();

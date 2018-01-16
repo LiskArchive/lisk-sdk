@@ -1,8 +1,17 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
-
-var chai = require('chai');
-var expect = require('chai').expect;
-var sinon = require('sinon');
 
 var failureCodes = require('../../../../../api/ws/rpc/failureCodes');
 var Rules = require('../../../../../api/ws/workers/rules');
@@ -10,9 +19,9 @@ var Rules = require('../../../../../api/ws/workers/rules');
 describe('Rules', function () {
 
 	var rules;
-	var insertMock = sinon.spy();
-	var removeMock = sinon.spy();
-	var blockMock = sinon.spy();
+	var insertMock = sinonSandbox.spy();
+	var removeMock = sinonSandbox.spy();
+	var blockMock = sinonSandbox.spy();
 
 	beforeEach(function () {
 		rules = new Rules(insertMock, removeMock, blockMock);

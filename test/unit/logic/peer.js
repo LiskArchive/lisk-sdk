@@ -1,13 +1,22 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
-
-var chai = require('chai');
-var expect = require('chai').expect;
 
 var express = require('express');
 var ip = require('ip');
-var _  = require('lodash');
-var sinon = require('sinon');
-var randomPeer = require('../../common/objectStubs').randomPeer;
+
+var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var Peer = require('../../../logic/peer.js');
 
 describe('peer', function () {
@@ -21,9 +30,9 @@ describe('peer', function () {
 	describe('constructor', function () {
 
 		it('should create Peer with all properties implemented', function () {
-			var __peer = new Peer({ip: '127.0.0.1', port: 4000});
+			var __peer = new Peer({ip: '127.0.0.1', wsPort: 4000});
 			expect(__peer).to.have.property('ip').equal('127.0.0.1');
-			expect(__peer).to.have.property('port').equal(4000);
+			expect(__peer).to.have.property('wsPort').equal(4000);
 			expect(__peer).to.have.property('state').equal(1);
 			expect(__peer).to.have.property('string').equal('127.0.0.1:4000');
 		});
@@ -33,16 +42,16 @@ describe('peer', function () {
 
 		it('should accept valid peer', function () {
 			var peer = new Peer({});
-			var __peer = peer.accept(randomPeer);
-			['height', 'ip', 'port', 'state'].forEach(function (property) {
-				expect(__peer[property]).equals(randomPeer[property]);
+			var __peer = peer.accept(prefixedPeer);
+			['height', 'ip', 'wsPort', 'state'].forEach(function (property) {
+				expect(__peer[property]).equals(prefixedPeer[property]);
 			});
-			expect(__peer.string).equals(randomPeer.ip + ':' + randomPeer.port);
+			expect(__peer.string).equals(prefixedPeer.ip + ':' + prefixedPeer.wsPort);
 		});
 
 		it('should accept empty peer and set default values', function () {
 			var __peer = peer.accept({});
-			expect(__peer.port).to.equal(0);
+			expect(__peer.wsPort).to.equal(0);
 			expect(__peer.ip).to.be.undefined;
 			expect(__peer.state).to.equal(1);
 			expect(__peer.height).to.be.undefined;
@@ -50,8 +59,8 @@ describe('peer', function () {
 		});
 
 		it('should accept peer with ip as long', function () {
-			var __peer = peer.accept({ip: ip.toLong(randomPeer.ip)});
-			expect(__peer.ip).to.equal(randomPeer.ip);
+			var __peer = peer.accept({ip: ip.toLong(prefixedPeer.ip)});
+			expect(__peer.ip).to.equal(prefixedPeer.ip);
 		});
 	});
 
@@ -79,11 +88,11 @@ describe('peer', function () {
 		it('should apply defined values as headers', function () {
 			peer.headers.forEach(function (header) {
 				delete peer[header];
-				if (randomPeer[header]) {
+				if (prefixedPeer[header]) {
 					var headers = {};
-					headers[header] = randomPeer[header];
+					headers[header] = prefixedPeer[header];
 					peer.applyHeaders(headers);
-					expect(peer[header]).to.equal(randomPeer[header]);
+					expect(peer[header]).to.equal(prefixedPeer[header]);
 				}
 			});
 		});
@@ -91,9 +100,9 @@ describe('peer', function () {
 		it('should not apply nulls or undefined values as headers', function () {
 			peer.headers.forEach(function (header) {
 				delete peer[header];
-				if (randomPeer[header] === null || randomPeer[header] === undefined) {
+				if (prefixedPeer[header] === null || prefixedPeer[header] === undefined) {
 					var headers = {};
-					headers[header] = randomPeer[header];
+					headers[header] = prefixedPeer[header];
 					peer.applyHeaders(headers);
 					expect(peer[header]).to.not.exist;
 				}
@@ -101,9 +110,9 @@ describe('peer', function () {
 		});
 
 		it('should parse height and port', function () {
-			var appliedHeaders = peer.applyHeaders({port: '4000', height: '1'});
+			var appliedHeaders = peer.applyHeaders({wsPort: '4000', height: '1'});
 
-			expect(appliedHeaders.port).to.equal(4000);
+			expect(appliedHeaders.wsPort).to.equal(4000);
 			expect(appliedHeaders.height).to.equal(1);
 		});
 	});
@@ -163,10 +172,10 @@ describe('peer', function () {
 		it('should not update immutable properties', function () {
 			var peerBeforeUpdate = _.clone(peer);
 			var updateImmutableData = {
-				ip: randomPeer.ip,
-				port: randomPeer.port,
-				httpPort: randomPeer.port,
-				string: randomPeer.ip + ':' + randomPeer.port
+				ip: prefixedPeer.ip,
+				wsPort: prefixedPeer.wsPort,
+				httpPort: prefixedPeer.httpPort,
+				string: prefixedPeer.ip + ':' + prefixedPeer.wsPort
 			};
 
 			expect(_.isEqual(_.keys(updateImmutableData), peer.immutable)).to.be.ok;
@@ -196,15 +205,12 @@ describe('peer', function () {
 	describe('object', function () {
 
 		it('should create proper copy of peer', function () {
-			var __peer = new Peer(randomPeer);
+			var __peer = new Peer(prefixedPeer);
 			var peerCopy = __peer.object();
-			_.keys(randomPeer).forEach(function (property) {
+			_.keys(prefixedPeer).forEach(function (property) {
 				if (__peer.properties.indexOf(property) !== -1) {
-					if (typeof randomPeer[property] !== 'object') {
-						expect(peerCopy[property]).to.equal(randomPeer[property]);
-					}
-					if (__peer.nullable.indexOf(property) !== -1 && !randomPeer[property]) {
-						expect(peerCopy[property]).to.be.null;
+					if (typeof prefixedPeer[property] !== 'object') {
+						expect(peerCopy[property]).to.equal(prefixedPeer[property]);
 					}
 				}
 			});

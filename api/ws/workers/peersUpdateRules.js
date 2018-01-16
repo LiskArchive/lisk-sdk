@@ -1,15 +1,30 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var connectionsTable = require('./connectionsTable');
 var SlaveToMasterSender = require('./slaveToMasterSender');
 var Rules = require('./rules');
-var schema = require('../../../schema/transport');
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
 var PeerUpdateError = require('../../../api/ws/rpc/failureCodes').PeerUpdateError;
+var swaggerHelper = require('../../../helpers/swagger');
+var definitions = swaggerHelper.getSwaggerSpec().definitions;
+var z_schema =  swaggerHelper.getValidator();
 var Peer = require('../../../logic/peer');
 var Z_schema = require('../../../helpers/z_schema');
 
-var self, z_schema =  new Z_schema();
+var self;
 
 /**
  * Secures peers updates. Used only by workers.
@@ -107,7 +122,7 @@ PeersUpdateRules.prototype.external = {
 	 * @param {function} cb
 	 */
 	update: function (request, cb) {
-		z_schema.validate(request, schema.update, function (err) {
+		z_schema.validate(request, definitions.WSPeerUpdateRequest, function (err) {
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}

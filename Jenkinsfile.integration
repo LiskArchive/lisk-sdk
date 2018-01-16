@@ -1,4 +1,17 @@
-def report(){
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+def report() {
 	step([
 		$class: 'GitHubCommitStatusSetter',
 		errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
@@ -8,10 +21,17 @@ def report(){
 			results: [
 					[$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: 'This commit looks good :)'],
 					[$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: 'This commit failed testing :('],
-					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build some how escaped evaluation']
+					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build somehow escaped evaluation']
 			]
 		]
 	])
+	if (currentBuild.result == 'FAILURE') {
+		def prBranch = ''
+		if (env.CHANGE_BRANCH != null) {
+			prBranch = " (${env.CHANGE_BRANCH})"
+		}
+		slackSend color: 'danger', message: "Build #${env.BUILD_NUMBER} of <${env.BUILD_URL}|${env.JOB_NAME}>${prBranch} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)", channel: '#lisk-core-jenkins'
+	}
 }
 
 def statusFail() {
@@ -21,15 +41,15 @@ def statusFail() {
 	cleanUp()
 }
 
-def cleanUp(){
+def cleanUp() {
 	sh '''#!/bin/bash
 		node_modules/.bin/pm2 kill
 	'''
 }
 
-node('node-06'){
+node('node-06') {
 	lock(resource: "core-integration-tests", inversePrecedence: true) {
-		stage ('Prepare Workspace') {
+		stage('Prepare workspace') {
 			try {
 				deleteDir()
 				checkout scm
@@ -37,26 +57,31 @@ node('node-06'){
 				sh '''#!/bin/bash
 					# Cycle postgres, install deps and prepare config
 					sudo service postgresql restart
+					rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/"
 					npm install
-					cp test/config.json test/genesisBlock.json .
+					cp test/data/config.json test/data/genesisBlock.json .
 				'''
 			} catch (err) {
 				statusFail()
 			}
 		}
 
-		stage ('Integration Tests') {
+		stage('Run integration tests') {
 			try {
 				sh '''#!/bin/bash
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run test-integration > >(tee integrationTests.logs) 2> >(tee integrationTests.logs >&2)
+					if [ params.JENKINS_PROFILE == 'jenkins-extensive' ]; then
+						npm test -- mocha:extensive:integration |& tee integrationTests.logs
+					else
+						npm test -- mocha:untagged:integration |& tee integrationTests.logs
+					fi
 				'''
 			} catch (err) {
 				statusFail()
 			}
 		}
 
-		stage ('Set milestone') {
+		stage('Set milestone') {
 			milestone 1
 			currentBuild.result = 'SUCCESS'
 			report()

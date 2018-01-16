@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var moment = require('moment');
@@ -47,9 +60,9 @@ module.exports = function (grunt) {
 						util.format('cp %s/package.json %s', __dirname, version_dir),
 						util.format('cp %s/genesisBlock.json %s', __dirname, version_dir),
 						util.format('cp %s/LICENSE %s', __dirname, version_dir),
-						util.format('mkdir -p %s/sql/migrations', version_dir),
-						util.format('cp %s/sql/*.sql %s/sql/', __dirname, version_dir),
-						util.format('cp %s/sql/migrations/*.sql %s/sql/migrations/', __dirname, version_dir),
+						util.format('mkdir -p %s/db/sql/init/migrations', version_dir),
+						util.format('cp %s/db/sql/init/*.sql %s/db/sql/init/', __dirname, version_dir),
+						util.format('cp %s/db/sql/init/migrations/*.sql %s/db/sql/init/migrations/', __dirname, version_dir),
 					].join(' && ');
 				}
 			},
@@ -62,43 +75,23 @@ module.exports = function (grunt) {
 				command: 'cd ' + version_dir + '/ && touch build && echo "v' + today + '" > build'
 			},
 
-			coverage: {
-				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha',
-				maxBuffer: maxBufferSize
-			},
-
-			coverageSingle: {
-				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha $TEST -- --grep @slow --invert',
-				maxBuffer: maxBufferSize
-			},
-
-			coverageSingleExtensive: {
-				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit --include-pid ./node_modules/.bin/_mocha $TEST',
-				maxBuffer: maxBufferSize
-			},
-
-			coverageUnit: {
-				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.js',
-				maxBuffer: maxBufferSize
-			},
-
-			coverageUnitSlow: {
-				command: 'node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha test/unit/index.slow.js',
-				maxBuffer: maxBufferSize
-			},
-
-			testFunctionalWs: {
-				command: './node_modules/.bin/_mocha test/functional/ws/index.js',
-				maxBuffer: maxBufferSize
-			},
-
-			testFunctionalHttp: {
-				command: './node_modules/.bin/_mocha test/functional/http/index.js',
-				maxBuffer: maxBufferSize
-			},
-
-			testIntegration: {
-				command: './node_modules/.bin/_mocha --bail test/integration/peers.integration.js ',
+			mocha: {
+				cmd: function (tag, suite, section) {
+					if (suite === 'integration') {
+						var slowTag = '';
+						if (tag !== 'slow') {
+							slowTag = '--grep @slow --invert';
+						}
+						return './node_modules/.bin/_mocha --bail test/integration/index.js ' + slowTag;
+					} else {
+						var toExecute = [
+							tag,
+							suite,
+							section
+						].filter(function (val) { return val; }).join(' ');
+						return 'node test/common/parallelTests.js ' + toExecute;
+					}
+				},
 				maxBuffer: maxBufferSize
 			},
 
@@ -136,15 +129,7 @@ module.exports = function (grunt) {
 				format: 'codeframe',
 				fix: false
 			},
-			target: [
-				'api',
-				'helpers',
-				'modules',
-				'logic',
-				'schema',
-				'tasks',
-				'test'
-			]
+			target: '.'
 		}
 	});
 
@@ -155,21 +140,14 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-compress');
 	grunt.loadNpmTasks('grunt-eslint');
 
-	grunt.registerTask('default', ['release']);
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:createBundles', 'exec:package', 'exec:build', 'compress']);
-	grunt.registerTask('jenkins', ['exec:coverageSingle']);
-	grunt.registerTask('jenkins-extensive', ['exec:coverageSingleExtensive']);
 	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
-	grunt.registerTask('test', ['eslint', 'exec:coverage']);
-	grunt.registerTask('test-unit', ['eslint', 'exec:coverageUnit']);
-	grunt.registerTask('test-unit-slow', ['eslint', 'exec:coverageUnitSlow']);
-	grunt.registerTask('test-functional-ws', ['eslint', 'exec:testFunctionalWs']);
-	grunt.registerTask('test-functional-http', ['eslint', 'exec:testFunctionalHttp']);
-	grunt.registerTask('test-integration', ['eslint', 'exec:testIntegration']);
 
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
 		grunt.config.set('eslint.options.fix', true);
 		grunt.task.run('eslint');
 	});
+
+	grunt.registerTask('default', 'mocha');
 };

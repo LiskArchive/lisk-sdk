@@ -1,11 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
-var config = require('../../../config.json');
-
-var chai = require('chai');
-var expect = require('chai').expect;
 var express = require('express');
-var sinon = require('sinon');
 
 var constants = require('../../../helpers/constants');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
@@ -17,10 +25,14 @@ var ConnectionState = require('../../../api/ws/rpc/wsRPC').ConnectionState;
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var socketClusterMock = {
-	on: sinon.spy()
+	on: sinonSandbox.spy()
 };
 
 describe('wsRPC', function () {
+
+	beforeEach(function () {
+		wsRPC.clientsConnectionsMap = {};
+	});
 
 	it('should have empty clientsConnectionsMap field', function () {
 		expect(wsRPC).to.have.property('clientsConnectionsMap').to.be.a('object').and.to.be.empty;
@@ -99,7 +111,7 @@ describe('wsRPC', function () {
 		var validPort = 4000, validIp = '127.0.0.1';
 
 		beforeEach(function () {
-			initializeNewConnectionStub = sinon.stub(ClientRPCStub.prototype, 'initializeNewConnection');
+			initializeNewConnectionStub = sinonSandbox.stub(ClientRPCStub.prototype, 'initializeNewConnection');
 		});
 
 		afterEach(function () {
@@ -162,7 +174,6 @@ describe('wsRPC', function () {
 
 			beforeEach(function () {
 				masterWAMPServerConfig = {};
-				wsRPC.clientsConnectionsMap = {};
 				masterWAMPServer = new MasterWAMPServer(socketClusterMock, masterWAMPServerConfig);
 				wsRPC.setServer(masterWAMPServer);
 			});

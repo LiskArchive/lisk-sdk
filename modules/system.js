@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var async = require('async');
@@ -6,7 +19,6 @@ var os = require('os');
 var _ = require('lodash');
 var constants = require('../helpers/constants.js');
 var semver = require('semver');
-var sql = require('../sql/system.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -36,7 +48,8 @@ function System (cb, scope) {
 		db: scope.db,
 		config: {
 			version: scope.config.version,
-			port: scope.config.port,
+			wsPort: scope.config.wsPort,
+			httpPort: scope.config.httpPort,
 			nethash: scope.config.nethash,
 			minVersion: scope.config.minVersion,
 			nonce: scope.config.nonce
@@ -47,7 +60,7 @@ function System (cb, scope) {
 
 	__private.os = os.platform() + os.release();
 	__private.version = library.config.version;
-	__private.port = library.config.port;
+	__private.wsPort = library.config.wsPort;
 	__private.httpPort = library.config.httpPort;
 	__private.height = 1;
 	__private.nethash = library.config.nethash;
@@ -112,7 +125,7 @@ System.prototype.getVersion = function () {
  * @return {number}
  */
 System.prototype.getPort = function () {
-	return __private.port;
+	return __private.wsPort;
 };
 
 /**
@@ -151,7 +164,7 @@ System.prototype.getBroadhash = function (cb) {
 		return __private.broadhash;
 	}
 
-	library.db.query(sql.getBroadhash, { limit: 5 }).then(function (rows) {
+	library.db.blocks.list({offset: 0, limit: 5, sortField: 'b_height', sortMethod: 'DESC'}).then(function (rows) {
 		if (rows.length <= 1) {
 			return setImmediate(cb, null, __private.nethash);
 		} else {

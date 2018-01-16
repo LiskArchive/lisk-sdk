@@ -1,716 +1,606 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
-var node = require('../../../node.js');
-var http = require('../../../common/httpCommunication.js');
-var ws = require('../../../common/wsCommunication');
-var sendLiskTrs = require('../../../common/complexTransactions.js').sendLISK;
-var transactionSortFields = require('../../../../sql/transactions').sortFields;
-var modulesLoader = require('../../../common/initModule').modulesLoader;
-var transactionTypes = require('../../../../helpers/transactionTypes.js');
-var genesisblock = require('../../../genesisBlock.json');
+var lisk = require('lisk-js');
+var Promise = require('bluebird');
 
-var account = node.randomTxAccount();
-var account2 = node.randomTxAccount();
+var accountFixtures = require('../../../fixtures/accounts');
+var genesisblock = require('../../../data/genesisBlock.json');
 
-var transactionList = [];
-var offsetTimestamp = 0;
+var transactionTypes = require('../../../../helpers/transactionTypes');
+var constants = require('../../../../helpers/constants');
 
-function sendLISK (account, amount, done) {
-	var expectedFee = node.expectedFee(amount);
-
-	sendLiskTrs({
-		secret: node.gAccount.password,
-		amount: amount,
-		address: account.address
-	}, function (err, res) {
-		node.expect(res).to.have.property('success').to.be.ok;
-		node.expect(res).to.have.property('transactionId').that.is.not.empty;
-		transactionList.push({
-			'sender': node.gAccount.address,
-			'recipient': account.address,
-			'grossSent': (amount + expectedFee) / node.normalizer,
-			'fee': expectedFee / node.normalizer,
-			'netSent': amount / node.normalizer,
-			'txId': res.transactionId,
-			'type': node.txTypes.SEND
-		});
-		done(err, res);
-	});
-}
-
-function postTransaction (transaction, done) {
-	ws.call('postTransactions', {
-		transaction: transaction
-	}, done, true);
-}
-
-before(function (done) {
-	setTimeout(function () {
-		sendLISK(account, node.randomLISK(), done);
-	}, 2000);
-});
-
-before(function (done) {
-	setTimeout(function () {
-		sendLISK(account2, node.randomLISK(), done);
-	}, 2000);
-});
-
-before(function (done) {
-	setTimeout(function () {
-		// Send 20 LSK
-		sendLISK(account2, 20*100000000, done);
-	}, 2000);
-});
-
-before(function (done) {
-	setTimeout(function () {
-		// Send 100 LSK
-		sendLISK(account2, 100*100000000, done);
-	}, 2000);
-});
-
-before(function (done) {
-	node.onNewBlock(function (err) {
-		done();
-	});
-});
-
-describe('GET /api/transactions (cache)', function () {
-	var cache;
-
-	before(function (done) {
-		node.config.cacheEnabled = true;
-		done();
-	});
-
-	before(function (done) {
-		modulesLoader.initCache(function (err, __cache) {
-			cache = __cache;
-			node.expect(err).to.not.exist;
-			node.expect(__cache).to.be.an('object');
-			return done(err, __cache);
-		});
-	});
-
-	after(function (done) {
-		cache.quit(done);
-	});
-
-	afterEach(function (done) {
-		cache.flushDb(function (err, status) {
-			node.expect(err).to.not.exist;
-			node.expect(status).to.equal('OK');
-			done(err, status);
-		});
-	});
-
-	it('cache transactions by the url and parameters when response is a success', function (done) {
-		var url, params;
-
-		url = '/api/transactions?';
-		params = [
-			'blockId=' + '1',
-			'senderId=' + node.gAccount.address,
-			'recipientId=' + account.address,
-		];
-
-		http.get(url + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			var response = res.body;
-			cache.getJsonForKey(url + params.join('&'), function (err, res) {
-				node.expect(err).to.not.exist;
-				node.expect(res).to.eql(response);
-				done(err, res);
-			});
-		});
-	});
-
-	it('should not cache if response is not a success', function (done) {
-		var url, params;
-		url = '/api/transactions?';
-		params = [
-			'whatever:senderId=' + node.gAccount.address
-		];
-
-		http.get(url + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			cache.getJsonForKey(url + params, function (err, res) {
-				node.expect(err).to.not.exist;
-				node.expect(res).to.eql(null);
-				done(err, res);
-			});
-		});
-	});
-});
+var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
+var waitFor = require('../../../common/utils/waitFor');
+var apiHelpers = require('../../../common/helpers/api');
+var getTransactionsPromise = apiHelpers.getTransactionsPromise;
+var swaggerEndpoint = require('../../../common/swaggerSpec');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+var slots = require('../../../../helpers/slots');
 
 describe('GET /api/transactions', function () {
 
-	before(function (done) {
-		node.onNewBlock(done);
-	});
+	var transactionsEndpoint = new swaggerEndpoint('GET /transactions');
+	var transactionList = [];
 
-	it('using valid parameters should be ok', function (done) {
-		var limit = 10;
-		var offset = 0;
-		var orderBy = 'amount:asc';
+	var account = randomUtil.account();
+	var account2 = randomUtil.account();
+	var minAmount = 20 * normalizer; // 20 LSK
+	var maxAmount = 100 * normalizer; // 100 LSK
 
-		var params = [
-			'blockId=' + '1',
-			'senderId=' + node.gAccount.address,
-			'recipientId=' + account.address,
-			'limit=' + limit,
-			'offset=' + offset,
-			'orderBy=' + orderBy
-		];
+	// Crediting accounts
+	before(function () {
+		var promises = [];
 
-		http.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
-			for (var i = 0; i < res.body.transactions.length; i++) {
-				if (res.body.transactions[i + 1]) {
-					node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
-				}
-			}
-			done();
+		var transaction1 = lisk.transaction.createTransaction(account.address, maxAmount, accountFixtures.genesis.password);
+		var transaction2 = lisk.transaction.createTransaction(account2.address, minAmount, accountFixtures.genesis.password);
+		promises.push(apiHelpers.sendTransactionPromise(transaction1));
+		promises.push(apiHelpers.sendTransactionPromise(transaction2));
+		return Promise.all(promises).then(function (results) {
+			transactionList.push(transaction1);
+			transactionList.push(transaction2);
+			return waitFor.confirmations(_.map(transactionList, 'id'));
 		});
 	});
 
-	it('using valid parameters with and/or should be ok', function (done) {
-		var limit = 10;
-		var offset = 0;
-		var orderBy = 'amount:asc';
+	describe('?', function () {
 
-		var params = [
-			'and:blockId=' + '1',
-			'or:senderId=' + node.gAccount.address,
-			'or:recipientId=' + account.address,
-			'limit=' + limit,
-			'offset=' + offset,
-			'orderBy=' + orderBy
-		];
+		describe('with wrong input', function () {
 
-		http.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
-			for (var i = 0; i < res.body.transactions.length; i++) {
-				if (res.body.transactions[i + 1]) {
-					node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
-				}
-			}
-			done();
-		});
-	});
-
-	it('using minAmount with and:maxAmount ordered by amount and limited should be ok', function (done) {
-		var limit = 10;
-		var offset = 0;
-		var orderBy = 'amount:asc';
-		var minAmount = 20*100000000; // 20 LSK
-		var maxAmount = 100*100000000; // 100 LSK
-
-		var params = [
-			'minAmount=' + minAmount,
-			'and:maxAmount=' + maxAmount,
-			'limit=' + limit,
-			'offset=' + offset,
-			'orderBy=' + orderBy
-		];
-
-		http.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			node.expect(res.body.transactions).to.have.length.within(2, limit);
-			node.expect(res.body.transactions[0].amount).to.be.equal(minAmount);
-			node.expect(res.body.transactions[res.body.transactions.length-1].amount).to.be.equal(maxAmount);
-			for (var i = 0; i < res.body.transactions.length; i++) {
-				if (res.body.transactions[i + 1]) {
-					node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
-				}
-			}
-			done();
-		});
-	});
-
-	it('using valid parameters with/without and/or should be ok', function (done) {
-		var limit = 10;
-		var offset = 0;
-		var orderBy = 'amount:asc';
-
-		var params = [
-			'and:blockId=' + '1',
-			'or:senderId=' + node.gAccount.address,
-			'or:recipientId=' + account.address,
-			'fromHeight=' + 1,
-			'toHeight=' + 666,
-			'and:fromTimestamp=' + 0,
-			'and:minAmount=' + 0,
-			'limit=' + limit,
-			'offset=' + offset,
-			'orderBy=' + orderBy
-		];
-
-		http.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
-			for (var i = 0; i < res.body.transactions.length; i++) {
-				if (res.body.transactions[i + 1]) {
-					node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
-				}
-			}
-			done();
-		});
-	});
-
-	it('using valid array-like parameters should be ok', function (done) {
-		var limit = 10;
-		var offset = 0;
-		var orderBy = 'amount:asc';
-
-		var params = [
-			'blockId=' + '1',
-			'or:senderIds=' + node.gAccount.address + ',' + account.address,
-			'or:recipientIds=' + account.address + ',' + account2.address,
-			'or:senderPublicKeys=' + node.gAccount.publicKey,
-			'or:recipientPublicKeys=' + node.gAccount.publicKey + ',' + account.publicKey,
-			'limit=' + limit,
-			'offset=' + offset,
-			'orderBy=' + orderBy
-		];
-
-		http.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			node.expect(res.body.transactions).to.have.length.within(transactionList.length, limit);
-			for (var i = 0; i < res.body.transactions.length; i++) {
-				if (res.body.transactions[i + 1]) {
-					node.expect(res.body.transactions[i].amount).to.be.at.most(res.body.transactions[i + 1].amount);
-				}
-			}
-			done();
-		});
-	});
-
-	it('using one invalid field name with and/or should fail', function (done) {
-		var limit = 10;
-		var offset = 0;
-		var orderBy = 'amount:asc';
-
-		var params = [
-			'and:blockId=' + '1',
-			'or:senderId=' + node.gAccount.address,
-			'or:whatever=' + account.address,
-			'limit=' + limit,
-			'offset=' + offset,
-			'orderBy=' + orderBy
-		];
-
-		http.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using invalid condition should fail', function (done) {
-		var params = [
-			'whatever:senderId=' + node.gAccount.address
-		];
-
-		http.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using invalid field name (x:y:z) should fail', function (done) {
-		var params = [
-			'or:whatever:senderId=' + node.gAccount.address
-		];
-
-		http.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using empty parameter should fail', function (done) {
-		var params = [
-			'and:publicKey='
-		];
-
-		http.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using type should be ok', function (done) {
-		var type = node.txTypes.SEND;
-		var params = 'type=' + type;
-
-		http.get('/api/transactions?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			for (var i = 0; i < res.body.transactions.length; i++) {
-				if (res.body.transactions[i]) {
-					node.expect(res.body.transactions[i].type).to.equal(type);
-				}
-			}
-			done();
-		});
-	});
-
-	it('using no params should be ok', function (done) {
-		http.get('/api/transactions', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			for (var i = 0; i < res.body.transactions.length; i++) {
-				if (res.body.transactions[i + 1]) {
-					node.expect(res.body.transactions[i].amount).to.be.at.least(res.body.transactions[i + 1].amount);
-				}
-			}
-			done();
-		});
-	});
-
-	it('using too small fromUnixTime should fail', function (done) {
-		var params = 'fromUnixTime=1464109199';
-
-		http.get('/api/transactions?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using too small toUnixTime should fail', function (done) {
-		var params = 'toUnixTime=1464109200';
-
-		http.get('/api/transactions?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using limit > 1000 should fail', function (done) {
-		var limit = 1001;
-		var params = 'limit=' + limit;
-
-		http.get('/api/transactions?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('ordered by ascending timestamp should be ok', function (done) {
-		var orderBy = 'timestamp:asc';
-		var params = 'orderBy=' + orderBy;
-
-		http.get('/api/transactions?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-
-			var flag = 0;
-			for (var i = 0; i < res.body.transactions.length; i++) {
-				if (res.body.transactions[i + 1]) {
-					node.expect(res.body.transactions[i].timestamp).to.be.at.most(res.body.transactions[i + 1].timestamp);
-					if (flag === 0) {
-						offsetTimestamp = res.body.transactions[i + 1].timestamp;
-						flag = 1;
-					}
-				}
-			}
-
-			done();
-		});
-	});
-
-	it('using offset == 1 should be ok', function (done) {
-		var offset = 1;
-		var params = 'offset=' + offset;
-
-		http.get('/api/transactions?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			if (res.body.transactions.length > 0) {
-				node.expect(res.body.transactions[0].timestamp).to.be.equal(offsetTimestamp);
-			}
-			done();
-		});
-	});
-
-	it('using offset == "one" should fail', function (done) {
-		var offset = 'one';
-		var params = 'offset=' + offset;
-
-		http.get('/api/transactions?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using completely invalid fields should fail', function (done) {
-		var params = [
-			'blockId=invalid',
-			'senderId=invalid',
-			'recipientId=invalid',
-			'limit=invalid',
-			'offset=invalid',
-			'orderBy=invalid'
-		];
-
-		http.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using partially invalid fields should fail', function (done) {
-		var params = [
-			'blockId=invalid',
-			'senderId=invalid',
-			'recipientId=' + account.address,
-			'limit=invalid',
-			'offset=invalid',
-			'orderBy=blockId:asc'
-		];
-
-		http.get('/api/transactions?' + params.join('&'), function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('using orderBy with any of sort fields should not place NULLs first', function (done) {
-		node.async.each(transactionSortFields, function (sortField, cb) {
-			http.get('/api/transactions?orderBy=' + sortField, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactions').that.is.an('array');
-
-				var dividedIndices = res.body.transactions.reduce(function (memo, peer, index) {
-					memo[peer[sortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
-					return memo;
-				}, {notNullIndices: [], nullIndices: []});
-
-				if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
-					var ascOrder = function (a, b) { return a - b; };
-					dividedIndices.notNullIndices.sort(ascOrder);
-					dividedIndices.nullIndices.sort(ascOrder);
-
-					node.expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
-						.to.be.at.most(dividedIndices.nullIndices[0]);
-				}
-				cb();
+			it('using valid array-like parameters should fail', function () {
+				return transactionsEndpoint.makeRequest({
+					blockId: '1',
+					senderId: accountFixtures.genesis.address + ',' + account.address,
+					senderPublicKey: accountFixtures.genesis.publicKey,
+					recipientPublicKey: accountFixtures.genesis.publicKey + ',' + account.publicKey,
+					sort: 'amount:asc'
+				}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'senderId');
+				});
 			});
-		}, function () {
-			done();
-		});
-	});
-});
 
-describe('GET /api/transactions/get?id=', function () {
-
-	it('using valid id should be ok', function (done) {
-		var transactionInCheck = transactionList[0];
-		var params = 'id=' + transactionInCheck.txId;
-
-		http.get('/api/transactions/get?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transaction').that.is.an('object');
-			node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
-			node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
-			node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
-			node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
-			node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
-			node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
-			done();
-		});
-	});
-
-	it('using invalid id should fail', function (done) {
-		var params = 'id=invalid';
-
-		http.get('/api/transactions/get?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error');
-			done();
-		});
-	});
-
-	it('should get transaction with asset for id', function (done) {
-		var transactionInCheck = genesisblock.transactions.find(function (trs) {
-			return trs.id === '9314232245035524467';
-		});
-
-		var params = 'id=' + transactionInCheck.id;
-		http.get('/api/transactions/get?' + params, function (err, res) {
-			node.expect(res.body.transaction.type).to.equal(transactionTypes.VOTE);
-			node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
-
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transaction').that.is.an('object');
-			node.expect(res.body.transaction.id).to.equal(transactionInCheck.id);
-			node.expect(res.body.transaction.amount).to.equal(transactionInCheck.amount);
-			node.expect(res.body.transaction.fee).to.equal(transactionInCheck.fee);
-			node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipientId);
-			node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.senderId);
-			node.expect(res.body.transaction.asset).to.eql(transactionInCheck.asset);
-			done();
-		});
-	});
-});
-
-describe('GET /api/transactions/count', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/transactions/count', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('confirmed').that.is.an('number');
-			node.expect(res.body).to.have.property('queued').that.is.an('number');
-			node.expect(res.body).to.have.property('multisignature').that.is.an('number');
-			node.expect(res.body).to.have.property('unconfirmed').that.is.an('number');
-			done();
-		});
-	});
-});
-
-describe('GET /api/transactions/queued/get?id=', function () {
-
-	it('using unknown id should be ok', function (done) {
-		var params = 'id=' + '1234';
-
-		http.get('/api/transactions/queued/get?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.false;
-			node.expect(res.body).to.have.property('error').that.is.equal('Transaction not found');
-			done();
-		});
-	});
-
-	describe('for transaction with data field', function () {
-
-		function createTransactionWithData (done) {
-			var amountToSend = 123456789;
-			var expectedFee = node.expectedFeeForTrsWithData(amountToSend);
-			var data = 'extra information';
-			var transferTrs = node.lisk.transaction.createTransaction(account2.address, amountToSend, account.password, null, data);
-
-			postTransaction(transferTrs, function (err, res) {
-				node.expect(res).to.have.property('success').to.be.ok;
-				node.expect(res).to.have.property('transactionId').that.is.not.empty;
-				var transaction = {
-					'sender': account.address,
-					'recipient': account2.address,
-					'grossSent': (amountToSend + expectedFee) / node.normalizer,
-					'fee': expectedFee / node.normalizer,
-					'netSent': amountToSend / node.normalizer,
-					'txId': res.transactionId,
-					'type': node.txTypes.SEND,
-					'data': data
-				};
-				transactionList.push(transaction);
-				done(transaction);
+			it('using invalid field name should fail', function () {
+				return transactionsEndpoint.makeRequest({
+					blockId: '1',
+					whatever: accountFixtures.genesis.address
+				}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'whatever');
+				});
 			});
-		}
 
-		it('using valid id should be ok', function (done) {
-			createTransactionWithData(function (transactionInCheck) {
-				var trsId = transactionInCheck.txId;
-				var params = 'id=' + trsId;
+			it('using invalid condition should fail', function () {
+				return transactionsEndpoint.makeRequest({
+					'whatever:senderId': accountFixtures.genesis.address
+				}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'whatever:senderId');
+				});
+			});
 
-				http.get('/api/transactions/queued/get?' + params, function (err, res) {
-					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transaction').that.is.an('object');
-					node.expect(res.body.transaction.id).to.equal(transactionInCheck.txId);
-					node.expect(res.body.transaction.amount / node.normalizer).to.equal(transactionInCheck.netSent);
-					node.expect(res.body.transaction.fee / node.normalizer).to.equal(transactionInCheck.fee);
-					node.expect(res.body.transaction.recipientId).to.equal(transactionInCheck.recipient);
-					node.expect(res.body.transaction.senderId).to.equal(transactionInCheck.sender);
-					node.expect(res.body.transaction.type).to.equal(transactionInCheck.type);
-					node.expect(res.body.transaction.asset.data).to.equal(transactionInCheck.data);
-					done();
+			it('using invalid field name (x:z) should fail', function () {
+				return transactionsEndpoint.makeRequest({
+					'and:senderId': accountFixtures.genesis.address
+				}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'and:senderId');
+				});
+			});
+
+			it('using empty parameter should fail', function () {
+				return transactionsEndpoint.makeRequest({
+					publicKey: ''
+				}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
+				});
+			});
+
+			it('using completely invalid fields should fail', function () {
+				return transactionsEndpoint.makeRequest({
+					blockId: 'invalid',
+					senderId: 'invalid',
+					recipientId: 'invalid',
+					limit: 'invalid',
+					offset: 'invalid',
+					sort: 'invalid'
+				}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'blockId');
+					expectSwaggerParamError(res, 'senderId');
+					expectSwaggerParamError(res, 'recipientId');
+					expectSwaggerParamError(res, 'limit');
+					expectSwaggerParamError(res, 'offset');
+					expectSwaggerParamError(res, 'sort');
+				});
+			});
+
+			it('using partially invalid fields should fail', function () {
+				return transactionsEndpoint.makeRequest({
+					blockId: 'invalid',
+					senderId: 'invalid',
+					recipientId: account.address,
+					limit: 'invalid',
+					offset: 'invalid',
+					sort: 'invalid'
+				}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'blockId');
+					expectSwaggerParamError(res, 'senderId');
+					expectSwaggerParamError(res, 'limit');
+					expectSwaggerParamError(res, 'offset');
+					expectSwaggerParamError(res, 'sort');
 				});
 			});
 		});
-	});
-});
 
-describe('GET /api/transactions/queued', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/transactions/queued', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			node.expect(res.body).to.have.property('count').that.is.an('number');
-			done();
+		it('using no params should be ok', function () {
+			return transactionsEndpoint.makeRequest({}, 200).then(function (res) {
+				res.body.data.should.not.empty;
+			});
 		});
-	});
-});
 
-describe('GET /api/transactions/multisignatures/get?id=', function () {
+		describe('id', function () {
 
-	it('using unknown id should be ok', function (done) {
-		var params = 'id=' + '1234';
+			it('using valid id should be ok', function () {
+				var transactionInCheck = transactionList[0];
 
-		http.get('/api/transactions/multisignatures/get?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.false;
-			node.expect(res.body).to.have.property('error').that.is.equal('Transaction not found');
-			done();
+				return transactionsEndpoint.makeRequest({id: transactionInCheck.id}, 200).then(function (res) {
+					res.body.data.should.not.empty;
+					res.body.data.should.has.length(1);
+					res.body.data[0].id.should.be.equal(transactionInCheck.id);
+				});
+			});
+
+			it('using invalid id should fail', function () {
+				return transactionsEndpoint.makeRequest({id: '79fjdfd'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'id');
+				});
+			});
+
+			it('should get transaction with asset for id', function () {
+				var transactionInCheck = genesisblock.transactions.find(function (trs) {
+					// Vote type transaction from genesisBlock
+					return trs.id === '9314232245035524467';
+				});
+
+				return transactionsEndpoint.makeRequest({id: transactionInCheck.id}, 200).then(function (res) {
+					res.body.data.should.not.empty;
+					res.body.data.should.has.length(1);
+
+					var transaction = res.body.data[0];
+
+					transaction.id.should.be.equal(transactionInCheck.id);
+					transaction.type.should.be.equal(transactionTypes.VOTE);
+					transaction.type.should.be.equal(transactionInCheck.type);
+					transaction.amount.should.be.equal(transactionInCheck.amount.toString());
+					transaction.fee.should.be.equal(transactionInCheck.fee.toString());
+					transaction.recipientId.should.be.equal(transactionInCheck.recipientId);
+					transaction.senderId.should.be.equal(transactionInCheck.senderId);
+					transaction.asset.should.be.eql(transactionInCheck.asset);
+				});
+			});
 		});
-	});
-});
 
-describe('GET /api/transactions/multisignatures', function () {
+		describe('type', function () {
 
-	it('should be ok', function (done) {
-		http.get('/api/transactions/multisignatures', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			node.expect(res.body).to.have.property('count').that.is.an('number');
-			done();
+			it('using invalid type should fail', function () {
+				return transactionsEndpoint.makeRequest({type: 8}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'type');
+				});
+			});
+
+			it('using type should be ok', function () {
+				return transactionsEndpoint.makeRequest({type: transactionTypes.SEND}, 200).then(function (res) {
+					res.body.data.should.not.empty;
+					res.body.data.map(function (transaction) {
+						transaction.type.should.be.equal(transactionTypes.SEND);
+					});
+				});
+			});
 		});
-	});
-});
 
-describe('GET /api/transactions/unconfirmed/get?id=', function () {
+		describe('senderId', function () {
 
-	it('using valid id should be ok', function (done) {
-		var params = 'id=' + transactionList[transactionList.length - 1].txId;
+			it('using invalid senderId should fail', function () {
+				return transactionsEndpoint.makeRequest({senderId: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'senderId');
+				});
+			});
 
-		http.get('/api/transactions/unconfirmed/get?' + params, function (err, res) {
-			node.expect(res.body).to.have.property('success');
-			if (res.body.success && res.body.transaction != null) {
-				node.expect(res.body).to.have.property('transaction').that.is.an('object');
-				node.expect(res.body.transaction.id).to.equal(transactionList[transactionList.length - 1].txId);
-			} else {
-				node.expect(res.body).to.have.property('error');
-			}
-			done();
+			it('using one senderId should return transactions', function () {
+				return transactionsEndpoint.makeRequest({senderId: accountFixtures.genesis.address}, 200).then(function (res) {
+					res.body.data.should.not.empty;
+
+					res.body.data.map(function (transaction) {
+						transaction.senderId.should.be.equal(accountFixtures.genesis.address);
+					});
+				});
+			});
+
+			it('using multiple senderId should fail', function () {
+				return transactionsEndpoint.makeRequest({senderId: [accountFixtures.genesis.address, accountFixtures.existingDelegate.address]}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'senderId');
+				});
+			});
 		});
-	});
-});
 
-describe('GET /api/transactions/unconfirmed', function () {
+		describe('senderPublicKey', function () {
 
-	it('should be ok', function (done) {
-		http.get('/api/transactions/unconfirmed', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			node.expect(res.body).to.have.property('count').that.is.an('number');
-			done();
+			it('using invalid senderPublicKey should fail', function () {
+				return transactionsEndpoint.makeRequest({senderPublicKey: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'senderPublicKey');
+				});
+			});
+
+			it('using one senderPublicKey should return transactions', function () {
+				return transactionsEndpoint.makeRequest({senderPublicKey: accountFixtures.genesis.publicKey}, 200).then(function (res) {
+					res.body.data.should.not.empty;
+
+					res.body.data.map(function (transaction) {
+						transaction.senderPublicKey.should.be.equal(accountFixtures.genesis.publicKey);
+					});
+				});
+			});
+
+			it('using multiple senderPublicKey should fail', function () {
+				return transactionsEndpoint.makeRequest({senderPublicKey: [accountFixtures.genesis.publicKey, accountFixtures.existingDelegate.publicKey]}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'senderPublicKey');
+				});
+			});
+		});
+
+		describe('recipientId', function () {
+
+			it('using invalid recipientId should fail', function () {
+				return transactionsEndpoint.makeRequest({recipientId: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'recipientId');
+				});
+			});
+
+			it('using one recipientId should return transactions', function () {
+				return transactionsEndpoint.makeRequest({recipientId: accountFixtures.genesis.address}, 200).then(function (res) {
+					res.body.data.should.not.empty;
+
+					res.body.data.map(function (transaction) {
+						transaction.recipientId.should.be.equal(accountFixtures.genesis.address);
+					});
+				});
+			});
+
+			it('using multiple recipientId should fail', function () {
+				return transactionsEndpoint.makeRequest({recipientId: [accountFixtures.genesis.address, accountFixtures.existingDelegate.address]}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'recipientId');
+				});
+			});
+		});
+
+		describe('recipientPublicKey', function () {
+
+			it('using invalid recipientPublicKey should fail', function () {
+				return transactionsEndpoint.makeRequest({recipientPublicKey: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'recipientPublicKey');
+				});
+			});
+
+			it('using one recipientPublicKey should return transactions', function () {
+				return transactionsEndpoint.makeRequest({recipientPublicKey: accountFixtures.genesis.publicKey}, 200).then(function (res) {
+					res.body.data.should.not.empty;
+
+					res.body.data.map(function (transaction) {
+						transaction.recipientPublicKey.should.be.equal(accountFixtures.genesis.publicKey);
+					});
+				});
+			});
+
+			it('using multiple recipientPublicKey should fail', function () {
+				return transactionsEndpoint.makeRequest({recipientPublicKey: [accountFixtures.genesis.publicKey, accountFixtures.existingDelegate.publicKey]}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'recipientPublicKey');
+				});
+			});
+		});
+
+		describe('blockId', function () {
+
+			it('using invalid blockId should fail', function () {
+				return transactionsEndpoint.makeRequest({blockId: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'blockId');
+				});
+			});
+
+			it('using one blockId should return transactions', function () {
+				var blockId = '6524861224470851795';
+
+				return transactionsEndpoint.makeRequest({blockId: blockId}, 200).then(function (res) {
+					res.body.data.map(function (transaction) {
+						transaction.blockId.should.be.equal(blockId);
+					});
+				});
+			});
+		});
+
+		describe('height', function () {
+
+			it('using invalid height should fail', function () {
+				return transactionsEndpoint.makeRequest({height: ''}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'height');
+				});
+			});
+
+			it('using one height should return transactions', function () {
+				return transactionsEndpoint.makeRequest({height: 1}, 200).then(function (res) {
+					res.body.data.map(function (transaction) {
+						transaction.height.should.be.equal(1);
+					});
+				});
+			});
+		});
+
+		describe('minAmount', function () {
+
+			it('should get transactions with amount more than minAmount', function () {
+				return transactionsEndpoint.makeRequest({minAmount: minAmount}, 200).then(function (res) {
+					res.body.data.map(function (transaction) {
+						parseInt(transaction.amount).should.be.at.least(minAmount);
+					});
+				});
+			});
+		});
+
+		describe('maxAmount', function () {
+
+			it('should get transactions with amount less than maxAmount', function () {
+				return transactionsEndpoint.makeRequest({maxAmount: maxAmount}, 200).then(function (res) {
+					res.body.data.map(function (transaction) {
+						parseInt(transaction.amount).should.be.at.most(maxAmount);
+					});
+				});
+			});
+		});
+
+		describe('fromTimestamp', function () {
+
+			it('using too small fromTimestamp should fail', function () {
+				return transactionsEndpoint.makeRequest({fromTimestamp: -1}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'fromTimestamp');
+				});
+			});
+
+			it('using valid fromTimestamp should return transactions', function () {
+				// Last hour lisk time
+				var queryTime = slots.getTime() - 60 * 60;
+
+				return transactionsEndpoint.makeRequest({fromTimestamp: queryTime}, 200).then(function (res) {
+					res.body.data.forEach(function (transaction) {
+						transaction.timestamp.should.be.at.least(queryTime);
+					});
+				});
+			});
+		});
+
+		describe('toTimestamp', function () {
+
+			it('using too small toTimestamp should fail', function () {
+				return transactionsEndpoint.makeRequest({toTimestamp: 0}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'toTimestamp');
+				});
+			});
+
+			it('using valid toTimestamp should return transactions', function () {
+				// Current lisk time
+				var queryTime = slots.getTime();
+
+				return transactionsEndpoint.makeRequest({toTimestamp: queryTime}, 200).then(function (res) {
+					res.body.data.forEach(function (transaction) {
+						transaction.timestamp.should.be.at.most(queryTime);
+					});
+				});
+			});
+		});
+
+		describe('limit', function () {
+
+			it('using limit < 0 should fail', function () {
+				return transactionsEndpoint.makeRequest({limit: -1}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
+				});
+			});
+
+			it('using limit > 100 should fail', function () {
+				return transactionsEndpoint.makeRequest({limit: 101}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
+				});
+			});
+
+			it('using limit = 10 should return 10 transactions', function () {
+				return transactionsEndpoint.makeRequest({limit: 10}, 200).then(function (res) {
+					res.body.data.should.have.length(10);
+				});
+			});
+		});
+
+		describe('offset', function () {
+
+			it('using offset="one" should fail', function () {
+				return transactionsEndpoint.makeRequest({offset: 'one'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'offset');
+				});
+			});
+
+			it('using offset=1 should be ok', function () {
+				var firstTransaction = null;
+
+				return transactionsEndpoint.makeRequest({offset: 0}, 200).then(function (res) {
+					firstTransaction = res.body.data[0];
+
+					return transactionsEndpoint.makeRequest({offset: 1}, 200);
+				}).then(function (res) {
+					res.body.data.forEach(function (transaction) {
+						transaction.id.should.not.equal(firstTransaction.id);
+					});
+				});
+			});
+		});
+
+		describe('sort', function () {
+
+			describe('amount', function () {
+
+				it('sorted by amount:asc should be ok', function () {
+					return transactionsEndpoint.makeRequest({sort: 'amount:asc', minAmount: 100}, 200).then(function (res) {
+						var values = _.map(res.body.data, 'amount').map(function (value) { return parseInt(value); });
+
+						_(_.clone(values)).sortNumbers('asc').should.be.eql(values);
+					});
+				});
+
+				it('sorted by amount:desc should be ok', function () {
+					return transactionsEndpoint.makeRequest({sort: 'amount:desc'}, 200).then(function (res) {
+						var values = _.map(res.body.data, 'amount').map(function (value) { return parseInt(value); });
+
+						_(_.clone(values)).sortNumbers('desc').should.be.eql(values);
+					});
+				});
+			});
+
+			describe('fee', function () {
+
+				it('sorted by fee:asc should be ok', function () {
+					return transactionsEndpoint.makeRequest({sort: 'fee:asc', minAmount: 100}, 200).then(function (res) {
+						var values = _.map(res.body.data, 'fee').map(function (value) { return parseInt(value); });
+
+						_(_.clone(values)).sortNumbers('asc').should.be.eql(values);
+					});
+				});
+
+				it('sorted by fee:desc should be ok', function () {
+					return transactionsEndpoint.makeRequest({sort: 'fee:desc'}, 200).then(function (res) {
+						var values = _.map(res.body.data, 'fee').map(function (value) { return parseInt(value); });
+
+						_(_.clone(values)).sortNumbers('desc').should.be.eql(values);
+					});
+				});
+			});
+
+			describe('type', function () {
+
+				it('sorted by fee:asc should be ok', function () {
+					return transactionsEndpoint.makeRequest({sort: 'type:asc', minAmount: 100}, 200).then(function (res) {
+						_(res.body.data).map('type').sortNumbers('asc').should.be.eql(_.map(res.body.data, 'type'));
+					});
+				});
+
+				it('sorted by fee:desc should be ok', function () {
+					return transactionsEndpoint.makeRequest({sort: 'type:desc'}, 200).then(function (res) {
+						_(res.body.data).map('type').sortNumbers('desc').should.be.eql(_.map(res.body.data, 'type'));
+					});
+				});
+			});
+
+			describe('timestamp', function () {
+
+				it('sorted by timestamp:asc should be ok', function () {
+					return transactionsEndpoint.makeRequest({sort: 'timestamp:asc', minAmount: 100}, 200).then(function (res) {
+						_(res.body.data).map('timestamp').sortNumbers('asc').should.be.eql(_.map(res.body.data, 'timestamp'));
+					});
+				});
+
+				it('sorted by timestamp:desc should be ok', function () {
+					return transactionsEndpoint.makeRequest({sort: 'timestamp:desc'}, 200).then(function (res) {
+						_(res.body.data).map('timestamp').sortNumbers('desc').should.be.eql(_.map(res.body.data, 'timestamp'));
+					});
+				});
+			});
+
+			it('using sort with any of sort fields should not place NULLs first', function () {
+				var transactionSortFields = ['amount:asc', 'amount:desc', 'fee:asc', 'fee:desc', 'type:asc', 'type:desc', 'timestamp:asc', 'timestamp:desc'];
+
+				return Promise.each(transactionSortFields, function (sortField) {
+					return transactionsEndpoint.makeRequest({sort: sortField}, 200).then(function (res) {
+
+						var dividedIndices = res.body.data.reduce(function (memo, peer, index) {
+							memo[peer[sortField] === null ? 'nullIndices' : 'notNullIndices'].push(index);
+							return memo;
+						}, { notNullIndices: [], nullIndices: [] });
+
+						if (dividedIndices.nullIndices.length && dividedIndices.notNullIndices.length) {
+							var ascOrder = function (a, b) { return a - b; };
+							dividedIndices.notNullIndices.sort(ascOrder);
+							dividedIndices.nullIndices.sort(ascOrder);
+
+							expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
+								.to.be.at.most(dividedIndices.nullIndices[0]);
+						}
+					});
+				});
+			});
+
+			it('using any other sort field should fail', function () {
+				return transactionsEndpoint.makeRequest({sort: 'height:asc'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'sort');
+				});
+			});
+		});
+
+		describe('minAmount & maxAmount & sort', function () {
+
+			it('using minAmount, maxAmount sorted by amount should return sorted transactions', function () {
+				return transactionsEndpoint.makeRequest({
+					minAmount: minAmount,
+					maxAmount: maxAmount,
+					sort: 'amount:asc'
+				}, 200).then(function (res) {
+					var values = _.map(res.body.data, 'amount').map(function (value) { return parseInt(value); });
+
+					_(_.clone(values)).sortNumbers('asc').should.be.eql(values);
+
+					values.forEach(function (value) {
+						value.should.be.at.most(maxAmount);
+						value.should.be.at.least(minAmount);
+					});
+				});
+			});
+		});
+
+		describe('combination of query parameters', function () {
+
+			it('using valid parameters should be ok', function () {
+				return transactionsEndpoint.makeRequest({
+					senderId: accountFixtures.genesis.address,
+					recipientId: account.address,
+					limit: 10,
+					offset: 0,
+					sort: 'amount:asc'
+				}, 200).then(function (res) {
+
+					var values = _.map(res.body.data, 'amount').map(function (value) { return parseInt(value); });
+					_(_.clone(values)).sortNumbers('asc').should.be.eql(values);
+
+					res.body.data.forEach(function (transaction) {
+						transaction.senderId.should.be.eql(accountFixtures.genesis.address);
+						transaction.recipientId.should.be.eql(account.address);
+					});
+				});
+			});
+		});
+
+		describe('meta', function () {
+
+			describe('count', function () {
+
+				it('should return count of the transactions with response', function () {
+					return transactionsEndpoint.makeRequest({}, 200).then(function (res) {
+						res.body.meta.count.should.be.a('number');
+					});
+				});
+			});
 		});
 	});
 });

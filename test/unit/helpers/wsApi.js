@@ -1,19 +1,29 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
-var config = require('../../../config.json');
-
 var async = require('async');
-var chai = require('chai');
-var expect = require('chai').expect;
 var express = require('express');
 var randomstring = require('randomstring');
-var sinon = require('sinon');
 
+var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
 var wsApi = require('../../../helpers/wsApi');
 var failureCodes = require('../../../api/ws/rpc/failureCodes');
-
+var WSServerMaster = require('../../common/ws/serverMaster');
 var System = require('../../../modules/system');
-var SchemaDynamicTests = require('../../common/schemaDynamicTest');
+
+var config = __testContext.config;
 
 describe('handshake', function () {
 
@@ -43,13 +53,7 @@ describe('handshake', function () {
 	describe('compatibility', function () {
 
 		beforeEach(function () {
-			validHeaders = {
-				port: 5000,
-				nethash: config.nethash,
-				version: minVersion,
-				nonce: validPeerNonce,
-				height: 1
-			};
+			validHeaders = WSServerMaster.generatePeerHeaders({version: minVersion, nonce: validPeerNonce});
 		});
 
 		it('should return an error when nonce is identical to server', function (done) {
@@ -81,57 +85,186 @@ describe('handshake', function () {
 	});
 
 	after(function () {
+		validHeaders = WSServerMaster.generatePeerHeaders({version: minVersion, nonce: '0123456789ABCDEF'});
 
-		validHeaders = {
-			port: 5000,
-			nethash: config.nethash,
-			version: minVersion,
-			nonce: '0123456789ABCDEF',
-			height: 1
-		};
+		describe('schema tests', function () {
 
-		describe('schema dynamic tests: handshake wsApi', function () {
+			var headers;
 
-			var schemaDynamicTests = new SchemaDynamicTests({
-				customArgumentAssertion: function (input, expectedType, err) {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('#/: Expected type ' + expectedType + ' but found type ' + input.expectation);
-				},
-				customPropertyAssertion: function (input, expectedType, property, err) {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('#/' + property + ': Expected type ' + expectedType + ' but found type ' + input.expectation);
-				},
-				customRequiredPropertiesAssertion: function (property, err) {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('#/: Missing required property: ' + property);
-				}
+			beforeEach(function () {
+				headers = _.cloneDeep(validHeaders);
 			});
 
-			schemaDynamicTests.schema.shouldFailAgainst.nonObject.arguments(handshake);
+			describe('handshake', function () {
 
-			describe('nonce', function () {
+				var invalidTypes = _.difference(typeRepresentatives.allTypes,
+					typeRepresentatives.objects
+				);
 
-				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'nonce');
-			});
+				invalidTypes.forEach(function (type) {
+					it('should call callback with error.description when input is: ' + type.description, function (done) {
+						handshake(type.input, function (err) {
+							expect(err.description).to.equal(': Expected type object but found type ' + type.expectation);
+							done();
+						});
+					});
 
-			describe('height', function () {
+					it('should call callback with error.code when input is: ' + type.description, function (done) {
+						handshake(type.input, function (err) {
+							expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
+							done();
+						});
+					});
+				});
 
-				schemaDynamicTests.schema.shouldFailAgainst.nonInteger.property(handshake, validHeaders, 'height');
-			});
+				describe('nonce', function  () {
 
-			describe('nethash', function () {
+					var invalidTypes = _.difference(typeRepresentatives.allTypes,
+						typeRepresentatives.strings
+					);
 
-				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'nethash');
-			});
+					var validValues = _.map(new Array(10), function () {
+						return randomstring.generate(16);
+					});
 
-			describe('version', function () {
+					invalidTypes.forEach(function (type) {
+						it('should call callback with error.description when input is: ' + type.description, function (done) {
+							headers.nonce = type.input;
+							handshake(headers, function (err) {
+								expect(err.description).to.equal('nonce: Expected type string but found type ' + type.expectation);
+								done();
+							});
+						});
 
-				schemaDynamicTests.schema.shouldFailAgainst.nonString.property(handshake, validHeaders, 'version');
-			});
+						it('should call callback with error.code when input is: ' + type.description, function (done) {
+							headers.nonce = type.input;
+							handshake(headers, function (err) {
+								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
+								done();
+							});
+						});
+					});
 
-			describe('required properties', function () {
+					validValues.forEach(function (input) {
+						it('should call callback with error = null when input is:' + input, function (done) {
+							handshake(headers, function (err) {
+								expect(err).to.not.exist;
+								done();
+							});
+						});
+					});
+				});
 
-				schemaDynamicTests.schema.shouldFailWithoutRequiredProperties(handshake, validHeaders, ['port', 'version', 'nonce', 'nethash', 'height']);
+				describe('height', function  () {
+
+					var validValues = _.map(new Array(10), function () {
+						return Math.floor(Math.random() * (Number.MAX_VALUE));
+					});
+
+					var invalidTypes = _.difference(typeRepresentatives.allTypes,
+						typeRepresentatives.positiveIntegers,
+						typeRepresentatives.negativeIntegers,
+						typeRepresentatives.positiveNumbers,
+						typeRepresentatives.negativeNumbers
+					);
+
+					var invalidValues = typeRepresentatives.negativeIntegers
+						.concat(typeRepresentatives.positiveNumbers)
+						.concat(typeRepresentatives.negativeNumbers);
+
+					invalidTypes.forEach(function (type) {
+						it('should call callback with error.description when input is: ' + type.description, function (done) {
+							headers.height = type.input;
+							handshake(headers, function (err) {
+								expect(err.description).to.equal('height: Expected type integer but found type ' + type.expectation);
+								done();
+							});
+						});
+
+						it('should call callback with error.code when input is: ' + type.description, function (done) {
+							headers.height = type.input;
+							handshake(headers, function (err) {
+								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
+								done();
+							});
+						});
+					});
+
+					validValues.forEach(function (input) {
+						it('should call callback with error = null when input is: ' + input, function (done) {
+							headers.height = input;
+							handshake(headers, function (err) {
+								expect(err).to.not.exist;
+								done();
+							});
+						});
+					});
+				});
+
+				describe('nethash', function () {
+
+					var validValues = _.map(new Array(10), function () {
+						return randomstring.generate(64);
+					});
+
+					var invalidTypes = _.difference(typeRepresentatives.allTypes,
+						typeRepresentatives.strings
+					);
+
+					invalidTypes.forEach(function (type) {
+						it('should call callback with error.description when input is: ' + type.description, function (done) {
+							headers.nethash = type.input;
+							handshake(headers, function (err) {
+								expect(err.description).to.equal('nethash: Expected type string but found type ' + type.expectation);
+								done();
+							});
+						});
+
+						it('should call callback with error.code when input is: ' + type.description, function (done) {
+							headers.nethash = type.input;
+							handshake(headers, function (err) {
+								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
+								done();
+							});
+						});
+					});
+				});
+
+				describe('version', function () {
+
+					var invalidTypes = _.difference(typeRepresentatives.allTypes,
+						typeRepresentatives.strings
+					);
+
+					invalidTypes.forEach(function (type) {
+						it('should call callback with error.description when input is: ' + type.description, function (done) {
+							headers.version = type.input;
+							handshake(headers, function (err) {
+								expect(err.description).to.equal('version: Expected type string but found type ' + type.expectation);
+								done();
+							});
+						});
+
+						it('should call callback with error.code when input is: ' + type.description, function (done) {
+							headers.version = type.input;
+							handshake(headers, function (err) {
+								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
+								done();
+							});
+						});
+					});
+				});
+
+				var requiredProperties = ['wsPort', 'version', 'nonce', 'nethash', 'height'];
+				requiredProperties.forEach(function (property) {
+					it('should call callback with error for required property: ' + property, function (done) {
+						headers[property] = undefined;
+						handshake(headers, function (err) {
+							expect(err.description).to.equal(': Missing required property: ' + property);
+							done();
+						});
+					});
+				});
 			});
 		});
 	});

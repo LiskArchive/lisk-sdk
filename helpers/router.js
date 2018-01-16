@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var httpApi = require('./httpApi');
@@ -15,8 +28,9 @@ var Router = function () {
 
 	router.use(httpApi.middleware.cors);
 
-	router.map = function (root, config) {
+	router.map = function (root, config, options) {
 		var router = this;
+		options = options || {};
 
 		Object.keys(config).forEach(function (params) {
 			var route = params.split(' ');
@@ -29,7 +43,9 @@ var Router = function () {
 					method: req.method,
 					path: req.path
 				};
-				root[config[params]](extend({}, reqRelevantInfo, {'body': route[0] === 'get' ? req.query : req.body}), httpApi.respond.bind(null, res));
+				//ToDo: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
+				var responseHandler = options.responseWithCode ? httpApi.respondWithCode.bind(null, res) : httpApi.respond.bind(null, res);
+				root[config[params]](extend({}, reqRelevantInfo, {'body': route[0] === 'get' ? req.query : req.body}), responseHandler);
 			});
 		});
 	};

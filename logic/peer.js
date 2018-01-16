@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var _ = require('lodash');
@@ -19,7 +32,7 @@ function Peer (peer) {
 	Object.defineProperties(this, {
 		rpc: {
 			get: function () {
-				return wsRPC.getClientRPCStub(this.ip, this.port);
+				return wsRPC.getClientRPCStub(this.ip, this.wsPort);
 			}.bind(this)
 		}
 	});
@@ -30,7 +43,8 @@ function Peer (peer) {
 /**
  * @typedef {Object} peer
  * @property {string} ip
- * @property {number} port - Between 1 and 65535
+ * @property {number} wsPort - Between 1 and 65535
+ * @property {number} httpPort - Between 1 and 65535
  * @property {number} state - Between 0 and 2. (banned = 0, unbanned = 1, active = 2)
  * @property {string} os - Between 1 and 64 chars
  * @property {string} version - Between 5 and 12 chars
@@ -44,7 +58,7 @@ function Peer (peer) {
 // Public properties
 Peer.prototype.properties = [
 	'ip',
-	'port',
+	'wsPort',
 	'state',
 	'os',
 	'version',
@@ -58,7 +72,7 @@ Peer.prototype.properties = [
 
 Peer.prototype.immutable = [
 	'ip',
-	'port',
+	'wsPort',
 	'httpPort',
 	'string'
 ];
@@ -69,15 +83,6 @@ Peer.prototype.headers = [
 	'broadhash',
 	'height',
 	'nonce'
-];
-
-Peer.prototype.nullable = [
-	'os',
-	'version',
-	'broadhash',
-	'height',
-	'clock',
-	'updated'
 ];
 
 Peer.STATE = {
@@ -108,8 +113,8 @@ Peer.prototype.accept = function (peer) {
 		this.ip = ip.fromLong(this.ip);
 	}
 
-	if (this.ip && this.port) {
-		this.string = this.ip + ':' + this.port;
+	if (this.ip && this.wsPort) {
+		this.string = this.ip + ':' + this.wsPort;
 	}
 
 	return this;
@@ -125,7 +130,11 @@ Peer.prototype.normalize = function (peer) {
 		peer.height = this.parseInt(peer.height, 1);
 	}
 
-	peer.port = this.parseInt(peer.port, 0);
+	peer.wsPort = this.parseInt(peer.wsPort, 0);
+
+	if (peer.httpPort != null) {
+		peer.httpPort = this.parseInt(peer.httpPort, 0);
+	}
 	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
 
 	return peer;
@@ -184,12 +193,6 @@ Peer.prototype.object = function () {
 	_.each(this.properties, function (key) {
 		copy[key] = this[key];
 	}.bind(this));
-
-	_.each(this.nullable, function (key) {
-		if (!copy[key]) {
-			copy[key] = null;
-		}
-	});
 
 	delete copy.rpc;
 	return copy;

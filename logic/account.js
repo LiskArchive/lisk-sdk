@@ -1,15 +1,33 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
+var _ = require('lodash');
 var async = require('async');
 var pgp = require('pg-promise');
 var path = require('path');
 var jsonSql = require('json-sql')();
 jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
+var createQueryFile = require('../db').createQueryFile;
 var slots = require('../helpers/slots.js');
+var sortBy = require('../helpers/sort_by.js');
+var BlockReward = require('../logic/blockReward.js');
+var Bignum = require('../helpers/bignum.js');
 
 // Private fields
-var self, library, __private = {};
+var self, library, modules, __private = {};
 
 /**
  * Main account logic.
@@ -27,6 +45,8 @@ function Account (db, schema, logger, cb) {
 		db: db,
 		schema: schema,
 	};
+
+	__private.blockReward = new BlockReward();
 
 	self = this;
 	library = {
@@ -60,8 +80,8 @@ function Account (db, schema, logger, cb) {
 	 * @property {string} blockId
 	 * @property {boolean} nameexist
 	 * @property {boolean} u_nameexist
-	 * @property {number} producedblocks - Between -1 and 1.
-	 * @property {number} missedblocks - Between -1 and 1.
+	 * @property {number} producedblocks
+	 * @property {number} missedblocks
 	 * @property {number} fees
 	 * @property {number} rewards
 	 * @property {boolean} virgin
@@ -70,80 +90,45 @@ function Account (db, schema, logger, cb) {
 		{
 			name: 'username',
 			type: 'String',
-			filter: {
-				type: 'string',
-				case: 'lower',
-				maxLength: 20,
-				minLength: 1
-			},
 			conv: String,
 			immutable: true
 		},
 		{
 			name: 'isDelegate',
 			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
 			conv: Boolean
 		},
 		{
 			name: 'u_isDelegate',
 			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
 			conv: Boolean
 		},
 		{
 			name: 'secondSignature',
 			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
 			conv: Boolean
 		},
 		{
 			name: 'u_secondSignature',
 			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
 			conv: Boolean
 		},
 		{
 			name: 'u_username',
 			type: 'String',
-			filter: {
-				type: 'string',
-				case: 'lower',
-				maxLength: 20,
-				minLength: 1
-			},
 			conv: String,
 			immutable: true
 		},
 		{
 			name: 'address',
 			type: 'String',
-			filter: {
-				required: true,
-				type: 'string',
-				case: 'upper',
-				minLength: 1,
-				maxLength: 22
-			},
 			conv: String,
 			immutable: true,
-			expression: 'UPPER("address")'
+			expression: 'UPPER(a.address)'
 		},
 		{
 			name: 'publicKey',
 			type: 'Binary',
-			filter: {
-				type: 'string',
-				format: 'publicKey'
-			},
 			conv: String,
 			immutable: true,
 			expression: 'ENCODE("publicKey", \'hex\')'
@@ -151,10 +136,6 @@ function Account (db, schema, logger, cb) {
 		{
 			name: 'secondPublicKey',
 			type: 'Binary',
-			filter: {
-				type: 'string',
-				format: 'publicKey'
-			},
 			conv: String,
 			immutable: true,
 			expression: 'ENCODE("secondPublicKey", \'hex\')'
@@ -162,199 +143,145 @@ function Account (db, schema, logger, cb) {
 		{
 			name: 'balance',
 			type: 'BigInt',
-			filter: {
-				required: true,
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.totalAmount
-			},
 			conv: Number,
 			expression: '("balance")::bigint'
 		},
 		{
 			name: 'u_balance',
 			type: 'BigInt',
-			filter: {
-				required: true,
-				type: 'integer',
-				minimum: 0,
-				maximum: constants.totalAMount
-			},
 			conv: Number,
 			expression: '("u_balance")::bigint'
 		},
 		{
-			name: 'vote',
-			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
-			conv: Number,
-			expression: '("vote")::bigint'
-		},
-		{
 			name: 'rate',
 			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
 			conv: Number,
 			expression: '("rate")::bigint'
 		},
 		{
 			name: 'delegates',
 			type: 'Text',
-			filter: {
-				type: 'array',
-				uniqueItems: true
-			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2delegates WHERE "accountId" = a."address")'
 		},
 		{
 			name: 'u_delegates',
 			type: 'Text',
-			filter: {
-				type: 'array',
-				uniqueItems: true
-			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_delegates WHERE "accountId" = a."address")'
 		},
 		{
 			name: 'multisignatures',
 			type: 'Text',
-			filter: {
-				type: 'array',
-				uniqueItems: true
-			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2multisignatures WHERE "accountId" = a."address")'
 		},
 		{
 			name: 'u_multisignatures',
 			type: 'Text',
-			filter: {
-				type: 'array',
-				uniqueItems: true
-			},
 			conv: Array,
 			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_multisignatures WHERE "accountId" = a."address")'
 		},
 		{
 			name: 'multimin',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 17
-			},
 			conv: Number
 		},
 		{
 			name: 'u_multimin',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 17
-			},
 			conv: Number
 		},
 		{
 			name: 'multilifetime',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 72
-			},
 			conv: Number
 		},
 		{
 			name: 'u_multilifetime',
 			type: 'SmallInt',
-			filter: {
-				type: 'integer',
-				minimum: 1,
-				maximum: 72
-			},
 			conv: Number
 		},
 		{
 			name: 'blockId',
 			type: 'String',
-			filter: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 20
-			},
 			conv: String
 		},
 		{
 			name: 'nameexist',
 			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
 			conv: Boolean
 		},
 		{
 			name: 'u_nameexist',
 			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
 			conv: Boolean
-		},
-		{
-			name: 'producedblocks',
-			type: 'Number',
-			filter: {
-				type: 'integer',
-				minimum: -1,
-				maximum: 1
-			},
-			conv: Number
-		},
-		{
-			name: 'missedblocks',
-			type: 'Number',
-			filter: {
-				type: 'integer',
-				minimum: -1,
-				maximum: 1
-			},
-			conv: Number
 		},
 		{
 			name: 'fees',
 			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
 			conv: Number,
-			expression: '("fees")::bigint'
+			expression: '(a."fees")::bigint'
+		},
+		{
+			name: 'rank',
+			type: 'BigInt',
+			conv: Number,
+			expression: 'row_number() OVER (ORDER BY a."vote" DESC, a."publicKey" ASC)::int'
 		},
 		{
 			name: 'rewards',
 			type: 'BigInt',
-			filter: {
-				type: 'integer'
-			},
 			conv: Number,
-			expression: '("rewards")::bigint'
+			expression: '(a."rewards")::bigint'
+		},
+		{
+			name: 'vote',
+			type: 'BigInt',
+			conv: Number,
+			expression: '(a."vote")::bigint'
+		},
+		{
+			name: 'producedBlocks',
+			type: 'BigInt',
+			conv: Number,
+			expression: '(a."producedblocks")::bigint'
+		},
+		{
+			name: 'missedBlocks',
+			type: 'BigInt',
+			conv: Number,
+			expression: '(a."missedblocks")::bigint'
 		},
 		{
 			name: 'virgin',
 			type: 'SmallInt',
-			filter: {
-				type: 'boolean'
-			},
 			conv: Boolean,
 			immutable: true
+		},
+		{
+			name: 'approval',
+			type: 'integer',
+			dependentFields: [
+				'vote'
+			],
+			computedField: true
+		},
+		{
+			name: 'productivity',
+			type: 'integer',
+			dependentFields: [
+				'producedBlocks',
+				'missedBlocks',
+				'rank'
+			],
+			computedField: true
 		}
 	];
+
+	this.computedFields = this.model.filter(function (field) {
+		return field.computedField;
+	});
 
 	// Obtains fields from model
 	this.fields = this.model.map(function (field) {
@@ -372,6 +299,8 @@ function Account (db, schema, logger, cb) {
 			_tmp.alias = field.alias || field.name;
 		}
 
+		_tmp.computedField = field.computedField || false;
+
 		return _tmp;
 	});
 
@@ -381,12 +310,6 @@ function Account (db, schema, logger, cb) {
 		if (field.type === 'Binary') {
 			this.binary.push(field.name);
 		}
-	}.bind(this));
-
-	// Obtains filters from model
-	this.filter = {};
-	this.model.forEach(function (field) {
-		this.filter[field.name] = field.filter;
 	}.bind(this));
 
 	// Obtains conv from model
@@ -406,9 +329,204 @@ function Account (db, schema, logger, cb) {
 	return setImmediate(cb, null, this);
 }
 
+Account.prototype.schema = {
+	id: 'Account',
+	type: 'object',
+	properties: {
+		username: {
+			type: 'string',
+			format: 'username'
+		},
+		isDelegate: {
+			type: 'integer',
+			maximum: 32767
+		},
+		u_isDelegate: {
+			type: 'integer',
+			maximum: 32767
+		},
+		secondSignature: {
+			type: 'integer',
+			maximum: 32767
+		},
+		u_secondSignature: {
+			type: 'integer',
+			maximum: 32767
+		},
+		u_username: {
+			anyOf: [
+				{
+					type: 'string',
+					format: 'username'
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		address: {
+			type: 'string',
+			format: 'address',
+			minLength: 1,
+			maxLength: 22
+		},
+		publicKey: {
+			type: 'string',
+			format: 'publicKey'
+		},
+		secondPublicKey: {
+			anyOf: [
+				{
+					type: 'string',
+					format: 'publicKey'
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		balance: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount
+		},
+		u_balance: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount
+		},
+		rate: {
+			type: 'integer'
+		},
+		delegates: {
+			anyOf: [
+				{
+					type: 'array',
+					uniqueItems: true
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		u_delegates: {
+			anyOf: [
+				{
+					type: 'array',
+					uniqueItems: true
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		multisignatures: {
+			anyOf: [
+				{
+					type: 'array',
+					minItems: constants.multisigConstraints.keysgroup.minItems,
+					maxItems: constants.multisigConstraints.keysgroup.maxItems
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		u_multisignatures: {
+			anyOf: [
+				{
+					type: 'array',
+					minItems: constants.multisigConstraints.keysgroup.minItems,
+					maxItems: constants.multisigConstraints.keysgroup.maxItems
+				},
+				{
+					type: 'null'
+				}
+			]
+		},
+		multimin: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.multisigConstraints.min.maximum
+		},
+		u_multimin: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.multisigConstraints.min.maximum
+		},
+		multilifetime: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.multisigConstraints.lifetime.maximum
+		},
+		u_multilifetime: {
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.multisigConstraints.lifetime.maximum
+		},
+		blockId: {
+			type: 'string',
+			format: 'id',
+			minLength: 1,
+			maxLength: 20
+		},
+		nameexist: {
+			type: 'integer',
+			maximum: 32767
+		},
+		u_nameexist: {
+			type: 'integer',
+			maximum: 32767
+		},
+		fees: {
+			type: 'integer',
+			minimum: 0
+		},
+		rank: {
+			type: 'integer'
+		},
+		rewards: {
+			type: 'integer',
+			minimum: 0
+		},
+		vote: {
+			type: 'integer'
+		},
+		producedBlocks: {
+			type: 'integer'
+		},
+		missedBlocks: {
+			type: 'integer'
+		},
+		virgin: {
+			type: 'integer',
+			maximum: 32767
+		},
+		approval: {
+			type: 'integer'
+		},
+		productivity: {
+			type: 'integer'
+		}
+	},
+	required: ['address', 'balance', 'u_balance']
+};
+
+// Public methods
+/**
+ * Binds input parameters to private variables modules.
+ * @param {Blocks} blocks
+ */
+Account.prototype.bind = function (blocks) {
+	modules = {
+		blocks: blocks,
+	};
+};
+
 /**
  * Creates memory tables related to accounts:
  * - mem_accounts
+ * - mem_round
  * - mem_accounts2delegates
  * - mem_accounts2u_delegates
  * - mem_accounts2multisignatures
@@ -417,9 +535,10 @@ function Account (db, schema, logger, cb) {
  * @returns {setImmediateCallback} cb|error.
  */
 Account.prototype.createTables = function (cb) {
-	var sql = new pgp.QueryFile(path.join(process.cwd(), 'sql', 'memoryTables.sql'), {minify: true});
+	var sqlPath = path.join(__dirname, '../db/sql/init/memoryTables.sql');
+	var queryFile = createQueryFile(sqlPath);
 
-	this.scope.db.query(sql).then(function () {
+	this.scope.db.query(queryFile).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -429,6 +548,7 @@ Account.prototype.createTables = function (cb) {
 
 /**
  * Deletes the contents of these tables:
+ * - mem_round
  * - mem_accounts2delegates
  * - mem_accounts2u_delegates
  * - mem_accounts2multisignatures
@@ -440,6 +560,7 @@ Account.prototype.removeTables = function (cb) {
 	var sqles = [], sql;
 
 	[this.table,
+		'mem_round',
 		'mem_accounts2delegates',
 		'mem_accounts2u_delegates',
 		'mem_accounts2multisignatures',
@@ -466,15 +587,12 @@ Account.prototype.removeTables = function (cb) {
  * @throws {string} If schema.validate fails, throws 'Failed to validate account schema'.
  */
 Account.prototype.objectNormalize = function (account) {
-	var report = this.scope.schema.validate(account, {
-		id: 'Account',
-		object: true,
-		properties: this.filter
-	});
+	var report = this.scope.schema.validate(account, Account.prototype.schema);
 
 	if (!report) {
 		throw 'Failed to validate account schema: ' + this.scope.schema.getLastErrors().map(function (err) {
-			return err.message;
+			var path = err.path.replace('#/', '').trim();
+			return [path, ': ', err.message, ' (', account[path], ')'].join('');
 		}).join(', ');
 	}
 
@@ -528,8 +646,9 @@ Account.prototype.toDB = function (raw) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Returns null or Object with database data.
  */
-Account.prototype.get = function (filter, fields, cb) {
+Account.prototype.get = function (filter, fields, cb, tx) {
 	if (typeof(fields) === 'function') {
+		tx = cb;
 		cb = fields;
 		fields = this.fields.map(function (field) {
 			return field.alias || field.field;
@@ -538,7 +657,7 @@ Account.prototype.get = function (filter, fields, cb) {
 
 	this.getAll(filter, fields, function (err, data) {
 		return setImmediate(cb, err, data && data.length ? data[0] : null);
-	});
+	}, tx);
 };
 
 /**
@@ -548,16 +667,29 @@ Account.prototype.get = function (filter, fields, cb) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
  */
-Account.prototype.getAll = function (filter, fields, cb) {
-	if (typeof(fields) === 'function') {
+Account.prototype.getAll = function (filter, fields, cb, tx) {
+	if (typeof fields === 'function') {
 		cb = fields;
 		fields = this.fields.map(function (field) {
 			return field.alias || field.field;
 		});
 	}
 
+	var fieldsAddedForComputation = [];
+	this.computedFields.forEach(function (field) {
+		if (fields.indexOf(field.name) !== -1) {
+			field.dependentFields.forEach(function (dependentField) {
+				if (fields.indexOf(dependentField) == -1) {
+					// Add the dependent field to the fields array if it's required.
+					fieldsAddedForComputation.push(dependentField);
+					fields.push(dependentField);
+				}
+			});
+		}
+	});
+
 	var realFields = this.fields.filter(function (field) {
-		return fields.indexOf(field.alias || field.field) !== -1;
+		return !field.computedField && fields.indexOf(field.alias || field.field) !== -1;
 	});
 
 	var realConv = {};
@@ -567,26 +699,59 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		}
 	}.bind(this));
 
+	var DEFAULT_LIMIT = constants.activeDelegates;
 	var limit, offset, sort;
 
-	if (filter.limit > 0) {
-		limit = filter.limit;
-	}
-	delete filter.limit;
 
 	if (filter.offset > 0) {
 		offset = filter.offset;
 	}
 	delete filter.offset;
 
-	if (filter.sort) {
-		sort = filter.sort;
+	if (filter.limit > 0) {
+		limit = filter.limit;
 	}
+
+	// Assigning a default value if none is present.
+	if (!limit) {
+		limit = DEFAULT_LIMIT;
+	}
+
+	delete filter.limit;
+
+	if (filter.sort) {
+		var allowedSortFields = ['username', 'balance', 'rank', 'missedBlocks', 'vote', 'publicKey'];
+
+		if (typeof filter.sort === 'string') {
+			sort = sortBy.sortQueryToJsonSqlFormat(filter.sort, allowedSortFields);
+		} else if (typeof filter.sort === 'object') {
+			sort = _.pick(filter.sort, allowedSortFields);
+		}
+	}
+
 	delete filter.sort;
 
-	if (typeof filter.address === 'string') {
-		filter.address = {
-			$upper: ['address', filter.address]
+	if (filter.address) {
+		if (typeof filter.address === 'string') {
+			filter['a.address'] = {
+				$upper: ['a.address', filter.address]
+			};
+		} else {
+			// If we want to get addresses by id
+			filter['a.address'] = filter.address;
+		}
+		delete filter.address;
+	}
+
+	if (typeof filter.publicKey === 'string') {
+		filter.publicKey = {
+			$decode: ['publicKey', filter.publicKey, 'hex']
+		};
+	}
+
+	if (typeof filter.secondPublicKey === 'string') {
+		filter.secondPublicKey = {
+			$decode: ['secondPublicKey', filter.secondPublicKey, 'hex']
 		};
 	}
 
@@ -596,17 +761,72 @@ Account.prototype.getAll = function (filter, fields, cb) {
 		limit: limit,
 		offset: offset,
 		sort: sort,
-		alias: 'a',
 		condition: filter,
-		fields: realFields
+		fields: realFields,
+		alias: 'a'
 	});
 
-	this.scope.db.query(sql.query, sql.values).then(function (rows) {
+	var self = this;
+
+	(tx || this.scope.db).query(sql.query, sql.values).then(function (rows) {
+		var lastBlock = modules.blocks.lastBlock.get();
+		// If the last block height is undefined, it means it's a genesis block with height = 1
+		// look for a constant for total supply
+		var totalSupply = lastBlock.height ? __private.blockReward.calcSupply(lastBlock.height) : 0;
+
+		if (fields.indexOf('approval') !== -1) {
+			rows.forEach(function (accountRow) {
+				accountRow.approval = self.calculateApproval(accountRow.vote, totalSupply);
+			});
+		}
+
+		if (fields.indexOf('productivity') !== -1) {
+			rows.forEach(function (accountRow) {
+				accountRow.productivity = self.calculateProductivity(accountRow.producedBlocks, accountRow.missedBlocks);
+			});
+		}
+
+		if (fieldsAddedForComputation.length > 0) {
+			// Remove the fields which were only added for computation
+			rows.forEach(function (accountRow) {
+				fieldsAddedForComputation.forEach(function (field) {
+					delete accountRow[field];
+				});
+			});
+		}
+
 		return setImmediate(cb, null, rows);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Account#getAll error');
 	});
+};
+
+/**
+ * Calculates productivity of a delegate account.
+ * @param {String} votersBalance
+ * @param {String} totalSupply
+ * @returns {Number}
+ */
+Account.prototype.calculateApproval = function (votersBalance, totalSupply) {
+	// votersBalance and totalSupply are sent as strings, we convert them into bignum and send the response as number as well.
+	var votersBalanceBignum = new Bignum(votersBalance || 0);
+	var totalSupplyBignum =  new Bignum(totalSupply);
+	var approvalBignum = (votersBalanceBignum.dividedBy(totalSupplyBignum)).times(100).round(2);
+	return !(approvalBignum.isNaN()) ? approvalBignum.toNumber() : 0;
+};
+
+/**
+ * Calculates productivity of a delegate account.
+ * @param {String} producedBlocks
+ * @param {String} missedBlocks
+ * @returns {Number}
+ */
+Account.prototype.calculateProductivity = function (producedBlocks, missedBlocks) {
+	var producedBlocksBignum = new Bignum(producedBlocks || 0);
+	var missedBlocksBignum = new Bignum(missedBlocks || 0);
+	var percent = producedBlocksBignum.dividedBy(producedBlocksBignum.plus(missedBlocksBignum)).times(100).round(2);
+	return !(percent.isNaN()) ? percent.toNumber() : 0;
 };
 
 /**
@@ -616,7 +836,7 @@ Account.prototype.getAll = function (filter, fields, cb) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} cb | 'Account#set error'.
  */
-Account.prototype.set = function (address, fields, cb) {
+Account.prototype.set = function (address, fields, cb, tx) {
 	// Verify public key
 	this.verifyPublicKey(fields.publicKey);
 
@@ -632,7 +852,7 @@ Account.prototype.set = function (address, fields, cb) {
 		modifier: this.toDB(fields)
 	});
 
-	this.scope.db.none(sql.query, sql.values).then(function () {
+	(tx || this.scope.db).none(sql.query, sql.values).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
@@ -642,13 +862,14 @@ Account.prototype.set = function (address, fields, cb) {
 
 /**
  * Updates account from mem_account with diff data belonging to an editable field.
+ * Inserts into mem_round "address", "amount", "delegate", "blockId", "round" based on balance or delegates fields.
  * @param {address} address
  * @param {Object} diff - Must contains only mem_account editable fields.
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
  */
-Account.prototype.merge = function (address, diff, cb) {
-	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {};
+Account.prototype.merge = function (address, diff, cb, tx) {
+	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {}, round = [];
 
 	// Verify public key
 	this.verifyPublicKey(diff.publicKey);
@@ -667,11 +888,21 @@ Account.prototype.merge = function (address, diff, cb) {
 					break;
 				case Number:
 					if (isNaN(trueValue) || trueValue === Infinity) {
-						console.log(diff);
 						return setImmediate(cb, 'Encountered unsane number: ' + trueValue);
 					} else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
 						update.$inc = update.$inc || {};
 						update.$inc[value] = Math.floor(trueValue);
+						if (value === 'balance') {
+							round.push({
+								query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
+								values: {
+									address: address,
+									amount: trueValue,
+									blockId: diff.blockId,
+									round: diff.round
+								}
+							});
+						}
 					} else if (trueValue < 0) {
 						update.$dec = update.$dec || {};
 						update.$dec[value] = Math.floor(Math.abs(trueValue));
@@ -679,6 +910,17 @@ Account.prototype.merge = function (address, diff, cb) {
 						if (update.$dec.u_balance) {
 							// Remove virginity and ensure marked columns become immutable
 							update.virgin = 0;
+						}
+						if (value === 'balance') {
+							round.push({
+								query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
+								values: {
+									address: address,
+									amount: trueValue,
+									blockId: diff.blockId,
+									round: diff.round
+								}
+							});
 						}
 					}
 					break;
@@ -708,14 +950,47 @@ Account.prototype.merge = function (address, diff, cb) {
 								val = trueValue[i].slice(1);
 								remove[value] = remove[value] || [];
 								remove[value].push(val);
+								if (value === 'delegates') {
+									round.push({
+										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (-balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
+										values: {
+											address: address,
+											delegate: val,
+											blockId: diff.blockId,
+											round: diff.round
+										}
+									});
+								}
 							} else if (math === '+') {
 								val = trueValue[i].slice(1);
 								insert[value] = insert[value] || [];
 								insert[value].push(val);
+								if (value === 'delegates') {
+									round.push({
+										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
+										values: {
+											address: address,
+											delegate: val,
+											blockId: diff.blockId,
+											round: diff.round
+										}
+									});
+								}
 							} else {
 								val = trueValue[i];
 								insert[value] = insert[value] || [];
 								insert[value].push(val);
+								if (value === 'delegates') {
+									round.push({
+										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
+										values: {
+											address: address,
+											delegate: val,
+											blockId: diff.blockId,
+											round: diff.round
+										}
+									});
+								}
 							}
 						}
 					}
@@ -801,11 +1076,11 @@ Account.prototype.merge = function (address, diff, cb) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			self.get({address: address}, cb);
+			self.get({address: address}, cb, tx);
 		}
 	}
 
-	var queries = sqles.map(function (sql) {
+	var queries = sqles.concat(round).map(function (sql) {
 		return pgp.as.format(sql.query, sql.values);
 	}).join('');
 
@@ -817,7 +1092,7 @@ Account.prototype.merge = function (address, diff, cb) {
 		return done();
 	}
 
-	this.scope.db.none(queries).then(function () {
+	(tx || this.scope.db).none(queries).then(function () {
 		return done();
 	}).catch(function (err) {
 		library.logger.error(err.stack);

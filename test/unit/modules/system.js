@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 describe('system', function () {
@@ -12,7 +25,7 @@ describe('system', function () {
 
 			it('should assign config.version');
 
-			it('should assign config.port');
+			it('should assign config.wsPort');
 
 			it('should assign config.version');
 
@@ -36,7 +49,7 @@ describe('system', function () {
 
 			it('should assign version from config.version');
 
-			it('should assign port from config.port');
+			it('should assign port from config.wsPort');
 
 			it('should assign httpPort from config.httpPort');
 
@@ -91,7 +104,7 @@ describe('system', function () {
 
 	describe('getPort', function () {
 
-		it('should __private.port');
+		it('should __private.wsPort');
 	});
 
 	describe('getHeight', function () {

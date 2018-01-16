@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 /**
@@ -7,7 +20,9 @@
  * @module helpers/httpApi
  */
 
+var _ = require('lodash');
 var extend = require('extend');
+var apiCodes = require('./apiCodes');
 var checkIpInList = require('./checkIpInList');
 
 /**
@@ -85,6 +100,7 @@ var middleware = {
 	 * @return {function} Sanitize middleware.
 	 */
 	sanitize: function (property, schema, cb) {
+		// TODO: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
 		return function (req, res, next) {
 			req.sanitize(req[property], schema, function (err, report, sanitized) {
 				if (!report.isValid) {
@@ -162,15 +178,16 @@ var middleware = {
 				// Monkey patching res.json function only if we expect to cache response
 				var expressSendJson = res.json;
 				res.json = function (response) {
-					if (response.success) {
-						logger.debug('cached response for key: ', req.url);
+					// ToDo: Remove response.success check when API refactor is done (#225)
+					if (response.success || (response.success === undefined && res.statusCode === apiCodes.OK)) {
+						logger.debug('Cache - Response for key:', req.url);
 						cache.setJsonForKey(key, response);
 					}
 					expressSendJson.call(res, response);
 				};
 				next();
 			} else {
-				logger.debug(['serving response for url:', req.url, 'from cache'].join(' '));
+				logger.debug('Cache - Response for url:', req.url);
 				res.json(cachedValue);
 			}
 		});
@@ -192,6 +209,27 @@ function respond (res, err, response) {
 }
 
 /**
+ * Adds code status to responses for every failed request.
+ * Default error code is 500.
+ * Success code is 200.
+ * Success code for empty data is 204.
+ * @param {Object} res
+ * @param {ApiError} err
+ * @param {Object} response
+ */
+function respondWithCode (res, err, response) {
+	if (err) {
+		return res.status(err.code || apiCodes.INTERNAL_SERVER_ERROR).json(err.toJson());
+	} else {
+		var isResponseEmpty = function (response) {
+			var firstValue = _(response).values().first();
+			return _.isArray(firstValue) && _.isEmpty(firstValue);
+		};
+		return res.status(isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK).json(response);
+	}
+}
+
+/**
  * Register router in express app using default middleware.
  * @param {string} route
  * @param {Object} app
@@ -207,5 +245,6 @@ function registerEndpoint (route, app, router, isLoaded) {
 module.exports = {
 	middleware: middleware,
 	registerEndpoint: registerEndpoint,
-	respond: respond
+	respond: respond,
+	respondWithCode: respondWithCode
 };

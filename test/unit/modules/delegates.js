@@ -1,42 +1,41 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';/*eslint*/
 
-var crypto = require('crypto');
-var async = require('async');
-var sinon = require('sinon');
+var genesisDelegates = require('../../data/genesisDelegates.json');
+var accountFixtures = require('../../fixtures/accounts');
 
-var chai = require('chai');
-var expect = require('chai').expect;
-
-var node = require('./../../node.js');
-var initModule = require('./../../common/initModule.js');
-var ed = require('../../../helpers/ed');
-var bignum = require('../../../helpers/bignum.js');
-var constants = require('../../../helpers/constants.js');
-var genesisDelegates = require('../../genesisDelegates.json');
+var application = require('../../common/application');
 
 describe('delegates', function () {
-
-	var whiteListedIp = '127.0.0.1';
-	var testDelegate = genesisDelegates.delegates[0];
 
 	var library;
 	var __private;
 
 	before(function (done) {
-		node.initApplication(function (err, scope) {
+		application.init({sandbox: {name: 'lisk_test_modules_delegates'}}, function (err, scope) {
 			library = scope;
-
 			// Set delegates module as loaded to allow manual forging
 			library.rewiredModules.delegates.__set__('__private.loaded', true);
-
-			setTimeout(done, 5000);
-		}, {db: initModule.modulesLoader.db});
+			// Load forging delegates
+			__private = library.rewiredModules.delegates.__get__('__private');
+			done(err);
+		});
 	});
 
-	before(function (done) {
-		// Load forging delegates
-		__private = library.rewiredModules.delegates.__get__('__private');
-		__private.loadDelegates(done);
+	after(function (done) {
+		application.cleanup(done);
 	});
 
 	function fakeRequest (ip, body) {
@@ -48,156 +47,10 @@ describe('delegates', function () {
 		return req;
 	}
 
-	describe('internal', function () {
-		var delegates;
-
-		before(function () {
-			delegates = library.modules.delegates;
-		});
-
-		function updateForgingStatus (testDelegate, action, cb) {
-			var body = {
-				publicKey: testDelegate.publicKey
-			};
-
-			delegates.internal.forgingStatus(fakeRequest(whiteListedIp, body), function (err, res) {
-				if ((res.enabled && action == 'disable') || (!res.enabled && action == 'enable')) {
-					var body = {
-						publicKey: testDelegate.publicKey,
-						key: testDelegate.key
-					};
-					delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), cb);
-				} else {
-					cb(err, {
-						publicKey: testDelegate.publicKey,
-						key: testDelegate.key
-					});
-				}
-			});
-		}
-
-		describe('forgingToggle', function () {
-
-			var defaultKey;
-
-			before(function () {
-				defaultKey = library.config.forging.defaultKey;
-			});
-
-
-			it('should return error when ip is not whitelisted', function (done) {
-				var randomIp = '192.168.0.1';
-				var body = {
-					publicKey: testDelegate.publicKey
-				};
-
-				delegates.internal.forgingToggle(fakeRequest(randomIp, body), function (err, res) {
-					expect(err).to.exist;
-					expect(err).to.equal('Access denied');
-					done();
-				});
-			});
-
-			it('should return error with invalid schema', function (done) {
-				var body = {
-					publicKey: testDelegate.publicKey
-				};
-
-				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
-					expect(err).to.exist;
-					expect(err).to.equal('Missing required property: key');
-					done();
-				});
-			});
-
-			it('should return error with invalid key', function (done) {
-				var invalidKey = 'Invalid key';
-				var body = {
-					key: invalidKey,
-					publicKey: testDelegate.publicKey
-				};
-
-				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
-					expect(err).to.exist;
-					expect(err).to.equal('Invalid key and public key combination');
-					done();
-				});
-			});
-
-			it('should return error with invalid publicKey', function (done) {
-				var invalidPublicKey = '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
-				var body = {
-					publicKey: invalidPublicKey,
-					key: defaultKey
-				};
-
-				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
-					expect(err).to.exist;
-					expect(err).to.equal('Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found');
-					done();
-				});
-			});
-
-			it('should return error with non delegate account', function (done) {
-				var body = {
-					publicKey: node.gAccount.publicKey,
-					key: node.gAccount.password
-				};
-
-				delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
-					expect(err).to.exist;
-					expect(err).to.equal('Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found');
-					done();
-				});
-			});
-
-			it('should toggle forging from enable to disable', function (done) {
-				var body = {
-					key: defaultKey,
-					publicKey: testDelegate.publicKey,
-				};
-
-				updateForgingStatus(testDelegate, 'enable', function (err, res) {
-					expect(err).to.not.exist;
-
-					delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql({
-							publicKey: '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-							forging: false
-						});
-						done();
-					});
-				});
-			});
-
-			it('should toggle forging from disable to enable', function (done) {
-				var body = {
-					key: defaultKey,
-					publicKey: testDelegate.publicKey,
-				};
-
-				updateForgingStatus(testDelegate, 'disable', function (err, res) {
-					expect(err).to.not.exist;
-
-					delegates.internal.forgingToggle(fakeRequest(whiteListedIp, body), function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql({
-							publicKey: '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-							forging: true
-						});
-						done();
-					});
-				});
-			});
-		});
-	});
-
-	describe('__private', function (cb) {
+	describe('__private', function () {
 
 		describe('loadDelegates', function () {
 
-			var rewiredDelegates;
 			var loadDelegates;
 			var config;
 			var __private;
@@ -256,7 +109,6 @@ describe('delegates', function () {
 				});
 			});
 
-
 			it('should return error if encrypted secret does not decrypt with default secret', function (done) {
 				var accountDetails = {
 					encryptedSecret:  '1cc653f6bc2a458ae758dcd618b310e31e1598f237c4c4d96321173050e49c3652876808c73ebc2aa75f49044375077108ca7b8594efc6ae4ce0aa239d7e11f',
@@ -308,10 +160,10 @@ describe('delegates', function () {
 				});
 			});
 
-			it('should not load account as delegates for non-delegate item', function (done) {
+			it('should ignore secrets which do not belong to a delegate', function (done) {
 				config.forging.secret = [{
-					encryptedSecret: node.gAccount.encryptedSecret,
-					publicKey: node.gAccount.publicKey
+					encryptedSecret: accountFixtures.genesis.encryptedSecret,
+					publicKey: accountFixtures.genesis.publicKey
 				}];
 
 				loadDelegates(function (err) {

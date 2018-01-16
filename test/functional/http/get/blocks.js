@@ -1,405 +1,262 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
-var node = require('../../../node.js');
-var http = require('../../../common/httpCommunication.js');
-var modulesLoader = require('../../../common/initModule').modulesLoader;
+var Promise = require('bluebird');
 
-var block = {
-	blockHeight: 0,
-	id: 0,
-	generatorPublicKey: '',
-	totalAmount: 0,
-	totalFee: 0
-};
+var waitFor = require('../../../common/utils/waitFor');
+var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
 
-var testBlocksUnder101 = false;
+var swaggerEndpoint = require('../../../common/swaggerSpec');
+var apiHelpers = require('../../../common/helpers/api');
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('GET /api/blocks/getBroadhash', function () {
+describe('GET /blocks', function () {
 
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getBroadhash', function (err, res) {
-			node.expect(res.body).to.have.property('broadhash').to.be.a('string');
-			done();
-		});
-	});
-});
+	var blocksEndpoint = new swaggerEndpoint('GET /blocks');
 
-describe('GET /api/blocks/getEpoch', function () {
+	// Testnet genesis block data
+	var block = {
+		blockHeight: 1,
+		id: '6524861224470851795',
+		generatorPublicKey: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+		totalAmount: 10000000000000000,
+		totalFee: 0
+	};
 
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getEpoch', function (err, res) {
-			node.expect(res.body).to.have.property('epoch').to.be.a('string');
-			done();
-		});
-	});
-});
+	var testBlocksUnder101 = false;
 
-describe('GET /api/blocks/getHeight', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getHeight', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			if (res.body.success && res.body.height != null) {
-				node.expect(res.body).to.have.property('height').to.be.above(0);
-				block.blockHeight = res.body.height;
-
-				if (res.body.height > 100) {
-					testBlocksUnder101 = true;
-				}
+	function expectHeightCheck (res) {
+		res.body.data.forEach(function (block) {
+			if (block.height === 1) {
+				block.previousBlockId.should.be.empty;
 			}
-			done();
 		});
-	});
-});
+	}
 
-describe('GET /api/blocks/getFee', function () {
+	describe('?', function () {
 
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getFee', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('fee');
-			node.expect(res.body.fee).to.equal(node.fees.transactionFee);
-			done();
-		});
-	});
-});
+		describe('blockId', function () {
 
-describe('GET /api/blocks/getfees', function () {
+			it('using invalid blockId = "InvalidId" format should fail with error', function () {
+				return blocksEndpoint.makeRequest({blockId: 'InvalidId'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'blockId');
+				});
+			});
 
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getFees', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('fees');
-			node.expect(res.body.fees.send).to.equal(node.fees.transactionFee);
-			node.expect(res.body.fees.vote).to.equal(node.fees.voteFee);
-			node.expect(res.body.fees.dapp).to.equal(node.fees.dappRegistrationFee);
-			node.expect(res.body.fees.secondsignature).to.equal(node.fees.secondPasswordFee);
-			node.expect(res.body.fees.delegate).to.equal(node.fees.delegateRegistrationFee);
-			node.expect(res.body.fees.multisignature).to.equal(node.fees.multisignatureRegistrationFee);
-			done();
-		});
-	});
-});
+			it('using genesisblock id should return the result', function () {
+				var id = '6524861224470851795';
 
-describe('GET /api/blocks/getNethash', function () {
+				return blocksEndpoint.makeRequest({blockId: id}, 200).then(function (res) {
+					res.body.data[0].id.should.equal(id);
+					expectHeightCheck(res);
+				});
+			});
 
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getNethash', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('nethash').to.be.a('string');
-			node.expect(res.body.nethash).to.equal(node.config.nethash);
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getMilestone', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getMilestone', function (err, res) {
-			node.expect(res.body).to.have.property('milestone').to.be.a('number');
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getReward', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getReward', function (err, res) {
-			node.expect(res.body).to.have.property('reward').to.be.a('number');
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getSupply', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getSupply', function (err, res) {
-			node.expect(res.body).to.have.property('supply').to.be.a('number');
-			done();
-		});
-	});
-});
-
-describe('GET /api/blocks/getStatus', function () {
-
-	it('should be ok', function (done) {
-		http.get('/api/blocks/getStatus', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('broadhash').to.be.a('string');
-			node.expect(res.body).to.have.property('epoch').to.be.a('string');
-			node.expect(res.body).to.have.property('height').to.be.a('number');
-			node.expect(res.body).to.have.property('fee').to.be.a('number');
-			node.expect(res.body).to.have.property('milestone').to.be.a('number');
-			node.expect(res.body).to.have.property('nethash').to.be.a('string');
-			node.expect(res.body).to.have.property('reward').to.be.a('number');
-			node.expect(res.body).to.have.property('supply').to.be.a('number');
-			done();
-		});
-	});
-});
-
-describe('GET /blocks (cache)', function () {
-
-	var cache;
-
-	before(function (done) {
-		node.config.cacheEnabled = true;
-		done();
-	});
-
-	before(function (done) {
-		modulesLoader.initCache(function (err, __cache) {
-			cache = __cache;
-			node.expect(err).to.not.exist;
-			node.expect(__cache).to.be.an('object');
-			return done(err, __cache);
-		});
-	});
-
-	after(function (done) {
-		cache.quit(done);
-	});
-
-	afterEach(function (done) {
-		cache.flushDb(function (err, status) {
-			node.expect(err).to.not.exist;
-			node.expect(status).to.equal('OK');
-			done(err, status);
-		});
-	});
-
-	it('cache blocks by the url and parameters when response is a success', function (done) {
-		var url, params;
-		url = '/api/blocks?';
-		params = 'height=' + block.blockHeight;
-		http.get(url + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			node.expect(res.body).to.have.property('count').to.equal(1);
-			var response = res.body;
-			cache.getJsonForKey(url + params, function (err, res) {
-				node.expect(err).to.not.exist;
-				node.expect(res).to.eql(response);
-				done();
+			it('using unknown id should return empty blocks array', function () {
+				return blocksEndpoint.makeRequest({blockId: '9928719876370886655'}, 200).then(function (res) {
+					res.body.data.should.be.empty;
+					expectHeightCheck(res);
+				});
 			});
 		});
-	});
 
-	it('should not cache if response is not a success', function (done) {
-		var url, params;
-		url = '/api/blocks?';
-		params = 'height=' + -1000;
-		http.get(url + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			cache.getJsonForKey(url + params, function (err, res) {
-				node.expect(err).to.not.exist;
-				node.expect(res).to.eql(null);
-				done();
+		describe('height', function () {
+
+			it('using invalid height = 0 should fail with error', function () {
+				return blocksEndpoint.makeRequest({height: 0}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'height');
+				});
+			});
+
+			it('using invalid height = -1 should fail with error', function () {
+				return blocksEndpoint.makeRequest({height: 0}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'height');
+				});
+			});
+
+			it('using correct params should be ok', function () {
+				return blocksEndpoint.makeRequest({height: block.blockHeight}, 200).then(function (res) {
+					res.body.data[0].height.should.equal(block.blockHeight);
+					expectHeightCheck(res);
+				});
+			});
+
+			it('using < 100 should be ok', function () {
+				if (!testBlocksUnder101) {
+					return this.skip();
+				}
+
+				return blocksEndpoint.makeRequest({height: 10}, 200).then(function (res) {
+					res.body.data[0].height.should.equal(10);
+					expectHeightCheck(res);
+				});
 			});
 		});
-	});
 
-	it('should remove entry from cache on new block', function (done) {
-		var url, params;
-		url = '/api/blocks?';
-		params = 'height=' + block.blockHeight;
-		http.get(url + params, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			node.expect(res.body).to.have.property('count').to.equal(1);
-			var response = res.body;
-			cache.getJsonForKey(url + params, function (err, res) {
-				node.expect(err).to.not.exist;
-				node.expect(res).to.eql(response);
-				node.onNewBlock(function (err) {
-					node.expect(err).to.not.exist;
-					cache.getJsonForKey(url + params, function (err, res) {
-						node.expect(err).to.not.exist;
-						node.expect(res).to.eql(null);
-						done();
+		describe('generatorPublicKey', function () {
+
+			it('using invalid generatorPublicKey = "InvalidKey" format should fail with error', function () {
+				return blocksEndpoint.makeRequest({generatorPublicKey: 'InvalidKey'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'generatorPublicKey');
+				});
+			});
+
+			it('using correct params should be ok', function () {
+				return blocksEndpoint.makeRequest({generatorPublicKey: block.generatorPublicKey}, 200).then(function (res) {
+					res.body.data[0].generatorPublicKey.should.equal(block.generatorPublicKey);
+					expectHeightCheck(res);
+				});
+			});
+		});
+
+		describe('sort', function () {
+
+			describe('height', function () {
+
+				it('using "height:asc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'height:asc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('height').sortNumbers().should.be.eql(_.map(res.body.data, 'height'));
+					});
+				});
+
+				it('using "height:desc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'height:desc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('height').sortNumbers('desc').should.be.eql(_.map(res.body.data, 'height'));
+					});
+				});
+
+				it('using empty params should sort results by descending height', function () {
+					return blocksEndpoint.makeRequest({}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('height').sortNumbers('desc').should.be.eql(_.map(res.body.data, 'height'));
+					});
+				});
+			});
+
+			describe('totalAmount', function () {
+
+				it('using "totalAmount:asc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'totalAmount:asc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('totalAmount').map(_.toInteger).sortNumbers().should.be.eql(_(res.body.data).map('totalAmount').map(_.toInteger).value());
+					});
+				});
+
+				it('using "totalAmount:desc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'totalAmount:desc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('totalAmount').map(_.toInteger).sortNumbers('desc').should.be.eql(_(res.body.data).map('totalAmount').map(_.toInteger).value());
+					});
+				});
+			});
+
+			describe('totalFee', function () {
+
+				it('using "totalFee:asc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'totalFee:asc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('totalFee').map(_.toInteger).sortNumbers().should.be.eql(_(res.body.data).map('totalFee').map(_.toInteger).value());
+					});
+				});
+
+				it('using "totalFee:desc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'totalFee:desc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('totalFee').map(_.toInteger).sortNumbers('desc').should.be.eql(_(res.body.data).map('totalFee').map(_.toInteger).value());
+					});
+				});
+			});
+
+			describe('timestamp', function () {
+
+				it('using "timestamp:asc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'timestamp:asc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('timestamp').sortNumbers().should.be.eql(_.map(res.body.data, 'timestamp'));
+					});
+				});
+
+				it('using "timestamp:desc" should be ok', function () {
+					return blocksEndpoint.makeRequest({sort: 'timestamp:desc'}, 200).then(function (res) {
+						expectHeightCheck(res);
+						_(res.body.data).map('timestamp').sortNumbers('desc').should.be.eql(_.map(res.body.data, 'timestamp'));
 					});
 				});
 			});
 		});
-	});
-});
 
-describe('GET /blocks', function () {
+		describe('limit', function () {
 
-	function getBlocks (params, done) {
-		http.get('/api/blocks?' + params, done);
-	}
+			it('using string should return bad request response', function () {
+				return blocksEndpoint.makeRequest({limit: 'one'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
+				});
+			});
 
-	it('using height should be ok', function (done) {
-		getBlocks('height=' + block.blockHeight, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			node.expect(res.body).to.have.property('count').to.equal(1);
-			node.expect(res.body.blocks.length).to.equal(1);
-			node.expect(res.body.blocks[0]).to.have.property('previousBlock');
-			node.expect(res.body.blocks[0]).to.have.property('totalAmount');
-			node.expect(res.body.blocks[0]).to.have.property('totalFee');
-			node.expect(res.body.blocks[0]).to.have.property('generatorId');
-			node.expect(res.body.blocks[0]).to.have.property('confirmations');
-			node.expect(res.body.blocks[0]).to.have.property('blockSignature');
-			node.expect(res.body.blocks[0]).to.have.property('numberOfTransactions');
-			node.expect(res.body.blocks[0].height).to.equal(block.blockHeight);
-			block.id = res.body.blocks[0].id;
-			block.generatorPublicKey = res.body.blocks[0].generatorPublicKey;
-			block.totalAmount = res.body.blocks[0].totalAmount;
-			block.totalFee = res.body.blocks[0].totalFee;
-			done();
-		});
-	});
+			it('using -1 should return bad request response', function () {
+				return blocksEndpoint.makeRequest({limit: -1}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
+				});
+			});
 
-	it('using height < 100 should be ok', function (done) {
-		if (!testBlocksUnder101) {
-			return this.skip();
-		}
+			it('using 0 should return bad request response', function () {
+				return blocksEndpoint.makeRequest({limit: 0}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
+				});
+			});
 
-		getBlocks('height=' + 10, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('count');
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			node.expect(res.body.blocks.length).to.equal(1);
-			node.expect(res.body.blocks[0]).to.have.property('previousBlock');
-			node.expect(res.body.blocks[0]).to.have.property('totalAmount');
-			node.expect(res.body.blocks[0]).to.have.property('totalFee');
-			node.expect(res.body.blocks[0]).to.have.property('generatorId');
-			node.expect(res.body.blocks[0]).to.have.property('confirmations');
-			node.expect(res.body.blocks[0]).to.have.property('blockSignature');
-			node.expect(res.body.blocks[0]).to.have.property('numberOfTransactions');
-			node.expect(res.body.blocks[0].height).to.equal(10);
-			block.id = res.body.blocks[0].id;
-			block.generatorPublicKey = res.body.blocks[0].generatorPublicKey;
-			block.totalAmount = res.body.blocks[0].totalAmount;
-			block.totalFee = res.body.blocks[0].totalFee;
-			done();
-		});
-	});
+			it('using 1 should be ok', function () {
+				return blocksEndpoint.makeRequest({limit: 1}, 200).then(function (res) {
+					res.body.data.should.have.length(1);
+				});
+			});
 
-	it('using generatorPublicKey should be ok', function (done) {
-		getBlocks('generatorPublicKey=' + block.generatorPublicKey, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			for (var i = 0; i < res.body.blocks.length; i++) {
-				node.expect(res.body.blocks[i].generatorPublicKey).to.equal(block.generatorPublicKey);
-			}
-			done();
-		});
-	});
+			it('using 100 should be ok', function () {
+				return blocksEndpoint.makeRequest({limit: 100}, 200).then(function (res) {
+					res.body.data.length.should.be.at.most(100);
+				});
+			});
 
-	it('using totalFee should be ok', function (done) {
-		getBlocks('totalFee=' + block.totalFee, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			for (var i = 0; i < res.body.blocks.length; i++) {
-				node.expect(res.body.blocks[i].totalFee).to.equal(block.totalFee);
-			}
-			done();
-		});
-	});
-
-	it('using totalAmount should be ok', function (done) {
-		getBlocks('totalAmount=' + block.totalAmount, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			for (var i = 0; i < res.body.blocks.length; i++) {
-				node.expect(res.body.blocks[i].totalAmount).to.equal(block.totalAmount);
-			}
-			done();
-		});
-	});
-
-	it('using previousBlock should be ok', function (done) {
-		if (block.id === null) {
-			return this.skip();
-		}
-
-		var previousBlock = block.id;
-
-		node.onNewBlock(function (err) {
-			getBlocks('previousBlock=' + block.id, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('blocks').that.is.an('array');
-				node.expect(res.body.blocks).to.have.length(1);
-				node.expect(res.body.blocks[0].previousBlock).to.equal(previousBlock);
-				done();
+			it('using > 100 should return bad request response', function () {
+				return blocksEndpoint.makeRequest({limit: 101}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'limit');
+				});
 			});
 		});
-	});
 
-	it('using orderBy == "height:asc" should be ok', function (done) {
-		getBlocks('orderBy=' + 'height:asc', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			for (var i = 0; i < res.body.blocks.length; i++) {
-				if (res.body.blocks[i + 1] != null) {
-					node.expect(res.body.blocks[i].height).to.be.below(res.body.blocks[i + 1].height);
-				}
-			}
-			done();
-		});
-	});
+		describe('offset', function () {
 
-	it('using orderBy == "height:desc" should be ok', function (done) {
-		getBlocks('orderBy=' + 'height:desc', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			for (var i = 0; i < res.body.blocks.length; i++) {
-				if (res.body.blocks[i + 1] != null) {
-					node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i + 1].height);
-				}
-			}
-			done();
-		});
-	});
+			it('using string should return bad request response', function () {
+				return blocksEndpoint.makeRequest({offset: 'one'}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'offset');
+				});
+			});
 
-	it('should be ordered by "height:desc" by default', function (done) {
-		getBlocks('', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('blocks').that.is.an('array');
-			for (var i = 0; i < res.body.blocks.length; i++) {
-				if (res.body.blocks[i + 1] != null) {
-					node.expect(res.body.blocks[i].height).to.be.above(res.body.blocks[i + 1].height);
-				}
-			}
-			done();
-		});
-	});
-});
+			it('using -1 should return bad request response', function () {
+				return blocksEndpoint.makeRequest({offset: -1}, 400).then(function (res) {
+					expectSwaggerParamError(res, 'offset');
+				});
+			});
 
-describe('GET /api/blocks/get?id=', function () {
-
-	function getBlocks (id, done) {
-		http.get('/api/blocks/get?id=' + id, done);
-	}
-
-	it('using genesisblock id should be ok', function (done) {
-		getBlocks('6524861224470851795', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('block').to.be.a('object');
-			node.expect(res.body.block).to.have.property('id').to.be.a('string');
-			done();
-		});
-	});
-
-	it('using unknown id should fail', function (done) {
-		getBlocks('9928719876370886655', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.be.a('string');
-			done();
-		});
-	});
-
-	it('using no id should fail', function (done) {
-		getBlocks('', function (err, res) {
-			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.be.a('string');
-			done();
+			it('using 1 should be ok', function () {
+				return blocksEndpoint.makeRequest({offset: 1}, 200).then(function (res) {
+					res.body.data[0].height.should.be.above(1);
+				});
+			});
 		});
 	});
 });

@@ -1,14 +1,25 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var _ = require('lodash');
 var async = require('async');
 var constants = require('../../helpers/constants.js');
 var Peer = require('../../logic/peer.js');
-var schema = require('../../schema/blocks.js');
 var slots = require('../../helpers/slots.js');
-var sql = require('../../sql/blocks.js');
 
-var modules, library, self, __private = {};
+var modules, definitions, library, self, __private = {};
 
 /**
  * Initializes library.
@@ -231,7 +242,7 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 		},
 		function (common, waterCb) {
 			// Validate remote peer response via schema
-			library.schema.validate(common, schema.getCommonBlock, function (err) {
+			library.schema.validate(common, definitions.CommonBlock, function (err) {
 				if (err) {
 					return setImmediate(waterCb, err[0].message);
 				} else {
@@ -241,7 +252,7 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 		},
 		function (common, waterCb) {
 			// Check that block with ID, previousBlock and height exists in database
-			library.db.query(sql.getCommonBlock(common.previousBlock), {
+			library.db.blocks.getCommonBlock({
 				id: common.id,
 				previousBlock: common.previousBlock,
 				height: common.height
@@ -270,9 +281,6 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 	});
 };
 
-// FIXME: That function no longer works because rounds rewards are applied by triggers
-// TODO: Remove that function as part of #544
-
 /**
  * Loads full blocks from database, used when rebuilding blockchain, snapshotting
  * see: loader.loadBlockChain (private)
@@ -298,7 +306,7 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	library.dbSequence.add(function (cb) {
 		// Loads full blocks from database
 		// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
-		library.db.query(sql.loadBlocksOffset, params).then(function (rows) {
+		library.db.blocks.loadBlocksOffset(params.offset, params.limit).then(function (rows) {
 			// Normalize blocks
 			var blocks = modules.blocks.utils.readDbRows(rows);
 
@@ -397,7 +405,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 	}
 
 	function validateBlocks (blocks, seriesCb) {
-		var report = library.schema.validate(blocks, schema.loadBlocksFromPeer);
+		var report = library.schema.validate(blocks, definitions.BlocksList);
 
 		if (!report) {
 			return setImmediate(seriesCb, 'Received invalid blocks data');
@@ -515,6 +523,7 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
  *
  * @public
  * @method  onReceiveBlock
+ * @implements slots.calcRound
  * @listens module:transport~event:receiveBlock
  * @param   {block} block New block
  */
@@ -525,7 +534,7 @@ Process.prototype.onReceiveBlock = function (block) {
 	library.sequence.add(function (cb) {
 		// When client is not loaded, is syncing or round is ticking
 		// Do not receive new blocks as client is not ready
-		if (!__private.loaded || modules.loader.syncing()) {
+		if (!__private.loaded || modules.loader.syncing() || modules.rounds.ticking()) {
 			library.logger.debug('Client not ready to receive block', block.id);
 			return;
 		}
@@ -550,7 +559,7 @@ Process.prototype.onReceiveBlock = function (block) {
 				library.logger.warn([
 					'Discarded block that does not match with current chain:', block.id,
 					'height:', block.height,
-					'round:',  slots.calcRound(block.height),
+					'round:', slots.calcRound(block.height),
 					'slot:', slots.getSlotNumber(block.timestamp),
 					'generator:', block.generatorPublicKey
 				].join(' '));
@@ -568,6 +577,7 @@ Process.prototype.onReceiveBlock = function (block) {
  * - blocks
  * - delegates
  * - loader
+ * - rounds
  * - transactions
  * - transport
  * @param {modules} scope Exposed modules
@@ -579,9 +589,12 @@ Process.prototype.onBind = function (scope) {
 		blocks: scope.blocks,
 		delegates: scope.delegates,
 		loader: scope.loader,
+		rounds: scope.rounds,
 		transactions: scope.transactions,
 		transport: scope.transport,
 	};
+
+	definitions = scope.swagger.definitions;
 
 	// Set module as loaded
 	__private.loaded = true;

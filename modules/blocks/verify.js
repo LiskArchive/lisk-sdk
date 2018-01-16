@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var async = require('async');
@@ -5,7 +18,6 @@ var BlockReward = require('../../logic/blockReward.js');
 var constants = require('../../helpers/constants.js');
 var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
-var sql = require('../../sql/blocks.js');
 var exceptions = require('../../helpers/exceptions.js');
 var bson = require('../../helpers/bson.js');
 
@@ -514,13 +526,12 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 				return setImmediate(seriesCb);
 			}
 		},
-		deleteBlockProperties: function (seriesCb) {
+		broadcastBlock: function (seriesCb) {
 			if (broadcast) {
 				try {
 					// Delete default properties
-					var blockReduced = self.deleteBlockProperties(block);
-					var serializedBlockReduced = bson.serialize(blockReduced);
-					modules.blocks.chain.broadcastReducedBlock(serializedBlockReduced, block.id, broadcast);
+					var reducedBlock = self.deleteBlockProperties(block);
+					modules.blocks.chain.broadcastReducedBlock(reducedBlock, broadcast);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
@@ -532,8 +543,8 @@ Verify.prototype.processBlock = function (block, broadcast, cb, saveBlock) {
 			// Check if block id is already in the database (very low probability of hash collision)
 			// TODO: In case of hash-collision, to me it would be a special autofork...
 			// DATABASE: read only
-			library.db.query(sql.getBlockId, { id: block.id }).then(function (rows) {
-				if (rows.length > 0) {
+			library.db.blocks.blockExists(block.id).then(function (rows) {
+				if (rows) {
 					return setImmediate(seriesCb, ['Block', block.id, 'already exists'].join(' '));
 				} else {
 					return setImmediate(seriesCb);

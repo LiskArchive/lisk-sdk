@@ -1,8 +1,20 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var _ = require('lodash');
 var constants = require('../../helpers/constants.js');
-var sql = require('../../sql/blocks.js');
 var transactionTypes = require('../../helpers/transactionTypes.js');
 
 var modules, library, self, __private = {};
@@ -124,7 +136,7 @@ Utils.prototype.loadBlocksPart = function (filter, cb) {
 /**
  * Loads full normalized last block from database
  * see: loader.loadBlockChain (private)
- * 
+ *
  * @async
  * @public
  * @method loadLastBlock
@@ -137,7 +149,7 @@ Utils.prototype.loadLastBlock = function (cb) {
 	library.dbSequence.add(function (cb) {
 		// Get full last block from database
 		// FIXME: Ordering in that SQL - to rewrite
-		library.db.query(sql.loadLastBlock).then(function (rows) {
+		library.db.blocks.loadLastBlock().then(function (rows) {
 			// Normalize block
 			var block = modules.blocks.utils.readDbRows(rows)[0];
 
@@ -184,7 +196,7 @@ Utils.prototype.getIdSequence = function (height, cb) {
 	var lastBlock = modules.blocks.lastBlock.get();
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
-	library.db.query(sql.getIdSequence(), {height: height, limit: 5, delegates: constants.activeDelegates}).then(function (rows) {
+	library.db.blocks.getIdSequence({height: height, limit: 5, delegates: constants.activeDelegates}).then(function (rows) {
 		if (rows.length === 0) {
 			return setImmediate(cb, 'Failed to get id sequence for height: ' + height);
 		}
@@ -264,7 +276,7 @@ Utils.prototype.loadBlocksData = function (filter, options, cb) {
 	// Execute in sequence via dbSequence
 	library.dbSequence.add(function (cb) {
 		// Get height of block with supplied ID
-		library.db.query(sql.getHeightByLastId, { lastId: filter.lastId || null }).then(function (rows) {
+		library.db.blocks.getHeightByLastId(filter.lastId || null).then(function (rows) {
 
 			var height = rows.length ? rows[0].height : 0;
 			// Calculate max block height for database query
@@ -275,7 +287,7 @@ Utils.prototype.loadBlocksData = function (filter, options, cb) {
 
 			// Retrieve blocks from database
 			// FIXME: That SQL query have mess logic, need to be refactored
-			library.db.query(sql.loadBlocksData(filter), params).then(function (rows) {
+			library.db.blocks.loadBlocksData(Object.assign({}, filter, params)).then(function (rows) {
 				return setImmediate(cb, null, rows);
 			});
 		}).catch(function (err ) {
@@ -366,7 +378,7 @@ Utils.prototype.aggregateBlocksReward = function (filter, cb) {
 	}
 
 	// Get calculated rewards
-	library.db.query(sql.aggregateBlocksReward(params), params).then(function (rows) {
+	library.db.blocks.aggregateBlocksReward(params).then(function (rows) {
 		var data = rows[0];
 		if (data.delegate === null) {
 			return setImmediate(cb, 'Account not found or is not a delegate');

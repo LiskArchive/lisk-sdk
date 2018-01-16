@@ -1,19 +1,24 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
-var node = require('../../node');
-
-var chai = require('chai');
-var expect = require('chai').expect;
 var async = require('async');
-var sinon = require('sinon');
+var rewire = require('rewire');
 
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 var constants = require('../../../helpers/constants.js');
-var ws = require('../../common/wsCommunication');
-var modulesLoader = require('../../common/initModule').modulesLoader;
-var _ = require('lodash');
-var rewire = require('rewire');
-var sql = require('../../../sql/transactions.js');
+var modulesLoader = require('../../common/modulesLoader');
 
 var AccountLogic = require('../../../logic/account.js');
 var TransactionLogic = require('../../../logic/transaction.js');
@@ -35,8 +40,17 @@ describe('transactions', function () {
 
 	var transactionsModule;
 	var dbStub;
+	var TransactionTypeMap = {};
+	TransactionTypeMap[transactionTypes.SEND] = 'getTransferByIds';
+	TransactionTypeMap[transactionTypes.SIGNATURE] = 'getSignatureByIds';
+	TransactionTypeMap[transactionTypes.DELEGATE] = 'getDelegateByIds';
+	TransactionTypeMap[transactionTypes.VOTE] = 'getVotesByIds';
+	TransactionTypeMap[transactionTypes.MULTI] = 'getMultiByIds';
+	TransactionTypeMap[transactionTypes.DAPP] = 'getDappByIds';
+	TransactionTypeMap[transactionTypes.IN_TRANSFER] = 'getInTransferByIds';
+	TransactionTypeMap[transactionTypes.OUT_TRANSFER] = 'getOutTransferByIds';
 
-	function attachAllAssets (transactionLogic, delegatesModule, accountsModule) {
+	function attachAllAssets (transactionLogic, accountLogic, delegatesModule, accountsModule) {
 		var sendLogic = transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
 		sendLogic.bind(accountsModule);
 		expect(sendLogic).to.be.an.instanceof(TransferLogic);
@@ -53,7 +67,7 @@ describe('transactions', function () {
 		signatureLogic.bind(accountsModule);
 		expect(signatureLogic).to.be.an.instanceof(SignatureLogic);
 
-		var multiLogic = transactionLogic.attachAssetType(transactionTypes.MULTI, new MultisignatureLogic(modulesLoader.scope.schema, modulesLoader.scope.network, transactionLogic, modulesLoader.logger));
+		var multiLogic = transactionLogic.attachAssetType(transactionTypes.MULTI, new MultisignatureLogic(modulesLoader.scope.schema, modulesLoader.scope.network, transactionLogic, accountLogic, modulesLoader.logger));
 		multiLogic.bind(accountsModule);
 		expect(multiLogic).to.be.an.instanceof(MultisignatureLogic);
 
@@ -72,45 +86,74 @@ describe('transactions', function () {
 
 	before(function (done) {
 		dbStub = {
-			query: sinon.stub()
+			transactions: {
+				sortFields: [
+					'id',
+					'blockId',
+					'amount',
+					'fee',
+					'type',
+					'timestamp',
+					'senderPublicKey',
+					'senderId',
+					'recipientId',
+					'confirmations',
+					'height'
+				],
+				countList: sinonSandbox.stub().resolves(),
+				list: sinonSandbox.stub().resolves()
+			}
 		};
+
+		Object.keys(TransactionTypeMap).forEach(function (key) {
+			dbStub.transactions[TransactionTypeMap[key]] = sinonSandbox.stub().resolves();
+		});
 
 		async.auto({
 			accountLogic: function (cb) {
-				modulesLoader.initLogicWithDb(AccountLogic, cb);
+				modulesLoader.initLogic(AccountLogic, {db: dbStub}, cb);
 			},
 			transactionLogic: ['accountLogic', function (result, cb) {
-				modulesLoader.initLogicWithDb(TransactionLogic, cb, {
-					account: result.accountLogic
-				});
+				modulesLoader.initLogic(TransactionLogic, {
+					account: result.accountLogic,
+					db: dbStub
+				}, cb);
 			}],
 			loaderModule: ['transactionLogic', 'accountLogic', function (result, cb) {
-				modulesLoader.initModuleWithDb(LoaderModule, cb, {
+				modulesLoader.initModule(LoaderModule, {
 					logic: {
-						transaction: result.transaction,
-						account: result.account,
-						//peers
+						transaction: result.transactionLogic,
+						account: result.accountLogic
+					},
+					db: dbStub,
+					config: {
+						loading: {
+							verifyOnLoading: false,
+							snapshot: false
+						}
 					}
-				});
+				}, cb);
 			}],
 			delegateModule: ['transactionLogic', function (result, cb) {
-				modulesLoader.initModuleWithDb(DelegateModule, cb, {
+				modulesLoader.initModule(DelegateModule, {
 					logic: {
 						transaction: result.transactionLogic
-					}
-				});
+					},
+					db: dbStub
+				}, cb);
 			}],
 			accountsModule: ['accountLogic', 'transactionLogic', function (result, cb) {
 				modulesLoader.initModule(AccountModule, {
 					logic: {
 						account: result.accountLogic,
 						transaction: result.transactionLogic
-					}
+					},
+					db: dbStub
 				}, cb);
 			}]
 		}, function (err, result){
 			expect(err).to.not.exist;
-			modulesLoader.initModule(TransactionModule, Object.assign({}, modulesLoader.scope,{db: dbStub}), function (err, __transactionModule) {
+			modulesLoader.initModule(TransactionModule, {db: dbStub, logic: {transaction: result.transactionLogic}}, function (err, __transactionModule) {
 				expect(err).to.not.exist;
 
 				transactionsModule = __transactionModule;
@@ -118,40 +161,40 @@ describe('transactions', function () {
 				result.accountsModule.onBind({
 					delegates: result.delegateModule,
 					accounts: result.accountsModule,
-					transactions: transactionsModule,
+					transactions: transactionsModule
 				});
 
 				result.delegateModule.onBind({
 					accounts: result.accountsModule,
-					transactions: transactionsModule,
+					transactions: transactionsModule
 				});
 
 				__transactionModule.onBind({
 					accounts: result.accountsModule,
-					transactions: transactionsModule,
 					loader: result.loaderModule
 				});
 
-				attachAllAssets(result.transactionLogic, result.delegateModule, result.accountsModule);
+				attachAllAssets(result.transactionLogic, result.accountLogic, result.delegateModule, result.accountsModule);
 				done();
 			});
 		});
 	});
 
 	beforeEach(function () {
-		dbStub.query.reset();
+		dbStub.transactions.countList.reset();
+		dbStub.transactions.list.reset();
+
+		Object.keys(TransactionTypeMap).forEach(function (key) {
+			dbStub.transactions[TransactionTypeMap[key]].reset();
+		});
 	});
 
 	describe('Transaction#shared', function () {
 
-		describe('getTransaction', function (done) {
+		describe('getTransaction', function () {
 
-			function getTransactionById (id, done) {
-				transactionsModule.shared.getTransaction({
-					body: {
-						id: id
-					}
-				}, done);
+			function getTransactionsById (id, done) {
+				transactionsModule.shared.getTransactions({ id: id }, done);
 			}
 
 			var transactionsByType = {
@@ -323,18 +366,13 @@ describe('transactions', function () {
 				}
 			};
 
-			it('should return error for invalid schema type', function (done) {
-				transactionsModule.shared.getTransaction({}, function (err, res) {
-					expect(err).to.equal('Expected type object but found type undefined');
-					done();
-				});
-			});
-
 			it('should get transaction for send transaction id', function (done) {
-				var trsId = transactionsByType[transactionTypes.SEND].transactionId;
-				var trs = transactionsByType[transactionTypes.SEND].transaction;
+				var transactionId = transactionsByType[transactionTypes.SEND].transactionId;
+				var transaction = transactionsByType[transactionTypes.SEND].transaction;
 
-				dbStub.query.withArgs(sql.getById, {id: trsId}).resolves([{
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '10707276464897629547',
 					b_height: 276,
 					t_blockId: '10342884759015889572',
@@ -352,34 +390,36 @@ describe('transactions', function () {
 					confirmations: 12,
 				}]);
 
-				dbStub.query.withArgs(sql.getTransferById, {id: trsId}).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.SEND]].onCall(0).resolves([{
+					transaction_id: '10707276464897629547',
 					tf_data: 'extra information'
 				}]);
 
-				getTransactionById(trsId, function (err, res) {
+				getTransactionsById(transactionId, function (err, res) {
 					expect(err).to.not.exist;
-					expect(dbStub.query.calledTwice).to.equal(true);
-					expect(res).to.have.property('transaction').which.is.an('object');
-					expect(res.transaction.type).to.equal(trs.type);
-					expect(res.transaction.amount).to.equal(trs.amount);
-					expect(res.transaction.fee).to.equal(trs.fee);
-					expect(res.transaction.recipientId).to.equal(trs.recipientId);
-					expect(res.transaction.timestamp).to.equal(trs.timestamp);
-					expect(res.transaction.asset).to.eql(trs.asset);
-					expect(res.transaction.senderPublicKey).to.equal(trs.senderPublicKey);
-					expect(res.transaction.signature).to.equal(trs.signature);
-					expect(res.transaction.id).to.equal(trs.id);
-					expect(res.transaction.type).to.equal(trs.type);
-					expect(res.transaction.type).to.equal(transactionTypes.SEND);
+					expect(res).to.have.property('transactions').which.is.an('Array');
+					expect(res.transactions[0].type).to.equal(transaction.type);
+					expect(res.transactions[0].amount).to.equal(transaction.amount);
+					expect(res.transactions[0].fee).to.equal(transaction.fee);
+					expect(res.transactions[0].recipientId).to.equal(transaction.recipientId);
+					expect(res.transactions[0].timestamp).to.equal(transaction.timestamp);
+					expect(res.transactions[0].asset).to.eql(transaction.asset);
+					expect(res.transactions[0].senderPublicKey).to.equal(transaction.senderPublicKey);
+					expect(res.transactions[0].signature).to.equal(transaction.signature);
+					expect(res.transactions[0].id).to.equal(transaction.id);
+					expect(res.transactions[0].type).to.equal(transaction.type);
+					expect(res.transactions[0].type).to.equal(transactionTypes.SEND);
 					done();
 				});
 			});
 
 			it('should get transaction with singature asset for transaction id', function (done) {
-				var trsId = transactionsByType[transactionTypes.SIGNATURE].transactionId;
-				var trs = transactionsByType[transactionTypes.SIGNATURE].transaction;
+				var transactionId = transactionsByType[transactionTypes.SIGNATURE].transactionId;
+				var transaction = transactionsByType[transactionTypes.SIGNATURE].transaction;
 
-				dbStub.query.withArgs(sql.getById, {id: trsId}).resolves([{
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '11286126025791281057',
 					b_height: 276,
 					t_blockId: '10342884759015889572',
@@ -397,29 +437,31 @@ describe('transactions', function () {
 					confirmations: 42
 				}]);
 
-				dbStub.query.withArgs(sql.getSignatureById, {id: trsId}).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.SIGNATURE]].onCall(0).resolves([{
+					transaction_id: '11286126025791281057',
 					s_publicKey: 'e26ede27ed390a9da260b5f5b76db5908a164044d3d1f9d2b24116dd5b25dc72'
 				}]);
 
-				getTransactionById(trsId, function (err, res) {
+				getTransactionsById(transactionId, function (err, res) {
 					expect(err).to.not.exist;
-					expect(dbStub.query.calledTwice).to.equal(true);
-					expect(res).to.have.property('transaction').which.is.an('object');
-					expect(res.transaction.id).to.equal(trs.id);
-					expect(res.transaction.amount).to.equal(trs.amount);
-					expect(res.transaction.asset.signature.publicKey).to.equal(trs.asset.signature.publicKey);
-					expect(res.transaction.fee).to.equal(trs.fee);
-					expect(res.transaction.type).to.equal(trs.type);
-					expect(res.transaction.type).to.equal(transactionTypes.SIGNATURE);
+					expect(res).to.have.property('transactions').which.is.an('array');
+					expect(res.transactions[0].id).to.equal(transaction.id);
+					expect(res.transactions[0].amount).to.equal(transaction.amount);
+					expect(res.transactions[0].asset.signature.publicKey).to.equal(transaction.asset.signature.publicKey);
+					expect(res.transactions[0].fee).to.equal(transaction.fee);
+					expect(res.transactions[0].type).to.equal(transaction.type);
+					expect(res.transactions[0].type).to.equal(transactionTypes.SIGNATURE);
 					done();
 				});
 			});
 
 			it('should get transaction with delegate asset for transaction id', function (done) {
-				var trsId = transactionsByType[transactionTypes.DELEGATE].transactionId;
-				var trs = transactionsByType[transactionTypes.DELEGATE].transaction;
+				var transactionId = transactionsByType[transactionTypes.DELEGATE].transactionId;
+				var transaction = transactionsByType[transactionTypes.DELEGATE].transaction;
 
-				dbStub.query.withArgs(sql.getById, {id: trsId}).resolves([{
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '6092156606242987573',
 					b_height: 371,
 					t_blockId: '17233974955873751907',
@@ -437,31 +479,33 @@ describe('transactions', function () {
 					confirmations: 13,
 				}]);
 
-				dbStub.query.withArgs(sql.getDelegateById, {id: trsId}).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.DELEGATE]].onCall(0).resolves([{
+					transaction_id: '6092156606242987573',
 					d_username: '&im'
 				}]);
 
-				getTransactionById(trsId, function (err, res) {
+				getTransactionsById(transactionId, function (err, res) {
 					expect(err).to.not.exist;
-					expect(dbStub.query.calledTwice).to.equal(true);
-					expect(res).to.have.property('transaction').which.is.an('object');
-					expect(res.transaction.id).to.equal(trs.id);
-					expect(res.transaction.amount).to.equal(trs.amount);
-					expect(res.transaction.asset.username).to.equal(trs.asset.username);
-					expect(res.transaction.asset.publicKey).to.equal(trs.asset.publicKey);
-					expect(res.transaction.asset.address).to.equal(trs.asset.address);
-					expect(res.transaction.fee).to.equal(trs.fee);
-					expect(res.transaction.type).to.equal(trs.type);
-					expect(res.transaction.type).to.equal(transactionTypes.DELEGATE);
+					expect(res).to.have.property('transactions').which.is.an('array');
+					expect(res.transactions[0].id).to.equal(transaction.id);
+					expect(res.transactions[0].amount).to.equal(transaction.amount);
+					expect(res.transactions[0].asset.username).to.equal(transaction.asset.username);
+					expect(res.transactions[0].asset.publicKey).to.equal(transaction.asset.publicKey);
+					expect(res.transactions[0].asset.address).to.equal(transaction.asset.address);
+					expect(res.transactions[0].fee).to.equal(transaction.fee);
+					expect(res.transactions[0].type).to.equal(transaction.type);
+					expect(res.transactions[0].type).to.equal(transactionTypes.DELEGATE);
 					done();
 				});
 			});
 
 			it('should get transaction with vote asset for transaction id', function (done) {
-				var trsId = transactionsByType[transactionTypes.VOTE].transactionId;
-				var trs = transactionsByType[transactionTypes.VOTE].transaction;
+				var transactionId = transactionsByType[transactionTypes.VOTE].transactionId;
+				var transaction = transactionsByType[transactionTypes.VOTE].transaction;
 
-				dbStub.query.withArgs(sql.getById, {id: trsId}).resolves([{
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '6820432253266933365',
 					b_height: 371,
 					t_blockId: '17233974955873751907',
@@ -479,29 +523,31 @@ describe('transactions', function () {
 					confirmations: 40
 				}]);
 
-				dbStub.query.withArgs(sql.getVotesById, {id: trsId}).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.VOTE]].onCall(0).resolves([{
+					transaction_id: '6820432253266933365',
 					v_votes: '+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f,+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
 				}]);
 
-				getTransactionById(trsId, function (err, res) {
+				getTransactionsById(transactionId, function (err, res) {
 					expect(err).to.not.exist;
-					expect(dbStub.query.calledTwice).to.equal(true);
-					expect(res).to.have.property('transaction').which.is.an('object');
-					expect(res.transaction.id).to.equal(trs.id);
-					expect(res.transaction.amount).to.equal(trs.amount);
-					expect(res.transaction.asset.votes).to.eql(trs.asset.votes);
-					expect(res.transaction.fee).to.equal(trs.fee);
-					expect(res.transaction.type).to.equal(trs.type);
-					expect(res.transaction.type).to.equal(transactionTypes.VOTE);
+					expect(res).to.have.property('transactions').which.is.an('array');
+					expect(res.transactions[0].id).to.equal(transaction.id);
+					expect(res.transactions[0].amount).to.equal(transaction.amount);
+					expect(res.transactions[0].asset.votes).to.eql(transaction.asset.votes);
+					expect(res.transactions[0].fee).to.equal(transaction.fee);
+					expect(res.transactions[0].type).to.equal(transaction.type);
+					expect(res.transactions[0].type).to.equal(transactionTypes.VOTE);
 					done();
 				});
 			});
 
 			it('should get transaction with MULTI asset for transaction id', function (done) {
-				var trsId = transactionsByType[transactionTypes.MULTI].transactionId;
-				var trs = transactionsByType[transactionTypes.MULTI].transaction;
+				var transactionId = transactionsByType[transactionTypes.MULTI].transactionId;
+				var transaction = transactionsByType[transactionTypes.MULTI].transaction;
 
-				dbStub.query.withArgs(sql.getById, {id: trsId}).resolves([{
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '481620703379194749',
 					b_height: 371,
 					t_blockId: '17233974955873751907',
@@ -519,33 +565,35 @@ describe('transactions', function () {
 					confirmations: 65
 				}]);
 
-				dbStub.query.withArgs(sql.getMultiById, {id: trsId}).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.MULTI]].onCall(0).resolves([{
+					transaction_id: '481620703379194749',
 					m_min: 2,
 					m_lifetime: 1,
 					m_keysgroup: '+f497c0187575ca25d01e4afc454b04be71a4f3a45c48b86e6e86c71fdeecb4f4,+cbc6f7f616035cbc5d21c398735d5dc1baf68eec7f4671fba2390b34eb4fd854'
 				}]);
 
-				getTransactionById(trsId, function (err, res) {
+				getTransactionsById(transactionId, function (err, res) {
 					expect(err).to.not.exist;
-					expect(dbStub.query.calledTwice).to.equal(true);
-					expect(res).to.have.property('transaction').which.is.an('object');
-					expect(res.transaction.id).to.equal(trs.id);
-					expect(res.transaction.amount).to.equal(trs.amount);
-					expect(res.transaction.asset.multisignature.lifetime).to.equal(trs.asset.multisignature.lifetime);
-					expect(res.transaction.asset.multisignature.min).to.equal(trs.asset.multisignature.min);
-					expect(res.transaction.asset.multisignature.keysgroup).to.eql(trs.asset.multisignature.keysgroup);
-					expect(res.transaction.fee).to.equal(trs.fee);
-					expect(res.transaction.type).to.equal(trs.type);
-					expect(res.transaction.type).to.equal(transactionTypes.MULTI);
+					expect(res).to.have.property('transactions').which.is.an('array');
+					expect(res.transactions[0].id).to.equal(transaction.id);
+					expect(res.transactions[0].amount).to.equal(transaction.amount);
+					expect(res.transactions[0].asset.multisignature.lifetime).to.equal(transaction.asset.multisignature.lifetime);
+					expect(res.transactions[0].asset.multisignature.min).to.equal(transaction.asset.multisignature.min);
+					expect(res.transactions[0].asset.multisignature.keysgroup).to.eql(transaction.asset.multisignature.keysgroup);
+					expect(res.transactions[0].fee).to.equal(transaction.fee);
+					expect(res.transactions[0].type).to.equal(transaction.type);
+					expect(res.transactions[0].type).to.equal(transactionTypes.MULTI);
 					done();
 				});
 			});
 
 			it('should get transaction with DAPP asset for transaction id', function (done) {
-				var trsId = transactionsByType[transactionTypes.DAPP].transactionId;
-				var trs = transactionsByType[transactionTypes.DAPP].transaction;
+				var transactionId = transactionsByType[transactionTypes.DAPP].transactionId;
+				var transaction = transactionsByType[transactionTypes.DAPP].transaction;
 
-				dbStub.query.withArgs(sql.getById, {id: trsId}).resolves([{
+				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+
+				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '1907088915785679339',
 					b_height: 371,
 					t_blockId: '17233974955873751907',
@@ -563,7 +611,8 @@ describe('transactions', function () {
 					confirmations: 97,
 				}]);
 
-				dbStub.query.withArgs(sql.getDappById, {id: trsId}).resolves([{
+				dbStub.transactions[TransactionTypeMap[transactionTypes.DAPP]].onCall(0).resolves([{
+					transaction_id: '1907088915785679339',
 					dapp_name: 'AO7ezB11CgCdUZi5o8YzxCAtoRLA6Fi',
 					dapp_description: null,
 					dapp_tags: null,
@@ -573,37 +622,35 @@ describe('transactions', function () {
 					dapp_icon: null
 				}]);
 
-				getTransactionById(trsId, function (err, res) {
+				getTransactionsById(transactionId, function (err, res) {
 					expect(err).to.not.exist;
-					expect(dbStub.query.calledTwice).to.equal(true);
-					expect(res).to.have.property('transaction').which.is.an('object');
-					expect(res.transaction.id).to.equal(trs.id);
-					expect(res.transaction.amount).to.equal(trs.amount);
-					expect(res.transaction.fee).to.equal(trs.fee);
-					expect(res.transaction.type).to.equal(trs.type);
-					expect(res.transaction.asset.dapp.name).to.equal(trs.asset.dapp.name);
-					expect(res.transaction.asset.dapp.category).to.equal(trs.asset.dapp.category);
-					expect(res.transaction.asset.dapp.link).to.equal(trs.asset.dapp.link);
-					expect(res.transaction.asset.dapp.type).to.equal(trs.asset.dapp.type);
-					expect(res.transaction.type).to.equal(transactionTypes.DAPP);
+					expect(res).to.have.property('transactions').which.is.an('array');
+					expect(res.transactions[0].id).to.equal(transaction.id);
+					expect(res.transactions[0].amount).to.equal(transaction.amount);
+					expect(res.transactions[0].fee).to.equal(transaction.fee);
+					expect(res.transactions[0].type).to.equal(transaction.type);
+					expect(res.transactions[0].asset.dapp.name).to.equal(transaction.asset.dapp.name);
+					expect(res.transactions[0].asset.dapp.category).to.equal(transaction.asset.dapp.category);
+					expect(res.transactions[0].asset.dapp.link).to.equal(transaction.asset.dapp.link);
+					expect(res.transactions[0].asset.dapp.type).to.equal(transaction.asset.dapp.type);
+					expect(res.transactions[0].type).to.equal(transactionTypes.DAPP);
 					done();
 				});
 			});
 
 			it.skip('should get transaction with intransfer asset for transaction id', function (done) {
-				var trsId = transactionsByType[transactionTypes.IN_TRANSFER].transactionId;
-				var trs = transactionsByType[transactionTypes.IN_TRANSFER].transaction;
+				var transactionId = transactionsByType[transactionTypes.IN_TRANSFER].transactionId;
+				var transaction = transactionsByType[transactionTypes.IN_TRANSFER].transaction;
 
-				getTransactionById(trsId, function (err, res) {
+				getTransactionsById(transactionId, function (err, res) {
 					expect(err).to.not.exist;
-					expect(dbStub.query.calledTwice).to.equal(true);
-					expect(res).to.have.property('transaction').which.is.an('object');
-					expect(res.transaction.id).to.equal(trs.id);
-					expect(res.transaction.amount).to.equal(trs.amount);
-					expect(res.transaction.fee).to.equal(trs.fee);
-					expect(res.transaction.type).to.equal(trs.type);
-					expect(res.transaction.asset.inTransfer.dappId).to.equal(trs.asset.inTransfer.dappId);
-					expect(res.transaction.type).to.equal(transactionTypes.IN_TRANSFER);
+					expect(res).to.have.property('transactions').which.is.an('array');
+					expect(res.transactions[0].id).to.equal(transaction.id);
+					expect(res.transactions[0].amount).to.equal(transaction.amount);
+					expect(res.transactions[0].fee).to.equal(transaction.fee);
+					expect(res.transactions[0].type).to.equal(transaction.type);
+					expect(res.transactions[0].asset.inTransfer.dappId).to.equal(transaction.asset.inTransfer.dappId);
+					expect(res.transactions[0].type).to.equal(transactionTypes.IN_TRANSFER);
 					done();
 				});
 			});

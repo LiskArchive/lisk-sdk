@@ -1,13 +1,22 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
-
-var node = require('../../node');
-var sql = require('../../sql/blockRewards.js');
-var constants = require('../../../helpers/constants.js');
-var DBSandbox = require('../../common/globalBefore').DBSandbox;
-var modulesLoader = require('../../common/initModule').modulesLoader;
+var application = require('../../common/application');
+var constants = require('../../../helpers/constants');
+var sql = require('../common/sql/blockRewards');
+var modulesLoader = require('../../common/modulesLoader');
 
 function calcBlockReward (height, reward, done) {
 	return db.query(sql.calcBlockReward, {height: height}).then(function (rows) {
@@ -68,33 +77,24 @@ function calcBlockReward_test (height_start, height_end, expected_reward, done) 
 }
 
 var db;
-var dbSandbox;
 var originalBlockRewardsOffset;
 
-describe('BlockRewardsSQL', function () {
+describe('BlockRewardsSQL @slow', function () {
 
 	before(function (done) {
-		dbSandbox = new DBSandbox(modulesLoader.scope.config.db, 'lisk_test_sql_block_rewards');
-		dbSandbox.create(function (err, __db) {
-			db = __db;
-
+		application.init({sandbox: {name: 'lisk_test_sql_block_rewards'}}, function (err, scope) {
+			db = scope.db;
 			// Force rewards start at 150-th block
 			originalBlockRewardsOffset = constants.rewards.offset;
 			constants.rewards.distance = 3000000;
 			constants.rewards.offset = 1451520;
-			// wait for mem_accounts to be populated
-			node.initApplication(function (err) {
-				setTimeout(function () {
-					done(err);
-				}, 5000);
-			}, {db: db});
+			done(err);
 		});
 	});
 
 	after(function (done) {
 		constants.rewards.offset = originalBlockRewardsOffset;
-		dbSandbox.destroy();
-		node.appCleanup(done);
+		application.cleanup(done);
 	});
 
 	describe('checking SQL function getBlockRewards()', function () {

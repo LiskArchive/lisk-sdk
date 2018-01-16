@@ -1,5 +1,5 @@
 {
-  "port": 8001,
+  "wsPort": 8001,
   "httpPort": 8000,
   "address": "0.0.0.0",
   "version": "0.9.8",
@@ -17,12 +17,14 @@
     "database": "lisk_main",
     "user": "",
     "password": "password",
-    "poolSize": 95,
+    "min": 10,
+    "max": 95,
     "poolIdleTimeout": 30000,
     "reapIntervalMillis": 1000,
     "logEvents": [
       "error"
-    ]
+    ],
+    "logFileName": "logs/lisk_db.log"
   },
   "redis": {
     "host": "127.0.0.1",
@@ -50,55 +52,49 @@
     "list": [
       {
         "ip": "83.136.254.92",
-        "port": 8000
+        "wsPort": 8000
       },
       {
         "ip": "83.136.249.76",
-        "port": 8000
+        "wsPort": 8000
       },
       {
         "ip": "94.237.28.66",
-        "port": 8000
+        "wsPort": 8000
       },
       {
         "ip": "94.237.24.199",
-        "port": 8000
+        "wsPort": 8000
       },
       {
         "ip": "209.50.49.23",
-        "port": 8000
+        "wsPort": 8000
       },
       {
         "ip": "209.50.49.40",
-        "port": 8000
+        "wsPort": 8000
       },
       {
         "ip": "94.237.64.70",
-        "port": 8000
+        "wsPort": 8000
       },
       {
         "ip": "94.237.64.73",
-        "port": 8000
+        "wsPort": 8000
       },
       {
         "ip": "94.237.40.140",
-        "port": 8000
+        "wsPort": 8000
       },
       {
         "ip": "94.237.40.141",
-        "port": 8000
+        "wsPort": 8000
       }
     ],
     "access": {
       "blackList": []
     },
     "options": {
-      "limits": {
-        "max": 0,
-        "delayMs": 0,
-        "delayAfter": 0,
-        "windowMs": 60000
-      },
       "timeout": 5000
     }
   },

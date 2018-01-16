@@ -1,42 +1,143 @@
-def initBuild() {
-	sh '''#!/bin/bash
-	pkill -f app.js -9 || true
-	sudo service postgresql restart
-	dropdb lisk_test || true
-	createdb lisk_test
-	'''
-	deleteDir()
-	checkout scm
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+def initializeNode() {
+	try {
+		sh '''
+		pkill -f app.js -9 || true
+		sudo service postgresql restart
+		dropdb lisk_test || true
+		createdb lisk_test
+		'''
+		deleteDir()
+		checkout scm
+	} catch (err) {
+		echo "Error: ${err}"
+		currentBuild.result = 'FAILURE'
+		report()
+		error('Stopping build: initializing build failed')
+	}
 }
 
-def buildDependency() {
+def buildDependencies() {
 	try {
 		sh '''
 		rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/"
 		npm install
 		'''
 	} catch (err) {
+		echo "Error: ${err}"
 		currentBuild.result = 'FAILURE'
 		report()
-		error('Stopping build, installation failed')
+		error('Stopping build: building dependencies failed')
 	}
 }
 
 def startLisk() {
 	try {
-		sh '''#!/bin/bash
-		cp test/config.json test/genesisBlock.json .
-		export NODE_ENV=test
-		JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
+		sh '''
+		cp test/data/config.json test/data/genesisBlock.json .
+		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
 		'''
 	} catch (err) {
+		echo "Error: ${err}"
 		currentBuild.result = 'FAILURE'
 		report()
-		error('Stopping build, Lisk failed')
+		error('Stopping build: Lisk failed to start')
 	}
 }
 
-def report(){
+def cleanUp() {
+	try {
+		sh 'pkill -f app.js -9'
+	} catch (err) {
+		echo "Error: ${err}"
+		currentBuild.result = 'FAILURE'
+		report()
+		error('Stopping build: clean up failed')
+	}
+}
+
+def cleanUpMaster() {
+	try{
+		dir('/var/lib/jenkins/coverage/') {
+			sh '''
+			rm -rf node-0*
+			rm -rf *.zip
+			rm -rf coverage-unit/*
+			rm -f merged-lcov.info
+			rm -rf lisk/*
+			rm -f coverage.json
+			rm -f lcov.info
+			'''
+		}
+	} catch (err) {
+		echo "Error: ${err}"
+		currentBuild.result = 'FAILURE'
+		report()
+		error('Stopping build: master clean up failed')
+	}
+}
+
+def archiveLogs() {
+	sh '''
+	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
+	'''
+	archiveArtifacts "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*"
+}
+
+def runAction(action) {
+	try {
+		if (action == 'lint') {
+			sh """
+			cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
+			npm run ${action}
+			"""
+		} else {
+			sh """
+			cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
+			npm test -- ${action}
+			"""
+		}
+	} catch (err) {
+		archiveLogs()
+		echo "Error: ${err}"
+		currentBuild.result = 'FAILURE'
+		report()
+		error('Stopping build: ' + action + ' failed')
+	}
+}
+
+def reportCoverage(node) {
+	try {
+		sh """
+		export HOST=127.0.0.1:4000
+		# Gathers tests into single lcov.info
+		npm run cover:report
+		npm run cover:fetch
+		# Submit coverage reports to Master
+		scp -r test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
+		scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-${node}.zip
+		"""
+	} catch (err) {
+		echo "Error: ${err}"
+		currentBuild.result = 'FAILURE'
+		report()
+		error('Stopping build: reporting coverage statistics failed node-' + node)
+	}
+}
+
+def report() {
 	step([
 		$class: 'GitHubCommitStatusSetter',
 		errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
@@ -46,409 +147,296 @@ def report(){
 			results: [
 					[$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: 'This commit looks good :)'],
 					[$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: 'This commit failed testing :('],
-					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build some how escaped evaluation']
+					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build somehow escaped evaluation']
 			]
 		]
 	])
+	if (currentBuild.result == 'FAILURE') {
+		def prBranch = ''
+		if (env.CHANGE_BRANCH != null) {
+			prBranch = " (${env.CHANGE_BRANCH})"
+		}
+		slackSend color: 'danger', message: "Build #${env.BUILD_NUMBER} of <${env.BUILD_URL}|${env.JOB_NAME}>${prBranch} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)", channel: '#lisk-core-jenkins'
+	}
 }
 
 lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 
 	properties([
-	  parameters([
-	    string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow test, change this value to jenkins-extensive.', )
-	   ])
+		parameters([
+			string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow tests, change this value to jenkins-extensive.', )
+		 ])
 	])
 
-	stage ('Prepare Workspace') {
+	stage('Prepare workspace') {
 		parallel(
 			"Build cached dependencies" : {
-				node('master-01'){
-					sh '''#!/bin/bash -xe
-					if [ $JENKINS_PROFILE == "jenkins-extensive" ]; then
-						rm -Rf "$WORKSPACE/node_modules/"
-						npm install
-						rsync -axl --delete "$WORKSPACE/node_modules/" /var/lib/jenkins/lisk/node_modules/
-					fi
-					'''
+				node('master-01') {
+					try {
+						deleteDir()
+						checkout scm
+						sh """
+						if [ ${params.JENKINS_PROFILE} = "jenkins-extensive" ]; then
+							rm -Rf "${env.WORKSPACE}/node_modules/"
+							npm install
+							rsync -axl --delete "${env.WORKSPACE}/node_modules/" /var/lib/jenkins/lisk/node_modules/
+						fi
+						"""
+					} catch (err) {
+						echo "Error: ${err}"
+						currentBuild.result = 'FAILURE'
+						report()
+						error('Stopping build: caching dependencies failed')
+					}
 				}
 			},
-			"Build Node-01" : {
-				node('node-01'){
-					initBuild()
+			"Initialize node-01" : {
+				node('node-01') {
+					initializeNode()
 				}
 			},
-			"Build Node-02" : {
-				node('node-02'){
-					initBuild()
+			"Initialize node-02" : {
+				node('node-02') {
+					initializeNode()
 				}
 			},
-			"Build Node-03" : {
-				node('node-03'){
-					initBuild()
+			"Initialize node-03" : {
+				node('node-03') {
+					initializeNode()
 				}
 			},
-			"Build Node-04" : {
-				node('node-04'){
-					initBuild()
+			"Initialize node-04" : {
+				node('node-04') {
+					initializeNode()
 				}
 			},
-			"Initialize Master Workspace" : {
-				node('master-01'){
-					sh '''
-					cd /var/lib/jenkins/coverage/
-					rm -rf node-0*
-					rm -rf *.zip
-					rm -rf coverage-unit/*
-					rm -rf lisk/*
-					rm -f merged-lcov.info
-					'''
-					deleteDir()
-					checkout scm
+			"Initialize node-05" : {
+				node('node-05') {
+					initializeNode()
+				}
+			},
+			"Initialize master workspace" : {
+				node('master-01') {
+					cleanUpMaster()
 				}
 			}
 		)
 	}
 
-	stage ('Build Dependencies') {
+	stage('Build dependencies') {
 		parallel(
-			"Build Dependencies Node-01" : {
-				node('node-01'){
-					buildDependency()
+			"Build dependencies node-01" : {
+				node('node-01') {
+					buildDependencies()
 				}
 			},
-			"Build Dependencies Node-02" : {
-				node('node-02'){
-					buildDependency()
+			"Build dependencies node-02" : {
+				node('node-02') {
+					buildDependencies()
 				}
 			},
-			"Build Dependencies Node-03" : {
-				node('node-03'){
-					buildDependency()
+			"Build dependencies node-03" : {
+				node('node-03') {
+					buildDependencies()
 				}
 			},
-			"Build Dependencies Node-04" : {
-				node('node-04'){
-					buildDependency()
+			"Build dependencies node-04" : {
+				node('node-04') {
+					buildDependencies()
+				}
+			},
+			"Build dependencies node-05" : {
+				node('node-05') {
+					buildDependencies()
 				}
 			}
 		)
 	}
 
-	stage ('Start Lisk') {
+	stage('Start Lisk') {
 		parallel(
-			"Start Lisk Node-01" : {
-				node('node-01'){
+			"Start Lisk node-01" : {
+				node('node-01') {
 					startLisk()
 				}
 			},
-			"Start Lisk Node-02" : {
-				node('node-02'){
+			"Start Lisk node-02" : {
+				node('node-02') {
 					startLisk()
 				}
 			},
-			"Start Lisk Node-03" : {
-				node('node-03'){
+			"Start Lisk node-03" : {
+				node('node-03') {
 					startLisk()
 				}
 			},
-			"Start Lisk Node-04" : {
-				node('node-04'){
+			"Start Lisk node-04" : {
+				node('node-04') {
+					startLisk()
+				}
+			},
+			"Start Lisk node-05" : {
+				node('node-05') {
 					startLisk()
 				}
 			}
 		)
 	}
 
-	stage ('Parallel Tests') {
-		parallel(
-			"ESLint" : {
-				node('node-01'){
-					sh '''
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run eslint
-					'''
-				}
-			},
-			"Functional Accounts" : {
-				node('node-01'){
-					sh '''
-					export TEST=test/functional/http/get/accounts.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Blocks" : {
-				node('node-01'){
-					sh '''
-					export TEST=test/functional/http/get/blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Dapps" : {
-				node('node-01'){
-					sh '''
-					export TEST=test/functional/http/get/dapps.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Delegates" : {
-				node('node-01'){
-					sh '''
-					export TEST=test/functional/http/get/delegates.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Loader" : {
-				node('node-01'){
-					sh '''
-					export TEST=test/functional/http/get/loader.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Multisignatures" : {
-				node('node-01'){
-					sh '''
-					export TEST=test/functional/http/get/multisignatures.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Multisignatures post" : {
-				node('node-01'){
-					sh '''
-					export TEST=test/functional/http/get/multisignatures.post.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Transactions" : {
-				node('node-01'){
-					sh '''
-					export TEST=test/functional/http/get/transactions.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Peers" : {
-				node('node-02'){
-					sh '''
-					export TEST=test/functional/http/get/peers.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},  // End node-01 functional tests
-			"Functional Transport - Main" : {
-				node('node-02'){
-					sh '''
-					export TEST=test/functional/ws/transport.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Transport - Blocks" : {
-				node('node-02'){
-					sh '''
-					export TEST=test/functional/ws/transport.blocks.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Transport - Client" : {
-				node('node-02'){
-					sh '''
-					export TEST=test/functional/ws/transport.client.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Transport - Handshake" : {
-				node('node-02'){
-					sh '''
-					export TEST=test/functional/ws/transport.handshake.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Functional Transport - Transactions" : {
-				node('node-02'){
-					sh '''
-					export TEST=test/functional/ws/transport.transactions.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			}, // End Node-02 Tests
-			"Unit Tests" : {
-				node('node-03'){
-					sh '''
-					export TEST_TYPE='UNIT' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run test-unit
-					'''
-				}
-			},
-			"Unit Tests - sql blockRewards" : {
-				node('node-03'){
-					sh '''
-					export TEST=test/unit/sql/blockRewards.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},
-			"Unit Tests - logic blockReward" : {
-				node('node-03'){
-					sh '''
-					export TEST=test/unit/logic/blockReward.js  TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			},// End Node-03 unit tests
-			"Functional Stress - Transactions" : {
-				node('node-04'){
-					sh '''
-					export TEST=test/functional/ws/transport.transactions.stress.js TEST_TYPE='FUNC' NODE_ENV='TEST'
-					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
-					npm run $JENKINS_PROFILE
-					'''
-				}
-			} // End Node-04
-		) // End Parallel
+	stage('Run parallel tests') {
+		timestamps {
+			parallel(
+				"Lint" : {
+					node('node-01') {
+						runAction('lint')
+					}
+				},
+				"Functional HTTP GET tests" : {
+					node('node-01') {
+						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+							runAction('mocha:extensive:functional:get')
+						} else {
+							runAction('mocha:untagged:functional:get')
+						}
+						archiveLogs()
+					}
+				}, // End node-01 tests
+				"Functional HTTP POST tests" : {
+					node('node-02') {
+						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+							runAction('mocha:extensive:functional:post')
+						} else {
+							runAction('mocha:untagged:functional:post')
+						}
+						archiveLogs()
+					}
+				}, // End node-02 tests
+				"Functional WS tests" : {
+					node('node-03') {
+						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+							runAction('mocha:extensive:functional:ws')
+						} else {
+							runAction('mocha:untagged:functional:ws')
+						}
+						archiveLogs()
+					}
+				}, // End node-03 tests
+				"Unit tests" : {
+					node('node-04') {
+						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+							runAction('mocha:extensive:unit')
+						} else {
+							runAction('mocha:untagged:unit')
+						}
+						archiveLogs()
+					}
+				}, // End node-04 tests
+				"Functional system tests" : {
+					node('node-05') {
+						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
+							runAction('mocha:extensive:functional:system')
+						} else {
+							runAction('mocha:untagged:functional:system')
+						}
+						archiveLogs()
+					}
+				} // End node-05 tests
+			) // End parallel
+		} // End timestamp
 	}
 
-	stage ('Gather Coverage') {
+	stage('Gather coverage') {
 		parallel(
-			"Gather Coverage Node-01" : {
-				node('node-01'){
-					sh '''#!/bin/bash
-					export HOST=127.0.0.1:4000
-					npm run fetchCoverage
-					# Submit coverage reports to Master
-					scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-01.zip
-					'''
+			"Gather coverage node-01" : {
+				node('node-01') {
+					reportCoverage('01')
 				}
 			},
-			"Gather Coverage Node-02" : {
-				node('node-02'){
-					sh '''#!/bin/bash
-					export HOST=127.0.0.1:4000
-					npm run fetchCoverage
-					# Submit coverage reports to Master
-					scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-02.zip
-					'''
+			"Gather coverage node-02" : {
+				node('node-02') {
+					reportCoverage('02')
 				}
 			},
-			"Gather Coverage Node-03" : {
-				node('node-03'){
-					sh '''#!/bin/bash
-					export HOST=127.0.0.1:4000
-					# Gathers unit test into single lcov.info
-					npm run coverageReport
-					npm run fetchCoverage
-					# Submit coverage reports to Master
-					scp test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
-					scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-03.zip
-					'''
+			"Gather coverage node-03" : {
+				node('node-03') {
+					reportCoverage('03')
 				}
 			},
-			"Gather Coverage Node-04" : {
-				node('node-04'){
-					sh '''#!/bin/bash
-					export HOST=127.0.0.1:4000
-					npm run fetchCoverage
-					# Submit coverage reports to Master
-					scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-04.zip
-					'''
+			"Gather coverage node-04" : {
+				node('node-04') {
+					reportCoverage('04')
+				}
+			},
+			"Gather coverage node-05" : {
+				node('node-05') {
+					reportCoverage('05')
 				}
 			}
 		)
 	}
 
-	stage ('Submit Coverage') {
-		node('master-01'){
-			sh '''
-			cd /var/lib/jenkins/coverage/
-			unzip coverage-func-node-01.zip -d node-01
-			unzip coverage-func-node-02.zip -d node-02
-			unzip coverage-func-node-03.zip -d node-03
-			unzip coverage-func-node-04.zip -d node-04
-			bash merge_lcov.sh . merged-lcov.info
-			cp merged-lcov.info $WORKSPACE/merged-lcov.info
-			cp .coveralls.yml $WORKSPACE/.coveralls.yml
-			cd $WORKSPACE
-			cat merged-lcov.info | coveralls -v
-			'''
+	stage('Submit coverage') {
+		node('master-01') {
+			try {
+				sh '''
+				cd /var/lib/jenkins/coverage/
+				unzip coverage-func-node-01.zip -d node-01
+				unzip coverage-func-node-02.zip -d node-02
+				unzip coverage-func-node-03.zip -d node-03
+				unzip coverage-func-node-04.zip -d node-04
+				unzip coverage-func-node-05.zip -d node-05
+				bash merge_lcov.sh . merged-lcov.info
+				cp merged-lcov.info $WORKSPACE/merged-lcov.info
+				cp .coveralls.yml $WORKSPACE/.coveralls.yml
+				cd $WORKSPACE
+				cat merged-lcov.info | coveralls -v
+				'''
+			} catch (err) {
+				echo "Error: ${err}"
+				currentBuild.result = 'FAILURE'
+				report()
+				error('Stopping build: submitting coverage failed')
+			}
 		}
 	}
 
-	stage ('Cleanup') {
+	stage('Clean up') {
 		parallel(
-			"Cleanup Node-01" : {
-				node('node-01'){
-					sh '''
-					pkill -f app.js -9
-					'''
+			"Clean up node-01" : {
+				node('node-01') {
+					cleanUp()
 				}
 			},
-			"Cleanup Node-02" : {
-				node('node-02'){
-					sh '''
-					pkill -f app.js -9
-					'''
+			"Clean up node-02" : {
+				node('node-02') {
+					cleanUp()
 				}
 			},
-			"Cleanup Node-03" : {
-				node('node-03'){
-					sh '''
-					pkill -f app.js -9
-					'''
+			"Clean up node-03" : {
+				node('node-03') {
+					cleanUp()
 				}
 			},
-			"Cleanup Node-04" : {
-				node('node-04'){
-					sh '''
-					pkill -f app.js -9
-					'''
+			"Clean up node-04" : {
+				node('node-04') {
+					cleanUp()
 				}
 			},
-			"Cleanup Master" : {
-				node('master-01'){
-					sh '''
-					cd /var/lib/jenkins/coverage/
-					rm -rf node-0*
-					rm -rf *.zip
-					rm -rf coverage-unit/*
-					rm -f merged-lcov.info
-					rm -rf lisk/*
-					rm -f coverage.json
-					rm -f lcov.info
-					'''
+			"Clean up node-05" : {
+				node('node-05') {
+					cleanUp()
+				}
+			},
+			"Clean up master" : {
+				node('master-01') {
+					cleanUpMaster()
 				}
 			}
 		)
 	}
 
-	stage ('Set milestone') {
-		node('master-01'){
+	stage('Set milestone') {
+		node('master-01') {
 			milestone 1
 			currentBuild.result = 'SUCCESS'
 			report()

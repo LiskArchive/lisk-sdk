@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 /**
  * A node-style callback as used by {@link logic} and {@link modules}.
@@ -28,12 +41,12 @@ var extend = require('extend');
 var fs = require('fs');
 var https = require('https');
 var path = require('path');
-var SocketCluster = require('socketcluster').SocketCluster;
+var SocketCluster = require('socketcluster');
 var util = require('util');
 
 var genesisblock = require('./genesisBlock.json');
 var Logger = require('./logger.js');
-var workersController = require('./workersController');
+var workersControllerPath = path.join(__dirname, 'workersController');
 var wsRPC = require('./api/ws/rpc/wsRPC').wsRPC;
 
 var AppConfig = require('./helpers/config.js');
@@ -41,6 +54,8 @@ var git = require('./helpers/git.js');
 var httpApi = require('./helpers/httpApi.js');
 var Sequence = require('./helpers/sequence.js');
 var z_schema = require('./helpers/z_schema.js');
+var swagger = require('./config/swagger');
+var swaggerHelper = require('./helpers/swagger');
 
 process.stdin.resume();
 
@@ -75,33 +90,28 @@ process.env.TOP = appConfig.topAccounts;
  * @property {Object} api - `api/http` folder content.
  */
 var config = {
+	root: path.dirname(__filename),
 	db: appConfig.db,
 	cache: appConfig.redis,
 	cacheEnabled: appConfig.cacheEnabled,
 	modules: {
 		accounts: './modules/accounts.js',
-		transactions: './modules/transactions.js',
 		blocks: './modules/blocks.js',
-		signatures: './modules/signatures.js',
-		transport: './modules/transport.js',
-		loader: './modules/loader.js',
-		system: './modules/system.js',
-		peers: './modules/peers.js',
-		delegates: './modules/delegates.js',
-		multisignatures: './modules/multisignatures.js',
+		cache: './modules/cache.js',
 		dapps: './modules/dapps.js',
-		cache: './modules/cache.js'
+		delegates: './modules/delegates.js',
+		rounds: './modules/rounds.js',
+		loader: './modules/loader.js',
+		multisignatures: './modules/multisignatures.js',
+		node: './modules/node.js',
+		peers: './modules/peers.js',
+		system: './modules/system.js',
+		signatures: './modules/signatures.js',
+		transactions: './modules/transactions.js',
+		transport: './modules/transport.js',
+		voters: './modules/voters'
 	},
 	api: {
-		accounts: { http: './api/http/accounts.js' },
-		blocks: { http: './api/http/blocks.js' },
-		dapps: { http: './api/http/dapps.js' },
-		delegates: { http: './api/http/delegates.js' },
-		loader: { http: './api/http/loader.js' },
-		multisignatures: { http: './api/http/multisignatures.js' },
-		peers: { http: './api/http/peers.js' },
-		signatures: { http: './api/http/signatures.js' },
-		transactions: { http: './api/http/transactions.js' },
 		transport: { ws: './api/ws/transport.js' }
 	}
 };
@@ -113,6 +123,18 @@ var config = {
  */
 var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel,
 	filename: appConfig.logFileName });
+
+var dbLogger = null;
+
+if (appConfig.db.logFileName && appConfig.db.logFileName === appConfig.logFileName) {
+	dbLogger = logger;
+} else {
+	dbLogger = new Logger({
+		echo: appConfig.db.consoleLogLevel || appConfig.consoleLogLevel,
+		errorLevel: appConfig.db.fileLogLevel || appConfig.fileLogLevel,
+		filename: appConfig.db.logFileName
+	});
+}
 
 // Trying to get last git commit
 try {
@@ -177,7 +199,7 @@ d.run(function () {
 		},
 
 		schema: function (cb) {
-			cb(null, new z_schema());
+			cb(null, swaggerHelper.getValidator());
 		},
 
 		/**
@@ -190,8 +212,6 @@ d.run(function () {
 		 */
 		network: ['config', function (scope, cb) {
 			var express = require('express');
-			var compression = require('compression');
-			var cors = require('cors');
 			var app = express();
 
 			if (appConfig.coverage) {
@@ -201,11 +221,9 @@ d.run(function () {
 				app.use('/coverage', im.createHandler());
 			}
 
-			require('./helpers/request-limiter')(app, appConfig);
-
-			app.use(compression({ level: 9 }));
-			app.use(cors());
-			app.options('*', cors());
+			if (appConfig.trustProxy) {
+				app.enable('trust proxy');
+			}
 
 			var server = require('http').createServer(app);
 			var io = require('socket.io')(server);
@@ -238,10 +256,10 @@ d.run(function () {
 		webSocket: ['config', 'connect', 'logger', 'network', function (scope, cb) {
 			var webSocketConfig = {
 				workers: scope.config.wsWorkers,
-				port: scope.config.port,
+				port: scope.config.wsPort,
 				wsEngine: 'uws',
 				appName: 'lisk',
-				workerController: workersController.path,
+				workerController: workersControllerPath,
 				perMessageDeflate: false,
 				secretKey: 'liskSecretKey',
 				pingInterval: 5000,
@@ -270,7 +288,7 @@ d.run(function () {
 				version: scope.config.version,
 				minVersion: scope.config.minVersion,
 				nethash: scope.config.nethash,
-				port: scope.config.port,
+				port: scope.config.wsPort,
 				nonce: scope.config.nonce
 			};
 
@@ -325,16 +343,16 @@ d.run(function () {
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
 			var queryParser = require('express-query-int');
-			var randomString = require('randomstring');
+			var randomstring = require('randomstring');
 
-			scope.config.nonce = randomString.generate(16);
+			scope.config.nonce = randomstring.generate(16);
 			scope.network.app.use(require('express-domain-middleware'));
 			scope.network.app.use(bodyParser.raw({limit: '2mb'}));
 			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));
 			scope.network.app.use(bodyParser.json({limit: '2mb'}));
 			scope.network.app.use(methodOverride());
 
-			var ignore = ['id', 'name', 'lastBlockId', 'blockId', 'transactionId', 'address', 'recipientId', 'senderId', 'previousBlock'];
+			var ignore = ['id', 'name', 'username', 'blockId', 'transactionId', 'address', 'recipientId', 'senderId'];
 
 			scope.network.app.use(queryParser({
 				parser: function (value, radix, name) {
@@ -378,6 +396,10 @@ d.run(function () {
 			cb();
 		}],
 
+		swagger: ['connect', 'modules', 'logger', 'cache', function (scope, cb) {
+			swagger(scope.network.app, config, scope.logger, scope, cb);
+		}],
+
 		ed: function (cb) {
 			cb(null, require('./helpers/ed.js'));
 		},
@@ -409,13 +431,9 @@ d.run(function () {
 			cb(null, new bus());
 		}],
 		db: function (cb) {
-			var db = require('./helpers/database.js');
-			db.connect(config.db, logger, cb);
+			var db = require('./db');
+			db.connect(config.db, dbLogger, cb);
 		},
-		pg_notify: ['db', 'bus', 'logger', function (scope, cb) {
-			var pg_notify = require('./helpers/pg-notify.js');
-			pg_notify.init(scope.db, scope.bus, scope.logger, cb);
-		}],
 		/**
 		 * It tries to connect with redis server based on config. provided in config.json file
 		 * @param {function} cb
@@ -533,7 +551,9 @@ d.run(function () {
 			cb();
 		}],
 
-		ready: ['modules', 'bus', 'logic', function (scope, cb) {
+		ready: ['swagger', 'modules', 'bus', 'logic', function (scope, cb) {
+			scope.modules.swagger = scope.swagger;
+
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope.modules);
 
@@ -610,8 +630,7 @@ d.run(function () {
 			 */
 			process.once('cleanup', function () {
 				scope.logger.info('Cleaning up...');
-				scope.socketCluster.killWorkers();
-				scope.socketCluster.killBrokers();
+				scope.socketCluster.destroy();
 				async.eachSeries(modules, function (module, cb) {
 					if (typeof(module.cleanup) === 'function') {
 						module.cleanup(cb);

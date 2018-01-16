@@ -1,11 +1,26 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var bignum = require('../helpers/bignum.js');
 var BlockReward = require('../logic/blockReward.js');
+var slots = require('../helpers/slots.js');
 var constants = require('../helpers/constants.js');
 var crypto = require('crypto');
+var apiCodes = require('../helpers/apiCodes.js');
+var ApiError = require('../helpers/apiError.js');
 var extend = require('extend');
-var schema = require('../schema/accounts.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var Vote = require('../logic/vote.js');
 
@@ -78,13 +93,13 @@ Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
  * @param {function} fields - Fields to get.
  * @param {function} cb - Callback function.
  */
-Accounts.prototype.getAccount = function (filter, fields, cb) {
+Accounts.prototype.getAccount = function (filter, fields, cb, tx) {
 	if (filter.publicKey) {
 		filter.address = self.generateAddressByPublicKey(filter.publicKey);
 		delete filter.publicKey;
 	}
 
-	library.logic.account.get(filter, fields, cb);
+	library.logic.account.get(filter, fields, cb, tx);
 };
 
 /**
@@ -107,7 +122,7 @@ Accounts.prototype.getAccounts = function (filter, fields, cb) {
  * @returns {setImmediateCallback} Errors.
  * @returns {function()} Call to logic.account.get().
  */
-Accounts.prototype.setAccountAndGet = function (data, cb) {
+Accounts.prototype.setAccountAndGet = function (data, cb, tx) {
 	var address = data.address || null;
 	var err;
 
@@ -135,8 +150,8 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		return library.logic.account.get({address: address}, cb);
-	});
+		return library.logic.account.get({address: address}, cb, tx);
+	}, tx);
 };
 
 /**
@@ -148,7 +163,7 @@ Accounts.prototype.setAccountAndGet = function (data, cb) {
  * @returns {function} calls to logic.account.merge().
  * @todo improve publicKey validation try/catch
  */
-Accounts.prototype.mergeAccountAndGet = function (data, cb) {
+Accounts.prototype.mergeAccountAndGet = function (data, cb, tx) {
 	var address = data.address || null;
 	var err;
 
@@ -172,7 +187,7 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb) {
 		}
 	}
 
-	return library.logic.account.merge(address, data, cb);
+	return library.logic.account.merge(address, data, cb, tx);
 };
 
 // Events
@@ -183,14 +198,15 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb) {
  */
 Accounts.prototype.onBind = function (scope) {
 	modules = {
-		delegates: scope.delegates,
-		accounts: scope.accounts,
 		transactions: scope.transactions,
+		blocks: scope.blocks
 	};
 
 	__private.assetTypes[transactionTypes.VOTE].bind(
 		scope.delegates
 	);
+
+	library.logic.account.bind(modules.blocks);
 };
 /**
  * Checks if modules is loaded.
@@ -202,157 +218,60 @@ Accounts.prototype.isLoaded = function () {
 
 // Shared API
 /**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
+ * Public methods, accessible via API
  */
 Accounts.prototype.shared = {
-
-	getBalance: function (req, cb) {
-		library.schema.validate(req.body, schema.getBalance, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			self.getAccount({ address: req.body.address }, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				var balance = account ? account.balance : '0';
-				var unconfirmedBalance = account ? account.u_balance : '0';
-
-				return setImmediate(cb, null, {balance: balance, unconfirmedBalance: unconfirmedBalance});
-			});
-		});
-	},
-
-	getPublickey: function (req, cb) {
-		library.schema.validate(req.body, schema.getPublicKey, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			self.getAccount({ address: req.body.address }, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				if (!account || !account.publicKey) {
-					return setImmediate(cb, 'Account not found');
-				}
-
-				return setImmediate(cb, null, {publicKey: account.publicKey});
-			});
-		});
-	},
-
-	getDelegates: function (req, cb) {
-		library.schema.validate(req.body, schema.getDelegates, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			self.getAccount({ address: req.body.address }, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				if (!account) {
-					return setImmediate(cb, 'Account not found');
-				}
-
-				if (account.delegates) {
-					modules.delegates.getDelegates(req.body, function (err, res) {
-						var delegates = res.delegates.filter(function (delegate) {
-							return account.delegates.indexOf(delegate.publicKey) !== -1;
-						});
-
-						return setImmediate(cb, null, {delegates: delegates});
-					});
-				} else {
-					return setImmediate(cb, null, {delegates: []});
-				}
-			});
-		});
-	},
-
-	getDelegatesFee: function (req, cb) {
-		return setImmediate(cb, null, {fee: constants.fees.delegate});
-	},
-
-	getAccount: function (req, cb) {
-		library.schema.validate(req.body, schema.getAccount, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
-			}
-
-			if (!req.body.address && !req.body.publicKey) {
-				return setImmediate(cb, 'Missing required property: address or publicKey');
-			}
-
-			// self.getAccount can accept publicKey as argument, but we also compare here
-			// if account publicKey match address (when both are supplied)
-			var address = req.body.publicKey ? self.generateAddressByPublicKey(req.body.publicKey) : req.body.address;
-			if (req.body.address && req.body.publicKey && address !== req.body.address) {
-				return setImmediate(cb, 'Account publicKey does not match address');
-			}
-
-			self.getAccount({ address: address }, function (err, account) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				if (!account) {
-					return setImmediate(cb, 'Account not found');
-				}
-
-				return setImmediate(cb, null, {
-					account: {
-						address: account.address,
-						unconfirmedBalance: account.u_balance,
-						balance: account.balance,
-						publicKey: account.publicKey,
-						unconfirmedSignature: account.u_secondSignature,
-						secondSignature: account.secondSignature,
-						secondPublicKey: account.secondPublicKey,
-						multisignatures: account.multisignatures || [],
-						u_multisignatures: account.u_multisignatures || []
-					}
-				});
-			});
-		});
-	}
-};
-
-// Internal API
-/**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
- */
-Accounts.prototype.internal = {
-	top: function (query, cb) {
-		self.getAccounts({
-			sort: {
-				balance: -1
-			},
-			offset: query.offset,
-			limit: (query.limit || 100)
-		}, function (err, raw) {
+	/**
+	 * Search accounts based on the query parameter passed.
+	 * @param {Object} filters - Filters applied to results
+	 * @param {string} filters.address - Account address
+	 * @param {string} filters.publicKey - Public key associated to account
+	 * @param {string} filters.secondPublicKey - Second public key associated to account
+	 * @param {string} filters.username - Username associated to account
+	 * @param {string} filters.sort - Field to sort results by
+	 * @param {int} filters.limit - Limit applied to results
+	 * @param {int} filters.offset - Offset value for results
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallbackObject}
+	 */
+	getAccounts: function (filters, cb) {
+		library.logic.account.getAll(filters, function (err, accounts) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
 
-			var accounts = raw.map(function (account) {
+			accounts = accounts.map(function (account) {
+				var delegate = {};
+
+				// Only create delegate properties if account has a username
+				if (account.username) {
+					delegate = {
+						username: account.username,
+						vote: account.vote,
+						rewards: account.rewards,
+						producedBlocks: account.producedBlocks,
+						missedBlocks: account.missedBlocks,
+						rank: account.rank,
+						approval: account.approval,
+						productivity: account.productivity
+					};
+				}
+
 				return {
 					address: account.address,
+					unconfirmedBalance: account.u_balance,
 					balance: account.balance,
-					publicKey: account.publicKey
+					publicKey: account.publicKey,
+					unconfirmedSignature: account.u_secondSignature,
+					secondSignature: account.secondSignature,
+					secondPublicKey: account.secondPublicKey,
+					delegate: delegate
 				};
 			});
 
-			return setImmediate(cb, null, {success: true, accounts: accounts});
+			return setImmediate(cb, null, accounts);
 		});
-	},
+	}
 };
 
 // Export

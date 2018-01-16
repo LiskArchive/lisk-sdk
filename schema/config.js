@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 module.exports = {
@@ -5,7 +18,12 @@ module.exports = {
 		id: 'appCon',
 		type: 'object',
 		properties: {
-			port: {
+			wsPort: {
+				type: 'integer',
+				minimum: 1,
+				maximum: 65535
+			},
+			httpPort: {
 				type: 'integer',
 				minimum: 1,
 				maximum: 65535
@@ -61,7 +79,10 @@ module.exports = {
 					password: {
 						type: 'string'
 					},
-					poolSize: {
+					min: {
+						type: 'integer'
+					},
+					max: {
 						type: 'integer'
 					},
 					poolIdleTimeout: {
@@ -72,16 +93,25 @@ module.exports = {
 					},
 					logEvents: {
 						type: 'array'
+					},
+					logFileName: {
+						type: 'string'
+					},
+					consoleLogLevel: {
+						type: 'string'
+					},
+					fileLogLevel: {
+						type: 'string'
 					}
 				},
-				required: ['host', 'port', 'database', 'user', 'password', 'poolSize', 'poolIdleTimeout', 'reapIntervalMillis', 'logEvents']
+				required: ['host', 'port', 'database', 'user', 'password', 'min', 'max', 'poolIdleTimeout', 'reapIntervalMillis', 'logEvents']
 			},
 			redis: {
 				type: 'object',
 				properties: {
 					host: {
 						type: 'string',
-						format: 'ip',
+						format: 'ipOrFQDN',
 					},
 					port: {
 						type: 'integer',
@@ -164,29 +194,11 @@ module.exports = {
 					},
 					options: {
 						properties: {
-							limits: {
-								type: 'object',
-								properties: {
-									max: {
-										type: 'integer'
-									},
-									delayMs: {
-										type: 'integer'
-									},
-									delayAfter: {
-										type: 'integer'
-									},
-									windowMs: {
-										type: 'integer'
-									}
-								},
-								required: ['max', 'delayMs', 'delayAfter', 'windowMs']
-							},
 							timeout: {
 								type: 'integer'
 							}
 						},
-						required: ['limits', 'timeout']
+						required: ['timeout']
 					}
 				},
 				required: ['enabled', 'list', 'access', 'options']
@@ -302,6 +314,6 @@ module.exports = {
 				format: 'hex'
 			}
 		},
-		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'nethash', 'cacheEnabled', 'redis']
+		required: ['wsPort', 'httpPort',  'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'nethash', 'cacheEnabled', 'redis']
 	}
 };

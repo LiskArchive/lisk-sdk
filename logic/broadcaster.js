@@ -1,3 +1,16 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 var async = require('async');
@@ -105,14 +118,14 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 
 	var originalLimit = params.limit;
 
-	modules.peers.list(params, function (err, peers, consensus) {
+	modules.peers.list(params, function (err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
 		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
-			library.logger.info(['Broadhash consensus now', consensus, '%'].join(' '));
-			self.consensus = consensus;
+			self.consensus = modules.peers.getConsensus(peers);
+			library.logger.info(['Broadhash consensus now', self.consensus, '%'].join(' '));
 		}
 
 		return setImmediate(cb, null, peers);
@@ -153,16 +166,17 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 			}
 		},
 		function sendToPeer (peers, waterCb) {
-			try {
-				var optionDeserialized = JSON.parse(JSON.stringify(options));
+			library.logger.debug('Begin broadcast', options);
 
-				if (optionDeserialized.data.block) {
-					optionDeserialized.data.block = bson.deserialize(options.data.block);
+			if (options.data.block) {
+				try {
+					options.data.block = bson.serialize(options.data.block);
+				} catch (err) {
+					library.logger.error('Broadcast serialization failed:', err);
+					return setImmediate(cb, err);
 				}
-				library.logger.debug('Begin broadcast', optionDeserialized);
-			} catch (e) {
-				library.logger.debug('Begin broadcast (deserialization failed for log)', {err: e.toString(), options: options });
 			}
+
 			if (params.limit === self.config.peerLimit) {
 				peers = peers.slice(0, self.config.broadcastLimit);
 			}
