@@ -283,10 +283,9 @@ BlocksRepo.prototype.loadLastBlock = function () {
 };
 
 /**
- * Loads N recent blocks ids 
+ * Load the last (number) of block ids
  * @param {string} limit
  * @return {Promise}
- * @throws {QueryResultError} - Multiple rows were not expected - in the case of multiple blocks found with same id
  */
 BlocksRepo.prototype.loadLastNBlockIds = function (limit) {
 	return this.db.query(Queries.loadLastNBlockIds, [limit]);

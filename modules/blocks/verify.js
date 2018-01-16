@@ -181,7 +181,6 @@ __private.verifyAgainstLastNBlockIds = function (block, result) {
 	return result;
 };
 
-
 /**
  * Verify block version
  *
@@ -413,7 +412,7 @@ Verify.prototype.verifyReceipt = function (block) {
 };
 
 /**
- * Loads last {constants.blockSlotWindow} blocks from the database into memory. Called  when application triggeres blockchainReady event.
+ * Loads last {constants.blockSlotWindow} blocks from the database into memory. Called when application triggeres blockchainReady event.
  *
  * @method onBlockchainReady
  */
