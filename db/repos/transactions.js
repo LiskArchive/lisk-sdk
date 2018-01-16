@@ -15,7 +15,7 @@
 
 var PQ = require('pg-promise').ParameterizedQuery;
 var _ = require('lodash');
-var transactionTypes = require('../helpers/transactionTypes');
+var transactionTypes = require('../../helpers/transactionTypes');
 var columnSet;
 
 /**
@@ -257,7 +257,7 @@ TransactionsRepo.prototype.getOutTransferByIds = function (ids) {
 TransactionsRepo.prototype.save = function (transactions) {
 	var self = this;
 	var saveTransactions = _.cloneDeep(transactions);
-	
+
 	if (!_.isArray(saveTransactions)) {
 		saveTransactions = [saveTransactions];
 	}

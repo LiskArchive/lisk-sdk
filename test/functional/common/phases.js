@@ -13,9 +13,6 @@
  */
 'use strict';
 
-var test = require('../functional.js');
-
-var expect = require('chai').expect;
 var Promise = require('bluebird');
 
 var apiHelpers = require('../../common/helpers/api');
@@ -26,7 +23,7 @@ function confirmation (goodTransactions, badTransactions, pendingMultisignatures
 	describe('after transactions get confirmed', function () {
 
 		before(function () {
-			return waitFor.confirmations(test._.map(goodTransactions, 'id'));
+			return waitFor.confirmations(_.map(goodTransactions, 'id'));
 		});
 
 		it('bad transactions should not be confirmed', function () {

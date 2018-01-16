@@ -13,14 +13,9 @@
  */
 'use strict';
 
-var chai = require('chai');
-var should = chai.should();
-var sinon = require('sinon');
-var sinonChai = require('sinon-chai');
 var httpMocks = require('node-mocks-http');
-var fitting = require('../../../../api/fittings/lisk_request_limit');
 
-chai.use(sinonChai);
+var fitting = require('../../../../api/fittings/lisk_request_limit');
 
 describe('lisk_request_limit', function () {
 
@@ -33,7 +28,7 @@ describe('lisk_request_limit', function () {
 		};
 		context.response = httpMocks.createResponse({req: context.request});
 		limit_fititng = fitting();
-		next = sinon.spy();
+		next = sinonSandbox.spy();
 	});
 
 	it('should be a factory function that names 2 arguments', function () {
@@ -108,7 +103,7 @@ describe('lisk_request_limit', function () {
 		success = 0;
 
 		setTimeout(function () {
-			next = sinon.spy();
+			next = sinonSandbox.spy();
 			for (var i = 0; i < limits.max + 5; i++) {
 				limit_fititng(context, cb);
 			}
@@ -123,7 +118,7 @@ describe('lisk_request_limit', function () {
 			response: null
 		};
 		context2.response = httpMocks.createResponse({req: context2.request});
-		var next2 = sinon.spy();
+		var next2 = sinonSandbox.spy();
 		var limits = {
 			max: 5,
 			delayMs: 0,

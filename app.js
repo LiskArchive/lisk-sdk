@@ -431,7 +431,7 @@ d.run(function () {
 			cb(null, new bus());
 		}],
 		db: function (cb) {
-			var db = require('./helpers/database.js');
+			var db = require('./db');
 			db.connect(config.db, dbLogger, cb);
 		},
 		/**

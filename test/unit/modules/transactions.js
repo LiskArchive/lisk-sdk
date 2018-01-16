@@ -13,15 +13,12 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
 var async = require('async');
-var sinon = require('sinon');
+var rewire = require('rewire');
 
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 var constants = require('../../../helpers/constants.js');
 var modulesLoader = require('../../common/modulesLoader');
-var rewire = require('rewire');
 
 var AccountLogic = require('../../../logic/account.js');
 var TransactionLogic = require('../../../logic/transaction.js');
@@ -103,13 +100,13 @@ describe('transactions', function () {
 					'confirmations',
 					'height'
 				],
-				countList: sinon.stub().resolves(),
-				list: sinon.stub().resolves()
+				countList: sinonSandbox.stub().resolves(),
+				list: sinonSandbox.stub().resolves()
 			}
 		};
 
 		Object.keys(TransactionTypeMap).forEach(function (key) {
-			dbStub.transactions[TransactionTypeMap[key]] = sinon.stub().resolves();
+			dbStub.transactions[TransactionTypeMap[key]] = sinonSandbox.stub().resolves();
 		});
 
 		async.auto({

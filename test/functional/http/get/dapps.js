@@ -13,13 +13,9 @@
  */
 'use strict';
 
-var test = require('../../functional.js');
-
 var lisk = require('lisk-js');
-var expect = require('chai').expect;
 var Promise = require('bluebird');
 
-var _ = test._;
 var accountFixtures = require('../../../fixtures/accounts');
 
 var randomUtil = require('../../../common/utils/random');

@@ -313,7 +313,7 @@ BlocksRepo.prototype.getBlocksForTransport = function (ids) {
  * @param {Object} block - Attributes to be inserted, can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
  * @return {Promise}
  */
- BlocksRepo.prototype.save = function (block) {
+BlocksRepo.prototype.save = function (block) {
  	try {
  		var saveBlock = Object.assign({}, block);
  		saveBlock.payloadHash = Buffer.from(block.payloadHash, 'hex');
@@ -325,6 +325,6 @@ BlocksRepo.prototype.getBlocksForTransport = function (ids) {
  	}
 
  	return this.db.none(this.pgp.helpers.insert(saveBlock, this.cs.insert));
- };
+};
 
 module.exports = BlocksRepo;

@@ -13,13 +13,9 @@
  */
 'use strict';
 
-var test = require('../functional.js');
-
-var _ = test._;
 var async = require('async');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var scClient = require('socketcluster-client');
-var expect = require('chai').expect;
 
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 
@@ -39,7 +35,7 @@ describe('RPC', function () {
 		validClientSocketOptions = {
 			protocol: 'http',
 			hostname: '127.0.0.1',
-			port: test.config.wsPort,
+			port: __testContext.config.wsPort,
 			query: _.clone(frozenHeaders)
 		};
 		clientSocket = scClient.connect(validClientSocketOptions);

@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var test = require('../../functional.js');
-
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/helpers/api');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -109,7 +107,7 @@ describe('GET /node', function () {
 
 			it('using no params should return full list of internal forgers', function () {
 				return forgingEndpoint.makeRequest({}, 200).then(function (res) {
-					res.body.data.length.should.be.eql(test.config.forging.secret.length);
+					res.body.data.length.should.be.eql(__testContext.config.forging.secret.length);
 				});
 			});
 
@@ -126,7 +124,7 @@ describe('GET /node', function () {
 			});
 
 			it('using existing publicKey should be ok', function () {
-				var publicKey = test.config.forging.secret[0].publicKey;
+				var publicKey = __testContext.config.forging.secret[0].publicKey;
 
 				return forgingEndpoint.makeRequest({publicKey: publicKey}, 200).then(function (res) {
 					res.body.data.should.have.length(1);
@@ -135,7 +133,7 @@ describe('GET /node', function () {
 			});
 
 			it('using enabled publicKey should be ok', function () {
-				var publicKey = test.config.forging.secret[0].publicKey;
+				var publicKey = __testContext.config.forging.secret[0].publicKey;
 
 				return forgingEndpoint.makeRequest({publicKey: publicKey}, 200).then(function (res) {
 					res.body.data[0].publicKey.should.be.eql(publicKey);
