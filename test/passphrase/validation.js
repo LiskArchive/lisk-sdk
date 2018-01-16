@@ -229,12 +229,13 @@ describe('passphrase validation', () => {
 
 	describe('countUppercaseCharacters', () => {
 		describe('given a passphrase without uppercase character', () => {
+			const expectedAmountUppercaseCharacter = 0;
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
-			it('should return 0', () => {
+			it('should return the amount of uppercase character', () => {
 				const uppercased = countUppercaseCharacters(passphrase);
-				return uppercased.should.be.equal(0);
+				return uppercased.should.be.equal(expectedAmountUppercaseCharacter);
 			});
 		});
 
@@ -263,103 +264,211 @@ describe('passphrase validation', () => {
 	});
 
 	describe('validatePassphrase', () => {
+		const passphraseIsValid = [];
+
 		describe('given a valid passphrase', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
-			it('should return true', () => {
-				return validatePassphrase(passphrase).should.be.true();
+			it('should return an array without the errors', () => {
+				return validatePassphrase(passphrase).should.be.eql(passphraseIsValid);
 			});
 		});
 
 		describe('given a passphrase with too many words', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge actor';
-			const errorMessage =
-				'Passphrase contains 13 words instead of expected 12. Please check the passphrase.';
 
-			it('should throw the error', () => {
-				return validatePassphrase
-					.bind(null, passphrase)
-					.should.throw(errorMessage);
+			const passphraseTooManyWordsError = [
+				{
+					code: 'INVALID_AMOUNT_OF_WORDS',
+					message:
+						'Passphrase contains 13 words instead of expected 12. Please check the passphrase.',
+					expected: 12,
+					has: 13,
+				},
+				{
+					code: 'INVALID_AMOUNT_OF_WHITESPACES',
+					message:
+						'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.',
+					expected: 11,
+					has: 12,
+				},
+				{
+					code: 'INVALID_MNEMONIC',
+					message:
+						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
+					expected: true,
+					has: false,
+				},
+			];
+
+			it('should return the array with the errors', () => {
+				return validatePassphrase(passphrase).should.be.eql(
+					passphraseTooManyWordsError,
+				);
 			});
 		});
 
 		describe('given a passphrase with too few words', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist';
-			const errorMessage =
-				'Passphrase contains 11 words instead of expected 12. Please check the passphrase.';
+			const passphraseTooFewWordsError = [
+				{
+					code: 'INVALID_AMOUNT_OF_WORDS',
+					message:
+						'Passphrase contains 11 words instead of expected 12. Please check the passphrase.',
+					expected: 12,
+					has: 11,
+				},
+				{
+					code: 'INVALID_AMOUNT_OF_WHITESPACES',
+					message:
+						'Passphrase contains 10 whitespaces instead of expected 11. Please check the passphrase.',
+					expected: 11,
+					has: 10,
+				},
+				{
+					code: 'INVALID_MNEMONIC',
+					message:
+						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
+					expected: true,
+					has: false,
+				},
+			];
 
-			it('should throw the error', () => {
-				return validatePassphrase
-					.bind(null, passphrase)
-					.should.throw(errorMessage);
+			it('should return the array with the errors', () => {
+				return validatePassphrase(passphrase).should.be.eql(
+					passphraseTooFewWordsError,
+				);
 			});
 		});
 
 		describe('given a passphrase with an extra whitespace in the beginning', () => {
 			const passphrase =
 				' model actor shallow eight glue upper seat lobster reason label enlist bridge';
-			const errorMessage =
-				'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.';
+			const passphraseTooManyWhitespacesError = [
+				{
+					code: 'INVALID_AMOUNT_OF_WHITESPACES',
+					message:
+						'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.',
+					expected: 11,
+					has: 12,
+				},
+				{
+					code: 'INVALID_MNEMONIC',
+					message:
+						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
+					expected: true,
+					has: false,
+				},
+			];
 
-			it('should throw the error', () => {
-				return validatePassphrase
-					.bind(null, passphrase)
-					.should.throw(errorMessage);
+			it('should return the array with the errors', () => {
+				return validatePassphrase(passphrase).should.be.eql(
+					passphraseTooManyWhitespacesError,
+				);
 			});
 		});
 
 		describe('given a passphrase with an extra whitespace in the end', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge ';
-			const errorMessage =
-				'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.';
+			const passphraseTooManyWhitespacesError = [
+				{
+					code: 'INVALID_AMOUNT_OF_WHITESPACES',
+					message:
+						'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.',
+					expected: 11,
+					has: 12,
+				},
+				{
+					code: 'INVALID_MNEMONIC',
+					message:
+						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
+					expected: true,
+					has: false,
+				},
+			];
 
-			it('should throw the error', () => {
-				return validatePassphrase
-					.bind(null, passphrase)
-					.should.throw(errorMessage);
+			it('should return the array with the errors', () => {
+				return validatePassphrase(passphrase).should.be.eql(
+					passphraseTooManyWhitespacesError,
+				);
 			});
 		});
 
 		describe('given a passphrase with too many whitespaces in between words', () => {
 			const passphrase =
 				'model actor shallow eight glue  upper seat  lobster reason label enlist bridge';
-			const errorMessage =
-				'Passphrase contains 13 whitespaces instead of expected 11. Please check the passphrase.';
+			const passphraseTooManyWhitespacesError = [
+				{
+					code: 'INVALID_AMOUNT_OF_WHITESPACES',
+					message:
+						'Passphrase contains 13 whitespaces instead of expected 11. Please check the passphrase.',
+					expected: 11,
+					has: 13,
+				},
+				{
+					code: 'INVALID_MNEMONIC',
+					message:
+						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
+					expected: true,
+					has: false,
+				},
+			];
 
-			it('should throw the error', () => {
-				return validatePassphrase
-					.bind(null, passphrase)
-					.should.throw(errorMessage);
+			it('should return the array with the errors', () => {
+				return validatePassphrase(passphrase).should.be.eql(
+					passphraseTooManyWhitespacesError,
+				);
 			});
 		});
 
 		describe('given a passphrase with uppercase characters', () => {
 			const passphrase =
 				'modEl actor shallow eight glue upper sEat lobster reaSon label enlist bridge';
-			const errorMessage =
-				'Passphrase contains 3 uppercase character instead of expected 0. Please check the passphrase.';
+			const passphraseWithUppercaseCharacterError = [
+				{
+					code: 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER',
+					message:
+						'Passphrase contains 3 uppercase character instead of expected 0. Please check the passphrase.',
+					expected: 0,
+					has: 3,
+				},
+				{
+					code: 'INVALID_MNEMONIC',
+					message:
+						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
+					expected: true,
+					has: false,
+				},
+			];
 
-			it('should throw the error', () => {
-				return validatePassphrase
-					.bind(null, passphrase)
-					.should.throw(errorMessage);
+			it('should return the array with the errors', () => {
+				return validatePassphrase(passphrase).should.be.eql(
+					passphraseWithUppercaseCharacterError,
+				);
 			});
 		});
 
 		describe('given a passphrase that is an invalid mnemonic passphrase', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label engage bridge';
-			const errorMessage =
-				'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.';
+			const passphraseInvalidMnemonic = [
+				{
+					code: 'INVALID_MNEMONIC',
+					message:
+						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
+					expected: true,
+					has: false,
+				},
+			];
 
-			it('should throw the error', () => {
-				return validatePassphrase
-					.bind(null, passphrase)
-					.should.throw(errorMessage);
+			it('should return the array with the error', () => {
+				return validatePassphrase(passphrase).should.be.eql(
+					passphraseInvalidMnemonic,
+				);
 			});
 		});
 
@@ -368,22 +477,31 @@ describe('passphrase validation', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
-			it('should return true', () => {
-				return validatePassphrase(passphrase, wordlist).should.be.true();
+			it('should return the array without the error', () => {
+				return validatePassphrase(passphrase, wordlist).should.be.eql(
+					passphraseIsValid,
+				);
 			});
 		});
 
 		describe('given a passphrase that uses a different wordlist for the passphrase', () => {
 			const wordlist = Mnemonic.wordlists.spanish;
 			const passphrase =
-				'model actor shallow eight glue upper seat lobster reason label engage bridge';
-			const errorMessage =
-				'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.';
+				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
+			const passphraseInvalidMnemonic = [
+				{
+					code: 'INVALID_MNEMONIC',
+					message:
+						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
+					expected: true,
+					has: false,
+				},
+			];
 
-			it('should throw the error', () => {
-				return validatePassphrase
-					.bind(null, passphrase, wordlist)
-					.should.throw(errorMessage);
+			it('should return the array with the error', () => {
+				return validatePassphrase(passphrase, wordlist).should.be.eql(
+					passphraseInvalidMnemonic,
+				);
 			});
 		});
 	});
