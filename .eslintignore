@@ -7,3 +7,5 @@ ssl
 stacktrace*
 tmp
 sql
+coverage
+.nyc_output
