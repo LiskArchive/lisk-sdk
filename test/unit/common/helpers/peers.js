@@ -13,7 +13,6 @@
  */
 'use strict';
 
-var _ = require('lodash');
 var randomstring = require('randomstring');
 
 module.exports = {

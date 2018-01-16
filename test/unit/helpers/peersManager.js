@@ -13,14 +13,8 @@
  */
 'use strict';
 
-var _ = require('lodash');
-var chai = require('chai');
-var expect = require('chai').expect;
-var sinon = require('sinon');
-
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var Peer = require('../../../logic/peer');
-
 var peersManager = require('../../../helpers/peersManager');
 
 describe('PeersManager', function () {

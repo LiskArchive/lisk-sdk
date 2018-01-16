@@ -14,7 +14,7 @@
 'use strict';
 
 var constants = require('../../../helpers/constants');
-var config = require('../../data/config.json');
+var config = __testContext.config;
 
 describe('app', function () {
 

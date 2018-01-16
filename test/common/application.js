@@ -16,12 +16,7 @@
 // Global imports
 var Promise = require('bluebird');
 var rewire = require('rewire');
-var sinon = require('sinon');
 var async = require('async');
-var expect = require('chai').expect;
-
-// Application-specific imports
-var test = require('./../test');
 
 var DBSandbox = require('./DBSandbox').DBSandbox;
 
@@ -41,7 +36,7 @@ function init (options, cb) {
 	options.scope.waitForGenesisBlock = options.waitForGenesisBlock !== false;
 
 	if (options.sandbox) {
-		dbSandbox = new DBSandbox(options.sandbox.config || test.config.db, options.sandbox.name);
+		dbSandbox = new DBSandbox(options.sandbox.config || __testContext.config.db, options.sandbox.name);
 		dbSandbox.create(function (err, __db) {
 			options.scope.db = __db;
 			__init(options.scope, cb);
@@ -53,7 +48,7 @@ function init (options, cb) {
 
 // Init whole application inside tests
 function __init (initScope, done) {
-	test.debug('initApplication: Application initialization inside test environment started...');
+	__testContext.debug('initApplication: Application initialization inside test environment started...');
 
 	jobsQueue.jobs = {};
 	var modules = [], rewiredModules = {};
@@ -74,11 +69,11 @@ function __init (initScope, done) {
 	var db = initScope.db;
 	if (!db) {
 		var pgp = require('pg-promise')(options);
-		test.config.db.user = test.config.db.user || process.env.USER;
-		db = pgp(test.config.db);
+		__testContext.config.db.user = __testContext.config.db.user || process.env.USER;
+		db = pgp(__testContext.config.db);
 	}
 
-	test.debug('initApplication: Target database - ' + test.config.db.database);
+	__testContext.debug('initApplication: Target database - ' + __testContext.config.db.database);
 
 	// Clear tables
 	db.task(function (t) {
@@ -89,12 +84,12 @@ function __init (initScope, done) {
 		]);
 	}).then(function () {
 		var logger = initScope.logger || {
-			trace: sinon.spy(),
-			debug: sinon.spy(),
-			info:  sinon.spy(),
-			log:   sinon.spy(),
-			warn:  sinon.spy(),
-			error: sinon.spy()
+			trace: sinonSandbox.spy(),
+			debug: sinonSandbox.spy(),
+			info:  sinonSandbox.spy(),
+			log:   sinonSandbox.spy(),
+			warn:  sinonSandbox.spy(),
+			error: sinonSandbox.spy()
 		};
 
 		var modulesInit = {
@@ -117,7 +112,7 @@ function __init (initScope, done) {
 		// Init limited application layer
 		async.auto({
 			config: function (cb) {
-				cb(null, test.config);
+				cb(null, __testContext.config);
 			},
 			genesisblock: function (cb) {
 				var genesisblock = require('../data/genesisBlock.json');
@@ -217,7 +212,7 @@ function __init (initScope, done) {
 				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 				var socketClusterMock = {
-					on: sinon.spy()
+					on: sinonSandbox.spy()
 				};
 				wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
 
@@ -299,7 +294,7 @@ function __init (initScope, done) {
 		}, function (err, scope) {
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
-			test.debug('initApplication: Rewired modules available');
+			__testContext.debug('initApplication: Rewired modules available');
 
 			// Overwrite syncing function to prevent interfere with tests
 			scope.modules.loader.syncing = function () {
@@ -314,17 +309,17 @@ function __init (initScope, done) {
 
 			// Overwrite onBlockchainReady function to prevent automatic forging
 			scope.modules.delegates.onBlockchainReady = function () {
-				test.debug('initApplication: Fake onBlockchainReady event called');
-				test.debug('initApplication: Loading delegates...');
+				__testContext.debug('initApplication: Fake onBlockchainReady event called');
+				__testContext.debug('initApplication: Loading delegates...');
 
 				var loadDelegates = scope.rewiredModules.delegates.__get__('__private.loadDelegates');
 				loadDelegates(function (err) {
 					var keypairs = scope.rewiredModules.delegates.__get__('__private.keypairs');
 					var delegates_cnt = Object.keys(keypairs).length;
-					expect(delegates_cnt).to.equal(test.config.forging.secret.length);
+					expect(delegates_cnt).to.equal(__testContext.config.forging.secret.length);
 
-					test.debug('initApplication: Delegates loaded from config file - ' + delegates_cnt);
-					test.debug('initApplication: Done');
+					__testContext.debug('initApplication: Delegates loaded from config file - ' + delegates_cnt);
+					__testContext.debug('initApplication: Done');
 
 					if (initScope.waitForGenesisBlock) {
 						return done(err, scope);
@@ -352,7 +347,7 @@ function cleanup (done) {
 		if (dbSandbox) {
 			dbSandbox.destroy();
 		}
-		done();
+		done(err);
 	});
 };
 

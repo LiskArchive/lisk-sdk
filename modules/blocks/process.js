@@ -527,14 +527,14 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 };
 
 /**
- * Validate Block Slot - Validates if block generator is valid delegate.
+ * Validate if block generator is valid delegate.
  *
  * @private
  * @async
  * @method validateBlockSlot
- * @param {Object}   block Full normalized block
- * @param {Object}   lastBlock Full normalized block
- * @param {Function} cb Callback function
+ * @param {Object}   block - Current normalized block
+ * @param {Object}   lastBlock - Last normalized block
+ * @param {Function} cb - Callback function
  */
 __private.validateBlockSlot = function (block, lastBlock, cb) {
 	var roundNextBlock = slots.calcRound(block.height);

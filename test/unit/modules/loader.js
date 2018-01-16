@@ -13,12 +13,8 @@
  */
 'use strict';
 
-var _ = require('lodash');
-var chai = require('chai');
-var expect = require('chai').expect;
 var express = require('express');
 var rewire  = require('rewire');
-var sinon = require('sinon');
 
 var jobsQueue = require('../../../helpers/jobsQueue');
 var modulesLoader = require('../../common/modulesLoader');
@@ -43,10 +39,10 @@ describe('loader', function () {
 				loaderModuleRewired,
 				_.assign({}, modulesLoader.scope, {
 					logic: {
-						transaction: sinon.mock(),
-						account: sinon.mock(),
+						transaction: sinonSandbox.mock(),
+						account: sinonSandbox.mock(),
 						peers: {
-							create: sinon.stub.returnsArg(0)
+							create: sinonSandbox.stub().returnsArg(0)
 						}
 					}
 				}),
@@ -55,7 +51,7 @@ describe('loader', function () {
 						return done(err);
 					}
 					loaderModule = __loaderModule;
-					loadBlockChainStub = sinon.stub(loaderModuleRewired.__get__('__private'), 'loadBlockChain');
+					loadBlockChainStub = sinonSandbox.stub(loaderModuleRewired.__get__('__private'), 'loadBlockChain');
 					loaderModule.onBind({
 						blocks: blocksModuleMock,
 						swagger: {
@@ -77,7 +73,7 @@ describe('loader', function () {
 		var getLastBlockStub;
 
 		beforeEach(function () {
-			getLastBlockStub = sinon.stub(blocksModuleMock.lastBlock, 'get').returns({height: HEIGHT_TWO});
+			getLastBlockStub = sinonSandbox.stub(blocksModuleMock.lastBlock, 'get').returns({height: HEIGHT_TWO});
 		});
 
 		afterEach(function () {

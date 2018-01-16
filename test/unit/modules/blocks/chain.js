@@ -15,13 +15,10 @@
 
 var crypto = require('crypto');
 var lisk = require('lisk-js');
-var chai = require('chai');
-var should = chai.should();
 var application = require('../../../common/application');
 var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
-var sinon = require('sinon');
 
 var previousBlock;
 
@@ -416,8 +413,8 @@ describe('blocks/chain', function () {
 				}
 			};
 
-			var connect = sinon.stub();
-			var disconnect = sinon.stub();
+			var connect = sinonSandbox.stub();
+			var disconnect = sinonSandbox.stub();
 
 			db.$config.options.connect = connect;
 			db.$config.options.disconnect = disconnect;

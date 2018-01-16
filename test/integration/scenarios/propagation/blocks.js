@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var _ = require('lodash');
-var expect = require('chai').expect;
 var Promise = require('bluebird');
 var utils = require('../../utils');
 

@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var _ = require('lodash');
-
 var devConfig = require('../data/config.json');
 
 var utils = require('./utils');

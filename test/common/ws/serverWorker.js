@@ -13,7 +13,6 @@
  */
 'use strict';
 
-var sinon = require('sinon');
 var SCWorker = require('socketcluster/scworker');
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');

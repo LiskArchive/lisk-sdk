@@ -1,2 +1,3 @@
 --timeout 1200s
 --exit
+--require ./test/setup.js

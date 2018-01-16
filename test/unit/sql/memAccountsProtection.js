@@ -13,8 +13,6 @@
  */
 'use strict';
 
-var _ = require('lodash');
-var expect = require('chai').expect;
 var randomstring = require('randomstring');
 
 var sql = require('../common/sql/memAccounts.js');
