@@ -192,10 +192,13 @@ __private.updatePeerStatus = function (err, status, peer) {
 		}
 	} else {
 		peer.applyHeaders({
-			height: status.height,
 			broadhash: status.broadhash,
+			height: status.height,
+			httpPort: status.httpPort,
 			nonce: status.nonce,
-			state: Peer.STATE.CONNECTED //connected
+			os: status.os,
+			state: Peer.STATE.CONNECTED,
+			version: status.version
 		});
 	}
 
