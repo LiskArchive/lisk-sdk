@@ -509,13 +509,14 @@ Transactions.prototype.undoUnconfirmed = function (transaction, cb, tx) {
 };
 
 /**
- * Adds transaction back to .
+ * Adds transaction back to transaction Pool.
  * @param {transaction} transaction
- * @return {function} Calls transactionPool.addUnconfirmedTransaction
+ * @param {function} cb - Callback function.
+ * @return {function} Calls transactionPool.queueTransaction
  */
-Transactions.prototype.addReady = function (transaction) {
-	library.logger.debug('Adding ready transaction', transaction.id);
-	return __private.transactionPool.addReady(transaction);
+Transactions.prototype.queueTransaction = function (transaction, cb) {
+	library.logger.debug('Adding queue transaction', transaction.id);
+	return __private.transactionPool.queueTransaction(transaction, cb);
 };
 
 /**

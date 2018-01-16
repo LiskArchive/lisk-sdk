@@ -519,8 +519,7 @@ __private.popLastBlock = function (oldLastBlock, cb) {
 						// WARNING: DB_WRITE
 						modules.transactions.undoUnconfirmed(transaction, cb);
 					}, function (cb) {
-						modules.transactions.addReady(transaction);
-						return setImmediate(cb);
+						modules.transactions.queueTransaction(transaction, cb);
 					}
 				], cb);
 			}, function (err) {
