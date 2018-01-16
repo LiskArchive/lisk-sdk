@@ -14,6 +14,7 @@
 'use strict';
 
 var nodeExternals = require('webpack-node-externals');
+var webpack = require('webpack');
 
 module.exports = {
 	entry: './workersController.js',
@@ -23,5 +24,10 @@ module.exports = {
 		libraryTarget: 'commonjs2'
 	},
 	target: 'node',
-	externals: [nodeExternals()]
+	externals: [nodeExternals()],
+	plugins: [
+		new webpack.DefinePlugin({
+			PACKAGED: true
+		})
+	]
 };
