@@ -13,16 +13,11 @@
  */
 'use strict';/*eslint*/
 
-var _  = require('lodash');
-
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
 var crypto = require('crypto');
 var async = require('async');
-var sinon = require('sinon');
 
-var chai = require('chai');
-var expect = require('chai').expect;
 var constants = require('../../../helpers/constants.js');
 var application = require('../../common/application.js');
 var AccountModule = require('../../../modules/accounts.js');
@@ -107,7 +102,7 @@ describe('accounts', function () {
 	describe('getAccount', function () {
 
 		it('should convert publicKey filter to address and call account.get', function (done) {
-			var getAccountStub = sinon.stub(accountLogic, 'get');
+			var getAccountStub = sinonSandbox.stub(accountLogic, 'get');
 
 			accounts.getAccount({publicKey: validAccount.publicKey});
 			expect(getAccountStub.calledOnce).to.be.ok;
@@ -141,7 +136,7 @@ describe('accounts', function () {
 		});
 
 		it('should internally call logic/account.getAll method', function (done) {
-			var getAllSpy = sinon.spy(accountLogic, 'getAll');
+			var getAllSpy = sinonSandbox.spy(accountLogic, 'getAll');
 
 			accounts.getAccounts({address : validAccount.address}, function (err, res) {
 				expect(err).to.not.exist;

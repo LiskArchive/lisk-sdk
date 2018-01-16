@@ -79,26 +79,6 @@ function Transport (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
-// Private methods
-/**
- * Creates a sha256 hash based on input object.
- * @private
- * @implements {crypto.createHash}
- * @implements {bignum.fromBuffer}
- * @param {Object} obj
- * @return {string} Buffer array to string
- */
-__private.hashsum = function (obj) {
-	var buf = Buffer.from(JSON.stringify(obj), 'utf8');
-	var hashdig = crypto.createHash('sha256').update(buf).digest();
-	var temp = Buffer.alloc(8);
-	for (var i = 0; i < 8; i++) {
-		temp[i] = hashdig[7 - i];
-	}
-
-	return bignum.fromBuffer(temp).toString();
-};
-
 /**
  * Removes a peer based on ip and port.
  * @private

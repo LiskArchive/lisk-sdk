@@ -14,7 +14,6 @@
 'use strict';
 
 var lisk = require('lisk-js');
-var expect = require('chai').expect;
 
 var typesRepresentatives = require('../../../fixtures/typesRepresentatives');
 var accountFixtures = require('../../../fixtures/accounts');

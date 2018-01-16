@@ -13,16 +13,10 @@
  */
 'use strict';
 
-var chai = require('chai');
-var expect = require('chai').expect;
 var lisk = require('lisk-js');
-
-var test = require('../../test');
-var _ = test._;
 
 var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
-var Scenarios = require('../common/scenarios');
 var localCommon = require('./common');
 
 describe('System test (type 4) multisignature', function () {

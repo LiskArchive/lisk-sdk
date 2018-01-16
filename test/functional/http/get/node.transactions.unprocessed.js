@@ -13,7 +13,6 @@
  */
 'use strict';
 
-var test = require('../../functional.js');
 var lisk = require('lisk-js');
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
@@ -23,7 +22,6 @@ var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 var sendTransactionsPromise = apiHelpers.sendTransactionsPromise;
 var accountFixtures = require('../../../fixtures/accounts');
 var Promise = require('bluebird');
-var _ = test._;
 
 describe('GET /api/node', function () {
 
