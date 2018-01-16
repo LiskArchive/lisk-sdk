@@ -331,9 +331,13 @@ describe('transport', function () {
 
 					describe('when __private.receiveSignature fails', function () {
 
-						it('should call library.logger.debug with err and signature', function (done) {
+						beforeEach(function (done) {
 							var err = 'Error processing signature: Error message';
-							__private.receiveSignature = sinon.stub().callsArgWith(1, err); // TODO: Also move to beforeEach
+							__private.receiveSignature = sinon.stub().callsArgWith(1, err);
+							done();
+						});
+
+						it('should call library.logger.debug with err and signature', function (done) {
 							library.logger.debug = sinon.spy();
 
 							__private.receiveSignatures({
@@ -349,8 +353,6 @@ describe('transport', function () {
 						});
 
 						it('should call callback with error', function (done) {
-							var err = 'Error processing signature: Error message';
-							__private.receiveSignature = sinon.stub().callsArgWith(1, err);
 							library.logger.debug = sinon.spy();
 
 							__private.receiveSignatures({
