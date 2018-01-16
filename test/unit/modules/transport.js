@@ -27,7 +27,7 @@ describe('transport', function () {
 
 	var dbStub, loggerStub, busStub, schemaStub, networkStub, balancesSequenceStub,
 		transactionStub, blockStub, peersStub, broadcasterStubRef, transportInstance,
-		library, __private, defaultScope, restoreRewiredTopDeps;
+		library, __private, modules, defaultScope, restoreRewiredTopDeps;
 
 	const SAMPLE_SIGNATURE_1 = '32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739';
 	const SAMPLE_SIGNATURE_2 = '61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595';
@@ -380,8 +380,43 @@ describe('transport', function () {
 		});
 
 		describe('receiveSignature', function () {
+			var restoreRewiredDeps;
 
-			it('should call library.schema.validate');
+			beforeEach(function (done) {
+				library = {
+					schema: {
+						validate: sinon.stub().callsArg(2)
+					}
+				};
+
+				modules = {
+					multisignatures: {
+						processSignature: sinon.stub().callsArg(1)
+					}
+				};
+
+				restoreRewiredDeps = TransportModule.__set__({
+					library: library,
+					modules: modules
+				});
+
+				done();
+			});
+
+			afterEach(function (done) {
+				restoreRewiredDeps();
+				done();
+			});
+
+			it('should call library.schema.validate', function (done) {
+
+				__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
+					expect(err).to.be.equal(undefined);
+					expect(library.schema.validate.calledOnce).to.be.true;
+					expect(library.schema.validate.calledWith(SAMPLE_SIGNATURE_1)).to.be.true;
+					done();
+				});
+			});
 
 			it('should call library.schema.validate with {signature: query}');
 
