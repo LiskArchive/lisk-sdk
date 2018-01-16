@@ -26,7 +26,7 @@ describe('#signRawTransaction', () => {
 			.returns(timeWithOffset);
 	});
 
-	describe('given a raw transaction type 0', () => {
+	describe('given a raw transaction', () => {
 		const amount = '100';
 		const recipientId = '123456789L';
 		const timestamp = 12345;
@@ -34,6 +34,7 @@ describe('#signRawTransaction', () => {
 		const type = 0;
 		const asset = {};
 		let transactionType0;
+
 		beforeEach(() => {
 			transactionType0 = {
 				amount,
@@ -59,6 +60,7 @@ describe('#signRawTransaction', () => {
 			describe('when executed', () => {
 				let signedTransaction;
 				let signingProperties;
+
 				beforeEach(() => {
 					signingProperties = {
 						passphrase,
@@ -101,7 +103,7 @@ describe('#signRawTransaction', () => {
 					return signedTransaction.should.have.property('fee').equal(fee);
 				});
 
-				it('should have the timestamp', () => {
+				it('should have the updated timestamp', () => {
 					return signedTransaction.should.have
 						.property('timestamp')
 						.be.equal(timeWithOffset);
@@ -141,6 +143,7 @@ describe('#signRawTransaction', () => {
 				describe('when executed', () => {
 					let signedTransaction;
 					let signingProperties;
+
 					beforeEach(() => {
 						signingProperties = {
 							passphrase,
@@ -186,7 +189,7 @@ describe('#signRawTransaction', () => {
 						return signedTransaction.should.have.property('fee').equal(fee);
 					});
 
-					it('should have the timestamp', () => {
+					it('should have the updated timestamp', () => {
 						return signedTransaction.should.have
 							.property('timestamp')
 							.be.equal(timeWithOffset);
@@ -243,6 +246,87 @@ describe('#signRawTransaction', () => {
 						});
 					});
 				});
+			});
+		});
+	});
+
+	describe('given a signed transaction', () => {
+		const amount = '100';
+		const recipientId = '123456789L';
+		const timestamp = 12345;
+		const fee = '10000000';
+		const type = 0;
+		const asset = {};
+		const senderPublicKey =
+			'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f';
+		const senderId = '16313739661670634666L';
+		const signature =
+			'd09288d22a1ac860f625db950340cd26e435d0d98a00ffb92d55c16b76d83ed4fd1acf974c28c9dede8fb15a49ccaddb6325f4e750d968e515e1f0d90e0fb30d';
+		const transactionId = '9248517814265997446';
+		const updatedSignerPassphrase =
+			'wagon stock borrow episode laundry kitten salute link globe zero feed';
+		const updatedSignerPublicKey =
+			'798974780475d8d7d6c6c9bb3dabf10efb16b7b380469223ee3ecc711c8e1396';
+		const updatedSignerAddress = '5752844829611395697L';
+		const updatedSignerSignature =
+			'647ca03394d0fefeeaa018e6943feb61c0ec64f3110ab96fe87564f1c915a40f25ac19324802684de87cdc5a0947f774d8b0ae78f9144635996d0450bcd5760c';
+		const updatedSignerId = '9495608349801955934';
+		let transactionType0;
+
+		beforeEach(() => {
+			transactionType0 = {
+				amount,
+				recipientId,
+				senderPublicKey,
+				timestamp,
+				type,
+				fee,
+				senderId,
+				signature,
+				id: transactionId,
+				recipientPublicKey: null,
+				asset,
+			};
+		});
+
+		describe('when executed', () => {
+			let signedTransaction;
+			let signingProperties;
+
+			beforeEach(() => {
+				signingProperties = {
+					passphrase: updatedSignerPassphrase,
+					transaction: transactionType0,
+				};
+				signedTransaction = signRawTransaction(signingProperties);
+			});
+
+			it('should sign the transaction', () => {
+				signedTransaction.should.be.ok();
+			});
+
+			it('should have the updated senderPublicKey', () => {
+				return signedTransaction.should.have
+					.property('senderPublicKey')
+					.equal(updatedSignerPublicKey);
+			});
+
+			it('should have the updated senderId', () => {
+				return signedTransaction.should.have
+					.property('senderId')
+					.equal(updatedSignerAddress);
+			});
+
+			it('should have the updated transactionId', () => {
+				return signedTransaction.should.have
+					.property('id')
+					.equal(updatedSignerId);
+			});
+
+			it('should have the updated transactionId', () => {
+				return signedTransaction.should.have
+					.property('signature')
+					.equal(updatedSignerSignature);
 			});
 		});
 	});

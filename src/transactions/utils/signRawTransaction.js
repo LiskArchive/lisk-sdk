@@ -22,11 +22,12 @@ export default function signRawTransaction({
 	secondPassphrase,
 	timeOffset,
 }) {
-	const { publicKey } = crypto.getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const { publicKey, address } = crypto.getAddressAndPublicKeyFromPassphrase(
+		passphrase,
+	);
 	const senderSecondPublicKey = secondPassphrase
 		? crypto.getPrivateAndPublicKeyFromPassphrase(secondPassphrase).publicKey
 		: null;
-	const address = crypto.getAddress(publicKey);
 
 	const propertiesToAdd = {
 		senderPublicKey: publicKey,
@@ -35,7 +36,11 @@ export default function signRawTransaction({
 		timestamp: getTimeWithOffset(timeOffset),
 	};
 
-	const transactionWithProperties = Object.assign(transaction, propertiesToAdd);
+	const transactionWithProperties = Object.assign(
+		{},
+		transaction,
+		propertiesToAdd,
+	);
 
 	return prepareTransaction(
 		transactionWithProperties,
