@@ -18,6 +18,12 @@ const time = require('../../../src/transactions/utils/time');
 
 describe('#signRawTransaction', () => {
 	const timeWithOffset = 38350076;
+	const amount = '100';
+	const recipientId = '123456789L';
+	const timestamp = 12345;
+	const fee = '10000000';
+	const type = 0;
+	const asset = {};
 	let getTimeWithOffsetStub;
 
 	beforeEach(() => {
@@ -27,16 +33,10 @@ describe('#signRawTransaction', () => {
 	});
 
 	describe('given a raw transaction', () => {
-		const amount = '100';
-		const recipientId = '123456789L';
-		const timestamp = 12345;
-		const fee = '10000000';
-		const type = 0;
-		const asset = {};
-		let transactionType0;
+		let transaction;
 
 		beforeEach(() => {
-			transactionType0 = {
+			transaction = {
 				amount,
 				recipientId,
 				senderPublicKey: null,
@@ -64,7 +64,7 @@ describe('#signRawTransaction', () => {
 				beforeEach(() => {
 					signingProperties = {
 						passphrase,
-						transaction: transactionType0,
+						transaction,
 					};
 					signedTransaction = signRawTransaction(signingProperties);
 				});
@@ -147,7 +147,7 @@ describe('#signRawTransaction', () => {
 					beforeEach(() => {
 						signingProperties = {
 							passphrase,
-							transaction: transactionType0,
+							transaction,
 							secondPassphrase,
 						};
 						signedTransaction = signRawTransaction(signingProperties);
@@ -232,7 +232,7 @@ describe('#signRawTransaction', () => {
 						beforeEach(() => {
 							signingProperties = {
 								passphrase,
-								transaction: transactionType0,
+								transaction,
 								secondPassphrase,
 								timeOffset,
 							};
@@ -251,12 +251,6 @@ describe('#signRawTransaction', () => {
 	});
 
 	describe('given a signed transaction', () => {
-		const amount = '100';
-		const recipientId = '123456789L';
-		const timestamp = 12345;
-		const fee = '10000000';
-		const type = 0;
-		const asset = {};
 		const senderPublicKey =
 			'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f';
 		const senderId = '16313739661670634666L';
@@ -271,10 +265,10 @@ describe('#signRawTransaction', () => {
 		const updatedSignerSignature =
 			'647ca03394d0fefeeaa018e6943feb61c0ec64f3110ab96fe87564f1c915a40f25ac19324802684de87cdc5a0947f774d8b0ae78f9144635996d0450bcd5760c';
 		const updatedSignerId = '9495608349801955934';
-		let transactionType0;
+		let transaction;
 
 		beforeEach(() => {
-			transactionType0 = {
+			transaction = {
 				amount,
 				recipientId,
 				senderPublicKey,
@@ -296,7 +290,7 @@ describe('#signRawTransaction', () => {
 			beforeEach(() => {
 				signingProperties = {
 					passphrase: updatedSignerPassphrase,
-					transaction: transactionType0,
+					transaction,
 				};
 				signedTransaction = signRawTransaction(signingProperties);
 			});
@@ -323,7 +317,7 @@ describe('#signRawTransaction', () => {
 					.equal(updatedSignerId);
 			});
 
-			it('should have the updated transactionId', () => {
+			it('should have the updated signature', () => {
 				return signedTransaction.should.have
 					.property('signature')
 					.equal(updatedSignerSignature);
