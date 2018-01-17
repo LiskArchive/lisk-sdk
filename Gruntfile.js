@@ -95,18 +95,9 @@ module.exports = function (grunt) {
 				maxBuffer: maxBufferSize
 			},
 
-			fetchCoverage: {
-				command: 'rm -rf ./test/.coverage-func.zip; curl -o ./test/.coverage-func.zip $HOST/coverage/download',
-				maxBuffer: maxBufferSize
-			},
-
 			createBundles: {
 				command: 'npm run create-bundles',
 				maxBuffer: maxBufferSize
-			},
-
-			coverageReport: {
-				command: 'rm -f ./test/.coverage-unit/lcov.info; ./node_modules/.bin/istanbul report --root ./test/.coverage-unit/ --dir ./test/.coverage-unit'
 			}
 		},
 
@@ -141,7 +132,6 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-eslint');
 
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:createBundles', 'exec:package', 'exec:build', 'compress']);
-	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('eslint-nofix', ['eslint']);
 
 	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {

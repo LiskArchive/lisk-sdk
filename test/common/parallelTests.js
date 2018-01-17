@@ -60,19 +60,19 @@ function parallelTests (tag, suite, section) {
 
 	switch (tag) {
 		case 'slow':
-			mochaArguments.push('--', '--grep', '@slow');
+			mochaArguments.push('--grep', '@slow');
 			break;
 		case 'unstable':
-			mochaArguments.push('--', '--grep', '@unstable');
+			mochaArguments.push('--grep', '@unstable');
 			break;
 		case 'untagged':
-			mochaArguments.push('--', '--grep', '@slow|@unstable', '--invert');
+			mochaArguments.push('--grep', '@slow|@unstable', '--invert');
 			break;
 		case 'extensive':
-			mochaArguments.push('--', '--grep', '@unstable', '--invert');
+			mochaArguments.push('--grep', '@unstable', '--invert');
 			break;
 		default:
-			mochaArguments.push('--', '--grep', '@slow|@unstable', '--invert');
+			mochaArguments.push('--grep', '@slow|@unstable', '--invert');
 			break;
 	};
 
@@ -83,10 +83,9 @@ function parallelTests (tag, suite, section) {
 	var parallelTestsRunning = {};
 
 	var spawnTest = function (test) {
-		var coverageArguments = ['cover', '--dir', 'test/.coverage-unit', '--include-pid', 'node_modules/.bin/_mocha', test];
-		var istanbulArguments = coverageArguments.concat(mochaArguments);
-
-		var child = child_process.spawn('node_modules/.bin/istanbul', istanbulArguments, {
+		var coverageArguments = ['--report-dir', 'coverage', 'node_modules/.bin/_mocha', test];
+		var nycArguments = coverageArguments.concat(mochaArguments);
+		var child = child_process.spawn('node_modules/.bin/nyc', nycArguments, {
 			cwd: __dirname + '/../..',
 			detached: true,
 			stdio: 'inherit'

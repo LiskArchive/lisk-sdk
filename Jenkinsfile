@@ -47,7 +47,7 @@ def startLisk() {
 	try {
 		sh '''
 		cp test/data/config.json test/data/genesisBlock.json .
-		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
+		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe ./scripts/start_lisk.sh
 		'''
 	} catch (err) {
 		echo "Error: ${err}"
@@ -123,11 +123,9 @@ def reportCoverage(node) {
 		sh """
 		export HOST=127.0.0.1:4000
 		# Gathers tests into single lcov.info
-		npm run cover:report
-		npm run cover:fetch
+		npm run cover
 		# Submit coverage reports to Master
-		scp -r test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
-		scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-${node}.zip
+		scp -r test/coverage/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
 		"""
 	} catch (err) {
 		echo "Error: ${err}"
@@ -380,11 +378,6 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 			try {
 				sh '''
 				cd /var/lib/jenkins/coverage/
-				unzip coverage-func-node-01.zip -d node-01
-				unzip coverage-func-node-02.zip -d node-02
-				unzip coverage-func-node-03.zip -d node-03
-				unzip coverage-func-node-04.zip -d node-04
-				unzip coverage-func-node-05.zip -d node-05
 				bash merge_lcov.sh . merged-lcov.info
 				cp merged-lcov.info $WORKSPACE/merged-lcov.info
 				cp .coveralls.yml $WORKSPACE/.coveralls.yml
