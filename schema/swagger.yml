@@ -872,6 +872,8 @@ paths:
           required: true
           schema:
             type: array
+            maxItems: 1
+            minItems: 1
             items:
               $ref: '#/definitions/Transaction'
       responses:
