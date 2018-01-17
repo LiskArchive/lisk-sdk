@@ -15,6 +15,7 @@
 
 var PQ = require('pg-promise').ParameterizedQuery;
 var QF = require('pg-promise').QueryFile;
+var _ = require('lodash');
 var path = require('path');
 const migrationsSql = require('../sql').migrations;
 var columnSet;
@@ -34,22 +35,50 @@ function AccountsRepo (db, pgp) {
 
 	this.dbTable = 'mem_accounts';
 
-	this.dbFields = [
-		'username',
-		'isDelegate',
-		'secondSignature',
-		'address',
-		'publicKey',
-		'secondPublicKey',
-		'balance',
-		'rate',
-		'rank'
+	var normalFields = [
+		{name: 'isDelegate', 		cast: 'boolean'},
+		{name: 'u_isDelegate', 		cast: 'boolean'},
+		{name: 'secondSignature', 	cast: 'boolean'},
+		{name: 'u_secondSignature', cast: 'boolean'},
+		{name: 'balance', 			cast: 'bigint'},
+		{name: 'u_balance', 		cast: 'bigint'},
+		{name: 'rate', 				cast: 'bigint'},
+		{name: 'multimin'},
+		{name: 'u_multimin'},
+		{name: 'multilifetime'},
+		{name: 'u_multilifetime'},
+		{name: 'blockId'},
+		{name: 'nameexist'},
+		{name: 'u_nameexist'},
+		{name: 'fees', 				cast: 'bigint'},
+		{name: 'rank', 				cast: 'bigint', mode: ':raw', init: function (col) { return 'row_number() OVER (ORDER BY a."vote" DESC, a."publicKey" ASC)'; }},
+		{name: 'rewards', 			cast: 'bigint'},
+		{name: 'vote', 				cast: 'bigint'},
+		{name: 'producedBlocks', 	cast: 'bigint'},
+		{name: 'missedBlocks', 		cast: 'bigint'},
 	];
+
+	var immutableFields = [
+		{name: 'username'},
+		{name: 'u_username'},
+		{name: 'address', 			mode: ':raw', init: function (col) { return 'UPPER(' + col.name + ')'; }},
+		{name: 'publicKey', 		mode: ':raw', init: function (col) { return 'ENCODE(' + col.name + ', \'hex\')'; }},
+		{name: 'secondPublicKey', 	mode: ':raw', init: function (col) { return 'ENCODE(' + col.name + ', \'hex\')'; }},
+		{name: 'virgin', 			cast: 'boolean'}
+	];
+
+	this.dbFields = _.union(normalFields, immutableFields);
 
 	if (!columnSet) {
 		columnSet = {};
+
 		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
+
+		columnSet.select = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
+
 		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
+
+		columnSet.update = new pgp.helpers.ColumnSet(normalFields, {table: table});
 	}
 
 	this.cs = columnSet;
@@ -66,7 +95,9 @@ var Queries = {
 
 	upsert: new PQ('INSERT INTO mem_accounts $1 VALUES $2 ON CONFLICT($3) DO UPDATE SET $4'),
 
-	resetMemTables: new QF(path.join(process.cwd(), './db/sql/init/resetMemoryTables.sql'), {minify: true, params: {schema: 'public'}})
+	resetMemTables: new QF(path.join(process.cwd(), './db/sql/init/resetMemoryTables.sql'), {minify: true, params: {schema: 'public'}}),
+
+	getAll: new QF(path.join(process.cwd(), './db/sql/accounts/getAll.sql'), {minify: true, params: {schema: 'public', table: this.dbTable}})
 };
 
 /**
@@ -128,6 +159,15 @@ AccountsRepo.prototype.upsert = function (data, conflictingFields) {
  */
 AccountsRepo.prototype.resetMemTables = function () {
 	return this.db.none(migrationsSql.resetMemoryTables);
+};
+
+AccountsRepo.prototype.getAll = function (filters, fields) {
+	//return this.db.query(Queries.getAll, [fields, 'isDelegate = 1', 10, 0]);
+
+	console.log(this.pgp.as.format('SELECT ${col:name} FROM ${table:name} LIMIT 1 OFFSET 10;', {col: ['isDelegate'], table: 'mem_accounts'}));
+
+	//return this.db.query(Queries.getAll, ['username', 'isDelegate = 1', 10, 0]);
+	return this.db.query('SELECT $1:name FROM $2 LIMIT 1 OFFSET 10;', [['isDelegate', 'username'], this.dbTable]);
 };
 
 module.exports = AccountsRepo;
