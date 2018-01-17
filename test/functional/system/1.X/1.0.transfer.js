@@ -23,7 +23,7 @@ var sendTransactionPromise = require('../../../common/helpers/api').sendTransact
 var randomUtil = require('../../../common/utils/random');
 var errorCodes = require('../../../../helpers/apiCodes');
 
-describe('POST /api/transactions (unconfirmed type 0 on top of type 1)', function () {
+describe('POST /api/transactions (unconfirmed type 0 on top of type 1) @unstable', function () {
 
 	var transaction;
 	var badTransactions = [];
