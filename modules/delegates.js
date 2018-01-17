@@ -224,6 +224,7 @@ __private.forge = function (cb) {
 			if (modules.transport.poorConsensus(consensus)) {
 				return setImmediate(cb, ['Inadequate broadhash consensus', consensus, '%'].join(' '));
 			}
+			library.logger.info(['Broadhash consensus now', self.consensus, '%'].join(' '));
 			modules.blocks.process.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
 		}, function (err) {
 			if (err) {
