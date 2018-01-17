@@ -92,18 +92,19 @@ describe('GET /delegates', function () {
 			var delegateTransaction = lisk.delegate.createDelegate(secondSecretAccount.password, secondSecretAccount.username);
 
 			before(function () {
-				return apiHelpers.sendTransactionsPromise([creditTransaction]).then(function (res) {
+				return apiHelpers.sendTransactionPromise(creditTransaction).then(function (res) {
 					res.statusCode.should.be.eql(200);
 					return waitFor.confirmations([creditTransaction.id]);
 				}).then(function () {
 					return apiHelpers.sendTransactionsPromise([signatureTransaction, delegateTransaction]);
 				}).then(function (res) {
-					res.statusCode.should.be.eql(200);
+					res[0].statusCode.should.be.eql(200);
+					res[1].statusCode.should.be.eql(200);
 					return waitFor.confirmations([signatureTransaction.id, delegateTransaction.id]);
 				});
 			});
 
-			it('using no secondPublicKey should return an empty array', function () {
+			it.only('using no secondPublicKey should return an empty array', function () {
 				return delegatesEndpoint.makeRequest({secondPublicKey: ''}, 200).then(function (res) {
 					res.body.data.should.be.empty;
 				});
