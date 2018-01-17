@@ -101,7 +101,7 @@ module.exports = function (grunt) {
 			},
 
 			createBundles: {
-				command: 'npm run create-bundles',
+				command: 'npm run build',
 				maxBuffer: maxBufferSize
 			},
 
