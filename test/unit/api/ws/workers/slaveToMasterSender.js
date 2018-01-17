@@ -22,22 +22,18 @@ describe('SlaveToMasterSender', function () {
 	var validNonce;
 	var validCb;
 
-	before(function () {
+	beforeEach(function () {
+		validNonce = '0123456789ABCDEF';
+		validCb = sinonSandbox.spy();
 		slaveWAMPServerMock = {
 			worker: {
 				options: {
 					authKey: 'valid auth key'
 				}
 			},
-			sendToMaster: 'sendToMaster'
+			'sendToMaster': sinonSandbox.stub()
 		};
-		slaveWAMPServerMock.sendToMaster = sinonSandbox.stub(slaveWAMPServerMock, 'sendToMaster');
 		slaveToMasterSender = new SlaveToMasterSender(slaveWAMPServerMock);
-	});
-
-	beforeEach(function () {
-		validNonce = '0123456789ABCDEF';
-		validCb = sinonSandbox.spy();
 	});
 
 	describe('constructor', function () {
@@ -99,8 +95,7 @@ describe('SlaveToMasterSender', function () {
 		});
 
 		it('should return an error received from master', function (done) {
-			slaveWAMPServerMock.sendToMaster.restore();
-			slaveWAMPServerMock.sendToMaster = sinonSandbox.stub(slaveWAMPServerMock, 'sendToMaster').callsArgWith(3, 'On master error');
+			slaveWAMPServerMock.sendToMaster.callsArgWith(3, 'On master error');
 			slaveToMasterSender.getPeer(validNonce, function (err) {
 				expect(err).to.equal('On master error');
 				done();
@@ -108,8 +103,7 @@ describe('SlaveToMasterSender', function () {
 		});
 
 		it('should return false if peers list from master is empty', function (done) {
-			slaveWAMPServerMock.sendToMaster.restore();
-			slaveWAMPServerMock.sendToMaster = sinonSandbox.stub(slaveWAMPServerMock, 'sendToMaster').callsArgWith(3, null, {peers: []});
+			slaveWAMPServerMock.sendToMaster.callsArgWith(3, null, {peers: []});
 			slaveToMasterSender.getPeer(validNonce, function (err, res) {
 				expect(res).to.be.false;
 				done();
@@ -117,8 +111,7 @@ describe('SlaveToMasterSender', function () {
 		});
 
 		it('should return true if peers list from master is not empty', function (done) {
-			slaveWAMPServerMock.sendToMaster.restore();
-			slaveWAMPServerMock.sendToMaster = sinonSandbox.stub(slaveWAMPServerMock, 'sendToMaster').callsArgWith(3, null, {peers: [1]});
+			slaveWAMPServerMock.sendToMaster.callsArgWith(3, null, {peers: [1]});
 			slaveToMasterSender.getPeer(validNonce, function (err, res) {
 				expect(res).to.be.true;
 				done();
