@@ -23,14 +23,9 @@ describe('git', function () {
 		describe('when "git rev-parse HEAD" command fails', function () {
 
 			var validErrorMessage = 'Not a git repository';
-			var spawnSyncStub;
 
 			beforeEach(function () {
-				spawnSyncStub = sinonSandbox.stub(childProcess, 'spawnSync').returns({stderr: validErrorMessage});
-			});
-
-			afterEach(function () {
-				spawnSyncStub.restore();
+				sinonSandbox.stub(childProcess, 'spawnSync').returns({stderr: validErrorMessage});
 			});
 
 			it('should throw an error', function () {
@@ -41,14 +36,9 @@ describe('git', function () {
 		describe('when "git rev-parse HEAD" command succeeds', function () {
 
 			var validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
-			var spawnSyncStub;
 
 			beforeEach(function () {
-				spawnSyncStub = sinonSandbox.stub(childProcess, 'spawnSync').returns({stderr: '', stdout: validCommitHash});
-			});
-
-			afterEach(function () {
-				spawnSyncStub.restore();
+				sinonSandbox.stub(childProcess, 'spawnSync').returns({stderr: '', stdout: validCommitHash});
 			});
 
 			it('should return a commit hash', function () {

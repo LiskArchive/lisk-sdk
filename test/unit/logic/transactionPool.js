@@ -27,7 +27,6 @@ var TransactionPool = require('../../../logic/transactionPool');
 describe('txPool', function () {
 
 	var txPool;
-	var jobsQueueRegisterStub;
 
 	before(function (done) {
 		application.init({sandbox: {name: 'lisk_test_logic_transactionPool'}}, function (err, scope) {
@@ -42,11 +41,7 @@ describe('txPool', function () {
 	});
 
 	beforeEach(function () {
-		jobsQueueRegisterStub = sinonSandbox.stub(jobsQueue, 'register');
-	});
-
-	afterEach(function () {
-		jobsQueueRegisterStub.restore();
+		sinonSandbox.stub(jobsQueue, 'register');
 	});
 
 	describe('receiveTransactions', function () {

@@ -55,7 +55,10 @@ describe('peers', function () {
 			upsert: sinonSandbox.stub(),
 			remove: sinonSandbox.stub()
 		};
-		systemModuleMock = {};
+		systemModuleMock = {
+			getBroadhash: sinonSandbox.stub(),
+			getNonce: sinonSandbox.stub()
+		};
 		transportModuleMock = {};
 		modules = {
 			system: systemModuleMock,
@@ -107,8 +110,8 @@ describe('peers', function () {
 		describe('when logic.peers.list returns no records', function () {
 
 			before(function () {
-				systemModuleMock.getBroadhash = sinonSandbox.stub().returns();
-				peersLogicMock.list = sinonSandbox.stub().returns([]);
+				systemModuleMock.getBroadhash.returns();
+				peersLogicMock.list.returns([]);
 			});
 
 			it('should return an empty array', function () {
@@ -122,7 +125,7 @@ describe('peers', function () {
 				randomPeers = _.range(1000).map(function () {
 					return generateRandomActivePeer();
 				});
-				peersLogicMock.list = sinonSandbox.stub().returns(randomPeers);
+				peersLogicMock.list.returns(randomPeers);
 			});
 
 			it('should return all 1000 peers', function () {
@@ -288,7 +291,7 @@ describe('peers', function () {
 						peer.state = random.number(DISCONNECTED_STATE, CONNECTED_STATE + 1);
 						return peer;
 					});
-					peersLogicMock.list = sinonSandbox.stub().returns(randomPeers);
+					peersLogicMock.list.returns(randomPeers);
 				});
 
 				after(function () {
@@ -365,7 +368,7 @@ describe('peers', function () {
 		});
 
 		beforeEach(function () {
-			peersLogicMock.upsert = sinonSandbox.stub().returns(validUpsertResult);
+			peersLogicMock.upsert.returns(validUpsertResult);
 			updateResult = peers.update(validPeer);
 		});
 
@@ -394,7 +397,7 @@ describe('peers', function () {
 		});
 
 		beforeEach(function () {
-			peersLogicMock.remove = sinonSandbox.stub().returns(validLogicRemoveResult);
+			peersLogicMock.remove.returns(validLogicRemoveResult);
 			removeResult = peers.remove(validPeer);
 		});
 
@@ -414,7 +417,6 @@ describe('peers', function () {
 
 			after(function () {
 				modulesLoader.scope.config.peers.list = originalFrozenPeersList;
-				loggerDebugSpy.restore();
 			});
 
 			it('should not call logic.peers.remove', function () {
@@ -462,8 +464,8 @@ describe('peers', function () {
 			validMatched = null;
 			getConsensusResult = null;
 			originalForgingForce = PeersRewired.__get__('library.config.forging.force');
-			systemModuleMock.getBroadhash = sinonSandbox.stub().returns();
-			peersLogicMock.list = sinonSandbox.stub().returns([]);
+			systemModuleMock.getBroadhash.returns();
+			peersLogicMock.list.returns([]);
 		});
 
 		after(function () {
@@ -493,7 +495,7 @@ describe('peers', function () {
 
 			before(function () {
 				PeersRewired.__set__('library.config.forging.force', false);
-				peersLogicMock.list = sinonSandbox.stub().returns([]);
+				peersLogicMock.list.returns([]);
 			});
 
 			afterEach(function () {
@@ -525,7 +527,7 @@ describe('peers', function () {
 						return generateRandomActivePeer();
 					});
 					broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
-					systemModuleMock.getBroadhash = sinonSandbox.stub().returns(broadhashes.matchedBroadhash);
+					systemModuleMock.getBroadhash.returns(broadhashes.matchedBroadhash);
 					validActive = oneHundredActivePeers;
 				});
 
@@ -657,7 +659,7 @@ describe('peers', function () {
 	describe('acceptable', function () {
 
 		before(function () {
-			systemModuleMock.getNonce = sinonSandbox.stub().returns(NONCE);
+			systemModuleMock.getNonce.returns(NONCE);
 			process.env['NODE_ENV'] = 'DEV';
 		});
 
@@ -705,7 +707,6 @@ describe('peers', function () {
 
 		afterEach(function () {
 			PeersRewired.__set__('library.config.peers.list', originalPeersList);
-			peers.discover.restore();
 		});
 
 		it('should update peers during onBlockchainReady', function (done) {
@@ -738,12 +739,8 @@ describe('peers', function () {
 	describe('onPeersReady', function () {
 
 		before(function () {
-			peersLogicMock.list = sinonSandbox.stub().returns([]);
+			peersLogicMock.list.returns([]);
 			sinonSandbox.stub(peers, 'discover').callsArgWith(0, null);
-		});
-
-		after(function () {
-			peers.discover.restore();
 		});
 
 		it('should update peers during onBlockchainReady', function (done) {

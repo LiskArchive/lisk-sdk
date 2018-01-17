@@ -102,12 +102,11 @@ describe('accounts', function () {
 	describe('getAccount', function () {
 
 		it('should convert publicKey filter to address and call account.get', function (done) {
-			var getAccountStub = sinonSandbox.stub(accountLogic, 'get');
+			sinonSandbox.stub(accountLogic, 'get');
 
 			accounts.getAccount({publicKey: validAccount.publicKey});
-			expect(getAccountStub.calledOnce).to.be.ok;
-			expect(getAccountStub.calledWith({address: validAccount.address})).to.be.ok;
-			getAccountStub.restore();
+			expect(accountLogic.get.calledOnce).to.be.ok;
+			expect(accountLogic.get.calledWith({address: validAccount.address})).to.be.ok;
 			done();
 		});
 

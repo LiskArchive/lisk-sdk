@@ -24,7 +24,6 @@ describe('loader', function () {
 
 	var loaderModule;
 	var blocksModuleMock;
-	var loadBlockChainStub;
 
 	before(function (done) {
 		var loaderModuleRewired = rewire('../../../modules/loader');
@@ -51,7 +50,7 @@ describe('loader', function () {
 						return done(err);
 					}
 					loaderModule = __loaderModule;
-					loadBlockChainStub = sinonSandbox.stub(loaderModuleRewired.__get__('__private'), 'loadBlockChain');
+					sinonSandbox.stub(loaderModuleRewired.__get__('__private'), 'loadBlockChain');
 					loaderModule.onBind({
 						blocks: blocksModuleMock,
 						swagger: {
@@ -61,23 +60,14 @@ describe('loader', function () {
 					done();
 				});
 		});
-
-		after(function () {
-			loadBlockChainStub.restore();
-		});
 	});
 
 	describe('findGoodPeers', function () {
 
 		var HEIGHT_TWO = 2;
-		var getLastBlockStub;
 
 		beforeEach(function () {
-			getLastBlockStub = sinonSandbox.stub(blocksModuleMock.lastBlock, 'get').returns({height: HEIGHT_TWO});
-		});
-
-		afterEach(function () {
-			getLastBlockStub.restore();
+			sinonSandbox.stub(blocksModuleMock.lastBlock, 'get').returns({height: HEIGHT_TWO});
 		});
 
 		it('should return peers list sorted by height', function () {

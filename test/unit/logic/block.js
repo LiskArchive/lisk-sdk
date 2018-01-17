@@ -268,7 +268,7 @@ describe('block', function () {
 	var transactionStub;
 	var transactions = [];
 
-	before(function () {
+	beforeEach(function () {
 		transactionStub = {
 			getBytes: sinonSandbox.stub(),
 			objectNormalize: sinonSandbox.stub()
@@ -288,7 +288,7 @@ describe('block', function () {
 
 			var blockNormalizeStub;
 
-			before(function () {
+			beforeEach(function () {
 				blockNormalizeStub = sinonSandbox.stub(block, 'objectNormalize').returnsArg(0);
 
 				transactionStub.getBytes.returns(Buffer.from('dummy transaction bytes'));

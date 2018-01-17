@@ -657,10 +657,6 @@ describe('dapp', function () {
 					schemaSpy = sinonSandbox.spy(library.schema, 'validate');
 				});
 
-				afterEach(function () {
-					schemaSpy.restore();
-				});
-
 				it('should use the correct format to validate against', function () {
 					dapp.objectNormalize(transaction);
 					expect(schemaSpy.calledOnce).to.equal(true);
