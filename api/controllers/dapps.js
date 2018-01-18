@@ -19,16 +19,21 @@ var _ = require('lodash');
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class DappsController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * @module controllers/dapps
+ * @requires lodash
+ * @param {Object} scope - App instance.
+ * @TODO: add description of the module
  */
 function DappsController(scope) {
 	modules = scope.modules;
 }
 
+/**
+ * @public
+ * @param {Object} context
+ * @param {function} next
+ * @TODO: add description of the function and its parameters
+ */
 DappsController.getDapps = function (context, next) {
 	var params = context.request.swagger.params;
 
