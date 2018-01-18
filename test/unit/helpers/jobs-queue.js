@@ -37,25 +37,25 @@ describe('helpers/jobsQueue', function () {
 			});
 
 			afterEach(function () {
-				expect(validFunction.notCalled).to.be.true;
+				validFunction.notCalled.should.be.true;
 			});
 
 			it('should throw an error when trying to pass job that is not a function', function () {
-				expect(function () {
+				(function () {
 					jobsQueue.register('test_job', 'test', recallInterval);
-				}).to.throw('Syntax error - invalid parameters supplied');
+				}).should.throw('Syntax error - invalid parameters supplied');
 			});
 
 			it('should throw an error when trying to pass name that is not a string', function () {
-				expect(function () {
+				(function () {
 					jobsQueue.register(123, validFunction, recallInterval);
-				}).to.throw('Syntax error - invalid parameters supplied');
+				}).should.throw('Syntax error - invalid parameters supplied');
 			});
 
 			it('should throw an error when trying to pass time that is not integer', function () {
-				expect(function () {
+				(function () {
 					jobsQueue.register('test_job', validFunction, 0.22);
-				}).to.throw('Syntax error - invalid parameters supplied');
+				}).should.throw('Syntax error - invalid parameters supplied');
 			});
 		});
 
@@ -71,46 +71,46 @@ describe('helpers/jobsQueue', function () {
 				var interval = execTimeInterval + recallInterval;
 
 				setTimeout(function () {
-					expect(jobsQueue.jobs).to.be.an('object');
+					jobsQueue.jobs.should.be.an('object');
 
 				}, expectingTimesToCall * interval);
 
-				expect(jobsQueue.jobs).to.be.an('object');
+				jobsQueue.jobs.should.be.an('object');
 				// Job returned from 'register' should be equal to one in 'jobsQueue'
-				expect(job).to.equal(jobsQueue.jobs[name]);
+				should.equal(job, jobsQueue.jobs[name]);
 
 				// First execution should happen immediatelly
-				expect(spy.callCount).to.equal(1);
+				spy.callCount.should.equal(1);
 
 				// Every next execution should happen after execTimeInterval+recallInterval and not before
 				clock.tick(interval-10);
-				expect(spy.callCount).to.equal(1);
+				spy.callCount.should.equal(1);
 
 				clock.tick(11);
-				expect(spy.callCount).to.equal(2);
+				spy.callCount.should.equal(2);
 
 				// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
-				expect(job).to.not.equal(jobsQueue.jobs[name]);
+				should.not.equal(job, jobsQueue.jobs[name]);
 
 				// Next execution should happen after recallInterval+execTimeInterval
 				clock.tick(interval-10);
-				expect(spy.callCount).to.equal(2);
+				spy.callCount.should.equal(2);
 
 				clock.tick(11);
-				expect(spy.callCount).to.equal(3);
+				spy.callCount.should.equal(3);
 
 				// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
-				expect(job).to.not.equal(jobsQueue.jobs[name]);
+				should.not.equal(job, jobsQueue.jobs[name]);
 
 				// Next execution should happen after recallInterval+execTimeInterval
 				clock.tick(interval-10);
-				expect(spy.callCount).to.equal(3);
+				spy.callCount.should.equal(3);
 
 				clock.tick(11);
-				expect(spy.callCount).to.equal(4);
+				spy.callCount.should.equal(4);
 
 				// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
-				expect(job).to.not.equal(jobsQueue.jobs[name]);
+				should.not.equal(job, jobsQueue.jobs[name]);
 			}
 
 			var clock;
@@ -128,7 +128,7 @@ describe('helpers/jobsQueue', function () {
 				var name = 'job1';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(1);
+				Object.keys(jobsQueue.jobs).should.be.an('array').and.lengthOf(1);
 				testExecution(job, name, spy);
 			});
 
@@ -138,7 +138,7 @@ describe('helpers/jobsQueue', function () {
 				var name = 'job2';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(2);
+				Object.keys(jobsQueue.jobs).should.be.an('array').and.lengthOf(2);
 				testExecution(job, name, spy);
 			});
 
@@ -149,7 +149,7 @@ describe('helpers/jobsQueue', function () {
 				var name = 'job3';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(3);
+				Object.keys(jobsQueue.jobs).should.be.an('array').and.lengthOf(3);
 				testExecution(job, name, spy);
 			});
 
@@ -157,27 +157,27 @@ describe('helpers/jobsQueue', function () {
 				var name = 'job4';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(4);
+				Object.keys(jobsQueue.jobs).should.be.an('array').and.lengthOf(4);
 				testExecution(job, name, spy);
 
-				expect(function () {
+				(function () {
 					jobsQueue.register('job4', dummyFunction, recallInterval);
-				}).to.throw('Synchronous job job4 already registered');
+				}).should.throw('Synchronous job job4 already registered');
 			});
 
 			it('should use same instance when required in different module (because of modules cache)', function () {
 				var jobsQueuePeers = peers.__get__('jobsQueue');
 				// Instances should be the same
-				expect(jobsQueuePeers).to.equal(jobsQueue);
+				jobsQueuePeers.should.equal(jobsQueue);
 
 				// Register new job in peers module
 				var name = 'job5';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueuePeers.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueuePeers.jobs)).to.be.an('array').and.lengthOf(5);
+				Object.keys(jobsQueuePeers.jobs).should.be.an('array').and.lengthOf(5);
 				testExecution(job, name, spy);
 				// Instances still should be the same
-				expect(jobsQueuePeers).to.equal(jobsQueue);
+				jobsQueuePeers.should.equal(jobsQueue);
 			});
 		});
 	});

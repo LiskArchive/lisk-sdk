@@ -114,7 +114,7 @@ SchemaDynamicTest.prototype.carpetTesting = function (test, inputs, description)
 };
 
 SchemaDynamicTest.prototype.standardInvalidArgumentAssertion = function (input, expectedType, err) {
-	expect(err).to.be.an('array').and.to.have.nested.property('0.message')
+	err.should.be.an('array').and.to.have.nested.property('0.message')
 		.equal('Expected type ' + expectedType + ' but found type ' + input.expectation);
 };
 
@@ -149,7 +149,7 @@ SchemaDynamicTest.prototype.testProperty = function (expectedType, invalidInputs
 };
 
 SchemaDynamicTest.prototype.standardMissingRequiredPropertiesAssertion = function (property, err) {
-	expect(err).to.be.an('array').and.to.have.nested.property('0.message')
+	err.should.be.an('array').and.to.have.nested.property('0.message')
 		.equal('Missing required property: ' + property);
 };
 

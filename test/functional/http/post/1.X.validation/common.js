@@ -27,8 +27,8 @@ function beforeValidationPhase (account) {
 
 		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.data.message').that.is.equal('Transaction(s) accepted');
+				res.should.have.property('status').to.equal(200);
+				res.should.have.nested.property('body.data.message').that.is.equal('Transaction(s) accepted');
 
 				return waitFor.confirmations([transaction.id]);
 			})
@@ -38,8 +38,8 @@ function beforeValidationPhase (account) {
 				return apiHelpers.sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
-				expect(res).to.have.nested.property('body.data.message').to.equal('Transaction(s) accepted');
+				res.should.have.property('status').to.equal(200);
+				res.should.have.nested.property('body.data.message').to.equal('Transaction(s) accepted');
 
 				return waitFor.confirmations([transaction.id]);
 			});

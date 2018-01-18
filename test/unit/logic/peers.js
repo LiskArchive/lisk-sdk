@@ -51,7 +51,7 @@ describe('peers', function () {
 			peers.remove(peer);
 		});
 
-		expect(peers.list()).that.is.an('array').and.to.be.empty;
+		peers.list().should.be.an('array').and.to.be.empty;
 	}
 
 	function arePeersEqual (peerA, peerB) {
@@ -82,9 +82,9 @@ describe('peers', function () {
 
 	describe('create', function () {
 		it('should always return Peer instance', function () {
-			expect(peers.create()).to.be.an.instanceof(Peer);
-			expect(peers.create(validPeer)).to.be.an.instanceof(Peer);
-			expect(peers.create(new Peer(validPeer))).to.be.an.instanceof(Peer);
+			peers.create().should.be.an.instanceof(Peer);
+			peers.create(validPeer).should.be.an.instanceof(Peer);
+			peers.create(new Peer(validPeer)).should.be.an.instanceof(Peer);
 		});
 	});
 
@@ -97,14 +97,14 @@ describe('peers', function () {
 		it('should list peers as Peer instances', function () {
 			peers.upsert(validPeer);
 			peers.list().forEach(function (peer) {
-				expect(peer).to.be.an.instanceof(Peer);
+				peer.should.be.an.instanceof(Peer);
 			});
 		});
 
 		it('should list peers with rpc', function () {
 			peers.upsert(validPeer);
 			peers.list().forEach(function (peer) {
-				expect(peer).have.property('rpc');
+				peer.should.have.property('rpc');
 			});
 		});
 
@@ -112,14 +112,14 @@ describe('peers', function () {
 			it('should list peers as objects when normalized', function () {
 				peers.upsert(validPeer);
 				peers.list(true).forEach(function (peer) {
-					expect(peer).to.be.an('object');
+					peer.should.be.an('object');
 				});
 			});
 
 			it('should not contain rpc property when normalized', function () {
 				peers.upsert(validPeer);
 				peers.list(true).forEach(function (peer) {
-					expect(peer).not.to.have.property('rpc');
+					peer.should.not.to.have.property('rpc');
 				});
 			});
 		});
@@ -133,24 +133,24 @@ describe('peers', function () {
 
 		it('should insert new peers', function () {
 			peers.upsert(validPeer);
-			expect(peers.list().length).equal(1);
+			peers.list().length.should.equal(1);
 		});
 
 		it('should update height of existing peer', function () {
 			peers.upsert(validPeer);
 			var list = peers.list();
 			var inserted = list[0];
-			expect(list.length).equal(1);
-			expect(arePeersEqual(inserted, validPeer)).to.be.ok;
+			list.length.should.equal(1);
+			arePeersEqual(inserted, validPeer).should.be.ok;
 
 			var modifiedPeer = _.clone(validPeer);
 			modifiedPeer.height += 1;
 			peers.upsert(modifiedPeer);
 			list = peers.list();
 			var updated = list[0];
-			expect(list.length).equal(1);
-			expect(arePeersEqual(updated, modifiedPeer)).to.be.ok;
-			expect(arePeersEqual(updated, validPeer)).to.be.not.ok;
+			list.length.should.equal(1);
+			arePeersEqual(updated, modifiedPeer).should.be.ok;
+			arePeersEqual(updated, validPeer).should.be.not.ok;
 
 		});
 
@@ -158,39 +158,39 @@ describe('peers', function () {
 			peers.upsert(validPeer);
 			var list = peers.list();
 			var inserted = list[0];
-			expect(list.length).equal(1);
-			expect(arePeersEqual(inserted, validPeer)).to.be.ok;
+			list.length.should.equal(1);
+			arePeersEqual(inserted, validPeer).should.be.ok;
 
 			var modifiedPeer = _.clone(validPeer);
 			modifiedPeer.height += 1;
 			peers.upsert(modifiedPeer, true);
 			list = peers.list();
 			var updated = list[0];
-			expect(list.length).equal(1);
-			expect(arePeersEqual(updated, modifiedPeer)).to.be.not.ok;
-			expect(arePeersEqual(updated, validPeer)).to.be.ok;
+			list.length.should.equal(1);
+			arePeersEqual(updated, modifiedPeer).should.be.not.ok;
+			arePeersEqual(updated, validPeer).should.be.ok;
 		});
 
 		it('should insert peer with different ports', function () {
 			peers.upsert(validPeer);
-			expect(peers.list().length).equal(1);
+			peers.list().length.should.equal(1);
 
 			var differentPortPeer = _.clone(validPeer);
 			differentPortPeer.nonce = 'differentNonce';
 			differentPortPeer.wsPort += 1;
 			peers.upsert(differentPortPeer);
 			var list = peers.list();
-			expect(list.length).equal(2);
+			list.length.should.equal(2);
 
 			var demandedPorts = _.map([validPeer, differentPortPeer], 'wsPort');
 			var listPorts = _.map(list, 'wsPort');
 
-			expect(_.isEqual(demandedPorts.sort(), listPorts.sort())).to.be.ok;
+			_.isEqual(demandedPorts.sort(), listPorts.sort()).should.be.ok;
 		});
 
 		it('should insert peer with different ips', function () {
 			peers.upsert(validPeer);
-			expect(peers.list().length).equal(1);
+			peers.list().length.should.equal(1);
 
 			var differentIpPeer = _.clone(validPeer);
 			delete differentIpPeer.string;
@@ -199,29 +199,29 @@ describe('peers', function () {
 
 			peers.upsert(differentIpPeer);
 			var list = peers.list();
-			expect(list.length).equal(2);
+			list.length.should.equal(2);
 
 			var demandedIps = _.map([validPeer, differentIpPeer], 'ip');
 			var listIps = _.map(list, 'ip');
 
-			expect(_.isEqual(demandedIps.sort(), listIps.sort())).to.be.ok;
+			_.isEqual(demandedIps.sort(), listIps.sort()).should.be.ok;
 		});
 
 		describe('should fail with valid error code', function () {
 
 			it('INSERT_ONLY_FAILURE when insertOnly flag is present and peer already exists', function () {
 				peers.upsert(validPeer);
-				expect(peers.upsert(validPeer, true)).to.equal(failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE);
+				peers.upsert(validPeer, true).should.equal(failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE);
 			});
 
 			it('INVALID_PEER when called with invalid peer', function () {
-				expect(peers.upsert({})).to.equal(failureCodes.ON_MASTER.UPDATE.INVALID_PEER);
+				peers.upsert({}).should.equal(failureCodes.ON_MASTER.UPDATE.INVALID_PEER);
 			});
 
 			it('NOT_ACCEPTED when called with the same as node nonce', function () {
 				peersModuleMock.acceptable = sinonSandbox.stub().returns([]);
 				validPeer.nonce = validNodeNonce;
-				expect(peers.upsert(validPeer)).to.equal(failureCodes.ON_MASTER.INSERT.NOT_ACCEPTED);
+				peers.upsert(validPeer).should.equal(failureCodes.ON_MASTER.INSERT.NOT_ACCEPTED);
 			});
 		});
 	});
@@ -233,32 +233,32 @@ describe('peers', function () {
 		});
 
 		it('should return false if peer is not on the list', function () {
-			expect(peers.exists({
+			peers.exists({
 				ip: '41.41.41.41',
 				wsPort: '4444',
 				nonce: 'another_nonce'
-			})).not.to.be.ok;
+			}).should.not.be.ok;
 		});
 
 		it('should return true if peer is on the list', function () {
 			peers.upsert(validPeer);
 			var list = peers.list(true);
-			expect(list.length).equal(1);
-			expect(peers.exists(validPeer)).to.be.ok;
+			list.length.should.equal(1);
+			peers.exists(validPeer).should.be.ok;
 		});
 
 		it('should return true if peer with same nonce is on the list', function () {
 			var res = peers.upsert(validPeer);
 			var list = peers.list(true);
-			expect(list.length).equal(1);
-			expect(peers.exists({ip: validPeer.ip, wsPort: validPeer.wsPort, nonce: validPeer.nonce})).to.be.ok;
+			list.length.should.equal(1);
+			peers.exists({ip: validPeer.ip, wsPort: validPeer.wsPort, nonce: validPeer.nonce}).should.be.ok;
 		});
 
 		it('should return true if peer with same address is on the list', function () {
 			peers.upsert(validPeer);
 			var list = peers.list(true);
-			expect(list.length).equal(1);
-			expect(peers.exists({ip: validPeer.ip, wsPort: validPeer.wsPort})).to.be.ok;
+			list.length.should.equal(1);
+			peers.exists({ip: validPeer.ip, wsPort: validPeer.wsPort}).should.be.ok;
 		});
 	});
 
@@ -271,18 +271,18 @@ describe('peers', function () {
 		it('should return inserted peer', function () {
 			peers.upsert(validPeer);
 			var insertedPeer = peers.get(validPeer);
-			expect(arePeersEqual(insertedPeer, validPeer)).to.be.ok;
+			arePeersEqual(insertedPeer, validPeer).should.be.ok;
 		});
 
 		it('should return inserted peer by address', function () {
 			peers.upsert(validPeer);
 			var insertedPeer = peers.get(validPeer.ip + ':' + validPeer.wsPort);
-			expect(arePeersEqual(insertedPeer, validPeer)).to.be.ok;
+			arePeersEqual(insertedPeer, validPeer).should.be.ok;
 
 		});
 
 		it('should return undefined if peer is not inserted', function () {
-			expect(peers.get(validPeer)).to.be.undefined;
+			should.not.exist(peers.get(validPeer));
 		});
 	});
 
@@ -294,16 +294,16 @@ describe('peers', function () {
 
 		it('should remove added peer', function () {
 			peers.upsert(validPeer);
-			expect(peers.list().length).equal(1);
+			peers.list().length.should.equal(1);
 			var result = peers.remove(validPeer);
-			expect(result).to.be.ok;
-			expect(peers.list().length).equal(0);
+			result.should.be.ok;
+			peers.list().length.should.equal(0);
 		});
 
 		it('should return an error when trying to remove a non-existent peer', function () {
 			var result = peers.remove(validPeer);
-			expect(result).to.be.a('number').equal(failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST);
-			expect(peers.list().length).equal(0);
+			result.should.be.a('number').equal(failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST);
+			peers.list().length.should.equal(0);
 		});
 	});
 });

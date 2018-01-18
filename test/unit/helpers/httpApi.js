@@ -93,15 +93,15 @@ describe('httpApi', function () {
 			});
 
 			it('should call res.header with "Access-Control-Allow-Origin" and "*"', function () {
-				expect(resMock.header.calledWith('Access-Control-Allow-Origin', '*')).to.eql(true);
+				resMock.header.calledWith('Access-Control-Allow-Origin', '*').should.eql(true);
 			});
 
 			it('should call res.header "Access-Control-Allow-Headers" and "Origin, X-Objected-With, Content-Type, Accept"', function () {
-				expect(resMock.header.calledWith('Access-Control-Allow-Headers', 'Origin, X-Objected-With, Content-Type, Accept')).to.eql(true);
+				resMock.header.calledWith('Access-Control-Allow-Headers', 'Origin, X-Objected-With, Content-Type, Accept').should.eql(true);
 			});
 
 			it('should call next()', function () {
-				expect(validNextSpy.calledOnce).to.be.true;
+				validNextSpy.calledOnce.should.be.true;
 			});
 		});
 
@@ -118,11 +118,11 @@ describe('httpApi', function () {
 				});
 
 				it('should never call logger.error', function () {
-					expect(loggerMock.error.notCalled).to.be.true;
+					loggerMock.error.notCalled.should.be.true;
 				});
 
 				it('should call next()', function () {
-					expect(validNextSpy.calledOnce).to.be.true;
+					validNextSpy.calledOnce.should.be.true;
 				});
 			});
 
@@ -133,16 +133,16 @@ describe('httpApi', function () {
 				});
 
 				it('should call logger.error with "API error: validError"', function () {
-					expect(loggerMock.error.calledWith('API error ' + validReq.url, validError.message)).to.be.true;
+					loggerMock.error.calledWith('API error ' + validReq.url, validError.message).should.be.true;
 				});
 
 				it('should call console.trace with error', function () {
-					expect(spyConsoleTrace.calledOnce).to.be.true;
+					spyConsoleTrace.calledOnce.should.be.true;
 				});
 
 				it('should send status 500 and error-object', function () {
-					expect(resMock.status.calledWith(500)).to.be.true;
-					expect(resMock.status().send.calledWith(validSendObject)).to.be.true;
+					resMock.status.calledWith(500).should.be.true;
+					resMock.status().send.calledWith(validSendObject).should.be.true;
 				});
 			});
 		});
@@ -154,15 +154,16 @@ describe('httpApi', function () {
 			});
 
 			beforeEach(function () {
+				debugger;
 				httpApi.middleware.logClientConnections(loggerMock, validReq, validRes, validNextSpy);
 			});
 
-			it('should call logger.log with string "GET req/url from 127.0.0.1"', function () {
-				expect(loggerMock.log.calledWith('GET req/url from 127.0.0.1'));
+			it('should call logger.log with string "GET api/url from 127.0.0.1"', function () {
+				loggerMock.log.calledWith('GET api/url from 127.0.0.1').should.be.true;
 			});
 
 			it('should call next function', function () {
-				expect(validNextSpy.calledOnce).to.be.true;
+				validNextSpy.calledOnce.should.be.true;
 			});
 		});
 
@@ -186,7 +187,7 @@ describe('httpApi', function () {
 				});
 
 				it('should call next function', function () {
-					expect(validNextSpy.calledOnce).to.be.true;
+					validNextSpy.calledOnce.should.be.true;
 				});
 			});
 
@@ -197,8 +198,8 @@ describe('httpApi', function () {
 				});
 
 				it('should send status 500 and error-object', function () {
-					expect(resMock.status.calledWith(500)).to.be.true;
-					expect(resMock.status().send.calledWith(validSendObject)).to.be.true;
+					resMock.status.calledWith(500).should.be.true;
+					resMock.status().send.calledWith(validSendObject).should.be.true;
 				});
 			});
 		});
@@ -214,8 +215,8 @@ describe('httpApi', function () {
 			});
 
 			it('should send status 500 and error-object', function () {
-				expect(resMock.status.calledWith(500)).to.be.true;
-				expect(resMock.status().send.calledWith(validSendObject)).to.be.true;
+				resMock.status.calledWith(500).should.be.true;
+				resMock.status().send.calledWith(validSendObject).should.be.true;
 			});
 		});
 
@@ -237,7 +238,7 @@ describe('httpApi', function () {
 			});
 
 			it('should return a function', function () {
-				expect(sanitizeResultFunction).to.be.a('function');
+				sanitizeResultFunction.should.be.a('function');
 			});
 
 			describe('when sanitize result is called', function () {
@@ -268,7 +269,7 @@ describe('httpApi', function () {
 				});
 
 				it('should call req.sanitize with req[property], schema and cb as arguments', function () {
-					expect(validReqMock.sanitize.calledWith(validReqMock[validProperty],validSchema)).to.be.true;
+					validReqMock.sanitize.calledWith(validReqMock[validProperty],validSchema).should.be.true;
 				});
 
 				describe('when report.isValid = false', function () {
@@ -278,7 +279,7 @@ describe('httpApi', function () {
 					});
 
 					it('should call res.json', function () {
-						expect(validCbSpy.called).to.be.true;
+						validCbSpy.called.should.be.true;
 					});
 				});
 
@@ -289,7 +290,7 @@ describe('httpApi', function () {
 					});
 
 					it('should call callback', function () {
-						expect(validCbSpy.called).to.be.true;
+						validCbSpy.called.should.be.true;
 					});
 				});
 			});
@@ -311,11 +312,11 @@ describe('httpApi', function () {
 			});
 
 			it('should attach provided key and value to a response-header', function () {
-				expect(resMock.setHeader.calledWith(validHeaderKey,validHeaderValue)).to.be.true;
+				resMock.setHeader.calledWith(validHeaderKey,validHeaderValue).should.be.true;
 			});
 
 			it('should call next function', function () {
-				expect(validNextSpy.calledOnce).to.be.true;
+				validNextSpy.calledOnce.should.be.true;
 			});
 		});
 
@@ -345,7 +346,7 @@ describe('httpApi', function () {
 
 				it('should call checkIpInList with parameters: config.peers.access.blackList, req.ip, false', function () {
 					sinonSandbox.assert.called(checkIpInListStub);
-					expect(checkIpInListStub.calledWith(validConfig.peers.access.blacklist,validReq.ip, false)).to.be.true;
+					checkIpInListStub.calledWith(validConfig.peers.access.blacklist,validReq.ip, false).should.be.true;
 				});
 
 				describe('when config.peers.enabled = true and checkIpInList() = false', function () {
@@ -424,7 +425,7 @@ describe('httpApi', function () {
 				});
 
 				it('should call next function', function () {
-					expect(validNextSpy.calledOnce).to.be.true;
+					validNextSpy.calledOnce.should.be.true;
 				});
 			});
 
@@ -436,7 +437,7 @@ describe('httpApi', function () {
 				});
 
 				it('should call cache.getJsonForKey with key = req.originalUrl', function () {
-					expect(validCache.getJsonForKey.calledWith(validReq.originalUrl)).to.be.true;
+					validCache.getJsonForKey.calledWith(validReq.originalUrl).should.be.true;
 				});
 
 				describe('when err = true', function () {
@@ -446,7 +447,7 @@ describe('httpApi', function () {
 					});
 
 					it('should add json function to response', function () {
-						expect(validRes.json).to.be.a('function');
+						validRes.json.should.be.a('function');
 					});
 
 					// Not tested, because defined function is not executed at this point
@@ -457,17 +458,17 @@ describe('httpApi', function () {
 						});
 
 						it('should call logger.debug with "cached response for key: api/url"', function () {
-							expect(loggerMock.debug.calledWith('cached response for key: api/url')).to.be.true;
+							loggerMock.debug.calledWith('cached response for key: api/url').should.be.true;
 						});
 
 						it('should call cache.setJsonForKey with key, response as arguments', function () {
-							// expect(validCache.setJsonForKey.calledWith(validReq.url, validCachedValue));
-							expect(validCache.setJsonForKey.calledWith(validReq.url, validCachedValue)).to.be.true;
+							// validCache.setJsonForKey.calledWith(validReq.url, validCachedValue).should.be.true;
+							validCache.setJsonForKey.calledWith(validReq.url, validCachedValue).should.be.true;
 						});
 					});
 
 					it('should call next function', function () {
-						expect(validNextSpy.calledOnce).to.be.true;
+						validNextSpy.calledOnce.should.be.true;
 					});
 				});
 
@@ -478,11 +479,11 @@ describe('httpApi', function () {
 					});
 
 					it('should add json function to response', function () {
-						expect(validRes.json).to.be.a('function');
+						validRes.json.should.be.a('function');
 					});
 
 					it('should call next function', function () {
-						expect(validNextSpy.calledOnce).to.be.true;
+						validNextSpy.calledOnce.should.be.true;
 					});
 				});
 
@@ -499,11 +500,11 @@ describe('httpApi', function () {
 					});
 
 					it('should call logger.debug', function () {
-						expect(loggerMock.debug.called).to.be.true;
+						loggerMock.debug.called.should.be.true;
 					});
 
 					it('should call res.json with cachedValue', function () {
-						expect(validRes.json.calledWith(validCachedValue)).to.be.true;
+						validRes.json.calledWith(validCachedValue).should.be.true;
 					});
 				});
 			});
@@ -531,7 +532,7 @@ describe('httpApi', function () {
 		describe('when error is defined', function () {
 
 			it('should call res.json with {"success": false, "error": err}', function () {
-				expect(validRes.json.calledWith({'success': false, 'error': validError})).to.be.true;
+				validRes.json.calledWith({'success': false, 'error': validError}).should.be.true;
 			});
 		});
 
@@ -543,7 +544,7 @@ describe('httpApi', function () {
 
 			it('should call res.json with extend({}, {"success": true}, response)', function () {
 				validResponse.success = true;
-				expect(validRes.json.calledWith(validResponse)).to.be.true;
+				validRes.json.calledWith(validResponse).should.be.true;
 			});
 		});
 	});
@@ -588,8 +589,8 @@ describe('httpApi', function () {
 			it('should call res.status(500).json() with error in json format', function () {
 				var tmp_error = validError.code ? validError.code : apiCodes.INTERNAL_SERVER_ERROR;
 
-				expect(validRes.status.calledWith(tmp_error)).to.be.true;
-				expect(validRes.json.calledOnce).to.be.true;
+				validRes.status.calledWith(tmp_error).should.be.true;
+				validRes.json.calledOnce.should.be.true;
 			});
 		});
 
@@ -602,8 +603,8 @@ describe('httpApi', function () {
 			describe('when response is empty', function () {
 
 				it('should call res.status with code = 204 and res.json', function () {
-					expect(validRes.status.calledWith(apiCodes.EMPTY_RESOURCES_OK)).to.be.true;
-					expect(validRes.json.calledOnce).to.be.true;
+					validRes.status.calledWith(apiCodes.EMPTY_RESOURCES_OK).should.be.true;
+					validRes.json.calledOnce.should.be.true;
 				});
 			});
 
@@ -616,8 +617,8 @@ describe('httpApi', function () {
 				});
 
 				it('should call res.status with code = 200 and res.json', function () {
-					expect(validRes.status.calledWith(apiCodes.OK)).to.be.true;
-					expect(validRes.json.calledOnce).to.be.true;
+					validRes.status.calledWith(apiCodes.OK).should.be.true;
+					validRes.json.calledOnce.should.be.true;
 				});
 			});
 		});
@@ -643,15 +644,15 @@ describe('httpApi', function () {
 		});
 
 		it('should call router.use with middleware.notFound', function () {
-			expect(validRouter.use.calledWith(httpApi.middleware.notFound)).to.be.true;
+			validRouter.use.calledWith(httpApi.middleware.notFound).should.be.true;
 		});
 
 		it('should call router.use with middleware.blockchainReady.bind(null, validIsLoaded)', function () {
-			 expect(validRouter.use.args[1][0].toString()).to.equal(httpApi.middleware.blockchainReady.bind(null, validIsLoaded).toString());
+			 validRouter.use.args[1][0].toString().should.equal(httpApi.middleware.blockchainReady.bind(null, validIsLoaded).toString());
 		});
 
 		it('should call app.use with route and router as arguments', function () {
-			expect(validApp.use.calledWith(validRoute, validRouter));
+			validApp.use.calledWith(validRoute, validRouter).should.be.true;
 		});
 	});
 });

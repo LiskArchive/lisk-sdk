@@ -31,7 +31,6 @@
 	"globals": {
 		"_": true,
 		"__testContext": true,
-		"expect": true,
 		"gc": true,
 		"should": true,
 		"sinonSandbox": true

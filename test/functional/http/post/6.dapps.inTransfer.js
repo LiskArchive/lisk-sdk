@@ -172,7 +172,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 			it('using > balance should fail', function () {
 				return apiHelpers.getAccountsPromise('address=' + account.address)
 					.then(function (res) {
-						expect(res.body).to.have.nested.property('data').to.have.lengthOf(1);
+						res.body.should.have.nested.property('data').to.have.lengthOf(1);
 
 						var balance = res.body.data[0].balance;
 						var amount = new bignum(balance).plus('1').toNumber();

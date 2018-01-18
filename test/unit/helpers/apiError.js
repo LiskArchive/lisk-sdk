@@ -31,26 +31,26 @@ describe('helpers/apiError', function () {
 	describe('constructor', function () {
 
 		it('should be an Error instance', function () {
-			expect(apiError).to.have.instanceOf(Error);
+			apiError.should.have.instanceOf(Error);
 		});
 
 		it('should assign field message = "Valid error message"', function () {
-			expect(apiError).to.have.property('message').equal(validErrorMessage);
+			apiError.should.have.property('message').equal(validErrorMessage);
 		});
 
 		it('should assign field code = 501', function () {
-			expect(apiError).to.have.property('code').equal(validErrorCode);
+			apiError.should.have.property('code').equal(validErrorCode);
 		});
 	});
 
 	describe('toJson', function () {
 
 		it('should return Object type result', function () {
-			expect(apiError.toJson()).to.be.an('Object');
+			apiError.toJson().should.be.an('Object');
 		});
 
 		it('should return result containing message = "Valid error message"', function () {
-			expect(apiError.toJson()).to.have.property('message').equal(validErrorMessage);
+			apiError.toJson().should.have.property('message').equal(validErrorMessage);
 		});
 	});
 });

@@ -64,8 +64,8 @@ describe('handshake', function () {
 		var disconnectHandler = function (code, description) {
 			currentConnectedSocket = null;
 			clientSocket.off('disconnect', disconnectHandler);
-			expect('socket had been disconnected with error code: ' + code + ' - ' + (description || failureCodes.errorMessages[code]))
-				.equal('socket should stay connected');
+			('socket had been disconnected with error code: ' + code + ' - ' + (description || failureCodes.errorMessages[code]))
+				.should.equal('socket should stay connected');
 			return cb(code);
 		};
 		var acceptedHandler = function () {
@@ -107,7 +107,7 @@ describe('handshake', function () {
 				delete validClientSocketOptions.query;
 				connect();
 				expectDisconnect(this, function (code) {
-					expect(code).equal(failureCodes.INVALID_HEADERS);
+					code.should.equal(failureCodes.INVALID_HEADERS);
 					done();
 				});
 			});
@@ -116,8 +116,8 @@ describe('handshake', function () {
 				validClientSocketOptions.query = {};
 				connect();
 				expectDisconnect(this, function (code, description) {
-					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('Missing required property');
+					code.should.equal(failureCodes.INVALID_HEADERS);
+					description.should.contain('Missing required property');
 					done();
 				});
 			});
@@ -126,8 +126,8 @@ describe('handshake', function () {
 				delete validClientSocketOptions.query.wsPort;
 				connect();
 				expectDisconnect(this, function (code, description) {
-					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('Expected type integer but found type not-a-number');
+					code.should.equal(failureCodes.INVALID_HEADERS);
+					description.should.contain('Expected type integer but found type not-a-number');
 					done();
 				});
 			});
@@ -136,8 +136,8 @@ describe('handshake', function () {
 				delete validClientSocketOptions.query.height;
 				connect();
 				expectDisconnect(this, function (code, description) {
-					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('height: Expected type integer but found type not-a-number');
+					code.should.equal(failureCodes.INVALID_HEADERS);
+					description.should.contain('height: Expected type integer but found type not-a-number');
 					done();
 				});
 			});
@@ -146,8 +146,8 @@ describe('handshake', function () {
 				delete validClientSocketOptions.query.version;
 				connect();
 				expectDisconnect(this, function (code, description) {
-					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('Missing required property: version');
+					code.should.equal(failureCodes.INVALID_HEADERS);
+					description.should.contain('Missing required property: version');
 					done();
 				});
 			});
@@ -156,8 +156,8 @@ describe('handshake', function () {
 				delete validClientSocketOptions.query.nethash;
 				connect();
 				expectDisconnect(this, function (code, description) {
-					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('Missing required property: nethash');
+					code.should.equal(failureCodes.INVALID_HEADERS);
+					description.should.contain('Missing required property: nethash');
 					done();
 				});
 			});

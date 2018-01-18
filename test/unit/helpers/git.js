@@ -34,7 +34,7 @@ describe('git', function () {
 			});
 
 			it('should throw an error', function () {
-				expect(git.getLastCommit).throws(Error, validErrorMessage);
+				git.getLastCommit.should.throws(Error, validErrorMessage);
 			});
 		});
 
@@ -52,7 +52,7 @@ describe('git', function () {
 			});
 
 			it('should return a commit hash', function () {
-				expect(git.getLastCommit()).equal(validCommitHash);
+				git.getLastCommit().should.equal(validCommitHash);
 			});
 		});
 	});

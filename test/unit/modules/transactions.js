@@ -53,34 +53,34 @@ describe('transactions', function () {
 	function attachAllAssets (transactionLogic, accountLogic, delegatesModule, accountsModule) {
 		var sendLogic = transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
 		sendLogic.bind(accountsModule);
-		expect(sendLogic).to.be.an.instanceof(TransferLogic);
+		sendLogic.should.be.an.instanceof(TransferLogic);
 
 		var voteLogic = transactionLogic.attachAssetType(transactionTypes.VOTE, new VoteLogic(modulesLoader.logger, modulesLoader.scope.schema));
 		voteLogic.bind(delegatesModule);
-		expect(voteLogic).to.be.an.instanceof(VoteLogic);
+		voteLogic.should.be.an.instanceof(VoteLogic);
 
 		var delegateLogic = transactionLogic.attachAssetType(transactionTypes.DELEGATE, new DelegateLogic(modulesLoader.scope.schema));
 		delegateLogic.bind(accountsModule);
-		expect(delegateLogic).to.be.an.instanceof(DelegateLogic);
+		delegateLogic.should.be.an.instanceof(DelegateLogic);
 
 		var signatureLogic = transactionLogic.attachAssetType(transactionTypes.SIGNATURE, new SignatureLogic(modulesLoader.logger, modulesLoader.scope.schema));
 		signatureLogic.bind(accountsModule);
-		expect(signatureLogic).to.be.an.instanceof(SignatureLogic);
+		signatureLogic.should.be.an.instanceof(SignatureLogic);
 
 		var multiLogic = transactionLogic.attachAssetType(transactionTypes.MULTI, new MultisignatureLogic(modulesLoader.scope.schema, modulesLoader.scope.network, transactionLogic, accountLogic, modulesLoader.logger));
 		multiLogic.bind(accountsModule);
-		expect(multiLogic).to.be.an.instanceof(MultisignatureLogic);
+		multiLogic.should.be.an.instanceof(MultisignatureLogic);
 
 		var dappLogic = transactionLogic.attachAssetType(transactionTypes.DAPP, new DappLogic(modulesLoader.db, modulesLoader.logger, modulesLoader.scope.schema, modulesLoader.scope.network));
-		expect(dappLogic).to.be.an.instanceof(DappLogic);
+		dappLogic.should.be.an.instanceof(DappLogic);
 
 		var inTransferLogic = transactionLogic.attachAssetType(transactionTypes.IN_TRANSFER, new InTransferLogic(modulesLoader.db, modulesLoader.scope.schema));
 		inTransferLogic.bind(accountsModule, /* sharedApi */ null);
-		expect(inTransferLogic).to.be.an.instanceof(InTransferLogic);
+		inTransferLogic.should.be.an.instanceof(InTransferLogic);
 
 		var outTransfer = transactionLogic.attachAssetType(transactionTypes.OUT_TRANSFER, new OutTransferLogic(modulesLoader.db, modulesLoader.scope.schema, modulesLoader.logger));
 		outTransfer.bind(accountsModule, /* sharedApi */ null);
-		expect(outTransfer).to.be.an.instanceof(OutTransferLogic);
+		outTransfer.should.be.an.instanceof(OutTransferLogic);
 		return transactionLogic;
 	}
 
@@ -152,9 +152,9 @@ describe('transactions', function () {
 				}, cb);
 			}]
 		}, function (err, result){
-			expect(err).to.not.exist;
+			should.not.exist(err);
 			modulesLoader.initModule(TransactionModule, {db: dbStub, logic: {transaction: result.transactionLogic}}, function (err, __transactionModule) {
-				expect(err).to.not.exist;
+				should.not.exist(err);
 
 				transactionsModule = __transactionModule;
 
@@ -396,19 +396,19 @@ describe('transactions', function () {
 				}]);
 
 				getTransactionsById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.have.property('transactions').which.is.an('Array');
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].amount).to.equal(transaction.amount);
-					expect(res.transactions[0].fee).to.equal(transaction.fee);
-					expect(res.transactions[0].recipientId).to.equal(transaction.recipientId);
-					expect(res.transactions[0].timestamp).to.equal(transaction.timestamp);
-					expect(res.transactions[0].asset).to.eql(transaction.asset);
-					expect(res.transactions[0].senderPublicKey).to.equal(transaction.senderPublicKey);
-					expect(res.transactions[0].signature).to.equal(transaction.signature);
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].type).to.equal(transactionTypes.SEND);
+					should.not.exist(err);
+					res.should.have.property('transactions').which.is.an('Array');
+					res.transactions[0].type.should.equal(transaction.type);
+					res.transactions[0].amount.should.equal(transaction.amount);
+					res.transactions[0].fee.should.equal(transaction.fee);
+					res.transactions[0].recipientId.should.equal(transaction.recipientId);
+					res.transactions[0].timestamp.should.equal(transaction.timestamp);
+					res.transactions[0].asset.should.eql(transaction.asset);
+					res.transactions[0].senderPublicKey.should.equal(transaction.senderPublicKey);
+					res.transactions[0].signature.should.equal(transaction.signature);
+					res.transactions[0].id.should.equal(transaction.id);
+					res.transactions[0].type.should.equal(transaction.type);
+					res.transactions[0].type.should.equal(transactionTypes.SEND);
 					done();
 				});
 			});
@@ -443,14 +443,14 @@ describe('transactions', function () {
 				}]);
 
 				getTransactionsById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.have.property('transactions').which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount).to.equal(transaction.amount);
-					expect(res.transactions[0].asset.signature.publicKey).to.equal(transaction.asset.signature.publicKey);
-					expect(res.transactions[0].fee).to.equal(transaction.fee);
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].type).to.equal(transactionTypes.SIGNATURE);
+					should.not.exist(err);
+					res.should.have.property('transactions').which.is.an('array');
+					res.transactions[0].id.should.equal(transaction.id);
+					res.transactions[0].amount.should.equal(transaction.amount);
+					res.transactions[0].asset.signature.publicKey.should.equal(transaction.asset.signature.publicKey);
+					res.transactions[0].fee.should.equal(transaction.fee);
+					res.transactions[0].type.should.equal(transaction.type);
+					res.transactions[0].type.should.equal(transactionTypes.SIGNATURE);
 					done();
 				});
 			});
@@ -485,16 +485,16 @@ describe('transactions', function () {
 				}]);
 
 				getTransactionsById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.have.property('transactions').which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount).to.equal(transaction.amount);
-					expect(res.transactions[0].asset.username).to.equal(transaction.asset.username);
-					expect(res.transactions[0].asset.publicKey).to.equal(transaction.asset.publicKey);
-					expect(res.transactions[0].asset.address).to.equal(transaction.asset.address);
-					expect(res.transactions[0].fee).to.equal(transaction.fee);
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].type).to.equal(transactionTypes.DELEGATE);
+					should.not.exist(err);
+					res.should.have.property('transactions').which.is.an('array');
+					should.equal(res.transactions[0].id, transaction.id);
+					should.equal(res.transactions[0].amount, transaction.amount);
+					should.equal(res.transactions[0].asset.username, transaction.asset.username);
+					should.equal(res.transactions[0].asset.publicKey, transaction.asset.publicKey);
+					should.equal(res.transactions[0].asset.address, transaction.asset.address);
+					should.equal(res.transactions[0].fee, transaction.fee);
+					should.equal(res.transactions[0].type, transaction.type);
+					should.equal(res.transactions[0].type, transactionTypes.DELEGATE);
 					done();
 				});
 			});
@@ -529,14 +529,14 @@ describe('transactions', function () {
 				}]);
 
 				getTransactionsById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.have.property('transactions').which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount).to.equal(transaction.amount);
-					expect(res.transactions[0].asset.votes).to.eql(transaction.asset.votes);
-					expect(res.transactions[0].fee).to.equal(transaction.fee);
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].type).to.equal(transactionTypes.VOTE);
+					should.not.exist(err);
+					res.should.have.property('transactions').which.is.an('array');
+					res.transactions[0].id.should.equal(transaction.id);
+					res.transactions[0].amount.should.equal(transaction.amount);
+					res.transactions[0].asset.votes.should.eql(transaction.asset.votes);
+					res.transactions[0].fee.should.equal(transaction.fee);
+					res.transactions[0].type.should.equal(transaction.type);
+					res.transactions[0].type.should.equal(transactionTypes.VOTE);
 					done();
 				});
 			});
@@ -573,16 +573,16 @@ describe('transactions', function () {
 				}]);
 
 				getTransactionsById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.have.property('transactions').which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount).to.equal(transaction.amount);
-					expect(res.transactions[0].asset.multisignature.lifetime).to.equal(transaction.asset.multisignature.lifetime);
-					expect(res.transactions[0].asset.multisignature.min).to.equal(transaction.asset.multisignature.min);
-					expect(res.transactions[0].asset.multisignature.keysgroup).to.eql(transaction.asset.multisignature.keysgroup);
-					expect(res.transactions[0].fee).to.equal(transaction.fee);
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].type).to.equal(transactionTypes.MULTI);
+					should.not.exist(err);
+					res.should.have.property('transactions').which.is.an('array');
+					res.transactions[0].id.should.equal(transaction.id);
+					res.transactions[0].amount.should.equal(transaction.amount);
+					res.transactions[0].asset.multisignature.lifetime.should.equal(transaction.asset.multisignature.lifetime);
+					res.transactions[0].asset.multisignature.min.should.equal(transaction.asset.multisignature.min);
+					res.transactions[0].asset.multisignature.keysgroup.should.eql(transaction.asset.multisignature.keysgroup);
+					res.transactions[0].fee.should.equal(transaction.fee);
+					res.transactions[0].type.should.equal(transaction.type);
+					res.transactions[0].type.should.equal(transactionTypes.MULTI);
 					done();
 				});
 			});
@@ -623,17 +623,17 @@ describe('transactions', function () {
 				}]);
 
 				getTransactionsById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.have.property('transactions').which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount).to.equal(transaction.amount);
-					expect(res.transactions[0].fee).to.equal(transaction.fee);
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].asset.dapp.name).to.equal(transaction.asset.dapp.name);
-					expect(res.transactions[0].asset.dapp.category).to.equal(transaction.asset.dapp.category);
-					expect(res.transactions[0].asset.dapp.link).to.equal(transaction.asset.dapp.link);
-					expect(res.transactions[0].asset.dapp.type).to.equal(transaction.asset.dapp.type);
-					expect(res.transactions[0].type).to.equal(transactionTypes.DAPP);
+					should.not.exist(err);
+					res.should.have.property('transactions').which.is.an('array');
+					res.transactions[0].id.should.equal(transaction.id);
+					res.transactions[0].amount.should.equal(transaction.amount);
+					res.transactions[0].fee.should.equal(transaction.fee);
+					res.transactions[0].type.should.equal(transaction.type);
+					res.transactions[0].asset.dapp.name.should.equal(transaction.asset.dapp.name);
+					res.transactions[0].asset.dapp.category.should.equal(transaction.asset.dapp.category);
+					res.transactions[0].asset.dapp.link.should.equal(transaction.asset.dapp.link);
+					res.transactions[0].asset.dapp.type.should.equal(transaction.asset.dapp.type);
+					res.transactions[0].type.should.equal(transactionTypes.DAPP);
 					done();
 				});
 			});
@@ -643,14 +643,14 @@ describe('transactions', function () {
 				var transaction = transactionsByType[transactionTypes.IN_TRANSFER].transaction;
 
 				getTransactionsById(transactionId, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.have.property('transactions').which.is.an('array');
-					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount).to.equal(transaction.amount);
-					expect(res.transactions[0].fee).to.equal(transaction.fee);
-					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].asset.inTransfer.dappId).to.equal(transaction.asset.inTransfer.dappId);
-					expect(res.transactions[0].type).to.equal(transactionTypes.IN_TRANSFER);
+					should.not.exist(err);
+					res.should.have.property('transactions').which.is.an('array');
+					res.transactions[0].id.should.equal(transaction.id);
+					res.transactions[0].amount.should.equal(transaction.amount);
+					res.transactions[0].fee.should.equal(transaction.fee);
+					res.transactions[0].type.should.equal(transaction.type);
+					res.transactions[0].asset.inTransfer.dappId.should.equal(transaction.asset.inTransfer.dappId);
+					res.transactions[0].type.should.equal(transactionTypes.IN_TRANSFER);
 					done();
 				});
 			});

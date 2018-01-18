@@ -39,7 +39,7 @@ module.exports = function (params) {
 				});
 			})).then(function (results) {
 				results.forEach(function (transaction) {
-					expect(transaction).to.have.property('id').that.is.an('string');
+					transaction.should.have.property('id').that.is.an('string');
 				});
 			});
 		}

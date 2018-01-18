@@ -51,7 +51,7 @@ describe('checkIpInList', function () {
 			});
 
 			it('should set returnListIsEmpty to true', function () {
-				expect(checkIpInListResult).to.eq(true);
+				checkIpInListResult.should.eq(true);
 			});
 		});
 
@@ -63,7 +63,7 @@ describe('checkIpInList', function () {
 			});
 
 			it('should return validReturnListIsEmpty', function () {
-				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+				checkIpInListResult.should.eq(validReturnListIsEmpty);
 			});
 		});
 
@@ -74,7 +74,7 @@ describe('checkIpInList', function () {
 			});
 
 			it('should return validReturnListIsEmpty', function () {
-				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+				checkIpInListResult.should.eq(validReturnListIsEmpty);
 			});
 		});
 
@@ -85,7 +85,7 @@ describe('checkIpInList', function () {
 			});
 
 			it('should return validReturnListIsEmpty', function () {
-				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+				checkIpInListResult.should.eq(validReturnListIsEmpty);
 			});
 
 			it('should call console.error with "CheckIpInList:" + error', function () {
@@ -112,7 +112,7 @@ describe('checkIpInList', function () {
 			});
 
 			it('should return validReturnListIsEmpty', function () {
-				expect(checkIpInListResult).to.eq(false);
+				checkIpInListResult.should.eq(false);
 			});
 		});
 
@@ -123,7 +123,7 @@ describe('checkIpInList', function () {
 			});
 
 			it('should return validReturnListIsEmpty', function () {
-				expect(checkIpInListResult).to.eq(true);
+				checkIpInListResult.should.eq(true);
 			});
 		});
 	});

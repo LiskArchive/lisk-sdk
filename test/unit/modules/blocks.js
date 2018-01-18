@@ -156,25 +156,25 @@ describe('blocks', function () {
 		it('should logs correctly', function () {
 			var tracker = blocks.utils.getBlockProgressLogger(5, 2, '');
 			tracker.log = sinonSandbox.spy();
-			expect(tracker.applied).to.equals(0);
-			expect(tracker.step).to.equals(2);
+			tracker.applied.should.equals(0);
+			tracker.step.should.equals(2);
 			tracker.applyNext();
-			expect(tracker.log.calledOnce).to.ok;
-			expect(tracker.applied).to.equals(1);
+			tracker.log.calledOnce.should.ok;
+			tracker.applied.should.equals(1);
 			tracker.applyNext();
-			expect(tracker.log.calledTwice).to.not.ok;
-			expect(tracker.applied).to.equals(2);
+			tracker.log.calledTwice.should.not.ok;
+			tracker.applied.should.equals(2);
 			tracker.applyNext();
-			expect(tracker.log.calledTwice).to.ok;
-			expect(tracker.applied).to.equals(3);
+			tracker.log.calledTwice.should.ok;
+			tracker.applied.should.equals(3);
 			tracker.applyNext();
-			expect(tracker.log.calledThrice).to.not.ok;
-			expect(tracker.applied).to.equals(4);
+			tracker.log.calledThrice.should.not.ok;
+			tracker.applied.should.equals(4);
 			tracker.applyNext();
-			expect(tracker.log.calledThrice).to.ok;
-			expect(tracker.applied).to.equals(5);
+			tracker.log.calledThrice.should.ok;
+			tracker.applied.should.equals(5);
 
-			expect(tracker.applyNext.bind(tracker)).to.throw('Cannot apply transaction over the limit: 5');
+			tracker.applyNext.bind(tracker).should.throw('Cannot apply transaction over the limit: 5');
 		});
 	});
 });
