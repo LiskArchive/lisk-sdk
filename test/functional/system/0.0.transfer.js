@@ -29,9 +29,9 @@ describe('system test (type 0) - double spending', function () {
 
 	var i = 0;
 	var t = 0;
-	while (i < 48) {
+	while (i < 30) {
 		
-		describe('system test (type 0) - double spending', function () {
+		describe('executing 30 times', function () {
 			
 			var account = randomUtil.account();
 			var transaction = lisk.transaction.createTransaction(account.address, 1100 * normalizer, accountFixtures.genesis.password);

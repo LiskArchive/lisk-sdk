@@ -29,7 +29,7 @@ describe('system test (type 2) - double delegate registration', function () {
 
 	var i = 0;
 	var t = 0;
-	while (i < 31) {
+	while (i < 30) {
 
 		describe('executing 30 times', function () {
 
