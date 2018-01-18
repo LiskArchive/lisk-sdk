@@ -87,19 +87,19 @@ describe('dapp', function () {
 				});
 
 				it('should attach dbStub', function () {
-					expect(library.db).to.eql(dbStub);
+					library.db.should.eql(dbStub);
 				});
 
 				it('should attach dbStub', function () {
-					expect(library.schema).to.eql(modulesLoader.scope.schema);
+					library.schema.should.eql(modulesLoader.scope.schema);
 				});
 
 				it('should attach logger', function () {
-					expect(library.logger).to.eql(modulesLoader.scope.logger);
+					library.logger.should.eql(modulesLoader.scope.logger);
 				});
 
 				it('should attach logger', function () {
-					expect(library.network).to.eql(modulesLoader.scope.network);
+					library.network.should.eql(modulesLoader.scope.network);
 				});
 			});
 		});
@@ -114,7 +114,7 @@ describe('dapp', function () {
 		describe('calculateFee', function () {
 
 			it('should return constants.fees.dappRegistration', function () {
-				expect(dapp.calculateFee(transaction)).to.equal(constants.fees.dappRegistration);
+				dapp.calculateFee(transaction).should.equal(constants.fees.dappRegistration);
 			});
 		});
 
@@ -128,7 +128,7 @@ describe('dapp', function () {
 						transaction.recipientId = '4835566122337813671L';
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid recipient');
+							err.should.equal('Invalid recipient');
 							done();
 						});
 					});
@@ -140,7 +140,7 @@ describe('dapp', function () {
 						transaction.amount = 1;
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid transaction amount');
+							err.should.equal('Invalid transaction amount');
 							done();
 						});
 					});
@@ -152,7 +152,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.category = undefined;
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid application category');
+							err.should.equal('Invalid application category');
 							done();
 						});
 					});
@@ -164,7 +164,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.category = 9;
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application category not found');
+							err.should.equal('Application category not found');
 							done();
 						});
 					});
@@ -176,7 +176,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.icon = 'random string';
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid application icon link');
+							err.should.equal('Invalid application icon link');
 							done();
 						});
 					});
@@ -188,7 +188,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.icon = 'https://www.youtube.com/watch?v=de1-igivvda';
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid application icon file type');
+							err.should.equal('Invalid application icon file type');
 							done();
 						});
 					});
@@ -200,7 +200,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.type = -1;
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid application type');
+							err.should.equal('Invalid application type');
 							done();
 						});
 					});
@@ -212,7 +212,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.link = 'random string';
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid application link');
+							err.should.equal('Invalid application link');
 							done();
 						});
 					});
@@ -224,7 +224,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.link = 'https://www.youtube.com/watch?v=de1-igivvda';
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid application file type');
+							err.should.equal('Invalid application file type');
 							done();
 						});
 					});
@@ -235,7 +235,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.name = '  ';
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application name must not be blank');
+							err.should.equal('Application name must not be blank');
 							done();
 						});
 					});
@@ -247,7 +247,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.name = ' randomname ';
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application name must not be blank');
+							err.should.equal('Application name must not be blank');
 							done();
 						});
 					});
@@ -259,7 +259,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.name = Array.apply(null, Array(33)).map(function () { return 'a';}).join('');
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application name is too long. Maximum is 32 characters');
+							err.should.equal('Application name is too long. Maximum is 32 characters');
 							done();
 						});
 					});
@@ -271,7 +271,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.description = Array.apply(null, Array(161)).map(function () { return 'a';}).join('');
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application description is too long. Maximum is 160 characters');
+							err.should.equal('Application description is too long. Maximum is 160 characters');
 							done();
 						});
 					});
@@ -283,7 +283,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.tags = Array.apply(null, Array(161)).map(function () { return 'a';}).join('');
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application tags is too long. Maximum is 160 characters');
+							err.should.equal('Application tags is too long. Maximum is 160 characters');
 							done();
 						});
 					});
@@ -295,7 +295,7 @@ describe('dapp', function () {
 						transaction.asset.dapp.tags = Array.apply(null, Array(3)).map(function () { return 'a';}).join(',');
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Encountered duplicate tag: a in application');
+							err.should.equal('Encountered duplicate tag: a in application');
 							done();
 						});
 					});
@@ -313,7 +313,7 @@ describe('dapp', function () {
 						}).rejects(dbError);
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('DApp#verify error');
+							err.should.equal('DApp#verify error');
 							done();
 						});
 					});
@@ -338,7 +338,7 @@ describe('dapp', function () {
 						}]);
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application name already exists: ' + transaction.asset.dapp.name);
+							err.should.equal('Application name already exists: ' + transaction.asset.dapp.name);
 							done();
 						});
 					});
@@ -350,7 +350,7 @@ describe('dapp', function () {
 						}]);
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application link already exists: ' + transaction.asset.dapp.link);
+							err.should.equal('Application link already exists: ' + transaction.asset.dapp.link);
 							done();
 						});
 					});
@@ -363,7 +363,7 @@ describe('dapp', function () {
 						}).resolves([{tags: 'a,b,c'}]);
 
 						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application already exists');
+							err.should.equal('Application already exists');
 							done();
 						});
 					});
@@ -384,27 +384,27 @@ describe('dapp', function () {
 					transaction.asset.dapp.type = 2;
 
 					dapp.verify(transaction, sender, function (err) {
-						expect(err).to.equal('Invalid application type');
+						err.should.equal('Invalid application type');
 						done();
 					});
 				});
 
 				it('should call dbStub.query with correct params', function (done) {
 					dapp.verify(transaction, sender, function (err, res) {
-						expect(dbStub.dapps.getExisting.calledOnce).to.equal(true);
-						expect(dbStub.dapps.getExisting.calledWithExactly({
+						dbStub.dapps.getExisting.calledOnce.should.equal(true);
+						dbStub.dapps.getExisting.calledWithExactly({
 							name: transaction.asset.dapp.name,
 							link: transaction.asset.dapp.link || null,
 							transactionId: transaction.id
-						})).to.equal(true);
+						}).should.be.true;
 						done();
 					});
 				});
 
 				it('should call callback with error = null and transaction', function (done) {
 					dapp.verify(transaction, sender, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql(transaction);
+						should.not.exist(err);
+						res.should.eql(transaction);
 						done();
 					});
 				});
@@ -430,7 +430,7 @@ describe('dapp', function () {
 				});
 
 				it('should throw', function () {
-					expect(dapp.getBytes.bind(null, transaction)).to.throw();
+					dapp.getBytes.bind(null, transaction).should.throw();
 				});
 			});
 
@@ -441,7 +441,7 @@ describe('dapp', function () {
 				});
 
 				it('should throw', function () {
-					expect(dapp.getBytes.bind(null, transaction)).to.throw();
+					dapp.getBytes.bind(null, transaction).should.throw();
 				});
 			});
 
@@ -452,22 +452,22 @@ describe('dapp', function () {
 				});
 
 				it('should throw', function () {
-					expect(dapp.getBytes.bind(null, transaction)).to.throw();
+					dapp.getBytes.bind(null, transaction).should.throw();
 				});
 			});
 
 			describe('when transaction.asset.dapp is a valid asset', function () {
 
 				it('should not throw', function () {
-					expect(dapp.getBytes.bind(null, transaction)).not.to.throw();
+					dapp.getBytes.bind(null, transaction).should.not.to.throw();
 				});
 
 				it('should get bytes of valid transaction', function () {
-					expect(dapp.getBytes(transaction).toString('hex')).to.equal('414f37657a42313143674364555a69356f38597a784341746f524c41364669687474703a2f2f7777772e6c69736b2e696f2f414f37657a42313143674364555a69356f38597a784341746f524c413646692e7a69700100000002000000');
+					dapp.getBytes(transaction).toString('hex').should.equal('414f37657a42313143674364555a69356f38597a784341746f524c41364669687474703a2f2f7777772e6c69736b2e696f2f414f37657a42313143674364555a69356f38597a784341746f524c413646692e7a69700100000002000000');
 				});
 
 				it('should return result as a Buffer type', function () {
-					expect(dapp.getBytes(transaction)).to.be.instanceOf(Buffer);
+					dapp.getBytes(transaction).should.be.instanceOf(Buffer);
 				});
 			});
 		});
@@ -489,14 +489,14 @@ describe('dapp', function () {
 
 			it('should update private unconfirmed name variable', function (done) {
 				dapp.apply(transaction, dummyBlock, sender, function (err, cb) {
-					expect(unconfirmedNames[transaction.asset.dapp.name]).to.not.exist;
+					should.not.exist(unconfirmedNames[transaction.asset.dapp.name]);
 					done();
 				});
 			});
 
 			it('should update private unconfirmed links variable', function (done) {
 				dapp.apply(transaction, dummyBlock, sender, function (err, cb) {
-					expect(unconfirmedLinks[transaction.asset.dapp.link]).to.not.exist;
+					should.not.exist(unconfirmedLinks[transaction.asset.dapp.link]);
 					done();
 				});
 			});
@@ -529,7 +529,7 @@ describe('dapp', function () {
 
 				it('should call callback with error', function (done) {
 					dapp.applyUnconfirmed(transaction, sender, function (err)  {
-						expect(err).to.equal('Application name already exists');
+						err.should.equal('Application name already exists');
 						done();
 					});
 				});
@@ -546,7 +546,7 @@ describe('dapp', function () {
 
 				it('should call callback with error', function (done) {
 					dapp.applyUnconfirmed(transaction, sender, function (err)  {
-						expect(err).to.equal('Application link already exists');
+						err.should.equal('Application link already exists');
 						done();
 					});
 				});
@@ -568,14 +568,14 @@ describe('dapp', function () {
 
 				it('should update unconfirmed name private variable', function (done) {
 					dapp.applyUnconfirmed(transaction, sender, function () {
-						expect(unconfirmedNames[transaction.asset.dapp.name]).to.equal(true);
+						unconfirmedNames[transaction.asset.dapp.name].should.equal(true);
 						done();
 					});
 				});
 
 				it('should update unconfirmed link private variable', function (done) {
 					dapp.applyUnconfirmed(transaction, sender, function () {
-						expect(unconfirmedLinks[transaction.asset.dapp.link]).to.equal(true);
+						unconfirmedLinks[transaction.asset.dapp.link].should.equal(true);
 						done();
 					});
 				});
@@ -604,14 +604,14 @@ describe('dapp', function () {
 
 			it('should delete unconfirmed name private variable', function (done) {
 				dapp.undoUnconfirmed(transaction, sender, function () {
-					expect(unconfirmedNames[transaction.asset.dapp.name]).not.exist;
+					should.not.exist(unconfirmedNames[transaction.asset.dapp.name]);
 					done();
 				});
 			});
 
 			it('should delete unconfirmed link private variable', function (done) {
 				dapp.undoUnconfirmed(transaction, sender, function () {
-					expect(unconfirmedLinks[transaction.asset.dapp.link]).not.exist;
+					should.not.exist(unconfirmedLinks[transaction.asset.dapp.link]);
 					done();
 				});
 			});
@@ -638,12 +638,12 @@ describe('dapp', function () {
 
 				it('should remove undefined properties', function () {
 					transaction = dapp.objectNormalize(transaction);
-					expect(transaction).to.not.have.property('dummyUndefinedProperty');
+					transaction.should.not.have.property('dummyUndefinedProperty');
 				});
 
 				it('should remove null properties', function () {
 					transaction = dapp.objectNormalize(transaction);
-					expect(transaction).to.not.have.property('dummpyNullProperty');
+					transaction.should.not.have.property('dummpyNullProperty');
 				});
 			});
 
@@ -663,8 +663,8 @@ describe('dapp', function () {
 
 				it('should use the correct format to validate against', function () {
 					dapp.objectNormalize(transaction);
-					expect(schemaSpy.calledOnce).to.equal(true);
-					expect(schemaSpy.calledWithExactly(transaction.asset.dapp, Dapp.prototype.schema)).to.equal(true);
+					schemaSpy.calledOnce.should.equal(true);
+					schemaSpy.calledWithExactly(transaction.asset.dapp, Dapp.prototype.schema).should.equal(true);
 				});
 			});
 
@@ -687,14 +687,14 @@ describe('dapp', function () {
 
 						it('should throw error for: ' + type.description, function () {
 							transaction.asset.dapp.category = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type integer but found type ' + type.expectation);
+							dapp.objectNormalize.bind(null, transaction).should.throw('Failed to validate dapp schema: Expected type integer but found type ' + type.expectation);
 						});
 					});
 
 					otherTypes.forEach(function (type) {
 						it('should throw error for: ' + type.description, function () {
 							transaction.asset.dapp.category = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							dapp.objectNormalize.bind(null, transaction).should.throw();
 						});
 					});
 
@@ -702,7 +702,7 @@ describe('dapp', function () {
 
 						it('should throw error for value: ' + input, function () {
 							transaction.asset.dapp.category = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							dapp.objectNormalize.bind(null, transaction).should.throw();
 						});
 					});
 
@@ -733,14 +733,14 @@ describe('dapp', function () {
 
 						it('should throw error for: ' + type.description, function () {
 							transaction.asset.dapp.name = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
+							dapp.objectNormalize.bind(null, transaction).should.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
 						});
 					});
 
 					otherTypes.forEach(function (type) {
 						it('should throw error for: ' + type.description, function () {
 							transaction.asset.dapp.name = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							dapp.objectNormalize.bind(null, transaction).should.throw();
 						});
 					});
 
@@ -748,7 +748,7 @@ describe('dapp', function () {
 
 						it('should throw error for value: ' + input, function () {
 							transaction.asset.dapp.name = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							dapp.objectNormalize.bind(null, transaction).should.throw();
 						});
 					});
 
@@ -756,7 +756,7 @@ describe('dapp', function () {
 
 						it('should not throw error for value: ' + input, function () {
 							transaction.asset.dapp.name = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).not.throw();
+							dapp.objectNormalize.bind(null, transaction).should.not.throw();
 						});
 					});
 				});
@@ -777,7 +777,7 @@ describe('dapp', function () {
 
 						it('should throw error for: ' + type.description, function () {
 							transaction.asset.dapp.description = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
+							dapp.objectNormalize.bind(null, transaction).should.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
 						});
 					});
 
@@ -785,7 +785,7 @@ describe('dapp', function () {
 
 						it('should throw error for value: ' + input, function () {
 							transaction.asset.dapp.description = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							dapp.objectNormalize.bind(null, transaction).should.throw();
 						});
 					});
 
@@ -793,7 +793,7 @@ describe('dapp', function () {
 
 						it('should not throw error for value: ' + input, function () {
 							transaction.asset.dapp.description = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.not.throw();
+							dapp.objectNormalize.bind(null, transaction).should.not.throw();
 						});
 					});
 				});
@@ -813,7 +813,7 @@ describe('dapp', function () {
 
 						it('should throw error for: ' + type.description, function () {
 							transaction.asset.dapp.tags = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
+							dapp.objectNormalize.bind(null, transaction).should.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
 						});
 					});
 
@@ -821,7 +821,7 @@ describe('dapp', function () {
 
 						it('should throw error for value: ' + input, function () {
 							transaction.asset.dapp.tags = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							dapp.objectNormalize.bind(null, transaction).should.throw();
 						});
 					});
 
@@ -829,7 +829,7 @@ describe('dapp', function () {
 
 						it('should not throw error for value: ' + input, function () {
 							transaction.asset.dapp.tags = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.not.throw();
+							dapp.objectNormalize.bind(null, transaction).should.not.throw();
 						});
 					});
 				});
@@ -854,14 +854,14 @@ describe('dapp', function () {
 
 						it('should throw error for: ' + type.description, function () {
 							transaction.asset.dapp.type = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type integer but found type ' + type.expectation);
+							dapp.objectNormalize.bind(null, transaction).should.throw('Failed to validate dapp schema: Expected type integer but found type ' + type.expectation);
 						});
 					});
 
 					otherTypes.forEach(function (type) {
 						it('should throw error for: ' + type.description, function () {
 							transaction.asset.dapp.type = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							dapp.objectNormalize.bind(null, transaction).should.throw();
 						});
 					});
 
@@ -869,7 +869,7 @@ describe('dapp', function () {
 
 						it('should throw error for value: ' + input, function () {
 							transaction.asset.dapp.type = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							dapp.objectNormalize.bind(null, transaction).should.throw();
 						});
 					});
 
@@ -877,7 +877,7 @@ describe('dapp', function () {
 
 						it('should not throw error for value: ' + input, function () {
 							transaction.asset.dapp.type = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.not.throw();
+							dapp.objectNormalize.bind(null, transaction).should.not.throw();
 						});
 					});
 				});
@@ -900,7 +900,7 @@ describe('dapp', function () {
 
 						it('should throw error for: ' + type.description, function () {
 							transaction.asset.dapp.link = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
+							dapp.objectNormalize.bind(null, transaction).should.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
 						});
 					});
 
@@ -908,7 +908,7 @@ describe('dapp', function () {
 
 						it('should throw error for value: ' + input, function () {
 							transaction.asset.dapp.link = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							dapp.objectNormalize.bind(null, transaction).should.throw();
 						});
 					});
 
@@ -916,7 +916,7 @@ describe('dapp', function () {
 
 						it('should not throw error for value: ' + input, function () {
 							transaction.asset.dapp.link = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.not.throw();
+							dapp.objectNormalize.bind(null, transaction).should.not.throw();
 						});
 					});
 				});
@@ -939,7 +939,7 @@ describe('dapp', function () {
 
 						it('should throw error for: ' + type.description, function () {
 							transaction.asset.dapp.icon = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
+							dapp.objectNormalize.bind(null, transaction).should.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
 						});
 					});
 
@@ -947,7 +947,7 @@ describe('dapp', function () {
 
 						it('should throw error for value: ' + input, function () {
 							transaction.asset.dapp.icon = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							dapp.objectNormalize.bind(null, transaction).should.throw();
 						});
 					});
 
@@ -955,14 +955,14 @@ describe('dapp', function () {
 
 						it('should not throw error for value: ' + input, function () {
 							transaction.asset.dapp.icon = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.not.throw();
+							dapp.objectNormalize.bind(null, transaction).should.not.throw();
 						});
 					});
 				});
 			});
 
 			it('should return transaction when asset is valid', function () {
-				expect(dapp.objectNormalize(transaction)).to.eql(transaction);
+				dapp.objectNormalize(transaction).should.eql(transaction);
 			});
 		});
 
@@ -975,42 +975,42 @@ describe('dapp', function () {
 				});
 
 				it('should return null', function () {
-					expect(dapp.dbRead(rawTransaction)).to.eql(null);
+					should.not.exist(dapp.dbRead(rawTransaction));
 				});
 			});
 
 			describe('when rawTransaction.dapp_name exists', function () {
 
 				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.property('dapp');
+					dapp.dbRead(rawTransaction).should.have.property('dapp');
 				});
 
 				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.category').to.equal(rawTransaction.dapp_category);
+					dapp.dbRead(rawTransaction).should.have.nested.property('dapp.category').to.equal(rawTransaction.dapp_category);
 				});
 
 				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.description').to.eql(rawTransaction.dapp_description);
+					dapp.dbRead(rawTransaction).should.have.nested.property('dapp.description').to.eql(rawTransaction.dapp_description);
 				});
 
 				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.icon').to.eql(rawTransaction.dapp_icon);
+					dapp.dbRead(rawTransaction).should.have.nested.property('dapp.icon').to.eql(rawTransaction.dapp_icon);
 				});
 
 				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.link').to.eql(rawTransaction.dapp_link);
+					dapp.dbRead(rawTransaction).should.have.nested.property('dapp.link').to.eql(rawTransaction.dapp_link);
 				});
 
 				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.name').to.eql(rawTransaction.dapp_name);
+					dapp.dbRead(rawTransaction).should.have.nested.property('dapp.name').to.eql(rawTransaction.dapp_name);
 				});
 
 				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.tags').to.eql(rawTransaction.dapp_tags);
+					dapp.dbRead(rawTransaction).should.have.nested.property('dapp.tags').to.eql(rawTransaction.dapp_tags);
 				});
 
 				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.type').to.eql(rawTransaction.dapp_type);
+					dapp.dbRead(rawTransaction).should.have.nested.property('dapp.type').to.eql(rawTransaction.dapp_type);
 				});
 			});
 		});
@@ -1018,13 +1018,13 @@ describe('dapp', function () {
 		describe('ready', function () {
 
 			it('should return true for single signature transaction', function () {
-				expect(dapp.ready(transaction, sender)).to.equal(true);
+				dapp.ready(transaction, sender).should.equal(true);
 			});
 
 			it('should return false for multi signature transaction with less signatures', function () {
 				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-				expect(dapp.ready(transaction, sender)).to.equal(false);
+				dapp.ready(transaction, sender).should.equal(false);
 			});
 
 			it('should return true for multi signature transaction with alteast min signatures', function () {
@@ -1036,7 +1036,7 @@ describe('dapp', function () {
 				transaction.signature = crypto.randomBytes(64).toString('hex');;
 				transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
-				expect(dapp.ready(transaction, sender)).to.equal(true);
+				dapp.ready(transaction, sender).should.equal(true);
 			});
 		});
 	});

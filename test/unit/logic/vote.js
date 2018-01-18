@@ -124,12 +124,12 @@ describe('vote', function () {
 				return groupedVotes['+'] && groupedVotes['+'].indexOf('+' + v) != -1;
 			});
 			// added one because expect doesn't have greaterThanEqualTo condition
-			expect(delegates.filter(function (v) {
+			(delegates.filter(function (v) {
 				return groupedVotes['+'] && groupedVotes['+'].indexOf('+' + v) != -1;
-			}).length + 1).to.be.above(groupedVotes['+'] ? groupedVotes['+'].length : 0);
-			expect(delegates.filter(function (v) {
+			}).length + 1).should.be.above(groupedVotes['+'] ? groupedVotes['+'].length : 0);
+			delegates.filter(function (v) {
 				return groupedVotes['-'] && groupedVotes['-'].indexOf('-' + v) != -1;
-			}).length).to.equal(0);
+			}).length.should.equal(0);
 			done();
 		});
 	}
@@ -203,9 +203,9 @@ describe('vote', function () {
 	describe('bind', function () {
 
 		it('should be okay with correct params', function () {
-			expect(function () {
+			(function () {
 				vote.bind(voteBindings.delegate);
-			}).to.not.throw();
+			}).should.not.throw();
 		});
 
 		after(function () {
@@ -215,7 +215,7 @@ describe('vote', function () {
 
 	describe('calculateFee', function () {
 		it('should return the correct fee', function () {
-			expect(vote.calculateFee()).to.equal(constants.fees.vote);
+			vote.calculateFee().should.equal(constants.fees.vote);
 		});
 	});
 
@@ -224,7 +224,7 @@ describe('vote', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.recipientId = accountFixtures.genesis.address;
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Invalid recipient');
+				err.should.equal('Invalid recipient');
 				done();
 			});
 		});
@@ -233,7 +233,7 @@ describe('vote', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			delete transaction.asset.votes;
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Invalid transaction asset');
+				err.should.equal('Invalid transaction asset');
 				done();
 			});
 		});
@@ -242,7 +242,7 @@ describe('vote', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = '+' + votedDelegates[0];
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Invalid votes. Must be an array');
+				err.should.equal('Invalid votes. Must be an array');
 				done();
 			});
 		});
@@ -254,7 +254,7 @@ describe('vote', function () {
 			});
 
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Multiple votes for same delegate are not allowed');
+				err.should.equal('Multiple votes for same delegate are not allowed');
 				done();
 			});
 		});
@@ -263,7 +263,7 @@ describe('vote', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [];
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Invalid votes. Must not be empty');
+				err.should.equal('Invalid votes. Must not be empty');
 				done();
 			});
 		});
@@ -272,7 +272,7 @@ describe('vote', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = ['-' + accountFixtures.existingDelegate.publicKey];
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Failed to remove vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" was not voted for');
+				err.should.equal('Failed to remove vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" was not voted for');
 				done();
 			});
 		});
@@ -323,7 +323,7 @@ describe('vote', function () {
 				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746'
 			];
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
+				err.should.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
 				done();
 			});
 		});
@@ -334,7 +334,7 @@ describe('vote', function () {
 				return '+904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37';
 			});
 			vote.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Multiple votes for same delegate are not allowed');
+				err.should.equal('Multiple votes for same delegate are not allowed');
 				done();
 			});
 		});
@@ -351,7 +351,7 @@ describe('vote', function () {
 		it('should throw if vote is of invalid length', function (done) {
 			var invalidVote = '-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d746';
 			vote.verifyVote(invalidVote, function (err) {
-				expect(err).to.equal('Invalid vote format');
+				err.should.equal('Invalid vote format');
 				done();
 			});
 		});
@@ -374,7 +374,7 @@ describe('vote', function () {
 				return '+' + v;
 			});
 			vote.checkConfirmedDelegates(transaction, function (err) {
-				expect(err).to.equal('Failed to add vote, delegate "genesis_99" already voted for');
+				err.should.equal('Failed to add vote, delegate "genesis_99" already voted for');
 				done();
 			});
 		});
@@ -383,7 +383,7 @@ describe('vote', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = ['+' + accountFixtures.genesis.publicKey];
 			vote.checkConfirmedDelegates(transaction, function (err) {
-				expect(err).to.equal('Delegate not found');
+				err.should.equal('Delegate not found');
 				done();
 			});
 		});
@@ -402,7 +402,7 @@ describe('vote', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
 			vote.checkConfirmedDelegates(transaction, function (err) {
-				expect(err).to.equal('Failed to remove vote, delegate "genesis_86" was not voted for');
+				err.should.equal('Failed to remove vote, delegate "genesis_86" was not voted for');
 				done();
 			});
 		});
@@ -424,7 +424,7 @@ describe('vote', function () {
 				return '+' + v;
 			});
 			vote.checkUnconfirmedDelegates(transaction, function (err) {
-				expect(err).to.equal('Failed to add vote, delegate "genesis_99" already voted for');
+				err.should.equal('Failed to add vote, delegate "genesis_99" already voted for');
 
 				done();
 			});
@@ -434,7 +434,7 @@ describe('vote', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = ['+' + accountFixtures.genesis.publicKey];
 			vote.checkUnconfirmedDelegates(transaction, function (err) {
-				expect(err).to.equal('Delegate not found');
+				err.should.equal('Delegate not found');
 				done();
 			});
 		});
@@ -453,7 +453,7 @@ describe('vote', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = ['-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c'];
 			vote.checkUnconfirmedDelegates(transaction, function (err) {
-				expect(err).to.equal('Failed to remove vote, delegate "genesis_86" was not voted for');
+				err.should.equal('Failed to remove vote, delegate "genesis_86" was not voted for');
 				done();
 			});
 		});
@@ -552,15 +552,15 @@ describe('vote', function () {
 	describe('objectNormalize', function () {
 
 		it('should normalize object for valid transaction', function () {
-			expect(vote.objectNormalize.call(transactionLogic, validTransaction)).to.eql(validTransaction);
+			vote.objectNormalize.call(transactionLogic, validTransaction).should.eql(validTransaction);
 		});
 
 		it('should throw error for duplicate votes in a transaction', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes.push(transaction.asset.votes[0]);
-			expect(function () {
+			(function () {
 				vote.objectNormalize.call(transactionLogic, transaction);
-			}).to.throw('Failed to validate vote schema: Array items are not unique (indexes 0 and 3)');
+			}).should.throw('Failed to validate vote schema: Array items are not unique (indexes 0 and 3)');
 		});
 
 		it('should return error when votes array is longer than maximum acceptable', function () {
@@ -568,9 +568,9 @@ describe('vote', function () {
 			transaction.asset.votes = Array.apply(null, Array(constants.maxVotesPerTransaction + 1)).map(function () {
 				return '+' + lisk.crypto.getKeys(randomUtil.password()).publicKey;
 			});
-			expect(function () {
+			(function () {
 				vote.objectNormalize.call(transactionLogic, transaction);
-			}).to.throw('Failed to validate vote schema: Array is too long (34), maximum 33');
+			}).should.throw('Failed to validate vote schema: Array is too long (34), maximum 33');
 		});
 	});
 
@@ -578,31 +578,31 @@ describe('vote', function () {
 
 		it('should read votes correct', function () {
 			var rawVotes = '+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f,+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a,+3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135';
-			expect(vote.dbRead({
+			vote.dbRead({
 				v_votes: rawVotes
-			})).to.eql({
+			}).should.eql({
 				votes: rawVotes.split(',')
 			});
 		});
 
 		it('should return null if no votes are supplied', function () {
-			expect(vote.dbRead({
+			should.not.exist(vote.dbRead({
 				v_votes: null
-			})).to.eql(null);
+			}));
 		});
 	});
 
 	describe('ready', function () {
 
 		it('should return true for single signature transaction', function () {
-			expect(vote.ready(validTransaction, validSender)).to.equal(true);
+			vote.ready(validTransaction, validSender).should.equal(true);
 		});
 
 		it('should return false for multi signature transaction with less signatures', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
-			expect(transactionLogic.ready(transaction, vs)).to.equal(false);
+			transactionLogic.ready(transaction, vs).should.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', function () {
@@ -613,7 +613,7 @@ describe('vote', function () {
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
 			transaction.signatures = [transactionLogic.multisign(validKeypair, transaction)];
-			expect(transactionLogic.ready(transaction, vs)).to.equal(true);
+			transactionLogic.ready(transaction, vs).should.equal(true);
 		});
 	});
 });

@@ -31,8 +31,8 @@ describe('cache', function () {
 		__testContext.config.cacheEnabled = true;
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
-			expect(err).to.not.exist;
-			expect(__cache).to.be.an('object');
+			should.not.exist(err);
+			__cache.should.be.an('object');
 			cache = __cache;
 			return done();
 		});
@@ -40,8 +40,8 @@ describe('cache', function () {
 
 	afterEach(function (done) {
 		cache.flushDb(function (err, status) {
-			expect(err).to.not.exist;
-			expect(status).to.equal('OK');
+			should.not.exist(err);
+			status.should.equal('OK');
 			done(err, status);
 		});
 	});
@@ -57,11 +57,11 @@ describe('cache', function () {
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 				cache.getJsonForKey(key, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.eql(value);
+					should.not.exist(err);
+					res.should.eql(value);
 					done(err, value);
 				});
 			});
@@ -75,8 +75,8 @@ describe('cache', function () {
 			var key = 'test_key';
 
 			cache.getJsonForKey(key, function (err, value) {
-				expect(err).to.not.exist;
-				expect(value).to.equal(null);
+				should.not.exist(err);
+				should.not.exist(value);
 				done(err, value);
 			});
 		});
@@ -86,11 +86,11 @@ describe('cache', function () {
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 				cache.getJsonForKey(key, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.eql(value);
+					should.not.exist(err);
+					res.should.eql(value);
 					done(err, value);
 				});
 			});
@@ -109,16 +109,16 @@ describe('cache', function () {
 					async.map([key1, key2], function (key, cb) {
 						cache.setJsonForKey(key, dummyValue, cb);
 					}, function (err, result) {
-						expect(err).to.not.exist;
-						expect(result).to.be.an('array');
+						should.not.exist(err);
+						result.should.be.an('array');
 						return callback(err, result);
 					});
 				},
 				// flush cache database
 				function (callback) {
 					cache.flushDb(function (err, status) {
-						expect(err).to.not.exist;
-						expect(status).to.equal('OK');
+						should.not.exist(err);
+						status.should.equal('OK');
 						return callback(err, status);
 					});
 				},
@@ -127,11 +127,11 @@ describe('cache', function () {
 					async.map([key1, key2], function (key, cb) {
 						cache.getJsonForKey(key, cb);
 					}, function (err, result) {
-						expect(err).to.not.exist;
-						expect(result).to.be.an('array');
-						expect(result).to.have.length(2);
+						should.not.exist(err);
+						result.should.be.an('array');
+						result.should.have.length(2);
 						result.forEach(function (value) {
-							expect(value).to.eql(null);
+							should.not.exist(value);
 						});
 						return callback(err, result);
 					});
@@ -151,13 +151,13 @@ describe('cache', function () {
 			var pattern = '/api/transactions*';
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 				cache.removeByPattern(pattern, function (err) {
-					expect(err).to.not.exist;
+					should.not.exist(err);
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.equal(null);
+						should.not.exist(err);
+						should.not.exist(res);
 						done();
 					});
 				});
@@ -170,13 +170,13 @@ describe('cache', function () {
 			var pattern = '/api/delegate*';
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 				cache.removeByPattern(pattern, function (err) {
-					expect(err).to.not.exist;
+					should.not.exist(err);
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql(value);
+						should.not.exist(err);
+						res.should.eql(value);
 						done();
 					});
 				});
@@ -191,13 +191,13 @@ describe('cache', function () {
 			var key = '/api/transactions?123';
 			var value = {testObject: 'testValue'};
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 				cache.onNewBlock(function (err) {
-					expect(err).to.not.exist;
+					should.not.exist(err);
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.equal(null);
+						should.not.exist(err);
+						should.not.exist(res);
 						done();
 					});
 				});
@@ -209,14 +209,14 @@ describe('cache', function () {
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 
 				cache.onNewBlock(function (err) {
-					expect(err).to.not.exist;
+					should.not.exist(err);
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.equal(null);
+						should.not.exist(err);
+						should.not.exist(res);
 						done();
 					});
 				});
@@ -228,14 +228,14 @@ describe('cache', function () {
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 
 				cache.onNewBlock(function (err) {
-					expect(err).to.not.exist;
+					should.not.exist(err);
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql(value);
+						should.not.exist(err);
+						res.should.eql(value);
 						done();
 					});
 				});
@@ -247,16 +247,16 @@ describe('cache', function () {
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 
 				cache.onSyncStarted();
 				cache.onNewBlock(function (err) {
-					expect(err).to.equal('Cache Unavailable');
+					err.should.equal('Cache Unavailable');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql(value);
+						should.not.exist(err);
+						res.should.eql(value);
 						done();
 					});
 				});
@@ -271,13 +271,13 @@ describe('cache', function () {
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 				cache.onFinishRound(null, function (err) {
-					expect(err).to.not.exist;
+					should.not.exist(err);
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.equal(null);
+						should.not.exist(err);
+						should.not.exist(res);
 						done();
 					});
 				});
@@ -289,14 +289,14 @@ describe('cache', function () {
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 
 				cache.onFinishRound(null, function (err) {
-					expect(err).to.not.exist;
+					should.not.exist(err);
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql(value);
+						should.not.exist(err);
+						res.should.eql(value);
 						done();
 					});
 				});
@@ -308,16 +308,16 @@ describe('cache', function () {
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 
 				cache.onSyncStarted();
 				cache.onFinishRound(null, function (err) {
-					expect(err).to.equal('Cache Unavailable');
+					err.should.equal('Cache Unavailable');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql(value);
+						should.not.exist(err);
+						res.should.eql(value);
 						done();
 					});
 				});
@@ -332,14 +332,14 @@ describe('cache', function () {
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 				var transaction = lisk.transaction.createTransaction('1L', 1, accountFixtures.genesis.password, accountFixtures.genesis.secondPassword);
 
 				cache.onTransactionsSaved([transaction], function (err) {
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql(value);
+						should.not.exist(err);
+						res.should.eql(value);
 						done();
 					});
 				});
@@ -351,14 +351,14 @@ describe('cache', function () {
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 				var transaction = lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
 
 				cache.onTransactionsSaved([transaction], function (err) {
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.equal(null);
+						should.not.exist(err);
+						should.not.exist(res);
 						done();
 					});
 				});
@@ -370,17 +370,17 @@ describe('cache', function () {
 			var value = {testObject: 'testValue'};
 
 			cache.setJsonForKey(key, value, function (err, status) {
-				expect(err).to.not.exist;
-				expect(status).to.equal('OK');
+				should.not.exist(err);
+				status.should.equal('OK');
 				var transaction = lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
 
 				cache.onSyncStarted();
 				cache.onTransactionsSaved([transaction], function (err) {
-					expect(err).to.equal('Cache Unavailable');
+					err.should.equal('Cache Unavailable');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql(value);
+						should.not.exist(err);
+						res.should.eql(value);
 						done();
 					});
 				});

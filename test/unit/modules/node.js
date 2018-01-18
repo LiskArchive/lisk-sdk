@@ -97,7 +97,7 @@ describe('node', function () {
 
 			it('should return error with invalid key', function (done) {
 				node_module.internal.toggleForgingStatus(testDelegate.publicKey, 'Invalid key', function (err) {
-					expect(err).to.equal('Invalid key and public key combination');
+					err.should.equal('Invalid key and public key combination');
 					done();
 				});
 			});
@@ -106,25 +106,25 @@ describe('node', function () {
 				var invalidPublicKey = '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
 
 				node_module.internal.toggleForgingStatus(invalidPublicKey, defaultKey, function (err) {
-					expect(err).equal('Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found');
+					err.should.equal('Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found');
 					done();
 				});
 			});
 
 			it('should return error with non delegate account', function (done) {
 				node_module.internal.toggleForgingStatus(accountFixtures.genesis.publicKey, accountFixtures.genesis.password, function (err) {
-					expect(err).equal('Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found');
+					err.should.equal('Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found');
 					done();
 				});
 			});
 
 			it('should toggle forging from enabled to disabled', function (done) {
 				updateForgingStatus(testDelegate, 'enable', function (err) {
-					expect(err).to.not.exist;
+					should.not.exist(err);
 
 					node_module.internal.toggleForgingStatus(testDelegate.publicKey, defaultKey, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql({
+						should.not.exist(err);
+						res.should.eql({
 							publicKey: testDelegate.publicKey,
 							forging: false
 						});
@@ -135,11 +135,11 @@ describe('node', function () {
 
 			it('should toggle forging from disabled to enabled', function (done) {
 				updateForgingStatus(testDelegate, 'disable', function (err) {
-					expect(err).to.not.exist;
+					should.not.exist(err);
 
 					node_module.internal.toggleForgingStatus(testDelegate.publicKey, defaultKey, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql({
+						should.not.exist(err);
+						res.should.eql({
 							publicKey: testDelegate.publicKey,
 							forging: true
 						});

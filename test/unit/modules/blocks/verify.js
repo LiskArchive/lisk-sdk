@@ -298,10 +298,10 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifySignature(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(2);
+				result.errors.should.be.an('array').with.lengthOf(2);
 
-				expect(result.errors[0]).to.equal('TypeError: Invalid hex string');
-				expect(result.errors[1]).to.equal('Failed to verify block signature');
+				result.errors[0].should.equal('TypeError: Invalid hex string');
+				result.errors[1].should.equal('Failed to verify block signature');
 
 				validBlock.blockSignature = blockSignature;
 			});
@@ -312,8 +312,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifySignature(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Failed to verify block signature');
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal('Failed to verify block signature');
 
 				validBlock.blockSignature = blockSignature;
 			});
@@ -324,9 +324,9 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifySignature(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(2);
-				expect(result.errors[0]).to.equal('TypeError: Invalid hex string');
-				expect(result.errors[1]).to.equal('Failed to verify block signature');
+				result.errors.should.be.an('array').with.lengthOf(2);
+				result.errors[0].should.equal('TypeError: Invalid hex string');
+				result.errors[1].should.equal('Failed to verify block signature');
 
 				validBlock.generatorPublicKey = generatorPublicKey;
 			});
@@ -337,8 +337,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifySignature(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Failed to verify block signature');
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal('Failed to verify block signature');
 
 				validBlock.generatorPublicKey = generatorPublicKey;
 			});
@@ -352,8 +352,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyPreviousBlock(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid previous block');
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal('Invalid previous block');
 
 				validBlock.previousBlock = previousBlock;
 			});
@@ -367,8 +367,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyVersion(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid block version');
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal('Invalid block version');
 
 				validBlock.version = version;
 			});
@@ -381,8 +381,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyReward(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal(['Invalid block reward:', 99, 'expected:', 0].join(' '));
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal(['Invalid block reward:', 99, 'expected:', 0].join(' '));
 
 				validBlock.reward = 0;
 			});
@@ -396,8 +396,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyId(validBlock, results);
 
-				expect(validBlock.id).to.equal(blockId);
-				expect(validBlock.id).to.not.equal('invalid-block-id');
+				validBlock.id.should.equal(blockId);
+				validBlock.id.should.not.equal('invalid-block-id');
 			});
 
 			it('should reset block id when block id is an invalid numeric string value', function () {
@@ -406,8 +406,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyId(validBlock, results);
 
-				expect(validBlock.id).to.equal(blockId);
-				expect(validBlock.id).to.not.equal('11850828211026019526');
+				validBlock.id.should.equal(blockId);
+				validBlock.id.should.not.equal('11850828211026019526');
 			});
 
 			it('should reset block id when block id is an invalid integer value', function () {
@@ -416,8 +416,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyId(validBlock, results);
 
-				expect(validBlock.id).to.equal(blockId);
-				expect(validBlock.id).to.not.equal(11850828211026019526);
+				validBlock.id.should.equal(blockId);
+				validBlock.id.should.not.equal(11850828211026019526);
 			});
 
 			it('should reset block id when block id is a valid integer value', function () {
@@ -426,8 +426,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyId(validBlock, results);
 
-				expect(validBlock.id).to.equal(blockId);
-				expect(validBlock.id).to.not.equal(11850828211026019525);
+				validBlock.id.should.equal(blockId);
+				validBlock.id.should.not.equal(11850828211026019525);
 			});
 		});
 
@@ -439,8 +439,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Payload length is too long');
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal('Payload length is too long');
 
 				validBlock.payloadLength = payloadLength;
 			});
@@ -450,8 +450,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Included transactions do not match block transactions count');
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal('Included transactions do not match block transactions count');
 
 				validBlock.numberOfTransactions = validBlock.transactions.length;
 			});
@@ -463,10 +463,10 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(3);
-				expect(result.errors[0]).to.equal('Number of transactions exceeds maximum per block');
-				expect(result.errors[1]).to.equal('Invalid payload hash');
-				expect(result.errors[2]).to.equal('Invalid total amount');
+				result.errors.should.be.an('array').with.lengthOf(3);
+				result.errors[0].should.equal('Number of transactions exceeds maximum per block');
+				result.errors[1].should.equal('Invalid payload hash');
+				result.errors[2].should.equal('Invalid total amount');
 
 				validBlock.transactions = transactions;
 				validBlock.numberOfTransactions = transactions.length;
@@ -478,9 +478,9 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(2);
-				expect(result.errors[0]).to.equal('Unknown transaction type ' + validBlock.transactions[0].type);
-				expect(result.errors[1]).to.equal('Invalid payload hash');
+				result.errors.should.be.an('array').with.lengthOf(2);
+				result.errors[0].should.equal('Unknown transaction type ' + validBlock.transactions[0].type);
+				result.errors[1].should.equal('Invalid payload hash');
 
 				validBlock.transactions[0].type = transactionType;
 			});
@@ -491,10 +491,10 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(3);
-				expect(result.errors[0]).to.equal('Encountered duplicate transaction: ' + validBlock.transactions[1].id);
-				expect(result.errors[1]).to.equal('Invalid payload hash');
-				expect(result.errors[2]).to.equal('Invalid total amount');
+				result.errors.should.be.an('array').with.lengthOf(3);
+				result.errors[0].should.equal('Encountered duplicate transaction: ' + validBlock.transactions[1].id);
+				result.errors[1].should.equal('Invalid payload hash');
+				result.errors[2].should.equal('Invalid total amount');
 
 				validBlock.transactions[1] = secondTransaction;
 			});
@@ -505,8 +505,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid payload hash');
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal('Invalid payload hash');
 
 				validBlock.payloadHash = payloadHash;
 			});
@@ -517,8 +517,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid total amount');
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal('Invalid total amount');
 
 				validBlock.totalAmount = totalAmount;
 			});
@@ -529,8 +529,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid total fee');
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal('Invalid total fee');
 
 				validBlock.totalFee = totalFee;
 			});
@@ -543,8 +543,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyForkOne(validBlock, previousBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal(['Invalid previous block:', validBlock.previousBlock, 'expected:', previousBlock.id].join(' '));
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal(['Invalid previous block:', validBlock.previousBlock, 'expected:', previousBlock.id].join(' '));
 
 				validBlock.previousBlock = previousBlock;
 			});
@@ -558,8 +558,8 @@ describe.skip('blocks/verify', function () {
 
 				var result = privateFunctions.verifyBlockSlot(validBlock, previousBlock, results);
 
-				expect(result.errors).to.be.an('array').with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid block timestamp');
+				result.errors.should.be.an('array').with.lengthOf(1);
+				result.errors[0].should.equal('Invalid block timestamp');
 
 				validBlock.timestamp  = timestamp;
 			});
@@ -606,7 +606,7 @@ describe.skip('blocks/verify', function () {
 				if (err) {
 					return done(err);
 				}
-				expect(newaccount.address).to.equal(testAccount.account.address);
+				newaccount.address.should.equal(testAccount.account.address);
 				done();
 			});
 		});
@@ -615,15 +615,15 @@ describe.skip('blocks/verify', function () {
 			var secret = 'lend crime turkey diary muscle donkey arena street industry innocent network lunar';
 
 			block1 = createBlock(blocks, blockLogic, secret, 32578370, transactionsBlock1, previousBlock1);
-			expect(block1.version).to.equal(0);
-			expect(block1.timestamp).to.equal(32578370);
-			expect(block1.numberOfTransactions).to.equal(1);
-			expect(block1.reward).to.equal(0);
-			expect(block1.totalFee).to.equal(10000000);
-			expect(block1.totalAmount).to.equal(10000000000000000);
-			expect(block1.payloadLength).to.equal(117);
-			expect(block1.transactions).to.deep.equal(transactionsBlock1);
-			expect(block1.previousBlock).to.equal(previousBlock1.id);
+			block1.version.should.equal(0);
+			block1.timestamp.should.equal(32578370);
+			block1.numberOfTransactions.should.equal(1);
+			block1.reward.should.equal(0);
+			block1.totalFee.should.equal(10000000);
+			block1.totalAmount.should.equal(10000000000000000);
+			block1.payloadLength.should.equal(117);
+			block1.transactions.should.deep.equal(transactionsBlock1);
+			block1.previousBlock.should.equal(previousBlock1.id);
 			done();
 		});
 
@@ -633,14 +633,14 @@ describe.skip('blocks/verify', function () {
 				if (err) {
 					return done(err);
 				}
-				expect(result).to.be.undefined;
+				should.not.exist(result);
 				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage[0]).to.equal('broadcastBlock');
-				expect(onMessage[1].version).to.be.undefined;
-				expect(onMessage[1].numberOfTransactions).to.be.undefined;
-				expect(onMessage[2]).to.be.true;
-				expect(onMessage[3]).to.equal('transactionsSaved');
-				expect(onMessage[4]).to.deep.equal(block1.transactions);
+				onMessage[0].should.equal('broadcastBlock');
+				should.not.exist(onMessage[1].version);
+				should.not.exist(onMessage[1].numberOfTransactions);
+				onMessage[2].should.be.true;
+				onMessage[3].should.equal('transactionsSaved');
+				onMessage[4].should.deep.equal(block1.transactions);
 				modulesLoader.scope.bus.clearMessages();
 				done();
 			});
@@ -653,7 +653,7 @@ describe.skip('blocks/verify', function () {
 			blocks.lastBlock.set(previousBlock1);
 
 			blocksVerify.processBlock(block1, true, true, function (err, result) {
-				expect(err).to.equal(['Block', block1.id, 'already exists'].join(' '));
+				err.should.equal(['Block', block1.id, 'already exists'].join(' '));
 				done();
 				modulesLoader.scope.bus.clearMessages();
 			});
@@ -669,15 +669,15 @@ describe.skip('blocks/verify', function () {
 			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 
 			block2 = createBlock(blocks, blockLogic, secret, 33772882, transactionsBlock2, block1);
-			expect(block2.version).to.equal(0);
-			expect(block2.timestamp).to.equal(33772882);
-			expect(block2.numberOfTransactions).to.equal(1);
-			expect(block2.reward).to.equal(0);
-			expect(block2.totalFee).to.equal(10000000);
-			expect(block2.totalAmount).to.equal(100000000);
-			expect(block2.payloadLength).to.equal(117);
-			expect(block2.transactions).to.deep.equal(transactionsBlock2);
-			expect(block2.previousBlock).to.equal(block1.id);
+			block2.version.should.equal(0);
+			block2.timestamp.should.equal(33772882);
+			block2.numberOfTransactions.should.equal(1);
+			block2.reward.should.equal(0);
+			block2.totalFee.should.equal(10000000);
+			block2.totalAmount.should.equal(100000000);
+			block2.payloadLength.should.equal(117);
+			block2.transactions.should.deep.equal(transactionsBlock2);
+			block2.previousBlock.should.equal(block1.id);
 			done();
 		});
 
@@ -690,7 +690,7 @@ describe.skip('blocks/verify', function () {
 
 				blocksVerify.processBlock(block2, false, true, function (err, result) {
 					if (err) {
-						expect(err).equal('Failed to validate block schema: Missing required property: timestamp');
+						err.should.equal('Failed to validate block schema: Missing required property: timestamp');
 						block2.timestamp = timestamp;
 						done();
 					}
@@ -703,7 +703,7 @@ describe.skip('blocks/verify', function () {
 
 				blocksVerify.processBlock(block2, false, true, function (err, result) {
 					if (err) {
-						expect(err).equal('Invalid total fee');
+						err.should.equal('Invalid total fee');
 						block2.transactions = transactions;
 						done();
 					}
@@ -716,7 +716,7 @@ describe.skip('blocks/verify', function () {
 
 				blocksVerify.processBlock(block2, false, true, function (err, result) {
 					if (err) {
-						expect(err).equal('Unknown transaction type undefined');
+						err.should.equal('Unknown transaction type undefined');
 						block2.transactions[0].type = transactionType;
 						done();
 					}
@@ -729,7 +729,7 @@ describe.skip('blocks/verify', function () {
 
 				blocksVerify.processBlock(block2, false, true, function (err, result) {
 					if (err) {
-						expect(err).equal('Failed to validate transaction schema: Missing required property: timestamp');
+						err.should.equal('Failed to validate transaction schema: Missing required property: timestamp');
 						block2.transactions[0].timestamp = transactionTimestamp;
 						done();
 					}
@@ -740,7 +740,7 @@ describe.skip('blocks/verify', function () {
 		it('should fail when block generator is invalid (fork:3)', function (done) {
 			blocksVerify.processBlock(block2, false, true, function (err, result) {
 				if (err) {
-					expect(err).equal('Failed to verify slot: 3377288');
+					err.should.equal('Failed to verify slot: 3377288');
 					done();
 				}
 			});
@@ -750,15 +750,15 @@ describe.skip('blocks/verify', function () {
 			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 
 			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock1, block1);
-			expect(block2.version).to.equal(0);
-			expect(block2.timestamp).to.equal(33772862);
-			expect(block2.numberOfTransactions).to.equal(1);
-			expect(block2.reward).to.equal(0);
-			expect(block2.totalFee).to.equal(10000000);
-			expect(block2.totalAmount).to.equal(10000000000000000);
-			expect(block2.payloadLength).to.equal(117);
-			expect(block2.transactions).to.deep.equal(transactionsBlock1);
-			expect(block2.previousBlock).to.equal(block1.id);
+			block2.version.should.equal(0);
+			block2.timestamp.should.equal(33772862);
+			block2.numberOfTransactions.should.equal(1);
+			block2.reward.should.equal(0);
+			block2.totalFee.should.equal(10000000);
+			block2.totalAmount.should.equal(10000000000000000);
+			block2.payloadLength.should.equal(117);
+			block2.transactions.should.deep.equal(transactionsBlock1);
+			block2.previousBlock.should.equal(block1.id);
 			done();
 		});
 
@@ -767,7 +767,7 @@ describe.skip('blocks/verify', function () {
 
 			blocksVerify.processBlock(block2, false, true, function (err, result) {
 				if (err) {
-					expect(err).to.equal(['Transaction is already confirmed:', transactionsBlock1[0].id].join(' '));
+					err.should.equal(['Transaction is already confirmed:', transactionsBlock1[0].id].join(' '));
 					done();
 				}
 			});
@@ -780,15 +780,15 @@ describe.skip('blocks/verify', function () {
 			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 
 			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock2, block1);
-			expect(block2.version).to.equal(0);
-			expect(block2.timestamp).to.equal(33772862);
-			expect(block2.numberOfTransactions).to.equal(1);
-			expect(block2.reward).to.equal(0);
-			expect(block2.totalFee).to.equal(10000000);
-			expect(block2.totalAmount).to.equal(100000000);
-			expect(block2.payloadLength).to.equal(117);
-			expect(block2.transactions).to.deep.equal(transactionsBlock2);
-			expect(block2.previousBlock).to.equal(block1.id);
+			block2.version.should.equal(0);
+			block2.timestamp.should.equal(33772862);
+			block2.numberOfTransactions.should.equal(1);
+			block2.reward.should.equal(0);
+			block2.totalFee.should.equal(10000000);
+			block2.totalAmount.should.equal(100000000);
+			block2.payloadLength.should.equal(117);
+			block2.transactions.should.deep.equal(transactionsBlock2);
+			block2.previousBlock.should.equal(block1.id);
 			done();
 		});
 
@@ -799,10 +799,10 @@ describe.skip('blocks/verify', function () {
 				if (err) {
 					return done(err);
 				}
-				expect(result).to.be.undefined;
+				should.not.exist(result);
 				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage[0]).to.equal('transactionsSaved');
-				expect(onMessage[1][0].id).to.equal(block2.transactions[0].id);
+				onMessage[0].should.equal('transactionsSaved');
+				onMessage[1][0].id.should.equal(block2.transactions[0].id);
 				modulesLoader.scope.bus.clearMessages();
 				done();
 			});
@@ -812,7 +812,7 @@ describe.skip('blocks/verify', function () {
 			blocks.lastBlock.set(block1);
 
 			blocksVerify.processBlock(block2, false, true, function (err, result) {
-				expect(err).to.equal(['Block', block2.id, 'already exists'].join(' '));
+				err.should.equal(['Block', block2.id, 'already exists'].join(' '));
 				done();
 			});
 		});
@@ -826,7 +826,7 @@ describe.skip('blocks/verify', function () {
 				if (err) {
 					return done(err);
 				}
-				expect(newaccount.address).to.equal(userAccount.account.address);
+				newaccount.address.should.equal(userAccount.account.address);
 				done();
 			});
 		});
@@ -835,7 +835,7 @@ describe.skip('blocks/verify', function () {
 			var secret = 'term stable snap size half hotel unique biology amateur fortune easily tribe';
 
 			block3 = createBlock(blocks, blockLogic, secret, 33942637, [], block2);
-			expect(block3.version).to.equal(0);
+			block3.version.should.equal(0);
 			done();
 		});
 
@@ -844,18 +844,18 @@ describe.skip('blocks/verify', function () {
 				if (err) {
 					return done(err);
 				}
-				expect(result).to.be.undefined;
+				should.not.exist(result);
 				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage[0]).to.equal('broadcastBlock');
-				expect(onMessage[1].version).to.be.undefined;
-				expect(onMessage[1].numberOfTransactions).to.be.undefined;
-				expect(onMessage[1].totalAmount).to.be.undefined;
-				expect(onMessage[1].totalFee).to.be.undefined;
-				expect(onMessage[1].payloadLength).to.be.undefined;
-				expect(onMessage[1].reward).to.be.undefined;
-				expect(onMessage[1].transactions).to.be.undefined;
-				expect(onMessage[2]).to.be.true;
-				expect(onMessage[3]).to.equal('newBlock');
+				onMessage[0].should.equal('broadcastBlock');
+				should.not.exist(onMessage[1].version);
+				should.not.exist(onMessage[1].numberOfTransactions);
+				should.not.exist(onMessage[1].totalAmount);
+				should.not.exist(onMessage[1].totalFee);
+				should.not.exist(onMessage[1].payloadLength);
+				should.not.exist(onMessage[1].reward);
+				should.not.exist(onMessage[1].transactions);
+				onMessage[2].should.be.true;
+				onMessage[3].should.equal('newBlock');
 				modulesLoader.scope.bus.clearMessages();
 				done();
 			});
@@ -868,18 +868,18 @@ describe.skip('blocks/verify', function () {
 				if (err) {
 					return done(err);
 				}
-				expect(result).to.be.undefined;
+				should.not.exist(result);
 				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage[0]).to.equal('broadcastBlock');
-				expect(onMessage[1].version).to.be.undefined;
-				expect(onMessage[1].numberOfTransactions).to.be.undefined;
-				expect(onMessage[1].totalAmount).to.be.undefined;
-				expect(onMessage[1].totalFee).to.be.undefined;
-				expect(onMessage[1].payloadLength).to.be.undefined;
-				expect(onMessage[1].reward).to.be.undefined;
-				expect(onMessage[1].transactions).to.be.undefined;
-				expect(onMessage[2]).to.be.true;
-				expect(onMessage[3]).to.equal('newBlock');
+				onMessage[0].should.equal('broadcastBlock');
+				should.not.exist(onMessage[1].version);
+				should.not.exist(onMessage[1].numberOfTransactions);
+				should.not.exist(onMessage[1].totalAmount);
+				should.not.exist(onMessage[1].totalFee);
+				should.not.exist(onMessage[1].payloadLength);
+				should.not.exist(onMessage[1].reward);
+				should.not.exist(onMessage[1].transactions);
+				onMessage[2].should.be.true;
+				onMessage[3].should.equal('newBlock');
 				modulesLoader.scope.bus.clearMessages();
 				done();
 			});
@@ -897,9 +897,9 @@ describe.skip('blocks/verify', function () {
 				if (err) {
 					return done(err);
 				}
-				expect(result).to.be.undefined;
+				should.not.exist(result);
 				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage).to.be.an('array').that.does.not.include('broadcastBlock');
+				onMessage.should.be.an('array').that.does.not.include('broadcastBlock');
 				modulesLoader.scope.bus.clearMessages();
 				done();
 			});
@@ -910,9 +910,9 @@ describe.skip('blocks/verify', function () {
 			block3 = blocksVerify.deleteBlockProperties(block3);
 
 			blocksVerify.processBlock(block3, false, false, function (err, result) {
-				expect(result).to.be.undefined;
+				should.not.exist(result);
 				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage).to.be.an('array').that.does.not.include('broadcastBlock');
+				onMessage.should.be.an('array').that.does.not.include('broadcastBlock');
 				modulesLoader.scope.bus.clearMessages();
 				done();
 			});

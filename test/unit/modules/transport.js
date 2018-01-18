@@ -112,21 +112,21 @@ describe('transport', function () {
 					library = TransportModule.__get__('library');
 					__private = TransportModule.__get__('__private');
 
-					expect(library).to.have.property('db').which.is.equal(dbStub);
-					expect(library).to.have.property('logger').which.is.equal(loggerStub);
-					expect(library).to.have.property('bus').which.is.equal(busStub);
-					expect(library).to.have.property('schema').which.is.equal(schemaStub);
-					expect(library).to.have.property('network').which.is.equal(networkStub);
-					expect(library).to.have.property('balancesSequence').which.is.equal(balancesSequenceStub);
-					expect(library).to.have.nested.property('logic.block').which.is.equal(blockStub);
-					expect(library).to.have.nested.property('logic.transaction').which.is.equal(transactionStub);
-					expect(library).to.have.nested.property('logic.peers').which.is.equal(peersStub);
-					expect(library).to.have.nested.property('config.peers.options.timeout').which.is.equal(1234);
+					library.should.have.property('db').which.is.equal(dbStub);
+					library.should.have.property('logger').which.is.equal(loggerStub);
+					library.should.have.property('bus').which.is.equal(busStub);
+					library.should.have.property('schema').which.is.equal(schemaStub);
+					library.should.have.property('network').which.is.equal(networkStub);
+					library.should.have.property('balancesSequence').which.is.equal(balancesSequenceStub);
+					library.should.have.nested.property('logic.block').which.is.equal(blockStub);
+					library.should.have.nested.property('logic.transaction').which.is.equal(transactionStub);
+					library.should.have.nested.property('logic.peers').which.is.equal(peersStub);
+					library.should.have.nested.property('config.peers.options.timeout').which.is.equal(1234);
 
-					expect(__private).to.have.property('broadcaster').which.is.equal(broadcasterStubRef);
+					__private.should.have.property('broadcaster').which.is.equal(broadcasterStubRef);
 
-					expect(err).to.equal(null);
-					expect(transportSelf).to.equal(localTransportInstance);
+					should.not.exist(err);
+					transportSelf.should.equal(localTransportInstance);
 
 					transportSelf.onBind(defaultScope);
 
@@ -175,14 +175,14 @@ describe('transport', function () {
 
 				it('should call library.logger.debug with "Cannot remove empty peer"', function (done) {
 					__private.removePeer({}, 'Custom peer remove message');
-					expect(loggerStub.debug.called).to.be.true;
-					expect(loggerStub.debug.calledWith('Cannot remove empty peer')).to.be.true;
+					loggerStub.debug.called.should.be.true;
+					loggerStub.debug.calledWith('Cannot remove empty peer').should.be.true;
 					done();
 				});
 
 				it('should return false', function (done) {
 					var result = __private.removePeer({}, 'Custom peer remove message');
-					expect(result).to.be.false;
+					result.should.be.false;
 					done();
 				});
 			});
@@ -217,7 +217,7 @@ describe('transport', function () {
 					__private.removePeer({
 						peer: peerData
 					}, 'Custom peer remove message');
-					expect(loggerStub.debug.called).to.be.true;
+					loggerStub.debug.called.should.be.true;
 					done();
 				});
 
@@ -225,14 +225,14 @@ describe('transport', function () {
 					__private.removePeer({
 						peer: peerData
 					}, 'Custom peer remove message');
-					expect(removeSpy.calledWith(peerData)).to.be.true;
+					removeSpy.calledWith(peerData).should.be.true;
 					done();
 				});
 			});
 		});
 
 		describe('receiveSignatures', function () {
-			
+
 			beforeEach(function (done) {
 				__private.receiveSignature = sinon.stub().callsArg(1);
 				library.schema.validate = sinon.stub().callsArg(2);
@@ -243,7 +243,7 @@ describe('transport', function () {
 				__private.receiveSignatures({
 					signatures: []
 				}, function (err) {
-					expect(library.schema.validate.called).to.be.true;
+					library.schema.validate.called.should.be.true;
 					done();
 				});
 			});
@@ -252,7 +252,7 @@ describe('transport', function () {
 				__private.receiveSignatures({
 					signatures: ['SIGNATURE123', 'SIGNATURE456'] // TODO: Use realistic signatures
 				}, function (err) {
-					expect(library.schema.validate.called).to.be.true;
+					library.schema.validate.called.should.be.true;
 					done();
 				});
 			});
@@ -278,7 +278,7 @@ describe('transport', function () {
 				__private.receiveSignatures({
 					signatures: ['SIGNATURE123', 'SIGNATURE456']
 				}, function (err) {
-					expect(library.schema.validate.called).to.be.true;
+					library.schema.validate.called.should.be.true;
 
 					restoreRewiredDeps();
 					done();
@@ -296,8 +296,8 @@ describe('transport', function () {
 					__private.receiveSignatures({
 						signatures: ['SIGNATURE123', 'SIGNATURE456']
 					}, function (err) {
-						expect(library.schema.validate.called).to.be.true;
-						expect(err).to.equal('Invalid signatures body');
+						library.schema.validate.called.should.be.true;
+						err.should.equal('Invalid signatures body');
 						done();
 					});
 				});
@@ -312,10 +312,10 @@ describe('transport', function () {
 						__private.receiveSignatures({
 							signatures: ['SIGNATURE123', 'SIGNATURE456']
 						}, function (err) {
-							expect(library.schema.validate.called).to.be.true;
-							expect(__private.receiveSignature.calledTwice).to.be.true;
-							expect(__private.receiveSignature.calledWith('SIGNATURE123')).to.be.true;
-							expect(__private.receiveSignature.calledWith('SIGNATURE456')).to.be.true;
+							library.schema.validate.called.should.be.true;
+							__private.receiveSignature.calledTwice.should.be.true;
+							__private.receiveSignature.calledWith('SIGNATURE123').should.be.true;
+							__private.receiveSignature.calledWith('SIGNATURE456').should.be.true;
 							done();
 						});
 					});
@@ -330,11 +330,11 @@ describe('transport', function () {
 							__private.receiveSignatures({
 								signatures: ['SIGNATURE123', 'SIGNATURE456']
 							}, function (err) {
-								expect(library.schema.validate.called).to.be.true;
+								library.schema.validate.called.should.be.true;
 								// If any of the __private.receiveSignature calls fail, the whole
 								// receiveSignatures operation should fail immediately.
-								expect(__private.receiveSignature.calledOnce).to.be.true;
-								expect(library.logger.debug.calledWith(err, 'SIGNATURE123')).to.be.true;
+								__private.receiveSignature.calledOnce.should.be.true;
+								library.logger.debug.calledWith(err, 'SIGNATURE123').should.be.true;
 								done();
 							});
 						});
@@ -347,7 +347,7 @@ describe('transport', function () {
 							__private.receiveSignatures({
 								signatures: ['SIGNATURE123', 'SIGNATURE456']
 							}, function (err) {
-								expect(err).to.be.equal(err);
+								err.should.be.equal(err);
 								done();
 							});
 						});
@@ -359,7 +359,7 @@ describe('transport', function () {
 							__private.receiveSignatures({
 								signatures: ['SIGNATURE123', 'SIGNATURE456']
 							}, function (err) {
-								expect(err).to.be.equal(null);
+								should.not.exist(err);
 								done();
 							});
 						});

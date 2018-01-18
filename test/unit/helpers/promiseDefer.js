@@ -24,10 +24,10 @@ describe('PromiseDefer', function () {
 	beforeEach(function () {
 		promiseDefer = PromiseDefer();
 		promiseDefer.promise.then(function (input) {
-			expect(input.message).to.equal(RESOLVED);
+			input.message.should.equal(RESOLVED);
 			input.done();
 		}).catch(function (input) {
-			expect(input.message).to.equal(REJECTED);
+			input.message.should.equal(REJECTED);
 			input.done();
 		});
 	});
@@ -35,18 +35,18 @@ describe('PromiseDefer', function () {
 	describe('when it fails', function () {
 
 		it('should reject', function (done) {
-			expect(promiseDefer.promise.isRejected()).to.be.false;
+			promiseDefer.promise.isRejected().should.be.false;
 			promiseDefer.reject({message: REJECTED, done: done});
-			expect(promiseDefer.promise.isRejected()).to.be.true;
+			promiseDefer.promise.isRejected().should.be.true;
 		});
 	});
 
 	describe('when it succeeds', function () {
 
 		it('should resolve', function (done) {
-			expect(promiseDefer.promise.isFulfilled()).to.be.false;
+			promiseDefer.promise.isFulfilled().should.be.false;
 			promiseDefer.resolve({message: RESOLVED, done: done});
-			expect(promiseDefer.promise.isFulfilled()).to.be.true;
+			promiseDefer.promise.isFulfilled().should.be.true;
 		});
 	});
 });

@@ -22,16 +22,16 @@ describe('helpers/slots', function () {
 	describe('calc', function () {
 
 		it('should calculate round number from given block height', function () {
-			expect(slots.calcRound(100)).equal(1);
-			expect(slots.calcRound(200)).equal(2);
-			expect(slots.calcRound(303)).equal(3);
-			expect(slots.calcRound(304)).equal(4);
+			slots.calcRound(100).should.equal(1);
+			slots.calcRound(200).should.equal(2);
+			slots.calcRound(303).should.equal(3);
+			slots.calcRound(304).should.equal(4);
 		});
 
 		it('should calculate round number from Number.MAX_VALUE', function () {
 			var res = slots.calcRound(Number.MAX_VALUE);
-			expect(_.isNumber(res)).to.be.ok;
-			expect(res).to.be.below(Number.MAX_VALUE);
+			_.isNumber(res).should.be.ok;
+			res.should.be.below(Number.MAX_VALUE);
 		});
 	});
 });

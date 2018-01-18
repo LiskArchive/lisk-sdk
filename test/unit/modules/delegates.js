@@ -83,8 +83,8 @@ describe('delegates', function () {
 				config.forging.secret = encryptedSecret;
 
 				loadDelegates(function (err) {
-					expect(err).to.not.exist;
-					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					should.not.exist(err);
+					Object.keys(__private.keypairs).length.should.equal(0);
 					done();
 				});
 			});
@@ -93,8 +93,8 @@ describe('delegates', function () {
 				config.forging.secret = [];
 
 				loadDelegates(function (err) {
-					expect(err).to.not.exist;
-					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					should.not.exist(err);
+					Object.keys(__private.keypairs).length.should.equal(0);
 					done();
 				});
 			});
@@ -103,8 +103,8 @@ describe('delegates', function () {
 				config.forging.secret = undefined;
 
 				loadDelegates(function (err) {
-					expect(err).to.not.exist;
-					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					should.not.exist(err);
+					Object.keys(__private.keypairs).length.should.equal(0);
 					done();
 				});
 			});
@@ -118,8 +118,8 @@ describe('delegates', function () {
 				config.forging.secret = [accountDetails];
 
 				loadDelegates(function (err) {
-					expect(err).to.equal('Invalid encryptedSecret for publicKey: ' + accountDetails.publicKey);
-					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					err.should.equal('Invalid encryptedSecret for publicKey: ' + accountDetails.publicKey);
+					Object.keys(__private.keypairs).length.should.equal(0);
 					done();
 				});
 			});
@@ -133,8 +133,8 @@ describe('delegates', function () {
 				config.forging.secret = [accountDetails];
 
 				loadDelegates(function (err) {
-					expect(err).to.equal('Public keys do not match');
-					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					err.should.equal('Public keys do not match');
+					Object.keys(__private.keypairs).length.should.equal(0);
 					done();
 				});
 			});
@@ -154,8 +154,8 @@ describe('delegates', function () {
 				config.forging.secret = [accountDetails];
 
 				loadDelegates(function (err) {
-					expect(err).to.equal(['Account with public key:', accountDetails.publicKey.toString('hex'), 'not found'].join(' '));
-					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					err.should.equal(['Account with public key:', accountDetails.publicKey.toString('hex'), 'not found'].join(' '));
+					Object.keys(__private.keypairs).length.should.equal(0);
 					done();
 				});
 			});
@@ -167,8 +167,8 @@ describe('delegates', function () {
 				}];
 
 				loadDelegates(function (err) {
-					expect(err).to.not.exist;
-					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					should.not.exist(err);
+					Object.keys(__private.keypairs).length.should.equal(0);
 					done();
 				});
 			});
@@ -177,8 +177,8 @@ describe('delegates', function () {
 				config.forging.secret = encryptedSecret;
 
 				loadDelegates(function (err) {
-					expect(err).to.not.exist;
-					expect(Object.keys(__private.keypairs).length).to.equal(encryptedSecret.length);
+					should.not.exist(err);
+					Object.keys(__private.keypairs).length.should.equal(encryptedSecret.length);
 					done();
 				});
 			});
@@ -192,8 +192,8 @@ describe('delegates', function () {
 				});
 
 				loadDelegates(function (err) {
-					expect(err).to.not.exist;
-					expect(Object.keys(__private.keypairs).length).to.equal(101);
+					should.not.exist(err);
+					Object.keys(__private.keypairs).length.should.equal(101);
 					done();
 				});
 			});

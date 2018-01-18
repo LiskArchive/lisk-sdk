@@ -39,14 +39,14 @@ describe('GET /api/accounts', function () {
 		// Crediting accounts
 		return apiHelpers.sendTransactionPromise(scenario.creditTransaction)
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
+				res.should.have.property('status').to.equal(200);
 				return waitFor.confirmations([scenario.creditTransaction.id]);
 			})
 			.then(function (res) {
 				return apiHelpers.sendTransactionPromise(scenario.multiSigTransaction);
 			})
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
+				res.should.have.property('status').to.equal(200);
 
 				var signatures = [];
 				scenario.members.map(function (member) {

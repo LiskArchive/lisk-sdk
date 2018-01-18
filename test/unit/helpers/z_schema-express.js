@@ -54,11 +54,11 @@ describe('z_schema.express', function () {
 	});
 
 	it('should add a sanitize function to the request-object', function () {
-		expect(validReq.sanitize).to.be.a('function');
+		validReq.sanitize.should.be.a('function');
 	});
 
 	it('should call callback', function () {
-		expect(validNextCb.calledOnce).to.be.true;
+		validNextCb.calledOnce.should.be.true;
 	});
 
 	describe('sanitize', function () {
@@ -76,7 +76,7 @@ describe('z_schema.express', function () {
 			});
 
 			it('should return invalid object', function () {
-				expect(reqSanitizeFunctionResult).to.eq(validObject);
+				reqSanitizeFunctionResult.should.eq(validObject);
 			});
 		});
 
@@ -93,7 +93,7 @@ describe('z_schema.express', function () {
 			});
 
 			it('should return valid object', function () {
-				expect(reqSanitizeFunctionResult).to.eq(validObject);
+				reqSanitizeFunctionResult.should.eq(validObject);
 			});
 		});
 	});

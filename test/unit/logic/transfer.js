@@ -129,9 +129,9 @@ describe('transfer', function () {
 	describe('bind', function () {
 
 		it('should be okay with correct params', function () {
-			expect(function () {
+			(function () {
 				transfer.bind(transferBindings.account);
-			}).to.not.throw();
+			}).should.not.throw();
 		});
 
 		after(function () {
@@ -142,11 +142,11 @@ describe('transfer', function () {
 	describe('calculateFee', function () {
 
 		it('should throw error if given no params', function () {
-			expect(transfer.calculateFee).to.throw();
+			transfer.calculateFee.should.throw();
 		});
 
 		it('should return the correct fee when data field is not set', function () {
-			expect(transfer.calculateFee.call(transactionLogic, validTransaction)).to.equal(constants.fees.send);
+			transfer.calculateFee.call(transactionLogic, validTransaction).should.equal(constants.fees.send);
 		});
 
 		it('should return the correct fee when data field is set', function () {
@@ -155,7 +155,7 @@ describe('transfer', function () {
 				data: '0'
 			};
 
-			expect(transfer.calculateFee.call(transactionLogic, transaction)).to.equal(constants.fees.send + constants.fees.data);
+			transfer.calculateFee.call(transactionLogic, transaction).should.equal(constants.fees.send + constants.fees.data);
 		});
 	});
 
@@ -166,7 +166,7 @@ describe('transfer', function () {
 			delete transaction.recipientId;
 
 			transfer.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Missing recipient');
+				err.should.equal('Missing recipient');
 				done();
 			});
 		});
@@ -176,7 +176,7 @@ describe('transfer', function () {
 			transaction.amount = -10;
 
 			transfer.verify(transaction, validSender, function (err) {
-				expect(err).to.equal('Invalid transaction amount');
+				err.should.equal('Invalid transaction amount');
 				done();
 			});
 		});
@@ -196,7 +196,7 @@ describe('transfer', function () {
 	describe('getBytes', function () {
 
 		it('should return null for empty asset', function () {
-			expect(transfer.getBytes(validTransaction)).to.eql(null);
+			should.not.exist(transfer.getBytes(validTransaction));
 		});
 
 		it('should return bytes of data asset', function () {
@@ -206,7 +206,7 @@ describe('transfer', function () {
 				data: data
 			};
 
-			expect(transfer.getBytes(transaction)).to.eql(Buffer.from(data, 'utf8'));
+			transfer.getBytes(transaction).should.eql(Buffer.from(data, 'utf8'));
 		});
 
 		it('should be okay for utf-8 data value', function () {
@@ -216,7 +216,7 @@ describe('transfer', function () {
 				data: data
 			};
 
-			expect(transfer.getBytes(transaction)).to.eql(Buffer.from(data, 'utf8'));
+			transfer.getBytes(transaction).should.eql(Buffer.from(data, 'utf8'));
 		});
 	});
 
@@ -235,28 +235,28 @@ describe('transfer', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
 			transfer.apply.call(transactionLogic, transaction, dummyBlock, validSender, function (err) {
-				expect(err).to.equal('Invalid public key');
+				err.should.equal('Invalid public key');
 				done();
 			});
 		});
 
 		it('should be okay for a valid transaction', function (done) {
 			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
-				expect(err).to.not.exist;
-				expect(accountBefore).to.exist;
+				should.not.exist(err);
+				accountBefore.should.exist;
 
 				var amount = new bignum(validTransaction.amount.toString());
 				var balanceBefore = new bignum(accountBefore.balance.toString());
 
 				transfer.apply.call(transactionLogic, validTransaction, dummyBlock, validSender, function (err) {
-					expect(err).to.not.exist;
+					should.not.exist(err);
 
 					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
-						expect(err).to.not.exist;
-						expect(accountAfter).to.exist;
+						should.not.exist(err);
+						accountAfter.should.exist;
 
 						var balanceAfter = new bignum(accountAfter.balance.toString());
-						expect(balanceBefore.plus(amount).toString()).to.equal(balanceAfter.toString());
+						balanceBefore.plus(amount).toString().should.equal(balanceAfter.toString());
 						undoTransaction(validTransaction, validSender, done);
 					});
 				});
@@ -280,26 +280,26 @@ describe('transfer', function () {
 			delete transaction.recipientId;
 
 			transfer.undo.call(transactionLogic, transaction, dummyBlock, validSender, function (err) {
-				expect(err).to.equal('Invalid public key');
+				err.should.equal('Invalid public key');
 				done();
 			});
 		});
 
 		it('should be okay for a valid transaction', function (done) {
 			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
-				expect(err).to.not.exist;
+				should.not.exist(err);
 
 				var amount = new bignum(validTransaction.amount.toString());
 				var balanceBefore = new bignum(accountBefore.balance.toString());
 
 				transfer.undo.call(transactionLogic, validTransaction, dummyBlock, validSender, function (err) {
-					expect(err).to.not.exist;
+					should.not.exist(err);
 
 					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
 						var balanceAfter = new bignum(accountAfter.balance.toString());
 
-						expect(err).to.not.exist;
-						expect(balanceAfter.plus(amount).toString()).to.equal(balanceBefore.toString());
+						should.not.exist(err);
+						balanceAfter.plus(amount).toString().should.equal(balanceBefore.toString());
 						applyTransaction(validTransaction, validSender, done);
 					});
 				});
@@ -327,7 +327,7 @@ describe('transfer', function () {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.blockId = '9314232245035524467';
 
-			expect(transfer.objectNormalize(transaction)).to.not.have.key('blockId');
+			transfer.objectNormalize(transaction).should.not.have.key('blockId');
 		});
 
 		it('should not remove data field', function () {
@@ -336,7 +336,7 @@ describe('transfer', function () {
 				data: '123'
 			};
 
-			expect(transfer.objectNormalize(transaction).asset).to.eql(transaction.asset);
+			transfer.objectNormalize(transaction).asset.should.eql(transaction.asset);
 		});
 
 		it('should throw error if value is null', function () {
@@ -345,9 +345,9 @@ describe('transfer', function () {
 				data: null
 			};
 
-			expect(function () {
+			(function () {
 				transfer.objectNormalize(transaction);
-			}).to.throw('Failed to validate transfer schema: Expected type string but found type null');
+			}).should.throw('Failed to validate transfer schema: Expected type string but found type null');
 		});
 
 		it('should throw error if value is undefined', function () {
@@ -356,9 +356,9 @@ describe('transfer', function () {
 				data: undefined
 			};
 
-			expect(function () {
+			(function () {
 				transfer.objectNormalize(transaction);
-			}).to.throw('Failed to validate transfer schema: Expected type string but found type undefined');
+			}).should.throw('Failed to validate transfer schema: Expected type string but found type undefined');
 		});
 
 		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength +  ' characters', function () {
@@ -368,9 +368,9 @@ describe('transfer', function () {
 				data: invalidString
 			};
 
-			expect(function () {
+			(function () {
 				transfer.objectNormalize(transaction);
-			}).to.throw('Failed to validate transfer schema: Object didn\'t pass validation for format additionalData: ' + invalidString);
+			}).should.throw('Failed to validate transfer schema: Object didn\'t pass validation for format additionalData: ' + invalidString);
 		});
 
 		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength + ' bytes', function () {
@@ -380,16 +380,16 @@ describe('transfer', function () {
 				data: invalidString
 			};
 
-			expect(function () {
+			(function () {
 				transfer.objectNormalize(transaction);
-			}).to.throw('Failed to validate transfer schema: Object didn\'t pass validation for format additionalData: ' + invalidString);
+			}).should.throw('Failed to validate transfer schema: Object didn\'t pass validation for format additionalData: ' + invalidString);
 		});
 	});
 
 	describe('dbRead', function () {
 
 		it('should return null when data field is not set', function () {
-			expect(transfer.dbRead(rawValidTransaction)).to.eql(null);
+			should.not.exist(transfer.dbRead(rawValidTransaction));
 		});
 
 		it('should be okay when data field is set', function () {
@@ -397,7 +397,7 @@ describe('transfer', function () {
 			var data = '123';
 			rawTransaction.tf_data = data;
 
-			expect(transfer.dbRead(rawTransaction)).to.eql({
+			transfer.dbRead(rawTransaction).should.eql({
 				data: data
 			});
 		});
@@ -406,7 +406,7 @@ describe('transfer', function () {
 	describe('ready', function () {
 
 		it('should return true for single signature transaction', function () {
-			expect(transfer.ready(validTransaction, validSender)).to.equal(true);
+			transfer.ready(validTransaction, validSender).should.equal(true);
 		});
 
 		it('should return false for multi signature transaction with less signatures', function () {
@@ -414,7 +414,7 @@ describe('transfer', function () {
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-			expect(transactionLogic.ready(transaction, vs)).to.equal(false);
+			transactionLogic.ready(transaction, vs).should.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', function () {
@@ -427,7 +427,7 @@ describe('transfer', function () {
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
 			transaction.signatures = [transactionLogic.multisign(validKeypair, transaction)];
 
-			expect(transactionLogic.ready(transaction, vs)).to.equal(true);
+			transactionLogic.ready(transaction, vs).should.equal(true);
 		});
 	});
 });

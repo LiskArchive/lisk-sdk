@@ -77,25 +77,25 @@ describe('accounts', function () {
 	describe('constructor', function () {
 
 		it('should throw with no params', function () {
-			expect(function () {
+			(function () {
 				new AccountModule();
-			}).to.throw();
+			}).should.throw();
 		});
 	});
 
 	describe('generateAddressByPublicKey', function () {
 
 		it('should generate correct address for the publicKey provided', function () {
-			expect(accounts.generateAddressByPublicKey(validAccount.publicKey)).to.equal(validAccount.address);
+			accounts.generateAddressByPublicKey(validAccount.publicKey).should.equal(validAccount.address);
 		});
 
 		// TODO: Design a throwable test
 		it.skip('should throw error for invalid publicKey', function () {
 			var invalidPublicKey = 'invalidPublicKey';
 
-			expect(function () {
+			(function () {
 				accounts.generateAddressByPublicKey(invalidPublicKey);
-			}).to.throw('Invalid public key: ', invalidPublicKey);
+			}).should.throw('Invalid public key: ', invalidPublicKey);
 		});
 	});
 
@@ -105,18 +105,18 @@ describe('accounts', function () {
 			var getAccountStub = sinonSandbox.stub(accountLogic, 'get');
 
 			accounts.getAccount({publicKey: validAccount.publicKey});
-			expect(getAccountStub.calledOnce).to.be.ok;
-			expect(getAccountStub.calledWith({address: validAccount.address})).to.be.ok;
+			getAccountStub.calledOnce.should.be.ok;
+			getAccountStub.calledWith({address: validAccount.address}).should.be.ok;
 			getAccountStub.restore();
 			done();
 		});
 
 		it('should get correct account for address', function (done) {
 			accounts.getAccount({address: validAccount.address}, function (err, res) {
-				expect(err).to.not.exist;
-				expect(res.address).to.equal(validAccount.address);
-				expect(res.publicKey).to.equal(validAccount.publicKey);
-				expect(res.username).to.equal(validAccount.username);
+				should.not.exist(err);
+				res.address.should.equal(validAccount.address);
+				res.publicKey.should.equal(validAccount.publicKey);
+				res.username.should.equal(validAccount.username);
 				done();
 			});
 		});
@@ -126,11 +126,11 @@ describe('accounts', function () {
 
 		it('should get accounts for the filter provided', function (done) {
 			accounts.getAccounts({secondSignature: 0}, function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.be.an('Array');
-				expect(res.filter(function (a) {
+				should.not.exist(err);
+				res.should.be.an('Array');
+				res.filter(function (a) {
 					return a.secondSignature != 0;
-				}).length).to.equal(0);
+				}).length.should.equal(0);
 				done();
 			});
 		});
@@ -139,9 +139,9 @@ describe('accounts', function () {
 			var getAllSpy = sinonSandbox.spy(accountLogic, 'getAll');
 
 			accounts.getAccounts({address : validAccount.address}, function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.be.an('Array').to.have.length(1);
-				expect(getAllSpy.withArgs({address : validAccount.address})).to.be.ok;
+				should.not.exist(err);
+				res.should.be.an('Array').to.have.length(1);
+				getAllSpy.withArgs({address : validAccount.address}).should.be.ok;
 				getAllSpy.restore();
 				done();
 			});
@@ -151,14 +151,14 @@ describe('accounts', function () {
 	describe('onBind', function () {
 
 		it('should throw error with empty params', function () {
-			expect(accounts.onBind).to.throw();
+			accounts.onBind.should.throw();
 		});
 	});
 
 	describe('isLoaded', function () {
 
 		it('should return true when modules are loaded', function () {
-			expect(accounts.isLoaded).to.be.ok;
+			accounts.isLoaded.should.be.ok;
 		});
 	});
 
@@ -170,8 +170,8 @@ describe('accounts', function () {
 				accounts.shared.getAccounts({
 					address: randomUtil.account().address
 				}, function (err, res){
-					expect(err).to.not.exist;
-					expect(res).be.an('array').which.has.length(0);
+					should.not.exist(err);
+					res.should.be.an('array').which.has.length(0);
 					done();
 				});
 			});
@@ -180,8 +180,8 @@ describe('accounts', function () {
 				accounts.shared.getAccounts({
 					publicKey: validAccount.publicKey
 				}, function (err, res){
-					expect(err).to.not.exist;
-					expect(res).to.be.an('array');
+					should.not.exist(err);
+					res.should.be.an('array');
 					done();
 				});
 			});
@@ -190,8 +190,8 @@ describe('accounts', function () {
 				accounts.shared.getAccounts({
 					address: validAccount.address
 				}, function (err, res){
-					expect(err).to.not.exist;
-					expect(res).to.be.an('array');
+					should.not.exist(err);
+					res.should.be.an('array');
 					done();
 				});
 			});
@@ -204,10 +204,10 @@ describe('accounts', function () {
 					limit: limit,
 					sort: sort
 				}, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.have.length(10);
+					should.not.exist(err);
+					res.should.have.length(10);
 					for (var i = 0; i < limit - 1; i++) {
-						expect(new bignum(res[i].balance).gte(new bignum(res[i + 1].balance))).to.equal(true);
+						new bignum(res[i].balance).gte(new bignum(res[i + 1].balance)).should.equal(true);
 					}
 					done();
 				});
@@ -223,10 +223,10 @@ describe('accounts', function () {
 					offset: offset,
 					sort: sort
 				}, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.have.length(10);
+					should.not.exist(err);
+					res.should.have.length(10);
 					for (var i = 0; i < limit - 1; i++) {
-						expect(new bignum(res[i].balance).gte(new bignum(res[i + 1].balance))).to.equal(true);
+						new bignum(res[i].balance).gte(new bignum(res[i + 1].balance)).should.equal(true);
 					}
 					done();
 				});

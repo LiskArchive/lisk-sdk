@@ -535,8 +535,8 @@ describe('GET /api/transactions', function () {
 							dividedIndices.notNullIndices.sort(ascOrder);
 							dividedIndices.nullIndices.sort(ascOrder);
 
-							expect(dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1])
-								.to.be.at.most(dividedIndices.nullIndices[0]);
+							dividedIndices.notNullIndices[dividedIndices.notNullIndices.length - 1]
+								.should.be.at.most(dividedIndices.nullIndices[0]);
 						}
 					});
 				});

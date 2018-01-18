@@ -46,9 +46,9 @@ describe('BigNumber', function () {
 				});
 
 				it('should throw RangeError', function () {
-					expect(function () {
+					(function () {
 						bignum.fromBuffer(validBuf, validOpts);
-					}).throws('Buffer length (14) must be a multiple of size (3)');
+					}).should.throw('Buffer length (14) must be a multiple of size (3)');
 				});
 			});
 		});
@@ -67,7 +67,7 @@ describe('BigNumber', function () {
 			describe('when opts does not have a size attribute', function () {
 
 				it('should set opts to an empty object', function () {
-					expect(bignumResult).to.eql(new bignum(validSeed));
+					bignumResult.should.eql(new bignum(validSeed));
 				});
 			});
 
@@ -84,7 +84,7 @@ describe('BigNumber', function () {
 					});
 
 					it('should equal BUFFER_SEED', function () {
-						expect(bignumResult).to.eql(new bignum(validSeed));
+						bignumResult.should.eql(new bignum(validSeed));
 					});
 				});
 
@@ -99,7 +99,7 @@ describe('BigNumber', function () {
 					});
 
 					it('should equal BUFFER_SEED', function () {
-						expect(bignumResult).to.eql(new bignum(validSeed));
+						bignumResult.should.eql(new bignum(validSeed));
 					});
 				});
 
@@ -113,7 +113,7 @@ describe('BigNumber', function () {
 					});
 
 					it('should equal BUFFER_SEED', function () {
-						expect(bignumResult).to.eql(new bignum(validSeed));
+						bignumResult.should.eql(new bignum(validSeed));
 					});
 				});
 			});
@@ -142,8 +142,7 @@ describe('BigNumber', function () {
 				});
 
 				it('should throw RangeError', function () {
-					expect(bignumResult.toBuffer(validOpts)
-					).to.eq('Unsupported Buffer representation');
+					bignumResult.toBuffer(validOpts).should.eq('Unsupported Buffer representation');
 				});
 			});
 
@@ -159,7 +158,7 @@ describe('BigNumber', function () {
 				});
 
 				it('should throw Error: "Converting negative numbers to Buffers not supported yet', function () {
-					expect(function () {bignumResult.toBuffer(validOpts);}).throws('Converting negative numbers to Buffers not supported yet');
+					(function () {bignumResult.toBuffer(validOpts);}).should.throw('Converting negative numbers to Buffers not supported yet');
 				});
 			});
 		});
@@ -184,7 +183,7 @@ describe('BigNumber', function () {
 				});
 
 				it('should return validBufferSeed', function () {
-					expect(toBufferResult).to.eql(validBufferSeed);
+					toBufferResult.should.eql(validBufferSeed);
 				});
 			});
 
@@ -195,7 +194,7 @@ describe('BigNumber', function () {
 				});
 
 				it('should return validBufferSeed', function () {
-					expect(toBufferResult).to.eql(validBufferSeed);
+					toBufferResult.should.eql(validBufferSeed);
 				});
 			});
 
@@ -206,7 +205,7 @@ describe('BigNumber', function () {
 				});
 
 				it('should return validBufferSeedSize2', function () {
-					expect(toBufferResult).to.eql(validBufferSeedSize2);
+					toBufferResult.should.eql(validBufferSeedSize2);
 				});
 			});
 
@@ -217,7 +216,7 @@ describe('BigNumber', function () {
 				});
 
 				it('should return validBufferSeed', function () {
-					expect(toBufferResult).to.eql(validBufferSeed);
+					toBufferResult.should.eql(validBufferSeed);
 				});
 			});
 
@@ -228,7 +227,7 @@ describe('BigNumber', function () {
 				});
 
 				it('should return validBufferSeed', function () {
-					expect(toBufferResult).to.eql(validBufferSeed);
+					toBufferResult.should.eql(validBufferSeed);
 				});
 			});
 
@@ -239,7 +238,7 @@ describe('BigNumber', function () {
 				});
 
 				it('should return validBufferSeed', function () {
-					expect(toBufferResult).to.eql(validBufferSeed);
+					toBufferResult.should.eql(validBufferSeed);
 				});
 			});
 
@@ -250,7 +249,7 @@ describe('BigNumber', function () {
 				});
 
 				it('should return validBufferSeedMpint', function () {
-					expect(toBufferResult).to.eql(validBufferSeedMpint);
+					toBufferResult.should.eql(validBufferSeedMpint);
 				});
 			});
 		});
