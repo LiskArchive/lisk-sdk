@@ -316,7 +316,9 @@ Peers.prototype.getConsensus = function (active, matched) {
 	if (library.config.forging.force) {
 		return undefined;
 	}
-	active = active || library.logic.peers.list(true);
+	active = active || library.logic.peers.list(true).filter(function (peer) {
+		return peer.state === Peer.STATE.CONNECTED;
+	});
 	var broadhash = modules.system.getBroadhash();
 	matched = matched || active.filter(function (peer) {
 		return peer.broadhash === broadhash;
