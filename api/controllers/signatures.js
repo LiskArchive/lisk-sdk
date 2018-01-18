@@ -19,16 +19,22 @@ var ApiError = require('../../helpers/api_error');
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class SignaturesController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * @module controllers/signatures
+ * @requires lodash
+ * @requires module:helpers/apiError
+ * @param {Object} scope - App instance.
+ * @TODO: add description of the module
  */
 function SignaturesController(scope) {
 	modules = scope.modules;
 }
 
+/**
+ * @public
+ * @param {Object} context
+ * @param {function} next
+ * @TODO: add description of the function and its parameters
+ */
 SignaturesController.postSignatures = function (context, next) {
 	var signatures = context.request.swagger.params.signatures.value;
 
