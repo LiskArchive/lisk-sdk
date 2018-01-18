@@ -115,21 +115,11 @@ function getTransactionFromModule (library, filter, cb) {
 	});
 }
 
-function beforeBlock (type, account, dapp, cb) {
+function beforeBlock (type, cb) {
 	before('init sandboxed application, credit account and register dapp', function (done) {
 		application.init({ sandbox: { name: 'lisk_test_' + type } }, function (err, library) {
-			var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
-			var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
-			dapp.id = dappTransaction.id;
-
-			addTransactionsAndForge(library, [transaction], function (err, res) {
-				addTransactionsAndForge(library, [dappTransaction], function (err, res) {
-					library.logic.account.get({ address: account.address }, function (err, sender) {
-						cb(library, sender);
-						done();
-					});
-				});
-			});
+			cb(library);
+			done();
 		});
 	});
 

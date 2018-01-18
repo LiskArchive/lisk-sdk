@@ -30,9 +30,19 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	};
 
 	scenarios.regular.dapp = randomUtil.application();
+	var dappTransaction = lisk.dapp.createDapp(scenarios.regular.account.password, null, scenarios.regular.dapp);
+	scenarios.regular.dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock('system_4_multisig_x', scenarios.regular.account, scenarios.regular.dapp, function (lib, sender) {
+	localCommon.beforeBlock('system_4_X_multisig', function (lib, sender) {
 		library = lib;
+	});
+
+	before(function (done) {
+		localCommon.addTransactionsAndForge(library, [scenarios.regular.creditTransaction], function (err, res) {
+			localCommon.addTransactionsAndForge(library, [dappTransaction], function (err, res) {
+				done();
+			});
+		});
 	});
 
 	it('adding to pool multisig registration should be ok', function (done) {
@@ -50,6 +60,14 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 					transaction = scenarios.regular.multiSigTransaction;
 					localCommon.addTransaction(library, transaction, function (err, res) {
 						expect(err).to.equal('Transaction is already processed: ' + transaction.id);
+						done();
+					});
+				});
+
+				it('type ' + index + ': ' + key + ' with different timestamp should be ok', function (done) {
+					transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, scenarios.regular.lifetime, scenarios.regular.min, -1);
+					localCommon.addTransaction(library, transaction, function (err, res) {
+						expect(res).to.equal(transaction.id);
 						done();
 					});
 				});

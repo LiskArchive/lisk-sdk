@@ -19,13 +19,17 @@ var async = require('async');
 var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
+var normalizer = require('../../common/utils/normalizer');
 
 describe('system test (type 5) - registering dapps with repeated values', function () {
 
 	var library;
 
 	var account = randomUtil.account();
+	var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 	var dapp = randomUtil.application();
+	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
+	dapp.id = dappTransaction.id;
 	var goodTransactions = [];
 	var badTransactions = [];
 	var transaction1, transaction2, transaction3, transaction4, transaction5, transaction6;
@@ -38,8 +42,16 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 	var dappDuplicateLinkFail = randomUtil.application();
 	dappDuplicateLinkSuccess.link = dappDuplicateLinkFail.link;
 
-	localCommon.beforeBlock('system_5_dapps', account, dapp, function (lib, sender) {
+	localCommon.beforeBlock('system_5_5_dapps', function (lib, sender) {
 		library = lib;
+	});
+
+	before(function (done) {
+		localCommon.addTransactionsAndForge(library, [transaction], function (err, res) {
+			localCommon.addTransactionsAndForge(library, [dappTransaction], function (err, res) {
+				done();
+			});
+		});
 	});
 
 	it('adding to pool dapp transaction 1 should be ok', function (done) {

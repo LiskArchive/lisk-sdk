@@ -18,24 +18,37 @@ var lisk = require('lisk-js');
 var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
+var normalizer = require('../../common/utils/normalizer');
+
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 
 describe('system test (type 1) - sending transactions on top of unconfirmed second signature', function () {
 
-	var library, transaction;
+	var library;
 
 	var account = randomUtil.account();
+	var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 	var dapp = randomUtil.application();
+	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
+	dapp.id = dappTransaction.id;
 	var transactionWith, transactionWithout;
+	var transactionSecondSignature = lisk.signature.createSignature(account.password, account.secondPassword);
 
-	localCommon.beforeBlock('system_1_second_sign', account, dapp, function (lib, sender) {
+	localCommon.beforeBlock('system_1_X_second_sign', function (lib, sender) {
 		library = lib;
 	});
 
+	before(function (done) {
+		localCommon.addTransactionsAndForge(library, [transaction], function (err, res) {
+			localCommon.addTransactionsAndForge(library, [dappTransaction], function (err, res) {
+				done();
+			});
+		});
+	});
+
 	it('adding to pool transaction type 1 second signature should be ok', function (done) {
-		transaction = lisk.signature.createSignature(account.password, account.secondPassword);
-		localCommon.addTransaction(library, transaction, function (err, res) {
-			expect(res).to.equal(transaction.id);
+		localCommon.addTransaction(library, transactionSecondSignature, function (err, res) {
+			expect(res).to.equal(transactionSecondSignature.id);
 			done();
 		});
 	});
@@ -47,9 +60,16 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 			Object.keys(transactionTypes).forEach(function (key, index) {
 				if (key === 'SIGNATURE') {
 					it('type ' + index + ': ' + key + ' should fail', function (done) {
-						transactionWithout = lisk.signature.createSignature(account.password, account.secondPassword);
-						localCommon.addTransaction(library, transaction, function (err, res) {
-							expect(err).to.match(/^Transaction is already processed: /);
+						localCommon.addTransaction(library, transactionSecondSignature, function (err, res) {
+							expect(err).to.equal('Transaction is already processed: ' + transactionSecondSignature.id);
+							done();
+						});
+					});
+
+					it('type ' + index + ': ' + key + ' with different timestamp should be ok', function (done) {
+						transactionWith = lisk.signature.createSignature(account.password, account.secondPassword, -1);
+						localCommon.addTransaction(library, transactionWith, function (err, res) {
+							expect(res).to.equal(transactionWith.id);
 							done();
 						});
 					});

@@ -18,20 +18,29 @@ var lisk = require('lisk-js');
 var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
+var normalizer = require('../../common/utils/normalizer');
 
 describe('system test (type 4) - multisignature registration', function () {
 
-	var library, multisigSender, transaction;
+	var library, multisigSender;
 
 	var multisigAccount = randomUtil.account();
-	var multisigTransaction;
+	var multisigTransaction = lisk.transaction.createTransaction(multisigAccount.address, 1000 * normalizer, accountFixtures.genesis.password);
 	var signer1 = randomUtil.account();
 	var signer2 = randomUtil.account();
-	var dapp = randomUtil.application();
 
-	localCommon.beforeBlock('system_4_multisig', multisigAccount, dapp, function (lib, sender) {
+	localCommon.beforeBlock('system_4_multisig', function (lib, sender) {
 		library = lib;
 		multisigSender = sender;
+	});
+
+	before(function (done) {
+		localCommon.addTransactionsAndForge(library, [multisigTransaction], function (err, res) {
+			library.logic.account.get({ address: multisigAccount.address }, function (err, sender) {
+				multisigSender = sender;
+				done();
+			});
+		});
 	});
 
 	describe('after forging block with multisignature transaction', function () {
