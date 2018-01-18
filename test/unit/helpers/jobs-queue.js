@@ -15,7 +15,6 @@
 
 // Init tests dependencies
 var rewire = require('rewire');
-var sinon = require('sinon');
 
 // Init tests subject
 var jobsQueue = require('../../../helpers/jobsQueue.js');
@@ -34,7 +33,7 @@ describe('helpers/jobsQueue', function () {
 			var validFunction;
 
 			beforeEach(function () {
-				validFunction = sinon.spy();
+				validFunction = sinonSandbox.spy();
 			});
 
 			afterEach(function () {
@@ -116,18 +115,17 @@ describe('helpers/jobsQueue', function () {
 
 			var clock;
 
-			before(function () {
-				clock = sinon.useFakeTimers();
+			beforeEach(function () {
+				clock = sinonSandbox.useFakeTimers();
 			});
 
 			after(function () {
 				jobsQueue.jobs = {};
-				clock.restore();
 			});
 
 			it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', function () {
 				var name = 'job1';
-				var spy = sinon.spy(dummyFunction);
+				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
 				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(1);
 				testExecution(job, name, spy);
@@ -137,7 +135,7 @@ describe('helpers/jobsQueue', function () {
 				execTimeInterval = 10000;
 
 				var name = 'job2';
-				var spy = sinon.spy(dummyFunction);
+				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
 				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(2);
 				testExecution(job, name, spy);
@@ -148,7 +146,7 @@ describe('helpers/jobsQueue', function () {
 				execTimeInterval = 2000;
 
 				var name = 'job3';
-				var spy = sinon.spy(dummyFunction);
+				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
 				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(3);
 				testExecution(job, name, spy);
@@ -156,7 +154,7 @@ describe('helpers/jobsQueue', function () {
 
 			it('should throw an error immediately when trying to register same job twice', function () {
 				var name = 'job4';
-				var spy = sinon.spy(dummyFunction);
+				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
 				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(4);
 				testExecution(job, name, spy);
@@ -173,7 +171,7 @@ describe('helpers/jobsQueue', function () {
 
 				// Register new job in peers module
 				var name = 'job5';
-				var spy = sinon.spy(dummyFunction);
+				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueuePeers.register(name, spy, recallInterval);
 				expect(Object.keys(jobsQueuePeers.jobs)).to.be.an('array').and.lengthOf(5);
 				testExecution(job, name, spy);

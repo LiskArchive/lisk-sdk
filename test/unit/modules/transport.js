@@ -14,13 +14,9 @@
 'use strict';
 
 var rewire = require('rewire');
-var sinon = require('sinon');
-var chai = require('chai');
-var expect = require('chai').expect;
 
 var swaggerHelper = require('../../../helpers/swagger');
 
-var modulesLoader = require('../../common/modulesLoader');
 var TransportModule = rewire('../../../modules/transport.js');
 
 describe('transport', function () {
@@ -37,12 +33,12 @@ describe('transport', function () {
 		// stubs without affecting other test cases.
 
 		dbStub = {
-			query: sinon.spy()
+			query: sinonSandbox.spy()
 		};
 
 		loggerStub = {
-			debug: sinon.spy(),
-			error: sinon.spy()
+			debug: sinonSandbox.spy(),
+			error: sinonSandbox.spy()
 		};
 
 		busStub = {};
@@ -51,7 +47,7 @@ describe('transport', function () {
 		balancesSequenceStub = {};
 
 		transactionStub = {
-			attachAssetType: sinon.stub()
+			attachAssetType: sinonSandbox.stub()
 		};
 
 		blockStub = {};
@@ -193,7 +189,7 @@ describe('transport', function () {
 				var restoreRewiredDeps;
 
 				beforeEach(function (done) {
-					removeSpy = sinon.spy();
+					removeSpy = sinonSandbox.spy();
 					restoreRewiredDeps = TransportModule.__set__({
 						modules: {
 							peers: {
@@ -231,11 +227,11 @@ describe('transport', function () {
 			});
 		});
 
-		describe('receiveSignatures', function () {
-			
+		describe.only('receiveSignatures', function () {
+
 			beforeEach(function (done) {
-				__private.receiveSignature = sinon.stub().callsArg(1);
-				library.schema.validate = sinon.stub().callsArg(2);
+				sinonSandbox.stub(__private, 'receiveSignature').callsArg(1);
+				library.schema.validate = sinonSandbox.stub().callsArg(2);
 				done();
 			});
 
@@ -291,7 +287,7 @@ describe('transport', function () {
 
 					var err = new Error('Transaction did not match schema');
 					err.code = 'INVALID_FORMAT';
-					library.schema.validate = sinon.stub().callsArgWith(2, err);
+					library.schema.validate.callsArgWith(2, err);
 
 					__private.receiveSignatures({
 						signatures: ['SIGNATURE123', 'SIGNATURE456']
@@ -322,10 +318,13 @@ describe('transport', function () {
 
 					describe('when __private.receiveSignature fails', function () {
 
-						it('should call library.logger.debug with err and signature', function (done) {
+						beforeEach(function () {
 							var err = 'Error processing signature: Error message';
-							__private.receiveSignature = sinon.stub().callsArgWith(1, err); // TODO: Also move to beforeEach
-							library.logger.debug = sinon.spy();
+							__private.receiveSignature.callsArgWith(1, err); // TODO: Also move to beforeEach
+							library.logger.debug = sinonSandbox.spy();
+						});
+
+						it('should call library.logger.debug with err and signature', function (done) {
 
 							__private.receiveSignatures({
 								signatures: ['SIGNATURE123', 'SIGNATURE456']
@@ -340,9 +339,6 @@ describe('transport', function () {
 						});
 
 						it('should call callback with error', function (done) {
-							var err = 'Error processing signature: Error message';
-							__private.receiveSignature = sinon.stub().callsArgWith(1, err);
-							library.logger.debug = sinon.spy();
 
 							__private.receiveSignatures({
 								signatures: ['SIGNATURE123', 'SIGNATURE456']

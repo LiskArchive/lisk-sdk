@@ -13,15 +13,9 @@
  */
 'use strict';/*eslint*/
 
-var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
-var crypto = require('crypto');
-var async = require('async');
 
-var constants = require('../../../helpers/constants.js');
-var application = require('../../common/application.js');
 var AccountModule = require('../../../modules/accounts.js');
-var modulesLoader = require('../../common/modulesLoader');
 var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
 
@@ -141,7 +135,6 @@ describe('accounts', function () {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array').to.have.length(1);
 				expect(getAllSpy.withArgs({address : validAccount.address})).to.be.ok;
-				getAllSpy.restore();
 				done();
 			});
 		});
