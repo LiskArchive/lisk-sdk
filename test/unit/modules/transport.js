@@ -432,20 +432,37 @@ describe('transport', function () {
 
 			describe('when library.schema.validate succeeds', function () {
 
-				it('should call modules.multisignatures.processSignature');
-
-				it('should call modules.multisignatures.processSignature with query');
+				it('should call modules.multisignatures.processSignature with signature', function (done) {
+					__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
+						expect(err).to.be.equal(undefined);
+						expect(modules.multisignatures.processSignature.calledWith(SAMPLE_SIGNATURE_1)).to.be.true;
+						done();
+					});
+				});
 
 				describe('when modules.multisignatures.processSignature fails', function (){
 
-					it('should call callback with error');
+					it('should call callback with error', function (done) {
+						var processSignatureError = 'Transaction not found';
+						modules.multisignatures.processSignature = sinon.stub().callsArgWith(1, processSignatureError);
+
+						__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
+							expect(err).to.be.equal('Error processing signature: ' + processSignatureError);
+							done();
+						});
+					});
 				});
 
 				describe('when modules.multisignatures.processSignature succeeds', function (){
 
-					it('should call callback with error = undefined');
+					it('should call callback with error = undefined', function (done) {
+						modules.multisignatures.processSignature = sinon.stub().callsArg(1);
 
-					it('should call callback with result = undefined');
+						__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
+							expect(err).to.be.equal(undefined);
+							done();
+						});
+					});
 				});
 			});
 		});
