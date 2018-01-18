@@ -316,7 +316,7 @@ function __init (initScope, done) {
 				loadDelegates(function (err) {
 					var keypairs = scope.rewiredModules.delegates.__get__('__private.keypairs');
 					var delegates_cnt = Object.keys(keypairs).length;
-					expect(delegates_cnt).to.equal(__testContext.config.forging.secret.length);
+					delegates_cnt.should.equal(__testContext.config.forging.secret.length);
 
 					__testContext.debug('initApplication: Delegates loaded from config file - ' + delegates_cnt);
 					__testContext.debug('initApplication: Done');

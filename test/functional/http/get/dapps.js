@@ -43,7 +43,7 @@ describe('GET /dapps', function () {
 		transactionsToWaitFor.push(transaction.id);
 		return apiHelpers.sendTransactionPromise(transaction)
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
+				res.should.have.property('status').to.equal(200);
 				return waitFor.confirmations(transactionsToWaitFor);
 			}).then(function () {
 				transactionsToWaitFor = [];
@@ -58,7 +58,7 @@ describe('GET /dapps', function () {
 				return Promise.all(promises);
 			}).then(function (results) {
 				results.forEach(function (res) {
-					expect(res).to.have.property('status').to.equal(200);
+					res.should.have.property('status').to.equal(200);
 				});
 				return waitFor.confirmations(transactionsToWaitFor);
 			});
@@ -232,7 +232,7 @@ describe('GET /dapps', function () {
 				return Promise.all(promises)
 					.then(function (results) {
 						results.forEach(function (res) {
-							expect(res).to.have.property('status').to.equal(200);
+							res.should.have.property('status').to.equal(200);
 						});
 						return waitFor.confirmations(transactionsToWaitFor);
 					});
@@ -256,7 +256,7 @@ describe('GET /dapps', function () {
 					var cloneObtainedArray = _.clone(obtainedArray);
 					var expectedArray = cloneObtainedArray.sort();
 
-					expect(expectedArray).eql(obtainedArray);
+					expectedArray.should.eql(obtainedArray);
 				});
 			});
 
@@ -266,7 +266,7 @@ describe('GET /dapps', function () {
 					var cloneObtainedArray = _.clone(obtainedArray);
 					var expectedArray = cloneObtainedArray.sort().reverse();
 
-					expect(expectedArray).eql(obtainedArray);
+					expectedArray.should.eql(obtainedArray);
 				});
 			});
 		});

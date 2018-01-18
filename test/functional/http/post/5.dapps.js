@@ -62,7 +62,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 		return Promise.all(promises)
 			.then(function (results) {
 				results.forEach(function (res) {
-					expect(res).to.have.property('status').to.equal(200);
+					res.should.have.property('status').to.equal(200);
 					res.body.data.message.should.be.equal('Transaction(s) accepted');
 				});
 
@@ -75,7 +75,7 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				return sendTransactionPromise(transaction);
 			})
 			.then(function (res) {
-				expect(res).to.have.property('status').to.equal(200);
+				res.should.have.property('status').to.equal(200);
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 
 				randomUtil.guestbookDapp.id = transaction.id;

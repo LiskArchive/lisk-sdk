@@ -106,9 +106,9 @@ describe('loader', function () {
 			];
 
 			var goodPeers = loaderModule.findGoodPeers(peers);
-			expect(goodPeers).to.have.property('height').equal(HEIGHT_TWO); // Good peers - above my height (above and equal 2)
-			expect(goodPeers).to.have.property('peers').to.be.an('array').to.have.lengthOf(3);
-			expect(_.isEqualWith(goodPeers.peers, [
+			goodPeers.should.have.property('height').equal(HEIGHT_TWO); // Good peers - above my height (above and equal 2)
+			goodPeers.should.have.property('peers').to.be.an('array').to.have.lengthOf(3);
+			_.isEqualWith(goodPeers.peers, [
 				{
 					ip: '4.4.4.4',
 					wsPort: '4000',
@@ -126,7 +126,7 @@ describe('loader', function () {
 				}
 			], function (a, b) {
 				return a.ip === b.ip &&  a.wsPort === b.wsPort &&  a.height === b.height;
-			})).to.be.ok;
+			}).should.be.ok;
 		});
 	});
 });

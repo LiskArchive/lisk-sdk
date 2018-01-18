@@ -305,7 +305,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 
 				return apiHelpers.getAccountsPromise(params)
 					.then(function (res) {
-						expect(res.body).to.have.nested.property('data').to.have.lengthOf(1);
+						res.body.should.have.nested.property('data').to.have.lengthOf(1);
 
 						var balance = res.body.data[0].balance;
 						var amount = new bignum(balance).plus('1').toNumber();

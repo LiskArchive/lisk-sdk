@@ -131,11 +131,11 @@ describe('signature', function () {
 			});
 
 			it('should attach schema to library variable', function () {
-				expect(library.schema).to.eql(modulesLoader.scope.schema);
+				library.schema.should.eql(modulesLoader.scope.schema);
 			});
 
 			it('should attach logger to library variable', function () {
-				expect(library.logger).to.eql(modulesLoader.scope.logger);
+				library.logger.should.eql(modulesLoader.scope.logger);
 			});
 		});
 
@@ -146,7 +146,7 @@ describe('signature', function () {
 				it('should assign accounts', function () {
 					signature.bind(accountsMock);
 					var modules = Signature.__get__('modules');
-					expect(modules).to.eql({
+					modules.should.eql({
 						accounts: accountsMock
 					});
 				});
@@ -162,7 +162,7 @@ describe('signature', function () {
 			});
 
 			it('should return constants.fees.secondSignature', function () {
-				expect(fee).to.equal(constants.fees.secondSignature);
+				fee.should.equal(constants.fees.secondSignature);
 			});
 		});
 
@@ -176,7 +176,7 @@ describe('signature', function () {
 						delete transaction.asset;
 
 						signature.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid transaction asset');
+							err.should.equal('Invalid transaction asset');
 							done();
 						});
 					});
@@ -188,7 +188,7 @@ describe('signature', function () {
 						delete transaction.asset.signature;
 
 						signature.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid transaction asset');
+							err.should.equal('Invalid transaction asset');
 							done();
 						});
 					});
@@ -200,7 +200,7 @@ describe('signature', function () {
 						transaction.amount = 1;
 
 						signature.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid transaction amount');
+							err.should.equal('Invalid transaction amount');
 							done();
 						});
 					});
@@ -212,7 +212,7 @@ describe('signature', function () {
 						delete transaction.asset.signature.publicKey;
 
 						signature.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid public key');
+							err.should.equal('Invalid public key');
 							done();
 						});
 					});
@@ -224,7 +224,7 @@ describe('signature', function () {
 						transaction.asset.signature.publicKey = 'invalid-public-key';
 
 						signature.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Invalid public key');
+							err.should.equal('Invalid public key');
 							done();
 						});
 					});
@@ -247,7 +247,7 @@ describe('signature', function () {
 
 			it('should call callback with result = transaction', function (done) {
 				signature.process(transaction, sender, function (err, res) {
-					expect(res).to.eql(transaction);
+					res.should.eql(transaction);
 					done();
 				});
 			});
@@ -266,7 +266,7 @@ describe('signature', function () {
 					});
 
 					it('should throw', function () {
-						expect(signature.getBytes.bind(transaction)).to.throw();
+						signature.getBytes.bind(transaction).should.throw();
 					});
 				});
 
@@ -277,7 +277,7 @@ describe('signature', function () {
 					});
 
 					it('should throw', function () {
-						expect(signature.getBytes.bind(transaction)).to.throw();
+						signature.getBytes.bind(transaction).should.throw();
 					});
 				});
 			});
@@ -293,11 +293,11 @@ describe('signature', function () {
 					});
 
 					it('should return bytes in hex format', function () {
-						expect(signatureBytes).to.eql(Buffer.from(transaction.asset.signature.publicKey, 'hex'));
+						signatureBytes.should.eql(Buffer.from(transaction.asset.signature.publicKey, 'hex'));
 					});
 
 					it('should return bytes of length 32', function () {
-						expect(signatureBytes.length).to.equal(32);
+						signatureBytes.length.should.equal(32);
 					});
 				});
 			});
@@ -310,23 +310,23 @@ describe('signature', function () {
 			});
 
 			it('should call modules.accounts.setAccountAndGet', function () {
-				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+				accountsMock.setAccountAndGet.calledOnce.should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address})).should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondSignature = 1', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondSignature: 1}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondSignature: 1})).should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 0}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 0})).should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondPublicKey = validTransaction.asset.signature.publicKey', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondPublicKey: validTransaction.asset.signature.publicKey}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondPublicKey: validTransaction.asset.signature.publicKey})).should.be.true;
 			});
 		});
 
@@ -337,23 +337,23 @@ describe('signature', function () {
 			});
 
 			it('should call modules.accounts.setAccountAndGet', function () {
-				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+				accountsMock.setAccountAndGet.calledOnce.should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address})).should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondSignature = 0', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondSignature: 0}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondSignature: 0})).should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 1}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 1})).should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondPublicKey = null', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondPublicKey: null}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondPublicKey: null})).should.be.true;
 			});
 		});
 
@@ -367,7 +367,7 @@ describe('signature', function () {
 
 				it('should call callback with error', function (done) {
 					signature.applyUnconfirmed.call(transactionMock, transaction, sender, function (err) {
-						expect(err).to.equal('Second signature already enabled');
+						err.should.equal('Second signature already enabled');
 						done();
 					});
 				});
@@ -382,7 +382,7 @@ describe('signature', function () {
 
 				it('should call callback with error', function (done) {
 					signature.applyUnconfirmed.call(transactionMock, transaction, sender, function (err) {
-						expect(err).to.equal('Second signature already enabled');
+						err.should.equal('Second signature already enabled');
 						done();
 					});
 				});
@@ -393,15 +393,15 @@ describe('signature', function () {
 			});
 
 			it('should call modules.accounts.setAccountAndGet', function () {
-				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+				accountsMock.setAccountAndGet.calledOnce.should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address})).should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 1}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 1})).should.be.true;
 			});
 		});
 
@@ -412,15 +412,15 @@ describe('signature', function () {
 			});
 
 			it('should call modules.accounts.setAccountAndGet', function () {
-				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+				accountsMock.setAccountAndGet.calledOnce.should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address})).should.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 0}))).to.be.true;
+				accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 0})).should.be.true;
 			});
 		});
 
@@ -442,11 +442,11 @@ describe('signature', function () {
 				});
 
 				it('call schema validate once', function () {
-					expect(schemaSpy.calledOnce).to.equal(true);
+					schemaSpy.calledOnce.should.equal(true);
 				});
 
 				it('signature schema', function () {
-					expect(schemaSpy.calledWithExactly(transaction.asset.signature, Signature.prototype.schema)).to.equal(true);
+					schemaSpy.calledWithExactly(transaction.asset.signature, Signature.prototype.schema).should.equal(true);
 				});
 			});
 
@@ -459,9 +459,9 @@ describe('signature', function () {
 					nonStrings.forEach(function (type) {
 						it('should throw when username type is ' + type.description, function () {
 							transaction.asset.signature.publicKey = type.input;
-							expect(function () {
+							(function () {
 								signature.objectNormalize(transaction);
-							}).to.throw('Failed to validate signature schema: Expected type string but found type ' + type.expectation);
+							}).should.throw('Failed to validate signature schema: Expected type string but found type ' + type.expectation);
 						});
 					});
 				});
@@ -473,9 +473,9 @@ describe('signature', function () {
 					nonEmptyStrings.forEach(function (type) {
 						it('should throw when username is: ' + type.description, function () {
 							transaction.asset.signature.publicKey = type.input;
-							expect(function () {
+							(function () {
 								signature.objectNormalize(transaction);
-							}).to.throw('Failed to validate signature schema: Object didn\'t pass validation for format publicKey: ' + type.input);
+							}).should.throw('Failed to validate signature schema: Object didn\'t pass validation for format publicKey: ' + type.input);
 						});
 					});
 				});
@@ -484,7 +484,7 @@ describe('signature', function () {
 			describe('when library.schema.validate succeeds', function () {
 
 				it('should return transaction', function () {
-					expect(signature.objectNormalize(transaction)).to.eql(transaction);
+					signature.objectNormalize(transaction).should.eql(transaction);
 				});
 			});
 		});
@@ -498,7 +498,7 @@ describe('signature', function () {
 				});
 
 				it('should return null', function () {
-					expect(signature.dbRead(rawTransaction)).to.eql(null);
+					should.not.exist(signature.dbRead(rawTransaction));
 				});
 			});
 
@@ -508,11 +508,11 @@ describe('signature', function () {
 				var transactionId = '5197781214824378819';
 
 				it('should return publicKey property', function () {
-					expect(signature.dbRead(rawTransaction).signature.publicKey).to.equal(publicKey);
+					signature.dbRead(rawTransaction).signature.publicKey.should.equal(publicKey);
 				});
 
 				it('should return transactionId', function () {
-					expect(signature.dbRead(rawTransaction).signature.transactionId).to.eql(transactionId);
+					signature.dbRead(rawTransaction).signature.transactionId.should.eql(transactionId);
 				});
 			});
 		});
@@ -520,13 +520,13 @@ describe('signature', function () {
 		describe('ready', function () {
 
 			it('should return true for single signature transaction', function () {
-				expect(signature.ready(transaction, sender)).to.equal(true);
+				signature.ready(transaction, sender).should.equal(true);
 			});
 
 			it('should return false for multi signature transaction with less signatures', function () {
 				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-				expect(signature.ready(transaction, sender)).to.equal(false);
+				signature.ready(transaction, sender).should.equal(false);
 			});
 
 			it('should return true for multi signature transaction with at least min signatures', function () {
@@ -538,7 +538,7 @@ describe('signature', function () {
 				transaction.signature = crypto.randomBytes(64).toString('hex');;
 				transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
-				expect(signature.ready(transaction, sender)).to.equal(true);
+				signature.ready(transaction, sender).should.equal(true);
 			});
 		});
 	});

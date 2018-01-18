@@ -37,11 +37,11 @@ describe('cache', function () {
 		before(function () {
 			validLogger = {
 				info: function (info) {
-					expect(info).to.eq('App connected with redis server');
+					info.should.eq('App connected with redis server');
 				},
 				error: function (message, errorObject) {
-					expect(message).to.eq('Redis:');
-					expect(errorObject).to.be.an('error');
+					message.should.eq('Redis:');
+					errorObject.should.be.an('error');
 				}
 			};
 			validConfig = {};
@@ -70,15 +70,15 @@ describe('cache', function () {
 			});
 
 			it('should call callback with error = null', function () {
-				expect(err).to.be.null;
+				should.not.exist(err);
 			});
 
 			it('should call callback with result containing cacheEnabled = false', function () {
-				expect(result).to.have.property('cacheEnabled').equal(false);
+				result.should.have.property('cacheEnabled').equal(false);
 			});
 
 			it('should call callback with result containing client = null', function () {
-				expect(result).to.have.property('client').to.be.null;
+				result.should.have.property('client').to.be.null;
 			});
 		});
 
@@ -95,7 +95,7 @@ describe('cache', function () {
 				});
 
 				it('should delete the password attribute from config', function () {
-					expect(validConfig).to.not.have.property('password');
+					validConfig.should.not.have.property('password');
 				});
 			});
 
@@ -106,11 +106,11 @@ describe('cache', function () {
 				});
 
 				it('should call callback with result containing cacheEnabled = true', function () {
-					expect(result.cacheEnabled).to.eq(true);
+					result.cacheEnabled.should.eq(true);
 				});
 
 				it('should call callback with result containing client object', function () {
-					expect(result.client).to.equal(redisCreateClientResult);
+					result.client.should.equal(redisCreateClientResult);
 				});
 			});
 
@@ -121,11 +121,11 @@ describe('cache', function () {
 				});
 
 				it('should call callback with result containing with cacheEnabled = true', function () {
-					expect(result.cacheEnabled).to.eq( true );
+					result.cacheEnabled.should.eq( true );
 				});
 
 				it('should call callback with result containing an instance of redis client', function () {
-					expect(result.client).to.eql(redisCreateClientResult);
+					result.client.should.eql(redisCreateClientResult);
 				});
 			});
 		});

@@ -112,7 +112,7 @@ describe('peers', function () {
 			});
 
 			it('should return an empty array', function () {
-				expect(listResult).to.be.an('array').and.to.be.empty;
+				listResult.should.be.an('array').and.to.be.empty;
 			});
 		});
 
@@ -126,7 +126,7 @@ describe('peers', function () {
 			});
 
 			it('should return all 1000 peers', function () {
-				expect(listResult).be.an('array').and.have.lengthOf(100);
+				listResult.should.be.an('array').and.have.lengthOf(100);
 			});
 
 			describe('options.limit', function () {
@@ -145,14 +145,14 @@ describe('peers', function () {
 					});
 
 					it('should return up to [options.limit] results', function () {
-						expect(listResult).be.an('array').and.have.lengthOf(validLimit);
+						listResult.should.be.an('array').and.have.lengthOf(validLimit);
 					});
 				});
 
 				describe('when no options.limit passed', function () {
 
 					it('should return [constants.maxPeers] results', function () {
-						expect(listResult).be.an('array').and.have.lengthOf(constants.maxPeers);
+						listResult.should.be.an('array').and.have.lengthOf(constants.maxPeers);
 					});
 				});
 			});
@@ -188,13 +188,13 @@ describe('peers', function () {
 						});
 
 						it('should return 100 results', function () {
-							expect(listResult).be.an('array').and.have.lengthOf(100);
+							listResult.should.be.an('array').and.have.lengthOf(100);
 						});
 
 						it('should return 100 results with the same broadhash', function () {
-							expect(listResult.filter(function (peer) {
+							listResult.filter(function (peer) {
 								return peer.broadhash === validBroadhash;
-							})).be.an('array').and.have.lengthOf(100);
+							}).should.be.an('array').and.have.lengthOf(100);
 						});
 					});
 
@@ -206,19 +206,19 @@ describe('peers', function () {
 						});
 
 						it('should return 500 results', function () {
-							expect(listResult).be.an('array').and.have.lengthOf(500);
+							listResult.should.be.an('array').and.have.lengthOf(500);
 						});
 
 						it('should return 250 results with the same broadhash', function () {
-							expect(listResult.filter(function (peer) {
+							listResult.filter(function (peer) {
 								return peer.broadhash === validBroadhash;
-							})).be.an('array').and.have.lengthOf(250);
+							}).should.be.an('array').and.have.lengthOf(250);
 						});
 
 						it('should return 250 results with different broadhash', function () {
-							expect(listResult.filter(function (peer) {
+							listResult.filter(function (peer) {
 								return peer.broadhash !== validBroadhash;
-							})).be.an('array').and.have.lengthOf(250);
+							}).should.be.an('array').and.have.lengthOf(250);
 						});
 
 						describe('options.attempt', function () {
@@ -234,12 +234,12 @@ describe('peers', function () {
 								});
 
 								it('should return 250 results', function () {
-									expect(listResult).to.have.lengthOf(250);
+									listResult.should.have.lengthOf(250);
 								});
 
 								it('should return only peers matching broadhash', function () {
 									listResult.forEach(function (peer) {
-										expect(peer.broadhash).eql(validBroadhash);
+										peer.broadhash.should.eql(validBroadhash);
 									});
 								});
 							});
@@ -251,12 +251,12 @@ describe('peers', function () {
 								});
 
 								it('should return 500 results', function () {
-									expect(listResult).to.have.lengthOf(500);
+									listResult.should.have.lengthOf(500);
 								});
 
 								it('should return only peers not matching broadhash', function () {
 									listResult.forEach(function (peer) {
-										expect(peer.broadhash).not.eql(validBroadhash);
+										should.not.equal(peer.broadhash, validBroadhash);
 									});
 								});
 							});
@@ -267,7 +267,7 @@ describe('peers', function () {
 				describe('when no options.limit passed', function () {
 
 					it('should return [constants.maxPeers] results', function () {
-						expect(listResult).be.an('array').and.have.lengthOf(constants.maxPeers);
+						listResult.should.be.an('array').and.have.lengthOf(constants.maxPeers);
 					});
 				});
 			});
@@ -296,8 +296,8 @@ describe('peers', function () {
 				});
 
 				it('should return only connected peers', function () {
-					expect(_.uniqBy(listResult, 'state')).be.an('array').and.have.lengthOf(1);
-					expect(listResult[0].state).equal(CONNECTED_STATE);
+					_.uniqBy(listResult, 'state').should.be.an('array').and.have.lengthOf(1);
+					listResult[0].state.should.equal(CONNECTED_STATE);
 				});
 
 				describe('when options.allowedStates = [1]', function () {
@@ -311,8 +311,8 @@ describe('peers', function () {
 					});
 
 					it('should return only banned peers', function () {
-						expect(_.uniqBy(listResult, 'state')).be.an('array').and.have.lengthOf(1);
-						expect(listResult[0].state).equal(BANNED_STATE);
+						_.uniqBy(listResult, 'state').should.be.an('array').and.have.lengthOf(1);
+						listResult[0].state.should.equal(BANNED_STATE);
 					});
 				});
 
@@ -327,8 +327,8 @@ describe('peers', function () {
 					});
 
 					it('should return only disconnected peers', function () {
-						expect(_.uniqBy(listResult, 'state')).be.an('array').and.have.lengthOf(1);
-						expect(listResult[0].state).equal(DISCONNECTED_STATE);
+						_.uniqBy(listResult, 'state').should.be.an('array').and.have.lengthOf(1);
+						listResult[0].state.should.equal(DISCONNECTED_STATE);
 					});
 				});
 
@@ -343,9 +343,9 @@ describe('peers', function () {
 					});
 
 					it('should return disconnected and banned peers', function () {
-						expect(_.uniqBy(listResult, 'state')).be.an('array').and.have.length.at.least(1);
+						_.uniqBy(listResult, 'state').should.be.an('array').and.have.length.at.least(1);
 						listResult.forEach(function (state) {
-							expect(state).not.to.equal(CONNECTED_STATE);
+							state.should.not.to.equal(CONNECTED_STATE);
 						});
 					});
 				});
@@ -370,15 +370,15 @@ describe('peers', function () {
 		});
 
 		it('should call logic.peers.upsert', function () {
-			expect(peersLogicMock.upsert.calledOnce).to.be.true;
+			peersLogicMock.upsert.calledOnce.should.be.true;
 		});
 
 		it('should call logic.peers.upsert with peer', function () {
-			expect(peersLogicMock.upsert.calledWith(validPeer)).to.be.true;
+			peersLogicMock.upsert.calledWith(validPeer).should.be.true;
 		});
 
 		it('should return library.logic.peers.upsert result', function () {
-			expect(updateResult).equal(validUpsertResult);
+			updateResult.should.equal(validUpsertResult);
 		});
 	});
 
@@ -418,34 +418,34 @@ describe('peers', function () {
 			});
 
 			it('should not call logic.peers.remove', function () {
-				expect(peersLogicMock.remove.called).to.be.false;
+				peersLogicMock.remove.called.should.be.false;
 			});
 
 			it('should call logger.debug with message = "Cannot remove frozen peer"', function () {
-				expect(loggerDebugSpy.calledWith('Cannot remove frozen peer')).to.be.true;
+				loggerDebugSpy.calledWith('Cannot remove frozen peer').should.be.true;
 			});
 
 			it('should call logger.debug with message = [ip:port]', function () {
-				expect(loggerDebugSpy.args[0][1]).eql(validPeer.ip + ':' + validPeer.wsPort);
+				loggerDebugSpy.args[0][1].should.eql(validPeer.ip + ':' + validPeer.wsPort);
 			});
 		});
 
 		describe('when removable peer is not frozen', function () {
 
 			it('should call logic.peers.remove', function () {
-				expect(peersLogicMock.remove.calledOnce).to.be.true;
+				peersLogicMock.remove.calledOnce.should.be.true;
 			});
 
 			it('should call logic.peers.remove with object containing expected ip', function () {
-				expect(peersLogicMock.remove.calledWith(sinonSandbox.match({ip: validPeer.ip}))).to.be.true;
+				peersLogicMock.remove.calledWith(sinonSandbox.match({ip: validPeer.ip})).should.be.true;
 			});
 
 			it('should call logic.peers.remove with object containing expected port', function () {
-				expect(peersLogicMock.remove.calledWith(sinonSandbox.match({wsPort: validPeer.wsPort}))).to.be.true;
+				peersLogicMock.remove.calledWith(sinonSandbox.match({wsPort: validPeer.wsPort})).should.be.true;
 			});
 
 			it('should return library.logic.peers.remove result', function () {
-				expect(removeResult).equal(validLogicRemoveResult);
+				removeResult.should.equal(validLogicRemoveResult);
 			});
 		});
 	});
@@ -485,7 +485,7 @@ describe('peers', function () {
 			});
 
 			it('should return undefined', function () {
-				expect(getConsensusResult).to.be.undefined;
+				should.not.exist(getConsensusResult);
 			});
 		});
 
@@ -503,15 +503,15 @@ describe('peers', function () {
 			describe('when active peers not passed', function () {
 
 				it('should call logic.peers.list', function () {
-					expect(peersLogicMock.list.called).to.be.true;
+					peersLogicMock.list.called.should.be.true;
 				});
 
 				it('should call logic.peers.list with true', function () {
-					expect(peersLogicMock.list.calledWith(true)).to.be.true;
+					peersLogicMock.list.calledWith(true).should.be.true;
 				});
 
 				it('should return consensus as a number', function () {
-					expect(getConsensusResult).to.be.a('number');
+					getConsensusResult.should.be.a('number');
 				});
 			});
 
@@ -546,7 +546,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 0', function () {
-						expect(getConsensusResult).to.equal(0);
+						getConsensusResult.should.equal(0);
 					});
 				});
 
@@ -559,7 +559,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						getConsensusResult.should.equal(100);
 					});
 				});
 
@@ -572,7 +572,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 50', function () {
-						expect(getConsensusResult).equal(50);
+						getConsensusResult.should.equal(50);
 					});
 				});
 			});
@@ -587,7 +587,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						getConsensusResult.should.equal(100);
 					});
 				});
 
@@ -599,7 +599,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						getConsensusResult.should.equal(100);
 					});
 				});
 
@@ -611,7 +611,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						getConsensusResult.should.equal(100);
 					});
 				});
 
@@ -623,7 +623,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						getConsensusResult.should.equal(100);
 					});
 				});
 
@@ -635,7 +635,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						getConsensusResult.should.equal(100);
 					});
 				});
 
@@ -647,7 +647,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 50', function () {
-						expect(getConsensusResult).equal(50);
+						getConsensusResult.should.equal(50);
 					});
 				});
 			});
@@ -662,19 +662,19 @@ describe('peers', function () {
 		});
 
 		it('should accept peer with public ip', function () {
-			expect(peers.acceptable([prefixedPeer])).that.is.an('array').and.to.deep.equal([prefixedPeer]);
+			peers.acceptable([prefixedPeer]).should.be.an('array').and.to.deep.equal([prefixedPeer]);
 		});
 
 		it('should not accept peer with private ip', function () {
 			var privatePeer = _.clone(prefixedPeer);
 			privatePeer.ip = '127.0.0.1';
-			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
+			peers.acceptable([privatePeer]).should.be.an('array').and.to.be.empty;
 		});
 
 		it('should not accept peer with host\'s nonce', function () {
 			var peer = _.clone(prefixedPeer);
 			peer.nonce = NONCE;
-			expect(peers.acceptable([peer])).that.is.an('array').and.to.be.empty;
+			peers.acceptable([peer]).should.be.an('array').and.to.be.empty;
 		});
 
 		it('should not accept peer with different ip but the same nonce', function () {
@@ -684,7 +684,7 @@ describe('peers', function () {
 				wsPort: 4001,
 				nonce: NONCE
 			};
-			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
+			peers.acceptable([meAsPeer]).should.be.an('array').and.to.be.empty;
 		});
 
 		after(function () {
@@ -711,7 +711,7 @@ describe('peers', function () {
 		it('should update peers during onBlockchainReady', function (done) {
 			peers.onBlockchainReady();
 			setTimeout(function () {
-				expect(peers.discover.calledOnce).to.be.ok;
+				peers.discover.calledOnce.should.be.ok;
 				done();
 			}, 100);
 		});
@@ -729,7 +729,7 @@ describe('peers', function () {
 
 			peers.onBlockchainReady();
 			setTimeout(function () {
-				expect(peersLogicMock.upsert.calledWith(peerStub, false)).to.be.true;
+				peersLogicMock.upsert.calledWith(peerStub, false).should.be.true;
 				done();
 			}, 100);
 		});
@@ -749,7 +749,7 @@ describe('peers', function () {
 		it('should update peers during onBlockchainReady', function (done) {
 			peers.onPeersReady();
 			setTimeout(function () {
-				expect(peers.discover.calledOnce).to.be.ok;
+				peers.discover.calledOnce.should.be.ok;
 				done();
 			}, 100);
 		});
@@ -781,8 +781,8 @@ describe('peers', function () {
 
 		it('should not call randomPeer.rpc.list if randomPeer.rpc.status operation has failed', function (done) {
 			peers.discover(function (err) {
-				expect(err).to.equal('Failed to get peer status');
-				expect(randomPeerStub.rpc.list.called).to.be.false;
+				err.should.equal('Failed to get peer status');
+				randomPeerStub.rpc.list.called.should.be.false;
 				done();
 			});
 		});

@@ -40,7 +40,7 @@ describe('POST /api/transactions (unconfirmed type 6 on top of type 1)', functio
 			transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.transactionId, 10 * normalizer, account.password, account.secondPassword);
 
 			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-				expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
+				res.should.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 				badTransactions.push(transaction);
 			});
 		});

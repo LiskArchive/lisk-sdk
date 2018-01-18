@@ -39,7 +39,7 @@ describe('POST /api/transactions (unconfirmed type 5 on top of type 1)', functio
 			transaction = lisk.dapp.createDapp(account.password, account.secondPassword, randomUtil.application());
 
 			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-				expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
+				res.should.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 				badTransactions.push(transaction);
 			});
 		});

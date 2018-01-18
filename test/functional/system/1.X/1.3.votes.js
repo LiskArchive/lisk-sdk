@@ -39,7 +39,7 @@ describe('POST /api/transactions (unconfirmed type 3 on top of type 1)', functio
 			transaction = lisk.vote.createVote(account.password, ['+' + accountFixtures.existingDelegate.publicKey], account.secondPassword);
 
 			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-				expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
+				res.should.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 				badTransactions.push(transaction);
 			});
 		});

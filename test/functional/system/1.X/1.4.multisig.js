@@ -41,7 +41,7 @@ describe('POST /api/transactions (unconfirmed type 4 on top of type 1)', functio
 			transaction = lisk.multisignature.createMultisignature(account.password, account.secondPassword, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
 
 			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-				expect(res).to.have.nested.property('body.message').to.equal('Sender does not have a second signature');
+				res.should.have.nested.property('body.message').to.equal('Sender does not have a second signature');
 				badTransactions.push(transaction);
 			});
 		});

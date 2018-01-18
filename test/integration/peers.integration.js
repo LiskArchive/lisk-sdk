@@ -317,15 +317,15 @@ describe('integration', function () {
 				return socket.wampSend('list', {});
 			})).then(function (results) {
 				results.forEach(function (result) {
-					expect(result).to.have.property('success').to.be.ok;
-					expect(result).to.have.property('peers').to.be.a('array');
+					result.should.have.property('success').to.be.ok;
+					result.should.have.property('peers').to.be.a('array');
 					var peerPorts = result.peers.map(function (p) {
 						return p.wsPort;
 					});
 					var allPeerPorts = testNodeConfigs.map(function (testNodeConfig) {
 						return testNodeConfig.wsPort;
 					});
-					expect(_.intersection(allPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
+					_.intersection(allPeerPorts, peerPorts).should.be.an('array').and.not.to.be.empty;
 				});
 			});
 		});
@@ -340,8 +340,8 @@ describe('integration', function () {
 				var maxHeight = 1;
 				var heightSum = 0;
 				results.forEach(function (result) {
-					expect(result).to.have.property('success').to.be.ok;
-					expect(result).to.have.property('height').to.be.a('number');
+					result.should.have.property('success').to.be.ok;
+					result.should.have.property('height').to.be.a('number');
 					if (result.height > maxHeight) {
 						maxHeight = result.height;
 					}
@@ -395,26 +395,26 @@ describe('integration', function () {
 			});
 
 			it('should have no error', function () {
-				expect(getNetworkStatusError).not.to.exist;
+				should.not.exist(getNetworkStatusError);
 			});
 
 			it('should have height > 1', function () {
-				expect(networkHeight).to.be.above(1);
+				networkHeight.should.be.above(1);
 			});
 
 			it('should have average height above 1', function () {
-				expect(networkAverageHeight).to.be.above(1);
+				networkAverageHeight.should.be.above(1);
 			});
 
 			it('should have different peers heights propagated correctly on peers lists', function () {
 				return Promise.all(sockets.map(function (socket) {
 					return socket.wampSend('list');
 				})).then(function (results) {
-					expect(results.some(function (peersList) {
+					results.some(function (peersList) {
 						return peersList.peers.some(function (peer) {
 							return peer.height > 1;
 						});
-					}));
+					}).should.be.true;
 				});
 			});
 		});
@@ -443,26 +443,26 @@ describe('integration', function () {
 					nodesBlocks = results.map(function (res) {
 						return JSON.parse(res.body).data;
 					});
-					expect(nodesBlocks).to.have.lengthOf(testNodeConfigs.length);
+					nodesBlocks.should.have.lengthOf(testNodeConfigs.length);
 				});
 			});
 
 			it('should contain non empty blocks after running functional tests', function () {
 				nodesBlocks.forEach(function (blocks) {
-					expect(blocks).to.be.an('array').and.not.empty;
+					blocks.should.be.an('array').and.not.empty;
 				});
 			});
 
 			it('should have all peers at the same height', function () {
 				var uniquePeersHeights = _(nodesBlocks).map('length').uniq().value();
-				expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
+				uniquePeersHeights.should.have.lengthOf.at.least(1);
 			});
 
 			it('should have all blocks the same at all peers', function () {
 				var patternBlocks = nodesBlocks[0];
 				for (var i = 0; i < patternBlocks.length; i += 1) {
 					for (var j = 1; j < nodesBlocks.length; j += 1) {
-						expect(_.isEqual(nodesBlocks[j][i], patternBlocks[i]));
+						_.isEqual(nodesBlocks[j][i], patternBlocks[i]).should.be.true;
 					}
 				}
 			});
@@ -479,26 +479,26 @@ describe('integration', function () {
 					nodesTransactions = results.map(function (res) {
 						return res.blocks;
 					});
-					expect(nodesTransactions).to.have.lengthOf(testNodeConfigs.length);
+					nodesTransactions.should.have.lengthOf(testNodeConfigs.length);
 				});
 			});
 
 			it('should contain non empty transactions after running functional tests', function () {
 				nodesTransactions.forEach(function (transactions) {
-					expect(transactions).to.be.an('array').and.not.empty;
+					transactions.should.be.an('array').and.not.empty;
 				});
 			});
 
 			it('should have all peers having same amount of confirmed transactions', function () {
 				var uniquePeersTransactionsNumber = _(nodesTransactions).map('length').uniq().value();
-				expect(uniquePeersTransactionsNumber).to.have.lengthOf.at.least(1);
+				uniquePeersTransactionsNumber.should.have.lengthOf.at.least(1);
 			});
 
 			it('should have all transactions the same at all peers', function () {
 				var patternTransactions = nodesTransactions[0];
 				for (var i = 0; i < patternTransactions.length; i += 1) {
 					for (var j = 1; j < nodesTransactions.length; j += 1) {
-						expect(_.isEqual(nodesTransactions[j][i], patternTransactions[i]));
+						_.isEqual(nodesTransactions[j][i], patternTransactions[i]).should.be.true;
 					}
 				}
 			});

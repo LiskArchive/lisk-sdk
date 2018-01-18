@@ -316,8 +316,8 @@ describe('block', function () {
 				});
 
 				it('should sort transactions in the correct order', function () {
-					expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
-					expect(transactionsOrder).to.eql(correctOrder);
+					generatedBlock.transactions.length.should.equal(data.transactions.length);
+					transactionsOrder.should.eql(correctOrder);
 				});
 			});
 
@@ -341,9 +341,9 @@ describe('block', function () {
 					});
 
 					it('should sort transactions in the correct order', function () {
-						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
-						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
-						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
+						generatedBlock.transactions.length.should.equal(data.transactions.length);
+						expectedOrderOfTransactions(generatedBlock.transactions).should.equal(true);
+						transactionsOrder.should.eql(correctOrderOfTransactions);
 					});
 				});
 
@@ -365,9 +365,9 @@ describe('block', function () {
 					});
 
 					it('should sort transactions in the correct order', function () {
-						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
-						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
-						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
+						generatedBlock.transactions.length.should.equal(data.transactions.length);
+						expectedOrderOfTransactions(generatedBlock.transactions).should.equal(true);
+						transactionsOrder.should.eql(correctOrderOfTransactions);
 					});
 				});
 
@@ -387,9 +387,9 @@ describe('block', function () {
 					});
 
 					it('should sort transactions in the correct order', function () {
-						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
-						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
-						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
+						generatedBlock.transactions.length.should.equal(data.transactions.length);
+						expectedOrderOfTransactions(generatedBlock.transactions).should.equal(true);
+						transactionsOrder.should.eql(correctOrderOfTransactions);
 					});
 				});
 
@@ -409,9 +409,9 @@ describe('block', function () {
 					});
 
 					it('should sort transactions in the correct order', function () {
-						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
-						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
-						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
+						generatedBlock.transactions.length.should.equal(data.transactions.length);
+						expectedOrderOfTransactions(generatedBlock.transactions).should.equal(true);
+						transactionsOrder.should.eql(correctOrderOfTransactions);
 					});
 				});
 			});

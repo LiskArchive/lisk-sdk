@@ -116,7 +116,7 @@ describe('blocks/process', function () {
 				}
 
 				blocks.lastBlock.set(loadedBlock);
-				expect(loadedBlock.height).to.equal(2);
+				loadedBlock.height.should.equal(2);
 				done();
 			});
 		});
@@ -128,7 +128,7 @@ describe('blocks/process', function () {
 				}
 
 				blocks.lastBlock.set(loadedBlock);
-				expect(loadedBlock.height).to.equal(3);
+				loadedBlock.height.should.equal(3);
 				done();
 			});
 		});
@@ -139,7 +139,7 @@ describe('blocks/process', function () {
 		it('should load block 4 from db and return blockSignature error', function (done) {
 			blocksProcess.loadBlocksOffset(1, 4, true, function (err, loadedBlock) {
 				if (err) {
-					expect(err).equal('Failed to verify block signature');
+					err.should.equal('Failed to verify block signature');
 					return done();
 				}
 
@@ -152,7 +152,7 @@ describe('blocks/process', function () {
 
 			blocksProcess.loadBlocksOffset(1, 5, true, function (err, loadedBlock) {
 				if (err) {
-					expect(err).equal('Invalid payload hash');
+					err.should.equal('Invalid payload hash');
 					return done();
 				}
 
@@ -165,7 +165,7 @@ describe('blocks/process', function () {
 
 			blocksProcess.loadBlocksOffset(1, 6, true, function (err, loadedBlock) {
 				if (err) {
-					expect(err).equal('Invalid block timestamp');
+					err.should.equal('Invalid block timestamp');
 					return done();
 				}
 
@@ -178,7 +178,7 @@ describe('blocks/process', function () {
 
 			blocksProcess.loadBlocksOffset(1, 7, true, function (err, loadedBlock) {
 				if (err) {
-					expect(err).equal('Blocks#loadBlocksOffset error: Unknown transaction type 99');
+					err.should.equal('Blocks#loadBlocksOffset error: Unknown transaction type 99');
 					return done();
 				}
 
@@ -191,7 +191,7 @@ describe('blocks/process', function () {
 
 			blocksProcess.loadBlocksOffset(1, 8, true, function (err, loadedBlock) {
 				if (err) {
-					expect(err).equal('Invalid block version');
+					err.should.equal('Invalid block version');
 					return done();
 				}
 
@@ -204,7 +204,7 @@ describe('blocks/process', function () {
 
 			blocksProcess.loadBlocksOffset(1, 9, true, function (err, loadedBlock) {
 				if (err) {
-					expect(err).equal('Invalid previous block: 15335393038826825161 expected: 13068833527549895884');
+					err.should.equal('Invalid previous block: 15335393038826825161 expected: 13068833527549895884');
 					return done();
 				}
 
@@ -217,7 +217,7 @@ describe('blocks/process', function () {
 
 			blocksProcess.loadBlocksOffset(1, 10, true, function (err, loadedBlock) {
 				if (err) {
-					expect(err).equal('Failed to validate vote schema: Array items are not unique (indexes 0 and 4)');
+					err.should.equal('Failed to validate vote schema: Array items are not unique (indexes 0 and 4)');
 					return done();
 				}
 
@@ -249,8 +249,8 @@ describe('blocks/process', function () {
 					return done(err);
 				}
 
-				expect(loadedBlock.id).equal(loadTables[0].data[2].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[2].previousBlock);
+				loadedBlock.id.should.equal(loadTables[0].data[2].id);
+				loadedBlock.previousBlock.should.equal(loadTables[0].data[2].previousBlock);
 				done();
 			});
 		});
@@ -263,8 +263,8 @@ describe('blocks/process', function () {
 					return done(err);
 				}
 
-				expect(loadedBlock.id).equal(loadTables[0].data[3].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[3].previousBlock);
+				loadedBlock.id.should.equal(loadTables[0].data[3].id);
+				loadedBlock.previousBlock.should.equal(loadTables[0].data[3].previousBlock);
 				done();
 			});
 		});
@@ -277,8 +277,8 @@ describe('blocks/process', function () {
 					done(err);
 				}
 
-				expect(loadedBlock.id).equal(loadTables[0].data[4].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[4].previousBlock);
+				loadedBlock.id.should.equal(loadTables[0].data[4].id);
+				loadedBlock.previousBlock.should.equal(loadTables[0].data[4].previousBlock);
 				done();
 			});
 		});
@@ -288,7 +288,7 @@ describe('blocks/process', function () {
 
 			blocksProcess.loadBlocksOffset(1, 7, true, function (err, loadedBlock) {
 				if (err) {
-					expect(err).equal('Blocks#loadBlocksOffset error: Unknown transaction type 99');
+					err.should.equal('Blocks#loadBlocksOffset error: Unknown transaction type 99');
 					return done();
 				}
 
@@ -304,8 +304,8 @@ describe('blocks/process', function () {
 					done(err);
 				}
 
-				expect(loadedBlock.id).equal(loadTables[0].data[6].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[6].previousBlock);
+				loadedBlock.id.should.equal(loadTables[0].data[6].id);
+				loadedBlock.previousBlock.should.equal(loadTables[0].data[6].previousBlock);
 				done();
 			});
 		});
@@ -318,8 +318,8 @@ describe('blocks/process', function () {
 					done(err);
 				}
 
-				expect(loadedBlock.id).equal(loadTables[0].data[7].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[7].previousBlock);
+				loadedBlock.id.should.equal(loadTables[0].data[7].id);
+				loadedBlock.previousBlock.should.equal(loadTables[0].data[7].previousBlock);
 				done();
 			});
 		});
@@ -332,8 +332,8 @@ describe('blocks/process', function () {
 					done(err);
 				}
 
-				expect(loadedBlock.id).equal(loadTables[0].data[8].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[8].previousBlock);
+				loadedBlock.id.should.equal(loadTables[0].data[8].id);
+				loadedBlock.previousBlock.should.equal(loadTables[0].data[8].previousBlock);
 				done();
 			});
 		});

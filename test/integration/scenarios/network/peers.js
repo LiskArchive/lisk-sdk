@@ -25,15 +25,15 @@ module.exports = function (params) {
 				return socket.wampSend('list', {});
 			})).then(function (results) {
 				results.forEach(function (result) {
-					expect(result).to.have.property('success').to.be.true;
-					expect(result).to.have.property('peers').to.be.a('array');
+					result.should.have.property('success').to.be.true;
+					result.should.have.property('peers').to.be.a('array');
 					var peerPorts = result.peers.map(function (peer) {
 						return peer.wsPort;
 					});
 					var allPorts = params.configurations.map(function (configuration) {
 						return configuration.wsPort;
 					});
-					expect(_.intersection(allPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
+					_.intersection(allPorts, peerPorts).should.be.an('array').and.not.to.be.empty;
 				});
 			});
 		});
@@ -48,8 +48,8 @@ module.exports = function (params) {
 				var maxHeight = 1;
 				var heightSum = 0;
 				results.forEach(function (result) {
-					expect(result).to.have.property('success').to.be.true;
-					expect(result).to.have.property('height').to.be.a('number');
+					result.should.have.property('success').to.be.true;
+					result.should.have.property('height').to.be.a('number');
 					if (result.height > maxHeight) {
 						maxHeight = result.height;
 					}
@@ -103,26 +103,26 @@ module.exports = function (params) {
 			});
 
 			it('should have no error', function () {
-				expect(getNetworkStatusError).not.to.exist;
+				should.not.exist(getNetworkStatusError);
 			});
 
 			it('should have height > 1', function () {
-				expect(networkHeight).to.be.above(1);
+				networkHeight.should.be.above(1);
 			});
 
 			it('should have average height above 1', function () {
-				expect(networkAverageHeight).to.be.above(1);
+				networkAverageHeight.should.be.above(1);
 			});
 
 			it('should have different peers heights propagated correctly on peers lists', function () {
 				return Promise.all(params.sockets.map(function (socket) {
 					return socket.wampSend('list', {});
 				})).then(function (results) {
-					expect(results.some(function (peersList) {
+					results.some(function (peersList) {
 						return peersList.peers.some(function (peer) {
 							return peer.height > 1;
 						});
-					}));
+					}).should.be.true;
 				});
 			});
 		});

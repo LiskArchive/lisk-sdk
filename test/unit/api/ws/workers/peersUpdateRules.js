@@ -50,11 +50,11 @@ describe('PeersUpdateRules', function () {
 	describe('constructor', function () {
 
 		it('should have empty slaveToMasterSender object assigned', function () {
-			expect(peersUpdateRules).to.have.property('slaveToMasterSender').to.be.a('object');
+			peersUpdateRules.should.have.property('slaveToMasterSender').to.be.a('object');
 		});
 
 		it('should have empty rules object assigned', function () {
-			expect(peersUpdateRules).to.have.property('rules').to.be.a('object');
+			peersUpdateRules.should.have.property('rules').to.be.a('object');
 		});
 	});
 
@@ -62,53 +62,53 @@ describe('PeersUpdateRules', function () {
 
 		it('should return an error when invoked with callback only', function (done) {
 			peersUpdateRules.insert(undefined, undefined, function (err) {
-				expect(err).to.be.an('error');
+				err.should.be.an('error');
 				done();
 			});
 		});
 
 		it('should return an error when invoked with undefined peer', function (done) {
 			peersUpdateRules.insert(undefined, validConnectionId, function (err) {
-				expect(err).to.have.property('message').equal('Cannot read property \'nonce\' of undefined');
+				err.should.have.property('message').equal('Cannot read property \'nonce\' of undefined');
 				done();
 			});
 		});
 
 		it('should return an error when invoked with peer without nonce', function (done) {
 			peersUpdateRules.insert({}, validConnectionId, function (err) {
-				expect(err).to.have.property('message').equal('Cannot add connection table entry without nonce');
+				err.should.have.property('message').equal('Cannot add connection table entry without nonce');
 				done();
 			});
 		});
 
 		it('should return an error when invoked with undefined connection id', function (done) {
 			peersUpdateRules.insert(validPeer, undefined, function (err) {
-				expect(err).to.have.property('message').equal('Cannot add connection table entry without connectionId');
+				err.should.have.property('message').equal('Cannot add connection table entry without connectionId');
 				done();
 			});
 		});
 
 		it('should not return an error when invoked with valid arguments', function (done) {
 			peersUpdateRules.insert(validPeer, validConnectionId, function (err) {
-				expect(err).to.be.undefined;
+				should.not.exist(err);
 				done();
 			});
 		});
 
 		it('should call sendInternally when invoked with valid arguments', function () {
 			peersUpdateRules.insert(validPeer, validConnectionId, actionCb);
-			expect(peersUpdateRules.slaveToMasterSender.send.called).to.be.true;
+			peersUpdateRules.slaveToMasterSender.send.called.should.be.true;
 		});
 
 		it('should call sendInternally with acceptPeer procedure when invoked with valid arguments', function () {
 			peersUpdateRules.insert(validPeer, validConnectionId, actionCb);
-			expect(peersUpdateRules.slaveToMasterSender.send.calledWith('updatePeer')).to.be.true;
+			peersUpdateRules.slaveToMasterSender.send.calledWith('updatePeer').should.be.true;
 		});
 
 		it('should insert entries to connectionsTable when invoked with valid arguments', function () {
 			peersUpdateRules.insert(validPeer, validConnectionId, actionCb);
-			expect(connectionsTable.nonceToConnectionIdMap).to.have.property(validPeer.nonce).equal(validConnectionId);
-			expect(connectionsTable.connectionIdToNonceMap).to.have.property(validConnectionId).equal(validPeer.nonce);
+			connectionsTable.nonceToConnectionIdMap.should.have.property(validPeer.nonce).equal(validConnectionId);
+			connectionsTable.connectionIdToNonceMap.should.have.property(validConnectionId).equal(validPeer.nonce);
 		});
 
 		it('should return an error from server when invoked with valid arguments and received error code', function (done) {
@@ -116,7 +116,7 @@ describe('PeersUpdateRules', function () {
 			peersUpdateRules.slaveToMasterSender.send =
 				sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
 			peersUpdateRules.insert(validPeer, validConnectionId, function (err) {
-				expect(err).to.have.property('code').equal(validErrorCode);
+				err.should.have.property('code').equal(validErrorCode);
 				done();
 			});
 		});
@@ -125,9 +125,9 @@ describe('PeersUpdateRules', function () {
 			peersUpdateRules.slaveToMasterSender.send.restore();
 			peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On remove error');
 			peersUpdateRules.insert(validPeer, validConnectionId, function (err) {
-				expect(err).to.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
-				expect(err).to.have.property('message').equal('Transport error while invoking update procedure');
-				expect(err).to.have.property('description').equal('On remove error');
+				err.should.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
+				err.should.have.property('message').equal('Transport error while invoking update procedure');
+				err.should.have.property('description').equal('On remove error');
 				done();
 			});
 		});
@@ -136,8 +136,8 @@ describe('PeersUpdateRules', function () {
 			peersUpdateRules.slaveToMasterSender.send.restore();
 			peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On insert error');
 			peersUpdateRules.insert(validPeer, validConnectionId, function () {
-				expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
-				expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
+				connectionsTable.nonceToConnectionIdMap.should.be.empty;
+				connectionsTable.connectionIdToNonceMap.should.be.empty;
 				done();
 			});
 		});
@@ -146,8 +146,8 @@ describe('PeersUpdateRules', function () {
 			peersUpdateRules.slaveToMasterSender.send.restore();
 			peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
 			peersUpdateRules.insert(validPeer, validConnectionId, function () {
-				expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
-				expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
+				connectionsTable.nonceToConnectionIdMap.should.be.empty;
+				connectionsTable.connectionIdToNonceMap.should.be.empty;
 				done();
 			});
 		});
@@ -170,16 +170,16 @@ describe('PeersUpdateRules', function () {
 			});
 
 			it('should insert multiple entries to connectionsTable when invoked with valid arguments', function () {
-				expect(Object.keys(connectionsTable.nonceToConnectionIdMap).length).to.equal(2);
-				expect(Object.keys(connectionsTable.connectionIdToNonceMap).length).to.equal(2);
-				expect(connectionsTable.nonceToConnectionIdMap).to.have.property(validPeerA.nonce).equal(validConnectionIdA);
-				expect(connectionsTable.nonceToConnectionIdMap).to.have.property(validPeerB.nonce).equal(validConnectionIdB);
-				expect(connectionsTable.connectionIdToNonceMap).to.have.property(validConnectionIdA).equal(validPeerA.nonce);
-				expect(connectionsTable.connectionIdToNonceMap).to.have.property(validConnectionIdB).equal(validPeerB.nonce);
+				Object.keys(connectionsTable.nonceToConnectionIdMap).length.should.equal(2);
+				Object.keys(connectionsTable.connectionIdToNonceMap).length.should.equal(2);
+				connectionsTable.nonceToConnectionIdMap.should.have.property(validPeerA.nonce).equal(validConnectionIdA);
+				connectionsTable.nonceToConnectionIdMap.should.have.property(validPeerB.nonce).equal(validConnectionIdB);
+				connectionsTable.connectionIdToNonceMap.should.have.property(validConnectionIdA).equal(validPeerA.nonce);
+				connectionsTable.connectionIdToNonceMap.should.have.property(validConnectionIdB).equal(validPeerB.nonce);
 			});
 
 			it('should call sendInternally multiple times', function () {
-				expect(peersUpdateRules.slaveToMasterSender.send.calledTwice).to.be.true;
+				peersUpdateRules.slaveToMasterSender.send.calledTwice.should.be.true;
 			});
 		});
 	});
@@ -188,47 +188,47 @@ describe('PeersUpdateRules', function () {
 
 		it('should return an error when invoked with callback only', function (done) {
 			peersUpdateRules.remove(undefined, undefined, function (err) {
-				expect(err).to.be.an('error');
+				err.should.be.an('error');
 				done();
 			});
 		});
 
 		it('should return an error when invoked with undefined peer', function (done) {
 			peersUpdateRules.remove(undefined, validConnectionId, function (err) {
-				expect(err).to.have.property('message').equal('Cannot read property \'nonce\' of undefined');
+				err.should.have.property('message').equal('Cannot read property \'nonce\' of undefined');
 				done();
 			});
 		});
 
 		it('should be ok to invoke with undefined connection id', function (done) {
 			peersUpdateRules.remove(validPeer, undefined, function (err) {
-				expect(err).to.undefined;
+				should.not.exist(err);
 				done();
 			});
 		});
 
 		it('should return an error when invoked with peer without nonce', function (done) {
 			peersUpdateRules.remove({}, validConnectionId, function (err) {
-				expect(err).to.have.property('message').equal('Cannot remove connection table entry without nonce');
+				err.should.have.property('message').equal('Cannot remove connection table entry without nonce');
 				done();
 			});
 		});
 
 		it('should be ok to remove peer which was not added previously', function (done) {
 			peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
-				expect(err).to.be.undefined;
+				should.not.exist(err);
 				done();
 			});
 		});
 
 		it('should call slaveToMasterSender.send when invoked with valid arguments', function () {
 			peersUpdateRules.remove(validPeer, validConnectionId, actionCb);
-			expect(peersUpdateRules.slaveToMasterSender.send.calledOnce).to.be.true;
+			peersUpdateRules.slaveToMasterSender.send.calledOnce.should.be.true;
 		});
 
 		it('should call slaveToMasterSender.send with updatePeer procedure when invoked with valid arguments', function () {
 			peersUpdateRules.remove(validPeer, validConnectionId, actionCb);
-			expect(peersUpdateRules.slaveToMasterSender.send.calledWith('updatePeer')).to.be.true;
+			peersUpdateRules.slaveToMasterSender.send.calledWith('updatePeer').should.be.true;
 		});
 
 		describe('after peer is added', function () {
@@ -241,14 +241,14 @@ describe('PeersUpdateRules', function () {
 
 			it('should leave the connections table in empty state after successful removal', function () {
 				peersUpdateRules.remove(validPeer, validConnectionId, actionCb);
-				expect(peersUpdateRules.slaveToMasterSender.send.calledOnce).to.be.true;
-				expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be.empty;
-				expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to.be.empty;
+				peersUpdateRules.slaveToMasterSender.send.calledOnce.should.be.true;
+				connectionsTable.should.have.property('connectionIdToNonceMap').to.be.empty;
+				connectionsTable.should.have.property('nonceToConnectionIdMap').to.be.empty;
 			});
 
 			it('should be ok to remove peer using different connection id', function (done) {
 				peersUpdateRules.remove(validPeer, 'different connection id', function (err) {
-					expect(err).to.be.undefined;
+					should.not.exist(err);
 					done();
 				});
 			});
@@ -258,7 +258,7 @@ describe('PeersUpdateRules', function () {
 				peersUpdateRules.slaveToMasterSender.send =
 					sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
 				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
-					expect(err).to.have.property('code').equal(validErrorCode);
+					err.should.have.property('code').equal(validErrorCode);
 					done();
 				});
 			});
@@ -267,9 +267,9 @@ describe('PeersUpdateRules', function () {
 				peersUpdateRules.slaveToMasterSender.send.restore();
 				peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On remove error');
 				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
-					expect(err).to.have.property('message').equal('Transport error while invoking update procedure');
-					expect(err).to.have.property('description').equal('On remove error');
+					err.should.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
+					err.should.have.property('message').equal('Transport error while invoking update procedure');
+					err.should.have.property('description').equal('On remove error');
 					done();
 				});
 			});
@@ -278,9 +278,9 @@ describe('PeersUpdateRules', function () {
 				peersUpdateRules.slaveToMasterSender.send.restore();
 				peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On remove error');
 				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
-					expect(connectionsTable.nonceToConnectionIdMap).to.have.property(validPeer.nonce).equal(validConnectionId);
-					expect(connectionsTable.connectionIdToNonceMap).to.have.property(validConnectionId).equal(validPeer.nonce);
+					err.should.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
+					connectionsTable.nonceToConnectionIdMap.should.have.property(validPeer.nonce).equal(validConnectionId);
+					connectionsTable.connectionIdToNonceMap.should.have.property(validConnectionId).equal(validPeer.nonce);
 					done();
 				});
 			});
@@ -289,8 +289,8 @@ describe('PeersUpdateRules', function () {
 				peersUpdateRules.slaveToMasterSender.send.restore();
 				peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
 				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
-					expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
-					expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
+					connectionsTable.nonceToConnectionIdMap.should.be.empty;
+					connectionsTable.connectionIdToNonceMap.should.be.empty;
 					done();
 				});
 			});
@@ -303,7 +303,7 @@ describe('PeersUpdateRules', function () {
 
 		it('should return the PeerUpdateError when called', function (done) {
 			peersUpdateRules.block(validFailureCode, validPeer, validConnectionId, function (err) {
-				expect(err).to.have.instanceOf(PeerUpdateError);
+				err.should.have.instanceOf(PeerUpdateError);
 				done();
 			});
 		});
@@ -356,28 +356,28 @@ describe('PeersUpdateRules', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(blockStub.called).to.be.true;
+					blockStub.called.should.be.true;
 				});
 
 				it('with present nonce and not present connectionId should call block', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(blockStub.called).to.be.true;
+					blockStub.called.should.be.true;
 				});
 
 				it('with not present nonce and present connectionId should call insert', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					insertStub.called.should.be.true;
 				});
 
 				it('with not present nonce and not present connectionId should call insert', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					insertStub.called.should.be.true;
 				});
 			});
 
@@ -393,28 +393,28 @@ describe('PeersUpdateRules', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					insertStub.called.should.be.true;
 				});
 
 				it('with present nonce and not present connectionId should call insert', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					insertStub.called.should.be.true;
 				});
 
 				it('with not present nonce and present connectionId should call insert', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					insertStub.called.should.be.true;
 				});
 
 				it('with not present nonce and not present connectionId should call insert', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					insertStub.called.should.be.true;
 				});
 			});
 		});
@@ -435,28 +435,28 @@ describe('PeersUpdateRules', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					removeStub.called.should.be.true;
 				});
 
 				it('with present nonce and not present connectionId should call block', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(blockStub.called).to.be.true;
+					blockStub.called.should.be.true;
 				});
 
 				it('with not present nonce and present connectionId should call remove', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					removeStub.called.should.be.true;
 				});
 
 				it('with not present nonce and not present connectionId should call remove', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					removeStub.called.should.be.true;
 				});
 			});
 
@@ -472,28 +472,28 @@ describe('PeersUpdateRules', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					removeStub.called.should.be.true;
 				});
 
 				it('with present nonce and not present connectionId should call block', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					removeStub.called.should.be.true;
 				});
 
 				it('with not present nonce and present connectionId should call remove', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					removeStub.called.should.be.true;
 				});
 
 				it('with not present nonce and not present connectionId should call block', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(blockStub.called).to.be.true;
+					blockStub.called.should.be.true;
 				});
 			});
 		});
@@ -516,7 +516,7 @@ describe('PeersUpdateRules', function () {
 
 			it('should reject empty requests', function (done) {
 				peersUpdateRules.external.update(undefined, function (err, res) {
-					expect(err).to.equal('Expected type object but found type undefined');
+					err.should.equal('Expected type object but found type undefined');
 					done();
 				});
 			});
@@ -524,7 +524,7 @@ describe('PeersUpdateRules', function () {
 			it('should reject requests without data field', function (done) {
 				delete minimalValidUpdateRequest.data;
 				peersUpdateRules.external.update(minimalValidUpdateRequest, function (err) {
-					expect(err).to.equal('Missing required property: data');
+					err.should.equal('Missing required property: data');
 					done();
 				});
 			});
@@ -532,7 +532,7 @@ describe('PeersUpdateRules', function () {
 			it('should reject requests without socketId field', function (done) {
 				delete minimalValidUpdateRequest.socketId;
 				peersUpdateRules.external.update(minimalValidUpdateRequest, function (err) {
-					expect(err).to.equal('Missing required property: socketId');
+					err.should.equal('Missing required property: socketId');
 					done();
 				});
 			});
@@ -540,7 +540,7 @@ describe('PeersUpdateRules', function () {
 			it('should reject requests without nonce', function (done) {
 				delete minimalValidUpdateRequest.data.nonce;
 				peersUpdateRules.external.update(minimalValidUpdateRequest, function (err) {
-					expect(err).to.equal('Missing required property: nonce');
+					err.should.equal('Missing required property: nonce');
 					done();
 				});
 			});
@@ -548,7 +548,7 @@ describe('PeersUpdateRules', function () {
 			it('should reject requests with nonce being number', function (done) {
 				minimalValidUpdateRequest.data.nonce = 1234567890123456;
 				peersUpdateRules.external.update(minimalValidUpdateRequest, function (err) {
-					expect(err).to.equal('Expected type string but found type integer');
+					err.should.equal('Expected type string but found type integer');
 					done();
 				});
 			});
@@ -556,7 +556,7 @@ describe('PeersUpdateRules', function () {
 			it('should reject requests with nonce being object', function (done) {
 				minimalValidUpdateRequest.data.nonce = {};
 				peersUpdateRules.external.update(minimalValidUpdateRequest, function (err) {
-					expect(err).to.equal('Expected type string but found type object');
+					err.should.equal('Expected type string but found type object');
 					done();
 				});
 			});
@@ -564,7 +564,7 @@ describe('PeersUpdateRules', function () {
 
 		it('should return an error when attempting to update peer which has no connection established', function (done) {
 			peersUpdateRules.external.update(minimalValidUpdateRequest, function (err) {
-				expect(err).to.have.property('message').equal('Connection id does not match with corresponding peer');
+				err.should.have.property('message').equal('Connection id does not match with corresponding peer');
 				done();
 			});
 		});

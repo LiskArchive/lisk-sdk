@@ -28,26 +28,26 @@ module.exports = function (params) {
 				nodesTransactions = results.map(function (res) {
 					return res.blocks;
 				});
-				expect(nodesTransactions).to.have.lengthOf(params.configurations.length);
+				nodesTransactions.should.have.lengthOf(params.configurations.length);
 			});
 		});
 
 		it('should contain non empty transactions after running functional tests', function () {
 			nodesTransactions.forEach(function (transactions) {
-				expect(transactions).to.be.an('array').and.not.empty;
+				transactions.should.be.an('array').and.not.empty;
 			});
 		});
 
 		it('should have all peers having same amount of confirmed transactions', function () {
 			var uniquePeersTransactionsNumber = _(nodesTransactions).map('length').uniq().value();
-			expect(uniquePeersTransactionsNumber).to.have.lengthOf.at.least(1);
+			uniquePeersTransactionsNumber.should.have.lengthOf.at.least(1);
 		});
 
 		it('should have all transactions the same at all peers', function () {
 			var patternTransactions = nodesTransactions[0];
 			for (var i = 0; i < patternTransactions.length; i += 1) {
 				for (var j = 1; j < nodesTransactions.length; j += 1) {
-					expect(_.isEqual(nodesTransactions[j][i], patternTransactions[i]));
+					_.isEqual(nodesTransactions[j][i], patternTransactions[i]).should.be.true;
 				}
 			}
 		});

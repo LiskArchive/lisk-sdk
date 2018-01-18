@@ -33,16 +33,16 @@ describe('cached endpoints', function () {
 		modulesLoader.initCache(function (err, __cache) {
 			cache = __cache;
 			getJsonForKeyPromise = Promise.promisify(cache.getJsonForKey);
-			expect(err).to.not.exist;
-			expect(__cache).to.be.an('object');
+			should.not.exist(err);
+			__cache.should.be.an('object');
 			return done(err);
 		});
 	});
 
 	afterEach(function (done) {
 		cache.flushDb(function (err, status) {
-			expect(err).to.not.exist;
-			expect(status).to.equal('OK');
+			should.not.exist(err);
+			status.should.equal('OK');
 			done(err);
 		});
 	});
@@ -67,7 +67,7 @@ describe('cached endpoints', function () {
 						return getJsonForKeyPromise(res.req.path);
 					});
 				})).then(function (responses) {
-					expect(responses).to.deep.include(res.body);
+					responses.should.deep.include(res.body);
 				});
 			});
 		});
@@ -78,11 +78,11 @@ describe('cached endpoints', function () {
 			};
 
 			return transactionsEndpoint.makeRequest(params, 400).then(function (res) {
-				expect(res).to.have.property('status').to.equal(400);
-				expect(res).to.have.nested.property('body.message');
+				res.should.have.property('status').to.equal(400);
+				res.should.have.nested.property('body.message');
 
 				return getJsonForKeyPromise(res.req.path).then(function (response) {
-					expect(response).to.eql(null);
+					should.not.exist(response);
 				});
 			});
 		});
@@ -122,7 +122,7 @@ describe('cached endpoints', function () {
 				expectSwaggerParamError(res, 'height');
 				return getJsonForKeyPromise(res.req.path);
 			}).then(function (response) {
-				expect(response).to.eql(null);
+				should.not.exist(response);
 			});
 		});
 
@@ -147,7 +147,7 @@ describe('cached endpoints', function () {
 			}).then(function () {
 				return getJsonForKeyPromise(initialResponse.req.path);
 			}).then(function (result) {
-				expect(result).to.eql(null);
+				should.not.exist(result);
 			});
 		});
 	});
@@ -178,7 +178,7 @@ describe('cached endpoints', function () {
 
 			return delegatesEndpoint.makeRequest(params, 400).then(function (res) {
 				return getJsonForKeyPromise(res.req.path).then(function (response) {
-					expect(response).to.not.exist;
+					should.not.exist(response);
 				});
 			});
 		});
@@ -200,7 +200,7 @@ describe('cached endpoints', function () {
 					responses.should.deep.include(res.body);
 					return onNewRoundPromise().then(function () {
 						return getJsonForKeyPromise(urlPath).then(function (result) {
-							expect(result).to.not.exist;
+							should.not.exist(result);
 						});
 					});
 				});

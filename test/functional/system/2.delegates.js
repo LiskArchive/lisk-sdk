@@ -105,7 +105,7 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 				});
 
 				it('second transaction should fail', function () {
-					expect(secondResponse).to.have.nested.property('body.message').equal('Transaction is already processed: ' + firstTransaction.id);
+					secondResponse.should.have.nested.property('body.message').equal('Transaction is already processed: ' + firstTransaction.id);
 				});
 			});
 
@@ -124,9 +124,9 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 				});
 
 				it('should confirm one transaction', function () {
-					expect(strippedResults.statusFields).to.contain(200);
-					expect(strippedResults.transactionsIds).to.have.lengthOf(1);
-					expect([transactionWithDelay.id, transactionWithoutDelay.id]).and.to.contain(strippedResults.transactionsIds[0]);
+					strippedResults.statusFields.should.contain(200);
+					strippedResults.transactionsIds.should.have.lengthOf(1);
+					[transactionWithDelay.id, transactionWithoutDelay.id].should.contain(strippedResults.transactionsIds[0]);
 				});
 			});
 		});
@@ -151,9 +151,9 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 			});
 
 			it('should confirm only one transaction', function () {
-				expect(strippedResults.statusFields).to.contain(200);
-				expect(strippedResults.transactionsIds).to.have.lengthOf(1);
-				expect([transaction1.id, transaction2.id]).and.to.contain(strippedResults.transactionsIds[0]);
+				strippedResults.statusFields.should.contain(200);
+				strippedResults.transactionsIds.should.have.lengthOf(1);
+				[transaction1.id, transaction2.id].should.contain(strippedResults.transactionsIds[0]);
 			});
 		});
 	});
@@ -195,9 +195,9 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 			});
 
 			it('should confirm only one transaction', function () {
-				expect(strippedResults.statusFields).to.contain(200);
-				expect(strippedResults.transactionsIds).to.have.lengthOf(1);
-				expect([transaction1.id, transaction2.id]).and.to.contain(strippedResults.transactionsIds[0]);
+				strippedResults.statusFields.should.contain(200);
+				strippedResults.transactionsIds.should.have.lengthOf(1);
+				[transaction1.id, transaction2.id].should.contain(strippedResults.transactionsIds[0]);
 			});
 		});
 
@@ -217,8 +217,8 @@ describe('POST /api/transactions (type 2) double delegate registration', functio
 			});
 
 			it('should successfully confirm both transactions', function () {
-				expect(strippedResults.statusFields).eql([200, 200]);
-				expect(strippedResults.transactionsIds).to.have.lengthOf(2).and.to.contain(transaction1.id, transaction2.id);
+				strippedResults.statusFields.should.eql([200, 200]);
+				strippedResults.transactionsIds.should.have.lengthOf(2).and.to.contain(transaction1.id, transaction2.id);
 			});
 		});
 	});

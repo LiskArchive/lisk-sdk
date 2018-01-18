@@ -47,8 +47,8 @@ describe('Posting transaction (type 0)', function () {
 			var transaction = lisk.transaction.createTransaction('1L', 1, account.password);
 
 			postTransaction(transaction, function (err, res) {
-				expect(res).to.have.property('success').to.be.not.ok;
-				expect(res).to.have.property('message').to.equal('Account does not have enough LSK: ' + account.address + ' balance: 0');
+				res.should.have.property('success').to.be.not.ok;
+				res.should.have.property('message').to.equal('Account does not have enough LSK: ' + account.address + ' balance: 0');
 				badTransactions.push(transaction);
 				done();
 			});
@@ -56,8 +56,8 @@ describe('Posting transaction (type 0)', function () {
 
 		it('when sender has funds should be ok', function (done) {
 			postTransaction(transaction, function (err, res) {
-				expect(res).to.have.property('success').to.be.ok;
-				expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				res.should.have.property('success').to.be.ok;
+				res.should.have.property('transactionId').to.equal(transaction.id);
 				goodTransactions.push(transaction);
 				done();
 			});

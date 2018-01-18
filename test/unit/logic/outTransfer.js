@@ -91,15 +91,15 @@ describe('outTransfer', function () {
 			});
 
 			it('should assign db', function () {
-				expect(library).to.have.property('db').eql(dbStub);
+				library.should.have.property('db').eql(dbStub);
 			});
 
 			it('should assign schema', function () {
-				expect(library).to.have.property('schema').eql(modulesLoader.scope.schema);
+				library.should.have.property('schema').eql(modulesLoader.scope.schema);
 			});
 
 			it('should assign logger', function () {
-				expect(library).to.have.property('logger').eql(modulesLoader.logger);
+				library.should.have.property('logger').eql(modulesLoader.logger);
 			});
 		});
 	});
@@ -116,7 +116,7 @@ describe('outTransfer', function () {
 		describe('modules', function () {
 
 			it('should assign accounts', function () {
-				expect(modules).to.have.property('accounts').eql(accountsStub);
+				modules.should.have.property('accounts').eql(accountsStub);
 			});
 		});
 	});
@@ -124,7 +124,7 @@ describe('outTransfer', function () {
 	describe('calculateFee', function () {
 
 		it('should return constants.fees.send', function () {
-			expect(outTransfer.calculateFee(transaction)).to.equal(constants.fees.send);
+			outTransfer.calculateFee(transaction).should.equal(constants.fees.send);
 		});
 	});
 
@@ -135,7 +135,7 @@ describe('outTransfer', function () {
 			it('should call callback with error = "Invalid recipient"', function (done) {
 				delete transaction.recipientId;
 				outTransfer.verify(transaction, sender, function (err) {
-					expect(err).to.equal('Invalid recipient');
+					err.should.equal('Invalid recipient');
 					done();
 				});
 			});
@@ -146,7 +146,7 @@ describe('outTransfer', function () {
 			it('should call callback with error = "Invalid transaction amount"', function (done) {
 				delete transaction.amount;
 				outTransfer.verify(transaction, sender, function (err) {
-					expect(err).to.equal('Invalid transaction amount');
+					err.should.equal('Invalid transaction amount');
 					done();
 				});
 			});
@@ -157,7 +157,7 @@ describe('outTransfer', function () {
 			it('should call callback with error = "Invalid transaction amount"', function (done) {
 				transaction.amount = 0;
 				outTransfer.verify(transaction, sender, function (err) {
-					expect(err).to.equal('Invalid transaction amount');
+					err.should.equal('Invalid transaction amount');
 					done();
 				});
 			});
@@ -168,7 +168,7 @@ describe('outTransfer', function () {
 			it('should call callback with error = "Invalid transaction asset"', function (done) {
 				delete transaction.asset;
 				outTransfer.verify(transaction, sender, function (err) {
-					expect(err).to.equal('Invalid transaction asset');
+					err.should.equal('Invalid transaction asset');
 					done();
 				});
 			});
@@ -179,7 +179,7 @@ describe('outTransfer', function () {
 			it('should call callback with error = "Invalid transaction asset"', function (done) {
 				delete transaction.asset.outTransfer;
 				outTransfer.verify(transaction, sender, function (err) {
-					expect(err).to.equal('Invalid transaction asset');
+					err.should.equal('Invalid transaction asset');
 					done();
 				});
 			});
@@ -190,7 +190,7 @@ describe('outTransfer', function () {
 			it('should call callback with error = "Invalid transaction asset"', function (done) {
 				transaction.asset.outTransfer = 0;
 				outTransfer.verify(transaction, sender, function (err) {
-					expect(err).to.equal('Invalid transaction asset');
+					err.should.equal('Invalid transaction asset');
 					done();
 				});
 			});
@@ -201,7 +201,7 @@ describe('outTransfer', function () {
 			it('should call callback with error = "Invalid outTransfer dappId"', function (done) {
 				transaction.asset.outTransfer.dappId = 'ab1231';
 				outTransfer.verify(transaction, sender, function (err) {
-					expect(err).to.equal('Invalid outTransfer dappId');
+					err.should.equal('Invalid outTransfer dappId');
 					done();
 				});
 			});
@@ -212,7 +212,7 @@ describe('outTransfer', function () {
 			it('should call callback with error = "Invalid outTransfer transactionId"', function (done) {
 				transaction.asset.outTransfer.transactionId = 'ab1231';
 				outTransfer.verify(transaction, sender, function (err) {
-					expect(err).to.equal('Invalid outTransfer transactionId');
+					err.should.equal('Invalid outTransfer transactionId');
 					done();
 				});
 			});
@@ -222,14 +222,14 @@ describe('outTransfer', function () {
 
 			it('should call callback with error = null', function (done) {
 				outTransfer.verify(transaction, sender, function (err) {
-					expect(err).to.be.null;
+					should.not.exist(err);
 					done();
 				});
 			});
 
 			it('should call callback with result = transaction', function (done) {
 				outTransfer.verify(transaction, sender, function (err, res) {
-					expect(res).to.eql(transaction);
+					res.should.eql(transaction);
 					done();
 				});
 			});
@@ -244,21 +244,21 @@ describe('outTransfer', function () {
 
 		it('should call library.db.dapps.countByTransactionId', function (done) {
 			outTransfer.process(transaction, sender, function () {
-				expect(dbStub.dapps.countByTransactionId.calledOnce).to.be.true;
+				dbStub.dapps.countByTransactionId.calledOnce.should.be.true;
 				done();
 			});
 		});
 
 		it('should call library.db.dapps.countByTransactionId', function (done) {
 			outTransfer.process(transaction, sender, function () {
-				expect(dbStub.dapps.countByTransactionId.calledWith(transaction.asset.outTransfer.dappId)).to.be.true;
+				dbStub.dapps.countByTransactionId.calledWith(transaction.asset.outTransfer.dappId).should.be.true;
 				done();
 			});
 		});
 
 		it('should call library.db.dapps.countByTransactionId with transaction.asset.outTransfer.dappId}', function (done) {
 			outTransfer.process(transaction, sender, function () {
-				expect(dbStub.dapps.countByTransactionId.calledWith(transaction.asset.outTransfer.dappId)).to.be.true;
+				dbStub.dapps.countByTransactionId.calledWith(transaction.asset.outTransfer.dappId).should.be.true;
 				done();
 			});
 		});
@@ -271,7 +271,7 @@ describe('outTransfer', function () {
 
 			it('should call callback with error', function (done) {
 				outTransfer.process(transaction, sender, function (err) {
-					expect(err).not.to.be.empty;
+					err.should.not.to.be.empty;
 					done();
 				});
 			});
@@ -288,7 +288,7 @@ describe('outTransfer', function () {
 
 				it('should call callback with error', function (done) {
 					outTransfer.process(transaction, sender, function (err) {
-						expect(err).to.equal('Application not found: ' + transaction.asset.outTransfer.dappId);
+						err.should.equal('Application not found: ' + transaction.asset.outTransfer.dappId);
 						done();
 					});
 				});
@@ -311,7 +311,7 @@ describe('outTransfer', function () {
 
 					it('should call callback with error', function (done) {
 						outTransfer.process(transaction, sender, function (err) {
-							expect(err).to.equal('Transaction is already processed: ' + transaction.asset.outTransfer.transactionId);
+							err.should.equal('Transaction is already processed: ' + transaction.asset.outTransfer.transactionId);
 							done();
 						});
 					});
@@ -325,22 +325,22 @@ describe('outTransfer', function () {
 
 					it('should call library.db.dapps.countByTransactionId second time', function (done) {
 						outTransfer.process(transaction, sender, function () {
-							expect(dbStub.dapps.countByTransactionId.calledOnce).to.be.true;
-							expect(dbStub.dapps.countByOutTransactionId.calledOnce).to.be.true;
+							dbStub.dapps.countByTransactionId.calledOnce.should.be.true;
+							dbStub.dapps.countByOutTransactionId.calledOnce.should.be.true;
 							done();
 						});
 					});
 
 					it('should call library.db.dapps.countByOutTransactionId', function (done) {
 						outTransfer.process(transaction, sender, function () {
-							expect(dbStub.dapps.countByOutTransactionId.calledWith(transaction.asset.outTransfer.transactionId)).to.be.true;
+							dbStub.dapps.countByOutTransactionId.calledWith(transaction.asset.outTransfer.transactionId).should.be.true;
 							done();
 						});
 					});
 
 					it('should call library.db.dapps.countByOutTransactionId transaction.asset.outTransfer.transactionId', function (done) {
 						outTransfer.process(transaction, sender, function () {
-							expect(dbStub.dapps.countByOutTransactionId.calledWith(transaction.asset.outTransfer.transactionId)).to.be.true;
+							dbStub.dapps.countByOutTransactionId.calledWith(transaction.asset.outTransfer.transactionId).should.be.true;
 							done();
 						});
 					});
@@ -353,7 +353,7 @@ describe('outTransfer', function () {
 
 						it('should call callback with error', function (done) {
 							outTransfer.process(transaction, sender, function (err) {
-								expect(err).not.to.be.empty;
+								err.should.not.to.be.empty;
 								done();
 							});
 						});
@@ -369,7 +369,7 @@ describe('outTransfer', function () {
 
 							it('should call callback with error', function (done) {
 								outTransfer.process(transaction, sender, function (err) {
-									expect(err).to.equal('Transaction is already confirmed: ' + transaction.asset.outTransfer.transactionId);
+									err.should.equal('Transaction is already confirmed: ' + transaction.asset.outTransfer.transactionId);
 									done();
 								});
 							});
@@ -384,14 +384,14 @@ describe('outTransfer', function () {
 
 							it('should call callback with error = null', function (done) {
 								outTransfer.process(transaction, sender, function (err) {
-									expect(err).to.be.null;
+									should.not.exist(err);
 									done();
 								});
 							});
 
 							it('should call callback with result = transaction', function (done) {
 								outTransfer.process(transaction, sender, function (err, res) {
-									expect(res).to.eql(transaction);
+									res.should.eql(transaction);
 									done();
 								});
 							});
@@ -411,7 +411,7 @@ describe('outTransfer', function () {
 			});
 
 			it('should throw', function () {
-				expect(outTransfer.getBytes.bind(null, transaction)).to.throw;
+				outTransfer.getBytes.bind(null, transaction).should.throw;
 			});
 		});
 
@@ -424,22 +424,22 @@ describe('outTransfer', function () {
 				});
 
 				it('should throw', function () {
-					expect(outTransfer.getBytes.bind(null, transaction)).to.throw;
+					outTransfer.getBytes.bind(null, transaction).should.throw;
 				});
 			});
 
 			describe('when transaction.asset.outTransfer.transactionId is valid transaction id', function () {
 
 				it('should not throw', function () {
-					expect(outTransfer.getBytes.bind(null, transaction)).not.to.throw;
+					outTransfer.getBytes.bind(null, transaction).should.not.to.throw;
 				});
 
 				it('should get bytes of valid transaction', function () {
-					expect(outTransfer.getBytes(transaction).toString('hex')).to.equal('343136333731333037383236363532343230393134313434333533313632323737313338383231');
+					outTransfer.getBytes(transaction).toString('hex').should.equal('343136333731333037383236363532343230393134313434333533313632323737313338383231');
 				});
 
 				it('should return result as a Buffer type', function () {
-					expect(outTransfer.getBytes(transaction)).to.be.instanceOf(Buffer);
+					outTransfer.getBytes(transaction).should.be.instanceOf(Buffer);
 				});
 			});
 		});
@@ -453,15 +453,15 @@ describe('outTransfer', function () {
 
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false', function () {
 			var unconfirmedOutTransfers = OutTransfer.__get__('__private.unconfirmedOutTansfers');
-			expect(unconfirmedOutTransfers).to.contain.property(transaction.asset.outTransfer.transactionId).equal(false);
+			unconfirmedOutTransfers.should.contain.property(transaction.asset.outTransfer.transactionId).equal(false);
 		});
 
 		it('should call modules.accounts.setAccountAndGet', function () {
-			expect(accountsStub.setAccountAndGet.calledOnce).to.be.true;
+			accountsStub.setAccountAndGet.calledOnce.should.be.true;
 		});
 
 		it('should call modules.accounts.setAccountAndGet with {address: transaction.recipientId}', function () {
-			expect(accountsStub.setAccountAndGet.calledWith({address: transaction.recipientId})).to.be.true;
+			accountsStub.setAccountAndGet.calledWith({address: transaction.recipientId}).should.be.true;
 		});
 
 		describe('when modules.accounts.setAccountAndGet fails', function () {
@@ -472,7 +472,7 @@ describe('outTransfer', function () {
 
 			it('should call callback with error', function () {
 				outTransfer.apply(transaction, dummyBlock, sender, function (err) {
-					expect(err).not.to.be.empty;
+					err.should.not.to.be.empty;
 				});
 			});
 		});
@@ -484,27 +484,27 @@ describe('outTransfer', function () {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {
-				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true;
+				accountsStub.mergeAccountAndGet.calledOnce.should.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with address = transaction.recipientId', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({address: transaction.recipientId}))).to.be.true;
+				accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({address: transaction.recipientId})).should.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with balance = transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({balance: transaction.amount}))).to.be.true;
+				accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({balance: transaction.amount})).should.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with u_balance = transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({u_balance: transaction.amount}))).to.be.true;
+				accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({u_balance: transaction.amount})).should.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({blockId: dummyBlock.id}))).to.be.true;
+				accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({blockId: dummyBlock.id})).should.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
+				accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({round: slots.calcRound(dummyBlock.height)})).should.be.true;
 			});
 
 			describe('when modules.accounts.mergeAccountAndGet fails', function () {
@@ -515,7 +515,7 @@ describe('outTransfer', function () {
 
 				it('should call callback with error', function () {
 					outTransfer.apply(transaction, dummyBlock, sender, function (err) {
-						expect(err).not.to.be.empty;
+						err.should.not.to.be.empty;
 					});
 				});
 			});
@@ -524,13 +524,13 @@ describe('outTransfer', function () {
 
 				it('should call callback with error = undefined', function () {
 					outTransfer.apply(transaction, dummyBlock, sender, function (err) {
-						expect(err).to.be.undefined;
+						should.not.exist(err);
 					});
 				});
 
 				it('should call callback with result = undefined', function () {
 					outTransfer.apply(transaction, dummyBlock, sender, function (err, res) {
-						expect(res).to.be.undefined;
+						should.not.exist(res);
 					});
 				});
 			});
@@ -545,15 +545,15 @@ describe('outTransfer', function () {
 
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true', function () {
 			var unconfirmedOutTransfers = OutTransfer.__get__('__private.unconfirmedOutTansfers');
-			expect(unconfirmedOutTransfers).to.contain.property(transaction.asset.outTransfer.transactionId).equal(true);
+			unconfirmedOutTransfers.should.contain.property(transaction.asset.outTransfer.transactionId).equal(true);
 		});
 
 		it('should call modules.accounts.setAccountAndGet', function () {
-			expect(accountsStub.setAccountAndGet.calledOnce).to.be.true;
+			accountsStub.setAccountAndGet.calledOnce.should.be.true;
 		});
 
 		it('should call modules.accounts.setAccountAndGet with {address: transaction.recipientId}', function () {
-			expect(accountsStub.setAccountAndGet.calledWith({address: transaction.recipientId})).to.be.true;
+			accountsStub.setAccountAndGet.calledWith({address: transaction.recipientId}).should.be.true;
 		});
 
 		describe('when modules.accounts.setAccountAndGet fails', function () {
@@ -564,7 +564,7 @@ describe('outTransfer', function () {
 
 			it('should call callback with error', function () {
 				outTransfer.undo(transaction, dummyBlock, sender, function (err) {
-					expect(err).not.to.be.empty;
+					err.should.not.to.be.empty;
 				});
 			});
 		});
@@ -576,27 +576,27 @@ describe('outTransfer', function () {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {
-				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true;
+				accountsStub.mergeAccountAndGet.calledOnce.should.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with address = transaction.recipientId', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({address: transaction.recipientId}))).to.be.true;
+				accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({address: transaction.recipientId})).should.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with balance = -transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({balance: -transaction.amount}))).to.be.true;
+				accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({balance: -transaction.amount})).should.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with u_balance = -transaction.amount', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({u_balance: -transaction.amount}))).to.be.true;
+				accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({u_balance: -transaction.amount})).should.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({blockId: dummyBlock.id}))).to.be.true;
+				accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({blockId: dummyBlock.id})).should.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', function () {
-				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
+				accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({round: slots.calcRound(dummyBlock.height)})).should.be.true;
 			});
 		});
 
@@ -608,7 +608,7 @@ describe('outTransfer', function () {
 
 			it('should call callback with error', function () {
 				outTransfer.undo(transaction, dummyBlock, sender, function (err) {
-					expect(err).not.to.be.empty;
+					err.should.not.to.be.empty;
 				});
 			});
 		});
@@ -617,13 +617,13 @@ describe('outTransfer', function () {
 
 			it('should call callback with error = undefined', function () {
 				outTransfer.undo(transaction, dummyBlock, sender, function (err) {
-					expect(err).to.be.undefined;
+					should.not.exist(err);
 				});
 			});
 
 			it('should call callback with result = undefined', function () {
 				outTransfer.undo(transaction, dummyBlock, sender, function (err, res) {
-					expect(res).to.be.undefined;
+					should.not.exist(res);
 				});
 			});
 		});
@@ -634,21 +634,21 @@ describe('outTransfer', function () {
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true', function (done) {
 			var unconfirmedOutTransfers = OutTransfer.__get__('__private.unconfirmedOutTansfers');
 			outTransfer.applyUnconfirmed(transaction, sender, function () {
-				expect(unconfirmedOutTransfers).to.contain.property(transaction.asset.outTransfer.transactionId).equal(true);
+				unconfirmedOutTransfers.should.contain.property(transaction.asset.outTransfer.transactionId).equal(true);
 				done();
 			});
 		});
 
 		it('should call callback with error = undefined', function (done) {
 			outTransfer.applyUnconfirmed(transaction, sender, function (err) {
-				expect(err).to.be.undefined;
+				should.not.exist(err);
 				done();
 			});
 		});
 
 		it('should call callback with result = undefined', function (done) {
 			outTransfer.applyUnconfirmed(transaction, sender, function (err, result) {
-				expect(result).to.be.undefined;
+				should.not.exist(result);
 				done();
 			});
 		});
@@ -659,21 +659,21 @@ describe('outTransfer', function () {
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false', function (done) {
 			var unconfirmedOutTransfers = OutTransfer.__get__('__private.unconfirmedOutTansfers');
 			outTransfer.undoUnconfirmed(transaction, sender, function () {
-				expect(unconfirmedOutTransfers).to.contain.property(transaction.asset.outTransfer.transactionId).equal(false);
+				unconfirmedOutTransfers.should.contain.property(transaction.asset.outTransfer.transactionId).equal(false);
 				done();
 			});
 		});
 
 		it('should call callback with error = undefined', function (done) {
 			outTransfer.undoUnconfirmed(transaction, sender, function (err) {
-				expect(err).to.be.undefined;
+				should.not.exist(err);
 				done();
 			});
 		});
 
 		it('should call callback with result = undefined', function (done) {
 			outTransfer.undoUnconfirmed(transaction, sender, function (err, result) {
-				expect(result).to.be.undefined;
+				should.not.exist(result);
 				done();
 			});
 		});
@@ -695,24 +695,24 @@ describe('outTransfer', function () {
 
 		it('should call library.schema.validate', function () {
 			outTransfer.objectNormalize(transaction);
-			expect(schemaSpy.calledOnce).to.be.true;
+			schemaSpy.calledOnce.should.be.true;
 		});
 
 		it('should call library.schema.validate with transaction.asset.outTransfer', function () {
 			outTransfer.objectNormalize(transaction);
-			expect(schemaSpy.calledWith(transaction.asset.outTransfer)).to.be.true;
+			schemaSpy.calledWith(transaction.asset.outTransfer).should.be.true;
 		});
 
 		it('should call library.schema.validate outTransfer.prototype.schema', function () {
 			outTransfer.objectNormalize(transaction);
-			expect(schemaSpy.args[0][1]).to.eql(OutTransfer.prototype.schema);
+			schemaSpy.args[0][1].should.eql(OutTransfer.prototype.schema);
 		});
 
 		describe('when transaction.asset.outTransfer is invalid object argument', function () {
 
 			typesRepresentatives.nonObjects.forEach(function (nonObject) {
 				it('should throw for transaction.asset.outTransfer = ' + nonObject.description, function () {
-					expect(outTransfer.objectNormalize.bind(null, nonObject.input)).to.throw();
+					outTransfer.objectNormalize.bind(null, nonObject.input).should.throw();
 				});
 			});
 		});
@@ -722,7 +722,7 @@ describe('outTransfer', function () {
 			typesRepresentatives.nonStrings.forEach(function (nonString) {
 				it('should throw for transaction.asset.outTransfer.dappId = ' + nonString.description, function () {
 					transaction.asset.outTransfer.dappId = nonString.input;
-					expect(outTransfer.objectNormalize.bind(null, transaction)).to.throw();
+					outTransfer.objectNormalize.bind(null, transaction).should.throw();
 				});
 			});
 		});
@@ -732,7 +732,7 @@ describe('outTransfer', function () {
 			typesRepresentatives.nonStrings.forEach(function (nonString) {
 				it('should throw for transaction.asset.outTransfer.transactionId = ' + nonString.description, function () {
 					transaction.asset.outTransfer.transactionId = nonString.input;
-					expect(outTransfer.objectNormalize.bind(null, nonString.input)).to.throw();
+					outTransfer.objectNormalize.bind(null, nonString.input).should.throw();
 				});
 			});
 		});
@@ -740,7 +740,7 @@ describe('outTransfer', function () {
 		describe('when when transaction.asset.outTransfer is valid', function () {
 
 			it('should return transaction', function () {
-				expect(outTransfer.objectNormalize(transaction)).to.eql(transaction);
+				outTransfer.objectNormalize(transaction).should.eql(transaction);
 			});
 		});
 	});
@@ -754,22 +754,22 @@ describe('outTransfer', function () {
 			});
 
 			it('should return null', function () {
-				expect(outTransfer.dbRead(rawTransaction)).to.eql(null);
+				should.not.exist(outTransfer.dbRead(rawTransaction));
 			});
 		});
 
 		describe('when raw.in_dappId exists', function () {
 
 			it('should return result containing outTransfer', function () {
-				expect(outTransfer.dbRead(rawTransaction)).to.have.property('outTransfer');
+				outTransfer.dbRead(rawTransaction).should.have.property('outTransfer');
 			});
 
 			it('should return result containing outTransfer.dappId = raw.ot_dappId', function () {
-				expect(outTransfer.dbRead(rawTransaction)).to.have.nested.property('outTransfer.dappId').equal(rawTransaction.ot_dappId);
+				outTransfer.dbRead(rawTransaction).should.have.nested.property('outTransfer.dappId').equal(rawTransaction.ot_dappId);
 			});
 
 			it('should return result containing outTransfer.dappId = raw.ot_dappId', function () {
-				expect(outTransfer.dbRead(rawTransaction)).to.have.nested.property('outTransfer.transactionId').equal(rawTransaction.ot_outTransactionId);
+				outTransfer.dbRead(rawTransaction).should.have.nested.property('outTransfer.transactionId').equal(rawTransaction.ot_outTransactionId);
 			});
 		});
 	});
@@ -777,13 +777,13 @@ describe('outTransfer', function () {
 	describe('ready', function () {
 
 		it('should return true for single signature transaction', function () {
-			expect(outTransfer.ready(transaction, sender)).to.equal(true);
+			outTransfer.ready(transaction, sender).should.equal(true);
 		});
 
 		it('should return false for multi signature transaction with less signatures', function () {
 			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-			expect(outTransfer.ready(transaction, sender)).to.equal(false);
+			outTransfer.ready(transaction, sender).should.equal(false);
 		});
 
 		it('should return true for multi signature transaction with at least min signatures', function () {
@@ -795,7 +795,7 @@ describe('outTransfer', function () {
 			transaction.signature = crypto.randomBytes(64).toString('hex');;
 			transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
-			expect(outTransfer.ready(transaction, sender)).to.equal(true);
+			outTransfer.ready(transaction, sender).should.equal(true);
 		});
 	});
 });

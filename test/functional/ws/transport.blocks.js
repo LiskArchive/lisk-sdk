@@ -46,50 +46,50 @@ describe('WS transport blocks', function () {
 		it('using valid headers should be ok', function (done) {
 			ws.call('blocks', null, function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-				expect(res).to.have.property('blocks').that.is.an('array');
+				res.should.have.property('blocks').that.is.an('array');
 				res.blocks.forEach(function (block) {
-					expect(block).to.have.property('b_id').that.is.a('string');
-					expect(block).to.have.property('b_version').that.is.a('number');
-					expect(block).to.have.property('b_timestamp').that.is.a('number');
-					expect(block).to.have.property('b_height').that.is.a('number');
-					expect(block).to.have.property('b_previousBlock');
-					expect(block).to.have.property('b_numberOfTransactions').that.is.a('number');
-					expect(block).to.have.property('b_totalAmount').that.is.a('string');
-					expect(block).to.have.property('b_totalFee').that.is.a('string');
-					expect(block).to.have.property('b_reward').that.is.a('string');
-					expect(block).to.have.property('b_payloadLength').that.is.a('number');
-					expect(block).to.have.property('b_payloadHash').that.is.a('string');
-					expect(block).to.have.property('b_generatorPublicKey').that.is.a('string');
-					expect(block).to.have.property('b_blockSignature').that.is.a('string');
-					expect(block).to.have.property('t_id');
-					expect(block).to.have.property('t_rowId');
-					expect(block).to.have.property('t_type');
-					expect(block).to.have.property('t_timestamp');
-					expect(block).to.have.property('t_senderPublicKey');
-					expect(block).to.have.property('t_senderId');
-					expect(block).to.have.property('t_recipientId');
-					expect(block).to.have.property('t_amount');
-					expect(block).to.have.property('t_fee');
-					expect(block).to.have.property('t_signature');
-					expect(block).to.have.property('t_signSignature');
-					expect(block).to.have.property('s_publicKey');
-					expect(block).to.have.property('d_username');
-					expect(block).to.have.property('v_votes');
-					expect(block).to.have.property('m_min');
-					expect(block).to.have.property('m_lifetime');
-					expect(block).to.have.property('m_keysgroup');
-					expect(block).to.have.property('dapp_name');
-					expect(block).to.have.property('dapp_description');
-					expect(block).to.have.property('dapp_tags');
-					expect(block).to.have.property('dapp_type');
-					expect(block).to.have.property('dapp_link');
-					expect(block).to.have.property('dapp_category');
-					expect(block).to.have.property('dapp_icon');
-					expect(block).to.have.property('in_dappId');
-					expect(block).to.have.property('ot_dappId');
-					expect(block).to.have.property('ot_outTransactionId');
-					expect(block).to.have.property('t_requesterPublicKey');
-					expect(block).to.have.property('t_signatures');
+					block.should.have.property('b_id').that.is.a('string');
+					block.should.have.property('b_version').that.is.a('number');
+					block.should.have.property('b_timestamp').that.is.a('number');
+					block.should.have.property('b_height').that.is.a('number');
+					block.should.have.property('b_previousBlock');
+					block.should.have.property('b_numberOfTransactions').that.is.a('number');
+					block.should.have.property('b_totalAmount').that.is.a('string');
+					block.should.have.property('b_totalFee').that.is.a('string');
+					block.should.have.property('b_reward').that.is.a('string');
+					block.should.have.property('b_payloadLength').that.is.a('number');
+					block.should.have.property('b_payloadHash').that.is.a('string');
+					block.should.have.property('b_generatorPublicKey').that.is.a('string');
+					block.should.have.property('b_blockSignature').that.is.a('string');
+					block.should.have.property('t_id');
+					block.should.have.property('t_rowId');
+					block.should.have.property('t_type');
+					block.should.have.property('t_timestamp');
+					block.should.have.property('t_senderPublicKey');
+					block.should.have.property('t_senderId');
+					block.should.have.property('t_recipientId');
+					block.should.have.property('t_amount');
+					block.should.have.property('t_fee');
+					block.should.have.property('t_signature');
+					block.should.have.property('t_signSignature');
+					block.should.have.property('s_publicKey');
+					block.should.have.property('d_username');
+					block.should.have.property('v_votes');
+					block.should.have.property('m_min');
+					block.should.have.property('m_lifetime');
+					block.should.have.property('m_keysgroup');
+					block.should.have.property('dapp_name');
+					block.should.have.property('dapp_description');
+					block.should.have.property('dapp_tags');
+					block.should.have.property('dapp_type');
+					block.should.have.property('dapp_link');
+					block.should.have.property('dapp_category');
+					block.should.have.property('dapp_icon');
+					block.should.have.property('in_dappId');
+					block.should.have.property('ot_dappId');
+					block.should.have.property('ot_outTransactionId');
+					block.should.have.property('t_requesterPublicKey');
+					block.should.have.property('t_signatures');
 				});
 				done();
 			});
@@ -101,8 +101,8 @@ describe('WS transport blocks', function () {
 		it('using no params should fail', function (done) {
 			ws.call('blocksCommon', function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-				expect(res).to.be.undefined;
-				expect(err).to.equal('Missing required property: ids: ');
+				should.not.exist(res);
+				err.should.equal('Missing required property: ids: ');
 				done();
 			});
 		});
@@ -110,7 +110,7 @@ describe('WS transport blocks', function () {
 		it('using ids == "";"";"" should fail', function (done) {
 			ws.call('blocksCommon', {ids: '"";"";""'}, function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-				expect(err).to.equal('Invalid block id sequence');
+				err.should.equal('Invalid block id sequence');
 				done();
 			});
 		});
@@ -119,7 +119,7 @@ describe('WS transport blocks', function () {
 			ws.call('blocksCommon',  {ids: '\'\',\'\',\'\''}, function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
-				expect(err).to.equal('Invalid block id sequence');
+				err.should.equal('Invalid block id sequence');
 				done();
 			});
 		});
@@ -127,7 +127,7 @@ describe('WS transport blocks', function () {
 		it('using ids == "","","" should fail', function (done) {
 			ws.call('blocksCommon', {ids: '"","",""'}, function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-				expect(err).to.equal('Invalid block id sequence');
+				err.should.equal('Invalid block id sequence');
 				done();
 			});
 		});
@@ -135,7 +135,7 @@ describe('WS transport blocks', function () {
 		it('using ids == one,two,three should fail', function (done) {
 			ws.call('blocksCommon', {ids: 'one,two,three'}, function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-				expect(err).to.equal('Invalid block id sequence');
+				err.should.equal('Invalid block id sequence');
 				done();
 			});
 		});
@@ -144,7 +144,7 @@ describe('WS transport blocks', function () {
 			ws.call('blocksCommon', {ids: '"1","2","3"'}, function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
-				expect(res).to.have.property('common').to.be.null;
+				res.should.have.property('common').to.be.null;
 				done();
 			});
 		});
@@ -153,7 +153,7 @@ describe('WS transport blocks', function () {
 			ws.call('blocksCommon', {ids: '\'1\',\'2\',\'3\''}, function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
-				expect(res).to.have.property('common').to.be.null;
+				res.should.have.property('common').to.be.null;
 				done();
 			});
 		});
@@ -162,7 +162,7 @@ describe('WS transport blocks', function () {
 			ws.call('blocksCommon', {ids: '1,2,3'}, function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
-				expect(res).to.have.property('common').to.be.null;
+				res.should.have.property('common').to.be.null;
 				done();
 			});
 		});
@@ -171,11 +171,11 @@ describe('WS transport blocks', function () {
 			ws.call('blocksCommon', {ids: [genesisblock.id.toString(),'2','3'].join(',')}, function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
-				expect(res).to.have.property('common').to.be.an('object');
-				expect(res.common).to.have.property('height').that.is.a('number');
-				expect(res.common).to.have.property('id').that.is.a('string');
-				expect(res.common).to.have.property('previousBlock').that.is.null;
-				expect(res.common).to.have.property('timestamp').that.is.equal(0);
+				res.should.have.property('common').to.be.an('object');
+				res.common.should.have.property('height').that.is.a('number');
+				res.common.should.have.property('id').that.is.a('string');
+				res.common.should.have.property('previousBlock').that.is.null;
+				res.common.should.have.property('timestamp').that.is.equal(0);
 				done();
 			});
 		});
@@ -186,7 +186,7 @@ describe('WS transport blocks', function () {
 		it('using no block should fail', function (done) {
 			ws.call('postBlock', function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-				expect(err).to.contain('Failed to validate block schema');
+				err.should.contain('Failed to validate block schema');
 				done();
 			});
 		});
@@ -198,7 +198,7 @@ describe('WS transport blocks', function () {
 
 			ws.call('postBlock', { block: bson.serialize(genesisblock) }, function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-				expect(err).to.contain('Failed to validate block schema');
+				err.should.contain('Failed to validate block schema');
 				genesisblock.blockSignature = blockSignature;
 				done();
 			});
@@ -212,7 +212,7 @@ describe('WS transport blocks', function () {
 			});
 			ws.call('postBlock', { block: bson.serialize(testBlock) }, function (err, res) {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
-				expect(res).to.have.property('blockId').to.equal('2807833455815592401');
+				res.should.have.property('blockId').to.equal('2807833455815592401');
 				done();
 			});
 		});

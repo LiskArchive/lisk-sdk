@@ -360,7 +360,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 
 					return signatureEndpoint.makeRequest({signatures: [signature]}, apiCodes.PROCESSING_ERROR);
 				}).then(function (res) {
-					expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Permission to sign transaction denied');
+					res.should.have.nested.property('body.message').to.equal('Error processing signature: Permission to sign transaction denied');
 				});
 			});
 
@@ -368,7 +368,7 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 				var signature = apiHelpers.createSignatureObject(scenarios.unsigned.multiSigTransaction, randomUtil.account());
 
 				return signatureEndpoint.makeRequest({signatures: [signature]}, apiCodes.PROCESSING_ERROR).then(function (res) {
-					expect(res).to.have.nested.property('body.message').to.equal('Error processing signature: Failed to verify signature');
+					res.should.have.nested.property('body.message').to.equal('Error processing signature: Failed to verify signature');
 				});
 			});
 		});

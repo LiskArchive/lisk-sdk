@@ -117,7 +117,7 @@ describe('mem_accounts protection', function () {
 
 			before(function (done) {
 				queries.getAccountByAddress(validAccount.address, function (err, account) {
-					expect(account).to.be.an('object').and.to.be.not.empty;
+					account.should.be.an('object').and.to.be.not.empty;
 					validAccount = account;
 					done(err);
 				});
@@ -133,7 +133,7 @@ describe('mem_accounts protection', function () {
 
 				it('should leave the old username', function (done) {
 					queries.getAccountByAddress(validAccount.address, function (err, updatedAccount) {
-						expect(updatedAccount).to.have.property('username').equal(validAccount.username);
+						updatedAccount.should.have.property('username').equal(validAccount.username);
 						return done(err);
 					});
 				});
@@ -147,8 +147,8 @@ describe('mem_accounts protection', function () {
 
 				it('should set username = null', function (done) {
 					queries.getAccountByAddress(validAccount.address, function (err, updatedAccount) {
-						expect(err).to.be.null;
-						expect(updatedAccount).to.have.property('username').to.be.null;
+						should.not.exist(err);
+						updatedAccount.should.have.property('username').to.be.null;
 						done();
 					});
 				});
@@ -181,8 +181,8 @@ describe('mem_accounts protection', function () {
 
 				it('should set the new value', function (done) {
 					queries.getAccountByAddress(noUsernameAccount.address, function (err, updatedAccount) {
-						expect(err).to.be.null;
-						expect(updatedAccount).to.have.property('username').equal(validUsername);
+						should.not.exist(err);
+						updatedAccount.should.have.property('username').equal(validUsername);
 						done();
 					});
 				});
@@ -196,7 +196,7 @@ describe('mem_accounts protection', function () {
 
 			before(function (done) {
 				queries.getAccountByAddress(validAccount.address, function (err, account) {
-					expect(account).to.be.an('object').and.to.be.not.empty;
+					account.should.be.an('object').and.to.be.not.empty;
 					validAccount = account;
 					done(err);
 				});
@@ -212,8 +212,8 @@ describe('mem_accounts protection', function () {
 
 				it('should leave the old username', function (done) {
 					queries.getAccountByAddress(validAccount.address, function (err, updatedAccount) {
-						expect(err).to.be.null;
-						expect(updatedAccount).to.have.property('u_username').equal(validAccount.u_username);
+						should.not.exist(err);
+						updatedAccount.should.have.property('u_username').equal(validAccount.u_username);
 						done();
 					});
 				});
@@ -227,8 +227,8 @@ describe('mem_accounts protection', function () {
 
 				it('should set u_username = null', function (done) {
 					queries.getAccountByAddress(validAccount.address, function (err, updatedAccount) {
-						expect(err).to.be.null;
-						expect(updatedAccount).to.have.property('u_username').to.be.null;
+						should.not.exist(err);
+						updatedAccount.should.have.property('u_username').to.be.null;
 						done();
 					});
 				});
@@ -261,8 +261,8 @@ describe('mem_accounts protection', function () {
 
 				it('should set the new value', function (done) {
 					queries.getAccountByAddress(noU_usernameAccount.address, function (err, updatedAccount) {
-						expect(err).to.be.null;
-						expect(updatedAccount).to.have.property('u_username').equal(validU_username);
+						should.not.exist(err);
+						updatedAccount.should.have.property('u_username').equal(validU_username);
 						done();
 					});
 				});

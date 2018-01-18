@@ -43,7 +43,7 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		typesRepresentatives.allTypes.forEach(function (test) {
 			it('using ' + test.description + ' should fail', function () {
 				return sendTransactionPromise(test.input, 400).then(function (res) {
-					expect(res).to.have.nested.property('body.message').that.is.not.empty;
+					res.should.have.nested.property('body.message').that.is.not.empty;
 				});
 			});
 		});
