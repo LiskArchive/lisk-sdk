@@ -301,9 +301,9 @@ describe('transport', function () {
 			describe('when library.schema.validate fails', function () {
 
 				it('should call series callback with error = "Invalid signatures body"', function (done) {
-					var err = new Error('Transaction did not match schema');
-					err.code = 'INVALID_FORMAT';
-					library.schema.validate = sinon.stub().callsArgWith(2, err);
+					var validateErr = new Error('Transaction did not match schema');
+					validateErr.code = 'INVALID_FORMAT';
+					library.schema.validate = sinon.stub().callsArgWith(2, [validateErr]);
 
 					__private.receiveSignatures({
 						signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
@@ -406,7 +406,7 @@ describe('transport', function () {
 				done();
 			});
 
-			it('should call library.schema.validate', function (done) {
+			it('should call library.schema.validate with signature', function (done) {
 				__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
 					expect(err).to.be.equal(undefined);
 					expect(library.schema.validate.calledOnce).to.be.true;
@@ -415,13 +415,19 @@ describe('transport', function () {
 				});
 			});
 
-			it('should call library.schema.validate with {signature: query}');
-
-			it('should call library.schema.validate with schema.signature');
-
 			describe('when library.schema.validate fails', function () {
 
-				it('should call callback with error = "Invalid signature body"');
+				it('should call callback with error = "Invalid signature body"', function (done) {
+					var validateErr = new Error('Transaction did not match schema');
+					validateErr.code = 'INVALID_FORMAT';
+					library.schema.validate = sinon.stub().callsArgWith(2, [validateErr]);
+
+					__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
+						expect(err).to.equal('Invalid signature body ' + validateErr.message);
+						done();
+					});
+				});
+
 			});
 
 			describe('when library.schema.validate succeeds', function () {
