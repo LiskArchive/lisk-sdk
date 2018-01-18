@@ -51,7 +51,8 @@ function Config (packageJson) {
 		try {
 			appConfig = JSON.parse(appConfig);
 		} catch (err) {
-			console.log('Please check your config.json. It can\'t be parsed');
+			console.log('Failed to parse config file');
+			console.log(err.message);
 			process.exit(1);
 		}
 	}
