@@ -91,6 +91,13 @@ export function theActionIsCalledWithTheAmountTheAddressAndTheOptions() {
 	return returnValue.catch(e => e);
 }
 
+export function theActionIsCalledWithTheMessageAndTheOptions() {
+	const { action, message, options } = this.test.ctx;
+	const returnValue = action({ message, options });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
 export function theActionIsCalledWithTheDelegateUsernameAndTheOptions() {
 	const { action, delegateUsername: username, options } = this.test.ctx;
 	const returnValue = action({ username, options });

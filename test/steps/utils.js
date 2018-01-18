@@ -31,6 +31,7 @@ import * as list from '../../src/commands/list';
 import * as set from '../../src/commands/set';
 import * as showCopyright from '../../src/commands/showCopyright';
 import * as showWarranty from '../../src/commands/showWarranty';
+import * as signMessage from '../../src/commands/signMessage';
 
 export const DEFAULT_ERROR_MESSAGE = "Cannot read property 'length' of null";
 
@@ -93,6 +94,7 @@ export const getActionCreator = actionName =>
 		set: set.actionCreator,
 		'show copyright': showCopyright.actionCreator,
 		'show warranty': showWarranty.actionCreator,
+		'sign message': signMessage.actionCreator,
 	}[actionName]);
 
 export const createFakeInterface = value => ({
