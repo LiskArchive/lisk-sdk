@@ -27,7 +27,7 @@ describe('transport', function () {
 
 	var dbStub, loggerStub, busStub, schemaStub, networkStub, balancesSequenceStub,
 		transactionStub, blockStub, peersStub, broadcasterStubRef, transportInstance,
-		library, __private, modules, defaultScope, restoreRewiredTopDeps;
+		library, __private, modules, defaultScope, restoreRewiredTopDeps, peerStub;
 
 	const SAMPLE_SIGNATURE_1 = '32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739';
 	const SAMPLE_SIGNATURE_2 = '61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595';
@@ -90,6 +90,8 @@ describe('transport', function () {
 				}
 			}
 		};
+
+		peerStub = {};
 
 		swaggerHelper.getResolvedSwaggerSpec().then(function (resolvedSpec) {
 			defaultScope.swagger = {
@@ -469,9 +471,61 @@ describe('transport', function () {
 
 		describe('receiveTransactions', function () {
 
-			it('should call library.schema.validate');
+			var restoreRewiredDeps, defaultQuery;
 
-			it('should call library.schema.validate with query');
+			beforeEach(function (done) {
+				library = {
+					schema: {
+						validate: sinon.stub().callsArg(2)
+					},
+					logger: {
+						debug: sinon.spy()
+					}
+				};
+
+				modules = {
+					peers: {
+						remove: sinon.stub().returns(true)
+					}
+				};
+
+				restoreRewiredDeps = TransportModule.__set__({
+					library: library,
+					modules: modules
+				});
+
+				defaultQuery = {
+					transactions: [
+						{
+							id: '222675625422353767',
+							type: 0,
+							amount: '100',
+							fee: '10',
+							senderPublicKey: '2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+							recipientId: '12668885769632475474L',
+							timestamp: 28227090,
+							asset: {},
+							signature: '2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205'
+						}
+					]
+				};
+
+				done();
+			});
+
+			afterEach(function (done) {
+				restoreRewiredDeps();
+				done();
+			});
+
+			// TODO: It doesn't seem that library.schema.validate currently gets called by the __private.receiveTransaction logic.
+			// it('should call library.schema.validate with query', function (done) {
+			// 	__private.receiveTransactions(defaultQuery, peerStub, '', function (err) {
+			// 		expect(err).to.be.equal(null);
+			// 		expect(library.schema.validate.calledWith(defaultQuery)).to.be.true;
+			// 		done();
+			// 	});
+			// });
 
 			it('should call library.schema.validate with schema.transactions');
 
