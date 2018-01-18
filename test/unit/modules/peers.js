@@ -524,7 +524,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).to.equal(100);
+						getConsensusResult.should.equal(100);
 					});
 				});
 
@@ -538,7 +538,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 0', function () {
-						expect(getConsensusResult).to.equal(0);
+						getConsensusResult.should.equal(0);
 					});
 				});
 
@@ -552,7 +552,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 0', function () {
-						expect(getConsensusResult).to.equal(0);
+						getConsensusResult.should.equal(0);
 					});
 				});
 			});
