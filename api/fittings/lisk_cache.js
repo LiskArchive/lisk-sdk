@@ -13,9 +13,18 @@
  */
 'use strict';
 
-var modules = require('../../helpers/swagger_module_registry');
 var debug = require('debug')('swagger:lisk:cache');
+var modules = require('../../helpers/swagger_module_registry');
 
+/**
+ * @module fittings/lisk_cache
+ * @requires debug
+ * @requires module:helpers/swagger_module_registry.getCache
+ * @requires module:helpers/swagger_module_registry.getLogger
+ * @param {Object} fittingDef
+ * @param {Object} bagpipes
+ * @TODO: add description of the module
+ */
 module.exports = function create (fittingDef, bagpipes) {
 
 	var cache = modules.getCache();
