@@ -457,7 +457,7 @@ describe('inTransfer', function () {
 		});
 	});
 
-	describe.skip('undo', function () {
+	describe('undo', function () {
 
 		beforeEach(function (done) {
 			inTransfer.undo(trs, dummyBlock, sender, done);
@@ -544,7 +544,7 @@ describe('inTransfer', function () {
 		});
 	});
 
-	describe.skip('applyUnconfirmed', function () {
+	describe('applyUnconfirmed', function () {
 
 		it('should call callback with error = undefined', function (done) {
 			inTransfer.applyUnconfirmed(trs, sender, function (err) {
@@ -561,7 +561,7 @@ describe('inTransfer', function () {
 		});
 	});
 
-	describe.skip('undoUnconfirmed', function () {
+	describe('undoUnconfirmed', function () {
 
 		it('should call callback with error = undefined', function (done) {
 			inTransfer.undoUnconfirmed(trs, sender, function (err) {
@@ -578,7 +578,7 @@ describe('inTransfer', function () {
 		});
 	});
 
-	describe.skip('objectNormalize', function () {
+	describe('objectNormalize', function () {
 
 		var library;
 		var schemaSpy;
@@ -630,7 +630,7 @@ describe('inTransfer', function () {
 		});
 	});
 
-	describe.skip('dbRead', function () {
+	describe('dbRead', function () {
 
 		describe('when raw.in_dappId does not exist', function () {
 
@@ -655,7 +655,7 @@ describe('inTransfer', function () {
 		});
 	});
 
-	describe.skip('afterSave', function () {
+	describe('afterSave', function () {
 
 		it('should call callback with error = undefined', function () {
 			inTransfer.afterSave(trs, function (err) {
@@ -670,7 +670,7 @@ describe('inTransfer', function () {
 		});
 	});
 
-	describe.skip('ready', function () {
+	describe('ready', function () {
 
 		it('should return true for single signature trs', function () {
 			expect(inTransfer.ready(trs, sender)).to.equal(true);
