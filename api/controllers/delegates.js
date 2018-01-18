@@ -19,16 +19,21 @@ var _ = require('lodash');
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class DelegatesController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * @module controllers/delegates
+ * @requires lodash
+ * @param {Object} scope - App instance.
+ * @TODO: add description of the module
  */
 function DelegatesController(scope) {
 	modules = scope.modules;
 }
 
+/**
+ * @public
+ * @param {Object} context
+ * @param {function} next
+ * @TODO: add description of the function and its parameters
+ */
 DelegatesController.getDelegates = function (context, next) {
 	var params = context.request.swagger.params;
 
@@ -80,6 +85,12 @@ DelegatesController.getDelegates = function (context, next) {
 	});
 };
 
+/**
+ * @public
+ * @param {Object} context
+ * @param {function} next
+ * @TODO: add description of the function and its parameters
+ */
 DelegatesController.getForgers = function (context, next) {
 	var params = context.request.swagger.params;
 
