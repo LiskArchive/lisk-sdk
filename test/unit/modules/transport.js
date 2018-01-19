@@ -23,6 +23,8 @@ var swaggerHelper = require('../../../helpers/swagger');
 var modulesLoader = require('../../common/modulesLoader');
 var TransportModule = rewire('../../../modules/transport.js');
 
+// TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
+
 describe('transport', function () {
 
 	var dbStub, loggerStub, busStub, schemaStub, networkStub, balancesSequenceStub,
@@ -471,7 +473,7 @@ describe('transport', function () {
 
 		describe('receiveTransactions', function () {
 
-			var restoreRewiredDeps, defaultQuery;
+			var restoreRewiredDeps, query;
 
 			beforeEach(function (done) {
 				library = {
@@ -494,7 +496,7 @@ describe('transport', function () {
 					modules: modules
 				});
 
-				defaultQuery = {
+				query = {
 					transactions: [
 						{
 							id: '222675625422353767',
@@ -510,6 +512,8 @@ describe('transport', function () {
 					]
 				};
 
+				__private.receiveTransaction = sinon.stub().callsArg(3);
+
 				done();
 			});
 
@@ -520,13 +524,13 @@ describe('transport', function () {
 
 			// TODO: It doesn't seem that library.schema.validate currently gets called by the __private.receiveTransaction logic.
 			// it('should call library.schema.validate with query and definitions.Transaction', function (done) {
-			// 	__private.receiveTransactions(defaultQuery, peerStub, '', function (err) {
+			// 	__private.receiveTransactions(query, peerStub, '', function (err) {
 			// 		expect(err).to.equal(null);
-			// 		expect(library.schema.validate.calledWith(defaultQuery, defaultScope.swagger.definitions.Transaction)).to.be.true;
+			// 		expect(library.schema.validate.calledWith(query, defaultScope.swagger.definitions.Transaction)).to.be.true;
 			// 		done();
 			// 	});
 			// });
-			// 
+			//
 			// describe('when library.schema.validate fails', function () {
 			//
 			// 	it('should call callback with error = "Invalid transactions body"', function (done) {
@@ -534,49 +538,78 @@ describe('transport', function () {
 			// 		validateErr.code = 'INVALID_FORMAT';
 			// 		library.schema.validate = sinon.stub().callsArgWith(2, [validateErr]);
 			//
-			// 		__private.receiveTransactions(defaultQuery, peerStub, '', function (err) {
+			// 		__private.receiveTransactions(query, peerStub, '', function (err) {
 			// 			expect(library.schema.validate.called).to.be.true;
-			// 			// TODO: Check that err is what we expect
+			// 			// TODO: Check that err is what we expect it to be.
 			// 			done();
 			// 		});
 			// 	});
 			// });
 
-			describe('when library.schema.validate succeeds', function (){
+			describe('when library.schema.validate succeeds', function () {
 
 				describe('for every transaction in transactions', function () {
 
 					describe('when transaction is undefined', function () {
 
-						it('should call callback with error = "Unable to process signature. Signature is undefined."');
+						it('should call callback with error = "Unable to process transaction. Transaction is undefined."', function (done) {
+							query.transactions[0] = undefined;
+
+							__private.receiveTransactions(query, peerStub, '', function (err) {
+								expect(err).to.equal('Unable to process transaction. Transaction is undefined.');
+								done();
+							});
+						});
 					});
 
 					describe('when transaction is defined', function () {
 
-						it('should set transaction.bundle = true');
+						it('should set transaction.bundled = true', function (done) {
+							__private.receiveTransactions(query, peerStub, '', function (err) {
+								expect(query.transactions[0]).to.have.property('bundled').which.equals(true);
+								done();
+							});
+						});
 
-						it('should call __private.receiveTransaction');
-
-						it('should call __private.receiveTransaction with transaction');
-
-						it('should call __private.receiveTransaction with peer');
-
-						it('should call __private.receiveTransaction with extraLogMessage');
+						it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', function (done) {
+							__private.receiveTransactions(query, peerStub, 'This is a log message', function (err) {
+								expect(__private.receiveTransaction.calledWith(query.transactions[0], peerStub, 'This is a log message')).to.be.true;
+								done();
+							});
+						});
 
 						describe('when call __private.receiveTransaction fails', function () {
+							var receiveTransactionError;
 
-							it('should call library.logger.debug with error');
+							beforeEach(function (done) {
+								receiveTransactionError = 'Invalid transaction body - ...';
+								__private.receiveTransaction = sinon.stub().callsArgWith(3, receiveTransactionError);
+								done();
+							});
 
-							it('should call library.logger.debug with transaction');
+							it('should call library.logger.debug with error and transaction', function (done) {
+								__private.receiveTransactions(query, peerStub, 'This is a log message', function (err) {
+									expect(library.logger.debug.calledWith(receiveTransactionError, query.transactions[0])).to.be.true;
+									done();
+								});
+							});
 
-							it('should call callback with error');
+							it('should call callback with error', function (done) {
+								__private.receiveTransactions(query, peerStub, 'This is a log message', function (err) {
+									expect(err).to.equal(receiveTransactionError);
+									done();
+								});
+							});
 						});
 
 						describe('when call __private.receiveTransaction succeeds', function () {
 
-							it('should call callback with error = undefined');
-
-							it('should call callback with result = undefined');
+							it('should call callback with error = null', function (done) {
+								__private.receiveTransactions(query, peerStub, 'This is a log message', function (err) {
+									expect(err).to.equal(null);
+									done();
+								});
+							});
 						});
 					});
 				});
