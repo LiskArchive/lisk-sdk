@@ -358,7 +358,7 @@ describe('transport', function () {
 							__private.receiveSignatures({
 								signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
 							}, function (err) {
-								expect(err).to.be.equal(err);
+								expect(err).to.equal(err);
 								done();
 							});
 						});
@@ -370,7 +370,7 @@ describe('transport', function () {
 							__private.receiveSignatures({
 								signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
 							}, function (err) {
-								expect(err).to.be.equal(null);
+								expect(err).to.equal(null);
 								done();
 							});
 						});
@@ -410,7 +410,7 @@ describe('transport', function () {
 
 			it('should call library.schema.validate with signature', function (done) {
 				__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
-					expect(err).to.be.equal(undefined);
+					expect(err).to.equal(undefined);
 					expect(library.schema.validate.calledOnce).to.be.true;
 					expect(library.schema.validate.calledWith(SAMPLE_SIGNATURE_1)).to.be.true;
 					done();
@@ -436,7 +436,7 @@ describe('transport', function () {
 
 				it('should call modules.multisignatures.processSignature with signature', function (done) {
 					__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
-						expect(err).to.be.equal(undefined);
+						expect(err).to.equal(undefined);
 						expect(modules.multisignatures.processSignature.calledWith(SAMPLE_SIGNATURE_1)).to.be.true;
 						done();
 					});
@@ -449,7 +449,7 @@ describe('transport', function () {
 						modules.multisignatures.processSignature = sinon.stub().callsArgWith(1, processSignatureError);
 
 						__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
-							expect(err).to.be.equal('Error processing signature: ' + processSignatureError);
+							expect(err).to.equal('Error processing signature: ' + processSignatureError);
 							done();
 						});
 					});
@@ -461,7 +461,7 @@ describe('transport', function () {
 						modules.multisignatures.processSignature = sinon.stub().callsArg(1);
 
 						__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
-							expect(err).to.be.equal(undefined);
+							expect(err).to.equal(undefined);
 							done();
 						});
 					});
@@ -521,7 +521,7 @@ describe('transport', function () {
 			// TODO: It doesn't seem that library.schema.validate currently gets called by the __private.receiveTransaction logic.
 			// it('should call library.schema.validate with query and definitions.Transaction', function (done) {
 			// 	__private.receiveTransactions(defaultQuery, peerStub, '', function (err) {
-			// 		expect(err).to.be.equal(null);
+			// 		expect(err).to.equal(null);
 			// 		expect(library.schema.validate.calledWith(defaultQuery, defaultScope.swagger.definitions.Transaction)).to.be.true;
 			// 		done();
 			// 	});
