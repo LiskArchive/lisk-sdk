@@ -87,15 +87,8 @@ describe('system test (type 1) - double second password registrations', function
 			});
 		});
 
-		it('adding to pool registering second password transaction for same account without second password should fail', function (done) {
+		it('adding to pool transaction type 1 for same account should fail', function (done) {
 			localCommon.addTransaction(library, transaction1, function (err, res) {
-				expect(err).to.equal('Missing sender second signature');
-				done();
-			});
-		});
-
-		it('adding to pool registering second password transaction for same account with second password should fail', function (done) {
-			localCommon.addTransaction(library, transaction2, function (err, res) {
 				expect(err).to.equal('Missing sender second signature');
 				done();
 			});

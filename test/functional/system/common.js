@@ -21,6 +21,7 @@ var slots = require('../../../helpers/slots');
 
 var application = require('../../common/application');
 var normalizer = require('../../common/utils/normalizer');
+var randomUtil = require('../../common/utils/random');
 
 var accountFixtures = require('../../fixtures/accounts');
 
@@ -128,11 +129,47 @@ function beforeBlock (type, cb) {
 	});
 }
 
+function loadTransactionType (key, account, dapp, secondPassword, cb) {
+	var transaction;
+	var accountCopy = _.cloneDeep(account);
+	if (secondPassword == true) {
+		accountCopy.secondPassword = null;
+	} else if (secondPassword == false) {
+		accountCopy.secondPassword = 'invalid_second_passphrase';
+	}
+	switch (key) {
+		case 'SEND':
+			transaction = lisk.transaction.createTransaction(randomUtil.account().address, 1, accountCopy.password, accountCopy.secondPassword);
+			break;
+		case 'DELEGATE':
+			transaction = lisk.delegate.createDelegate(accountCopy.password, accountCopy.username, accountCopy.secondPassword);
+			break;
+		case 'VOTE':
+			transaction = lisk.vote.createVote(accountCopy.password, ['+' + accountFixtures.existingDelegate.publicKey], accountCopy.secondPassword);
+			break;
+		case 'MULTI':
+			transaction = lisk.multisignature.createMultisignature(accountCopy.password, accountCopy.secondPassword, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
+			break;
+		case 'DAPP':
+			transaction = lisk.dapp.createDapp(accountCopy.password, accountCopy.secondPassword, randomUtil.guestbookDapp);
+			break;
+		case 'IN_TRANSFER':
+			transaction = lisk.transfer.createInTransfer(dapp.id, 1, accountCopy.password, accountCopy.secondPassword);
+			break;
+		case 'OUT_TRANSFER':
+			transaction = lisk.transfer.createOutTransfer(dapp.id, randomUtil.transaction().id, randomUtil.account().address, 1, accountCopy.password, accountCopy.secondPassword);
+			break;
+	};
+
+	cb(transaction);
+};
+
 module.exports = {
 	forge: forge,
 	addTransaction: addTransaction,
 	addTransactionsAndForge: addTransactionsAndForge,
 	getAccountFromDb: getAccountFromDb,
 	getTransactionFromModule: getTransactionFromModule,
-	beforeBlock: beforeBlock
+	beforeBlock: beforeBlock,
+	loadTransactionType: loadTransactionType
 };
