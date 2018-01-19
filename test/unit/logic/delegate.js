@@ -78,7 +78,6 @@ var rawValidTransaction = {
 
 describe('delegate', function () {
 
-	var transactionMock;
 	var accountsMock;
 	var delegate;
 	var loggerMock;
@@ -87,10 +86,6 @@ describe('delegate', function () {
 	var transaction;
 	var rawTransaction;
 	var sender;
-
-	before(function () {
-		transactionMock = sinonSandbox.mock({});
-	});
 
 	beforeEach(function () {
 		transaction = _.cloneDeep(validTransaction);
@@ -263,45 +258,9 @@ describe('delegate', function () {
 
 		describe('when transaction is valid', function () {
 
-			var checkConfirmedStub;
-
-			beforeEach(function () {
-				checkConfirmedStub = sinonSandbox.stub(delegate, 'checkConfirmed').callsArgWith(1, null);
-			});
-
-			afterEach(function () {
-				checkConfirmedStub.restore();
-			});
-
-			it('should call checkConfirmed with correct transaction', function (done) {
-				delegate.verify(transaction, sender, function () {
-					expect(checkConfirmedStub.calledWith(transaction)).to.be.true;
-					done();
-				});
-			});
-
-			describe('when delegate was not registered before', function () {
-
-				it('should call callback with valid transaction when username contains symbols which are valid', function (done) {
-					transaction.asset.delegate.username = random.username() + '!@.';
-					delegate.verify(transaction, sender, function () {
-						expect(checkConfirmedStub.calledWith(transaction)).to.be.true;
-						done();
-					});
-				});
-
-				it('should call callback with error = null', function (done) {
-					delegate.verify(transaction, sender, function (err) {
-						expect(err).to.be.null;
-						done();
-					});
-				});
-			});
-
 			describe('when username already exists as unconfirmed', function () {
 
 				beforeEach(function () {
-					checkConfirmedStub.restore();
 					accountsMock.getAccount.withArgs({username: accounts.existingDelegate.delegateName}, ['username'], sinonSandbox.match.any).yields(null, null);
 					accountsMock.getAccount.withArgs({u_username: accounts.existingDelegate.delegateName}, ['u_username'], sinonSandbox.match.any).yields(null, accounts.existingDelegate);
 					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1}, ['u_username'], sinonSandbox.match.any).yields(null, null);
@@ -319,7 +278,6 @@ describe('delegate', function () {
 			describe('when username already exists as confirmed', function () {
 
 				beforeEach(function () {
-					checkConfirmedStub.restore();
 					accountsMock.getAccount.withArgs({username: accounts.existingDelegate.delegateName}, ['username'], sinonSandbox.match.any).yields(null, accounts.existingDelegate);
 					accountsMock.getAccount.withArgs({u_username: accounts.existingDelegate.delegateName}, ['u_username'], sinonSandbox.match.any).yields(null, null);
 					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1}, ['u_username'], sinonSandbox.match.any).yields(null, null);
@@ -337,7 +295,6 @@ describe('delegate', function () {
 			describe('when publicKey already exists as unconfirmed delegate', function () {
 
 				beforeEach(function () {
-					checkConfirmedStub.restore();
 					accountsMock.getAccount.withArgs({username: accounts.existingDelegate.delegateName}, ['username'], sinonSandbox.match.any).yields(null, null);
 					accountsMock.getAccount.withArgs({u_username: accounts.existingDelegate.delegateName}, ['u_username'], sinonSandbox.match.any).yields(null, null);
 					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1}, ['u_username'], sinonSandbox.match.any).yields(null, accounts.existingDelegate);
@@ -355,7 +312,6 @@ describe('delegate', function () {
 			describe('when publicKey already exists as confirmed delegate', function () {
 
 				beforeEach(function () {
-					checkConfirmedStub.restore();
 					accountsMock.getAccount.withArgs({username: accounts.existingDelegate.delegateName}, ['username'], sinonSandbox.match.any).yields(null, null);
 					accountsMock.getAccount.withArgs({u_username: accounts.existingDelegate.delegateName}, ['u_username'], sinonSandbox.match.any).yields(null, null);
 					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1}, ['u_username'], sinonSandbox.match.any).yields(null, null);
@@ -365,6 +321,38 @@ describe('delegate', function () {
 				it('should return an error = "Account is already a delegate"', function (done) {
 					delegate.verify(validTransaction, validSender, function (err) {
 						expect(err).equal('Account is already a delegate');
+						done();
+					});
+				});
+			});
+		});
+
+		describe('when transaction is valid', function () {
+
+			beforeEach(function () {
+				sinonSandbox.stub(delegate, 'checkConfirmed').callsArgWith(1, null);
+			});
+
+			it('should call checkConfirmed with correct transaction', function (done) {
+				delegate.verify(transaction, sender, function () {
+					expect(delegate.checkConfirmed.calledWith(transaction)).to.be.true;
+					done();
+				});
+			});
+
+			describe('when delegate was not registered before', function () {
+
+				it('should call callback with valid transaction when username contains symbols which are valid', function (done) {
+					transaction.asset.delegate.username = random.username() + '!@.';
+					delegate.verify(transaction, sender, function () {
+						expect(delegate.checkConfirmed.calledWith(transaction)).to.be.true;
+						done();
+					});
+				});
+
+				it('should call callback with error = null', function (done) {
+					delegate.verify(transaction, sender, function (err) {
+						expect(err).to.be.null;
 						done();
 					});
 				});
@@ -473,37 +461,31 @@ describe('delegate', function () {
 	describe('checkConfirmed', function () {
 
 		var validUsername;
-		var checkDuplicatesStub;
-		var transactionsExceptionsIndexOfStub;
+		var transactionsExceptionsIndexOfSpy;
 
 		beforeEach(function () {
 			validUsername = validSender.username;
-			checkDuplicatesStub = sinonSandbox.stub(delegate, 'checkDuplicates').callsArg(3);
-			transactionsExceptionsIndexOfStub = sinonSandbox.spy(exceptions.delegates, 'indexOf');
-		});
-
-		afterEach(function () {
-			transactionsExceptionsIndexOfStub.restore();
-			checkDuplicatesStub.restore();
+			sinonSandbox.stub(delegate, 'checkDuplicates').callsArg(3);
+			transactionsExceptionsIndexOfSpy = sinonSandbox.spy(exceptions.delegates, 'indexOf');
 		});
 
 		it('should call checkDuplicates with valid transaction', function (done) {
 			delegate.checkConfirmed(validTransaction, function () {
-				expect(checkDuplicatesStub.calledWith(validTransaction)).to.be.true;
+				expect(delegate.checkDuplicates.calledWith(validTransaction)).to.be.true;
 				done();
 			});
 		});
 
 		it('should call checkDuplicates with "username"', function (done) {
 			delegate.checkConfirmed(validTransaction, function () {
-				expect(checkDuplicatesStub.args[0][1] === 'username').to.be.true;
+				expect(delegate.checkDuplicates.args[0][1] === 'username').to.be.true;
 				done();
 			});
 		});
 
 		it('should call checkDuplicates with "isDelegate"', function (done) {
 			delegate.checkConfirmed(validTransaction, function () {
-				expect(checkDuplicatesStub.args[0][2] === 'isDelegate').to.be.true;
+				expect(delegate.checkDuplicates.args[0][2] === 'isDelegate').to.be.true;
 				done();
 			});
 		});
@@ -511,8 +493,7 @@ describe('delegate', function () {
 		describe('when checkDuplicates succeeds', function () {
 
 			beforeEach(function () {
-				checkDuplicatesStub.restore();
-				checkDuplicatesStub = sinonSandbox.stub(delegate, 'checkDuplicates').callsArgWith(3, null);
+				delegate.checkDuplicates.callsArgWith(3, null);
 			});
 
 			it('should call callback with error = undefined', function (done) {
@@ -525,8 +506,7 @@ describe('delegate', function () {
 			var validDelegateRegistrationError = 'Account is already a delegate';
 
 			beforeEach(function () {
-				checkDuplicatesStub.restore();
-				checkDuplicatesStub = sinonSandbox.stub(delegate, 'checkDuplicates').callsArgWith(3, validDelegateRegistrationError);
+				delegate.checkDuplicates.callsArgWith(3, validDelegateRegistrationError);
 			});
 
 			it('should call callback with an error', function (done) {
@@ -538,7 +518,7 @@ describe('delegate', function () {
 
 			it('should check if transaction exception occurred', function (done) {
 				delegate.checkConfirmed(validTransaction, function () {
-					expect(transactionsExceptionsIndexOfStub.called).to.be.true;
+					expect(transactionsExceptionsIndexOfSpy.called).to.be.true;
 					done();
 				});
 			});
@@ -582,35 +562,27 @@ describe('delegate', function () {
 
 	describe('checkUnconfirmed', function () {
 
-		var validUsername;
-		var checkDuplicatesStub;
-
 		beforeEach(function () {
-			validUsername = validSender.username;
-			checkDuplicatesStub = sinonSandbox.stub(delegate, 'checkDuplicates').callsArg(3);
-		});
-
-		afterEach(function () {
-			checkDuplicatesStub.restore();
+			sinonSandbox.stub(delegate, 'checkDuplicates').callsArg(3);
 		});
 
 		it('should call checkDuplicates with valid transaction', function (done) {
 			delegate.checkUnconfirmed(validTransaction, function () {
-				expect(checkDuplicatesStub.calledWith(validTransaction)).to.be.true;
+				expect(delegate.checkDuplicates.calledWith(validTransaction)).to.be.true;
 				done();
 			});
 		});
 
 		it('should call checkDuplicates with "u_username"', function (done) {
 			delegate.checkUnconfirmed(validTransaction, function () {
-				expect(checkDuplicatesStub.args[0][1] === 'u_username').to.be.true;
+				expect(delegate.checkDuplicates.args[0][1] === 'u_username').to.be.true;
 				done();
 			});
 		});
 
 		it('should call checkDuplicates with "u_isDelegate"', function (done) {
 			delegate.checkUnconfirmed(validTransaction, function () {
-				expect(checkDuplicatesStub.args[0][2] === 'u_isDelegate').to.be.true;
+				expect(delegate.checkDuplicates.args[0][2] === 'u_isDelegate').to.be.true;
 				done();
 			});
 		});
@@ -618,8 +590,7 @@ describe('delegate', function () {
 		describe('when delegate is not unconfirmed', function () {
 
 			beforeEach(function () {
-				checkDuplicatesStub.restore();
-				checkDuplicatesStub = sinonSandbox.stub(delegate, 'checkDuplicates').callsArgWith(3, null);
+				delegate.checkDuplicates.callsArgWith(3, null);
 			});
 
 			it('should not return an error', function (done) {
@@ -632,8 +603,7 @@ describe('delegate', function () {
 			var validDelegateRegistrationError = 'Account is already a delegate';
 
 			beforeEach(function () {
-				checkDuplicatesStub.restore();
-				checkDuplicatesStub = sinonSandbox.stub(delegate, 'checkDuplicates').callsArgWith(3, validDelegateRegistrationError);
+				delegate.checkDuplicates.callsArgWith(3, validDelegateRegistrationError);
 			});
 
 			it('should call callback with an error', function (done) {
@@ -647,15 +617,12 @@ describe('delegate', function () {
 
 	describe('apply', function () {
 
-		var checkConfirmedStub;
-
 		describe('when username was not registered before', function () {
 
 			var validConfirmedAccount;
 
 			beforeEach(function () {
-				checkConfirmedStub = sinonSandbox.stub(delegate, 'checkConfirmed').callsArg(1);
-				accountsMock.setAccountAndGet = sinonSandbox.stub().callsArg(1);
+				sinonSandbox.stub(delegate, 'checkConfirmed').callsArg(1);
 				validConfirmedAccount = {
 					publicKey: validSender.publicKey,
 					address: validSender.address,
@@ -665,10 +632,6 @@ describe('delegate', function () {
 					u_username: null,
 					username: validTransaction.asset.delegate.username
 				};
-			});
-
-			afterEach(function () {
-				checkConfirmedStub.restore();
 			});
 
 			it('should call accounts.setAccountAndGet module with correct parameter', function (done) {
@@ -682,11 +645,7 @@ describe('delegate', function () {
 		describe('when username is already confirmed', function () {
 
 			beforeEach(function () {
-				checkConfirmedStub = sinonSandbox.stub(delegate, 'checkConfirmed').callsArgWith(1, 'Username already exists');
-			});
-
-			afterEach(function () {
-				checkConfirmedStub.restore();
+				sinonSandbox.stub(delegate, 'checkConfirmed').callsArgWith(1, 'Username already exists');
 			});
 
 			it('should not call accounts.setAccountAndGet', function (done) {
@@ -707,15 +666,12 @@ describe('delegate', function () {
 
 	describe('applyUnconfirmed', function () {
 
-		var checkUnconfirmedStub;
-
 		describe('when username was not registered before', function () {
 
 			var validUnconfirmedAccount;
 
 			beforeEach(function () {
-				checkUnconfirmedStub = sinonSandbox.stub(delegate, 'checkUnconfirmed').callsArg(1);
-				accountsMock.setAccountAndGet = sinonSandbox.stub().callsArg(1);
+				sinonSandbox.stub(delegate, 'checkUnconfirmed').callsArg(1);
 				validUnconfirmedAccount = {
 					publicKey: validSender.publicKey,
 					address: validSender.address,
@@ -724,10 +680,6 @@ describe('delegate', function () {
 					username: null,
 					u_username: validTransaction.asset.delegate.username
 				};
-			});
-
-			afterEach(function () {
-				checkUnconfirmedStub.restore();
 			});
 
 			it('should call accounts.setAccountAndGet module with correct parameter', function (done) {
@@ -741,11 +693,7 @@ describe('delegate', function () {
 		describe('when username is already unconfirmed', function () {
 
 			beforeEach(function () {
-				checkUnconfirmedStub = sinonSandbox.stub(delegate, 'checkUnconfirmed').callsArgWith(1, 'Username already exists');
-			});
-
-			afterEach(function () {
-				checkUnconfirmedStub.restore();
+				sinonSandbox.stub(delegate, 'checkUnconfirmed').callsArgWith(1, 'Username already exists');
 			});
 
 			it('should not call accounts.setAccountAndGet', function (done) {
