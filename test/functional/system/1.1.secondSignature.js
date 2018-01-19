@@ -28,7 +28,7 @@ describe('system test (type 1) - double second password registrations', function
 	var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 	var transaction1, transaction2;
 
-	localCommon.beforeBlock('system_1_1_second_sign', function (lib, sender) {
+	localCommon.beforeBlock('system_1_1_second_sign', function (lib) {
 		library = lib;
 	});
 

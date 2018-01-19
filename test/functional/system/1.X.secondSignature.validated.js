@@ -33,7 +33,7 @@ describe('system test (type 1) - check validated second password registrations a
 	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
 	dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock('system_1_1_second_sign_validated', function (lib, sender) {
+	localCommon.beforeBlock('system_1_1_second_sign_validated', function (lib) {
 		library = lib;
 	});
 

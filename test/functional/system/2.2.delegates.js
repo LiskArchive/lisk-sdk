@@ -23,7 +23,7 @@ var normalizer = require('../../common/utils/normalizer');
 describe('system test (type 2) - double delegate registration', function () {
 
 	var library;
-	localCommon.beforeBlock('system_2_2_delegates', function (lib, sender) {
+	localCommon.beforeBlock('system_2_2_delegates', function (lib) {
 		library = lib;
 	});
 

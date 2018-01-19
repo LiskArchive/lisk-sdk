@@ -42,7 +42,7 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 	var dappDuplicateLinkFail = randomUtil.application();
 	dappDuplicateLinkSuccess.link = dappDuplicateLinkFail.link;
 
-	localCommon.beforeBlock('system_5_5_dapps', function (lib, sender) {
+	localCommon.beforeBlock('system_5_5_dapps', function (lib) {
 		library = lib;
 	});
 

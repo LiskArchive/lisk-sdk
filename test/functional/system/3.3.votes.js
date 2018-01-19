@@ -23,7 +23,7 @@ var normalizer = require('../../common/utils/normalizer');
 describe('system test (type 3) - voting with duplicate submissions', function () {
 	
 	var library;
-	localCommon.beforeBlock('system_3_3_votes', function (lib, sender) {
+	localCommon.beforeBlock('system_3_3_votes', function (lib) {
 		library = lib;
 	});
 

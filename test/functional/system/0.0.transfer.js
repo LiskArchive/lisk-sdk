@@ -23,7 +23,7 @@ var normalizer = require('../../common/utils/normalizer');
 describe('system test (type 0) - double spending', function () {
 
 	var library;
-	localCommon.beforeBlock('system_0_0_transfer', function (lib, sender) {
+	localCommon.beforeBlock('system_0_0_transfer', function (lib) {
 		library = lib;
 	});
 

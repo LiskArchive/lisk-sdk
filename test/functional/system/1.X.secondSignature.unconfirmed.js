@@ -34,7 +34,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 	var transactionWith, transactionWithout;
 	var transactionSecondSignature = lisk.signature.createSignature(account.password, account.secondPassword);
 
-	localCommon.beforeBlock('system_1_X_second_sign_unconfirmed', function (lib, sender) {
+	localCommon.beforeBlock('system_1_X_second_sign_unconfirmed', function (lib) {
 		library = lib;
 	});
 

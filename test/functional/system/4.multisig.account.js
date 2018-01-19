@@ -20,22 +20,22 @@ var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
 
-describe('system test (type 4) - multisignature registration', function () {
+describe('system test (type 4) - effect of multisignature registration on mem_accountss tables', function () {
 
 	var library, multisigSender;
 
 	var multisigAccount = randomUtil.account();
-	var multisigTransaction = lisk.transaction.createTransaction(multisigAccount.address, 1000 * normalizer, accountFixtures.genesis.password);
+	var multisigTransaction;
+	var creditTransaction = lisk.transaction.createTransaction(multisigAccount.address, 1000 * normalizer, accountFixtures.genesis.password);
 	var signer1 = randomUtil.account();
 	var signer2 = randomUtil.account();
 
-	localCommon.beforeBlock('system_4_multisig', function (lib, sender) {
+	localCommon.beforeBlock('system_4_multisig_account', function (lib) {
 		library = lib;
-		multisigSender = sender;
 	});
 
 	before(function (done) {
-		localCommon.addTransactionsAndForge(library, [multisigTransaction], function (err, res) {
+		localCommon.addTransactionsAndForge(library, [creditTransaction], function (err) {
 			library.logic.account.get({ address: multisigAccount.address }, function (err, sender) {
 				multisigSender = sender;
 				done();
@@ -43,7 +43,7 @@ describe('system test (type 4) - multisignature registration', function () {
 		});
 	});
 
-	describe('after forging block with multisignature transaction', function () {
+	describe('forge block with multisig transaction', function () {
 
 		before('forge block with multisignature transaction', function (done) {
 			var keysgroup = [
@@ -60,7 +60,7 @@ describe('system test (type 4) - multisignature registration', function () {
 			localCommon.addTransactionsAndForge(library, [multisigTransaction], done);
 		});
 
-		describe('sender db rows', function () {
+		describe('check sender db rows', function () {
 
 			var accountRow;
 
@@ -101,7 +101,7 @@ describe('system test (type 4) - multisignature registration', function () {
 			});
 		});
 
-		describe('sender account', function () {
+		describe('check sender account', function () {
 
 			var account;
 
@@ -219,9 +219,9 @@ describe('system test (type 4) - multisignature registration', function () {
 		});
 	});
 
-	describe('applyUnconfirm transaction', function () {
+	describe('apply unconfirmed transaction', function () {
 
-		before('applyUnconfirm multisignature transaction', function (done) {
+		before('apply unconfirmed multisig transaction', function (done) {
 			var keysgroup = [
 				'+' + signer1.publicKey,
 				'+' + signer2.publicKey
@@ -237,7 +237,7 @@ describe('system test (type 4) - multisignature registration', function () {
 			library.logic.transaction.applyUnconfirmed(multisigTransaction, multisigSender, done);
 		});
 
-		describe('sender db rows', function () {
+		describe('check sender db rows', function () {
 
 			var accountRow;
 
@@ -275,7 +275,7 @@ describe('system test (type 4) - multisignature registration', function () {
 			});
 		});
 
-		describe('sender account', function () {
+		describe('check sender account', function () {
 
 			var account;
 

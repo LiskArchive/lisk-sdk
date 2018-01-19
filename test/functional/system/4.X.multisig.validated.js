@@ -19,8 +19,9 @@ var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 var Scenarios = require('../common/scenarios');
 var localCommon = require('./common');
+var transactionTypes = require('../../../helpers/transactionTypes.js');
 
-describe('system test (type 4) - double multisig registrations', function () {
+describe('system test (type 4) - check registered multisig transaction against another transaction types', function () {
 
 	var library, multisigSender;
 
@@ -28,9 +29,7 @@ describe('system test (type 4) - double multisig registrations', function () {
 		'regular': new Scenarios.Multisig()
 	};
 
-	var transactionToBeNotConfirmed = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, scenarios.regular.lifetime, scenarios.regular.min, -1);
-
-	localCommon.beforeBlock('system_4_4_multisig', function (lib) {
+	localCommon.beforeBlock('system_4_X_multisig_validated', function (lib) {
 		library = lib;
 	});
 
@@ -44,13 +43,6 @@ describe('system test (type 4) - double multisig registrations', function () {
 	});
 
 	it('adding to pool multisig registration should be ok', function (done) {
-		localCommon.addTransaction(library, transactionToBeNotConfirmed, function (err, res) {
-			expect(res).to.equal(transactionToBeNotConfirmed.id);
-			done();
-		});
-	});
-
-	it('adding to pool same transaction with different timestamp should be ok', function (done) {
 		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
 			expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
 			done();
@@ -66,19 +58,7 @@ describe('system test (type 4) - double multisig registrations', function () {
 			});
 		});
 
-		it('first transaction to arrive should not be included', function (done) {
-			var filter = {
-				id: transactionToBeNotConfirmed.id
-			};
-			localCommon.getTransactionFromModule(library, filter, function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.have.property('transactions').which.is.an('Array');
-				expect(res.transactions.length).to.equal(0);
-				done();
-			});
-		});
-
-		it('last transaction to arrive should be included', function (done) {
+		it('transaction should be included', function (done) {
 			var filter = {
 				id: scenarios.regular.multiSigTransaction.id
 			};
@@ -93,7 +73,7 @@ describe('system test (type 4) - double multisig registrations', function () {
 
 		it('adding to pool transaction type 4 for same account should fail', function (done) {
 			localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
-				expect(err).to.equal('TODO');
+				expect(err).to.equal('TODOe');
 				done();
 			});
 		});

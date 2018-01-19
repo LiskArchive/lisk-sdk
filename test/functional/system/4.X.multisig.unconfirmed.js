@@ -33,7 +33,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	var dappTransaction = lisk.dapp.createDapp(scenarios.regular.account.password, null, scenarios.regular.dapp);
 	scenarios.regular.dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock('system_4_X_multisig', function (lib, sender) {
+	localCommon.beforeBlock('system_4_X_multisig_unconfirmed', function (lib) {
 		library = lib;
 	});
 
