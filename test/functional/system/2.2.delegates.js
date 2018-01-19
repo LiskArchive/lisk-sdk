@@ -20,7 +20,7 @@ var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
 
-describe('system test (type 2) - double delegate registration', function () {
+describe('system test (type 2) - double delegate registration @unstable', function () {
 
 	var library;
 	localCommon.beforeBlock('system_2_2_delegates', function (lib) {

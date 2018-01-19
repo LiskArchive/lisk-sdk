@@ -29,7 +29,7 @@ describe('system test (type 0) - double spending', function () {
 
 	var i = 0;
 	var t = 0;
-	while (i < 30) {
+	while (i < 1) {
 		
 		describe('executing 30 times', function () {
 			
