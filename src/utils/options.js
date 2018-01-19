@@ -73,9 +73,13 @@ const unvotesDescription = `Specifies the public keys for the delegate candidate
 	- --unvotes file:/path/to/my/unvotes.txt (every public key should be on a new line)
 `;
 
+const noSignatureDescription =
+	'Specifies that you do not want a signature for your transaction. Your passphrase will not be needed.';
+
 const options = {
 	json: ['-j, --json', jsonDescription],
 	message: ['-m, --message <source>', messageDescription],
+	noSignature: ['--no-signature', noSignatureDescription],
 	passphrase: ['-p, --passphrase <source>', passphraseDescription],
 	secondPassphrase: [
 		'-s, --second-passphrase <source>',
