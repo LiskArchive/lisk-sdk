@@ -22,13 +22,25 @@ var localCommon = require('./common');
 
 describe('system test (type 4) - double multisig registrations', function () {
 
-	var library, multisigSender;
+	var library;
 
 	var scenarios = {
 		'regular': new Scenarios.Multisig()
-	};
 
+	};
 	var transactionToBeNotConfirmed = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, scenarios.regular.lifetime, scenarios.regular.min, -1);
+	
+	scenarios.regular.multiSigTransaction.ready = true;
+	scenarios.regular.multiSigTransaction.signatures = [];
+	transactionToBeNotConfirmed.ready = true;
+	transactionToBeNotConfirmed.signatures = [];
+	
+	scenarios.regular.members.map(function (member) {
+		var signatureToBeNotconfirmed = lisk.multisignature.signTransaction(transactionToBeNotConfirmed, member.password);
+		transactionToBeNotConfirmed.signatures.push(signatureToBeNotconfirmed);
+		var signature = lisk.multisignature.signTransaction(scenarios.regular.multiSigTransaction, member.password);
+		scenarios.regular.multiSigTransaction.signatures.push(signature);
+	});
 
 	localCommon.beforeBlock('system_4_4_multisig', function (lib) {
 		library = lib;
@@ -36,10 +48,7 @@ describe('system test (type 4) - double multisig registrations', function () {
 
 	before(function (done) {
 		localCommon.addTransactionsAndForge(library, [scenarios.regular.creditTransaction], function (err, res) {
-			library.logic.account.get({ address: scenarios.regular.account.address }, function (err, sender) {
-				multisigSender = sender;
-				done();
-			});
+			done();
 		});
 	});
 
@@ -57,8 +66,7 @@ describe('system test (type 4) - double multisig registrations', function () {
 		});
 	});
 
-	// TODO: activate when we have a function to sign pending multisg
-	describe.skip('after signing pending multigs and forging one block', function () {
+	describe('after forging one block', function () {
 
 		before(function (done) {
 			localCommon.forge(library, function (err, res) {
@@ -93,7 +101,7 @@ describe('system test (type 4) - double multisig registrations', function () {
 
 		it('adding to pool transaction type 4 for same account should fail', function (done) {
 			localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
-				err.should.equal('TODO');
+				err.should.equal('Account already has multisignatures enabled');
 				done();
 			});
 		});

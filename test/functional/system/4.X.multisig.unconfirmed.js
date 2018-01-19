@@ -55,23 +55,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	describe('adding to pool other transactions from same account', function () {
 
 		Object.keys(transactionTypes).forEach(function (key, index) {
-			if (key === 'MULTI') {
-				it('type ' + index + ': ' + key + ' should fail', function (done) {
-					transaction = scenarios.regular.multiSigTransaction;
-					localCommon.addTransaction(library, transaction, function (err, res) {
-						err.should.equal('Transaction is already processed: ' + transaction.id);
-						done();
-					});
-				});
-
-				it('type ' + index + ': ' + key + ' with different timestamp should be ok', function (done) {
-					transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, scenarios.regular.lifetime, scenarios.regular.min, -1);
-					localCommon.addTransaction(library, transaction, function (err, res) {
-						res.should.equal(transaction.id);
-						done();
-					});
-				});
-			} else {
+			if (key != 'MULTI') {
 				it('type ' + index + ': ' + key + ' should be ok', function (done) {
 					switch (key) {
 						case 'SEND':
@@ -102,7 +86,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 						done();
 					});
 				});
-			}
+			};
 		});
 	});
 });

@@ -33,7 +33,7 @@ describe('system test (type 1) - check validated second password registrations a
 	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
 	dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock('system_1_1_second_sign_validated', function (lib) {
+	localCommon.beforeBlock('system_1_X_second_sign_validated', function (lib) {
 		library = lib;
 	});
 
@@ -80,7 +80,7 @@ describe('system test (type 1) - check validated second password registrations a
 			});
 		});
 
-		describe('adding to pool anothers transaction types from the same account', function () {
+		describe('adding to pool another transaction types from the same account', function () {
 
 			Object.keys(transactionTypes).forEach(function (key, index) {
 				if (key != 'SIGNATURE') {
