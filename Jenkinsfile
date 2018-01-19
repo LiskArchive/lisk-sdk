@@ -24,6 +24,9 @@ pipeline {
 	post {
 		success {
 			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build passed.', status: 'SUCCESS'
+			dir('node_modules') {
+				deleteDir()
+			}
 		}
 		failure {
 			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build failed.', status: 'FAILURE'
