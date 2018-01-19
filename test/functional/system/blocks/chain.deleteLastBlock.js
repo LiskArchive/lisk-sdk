@@ -32,6 +32,7 @@ describe('blocks/chain', function () {
 			it('should fail when try to delete genesis block', function (done) {
 				library.modules.blocks.chain.deleteLastBlock(function (err, res) {
 					expect(err).to.equal('Cannot delete genesis block');
+					expect(res).to.not.exist;
 					done();
 				});
 			});
@@ -95,6 +96,7 @@ describe('blocks/chain', function () {
 				it('should delete last block', function (done) {
 					library.modules.blocks.chain.deleteLastBlock(function (err, res) {
 						expect(err).to.not.exist;
+						expect(res).to.be.an('object');
 						done();
 					});
 				});
@@ -185,6 +187,7 @@ describe('blocks/chain', function () {
 				it('should delete last block', function (done) {
 					library.modules.blocks.chain.deleteLastBlock(function (err, res) {
 						expect(err).to.not.exist;
+						expect(res).to.be.an('object');
 						done();
 					});
 				});
@@ -273,6 +276,7 @@ describe('blocks/chain', function () {
 				it('should delete last block', function (done) {
 					library.modules.blocks.chain.deleteLastBlock(function (err, res) {
 						expect(err).to.not.exist;
+						expect(res).to.be.an('object');
 						done();
 					});
 				});
@@ -359,6 +363,7 @@ describe('blocks/chain', function () {
 				it('should delete last block', function (done) {
 					library.modules.blocks.chain.deleteLastBlock(function (err, res) {
 						expect(err).to.not.exist;
+						expect(res).to.be.an('object');
 						done();
 					});
 				});
@@ -442,6 +447,7 @@ describe('blocks/chain', function () {
 				it('should delete last block', function (done) {
 					library.modules.blocks.chain.deleteLastBlock(function (err, res) {
 						expect(err).to.not.exist;
+						expect(res).to.be.an('object');
 						done();
 					});
 				});
@@ -521,6 +527,7 @@ describe('blocks/chain', function () {
 					it('should delete last block', function (done) {
 						library.modules.blocks.chain.deleteLastBlock(function (err, res) {
 							expect(err).to.not.exist;
+							expect(res).to.be.an('object');
 							done();
 						});
 					});
@@ -580,6 +587,7 @@ describe('blocks/chain', function () {
 					it('should delete last block', function (done) {
 						library.modules.blocks.chain.deleteLastBlock(function (err, res) {
 							expect(err).to.not.exist;
+							expect(res).to.be.an('object');
 							done();
 						});
 					});
@@ -639,6 +647,7 @@ describe('blocks/chain', function () {
 					it('should delete last block', function (done) {
 						library.modules.blocks.chain.deleteLastBlock(function (err, res) {
 							expect(err).to.not.exist;
+							expect(res).to.be.an('object');
 							done();
 						});
 					});
