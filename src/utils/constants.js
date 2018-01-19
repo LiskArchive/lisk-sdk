@@ -36,4 +36,12 @@ export const QUERY_INPUT_MAP = {
 	transactions: 'id',
 };
 
-export const CONFIG_VARIABLES = ['json', 'name', 'pretty', 'testnet'];
+export const CONFIG_VARIABLES = [
+	'json',
+	'name',
+	'pretty',
+	'liskJS.testnet',
+	'liskJS.ssl',
+	'liskJS.node',
+	'liskJS.port',
+];
