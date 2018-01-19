@@ -58,7 +58,7 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 		transaction1 = lisk.dapp.createDapp(account.password, null, dappDuplicate, -1);
 		badTransactions.push(transaction1);
 		localCommon.addTransaction(library, transaction1, function (err, res) {
-			expect(res).to.equal(transaction1.id);
+			res.should.equal(transaction1.id);
 			done();
 		});
 	});
@@ -67,7 +67,7 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 		transaction2 = lisk.dapp.createDapp(account.password, null, dappDuplicate);
 		goodTransactions.push(transaction2);
 		localCommon.addTransaction(library, transaction2, function (err, res) {
-			expect(res).to.equal(transaction2.id);
+			res.should.equal(transaction2.id);
 			done();
 		});
 	});
@@ -76,7 +76,7 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 		transaction3 = lisk.dapp.createDapp(account.password, null, dappDuplicateNameFail, -1);
 		badTransactions.push(transaction3);
 		localCommon.addTransaction(library, transaction3, function (err, res) {
-			expect(res).to.equal(transaction3.id);
+			res.should.equal(transaction3.id);
 			done();
 		});
 	});
@@ -85,7 +85,7 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 		transaction4 = lisk.dapp.createDapp(account.password, null, dappDuplicateNameSuccess);
 		goodTransactions.push(transaction4);
 		localCommon.addTransaction(library, transaction4, function (err, res) {
-			expect(res).to.equal(transaction4.id);
+			res.should.equal(transaction4.id);
 			done();
 		});
 	});
@@ -94,7 +94,7 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 		transaction5 = lisk.dapp.createDapp(account.password, null, dappDuplicateLinkFail, -1);
 		badTransactions.push(transaction5);
 		localCommon.addTransaction(library, transaction5, function (err, res) {
-			expect(res).to.equal(transaction5.id);
+			res.should.equal(transaction5.id);
 			done();
 		});
 	});
@@ -103,7 +103,7 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 		transaction6 = lisk.dapp.createDapp(account.password, null, dappDuplicateLinkSuccess);
 		goodTransactions.push(transaction6);
 		localCommon.addTransaction(library, transaction6, function (err, res) {
-			expect(res).to.equal(transaction6.id);
+			res.should.equal(transaction6.id);
 			done();
 		});
 	});
@@ -123,9 +123,9 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 				};
 
 				localCommon.getTransactionFromModule(library, filter, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.have.property('transactions').which.is.an('Array');
-					expect(res.transactions.length).to.equal(0);
+					should.not.exist(err);
+					res.should.have.property('transactions').which.is.an('Array');
+					res.transactions.length.should.equal(0);
 					callback(null, !err);
 				});
 			}, function (err, result) {
@@ -140,10 +140,10 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 				};
 				
 				localCommon.getTransactionFromModule(library, filter, function (err, res) {
-					expect(err).to.not.exist;
-					expect(res).to.have.property('transactions').which.is.an('Array');
-					expect(res.transactions.length).to.equal(1);
-					expect(res.transactions[0].id).to.equal(transaction.id);
+					should.not.exist(err);
+					res.should.have.property('transactions').which.is.an('Array');
+					res.transactions.length.should.equal(1);
+					res.transactions[0].id.should.equal(transaction.id);
 					callback(null, !err);
 				});
 			}, function (err, result) {
@@ -154,7 +154,7 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 		it('adding to pool already registered dapp should fail', function (done) {
 			transaction2 = lisk.dapp.createDapp(account.password, null, dappDuplicate);
 			localCommon.addTransaction(library, transaction2, function (err, res) {
-				expect(err).to.equal('Application name already exists: ' + dappDuplicate.name);
+				err.should.equal('Application name already exists: ' + dappDuplicate.name);
 				done();
 			});
 		});
@@ -162,7 +162,7 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 		it('adding to pool already registered dapp name should fail', function (done) {
 			transaction4 = lisk.dapp.createDapp(account.password, null, dappDuplicateNameFail);
 			localCommon.addTransaction(library, transaction4, function (err, res) {
-				expect(err).to.equal('Application name already exists: ' + dappDuplicateNameFail.name);
+				err.should.equal('Application name already exists: ' + dappDuplicateNameFail.name);
 				done();
 			});
 		});
@@ -170,7 +170,7 @@ describe('system test (type 5) - registering dapps with repeated values', functi
 		it('adding to pool already registered dapp link should fail', function (done) {
 			transaction6 = lisk.dapp.createDapp(account.password, null, dappDuplicateLinkFail);
 			localCommon.addTransaction(library, transaction6, function (err, res) {
-				expect(err).to.equal('Application link already exists: ' + dappDuplicateLinkFail.link);
+				err.should.equal('Application link already exists: ' + dappDuplicateLinkFail.link);
 				done();
 			});
 		});

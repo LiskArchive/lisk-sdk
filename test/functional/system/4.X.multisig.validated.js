@@ -44,7 +44,7 @@ describe('system test (type 4) - check registered multisig transaction against a
 
 	it('adding to pool multisig registration should be ok', function (done) {
 		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
-			expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
+			res.should.equal(scenarios.regular.multiSigTransaction.id);
 			done();
 		});
 	});
@@ -63,17 +63,17 @@ describe('system test (type 4) - check registered multisig transaction against a
 				id: scenarios.regular.multiSigTransaction.id
 			};
 			localCommon.getTransactionFromModule(library, filter, function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.have.property('transactions').which.is.an('Array');
-				expect(res.transactions.length).to.equal(1);
-				expect(res.transactions[0].id).to.equal(scenarios.regular.multiSigTransaction.id);
+				should.not.exist(err);
+				res.should.have.property('transactions').which.is.an('Array');
+				res.transactions.length.should.equal(1);
+				res.transactions[0].id.should.equal(scenarios.regular.multiSigTransaction.id);
 				done();
 			});
 		});
 
 		it('adding to pool transaction type 4 for same account should fail', function (done) {
 			localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
-				expect(err).to.equal('TODOe');
+				err.should.equal('TODOe');
 				done();
 			});
 		});

@@ -47,7 +47,7 @@ describe('system test (type 1) - check validated second password registrations a
 
 	it('adding to pool transaction type 1 second signature should be ok', function (done) {
 		localCommon.addTransaction(library, transaction, function (err, res) {
-			expect(res).to.equal(transaction.id);
+			res.should.equal(transaction.id);
 			done();
 		});
 	});
@@ -65,17 +65,17 @@ describe('system test (type 1) - check validated second password registrations a
 				id: transaction.id
 			};
 			localCommon.getTransactionFromModule(library, filter, function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.have.property('transactions').which.is.an('Array');
-				expect(res.transactions.length).to.equal(1);
-				expect(res.transactions[0].id).to.equal(transaction.id);
+				should.not.exist(err);
+				res.should.have.property('transactions').which.is.an('Array');
+				res.transactions.length.should.equal(1);
+				res.transactions[0].id.should.equal(transaction.id);
 				done();
 			});
 		});
 
 		it('adding to pool transaction type 1 for same account should fail', function (done) {
 			localCommon.addTransaction(library, transaction, function (err, res) {
-				expect(err).to.equal('Missing sender second signature');
+				err.should.equal('Missing sender second signature');
 				done();
 			});
 		});
@@ -87,7 +87,7 @@ describe('system test (type 1) - check validated second password registrations a
 					it('type ' + index + ': ' + key + ' without second signature should fail', function (done) {
 						localCommon.loadTransactionType(key, account, dapp, true, function (transaction) {
 							localCommon.addTransaction(library, transaction, function (err, res) {
-								expect(err).to.equal('Missing sender second signature');
+								err.should.equal('Missing sender second signature');
 								done();
 							});
 						});
@@ -96,7 +96,7 @@ describe('system test (type 1) - check validated second password registrations a
 					it('type ' + index + ': ' + key + ' with second signature not matching registered second passphrase should fail', function (done) {
 						localCommon.loadTransactionType(key, account, dapp, false, function (transaction) {
 							localCommon.addTransaction(library, transaction, function (err, res) {
-								expect(err).to.equal('Failed to verify second signature');
+								err.should.equal('Failed to verify second signature');
 								done();
 							});
 						});
@@ -105,7 +105,7 @@ describe('system test (type 1) - check validated second password registrations a
 					it('type ' + index + ': ' + key + ' with correct second signature should be ok', function (done) {
 						localCommon.loadTransactionType(key, account, dapp, null, function (transaction) {
 							localCommon.addTransaction(library, transaction, function (err, res) {
-								expect(res).to.equal(transaction.id);
+								res.should.equal(transaction.id);
 								done();
 							});
 						});

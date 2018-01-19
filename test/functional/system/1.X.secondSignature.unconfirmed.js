@@ -48,7 +48,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 
 	it('adding to pool transaction type 1 second signature should be ok', function (done) {
 		localCommon.addTransaction(library, transactionSecondSignature, function (err, res) {
-			expect(res).to.equal(transactionSecondSignature.id);
+			res.should.equal(transactionSecondSignature.id);
 			done();
 		});
 	});
@@ -61,7 +61,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 				if (key === 'SIGNATURE') {
 					it('type ' + index + ': ' + key + ' should fail', function (done) {
 						localCommon.addTransaction(library, transactionSecondSignature, function (err, res) {
-							expect(err).to.equal('Transaction is already processed: ' + transactionSecondSignature.id);
+							err.should.equal('Transaction is already processed: ' + transactionSecondSignature.id);
 							done();
 						});
 					});
@@ -69,7 +69,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 					it('type ' + index + ': ' + key + ' with different timestamp should be ok', function (done) {
 						transactionWith = lisk.signature.createSignature(account.password, account.secondPassword, -1);
 						localCommon.addTransaction(library, transactionWith, function (err, res) {
-							expect(res).to.equal(transactionWith.id);
+							res.should.equal(transactionWith.id);
 							done();
 						});
 					});
@@ -77,7 +77,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 					it('type ' + index + ': ' + key + ' should fail', function (done) {
 						localCommon.loadTransactionType(key, account, dapp, null, function (transaction) {
 							localCommon.addTransaction(library, transaction, function (err, res) {
-								expect(err).to.equal('Sender does not have a second signature');
+								err.should.equal('Sender does not have a second signature');
 								done();
 							});
 						});
@@ -93,7 +93,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 					it('type ' + index + ': ' + key + ' should be ok', function (done) {
 						localCommon.loadTransactionType(key, account, dapp, true, function (transaction) {
 							localCommon.addTransaction(library, transaction, function (err, res) {
-								expect(res).to.equal(transaction.id);
+								res.should.equal(transaction.id);
 								done();
 							});
 						});

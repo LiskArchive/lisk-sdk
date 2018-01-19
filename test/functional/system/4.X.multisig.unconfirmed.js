@@ -47,7 +47,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 
 	it('adding to pool multisig registration should be ok', function (done) {
 		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
-			expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
+			res.should.equal(scenarios.regular.multiSigTransaction.id);
 			done();
 		});
 	});
@@ -59,7 +59,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 				it('type ' + index + ': ' + key + ' should fail', function (done) {
 					transaction = scenarios.regular.multiSigTransaction;
 					localCommon.addTransaction(library, transaction, function (err, res) {
-						expect(err).to.equal('Transaction is already processed: ' + transaction.id);
+						err.should.equal('Transaction is already processed: ' + transaction.id);
 						done();
 					});
 				});
@@ -67,7 +67,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 				it('type ' + index + ': ' + key + ' with different timestamp should be ok', function (done) {
 					transaction = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, scenarios.regular.lifetime, scenarios.regular.min, -1);
 					localCommon.addTransaction(library, transaction, function (err, res) {
-						expect(res).to.equal(transaction.id);
+						res.should.equal(transaction.id);
 						done();
 					});
 				});
@@ -98,7 +98,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 					};
 
 					localCommon.addTransaction(library, transaction, function (err, res) {
-						expect(res).to.equal(transaction.id);
+						res.should.equal(transaction.id);
 						done();
 					});
 				});
