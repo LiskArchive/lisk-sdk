@@ -509,17 +509,6 @@ Transactions.prototype.undoUnconfirmed = function (transaction, cb, tx) {
 };
 
 /**
- * Adds transaction back to transaction Pool.
- * @param {transaction} transaction
- * @param {function} cb - Callback function.
- * @return {function} Calls transactionPool.queueTransaction
- */
-Transactions.prototype.queueTransaction = function (transaction, cb) {
-	library.logger.debug('Adding queue transaction', transaction.id);
-	return __private.transactionPool.queueTransaction(transaction, cb);
-};
-
-/**
  * Receives transactions
  * @param {transaction[]} transactions
  * @param {Object} broadcast
