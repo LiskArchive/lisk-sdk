@@ -519,20 +519,28 @@ describe('transport', function () {
 			});
 
 			// TODO: It doesn't seem that library.schema.validate currently gets called by the __private.receiveTransaction logic.
-			// it('should call library.schema.validate with query', function (done) {
+			// it('should call library.schema.validate with query and definitions.Transaction', function (done) {
 			// 	__private.receiveTransactions(defaultQuery, peerStub, '', function (err) {
 			// 		expect(err).to.be.equal(null);
-			// 		expect(library.schema.validate.calledWith(defaultQuery)).to.be.true;
+			// 		expect(library.schema.validate.calledWith(defaultQuery, defaultScope.swagger.definitions.Transaction)).to.be.true;
 			// 		done();
 			// 	});
 			// });
-
-			it('should call library.schema.validate with schema.transactions');
-
-			describe('when library.schema.validate fails', function (){
-
-				it('should call callback with error = "Invalid transactions body"');
-			});
+			// 
+			// describe('when library.schema.validate fails', function () {
+			//
+			// 	it('should call callback with error = "Invalid transactions body"', function (done) {
+			// 		var validateErr = new Error('Transaction did not match schema');
+			// 		validateErr.code = 'INVALID_FORMAT';
+			// 		library.schema.validate = sinon.stub().callsArgWith(2, [validateErr]);
+			//
+			// 		__private.receiveTransactions(defaultQuery, peerStub, '', function (err) {
+			// 			expect(library.schema.validate.called).to.be.true;
+			// 			// TODO: Check that err is what we expect
+			// 			done();
+			// 		});
+			// 	});
+			// });
 
 			describe('when library.schema.validate succeeds', function (){
 
