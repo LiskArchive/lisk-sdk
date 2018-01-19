@@ -126,14 +126,10 @@ describe('db', function () {
 
 			describe('list', function (){
 
-				beforeEach(function () {
+				before(function () {
 					return createAccount().then(function (account) {
 						validAccount = account;
 					});
-				});
-
-				afterEach(function () {
-					return db.query('DELETE FROM mem_accounts;');
 				});
 
 				it('should return data without any error', function () {
@@ -206,7 +202,7 @@ describe('db', function () {
 
 					describe('dynamic fields', function () {
 
-						it('"rank" based on condition  row_number() OVER (ORDER BY "vote" DESC, "publicKey" ASC)', function () {
+						it('should fetch "rank" based on query (row_number() OVER (ORDER BY "vote" DESC, "publicKey" ASC))', function () {
 							var actualResult;
 
 							return db.accounts.list({}, ['rank']).then(function (data) {
@@ -214,6 +210,46 @@ describe('db', function () {
 
 								return db.query('SELECT row_number() OVER (ORDER BY "vote" DESC, "publicKey" ASC) as rank FROM mem_accounts').then(function (result) {
 									actualResult.should.eql(result);
+								});
+							});
+						});
+
+						it('should fetch "delegates" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")', function () {
+							return db.accounts.list({}, ['address', 'delegates']).then(function (data) {
+								return Promise.map(data, function (account) {
+									return db.one('SELECT (ARRAY_AGG("dependentId")) as "delegates" FROM mem_accounts2delegates WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
+										expect(account.delegates).to.be.eql(result.delegates);
+									});
+								});
+							});
+						});
+
+						it('should fetch "u_delegates" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")', function () {
+							return db.accounts.list({}, ['address', 'u_delegates']).then(function (data) {
+								return Promise.map(data, function (account) {
+									return db.one('SELECT (ARRAY_AGG("dependentId")) as "u_delegates" FROM mem_accounts2u_delegates WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
+										expect(account.u_delegates).to.be.eql(result.u_delegates);
+									});
+								});
+							});
+						});
+
+						it('should fetch "multisignatures" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2multisignatures WHERE "accountId" = "mem_accounts"."address")', function () {
+							return db.accounts.list({}, ['address', 'multisignatures']).then(function (data) {
+								return Promise.map(data, function (account) {
+									return db.one('SELECT (ARRAY_AGG("dependentId")) as "multisignatures" FROM mem_accounts2multisignatures WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
+										expect(account.multisignatures).to.be.eql(result.multisignatures);
+									});
+								});
+							});
+						});
+
+						it('should fetch "u_multisignatures" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_multisignatures WHERE "accountId" = "mem_accounts"."address")', function () {
+							return db.accounts.list({}, ['address', 'u_multisignatures']).then(function (data) {
+								return Promise.map(data, function (account) {
+									return db.one('SELECT (ARRAY_AGG("dependentId")) as "u_multisignatures" FROM mem_accounts2u_multisignatures WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
+										expect(account.u_multisignatures).to.be.eql(result.u_multisignatures);
+									});
 								});
 							});
 						});

@@ -36,6 +36,7 @@ function AccountsRepo (db, pgp) {
 
 	this.dbTable = 'mem_accounts';
 
+	// Used in SELECT, UPDATE, INSERT
 	var normalFields = [
 		{name: 'isDelegate', 		cast: 'int::boolean'},
 		{name: 'u_isDelegate', 		cast: 'int::boolean'},
@@ -58,6 +59,7 @@ function AccountsRepo (db, pgp) {
 		{name: 'missedblocks', 		cast: 'bigint', prop: 'missedBlocks'},
 	];
 
+	// ONLY USED IN SELECT and INSERT
 	var immutableFields = [
 		{name: 'username'},
 		{name: 'u_username'},
@@ -67,8 +69,13 @@ function AccountsRepo (db, pgp) {
 		{name: 'virgin', 			cast: 'int::boolean'}
 	];
 
+	// ONLY USED IN SELECT
 	var dynamicFields = [
-		{name: 'rank', 				cast: 'bigint', mode: ':raw', init: function (col) { return 'row_number() OVER (ORDER BY "vote" DESC, "publicKey" ASC)'; }},
+		{name: 'rank', 				cast: 'bigint', mode: ':raw', init: function () { return 'row_number() OVER (ORDER BY "vote" DESC, "publicKey" ASC)'; }},
+		{name: 'delegates', 		mode: ':raw', init: function () { return '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")'; }},
+		{name: 'u_delegates', 		mode: ':raw', init: function () { return '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")'; }},
+		{name: 'multisignatures', 	mode: ':raw', init: function () { return '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2multisignatures WHERE "accountId" = "mem_accounts"."address")'; }},
+		{name: 'u_multisignatures', mode: ':raw', init: function () { return '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_multisignatures WHERE "accountId" = "mem_accounts"."address")'; }},
 	];
 
 	this.dbFields = _.union(normalFields, immutableFields, dynamicFields);

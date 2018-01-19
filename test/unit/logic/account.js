@@ -113,7 +113,7 @@ describe('account', function () {
 	describe('resetMemTables', function () {
 
 		it('should remove the tables', function (done) {
-			accountLogic.resetMemTables(function (err, res) {
+			account.resetMemTables(function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.undefined;
 				done();
