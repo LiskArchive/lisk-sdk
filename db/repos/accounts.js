@@ -18,6 +18,7 @@ var QF = require('pg-promise').QueryFile;
 var _ = require('lodash');
 var path = require('path');
 const migrationsSql = require('../sql').migrations;
+var constants = require('../../helpers/constants');
 var columnSet;
 
 /**
@@ -36,10 +37,10 @@ function AccountsRepo (db, pgp) {
 	this.dbTable = 'mem_accounts';
 
 	var normalFields = [
-		{name: 'isDelegate', 		cast: 'boolean'},
-		{name: 'u_isDelegate', 		cast: 'boolean'},
-		{name: 'secondSignature', 	cast: 'boolean'},
-		{name: 'u_secondSignature', cast: 'boolean'},
+		{name: 'isDelegate', 		cast: 'int::boolean'},
+		{name: 'u_isDelegate', 		cast: 'int::boolean'},
+		{name: 'secondSignature', 	cast: 'int::boolean'},
+		{name: 'u_secondSignature', cast: 'int::boolean'},
 		{name: 'balance', 			cast: 'bigint'},
 		{name: 'u_balance', 		cast: 'bigint'},
 		{name: 'rate', 				cast: 'bigint'},
@@ -51,23 +52,26 @@ function AccountsRepo (db, pgp) {
 		{name: 'nameexist'},
 		{name: 'u_nameexist'},
 		{name: 'fees', 				cast: 'bigint'},
-		{name: 'rank', 				cast: 'bigint', mode: ':raw', init: function (col) { return 'row_number() OVER (ORDER BY a."vote" DESC, a."publicKey" ASC)'; }},
 		{name: 'rewards', 			cast: 'bigint'},
 		{name: 'vote', 				cast: 'bigint'},
-		{name: 'producedBlocks', 	cast: 'bigint'},
-		{name: 'missedBlocks', 		cast: 'bigint'},
+		{name: 'producedblocks', 	cast: 'bigint', prop: 'producedBlocks'},
+		{name: 'missedblocks', 		cast: 'bigint', prop: 'missedBlocks'},
 	];
 
 	var immutableFields = [
 		{name: 'username'},
 		{name: 'u_username'},
-		{name: 'address', 			mode: ':raw', init: function (col) { return 'UPPER(' + col.name + ')'; }},
-		{name: 'publicKey', 		mode: ':raw', init: function (col) { return 'ENCODE(' + col.name + ', \'hex\')'; }},
-		{name: 'secondPublicKey', 	mode: ':raw', init: function (col) { return 'ENCODE(' + col.name + ', \'hex\')'; }},
-		{name: 'virgin', 			cast: 'boolean'}
+		{name: 'address', 			mode: ':raw', init: function (object) { return 'UPPER("address")'; }},
+		{name: 'publicKey', 		mode: ':raw', init: function (object) { return 'ENCODE("publicKey", \'hex\')'; }},
+		{name: 'secondPublicKey', 	mode: ':raw', init: function (object) { return 'ENCODE("secondPublicKey", \'hex\')'; }},
+		{name: 'virgin', 			cast: 'int::boolean'}
 	];
 
-	this.dbFields = _.union(normalFields, immutableFields);
+	var dynamicFields = [
+		{name: 'rank', 				cast: 'bigint', mode: ':raw', init: function (col) { return 'row_number() OVER (ORDER BY "vote" DESC, "publicKey" ASC)'; }},
+	];
+
+	this.dbFields = _.union(normalFields, immutableFields, dynamicFields);
 
 	if (!columnSet) {
 		columnSet = {};
@@ -76,7 +80,21 @@ function AccountsRepo (db, pgp) {
 
 		columnSet.select = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
 
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
+		columnSet.insert = new pgp.helpers.ColumnSet(_.union(normalFields, immutableFields), {table: table});
+		columnSet.insert = columnSet.insert.merge([
+			{name: 'isDelegate', 		cast: 'int'},
+			{name: 'u_isDelegate', 		cast: 'int'},
+			{name: 'secondSignature', 	cast: 'int'},
+			{name: 'u_secondSignature', cast: 'int'},
+			{name: 'virgin', 			cast: 'int'},
+			{name: 'address', 			mod: ':raw', init: function (object) { return 'UPPER(\'' + object.value + '\')'; }},
+			{name: 'publicKey', 		mod: ':raw', init: function (object) { return 'DECODE(\'' + object.value + '\', \'hex\')'; }},
+			{name: 'secondPublicKey', 	mod: ':raw',
+				init: function (object) {
+					return (object.value == undefined || object.value === null) ? 'NULL' : 'DECODE(\'' + object.value +'\', \'hex\')';
+				},
+				skip: function (object) { return object.exists; }},
+		]);
 
 		columnSet.update = new pgp.helpers.ColumnSet(normalFields, {table: table});
 	}
@@ -96,9 +114,46 @@ var Queries = {
 	upsert: new PQ('INSERT INTO mem_accounts $1 VALUES $2 ON CONFLICT($3) DO UPDATE SET $4'),
 
 	resetMemTables: new QF(path.join(process.cwd(), './db/sql/init/resetMemoryTables.sql'), {minify: true, params: {schema: 'public'}}),
-
-	getAll: new QF(path.join(process.cwd(), './db/sql/accounts/getAll.sql'), {minify: true, params: {schema: 'public', table: this.dbTable}})
 };
+
+// Generate select SQL based on column set definition and conditions
+function Selects (columnSet, fields, pgp) {
+	if (!(this instanceof Selects)) {
+		return new Selects(columnSet, fields, pgp);
+	}
+
+	this.rawType = true;
+	this.toPostgres = function () {
+
+		var selectSQL = 'SELECT $1:raw FROM $2^';
+		var selectClauseWithName = '$1:name$2:raw AS $3:name';
+		var selectClauseWithSQL = '($1:raw)$2:raw AS $3:name';
+
+		// Select all fields if none is provided
+		if(!fields || !fields.length) {
+			fields =  _.map(columnSet.columns, function (column) {
+				return column.prop || column.name;
+			});
+		}
+
+		var table = columnSet.table;
+		var selectFields = [];
+
+		columnSet.columns.map(function (column) {
+			if(fields.indexOf(column.name) >= 0 || fields.indexOf(column.prop) >= 0) {
+
+				var propName = column.prop ? column.prop : column.name;
+
+				if(column.init) {
+					selectFields.push(pgp.as.format(selectClauseWithSQL, [column.init(column), column.castText, propName]));
+				} else {
+					selectFields.push(pgp.as.format(selectClauseWithName, [column.name, column.castText, propName]));
+				}
+			}
+		});
+		return pgp.as.format(selectSQL, [selectFields.join(','), table]);
+	};
+}
 
 /**
  * Count mem accounts
@@ -161,13 +216,65 @@ AccountsRepo.prototype.resetMemTables = function () {
 	return this.db.none(migrationsSql.resetMemoryTables);
 };
 
-AccountsRepo.prototype.getAll = function (filters, fields) {
-	//return this.db.query(Queries.getAll, [fields, 'isDelegate = 1', 10, 0]);
+/**
+ * Search account based on generic conditions
+ * @param {Object} filters - Object of filters to be applied in WHERE clause
+ * @param {array} fields - Array of data fields to search
+ * @param {Object} options - Object with different options
+ * @param {int} options.limit - Limit of results
+ * @param {int} options.offset - Offset of results
+ * @param {string} options.sortField - sort key
+ * @param {string} options.sortMethod - sort method ASC or DESC
+ * @return {Promise}
+ */
+AccountsRepo.prototype.list = function (filters, fields, options) {
+	var pgp = this.pgp;
 
-	console.log(this.pgp.as.format('SELECT ${col:name} FROM ${table:name} LIMIT 1 OFFSET 10;', {col: ['isDelegate'], table: 'mem_accounts'}));
+	var sql = '${fields:raw} ${conditions:raw} ';
+	var limit, offset, sortField='', sortMethod='', conditions='';
 
-	//return this.db.query(Queries.getAll, ['username', 'isDelegate = 1', 10, 0]);
-	return this.db.query('SELECT $1:name FROM $2 LIMIT 1 OFFSET 10;', [['isDelegate', 'username'], this.dbTable]);
+	if(!options) {
+		options = {};
+	}
+
+	// Apply sort only if provided
+	if(options.sortField) {
+		sortField = options.sortField;
+		sortMethod = options.sortMethod || 'DESC';
+		sql = sql + ' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
+	}
+
+	// Limit the result only if limit param is provided
+	if(options.limit) {
+		limit = options.limit;
+		offset = options.offset || 0;
+
+		sql = sql + ' LIMIT ${limit} OFFSET ${offset}';
+	}
+
+	var selectClause = Selects(this.cs.select, fields, pgp);
+
+	if(filters) {
+		var filterKeys = Object.keys(filters);
+		var filteredColumns = this.cs.insert.columns.filter(function (column) {
+			return filterKeys.indexOf(column.name) >= 0;
+		});
+		conditions = pgp.helpers.sets(filters, filteredColumns).split(',').join(' AND ');
+	}
+
+	if(conditions.length) {
+		conditions = ' WHERE ' + conditions;
+	}
+
+	var query = this.pgp.as.format(sql, {
+		fields: selectClause,
+		conditions: conditions,
+		sortField: sortField,
+		sortMethod: sortMethod,
+		limit: limit,
+		offset: offset});
+
+	return this.db.query(query);
 };
 
 module.exports = AccountsRepo;
