@@ -973,6 +973,14 @@ Transaction.prototype.objectNormalize = function (transaction) {
 		}
 	}
 
+	if (transaction.amount) {
+		transaction.amount = parseInt(transaction.amount);
+	}
+
+	if (transaction.fee) {
+		transaction.fee = parseInt(transaction.fee);
+	}
+
 	var report = this.scope.schema.validate(transaction, Transaction.prototype.schema);
 
 	if (!report) {

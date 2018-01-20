@@ -22,8 +22,14 @@
         "poolIdleTimeout": 30000,
         "reapIntervalMillis": 1000,
         "logEvents": [
+            "connect",
+            "disconnect",
+            "query",
+            "task",
+            "transact",
             "error"
-        ]
+        ],
+        "logFileName": "logs/lisk_db.log"
     },
     "redis": {
         "host": "127.0.0.1",

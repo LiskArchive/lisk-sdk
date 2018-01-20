@@ -13,10 +13,8 @@
  */
 'use strict';
 
-var _ = require('lodash');
 var async = require('async');
 var Promise = require('bluebird');
-var expect = require('chai').expect;
 var lisk = require('lisk-js');
 
 var accountFixtures = require('../../../fixtures/accounts');

@@ -79,26 +79,6 @@ function Transport (cb, scope) {
 	setImmediate(cb, null, self);
 }
 
-// Private methods
-/**
- * Creates a sha256 hash based on input object.
- * @private
- * @implements {crypto.createHash}
- * @implements {bignum.fromBuffer}
- * @param {Object} obj
- * @return {string} Buffer array to string
- */
-__private.hashsum = function (obj) {
-	var buf = Buffer.from(JSON.stringify(obj), 'utf8');
-	var hashdig = crypto.createHash('sha256').update(buf).digest();
-	var temp = Buffer.alloc(8);
-	for (var i = 0; i < 8; i++) {
-		temp[i] = hashdig[7 - i];
-	}
-
-	return bignum.fromBuffer(temp).toString();
-};
-
 /**
  * Removes a peer based on ip and port.
  * @private
@@ -526,7 +506,16 @@ Transport.prototype.shared = {
 	},
 
 	status: function (req, cb) {
-		return setImmediate(cb, null, {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash(), nonce: modules.system.getNonce()});
+		var headers = modules.system.headers();
+		return setImmediate(cb, null, {
+			success: true,
+			height: headers.height,
+			broadhash: headers.broadhash,
+			nonce: headers.nonce,
+			httpPort: headers.httpPort,
+			version: headers.version,
+			os: headers.os
+		});
 	},
 
 	postSignatures: function (query, cb) {
@@ -572,7 +561,7 @@ Transport.prototype.shared = {
 	},
 
 	postTransactions: function (query, cb) {
-		library.schema.validate(query, definitions.WSTransactionsReqeuest, function (err) {
+		library.schema.validate(query, definitions.WSTransactionsRequest, function (err) {
 			if (err) {
 				return setImmediate(cb, null, {success: false, message: err});
 			}

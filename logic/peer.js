@@ -85,15 +85,6 @@ Peer.prototype.headers = [
 	'nonce'
 ];
 
-Peer.prototype.nullable = [
-	'os',
-	'version',
-	'broadhash',
-	'height',
-	'clock',
-	'updated'
-];
-
 Peer.STATE = {
 	BANNED: 0,
 	DISCONNECTED: 1,
@@ -140,7 +131,10 @@ Peer.prototype.normalize = function (peer) {
 	}
 
 	peer.wsPort = this.parseInt(peer.wsPort, 0);
-	peer.httpPort = this.parseInt(peer.httpPort, 0);
+
+	if (peer.httpPort != null) {
+		peer.httpPort = this.parseInt(peer.httpPort, 0);
+	}
 	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
 
 	return peer;
@@ -199,12 +193,6 @@ Peer.prototype.object = function () {
 	_.each(this.properties, function (key) {
 		copy[key] = this[key];
 	}.bind(this));
-
-	_.each(this.nullable, function (key) {
-		if (!copy[key]) {
-			copy[key] = null;
-		}
-	});
 
 	delete copy.rpc;
 	return copy;

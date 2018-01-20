@@ -13,12 +13,8 @@
  */
 'use strict';
 
-var test = require('../../functional.js');
-
 var lisk = require('lisk-js');
-var expect = require('chai').expect;
 
-var _ = test._;
 var common = require('./common');
 var phases = require('../../common/phases');
 var Scenarios = require('../../common/scenarios');
@@ -77,8 +73,10 @@ describe('POST /api/transactions (type 4) register multisignature', function () 
 			}
 		});
 
-		return apiHelpers.sendTransactionsPromise(transactions).then(function (res) {
-			res.body.data.message.should.be.equal('Transaction(s) accepted');
+		return apiHelpers.sendTransactionsPromise(transactions).then(function (responses) {
+			responses.map(function (res) {
+				res.body.data.message.should.be.equal('Transaction(s) accepted');
+			});
 			transactionsToWaitFor = transactionsToWaitFor.concat(_.map(transactions, 'id'));
 
 			return waitFor.confirmations(transactionsToWaitFor);

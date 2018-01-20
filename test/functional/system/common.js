@@ -15,10 +15,15 @@
 
 var async = require('async');
 var Promise = require('bluebird');
-
-var test = require('../../test');
+var lisk = require('lisk-js');
 
 var slots = require('../../../helpers/slots');
+
+var application = require('../../common/application');
+var normalizer = require('../../common/utils/normalizer');
+var randomUtil = require('../../common/utils/random');
+
+var accountFixtures = require('../../fixtures/accounts');
 
 function forge (library, cb) {
 	function getNextForger (offset, cb) {
@@ -46,11 +51,11 @@ function forge (library, cb) {
 			var last_block = library.modules.blocks.lastBlock.get();
 			var slot = slots.getSlotNumber(last_block.timestamp) + 1;
 			var keypair = keypairs[delegate];
-			test.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
+			__testContext.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegate + ' Next block timestamp: ' + slots.getSlotTime(slot));
 			library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot), function (err) {
 				if (err) { return seriesCb(err); }
 				last_block = library.modules.blocks.lastBlock.get();
-				test.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+				__testContext.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
 				return seriesCb(err);
 			});
 		}
@@ -105,7 +110,66 @@ function getAccountFromDb (library, address) {
 	});
 }
 
+function getTransactionFromModule (library, filter, cb) {
+	library.modules.transactions.shared.getTransactions(filter, function (err, res) {
+		cb(err, res);
+	});
+}
+
+function beforeBlock (type, cb) {
+	before('init sandboxed application, credit account and register dapp', function (done) {
+		application.init({ sandbox: { name: 'lisk_test_' + type } }, function (err, library) {
+			cb(library);
+			done();
+		});
+	});
+
+	after('cleanup sandboxed application', function (done) {
+		application.cleanup(done);
+	});
+}
+
+function loadTransactionType (key, account, dapp, secondPassword, cb) {
+	var transaction;
+	var accountCopy = _.cloneDeep(account);
+	if (secondPassword == true) {
+		accountCopy.secondPassword = null;
+	} else if (secondPassword == false) {
+		accountCopy.secondPassword = 'invalid_second_passphrase';
+	}
+	switch (key) {
+		case 'SEND':
+			transaction = lisk.transaction.createTransaction(randomUtil.account().address, 1, accountCopy.password, accountCopy.secondPassword);
+			break;
+		case 'DELEGATE':
+			transaction = lisk.delegate.createDelegate(accountCopy.password, accountCopy.username, accountCopy.secondPassword);
+			break;
+		case 'VOTE':
+			transaction = lisk.vote.createVote(accountCopy.password, ['+' + accountFixtures.existingDelegate.publicKey], accountCopy.secondPassword);
+			break;
+		case 'MULTI':
+			transaction = lisk.multisignature.createMultisignature(accountCopy.password, accountCopy.secondPassword, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
+			break;
+		case 'DAPP':
+			transaction = lisk.dapp.createDapp(accountCopy.password, accountCopy.secondPassword, randomUtil.guestbookDapp);
+			break;
+		case 'IN_TRANSFER':
+			transaction = lisk.transfer.createInTransfer(dapp.id, 1, accountCopy.password, accountCopy.secondPassword);
+			break;
+		case 'OUT_TRANSFER':
+			transaction = lisk.transfer.createOutTransfer(dapp.id, randomUtil.transaction().id, randomUtil.account().address, 1, accountCopy.password, accountCopy.secondPassword);
+			break;
+	};
+
+	cb(transaction);
+};
+
 module.exports = {
+	forge: forge,
+	addTransaction: addTransaction,
 	addTransactionsAndForge: addTransactionsAndForge,
-	getAccountFromDb: getAccountFromDb
+	getAccountFromDb: getAccountFromDb,
+	getTransactionFromModule: getTransactionFromModule,
+	beforeBlock: beforeBlock,
+	loadTransactionType: loadTransactionType
 };

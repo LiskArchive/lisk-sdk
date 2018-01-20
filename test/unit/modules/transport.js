@@ -13,119 +13,356 @@
  */
 'use strict';
 
+var rewire = require('rewire');
+var sinon = require('sinon');
+var chai = require('chai');
+var expect = require('chai').expect;
+
+var swaggerHelper = require('../../../helpers/swagger');
+
+var modulesLoader = require('../../common/modulesLoader');
+var TransportModule = rewire('../../../modules/transport.js');
+
 describe('transport', function () {
+
+	var dbStub, loggerStub, busStub, schemaStub, networkStub, balancesSequenceStub,
+		transactionStub, blockStub, peersStub, broadcasterStubRef, transportInstance,
+		library, __private, defaultScope;
+
+	var restoreRewiredTopDeps;
+
+	beforeEach(function (done) {
+		// Recreate all the stubs and default structures before each test case to make
+		// sure that they are fresh every time; that way each test case can modify
+		// stubs without affecting other test cases.
+
+		dbStub = {
+			query: sinon.spy()
+		};
+
+		loggerStub = {
+			debug: sinon.spy(),
+			error: sinon.spy()
+		};
+
+		busStub = {};
+		schemaStub = {};
+		networkStub = {};
+		balancesSequenceStub = {};
+
+		transactionStub = {
+			attachAssetType: sinon.stub()
+		};
+
+		blockStub = {};
+		peersStub = {};
+
+		restoreRewiredTopDeps = TransportModule.__set__({
+			Broadcaster: function () {
+				this.bind = function () {};
+				broadcasterStubRef = this;
+			}
+		});
+
+		defaultScope = {
+			logic: {
+				block: blockStub,
+				transaction: transactionStub,
+				peers: peersStub
+			},
+			db: dbStub,
+			logger: loggerStub,
+			bus: busStub,
+			schema: schemaStub,
+			network: networkStub,
+			balancesSequence: balancesSequenceStub,
+			config: {
+				peers: {
+					options: {
+						timeout: 1234
+					}
+				},
+				forging: {},
+				broadcasts: {
+					broadcastInterval: 10000,
+					releaseLimit: 10
+				}
+			}
+		};
+
+		swaggerHelper.getResolvedSwaggerSpec().then(function (resolvedSpec) {
+			defaultScope.swagger = {
+				definitions: resolvedSpec.definitions
+			};
+			done();
+		});
+	});
+
+	afterEach(function (done) {
+		restoreRewiredTopDeps();
+		done();
+	});
 
 	describe('Transport constructor', function () {
 
 		describe('library', function () {
 
-			it('should assign logger');
+			it('should assign scope variables when instantiating', function (done) {
+				var localTransportInstance = new TransportModule(function (err, transportSelf) {
+					library = TransportModule.__get__('library');
+					__private = TransportModule.__get__('__private');
 
-			it('should assign db');
+					expect(library).to.have.property('db').which.is.equal(dbStub);
+					expect(library).to.have.property('logger').which.is.equal(loggerStub);
+					expect(library).to.have.property('bus').which.is.equal(busStub);
+					expect(library).to.have.property('schema').which.is.equal(schemaStub);
+					expect(library).to.have.property('network').which.is.equal(networkStub);
+					expect(library).to.have.property('balancesSequence').which.is.equal(balancesSequenceStub);
+					expect(library).to.have.nested.property('logic.block').which.is.equal(blockStub);
+					expect(library).to.have.nested.property('logic.transaction').which.is.equal(transactionStub);
+					expect(library).to.have.nested.property('logic.peers').which.is.equal(peersStub);
+					expect(library).to.have.nested.property('config.peers.options.timeout').which.is.equal(1234);
 
-			it('should assign bus');
+					expect(__private).to.have.property('broadcaster').which.is.equal(broadcasterStubRef);
 
-			it('should assign schema');
+					expect(err).to.equal(null);
+					expect(transportSelf).to.equal(localTransportInstance);
 
-			it('should assign network');
+					transportSelf.onBind(defaultScope);
 
-			it('should assign balancesSequence');
-
-			describe('should assign logic', function () {
-
-				it('should assign block');
-
-				it('should assign transaction');
-
-				it('should assign peers');
-			});
-
-			describe('should assign config', function () {
-
-				describe('should assign peers', function () {
-
-					describe('should assign options', function () {
-
-						it('should assing timeout');
-					});
-				});
+					done();
+				}, defaultScope);
 			});
 		});
-
-		it('should set self to this');
-
-		it('should set __private.broadcaster to a new instance of Broadcaster');
-
-		it('should call callback with error = null');
-
-		it('should call callback with result = self');
 	});
 
 	describe('__private', function () {
+		var libraryOriginal, __privateOriginal;
 
-		describe('hashsum', function () {
+		beforeEach(function (done) {
+			libraryOriginal = {};
+			__privateOriginal = {};
 
-			it('should return sha256 hash of given object');
+			transportInstance = new TransportModule(function (err, transportSelf) {
+				library = TransportModule.__get__('library');
+				__private = TransportModule.__get__('__private');
+				Object.keys(library).forEach(function (field) {
+					libraryOriginal[field] = library[field];
+				});
+				Object.keys(__private).forEach(function (field) {
+					__privateOriginal[field] = __private[field];
+				});
+				transportSelf.onBind(defaultScope);
+				done();
+			}, defaultScope);
+		});
+
+		afterEach(function (done) {
+			// Reset __private and library module variables to their
+			// original states.
+			Object.keys(libraryOriginal).forEach(function (field) {
+				library[field] = libraryOriginal[field];
+			});
+			Object.keys(__privateOriginal).forEach(function (field) {
+				__private[field] = __privateOriginal[field];
+			});
+			done();
 		});
 
 		describe('removePeer', function () {
 
 			describe('when options.peer is undefined', function () {
 
-				it('should call library.logger.debug with "Cannot remove empty peer"');
+				it('should call library.logger.debug with "Cannot remove empty peer"', function (done) {
+					__private.removePeer({}, 'Custom peer remove message');
+					expect(loggerStub.debug.called).to.be.true;
+					expect(loggerStub.debug.calledWith('Cannot remove empty peer')).to.be.true;
+					done();
+				});
 
-				it('should return false');
+				it('should return false', function (done) {
+					var result = __private.removePeer({}, 'Custom peer remove message');
+					expect(result).to.be.false;
+					done();
+				});
 			});
 
 			describe('when options.peer is defined', function () {
 
-				it('should call library.logger.debug');
+				var removeSpy, peerData;
+				var restoreRewiredDeps;
 
-				it('should call modules.peers.remove');
+				beforeEach(function (done) {
+					removeSpy = sinon.spy();
+					restoreRewiredDeps = TransportModule.__set__({
+						modules: {
+							peers: {
+								remove: removeSpy
+							}
+						}
+					});
+					peerData = {
+						ip: '127.0.0.1',
+						wsPort: 8000
+					};
+					done();
+				});
 
-				it('should call modules.peers.remove with options.peer');
+				afterEach(function (done) {
+					restoreRewiredDeps();
+					done();
+				});
+
+				it('should call library.logger.debug', function (done) {
+					__private.removePeer({
+						peer: peerData
+					}, 'Custom peer remove message');
+					expect(loggerStub.debug.called).to.be.true;
+					done();
+				});
+
+				it('should call modules.peers.remove with options.peer', function (done) {
+					__private.removePeer({
+						peer: peerData
+					}, 'Custom peer remove message');
+					expect(removeSpy.calledWith(peerData)).to.be.true;
+					done();
+				});
 			});
 		});
 
 		describe('receiveSignatures', function () {
+			
+			beforeEach(function (done) {
+				__private.receiveSignature = sinon.stub().callsArg(1);
+				library.schema.validate = sinon.stub().callsArg(2);
+				done();
+			});
 
-			it('should call library.schema.validate');
+			it('should call library.schema.validate with empty query.signatures', function (done) {
+				__private.receiveSignatures({
+					signatures: []
+				}, function (err) {
+					expect(library.schema.validate.called).to.be.true;
+					done();
+				});
+			});
 
-			it('should call library.schema.validate with query');
+			it('should call library.schema.validate with query.signatures', function (done) {
+				__private.receiveSignatures({
+					signatures: ['SIGNATURE123', 'SIGNATURE456'] // TODO: Use realistic signatures
+				}, function (err) {
+					expect(library.schema.validate.called).to.be.true;
+					done();
+				});
+			});
 
-			it('should call library.schema.validate with schema.signatures');
+			it('should call library.schema.validate with custom schema.signatures', function (done) {
+				var restoreRewiredDeps = TransportModule.__set__({
+					definitions: {
+						Signature: {
+							id: 'transport.signatures',
+							type: 'object',
+							properties: {
+								signatures: {
+									type: 'array',
+									minItems: 1,
+									maxItems: 40
+								}
+							},
+							required: ['signatures']
+						}
+					}
+				});
+
+				__private.receiveSignatures({
+					signatures: ['SIGNATURE123', 'SIGNATURE456']
+				}, function (err) {
+					expect(library.schema.validate.called).to.be.true;
+
+					restoreRewiredDeps();
+					done();
+				});
+			});
 
 			describe('when library.schema.validate fails', function () {
 
-				it('should call series callback with error = "Invalid signatures body"');
+				it('should call series callback with error = "Invalid signatures body"', function (done) {
+
+					var err = new Error('Transaction did not match schema');
+					err.code = 'INVALID_FORMAT';
+					library.schema.validate = sinon.stub().callsArgWith(2, err);
+
+					__private.receiveSignatures({
+						signatures: ['SIGNATURE123', 'SIGNATURE456']
+					}, function (err) {
+						expect(library.schema.validate.called).to.be.true;
+						expect(err).to.equal('Invalid signatures body');
+						done();
+					});
+				});
 			});
 
 			describe('when library.schema.validate succeeds', function () {
 
-				it('should call async.eachSeries');
-
-				it('should call async.eachSeries with signatures');
-
 				describe('for every signature in signatures', function () {
 
-					it('should call __private.receiveSignature');
+					it('should call __private.receiveSignature with signature', function (done) {
 
-					it('should call __private.receiveSignature with signature');
+						__private.receiveSignatures({
+							signatures: ['SIGNATURE123', 'SIGNATURE456']
+						}, function (err) {
+							expect(library.schema.validate.called).to.be.true;
+							expect(__private.receiveSignature.calledTwice).to.be.true;
+							expect(__private.receiveSignature.calledWith('SIGNATURE123')).to.be.true;
+							expect(__private.receiveSignature.calledWith('SIGNATURE456')).to.be.true;
+							done();
+						});
+					});
 
 					describe('when __private.receiveSignature fails', function () {
 
-						it('should call library.logger.debug with err');
+						it('should call library.logger.debug with err and signature', function (done) {
+							var err = 'Error processing signature: Error message';
+							__private.receiveSignature = sinon.stub().callsArgWith(1, err); // TODO: Also move to beforeEach
+							library.logger.debug = sinon.spy();
 
-						it('should call library.logger.debug with signature');
+							__private.receiveSignatures({
+								signatures: ['SIGNATURE123', 'SIGNATURE456']
+							}, function (err) {
+								expect(library.schema.validate.called).to.be.true;
+								// If any of the __private.receiveSignature calls fail, the whole
+								// receiveSignatures operation should fail immediately.
+								expect(__private.receiveSignature.calledOnce).to.be.true;
+								expect(library.logger.debug.calledWith(err, 'SIGNATURE123')).to.be.true;
+								done();
+							});
+						});
 
-						it('should call callback with error');
+						it('should call callback with error', function (done) {
+							var err = 'Error processing signature: Error message';
+							__private.receiveSignature = sinon.stub().callsArgWith(1, err);
+							library.logger.debug = sinon.spy();
+
+							__private.receiveSignatures({
+								signatures: ['SIGNATURE123', 'SIGNATURE456']
+							}, function (err) {
+								expect(err).to.be.equal(err);
+								done();
+							});
+						});
 					});
 
 					describe('when __private.receiveSignature succeeds', function () {
 
-						it('should call callback with error = undefined');
-
-						it('should call callback with result = undefined');
+						it('should call callback with error null or undefined', function (done) {
+							__private.receiveSignatures({
+								signatures: ['SIGNATURE123', 'SIGNATURE456']
+							}, function (err) {
+								expect(err).to.be.equal(null);
+								done();
+							});
+						});
 					});
 				});
 			});

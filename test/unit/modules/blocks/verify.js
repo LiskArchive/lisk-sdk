@@ -13,9 +13,7 @@
  */
 'use strict';
 
-var expect = require('chai').expect;
 var async = require('async');
-var sinon = require('sinon');
 var crypto = require('crypto');
 var rewire = require('rewire');
 
@@ -631,7 +629,7 @@ describe.skip('blocks/verify', function () {
 
 		it('should be ok when processing block 1', function (done) {
 			modulesLoader.scope.bus.clearMessages();
-			blocksVerify.processBlock(block1, true, function (err, result) {
+			blocksVerify.processBlock(block1, true, true, function (err, result) {
 				if (err) {
 					return done(err);
 				}
@@ -645,7 +643,7 @@ describe.skip('blocks/verify', function () {
 				expect(onMessage[4]).to.deep.equal(block1.transactions);
 				modulesLoader.scope.bus.clearMessages();
 				done();
-			}, true);
+			});
 		});
 	});
 
@@ -654,11 +652,11 @@ describe.skip('blocks/verify', function () {
 		it('should fail when processing block 1 again (checkExists)', function (done) {
 			blocks.lastBlock.set(previousBlock1);
 
-			blocksVerify.processBlock(block1, true, function (err, result) {
+			blocksVerify.processBlock(block1, true, true, function (err, result) {
 				expect(err).to.equal(['Block', block1.id, 'already exists'].join(' '));
 				done();
 				modulesLoader.scope.bus.clearMessages();
-			}, true);
+			});
 		});
 	});
 
@@ -690,62 +688,62 @@ describe.skip('blocks/verify', function () {
 				var timestamp = block2.timestamp;
 				delete block2.timestamp;
 
-				blocksVerify.processBlock(block2, false, function (err, result) {
+				blocksVerify.processBlock(block2, false, true, function (err, result) {
 					if (err) {
 						expect(err).equal('Failed to validate block schema: Missing required property: timestamp');
 						block2.timestamp = timestamp;
 						done();
 					}
-				}, true);
+				});
 			});
 
 			it('should fail when transactions property is missing', function (done) {
 				var transactions = block2.transactions;
 				delete block2.transactions;
 
-				blocksVerify.processBlock(block2, false, function (err, result) {
+				blocksVerify.processBlock(block2, false, true, function (err, result) {
 					if (err) {
 						expect(err).equal('Invalid total fee');
 						block2.transactions = transactions;
 						done();
 					}
-				}, true);
+				});
 			});
 
 			it('should fail when transaction type property is missing', function (done) {
 				var transactionType = block2.transactions[0].type;
 				delete block2.transactions[0].type;
 
-				blocksVerify.processBlock(block2, false, function (err, result) {
+				blocksVerify.processBlock(block2, false, true, function (err, result) {
 					if (err) {
 						expect(err).equal('Unknown transaction type undefined');
 						block2.transactions[0].type = transactionType;
 						done();
 					}
-				}, true);
+				});
 			});
 
 			it('should fail when transaction timestamp property is missing', function (done) {
 				var transactionTimestamp = block2.transactions[0].timestamp;
 				delete block2.transactions[0].timestamp;
 
-				blocksVerify.processBlock(block2, false, function (err, result) {
+				blocksVerify.processBlock(block2, false, true, function (err, result) {
 					if (err) {
 						expect(err).equal('Failed to validate transaction schema: Missing required property: timestamp');
 						block2.transactions[0].timestamp = transactionTimestamp;
 						done();
 					}
-				}, true);
+				});
 			});
 		});
 
 		it('should fail when block generator is invalid (fork:3)', function (done) {
-			blocksVerify.processBlock(block2, false, function (err, result) {
+			blocksVerify.processBlock(block2, false, true, function (err, result) {
 				if (err) {
 					expect(err).equal('Failed to verify slot: 3377288');
 					done();
 				}
-			}, true);
+			});
 		});
 
 		it('should generate block 2 with valid generator slot and processed transaction', function (done) {
@@ -767,12 +765,12 @@ describe.skip('blocks/verify', function () {
 		it('should fail when transaction is already confirmed (fork:2)', function (done) {
 			block2 = blocksVerify.deleteBlockProperties(block2);
 
-			blocksVerify.processBlock(block2, false, function (err, result) {
+			blocksVerify.processBlock(block2, false, true, function (err, result) {
 				if (err) {
 					expect(err).to.equal(['Transaction is already confirmed:', transactionsBlock1[0].id].join(' '));
 					done();
 				}
-			}, true);
+			});
 		});
 	});
 
@@ -797,7 +795,7 @@ describe.skip('blocks/verify', function () {
 		it('should be ok when processing block 2', function (done) {
 			blocks.lastBlock.set(block1);
 
-			blocksVerify.processBlock(block2, false, function (err, result) {
+			blocksVerify.processBlock(block2, false, true, function (err, result) {
 				if (err) {
 					return done(err);
 				}
@@ -807,16 +805,16 @@ describe.skip('blocks/verify', function () {
 				expect(onMessage[1][0].id).to.equal(block2.transactions[0].id);
 				modulesLoader.scope.bus.clearMessages();
 				done();
-			}, true);
+			});
 		});
 
 		it('should fail when processing block 2 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block1);
 
-			blocksVerify.processBlock(block2, false, function (err, result) {
+			blocksVerify.processBlock(block2, false, true, function (err, result) {
 				expect(err).to.equal(['Block', block2.id, 'already exists'].join(' '));
 				done();
-			}, true);
+			});
 		});
 	});
 
@@ -842,7 +840,7 @@ describe.skip('blocks/verify', function () {
 		});
 
 		it('should be ok when broadcasting block 3', function (done) {
-			blocksVerify.processBlock(block3, true, function (err, result) {
+			blocksVerify.processBlock(block3, true, false, function (err, result) {
 				if (err) {
 					return done(err);
 				}
@@ -860,13 +858,13 @@ describe.skip('blocks/verify', function () {
 				expect(onMessage[3]).to.equal('newBlock');
 				modulesLoader.scope.bus.clearMessages();
 				done();
-			}, false);
+			});
 		});
 
 		it('should be ok when broadcasting block 3 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block2);
 
-			blocksVerify.processBlock(block3, true, function (err, result) {
+			blocksVerify.processBlock(block3, true, false, function (err, result) {
 				if (err) {
 					return done(err);
 				}
@@ -884,7 +882,7 @@ describe.skip('blocks/verify', function () {
 				expect(onMessage[3]).to.equal('newBlock');
 				modulesLoader.scope.bus.clearMessages();
 				done();
-			}, false);
+			});
 		});
 	});
 
@@ -895,7 +893,7 @@ describe.skip('blocks/verify', function () {
 			blocks.lastBlock.set(block2);
 			block3 = blocksVerify.deleteBlockProperties(block3);
 
-			blocksVerify.processBlock(block3, false, function (err, result) {
+			blocksVerify.processBlock(block3, false, false, function (err, result) {
 				if (err) {
 					return done(err);
 				}
@@ -904,20 +902,20 @@ describe.skip('blocks/verify', function () {
 				expect(onMessage).to.be.an('array').that.does.not.include('broadcastBlock');
 				modulesLoader.scope.bus.clearMessages();
 				done();
-			}, false);
+			});
 		});
 
 		it('should be ok when receiving block 3 again (checkExists)', function (done) {
 			blocks.lastBlock.set(block2);
 			block3 = blocksVerify.deleteBlockProperties(block3);
 
-			blocksVerify.processBlock(block3, false, function (err, result) {
+			blocksVerify.processBlock(block3, false, false, function (err, result) {
 				expect(result).to.be.undefined;
 				var onMessage = modulesLoader.scope.bus.getMessages();
 				expect(onMessage).to.be.an('array').that.does.not.include('broadcastBlock');
 				modulesLoader.scope.bus.clearMessages();
 				done();
-			}, false);
+			});
 		});
 	});
 });

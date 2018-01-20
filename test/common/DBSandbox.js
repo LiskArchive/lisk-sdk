@@ -11,9 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+'use strict';
+
 var child_process = require('child_process');
 
-var database = require('../../helpers/database.js');
+var database = require('../../db');
 
 var testDatabaseNames = [];
 
