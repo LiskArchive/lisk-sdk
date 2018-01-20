@@ -39,13 +39,17 @@ function sortBy (sort, options) {
 
 	var sortField, sortMethod;
 
-	if (sort) {
+	if ( typeof(sort) === 'string') {
 		var sortBy = String(sort).split(':');
 		sortField = sortBy[0].replace(/[^\w\s]/gi, '');
 
 		if (sortBy.length === 2) {
 			sortMethod = sortBy[1] === 'desc' ? 'DESC' : 'ASC';
 		}
+	} else if ( typeof(sort) === 'object') {
+		// Only Pick First key value pair
+		sortField = Object.keys(sort)[0];
+		sortMethod = sort[sortField] < 0 ? 'DESC' : 'ASC';
 	}
 
 	function prefixField (sortField) {

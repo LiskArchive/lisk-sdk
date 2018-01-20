@@ -163,6 +163,17 @@ function Selects (columnSet, fields, pgp) {
 }
 
 /**
+ * Get list of all database fields
+ *
+ * @return {array}
+ */
+AccountsRepo.prototype.getDBFields = function () {
+	return _.map(this.dbFields, function (field) {
+		return field.prop || field.name;
+	});
+};
+
+/**
  * Count mem accounts
  * @return {Promise}
  */

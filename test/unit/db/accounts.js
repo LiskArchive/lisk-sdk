@@ -66,6 +66,10 @@ describe('db', function () {
 		});
 	});
 
+	after(function (done) {
+		application.cleanup(done);
+	});
+
 	describe('accounts', function () {
 
 		describe('initialization', function () {
