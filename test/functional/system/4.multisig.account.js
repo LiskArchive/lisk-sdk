@@ -20,7 +20,7 @@ var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
 
-describe('system test (type 4) - effect of multisignature registration on mem_accountss tables', function () {
+describe('system test (type 4) - effect of multisignature registration on memory tables', function () {
 
 	var library, multisigSender;
 
@@ -43,7 +43,7 @@ describe('system test (type 4) - effect of multisignature registration on mem_ac
 		});
 	});
 
-	describe('forge block with multisig transaction', function () {
+	describe('forge block with multisignature transaction', function () {
 
 		before('forge block with multisignature transaction', function (done) {
 			var keysgroup = [

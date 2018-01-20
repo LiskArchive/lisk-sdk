@@ -20,7 +20,7 @@ var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
 
-describe('system test (type 1) - double second password registrations', function () {
+describe('system test (type 1) - double second signature registrations', function () {
 
 	var library;
 
@@ -38,7 +38,7 @@ describe('system test (type 1) - double second password registrations', function
 		});
 	});
 
-	it('adding to pool transaction type 1 second signature should be ok', function (done) {
+	it('adding to pool second signature registration should be ok', function (done) {
 		transaction1 = lisk.signature.createSignature(account.password, account.secondPassword, -1);
 		localCommon.addTransaction(library, transaction1, function (err, res) {
 			res.should.equal(transaction1.id);
@@ -46,7 +46,7 @@ describe('system test (type 1) - double second password registrations', function
 		});
 	});
 
-	it('adding to pool same transaction with different timestamp should be ok', function (done) {
+	it('adding to pool same second signature registration with different timestamp should be ok', function (done) {
 		transaction2 = lisk.signature.createSignature(account.password, account.secondPassword);
 		localCommon.addTransaction(library, transaction2, function (err, res) {
 			res.should.equal(transaction2.id);
@@ -87,7 +87,7 @@ describe('system test (type 1) - double second password registrations', function
 			});
 		});
 
-		it('adding to pool transaction type 1 for same account should fail', function (done) {
+		it('adding to pool second signature registration for same account should fail', function (done) {
 			localCommon.addTransaction(library, transaction1, function (err, res) {
 				err.should.equal('Missing sender second signature');
 				done();

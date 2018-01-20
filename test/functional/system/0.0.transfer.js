@@ -20,7 +20,7 @@ var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
 
-describe('system test (type 0) - double spending', function () {
+describe('system test (type 0) - double transfers', function () {
 
 	var library;
 	localCommon.beforeBlock('system_0_0_transfer', function (lib) {
@@ -44,7 +44,7 @@ describe('system test (type 0) - double spending', function () {
 				});
 			});
 
-			it('adding to pool transaction type 0 transfer funds should be ok', function (done) {
+			it('adding to pool transfer should be ok', function (done) {
 				transaction1 = lisk.transaction.createTransaction(accountFixtures.genesis.address, 1000 * normalizer, account.password, null, null, -1);
 				localCommon.addTransaction(library, transaction1, function (err, res) {
 					res.should.equal(transaction1.id);
@@ -52,7 +52,7 @@ describe('system test (type 0) - double spending', function () {
 				});
 			});
 
-			it('adding to pool same transaction with different timestamp should be ok', function (done) {
+			it('adding to pool same transfer with different timestamp should be ok', function (done) {
 				transaction2 = lisk.transaction.createTransaction(accountFixtures.genesis.address, 1000 * normalizer, account.password);
 				localCommon.addTransaction(library, transaction2, function (err, res) {
 					res.should.equal(transaction2.id);
@@ -93,7 +93,7 @@ describe('system test (type 0) - double spending', function () {
 					});
 				});
 
-				it('adding to pool sending funds transaction for same account should fail', function (done) {
+				it('adding to pool transfer for same account should fail', function (done) {
 					localCommon.addTransaction(library, transaction1, function (err, res) {
 						err.should.match(/^Account does not have enough LSK: /);
 						done();

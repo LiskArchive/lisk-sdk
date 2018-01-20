@@ -22,7 +22,7 @@ var normalizer = require('../../common/utils/normalizer');
 
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 
-describe('system test (type 1) - check validated second password registrations against other transaction types', function () {
+describe('system test (type 1) - checking validated second signature registrations against other transaction types', function () {
 
 	var library;
 
@@ -45,7 +45,7 @@ describe('system test (type 1) - check validated second password registrations a
 		});
 	});
 
-	it('adding to pool transaction type 1 second signature should be ok', function (done) {
+	it('adding to pool second signature registration should be ok', function (done) {
 		localCommon.addTransaction(library, transaction, function (err, res) {
 			res.should.equal(transaction.id);
 			done();
@@ -73,14 +73,14 @@ describe('system test (type 1) - check validated second password registrations a
 			});
 		});
 
-		it('adding to pool transaction type 1 for same account should fail', function (done) {
+		it('adding to pool second signature registration for same account should fail', function (done) {
 			localCommon.addTransaction(library, transaction, function (err, res) {
 				err.should.equal('Missing sender second signature');
 				done();
 			});
 		});
 
-		describe('adding to pool another transaction types from the same account', function () {
+		describe('adding to pool other transaction types from the same account', function () {
 
 			Object.keys(transactionTypes).forEach(function (key, index) {
 				if (key != 'SIGNATURE') {

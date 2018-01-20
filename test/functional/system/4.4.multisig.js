@@ -20,7 +20,7 @@ var randomUtil = require('../../common/utils/random');
 var Scenarios = require('../common/scenarios');
 var localCommon = require('./common');
 
-describe('system test (type 4) - double multisig registrations', function () {
+describe('system test (type 4) - double multisignature registrations', function () {
 
 	var library;
 
@@ -99,7 +99,7 @@ describe('system test (type 4) - double multisig registrations', function () {
 			});
 		});
 
-		it('adding to pool transaction type 4 for same account should fail', function (done) {
+		it('adding to pool multisignature registration for same account should fail', function (done) {
 			localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
 				err.should.equal('Account already has multisignatures enabled');
 				done();

@@ -21,7 +21,7 @@ var Scenarios = require('../common/scenarios');
 var localCommon = require('./common');
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 
-describe('system test (type 4) - sending transactions on top of unconfirmed multisignature', function () {
+describe('system test (type 4) - sending transactions on top of unconfirmed multisignature registration', function () {
 
 	var library, transaction;
 

@@ -46,16 +46,16 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 		});
 	});
 
-	it('adding to pool transaction type 1 second signature should be ok', function (done) {
+	it('adding to pool second signature registration should be ok', function (done) {
 		localCommon.addTransaction(library, transactionSecondSignature, function (err, res) {
 			res.should.equal(transactionSecondSignature.id);
 			done();
 		});
 	});
 
-	describe('validate unconfirmed status adding to pool another transaction types from same account', function () {
+	describe('validating unconfirmed status while adding to pool other transaction types from same account', function () {
 
-		describe('with second password', function () {
+		describe('with second signature', function () {
 
 			Object.keys(transactionTypes).forEach(function (key, index) {
 				if (key === 'SIGNATURE') {
@@ -86,7 +86,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 			});
 		});
 
-		describe('without second password', function () {
+		describe('without second signature', function () {
 
 			Object.keys(transactionTypes).forEach(function (key, index) {
 				if (key != 'SIGNATURE') {

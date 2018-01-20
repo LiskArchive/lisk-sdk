@@ -21,7 +21,7 @@ var Scenarios = require('../common/scenarios');
 var localCommon = require('./common');
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 
-describe('system test (type 4) - check registered multisig transaction against another transaction types', function () {
+describe('system test (type 4) - checking registered multisignature transaction against other transaction types', function () {
 
 	var library, transaction;
 
@@ -54,7 +54,7 @@ describe('system test (type 4) - check registered multisig transaction against a
 		});
 	});
 
-	it('adding to pool multisig registration should be ok', function (done) {
+	it('adding to pool multisignature registration should be ok', function (done) {
 		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
 			res.should.equal(scenarios.regular.multiSigTransaction.id);
 			done();
@@ -82,14 +82,14 @@ describe('system test (type 4) - check registered multisig transaction against a
 			});
 		});
 
-		it('adding to pool transaction type 4 for same account should fail', function (done) {
+		it('adding to pool multisignature registration for same account should fail', function (done) {
 			localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
 				err.should.equal('Account already has multisignatures enabled');
 				done();
 			});
 		});
 
-		describe('adding to pool another transaction types from the same account', function () {
+		describe('adding to pool other transaction types from the same account', function () {
 
 			Object.keys(transactionTypes).forEach(function (key, index) {
 				if (key != 'MULTI') {
