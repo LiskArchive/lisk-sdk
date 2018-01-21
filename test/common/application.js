@@ -160,6 +160,14 @@ function __init (initScope, done) {
 				});
 				cb(null, sequence);
 			}],
+			synchronousTasksSequence: ['logger', function (scope, cb) {
+				var sequence = new Sequence({
+					onWarning: function (current) {
+						scope.logger.warn('Synchronous tasks queue', current);
+					}
+				});
+				cb(null, sequence);
+			}],
 			ed: function (cb) {
 				cb(null, require('../../helpers/ed.js'));
 			},
@@ -233,7 +241,7 @@ function __init (initScope, done) {
 					}]
 				}, cb);
 			}],
-			modules: ['network', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', function (scope, cb) {
+			modules: ['network', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'synchronousTasksSequence', 'db', 'logic', function (scope, cb) {
 				var tasks = {};
 				scope.rewiredModules = {};
 
