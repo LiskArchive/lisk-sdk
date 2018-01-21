@@ -288,8 +288,6 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 	// Transactions to rewind in case of error.
 	var appliedTransactions = {};
 
-	// List of unconfirmed transactions ids.
-
 	var undoUnconfirmedListStep = function (tx) {
 		return new Promise(function (resolve, reject) {
 			modules.transactions.undoUnconfirmedList(function (err, ids) {
