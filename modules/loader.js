@@ -44,6 +44,7 @@ function Loader (cb, scope) {
 		bus: scope.bus,
 		genesisblock: scope.genesisblock,
 		balancesSequence: scope.balancesSequence,
+		synchronousTasksSequence: scope.synchronousTasksSequence,
 		logic: {
 			transaction: scope.logic.transaction,
 			account: scope.logic.account,
@@ -609,30 +610,32 @@ __private.sync = function (cb) {
 	__private.isActive = true;
 	__private.syncTrigger(true);
 
-	async.series({
-		getPeersBefore: function (seriesCb) {
-			library.logger.debug('Establishing broadhash consensus before sync');
-			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
-		},
-		loadBlocksFromNetwork: function (seriesCb) {
-			return __private.loadBlocksFromNetwork(seriesCb);
-		},
-		updateSystem: function (seriesCb) {
-			return modules.system.update(seriesCb);
-		},
-		getPeersAfter: function (seriesCb) {
-			library.logger.debug('Establishing broadhash consensus after sync');
-			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
-		}
-	}, function (err) {
-		__private.isActive = false;
-		__private.syncTrigger(false);
-		__private.blocksToSync = 0;
+	library.synchronousTasksSequence.add(function (sequenceCb) {
+		async.series({
+			getPeersBefore: function (seriesCb) {
+				library.logger.debug('Establishing broadhash consensus before sync');
+				return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+			},
+			loadBlocksFromNetwork: function (seriesCb) {
+				return __private.loadBlocksFromNetwork(seriesCb);
+			},
+			updateSystem: function (seriesCb) {
+				return modules.system.update(seriesCb);
+			},
+			getPeersAfter: function (seriesCb) {
+				library.logger.debug('Establishing broadhash consensus after sync');
+				return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+			}
+		}, function (err) {
+			__private.isActive = false;
+			__private.syncTrigger(false);
+			__private.blocksToSync = 0;
 
-		library.logger.info('Finished sync');
-		library.bus.message('syncFinished');
-		return setImmediate(cb, err);
-	});
+			library.logger.info('Finished sync');
+			library.bus.message('syncFinished');
+			return setImmediate(sequenceCb, err);
+		});
+	}, cb);
 };
 
 /* 

@@ -332,6 +332,15 @@ d.run(function () {
 			cb(null, sequence);
 		}],
 
+		synchronousTasksSequence: ['logger', function (scope, cb) {
+			var sequence = new Sequence({
+				onWarning: function (current) {
+					scope.logger.warn('Synchronous tasks queue', current);
+				}
+			});
+			cb(null, sequence);
+		}],
+
 		/**
 		 * Once config, public, genesisblock, logger, build and network are completed,
 		 * adds configuration to `network.app`.
@@ -498,7 +507,7 @@ d.run(function () {
 		 * at leats will contain the required elements.
 		 * @param {nodeStyleCallback} cb - Callback function with resulted load.
 		 */
-		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
+		modules: ['network', 'connect', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'synchronousTasksSequence', 'db', 'logic', 'cache', function (scope, cb) {
 
 			var tasks = {};
 
