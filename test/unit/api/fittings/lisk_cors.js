@@ -89,7 +89,7 @@ describe('lisk_cors', function () {
 
 		expect(next).to.have.not.been.called;
 		expect(context.response.statusCode).to.be.equal(204);
-		expect( context.response.getHeader('my-custom-header') ).to.be.undefined;
+		expect(context.response.getHeader('my-custom-header')).to.be.undefined;
 	});
 
 	it('should enable requests for X-MY-HEADER when provided allowedHeaders = X-MY-HEADER', function () {
