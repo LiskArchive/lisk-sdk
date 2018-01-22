@@ -105,7 +105,7 @@ describe('blocks/chain', function () {
 					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testAccountData.balance);
 						expect(res.u_balance).to.equal(testAccountData.u_balance);
-						// FIXME: incorrect blockId
+						// FIXME: Incorrect blockId
 						// CHECKME: publicKey should be null
 						// CHECKME: virgin should be 1 (account without outgoing transaction)
 						done();
@@ -117,7 +117,7 @@ describe('blocks/chain', function () {
 						expect(res.balance).to.equal('0');
 						expect(res.u_balance).to.equal('0');
 						// CHECKME: virgin should be 1
-						// FIXME: incorrect blockId or it should not exists this address into mem_accounts
+						// FIXME: Incorrect blockId, or this address should not be inserted into mem_accounts
 						done();
 					});
 				});
@@ -132,7 +132,7 @@ describe('blocks/chain', function () {
 						expect(res.u_balance).to.equal(testAccountDataAfterBlock.u_balance);
 						expect(res.publicKey).to.equal(testAccountDataAfterBlock.publicKey);
 						expect(res.virgin).to.equal(0);
-						// TODO blockId is ok because timestamp is not been included in signature and is no new tx
+						// TODO: blockId is ok because timestamp is not been included in signature and is not new tx
 						done();
 					});
 				});
@@ -142,7 +142,7 @@ describe('blocks/chain', function () {
 						expect(res.balance).to.equal(testReceiptData.balance);
 						expect(res.u_balance).to.equal(testReceiptData.u_balance);
 						// FIXME: virgin should be 1 (account without outgoing transaction)
-						// TODO blockId is ok because timestamp is not been included in signature and is no new tx
+						// TODO: blockId is ok because timestamp is not been included in signature and is not new tx
 						done();
 					});
 				});
@@ -199,7 +199,7 @@ describe('blocks/chain', function () {
 						expect(res.secondPublicKey).to.be.null;
 						expect(res.secondSignature).to.equal(0);
 						expect(res.u_secondSignature).to.equal(0);
-						// FIXME: incorrect blockId
+						// FIXME: Incorrect blockId
 						// CHECKME: publicKey should be null
 						// CHECKME: virgin should be 1
 						done();
@@ -229,7 +229,7 @@ describe('blocks/chain', function () {
 				before('create account with funds', function (done) {
 					createAccountWithFunds(done);
 					fieldsToCompare = ['balance', 'u_balance', 'blockId', 'virgin', 'publicKey', 'isDelegate', 'u_isDelegate', 'username', 'u_username', 'missedBlocks', 'producedBlocks', 'rank', 'rewards', 'vote'];
-					//CHECKME: nameexist and u_nameexist when are they use?
+					// CHECKME: When are nameexist and u_nameexist used?
 				});
 
 				it('should validate account data from sender', function (done) {
@@ -243,7 +243,7 @@ describe('blocks/chain', function () {
 						expect(res.u_username).to.be.null;
 						expect(res.missedBlocks).to.equal('0');
 						expect(res.producedBlocks).to.equal('0');
-						//expect(res.rank).to.be.null;
+						// expect(res.rank).to.be.null;
 						expect(res.rewards).to.equal('0');
 						expect(res.vote).to.equal('0');
 						done();
@@ -266,7 +266,7 @@ describe('blocks/chain', function () {
 						expect(res.u_username).to.be.null;
 						expect(res.missedBlocks).to.equal('0');
 						expect(res.producedBlocks).to.equal('0');
-						//expect(res.rank).to.equal(102);
+						// expect(res.rank).to.equal(102);
 						expect(res.rewards).to.equal('0');
 						expect(res.vote).to.equal('0');
 						done();
@@ -294,7 +294,7 @@ describe('blocks/chain', function () {
 						//expect(res.rank).to.be.null;
 						expect(res.rewards).to.equal('0');
 						expect(res.vote).to.equal('0');
-						// FIXME: incorrect blockId
+						// FIXME: Incorrect blockId
 						// CHECKME: publicKey should be null
 						// CHECKME: virgin should be 1
 						done();
@@ -317,7 +317,7 @@ describe('blocks/chain', function () {
 						expect(res.virgin).to.equal(0);
 						expect(res.missedBlocks).to.equal('0');
 						expect(res.producedBlocks).to.equal('0');
-						//expect(res.rank).to.equal(102);
+						// expect(res.rank).to.equal(102);
 						expect(res.rewards).to.equal('0');
 						expect(res.vote).to.equal('0');
 						// CHECKME: blockId
@@ -374,7 +374,7 @@ describe('blocks/chain', function () {
 						expect(res.u_balance).to.equal(testAccountData.u_balance);
 						expect(res.delegates).to.be.null;
 						expect(res.u_delegates).to.be.null;
-						// FIXME: incorrect blockId
+						// FIXME: Incorrect blockId
 						// CHECKME: publicKey should be null
 						// CHECKME: virgin should be 1
 						done();
@@ -462,7 +462,7 @@ describe('blocks/chain', function () {
 						expect(res.u_multimin).to.equal(0);
 						expect(res.multisignatures).to.be.null;
 						expect(res.u_multisignatures).to.be.null;
-						// FIXME: incorrect blockId
+						// FIXME: Incorrect blockId
 						// CHECKME: publicKey should be null
 						// CHECKME: virgin should be 1
 						done();
@@ -536,7 +536,7 @@ describe('blocks/chain', function () {
 						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
-							// FIXME: incorrect blockId
+							// FIXME: Incorrect blockId
 							// CHECKME: publicKey should be null
 							// CHECKME: virgin should be 1
 							done();
@@ -564,8 +564,8 @@ describe('blocks/chain', function () {
 					it('should validate account data from sender', function (done) {
 						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
 							testAccountData = res;
-							//expect(res.virgin).to.equal(1);
-							//expect(res.publicKey).to.be.null;
+							// expect(res.virgin).to.equal(1);
+							// expect(res.publicKey).to.be.null;
 							done();
 						});
 					});
@@ -596,7 +596,7 @@ describe('blocks/chain', function () {
 						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
-							// FIXME: incorrect blockId
+							// FIXME: Incorrect blockId
 							// CHECKME: publicKey should be null
 							// CHECKME: virgin should be 1
 							done();
@@ -624,8 +624,8 @@ describe('blocks/chain', function () {
 					it('should validate account data from sender', function (done) {
 						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
 							testAccountData = res;
-							//expect(res.virgin).to.equal(1);
-							//expect(res.publicKey).to.be.null;
+							// expect(res.virgin).to.equal(1);
+							// expect(res.publicKey).to.be.null;
 							done();
 						});
 					});
@@ -656,7 +656,7 @@ describe('blocks/chain', function () {
 						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
-							// FIXME: incorrect blockId
+							// FIXME: Incorrect blockId
 							// CHECKME: publicKey should be null
 							// CHECKME: virgin should be 1
 							done();

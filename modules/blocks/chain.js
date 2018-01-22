@@ -588,7 +588,7 @@ Chain.prototype.deleteLastBlock = function (cb) {
 			});
 		},
 		function (newLastBlock, seriesCb) {
-			// Put transactions back into transaction Pool
+			// Put transactions back into transaction pool
 			modules.transactions.receiveTransactions(lastBlock.transactions.reverse(), false, function (err, op) {
 				if (err) {
 					library.logger.error('Error adding transactions', lastBlock);
