@@ -46,10 +46,6 @@ module.exports = {
 				network.waitForAllNodesToBeReady(configurations, cbSeries);
 			},
 			function (cbSeries) {
-				utils.logger.log('Waiting 3 seconds for nodes to establish connections');
-				setTimeout(cbSeries, 3000);
-			},
-			function (cbSeries) {
 				utils.logger.log('Enabling forging with registered delegates');
 				network.enableForgingOnDelegates(configurations, cbSeries);
 			},
