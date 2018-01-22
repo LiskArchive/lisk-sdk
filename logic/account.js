@@ -608,9 +608,7 @@ Account.prototype.get = function (filter, fields, cb, tx) {
 	if (typeof(fields) === 'function') {
 		tx = cb;
 		cb = fields;
-		fields = this.fields.map(function (field) {
-			return field.alias || field.field;
-		});
+		fields = null;
 	}
 
 	this.getAll(filter, fields, function (err, data) {
