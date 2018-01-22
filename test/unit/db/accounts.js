@@ -19,8 +19,9 @@ var randomstring = require('randomstring');
 var db;
 var validAccount;
 
-function createAccount () {
-	var validAccount = {
+
+function generateAccount () {
+	return {
 		'username': randomstring.generate(10).toLowerCase(),
 		'isDelegate': true,
 		'u_isDelegate': false,
@@ -28,7 +29,7 @@ function createAccount () {
 		'u_secondSignature': false,
 		'u_username': randomstring.generate(10).toLowerCase(),
 		'address': randomstring.generate({charset: 'numeric', length: 20}) + 'L',
-		'publicKey': randomstring.generate({charset: '0123456789ABCDE', length: 32}),
+		'publicKey': randomstring.generate({charset: '0123456789ABCDE', length: 32}).toLowerCase(),
 		'secondPublicKey': null,
 		'balance': '0',
 		'u_balance': '0',
@@ -45,12 +46,17 @@ function createAccount () {
 		'blockId': randomstring.generate({charset: 'numeric', length: 20}),
 		'nameexist': 0,
 		'u_nameexist': 0,
-		'producedBlocks': 9,
-		'missedBlocks': 0,
+		'producedBlocks': '9',
+		'missedBlocks': '0',
 		'fees': '0',
+		'rank': '1',
 		'rewards': '0',
 		'virgin': true
 	};
+}
+
+function createAccount () {
+	validAccount = generateAccount();
 
 	return db.query(db.$config.pgp.helpers.insert(validAccount, db.accounts.cs.insert)).then(function () {
 		return validAccount;
@@ -479,6 +485,267 @@ describe('db', function () {
 								data[0].should.be.eql(previousData[10]);
 							});
 						});
+					});
+				});
+			});
+
+			describe('upsert', function () {
+
+				it('should throw error if no conflict field is specified', function (done) {
+					var account = generateAccount();
+
+					db.accounts.upsert(account).then(function (value) {
+						done(value);
+					}).catch(function (error) {
+						error.should.be.eql('Error: db.accounts.upsert - required conflictingFields');
+						done();
+					});
+				});
+
+				it('should success with null', function () {
+					var account = generateAccount();
+
+					return db.accounts.upsert(account, 'address').then(function (result) {
+						expect(result).to.be.null;
+					});
+				});
+
+				it('should insert account if conflictField="address" not found', function () {
+					var account = generateAccount();
+
+					return db.accounts.upsert(account, 'address').then(function (value) {
+						return db.accounts.list({address: account.address}).then(function (result) {
+							result.length.should.be.eql(1);
+							account.should.be.eql(result[0]);
+						});
+					});
+				});
+
+				it('should update account if conflictField="address" found', function () {
+					var account1 = generateAccount();
+					var account2 = generateAccount();
+
+					account2.address = account1.address;
+
+					return db.accounts.upsert(account1, 'address').then(function (value) {
+						return db.accounts.upsert(account2, 'address').then(function (value) {
+							return db.accounts.list({address: account2.address}).then(function (result) {
+								result.length.should.be.eql(1);
+
+								result[0].should.not.be.eql(account1);
+								_.omit(result[0], db.accounts.getImmutableFields()).should.be.eql(_.omit(account2, db.accounts.getImmutableFields()));
+							});
+						});
+					});
+				});
+
+				it('should insert only the columns specified in columnSet.insert', function () {
+					var account = generateAccount();
+
+					// delegates is not mentioned in cs.insert so it should be skipped
+					account.delegates = [randomstring.generate(10).toLowerCase()];
+
+					return db.accounts.upsert(account, 'address').then(function (value) {
+						return db.accounts.list({address: account.address}).then(function (result) {
+							expect(result.length).to.eql(1);
+							expect(result[0].delegates).to.be.null;
+						});
+					});
+				});
+
+				it('should update only the columns specified in columnSet.update', function () {
+					var originalAccount = generateAccount();
+					var updatedAccount = generateAccount();
+
+					return db.accounts.upsert(originalAccount, 'address').then(function (value) {
+						return db.accounts.upsert(originalAccount, 'address', updatedAccount).then(function (value) {
+							return db.accounts.list({address: originalAccount.address}).then(function (result) {
+
+								expect(result.length).to.eql(1);
+
+								var immutableFields = db.accounts.getImmutableFields();
+
+								Object.keys(result[0]).forEach(function (field) {
+
+									if(immutableFields.indexOf(field) !== -1) {
+										// If its an immutable field
+										expect(result[0][field], field).to.eql(originalAccount[field]);
+
+									} else {
+										// If its not an immutable field
+										expect(result[0][field], field).to.eql(updatedAccount[field]);
+									}
+								});
+							});
+						});
+					});
+				});
+
+				it('should update data attributes specified as "data" if argument "updateData" is missing', function () {
+					var originalAccount = generateAccount();
+					var updatedAccount = generateAccount();
+
+					updatedAccount.address = originalAccount.address;
+
+					return db.accounts.upsert(originalAccount, 'address').then(function (value) {
+						return db.accounts.upsert(updatedAccount, 'address').then(function (value) {
+							return db.accounts.list({address: originalAccount.address}).then(function (result) {
+
+								expect(result.length).to.eql(1);
+
+								var immutableFields = db.accounts.getImmutableFields();
+
+								Object.keys(result[0]).forEach(function (field) {
+
+									if(immutableFields.indexOf(field) !== -1) {
+										// If its an immutable field
+										expect(result[0][field], field).to.eql(originalAccount[field]);
+
+									} else {
+										// If its not an immutable field
+										expect(result[0][field], field).to.eql(updatedAccount[field]);
+									}
+								});
+							});
+						});
+					});
+				});
+
+				it('should match the conflict keys case sensitive', function () {
+					var originalAccount = generateAccount();
+					var updatedAccount = generateAccount();
+
+					updatedAccount.username = originalAccount.username.toUpperCase();
+
+					return db.accounts.upsert(originalAccount, 'username').then(function (value) {
+						return db.accounts.upsert(updatedAccount, 'username').then(function (value) {
+							return db.accounts.list({username: updatedAccount.username}).then(function (result) {
+
+								expect(result.length).to.eql(1);
+
+								expect(result[0]).to.eql(updatedAccount);
+							});
+						});
+					});
+				});
+
+				it('should match the multiple conflict keys with AND composite', function () {
+					var originalAccount = generateAccount();
+					var updatedAccount = generateAccount();
+
+					updatedAccount.username = originalAccount.username;
+					updatedAccount.u_username = originalAccount.u_username;
+
+					return db.accounts.upsert(originalAccount, 'address').then(function (value) {
+						return db.accounts.upsert(updatedAccount, ['username', 'u_username']).then(function (value) {
+							return db.accounts.list({username: updatedAccount.username}).then(function (result) {
+
+								expect(result.length).to.eql(1);
+
+								expect(result[0].address).to.eql(originalAccount.address);
+							});
+						});
+					});
+				});
+			});
+
+			describe('insert', function () {
+
+				it('should insert account without any error', function () {
+					var account = generateAccount();
+
+					return db.accounts.insert(account);
+				});
+
+				it('should success with null', function () {
+					var account = generateAccount();
+
+					return db.accounts.insert(account).then(function (result) {
+						expect(result).to.be.null;
+					});
+				});
+
+				it('should insert all columns specified in db.accounts.cs.insert', function () {
+					var account = generateAccount();
+
+					return db.accounts.insert(account).then(function (value) {
+						return db.accounts.list({address: account.address}).then(function (result) {
+							db.accounts.cs.insert.columns.forEach(function (column) {
+								expect(result.length).to.eql(1);
+
+								expect(result[0][column.prop || column.name]).to.eql(account[column.prop || column.name]);
+							});
+						});
+					});
+				});
+
+				it('should skip any unknown attribute', function () {
+					var account = generateAccount();
+					account.unknownColumn = 'unnownValue';
+
+					return db.accounts.insert(account);
+				});
+			});
+
+			describe('update', function () {
+
+				it('should update account without any error', function () {
+					var account = generateAccount();
+
+					return db.accounts.insert(account).then(function (value) {
+						return db.accounts.update(account.address, account);
+					});
+				});
+
+				it('should success with null', function () {
+					var account = generateAccount();
+					var updateAccount = generateAccount();
+
+					return db.accounts.insert(account).then(function (value) {
+						return db.accounts.update(account.address, updateAccount).then(function (result) {
+							expect(result).to.be.null;
+						});
+					});
+				});
+
+				it('should throw error if called without an address', function (done) {
+					var account = generateAccount();
+
+					db.accounts.update(null, account).then(function () {
+						done('should raise error if no address specified');
+					}).catch(function (reason) {
+						expect(reason).to.eql('Error: db.accounts.update - required address not specified');
+						done();
+					});
+				});
+
+				it('should update all columns specified in db.accounts.cs.update', function () {
+					var account = generateAccount();
+					var updateAccount = generateAccount();
+
+					return db.accounts.insert(account).then(function (value) {
+						return db.accounts.update(account.address, updateAccount).then(function (value) {
+
+							return db.accounts.list({address: account.address}).then(function (result) {
+
+								db.accounts.cs.update.columns.forEach(function (column) {
+									expect(result.length).to.eql(1);
+
+									expect(result[0][column.prop || column.name]).to.eql(updateAccount[column.prop || column.name]);
+								});
+							});
+						});
+					});
+				});
+
+				it('should skip any unknown attribute', function () {
+					var account = generateAccount();
+					var updateAccount = generateAccount();
+
+					updateAccount.unkownAttr = 'unknownAttr';
+
+					return db.accounts.insert(account).then(function (value) {
+						return db.accounts.update(account.address, updateAccount);
 					});
 				});
 			});

@@ -17,8 +17,9 @@ var PQ = require('pg-promise').ParameterizedQuery;
 var QF = require('pg-promise').QueryFile;
 var _ = require('lodash');
 var path = require('path');
-const migrationsSql = require('../sql').migrations;
+var migrationsSql = require('../sql').migrations;
 var constants = require('../../helpers/constants');
+var Promise = require('bluebird');
 var columnSet;
 
 /**
@@ -98,12 +99,18 @@ function AccountsRepo (db, pgp) {
 			{name: 'publicKey', 		mod: ':raw', init: function (object) { return 'DECODE(\'' + object.value + '\', \'hex\')'; }},
 			{name: 'secondPublicKey', 	mod: ':raw',
 				init: function (object) {
-					return (object.value == undefined || object.value === null) ? 'NULL' : 'DECODE(\'' + object.value +'\', \'hex\')';
+					return (object.value === undefined || object.value === null) ? 'NULL' : 'DECODE(\'' + object.value +'\', \'hex\')';
 				},
 				skip: function (object) { return object.exists; }},
 		]);
 
 		columnSet.update = new pgp.helpers.ColumnSet(normalFields, {table: table});
+		columnSet.update = columnSet.update.merge([
+			{name: 'isDelegate', 		cast: 'int'},
+			{name: 'u_isDelegate', 		cast: 'int'},
+			{name: 'secondSignature', 	cast: 'int'},
+			{name: 'u_secondSignature', cast: 'int'}
+		]);
 	}
 
 	this.cs = columnSet;
@@ -173,6 +180,22 @@ AccountsRepo.prototype.getDBFields = function () {
 	});
 };
 
+AccountsRepo.prototype.getImmutableFields = function () {
+	return _.difference(_.map(this.cs.insert.columns, function (field) {
+		return field.prop || field.name;
+	}), _.map(this.cs.update.columns, function (field) {
+		return field.prop || field.name;
+	}));
+};
+
+AccountsRepo.prototype.getDynamicFields = function () {
+	return _.difference(_.map(this.cs.select.columns, function (field) {
+		return field.prop || field.name;
+	}), _.map(this.cs.insert.columns, function (field) {
+		return field.prop || field.name;
+	}));
+};
+
 /**
  * Count mem accounts
  * @return {Promise}
@@ -207,17 +230,69 @@ AccountsRepo.prototype.getDelegates = function () {
 
 /**
  * Update or insert into mem_accounts
- * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
+ * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
  * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
+ * @param {Object} updateData - Attributes to be updated, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.update}
  * @return {Promise}
  */
-AccountsRepo.prototype.upsert = function (data, conflictingFields) {
-	return this.db.none(
-		this.pgp.helpers.concat([
-			this.pgp.helpers.insert(this.cs, data),
-			'ON CONFLICT ( ' + conflictingFields.join(',') + ') DO',
-			this.pgp.helpers.update(this.cs, data)
-		]));
+AccountsRepo.prototype.upsert = function (data, conflictingFields, updateData) {
+
+	// If single field is specified as conflict field
+	if(typeof(conflictingFields) === 'string') {
+		conflictingFields = [conflictingFields];
+	}
+
+	if(!Array.isArray(conflictingFields) || !conflictingFields.length) {
+		return Promise.reject('Error: db.accounts.upsert - required conflictingFields');
+	}
+
+	if(!updateData) {
+		updateData = Object.assign({}, data);
+	}
+
+	var conditionObject = {};
+	conflictingFields.forEach(function (field) {
+		conditionObject[field] = data[field];
+	});
+
+	return this.db.tx('db:accounts:upsert', function (t) {
+		return t.accounts.list(conditionObject, ['address']).then(function (result) {
+			if(result.length) {
+				return t.accounts.update(result[0].address, updateData);
+			} else {
+				return t.accounts.insert(data);
+			}
+		});
+	});
+};
+
+/**
+ * Create the record in mem_accounts
+ * It is encouraged to use **db.accounts.updsert** instead
+ *
+ * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
+ * @return {Promise}
+ *
+ */
+AccountsRepo.prototype.insert = function (data) {
+	return this.db.none(this.pgp.helpers.insert(data, this.cs.insert));
+};
+
+/**
+ * Update record in mem_accounts
+ * It is encouraged to use **db.accounts.updsert** instead
+ *
+ * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
+ * @param {string} address - Address of the account to be updated
+ * @return {Promise}
+ */
+AccountsRepo.prototype.update = function (address, data) {
+
+	if(!address) {
+		return Promise.reject('Error: db.accounts.update - required address not specified');
+	}
+
+	return this.db.none(this.pgp.helpers.update(data, this.cs.update) + this.pgp.as.format(' WHERE $1:name=$2', ['address', address]));
 };
 
 /**
