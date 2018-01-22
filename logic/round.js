@@ -117,7 +117,9 @@ Round.prototype.updateVotes = function () {
 		});
 
 		if (queries.length > 0) {
-			return self.t.batch(queries);
+			return self.t.tx(function (t) {
+				return t.batch(queries);
+			});
 		} else {
 			return self.t;
 		}
