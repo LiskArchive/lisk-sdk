@@ -25,6 +25,7 @@ __private.loaded = false;
 __private.blockReward = new BlockReward();
 __private.keypairs = {};
 __private.tmpKeypairs = {};
+__private.forgeAttemptInterval = 1000;
 
 /**
  * Initializes library with scope content and generates a Delegate instance.
@@ -606,7 +607,7 @@ Delegates.prototype.onBlockchainReady = function () {
 			});
 		}
 
-		jobsQueue.register('delegatesNextForge', nextForge, 1000);
+		jobsQueue.register('delegatesNextForge', nextForge, __private.forgeAttemptInterval);
 	});
 };
 
