@@ -1018,14 +1018,7 @@ Account.prototype.merge = function (address, diff, cb, tx) {
  * @returns {setImmediateCallback} Data with address | Account#remove error.
  */
 Account.prototype.remove = function (address, cb) {
-	var sql = jsonSql.build({
-		type: 'remove',
-		table: this.table,
-		condition: {
-			address: address
-		}
-	});
-	this.scope.db.none(sql.query, sql.values).then(function () {
+	this.scope.db.accounts.remove(address).then(function () {
 		return setImmediate(cb, null, address);
 	}).catch(function (err) {
 		library.logger.error(err.stack);

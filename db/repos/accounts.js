@@ -310,6 +310,17 @@ AccountsRepo.prototype.update = function (address, data) {
 };
 
 /**
+ * Delete record from mem_accounts
+ *
+ * @param {string} address - Address of the account to be updated
+ * @return {Promise}
+ */
+AccountsRepo.prototype.remove = function (address) {
+	var sql = 'DELETE FROM $1:name WHERE $2:name = $3';
+	return this.db.none(sql, [this.dbTable, 'address', address]);
+};
+
+/**
  * Clear data in memory tables
  * - mem_round
  * - mem_accounts2delegates
