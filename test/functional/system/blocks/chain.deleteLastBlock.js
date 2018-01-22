@@ -30,7 +30,7 @@ describe('blocks/chain', function () {
 
 		describe('errors', function () {
 
-			it('should fail when try to delete genesis block', function (done) {
+			it('should fail when trying to delete genesis block', function (done) {
 				library.modules.blocks.chain.deleteLastBlock(function (err, res) {
 					expect(err).to.equal('Cannot delete genesis block');
 					expect(res).to.not.exist;
@@ -149,7 +149,7 @@ describe('blocks/chain', function () {
 				});
 			});
 
-			describe('(type 1) register second secret', function () {
+			describe('(type 1) register second signature', function () {
 
 				before('create account with funds', function (done) {
 					createAccountWithFunds(done);
