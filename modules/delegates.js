@@ -585,13 +585,11 @@ Delegates.prototype.onBind = function (scope) {
 	);
 };
 
-__private.nextForge = function (cb) {
+__private.nextForge = function (sequenceCb) {
 	async.series([
 		__private.forge,
 		modules.transactions.fillPool
-	], function () {
-		return setImmediate(cb);
-	});
+	], sequenceCb);
 };
 
 __private.logLoadDelegatesError = function (err) {
@@ -608,7 +606,7 @@ Delegates.prototype.onBlockchainReady = function () {
 		if (err) {
 			jobsQueue.register('logLoadDelegatesError', __private.logLoadDelegatesError.bind(null, err), __private.forgeAttemptInterval);
 		}
-		jobsQueue.register('delegatesNextForge', __private.nextForge, __private.forgeAttemptInterval);
+		jobsQueue.register('delegatesNextForge', library.sequence.add.bind(null, __private.nextForge), __private.forgeAttemptInterval);
 	});
 };
 
