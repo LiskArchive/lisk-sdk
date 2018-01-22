@@ -587,8 +587,9 @@ __private.nextForge = function (sequenceCb) {
 	], sequenceCb);
 };
 
-__private.logLoadDelegatesError = function (err) {
+__private.logLoadDelegatesError = function (err, cb) {
 	library.logger.error('Failed to load delegates', err);
+	return setImmediate(cb);
 };
 
 /**
@@ -599,9 +600,13 @@ Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 	__private.loadDelegates(function (err) {
 		if (err) {
-			jobsQueue.register('logLoadDelegatesError', __private.logLoadDelegatesError.bind(null, err), __private.forgeAttemptInterval);
+			jobsQueue.register('logLoadDelegatesError', function (jobsQueueCb) {
+				__private.logLoadDelegatesError(err, jobsQueueCb);
+			}, __private.forgeAttemptInterval);
 		}
-		jobsQueue.register('delegatesNextForge', library.sequence.add.bind(null, __private.nextForge), __private.forgeAttemptInterval);
+		jobsQueue.register('delegatesNextForge', function (jobsQueueCb) {
+			library.sequence.add(__private.nextForge, jobsQueueCb);
+		}, __private.forgeAttemptInterval);
 	});
 };
 
