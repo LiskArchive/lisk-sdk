@@ -288,9 +288,6 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 	// Transactions to rewind in case of error.
 	var appliedTransactions = {};
 
-	// List of unconfirmed transactions ids.
-	var unconfirmedTransactionIds = [];
-
 	var undoUnconfirmedListStep = function (tx) {
 		return new Promise(function (resolve, reject) {
 			modules.transactions.undoUnconfirmedList(function (err, ids) {
@@ -300,7 +297,6 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 
 					reject('Failed to undo unconfirmed list');
 				} else {
-					unconfirmedTransactionIds = ids;
 					return setImmediate(resolve);
 				}
 			}, tx);
@@ -323,12 +319,6 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 						}
 
 						appliedTransactions[transaction.id] = transaction;
-
-						// Remove the transaction from the node queue, if it was present
-						var index = unconfirmedTransactionIds.indexOf(transaction.id);
-						if (index >= 0) {
-							unconfirmedTransactionIds.splice(index, 1);
-						}
 
 						return setImmediate(resolve);
 					}, tx);
@@ -423,16 +413,6 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 		});
 	};
 
-	var applyUnconfirmedIdsStep = function (tx) {
-		return new Promise(function (resolve, reject) {
-			modules.transactions.applyUnconfirmedIds(unconfirmedTransactionIds, function (err) {
-				if(err){
-					return setImmediate(reject, err);
-				}
-				return setImmediate(resolve);
-			}, tx);
-		});
-	};
 
 	library.db.tx('Chain:applyBlock', function (tx) {
 		modules.blocks.isActive.set(true);
@@ -446,18 +426,15 @@ Chain.prototype.applyBlock = function (block, saveBlock, cb) {
 			})
 			.then(function () {
 				return saveBlockStep(tx);
-			})
-			.then(function () {
-				return applyUnconfirmedIdsStep(tx);
 			});
 	}).then(function (value) {
 		modules.blocks.isActive.set(false);
-		appliedTransactions = unconfirmedTransactionIds = block = null;
+		appliedTransactions = block = null;
 
 		return setImmediate(cb, null);
 	}).catch(function (reason) {
 		modules.blocks.isActive.set(false);
-		appliedTransactions = unconfirmedTransactionIds = block = null;
+		appliedTransactions = block = null;
 
 		// Finish here if snapshotting.
 		// FIXME: Not the best place to do that

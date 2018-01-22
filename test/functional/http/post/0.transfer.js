@@ -139,23 +139,21 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 
 		describe('with offset', function () {
 
-			it('using -1 should be ok', function () {
-				transaction = lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, -1);
+			it('using -10000 should be ok', function () {
+				transaction = lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, -10000);
 
 				return sendTransactionPromise(transaction).then(function (res) {
 					res.body.data.message.should.be.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// goodTransactions.push(transaction);
+					goodTransactions.push(transaction);
 				});
 			});
 
 			it('using future timestamp should fail', function () {
-				transaction = lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, 1000);
+				transaction = lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, 10000);
 
 				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
 					res.body.message.should.be.equal('Invalid transaction timestamp. Timestamp is in the future');
-					// TODO: Enable when transaction pool order is fixed
-					// badTransactions.push(transaction);
+					badTransactions.push(transaction);
 				});
 			});
 		});
