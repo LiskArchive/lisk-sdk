@@ -37,37 +37,41 @@ function AccountsRepo (db, pgp) {
 
 	this.dbTable = 'mem_accounts';
 
+	var ifNotExists = function (c) {
+		return !c.exists;
+	};
+
 	// Used in SELECT, UPDATE, INSERT
 	var normalFields = [
-		{name: 'isDelegate', 		cast: 'int::boolean'},
-		{name: 'u_isDelegate', 		cast: 'int::boolean'},
-		{name: 'secondSignature', 	cast: 'int::boolean'},
-		{name: 'u_secondSignature', cast: 'int::boolean'},
-		{name: 'balance', 			cast: 'bigint'},
-		{name: 'u_balance', 		cast: 'bigint'},
-		{name: 'rate', 				cast: 'bigint'},
-		{name: 'multimin'},
-		{name: 'u_multimin'},
-		{name: 'multilifetime'},
-		{name: 'u_multilifetime'},
-		{name: 'blockId'},
-		{name: 'nameexist'},
-		{name: 'u_nameexist'},
-		{name: 'fees', 				cast: 'bigint'},
-		{name: 'rewards', 			cast: 'bigint'},
-		{name: 'vote', 				cast: 'bigint'},
-		{name: 'producedblocks', 	cast: 'bigint', prop: 'producedBlocks'},
-		{name: 'missedblocks', 		cast: 'bigint', prop: 'missedBlocks'},
+		{name: 'isDelegate', 		cast: 'int::boolean', skip: ifNotExists},
+		{name: 'u_isDelegate', 		cast: 'int::boolean', skip: ifNotExists},
+		{name: 'secondSignature', 	cast: 'int::boolean', skip: ifNotExists},
+		{name: 'u_secondSignature', cast: 'int::boolean', skip: ifNotExists},
+		{name: 'balance', 			cast: 'bigint', 		def: '0', skip: ifNotExists},
+		{name: 'u_balance', 		cast: 'bigint',			def: '0', skip: ifNotExists},
+		{name: 'rate', 				cast: 'bigint', 		def: '0'},
+		{name: 'multimin',									def: 0},
+		{name: 'u_multimin',								def: 0},
+		{name: 'multilifetime',								def: 0},
+		{name: 'u_multilifetime',							def: 0},
+		{name: 'blockId',									def: null},
+		{name: 'nameexist',									def: 0},
+		{name: 'u_nameexist',								def: 0},
+		{name: 'fees', 				cast: 'bigint',			def: '0'},
+		{name: 'rewards', 			cast: 'bigint',			def: '0'},
+		{name: 'vote', 				cast: 'bigint',			def: '0'},
+		{name: 'producedblocks', 	cast: 'bigint', 		def: '0', 	prop: 'producedBlocks'},
+		{name: 'missedblocks', 		cast: 'bigint', 		def: '0', 	prop: 'missedBlocks'},
+		{name: 'username',			def: null,		skip: ifNotExists},
+		{name: 'u_username',		def: null,		skip: ifNotExists},
+		{name: 'publicKey', 		mode: ':raw', init: function (object) { return 'ENCODE("publicKey", \'hex\')'; }, skip: ifNotExists},
+		{name: 'secondPublicKey', 	mode: ':raw', init: function (object) { return 'ENCODE("secondPublicKey", \'hex\')'; }, skip: ifNotExists},
+		{name: 'virgin', 			cast: 'int::boolean', 	def: 1, skip: ifNotExists}
 	];
 
 	// ONLY USED IN SELECT and INSERT
 	var immutableFields = [
-		{name: 'username'},
-		{name: 'u_username'},
 		{name: 'address', 			mode: ':raw', init: function (object) { return 'UPPER("address")'; }},
-		{name: 'publicKey', 		mode: ':raw', init: function (object) { return 'ENCODE("publicKey", \'hex\')'; }},
-		{name: 'secondPublicKey', 	mode: ':raw', init: function (object) { return 'ENCODE("secondPublicKey", \'hex\')'; }},
-		{name: 'virgin', 			cast: 'int::boolean'}
 	];
 
 	// ONLY USED IN SELECT
@@ -90,26 +94,26 @@ function AccountsRepo (db, pgp) {
 
 		columnSet.insert = new pgp.helpers.ColumnSet(_.union(normalFields, immutableFields), {table: table});
 		columnSet.insert = columnSet.insert.merge([
-			{name: 'isDelegate', 		cast: 'int'},
-			{name: 'u_isDelegate', 		cast: 'int'},
-			{name: 'secondSignature', 	cast: 'int'},
-			{name: 'u_secondSignature', cast: 'int'},
-			{name: 'virgin', 			cast: 'int'},
+			{name: 'isDelegate', 		cast: 'int', 	def: 0},
+			{name: 'u_isDelegate', 		cast: 'int', 	def: 0},
+			{name: 'secondSignature', 	cast: 'int', 	def: 0},
+			{name: 'u_secondSignature', cast: 'int', 	def: 0},
+			{name: 'virgin', 			cast: 'int',	def: 1},
 			{name: 'address', 			mod: ':raw', init: function (object) { return 'UPPER(\'' + object.value + '\')'; }},
-			{name: 'publicKey', 		mod: ':raw', init: function (object) { return 'DECODE(\'' + object.value + '\', \'hex\')'; }},
-			{name: 'secondPublicKey', 	mod: ':raw',
-				init: function (object) {
-					return (object.value === undefined || object.value === null) ? 'NULL' : 'DECODE(\'' + object.value +'\', \'hex\')';
-				},
-				skip: function (object) { return object.exists; }},
+			{name: 'publicKey', 		mod: ':raw', init: function (object) { return (object.value === undefined || object.value === null) ? 'NULL' : 'DECODE(\'' + object.value +'\', \'hex\')'; }, skip: ifNotExists},
+			{name: 'secondPublicKey', 	mod: ':raw', init: function (object) { return (object.value === undefined || object.value === null) ? 'NULL' : 'DECODE(\'' + object.value +'\', \'hex\')'; }, skip: ifNotExists},
 		]);
 
 		columnSet.update = new pgp.helpers.ColumnSet(normalFields, {table: table});
 		columnSet.update = columnSet.update.merge([
-			{name: 'isDelegate', 		cast: 'int'},
-			{name: 'u_isDelegate', 		cast: 'int'},
-			{name: 'secondSignature', 	cast: 'int'},
-			{name: 'u_secondSignature', cast: 'int'}
+			{name: 'address', 			mod: ':raw', init: function (object) { return 'UPPER(\'' + object.value + '\')'; }},
+			{name: 'publicKey', 		mod: ':raw', init: function (object) { return (object.value === undefined || object.value === null) ? 'NULL' : 'DECODE(\'' + object.value +'\', \'hex\')'; }, skip: ifNotExists},
+			{name: 'secondPublicKey', 	mod: ':raw', init: function (object) { return (object.value === undefined || object.value === null) ? 'NULL' : 'DECODE(\'' + object.value +'\', \'hex\')';}, skip: ifNotExists},
+			{name: 'isDelegate', 		cast: 'int', skip: ifNotExists},
+			{name: 'u_isDelegate', 		cast: 'int', skip: ifNotExists},
+			{name: 'secondSignature', 	cast: 'int', skip: ifNotExists},
+			{name: 'u_secondSignature', cast: 'int', skip: ifNotExists},
+			{name: 'virgin', 			cast: 'int',	def: 1},
 		]);
 	}
 
@@ -188,14 +192,6 @@ AccountsRepo.prototype.getImmutableFields = function () {
 	}));
 };
 
-AccountsRepo.prototype.getDynamicFields = function () {
-	return _.difference(_.map(this.cs.select.columns, function (field) {
-		return field.prop || field.name;
-	}), _.map(this.cs.insert.columns, function (field) {
-		return field.prop || field.name;
-	}));
-};
-
 /**
  * Count mem accounts
  * @return {Promise}
@@ -250,20 +246,38 @@ AccountsRepo.prototype.upsert = function (data, conflictingFields, updateData) {
 		updateData = Object.assign({}, data);
 	}
 
-	var conditionObject = {};
-	conflictingFields.forEach(function (field) {
-		conditionObject[field] = data[field];
-	});
+	if(_.difference(_.union(Object.keys(data), Object.keys(updateData)), this.getDBFields()).length) {
+		return Promise.reject('Unknown field provided to upsert');
+	}
 
-	return this.db.tx('db:accounts:upsert', function (t) {
-		return t.accounts.list(conditionObject, ['address']).then(function (result) {
-			if(result.length) {
-				return t.accounts.update(result[0].address, updateData);
-			} else {
-				return t.accounts.insert(data);
-			}
+	if(conflictingFields.length === 1 && conflictingFields[0] === 'address') {
+
+		var sql = '${insertSQL:raw} ON CONFLICT(${conflictFields:name}) DO UPDATE SET ${setsSQL:raw}';
+
+		return this.db.none(sql, {
+			insertSQL: this.pgp.helpers.insert(data, this.cs.insert),
+			conflictFields: conflictingFields,
+			setsSQL: this.pgp.helpers.sets(updateData, this.cs.update)
 		});
-	});
+
+	} else {
+
+		var conditionObject = {};
+		conflictingFields.forEach(function (field) {
+			conditionObject[field] = data[field];
+		});
+
+		// TODO: When we update db to have unique index on useable fields then we can convert this logic to ON CONFLICT UPDATE
+		return this.db.tx('db:accounts:upsert', function (t) {
+			return t.accounts.list(conditionObject, ['address']).then(function (result) {
+				if(result.length) {
+					return t.accounts.update(result[0].address, updateData);
+				} else {
+					return t.accounts.insert(data);
+				}
+			});
+		});
+	}
 };
 
 /**
@@ -367,6 +381,7 @@ AccountsRepo.prototype.list = function (filters, fields, options) {
 		limit: limit,
 		offset: offset});
 
+	console.log(query);
 	return this.db.query(query);
 };
 

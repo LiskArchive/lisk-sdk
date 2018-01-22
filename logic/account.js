@@ -761,18 +761,9 @@ Account.prototype.set = function (address, fields, cb, tx) {
 	this.verifyPublicKey(fields.publicKey);
 
 	// Normalize address
-	address = String(address).toUpperCase();
 	fields.address = address;
 
-	var sql = jsonSql.build({
-		type: 'insertorupdate',
-		table: this.table,
-		conflictFields: ['address'],
-		values: this.toDB(fields),
-		modifier: this.toDB(fields)
-	});
-
-	(tx || this.scope.db).none(sql.query, sql.values).then(function () {
+	(tx || this.scope.db).accounts.upsert(fields, ['address']).then(function () {
 		return setImmediate(cb);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
