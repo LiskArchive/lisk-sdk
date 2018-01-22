@@ -33,7 +33,6 @@
 		"__testContext": true,
 		"expect": true,
 		"gc": true,
-		"should": true,
 		"sinonSandbox": true
 	},
 	"plugins": []
