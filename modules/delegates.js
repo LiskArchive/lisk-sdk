@@ -585,29 +585,30 @@ Delegates.prototype.onBind = function (scope) {
 	);
 };
 
+__private.nextForge = function (cb) {
+	async.series([
+		__private.forge,
+		modules.transactions.fillPool
+	], function () {
+		return setImmediate(cb);
+	});
+};
+
+__private.logLoadDelegatesError = function (err) {
+	library.logger.error('Failed to load delegates', err);
+};
+
 /**
  * Loads delegates.
  * @implements module:transactions#Transactions~fillPool
  */
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
-
 	__private.loadDelegates(function (err) {
-
-		function nextForge (cb) {
-			if (err) {
-				library.logger.error('Failed to load delegates', err);
-			}
-
-			async.series([
-				__private.forge,
-				modules.transactions.fillPool
-			], function () {
-				return setImmediate(cb);
-			});
+		if (err) {
+			jobsQueue.register('logLoadDelegatesError', __private.logLoadDelegatesError.bind(null, err), __private.forgeAttemptInterval);
 		}
-
-		jobsQueue.register('delegatesNextForge', nextForge, __private.forgeAttemptInterval);
+		jobsQueue.register('delegatesNextForge', __private.nextForge, __private.forgeAttemptInterval);
 	});
 };
 
