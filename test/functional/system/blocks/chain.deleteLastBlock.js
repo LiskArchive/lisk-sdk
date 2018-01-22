@@ -12,6 +12,7 @@ var randomUtil = require('../../../common/utils/random');
 var localCommon = require('../common');
 
 describe('blocks/chain', function () {
+
 	var library;
 
 	before('init sandboxed application', function (done) {
@@ -682,7 +683,6 @@ describe('blocks/chain', function () {
 		});
 
 		describe('multiple transactions scenarios: create transactions, forge, delete block, forge again', function () {
-
 		});
 	});
 });
