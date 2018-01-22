@@ -608,11 +608,9 @@ __private.loadBlocksFromNetwork = function (cb) {
  * - Applies unconfirmed transactions.
  * @private
  * @implements {async.series}
- * @implements {modules.transactions.undoUnconfirmedList}
  * @implements {modules.transport.getPeers}
  * @implements {__private.loadBlocksFromNetwork}
  * @implements {modules.system.update}
- * @implements {modules.transactions.applyUnconfirmedList}
  * @param {function} cb
  * @todo Check err actions.
  */
@@ -624,10 +622,6 @@ __private.sync = function (cb) {
 	__private.syncTrigger(true);
 
 	async.series({
-		undoUnconfirmedList: function (seriesCb) {
-			library.logger.debug('Undoing unconfirmed transactions before sync');
-			return modules.transactions.undoUnconfirmedList(seriesCb);
-		},
 		getPeersBefore: function (seriesCb) {
 			library.logger.debug('Establishing broadhash consensus before sync');
 			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
@@ -641,10 +635,6 @@ __private.sync = function (cb) {
 		getPeersAfter: function (seriesCb) {
 			library.logger.debug('Establishing broadhash consensus after sync');
 			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
-		},
-		applyUnconfirmedList: function (seriesCb) {
-			library.logger.debug('Applying unconfirmed transactions after sync');
-			return modules.transactions.applyUnconfirmedList(seriesCb);
 		}
 	}, function (err) {
 		__private.isActive = false;
