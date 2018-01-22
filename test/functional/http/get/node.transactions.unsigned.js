@@ -19,7 +19,6 @@ var randomUtil = require('../../../common/utils/random');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
-var sendTransactionsPromise = apiHelpers.sendTransactionsPromise;
 var accountFixtures = require('../../../fixtures/accounts');
 var Promise = require('bluebird');
 var normalizer = require('../../../common/utils/normalizer');

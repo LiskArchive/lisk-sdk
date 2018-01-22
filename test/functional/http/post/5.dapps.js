@@ -42,15 +42,6 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 	var accountNoFunds = randomUtil.account();
 	var accountMinimalFunds = randomUtil.account();
 
-	// Variables to check unconfirmed states
-	var dappDuplicate = randomUtil.application();
-	var dappDuplicateNameSuccess = randomUtil.application();
-	var dappDuplicateNameFail = randomUtil.application();
-	dappDuplicateNameSuccess.name = dappDuplicateNameFail.name;
-	var dappDuplicateLinkSuccess = randomUtil.application();
-	var dappDuplicateLinkFail = randomUtil.application();
-	dappDuplicateLinkSuccess.link = dappDuplicateLinkFail.link;
-
 	// Crediting accounts
 	before(function () {
 		var transaction1 = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
@@ -492,75 +483,6 @@ describe('POST /api/transactions (type 5) register dapp', function () {
 				res.body.data.message.should.be.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
-		});
-	});
-
-	describe('unconfirmed state', function () {
-
-		it('duplicate submission identical app should be ok and only last transaction to arrive should be confirmed', function () {
-			transaction = lisk.dapp.createDapp(account.password, null, dappDuplicate, -1);
-
-			return sendTransactionPromise(transaction)
-				.then(function (res) {
-					res.body.data.message.should.be.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// badTransactions.push(transaction);
-				})
-				.then(function (res) {
-					// Transaction with same info but different ID (due to timeOffSet parameter)
-					transaction = lisk.dapp.createDapp(account.password, null, dappDuplicate);
-
-					return sendTransactionPromise(transaction);
-				})
-				.then(function (res) {
-					res.body.data.message.should.be.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// goodTransactions.push(transaction);
-				});
-		});
-
-		it('two different dapps with same name should be ok and only last transaction to arrive should be confirmed', function () {
-			transaction = lisk.dapp.createDapp(account.password, null, dappDuplicateNameFail);
-
-			return sendTransactionPromise(transaction)
-				.then(function (res) {
-					res.body.data.message.should.be.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// badTransactions.push(transaction);
-				})
-				.then(function (res) {
-					// Transaction with same info but different ID (due to timeOffSet parameter)
-					transaction = lisk.dapp.createDapp(account.password, null, dappDuplicateNameSuccess);
-
-					return sendTransactionPromise(transaction);
-				})
-				.then(function (res) {
-					res.body.data.message.should.be.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// goodTransactions.push(transaction);
-				});
-		});
-
-		it('two different dapps with same link should be ok and only last transaction to arrive should be confirmed', function () {
-			transaction = lisk.dapp.createDapp(account.password, null, dappDuplicateLinkFail);
-
-			return sendTransactionPromise(transaction)
-				.then(function (res) {
-					res.body.data.message.should.be.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// badTransactions.push(transaction);
-				})
-				.then(function (res) {
-					// Transaction with same info but different ID (due to timeOffSet parameter)
-					transaction = lisk.dapp.createDapp(account.password, null, dappDuplicateLinkSuccess);
-
-					return sendTransactionPromise(transaction);
-				})
-				.then(function (res) {
-					res.body.data.message.should.be.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// goodTransactions.push(transaction);
-				});
 		});
 	});
 

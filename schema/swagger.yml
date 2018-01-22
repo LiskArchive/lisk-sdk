@@ -872,6 +872,8 @@ paths:
           required: true
           schema:
             type: array
+            maxItems: 1
+            minItems: 1
             items:
               $ref: '#/definitions/Transaction'
       responses:
@@ -1628,12 +1630,6 @@ definitions:
         format: id
         example: "15918760246746894806"
 
-  BlocksList:
-    x-private: true
-    type: array
-    items:
-      $ref: '#/definitions/Block'
-
   ForgingStatus:
     type: object
     required:
@@ -1767,6 +1763,7 @@ definitions:
     required:
       - ip
       - wsPort
+      - state
     properties:
       ip:
         type: string
@@ -2448,6 +2445,12 @@ definitions:
           $ref: '#/definitions/Signature'
         minItems: 1
         maxItems: 25
+
+  WSBlocksList:
+    x-private: true
+    type: array
+    items:
+      type: object
 
   WSBlocksCommonRequest:
     x-private: true

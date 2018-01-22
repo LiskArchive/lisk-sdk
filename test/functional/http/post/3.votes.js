@@ -41,7 +41,6 @@ describe('POST /api/transactions (type 3) votes', function () {
 	var delegateAccount = randomUtil.account();
 	var accountNoFunds = randomUtil.account();
 	var accountMinimalFunds = randomUtil.account();
-	var accountDuplicates = randomUtil.account();
 
 	/*
 	Creating two scenarios with two isolated set of accounts
@@ -70,8 +69,7 @@ describe('POST /api/transactions (type 3) votes', function () {
 		var transaction3 = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1000 * normalizer, accountFixtures.genesis.password);
 		var transaction4 = lisk.transaction.createTransaction(accountMaxVotesPerTransaction.address, 1000 * normalizer, accountFixtures.genesis.password);
 		var transaction5 = lisk.transaction.createTransaction(accountMaxVotesPerAccount.address, 1000 * normalizer, accountFixtures.genesis.password);
-		var transaction6 = lisk.transaction.createTransaction(accountDuplicates.address, constants.fees.vote * 4, accountFixtures.genesis.password);
-		transactions.push(transaction1, transaction2, transaction4, transaction4, transaction5, transaction6);
+		transactions.push(transaction1, transaction2, transaction4, transaction4, transaction5);
 
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));
@@ -79,7 +77,6 @@ describe('POST /api/transactions (type 3) votes', function () {
 		promises.push(sendTransactionPromise(transaction3));
 		promises.push(sendTransactionPromise(transaction4));
 		promises.push(sendTransactionPromise(transaction5));
-		promises.push(sendTransactionPromise(transaction6));
 
 		return Promise.all(promises)
 			.then(function (res) {
@@ -321,31 +318,6 @@ describe('POST /api/transactions (type 3) votes', function () {
 		});
 	});
 
-	describe('unconfirmed state', function () {
-
-		it('upvoting with valid params and duplicate submission should be ok and only last transaction to arrive should be confirmed', function () {
-			transaction = lisk.vote.createVote(accountDuplicates.password, ['+' + accountFixtures.existingDelegate.publicKey]);
-
-			return sendTransactionPromise(transaction)
-				.then(function (res) {
-					res.body.data.message.should.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// badTransactions.push(transaction);
-				})
-				.then(function (res) {
-					// Transaction with same info but different ID (due to timeOffSet parameter)
-					transaction = lisk.vote.createVote(accountDuplicates.password, ['+' + accountFixtures.existingDelegate.publicKey], null, 1);
-
-					return sendTransactionPromise(transaction);
-				})
-				.then(function (res) {
-					res.body.data.message.should.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// goodTransactions.push(transaction);
-				});
-		});
-	});
-
 	describe('confirmation', function () {
 
 		phases.confirmation(goodTransactions, badTransactions);
@@ -437,31 +409,6 @@ describe('POST /api/transactions (type 3) votes', function () {
 						result.body.data.message.should.equal('Transaction(s) accepted');
 					});
 					goodTransactionsEnforcement.push(transaction1, transaction2, transaction3, transaction4);
-				});
-		});
-	});
-
-	describe('unconfirmed state after validation', function () {
-
-		it('downvoting with valid params and duplicate submission should be ok and only last transaction to arrive should be confirmed', function () {
-			transaction = lisk.vote.createVote(accountDuplicates.password, ['-' + accountFixtures.existingDelegate.publicKey]);
-
-			return sendTransactionPromise(transaction)
-				.then(function (res) {
-					res.body.data.message.should.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// badTransactionsEnforcement.push(transaction);
-				})
-				.then(function (res) {
-					// Transaction with same info but different ID (due to timeOffSet parameter)
-					transaction = lisk.vote.createVote(accountDuplicates.password, ['-' + accountFixtures.existingDelegate.publicKey], null, 1);
-
-					return sendTransactionPromise(transaction);
-				})
-				.then(function (res) {
-					res.body.data.message.should.equal('Transaction(s) accepted');
-					// TODO: Enable when transaction pool order is fixed
-					// goodTransactionsEnforcement.push(transaction);
 				});
 		});
 	});
