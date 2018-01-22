@@ -129,12 +129,12 @@ describe('accounts', function () {
 		});
 
 		it('should internally call logic/account.getAll method', function (done) {
-			var getAllSpy = sinonSandbox.spy(accountLogic, 'getAll');
+			sinonSandbox.spy(accountLogic, 'getAll');
 
 			accounts.getAccounts({address : validAccount.address}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array').to.have.length(1);
-				expect(getAllSpy.withArgs({address : validAccount.address})).to.be.ok;
+				expect(accountLogic.getAll.calledOnce).to.be.true;
 				done();
 			});
 		});

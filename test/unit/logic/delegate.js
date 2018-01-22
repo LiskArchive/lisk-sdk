@@ -151,6 +151,11 @@ describe('delegate', function () {
 
 	describe('verify', function () {
 
+		beforeEach(function () {
+			sinonSandbox.stub(delegate, 'checkConfirmed').callsArgWith(1, null);
+			sinonSandbox.stub(delegate, 'checkUnconfirmed').callsArgWith(1, null);
+		});
+
 		describe('when transaction is not valid', function () {
 
 			it('should call callback with error if recipientId exists', function (done) {
@@ -258,6 +263,31 @@ describe('delegate', function () {
 
 		describe('when transaction is valid', function () {
 
+			it('should call checkConfirmed with correct transaction', function (done) {
+				delegate.verify(transaction, sender, function () {
+					expect(delegate.checkConfirmed.calledWith(transaction)).to.be.true;
+					done();
+				});
+			});
+
+			describe('when delegate was not registered before', function () {
+
+				it('should call callback with valid transaction when username contains symbols which are valid', function (done) {
+					transaction.asset.delegate.username = random.username() + '!@.';
+					delegate.verify(transaction, sender, function () {
+						expect(delegate.checkConfirmed.calledWith(transaction)).to.be.true;
+						done();
+					});
+				});
+
+				it('should call callback with error = null', function (done) {
+					delegate.verify(transaction, sender, function (err) {
+						expect(err).to.be.null;
+						done();
+					});
+				});
+			});
+
 			describe('when username already exists as unconfirmed', function () {
 
 				beforeEach(function () {
@@ -269,7 +299,7 @@ describe('delegate', function () {
 
 				it('should not return an error', function (done) {
 					delegate.verify(validTransaction, validSender, function (err) {
-						expect(err).to.be.undefined;
+						expect(err).to.be.null;
 						done();
 					});
 				});
@@ -278,6 +308,7 @@ describe('delegate', function () {
 			describe('when username already exists as confirmed', function () {
 
 				beforeEach(function () {
+					delegate.checkConfirmed.callsArgWith(1, 'Username ' + accounts.existingDelegate.delegateName + ' already exists');
 					accountsMock.getAccount.withArgs({username: accounts.existingDelegate.delegateName}, ['username'], sinonSandbox.match.any).yields(null, accounts.existingDelegate);
 					accountsMock.getAccount.withArgs({u_username: accounts.existingDelegate.delegateName}, ['u_username'], sinonSandbox.match.any).yields(null, null);
 					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1}, ['u_username'], sinonSandbox.match.any).yields(null, null);
@@ -301,9 +332,9 @@ describe('delegate', function () {
 					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, isDelegate: 1}, ['username'], sinonSandbox.match.any).yields(null, null);
 				});
 
-				it('should return not return an error', function (done) {
+				it('should not return an error', function (done) {
 					delegate.verify(validTransaction, validSender, function (err) {
-						expect(err).to.be.undefined;
+						expect(err).to.be.null;
 						done();
 					});
 				});
@@ -312,6 +343,7 @@ describe('delegate', function () {
 			describe('when publicKey already exists as confirmed delegate', function () {
 
 				beforeEach(function () {
+					delegate.checkConfirmed.callsArgWith(1, 'Account is already a delegate');
 					accountsMock.getAccount.withArgs({username: accounts.existingDelegate.delegateName}, ['username'], sinonSandbox.match.any).yields(null, null);
 					accountsMock.getAccount.withArgs({u_username: accounts.existingDelegate.delegateName}, ['u_username'], sinonSandbox.match.any).yields(null, null);
 					accountsMock.getAccount.withArgs({publicKey: accounts.existingDelegate.publicKey, u_isDelegate: 1}, ['u_username'], sinonSandbox.match.any).yields(null, null);
@@ -321,38 +353,6 @@ describe('delegate', function () {
 				it('should return an error = "Account is already a delegate"', function (done) {
 					delegate.verify(validTransaction, validSender, function (err) {
 						expect(err).equal('Account is already a delegate');
-						done();
-					});
-				});
-			});
-		});
-
-		describe('when transaction is valid', function () {
-
-			beforeEach(function () {
-				sinonSandbox.stub(delegate, 'checkConfirmed').callsArgWith(1, null);
-			});
-
-			it('should call checkConfirmed with correct transaction', function (done) {
-				delegate.verify(transaction, sender, function () {
-					expect(delegate.checkConfirmed.calledWith(transaction)).to.be.true;
-					done();
-				});
-			});
-
-			describe('when delegate was not registered before', function () {
-
-				it('should call callback with valid transaction when username contains symbols which are valid', function (done) {
-					transaction.asset.delegate.username = random.username() + '!@.';
-					delegate.verify(transaction, sender, function () {
-						expect(delegate.checkConfirmed.calledWith(transaction)).to.be.true;
-						done();
-					});
-				});
-
-				it('should call callback with error = null', function (done) {
-					delegate.verify(transaction, sender, function (err) {
-						expect(err).to.be.null;
 						done();
 					});
 				});
@@ -461,12 +461,11 @@ describe('delegate', function () {
 	describe('checkConfirmed', function () {
 
 		var validUsername;
-		var transactionsExceptionsIndexOfSpy;
 
 		beforeEach(function () {
 			validUsername = validSender.username;
 			sinonSandbox.stub(delegate, 'checkDuplicates').callsArg(3);
-			transactionsExceptionsIndexOfSpy = sinonSandbox.spy(exceptions.delegates, 'indexOf');
+			sinonSandbox.spy(exceptions.delegates, 'indexOf');
 		});
 
 		it('should call checkDuplicates with valid transaction', function (done) {
@@ -518,7 +517,7 @@ describe('delegate', function () {
 
 			it('should check if transaction exception occurred', function (done) {
 				delegate.checkConfirmed(validTransaction, function () {
-					expect(transactionsExceptionsIndexOfSpy.called).to.be.true;
+					expect(exceptions.delegates.indexOf.called).to.be.true;
 					done();
 				});
 			});
@@ -766,11 +765,10 @@ describe('delegate', function () {
 
 		it('should use the correct format to validate against', function () {
 			var library = Delegate.__get__('library');
-			var schemaSpy = sinonSandbox.spy(library.schema, 'validate');
+			sinonSandbox.spy(library.schema, 'validate');
 			delegate.objectNormalize(transaction);
-			expect(schemaSpy.calledOnce).to.equal(true);
-			expect(schemaSpy.calledWithExactly(transaction.asset.delegate, Delegate.prototype.schema)).to.equal(true);
-			schemaSpy.restore();
+			expect(library.schema.validate.calledOnce).to.equal(true);
+			expect(library.schema.validate.calledWithExactly(transaction.asset.delegate, Delegate.prototype.schema)).to.equal(true);
 		});
 
 		describe('when library.schema.validate fails', function () {
