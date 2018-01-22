@@ -11,6 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+'use strict';
+
 var async = require('async');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var cacheReady = true;

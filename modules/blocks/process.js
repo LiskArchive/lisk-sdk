@@ -413,7 +413,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 	}
 
 	function validateBlocks (blocks, seriesCb) {
-		var report = library.schema.validate(blocks, definitions.BlocksList);
+		var report = library.schema.validate(blocks, definitions.WSBlocksList);
 
 		if (!report) {
 			return setImmediate(seriesCb, 'Received invalid blocks data');

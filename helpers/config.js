@@ -48,7 +48,13 @@ function Config (packageJson) {
 		console.log('Failed to read config file');
 		process.exit(1);
 	} else {
-		appConfig = JSON.parse(appConfig);
+		try {
+			appConfig = JSON.parse(appConfig);
+		} catch (err) {
+			console.log('Failed to parse config file');
+			console.log(err.message);
+			process.exit(1);
+		}
 	}
 
 	if (program.wsPort) {
