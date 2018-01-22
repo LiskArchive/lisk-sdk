@@ -14,9 +14,8 @@
 'use strict';
 
 var rewire = require('rewire');
-var sinon = require('sinon');
 var chai = require('chai');
-var expect = require('chai').expect;
+var expect = chai.expect;
 
 var swaggerHelper = require('../../../helpers/swagger');
 
@@ -40,12 +39,12 @@ describe('transport', function () {
 		// stubs without affecting other test cases.
 
 		dbStub = {
-			query: sinon.spy()
+			query: sinonSandbox.spy()
 		};
 
 		loggerStub = {
-			debug: sinon.spy(),
-			error: sinon.spy()
+			debug: sinonSandbox.spy(),
+			error: sinonSandbox.spy()
 		};
 
 		busStub = {};
@@ -54,7 +53,7 @@ describe('transport', function () {
 		balancesSequenceStub = {};
 
 		transactionStub = {
-			attachAssetType: sinon.stub()
+			attachAssetType: sinonSandbox.stub()
 		};
 
 		blockStub = {};
@@ -162,10 +161,10 @@ describe('transport', function () {
 
 				library = {
 					schema: {
-						validate: sinon.stub().callsArg(2)
+						validate: sinonSandbox.stub().callsArg(2)
 					},
 					logger: {
-						debug: sinon.spy()
+						debug: sinonSandbox.spy()
 					}
 				};
 
@@ -211,7 +210,7 @@ describe('transport', function () {
 				var restoreRewiredDeps;
 
 				beforeEach(function (done) {
-					removeSpy = sinon.spy();
+					removeSpy = sinonSandbox.spy();
 					restoreRewiredDeps = TransportModule.__set__({
 						modules: {
 							peers: {
@@ -250,9 +249,9 @@ describe('transport', function () {
 		});
 
 		describe('receiveSignatures', function () {
-			
+
 			beforeEach(function (done) {
-				__private.receiveSignature = sinon.stub().callsArg(1);
+				__private.receiveSignature = sinonSandbox.stub().callsArg(1);
 				done();
 			});
 
@@ -307,7 +306,7 @@ describe('transport', function () {
 				it('should call series callback with error = "Invalid signatures body"', function (done) {
 					var validateErr = new Error('Transaction did not match schema');
 					validateErr.code = 'INVALID_FORMAT';
-					library.schema.validate = sinon.stub().callsArgWith(2, [validateErr]);
+					library.schema.validate = sinonSandbox.stub().callsArgWith(2, [validateErr]);
 
 					__private.receiveSignatures({
 						signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
@@ -339,7 +338,7 @@ describe('transport', function () {
 
 						beforeEach(function (done) {
 							var err = 'Error processing signature: Error message';
-							__private.receiveSignature = sinon.stub().callsArgWith(1, err);
+							__private.receiveSignature = sinonSandbox.stub().callsArgWith(1, err);
 							done();
 						});
 
@@ -387,13 +386,13 @@ describe('transport', function () {
 			beforeEach(function (done) {
 				library = {
 					schema: {
-						validate: sinon.stub().callsArg(2)
+						validate: sinonSandbox.stub().callsArg(2)
 					}
 				};
 
 				modules = {
 					multisignatures: {
-						processSignature: sinon.stub().callsArg(1)
+						processSignature: sinonSandbox.stub().callsArg(1)
 					}
 				};
 
@@ -424,7 +423,7 @@ describe('transport', function () {
 				it('should call callback with error = "Invalid signature body"', function (done) {
 					var validateErr = new Error('Transaction did not match schema');
 					validateErr.code = 'INVALID_FORMAT';
-					library.schema.validate = sinon.stub().callsArgWith(2, [validateErr]);
+					library.schema.validate = sinonSandbox.stub().callsArgWith(2, [validateErr]);
 
 					__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
 						expect(err).to.equal('Invalid signature body ' + validateErr.message);
@@ -448,7 +447,7 @@ describe('transport', function () {
 
 					it('should call callback with error', function (done) {
 						var processSignatureError = 'Transaction not found';
-						modules.multisignatures.processSignature = sinon.stub().callsArgWith(1, processSignatureError);
+						modules.multisignatures.processSignature = sinonSandbox.stub().callsArgWith(1, processSignatureError);
 
 						__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
 							expect(err).to.equal('Error processing signature: ' + processSignatureError);
@@ -460,7 +459,7 @@ describe('transport', function () {
 				describe('when modules.multisignatures.processSignature succeeds', function (){
 
 					it('should call callback with error = undefined', function (done) {
-						modules.multisignatures.processSignature = sinon.stub().callsArg(1);
+						modules.multisignatures.processSignature = sinonSandbox.stub().callsArg(1);
 
 						__private.receiveSignature(SAMPLE_SIGNATURE_1, function (err) {
 							expect(err).to.equal(undefined);
@@ -478,16 +477,16 @@ describe('transport', function () {
 			beforeEach(function (done) {
 				library = {
 					schema: {
-						validate: sinon.stub().callsArg(2)
+						validate: sinonSandbox.stub().callsArg(2)
 					},
 					logger: {
-						debug: sinon.spy()
+						debug: sinonSandbox.spy()
 					}
 				};
 
 				modules = {
 					peers: {
-						remove: sinon.stub().returns(true)
+						remove: sinonSandbox.stub().returns(true)
 					}
 				};
 
@@ -512,7 +511,7 @@ describe('transport', function () {
 					]
 				};
 
-				__private.receiveTransaction = sinon.stub().callsArg(3);
+				__private.receiveTransaction = sinonSandbox.stub().callsArg(3);
 
 				done();
 			});
@@ -536,7 +535,7 @@ describe('transport', function () {
 			// 	it('should call callback with error = "Invalid transactions body"', function (done) {
 			// 		var validateErr = new Error('Transaction did not match schema');
 			// 		validateErr.code = 'INVALID_FORMAT';
-			// 		library.schema.validate = sinon.stub().callsArgWith(2, [validateErr]);
+			// 		library.schema.validate = sinonSandbox.stub().callsArgWith(2, [validateErr]);
 			//
 			// 		__private.receiveTransactions(query, peerStub, '', function (err) {
 			// 			expect(library.schema.validate.called).to.be.true;
@@ -583,7 +582,7 @@ describe('transport', function () {
 
 							beforeEach(function (done) {
 								receiveTransactionError = 'Invalid transaction body - ...';
-								__private.receiveTransaction = sinon.stub().callsArgWith(3, receiveTransactionError);
+								__private.receiveTransaction = sinonSandbox.stub().callsArgWith(3, receiveTransactionError);
 								done();
 							});
 
