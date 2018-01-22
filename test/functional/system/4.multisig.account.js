@@ -74,30 +74,30 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				var signKeysInDb = _.map(accountRow.mem_accounts2multisignatures, function (row) {
 					return row.dependentId;
 				});
-				signKeysInDb.should.include(signer1.publicKey, signer2.publicKey);
+				expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
 			});
 
 			it('should set multimin field set on mem_accounts', function () {
-				accountRow.mem_accounts.multimin.should.eql(multisigTransaction.asset.multisignature.min);
+				expect(accountRow.mem_accounts.multimin).to.eql(multisigTransaction.asset.multisignature.min);
 			});
 
 			it('should set multilifetime field set on mem_accounts', function () {
-				accountRow.mem_accounts.multilifetime.should.eql(multisigTransaction.asset.multisignature.lifetime);
+				expect(accountRow.mem_accounts.multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
 			});
 
 			it('should include rows in mem_accounts2u_multisignatures', function () {
 				var signKeysInDb = _.map(accountRow.mem_accounts2u_multisignatures, function (row) {
 					return row.dependentId;
 				});
-				signKeysInDb.should.include(signer1.publicKey, signer2.publicKey);
+				expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
 			});
 
 			it('should set u_multimin field set on mem_accounts', function () {
-				accountRow.mem_accounts.u_multimin.should.eql(multisigTransaction.asset.multisignature.min);
+				expect(accountRow.mem_accounts.u_multimin).to.eql(multisigTransaction.asset.multisignature.min);
 			});
 
 			it('should set u_multilifetime field set on mem_accounts', function () {
-				accountRow.mem_accounts.u_multilifetime.should.eql(multisigTransaction.asset.multisignature.lifetime);
+				expect(accountRow.mem_accounts.u_multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
 			});
 		});
 
@@ -107,34 +107,34 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 			before('get multisignature account', function (done) {
 				library.logic.account.get({ address: multisigAccount.address }, function (err, res) {
-					should.not.exist(err);
+					expect(err).to.be.null;
 					account = res;
 					done();
 				});
 			});
 
 			it('should have multisignatures field set on account', function () {
-				account.multisignatures.should.include(signer1.publicKey, signer2.publicKey);
+				expect(account.multisignatures).to.include(signer1.publicKey, signer2.publicKey);
 			});
 
 			it('should have multimin field set on account', function () {
-				account.multimin.should.eql(multisigTransaction.asset.multisignature.min);
+				expect(account.multimin).to.eql(multisigTransaction.asset.multisignature.min);
 			});
 
 			it('should have multilifetime field set on account', function () {
-				account.multilifetime.should.eql(multisigTransaction.asset.multisignature.lifetime);
+				expect(account.multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
 			});
 
 			it('should have u_multisignatures field set on account', function () {
-				account.u_multisignatures.should.include(signer1.publicKey, signer2.publicKey);
+				expect(account.u_multisignatures).to.include(signer1.publicKey, signer2.publicKey);
 			});
 
 			it('should have u_multimin field set on account', function () {
-				account.u_multimin.should.eql(multisigTransaction.asset.multisignature.min);
+				expect(account.u_multimin).to.eql(multisigTransaction.asset.multisignature.min);
 			});
 
 			it('should have u_multilifetime field set on account', function () {
-				account.u_multilifetime.should.eql(multisigTransaction.asset.multisignature.lifetime);
+				expect(account.u_multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
 			});
 		});
 
@@ -156,27 +156,27 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				});
 
 				it('should have no rows in mem_accounts2multisignatures', function () {
-					accountRow.mem_accounts2multisignatures.should.eql([]);
+					expect(accountRow.mem_accounts2multisignatures).to.eql([]);
 				});
 
 				it('should have multimin field set to 0 on mem_accounts', function () {
-					accountRow.mem_accounts.multimin.should.eql(0);
+					expect(accountRow.mem_accounts.multimin).to.eql(0);
 				});
 
 				it('should have multilifetime field set to 0 on mem_accounts', function () {
-					accountRow.mem_accounts.multilifetime.should.eql(0);
+					expect(accountRow.mem_accounts.multilifetime).to.eql(0);
 				});
 
 				it('should have no rows in mem_accounts2u_multisignatures', function () {
-					accountRow.mem_accounts2u_multisignatures.should.eql([]);
+					expect(accountRow.mem_accounts2u_multisignatures).to.eql([]);
 				});
 
 				it('should have u_multimin field set to 0 on mem_accounts', function () {
-					accountRow.mem_accounts.u_multimin.should.eql(0);
+					expect(accountRow.mem_accounts.u_multimin).to.eql(0);
 				});
 
 				it('should have multilifetime field to 0 on mem_accounts', function () {
-					accountRow.mem_accounts.u_multilifetime.should.eql(0);
+					expect(accountRow.mem_accounts.u_multilifetime).to.eql(0);
 				});
 			});
 
@@ -186,34 +186,34 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 				before('get multisignature account', function (done) {
 					library.logic.account.get({ address: multisigAccount.address }, function (err, res) {
-						should.not.exist(err);
+						expect(err).to.be.null;
 						account = res;
 						done();
 					});
 				});
 
 				it('should set multisignatures field to null on account', function () {
-					should.not.exist(account.multisignatures);
+					expect(account.multisignatures).to.be.null;
 				});
 
 				it('should set multimin field to 0 on account', function () {
-					account.multimin.should.eql(0);
+					expect(account.multimin).to.eql(0);
 				});
 
 				it('should set multilifetime field to 0 on account', function () {
-					account.multilifetime.should.eql(0);
+					expect(account.multilifetime).to.eql(0);
 				});
 
 				it('should set u_multisignatures field to null on account', function () {
-					should.not.exist(account.u_multisignatures);
+					expect(account.u_multisignatures).to.be.null;
 				});
 
 				it('should set u_multimin field to null on account', function () {
-					account.u_multimin.should.eql(0);
+					expect(account.u_multimin).to.eql(0);
 				});
 
 				it('should set u_multilifetime field to null on account', function () {
-					account.u_multilifetime.should.eql(0);
+					expect(account.u_multilifetime).to.eql(0);
 				});
 			});
 		});
@@ -248,30 +248,30 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			});
 
 			it('should have no rows in mem_accounts2multisignatures', function () {
-				accountRow.mem_accounts2multisignatures.should.eql([]);
+				expect(accountRow.mem_accounts2multisignatures).to.eql([]);
 			});
 
 			it('should have multimin field set to 0 on mem_accounts', function () {
-				accountRow.mem_accounts.multimin.should.eql(0);
+				expect(accountRow.mem_accounts.multimin).to.eql(0);
 			});
 
 			it('should have multilifetime field set to 0 on mem_accounts', function () {
-				accountRow.mem_accounts.multilifetime.should.eql(0);
+				expect(accountRow.mem_accounts.multilifetime).to.eql(0);
 			});
 
 			it('should include rows in mem_accounts2u_multisignatures', function () {
 				var signKeysInDb = _.map(accountRow.mem_accounts2u_multisignatures, function (row) {
 					return row.dependentId;
 				});
-				signKeysInDb.should.include(signer1.publicKey, signer2.publicKey);
+				expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
 			});
 
 			it('should set u_multimin field set on mem_accounts', function () {
-				accountRow.mem_accounts.u_multimin.should.eql(multisigTransaction.asset.multisignature.min);
+				expect(accountRow.mem_accounts.u_multimin).to.eql(multisigTransaction.asset.multisignature.min);
 			});
 
 			it('should set u_multilifetime field set on mem_accounts', function () {
-				accountRow.mem_accounts.u_multilifetime.should.eql(multisigTransaction.asset.multisignature.lifetime);
+				expect(accountRow.mem_accounts.u_multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
 			});
 		});
 
@@ -281,22 +281,22 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 			before('get multisignature account', function (done) {
 				library.logic.account.get({ address: multisigAccount.address }, function (err, res) {
-					should.not.exist(err);
+					expect(err).to.be.null;
 					account = res;
 					done();
 				});
 			});
 
 			it('should have u_multisignatures field set on account', function () {
-				account.u_multisignatures.should.include(signer1.publicKey, signer2.publicKey);
+				expect(account.u_multisignatures).to.include(signer1.publicKey, signer2.publicKey);
 			});
 
 			it('should have multimin field set on account', function () {
-				account.u_multimin.should.eql(multisigTransaction.asset.multisignature.min);
+				expect(account.u_multimin).to.eql(multisigTransaction.asset.multisignature.min);
 			});
 
 			it('should have multilifetime field set on account', function () {
-				account.u_multilifetime.should.eql(multisigTransaction.asset.multisignature.lifetime);
+				expect(account.u_multilifetime).to.eql(multisigTransaction.asset.multisignature.lifetime);
 			});
 		});
 

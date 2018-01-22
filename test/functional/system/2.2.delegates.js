@@ -53,7 +53,7 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 					it('adding to pool delegate registration should be ok', function (done) {
 						transaction1 = lisk.delegate.createDelegate(account.password, account.username, null, -1);
 						localCommon.addTransaction(library, transaction1, function (err, res) {
-							res.should.equal(transaction1.id);
+							expect(res).to.equal(transaction1.id);
 							done();
 						});
 					});
@@ -61,7 +61,7 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 					it('adding to pool delegate registration from same account with different id should be ok', function (done) {
 						transaction2 = lisk.delegate.createDelegate(account.password, account.username);
 						localCommon.addTransaction(library, transaction2, function (err, res) {
-							res.should.equal(transaction2.id);
+							expect(res).to.equal(transaction2.id);
 							done();
 						});
 					});
@@ -84,9 +84,9 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 								id: transaction1.id
 							};
 							localCommon.getTransactionFromModule(library, filter, function (err, res) {
-								should.not.exist(err);
-								res.should.have.property('transactions').which.is.an('Array');
-								res.transactions.length.should.equal(0);
+								expect(err).to.be.null;
+								expect(res).to.have.property('transactions').which.is.an('Array');
+								expect(res.transactions.length).to.equal(0);
 								done();
 							});
 						});
@@ -96,10 +96,10 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 								id: transaction2.id
 							};
 							localCommon.getTransactionFromModule(library, filter, function (err, res) {
-								should.not.exist(err);
-								res.should.have.property('transactions').which.is.an('Array');
-								res.transactions.length.should.equal(1);
-								res.transactions[0].id.should.equal(transaction2.id);
+								expect(err).to.be.null;
+								expect(res).to.have.property('transactions').which.is.an('Array');
+								expect(res.transactions.length).to.equal(1);
+								expect(res.transactions[0].id).to.equal(transaction2.id);
 								done();
 							});
 						});
@@ -107,7 +107,7 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 						it('adding to pool delegate registration from same account should fail', function (done) {
 							transaction2 = lisk.delegate.createDelegate(account.password, randomUtil.delegateName());
 							localCommon.addTransaction(library, transaction2, function (err, res) {
-								err.should.equal('Account is already a delegate');
+								expect(err).to.equal('Account is already a delegate');
 								done();
 							});
 						});
@@ -119,7 +119,7 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 					it('adding to pool delegate registration should be ok', function (done) {
 						transaction1 = lisk.delegate.createDelegate(account.password, differentDelegateName);
 						localCommon.addTransaction(library, transaction1, function (err, res) {
-							res.should.equal(transaction1.id);
+							expect(res).to.equal(transaction1.id);
 							done();
 						});
 					});
@@ -127,7 +127,7 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 					it('adding to pool delegate registration from same account and different name should be ok', function (done) {
 						transaction2 = lisk.delegate.createDelegate(account.password, account.username);
 						localCommon.addTransaction(library, transaction2, function (err, res) {
-							res.should.equal(transaction2.id);
+							expect(res).to.equal(transaction2.id);
 							done();
 						});
 					});
@@ -150,9 +150,9 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 								id: transaction1.id
 							};
 							localCommon.getTransactionFromModule(library, filter, function (err, res) {
-								should.not.exist(err);
-								res.should.have.property('transactions').which.is.an('Array');
-								res.transactions.length.should.equal(0);
+								expect(err).to.be.null;
+								expect(res).to.have.property('transactions').which.is.an('Array');
+								expect(res.transactions.length).to.equal(0);
 								done();
 							});
 						});
@@ -162,10 +162,10 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 								id: transaction2.id
 							};
 							localCommon.getTransactionFromModule(library, filter, function (err, res) {
-								should.not.exist(err);
-								res.should.have.property('transactions').which.is.an('Array');
-								res.transactions.length.should.equal(1);
-								res.transactions[0].id.should.equal(transaction2.id);
+								expect(err).to.be.null;
+								expect(res).to.have.property('transactions').which.is.an('Array');
+								expect(res.transactions.length).to.equal(1);
+								expect(res.transactions[0].id).to.equal(transaction2.id);
 								done();
 							});
 						});
@@ -173,7 +173,7 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 						it('adding to pool delegate registration from same account should fail', function (done) {
 							transaction2 = lisk.delegate.createDelegate(account.password, randomUtil.delegateName());
 							localCommon.addTransaction(library, transaction2, function (err, res) {
-								err.should.equal('Account is already a delegate');
+								expect(err).to.equal('Account is already a delegate');
 								done();
 							});
 						});
@@ -196,7 +196,7 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 				it('adding to pool delegate registration should be ok', function (done) {
 					transaction1 = lisk.delegate.createDelegate(account.password, account.username);
 					localCommon.addTransaction(library, transaction1, function (err, res) {
-						res.should.equal(transaction1.id);
+						expect(res).to.equal(transaction1.id);
 						done();
 					});
 				});
@@ -204,7 +204,7 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 				it('adding to pool delegate registration from different account and same username should be ok', function (done) {
 					transaction2 = lisk.delegate.createDelegate(account2.password, account.username);
 					localCommon.addTransaction(library, transaction2, function (err, res) {
-						res.should.equal(transaction2.id);
+						expect(res).to.equal(transaction2.id);
 						done();
 					});
 				});
@@ -227,9 +227,9 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 							id: transaction1.id
 						};
 						localCommon.getTransactionFromModule(library, filter, function (err, res) {
-							should.not.exist(err);
-							res.should.have.property('transactions').which.is.an('Array');
-							res.transactions.length.should.equal(0);
+							expect(err).to.be.null;
+							expect(res).to.have.property('transactions').which.is.an('Array');
+							expect(res.transactions.length).to.equal(0);
 							done();
 						});
 					});
@@ -239,24 +239,24 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 							id: transaction2.id
 						};
 						localCommon.getTransactionFromModule(library, filter, function (err, res) {
-							should.not.exist(err);
-							res.should.have.property('transactions').which.is.an('Array');
-							res.transactions.length.should.equal(1);
-							res.transactions[0].id.should.equal(transaction2.id);
+							expect(err).to.be.null;
+							expect(res).to.have.property('transactions').which.is.an('Array');
+							expect(res.transactions.length).to.equal(1);
+							expect(res.transactions[0].id).to.equal(transaction2.id);
 							done();
 						});
 					});
 
 					it('adding to pool delegate registration with already registered username should fail', function (done) {
 						localCommon.addTransaction(library, transaction1, function (err, res) {
-							err.should.equal('Username ' + account.username + ' already exists');
+							expect(err).to.equal('Username ' + account.username + ' already exists');
 							done();
 						});
 					});
 
 					it('adding to pool delegate registration from same account should fail', function (done) {
 						localCommon.addTransaction(library, transaction2, function (err, res) {
-							err.should.equal('Account is already a delegate');
+							expect(err).to.equal('Account is already a delegate');
 							done();
 						});
 					});
