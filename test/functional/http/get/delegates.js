@@ -213,14 +213,14 @@ describe('GET /delegates', function () {
 			it('using search="genesis_1" should return 13 delegates', function () {
 				return delegatesEndpoint.makeRequest({search: 'genesis_1', limit: 20}, 200).then(function (res) {
 					expect(res.body.data).to.have.length(13);
-					expect(res.body.data.map(function (d) { /^genesis_1.*/.test(d.username); })).to.be.true;
+					res.body.data.map(function (d) { expect(/^genesis_1.*/.test(d.username)).to.be.true; });
 				});
 			});
 
 			it('using search="genesis_10" should return 3 delegates', function () {
 				return delegatesEndpoint.makeRequest({search: 'genesis_10'}, 200).then(function (res) {
 					expect(res.body.data).to.have.length(3);
-					expect(res.body.data.map(function (d) { /^genesis_10.*/.test(d.username); })).to.be.true;
+					res.body.data.map(function (d) { expect(/^genesis_10.*/.test(d.username)).to.be.true; });
 				});
 			});
 
@@ -234,7 +234,7 @@ describe('GET /delegates', function () {
 			it('using higher limit should return 101 delegates', function () {
 				return delegatesEndpoint.makeRequest({search: 'genesis_', limit: 100}, 200).then(function (res) {
 					expect(res.body.data).to.have.length(100);
-					expect(res.body.data.map(function (d) { /^genesis_.*/.test(d.username); })).to.be.true;
+					res.body.data.map(function (d) { expect(/^genesis_.*/.test(d.username)).to.be.true; });
 				});
 			});
 		});
