@@ -18,9 +18,15 @@ var crypto = require('crypto');
 var rewire = require('rewire');
 
 var application = require('../../../common/application');
+var random = require('../../../common/utils/random');
 var exceptions = require('../../../../helpers/exceptions');
 var modulesLoader = require('../../../common/modulesLoader');
+var slots = require('../../../../helpers/slots.js');
 var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
+var Promise = require('bluebird');
+var genesisBlock = require('../../../data/genesisBlock.json');
+var genesisDelegates = require('../../../data/genesisDelegates.json').delegates;
+
 
 var previousBlock = {
 	blockSignature: '696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
@@ -207,7 +213,6 @@ var transactionsBlock2 = [
 ];
 
 var block3;
-
 function createBlock (blocksModule, blockLogic, secret, timestamp, transactions, previousBlock) {
 	var keypair = blockLogic.scope.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
 	blocksModule.lastBlock.set(previousBlock);
@@ -221,7 +226,24 @@ function createBlock (blocksModule, blockLogic, secret, timestamp, transactions,
 	return newBlock;
 }
 
-describe.skip('blocks/verify', function () {
+function getValidKeypairForSlot (library, slot) {
+	var generateDelegateListPromisified = Promise.promisify(library.modules.delegates.generateDelegateList);
+	var lastBlock = genesisBlock;
+
+	return generateDelegateListPromisified(lastBlock.height, null).then(function (list) {
+		var delegatePublicKey = list[slot % slots.delegates];
+		console.log('delegatePublicKey');
+		console.log(delegatePublicKey);
+		var secret = _.find(genesisDelegates, function (delegate) {
+			return delegate.publicKey === delegatePublicKey;
+		}).secret;
+		return secret;
+	}).catch(function (err) {
+		throw err;
+	});
+}
+
+describe('blocks/verify', function () {
 
 	var library;
 	var accounts;
@@ -236,11 +258,7 @@ describe.skip('blocks/verify', function () {
 		application.init({
 			sandbox: {
 				name: 'lisk_test_blocks_verify'
-			},
-			scope: {
-				bus: modulesLoader.scope.bus
-			},
-			waitForGenesisBlock: false
+			}
 		}, function (err, scope) {
 			scope.modules.blocks.verify.onBind(scope.modules);
 			scope.modules.delegates.onBind(scope.modules);
@@ -256,9 +274,15 @@ describe.skip('blocks/verify', function () {
 			db = scope.db;
 
 			library = scope;
+			library.modules.blocks.lastBlock.set(genesisBlock);
 			// Bus gets overwritten - waiting for mem_accounts has to be done manually
 			setTimeout(done, 5000);
 		});
+	});
+
+	afterEach(function () {
+		library.modules.blocks.lastBlock.set(genesisBlock);
+		return db.none('DELETE FROM blocks WHERE height > 1');
 	});
 
 	beforeEach(function () {
@@ -612,36 +636,31 @@ describe.skip('blocks/verify', function () {
 		});
 
 		it('should generate block 1', function (done) {
-			var secret = 'lend crime turkey diary muscle donkey arena street industry innocent network lunar';
 
-			block1 = createBlock(blocks, blockLogic, secret, 32578370, transactionsBlock1, previousBlock1);
-			expect(block1.version).to.equal(0);
-			expect(block1.timestamp).to.equal(32578370);
-			expect(block1.numberOfTransactions).to.equal(1);
-			expect(block1.reward).to.equal(0);
-			expect(block1.totalFee).to.equal(10000000);
-			expect(block1.totalAmount).to.equal(10000000000000000);
-			expect(block1.payloadLength).to.equal(117);
-			expect(block1.transactions).to.deep.equal(transactionsBlock1);
-			expect(block1.previousBlock).to.equal(previousBlock1.id);
-			done();
+			var slot = slots.getSlotNumber();
+			var time = slots.getSlotTime(slots.getSlotNumber());
+
+			getValidKeypairForSlot(library, slot).then(function (secret) {
+				block1 = createBlock(blocks, blockLogic, secret, time, [], genesisBlock);
+				expect(block1.version).to.equal(0);
+				expect(block1.timestamp).to.equal(time);
+				expect(block1.numberOfTransactions).to.equal(0);
+				expect(block1.reward).to.equal(0);
+				expect(block1.totalFee).to.equal(0);
+				expect(block1.totalAmount).to.equal(0);
+				expect(block1.payloadLength).to.equal(0);
+				expect(block1.transactions).to.deep.eql([]);
+				expect(block1.previousBlock).to.equal(genesisBlock.id);
+				done();
+			});
 		});
 
 		it('should be ok when processing block 1', function (done) {
-			modulesLoader.scope.bus.clearMessages();
 			blocksVerify.processBlock(block1, true, true, function (err, result) {
 				if (err) {
 					return done(err);
 				}
 				expect(result).to.be.undefined;
-				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage[0]).to.equal('broadcastBlock');
-				expect(onMessage[1].version).to.be.undefined;
-				expect(onMessage[1].numberOfTransactions).to.be.undefined;
-				expect(onMessage[2]).to.be.true;
-				expect(onMessage[3]).to.equal('transactionsSaved');
-				expect(onMessage[4]).to.deep.equal(block1.transactions);
-				modulesLoader.scope.bus.clearMessages();
 				done();
 			});
 		});
@@ -649,13 +668,14 @@ describe.skip('blocks/verify', function () {
 
 	describe('processBlock() for invalid block {broadcast: true, saveBlock: true}', function () {
 
-		it('should fail when processing block 1 again (checkExists)', function (done) {
-			blocks.lastBlock.set(previousBlock1);
+		beforeEach(function (done) {
+			blocksVerify.processBlock(block1, true, true, done);
+		});
 
+		it('should fail when processing block 1 multiple times', function (done) {
 			blocksVerify.processBlock(block1, true, true, function (err, result) {
-				expect(err).to.equal(['Block', block1.id, 'already exists'].join(' '));
+				expect(err).to.equal('Invalid block timestamp');
 				done();
-				modulesLoader.scope.bus.clearMessages();
 			});
 		});
 	});
@@ -668,20 +688,24 @@ describe.skip('blocks/verify', function () {
 		it('should generate block 2 with invalid generator slot', function (done) {
 			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 
-			block2 = createBlock(blocks, blockLogic, secret, 33772882, transactionsBlock2, block1);
-			expect(block2.version).to.equal(0);
-			expect(block2.timestamp).to.equal(33772882);
-			expect(block2.numberOfTransactions).to.equal(1);
-			expect(block2.reward).to.equal(0);
-			expect(block2.totalFee).to.equal(10000000);
-			expect(block2.totalAmount).to.equal(100000000);
-			expect(block2.payloadLength).to.equal(117);
-			expect(block2.transactions).to.deep.equal(transactionsBlock2);
-			expect(block2.previousBlock).to.equal(block1.id);
+			invalidBlock2 = createBlock(blocks, blockLogic, secret, 33772882, [], genesisBlock);
+			expect(invalidBlock2.version).to.equal(0);
+			expect(invalidBlock2.timestamp).to.equal(33772882);
+			expect(invalidBlock2.numberOfTransactions).to.equal(0);
+			expect(invalidBlock2.reward).to.equal(0);
+			expect(invalidBlock2.totalFee).to.equal(0);
+			expect(invalidBlock2.totalAmount).to.equal(0);
+			expect(invalidBlock2.payloadLength).to.equal(0);
+			expect(invalidBlock2.transactions).to.deep.eql([]);
+			expect(invalidBlock2.previousBlock).to.equal(genesisBlock.id);
 			done();
 		});
 
 		describe('normalizeBlock validations', function () {
+
+			before(function () {
+				block2 = createBlock(blocks, blockLogic, random.password(), 33772882, [genesisBlock.transactions[0]], genesisBlock);
+			});
 
 			it('should fail when timestamp property is missing', function (done) {
 				block2 = blocksVerify.deleteBlockProperties(block2);
@@ -703,7 +727,7 @@ describe.skip('blocks/verify', function () {
 
 				blocksVerify.processBlock(block2, false, true, function (err, result) {
 					if (err) {
-						expect(err).equal('Invalid total fee');
+						expect(err).equal('Invalid total amount');
 						block2.transactions = transactions;
 						done();
 					}
@@ -735,41 +759,50 @@ describe.skip('blocks/verify', function () {
 					}
 				});
 			});
-		});
 
-		it('should fail when block generator is invalid (fork:3)', function (done) {
-			blocksVerify.processBlock(block2, false, true, function (err, result) {
-				if (err) {
-					expect(err).equal('Failed to verify slot: 3377288');
-					done();
-				}
+			it('should fail when block generator is invalid (fork:3)', function (done) {
+				blocksVerify.processBlock(block2, false, true, function (err, result) {
+					if (err) {
+						expect(err).equal('Failed to verify slot: 3377288');
+						done();
+					}
+				});
 			});
-		});
 
-		it('should generate block 2 with valid generator slot and processed transaction', function (done) {
-			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
+			describe('block with processed transaction', function () {
 
-			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock1, block1);
-			expect(block2.version).to.equal(0);
-			expect(block2.timestamp).to.equal(33772862);
-			expect(block2.numberOfTransactions).to.equal(1);
-			expect(block2.reward).to.equal(0);
-			expect(block2.totalFee).to.equal(10000000);
-			expect(block2.totalAmount).to.equal(10000000000000000);
-			expect(block2.payloadLength).to.equal(117);
-			expect(block2.transactions).to.deep.equal(transactionsBlock1);
-			expect(block2.previousBlock).to.equal(block1.id);
-			done();
-		});
+				var block2;
 
-		it('should fail when transaction is already confirmed (fork:2)', function (done) {
-			block2 = blocksVerify.deleteBlockProperties(block2);
+				it('should generate block 1 with valid generator slot and processed transaction', function (done) {
+					var slot = slots.getSlotNumber();
+					var time = slots.getSlotTime(slots.getSlotNumber());
 
-			blocksVerify.processBlock(block2, false, true, function (err, result) {
-				if (err) {
-					expect(err).to.equal(['Transaction is already confirmed:', transactionsBlock1[0].id].join(' '));
-					done();
-				}
+					getValidKeypairForSlot(library, slot).then(function (secret) {
+						block2 = createBlock(blocks, blockLogic, secret, time, [genesisBlock.transactions[0]], genesisBlock);
+
+						expect(block2.version).to.equal(0);
+						expect(block2.timestamp).to.equal(time);
+						expect(block2.numberOfTransactions).to.equal(1);
+						expect(block2.reward).to.equal(0);
+						expect(block2.totalFee).to.equal(0);
+						expect(block2.totalAmount).to.equal(10000000000000000);
+						expect(block2.payloadLength).to.equal(117);
+						expect(block2.transactions).to.deep.eql([genesisBlock.transactions[0]]);
+						expect(block2.previousBlock).to.equal(genesisBlock.id);
+						done();
+					});
+				});
+
+				it('should fail when transaction is already confirmed (fork:2)', function (done) {
+					block2 = blocksVerify.deleteBlockProperties(block2);
+
+					blocksVerify.processBlock(block2, false, true, function (err, result) {
+						if (err) {
+							expect(err).to.equal(['Transaction is already confirmed:', genesisBlock.transactions[0].id].join(' '));
+							done();
+						}
+					});
+				});
 			});
 		});
 	});
@@ -777,143 +810,30 @@ describe.skip('blocks/verify', function () {
 	describe('processBlock() for valid block {broadcast: false, saveBlock: true}', function () {
 
 		it('should generate block 2 with valid generator slot', function (done) {
-			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
+			var slot = slots.getSlotNumber();
+			var time = slots.getSlotTime(slots.getSlotNumber());
 
-			block2 = createBlock(blocks, blockLogic, secret, 33772862, transactionsBlock2, block1);
-			expect(block2.version).to.equal(0);
-			expect(block2.timestamp).to.equal(33772862);
-			expect(block2.numberOfTransactions).to.equal(1);
-			expect(block2.reward).to.equal(0);
-			expect(block2.totalFee).to.equal(10000000);
-			expect(block2.totalAmount).to.equal(100000000);
-			expect(block2.payloadLength).to.equal(117);
-			expect(block2.transactions).to.deep.equal(transactionsBlock2);
-			expect(block2.previousBlock).to.equal(block1.id);
-			done();
+			getValidKeypairForSlot(library, slot).then(function (secret) {
+				block2 = createBlock(blocks, blockLogic, secret, time, [], genesisBlock);
+				expect(block2.version).to.equal(0);
+				expect(block2.timestamp).to.equal(time);
+				expect(block2.numberOfTransactions).to.equal(0);
+				expect(block2.reward).to.equal(0);
+				expect(block2.totalFee).to.equal(0);
+				expect(block2.totalAmount).to.equal(0);
+				expect(block2.payloadLength).to.equal(0);
+				expect(block2.transactions).to.deep.equal([]);
+				expect(block2.previousBlock).to.equal(genesisBlock.id);
+				done();
+			});
 		});
 
 		it('should be ok when processing block 2', function (done) {
-			blocks.lastBlock.set(block1);
-
 			blocksVerify.processBlock(block2, false, true, function (err, result) {
 				if (err) {
 					return done(err);
 				}
 				expect(result).to.be.undefined;
-				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage[0]).to.equal('transactionsSaved');
-				expect(onMessage[1][0].id).to.equal(block2.transactions[0].id);
-				modulesLoader.scope.bus.clearMessages();
-				done();
-			});
-		});
-
-		it('should fail when processing block 2 again (checkExists)', function (done) {
-			blocks.lastBlock.set(block1);
-
-			blocksVerify.processBlock(block2, false, true, function (err, result) {
-				expect(err).to.equal(['Block', block2.id, 'already exists'].join(' '));
-				done();
-			});
-		});
-	});
-
-	// Sends a block to network, don't save it locally.
-	describe('processBlock() for valid block {broadcast: true, saveBlock: false}', function () {
-
-		it('should generate account', function (done) {
-			accounts.setAccountAndGet(userAccount.account, function (err, newaccount) {
-				if (err) {
-					return done(err);
-				}
-				expect(newaccount.address).to.equal(userAccount.account.address);
-				done();
-			});
-		});
-
-		it('should generate block 3', function (done) {
-			var secret = 'term stable snap size half hotel unique biology amateur fortune easily tribe';
-
-			block3 = createBlock(blocks, blockLogic, secret, 33942637, [], block2);
-			expect(block3.version).to.equal(0);
-			done();
-		});
-
-		it('should be ok when broadcasting block 3', function (done) {
-			blocksVerify.processBlock(block3, true, false, function (err, result) {
-				if (err) {
-					return done(err);
-				}
-				expect(result).to.be.undefined;
-				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage[0]).to.equal('broadcastBlock');
-				expect(onMessage[1].version).to.be.undefined;
-				expect(onMessage[1].numberOfTransactions).to.be.undefined;
-				expect(onMessage[1].totalAmount).to.be.undefined;
-				expect(onMessage[1].totalFee).to.be.undefined;
-				expect(onMessage[1].payloadLength).to.be.undefined;
-				expect(onMessage[1].reward).to.be.undefined;
-				expect(onMessage[1].transactions).to.be.undefined;
-				expect(onMessage[2]).to.be.true;
-				expect(onMessage[3]).to.equal('newBlock');
-				modulesLoader.scope.bus.clearMessages();
-				done();
-			});
-		});
-
-		it('should be ok when broadcasting block 3 again (checkExists)', function (done) {
-			blocks.lastBlock.set(block2);
-
-			blocksVerify.processBlock(block3, true, false, function (err, result) {
-				if (err) {
-					return done(err);
-				}
-				expect(result).to.be.undefined;
-				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage[0]).to.equal('broadcastBlock');
-				expect(onMessage[1].version).to.be.undefined;
-				expect(onMessage[1].numberOfTransactions).to.be.undefined;
-				expect(onMessage[1].totalAmount).to.be.undefined;
-				expect(onMessage[1].totalFee).to.be.undefined;
-				expect(onMessage[1].payloadLength).to.be.undefined;
-				expect(onMessage[1].reward).to.be.undefined;
-				expect(onMessage[1].transactions).to.be.undefined;
-				expect(onMessage[2]).to.be.true;
-				expect(onMessage[3]).to.equal('newBlock');
-				modulesLoader.scope.bus.clearMessages();
-				done();
-			});
-		});
-	});
-
-	// Receives a block from network, don't save it locally.
-	describe('processBlock() for valid block {broadcast: false, saveBlock: false}', function () {
-
-		it('should be ok when receiving block 3', function (done) {
-			blocks.lastBlock.set(block2);
-			block3 = blocksVerify.deleteBlockProperties(block3);
-
-			blocksVerify.processBlock(block3, false, false, function (err, result) {
-				if (err) {
-					return done(err);
-				}
-				expect(result).to.be.undefined;
-				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage).to.be.an('array').that.does.not.include('broadcastBlock');
-				modulesLoader.scope.bus.clearMessages();
-				done();
-			});
-		});
-
-		it('should be ok when receiving block 3 again (checkExists)', function (done) {
-			blocks.lastBlock.set(block2);
-			block3 = blocksVerify.deleteBlockProperties(block3);
-
-			blocksVerify.processBlock(block3, false, false, function (err, result) {
-				expect(result).to.be.undefined;
-				var onMessage = modulesLoader.scope.bus.getMessages();
-				expect(onMessage).to.be.an('array').that.does.not.include('broadcastBlock');
-				modulesLoader.scope.bus.clearMessages();
 				done();
 			});
 		});
