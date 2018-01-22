@@ -191,6 +191,11 @@ Round.prototype.applyRound = function () {
 	// Reverse delegates if going backwards
 	var delegates = (this.scope.backwards) ? this.scope.roundDelegates.reverse() : this.scope.roundDelegates;
 
+	// Reverse rewards if going backwards
+	if (this.scope.backwards) {
+		this.scope.roundRewards.reverse();
+	}
+
 	// Apply round changes to each delegate
 	for (var i = 0; i < this.scope.roundDelegates.length; i++) {
 		var delegate = this.scope.roundDelegates[i];
