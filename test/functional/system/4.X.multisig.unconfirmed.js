@@ -47,7 +47,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 
 	it('adding to pool multisig registration should be ok', function (done) {
 		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
-			res.should.equal(scenarios.regular.multiSigTransaction.id);
+			expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
 			done();
 		});
 	});
@@ -82,7 +82,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 					};
 
 					localCommon.addTransaction(library, transaction, function (err, res) {
-						res.should.equal(transaction.id);
+						expect(res).to.equal(transaction.id);
 						done();
 					});
 				});

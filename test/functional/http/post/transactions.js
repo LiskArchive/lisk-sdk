@@ -23,14 +23,14 @@ describe('POST /api/transactions (general)', function () {
 	it('should fail if empty transactions posted', function () {
 		return transactionsEndpoint.makeRequest({transactions: []}, 400).then(function (res) {
 			expectSwaggerParamError(res, 'transactions');
-			res.body.errors[0].errors[0].code.should.be.equal('ARRAY_LENGTH_SHORT');
+			expect(res.body.errors[0].errors[0].code).to.be.equal('ARRAY_LENGTH_SHORT');
 		});
 	});
 
 	it('should fail on more than one transactions at a time', function () {
 		return transactionsEndpoint.makeRequest({transactions: [randomUtil.transaction(), randomUtil.transaction()]}, 400).then(function (res) {
 			expectSwaggerParamError(res, 'transactions');
-			res.body.errors[0].errors[0].code.should.be.equal('ARRAY_LENGTH_LONG');
+			expect(res.body.errors[0].errors[0].code).to.be.equal('ARRAY_LENGTH_LONG');
 		});
 	});
 });
