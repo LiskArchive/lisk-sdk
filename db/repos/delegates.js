@@ -25,7 +25,7 @@ const sql = require('../sql').delegates;
  * @constructor
  * @return {DappsRepo}
  */
-class DelegatesRepo {
+class DelegatesRepository {
 	constructor (db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
@@ -60,6 +60,6 @@ class DelegatesRepo {
 
 }
 
-// TODO: Move DelegatesRepo#insertFork to a separate db repo
+// TODO: Move DelegatesRepository#insertFork into a separate db repo
 
-module.exports = DelegatesRepo;
+module.exports = DelegatesRepository;
