@@ -27,7 +27,7 @@ var modules;
  * @requires module:helpers/swagger.generateParamsErrorObject
  * @requires module:helpers/swagger.invalidParams
  * @param {Object} scope - App instance.
- * @TODO: add description of the module
+ * @todo: add description of TransactionsController
  */
 function TransactionsController(scope) {
 	modules = scope.modules;
@@ -37,7 +37,7 @@ function TransactionsController(scope) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 TransactionsController.getTransactions = function (context, next) {
 	var invalidParams = swaggerHelper.invalidParams(context.request);
@@ -101,7 +101,7 @@ TransactionsController.getTransactions = function (context, next) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 TransactionsController.postTransactions = function (context, next) {
 	var transactions = context.request.swagger.params.transactions.value;

@@ -29,7 +29,7 @@ var modules;
  * @requires module:helpers/apiCodes.NOT_FOUND
  * @requires module:helpers/swagger.generateParamsErrorObject
  * @param {Object} scope - App instance.
- * @TODO: add description of the module
+ * @todo: add description of VotersController
  */
 function VotersController(scope) {
 	modules = scope.modules;
@@ -39,7 +39,7 @@ function VotersController(scope) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 VotersController.getVoters = function (context, next) {
 	var params = context.request.swagger.params;
@@ -101,7 +101,7 @@ VotersController.getVoters = function (context, next) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 VotersController.getVotes = function (context, next) {
 	var params = context.request.swagger.params;

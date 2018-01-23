@@ -22,7 +22,7 @@ var modules;
  * @module controllers/dapps
  * @requires lodash
  * @param {Object} scope - App instance.
- * @TODO: add description of the module
+ * @todo: add description of DappsController
  */
 function DappsController(scope) {
 	modules = scope.modules;
@@ -32,7 +32,7 @@ function DappsController(scope) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 DappsController.getDapps = function (context, next) {
 	var params = context.request.swagger.params;

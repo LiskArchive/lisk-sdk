@@ -22,7 +22,7 @@ var modules;
  * @module controllers/delegates
  * @requires lodash
  * @param {Object} scope - App instance.
- * @TODO: add description of the module
+ * @todo: add description of DelegatesController
  */
 function DelegatesController(scope) {
 	modules = scope.modules;
@@ -32,7 +32,7 @@ function DelegatesController(scope) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 DelegatesController.getDelegates = function (context, next) {
 	var params = context.request.swagger.params;
@@ -89,7 +89,7 @@ DelegatesController.getDelegates = function (context, next) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 DelegatesController.getForgers = function (context, next) {
 	var params = context.request.swagger.params;

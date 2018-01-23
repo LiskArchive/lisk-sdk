@@ -31,7 +31,7 @@ var config;
  * @requires module:helpers/swagger.generateParamsErrorObject
  * @requires module:helpers/swagger.invalidParams
  * @param {Object} scope - App instance.
- * @TODO: add description of the module
+ * @todo: add description of NodeController
  */
 function NodeController(scope) {
 	modules = scope.modules;
@@ -42,7 +42,7 @@ function NodeController(scope) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 NodeController.getConstants = function (context, next) {
 	modules.node.shared.getConstants(null, (err, data) => {
@@ -77,7 +77,7 @@ NodeController.getConstants = function (context, next) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 NodeController.getStatus = function (context, next) {
 	modules.node.shared.getStatus(null, (err, data) => {
@@ -108,7 +108,7 @@ NodeController.getStatus = function (context, next) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 NodeController.getForgingStatus = function (context, next) {
 	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
@@ -129,7 +129,7 @@ NodeController.getForgingStatus = function (context, next) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 NodeController.updateForgingStatus = function (context, next) {
 	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
@@ -154,7 +154,7 @@ NodeController.updateForgingStatus = function (context, next) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 NodeController.getPooledTransactions = function (context, next) {
 	var invalidParams = swaggerHelper.invalidParams(context.request);

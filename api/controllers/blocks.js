@@ -22,7 +22,7 @@ var modules;
  * @module controllers/blocks
  * @requires lodash
  * @param {Object} scope - App instance.
- * @TODO: add description of the module
+ * @todo: add description of BlocksController
  */
 function BlocksController(scope) {
 	modules = scope.modules;
@@ -32,7 +32,7 @@ function BlocksController(scope) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 BlocksController.getBlocks = function (context, next) {
 	var params = context.request.swagger.params;

@@ -21,12 +21,12 @@ var swaggerHelper = require('../../helpers/swagger');
 var modules;
 
 /**
- * Initializes with scope content and private variable: modules.
  * @module controllers/accounts
  * @requires lodash
  * @requires module:helpers/apiError
  * @requires module:helpers/swagger.generateParamsErrorObject
  * @param {Object} scope - App instance.
+ * @todo: add description of AccountsController
  */
 function AccountsController(scope) {
 	modules = scope.modules;
@@ -89,7 +89,7 @@ AccountsController.getAccounts = function (context, next) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 AccountsController.getMultisignatureGroups = function (context, next) {
 	var params = context.request.swagger.params;
@@ -129,7 +129,7 @@ AccountsController.getMultisignatureGroups = function (context, next) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 AccountsController.getMultisignatureMemberships = function (context, next) {
 	var params = context.request.swagger.params;

@@ -22,7 +22,7 @@ var modules;
  * @module controllers/node
  * @requires lodash
  * @param {Object} scope - App instance.
- * @TODO: add description of the module
+ * @todo: add description of PeersController
  */
 function PeersController(scope) {
 	modules = scope.modules;
@@ -32,7 +32,7 @@ function PeersController(scope) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 PeersController.getPeers = function (context, next) {
 	var params = context.request.swagger.params;
