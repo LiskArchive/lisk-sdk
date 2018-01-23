@@ -596,4 +596,98 @@ describe('transactionPool', function () {
 			});
 		});
 	});
+
+	describe('transactionInPool', function () {
+
+		afterEach(function () {
+			resetStates();
+		});
+
+		describe('when transaction is in pool', function () {
+			var tx = '123';
+
+			describe('unconfirmed list', function () {
+
+				describe('with index 0', function () {
+
+					it('should return true', function () {
+						transactionPool.unconfirmed.index[tx] = 0;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					})
+				});
+
+				describe('with other index', function () {
+
+					it('should return true', function () {
+						transactionPool.unconfirmed.index[tx] = 1;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('bundled list', function () {
+
+				describe('with index 0', function () {
+
+					it('should return true', function () {
+						transactionPool.bundled.index[tx] = 0;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					})
+				});
+
+				describe('with other index', function () {
+
+					it('should return true', function () {
+						transactionPool.bundled.index[tx] = 1;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('queued list', function () {
+
+				describe('with index 0', function () {
+
+					it('should return true', function () {
+						transactionPool.queued.index[tx] = 0;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					})
+				});
+
+				describe('with other index', function () {
+
+					it('should return true', function () {
+						transactionPool.queued.index[tx] = 1;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('multisignature list', function () {
+
+				describe('with index 0', function () {
+
+					it('should return true', function () {
+						transactionPool.multisignature.index[tx] = 0;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					})
+				});
+
+				describe('with other index', function () {
+
+					it('should return true', function () {
+						transactionPool.multisignature.index[tx] = 1;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+		});
+
+		describe('when transaction is not in pool', function () {
+
+			it('should return false', function () {
+				expect(transactionPool.transactionInPool('123')).to.equal(false);
+			});
+		});
+	});
 });
