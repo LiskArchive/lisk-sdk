@@ -411,8 +411,6 @@ describe('rounds', function () {
 					round = new Round(_.cloneDeep(scope), t);
 					res = round.updateVotes();
 				});
-
-				//res = round.updateVotes();
 			});
 
 			after(function () {
