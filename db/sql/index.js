@@ -40,7 +40,7 @@ const isPackaged = __filename.endsWith('app.js');
 // Full path to the SQL folder, depending on the packaging:
 // - production expects ./sql folder at its root;
 // - development expects sql in this very folder.
-const sqlRoot = isPackaged ? path.join(__dirname, './sql', file) : __dirname;
+const sqlRoot = isPackaged ? path.join(__dirname, './sql') : __dirname;
 
 ///////////////////////////////////////////////
 // Helper for linking to external query files:
