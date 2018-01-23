@@ -13,7 +13,7 @@
  */
 'use strict';
 
-module.exports = {
+const exports = {
 	accounts: {
 		// sql to be included
 	},
@@ -66,3 +66,5 @@ function sql(file) {
 
 	return qf;
 }
+
+module.exports = exports;
