@@ -56,10 +56,7 @@ function Peers (cb, scope) {
 		},
 		config: {
 			peers: scope.config.peers,
-			version: scope.config.version,
-			forging: {
-				force: scope.config.forging.force
-			}
+			version: scope.config.version
 		}
 	};
 	self = this;
@@ -310,12 +307,9 @@ __private.dbSave = function (cb) {
 * Calculates consensus for as a ratio active to matched peers.
 * @param {Array<Peer>} active - Active peers (with connected state).
 * @param {Array<Peer>} matched - Peers with same as system broadhash.
-* @returns {number|undefined} - Consensus or undefined if config.forging.force = true.
+* @returns {number} - Consensus or undefined if config.forging.force = true.
 */
 Peers.prototype.calculateConsensus = function (active, matched) {
-	if (library.config.forging.force) {
-		return undefined;
-	}
 	active = active || library.logic.peers.list(true);
 	var broadhash = modules.system.getBroadhash();
 	matched = matched || active.filter(function (peer) {
