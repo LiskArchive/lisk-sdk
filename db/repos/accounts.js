@@ -65,23 +65,23 @@ class AccountsRepo {
 			{name: 'missedblocks', cast: 'bigint', def: '0', prop: 'missedBlocks'},
 			{name: 'username', def: null, skip: ifNotExists},
 			{name: 'u_username', def: null, skip: ifNotExists},
-			{name: 'publicKey', mode: ':raw', init: () => 'ENCODE("publicKey", \'hex\')', skip: ifNotExists},
-			{name: 'secondPublicKey', mode: ':raw', init: () => 'ENCODE("secondPublicKey", \'hex\')', skip: ifNotExists},
+			{name: 'publicKey', mod: ':raw', init: () => 'ENCODE("publicKey", \'hex\')', skip: ifNotExists},
+			{name: 'secondPublicKey', mod: ':raw', init: () => 'ENCODE("secondPublicKey", \'hex\')', skip: ifNotExists},
 			{name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists}
 		];
 
 		// ONLY USED IN SELECT and INSERT
 		const immutableFields = [
-			{ name: 'address', mode: ':raw', init: () => 'UPPER("address")'}
+			{ name: 'address', mod: ':raw', init: () => 'UPPER("address")'}
 		];
 
 		// ONLY USED IN SELECT
 		const dynamicFields = [
-			{name: 'rank', cast: 'bigint', mode: ':raw', init: () => 'row_number() OVER (ORDER BY "vote" DESC, "publicKey" ASC)'},
-			{name: 'delegates', mode: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")'},
-			{name: 'u_delegates', mode: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")'},
-			{name: 'multisignatures', mode: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2multisignatures WHERE "accountId" = "mem_accounts"."address")'},
-			{name: 'u_multisignatures', mode: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_multisignatures WHERE "accountId" = "mem_accounts"."address")'}
+			{name: 'rank', cast: 'bigint', mod: ':raw', init: () => 'row_number() OVER (ORDER BY "vote" DESC, "publicKey" ASC)'},
+			{name: 'delegates', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")'},
+			{name: 'u_delegates', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")'},
+			{name: 'multisignatures', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2multisignatures WHERE "accountId" = "mem_accounts"."address")'},
+			{name: 'u_multisignatures', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_multisignatures WHERE "accountId" = "mem_accounts"."address")'}
 		];
 
 		this.dbFields = _.union(normalFields, immutableFields, dynamicFields);
