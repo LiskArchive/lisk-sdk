@@ -16,7 +16,7 @@
 var moment = require('moment');
 var util = require('util');
 
-var appFile = 'app.js'; // NOTE: This name is used for detecting if packaged: db/sql/config.js
+var appFile = 'app.js'; // Application file name
 
 module.exports = function (grunt) {
 	var files = [
