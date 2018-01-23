@@ -2,8 +2,27 @@
   DESCRIPTION: Inserts a fork statistics (not sure) :)
 
   PARAMETERS:
-      To be documented
+      delegatePublicKey - ?
+      blockTimestamp - ?
+      blockId - ?
+      blockHeight - ?
+      previousBlock - ?
+      cause - ?
 */
 
-INSERT INTO forks_stat ("delegatePublicKey", "blockTimestamp", "blockId", "blockHeight", "previousBlock", "cause")
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO ${schema~}.forks_stat (
+  "delegatePublicKey",
+  "blockTimestamp",
+  "blockId",
+  "blockHeight",
+  "previousBlock",
+  "cause"
+)
+VALUES (
+  ${delegatePublicKey},
+  ${blockTimestamp},
+  ${blockId},
+  ${blockHeight},
+  ${previousBlock},
+  ${cause}
+)

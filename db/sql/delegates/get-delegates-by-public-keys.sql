@@ -1,15 +1,16 @@
 /*
-  DESCRIPTION: Gets delegates for list of public keys
+  DESCRIPTION: Gets delegates for a list of public keys
 
   PARAMETERS:
-      $1 - array of public keys
+      publicKeys - array of public keys (strings)
 */
 
 SELECT ENCODE("publicKey", 'hex') AS "publicKey",
        username,
        address
-FROM mem_accounts
-WHERE "isDelegate" = 1
-  AND ENCODE("publicKey", 'hex') IN ($1:csv)
+FROM ${schema~}.mem_accounts
+WHERE
+  "isDelegate" = 1
+  AND ENCODE("publicKey", 'hex') IN (${publicKeys:csv})
 ORDER BY vote ASC,
          "publicKey" DESC

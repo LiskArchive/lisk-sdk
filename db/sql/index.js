@@ -50,7 +50,7 @@ function sql(file) {
 
 	const options = {
 		minify: true, // minifies the SQL
-		debug: !isPackaged,
+		debug: !isPackaged, // debug SQL when not packaged
 		params: {
 			schema: 'public' // replaces ${schema~} with "public"
 		}

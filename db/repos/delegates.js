@@ -23,7 +23,7 @@ const sql = require('../sql').delegates;
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {DappsRepo}
+ * @return {DelegatesRepository}
  */
 class DelegatesRepository {
 	constructor (db, pgp) {
@@ -32,21 +32,21 @@ class DelegatesRepository {
 	}
 
 	/**
-	 * Insert a fork data table entry
+	 * Inserts a fork data table entry
 	 * @param {Object} fork
 	 * @return {promise}
 	 */
 	insertFork (fork) {
-		return this.db.none(sql.insertFork, [fork.delegatePublicKey, fork.blockTimestamp, fork.blockId, fork.blockHeight, fork.previousBlock, fork.cause]);
+		return this.db.none(sql.insertFork, fork);
 	};
 
 	/**
-	 * Get delegates for list of public keys
+	 * Gets delegates for a list of public keys
 	 * @param {string} publicKeys - Comma Separated list of public keys
 	 * @return {Promise}
 	 */
 	getDelegatesByPublicKeys (publicKeys) {
-		return this.db.any(sql.getDelegatesByPublicKeys, [publicKeys]);
+		return this.db.any(sql.getDelegatesByPublicKeys, {publicKeys});
 	};
 
 	/**
