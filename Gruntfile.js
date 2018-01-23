@@ -26,7 +26,7 @@ module.exports = function (grunt) {
 		'logic/*.js',
 		'schema/**/*.js',
 		'sql/**/*.js',
-		'app.js'
+		'app.js' // NOTE: This name is used for detecting if packaged: db/sql/index.js
 	];
 
 	var today = moment().format('HH:mm:ss DD/MM/YYYY');
@@ -41,8 +41,8 @@ module.exports = function (grunt) {
 	grunt.initConfig({
 		obfuscator: {
 			files: files,
-			entry: 'app.js',	
-			out: 'release/app.js', // Remeber to change the file db/sql/index.js#20 if you change the entry name. 
+			entry: 'app.js',
+			out: 'release/app.js', // Remeber to change the file db/sql/index.js#20 if you change the entry name.
 			strings: true,
 			root: __dirname
 		},
