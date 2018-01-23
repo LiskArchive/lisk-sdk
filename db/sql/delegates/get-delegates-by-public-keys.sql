@@ -2,7 +2,7 @@
   DESCRIPTION: Gets delegates for list of public keys
 
   PARAMETERS:
-      to be documented
+      $1 - array of public keys
 */
 
 SELECT ENCODE("publicKey", 'hex') AS "publicKey",

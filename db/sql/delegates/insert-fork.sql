@@ -2,7 +2,7 @@
   DESCRIPTION: Inserts a fork statistics (not sure) :)
 
   PARAMETERS:
-      $1 - array of public keys
+      To be documented
 */
 
 INSERT INTO forks_stat ("delegatePublicKey", "blockTimestamp", "blockId", "blockHeight", "previousBlock", "cause")

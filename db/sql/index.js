@@ -59,6 +59,7 @@ function sql(file) {
 	const qf = new QueryFile(fullPath, options);
 
 	if (qf.error) {
+		// TODO: Replace this with proper logging later on
 		console.error(qf.error); // something is wrong with our query file
 		process.exit(1); // exit the process with fatal error
 	}
