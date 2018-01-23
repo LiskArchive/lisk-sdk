@@ -364,7 +364,7 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 					// DATABASE: write
 					modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 						if (err) {
-							err = ['Failed to apply transaction:', transaction.id, '-', err].join(' ');
+							err = ['Failed to apply unconfirmed transaction:', transaction.id, '-', err].join(' ');
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
 							return setImmediate(eachSeriesCb, err);
