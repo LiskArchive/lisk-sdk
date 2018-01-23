@@ -54,7 +54,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		return Promise.all(promises)
 			.then(function (results) {
 				results.forEach(function (res) {
-					res.body.data.message.should.be.equal('Transaction(s) accepted');
+					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 				});
 
 				transactionsToWaitFor.push(transaction1.id, transaction2.id, transaction3.id);
@@ -73,7 +73,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			transaction = lisk.transaction.createTransaction(accountFixtures.existingDelegate.address, 1, accountNoSecondPassword.password, accountNoSecondPassword.secondPassword);
 
 			return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-				res.body.message.should.be.equal('Sender does not have a second signature');
+				expect(res.body.message).to.be.equal('Sender does not have a second signature');
 				badTransactions.push(transaction);
 			});
 		});
@@ -82,7 +82,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			transaction = lisk.signature.createSignature(accountNoFunds.password, accountNoFunds.secondPassword);
 
 			return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-				res.body.message.should.be.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
+				expect(res.body.message).to.be.equal('Account does not have enough LSK: ' + accountNoFunds.address + ' balance: 0');
 				badTransactions.push(transaction);
 			});
 		});
@@ -91,7 +91,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			transaction = lisk.signature.createSignature(accountMinimalFunds.password, accountMinimalFunds.secondPassword, -1);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				res.body.data.message.should.be.equal('Transaction(s) accepted');
+				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
@@ -100,7 +100,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 			transaction = lisk.signature.createSignature(account.password, account.secondPassword);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
-				res.body.data.message.should.be.equal('Transaction(s) accepted');
+				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 				goodTransactions.push(transaction);
 			});
 		});
