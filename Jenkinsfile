@@ -138,19 +138,6 @@ def reportCoverage(node) {
 }
 
 def report() {
-	step([
-		$class: 'GitHubCommitStatusSetter',
-		errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
-		contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins-ci/func-unit'],
-		statusResultSource: [
-			$class: 'ConditionalStatusResultSource',
-			results: [
-					[$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: 'This commit looks good :)'],
-					[$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: 'This commit failed testing :('],
-					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build somehow escaped evaluation']
-			]
-		]
-	])
 	if (currentBuild.result == 'FAILURE') {
 		def prBranch = ''
 		if (env.CHANGE_BRANCH != null) {

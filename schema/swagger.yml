@@ -2484,7 +2484,7 @@ definitions:
       - updateType
     properties:
       peer:
-        type: object
+        $ref: '#/definitions/Peer'
       authKey:
         type: string
       updateType:

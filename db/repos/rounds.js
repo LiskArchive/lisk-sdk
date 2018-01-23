@@ -172,7 +172,7 @@ RoundsRepo.prototype.clearVotesSnapshot = function () {
  * @return {Promise}
  */
 RoundsRepo.prototype.performVotesSnapshot = function () {
-	return this.db.none(Queries.restoreRoundSnapshot);
+	return this.db.none(Queries.performVotesSnapshot);
 };
 
 /**
@@ -180,7 +180,7 @@ RoundsRepo.prototype.performVotesSnapshot = function () {
  * @return {Promise}
  */
 RoundsRepo.prototype.restoreRoundSnapshot = function () {
-	return this.db.none(Queries.performVotesSnapshot);
+	return this.db.none(Queries.restoreRoundSnapshot);
 };
 
 /**
