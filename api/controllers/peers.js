@@ -19,7 +19,7 @@ var _ = require('lodash');
 var modules;
 
 /**
- * @module controllers/node
+ * @class
  * @requires lodash
  * @param {Object} scope - App instance.
  * @todo: add description of PeersController

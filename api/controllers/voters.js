@@ -23,7 +23,7 @@ var generateParamsErrorObject = swaggerHelper.generateParamsErrorObject;
 var modules;
 
 /**
- * @module controllers/voters
+ * @class
  * @requires lodash
  * @requires module:helpers/apiError
  * @requires module:helpers/apiCodes.NOT_FOUND

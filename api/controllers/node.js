@@ -23,7 +23,7 @@ var modules;
 var config;
 
 /**
- * @module controllers/node
+ * @class
  * @requires lodash
  * @requires module:helpers/apiCodes.FORBIDDEN
  * @requires module:helpers/apiCodes.NOT_FOUND

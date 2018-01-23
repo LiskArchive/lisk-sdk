@@ -21,7 +21,7 @@ var swaggerHelper = require('../../helpers/swagger');
 var modules;
 
 /**
- * @module controllers/accounts
+ * @class
  * @requires lodash
  * @requires module:helpers/apiError
  * @requires module:helpers/swagger.generateParamsErrorObject
@@ -36,7 +36,7 @@ function AccountsController(scope) {
  * @public
  * @param {Object} context
  * @param {function} next
- * @TODO: add description of the function and its parameters
+ * @todo: add description of the function and its parameters
  */
 AccountsController.getAccounts = function (context, next) {
 	var params = context.request.swagger.params;
