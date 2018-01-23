@@ -613,7 +613,7 @@ describe('transactionPool', function () {
 					it('should return true', function () {
 						transactionPool.unconfirmed.index[tx] = 0;
 						expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					})
+					});
 				});
 
 				describe('with other index', function () {
@@ -632,7 +632,7 @@ describe('transactionPool', function () {
 					it('should return true', function () {
 						transactionPool.bundled.index[tx] = 0;
 						expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					})
+					});
 				});
 
 				describe('with other index', function () {
@@ -651,7 +651,7 @@ describe('transactionPool', function () {
 					it('should return true', function () {
 						transactionPool.queued.index[tx] = 0;
 						expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					})
+					});
 				});
 
 				describe('with other index', function () {
@@ -670,7 +670,7 @@ describe('transactionPool', function () {
 					it('should return true', function () {
 						transactionPool.multisignature.index[tx] = 0;
 						expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					})
+					});
 				});
 
 				describe('with other index', function () {
