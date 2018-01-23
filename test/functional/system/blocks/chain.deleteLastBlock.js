@@ -11,19 +11,11 @@ var randomUtil = require('../../../common/utils/random');
 
 var localCommon = require('../common');
 
-describe('blocks/chain', function () {
+describe('system test (blocks) - chain/deleteLastBlock', function () {
 
 	var library;
-
-	before('init sandboxed application', function (done) {
-		application.init({sandbox: {name: 'lisk_test_block_chain'}}, function (err, scope) {
-			library = scope;
-			done();
-		});
-	});
-
-	after('cleanup sandboxed application', function (done) {
-		application.cleanup(done);
+	localCommon.beforeBlock('system_blocks_chain', function (lib) {
+		library = lib;
 	});
 
 	describe('deleteLastBlock', function () {
@@ -560,7 +552,7 @@ describe('blocks/chain', function () {
 					});
 				});
 
-				describe('(type 6) inTransfer dapp', function () {
+				describe.skip('(type 6) inTransfer dapp', function () {
 	
 					it('should validate account data from sender', function (done) {
 						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
@@ -620,7 +612,7 @@ describe('blocks/chain', function () {
 					});
 				});
 
-				describe('(type 7) outTransfer dapp', function () {
+				describe.skip('(type 7) outTransfer dapp', function () {
 	
 					it('should validate account data from sender', function (done) {
 						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
@@ -633,7 +625,10 @@ describe('blocks/chain', function () {
 	
 					it('should forge a block', function (done) {
 						var outTransferTransaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 10 * 100000000, testAccount.password);
-						localCommon.addTransactionsAndForge(library, [outTransferTransaction], done);
+						localCommon.addTransactionsAndForge(library, [outTransferTransaction], function (err, res) {
+							expect(err).to.equal('Transaction type 7 is frozen');
+							done();
+						});
 					});
 	
 					it('should validate account data from sender', function (done) {

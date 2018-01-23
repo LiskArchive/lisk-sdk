@@ -15,6 +15,7 @@
 
 var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
+var exceptions = require('../helpers/exceptions.js');
 
 // Private fields
 var modules, library, __private = {};
@@ -44,9 +45,10 @@ function OutTransfer (db, schema, logger) {
  * Binds input modules to private variable module.
  * @param {Accounts} accounts
  */
-OutTransfer.prototype.bind = function (accounts) {
+OutTransfer.prototype.bind = function (accounts, blocks) {
 	modules = {
 		accounts: accounts,
+		blocks: blocks
 	};
 };
 
@@ -68,6 +70,11 @@ OutTransfer.prototype.calculateFee = function (transaction, sender) {
  * @return {setImmediateCallback} errors messages | transaction
  */
 OutTransfer.prototype.verify = function (transaction, sender, cb) {
+	var lastBlock = modules.blocks.lastBlock.get();
+	if (lastBlock.height >= exceptions.blockHeightToDisableDappTransfers) {
+		return setImmediate(cb, 'Transaction type ' + transaction.type + ' is frozen');
+	}
+
 	if (!transaction.recipientId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}

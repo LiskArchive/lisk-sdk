@@ -254,4 +254,15 @@ describe('POST /api/transactions (type 6) inTransfer dapp', function () {
 
 		phases.confirmation(goodTransactions, badTransactions);
 	});
+
+	describe.only('check frozen type', function () {
+
+		it('transaction should be rejected', function () {
+			transaction = lisk.transfer.createInTransfer(randomUtil.guestbookDapp.id, 10 * normalizer, accountFixtures.genesis.password);
+
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				expect(res.body.message).to.be.equal('Transaction type ' + transaction.type + ' is frozen');
+			});
+		});
+	});
 });
