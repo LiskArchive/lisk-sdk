@@ -51,7 +51,7 @@ describe('synchronousTasks', function () {
 
 			before(function () {
 				library.modules.delegates.onBlockchainReady = library.rewiredModules.delegates.prototype.onBlockchainReady;
-				library.rewiredModules.delegates.__set__('__private.forgeAttemptInterval', intervalMs);
+				library.rewiredModules.delegates.__set__('__private.forgeInterval', intervalMs);
 				library.rewiredModules.delegates.__set__('__private.nextForge', synchronousTaskMock.bind(null, attemptToForgeRunningSubject));
 				library.modules.delegates.onBlockchainReady();
 			});
