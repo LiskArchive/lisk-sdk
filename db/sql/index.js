@@ -13,24 +13,6 @@
  */
 'use strict';
 
-const exports = {
-	accounts: {
-		// sql to be included
-	},
-	blocks: {
-		// sql to be included
-	},
-	delegates: {
-		countDuplicatedDelegates: sql('delegates/count-duplicated-delegates.sql'),
-		getDelegatesByPublicKeys: sql('delegates/get-delegates-by-public-keys.sql'),
-		insertFork: sql('delegates/insert-fork.sql')
-	},
-	peers: {
-		// sql to be included
-	}
-	// etc...
-};
-
 const QueryFile = require('pg-promise').QueryFile;
 const path = require('path');
 
@@ -67,4 +49,20 @@ function sql(file) {
 	return qf;
 }
 
-module.exports = exports;
+module.exports = {
+	accounts: {
+		// sql to be included
+	},
+	blocks: {
+		// sql to be included
+	},
+	delegates: {
+		countDuplicatedDelegates: sql('delegates/count-duplicated-delegates.sql'),
+		getDelegatesByPublicKeys: sql('delegates/get-delegates-by-public-keys.sql'),
+		insertFork: sql('delegates/insert-fork.sql')
+	},
+	peers: {
+		// sql to be included
+	}
+	// etc...
+};
