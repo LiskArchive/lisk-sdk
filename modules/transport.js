@@ -56,15 +56,18 @@ function Transport (cb, scope) {
 		logic: {
 			block: scope.logic.block,
 			transaction: scope.logic.transaction,
-			peers: scope.logic.peers,
+			peers: scope.logic.peers
 		},
 		config: {
 			peers: {
 				options: {
-					timeout: scope.config.peers.options.timeout,
-				},
+					timeout: scope.config.peers.options.timeout
+				}
 			},
-		},
+			forging: {
+				force: scope.config.forging.force
+			}
+		}
 	};
 	self = this;
 
@@ -264,12 +267,10 @@ Transport.prototype.headers = function (headers) {
  * @return {boolean}
  */
 Transport.prototype.poorConsensus = function (consensus) {
-	var consensus = consensus || modules.peers.getConsensus();
-	if (consensus === undefined) {
+	if (library.config.forging.force) {
 		return false;
-	} else {
-		return (consensus < constants.minBroadhashConsensus);
 	}
+	return (consensus || modules.peers.getConsensus() < constants.minBroadhashConsensus);
 };
 
 /**
