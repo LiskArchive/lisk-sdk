@@ -312,7 +312,7 @@ __private.dbSave = function (cb) {
 * @param {Array<Peer>} matched - Peers with same as system broadhash.
 * @returns {number|undefined} - Consensus or undefined if config.forging.force = true.
 */
-Peers.prototype.getConsensus = function (active, matched) {
+Peers.prototype.calculateConsensus = function (active, matched) {
 	if (library.config.forging.force) {
 		return undefined;
 	}

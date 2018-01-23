@@ -200,7 +200,7 @@ describe('node', function () {
 
 				it('should call callback with result containing broadhash = modules.system.getBroadhash result');
 
-				it('should call callback with result containing consensus = modules.peers.getConsensus result');
+				it('should call callback with result containing consensus = modules.peers.calculateConsensus result');
 
 				it('should call callback with result containing height = modules.blocks.lastBlock.get result');
 

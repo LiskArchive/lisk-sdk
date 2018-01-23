@@ -450,17 +450,17 @@ describe('peers', function () {
 		});
 	});
 
-	describe('getConsensus', function () {
+	describe('calculateConsensus', function () {
 
 		var validActive;
 		var validMatched;
-		var getConsensusResult;
+		var calculateConsensusResult;
 		var originalForgingForce;
 
 		before(function () {
 			validActive = null;
 			validMatched = null;
-			getConsensusResult = null;
+			calculateConsensusResult = null;
 			originalForgingForce = PeersRewired.__get__('library.config.forging.force');
 			systemModuleMock.getBroadhash = sinonSandbox.stub().returns();
 			peersLogicMock.list = sinonSandbox.stub().returns([]);
@@ -471,7 +471,7 @@ describe('peers', function () {
 		});
 
 		beforeEach(function () {
-			getConsensusResult = peers.getConsensus(validActive, validMatched);
+			calculateConsensusResult = peers.calculateConsensus(validActive, validMatched);
 		});
 
 		afterEach(function () {
@@ -485,7 +485,7 @@ describe('peers', function () {
 			});
 
 			it('should return undefined', function () {
-				expect(getConsensusResult).to.be.undefined;
+				expect(calculateConsensusResult).to.be.undefined;
 			});
 		});
 
@@ -511,7 +511,7 @@ describe('peers', function () {
 				});
 
 				it('should return consensus as a number', function () {
-					expect(getConsensusResult).to.be.a('number');
+					expect(calculateConsensusResult).to.be.a('number');
 				});
 			});
 
@@ -546,7 +546,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 0', function () {
-						expect(getConsensusResult).to.equal(0);
+						expect(calculateConsensusResult).to.equal(0);
 					});
 				});
 
@@ -559,7 +559,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						expect(calculateConsensusResult).equal(100);
 					});
 				});
 
@@ -572,7 +572,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 50', function () {
-						expect(getConsensusResult).equal(50);
+						expect(calculateConsensusResult).equal(50);
 					});
 				});
 			});
@@ -587,7 +587,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						expect(calculateConsensusResult).equal(100);
 					});
 				});
 
@@ -599,7 +599,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						expect(calculateConsensusResult).equal(100);
 					});
 				});
 
@@ -611,7 +611,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						expect(calculateConsensusResult).equal(100);
 					});
 				});
 
@@ -623,7 +623,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						expect(calculateConsensusResult).equal(100);
 					});
 				});
 
@@ -635,7 +635,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 100', function () {
-						expect(getConsensusResult).equal(100);
+						expect(calculateConsensusResult).equal(100);
 					});
 				});
 
@@ -647,7 +647,7 @@ describe('peers', function () {
 					});
 
 					it('should return consensus = 50', function () {
-						expect(getConsensusResult).equal(50);
+						expect(calculateConsensusResult).equal(50);
 					});
 				});
 			});

@@ -232,7 +232,7 @@ describe('transport', function () {
 		});
 
 		describe('receiveSignatures', function () {
-			
+
 			beforeEach(function (done) {
 				__private.receiveSignature = sinon.stub().callsArg(1);
 				library.schema.validate = sinon.stub().callsArg(2);
@@ -545,7 +545,7 @@ describe('transport', function () {
 
 			describe('when consensus is undefined', function () {
 
-				it('should set consensus = modules.peers.getConsensus()');
+				it('should set consensus = modules.peers.calculateConsensus()');
 			});
 
 			describe('when consensus is undefined', function () {

@@ -220,7 +220,7 @@ __private.forge = function (cb) {
 		}
 
 		library.sequence.add(function (cb) {
-			var consensus = modules.peers.getConsensus();
+			var consensus = modules.peers.calculateConsensus();
 			if (modules.transport.poorConsensus(consensus)) {
 				return setImmediate(cb, ['Inadequate broadhash consensus', consensus, '%'].join(' '));
 			}
