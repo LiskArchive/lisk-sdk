@@ -24,6 +24,7 @@ var modules;
 
 /**
  * @class
+ * @memberof controllers
  * @requires lodash
  * @requires helpers/apiError
  * @requires helpers/apiCodes.NOT_FOUND

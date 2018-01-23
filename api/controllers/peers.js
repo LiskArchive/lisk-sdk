@@ -20,6 +20,7 @@ var modules;
 
 /**
  * @class
+ * @memberof controllers
  * @requires lodash
  * @param {Object} scope - App instance.
  * @todo: add description of PeersController

@@ -24,6 +24,7 @@ var config;
 
 /**
  * @class
+ * @memberof controllers
  * @requires lodash
  * @requires helpers/apiCodes.FORBIDDEN
  * @requires helpers/apiCodes.NOT_FOUND

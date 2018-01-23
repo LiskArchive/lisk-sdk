@@ -22,6 +22,7 @@ var modules;
 
 /**
  * @class
+ * @memberof controllers
  * @requires lodash
  * @requires helpers/apiError
  * @requires helpers/swagger.generateParamsErrorObject
