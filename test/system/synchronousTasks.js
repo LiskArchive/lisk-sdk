@@ -21,38 +21,46 @@ describe('synchronousTasks', function () {
 
 	describe('when events are emitted after any of synchronous task starts', function () {
 
-		var attemptToForgeRunningSubject = new Rx.BehaviorSubject();
-		var synchronizeBlockchainRunningSubject = new Rx.BehaviorSubject();
+		var intervalMs;
+		var durationMs;
+		var attemptToForgeRunningSubject;
+		var synchronizeBlockchainRunningSubject;
 
-		describe('when "attempt to forge" synchronous tasks runs every 100 ms and takes 101 ms', function () {
+		var synchronousTaskMock = function (isTaskRunningSubject, nextCb) {
+			isTaskRunningSubject.onNext(true);
+			setTimeout(function () {
+				isTaskRunningSubject.onNext(false);
+				nextCb();
+			}, durationMs);
+		};
 
-			var intervalMs = 100;
-			var durationMs = intervalMs + 1;
+		before(function () {
+			attemptToForgeRunningSubject = new Rx.BehaviorSubject();
+			synchronizeBlockchainRunningSubject = new Rx.BehaviorSubject();
+		});
+
+		after(function () {
+			attemptToForgeRunningSubject.dispose();
+			synchronizeBlockchainRunningSubject.dispose();
+		});
+
+		describe('when "attempt to forge" synchronous task runs every 100 ms and takes 101 ms', function () {
+
+			intervalMs = 100;
+			durationMs = intervalMs + 1;
 
 			before(function () {
 				library.modules.delegates.onBlockchainReady = library.rewiredModules.delegates.prototype.onBlockchainReady;
 				library.rewiredModules.delegates.__set__('__private.forgeAttemptInterval', intervalMs);
-				library.rewiredModules.delegates.__set__('__private.nextForge', function (nextForgeCb) {
-					attemptToForgeRunningSubject.onNext(true);
-					setTimeout(function () {
-						attemptToForgeRunningSubject.onNext(false);
-						nextForgeCb();
-					}, durationMs);
-				});
+				library.rewiredModules.delegates.__set__('__private.nextForge', synchronousTaskMock.bind(null, attemptToForgeRunningSubject));
 				library.modules.delegates.onBlockchainReady();
 			});
 
-			describe('when "blockchain synchronization" synchronous tasks runs every 100 ms and takes 101 ms', function () {
+			describe('when "blockchain synchronization" synchronous task runs every 100 ms and takes 101 ms', function () {
 
 				before(function () {
 					library.rewiredModules.loader.__set__('__private.syncInterval', intervalMs);
-					library.rewiredModules.loader.__set__('__private.sync', function (nextForgeCb) {
-						synchronizeBlockchainRunningSubject.onNext(true);
-						setTimeout(function () {
-							synchronizeBlockchainRunningSubject.onNext(false);
-							nextForgeCb();
-						}, durationMs);
-					});
+					library.rewiredModules.loader.__set__('__private.sync', synchronousTaskMock.bind(null, synchronizeBlockchainRunningSubject));
 					var jobsQueue = require('../../helpers/jobsQueue');
 					var originalLoaderSyncTimerJob = jobsQueue.jobs['loaderSyncTimer'];
 					clearTimeout(originalLoaderSyncTimerJob);  // Terminate original job
@@ -69,11 +77,6 @@ describe('synchronousTasks', function () {
 							attemptToForgeRunningSubject = new Rx.BehaviorSubject();
 							synchronizeBlockchainRunningSubject = new Rx.BehaviorSubject();
 						}, 5000);
-					});
-
-					after(function () {
-						attemptToForgeRunningSubject.dispose();
-						synchronizeBlockchainRunningSubject.dispose();
 					});
 
 					it('"attempt to forge" task should never start when "blockchain synchronization" task is running', function (done) {
