@@ -16,6 +16,8 @@
 var moment = require('moment');
 var util = require('util');
 
+var appFile = 'app.js'; // NOTE: This name is used for detecting if packaged: db/sql/config.js
+
 module.exports = function (grunt) {
 	var files = [
 		'logger.js',
@@ -26,7 +28,7 @@ module.exports = function (grunt) {
 		'logic/*.js',
 		'schema/**/*.js',
 		'sql/**/*.js',
-		'app.js' // NOTE: This name is used for detecting if packaged: db/sql/index.js
+		appFile
 	];
 
 	var today = moment().format('HH:mm:ss DD/MM/YYYY');
@@ -41,8 +43,8 @@ module.exports = function (grunt) {
 	grunt.initConfig({
 		obfuscator: {
 			files: files,
-			entry: 'app.js',
-			out: 'release/app.js', // Remember to change the file db/sql/index.js#20 if you change the entry name
+			entry: appFile,
+			out: 'release/' + appFile,
 			strings: true,
 			root: __dirname
 		},
@@ -54,7 +56,7 @@ module.exports = function (grunt) {
 						util.format('mkdir -p %s', version_dir),
 						util.format('mkdir -p %s/logs', version_dir),
 						util.format('mkdir -p %s/pids', version_dir),
-						util.format('cp %s/app.js %s', release_dir, version_dir),
+						util.format('cp %s/%s %s', release_dir, appFile, version_dir),
 						util.format('cp %s/workersController.js %s', release_dir, version_dir),
 						util.format('cp %s/config.json %s', __dirname, version_dir),
 						util.format('cp %s/package.json %s', __dirname, version_dir),
