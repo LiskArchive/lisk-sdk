@@ -117,7 +117,9 @@ Round.prototype.updateVotes = function () {
 		});
 
 		if (queries.length > 0) {
-			return self.t.batch(queries);
+			return self.t.tx(function (t) {
+				return t.batch(queries);
+			});
 		} else {
 			return self.t;
 		}
@@ -188,6 +190,11 @@ Round.prototype.applyRound = function () {
 
 	// Reverse delegates if going backwards
 	var delegates = (this.scope.backwards) ? this.scope.roundDelegates.reverse() : this.scope.roundDelegates;
+
+	// Reverse rewards if going backwards
+	if (this.scope.backwards) {
+		this.scope.roundRewards.reverse();
+	}
 
 	// Apply round changes to each delegate
 	for (var i = 0; i < this.scope.roundDelegates.length; i++) {
