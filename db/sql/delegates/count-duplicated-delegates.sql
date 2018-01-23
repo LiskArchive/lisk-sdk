@@ -7,7 +7,7 @@
 WITH duplicates AS
   (
     SELECT count(1)
-    FROM delegates
+    FROM ${schema~}.delegates
     GROUP BY "transactionId"
     HAVING count(1) > 1
   )

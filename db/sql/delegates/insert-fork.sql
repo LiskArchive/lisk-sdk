@@ -10,7 +10,7 @@
       cause - ?
 */
 
-INSERT INTO forks_stat(
+INSERT INTO ${schema~}.forks_stat(
   "delegatePublicKey",
   "blockTimestamp",
   "blockId",
