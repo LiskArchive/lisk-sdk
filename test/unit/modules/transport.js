@@ -879,9 +879,18 @@ describe('transport', () => {
 					});
 				});
 
+<<<<<<< HEAD
 				it(
 					'should call library.logic.peers.peersManager.getAddress with peer.nonce'
 				);
+=======
+				it('should call library.logic.peers.peersManager.getAddress with peer.nonce', function (done) {
+					__private.receiveTransaction(transaction, peerStub, 'This is a log message', function (err) {
+						expect(library.logic.peers.peersManager.getAddress.calledWith(peerStub.nonce)).to.be.true;
+						done();
+					});
+				});
+>>>>>>> 7009c20... Transport tests - receiveTransaction method, check peersManager.getAddress
 			});
 
 			it('should call modules.transactions.processUnconfirmedTransaction');
