@@ -42,7 +42,7 @@ describe('delegate', function () {
 		});
 	});
 
-	describe('with money inside the account', function (done) {
+	describe('with funds inside account', function (done) {
 
 		var delegateAccount;
 		

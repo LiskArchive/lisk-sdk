@@ -25,7 +25,7 @@ describe('multisignature', function () {
 		application.cleanup(done);
 	});
 
-	describe('with LISK sent to multisig account', function () {
+	describe('with funds sent to multisig account', function () {
 
 		var multisigAccount;
 
@@ -164,7 +164,7 @@ describe('multisignature', function () {
 		});
 	});
 
-	describe('with LISK sent to multisig account', function () {
+	describe('with funds sent to multisig account', function () {
 
 		var multisigAccount;
 
@@ -185,7 +185,7 @@ describe('multisignature', function () {
 				});
 			});
 
-			describe('after forging Block with multisig transaction', function () {
+			describe('after forging block with multisig transaction', function () {
 
 				var multisigTransaction;
 				var signer1 = node.randomAccount();
