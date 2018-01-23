@@ -1,21 +1,33 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 'use strict';
 
 // Init tests dependencies
-var _ = require('lodash');
-var expect = require('chai').expect;
-var sinon = require('sinon');
 var rewire = require('rewire');
 var Promise = require('bluebird');
 
 // Instantiate test subject
 var Round = rewire('../../../logic/round.js');
 
+var sinon = sinonSandbox;
 var slots = require('../../../helpers/slots.js');
 var bignum = require('../../../helpers/bignum.js');
 var genesisBlock = require('../../data/genesisBlock.json');
 var DBSandbox = require('../../common/DBSandbox').DBSandbox;
 
 describe('rounds', function () {
+
 	var db;
 	var dbSandbox;
 	var round;
@@ -77,6 +89,7 @@ describe('rounds', function () {
 	}
 
 	describe('constructor', function () {
+
 		var scope;
 
 		describe('when calling with required properties', function () {
@@ -171,6 +184,7 @@ describe('rounds', function () {
 			});
 
 			describe('when finish round', function () {
+
 				beforeEach(function () {
 					// Set finishRound, so now we need additional properties
 					scope.finishRound = true;
@@ -232,6 +246,7 @@ describe('rounds', function () {
 	});
 
 	describe('mergeBlockGenerator', function () {
+
 		var none_stub;
 		var scope;
 
@@ -240,7 +255,7 @@ describe('rounds', function () {
 			none_stub.restore();
 		});
 
-		describe ('when going forward', function () {
+		describe('when going forward', function () {
 
 			before(function () {
 				scope = _.cloneDeep(validScope);
@@ -261,7 +276,7 @@ describe('rounds', function () {
 			});
 		});
 
-		describe ('when going backwards', function () {
+		describe('when going backwards', function () {
 
 			before(function () {
 				scope = _.cloneDeep(validScope);
@@ -284,6 +299,7 @@ describe('rounds', function () {
 	});
 
 	describe('updateMissedBlocks', function () {
+
 		var scope;
 		var stub;
 		var res;
@@ -332,6 +348,7 @@ describe('rounds', function () {
 	});
 
 	describe('getVotes', function () {
+
 		var stub;
 		var res;
 		var scope;
@@ -361,13 +378,14 @@ describe('rounds', function () {
 	});
 
 	describe('updateVotes', function () {
+
 		var getVotes_stub;
 		var updateVotes_stub;
 		var res;
 		var scope;
 		var delegate;
 
-		describe ('when getVotes returns at least one entry', function () {
+		describe('when getVotes returns at least one entry', function () {
 
 			before(function () {
 				scope = _.cloneDeep(validScope);
@@ -421,7 +439,7 @@ describe('rounds', function () {
 			});
 		});
 
-		describe ('when getVotes returns no entries', function () {
+		describe('when getVotes returns no entries', function () {
 
 			before(function () {
 				scope = _.cloneDeep(validScope);
@@ -473,6 +491,7 @@ describe('rounds', function () {
 	});
 
 	describe('markBlockId', function () {
+
 		var updateBlockId_stub;
 		var res;
 		var scope;
@@ -521,6 +540,7 @@ describe('rounds', function () {
 	});
 
 	describe('flushRound', function () {
+
 		var stub;
 		var res;
 
@@ -547,6 +567,7 @@ describe('rounds', function () {
 	});
 
 	describe('truncateBlocks', function () {
+
 		var stub;
 		var res;
 
@@ -573,6 +594,7 @@ describe('rounds', function () {
 	});
 
 	describe('restoreRoundSnapshot', function () {
+
 		var stub;
 		var res;
 
@@ -599,6 +621,7 @@ describe('rounds', function () {
 	});
 
 	describe('restoreVotesSnapshot', function () {
+
 		var stub;
 		var res;
 
@@ -625,6 +648,7 @@ describe('rounds', function () {
 	});
 
 	describe('applyRound', function () {
+
 		var res;
 		var none_stub;
 		var scope;
@@ -727,7 +751,8 @@ describe('rounds', function () {
 
 		describe('with only one delegate', function () {
 
-			describe ('when there are no remaining fees', function () {
+			describe('when there are no remaining fees', function () {
+
 				var forwardResults = [];
 				var backwardsResults = [];
 
@@ -737,6 +762,7 @@ describe('rounds', function () {
 				});
 
 				describe('forward', function () {
+
 					var called = 0;
 
 					before(function () {
@@ -782,6 +808,7 @@ describe('rounds', function () {
 				});
 
 				describe('backwards', function () {
+
 					var called = 0;
 
 					before(function () {
@@ -827,6 +854,7 @@ describe('rounds', function () {
 				});
 
 				describe('consistency checks for each delegate', function () {
+
 					var result;
 
 					before(function () {
@@ -859,7 +887,8 @@ describe('rounds', function () {
 				});
 			});
 
-			describe ('when there are remaining fees', function () {
+			describe('when there are remaining fees', function () {
+
 				var forwardResults = [];
 				var backwardsResults = [];
 
@@ -869,6 +898,7 @@ describe('rounds', function () {
 				});
 
 				describe('forward', function () {
+
 					var called = 0;
 
 					before(function () {
@@ -914,7 +944,7 @@ describe('rounds', function () {
 						var remainingFees = Number(new bignum(validScope.roundFees.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates)).toFixed());
 
 						var args = {
-							publicKey: validScope.roundDelegates[index], // remaining fees are applied to last delegate of round
+							publicKey: validScope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
 							u_balance: remainingFees,
 							blockId: validScope.block.id,
@@ -933,6 +963,7 @@ describe('rounds', function () {
 				});
 
 				describe('backwards', function () {
+
 					var called = 0;
 
 					before(function () {
@@ -978,7 +1009,7 @@ describe('rounds', function () {
 						var remainingFees = Number(new bignum(validScope.roundFees.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates)).toFixed());
 
 						var args = {
-							publicKey: validScope.roundDelegates[index], // remaining fees are applied to last delegate of round
+							publicKey: validScope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
 							u_balance: -remainingFees,
 							blockId: validScope.block.id,
@@ -997,6 +1028,7 @@ describe('rounds', function () {
 				});
 
 				describe('consistency checks for each delegate', function () {
+
 					var result;
 
 					before(function () {
@@ -1032,7 +1064,8 @@ describe('rounds', function () {
 
 		describe('with 3 delegates', function () {
 
-			describe ('when there are no remaining fees', function () {
+			describe('when there are no remaining fees', function () {
+
 				var forwardResults = [];
 				var backwardsResults = [];
 
@@ -1047,6 +1080,7 @@ describe('rounds', function () {
 				});
 
 				describe('forward', function () {
+
 					var called = 0;
 
 					before(function () {
@@ -1124,12 +1158,13 @@ describe('rounds', function () {
 						called++;
 					});
 
-					it('should not call mergeAccountAndGet another time (for apply remaining fees)', function () {
+					it('should not call mergeAccountAndGet another time (for applying remaining fees)', function () {
 						expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(called);
 					});
 				});
 
 				describe('backwards', function () {
+
 					var called = 0;
 
 					before(function () {
@@ -1207,12 +1242,13 @@ describe('rounds', function () {
 						called++;
 					});
 
-					it('should not call mergeAccountAndGet another time (for apply remaining fees)', function () {
+					it('should not call mergeAccountAndGet another time (for applying remaining fees)', function () {
 						expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(called);
 					});
 				});
 
 				describe('consistency checks for each delegate', function () {
+
 					var result;
 
 					before(function () {
@@ -1245,7 +1281,8 @@ describe('rounds', function () {
 				});
 			});
 
-			describe ('when there are remaining fees', function () {
+			describe('when there are remaining fees', function () {
+
 				var forwardResults = [];
 				var backwardsResults = [];
 
@@ -1260,6 +1297,7 @@ describe('rounds', function () {
 				});
 
 				describe('forward', function () {
+
 					var called = 0;
 
 					before(function () {
@@ -1343,7 +1381,7 @@ describe('rounds', function () {
 						var remainingFees = Number(new bignum(scope.roundFees.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates)).toFixed());
 
 						var args = {
-							publicKey: scope.roundDelegates[index], // remaining fees are applied to last delegate of round
+							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
 							u_balance: remainingFees,
 							blockId: scope.block.id,
@@ -1362,6 +1400,7 @@ describe('rounds', function () {
 				});
 
 				describe('backwards', function () {
+
 					var called = 0;
 
 					before(function () {
@@ -1445,7 +1484,7 @@ describe('rounds', function () {
 						var remainingFees = Number(new bignum(scope.roundFees.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates)).toFixed());
 
 						var args = {
-							publicKey: scope.roundDelegates[index], // remaining fees are applied to last delegate of round
+							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
 							u_balance: -remainingFees,
 							blockId: scope.block.id,
@@ -1464,6 +1503,7 @@ describe('rounds', function () {
 				});
 
 				describe('consistency checks for each delegate', function () {
+
 					var result;
 
 					before(function () {
@@ -1499,6 +1539,7 @@ describe('rounds', function () {
 	});
 
 	describe('land', function () {
+
 		var none_stub;
 		var roundOutsiders_stub;
 		var updateVotes_stub;
@@ -1577,6 +1618,7 @@ describe('rounds', function () {
 	});
 
 	describe('backwardLand', function () {
+
 		var none_stub;
 		var roundOutsiders_stub;
 		var updateVotes_stub;
