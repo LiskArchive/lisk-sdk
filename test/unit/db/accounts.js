@@ -395,11 +395,12 @@ describe('db', function () {
 						});
 					});
 
-					it('should skip if unknown field is provided as filter', function () {
-						return db.accounts.list({username: validAccount.username, unknownField: 'Alpha'}).then(function (data) {
-							data.forEach(function (account) {
-								account.username.should.be.eql(validAccount.username);
-							});
+					it('should throw error if unknown field is provided as filter', function (done) {
+						db.accounts.list({username: validAccount.username, unknownField: 'Alpha'}).then(function () {
+							done('Error was expected');
+						}).catch(function (reason) {
+							expect(reason).to.eql('Unknown filter field provided to list');
+							done();
 						});
 					});
 				});
