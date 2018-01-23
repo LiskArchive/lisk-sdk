@@ -604,6 +604,7 @@ describe('transactionPool', function () {
 		});
 
 		describe('when transaction is in pool', function () {
+
 			var tx = '123';
 
 			describe('unconfirmed list', function () {
