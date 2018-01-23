@@ -133,7 +133,7 @@ describe('rounds', function () {
 			stub.restore();
 		});
 
-		describe('when flush query succeed', function () {
+		describe('when flush query is successful', function () {
 
 			before(function (done) {
 				rounds.flush(true, function (err) {
@@ -270,7 +270,7 @@ describe('rounds', function () {
 
 			var scope = {block: {height: 2}};
 
-			describe('when generateDelegateList succeed', function () {
+			describe('when generateDelegateList is successful', function () {
 
 				var modules;
 
@@ -387,7 +387,7 @@ describe('rounds', function () {
 			sumRound = get('__private.sumRound');
 		});
 
-		describe('when summedRound query succeed', function () {
+		describe('when summedRound query is successful', function () {
 
 			var initialScope;
 
