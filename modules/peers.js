@@ -304,6 +304,14 @@ __private.dbSave = function (cb) {
 };
 
 /**
+ * Returns consensus stored by Peers.prototype.calculateConsensus
+ * @returns {number|undefined} - Last calculated consensus or null wasn't calculated yet
+ */
+Peers.prototype.getLastConsensus = function () {
+	return self.consensus;
+};
+
+/**
 * Calculates consensus for as a ratio active to matched peers.
 * @param {Array<Peer>} active - Active peers (with connected state).
 * @param {Array<Peer>} matched - Peers with same as system broadhash.
@@ -318,7 +326,8 @@ Peers.prototype.calculateConsensus = function (active, matched) {
 	var activeCount = Math.min(active.length, constants.maxPeers);
 	var matchedCount = Math.min(matched.length, activeCount);
 	var consensus = +(matchedCount / activeCount * 100).toPrecision(2);
-	return isNaN(consensus) ? 0 : consensus;
+	self.consensus = isNaN(consensus) ? 0 : consensus;
+	return self.consensus;
 };
 
 // Public methods

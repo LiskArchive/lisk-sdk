@@ -450,6 +450,13 @@ describe('peers', function () {
 		});
 	});
 
+	describe('getLastConsensus', function () {
+
+		it('should return self.consensus value', function () {
+			expect(peers.getLastConsensus()).equal(PeersRewired.__get__('self.consensus'));
+		});
+	});
+
 	describe('calculateConsensus', function () {
 
 		var validActive;
@@ -478,6 +485,10 @@ describe('peers', function () {
 
 		afterEach(function () {
 			peersLogicMock.list.resetHistory();
+		});
+
+		it('should set self.consensus value', function () {
+			expect(PeersRewired.__get__('self.consensus')).to.equal(calculateConsensusResult);
 		});
 
 		describe('when active peers not passed', function () {
