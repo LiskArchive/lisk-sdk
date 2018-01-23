@@ -61,12 +61,6 @@ describe('dapp', function () {
 		dapp = new Dapp(dbStub, modulesLoader.scope.logger, modulesLoader.scope.schema, modulesLoader.scope.network);
 	});
 
-	afterEach(function () {
-		Object.keys(dbStub.dapps).forEach(function (key) {
-			dbStub.dapps[key].reset();
-		});
-	});
-
 	describe('with dummy data', function () {
 
 		beforeEach(function () {

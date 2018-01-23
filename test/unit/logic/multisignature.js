@@ -686,10 +686,6 @@ describe('multisignature', function () {
 					accountMock.merge.callsArgWith(2, 'merge error');
 				});
 
-				afterEach(function () {
-					accountMock.merge.reset();
-				});
-
 				it('should call callback with error = merge error', function (done) {
 					multisignature.applyUnconfirmed(transaction, sender, function (err) {
 						expect(err).not.to.be.empty;

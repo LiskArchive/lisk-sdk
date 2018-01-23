@@ -295,12 +295,6 @@ describe('block', function () {
 				transactionStub.objectNormalize.returnsArg(0);
 			});
 
-			after(function () {
-				blockNormalizeStub.reset();
-				transactionStub.getBytes.reset();
-				transactionStub.objectNormalize.reset();
-			});
-
 			describe('when one of all transaction types are present', function () {
 
 				var generatedBlock;

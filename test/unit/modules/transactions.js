@@ -84,7 +84,7 @@ describe('transactions', function () {
 		return transactionLogic;
 	}
 
-	before(function (done) {
+	beforeEach(function (done) {
 		dbStub = {
 			transactions: {
 				sortFields: [
@@ -177,15 +177,6 @@ describe('transactions', function () {
 				attachAllAssets(result.transactionLogic, result.accountLogic, result.delegateModule, result.accountsModule);
 				done();
 			});
-		});
-	});
-
-	beforeEach(function () {
-		dbStub.transactions.countList.reset();
-		dbStub.transactions.list.reset();
-
-		Object.keys(TransactionTypeMap).forEach(function (key) {
-			dbStub.transactions[TransactionTypeMap[key]].reset();
 		});
 	});
 
