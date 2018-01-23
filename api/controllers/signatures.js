@@ -21,7 +21,7 @@ var modules;
 /**
  * @class
  * @requires lodash
- * @requires module:helpers/apiError
+ * @requires helpers/apiError
  * @param {Object} scope - App instance.
  * @todo: add description of SignaturesController
  */

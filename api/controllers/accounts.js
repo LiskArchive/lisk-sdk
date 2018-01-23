@@ -23,8 +23,8 @@ var modules;
 /**
  * @class
  * @requires lodash
- * @requires module:helpers/apiError
- * @requires module:helpers/swagger.generateParamsErrorObject
+ * @requires helpers/apiError
+ * @requires helpers/swagger.generateParamsErrorObject
  * @param {Object} scope - App instance.
  * @todo: add description of AccountsController
  */

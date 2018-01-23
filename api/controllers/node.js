@@ -25,11 +25,11 @@ var config;
 /**
  * @class
  * @requires lodash
- * @requires module:helpers/apiCodes.FORBIDDEN
- * @requires module:helpers/apiCodes.NOT_FOUND
- * @requires module:helpers/checkIpInList
- * @requires module:helpers/swagger.generateParamsErrorObject
- * @requires module:helpers/swagger.invalidParams
+ * @requires helpers/apiCodes.FORBIDDEN
+ * @requires helpers/apiCodes.NOT_FOUND
+ * @requires helpers/checkIpInList
+ * @requires helpers/swagger.generateParamsErrorObject
+ * @requires helpers/swagger.invalidParams
  * @param {Object} scope - App instance.
  * @todo: add description of NodeController
  */

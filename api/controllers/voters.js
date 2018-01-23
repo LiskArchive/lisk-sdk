@@ -25,9 +25,9 @@ var modules;
 /**
  * @class
  * @requires lodash
- * @requires module:helpers/apiError
- * @requires module:helpers/apiCodes.NOT_FOUND
- * @requires module:helpers/swagger.generateParamsErrorObject
+ * @requires helpers/apiError
+ * @requires helpers/apiCodes.NOT_FOUND
+ * @requires helpers/swagger.generateParamsErrorObject
  * @param {Object} scope - App instance.
  * @todo: add description of VotersController
  */

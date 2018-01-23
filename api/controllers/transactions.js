@@ -23,9 +23,9 @@ var modules;
 /**
  * @class
  * @requires lodash
- * @requires module:helpers/apiError
- * @requires module:helpers/swagger.generateParamsErrorObject
- * @requires module:helpers/swagger.invalidParams
+ * @requires helpers/apiError
+ * @requires helpers/swagger.generateParamsErrorObject
+ * @requires helpers/swagger.invalidParams
  * @param {Object} scope - App instance.
  * @todo: add description of TransactionsController
  */
