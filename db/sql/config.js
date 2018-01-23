@@ -27,25 +27,25 @@ const sqlRoot = isPackaged ? path.join(__dirname, './sql') : __dirname;
 
 ///////////////////////////////////////////////
 // Helper for linking to external query files:
-function sql(file) {
+function load(file) {
 
-    const fullPath = path.join(sqlRoot, file); // Generating full path;
+	const fullPath = path.join(sqlRoot, file); // Generating full path;
 
-    const options = {
-        minify: true, // Minifies the SQL
-        debug: !isPackaged, // Debug SQL when not packaged
-        params: {schema} // Dynamic database schema
-    };
+	const options = {
+		minify: true, // Minifies the SQL
+		debug: !isPackaged, // Debug SQL when not packaged
+		params: {schema} // Dynamic database schema
+	};
 
-    const qf = new QueryFile(fullPath, options);
+	const qf = new QueryFile(fullPath, options);
 
-    if (qf.error) {
-        // TODO: Replace this with proper logging later on
-        console.error(qf.error); // Something is wrong with our query file
-        process.exit(1); // Exit the process with fatal error
-    }
+	if (qf.error) {
+		// TODO: Replace this with proper logging later on
+		console.error(qf.error); // Something is wrong with our query file
+		process.exit(1); // Exit the process with fatal error
+	}
 
-    return qf;
+	return qf;
 }
 
-module.exports = sql;
+module.exports = {load, schema};

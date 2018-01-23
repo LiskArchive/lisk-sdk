@@ -13,7 +13,7 @@
  */
 'use strict';
 
-const {sql} = require('../sql').delegates;
+const sql = require('../sql').delegates;
 
 /**
  * Delegates database interaction module

@@ -13,10 +13,9 @@
  */
 'use strict';
 
-const load = require('./config');
-const schema = require('../../config.json').db.schema;
+const {load} = require('./config');
 
-const sql = {
+module.exports = {
 	accounts: {
 		// sql to be included
 	},
@@ -33,5 +32,3 @@ const sql = {
 	}
 	// etc...
 };
-
-module.exports = {sql, schema};
