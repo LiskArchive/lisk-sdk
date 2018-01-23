@@ -36,7 +36,6 @@ function VotersController(scope) {
 }
 
 /**
- * @public
  * @param {Object} context
  * @param {function} next
  * @todo: add description of the function and its parameters
@@ -98,7 +97,6 @@ VotersController.getVoters = function (context, next) {
 };
 
 /**
- * @public
  * @param {Object} context
  * @param {function} next
  * @todo: add description of the function and its parameters

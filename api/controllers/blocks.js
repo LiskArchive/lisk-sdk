@@ -29,7 +29,6 @@ function BlocksController(scope) {
 }
 
 /**
- * @public
  * @param {Object} context
  * @param {function} next
  * @todo: add description of the function and its parameters

@@ -33,7 +33,6 @@ function AccountsController(scope) {
 }
 
 /**
- * @public
  * @param {Object} context
  * @param {function} next
  * @todo: add description of the function and its parameters
@@ -86,7 +85,6 @@ AccountsController.getAccounts = function (context, next) {
 };
 
 /**
- * @public
  * @param {Object} context
  * @param {function} next
  * @todo: add description of the function and its parameters
@@ -126,7 +124,6 @@ AccountsController.getMultisignatureGroups = function (context, next) {
 };
 
 /**
- * @public
  * @param {Object} context
  * @param {function} next
  * @todo: add description of the function and its parameters
