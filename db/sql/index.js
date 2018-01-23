@@ -12,3 +12,55 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 'use strict';
+
+module.exports = {
+	accounts: {
+		// sql to be included
+	},
+	blocks: {
+		// sql to be included
+	},
+	delegates: {
+		countDuplicatedDelegates: sql('delegates/count-duplicated-delegates.sql'),
+		getDelegatesByPublicKeys: sql('delegates/get-delegates-by-public-keys.sql'),
+		insertFork: sql('delegates/insert-fork.sql')
+	},
+	peers: {
+		// sql to be included
+	}
+	// etc...
+};
+
+const QueryFile = require('pg-promise').QueryFile;
+const path = require('path');
+
+// Check if it is a packaged/prod application:
+const isPackaged = __filename.endsWith('app.js');
+
+// Full path to the SQL folder, depending on the packaging:
+// - production expects ./sql folder at its root;
+// - development expects sql in this very folder.
+const sqlRoot = isPackaged ? path.join(__dirname, './sql', file) : __dirname;
+
+///////////////////////////////////////////////
+// Helper for linking to external query files:
+function sql(file) {
+
+	const fullPath = path.join(sqlRoot, file); // generating full path;
+
+	const options = {
+		minify: true, // minifies the SQL
+		params: {
+			schema: 'public' // replaces ${schema~} with "public"
+		}
+	};
+
+	const qf = new QueryFile(fullPath, options);
+
+	if (qf.error) {
+		console.error(qf.error); // something is wrong with our query file
+		process.exit(1); // exit the process with fatal error
+	}
+
+	return qf;
+}

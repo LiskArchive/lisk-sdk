@@ -60,9 +60,8 @@ module.exports = function (grunt) {
 						util.format('cp %s/package.json %s', __dirname, version_dir),
 						util.format('cp %s/genesisBlock.json %s', __dirname, version_dir),
 						util.format('cp %s/LICENSE %s', __dirname, version_dir),
-						util.format('mkdir -p %s/db/sql/init/migrations', version_dir),
-						util.format('cp %s/db/sql/init/*.sql %s/db/sql/init/', __dirname, version_dir),
-						util.format('cp %s/db/sql/init/migrations/*.sql %s/db/sql/init/migrations/', __dirname, version_dir),
+						util.format('mkdir -p %s/sql', version_dir),
+						util.format('cp -r %s/db/sql/*.sql %s/sql/', __dirname, version_dir)
 					].join(' && ');
 				}
 			},
