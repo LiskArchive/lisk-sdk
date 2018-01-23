@@ -17,13 +17,13 @@ const QueryFile = require('pg-promise').QueryFile;
 const schema = require('../../config.json').db.schema;
 const path = require('path');
 
-// Check if it is a packaged/prod application:
-const isPackaged = __filename.endsWith('app.js');
+// Check if we are in development environment:
+const isDev = __dirname.endsWith('db/sql');
 
 // Full path to the SQL folder, depending on the packaging:
 // - production expects ./sql folder at its root;
 // - development expects sql in this very folder.
-const sqlRoot = isPackaged ? path.join(__dirname, './sql') : __dirname;
+const sqlRoot = isDev ? __dirname : path.join(__dirname, './sql');
 
 ///////////////////////////////////////////////
 // Helper for linking to external query files:
@@ -33,7 +33,7 @@ function load(file) {
 
 	const options = {
 		minify: true, // Minifies the SQL
-		debug: !isPackaged, // Debug SQL when not packaged
+		debug: isDev, // Debug SQL when in Dev environment
 		params: {schema} // Dynamic database schema
 	};
 
