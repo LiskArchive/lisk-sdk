@@ -220,11 +220,10 @@ __private.forge = function (cb) {
 		}
 
 		library.sequence.add(function (cb) {
-			var consensus = modules.peers.calculateConsensus();
-			if (modules.transport.poorConsensus(consensus)) {
-				return setImmediate(cb, ['Inadequate broadhash consensus', consensus, '%'].join(' '));
+			if (modules.transport.poorConsensus()) {
+				return setImmediate(cb, ['Inadequate broadhash consensus', modules.peers.getLastConsensus(), '%'].join(' '));
 			}
-			library.logger.info(['Broadhash consensus now', consensus, '%'].join(' '));
+			library.logger.info(['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(' '));
 			modules.blocks.process.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
 		}, function (err) {
 			if (err) {
