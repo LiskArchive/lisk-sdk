@@ -41,8 +41,8 @@ module.exports = function (grunt) {
 	grunt.initConfig({
 		obfuscator: {
 			files: files,
-			entry: 'app.js',
-			out: 'release/app.js',
+			entry: 'app.js',	
+			out: 'release/app.js', // Remeber to change the file db/sql/index.js#20 if you change the entry name. 
 			strings: true,
 			root: __dirname
 		},
