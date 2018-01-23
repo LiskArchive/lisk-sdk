@@ -34,7 +34,7 @@ class DelegatesRepository {
 	/**
 	 * Inserts a fork data table entry
 	 * @param {Object} fork
-	 * @return {promise}
+	 * @return {Promise}
 	 */
 	insertFork (fork) {
 		return this.db.none(sql.insertFork, fork);
