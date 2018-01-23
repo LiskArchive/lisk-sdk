@@ -224,7 +224,6 @@ __private.forge = function (cb) {
 			}
 		}, function (err) {
 			if (err) {
-				library.logger.warn(err);
 				library.logger.error('Failed to generate block within delegate slot', err);
 			} else {
 				var forgedBlock = modules.blocks.lastBlock.get();
