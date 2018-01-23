@@ -45,7 +45,7 @@ describe('delegate', function () {
 	describe('with funds inside account', function (done) {
 
 		var delegateAccount;
-		
+
 		beforeEach('send funds to delegate account', function (done) {
 			delegateAccount = node.randomAccount();
 			var sendTransaction = node.lisk.transaction.createTransaction(delegateAccount.address, 1000000000*100, node.gAccount.password);
@@ -106,6 +106,7 @@ describe('delegate', function () {
 			});
 
 			describe('when receiving block with delegate transaction with different Id', function () {
+
 				var delegateTransaction2;
 				var username2;
 

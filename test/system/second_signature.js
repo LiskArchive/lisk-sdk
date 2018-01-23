@@ -103,11 +103,11 @@ describe('signature', function () {
 			});
 
 			describe('when receiving block with signature transaction with different Id', function () {
+
 				var signatureTransaction2;
 				var username2;
 
 				beforeEach(function (done) {
-
 					username2 = node.randomUsername().toLowerCase();
 					signatureTransaction2 = node.lisk.signature.createSignature(signatureAccount.password, node.randomPassword());
 					signatureTransaction2.senderId = signatureAccount.address;
@@ -147,7 +147,6 @@ describe('signature', function () {
 					});
 				});
 			});
-
 		});
 	});
 });
