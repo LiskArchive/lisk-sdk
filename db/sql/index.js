@@ -57,9 +57,9 @@ module.exports = {
 		// sql to be included
 	},
 	delegates: {
-		countDuplicatedDelegates: sql('delegates/count-duplicated-delegates.sql'),
-		getDelegatesByPublicKeys: sql('delegates/get-delegates-by-public-keys.sql'),
-		insertFork: sql('delegates/insert-fork.sql')
+		countDuplicatedDelegates: sql('delegates/countDuplicatedDelegates.sql'),
+		getDelegatesByPublicKeys: sql('delegates/getDelegatesByPublicKeys.sql'),
+		insertFork: sql('delegates/insertFork.sql')
 	},
 	peers: {
 		// sql to be included
