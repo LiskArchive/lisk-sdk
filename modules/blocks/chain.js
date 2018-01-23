@@ -380,9 +380,9 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 					// Rewind any already applied unconfirmed transactions.
 					// Leaves the database state as per the previous block.
 					async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
-						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
-							if (err) {
-								return setImmediate(eachSeriesCb, err);
+						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (accountError, sender) {
+							if (accountError) {
+								return setImmediate(eachSeriesCb, accountError);
 							}
 							// The transaction has been applied?
 							if (appliedTransactions[transaction.id]) {
@@ -392,7 +392,14 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 								return setImmediate(eachSeriesCb);
 							}
 						});
-					}, function (err) {
+					}, function (seriesError) {
+						if (seriesError) {
+							// Fatal error, memory tables will be inconsistent
+							library.logger.error('Failed to undo unconfirmed block transactions list', seriesError);
+
+							return process.exit(0);
+						}
+
 						return setImmediate(seriesCb, err);
 					});
 				} else {

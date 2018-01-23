@@ -45,7 +45,7 @@ describe('signature', function () {
 	describe('with funds inside account', function (done) {
 
 		var signatureAccount;
-		
+
 		beforeEach('send funds to signature account', function (done) {
 			signatureAccount = node.randomAccount();
 			var sendTransaction = node.lisk.transaction.createTransaction(signatureAccount.address, 1000000000*100, node.gAccount.password);
@@ -140,6 +140,69 @@ describe('signature', function () {
 								expect(account).to.exist;
 								expect(account.mem_accounts.secondSignature).to.equal(1);
 								expect(account.mem_accounts.secondPublicKey.toString('hex')).to.equal(signatureTransaction2.asset.signature.publicKey);
+								seqCb();
+								done();
+							});
+						});
+					});
+				});
+			});
+
+			describe('when receiving block with multiple signature transaction with different Id for same account', function () {
+
+				var signatureTransaction2;
+				var signatureTransaction3;
+				var username2;
+				var blockId;
+
+				beforeEach(function (done) {
+					username2 = node.randomUsername().toLowerCase();
+					signatureTransaction2 = node.lisk.signature.createSignature(signatureAccount.password, node.randomPassword());
+					signatureTransaction2.senderId = signatureAccount.address;
+
+					signatureTransaction3 = node.lisk.signature.createSignature(signatureAccount.password, node.randomPassword());
+					signatureTransaction3.senderId = signatureAccount.address;
+					common.createValidBlock(library, [signatureTransaction2, signatureTransaction3], function (err, block) {
+						blockId = block.id;
+						expect(err).to.not.exist;
+						library.modules.blocks.process.onReceiveBlock(block);
+						done();
+					});
+				});
+
+				describe('should reject block', function () {
+
+					it('should not save block to the database', function (done) {
+						common.getBlocks(library, function (err, ids) {
+							expect(ids).to.not.include(blockId);
+							expect(ids).to.have.length(2);
+							done();
+						});
+					});
+				});
+
+				describe('unconfirmed state', function () {
+
+					it('should not update unconfirmed columns related to signature', function (done) {
+						library.sequence.add(function (seqCb) {
+							common.getAccountFromDb(library, signatureAccount.address).then(function (account) {
+								expect(account).to.exist;
+								expect(account.mem_accounts.u_secondSignature).to.equal(0);
+								seqCb();
+								done();
+							});
+						});
+					});
+				});
+
+				describe('confirmed state', function () {
+
+					it('should not update confirmed columns related to signature', function (done) {
+						library.sequence.add(function (seqCb) {
+							common.getAccountFromDb(library, signatureAccount.address).then(function (account) {
+								expect(account).to.exist;
+								expect(account.mem_accounts.secondSignature).to.equal(0);
+								expect(account.mem_accounts.secondPublicKey).to.equal(null);
 								seqCb();
 								done();
 							});
