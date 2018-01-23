@@ -189,10 +189,13 @@ __private.updatePeerStatus = function (err, status, peer) {
 		}
 	} else {
 		peer.applyHeaders({
-			height: status.height,
 			broadhash: status.broadhash,
+			height: status.height,
+			httpPort: status.httpPort,
 			nonce: status.nonce,
-			state: Peer.STATE.CONNECTED //connected
+			os: status.os,
+			state: Peer.STATE.CONNECTED,
+			version: status.version
 		});
 	}
 
@@ -318,7 +321,9 @@ Peers.prototype.getLastConsensus = function () {
 * @returns {number} - Consensus or undefined if config.forging.force = true.
 */
 Peers.prototype.calculateConsensus = function (active, matched) {
-	active = active || library.logic.peers.list(true);
+	active = active || library.logic.peers.list(true).filter(function (peer) {
+		return peer.state === Peer.STATE.CONNECTED;
+	});
 	var broadhash = modules.system.getBroadhash();
 	matched = matched || active.filter(function (peer) {
 		return peer.broadhash === broadhash;
