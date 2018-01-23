@@ -244,7 +244,7 @@ describe('blocks/chain', function () {
 						expect(res.u_username).to.be.null;
 						expect(res.missedBlocks).to.equal('0');
 						expect(res.producedBlocks).to.equal('0');
-						// expect(res.rank).to.be.null;
+						expect(res.rank).to.be.null;
 						expect(res.rewards).to.equal('0');
 						expect(res.vote).to.equal('0');
 						done();
@@ -267,7 +267,7 @@ describe('blocks/chain', function () {
 						expect(res.u_username).to.be.null;
 						expect(res.missedBlocks).to.equal('0');
 						expect(res.producedBlocks).to.equal('0');
-						// expect(res.rank).to.equal(102);
+						expect(res.rank).to.equal(102);
 						expect(res.rewards).to.equal('0');
 						expect(res.vote).to.equal('0');
 						done();
@@ -292,7 +292,7 @@ describe('blocks/chain', function () {
 						expect(res.u_username).to.be.null;
 						expect(res.missedBlocks).to.equal('0');
 						expect(res.producedBlocks).to.equal('0');
-						//expect(res.rank).to.be.null;
+						expect(res.rank).to.be.null;
 						expect(res.rewards).to.equal('0');
 						expect(res.vote).to.equal('0');
 						// FIXME: Incorrect blockId
@@ -318,7 +318,7 @@ describe('blocks/chain', function () {
 						expect(res.virgin).to.equal(0);
 						expect(res.missedBlocks).to.equal('0');
 						expect(res.producedBlocks).to.equal('0');
-						// expect(res.rank).to.equal(102);
+						expect(res.rank).to.equal(102);
 						expect(res.rewards).to.equal('0');
 						expect(res.vote).to.equal('0');
 						// CHECKME: blockId
