@@ -2353,6 +2353,9 @@ definitions:
       balance:
         type: string
         example: 1081560729258
+      username:
+        type: string
+        example: liskhq
 
   WSPeerHeaders:
     x-private: true
