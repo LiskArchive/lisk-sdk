@@ -879,38 +879,37 @@ describe('transport', () => {
 					});
 				});
 
-<<<<<<< HEAD
-				it(
-					'should call library.logic.peers.peersManager.getAddress with peer.nonce'
-				);
-=======
 				it('should call library.logic.peers.peersManager.getAddress with peer.nonce', function (done) {
 					__private.receiveTransaction(transaction, peerStub, 'This is a log message', function (err) {
 						expect(library.logic.peers.peersManager.getAddress.calledWith(peerStub.nonce)).to.be.true;
 						done();
 					});
 				});
->>>>>>> 7009c20... Transport tests - receiveTransaction method, check peersManager.getAddress
 			});
 
-			it('should call modules.transactions.processUnconfirmedTransaction');
+			it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', function (done) {
+				__private.receiveTransaction(transaction, peerStub, 'This is a log message', function (err) {
+					expect(modules.transactions.processUnconfirmedTransaction.calledWith(transaction, true)).to.be.true;
+					done();
+				});
+			});
 
-			it(
-				'should call modules.transactions.processUnconfirmedTransaction with transaction'
-			);
+			describe('when modules.transactions.processUnconfirmedTransaction fails', function () {
 
-			it(
-				'should call modules.transactions.processUnconfirmedTransaction with true'
-			);
+				var processUnconfirmedTransactionError;
 
-			describe('when modules.transactions.processUnconfirmedTransaction fails', () => {
-				it('should call library.logger.debug');
+				beforeEach(function (done) {
+					processUnconfirmedTransactionError = 'Transaction is already processed: ' + transaction.id;
+					modules.transactions.processUnconfirmedTransaction = sinonSandbox.stub().callsArgWith(2, processUnconfirmedTransactionError);
+					done();
+				});
 
-				it(
-					'should call library.logger.debug with "Transaction ${transaction.id}"'
-				);
-
-				it('should call library.logger.debug with err.toString()');
+				it('should call library.logger.debug with "Transaction ${transaction.id}" and error string', function (done) {
+					__private.receiveTransaction(transaction, peerStub, 'This is a log message', function (err) {
+						expect(library.logger.debug.calledWith('Transaction ' + transaction.id, processUnconfirmedTransactionError)).to.be.true;
+						done();
+					});
+				});
 
 				describe('and transaction is defined', () => {
 					it('should call library.logger.debug');
