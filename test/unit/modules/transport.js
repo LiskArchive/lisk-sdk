@@ -815,26 +815,40 @@ describe('transport', () => {
 				);
 			});
 
-			describe('when library.logic.transaction.objectNormalize throws', () => {
-				it('should call library.logger.debug');
+			describe('when library.logic.transaction.objectNormalize throws', function () {
 
-				it(
-					'should call library.logger.debug with "Transaction normalization failed"'
-				);
+				var objectNormalizeError;
 
-				it(
-					'should call library.logger.debug with {id: id, err: e.toString(), module: "transport", tx: transaction}'
-				);
+				beforeEach(function (done) {
+					objectNormalizeError = 'Unknown transaction type 0';
+					library.logic.transaction.objectNormalize = sinonSandbox.stub().throws(objectNormalizeError);
+					__private.removePeer = sinonSandbox.spy();
+					done();
+				});
 
-				it('should call __private.removePeer');
+				it('should call library.logger.debug with "Transaction normalization failed" error message and error details object', function (done) {
+					__private.receiveTransaction(transaction, peerStub, 'This is a log message', function (err) {
+						var errorDetails = {id: transaction.id, err: 'Unknown transaction type 0', module: 'transport', transaction: transaction};
+						expect(library.logger.debug.calledWith('Transaction normalization failed', errorDetails)).to.be.true;
+						done();
+					});
+				});
 
-				it(
-					'should call __private.removePeer with {peer: peer, code: "ETRANSACTION"}'
-				);
+				it('should call __private.removePeer with peer details object', function (done) {
+					var extraLogMessage = 'This is a log message';
+					__private.receiveTransaction(transaction, peerStub, extraLogMessage, function (err) {
+						var peerDetails = {peer: peerStub, code: 'ETRANSACTION'};
+						expect(__private.removePeer.calledWith(peerDetails, extraLogMessage)).to.be.true;
+						done();
+					});
+				});
 
-				it('should call __private.removePeer with extraLogMessage');
-
-				it('should call callback with error = "Invalid transaction body"');
+				it('should call callback with error = "Invalid transaction body"', function (done) {
+					__private.receiveTransaction(transaction, peerStub, 'This is a log message', function (err) {
+						expect(err).to.equal('Invalid transaction body - ' + objectNormalizeError);
+						done();
+					});
+				});
 			});
 
 			it('should call library.balancesSequence.add');
