@@ -57,13 +57,6 @@ function Broadcaster (broadcasts, force, peers, transaction, logger) {
 	self.config = library.config.broadcasts;
 	self.config.peerLimit = constants.maxPeers;
 
-	// Optionally ignore broadhash consensus
-	if (library.config.forging.force) {
-		self.consensus = undefined;
-	} else {
-		self.consensus = 100;
-	}
-
 	// Broadcast routes
 	self.routes = [{
 		path: 'postTransactions',
@@ -123,9 +116,8 @@ Broadcaster.prototype.getPeers = function (params, cb) {
 			return setImmediate(cb, err);
 		}
 
-		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
-			self.consensus = modules.peers.getConsensus(peers);
-			library.logger.info(['Broadhash consensus now', self.consensus, '%'].join(' '));
+		if (originalLimit === constants.maxPeers) {
+			library.logger.info(['Broadhash consensus now', modules.peers.getConsensus(peers), '%'].join(' '));
 		}
 
 		return setImmediate(cb, null, peers);
