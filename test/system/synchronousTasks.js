@@ -60,7 +60,7 @@ describe('synchronousTasks', function () {
 					library.modules.loader.onPeersReady();     // Execute the mocked blockchain synchronization process
 				});
 
-				describe('Within 5000 ms', function () {
+				describe('within 5000 ms', function () {
 
 					beforeEach(function () {
 						setTimeout(function () {
