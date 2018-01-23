@@ -15,7 +15,6 @@
 
 const sql = require('../sql').delegates;
 
-
 /**
  * Delegates database interaction module
  * @memberof module:delegates
