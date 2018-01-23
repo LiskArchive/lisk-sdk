@@ -109,7 +109,7 @@ describe('cached endpoints', function () {
 					});
 				}));
 			}).then(function (responses) {
-				responses.should.deep.include(initialResponse.body);
+				expect(responses).to.deep.include(initialResponse.body);
 			});
 		});
 
@@ -143,7 +143,7 @@ describe('cached endpoints', function () {
 					});
 				}));
 			}).then(function (responses) {
-				responses.should.deep.include(initialResponse.body);
+				expect(responses).to.deep.include(initialResponse.body);
 			}).then(function () {
 				return waitForBlocksPromise(1);
 			}).then(function () {
@@ -168,7 +168,7 @@ describe('cached endpoints', function () {
 						return getJsonForKeyPromise(res.req.path);
 					});
 				})).then(function (responses) {
-					responses.should.deep.include(res.body);
+					expect(responses).to.deep.include(res.body);
 				});
 			});
 		});
@@ -199,7 +199,7 @@ describe('cached endpoints', function () {
 						return getJsonForKeyPromise(res.req.path);
 					});
 				})).then(function (responses) {
-					responses.should.deep.include(res.body);
+					expect(responses).to.deep.include(res.body);
 					return onNewRoundPromise().then(function () {
 						return getJsonForKeyPromise(urlPath).then(function (result) {
 							expect(result).to.not.exist;
