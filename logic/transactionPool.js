@@ -89,9 +89,10 @@ TransactionPool.prototype.bind = function (accounts, transactions, loader) {
 };
 
 /**
- * Determines whether a transaction is in the pool based on transaction id.
+ * Determines whether a transaction is in the pool based on transaction id,
+ * checks in lists: unconfirmed, bundled, queued, multisignature.
  * @param {string} id - Transaction id.
- * @return {boolean} True if transaction is found in any of the indexes.
+ * @return {boolean} true if transaction id exists in at least one lists of indexes.
  */
 TransactionPool.prototype.transactionInPool = function (id) {
 	return [
@@ -99,7 +100,9 @@ TransactionPool.prototype.transactionInPool = function (id) {
 		self.bundled.index[id],
 		self.queued.index[id],
 		self.multisignature.index[id]
-	].filter(Boolean).length > 0;
+	].some(function (index) {
+		return typeof(index) === 'number';
+	});
 };
 
 /**
