@@ -1,5 +1,5 @@
 /*
-  DESCRIPTION: Inserts a fork statistics (not sure) :)
+  DESCRIPTION: Inserts a fork statistics.
 
   PARAMETERS:
       delegatePublicKey - ?
@@ -10,7 +10,7 @@
       cause - ?
 */
 
-INSERT INTO ${schema~}.forks_stat (
+INSERT INTO ${schema~}.forks_stat(
   "delegatePublicKey",
   "blockTimestamp",
   "blockId",

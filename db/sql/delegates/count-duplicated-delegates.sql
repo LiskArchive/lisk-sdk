@@ -1,5 +1,5 @@
 /*
-  DESCRIPTION: Counts duplicated delegates
+  DESCRIPTION: Counts duplicated delegates.
 
   PARAMETERS: None
 */

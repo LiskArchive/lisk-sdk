@@ -1,5 +1,5 @@
 /*
-  DESCRIPTION: Gets delegates for a list of public keys
+  DESCRIPTION: Gets delegates for a list of public keys.
 
   PARAMETERS:
       publicKeys - array of public keys (strings)
