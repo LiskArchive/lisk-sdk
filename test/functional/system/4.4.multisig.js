@@ -54,14 +54,14 @@ describe('system test (type 4) - double multisignature registrations', function 
 
 	it('adding to pool multisig registration should be ok', function (done) {
 		localCommon.addTransaction(library, transactionToBeNotConfirmed, function (err, res) {
-			res.should.equal(transactionToBeNotConfirmed.id);
+			expect(res).to.equal(transactionToBeNotConfirmed.id);
 			done();
 		});
 	});
 
 	it('adding to pool same transaction with different timestamp should be ok', function (done) {
 		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
-			res.should.equal(scenarios.regular.multiSigTransaction.id);
+			expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
 			done();
 		});
 	});
@@ -79,9 +79,9 @@ describe('system test (type 4) - double multisignature registrations', function 
 				id: transactionToBeNotConfirmed.id
 			};
 			localCommon.getTransactionFromModule(library, filter, function (err, res) {
-				should.not.exist(err);
-				res.should.have.property('transactions').which.is.an('Array');
-				res.transactions.length.should.equal(0);
+				expect(err).to.be.null;
+				expect(res).to.have.property('transactions').which.is.an('Array');
+				expect(res.transactions.length).to.equal(0);
 				done();
 			});
 		});
@@ -91,17 +91,17 @@ describe('system test (type 4) - double multisignature registrations', function 
 				id: scenarios.regular.multiSigTransaction.id
 			};
 			localCommon.getTransactionFromModule(library, filter, function (err, res) {
-				should.not.exist(err);
-				res.should.have.property('transactions').which.is.an('Array');
-				res.transactions.length.should.equal(1);
-				res.transactions[0].id.should.equal(scenarios.regular.multiSigTransaction.id);
+				expect(err).to.be.null;
+				expect(res).to.have.property('transactions').which.is.an('Array');
+				expect(res.transactions.length).to.equal(1);
+				expect(res.transactions[0].id).to.equal(scenarios.regular.multiSigTransaction.id);
 				done();
 			});
 		});
 
 		it('adding to pool multisignature registration for same account should fail', function (done) {
 			localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
-				err.should.equal('Account already has multisignatures enabled');
+				expect(err).to.equal('Account already has multisignatures enabled');
 				done();
 			});
 		});
