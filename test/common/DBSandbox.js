@@ -14,8 +14,14 @@
 'use strict';
 
 var child_process = require('child_process');
+var rewire = require('rewire');
 
-var database = require('../../db');
+var database = rewire('../../db');
+var pgOptions = database.__get__('pgOptions');
+// Prevent protocol locking, so we can redefine database properties,
+// see: http://vitaly-t.github.io/pg-promise/module-pg-promise
+pgOptions.noLocking = true;
+database.__set__('pgOptions', pgOptions);
 
 var testDatabaseNames = [];
 
