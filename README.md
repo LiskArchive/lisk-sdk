@@ -76,11 +76,6 @@ This sections provides details on what you need install on your system in order 
     nvm install 6.12.3
     ```
 
-- _(Recommended)_ Node Package Manager(we strongly recommend you to use npm@3.10.10).
-	```
-	npm install -g npm@3.10.10
-	```
-
 - _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
 
   ```
