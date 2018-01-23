@@ -14,7 +14,6 @@
 'use strict';
 
 // Init tests dependencies
-
 var rewire = require('rewire');
 var Promise = require('bluebird');
 
@@ -26,6 +25,7 @@ var Round = rewire('../../../logic/round.js');
 var DBSandbox = require('../../common/DBSandbox').DBSandbox;
 
 describe('rounds', function () {
+
 	var db;
 	var dbSandbox;
 	var rounds;
@@ -66,6 +66,7 @@ describe('rounds', function () {
 	});
 
 	describe('constructor', function () {
+
 		var scope;
 
 		before(function (done) {
@@ -118,6 +119,7 @@ describe('rounds', function () {
 	});
 
 	describe('flush', function () {
+
 		var stub;
 		var error;
 
@@ -245,6 +247,7 @@ describe('rounds', function () {
 	});
 
 	describe('__private.getOutsiders', function () {
+
 		var getOutsiders;
 
 		before(function () {
@@ -252,6 +255,7 @@ describe('rounds', function () {
 		});
 
 		describe('when scope.block.height = 1', function () {
+
 			var scope = {block: {height: 1}};
 
 			it('should call a callback', function (done) {
@@ -263,9 +267,11 @@ describe('rounds', function () {
 		});
 
 		describe('when scope.block.height != 1', function () {
+
 			var scope = {block: {height: 2}};
 
 			describe('when generateDelegateList succeed', function () {
+
 				var modules;
 
 				before(function () {
@@ -278,6 +284,7 @@ describe('rounds', function () {
 				});
 
 				describe('when all delegates are on list (no outsiders)', function () {
+
 					var initialScope;
 
 					before(function () {
@@ -299,6 +306,7 @@ describe('rounds', function () {
 				});
 
 				describe('when 1 delegates is not on list (outsider)', function () {
+
 					var initialScope;
 
 					before(function () {
@@ -321,6 +329,7 @@ describe('rounds', function () {
 				});
 
 				describe('when 2 delegates are not on list (outsiders)', function () {
+
 					var initialScope;
 
 					before(function () {
@@ -342,7 +351,6 @@ describe('rounds', function () {
 						expect(scope.roundOutsiders).to.deep.equal(initialScope.roundOutsiders);
 					});
 				});
-
 			});
 
 			describe('when generateDelegateList fails', function () {
@@ -370,6 +378,7 @@ describe('rounds', function () {
 	});
 
 	describe('__private.sumRound', function () {
+
 		var sumRound;
 		var stub;
 		var scope = {round: 1};
@@ -379,6 +388,7 @@ describe('rounds', function () {
 		});
 
 		describe('when summedRound query succeed', function () {
+
 			var initialScope;
 
 			before(function () {
@@ -435,6 +445,7 @@ describe('rounds', function () {
 	});
 
 	describe('tick', function () {
+
 		var block;
 		var roundScope;
 
@@ -610,6 +621,7 @@ describe('rounds', function () {
 		});
 
 		describe('scope.finishRound', function () {
+
 			var bus;
 
 			before(function () {
@@ -698,6 +710,7 @@ describe('rounds', function () {
 		describe('scope.snapshotRound', function () {
 
 			describe('when true', function () {
+
 				var res;
 
 				before(function (done) {
@@ -729,10 +742,10 @@ describe('rounds', function () {
 				it('scope.truncateBlocks should be called once', function () {
 					expect(truncateBlocks_stub.calledOnce).to.be.true;
 				});
-
 			});
 
 			describe('when false', function () {
+
 				var res;
 
 				before(function (done) {
@@ -768,6 +781,7 @@ describe('rounds', function () {
 		});
 
 		describe('performing round snapshot (queries)', function () {
+
 			var bus;
 
 			before(function () {
@@ -842,6 +856,7 @@ describe('rounds', function () {
 	});
 
 	describe('backwardTick', function () {
+
 		var block;
 		var previousBlock;
 		var roundScope;
