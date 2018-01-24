@@ -20,7 +20,7 @@ var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common'); 
 var normalizer = require('../../common/utils/normalizer');
 
-describe('system test (type 3) - voting with duplicate submissions @unstable', function () {
+describe('system test (type 3) - voting with duplicate submissions', function () {
 	
 	var library;
 	localCommon.beforeBlock('system_3_3_votes', function (lib) {
@@ -47,7 +47,7 @@ describe('system test (type 3) - voting with duplicate submissions @unstable', f
 			});
 
 			it('adding to pool upvoting transaction should be ok', function (done) {
-				transaction1 = lisk.vote.createVote(account.password, ['+' + accountFixtures.existingDelegate.publicKey], null, -1);
+				transaction1 = lisk.vote.createVote(account.password, ['+' + accountFixtures.existingDelegate.publicKey], null, -10000);
 				localCommon.addTransaction(library, transaction1, function (err, res) {
 					expect(res).to.equal(transaction1.id);
 					done();
@@ -103,7 +103,7 @@ describe('system test (type 3) - voting with duplicate submissions @unstable', f
 				});
 
 				it('adding to pool downvoting transaction to same delegate from same account should be ok', function (done) {
-					transaction3 = lisk.vote.createVote(account.password, ['-' + accountFixtures.existingDelegate.publicKey], null, -1);
+					transaction3 = lisk.vote.createVote(account.password, ['-' + accountFixtures.existingDelegate.publicKey], null, -10000);
 					localCommon.addTransaction(library, transaction3, function (err, res) {
 						expect(res).to.equal(transaction3.id);
 						done();
