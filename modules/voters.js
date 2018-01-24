@@ -116,7 +116,7 @@ var getVotesForDelegates = function (filters, delegate, cb) {
 };
 
 var populateVotes = function (sort, addresses, cb) {
-	modules.accounts.getAccounts({address: {$in: addresses}, sort: sort}, ['address', 'balance', 'publicKey'], cb);
+	modules.accounts.getAccounts({address: {$in: addresses}, sort: sort}, ['address', 'balance', 'publicKey', 'username'], cb);
 };
 
 /**
