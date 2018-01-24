@@ -26,7 +26,7 @@ module.exports = function (grunt) {
 		'logic/*.js',
 		'schema/**/*.js',
 		'sql/**/*.js',
-		'app.js'
+		'app.js' // NOTE: This name is used for detecting if packaged: db/sql/index.js
 	];
 
 	var today = moment().format('HH:mm:ss DD/MM/YYYY');
@@ -42,7 +42,7 @@ module.exports = function (grunt) {
 		obfuscator: {
 			files: files,
 			entry: 'app.js',
-			out: 'release/app.js',
+			out: 'release/app.js', // Remember to change the file db/sql/index.js#20 if you change the entry name
 			strings: true,
 			root: __dirname
 		},
@@ -60,9 +60,8 @@ module.exports = function (grunt) {
 						util.format('cp %s/package.json %s', __dirname, version_dir),
 						util.format('cp %s/genesisBlock.json %s', __dirname, version_dir),
 						util.format('cp %s/LICENSE %s', __dirname, version_dir),
-						util.format('mkdir -p %s/db/sql/init/migrations', version_dir),
-						util.format('cp %s/db/sql/init/*.sql %s/db/sql/init/', __dirname, version_dir),
-						util.format('cp %s/db/sql/init/migrations/*.sql %s/db/sql/init/migrations/', __dirname, version_dir),
+						util.format('mkdir -p %s/sql', version_dir),
+						util.format('cp -r %s/db/sql %s/sql/', __dirname, version_dir) // TODO: Make it skip non-SQL files
 					].join(' && ');
 				}
 			},

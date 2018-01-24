@@ -265,10 +265,10 @@ Rounds.prototype.tick = function (block, done) {
 
 				library.db.tx(function (t) {
 					return t.batch([
-						t.rounds.clearRoundSnapshot(),
-						t.rounds.performRoundSnapshot(),
-						t.rounds.clearVotesSnapshot(),
-						t.rounds.performVotesSnapshot()
+						library.db.rounds.clearRoundSnapshot(),
+						library.db.rounds.performRoundSnapshot(),
+						library.db.rounds.clearVotesSnapshot(),
+						library.db.rounds.performVotesSnapshot()
 					]);
 				}).then(function () {
 					library.logger.trace('Round snapshot done');
