@@ -22,28 +22,15 @@ var swaggerHelper = require('../../../helpers/swagger');
 var TransportModule = rewire('../../../modules/transport.js');
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
-describe('transport', () => {
-	var dbStub;
-	var loggerStub;
-	var busStub;
-	var schemaStub;
-	var networkStub;
-	var balancesSequenceStub;
-	var transactionStub;
-	var blockStub;
-	var peersStub;
-	var broadcasterStubRef;
-	var library;
-	var __private;
-	var modules;
-	var defaultScope;
-	var restoreRewiredTopDeps;
-	var peerStub;
 
-	const SAMPLE_SIGNATURE_1 =
-		'32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739';
-	const SAMPLE_SIGNATURE_2 =
-		'61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595';
+describe('transport', function () {
+
+	var dbStub, loggerStub, busStub, schemaStub, networkStub, balancesSequenceStub,
+		transactionStub, blockStub, peersStub, broadcasterStubRef, transportInstance,
+		library, __private, modules, defaultScope, restoreRewiredTopDeps, peerStub, constants;
+
+	const SAMPLE_SIGNATURE_1 = '32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739';
+	const SAMPLE_SIGNATURE_2 = '61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595';
 
 	beforeEach(done => {
 		// Recreate all the stubs and default structures before each test case to make
@@ -962,11 +949,31 @@ describe('transport', () => {
 					},
 					logger: {
 						debug: sinonSandbox.spy()
+					},
+					config: {
+						forging: {
+							force: false
+						}
 					}
 				};
 
 				restoreRewiredDeps = TransportModule.__set__({
 					library: library
+				});
+
+				modules = {
+					peers: {
+						calculateConsensus: sinonSandbox.stub().returns(100)
+					}
+				};
+
+				constants = {
+					minBroadhashConsensus: 51
+				};
+
+				restoreRewiredDeps = TransportModule.__set__({
+					library: library,
+					modules: modules
 				});
 
 				done();
@@ -978,20 +985,55 @@ describe('transport', () => {
 			done();
 		});
 
+		describe('poorConsensus', () => {
 
-		describe('poorConsensus', function () {
+			var isPoorConsensusResult;
 
-			describe('when consensus is undefined', function () {
+			describe('when library.config.forging.force is true', () => {
 
-				it('should set consensus = modules.peers.calculateConsensus()');
+				beforeEach(done => {
+					library.config.forging.force = true;
+					isPoorConsensusResult = transportInstance.poorConsensus();
+					done();
+				});
+
+				it('should return false', () => {
+					expect(isPoorConsensusResult).to.be.false;
+				});
 			});
 
-			describe('when consensus is undefined', () => {
-				it('should return false');
-			});
+			describe('when library.config.forging.force is false', () => {
 
-			describe('when consensus is defined', () => {
-				it('should return consensus < constants.minBroadhashConsensus');
+				beforeEach(done => {
+					library.config.forging.force = false;
+					done();
+				});
+
+				describe('when modules.peers.calculateConsensus() < constants.minBroadhashConsensus', () => {
+
+					beforeEach(done => {
+						modules.peers.calculateConsensus = sinonSandbox.stub().returns(50);
+						isPoorConsensusResult = transportInstance.poorConsensus();
+						done();
+					});
+
+					it('should return true', () => {
+						expect(isPoorConsensusResult).to.be.true;
+					});
+				});
+
+				describe('when modules.peers.calculateConsensus() >= constants.minBroadhashConsensus', () => {
+
+					beforeEach(done => {
+						modules.peers.calculateConsensus = sinonSandbox.stub().returns(51);
+						isPoorConsensusResult = transportInstance.poorConsensus();
+						done();
+					});
+
+					it('should return false', () => {
+						expect(isPoorConsensusResult).to.be.false;
+					});
+				});
 			});
 		});
 
