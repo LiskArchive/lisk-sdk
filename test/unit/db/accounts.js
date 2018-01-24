@@ -526,6 +526,10 @@ describe('db', function () {
 					var account1 = generateAccount();
 					var account2 = generateAccount();
 
+					// Since DB trigger protects to update username only if it was null before
+					delete account1.username;
+					delete account1.u_username;
+
 					account2.address = account1.address;
 
 					return db.accounts.upsert(account1, 'address').then(function (value) {
@@ -558,6 +562,10 @@ describe('db', function () {
 					var originalAccount = generateAccount();
 					var updatedAccount = generateAccount();
 
+					// Since DB trigger protects to update username only if it was null before
+					delete originalAccount.username;
+					delete originalAccount.u_username;
+
 					return db.accounts.upsert(originalAccount, 'address').then(function (value) {
 						return db.accounts.upsert(originalAccount, 'address', updatedAccount).then(function (value) {
 							return db.accounts.list({address: originalAccount.address}).then(function (result) {
@@ -585,6 +593,11 @@ describe('db', function () {
 				it('should update data attributes specified as "data" if argument "updateData" is missing', function () {
 					var originalAccount = generateAccount();
 					var updatedAccount = generateAccount();
+
+
+					// Since DB trigger protects to update username only if it was null before
+					delete originalAccount.username;
+					delete originalAccount.u_username;
 
 					updatedAccount.address = originalAccount.address;
 
@@ -723,6 +736,10 @@ describe('db', function () {
 				it('should update all columns specified in db.accounts.cs.update', function () {
 					var account = generateAccount();
 					var updateAccount = generateAccount();
+
+					// Since DB trigger protects to update username only if it was null before
+					delete account.username;
+					delete account.u_username;
 
 					return db.accounts.insert(account).then(function (value) {
 						return db.accounts.update(account.address, updateAccount).then(function (value) {
