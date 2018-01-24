@@ -34,6 +34,18 @@ class BlocksRepository {
 		this.db = db;
 		this.pgp = pgp;
 
+		this.sortFields = [
+			'id',
+			'timestamp',
+			'height',
+			'previousBlock',
+			'totalAmount',
+			'totalFee',
+			'reward',
+			'numberOfTransactions',
+			'generatorPublicKey'
+		];
+		
 		if (!cs.insert) {
 
 			const columns = [
