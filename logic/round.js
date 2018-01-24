@@ -113,13 +113,11 @@ Round.prototype.updateVotes = function () {
 
 	return self.getVotes(self.scope.round).then(function (votes) {
 		var queries = votes.map(function (vote) {
-			return self.scope.library.db.rounds.updateVotes(self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate), Math.floor(vote.amount));
+			return self.t.rounds.updateVotes(self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate), Math.floor(vote.amount));
 		});
 
 		if (queries.length > 0) {
-			return self.t.tx(function (t) {
-				return t.batch(queries);
-			});
+			return self.t.batch(queries);
 		} else {
 			return self.t;
 		}
