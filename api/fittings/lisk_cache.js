@@ -17,13 +17,21 @@ var debug = require('debug')('swagger:lisk:cache');
 var modules = require('../../helpers/swagger_module_registry');
 
 /**
- * @module fittings/lisk_cache
+ * Description of the module
+ * @module
  * @requires debug
- * @requires module:helpers/swagger_module_registry.getCache
- * @requires module:helpers/swagger_module_registry.getLogger
+ * @requires helpers/swagger_module_registry.getCache
+ * @requires helpers/swagger_module_registry.getLogger
+ * @todo: add description of the module
+ */
+
+/**
+ * Description of the function.
+ * @func create
  * @param {Object} fittingDef
  * @param {Object} bagpipes
- * @TODO: add description of the module
+ * @returns {function} lisk_cache
+ * @todo: add description of the function and its parameters
  */
 module.exports = function create (fittingDef, bagpipes) {
 
@@ -34,7 +42,15 @@ module.exports = function create (fittingDef, bagpipes) {
 
 	debug('create', mode);
 
-	return function lisk_cache (context, next) {
+	return
+		/**
+		 * Description of the function.
+		 * @param {Object} context
+		 * @param {function} next
+		 * @todo: add description of the function and its parameters
+		 * @todo: add @returns-tag
+		 */
+		function lisk_cache (context, next) {
 
 		debug('exec', mode);
 
