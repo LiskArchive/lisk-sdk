@@ -242,14 +242,14 @@ describe('transport', () => {
 				});
 			});
 
-			describe('when options.peer is defined', () => {
-				var removeSpy;
-				var peerData;
-				var restoreRewiredDeps;
+			describe('when options.peer is defined', function () {
+
+				var removeSpy, peerData;
+				var restoreNestedRewiredDeps;
 
 				beforeEach(done => {
 					removeSpy = sinonSandbox.spy();
-					restoreRewiredDeps = TransportModule.__set__({
+					restoreNestedRewiredDeps = TransportModule.__set__({
 						modules: {
 							peers: {
 								remove: removeSpy,
@@ -263,8 +263,8 @@ describe('transport', () => {
 					done();
 				});
 
-				afterEach(done => {
-					restoreRewiredDeps();
+				afterEach(function (done) {
+					restoreNestedRewiredDeps();
 					done();
 				});
 
@@ -322,8 +322,8 @@ describe('transport', () => {
 				);
 			});
 
-			it('should call library.schema.validate with custom schema.signatures', done => {
-				var restoreRewiredDeps = TransportModule.__set__({
+			it('should call library.schema.validate with custom schema.signatures', function (done) {
+				var restoreDeps = TransportModule.__set__({
 					definitions: {
 						Signature: {
 							id: 'transport.signatures',
@@ -347,10 +347,9 @@ describe('transport', () => {
 					() => {
 						expect(library.schema.validate.called).to.be.true;
 
-						restoreRewiredDeps();
-						done();
-					}
-				);
+					restoreDeps();
+					done();
+				});
 			});
 
 			describe('when library.schema.validate fails', () => {
@@ -452,8 +451,8 @@ describe('transport', () => {
 			});
 		});
 
-		describe('receiveSignature', () => {
-			var restoreRewiredDeps;
+		describe('receiveSignature', function () {
+			var restoreNestedRewiredDeps;
 
 			beforeEach(done => {
 				library = {
@@ -468,7 +467,7 @@ describe('transport', () => {
 					},
 				};
 
-				restoreRewiredDeps = TransportModule.__set__({
+				restoreNestedRewiredDeps = TransportModule.__set__({
 					library: library,
 					modules: modules,
 				});
@@ -476,8 +475,8 @@ describe('transport', () => {
 				done();
 			});
 
-			afterEach(done => {
-				restoreRewiredDeps();
+			afterEach(function (done) {
+				restoreNestedRewiredDeps();
 				done();
 			});
 
@@ -552,9 +551,9 @@ describe('transport', () => {
 			});
 		});
 
-		describe('receiveTransactions', () => {
-			var restoreRewiredDeps;
-			var query;
+		describe('receiveTransactions', function () {
+
+			var restoreNestedRewiredDeps, query;
 
 			beforeEach(done => {
 				library = {
@@ -572,7 +571,7 @@ describe('transport', () => {
 					},
 				};
 
-				restoreRewiredDeps = TransportModule.__set__({
+				restoreNestedRewiredDeps = TransportModule.__set__({
 					library: library,
 					modules: modules,
 				});
@@ -600,8 +599,8 @@ describe('transport', () => {
 				done();
 			});
 
-			afterEach(done => {
-				restoreRewiredDeps();
+			afterEach(function (done) {
+				restoreNestedRewiredDeps();
 				done();
 			});
 
@@ -745,7 +744,9 @@ describe('transport', () => {
 			var transaction;
 			var peerAddressString;
 
-			beforeEach(() => {
+			var transaction, peerAddressString, restoreNestedRewiredDeps;
+
+			beforeEach(function () {
 				transaction = {
 					id: '222675625422353767',
 					type: 0,
@@ -797,24 +798,22 @@ describe('transport', () => {
 					},
 				};
 
-				TransportModule.__set__({
+				restoreNestedRewiredDeps = TransportModule.__set__({
 					library: library,
 					modules: modules,
 				});
 			});
 
-			it('should call library.logic.transaction.objectNormalize with transaction', done => {
-				__private.receiveTransaction(
-					transaction,
-					peerStub,
-					'This is a log message',
-					() => {
-						expect(
-							library.logic.transaction.objectNormalize.calledWith(transaction)
-						).to.be.true;
-						done();
-					}
-				);
+			afterEach(function (done) {
+				restoreNestedRewiredDeps();
+				done();
+			});
+
+			it('should call library.logic.transaction.objectNormalize with transaction', function (done) {
+				__private.receiveTransaction(transaction, peerStub, 'This is a log message', function (err) {
+					expect(library.logic.transaction.objectNormalize.calledWith(transaction)).to.be.true;
+					done();
+				});
 			});
 
 			describe('when library.logic.transaction.objectNormalize throws', function () {
