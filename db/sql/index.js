@@ -12,3 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 'use strict';
+
+const {load} = require('./config');
+
+module.exports = {
+	accounts: {
+		// sql to be included
+	},
+	blocks: {
+		// sql to be included
+	},
+	delegates: {
+		countDuplicatedDelegates: load('delegates/countDuplicatedDelegates.sql'),
+		getDelegatesByPublicKeys: load('delegates/getDelegatesByPublicKeys.sql'),
+		insertFork: load('delegates/insertFork.sql')
+	},
+	peers: {
+		// sql to be included
+	}
+	// etc...
+};
