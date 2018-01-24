@@ -947,17 +947,42 @@ describe('transport', () => {
 		});
 	});
 
-	describe('Transport', () => {
-		describe('headers', () => {
-			describe('when headers is defined', () => {
-				it('should set headers');
-			});
+	describe('Transport', function () {
+		var restoreRewiredDeps;
 
-			it('should return headers');
+		beforeEach(function (done) {
+
+			transportInstance = new TransportModule(function (err, transportSelf) {
+
+				transportSelf.onBind(defaultScope);
+
+				library = {
+					schema: {
+						validate: sinonSandbox.stub().callsArg(2)
+					},
+					logger: {
+						debug: sinonSandbox.spy()
+					}
+				};
+
+				restoreRewiredDeps = TransportModule.__set__({
+					library: library
+				});
+
+				done();
+			}, defaultScope);
 		});
 
-		describe('poorConsensus', () => {
-			describe('when consensus is undefined', () => {
+		afterEach(function (done) {
+			restoreRewiredDeps();
+			done();
+		});
+
+
+		describe('poorConsensus', function () {
+
+			describe('when consensus is undefined', function () {
+
 				it('should set consensus = modules.peers.calculateConsensus()');
 			});
 
