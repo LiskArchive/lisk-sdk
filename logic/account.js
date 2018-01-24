@@ -14,9 +14,6 @@
 'use strict';
 
 var _ = require('lodash');
-var pgp = require('pg-promise');
-var jsonSql = require('json-sql')();
-jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
 var sortBy = require('../helpers/sort_by.js');
 var BlockReward = require('../logic/blockReward.js');
@@ -780,234 +777,111 @@ Account.prototype.set = function (address, fields, cb, tx) {
  * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
  */
 Account.prototype.merge = function (address, diff, cb, tx) {
-	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {}, round = [];
-
 	// Verify public key
 	this.verifyPublicKey(diff.publicKey);
 
 	// Normalize address
 	address = String(address).toUpperCase();
 
-	this.editable.forEach(function (value) {
-		var val, i;
+	var self = this;
 
-		if (diff[value] !== undefined) {
-			var trueValue = diff[value];
-			switch (self.conv[value]) {
+	// If merge was called without any diff object
+	if(Object.keys(diff).length === 0) {
+		return self.get({address: address}, cb, tx);
+	}
+
+	// Loop through each of updated attribute
+	(tx || self.scope.db).tx('logic:account:merge', function (dbTx) {
+
+		var promises = [];
+
+		Object.keys(diff).forEach(function (updatedField) {
+
+			// Return if updated field is not editable
+			if(self.editable.indexOf(updatedField) === -1) {
+				return;
+			}
+
+			// Get field data type
+			var fieldType = self.conv[updatedField];
+			var updatedValue = diff[updatedField];
+
+			// Make execution selection based on field type
+			switch (fieldType) {
+				// blockId
 				case String:
-					update[value] = trueValue;
+					promises.push(dbTx.accounts.update(address, _.pick(diff, [updatedField])));
 					break;
+
+				// [u_]balance, [u_]multimin, [u_]multilifetime, rate, fees, rank, rewards, votes, producedBlocks, missedBlocks
 				case Number:
-					if (isNaN(trueValue) || trueValue === Infinity) {
-						return setImmediate(cb, 'Encountered unsane number: ' + trueValue);
-					} else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
-						update.$inc = update.$inc || {};
-						update.$inc[value] = Math.floor(trueValue);
-						if (value === 'balance') {
-							round.push({
-								query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
-								values: {
-									address: address,
-									amount: trueValue,
-									blockId: diff.blockId,
-									round: diff.round
-								}
-							});
-						}
-					} else if (trueValue < 0) {
-						update.$dec = update.$dec || {};
-						update.$dec[value] = Math.floor(Math.abs(trueValue));
-						// If decrementing u_balance on account
-						if (update.$dec.u_balance) {
-							// Remove virginity and ensure marked columns become immutable
-							update.virgin = 0;
-						}
-						if (value === 'balance') {
-							round.push({
-								query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (${amount})::bigint, "dependentId", ${blockId}, ${round} FROM mem_accounts2delegates WHERE "accountId" = ${address};',
-								values: {
-									address: address,
-									amount: trueValue,
-									blockId: diff.blockId,
-									round: diff.round
-								}
-							});
+					if (isNaN(updatedValue) || updatedValue === Infinity) {
+						return setImmediate(cb, 'Encountered insane number: ' + updatedValue);
+					}
+
+					// If updated value is positive number
+					if(Math.abs(updatedValue) === updatedValue && updatedValue !== 0) {
+						promises.push(dbTx.accounts.increment(address, updatedField, Math.floor(updatedValue)));
+
+					// If updated value is negative number
+					} else if (updatedValue < 0 ) {
+						promises.push(dbTx.accounts.decrement(address, updatedField, Math.floor(Math.abs(updatedValue))));
+
+						// If money is taken out from an account so its an active account now.
+						if(updatedField === 'u_balance') {
+							promises.push(dbTx.accounts.update(address, {virgin: 0}));
 						}
 					}
+
+					if(updatedField === 'balance') {
+						promises.push(dbTx.rounds.insertRoundInformationWithAmount(address, diff.blockId, diff.round, updatedValue));
+					}
 					break;
+
+				// [u_]delegates, [u_]multisignatures
 				case Array:
-					if (Object.prototype.toString.call(trueValue[0]) === '[object Object]') {
-						for (i = 0; i < trueValue.length; i++) {
-							val = trueValue[i];
-							if (val.action === '-') {
-								delete val.action;
-								remove_object[value] = remove_object[value] || [];
-								remove_object[value].push(val);
-							} else if (val.action === '+') {
-								delete val.action;
-								insert_object[value] = insert_object[value] || [];
-								insert_object[value].push(val);
+					// If we received update as array of strings
+					if (_.isString(updatedValue[0])) {
+						updatedValue.forEach(function (updatedValueItem) {
+
+							// Fetch first character
+							var mode = updatedValueItem[0];
+							var dependentId = '';
+
+							if(mode === '-' || mode === '+') {
+								dependentId = updatedValueItem.slice('1');
 							} else {
-								delete val.action;
-								insert_object[value] = insert_object[value] || [];
-								insert_object[value].push(val);
+								dependentId = updatedValueItem;
+								mode = '+';
 							}
-						}
-					} else {
-						for (i = 0; i < trueValue.length; i++) {
-							var math = trueValue[i][0];
-							val = null;
-							if (math === '-') {
-								val = trueValue[i].slice(1);
-								remove[value] = remove[value] || [];
-								remove[value].push(val);
-								if (value === 'delegates') {
-									round.push({
-										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (-balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
-										values: {
-											address: address,
-											delegate: val,
-											blockId: diff.blockId,
-											round: diff.round
-										}
-									});
-								}
-							} else if (math === '+') {
-								val = trueValue[i].slice(1);
-								insert[value] = insert[value] || [];
-								insert[value].push(val);
-								if (value === 'delegates') {
-									round.push({
-										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
-										values: {
-											address: address,
-											delegate: val,
-											blockId: diff.blockId,
-											round: diff.round
-										}
-									});
-								}
+
+							if(mode === '-') {
+								promises.push(dbTx.accounts.removeDependencies(address, dependentId, updatedField));
 							} else {
-								val = trueValue[i];
-								insert[value] = insert[value] || [];
-								insert[value].push(val);
-								if (value === 'delegates') {
-									round.push({
-										query: 'INSERT INTO mem_round ("address", "amount", "delegate", "blockId", "round") SELECT ${address}, (balance)::bigint, ${delegate}, ${blockId}, ${round} FROM mem_accounts WHERE address = ${address};',
-										values: {
-											address: address,
-											delegate: val,
-											blockId: diff.blockId,
-											round: diff.round
-										}
-									});
-								}
+								promises.push(dbTx.accounts.insertDependencies(address, dependentId, updatedField));
 							}
-						}
+
+							if(updatedField === 'delegates') {
+								promises.push(dbTx.rounds.insertRoundInformationWithDelegate(address, diff.blockId, diff.round, dependentId, mode));
+							}
+						});
+
+					// If we received update as array of objects
+					} else if (_.isObject(updatedValue[0])) {
+						//TODO: Need to look the usage of object based diff param
 					}
 					break;
 			}
-		}
-	});
-
-	var sqles = [];
-
-	if (Object.keys(remove).length) {
-		Object.keys(remove).forEach(function (el) {
-			var sql = jsonSql.build({
-				type: 'remove',
-				table: self.table + '2' + el,
-				condition: {
-					dependentId: {$in: remove[el]},
-					accountId: address
-				}
-			});
-			sqles.push(sql);
 		});
-	}
 
-	if (Object.keys(insert).length) {
-		Object.keys(insert).forEach(function (el) {
-			for (var i = 0; i < insert[el].length; i++) {
-				var sql = jsonSql.build({
-					type: 'insert',
-					table: self.table + '2' + el,
-					values: {
-						accountId: address,
-						dependentId: insert[el][i]
-					}
-				});
-				sqles.push(sql);
-			}
-		});
-	}
+		// Run all db operations in a batch
+		return dbTx.batch(promises);
 
-	if (Object.keys(remove_object).length) {
-		Object.keys(remove_object).forEach(function (el) {
-			remove_object[el].accountId = address;
-			var sql = jsonSql.build({
-				type: 'remove',
-				table: self.table + '2' + el,
-				condition: remove_object[el]
-			});
-			sqles.push(sql);
-		});
-	}
-
-	if (Object.keys(insert_object).length) {
-		Object.keys(insert_object).forEach(function (el) {
-			insert_object[el].accountId = address;
-			for (var i = 0; i < insert_object[el].length; i++) {
-				var sql = jsonSql.build({
-					type: 'insert',
-					table: self.table + '2' + el,
-					values: insert_object[el]
-				});
-				sqles.push(sql);
-			}
-		});
-	}
-
-	if (Object.keys(update).length) {
-		var sql = jsonSql.build({
-			type: 'update',
-			table: this.table,
-			modifier: update,
-			condition: {
-				address: address
-			}
-		});
-		sqles.push(sql);
-	}
-
-	function done (err) {
-		if (cb.length !== 2) {
-			return setImmediate(cb, err);
-		} else {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			self.get({address: address}, cb, tx);
-		}
-	}
-
-	var queries = sqles.concat(round).map(function (sql) {
-		return pgp.as.format(sql.query, sql.values);
-	}).join('');
-
-	if (!cb) {
-		return queries;
-	}
-
-	if (queries.length === 0) {
-		return done();
-	}
-
-	(tx || this.scope.db).none(queries).then(function () {
-		return done();
+	}).then(function () {
+		return self.get({address: address}, cb, tx);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
-		return done('Account#merge error');
+		return setImmediate(cb, 'Account#merge error');
 	});
 };
 

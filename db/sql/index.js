@@ -77,7 +77,10 @@ module.exports = {
 		getMemRounds: link('rounds/getMemRounds.sql'),
 		flush: link('rounds/flush.sql'),
 		truncateBlocks: link('rounds/truncateBlocks.sql'),
-		getDelegatesSnapshot: link('rounds/getDelegatesSnapshot.sql')
+		getDelegatesSnapshot: link('rounds/getDelegatesSnapshot.sql'),
+		insertRoundInformationWithAmount: link('rounds/insertRoundInformationWithAmount.sql'),
+		insertRoundInformationWithRemovingDelegate: link('rounds/insertRoundInformationWithRemovingDelegate.sql'),
+		insertRoundInformationWithAddingDelegate: link('rounds/insertRoundInformationWithAddingDelegate.sql')
 	},
 	votes: {
 		getVotes: link('votes/getVotes.sql'),

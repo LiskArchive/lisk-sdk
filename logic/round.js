@@ -14,6 +14,7 @@
 'use strict';
 
 var RoundChanges = require('../helpers/RoundChanges.js');
+var Promise = require('bluebird');
 
 /**
  * Validates required scope properties.
@@ -71,14 +72,22 @@ function Round (scope, t) {
  * @return {function} Promise
  */
 Round.prototype.mergeBlockGenerator = function () {
-	return this.t.none(
-		this.scope.modules.accounts.mergeAccountAndGet({
-			publicKey: this.scope.block.generatorPublicKey,
-			producedblocks: (this.scope.backwards ? -1 : 1),
-			blockId: this.scope.block.id,
-			round: this.scope.round
-		})
-	);
+	var self = this;
+
+	return new Promise(function (resolve, reject) {
+		self.scope.modules.accounts.mergeAccountAndGet({
+			publicKey: self.scope.block.generatorPublicKey,
+			producedblocks: (self.scope.backwards ? -1 : 1),
+			blockId: self.scope.block.id,
+			round: self.scope.round
+		}, function (err, account) {
+			if(err){
+				return reject(err);
+			}
+
+			return resolve(account);
+		}, self.t);
+	});
 };
 
 /**
@@ -200,16 +209,26 @@ Round.prototype.applyRound = function () {
 		var changes = roundChanges.at(i);
 
 		this.scope.library.logger.trace('Delegate changes', { delegate: delegate, changes: changes });
+		var self = this;
 
-		queries.push(this.scope.modules.accounts.mergeAccountAndGet({
-			publicKey: delegate,
-			balance: (this.scope.backwards ? -changes.balance : changes.balance),
-			u_balance: (this.scope.backwards ? -changes.balance : changes.balance),
-			blockId: this.scope.block.id,
-			round: this.scope.round,
-			fees: (this.scope.backwards ? -changes.fees : changes.fees),
-			rewards: (this.scope.backwards ? -changes.rewards : changes.rewards)
-		}));
+		var p = new Promise(function (resolve, reject) {
+			self.scope.modules.accounts.mergeAccountAndGet({
+				publicKey: delegate,
+				balance: (self.scope.backwards ? -changes.balance : changes.balance),
+				u_balance: (self.scope.backwards ? -changes.balance : changes.balance),
+				blockId: self.scope.block.id,
+				round: self.scope.round,
+				fees: (self.scope.backwards ? -changes.fees : changes.fees),
+				rewards: (self.scope.backwards ? -changes.rewards : changes.rewards)
+			}, function (err, account) {
+				if(err){
+					return reject(err);
+				}
+				return resolve(account);
+			}, self.t);
+		});
+
+		queries.push(p);
 	}
 
 	// Decide which delegate receives fees remainder
@@ -225,20 +244,29 @@ Round.prototype.applyRound = function () {
 
 		this.scope.library.logger.trace('Fees remaining', { index: remainderIndex, delegate: remainderDelegate, fees: feesRemaining });
 
-		queries.push(this.scope.modules.accounts.mergeAccountAndGet({
-			publicKey: remainderDelegate,
-			balance: feesRemaining,
-			u_balance: feesRemaining,
-			blockId: this.scope.block.id,
-			round: this.scope.round,
-			fees: feesRemaining
-		}));
+		var p = new Promise(function (resolve, reject) {
+			self.scope.modules.accounts.mergeAccountAndGet({
+				publicKey: remainderDelegate,
+				balance: feesRemaining,
+				u_balance: feesRemaining,
+				blockId: self.scope.block.id,
+				round: self.scope.round,
+				fees: feesRemaining
+			}, function (err, account) {
+				if(err){
+					return reject(err);
+				}
+				return resolve(account);
+			}, self.t);
+		});
+
+		queries.push(p);
 	}
 
 	this.scope.library.logger.trace('Applying round', queries);
 
 	if (queries.length > 0) {
-		return this.t.none(queries.join(''));
+		return this.t.batch(queries);
 	} else {
 		return this.t;
 	}

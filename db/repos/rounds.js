@@ -171,6 +171,51 @@ class RoundsRepository {
 		return this.db.none(sql.restoreVotesSnapshot);
 	}
 
+	/**
+	 * Insert round information record to mem_rounds
+	 *
+	 * @param {string} address - Address of the account
+	 * @param {string} blockId - Block Id of hte during which the information updated
+	 * @param {Number} round - Round number during which update was made
+	 * @param {Number} amount - Amount updated during a round
+	 * @return {Promise}
+	 */
+	insertRoundInformationWithAmount (address, blockId, round, amount) {
+		return this.db.none(sql.insertRoundInformationWithAmount, {
+			address: address,
+			amount: amount,
+			blockId: blockId,
+			round: round
+		});
+	}
+
+	/**
+	 * Insert round information record to mem_rounds
+	 *
+	 * @param {string} address - Address of the account
+	 * @param {string} blockId - Block Id of hte during which the information updated
+	 * @param {Number} round - Round number during which update was made
+	 * @param {string} delegateId - Delegate Id for which to add round information
+	 * @param {string} mode - Possible values of '+' or '-' represents behaviour of adding or removing delegate
+	 * @return {Promise}
+	 */
+	insertRoundInformationWithDelegate (address, blockId, round, delegateId, mode) {
+		if(mode === '-') {
+			return this.db.none(sql.insertRoundInformationWithRemovingDelegate, {
+				address: address,
+				blockId: blockId,
+				round: round,
+				delegate: delegateId
+			});
+		} else {
+			return this.db.none(sql.insertRoundInformationWithAddingDelegate, {
+				address: address,
+				blockId: blockId,
+				round: round,
+				delegate: delegateId
+			});
+		}
+	}
 }
 
 module.exports = RoundsRepository;

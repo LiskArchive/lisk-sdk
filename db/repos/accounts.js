@@ -244,6 +244,40 @@ class AccountsRepo {
 	}
 
 	/**
+	 * Increment a field value in mem_accounts
+	 *
+	 * @param {string} address - Address of the record to increment
+	 * @param {string} field - Name of the field to increment
+	 * @param {Number} value - Value to be incremented
+	 * @return {Promise}
+	 */
+	increment (address, field, value) {
+		return this.db.none(Queries.increment,{
+			table: this.dbTable,
+			field: field,
+			value: value,
+			address: address
+		});
+	}
+
+	/**
+	 * Increment a field value in mem_accounts
+	 *
+	 * @param {string} address - Address of the record to increment
+	 * @param {string} field - Name of the field to increment
+	 * @param {Number} value - Value to be incremented
+	 * @return {Promise}
+	 */
+	decrement (address, field, value) {
+		return this.db.none(Queries.decrement,{
+			table: this.dbTable,
+			field: field,
+			value: value,
+			address: address
+		});
+	}
+
+	/**
 	 * Delete record from mem_accounts
 	 *
 	 * @param {string} address - Address of the account to be updated
@@ -334,6 +368,49 @@ class AccountsRepo {
 
 		return this.db.query(query);
 	}
+
+	/**
+	 * Remove account dependencies from mem_accounts2[u_]delegates or mem_accounts2[u_]multisignatures
+	 *
+	 * @param {string} address - Address of the account
+	 * @param {string} dependentId - Dependent address
+	 * @param {string} dependency - Any of [u_]delegates, [u_]multisignatures
+	 * @return {Promise}
+	 */
+	removeDependencies (address, dependentId, dependency) {
+
+		if(['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
+			return Promise.reject(`Error: db.account.removeDependencies called with wrong parameter dependency=${dependency}`);
+		}
+
+		return this.db.none(Queries.removeAccountDependencies, {
+			table: `${this.dbTable}2${dependency}`,
+			address: address,
+			dependentId: dependentId
+		});
+	}
+
+	/**
+	 * Insert account dependencies from mem_accounts2[u_]delegates or mem_accounts2[u_]multisignatures
+	 *
+	 * @param {string} address - Address of the account
+	 * @param {string} dependentId - Dependent address
+	 * @param {string} dependency - Any of [u_]delegates, [u_]multisignatures
+	 * @return {Promise}
+	 */
+	insertDependencies (address, dependentId, dependency) {
+
+		if(['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
+			return Promise.reject(`Error: db.account.removeDependencies called with wrong parameter dependency=${dependency}`);
+		}
+
+		const dependentTable = new this.pgp.helpers.TableName({table: `${this.dbTable}2${dependency}`, schema: 'public'});
+
+		return this.db.none(this.pgp.helpers.insert({
+			accountId: address,
+			dependentId: dependentId
+		}, null, dependentTable));
+	}
 }
 
 const Queries = {
@@ -362,6 +439,12 @@ AccountsRepo.prototype.resetMemTables = function () {
 	getDelegates: 'SELECT ENCODE("publicKey", \'hex\') FROM mem_accounts WHERE "isDelegate" = 1',
 
 	resetMemTables: new QF(path.join(process.cwd(), './db/sql/init/resetMemoryTables.sql'), {minify: true, params: {schema: 'public'}}),
+
+	increment: 'UPDATE ${table:name} SET ${field:name} = ${field:name} + ${value}::bigint WHERE "address"=${address}',
+
+	decrement: 'UPDATE ${table:name} SET ${field:name} = ${field:name} - ${value}::bigint WHERE "address"=${address}',
+
+	removeAccountDependencies: 'DELETE FROM ${table:name} WHERE "accountId" = ${address} AND "dependentId" = ${dependentId}',
 };
 
 // Generate select SQL based on column set definition and conditions
