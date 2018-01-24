@@ -32,10 +32,10 @@ SELECT
    FROM delegate) AS delegate,
 
   (SELECT count
-   FROM ${schema~}.rewards) AS count,
+   FROM rewards) AS count,
 
   (SELECT fees
-   FROM ${schema~}.fees) AS fees,
+   FROM fees) AS fees,
 
   (SELECT rewards
-   FROM ${schema~}.rewards) AS rewards
+   FROM rewards) AS rewards
