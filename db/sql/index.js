@@ -31,7 +31,8 @@ module.exports = {
 		blockExists: load('blocks/blockExists.sql'),
 		deleteAfterBlock: load('blocks/deleteAfterBlock.sql'),
 		getBlocksForTransport: load('blocks/getBlocksForTransport.sql'),
-		getHeightByLastId: load('blocks/getHeightByLastId.sql')
+		getHeightByLastId: load('blocks/getHeightByLastId.sql'),
+		getCommonBlock: load('blocks/getCommonBlock.sql')
 	},
 	delegates: {
 		countDuplicatedDelegates: load('delegates/countDuplicatedDelegates.sql'),

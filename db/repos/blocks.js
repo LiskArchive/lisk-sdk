@@ -13,8 +13,6 @@
  */
 'use strict';
 
-const PQ = require('pg-promise').ParameterizedQuery;
-
 const sql = require('../sql').blocks;
 const {schema} = require('../sql/config');
 
@@ -147,7 +145,8 @@ class BlocksRepository {
 	 */
 	getCommonBlock (params) {
 		// TODO: Must use a result-specific method, not .query
-		return this.db.query(Queries.getCommonBlock(params), params);
+		params.comparePreviousBlock = params.previousBlock ? this.pgp.as.format('AND "previousBlock" = ${previousBlock}', params): '';
+		return this.db.query(sql.getCommonBlock, params);
 	}
 
 	// TODO: Merge BlocksRepository#getHeightByLastId with BlocksRepository#list
@@ -245,7 +244,9 @@ class BlocksRepository {
 
 }
 
-var Queries = {
+// TODO: All these queries need to be thrown away, and use proper implementation inside corresponding methods.
+
+const Queries = {
 
 	list: function (params) {
 		return [
@@ -253,14 +254,6 @@ var Queries = {
 			((params.where && params.where.length) ? 'WHERE ' + params.where.join(' AND ') : ''),
 			(params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
 			'LIMIT ${limit} OFFSET ${offset}'
-		].filter(Boolean).join(' ');
-	},
-
-	getCommonBlock: function (params) {
-		return [
-			'SELECT COUNT("id")::int FROM blocks WHERE "id" = ${id}',
-			(params.previousBlock ? 'AND "previousBlock" = ${previousBlock}' : ''),
-			'AND "height" = ${height}'
 		].filter(Boolean).join(' ');
 	},
 
