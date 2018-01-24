@@ -16,10 +16,33 @@
 var debug = require('debug')('swagger:lisk:error_handler');
 var util = require('util');
 
+/**
+ * Description of the module.
+ * @module
+ * @requires debug
+ * @requires util
+ * @todo: add description of the module
+ */
+
+/**
+ * Description of the function.
+ * @func create
+ * @param {Object} fittingDef - Description of the param.
+ * @param {Object} bagpipes - Description of the param.
+ * @returns {function} lisk_error_handler
+ * @todo: add description of the function and its parameters
+ */
 module.exports = function create (fittingDef, bagpipes) {
 
 	debug('config: %j', fittingDef);
 
+	/**
+	 * Description of the function.
+	 * @func lisk_error_handler
+	 * @param {Object} context - Description of the param.
+	 * @param {function} cb - Description of the param.
+	 * @todo: add description of the function and its parameters
+	 */
 	return function lisk_error_handler (context, next) {
 
 		if (!util.isError(context.error)) { return next(); }
