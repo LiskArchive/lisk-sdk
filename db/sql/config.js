@@ -14,7 +14,7 @@
 'use strict';
 
 const QueryFile = require('pg-promise').QueryFile;
-const schema = require('../../config.json').db.schema;
+const schema = require('../../config.json').db.schema || 'public';
 const path = require('path');
 
 // Check if we are in development environment:

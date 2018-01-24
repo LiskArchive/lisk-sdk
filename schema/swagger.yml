@@ -2340,6 +2340,7 @@ definitions:
       - address
       - publicKey
       - balance
+      - username
     properties:
       address:
         type: string
@@ -2353,6 +2354,10 @@ definitions:
       balance:
         type: string
         example: 1081560729258
+      username:
+        type: string
+        format: username
+        example: liskhq
 
   WSPeerHeaders:
     x-private: true

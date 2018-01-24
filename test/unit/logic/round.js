@@ -395,19 +395,22 @@ describe('rounds', function () {
 					delegate: '6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 					address: '16010222169256538112L'
 				};
-				getVotes_stub = sinon.stub(db.rounds, 'getVotes');
-				getVotes_stub.withArgs(scope.round).resolves([delegate, delegate]);
-
-				updateVotes_stub = sinon.stub(db.rounds, 'updateVotes');
-				updateVotes_stub.withArgs(delegate.address, delegate.amount).resolves('QUERY');
 
 				scope.library.db = db;
 				scope.modules.accounts.generateAddressByPublicKey = function () {
 					return delegate.address;
 				};
 
-				round = new Round(_.cloneDeep(scope), db);
-				res = round.updateVotes();
+				return db.task(function (t) {
+					// Init stubs
+					getVotes_stub = sinon.stub(t.rounds, 'getVotes');
+					getVotes_stub.withArgs(scope.round).resolves([delegate, delegate]);
+					updateVotes_stub = sinon.stub(t.rounds, 'updateVotes');
+					updateVotes_stub.withArgs(delegate.address, delegate.amount).resolves('QUERY');
+
+					round = new Round(_.cloneDeep(scope), t);
+					res = round.updateVotes();
+				});
 			});
 
 			after(function () {
@@ -449,19 +452,22 @@ describe('rounds', function () {
 					delegate: '6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 					address: '16010222169256538112L'
 				};
-				getVotes_stub = sinon.stub(db.rounds, 'getVotes');
-				getVotes_stub.withArgs(scope.round).resolves([]);
-
-				updateVotes_stub = sinon.stub(db.rounds, 'updateVotes');
-				updateVotes_stub.withArgs(delegate.address, delegate.amount).resolves('QUERY');
 
 				scope.library.db = db;
 				scope.modules.accounts.generateAddressByPublicKey = function () {
 					return delegate.address;
 				};
 
-				round = new Round(_.cloneDeep(scope), db);
-				res = round.updateVotes();
+				return db.task(function (t) {
+					// Init stubs
+					getVotes_stub = sinon.stub(t.rounds, 'getVotes');
+					getVotes_stub.withArgs(scope.round).resolves([]);
+					updateVotes_stub = sinon.stub(t.rounds, 'updateVotes');
+					updateVotes_stub.withArgs(delegate.address, delegate.amount).resolves('QUERY');
+
+					round = new Round(_.cloneDeep(scope), t);
+					res = round.updateVotes();
+				});
 			});
 
 			after(function () {
@@ -480,12 +486,6 @@ describe('rounds', function () {
 
 			it('updateVotes should be not called', function () {
 				expect(updateVotes_stub.called).to.be.false;
-			});
-
-			it('getVotes should return t object', function () {
-				return res.then(function (res) {
-					expect(res).to.deep.equal(db);
-				});
 			});
 		});
 	});
@@ -1563,12 +1563,17 @@ describe('rounds', function () {
 				address: '16010222169256538112L'
 			};
 
-			// Init stubs
-			none_stub = sinon.stub(db, 'none').resolves();
-			roundOutsiders_stub = sinon.stub(db.rounds, 'updateMissedBlocks').resolves();
-			getVotes_stub = sinon.stub(db.rounds, 'getVotes').resolves([delegate]);
-			updateVotes_stub = sinon.stub(db.rounds, 'updateVotes').resolves('QUERY');
-			flush_stub = sinon.stub(db.rounds, 'flush').resolves();
+			return db.task(function (t) {
+				// Init stubs
+				none_stub = sinon.stub(t, 'none').resolves();
+				roundOutsiders_stub = sinon.stub(t.rounds, 'updateMissedBlocks').resolves();
+				getVotes_stub = sinon.stub(t.rounds, 'getVotes').resolves([delegate]);
+				updateVotes_stub = sinon.stub(t.rounds, 'updateVotes').resolves('QUERY');
+				flush_stub = sinon.stub(t.rounds, 'flush').resolves();
+
+				round = new Round(_.cloneDeep(scope), t);
+				res = round.land();
+			});
 
 			round = new Round(_.cloneDeep(scope), db);
 			res = round.land();
@@ -1586,12 +1591,6 @@ describe('rounds', function () {
 
 		it('should return promise', function () {
 			expect(isPromise(res)).to.be.true;
-		});
-
-		it('should return t object', function () {
-			return res.then(function (res) {
-				expect(res).to.deep.equal(db);
-			});
 		});
 
 		it('query getVotes should be called twice', function () {
@@ -1644,17 +1643,19 @@ describe('rounds', function () {
 				address: '16010222169256538112L'
 			};
 
-			// Init stubs
-			none_stub = sinon.stub(db, 'none').resolves();
-			roundOutsiders_stub = sinon.stub(db.rounds, 'updateMissedBlocks').resolves();
-			getVotes_stub = sinon.stub(db.rounds, 'getVotes').resolves([delegate]);
-			updateVotes_stub = sinon.stub(db.rounds, 'updateVotes').resolves('QUERY');
-			flush_stub = sinon.stub(db.rounds, 'flush').resolves();
-			restoreRoundSnapshot_stub = sinon.stub(db.rounds, 'restoreRoundSnapshot').resolves();
-			restoreVotesSnapshot_stub = sinon.stub(db.rounds, 'restoreVotesSnapshot').resolves();
+			return db.task(function (t) {
+				// Init stubs
+				none_stub = sinon.stub(t, 'none').resolves();
+				roundOutsiders_stub = sinon.stub(t.rounds, 'updateMissedBlocks').resolves();
+				getVotes_stub = sinon.stub(t.rounds, 'getVotes').resolves([delegate]);
+				updateVotes_stub = sinon.stub(t.rounds, 'updateVotes').resolves('QUERY');
+				flush_stub = sinon.stub(t.rounds, 'flush').resolves();
+				restoreRoundSnapshot_stub = sinon.stub(t.rounds, 'restoreRoundSnapshot').resolves();
+				restoreVotesSnapshot_stub = sinon.stub(t.rounds, 'restoreVotesSnapshot').resolves();
 
-			round = new Round(_.cloneDeep(scope), db);
-			res = round.backwardLand();
+				round = new Round(_.cloneDeep(scope), t);
+				res = round.backwardLand();
+			});
 		});
 
 		after(function () {
@@ -1671,12 +1672,6 @@ describe('rounds', function () {
 
 		it('should return promise', function () {
 			expect(isPromise(res)).to.be.true;
-		});
-
-		it('should return t object', function () {
-			return res.then(function (res) {
-				expect(res).to.deep.equal(db);
-			});
 		});
 
 		it('query getVotes should be called twice', function () {
