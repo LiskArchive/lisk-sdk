@@ -587,7 +587,7 @@ describe('account', function () {
 
 		it('should throw error when a numeric field receives non numeric value', function (done) {
 			account.merge(validAccount.address, {balance: 'Not a Number'}, function (err, res) {
-				expect(err).to.equal('Encountered unsane number: Not a Number');
+				expect(err).to.equal('Encountered insane number: Not a Number');
 				done();
 			});
 		});
