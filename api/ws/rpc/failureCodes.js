@@ -12,7 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 'use strict';
-
+/**
+ * Description of the module.
+ * @module
+ * @requires debug
+ * @requires helpers/swagger_module_registry.getCache
+ * @requires helpers/swagger_module_registry.getLogger
+ * @todo: add description of the module
+ */
+/**
+ * Description of failureCodes
+ * @constant
+ * @name FailureCodes
+ * @todo: add description
+ */
 module.exports = {
 	INVALID_HEADERS: 4100,
 	INCOMPATIBLE_NONCE: 4101,
@@ -41,6 +54,10 @@ module.exports = {
 	}
 };
 
+/**
+ * Description of errorMessages.
+ * @todo: add description
+ */
 module.exports.errorMessages = {
 	4100: 'Invalid headers',
 	4101: 'Request is made by itself',
@@ -62,10 +79,10 @@ module.exports.errorMessages = {
 };
 
 /**
- * @param {number} code
- * @param {string} message
- * @param {string}[description=undefined] description
- * @constructor
+ * @class
+ * @param {number} code - Description of the param.
+ * @param {string} message - Description of the param.
+ * @param {string} description - Description of the param.
  */
 function PeerUpdateError (code, message, description) {
 	this.code = code;
