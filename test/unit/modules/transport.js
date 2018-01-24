@@ -1037,12 +1037,29 @@ describe('transport', function () {
 			});
 		});
 
-		describe('getPeers', () => {
-			it('should call __private.broadcaster.getPeers ');
+		describe('getPeers', function () {
 
-			it('should call __private.broadcaster.getPeers  with params');
+			it('should call __private.broadcaster.getPeers with params and callback as arguments', function (done) {
+				__private = {
+					broadcaster: {
+						getPeers: sinonSandbox.stub().callsArgWith(1, null, [])
+					}
+				};
 
-			it('should call __private.broadcaster.getPeers  with callback');
+				var restoreDeps = TransportModule.__set__({
+					__private: __private
+				});
+
+				var params = {};
+				var callback = function () {};
+
+				transportInstance.getPeers(params, callback);
+
+				expect(__private.broadcaster.getPeers.calledWith(params, callback)).to.be.true;
+
+				restoreDeps();
+				done();
+			});
 		});
 
 		describe('onBind', () => {
