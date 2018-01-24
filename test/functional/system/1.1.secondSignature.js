@@ -41,7 +41,7 @@ describe('system test (type 1) - double second signature registrations', functio
 	it('adding to pool second signature registration should be ok', function (done) {
 		transaction1 = lisk.signature.createSignature(account.password, account.secondPassword, -1);
 		localCommon.addTransaction(library, transaction1, function (err, res) {
-			res.should.equal(transaction1.id);
+			expect(res).to.equal(transaction1.id);
 			done();
 		});
 	});
@@ -49,7 +49,7 @@ describe('system test (type 1) - double second signature registrations', functio
 	it('adding to pool same second signature registration with different timestamp should be ok', function (done) {
 		transaction2 = lisk.signature.createSignature(account.password, account.secondPassword);
 		localCommon.addTransaction(library, transaction2, function (err, res) {
-			res.should.equal(transaction2.id);
+			expect(res).to.equal(transaction2.id);
 			done();
 		});
 	});
@@ -67,9 +67,9 @@ describe('system test (type 1) - double second signature registrations', functio
 				id: transaction1.id
 			};
 			localCommon.getTransactionFromModule(library, filter, function (err, res) {
-				should.not.exist(err);
-				res.should.have.property('transactions').which.is.an('Array');
-				res.transactions.length.should.equal(0);
+				expect(err).to.be.null;
+				expect(res).to.have.property('transactions').which.is.an('Array');
+				expect(res.transactions.length).to.equal(0);
 				done();
 			});
 		});
@@ -79,17 +79,17 @@ describe('system test (type 1) - double second signature registrations', functio
 				id: transaction2.id
 			};
 			localCommon.getTransactionFromModule(library, filter, function (err, res) {
-				should.not.exist(err);
-				res.should.have.property('transactions').which.is.an('Array');
-				res.transactions.length.should.equal(1);
-				res.transactions[0].id.should.equal(transaction2.id);
+				expect(err).to.be.null;
+				expect(res).to.have.property('transactions').which.is.an('Array');
+				expect(res.transactions.length).to.equal(1);
+				expect(res.transactions[0].id).to.equal(transaction2.id);
 				done();
 			});
 		});
 
 		it('adding to pool second signature registration for same account should fail', function (done) {
 			localCommon.addTransaction(library, transaction1, function (err, res) {
-				err.should.equal('Missing sender second signature');
+				expect(err).to.equal('Missing sender second signature');
 				done();
 			});
 		});

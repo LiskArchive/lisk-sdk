@@ -105,7 +105,6 @@ _.mixin({
 }, { chain: false });
 
 global.expect = chai.expect;
-global.should = chai.should();
 global.sinonSandbox = sinon.createSandbox();
 global.__testContext = testContext;
 global._ = _;

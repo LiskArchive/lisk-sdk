@@ -55,7 +55,7 @@ describe('GET /api/accounts', function () {
 
 				return signatureEndpoint.makeRequest({signatures: signatures}, 200);
 			}).then(function (res) {
-				res.body.meta.status.should.be.true;
+				expect(res.body.meta.status).to.be.true;
 				return waitFor.confirmations([scenario.multiSigTransaction.id]);
 			});
 	});
@@ -68,29 +68,29 @@ describe('GET /api/accounts', function () {
 
 			it('using known address should respond with its multisignature_group', function () {
 				return multisigGroupsEndpoint.makeRequest({address: account.address}, 200).then(function (res) {
-					res.body.data.should.have.length(1);
+					expect(res.body.data).to.have.length(1);
 					var group = res.body.data[0];
-					group.address.should.be.equal(account.address);
-					group.publicKey.should.be.equal(account.publicKey);
-					group.members.should.have.length(scenario.members.length);
-					_.map(group.members, 'address').sort().should.be.eql(_.map(scenario.members, 'address').sort());
+					expect(group.address).to.be.equal(account.address);
+					expect(group.publicKey).to.be.equal(account.publicKey);
+					expect(group.members).to.have.length(scenario.members.length);
+					expect(_.map(group.members, 'address').sort()).to.be.eql(_.map(scenario.members, 'address').sort());
 				});
 			});
 
 			it('using known lowercase address should respond with its multisignature_group', function () {
 				return multisigGroupsEndpoint.makeRequest({address: account.address.toLowerCase()}, 200).then(function (res) {
-					res.body.data.should.have.length(1);
+					expect(res.body.data).to.have.length(1);
 					var group = res.body.data[0];
-					group.address.should.be.equal(account.address);
-					group.publicKey.should.be.equal(account.publicKey);
-					group.members.should.have.length(scenario.members.length);
-					_.map(group.members, 'address').sort().should.be.eql(_.map(scenario.members, 'address').sort());
+					expect(group.address).to.be.equal(account.address);
+					expect(group.publicKey).to.be.equal(account.publicKey);
+					expect(group.members).to.have.length(scenario.members.length);
+					expect(_.map(group.members, 'address').sort()).to.be.eql(_.map(scenario.members, 'address').sort());
 				});
 			});
 
 			it('using unknown address should return empty result', function () {
 				return multisigGroupsEndpoint.makeRequest({address: accountFixtures.existingDelegate.address}, 404).then(function (res) {
-					res.body.message.should.be.equal('Multisignature account not found');
+					expect(res.body.message).to.be.equal('Multisignature account not found');
 				});
 			});
 
@@ -116,46 +116,46 @@ describe('GET /api/accounts', function () {
 
 			it('using master group account address should respond with empty multisignature memberships', function () {
 				return multisigMembersEndpoint.makeRequest({address: account.address}, 200).then(function (res) {
-					res.body.data.should.have.length(0);
+					expect(res.body.data).to.have.length(0);
 				});
 			});
 
 			it('using known member address should respond with its multisignature memberships', function () {
 				return multisigMembersEndpoint.makeRequest({address: scenario.members[0].address}, 200).then(function (res) {
-					res.body.data.should.have.length(1);
+					expect(res.body.data).to.have.length(1);
 					var group = res.body.data[0];
-					group.address.should.be.equal(account.address);
-					group.publicKey.should.be.equal(account.publicKey);
-					group.members.should.have.length(scenario.members.length);
-					_.map(group.members, 'address').should.include(scenario.members[0].address);
+					expect(group.address).to.be.equal(account.address);
+					expect(group.publicKey).to.be.equal(account.publicKey);
+					expect(group.members).to.have.length(scenario.members.length);
+					expect(_.map(group.members, 'address')).to.include(scenario.members[0].address);
 				});
 			});
 
 			it('using known other member address should respond with its multisignature memberships', function () {
 				return multisigMembersEndpoint.makeRequest({address: scenario.members[1].address}, 200).then(function (res) {
-					res.body.data.should.have.length(1);
+					expect(res.body.data).to.have.length(1);
 					var group = res.body.data[0];
-					group.address.should.be.equal(account.address);
-					group.publicKey.should.be.equal(account.publicKey);
-					group.members.should.have.length(scenario.members.length);
-					_.map(group.members, 'address').should.include(scenario.members[1].address);
+					expect(group.address).to.be.equal(account.address);
+					expect(group.publicKey).to.be.equal(account.publicKey);
+					expect(group.members).to.have.length(scenario.members.length);
+					expect(_.map(group.members, 'address')).to.include(scenario.members[1].address);
 				});
 			});
 
 			it('using known lowercase address should respond with its multisignature_group', function () {
 				return multisigMembersEndpoint.makeRequest({address: scenario.members[0].address}, 200).then(function (res) {
-					res.body.data.should.have.length(1);
+					expect(res.body.data).to.have.length(1);
 					var group = res.body.data[0];
-					group.address.should.be.equal(account.address);
-					group.publicKey.should.be.equal(account.publicKey);
-					group.members.should.have.length(scenario.members.length);
-					_.map(group.members, 'address').should.include(scenario.members[0].address);
+					expect(group.address).to.be.equal(account.address);
+					expect(group.publicKey).to.be.equal(account.publicKey);
+					expect(group.members).to.have.length(scenario.members.length);
+					expect(_.map(group.members, 'address')).to.include(scenario.members[0].address);
 				});
 			});
 
 			it('using unknown address should return empty result', function () {
 				return multisigMembersEndpoint.makeRequest({address: accountFixtures.existingDelegate.address}, 200).then(function (res) {
-					res.body.data.should.have.length(0);
+					expect(res.body.data).to.have.length(0);
 				});
 			});
 

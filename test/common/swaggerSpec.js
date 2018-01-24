@@ -28,7 +28,7 @@ validator.options.assumeAdditional = true;
 
 // Extend Chai assertion with a new method validResponse
 // to facilitate the validation of swagger response body
-// e.g. res.body.should.be.validResponse
+// e.g. expect(res.body).to.be.validResponse
 chai.use(function (chai, utils) {
 	chai.Assertion.addMethod('validResponse', function (responsePath) {
 		var result = validator.validate(utils.flag(this,'object'), apiSpec, {schemaPath: responsePath});
@@ -201,9 +201,9 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode){
 
 		var expectedResponseCode = responseCode || self.responseCode;
 
-		res.statusCode.should.be.eql(expectedResponseCode);
-		res.headers['content-type'].should.match(/json/);
-		res.body.should.be.validResponse(self.getResponseSpecPath(expectedResponseCode));
+		expect(res.statusCode).to.be.eql(expectedResponseCode);
+		expect(res.headers['content-type']).to.match(/json/);
+		expect(res.body).to.be.validResponse(self.getResponseSpecPath(expectedResponseCode));
 
 		return res;
 	})
