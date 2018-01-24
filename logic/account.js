@@ -816,7 +816,7 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 				// [u_]balance, [u_]multimin, [u_]multilifetime, rate, fees, rank, rewards, votes, producedBlocks, missedBlocks
 				case Number:
 					if (isNaN(updatedValue) || updatedValue === Infinity) {
-						return setImmediate(cb, 'Encountered insane number: ' + updatedValue);
+						throw 'Encountered insane number: ' + updatedValue;
 					}
 
 					// If updated value is positive number
@@ -881,7 +881,7 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 		return self.get({address: address}, cb, tx);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
-		return setImmediate(cb, 'Account#merge error');
+		return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');
 	});
 };
 
