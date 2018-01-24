@@ -31,7 +31,7 @@ const cs = {}; // Reusable ColumnSet objects
  */
 class BlocksRepository {
 
-	constructor(db, pgp) {
+	constructor (db, pgp) {
 
 		this.db = db;
 		this.pgp = pgp;
@@ -59,13 +59,13 @@ class BlocksRepository {
 		}
 	}
 
-	// TODO: Merge BlocksRepo#getGenesisBlock with BlocksRepo#getGenesisBlockId
+	// TODO: Merge BlocksRepository#getGenesisBlock with BlocksRepository#getGenesisBlockId
 	/**
 	 * Get the genesis block
 	 * @return {Promise}
 	 */
-	getGenesisBlock() {
-		return this.db.query(Queries.getGenesisBlock);
+	getGenesisBlock () {
+		return this.db.any(sql.getGenesisBlock);
 	}
 
 	/**
@@ -73,8 +73,9 @@ class BlocksRepository {
 	 * @param {string} id
 	 * @return {Promise}
 	 */
-	getGenesisBlockId(id) {
-		return this.db.query(Queries.getGenesisBlockId, [id]);
+	getGenesisBlockId (id) {
+		// TODO: Must use a result-specific method, not .query
+		return this.db.query(sql.getGenesisBlockId, [id]);
 	}
 
 	/**
@@ -82,8 +83,8 @@ class BlocksRepository {
 	 * @param {string} id
 	 * @return {Promise}
 	 */
-	deleteBlock(id) {
-		return this.db.none(Queries.deleteBlock, [id]);
+	deleteBlock (id) {
+		return this.db.none(sql.deleteBlock, [id]);
 	}
 
 	/**
@@ -94,16 +95,18 @@ class BlocksRepository {
 	 * @param {int} params.end - End time for aggregation period
 	 * @return {Promise}
 	 */
-	aggregateBlocksReward(params) {
-		return this.db.query(Queries.aggregateBlocksReward, [params.generatorPublicKey, params.start, params.end]);
+	aggregateBlocksReward (params) {
+		// TODO: Must use a result-specific method, not .query
+		return this.db.query(sql.aggregateBlocksReward, [params.generatorPublicKey, params.start, params.end]);
 	}
 
 	/**
 	 * Count blocks
 	 * @return {Promise}
 	 */
-	count() {
-		return this.db.one(Queries.count);
+	count () {
+		// TODO: Must use inline result conversion
+		return this.db.one(sql.count);
 	}
 
 	/**
@@ -116,7 +119,8 @@ class BlocksRepository {
 	 * @param {int} params.offset
 	 * @return {Promise}
 	 */
-	list(params) {
+	list (params) {
+		// TODO: Must use a result-specific method, not .query
 		return this.db.query(Queries.list(params), params);
 	}
 
@@ -128,8 +132,9 @@ class BlocksRepository {
 	 * @param {int} params.limit
 	 * @return {Promise}
 	 */
-	getIdSequence(params) {
-		return this.db.query(Queries.getIdSequence, params);
+	getIdSequence (params) {
+		// TODO: Must use a result-specific method, not .query
+		return this.db.query(sql.getIdSequence, params);
 	}
 
 	/**
@@ -140,7 +145,8 @@ class BlocksRepository {
 	 * @param {int} params.height
 	 * @return {Promise}
 	 */
-	getCommonBlock(params) {
+	getCommonBlock (params) {
+		// TODO: Must use a result-specific method, not .query
 		return this.db.query(Queries.getCommonBlock(params), params);
 	}
 
@@ -150,8 +156,9 @@ class BlocksRepository {
 	 * @param {string} lastId - Id of the block to search
 	 * @return {Promise}
 	 */
-	getHeightByLastId(lastId) {
-		return this.db.query(Queries.getHeightByLastId, [lastId]);
+	getHeightByLastId (lastId) {
+		// TODO: Must use a result-specific method, not .query
+		return this.db.query(sql.getHeightByLastId, [lastId]);
 	}
 
 	/**
@@ -163,7 +170,8 @@ class BlocksRepository {
 	 * @param {int} params.limit
 	 * @return {Promise}
 	 */
-	loadBlocksData(params) {
+	loadBlocksData (params) {
+		// TODO: Must use a result-specific method, not .query
 		return this.db.query(Queries.loadBlocksData(params), params);
 	}
 
@@ -173,16 +181,18 @@ class BlocksRepository {
 	 * @param {int} limit
 	 * @return {Promise}
 	 */
-	loadBlocksOffset(offset, limit) {
-		return this.db.query(Queries.loadBlocksOffset, [offset, limit]);
+	loadBlocksOffset (offset, limit) {
+		// TODO: Must use a result-specific method, not .query
+		return this.db.query(sql.loadBlocksOffset, [offset, limit]);
 	}
 
 	/**
 	 * Load the last block including transactions
 	 * @return {Promise}
 	 */
-	loadLastBlock() {
-		return this.db.query(Queries.loadLastBlock);
+	loadLastBlock () {
+		// TODO: Must use a result-specific method, not .query
+		return this.db.query(sql.loadLastBlock);
 	}
 
 	/**
@@ -191,8 +201,8 @@ class BlocksRepository {
 	 * @return {Promise}
 	 * @throws {QueryResultError} - Multiple rows were not expected - in the case of multiple blocks found with same id
 	 */
-	blockExists(id) {
-		return this.db.oneOrNone(Queries.blockExists, [id]);
+	blockExists (id) {
+		return this.db.oneOrNone(sql.blockExists, [id]);
 	}
 
 	/**
@@ -200,8 +210,8 @@ class BlocksRepository {
 	 * @param {string} id
 	 * @return {Promise}
 	 */
-	deleteAfterBlock(id) {
-		return this.db.none(Queries.deleteAfterBlock, [id]);
+	deleteAfterBlock (id) {
+		return this.db.none(sql.deleteAfterBlock, [id]);
 	}
 
 	/**
@@ -209,8 +219,9 @@ class BlocksRepository {
 	 * @param {string} ids - Comma separated string of ids
 	 * @return {Promise}
 	 */
-	getBlocksForTransport(ids) {
-		return this.db.query(Queries.getBlocksForTransport, [ids]);
+	getBlocksForTransport (ids) {
+		// TODO: Must use a result-specific method, not .query
+		return this.db.query(sql.getBlocksForTransport, [ids]);
 	}
 
 	/**
@@ -218,7 +229,7 @@ class BlocksRepository {
 	 * @param {Object} block - Attributes to be inserted, can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
 	 * @return {Promise}
 	 */
-	save(block) {
+	save (block) {
 		try {
 			var saveBlock = Object.assign({}, block);
 			saveBlock.payloadHash = Buffer.from(block.payloadHash, 'hex');
@@ -235,32 +246,6 @@ class BlocksRepository {
 }
 
 var Queries = {
-	count: new PQ('SELECT COUNT("rowId")::int FROM blocks'),
-
-	getGenesisBlockId: new PQ('SELECT "id" FROM blocks WHERE "id" = $1'),
-
-	getGenesisBlock: 'SELECT "id", "payloadHash", "blockSignature" FROM blocks WHERE "height" = 1',
-
-	deleteBlock: new PQ('DELETE FROM blocks WHERE "id" = $1'),
-
-	aggregateBlocksReward: new PQ([
-		'WITH',
-		'delegate AS (SELECT',
-		'1 FROM mem_accounts m WHERE m."isDelegate" = 1 AND m."publicKey" = DECODE($1, \'hex\') LIMIT 1),',
-		'rewards AS (SELECT COUNT(1) AS count, SUM(reward) AS rewards FROM blocks WHERE "generatorPublicKey" = DECODE($1, \'hex\')',
-		'AND ($2 IS NULL OR timestamp >= $2)',
-		'AND ($3 IS NULL OR timestamp <= $3)',
-		'),',
-		'fees AS (SELECT SUM(fees) AS fees FROM rounds_fees WHERE "publicKey" = DECODE($1, \'hex\')',
-		'AND ($2 IS NULL OR timestamp >= $2)',
-		'AND ($3 IS NULL OR timestamp <= $3)',
-		')',
-		'SELECT',
-		'(SELECT * FROM delegate) AS delegate,',
-		'(SELECT count FROM rewards) AS count,',
-		'(SELECT fees FROM fees) AS fees,',
-		'(SELECT rewards FROM rewards) AS rewards'
-	].filter(Boolean).join(' ')),
 
 	list: function (params) {
 		return [
@@ -271,16 +256,6 @@ var Queries = {
 		].filter(Boolean).join(' ');
 	},
 
-	getIdSequence: [
-		'WITH',
-		'current_round AS (SELECT CEIL(b.height / ${delegates}::float)::bigint FROM blocks b WHERE b.height <= ${height} ORDER BY b.height DESC LIMIT 1),',
-		'rounds AS (SELECT * FROM generate_series((SELECT * FROM current_round), (SELECT * FROM current_round) - ${limit} + 1, -1))',
-		'SELECT',
-		'b.id, b.height, CEIL(b.height / ${delegates}::float)::bigint AS round',
-		'FROM blocks b',
-		'WHERE b.height IN (SELECT ((n - 1) * ${delegates}) + 1 FROM rounds AS s(n)) ORDER BY height DESC'
-	].filter(Boolean).join(' '),
-
 	getCommonBlock: function (params) {
 		return [
 			'SELECT COUNT("id")::int FROM blocks WHERE "id" = ${id}',
@@ -288,10 +263,6 @@ var Queries = {
 			'AND "height" = ${height}'
 		].filter(Boolean).join(' ');
 	},
-
-	getBlocksForTransport: 'SELECT MAX("height") AS "height", "id", "previousBlock", "timestamp" FROM blocks WHERE "id" IN ($1:csv) GROUP BY "id" ORDER BY "height" DESC',
-
-	getHeightByLastId: new PQ('SELECT "height" FROM blocks WHERE "id" = $1'),
 
 	loadBlocksData: function (params) {
 		var limitPart;
@@ -309,15 +280,7 @@ var Queries = {
 			(params.lastId ? '"b_height" > ${height} AND "b_height" < ${limit}' : ''),
 			'ORDER BY "b_height", "t_rowId"'
 		].filter(Boolean).join(' ');
-	},
-
-	loadBlocksOffset: new PQ('SELECT * FROM full_blocks_list WHERE "b_height" >= $1 AND "b_height" < $2 ORDER BY "b_height", "t_rowId"'),
-
-	loadLastBlock: 'SELECT * FROM full_blocks_list WHERE "b_height" = (SELECT MAX("height") FROM blocks) ORDER BY "b_height", "t_rowId"',
-
-	blockExists: new PQ('SELECT "id" FROM blocks WHERE "id" = $1'),
-
-	deleteAfterBlock: new PQ('DELETE FROM blocks WHERE "height" >= (SELECT "height" FROM blocks WHERE "id" = $1)')
+	}
 };
 
 module.exports = BlocksRepository;
