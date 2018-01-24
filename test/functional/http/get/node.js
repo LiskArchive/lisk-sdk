@@ -33,60 +33,60 @@ describe('GET /node', function () {
 		});
 
 		it('should return a result containing nethash = "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"', function () {
-			constantsResponse.nethash.should.be.equal('198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d');
+			expect(constantsResponse.nethash).to.be.equal('198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d');
 		});
 
 
 		it('should return a result containing milestone that is a number <= 500000000', function () {
-			parseInt(constantsResponse.milestone).should.at.most(500000000);
+			expect(parseInt(constantsResponse.milestone)).to.at.most(500000000);
 		});
 
 		it('should return a result containing reward that is a number <= 500000000', function () {
-			parseInt(constantsResponse.reward).should.at.most(500000000);
+			expect(parseInt(constantsResponse.reward)).to.at.most(500000000);
 		});
 
 		it('should return a result containing supply that is a number = 10000000000000000', function () {
-			constantsResponse.supply.should.be.equal('10000000000000000');
+			expect(constantsResponse.supply).to.be.equal('10000000000000000');
 		});
 
 		it('should return a result containing version = "0.0.1"', function () {
-			constantsResponse.should.have.property('version').equal('0.0.1');
+			expect(constantsResponse).to.have.property('version').equal('0.0.1');
 		});
 
 		it('should return a result containing fees.send = 10000000', function () {
-			constantsResponse.fees.send.should.be.equal('10000000');
+			expect(constantsResponse.fees.send).to.be.equal('10000000');
 		});
 
 		it('should return a result containing fees.vote = 100000000', function () {
-			constantsResponse.fees.vote.should.be.equal('100000000');
+			expect(constantsResponse.fees.vote).to.be.equal('100000000');
 		});
 
 		it('should return a result containing fees.secondSignature = 500000000', function () {
-			constantsResponse.fees.secondSignature.should.be.equal('500000000');
+			expect(constantsResponse.fees.secondSignature).to.be.equal('500000000');
 		});
 
 		it('should return a result containing fees.delegate = 2500000000', function () {
-			constantsResponse.fees.delegate.should.be.equal('2500000000');
+			expect(constantsResponse.fees.delegate).to.be.equal('2500000000');
 		});
 
 		it('should return a result containing fees.multisignature = 500000000', function () {
-			constantsResponse.fees.multisignature.should.be.equal('500000000');
+			expect(constantsResponse.fees.multisignature).to.be.equal('500000000');
 		});
 
 		it('should return a result containing fees.dappRegistration = 2500000000', function () {
-			constantsResponse.fees.dappRegistration.should.be.equal('2500000000');
+			expect(constantsResponse.fees.dappRegistration).to.be.equal('2500000000');
 		});
 
 		it('should return a result containing fees.dappWithdrawal = 10000000', function () {
-			constantsResponse.fees.dappWithdrawal.should.be.equal('10000000');
+			expect(constantsResponse.fees.dappWithdrawal).to.be.equal('10000000');
 		});
 
 		it('should return a result containing fees.dappDeposit = 10000000', function () {
-			constantsResponse.fees.dappDeposit.should.be.equal('10000000');
+			expect(constantsResponse.fees.dappDeposit).to.be.equal('10000000');
 		});
 
 		it('should return a result containing fees.data = 10000000', function () {
-			constantsResponse.fees.data.should.be.equal('10000000');
+			expect(constantsResponse.fees.data).to.be.equal('10000000');
 		});
 	});
 
@@ -107,7 +107,7 @@ describe('GET /node', function () {
 
 			it('using no params should return full list of internal forgers', function () {
 				return forgingEndpoint.makeRequest({}, 200).then(function (res) {
-					res.body.data.length.should.be.eql(__testContext.config.forging.secret.length);
+					expect(res.body.data.length).to.be.eql(__testContext.config.forging.secret.length);
 				});
 			});
 
@@ -127,8 +127,8 @@ describe('GET /node', function () {
 				var publicKey = __testContext.config.forging.secret[0].publicKey;
 
 				return forgingEndpoint.makeRequest({publicKey: publicKey}, 200).then(function (res) {
-					res.body.data.should.have.length(1);
-					res.body.data[0].publicKey.should.be.eql(publicKey);
+					expect(res.body.data).to.have.length(1);
+					expect(res.body.data[0].publicKey).to.be.eql(publicKey);
 				});
 			});
 
@@ -136,8 +136,8 @@ describe('GET /node', function () {
 				var publicKey = __testContext.config.forging.secret[0].publicKey;
 
 				return forgingEndpoint.makeRequest({publicKey: publicKey}, 200).then(function (res) {
-					res.body.data[0].publicKey.should.be.eql(publicKey);
-					res.body.data[0].forging.should.be.true;
+					expect(res.body.data[0].publicKey).to.be.eql(publicKey);
+					expect(res.body.data[0].forging).to.be.true;
 				});
 			});
 		});
