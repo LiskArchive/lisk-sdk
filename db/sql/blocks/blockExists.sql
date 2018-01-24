@@ -1,3 +1,9 @@
+/*
+  DESCRIPTION: ?
+
+  PARAMETERS: ?
+*/
+
 SELECT id
-FROM blocks
+FROM ${schema~}.blocks
 WHERE id = $1

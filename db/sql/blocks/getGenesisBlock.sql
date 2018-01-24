@@ -1,1 +1,9 @@
-SELECT "id", "payloadHash", "blockSignature" FROM blocks WHERE "height" = 1
+/*
+  DESCRIPTION: ?
+
+  PARAMETERS: ?
+*/
+
+SELECT id, "payloadHash", "blockSignature"
+FROM ${schema~}.blocks
+WHERE height = 1

@@ -1,1 +1,8 @@
-SELECT COUNT("rowId")::int FROM blocks
+/*
+  DESCRIPTION: ?
+
+  PARAMETERS: ?
+*/
+
+SELECT count("rowId")::int
+FROM ${schema~}.blocks
