@@ -25,5 +25,5 @@ SELECT b.id,
 FROM blocks b
 WHERE b.height IN
     (SELECT ((n - 1) * ${delegates}) + 1
-     FROM ${schema~}.rounds AS s(n))
+     FROM rounds AS s(n))
 ORDER BY height DESC
