@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var PQ = require('pg-promise').ParameterizedQuery;
+const sql = require('../sql').rounds;
 
 /**
  * Rounds database interaction module
@@ -22,47 +22,21 @@ var PQ = require('pg-promise').ParameterizedQuery;
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {RoundsRepo}
+ * @return {RoundsRepository}
  */
-function RoundsRepo (db, pgp) {
+function RoundsRepository (db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 }
 
 var Queries = {
-	getMemRounds: new PQ('SELECT "round" FROM mem_round GROUP BY "round"'),
-
-	flush: new PQ('DELETE FROM mem_round WHERE "round" = ($1)::bigint;'),
-
-	truncateBlocks: new PQ('DELETE FROM blocks WHERE "height" > ($1)::bigint;'),
-
 	updateMissedBlocks: function (backwards) {
 		return [
 			'UPDATE mem_accounts SET "missedblocks" = "missedblocks"',
 			(backwards ? '- 1' : '+ 1'),
 			'WHERE "address" IN ($1:csv);'
 		].join(' ');
-	},
-
-	getVotes: new PQ('SELECT d."delegate", d."amount" FROM (SELECT m."delegate", SUM(m."amount") AS "amount", "round" FROM mem_round m GROUP BY m."delegate", m."round") AS d WHERE "round" = ($1)::bigint'),
-
-	updateVotes: new PQ('UPDATE mem_accounts SET "vote" = "vote" + ($1)::bigint WHERE "address" = $2;'),
-
-	updateBlockId: new PQ('UPDATE mem_accounts SET "blockId" = $1 WHERE "blockId" = $2;'),
-
-	summedRound: PQ('SELECT SUM(r.fee)::bigint AS "fees", ARRAY_AGG(r.reward) AS rewards, ARRAY_AGG(r.pk) AS delegates FROM (SELECT b."totalFee" AS fee, b.reward, ENCODE(b."generatorPublicKey", \'hex\') AS pk FROM blocks b WHERE CEIL(b.height / ($1)::float)::int = $2 ORDER BY b.height ASC) r;'),
-
-	clearRoundSnapshot: 'DROP TABLE IF EXISTS mem_round_snapshot',
-
-	performRoundSnapshot: 'CREATE TABLE mem_round_snapshot AS TABLE mem_round',
-
-	restoreRoundSnapshot: 'INSERT INTO mem_round SELECT * FROM mem_round_snapshot',
-
-	clearVotesSnapshot: 'DROP TABLE IF EXISTS mem_votes_snapshot',
-
-	performVotesSnapshot: 'CREATE TABLE mem_votes_snapshot AS SELECT address, "publicKey", vote FROM mem_accounts WHERE "isDelegate" = 1',
-
-	restoreVotesSnapshot: 'UPDATE mem_accounts m SET vote = b.vote FROM mem_votes_snapshot b WHERE m.address = b.address'
+	}
 };
 
 /**
@@ -70,7 +44,7 @@ var Queries = {
  * @return {Promise}
  */
 RoundsRepo.prototype.getMemRounds = function () {
-	return this.db.query(Queries.getMemRounds);
+	return this.db.query(sql.getMemRounds);
 };
 
 /**
@@ -79,7 +53,7 @@ RoundsRepo.prototype.getMemRounds = function () {
  * @return {Promise}
  */
 RoundsRepo.prototype.flush = function (round) {
-	return this.db.none(Queries.flush, [round]);
+	return this.db.none(sql.flush, [round]);
 };
 
 // TODO: Move usage of RoundsRepo#truncateBlocks to db/blocks
@@ -89,7 +63,7 @@ RoundsRepo.prototype.flush = function (round) {
  * @return {Promise}
  */
 RoundsRepo.prototype.truncateBlocks = function (height) {
-	return this.db.none(Queries.truncateBlocks, [height]);
+	return this.db.none(sql.truncateBlocks, [height]);
 };
 
 /**
@@ -109,7 +83,7 @@ RoundsRepo.prototype.updateMissedBlocks = function (backwards, outsiders) {
  * @return {Promise}
  */
 RoundsRepo.prototype.getVotes = function (round) {
-	return this.db.query(Queries.getVotes, [round]);
+	return this.db.query(sql.getVotes, [round]);
 };
 
 // TODO: Move usage of RoundsRepo#updateVotes to db/votes
@@ -119,7 +93,7 @@ RoundsRepo.prototype.getVotes = function (round) {
  * @param {int} amount - Votes to update
  */
 RoundsRepo.prototype.updateVotes = function (address, amount) {
-	return this.db.none(Queries.updateVotes, [amount, address]);
+	return this.db.none(sql.updateVotes, [amount, address]);
 };
 
 // TODO: Move usage of RoundsRepo#updateBlockId to db/accounts
@@ -130,7 +104,7 @@ RoundsRepo.prototype.updateVotes = function (address, amount) {
  * @return {Promise}
  */
 RoundsRepo.prototype.updateBlockId = function (newId, oldId) {
-	return this.db.none(Queries.updateBlockId, [newId, oldId]);
+	return this.db.none(sql.updateBlockId, [newId, oldId]);
 };
 
 /**
@@ -140,7 +114,7 @@ RoundsRepo.prototype.updateBlockId = function (newId, oldId) {
  * @return {Promise}
  */
 RoundsRepo.prototype.summedRound = function (round, activeDelegates) {
-	return this.db.query(Queries.summedRound, [activeDelegates, round]);
+	return this.db.query(sql.summedRound, [activeDelegates, round]);
 };
 
 /**
@@ -148,7 +122,7 @@ RoundsRepo.prototype.summedRound = function (round, activeDelegates) {
  * @return {Promise}
  */
 RoundsRepo.prototype.clearRoundSnapshot = function () {
-	return this.db.none(Queries.clearRoundSnapshot);
+	return this.db.none(sql.clearRoundSnapshot);
 };
 
 /**
@@ -156,7 +130,7 @@ RoundsRepo.prototype.clearRoundSnapshot = function () {
  * @return {Promise}
  */
 RoundsRepo.prototype.performRoundSnapshot = function () {
-	return this.db.none(Queries.performRoundSnapshot);
+	return this.db.none(sql.performRoundSnapshot);
 };
 
 /**
@@ -164,7 +138,7 @@ RoundsRepo.prototype.performRoundSnapshot = function () {
  * @return {Promise}
  */
 RoundsRepo.prototype.clearVotesSnapshot = function () {
-	return this.db.none(Queries.clearVotesSnapshot);
+	return this.db.none(sql.clearVotesSnapshot);
 };
 
 /**
@@ -172,7 +146,7 @@ RoundsRepo.prototype.clearVotesSnapshot = function () {
  * @return {Promise}
  */
 RoundsRepo.prototype.performVotesSnapshot = function () {
-	return this.db.none(Queries.performVotesSnapshot);
+	return this.db.none(sql.performVotesSnapshot);
 };
 
 /**
@@ -180,7 +154,7 @@ RoundsRepo.prototype.performVotesSnapshot = function () {
  * @return {Promise}
  */
 RoundsRepo.prototype.restoreRoundSnapshot = function () {
-	return this.db.none(Queries.restoreRoundSnapshot);
+	return this.db.none(sql.restoreRoundSnapshot);
 };
 
 /**
@@ -188,7 +162,7 @@ RoundsRepo.prototype.restoreRoundSnapshot = function () {
  * @return {Promise}
  */
 RoundsRepo.prototype.restoreVotesSnapshot = function () {
-	return this.db.none(Queries.restoreVotesSnapshot);
+	return this.db.none(sql.restoreVotesSnapshot);
 };
 
-module.exports = RoundsRepo;
+module.exports = RoundsRepository;
