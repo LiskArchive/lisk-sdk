@@ -25,6 +25,24 @@ var defaults = {
 	windowMs: 60000 // 1 minute window
 };
 
+/**
+ * Description of the module.
+ * @module
+ * @requires debug
+ * @requires lodash
+ * @requires express-rate-limit
+ * @requires helpers/swagger_module_registry.getConfig
+ * @todo: add description of the module
+ */
+
+/**
+ * Description of the function.
+ * @func create
+ * @param {Object} fittingDef - Description of the param.
+ * @param {Object} bagpipes - Description of the param.
+ * @returns {function} lisk_request_limit
+ * @todo: add description of the function and its parameters
+ */
 module.exports = function create (fittingDef, bagpipes) {
 
 	debug('config: %j', fittingDef);
@@ -50,6 +68,14 @@ module.exports = function create (fittingDef, bagpipes) {
 
 	var middleware = new RateLimit(_.clone(limits));
 
+	/**
+	 * Description of the function.
+	 * @func lisk_request_limit
+	 * @param {Object} context - Description of the param.
+	 * @param {function} cb - Description of the param.
+	 * @returns {function} lisk_request_limit
+	 * @todo: add description of the function and its parameters
+	 */
 	function lisk_request_limit (context, cb) {
 		debug('exec');
 		middleware(context.request, context.response, cb);
