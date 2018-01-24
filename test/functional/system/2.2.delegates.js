@@ -51,7 +51,7 @@ describe('system test (type 2) - double delegate registrations @unstable', funct
 				describe('using same username and different timestamps', function () {
 
 					it('adding to pool delegate registration should be ok', function (done) {
-						transaction1 = lisk.delegate.createDelegate(account.password, account.username, null, -1);
+						transaction1 = lisk.delegate.createDelegate(account.password, account.username, null, -10000);
 						localCommon.addTransaction(library, transaction1, function (err, res) {
 							expect(res).to.equal(transaction1.id);
 							done();
