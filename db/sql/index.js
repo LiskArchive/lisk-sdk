@@ -65,5 +65,13 @@ module.exports = {
 		flush: link('rounds/flush.sql'),
 		truncateBlocks: link('rounds/truncateBlocks.sql'),
 		getDelegatesSnapshot: link('rounds/getDelegatesSnapshot.sql')
+	},
+	votes: {
+		getVotes: link('votes/getVotes.sql'),
+		getVotesCount: link('votes/getVotesCount.sql')
+	},
+	voters: {
+		getVoters: link('voters/getVoters.sql'),
+		getVotersCount: link('voters/getVotersCount.sql')
 	}
 };
