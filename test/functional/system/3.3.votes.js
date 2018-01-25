@@ -20,7 +20,7 @@ var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common'); 
 var normalizer = require('../../common/utils/normalizer');
 
-describe('system test (type 3) - voting with duplicate submissions @unstable', function () {
+describe('system test (type 3) - voting with duplicate submissions', function () {
 	
 	var library;
 	localCommon.beforeBlock('system_3_3_votes', function (lib) {
@@ -47,9 +47,9 @@ describe('system test (type 3) - voting with duplicate submissions @unstable', f
 			});
 
 			it('adding to pool upvoting transaction should be ok', function (done) {
-				transaction1 = lisk.vote.createVote(account.password, ['+' + accountFixtures.existingDelegate.publicKey], null, -1);
+				transaction1 = lisk.vote.createVote(account.password, ['+' + accountFixtures.existingDelegate.publicKey], null, -10000);
 				localCommon.addTransaction(library, transaction1, function (err, res) {
-					res.should.equal(transaction1.id);
+					expect(res).to.equal(transaction1.id);
 					done();
 				});
 			});
@@ -57,7 +57,7 @@ describe('system test (type 3) - voting with duplicate submissions @unstable', f
 			it('adding to pool upvoting transaction for same delegate from same account with different id should be ok', function (done) {
 				transaction2 = lisk.vote.createVote(account.password, ['+' + accountFixtures.existingDelegate.publicKey]);
 				localCommon.addTransaction(library, transaction2, function (err, res) {
-					res.should.equal(transaction2.id);
+					expect(res).to.equal(transaction2.id);
 					done();
 				});
 			});
@@ -75,9 +75,9 @@ describe('system test (type 3) - voting with duplicate submissions @unstable', f
 						id: transaction1.id
 					};
 					localCommon.getTransactionFromModule(library, filter, function (err, res) {
-						should.not.exist(err);
-						res.should.have.property('transactions').which.is.an('Array');
-						res.transactions.length.should.equal(0);
+						expect(err).to.be.null;
+						expect(res).to.have.property('transactions').which.is.an('Array');
+						expect(res.transactions.length).to.equal(0);
 						done();
 					});
 				});
@@ -87,25 +87,25 @@ describe('system test (type 3) - voting with duplicate submissions @unstable', f
 						id: transaction2.id
 					};
 					localCommon.getTransactionFromModule(library, filter, function (err, res) {
-						should.not.exist(err);
-						res.should.have.property('transactions').which.is.an('Array');
-						res.transactions.length.should.equal(1);
-						res.transactions[0].id.should.equal(transaction2.id);
+						expect(err).to.be.null;
+						expect(res).to.have.property('transactions').which.is.an('Array');
+						expect(res.transactions.length).to.equal(1);
+						expect(res.transactions[0].id).to.equal(transaction2.id);
 						done();
 					});
 				});
 
 				it('adding to pool upvoting transaction to same delegate from same account should fail', function (done) {
 					localCommon.addTransaction(library, transaction1, function (err, res) {
-						err.should.equal('Failed to add vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" already voted for');
+						expect(err).to.equal('Failed to add vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" already voted for');
 						done();
 					});
 				});
 
 				it('adding to pool downvoting transaction to same delegate from same account should be ok', function (done) {
-					transaction3 = lisk.vote.createVote(account.password, ['-' + accountFixtures.existingDelegate.publicKey], null, -1);
+					transaction3 = lisk.vote.createVote(account.password, ['-' + accountFixtures.existingDelegate.publicKey], null, -10000);
 					localCommon.addTransaction(library, transaction3, function (err, res) {
-						res.should.equal(transaction3.id);
+						expect(res).to.equal(transaction3.id);
 						done();
 					});
 				});
@@ -113,7 +113,7 @@ describe('system test (type 3) - voting with duplicate submissions @unstable', f
 				it('adding to pool downvoting transaction to same delegate from same account with different id should be ok', function (done) {
 					transaction4 = lisk.vote.createVote(account.password, ['-' + accountFixtures.existingDelegate.publicKey]);
 					localCommon.addTransaction(library, transaction4, function (err, res) {
-						res.should.equal(transaction4.id);
+						expect(res).to.equal(transaction4.id);
 						done();
 					});
 				});
@@ -131,9 +131,9 @@ describe('system test (type 3) - voting with duplicate submissions @unstable', f
 							id: transaction3.id
 						};
 						localCommon.getTransactionFromModule(library, filter, function (err, res) {
-							should.not.exist(err);
-							res.should.have.property('transactions').which.is.an('Array');
-							res.transactions.length.should.equal(0);
+							expect(err).to.be.null;
+							expect(res).to.have.property('transactions').which.is.an('Array');
+							expect(res.transactions.length).to.equal(0);
 							done();
 						});
 					});
@@ -143,17 +143,17 @@ describe('system test (type 3) - voting with duplicate submissions @unstable', f
 							id: transaction4.id
 						};
 						localCommon.getTransactionFromModule(library, filter, function (err, res) {
-							should.not.exist(err);
-							res.should.have.property('transactions').which.is.an('Array');
-							res.transactions.length.should.equal(1);
-							res.transactions[0].id.should.equal(transaction4.id);
+							expect(err).to.be.null;
+							expect(res).to.have.property('transactions').which.is.an('Array');
+							expect(res.transactions.length).to.equal(1);
+							expect(res.transactions[0].id).to.equal(transaction4.id);
 							done();
 						});
 					});
 
 					it('adding to pool downvoting transaction to same delegate from same account should fail', function (done) {
 						localCommon.addTransaction(library, transaction4, function (err, res) {
-							err.should.equal('Failed to remove vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" was not voted for');
+							expect(err).to.equal('Failed to remove vote, delegate "' + accountFixtures.existingDelegate.delegateName + '" was not voted for');
 							done();
 						});
 					});

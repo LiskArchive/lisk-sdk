@@ -396,8 +396,8 @@ describe('blocks/chain', function () {
 				}
 
 				blocksModule.shared.getBlocks({id: block.id}, function (err, data) {
-					data.should.have.lengthOf(1);
-					data[0].id.should.be.equal(block.id);
+					expect(data).to.have.lengthOf(1);
+					expect(data[0].id).to.be.equal(block.id);
 					done(err);
 				});
 			});
@@ -424,8 +424,8 @@ describe('blocks/chain', function () {
 					done(err);
 				}
 
-				connect.calledOnce.should.be.true;
-				disconnect.calledOnce.should.be.true;
+				expect(connect.calledOnce).to.be.true;
+				expect(disconnect.calledOnce).to.be.true;
 
 				delete db.$config.options.connect;
 				delete db.$config.options.disconnect;
