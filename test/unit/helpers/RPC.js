@@ -106,16 +106,10 @@ describe('wsRPC', function () {
 
 	describe('getClientRPCStub', function () {
 
-		var initializeNewConnectionStub;
-
 		var validPort = 4000, validIp = '127.0.0.1';
 
 		beforeEach(function () {
-			initializeNewConnectionStub = sinonSandbox.stub(ClientRPCStub.prototype, 'initializeNewConnection');
-		});
-
-		afterEach(function () {
-			initializeNewConnectionStub.restore();
+			sinonSandbox.stub(ClientRPCStub.prototype, 'initializeNewConnection');
 		});
 
 		it('should throw error when no arguments specified', function () {
@@ -144,7 +138,7 @@ describe('wsRPC', function () {
 
 		it('should not initialize new connection just after getting RPC stub', function () {
 			wsRPC.getClientRPCStub(validIp, validPort);
-			expect(initializeNewConnectionStub.called).to.be.false;
+			expect(ClientRPCStub.prototype.initializeNewConnection.called).to.be.false;
 		});
 
 		it('should add new entry in clientsConnectionsMap after getting stub', function () {

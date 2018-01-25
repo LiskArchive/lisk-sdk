@@ -13,15 +13,9 @@
  */
 'use strict';/*eslint*/
 
-var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
-var crypto = require('crypto');
-var async = require('async');
 
-var constants = require('../../../helpers/constants.js');
-var application = require('../../common/application.js');
 var AccountModule = require('../../../modules/accounts.js');
-var modulesLoader = require('../../common/modulesLoader');
 var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
 
@@ -102,12 +96,11 @@ describe('accounts', function () {
 	describe('getAccount', function () {
 
 		it('should convert publicKey filter to address and call account.get', function (done) {
-			var getAccountStub = sinonSandbox.stub(accountLogic, 'get');
+			sinonSandbox.stub(accountLogic, 'get');
 
 			accounts.getAccount({publicKey: validAccount.publicKey});
-			expect(getAccountStub.calledOnce).to.be.ok;
-			expect(getAccountStub.calledWith({address: validAccount.address})).to.be.ok;
-			getAccountStub.restore();
+			expect(accountLogic.get.calledOnce).to.be.ok;
+			expect(accountLogic.get.calledWith({address: validAccount.address})).to.be.ok;
 			done();
 		});
 
@@ -136,13 +129,12 @@ describe('accounts', function () {
 		});
 
 		it('should internally call logic/account.getAll method', function (done) {
-			var getAllSpy = sinonSandbox.spy(accountLogic, 'getAll');
+			sinonSandbox.spy(accountLogic, 'getAll');
 
 			accounts.getAccounts({address : validAccount.address}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array').to.have.length(1);
-				expect(getAllSpy.withArgs({address : validAccount.address})).to.be.ok;
-				getAllSpy.restore();
+				expect(accountLogic.getAll.calledOnce).to.be.true;
 				done();
 			});
 		});

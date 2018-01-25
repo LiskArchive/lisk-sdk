@@ -14,6 +14,7 @@
 'use strict';
 
 var ip = require('ip');
+var sinon = require('sinon');
 
 var checkIpInList = require('../../../helpers/checkIpInList');
 
@@ -31,7 +32,7 @@ describe('checkIpInList', function () {
 			validReturnListIsEmpty = true;
 			validList = ['1.2.3.4','5.6.7.8'];
 			validAddress = '1.2.3.4';
-			spyConsoleError = sinonSandbox.spy(console, 'error');
+			spyConsoleError = sinon.spy(console, 'error');
 		});
 
 		beforeEach(function () {
@@ -89,7 +90,7 @@ describe('checkIpInList', function () {
 			});
 
 			it('should call console.error with "CheckIpInList:" + error', function () {
-				sinonSandbox.assert.called(spyConsoleError);
+				sinon.assert.called(spyConsoleError);
 			});
 		});
 
@@ -100,7 +101,7 @@ describe('checkIpInList', function () {
 			});
 
 			it('should call console.error with "CheckIpInList:" + error', function () {
-				sinonSandbox.assert.called(spyConsoleError);
+				sinon.assert.called(spyConsoleError);
 			});
 		});
 

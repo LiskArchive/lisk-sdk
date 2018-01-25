@@ -22,8 +22,6 @@ describe('cache', function () {
 	describe('connect', function () {
 
 		var redisCreateClientStub;
-		var redisCreateClientOnStub;
-		var redisCreateClientResult;
 		var validCacheEnabled;
 		var validConfig;
 		var validLogger;
@@ -49,18 +47,12 @@ describe('cache', function () {
 		});
 
 		beforeEach(function () {
-			redisCreateClientOnStub = sinonSandbox.stub();
-			redisCreateClientResult = {on: redisCreateClientOnStub};
-			redisCreateClientStub = sinonSandbox.stub(redis, 'createClient').returns(redisCreateClientResult);
+			redisCreateClientStub = {on: sinonSandbox.stub()};
+			sinonSandbox.stub(redis, 'createClient').returns(redisCreateClientStub);
 			cache.connect(validCacheEnabled, validConfig, validLogger, function (connectError, connectResult) {
 				err = connectError;
 				result = connectResult;
 			});
-		});
-
-		afterEach( function () {
-			redisCreateClientOnStub.reset();
-			redisCreateClientStub.restore();
 		});
 
 		describe('when cacheEnabled = false', function () {
@@ -102,7 +94,7 @@ describe('cache', function () {
 			describe('when redis.createClient has an error', function () {
 
 				beforeEach(function () {
-					redisCreateClientOnStub.args[ERROR][CALLBACK](validRedisClientError);
+					redisCreateClientStub.on.args[ERROR][CALLBACK](validRedisClientError);
 				});
 
 				it('should call callback with result containing cacheEnabled = true', function () {
@@ -110,14 +102,14 @@ describe('cache', function () {
 				});
 
 				it('should call callback with result containing client object', function () {
-					expect(result.client).to.equal(redisCreateClientResult);
+					expect(result.client).to.equal(redisCreateClientStub);
 				});
 			});
 
 			describe('when redis.createClient is ready', function () {
 
 				beforeEach(function () {
-					redisCreateClientOnStub.args[READY][CALLBACK]();
+					redisCreateClientStub.on.args[READY][CALLBACK]();
 				});
 
 				it('should call callback with result containing with cacheEnabled = true', function () {
@@ -125,7 +117,7 @@ describe('cache', function () {
 				});
 
 				it('should call callback with result containing an instance of redis client', function () {
-					expect(result.client).to.eql(redisCreateClientResult);
+					expect(result.client).to.eql(redisCreateClientStub);
 				});
 			});
 		});

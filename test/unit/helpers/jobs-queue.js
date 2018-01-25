@@ -115,13 +115,12 @@ describe('helpers/jobsQueue', function () {
 
 			var clock;
 
-			before(function () {
+			beforeEach(function () {
 				clock = sinonSandbox.useFakeTimers();
 			});
 
 			after(function () {
 				jobsQueue.jobs = {};
-				clock.restore();
 			});
 
 			it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', function () {

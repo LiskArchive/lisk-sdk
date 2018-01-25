@@ -104,11 +104,6 @@ describe('signature', function () {
 		done();
 	});
 
-	afterEach(function () {
-		transactionMock.restore();
-		accountsMock.setAccountAndGet.reset();
-	});
-
 	describe('with transaction and sender objects', function () {
 
 		var transaction;
@@ -435,10 +430,6 @@ describe('signature', function () {
 					library = Signature.__get__('library');
 					schemaSpy = sinonSandbox.spy(library.schema, 'validate');
 					signature.objectNormalize(transaction);
-				});
-
-				afterEach(function () {
-					schemaSpy.restore();
 				});
 
 				it('call schema validate once', function () {

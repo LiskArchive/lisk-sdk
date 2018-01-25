@@ -66,7 +66,6 @@ describe('transactionPool', function () {
 		TransactionPool.__set__('modules.transactions.undoUnconfirmed', dummyUndoUnconfirmed);
 	};
 
-
 	before(function (done) {
 		// Use fresh instance of jobsQueue inside transaction pool
 		TransactionPool.__set__('jobsQueue', jobsQueue);
@@ -87,6 +86,10 @@ describe('transactionPool', function () {
 			sinon.spy() // loader
 		);
 		done();
+	});
+
+	beforeEach(function () {
+		sinonSandbox.stub(jobsQueue, 'register');
 	});
 
 	describe('initialize', function () {

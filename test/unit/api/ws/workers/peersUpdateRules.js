@@ -27,7 +27,7 @@ describe('PeersUpdateRules', function () {
 	var validConnectionId;
 	var validErrorCode;
 	var validPeer;
-	var actionCb = sinonSandbox.spy();
+	var actionCb;
 
 	beforeEach(function () {
 		slaveWAMPServerMock = {
@@ -41,7 +41,7 @@ describe('PeersUpdateRules', function () {
 		validErrorCode = 4100;
 		peersUpdateRules = new PeersUpdateRules(slaveWAMPServerMock);
 		sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArg(3, null);
-		actionCb.reset();
+		actionCb = sinonSandbox.spy();
 		validPeer = _.clone(prefixedPeer);
 		connectionsTable.nonceToConnectionIdMap = {};
 		connectionsTable.connectionIdToNonceMap = {};
@@ -112,9 +112,7 @@ describe('PeersUpdateRules', function () {
 		});
 
 		it('should return an error from server when invoked with valid arguments and received error code', function (done) {
-			peersUpdateRules.slaveToMasterSender.send.restore();
-			peersUpdateRules.slaveToMasterSender.send =
-				sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
+			peersUpdateRules.slaveToMasterSender.send.callsArgWith(3, {code: validErrorCode});
 			peersUpdateRules.insert(validPeer, validConnectionId, function (err) {
 				expect(err).to.have.property('code').equal(validErrorCode);
 				done();
@@ -122,8 +120,7 @@ describe('PeersUpdateRules', function () {
 		});
 
 		it('should return the TRANSPORT error when invoked with valid arguments but received error without code from server', function (done) {
-			peersUpdateRules.slaveToMasterSender.send.restore();
-			peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On remove error');
+			peersUpdateRules.slaveToMasterSender.send.callsArgWith(3, 'On remove error');
 			peersUpdateRules.insert(validPeer, validConnectionId, function (err) {
 				expect(err).to.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
 				expect(err).to.have.property('message').equal('Transport error while invoking update procedure');
@@ -133,8 +130,7 @@ describe('PeersUpdateRules', function () {
 		});
 
 		it('should remove added entries from connectionsTable after receiving an error without code from server', function (done) {
-			peersUpdateRules.slaveToMasterSender.send.restore();
-			peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On insert error');
+			peersUpdateRules.slaveToMasterSender.send.callsArgWith(3, 'On insert error');
 			peersUpdateRules.insert(validPeer, validConnectionId, function () {
 				expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
 				expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
@@ -143,8 +139,7 @@ describe('PeersUpdateRules', function () {
 		});
 
 		it('should remove added entries from connectionsTable after receiving an error with code from server', function (done) {
-			peersUpdateRules.slaveToMasterSender.send.restore();
-			peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
+			peersUpdateRules.slaveToMasterSender.send.callsArgWith(3, {code: validErrorCode});
 			peersUpdateRules.insert(validPeer, validConnectionId, function () {
 				expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
 				expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
@@ -235,13 +230,10 @@ describe('PeersUpdateRules', function () {
 
 			beforeEach(function () {
 				peersUpdateRules.insert(validPeer, validConnectionId, actionCb);
-				peersUpdateRules.slaveToMasterSender.send.restore();
-				peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArg(3, null);
 			});
 
 			it('should leave the connections table in empty state after successful removal', function () {
 				peersUpdateRules.remove(validPeer, validConnectionId, actionCb);
-				expect(peersUpdateRules.slaveToMasterSender.send.calledOnce).to.be.true;
 				expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be.empty;
 				expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to.be.empty;
 			});
@@ -254,9 +246,7 @@ describe('PeersUpdateRules', function () {
 			});
 
 			it('should return an error from server when invoked with valid arguments and received error code', function (done) {
-				peersUpdateRules.slaveToMasterSender.send.restore();
-				peersUpdateRules.slaveToMasterSender.send =
-					sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
+				peersUpdateRules.slaveToMasterSender.send.callsArgWith(3, {code: validErrorCode});
 				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
 					expect(err).to.have.property('code').equal(validErrorCode);
 					done();
@@ -264,8 +254,7 @@ describe('PeersUpdateRules', function () {
 			});
 
 			it('should return the TRANSPORT error when invoked with valid arguments but received error without code from server', function (done) {
-				peersUpdateRules.slaveToMasterSender.send.restore();
-				peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On remove error');
+				peersUpdateRules.slaveToMasterSender.send.callsArgWith(3, 'On remove error');
 				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
 					expect(err).to.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
 					expect(err).to.have.property('message').equal('Transport error while invoking update procedure');
@@ -275,8 +264,7 @@ describe('PeersUpdateRules', function () {
 			});
 
 			it('should revert removed connections tables entries when invoked with valid arguments but received error without code from server', function (done) {
-				peersUpdateRules.slaveToMasterSender.send.restore();
-				peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, 'On remove error');
+				peersUpdateRules.slaveToMasterSender.send.callsArgWith(3, 'On remove error');
 				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
 					expect(err).to.have.property('code').equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
 					expect(connectionsTable.nonceToConnectionIdMap).to.have.property(validPeer.nonce).equal(validConnectionId);
@@ -286,8 +274,7 @@ describe('PeersUpdateRules', function () {
 			});
 
 			it('should not revert removed connections tables entries when invoked with valid arguments but error with code from server', function (done) {
-				peersUpdateRules.slaveToMasterSender.send.restore();
-				peersUpdateRules.slaveToMasterSender.send = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'send').callsArgWith(3, {code: validErrorCode});
+				peersUpdateRules.slaveToMasterSender.send.callsArgWith(3, {code: validErrorCode});
 				peersUpdateRules.remove(validPeer, validConnectionId, function (err) {
 					expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
 					expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
@@ -311,33 +298,19 @@ describe('PeersUpdateRules', function () {
 
 	describe('internal.update', function () {
 
-		var insertStub;
-		var removeStub;
-		var blockStub;
-
-		before(function () {
-			insertStub = sinonSandbox.stub(PeersUpdateRules.prototype, 'insert');
-			removeStub = sinonSandbox.stub(PeersUpdateRules.prototype, 'remove');
-			blockStub = sinonSandbox.stub(PeersUpdateRules.prototype, 'block');
-			peersUpdateRules = new PeersUpdateRules(slaveWAMPServerMock);
-			connectionsTable.getNonce = sinonSandbox.stub(connectionsTable, 'getNonce');
-			connectionsTable.getConnectionId = sinonSandbox.stub(connectionsTable, 'getConnectionId');
-		});
-
 		beforeEach(function () {
-			insertStub.reset();
-			removeStub.reset();
-			blockStub.reset();
-			connectionsTable.getNonce.restore();
-			connectionsTable.getConnectionId.restore();
+			sinonSandbox.stub(PeersUpdateRules.prototype, 'insert');
+			sinonSandbox.stub(PeersUpdateRules.prototype, 'remove');
+			sinonSandbox.stub(PeersUpdateRules.prototype, 'block');
+			peersUpdateRules = new PeersUpdateRules(slaveWAMPServerMock);
 		});
 
 		function setNoncePresence (presence) {
-			connectionsTable.getNonce = sinonSandbox.stub(connectionsTable, 'getNonce').returns(presence);
+			sinonSandbox.stub(connectionsTable, 'getNonce').returns(presence);
 		}
 
 		function setConnectionIdPresence (presence) {
-			connectionsTable.getConnectionId = sinonSandbox.stub(connectionsTable, 'getConnectionId').returns(presence);
+			sinonSandbox.stub(connectionsTable, 'getConnectionId').returns(presence);
 		}
 
 		describe('insert', function () {
@@ -349,35 +322,35 @@ describe('PeersUpdateRules', function () {
 				const onMasterPresence = true;
 
 				beforeEach(function () {
-					peersUpdateRules.slaveToMasterSender.getPeer = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'getPeer').callsArgWith(1, null, onMasterPresence);
+					sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'getPeer').callsArgWith(1, null, onMasterPresence);
 				});
 
 				it('with present nonce and present connectionId should call block', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(blockStub.called).to.be.true;
+					expect(peersUpdateRules.block.called).to.be.true;
 				});
 
 				it('with present nonce and not present connectionId should call block', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(blockStub.called).to.be.true;
+					expect(peersUpdateRules.block.called).to.be.true;
 				});
 
 				it('with not present nonce and present connectionId should call insert', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					expect(peersUpdateRules.insert.called).to.be.true;
 				});
 
 				it('with not present nonce and not present connectionId should call insert', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					expect(peersUpdateRules.insert.called).to.be.true;
 				});
 			});
 
@@ -386,35 +359,35 @@ describe('PeersUpdateRules', function () {
 				const onMasterPresence = false;
 
 				beforeEach(function () {
-					peersUpdateRules.slaveToMasterSender.getPeer = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'getPeer').callsArgWith(1, null, onMasterPresence);
+					sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'getPeer').callsArgWith(1, null, onMasterPresence);
 				});
 
 				it('with present nonce and present connectionId should call insert', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					expect(peersUpdateRules.insert.called).to.be.true;
 				});
 
 				it('with present nonce and not present connectionId should call insert', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					expect(peersUpdateRules.insert.called).to.be.true;
 				});
 
 				it('with not present nonce and present connectionId should call insert', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					expect(peersUpdateRules.insert.called).to.be.true;
 				});
 
 				it('with not present nonce and not present connectionId should call insert', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(INSERT, validPeer, validConnectionId, actionCb);
-					expect(insertStub.called).to.be.true;
+					expect(peersUpdateRules.insert.called).to.be.true;
 				});
 			});
 		});
@@ -428,35 +401,35 @@ describe('PeersUpdateRules', function () {
 				const onMasterPresence = true;
 
 				beforeEach(function () {
-					peersUpdateRules.slaveToMasterSender.getPeer = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'getPeer').callsArgWith(1, null, onMasterPresence);
+					sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'getPeer').callsArgWith(1, null, onMasterPresence);
 				});
 
 				it('with present nonce and present connectionId should call remove', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					expect(peersUpdateRules.remove.called).to.be.true;
 				});
 
 				it('with present nonce and not present connectionId should call block', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(blockStub.called).to.be.true;
+					expect(peersUpdateRules.block.called).to.be.true;
 				});
 
 				it('with not present nonce and present connectionId should call remove', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					expect(peersUpdateRules.remove.called).to.be.true;
 				});
 
 				it('with not present nonce and not present connectionId should call remove', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					expect(peersUpdateRules.remove.called).to.be.true;
 				});
 			});
 
@@ -465,35 +438,35 @@ describe('PeersUpdateRules', function () {
 				const onMasterPresence = false;
 
 				beforeEach(function () {
-					peersUpdateRules.slaveToMasterSender.getPeer = sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'getPeer').callsArgWith(1, null, onMasterPresence);
+					sinonSandbox.stub(peersUpdateRules.slaveToMasterSender, 'getPeer').callsArgWith(1, null, onMasterPresence);
 				});
 
 				it('with present nonce and present connectionId should call block', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					expect(peersUpdateRules.remove.called).to.be.true;
 				});
 
 				it('with present nonce and not present connectionId should call block', function () {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					expect(peersUpdateRules.remove.called).to.be.true;
 				});
 
 				it('with not present nonce and present connectionId should call remove', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(removeStub.called).to.be.true;
+					expect(peersUpdateRules.remove.called).to.be.true;
 				});
 
 				it('with not present nonce and not present connectionId should call block', function () {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(REMOVE, validPeer, validConnectionId, actionCb);
-					expect(blockStub.called).to.be.true;
+					expect(peersUpdateRules.block.called).to.be.true;
 				});
 			});
 		});

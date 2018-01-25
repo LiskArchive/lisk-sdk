@@ -63,7 +63,7 @@ describe('multisignature', function () {
 			verifySignature: sinonSandbox.stub().returns(1)
 		};
 		accountMock = {
-			merge: sinonSandbox.mock().callsArg(2)
+			merge: sinonSandbox.stub().callsArg(2)
 		};
 		accountsMock = {
 			generateAddressByPublicKey: sinonSandbox.stub().returns(lisk.crypto.getKeys(randomUtil.password()).publicKey),
@@ -78,12 +78,6 @@ describe('multisignature', function () {
 		};
 		multisignature = new Multisignature(modulesLoader.scope.schema, modulesLoader.scope.network, transactionMock, accountMock, modulesLoader.logger);
 		multisignature.bind(accountsMock);
-	});
-
-	afterEach(function () {
-		accountMock.merge.reset();
-		accountsMock.generateAddressByPublicKey.reset();
-		accountsMock.setAccountAndGet.reset();
 	});
 
 	describe('constructor', function () {
@@ -456,7 +450,7 @@ describe('multisignature', function () {
 	describe('apply', function () {
 
 		beforeEach(function (done) {
-			accountMock.merge = sinonSandbox.stub().callsArg(2);
+			accountMock.merge.callsArg(2);
 			multisignature.apply(transaction, dummyBlock, sender, done);
 		});
 
@@ -487,7 +481,7 @@ describe('multisignature', function () {
 		describe('when library.logic.account.merge fails', function () {
 
 			beforeEach(function () {
-				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
+				accountMock.merge.callsArgWith(2, 'merge error');
 			});
 
 			it('should call callback with error', function () {
@@ -536,7 +530,7 @@ describe('multisignature', function () {
 						describe('when modules.accounts.setAccountAndGet fails', function () {
 
 							beforeEach(function () {
-								accountsMock.setAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'mergeAccountAndGet error');
+								accountsMock.setAccountAndGet.callsArgWith(1, 'mergeAccountAndGet error');
 							});
 
 							it('should call callback with error', function () {
@@ -570,7 +564,7 @@ describe('multisignature', function () {
 
 		beforeEach(function (done) {
 			transaction = _.cloneDeep(validTransaction);
-			accountMock.merge = sinonSandbox.stub().callsArg(2);
+			accountMock.merge.callsArg(2);
 			multisignature.undo(transaction, dummyBlock, sender, done);
 		});
 
@@ -601,7 +595,7 @@ describe('multisignature', function () {
 		describe('when library.logic.account.merge fails', function () {
 
 			beforeEach(function () {
-				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
+				accountMock.merge.callsArgWith(2, 'merge error');
 			});
 
 			it('should call callback with error', function () {
@@ -692,10 +686,6 @@ describe('multisignature', function () {
 					accountMock.merge.callsArgWith(2, 'merge error');
 				});
 
-				afterEach(function () {
-					accountMock.merge.reset();
-				});
-
 				it('should call callback with error = merge error', function (done) {
 					multisignature.applyUnconfirmed(transaction, sender, function (err) {
 						expect(err).not.to.be.empty;
@@ -727,7 +717,7 @@ describe('multisignature', function () {
 	describe('undoUnconfirmed', function () {
 
 		beforeEach(function (done) {
-			accountMock.merge = sinonSandbox.stub().callsArg(2);
+			accountMock.merge.callsArg(2);
 			multisignature.undoUnconfirmed(transaction, sender, done);
 		});
 
@@ -756,7 +746,7 @@ describe('multisignature', function () {
 		describe('when library.logic.account.merge fails', function () {
 
 			beforeEach(function () {
-				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
+				accountMock.merge.callsArgWith(2, 'merge error');
 			});
 
 			it('should call callback with error', function () {
@@ -918,11 +908,10 @@ describe('multisignature', function () {
 
 		it('should use the correct format to validate against', function () {
 			var library = Multisignature.__get__('library');
-			var schemaSpy = sinonSandbox.spy(library.schema, 'validate');
+			sinonSandbox.spy(library.schema, 'validate');
 			multisignature.objectNormalize(transaction);
-			expect(schemaSpy.calledOnce).to.equal(true);
-			expect(schemaSpy.calledWithExactly(transaction.asset.multisignature, Multisignature.prototype.schema)).to.equal(true);
-			schemaSpy.restore();
+			expect(library.schema.validate.calledOnce).to.equal(true);
+			expect(library.schema.validate.calledWithExactly(transaction.asset.multisignature, Multisignature.prototype.schema)).to.equal(true);
 		});
 
 		it('should return error asset schema is invalid', function () {

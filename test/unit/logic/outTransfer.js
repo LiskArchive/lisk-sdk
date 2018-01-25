@@ -266,7 +266,7 @@ describe('outTransfer', function () {
 		describe('when library.db.one fails', function () {
 
 			beforeEach(function () {
-				dbStub.dapps.countByTransactionId = sinonSandbox.stub().rejects('Rejection error');
+				dbStub.dapps.countByTransactionId.rejects('Rejection error');
 			});
 
 			it('should call callback with error', function (done) {
@@ -282,8 +282,8 @@ describe('outTransfer', function () {
 			describe('when dapp does not exist', function () {
 
 				beforeEach(function () {
-					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 0});
-					dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves({count: 0});
+					dbStub.dapps.countByTransactionId.resolves({count: 0});
+					dbStub.dapps.countByOutTransactionId.resolves({count: 0});
 				});
 
 				it('should call callback with error', function (done) {
@@ -297,8 +297,8 @@ describe('outTransfer', function () {
 			describe('when dapp exists', function () {
 
 				beforeEach(function () {
-					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 1});
-					dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves({count: 1});
+					dbStub.dapps.countByTransactionId.resolves({count: 1});
+					dbStub.dapps.countByOutTransactionId.resolves({count: 1});
 				});
 
 				describe('when unconfirmed out transfer exists', function () {
@@ -378,8 +378,8 @@ describe('outTransfer', function () {
 						describe('when confirmed outTransfer transaction does not exist', function () {
 
 							beforeEach(function () {
-								dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 1});
-								dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves({count: 0});
+								dbStub.dapps.countByTransactionId.resolves({count: 1});
+								dbStub.dapps.countByOutTransactionId.resolves({count: 0});
 							});
 
 							it('should call callback with error = null', function (done) {
@@ -467,7 +467,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.setAccountAndGet fails', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'setAccountAndGet error');
+				accountsStub.setAccountAndGet.callsArgWith(1, 'setAccountAndGet error');
 			});
 
 			it('should call callback with error', function () {
@@ -480,7 +480,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.setAccountAndGet succeeds', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArg(1);
+				accountsStub.setAccountAndGet.callsArg(1);
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {
@@ -510,7 +510,7 @@ describe('outTransfer', function () {
 			describe('when modules.accounts.mergeAccountAndGet fails', function () {
 
 				beforeEach(function () {
-					accountsStub.mergeAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'mergeAccountAndGet error');
+					accountsStub.mergeAccountAndGet.callsArgWith(1, 'mergeAccountAndGet error');
 				});
 
 				it('should call callback with error', function () {
@@ -559,7 +559,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.setAccountAndGet fails', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'setAccountAndGet error');
+				accountsStub.setAccountAndGet.callsArgWith(1, 'setAccountAndGet error');
 			});
 
 			it('should call callback with error', function () {
@@ -572,7 +572,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.setAccountAndGet succeeds', function () {
 
 			beforeEach(function () {
-				accountsStub.setAccountAndGet = sinonSandbox.stub().callsArg(1);
+				accountsStub.setAccountAndGet.callsArg(1);
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', function () {
@@ -603,7 +603,7 @@ describe('outTransfer', function () {
 		describe('when modules.accounts.mergeAccountAndGet fails', function () {
 
 			beforeEach(function () {
-				accountsStub.mergeAccountAndGet = sinonSandbox.stub().callsArgWith(1, 'mergeAccountAndGet error');
+				accountsStub.mergeAccountAndGet.callsArgWith(1, 'mergeAccountAndGet error');
 			});
 
 			it('should call callback with error', function () {
@@ -687,10 +687,6 @@ describe('outTransfer', function () {
 		beforeEach(function () {
 			library = OutTransfer.__get__('library');
 			schemaSpy = sinonSandbox.spy(library.schema, 'validate');
-		});
-
-		afterEach(function () {
-			schemaSpy.restore();
 		});
 
 		it('should call library.schema.validate', function () {

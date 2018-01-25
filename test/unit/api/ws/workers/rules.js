@@ -25,9 +25,6 @@ describe('Rules', function () {
 
 	beforeEach(function () {
 		rules = new Rules(insertMock, removeMock, blockMock);
-		insertMock.reset();
-		removeMock.reset();
-		blockMock.reset();
 	});
 
 	describe('constructor', function () {
