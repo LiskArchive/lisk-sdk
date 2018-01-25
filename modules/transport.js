@@ -263,14 +263,13 @@ Transport.prototype.headers = function (headers) {
 /**
  * Returns true if broadcaster consensus is less than minBroadhashConsensus.
  * Returns false if consensus is undefined.
- * @param {number} [modules.peers.calculateConsensus()]
  * @return {boolean}
  */
-Transport.prototype.poorConsensus = function (consensus) {
+Transport.prototype.poorConsensus = function () {
 	if (library.config.forging.force) {
 		return false;
 	}
-	return (consensus || modules.peers.calculateConsensus() < constants.minBroadhashConsensus);
+	return modules.peers.calculateConsensus() < constants.minBroadhashConsensus;
 };
 
 /**
