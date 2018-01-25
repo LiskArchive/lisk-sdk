@@ -6,7 +6,7 @@
 
 WITH current_round AS
   (
-    SELECT CEIL(b.height / ${delegates}::float)::bigint
+    SELECT ceil(b.height / ${delegates}::float)::bigint
     FROM ${schema~}.blocks b
     WHERE b.height <= ${height}
     ORDER BY b.height DESC
@@ -18,7 +18,7 @@ WITH current_round AS
                          (SELECT *
                           FROM current_round),
                           (SELECT *
-                           FROM current_round) - ${LIMIT} + 1, -1))
+                           FROM current_round) - ${limit} + 1, -1))
 SELECT b.id,
        b.height,
        ceil(b.height / ${delegates}::float)::bigint AS round
