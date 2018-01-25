@@ -316,8 +316,8 @@ Peers.prototype.getLastConsensus = function () {
 
 /**
 * Calculates consensus for as a ratio active to matched peers.
-* @param {Array<Peer>} active - Active peers (with connected state).
-* @param {Array<Peer>} matched - Peers with same as system broadhash.
+* @param {Array<Peer>}[active=peers list] active - Active peers (with connected state).
+* @param {Array<Peer>}[matched=matching active peers] matched - Peers with same as system broadhash.
 * @returns {number} - Consensus or undefined if config.forging.force = true.
 */
 Peers.prototype.calculateConsensus = function (active, matched) {
