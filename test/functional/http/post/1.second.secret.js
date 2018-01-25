@@ -88,7 +88,7 @@ describe('POST /api/transactions (type 1) register second secret', function () {
 		});
 
 		it('with minimal required amount of funds should be ok', function () {
-			transaction = lisk.signature.createSignature(accountMinimalFunds.password, accountMinimalFunds.secondPassword, -1);
+			transaction = lisk.signature.createSignature(accountMinimalFunds.password, accountMinimalFunds.secondPassword, -10000);
 
 			return apiHelpers.sendTransactionPromise(transaction).then(function (res) {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');

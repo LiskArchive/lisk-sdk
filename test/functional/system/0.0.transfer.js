@@ -45,7 +45,7 @@ describe('system test (type 0) - double transfers', function () {
 			});
 
 			it('adding to pool transfer should be ok', function (done) {
-				transaction1 = lisk.transaction.createTransaction(accountFixtures.genesis.address, 1000 * normalizer, account.password, null, null, -1);
+				transaction1 = lisk.transaction.createTransaction(accountFixtures.genesis.address, 1000 * normalizer, account.password, null, null, -10000);
 				localCommon.addTransaction(library, transaction1, function (err, res) {
 					expect(res).to.equal(transaction1.id);
 					done();

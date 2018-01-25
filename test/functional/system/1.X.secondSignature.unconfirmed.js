@@ -67,7 +67,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 					});
 
 					it('type ' + index + ': ' + key + ' with different timestamp should be ok', function (done) {
-						transactionWith = lisk.signature.createSignature(account.password, account.secondPassword, -1);
+						transactionWith = lisk.signature.createSignature(account.password, account.secondPassword, -10000);
 						localCommon.addTransaction(library, transactionWith, function (err, res) {
 							expect(res).to.equal(transactionWith.id);
 							done();
