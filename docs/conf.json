@@ -7,7 +7,7 @@
     "include": [
       "./docs/typedef/",
       "./app.js",
-      "./api/http/",
+      "./api/",
       "./helpers/",
       "./logic/",
       "./modules/",
