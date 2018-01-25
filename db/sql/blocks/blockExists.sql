@@ -5,5 +5,5 @@
 */
 
 SELECT id
-FROM ${schema~}.blocks
+FROM blocks
 WHERE id = $1

@@ -4,4 +4,4 @@
   PARAMETERS: ?
 */
 
-SELECT round FROM ${schema~}.mem_round GROUP BY round
+SELECT round FROM mem_round GROUP BY round

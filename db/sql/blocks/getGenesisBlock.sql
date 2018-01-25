@@ -5,5 +5,5 @@
 */
 
 SELECT id, "payloadHash", "blockSignature"
-FROM ${schema~}.blocks
+FROM blocks
 WHERE height = 1

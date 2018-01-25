@@ -4,7 +4,7 @@
   PARAMETERS: ?
 */
 
-UPDATE ${schema~}.mem_accounts m
+UPDATE mem_accounts m
 SET vote = b.vote
-FROM ${schema~}.mem_votes_snapshot b
+FROM mem_votes_snapshot b
 WHERE m.address = b.address

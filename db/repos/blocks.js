@@ -14,7 +14,6 @@
 'use strict';
 
 const sql = require('../sql').blocks;
-const {schema} = require('../sql/config');
 
 const cs = {}; // Reusable ColumnSet objects
 
@@ -65,8 +64,7 @@ class BlocksRepository {
 		];
 		
 		if (!cs.insert) {
-			const table = new pgp.helpers.TableName({table: this.dbTable, schema});
-			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {table});
+			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: this.dbTable});
 		}
 	}
 

@@ -5,7 +5,7 @@
 */
 
 SELECT count(id)::int
-FROM ${schema~}.blocks
+FROM blocks
 WHERE
   id = ${id}
   AND height = ${height}

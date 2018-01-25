@@ -4,5 +4,5 @@
   PARAMETERS: ?
 */
 
-DELETE FROM ${schema~}.blocks
+DELETE FROM blocks
 WHERE id = $1

@@ -70,9 +70,6 @@ module.exports = {
 						minimum: 1,
 						maximum: 65535
 					},
-					schema: {
-						type: 'string'
-					},					
 					database: {
 						type: 'string'
 					},
