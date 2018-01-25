@@ -4,4 +4,4 @@
   PARAMETERS: ?
 */
 
-DROP TABLE IF EXISTS mem_votes_snapshot
+DROP TABLE IF EXISTS ${schema~}.mem_votes_snapshot

@@ -4,4 +4,7 @@
   PARAMETERS: ?
 */
 
-CREATE TABLE mem_votes_snapshot AS SELECT address, "publicKey", vote FROM mem_accounts WHERE "isDelegate" = 1
+CREATE TABLE ${schema~}.mem_votes_snapshot AS
+SELECT address, "publicKey", vote
+FROM ${schema~}.mem_accounts
+WHERE "isDelegate" = 1

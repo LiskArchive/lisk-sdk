@@ -4,4 +4,4 @@
   PARAMETERS: ?
 */
 
-DELETE FROM blocks WHERE height > $1::bigint
+DELETE FROM ${schema~}.blocks WHERE height > $1::bigint

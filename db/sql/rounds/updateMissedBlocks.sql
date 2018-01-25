@@ -6,6 +6,6 @@
     - outsiders - array of something?
 */
 
-UPDATE mem_accounts
+UPDATE ${schema~}.mem_accounts
 SET missedblocks = missedblocks ${change:raw}
 WHERE address IN (${outsiders:csv})

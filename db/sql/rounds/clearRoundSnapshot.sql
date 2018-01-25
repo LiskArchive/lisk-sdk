@@ -4,4 +4,4 @@
   PARAMETERS: ?
 */
 
-DROP TABLE IF EXISTS mem_round_snapshot
+DROP TABLE IF EXISTS ${schema~}.mem_round_snapshot

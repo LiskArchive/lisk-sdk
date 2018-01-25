@@ -4,4 +4,5 @@
   PARAMETERS: ?
 */
 
-INSERT INTO mem_round SELECT * FROM mem_round_snapshot
+INSERT INTO ${schema~}.mem_round
+SELECT * FROM ${schema~}.mem_round_snapshot
