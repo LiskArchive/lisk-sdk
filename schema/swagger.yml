@@ -2082,6 +2082,10 @@ definitions:
       description:
         type: string
         description: Param description specified in schema
+      path:
+        type: string
+        description: The path to the param
+        example: 0 > type
 
   Account:
     type: object
