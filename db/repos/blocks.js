@@ -34,26 +34,39 @@ class BlocksRepository {
 		this.db = db;
 		this.pgp = pgp;
 
+		this.dbTable = 'blocks';
+		
+		this.sortFields = [
+			'id',
+			'timestamp',
+			'height',
+			'previousBlock',
+			'totalAmount',
+			'totalFee',
+			'reward',
+			'numberOfTransactions',
+			'generatorPublicKey'
+		];
+		
+		this.dbFields = [
+			'id',
+			'version',
+			'timestamp',
+			'height',
+			'previousBlock',
+			'numberOfTransactions',
+			'totalAmount',
+			'totalFee',
+			'reward',
+			'payloadLength',
+			'payloadHash',
+			'generatorPublicKey',
+			'blockSignature'
+		];
+		
 		if (!cs.insert) {
-
-			const columns = [
-				'id',
-				'version',
-				'timestamp',
-				'height',
-				'previousBlock',
-				'numberOfTransactions',
-				'totalAmount',
-				'totalFee',
-				'reward',
-				'payloadLength',
-				'payloadHash',
-				'generatorPublicKey',
-				'blockSignature'
-			];
-
-			const table = new pgp.helpers.TableName({table: 'blocks', schema});
-			cs.insert = new pgp.helpers.ColumnSet(columns, {table});
+			const table = new pgp.helpers.TableName({table: this.dbTable, schema});
+			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {table});
 		}
 	}
 
