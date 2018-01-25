@@ -43,11 +43,7 @@ var constants = require('./constants');
 
 var liskFormats = {
 	id: function (str) {
-		if (str.length === 0) {
-			return true;
-		}
-
-		return /^[0-9]+$/g.test(str);
+		return /^$/.test(str) || /^[0-9]+$/g.test(str);
 	},
 
 	additionalData: function (str) {
@@ -55,19 +51,11 @@ var liskFormats = {
 	},
 
 	address: function (str) {
-		if (str.length === 0) {
-			return true;
-		}
-
-		return /^[0-9]+[L]$/ig.test(str);
+		return /^$/.test(str) || /^[0-9]+[L]$/ig.test(str);
 	},
 
 	username: function (str) {
-		if (str.length === 0) {
-			return true;
-		}
-
-		return /^[a-z0-9!@$&_.]+$/ig.test(str);
+		return /^$/.test(str) || /^[a-z0-9!@$&_.]+$/ig.test(str);
 	},
 
 	hex: function (str) {
@@ -75,40 +63,41 @@ var liskFormats = {
 	},
 
 	publicKey: function (str) {
-		if (str.length === 0) {
-			return true;
-		}
-
-		return /^[a-f0-9]{64}$/i.test(str);
+		return /^$/.test(str) || /^[a-f0-9]{64}$/i.test(str);
 	},
 
 	csv: function (str) {
-		try {
-			var a = str.split(',');
-			if (a.length > 0 && a.length <= 1000) {
-				return true;
-			} else {
-				return false;
-			}
-		} catch (e) {
+		if (!str) {
+			return false;
+		}
+
+		var a = str.split(',');
+
+		if (a.length > 0 && a.length <= 1000) {
+			return true;
+		} else {
 			return false;
 		}
 	},
 
 	signature: function (str) {
-		if (str.length === 0) {
-			return true;
-		}
-
-		return /^[a-f0-9]{128}$/i.test(str);
+		return /^$/.test(str) || /^[a-f0-9]{128}$/i.test(str);
 	},
 
 	queryList: function (obj) {
+		if (obj == null || obj == undefined) {
+			return false;
+		}
+
 		obj.limit = 100;
 		return true;
 	},
 
 	delegatesList: function (obj) {
+		if (obj == null || obj == undefined) {
+			return false;
+		}
+
 		obj.limit = 101;
 		return true;
 	},
@@ -128,23 +117,11 @@ var liskFormats = {
 	},
 
 	os: function (str) {
-		if (str.length === 0) {
-			return true;
-		}
-
-		return /^[a-z0-9-_.+]+$/ig.test(str);
+		return /^$/.test(str) || /^[a-z0-9-_.+]+$/ig.test(str);
 	},
 
 	version: function (str) {
-		if (str === null || str === undefined) {
-			return false;
-		}
-
-		if (str.length === 0) {
-			return true;
-		}
-
-		return /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str);
+		return /^$/.test(str) || /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str);
 	},
 
 	ipOrFQDN: function (str) {
