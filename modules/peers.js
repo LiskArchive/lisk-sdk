@@ -56,14 +56,11 @@ function Peers (cb, scope) {
 		},
 		config: {
 			peers: scope.config.peers,
-			version: scope.config.version,
-			forging: {
-				force: scope.config.forging.force
-			}
+			version: scope.config.version
 		}
 	};
 	self = this;
-
+	self.consensus = scope.config.forging.force ? 100 : 0;
 	setImmediate(cb, null, self);
 }
 
@@ -310,15 +307,20 @@ __private.dbSave = function (cb) {
 };
 
 /**
+ * Returns consensus stored by Peers.prototype.calculateConsensus
+ * @returns {number|undefined} - Last calculated consensus or null wasn't calculated yet
+ */
+Peers.prototype.getLastConsensus = function () {
+	return self.consensus;
+};
+
+/**
 * Calculates consensus for as a ratio active to matched peers.
-* @param {Array<Peer>} active - Active peers (with connected state).
-* @param {Array<Peer>} matched - Peers with same as system broadhash.
-* @returns {number|undefined} - Consensus or undefined if config.forging.force = true.
+* @param {Array<Peer>}[active=peers list] active - Active peers (with connected state).
+* @param {Array<Peer>}[matched=matching active peers] matched - Peers with same as system broadhash.
+* @returns {number} - Consensus or undefined if config.forging.force = true.
 */
-Peers.prototype.getConsensus = function (active, matched) {
-	if (library.config.forging.force) {
-		return undefined;
-	}
+Peers.prototype.calculateConsensus = function (active, matched) {
 	active = active || library.logic.peers.list(true).filter(function (peer) {
 		return peer.state === Peer.STATE.CONNECTED;
 	});
@@ -329,7 +331,8 @@ Peers.prototype.getConsensus = function (active, matched) {
 	var activeCount = Math.min(active.length, constants.maxPeers);
 	var matchedCount = Math.min(matched.length, activeCount);
 	var consensus = +(matchedCount / activeCount * 100).toPrecision(2);
-	return isNaN(consensus) ? 0 : consensus;
+	self.consensus = isNaN(consensus) ? 0 : consensus;
+	return self.consensus;
 };
 
 // Public methods
