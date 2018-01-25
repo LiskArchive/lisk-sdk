@@ -208,6 +208,14 @@ class BlocksRepository {
 	}
 
 	/**
+	 * Load last N block ids from the database
+	 * @param {limit} - Number of blocks to load
+	 */
+	loadLastNBlockIds (limit) {
+		return this.db.query(Queries.loadLastNBlockIds, [limit]);
+	}
+
+	/**
 	 * Check if a block exits with a particular ID
 	 * @param {string} id
 	 * @return {Promise}

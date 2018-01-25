@@ -62,6 +62,8 @@ var Queries = {
 
 	performVotesSnapshot: 'CREATE TABLE mem_votes_snapshot AS SELECT address, "publicKey", vote FROM mem_accounts WHERE "isDelegate" = 1',
 
+	getDelegatesSnapshot: 'SELECT "publicKey" FROM mem_votes_snapshot ORDER BY vote DESC, "publicKey" ASC LIMIT $1',
+
 	restoreVotesSnapshot: 'UPDATE mem_accounts m SET vote = b.vote FROM mem_votes_snapshot b WHERE m.address = b.address'
 };
 
@@ -157,6 +159,14 @@ RoundsRepo.prototype.clearRoundSnapshot = function () {
  */
 RoundsRepo.prototype.performRoundSnapshot = function () {
 	return this.db.none(Queries.performRoundSnapshot);
+};
+
+/**
+ * Create table for the round snapshot
+ * @return {Promise}
+ */
+RoundsRepo.prototype.getDelegatesSnapshot = function (limit) {
+	return this.db.query(Queries.getDelegatesSnapshot, [limit]);
 };
 
 /**
