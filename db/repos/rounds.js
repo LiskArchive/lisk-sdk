@@ -131,6 +131,14 @@ class RoundsRepository {
 		return this.db.none(sql.performRoundSnapshot);
 	}
 
+  /**
+  * Create table for the round snapshot
+  * @return {Promise}
+  */
+  getDelegatesSnapshot (limit) {
+	  return this.db.query(sql.getDelegatesSnapshot, [limit]);
+  }
+
 	/**
  	* Delete table for votes snapshot
  	* @return {Promise}
