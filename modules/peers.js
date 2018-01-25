@@ -453,11 +453,11 @@ Peers.prototype.acceptable = function (peers) {
 /**
  * Gets peers list and calculated consensus.
  * @param {Object} options
- * @param {number} options.limit[=constants.maxPeers] - Maximum number of peers to get.
- * @param {string} options.broadhash[=null] - Broadhash to match peers by.
- * @param {string} options.normalized[=undefined] - Return peers in normalized (json) form.
- * @param {Array} options.allowedStates[=[2]] - Allowed peer states.
- * @param {number} options.attempt[=undefined] - If 0: Return peers with equal options.broadhash
+ * @param {number} [options.limit=constants.maxPeers] - Maximum number of peers to get.
+ * @param {string} [options.broadhash=null] - Broadhash to match peers by.
+ * @param {string} [options.normalized=undefined] - Return peers in normalized (json) form.
+ * @param {Array} [options.allowedStates=[2]] - Allowed peer states.
+ * @param {number} [options.attempt=undefined] - If 0: Return peers with equal options.broadhash
  *                                               If 1: Return peers with different options.broadhash
  *                                               If not specified: return peers regardless of options.broadhash
  * @param {function} cb - Callback function.
