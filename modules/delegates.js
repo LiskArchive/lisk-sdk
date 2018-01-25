@@ -221,15 +221,15 @@ __private.forge = function (cb) {
 
 		library.sequence.add(function (cb) {
 			async.waterfall([
-				function (seriesCb) {
-					return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+				function (waterCb) {
+					return modules.transport.getPeers({limit: constants.maxPeers}, waterCb);
 				},
-				function (peers, seriesCb) {
+				function (peers, waterCb) {
 					var consensus = modules.peers.getConsensus(peers);
 					if (modules.transport.poorConsensus(consensus)) {
-						return setImmediate(seriesCb, ['Inadequate broadhash consensus', consensus, '%'].join(' '));
+						return setImmediate(waterCb, ['Inadequate broadhash consensus', consensus, '%'].join(' '));
 					} else {
-						return setImmediate(seriesCb);
+						return setImmediate(waterCb);
 					}
 				}
 			], function (err) {
