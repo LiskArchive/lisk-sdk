@@ -220,19 +220,19 @@ __private.forge = function (cb) {
 		}
 
 		library.sequence.add(function (cb) {
-			async.series({
-				getPeers: function (seriesCb) {
-					return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+			async.waterfall([
+				function (waterCb) {
+					return modules.transport.getPeers({limit: constants.maxPeers}, waterCb);
 				},
-				checkBroadhash: function (seriesCb) {
-					var consensus = modules.peers.getConsensus();
+				function (peers, waterCb) {
+					var consensus = modules.peers.getConsensus(peers);
 					if (modules.transport.poorConsensus(consensus)) {
-						return setImmediate(seriesCb, ['Inadequate broadhash consensus', consensus, '%'].join(' '));
+						return setImmediate(waterCb, ['Inadequate broadhash consensus', consensus, '%'].join(' '));
 					} else {
-						return setImmediate(seriesCb);
+						return setImmediate(waterCb);
 					}
 				}
-			}, function (err) {
+			], function (err) {
 				if (err) {
 					library.logger.warn(err);
 					return setImmediate(cb, err);
