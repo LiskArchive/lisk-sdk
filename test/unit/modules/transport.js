@@ -766,7 +766,7 @@ describe('transport', function () {
 
 			describe('when consensus is undefined', function () {
 
-				it('should set consensus = modules.peers.getConsensus()');
+				it('should set consensus = modules.peers.calculateConsensus()');
 			});
 
 			describe('when consensus is undefined', function () {

@@ -10,13 +10,13 @@
       cause - ?
 */
 
-INSERT INTO ${schema~}.forks_stat(
+INSERT INTO forks_stat(
   "delegatePublicKey",
   "blockTimestamp",
   "blockId",
   "blockHeight",
   "previousBlock",
-  "cause"
+  cause
 )
 VALUES (
   ${delegatePublicKey},

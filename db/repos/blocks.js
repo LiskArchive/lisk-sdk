@@ -14,7 +14,6 @@
 'use strict';
 
 const sql = require('../sql').blocks;
-const {schema} = require('../sql/config');
 
 const cs = {}; // Reusable ColumnSet objects
 
@@ -65,8 +64,7 @@ class BlocksRepository {
 		];
 		
 		if (!cs.insert) {
-			const table = new pgp.helpers.TableName({table: this.dbTable, schema});
-			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {table});
+			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: this.dbTable});
 		}
 	}
 
@@ -205,6 +203,14 @@ class BlocksRepository {
 	loadLastBlock () {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.loadLastBlock);
+	}
+
+	/**
+	 * Load last N block ids from the database
+	 * @param {limit} - Number of blocks to load
+	 */
+	loadLastNBlockIds (limit) {
+		return this.db.query(Queries.loadLastNBlockIds, [limit]);
 	}
 
 	/**

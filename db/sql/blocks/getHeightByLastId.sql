@@ -5,5 +5,5 @@
 */
 
 SELECT height
-FROM ${schema~}.blocks
+FROM blocks
 WHERE id = $1

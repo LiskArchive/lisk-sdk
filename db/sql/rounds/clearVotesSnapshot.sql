@@ -4,5 +4,4 @@
   PARAMETERS: ?
 */
 
-DELETE FROM blocks
-WHERE id = $1
+DROP TABLE IF EXISTS mem_votes_snapshot
