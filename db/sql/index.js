@@ -13,22 +13,50 @@
  */
 'use strict';
 
-const {load} = require('./config');
+const link = require('./config');
 
 module.exports = {
 	accounts: {
 		// sql to be included
 	},
 	blocks: {
-		// sql to be included
+		aggregateBlocksReward: link('blocks/aggregateBlocksReward.sql'),
+		count: link('blocks/count.sql'),
+		deleteBlock: link('blocks/deleteBlock.sql'),
+		getGenesisBlock: link('blocks/getGenesisBlock.sql'),
+		getGenesisBlockId: link('blocks/getGenesisBlockId.sql'),
+		getIdSequence: link('blocks/getIdSequence.sql'),
+		loadBlocksOffset: link('blocks/loadBlocksOffset.sql'),
+		loadLastBlock: link('blocks/loadLastBlock.sql'),
+		loadLastNBlock: link('blocks/loadLastNBlock.sql'),
+		blockExists: link('blocks/blockExists.sql'),
+		deleteAfterBlock: link('blocks/deleteAfterBlock.sql'),
+		getBlocksForTransport: link('blocks/getBlocksForTransport.sql'),
+		getHeightByLastId: link('blocks/getHeightByLastId.sql'),
+		getCommonBlock: link('blocks/getCommonBlock.sql')
 	},
 	delegates: {
-		countDuplicatedDelegates: load('delegates/countDuplicatedDelegates.sql'),
-		getDelegatesByPublicKeys: load('delegates/getDelegatesByPublicKeys.sql'),
-		insertFork: load('delegates/insertFork.sql')
+		countDuplicatedDelegates: link('delegates/countDuplicatedDelegates.sql'),
+		getDelegatesByPublicKeys: link('delegates/getDelegatesByPublicKeys.sql'),
+		insertFork: link('delegates/insertFork.sql')
 	},
 	peers: {
 		// sql to be included
+	},
+	rounds: {
+		getVotes: link('rounds/getVotes.sql'),
+		updateVotes: link('rounds/updateVotes.sql'),
+		updateBlockId: link('rounds/updateBlockId.sql'),
+		summedRound: link('rounds/summedRound.sql'),
+		clearRoundSnapshot: link('rounds/clearRoundSnapshot.sql'),
+		performRoundSnapshot: link('rounds/performRoundSnapshot.sql'),
+		restoreRoundSnapshot: link('rounds/restoreRoundSnapshot.sql'),
+		clearVotesSnapshot: link('rounds/clearVotesSnapshot.sql'),
+		performVotesSnapshot: link('rounds/performVotesSnapshot.sql'),
+		restoreVotesSnapshot: link('rounds/restoreVotesSnapshot.sql'),
+		getMemRounds: link('rounds/getMemRounds.sql'),
+		flush: link('rounds/flush.sql'),
+		truncateBlocks: link('rounds/truncateBlocks.sql'),
+		getDelegatesSnapshot: link('rounds/getDelegatesSnapshot.sql')
 	}
-	// etc...
 };

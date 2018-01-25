@@ -55,7 +55,7 @@ describe('system test (type 5) - dapp registrations with repeated values', funct
 	});
 
 	it('adding to pool dapp transaction 1 should be ok', function (done) {
-		transaction1 = lisk.dapp.createDapp(account.password, null, dappDuplicate, -1);
+		transaction1 = lisk.dapp.createDapp(account.password, null, dappDuplicate, -10000);
 		badTransactions.push(transaction1);
 		localCommon.addTransaction(library, transaction1, function (err, res) {
 			expect(res).to.equal(transaction1.id);
@@ -64,7 +64,7 @@ describe('system test (type 5) - dapp registrations with repeated values', funct
 	});
 
 	it('adding to pool dapp transaction 2 with same data than 1 but different id should be ok', function (done) {
-		transaction2 = lisk.dapp.createDapp(account.password, null, dappDuplicate);
+		transaction2 = lisk.dapp.createDapp(account.password, null, dappDuplicate, -5000);
 		goodTransactions.push(transaction2);
 		localCommon.addTransaction(library, transaction2, function (err, res) {
 			expect(res).to.equal(transaction2.id);
@@ -73,7 +73,7 @@ describe('system test (type 5) - dapp registrations with repeated values', funct
 	});
 	
 	it('adding to pool dapp transaction 3 should be ok', function (done) {
-		transaction3 = lisk.dapp.createDapp(account.password, null, dappDuplicateNameFail, -1);
+		transaction3 = lisk.dapp.createDapp(account.password, null, dappDuplicateNameFail, -10000);
 		badTransactions.push(transaction3);
 		localCommon.addTransaction(library, transaction3, function (err, res) {
 			expect(res).to.equal(transaction3.id);
@@ -91,7 +91,7 @@ describe('system test (type 5) - dapp registrations with repeated values', funct
 	});
 
 	it('adding to pool dapp transaction 5 should be ok', function (done) {
-		transaction5 = lisk.dapp.createDapp(account.password, null, dappDuplicateLinkFail, -1);
+		transaction5 = lisk.dapp.createDapp(account.password, null, dappDuplicateLinkFail, -10000);
 		badTransactions.push(transaction5);
 		localCommon.addTransaction(library, transaction5, function (err, res) {
 			expect(res).to.equal(transaction5.id);

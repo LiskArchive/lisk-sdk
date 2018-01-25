@@ -220,26 +220,11 @@ __private.forge = function (cb) {
 		}
 
 		library.sequence.add(function (cb) {
-			async.series({
-				getPeers: function (seriesCb) {
-					return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
-				},
-				checkBroadhash: function (seriesCb) {
-					var consensus = modules.peers.getConsensus();
-					if (modules.transport.poorConsensus(consensus)) {
-						return setImmediate(seriesCb, ['Inadequate broadhash consensus', consensus, '%'].join(' '));
-					} else {
-						return setImmediate(seriesCb);
-					}
-				}
-			}, function (err) {
-				if (err) {
-					library.logger.warn(err);
-					return setImmediate(cb, err);
-				} else {
-					return modules.blocks.process.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
-				}
-			});
+			if (modules.transport.poorConsensus()) {
+				return setImmediate(cb, ['Inadequate broadhash consensus', modules.peers.getLastConsensus(), '%'].join(' '));
+			}
+			library.logger.info(['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(' '));
+			modules.blocks.process.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
 		}, function (err) {
 			if (err) {
 				library.logger.error('Failed to generate block within delegate slot', err);

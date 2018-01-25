@@ -56,15 +56,18 @@ function Transport (cb, scope) {
 		logic: {
 			block: scope.logic.block,
 			transaction: scope.logic.transaction,
-			peers: scope.logic.peers,
+			peers: scope.logic.peers
 		},
 		config: {
 			peers: {
 				options: {
-					timeout: scope.config.peers.options.timeout,
-				},
+					timeout: scope.config.peers.options.timeout
+				}
 			},
-		},
+			forging: {
+				force: scope.config.forging.force
+			}
+		}
 	};
 	self = this;
 
@@ -260,16 +263,13 @@ Transport.prototype.headers = function (headers) {
 /**
  * Returns true if broadcaster consensus is less than minBroadhashConsensus.
  * Returns false if consensus is undefined.
- * @param {number} [modules.peers.getConsensus()]
  * @return {boolean}
  */
-Transport.prototype.poorConsensus = function (consensus) {
-	var consensus = consensus || modules.peers.getConsensus();
-	if (consensus === undefined) {
+Transport.prototype.poorConsensus = function () {
+	if (library.config.forging.force) {
 		return false;
-	} else {
-		return (consensus < constants.minBroadhashConsensus);
 	}
+	return modules.peers.calculateConsensus() < constants.minBroadhashConsensus;
 };
 
 /**
