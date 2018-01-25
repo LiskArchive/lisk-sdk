@@ -595,6 +595,46 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /delegates/{publicKey}/forged:
+    x-swagger-router-controller: delegates
+    get:
+      tags:
+      - Delegates
+      summary: Requests forging statistics by delegate publicKey
+      operationId: getForgedByAccount
+      x-lisk-cache-enabled: true
+      description:
+        By passing an existing delegate publicKey, you can read
+        their forging statistics within a window of time
+      produces:
+      - application/json
+      parameters:
+        - in: path
+          name: publicKey
+          description: Public key to query
+          required: true
+          type: string
+          format: publicKey
+        - $ref: '#/parameters/fromTimestamp'
+        - $ref: '#/parameters/toTimestamp'
+      responses:
+        200:
+          description: Results matching specified delegate publicKey
+          schema:
+            $ref: '#/definitions/ForgedResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
   /blocks:
     x-swagger-router-controller: blocks
     get:
@@ -1305,6 +1345,20 @@ definitions:
       links:
         type: object
 
+  ForgedResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        $ref: '#/definitions/Forged'
+      meta:
+        type: object
+      links:
+        type: object
+
   BlocksResponse:
     description: Blocks response
     type: object
@@ -1722,6 +1776,27 @@ definitions:
       nextSlot:
         type: number
         example: 4368793
+
+  Forged:
+    type: object
+    required:
+      - fees
+      - rewards
+      - forged
+      - count
+    properties:
+      fees:
+        type: string
+        example: "15000000"
+      rewards:
+        type: string
+        example: "50000000"
+      forged:
+        type: string
+        example: "65000000"
+      count:
+        type: integer
+        example: 20131
 
   Dapp:
     type: object

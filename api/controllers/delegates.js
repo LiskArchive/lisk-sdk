@@ -14,6 +14,9 @@
 'use strict';
 
 var _ = require('lodash');
+var bignum = require('../../helpers/bignum.js');
+var swaggerHelper = require('../../helpers/swagger');
+var constants = require('../../helpers/constants.js');
 
 // Private Fields
 var modules;
@@ -99,6 +102,39 @@ DelegatesController.getForgers = function (context, next) {
 		data.links = {};
 
 		next(null, data);
+	});
+};
+
+DelegatesController.getForgedByAccount = function (context, next) {
+	var params = context.request.swagger.params;
+	
+	var filters = {
+		generatorPublicKey: params.publicKey.value,
+		start: params.fromTimestamp.value || constants.epochTime.getTime(),
+		end: params.toTimestamp.value || Date.now()
+	};
+
+	modules.blocks.utils.aggregateBlocksReward(filters, function (err, reward) {
+		if (err) { 
+			if (err === 'Account not found or is not a delegate') {
+				return next(swaggerHelper.generateParamsErrorObject(['publicKey']));
+			} else {
+				return next(err); 
+			}
+		}
+
+		var forged = new bignum(reward.fees).plus(new bignum(reward.rewards)).toString();
+		var response = {
+			data: {
+				fees: reward.fees,
+				rewards: reward.rewards,
+				forged: forged,
+				count: reward.count
+			},
+			meta: {},
+			links: {}
+		};
+		return next(null, response);
 	});
 };
 
