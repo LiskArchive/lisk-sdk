@@ -34,6 +34,7 @@ module.exports = {
 		getBlocksForTransport: link('blocks/getBlocksForTransport.sql'),
 		getHeightByLastId: link('blocks/getHeightByLastId.sql'),
 		getCommonBlock: link('blocks/getCommonBlock.sql')
+
 	},
 	dapps: {
 		countByOutTransactionId: link('dapps/countByOutTransactionId.sql'),
