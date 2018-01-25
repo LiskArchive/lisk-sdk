@@ -19,6 +19,7 @@
  * @property {number} activeDelegates - The default number of delegates.
  * @property {number} maxVotesPerTransaction - The maximum number of votes in vote type transaction.
  * @property {number} addressLength - The default address length.
+ * @property {number} blockSlotWindow - The default no. of previous blocks to keep in memory.
  * @property {number} blockHeaderLength - The default block header length.
  * @property {number} blockReceiptTimeOut
  * @property {number} confirmationLength
@@ -57,6 +58,7 @@
 var constants = {
 	activeDelegates: 101,
 	addressLength: 208,
+	blockSlotWindow: 5,
 	additionalData: {
 		minLength: 1,
 		maxLength: 64
