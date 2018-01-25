@@ -238,14 +238,14 @@ describe('GET /api/votes', function () {
 					it('should return votes in ascending order', function () {
 						return votesEndpoint.makeRequest({sort: 'balance:asc', publicKey: voterDelegate.publicKey}, 200).then(function (res) {
 							expectValidVoterDelegateResponse(res);
-							expect(_.map(res.body.data.votes, 'balance').sort()).to.to.be.eql(_.map(res.body.data.votes, 'balance'));
+							expect(_(res.body.data.votes).map('balance').sortNumbers()).to.be.eql(_.map(res.body.data.votes, 'balance'));
 						});
 					});
 
 					it('should return votes in descending order', function () {
 						return votesEndpoint.makeRequest({sort: 'balance:desc', publicKey: voterDelegate.publicKey}, 200).then(function (res) {
 							expectValidVoterDelegateResponse(res);
-							expect(_.map(res.body.data.votes, 'balance').sort().reverse()).to.to.be.eql(_.map(res.body.data.votes, 'balance'));
+							expect(_(res.body.data.votes).map('balance').sortNumbers('desc')).to.to.be.eql(_.map(res.body.data.votes, 'balance'));
 						});
 					});
 				});
