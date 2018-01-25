@@ -90,7 +90,6 @@ describe('blocks/api', function () {
 				it('should assign block', function () {
 					expect(library.logic.block).to.eql(blockStub);
 				});
-
 			});
 		});
 	});
@@ -318,7 +317,6 @@ describe('blocks/api', function () {
 			blocksApiModule.onBind(modulesStub);
 			modules = BlocksApi.__get__('modules');
 		});
-
 
 		it('should set __private.loaded = true', function () {
 			expect(__private.loaded).to.be.true;
