@@ -552,10 +552,12 @@ describe('transport', function () {
 				describe('for every transaction in transactions', function () {
 
 					describe('when transaction is undefined', function () {
+						beforeEach(function (done) {
+							query.transactions[0] = undefined;
+							done();
+						});
 
 						it('should call callback with error = "Unable to process transaction. Transaction is undefined."', function (done) {
-							query.transactions[0] = undefined;
-
 							__private.receiveTransactions(query, peerStub, '', function (err) {
 								expect(err).to.equal('Unable to process transaction. Transaction is undefined.');
 								done();
@@ -619,7 +621,7 @@ describe('transport', function () {
 
 		describe('receiveTransaction', function () {
 
-			var transaction;
+			var transaction, peerAddressString;
 
 			beforeEach(function () {
 				transaction = {
@@ -638,7 +640,7 @@ describe('transport', function () {
 					callback(doneCallback);
 				});
 
-				var peerAddressString = '40.40.40.40:5000';
+				peerAddressString = '40.40.40.40:5000';
 
 				library = {
 					logic: {
