@@ -8,4 +8,4 @@
 
 UPDATE mem_accounts
 SET missedblocks = missedblocks ${change:raw}
-WHERE address IN (${outsiders}:csv)
+WHERE address IN (${outsiders:csv})

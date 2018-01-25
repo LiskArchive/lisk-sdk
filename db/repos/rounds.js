@@ -49,7 +49,6 @@ class RoundsRepository {
 		return this.db.none(sql.flush, [round]);
 	}
 
-	// TODO: Move usage of RoundsRepo#truncateBlocks to db/blocks
 	/**
  	* Delete all blocks above a particular height
  	* @param {int} height
@@ -67,10 +66,13 @@ class RoundsRepository {
  	* @return {*}
  	*/
 	updateMissedBlocks (backwards, outsiders) {
-		return this.db.none(Queries.updateMissedBlocks(backwards), [outsiders]);
+		return this.db.none(sql.updateMissedBlocks, {
+			change: backwards ? '- 1' : '+ 1',
+			outsiders
+		});
 	}
 
-	// TODO: Move usage of RoundsRepo#getVotes to db/votes
+	// TODO: Move usage of RoundsRepository#getVotes to db/votes
 	/**
  	* Get votes for a round
  	* @param {string} round - Id of the round
@@ -81,7 +83,7 @@ class RoundsRepository {
 		return this.db.query(sql.getVotes, [round]);
 	}
 
-	// TODO: Move usage of RoundsRepo#updateVotes to db/votes
+	// TODO: Move usage of RoundsRepository#updateVotes to db/votes
 	/**
  	* Update the votes of for a particular account
 	 * @param {string} address - Address of the account
@@ -91,7 +93,7 @@ class RoundsRepository {
 		return this.db.none(sql.updateVotes, [amount, address]);
 	}
 
-	// TODO: Move usage of RoundsRepo#updateBlockId to db/accounts
+	// TODO: Move usage of RoundsRepository#updateBlockId to db/accounts
 	/**
  	* Update id of a particular block for an account
  	* @param {string} newId
@@ -161,15 +163,5 @@ class RoundsRepository {
 		return this.db.none(sql.restoreVotesSnapshot);
 	}
 }
-
-const Queries = {
-	updateMissedBlocks: function (backwards) {
-		return [
-			'UPDATE mem_accounts SET "missedblocks" = "missedblocks"',
-			(backwards ? '- 1' : '+ 1'),
-			'WHERE "address" IN ($1:csv);'
-		].join(' ');
-	}
-};
 
 module.exports = RoundsRepository;
