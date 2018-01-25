@@ -218,7 +218,7 @@ describe('blocks/api', function () {
 						});
 					});
 
-					it('should query db with offset 0 when filter.offset does not exists', function (done) {
+					it('should query db with offset 0 when filter.offset does not exist', function (done) {
 						__private.list({}, function (err, cb) {
 							expect(dbStub.blocks.list.args[0][0].offset).to.equal(0);
 							done();
@@ -236,7 +236,7 @@ describe('blocks/api', function () {
 						});
 					});
 
-					it('should query db with sort height:desc when filter.sort does not exists', function (done) {
+					it('should query db with sort height:desc when filter.sort does not exist', function (done) {
 						__private.list({}, function (err, cb) {
 							expect(dbStub.blocks.list.args[0][0].sortField).to.equal('"b_height"');
 							expect(dbStub.blocks.list.args[0][0].sortMethod).to.equal('DESC');
