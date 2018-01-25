@@ -32,7 +32,6 @@ var Promise = require('bluebird');
 var genesisBlock = require('../../../data/genesisBlock.json');
 var genesisDelegates = require('../../../data/genesisDelegates.json').delegates;
 
-
 var previousBlock = {
 	blockSignature: '696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
 	generatorPublicKey:'86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
@@ -608,7 +607,7 @@ describe('blocks/verify', function () {
 		it('should be ok');
 	});
 
-	// Sends a block to network, save it locally.
+	// Sends a block to network, save it locally
 	describe('processBlock() for valid block {broadcast: true, saveBlock: true}', function () {
 
 		it('should clear database', function (done) {
@@ -639,7 +638,6 @@ describe('blocks/verify', function () {
 		});
 
 		it('should generate block 1', function (done) {
-
 			var slot = slots.getSlotNumber();
 			var time = slots.getSlotTime(slots.getSlotNumber());
 
