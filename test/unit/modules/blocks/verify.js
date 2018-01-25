@@ -237,8 +237,6 @@ function getValidKeypairForSlot (library, slot) {
 
 	return generateDelegateListPromisified(lastBlock.height, null).then(function (list) {
 		var delegatePublicKey = list[slot % slots.delegates];
-		console.log('delegatePublicKey');
-		console.log(delegatePublicKey);
 		var secret = _.find(genesisDelegates, function (delegate) {
 			return delegate.publicKey === delegatePublicKey;
 		}).secret;
@@ -934,7 +932,8 @@ describe('blocks/verify', function () {
 
 			before(function () {
 				blockVerify.__set__('library', {
-					db: db
+					db: db,
+					logger: library.logger
 				});
 				onBlockchainReady = blockVerify.prototype.onBlockchainReady;
 			});
