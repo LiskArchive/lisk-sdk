@@ -16,6 +16,8 @@
 var moment = require('moment');
 var util = require('util');
 
+var appFile = 'app.js'; // Application file name
+
 module.exports = function (grunt) {
 	var files = [
 		'logger.js',
@@ -26,7 +28,7 @@ module.exports = function (grunt) {
 		'logic/*.js',
 		'schema/**/*.js',
 		'sql/**/*.js',
-		'app.js'
+		appFile
 	];
 
 	var today = moment().format('HH:mm:ss DD/MM/YYYY');
@@ -41,8 +43,8 @@ module.exports = function (grunt) {
 	grunt.initConfig({
 		obfuscator: {
 			files: files,
-			entry: 'app.js',
-			out: 'release/app.js',
+			entry: appFile,
+			out: 'release/' + appFile,
 			strings: true,
 			root: __dirname
 		},
@@ -54,15 +56,14 @@ module.exports = function (grunt) {
 						util.format('mkdir -p %s', version_dir),
 						util.format('mkdir -p %s/logs', version_dir),
 						util.format('mkdir -p %s/pids', version_dir),
-						util.format('cp %s/app.js %s', release_dir, version_dir),
+						util.format('cp %s/%s %s', release_dir, appFile, version_dir),
 						util.format('cp %s/workersController.js %s', release_dir, version_dir),
 						util.format('cp %s/config.json %s', __dirname, version_dir),
 						util.format('cp %s/package.json %s', __dirname, version_dir),
 						util.format('cp %s/genesisBlock.json %s', __dirname, version_dir),
 						util.format('cp %s/LICENSE %s', __dirname, version_dir),
-						util.format('mkdir -p %s/db/sql/init/migrations', version_dir),
-						util.format('cp %s/db/sql/init/*.sql %s/db/sql/init/', __dirname, version_dir),
-						util.format('cp %s/db/sql/init/migrations/*.sql %s/db/sql/init/migrations/', __dirname, version_dir),
+						util.format('mkdir -p %s/sql', version_dir),
+						util.format('cp -r %s/db/sql %s/sql/', __dirname, version_dir) // TODO: Make it skip non-SQL files
 					].join(' && ');
 				}
 			},

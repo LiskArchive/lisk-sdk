@@ -15,7 +15,6 @@
 
 var apiCodes = require('../../helpers/apiCodes.js');
 var ApiError = require('../../helpers/apiError.js');
-var BlockReward = require('../../logic/blockReward.js');
 var constants = require('../../helpers/constants.js');
 var sortBy = require('../../helpers/sort_by.js').sortBy;
 
@@ -44,7 +43,6 @@ function API (logger, db, block, schema, dbSequence) {
 		}
 	};
 	self = this;
-	__private.blockReward = new BlockReward();
 	library.logger.trace('Blocks->API: Submodule initialized.');
 	return self;
 }
