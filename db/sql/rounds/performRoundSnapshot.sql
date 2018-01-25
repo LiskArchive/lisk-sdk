@@ -4,4 +4,4 @@
   PARAMETERS: ?
 */
 
-CREATE TABLE ${schema~}.mem_round_snapshot AS TABLE ${schema~}.mem_round
+CREATE TABLE mem_round_snapshot AS TABLE mem_round

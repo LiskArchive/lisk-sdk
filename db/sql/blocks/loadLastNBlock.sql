@@ -3,5 +3,5 @@
 
 	PARAMETERS: {Limit} Number of block ids to get
 */
-SELECT "id" FROM ${schema~}.blocks
-ORDER BY "height" DESC LIMIT $1
+SELECT id FROM blocks
+ORDER BY height DESC LIMIT $1

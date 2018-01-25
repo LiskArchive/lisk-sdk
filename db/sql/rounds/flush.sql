@@ -4,4 +4,4 @@
   PARAMETERS: ?
 */
 
-DELETE FROM ${schema~}.mem_round WHERE round = $1::bigint
+DELETE FROM mem_round WHERE round = $1::bigint

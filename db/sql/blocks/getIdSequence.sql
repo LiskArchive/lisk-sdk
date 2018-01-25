@@ -7,7 +7,7 @@
 WITH current_round AS
   (
     SELECT ceil(b.height / ${delegates}::float)::bigint
-    FROM ${schema~}.blocks b
+    FROM blocks b
     WHERE b.height <= ${height}
     ORDER BY b.height DESC
     LIMIT 1

@@ -13,50 +13,50 @@
  */
 'use strict';
 
-const {load} = require('./config');
+const link = require('./config');
 
 module.exports = {
 	accounts: {
 		// sql to be included
 	},
 	blocks: {
-		aggregateBlocksReward: load('blocks/aggregateBlocksReward.sql'),
-		count: load('blocks/count.sql'),
-		deleteBlock: load('blocks/deleteBlock.sql'),
-		getGenesisBlock: load('blocks/getGenesisBlock.sql'),
-		getGenesisBlockId: load('blocks/getGenesisBlockId.sql'),
-		getIdSequence: load('blocks/getIdSequence.sql'),
-		loadBlocksOffset: load('blocks/loadBlocksOffset.sql'),
-		loadLastBlock: load('blocks/loadLastBlock.sql'),
-		loadLastNBlock: load('blocks/loadLastNBlock.sql'),
-		blockExists: load('blocks/blockExists.sql'),
-		deleteAfterBlock: load('blocks/deleteAfterBlock.sql'),
-		getBlocksForTransport: load('blocks/getBlocksForTransport.sql'),
-		getHeightByLastId: load('blocks/getHeightByLastId.sql'),
-		getCommonBlock: load('blocks/getCommonBlock.sql')
+		aggregateBlocksReward: link('blocks/aggregateBlocksReward.sql'),
+		count: link('blocks/count.sql'),
+		deleteBlock: link('blocks/deleteBlock.sql'),
+		getGenesisBlock: link('blocks/getGenesisBlock.sql'),
+		getGenesisBlockId: link('blocks/getGenesisBlockId.sql'),
+		getIdSequence: link('blocks/getIdSequence.sql'),
+		loadBlocksOffset: link('blocks/loadBlocksOffset.sql'),
+		loadLastBlock: link('blocks/loadLastBlock.sql'),
+		loadLastNBlock: link('blocks/loadLastNBlock.sql'),
+		blockExists: link('blocks/blockExists.sql'),
+		deleteAfterBlock: link('blocks/deleteAfterBlock.sql'),
+		getBlocksForTransport: link('blocks/getBlocksForTransport.sql'),
+		getHeightByLastId: link('blocks/getHeightByLastId.sql'),
+		getCommonBlock: link('blocks/getCommonBlock.sql')
 	},
 	delegates: {
-		countDuplicatedDelegates: load('delegates/countDuplicatedDelegates.sql'),
-		getDelegatesByPublicKeys: load('delegates/getDelegatesByPublicKeys.sql'),
-		insertFork: load('delegates/insertFork.sql')
+		countDuplicatedDelegates: link('delegates/countDuplicatedDelegates.sql'),
+		getDelegatesByPublicKeys: link('delegates/getDelegatesByPublicKeys.sql'),
+		insertFork: link('delegates/insertFork.sql')
 	},
 	peers: {
 		// sql to be included
 	},
 	rounds: {
-		getVotes: load('rounds/getVotes.sql'),
-		updateVotes: load('rounds/updateVotes.sql'),
-		updateBlockId: load('rounds/updateBlockId.sql'),
-		summedRound: load('rounds/summedRound.sql'),
-		clearRoundSnapshot: load('rounds/clearRoundSnapshot.sql'),
-		performRoundSnapshot: load('rounds/performRoundSnapshot.sql'),
-		restoreRoundSnapshot: load('rounds/restoreRoundSnapshot.sql'),
-		clearVotesSnapshot: load('rounds/clearVotesSnapshot.sql'),
-		performVotesSnapshot: load('rounds/performVotesSnapshot.sql'),
-		restoreVotesSnapshot: load('rounds/restoreVotesSnapshot.sql'),
-		getMemRounds: load('rounds/getMemRounds.sql'),
-		flush: load('rounds/flush.sql'),
-		truncateBlocks: load('rounds/truncateBlocks.sql'),
-		getDelegatesSnapshot: load('rounds/getDelegatesSnapshot.sql')
+		getVotes: link('rounds/getVotes.sql'),
+		updateVotes: link('rounds/updateVotes.sql'),
+		updateBlockId: link('rounds/updateBlockId.sql'),
+		summedRound: link('rounds/summedRound.sql'),
+		clearRoundSnapshot: link('rounds/clearRoundSnapshot.sql'),
+		performRoundSnapshot: link('rounds/performRoundSnapshot.sql'),
+		restoreRoundSnapshot: link('rounds/restoreRoundSnapshot.sql'),
+		clearVotesSnapshot: link('rounds/clearVotesSnapshot.sql'),
+		performVotesSnapshot: link('rounds/performVotesSnapshot.sql'),
+		restoreVotesSnapshot: link('rounds/restoreVotesSnapshot.sql'),
+		getMemRounds: link('rounds/getMemRounds.sql'),
+		flush: link('rounds/flush.sql'),
+		truncateBlocks: link('rounds/truncateBlocks.sql'),
+		getDelegatesSnapshot: link('rounds/getDelegatesSnapshot.sql')
 	}
 };
