@@ -56,6 +56,7 @@ module.exports = {
 		restoreVotesSnapshot: load('rounds/restoreVotesSnapshot.sql'),
 		getMemRounds: load('rounds/getMemRounds.sql'),
 		flush: load('rounds/flush.sql'),
-		truncateBlocks: load('rounds/truncateBlocks.sql')
+		truncateBlocks: load('rounds/truncateBlocks.sql'),
+		getDelegatesSnapshot: load('rounds/getDelegatesSnapshot.sql')
 	}
 };
