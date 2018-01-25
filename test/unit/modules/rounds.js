@@ -172,7 +172,7 @@ describe('rounds', function () {
 				expect(error).to.equal('Rounds#flush error');
 			});
 
-			it('flush query should be called once', function () {
+			it.skip('flush query should be called once', function () {
 				expect(stub.calledOnce).to.be.true;
 			});
 		});
@@ -789,7 +789,7 @@ describe('rounds', function () {
 				bus.reset();
 			});
 
-			describe('when (block.height+1) % slots.delegates === 0', function () {
+			describe.skip('when (block.height+1) % slots.delegates === 0', function () {
 
 				before(function (done) {
 					block = {height: 100};
