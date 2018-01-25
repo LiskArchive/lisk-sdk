@@ -304,6 +304,10 @@ class AccountsRepo {
 
 	/**
 	 * Search account based on generic conditions
+	 *
+	 * For filters you can pass additional attribute "multisig: true" to fetch only multisig accounts
+	 * You can pass **array of address** to the fetch multiple accounts
+	 *
 	 * @param {Object} filters - Object of filters to be applied in WHERE clause
 	 * @param {array} fields - Array of data fields to search
 	 * @param {Object} options - Object with different options
@@ -311,10 +315,22 @@ class AccountsRepo {
 	 * @param {int} options.offset - Offset of results
 	 * @param {string} options.sortField - sort key
 	 * @param {string} options.sortMethod - sort method ASC or DESC
+	 * @param {string} options.extraCondition - Extra conditions to be appended to fetch objects. It must be properly formatted
 	 * @return {Promise}
 	 */
 	list (filters, fields, options) {
 		const pgp = this.pgp;
+
+		let dynamicConditions = [];
+		if(filters.multisig) {
+			dynamicConditions.push(pgp.as.format('"multimin" > 0'));
+			delete filters.multisig;
+		}
+
+		if(Array.isArray(filters.address) && filters.address.length) {
+			dynamicConditions.push(pgp.as.format('"address" IN ($1:csv)', [filters.address]));
+			delete filters.address;
+		}
 
 		if(filters && _.difference(Object.keys(filters), this.getDBFields()).length) {
 			return Promise.reject('Unknown filter field provided to list');
@@ -354,8 +370,18 @@ class AccountsRepo {
 			conditions = pgp.helpers.sets(filters, filteredColumns).replace(/(,")/,' AND "');
 		}
 
-		if(conditions.length) {
-			conditions = ' WHERE ' + conditions;
+		if(conditions.length || options.extraCondition || dynamicConditions.length) {
+			conditions = conditions.length ? [conditions] : [];
+
+			if(options.extraCondition) {
+				conditions.push(options.extraCondition);
+			}
+
+			if(dynamicConditions.length) {
+				conditions.push(dynamicConditions.join(' AND '));
+			}
+
+			conditions = ' WHERE ' + conditions.join(' AND ');
 		}
 
 		const query = this.pgp.as.format(sql, {

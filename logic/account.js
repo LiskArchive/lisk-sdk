@@ -595,6 +595,25 @@ Account.prototype.toDB = function (raw) {
 };
 
 /**
+ * Gets Multisignature account information for specified fields and filter criteria.
+ * @param {Object} filter - Contains address.
+ * @param {Object|function} fields - Table fields.
+ * @param {function} cb - Callback function.
+ * @returns {setImmediateCallback} Returns null or Object with database data.
+ */
+Account.prototype.getMultiSignature = function (filter, fields, cb, tx) {
+	if (typeof(fields) === 'function') {
+		tx = cb;
+		cb = fields;
+		fields = null;
+	}
+
+	filter.multisig = true;
+
+	this.get(filter, fields, cb, tx);
+};
+
+/**
  * Gets account information for specified fields and filter criteria.
  * @param {Object} filter - Contains address.
  * @param {Object|function} fields - Table fields.
@@ -658,7 +677,7 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 	});
 
 	var DEFAULT_LIMIT = constants.activeDelegates;
-	var limit, offset, sort = {sortField: '', sortMethod: ''};
+	var limit = DEFAULT_LIMIT, offset = 0, sort = {sortField: '', sortMethod: ''};
 
 
 	if (filter.offset > 0) {
@@ -669,12 +688,6 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 	if (filter.limit > 0) {
 		limit = filter.limit;
 	}
-
-	// Assigning a default value if none is present.
-	if (!limit) {
-		limit = DEFAULT_LIMIT;
-	}
-
 	delete filter.limit;
 
 	if (filter.sort) {
