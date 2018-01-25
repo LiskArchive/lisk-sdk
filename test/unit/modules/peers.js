@@ -504,6 +504,48 @@ describe('peers', function () {
 			it('should return consensus as a number', function () {
 				expect(calculateConsensusResult).to.be.a('number');
 			});
+
+			describe('when CONNECTED peers exists with matching broadhash', function () {
+
+				before(function () {
+					var connectedPeer = _.assign({}, prefixedPeer);
+					connectedPeer.state = Peer.STATE.CONNECTED;
+					peersLogicMock.list = sinonSandbox.stub().returns([connectedPeer]);
+					systemModuleMock.getBroadhash = sinonSandbox.stub().returns(connectedPeer.broadhash);
+				});
+
+				it('should return consensus = 100', function () {
+					expect(calculateConsensusResult).to.equal(100);
+				});
+			});
+
+			describe('when BANNED peers exists with matching broadhash', function () {
+
+				before(function () {
+					var bannedPeer = _.assign({}, prefixedPeer);
+					bannedPeer.state = Peer.STATE.BANNED;
+					peersLogicMock.list = sinonSandbox.stub().returns([bannedPeer]);
+					systemModuleMock.getBroadhash = sinonSandbox.stub().returns(bannedPeer.broadhash);
+				});
+
+				it('should return consensus = 0', function () {
+					expect(calculateConsensusResult).to.equal(0);
+				});
+			});
+
+			describe('when DISCONNECTED peers exists with matching broadhash', function () {
+
+				before(function () {
+					var disconnectedPeer = _.assign({}, prefixedPeer);
+					disconnectedPeer.state = Peer.STATE.DISCONNECTED;
+					peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
+					systemModuleMock.getBroadhash = sinonSandbox.stub().returns(disconnectedPeer.broadhash);
+				});
+
+				it('should return consensus = 0', function () {
+					expect(calculateConsensusResult).to.equal(0);
+				});
+			});
 		});
 
 		describe('when matched peers not passed and there are 100 active peers', function () {
@@ -538,48 +580,6 @@ describe('peers', function () {
 
 				it('should return consensus = 0', function () {
 					expect(calculateConsensusResult).to.equal(0);
-				});
-
-				describe('when CONNECTED peers exists with matching broadhash', function () {
-
-					before(function () {
-						var connectedPeer = _.assign({}, prefixedPeer);
-						connectedPeer.state = Peer.STATE.CONNECTED;
-						peersLogicMock.list = sinonSandbox.stub().returns([connectedPeer]);
-						systemModuleMock.getBroadhash = sinonSandbox.stub().returns(connectedPeer.broadhash);
-					});
-
-					it('should return consensus = 100', function () {
-						expect(getConsensusResult).to.equal(100);
-					});
-				});
-
-				describe('when BANNED peers exists with matching broadhash', function () {
-
-					before(function () {
-						var bannedPeer = _.assign({}, prefixedPeer);
-						bannedPeer.state = Peer.STATE.BANNED;
-						peersLogicMock.list = sinonSandbox.stub().returns([bannedPeer]);
-						systemModuleMock.getBroadhash = sinonSandbox.stub().returns(bannedPeer.broadhash);
-					});
-
-					it('should return consensus = 0', function () {
-						expect(getConsensusResult).to.equal(0);
-					});
-				});
-
-				describe('when DISCONNECTED peers exists with matching broadhash', function () {
-
-					before(function () {
-						var disconnectedPeer = _.assign({}, prefixedPeer);
-						disconnectedPeer.state = Peer.STATE.DISCONNECTED;
-						peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
-						systemModuleMock.getBroadhash = sinonSandbox.stub().returns(disconnectedPeer.broadhash);
-					});
-
-					it('should return consensus = 0', function () {
-						expect(getConsensusResult).to.equal(0);
-					});
 				});
 			});
 
