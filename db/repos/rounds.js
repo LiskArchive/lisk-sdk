@@ -25,17 +25,18 @@ const sql = require('../sql').rounds;
  * @return {RoundsRepository}
  */
 class RoundsRepository {
-	
+
 	constructor (db, pgp) {
 		this.db = db;
-		this.pgp = pgp;		
+		this.pgp = pgp;
 	}
-	
+
 	/**
  	* Get round information from mem tables
  	* @return {Promise}
  	*/
 	getMemRounds  () {
+		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.getMemRounds);
 	}
 
@@ -55,6 +56,7 @@ class RoundsRepository {
  	* @return {Promise}
  	*/
 	truncateBlocks (height) {
+		// TODO: This method must be in BlocksRepository, not here!
 		return this.db.none(sql.truncateBlocks, [height]);
 	}
 
@@ -64,7 +66,7 @@ class RoundsRepository {
  	* @param {string} outsiders - Comma separated string of ids
  	* @return {*}
  	*/
-	updateMissedBlocks  (backwards, outsiders) {
+	updateMissedBlocks (backwards, outsiders) {
 		return this.db.none(Queries.updateMissedBlocks(backwards), [outsiders]);
 	}
 
@@ -75,6 +77,7 @@ class RoundsRepository {
  	* @return {Promise}
  	*/
 	getVotes (round) {
+		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.getVotes, [round]);
 	}
 
@@ -105,7 +108,8 @@ class RoundsRepository {
  	* @param {int} activeDelegates - Number of active delegates
  	* @return {Promise}
  	*/
-	RoundsRepo.prototype.summedRound = function (round, activeDelegates) {
+	summedRound (round, activeDelegates) {
+		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.summedRound, [activeDelegates, round]);
 	}
 
@@ -155,7 +159,7 @@ class RoundsRepository {
  	*/
 	restoreVotesSnapshot () {
 		return this.db.none(sql.restoreVotesSnapshot);
-	}	
+	}
 }
 
 const Queries = {
