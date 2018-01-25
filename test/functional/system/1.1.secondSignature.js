@@ -39,7 +39,7 @@ describe('system test (type 1) - double second signature registrations', functio
 	});
 
 	it('adding to pool second signature registration should be ok', function (done) {
-		transaction1 = lisk.signature.createSignature(account.password, account.secondPassword, -1);
+		transaction1 = lisk.signature.createSignature(account.password, account.secondPassword, -10000);
 		localCommon.addTransaction(library, transaction1, function (err, res) {
 			expect(res).to.equal(transaction1.id);
 			done();
