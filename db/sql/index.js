@@ -20,7 +20,19 @@ module.exports = {
 		// sql to be included
 	},
 	blocks: {
-		// sql to be included
+		aggregateBlocksReward: load('blocks/aggregateBlocksReward.sql'),
+		count: load('blocks/count.sql'),
+		deleteBlock: load('blocks/deleteBlock.sql'),
+		getGenesisBlock: load('blocks/getGenesisBlock.sql'),
+		getGenesisBlockId: load('blocks/getGenesisBlockId.sql'),
+		getIdSequence: load('blocks/getIdSequence.sql'),
+		loadBlocksOffset: load('blocks/loadBlocksOffset.sql'),
+		loadLastBlock: load('blocks/loadLastBlock.sql'),
+		blockExists: load('blocks/blockExists.sql'),
+		deleteAfterBlock: load('blocks/deleteAfterBlock.sql'),
+		getBlocksForTransport: load('blocks/getBlocksForTransport.sql'),
+		getHeightByLastId: load('blocks/getHeightByLastId.sql'),
+		getCommonBlock: load('blocks/getCommonBlock.sql')
 	},
 	delegates: {
 		countDuplicatedDelegates: load('delegates/countDuplicatedDelegates.sql'),
