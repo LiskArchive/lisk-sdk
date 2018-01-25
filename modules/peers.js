@@ -60,7 +60,7 @@ function Peers (cb, scope) {
 		}
 	};
 	self = this;
-
+	self.consensus = scope.config.forging.force ? 100 : 0;
 	setImmediate(cb, null, self);
 }
 
