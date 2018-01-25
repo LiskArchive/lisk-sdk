@@ -131,9 +131,11 @@ VotersController.getVotes = function (context, next) {
 
 		data = _.cloneDeep(data);
 
-		if (_.isNull(data.username)) {
-			data.username = '';
-		}
+		data.votes.concat(data).forEach(function (entity) {
+			if (_.isNull(entity.username)) {
+				entity.username = '';
+			}
+		});
 
 		next(null, {
 			data: data,
