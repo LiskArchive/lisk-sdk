@@ -293,17 +293,18 @@ __private.dbSave = function (cb) {
 	}
 
 	// Wrap sql queries in transaction and execute
-	library.db.tx('modules:peers:dbSave', function (t) {
-		return t.peers.clear().then(function (value) {
-			return t.peers.insert(peers);
+	library.db.tx('modules:peers:dbSave', function * (t) {
+		yield t.peers.clear();
+		yield t.peers.insert(peers);
+	})
+		.then(() => {
+			library.logger.info('Peers exported to database');
+			return setImmediate(cb);
+		})
+		.catch(err => {
+			library.logger.error('Export peers to database failed', {error: err.message || err});
+			return setImmediate(cb);
 		});
-	}).then(function (data) {
-		library.logger.info('Peers exported to database');
-		return setImmediate(cb);
-	}).catch(function (err) {
-		library.logger.error('Export peers to database failed', {error: err.message || err});
-		return setImmediate(cb);
-	});
 };
 
 /**

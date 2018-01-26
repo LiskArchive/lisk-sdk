@@ -13,7 +13,9 @@
  */
 'use strict';
 
-var PQ = require('pg-promise').ParameterizedQuery;
+const sql = require('../sql').peers;
+
+const cs = {}; // Reusable ColumnSet objects
 
 /**
  * Peers database interaction module
@@ -22,53 +24,52 @@ var PQ = require('pg-promise').ParameterizedQuery;
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {PeersRepo}
+ * @return {PeersRepository}
  */
-function PeersRepo (db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class PeersRepository {
 
-	// Setup all ColumnSet objects, if needed:
-	this.dbTable = 'peers';
+	constructor (db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
 
-	var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-	this.cs = new pgp.helpers.ColumnSet([
-		'ip', 'wsPort', 'state', 'height', 'os', 'version', 'clock',
-		{name: 'broadhash', init: function (col) {
-			return col.value ? Buffer.from(col.value, 'hex') : null;
-		}}
-	], {table: table});
+		if(!cs.insert) {
+			cs.insert = new pgp.helpers.ColumnSet([
+				'ip', 'wsPort', 'state', 'height', 'os', 'version', 'clock',
+				{
+					name: 'broadhash', init: c => c.value ? Buffer.from(c.value, 'hex') : null
+				}
+			], {table: 'peers'});
+		}
+	}
+
+	/**
+	 * Gets all peers from database
+	 * @return {Promise<[]>}
+	 */
+	list () {
+		return this.db.any(sql.list);
+	}
+
+	/**
+	 * Clears all peers from database
+	 * @return {Promise<null>}
+	 */
+	clear () {
+		return this.db.none(sql.clear);
+	}
+
+	/**
+	 * Inserts a new peer into database
+	 *
+	 * @param {Array<Object>} peers
+	 * Array of peer objects to be inserted.
+	 *
+	 * @return {Promise<null>}
+	 */
+	insert (peers) {
+		return this.db.none(this.pgp.helpers.insert(peers, cs.insert));
+	}
+
 }
 
-var PeersSql = {
-	getAll: 'SELECT ip, "wsPort", state, os, version, ENCODE(broadhash, \'hex\') AS broadhash, height, clock FROM peers',
-
-	clear: 'DELETE FROM peers'
-};
-
-/**
- * Get all peers from database
- * @return {Promise}
- */
-PeersRepo.prototype.list = function () {
-	return this.db.any(PeersSql.getAll);
-};
-
-/**
- * Clear all peers from database
- * @return {Promise}
- */
-PeersRepo.prototype.clear = function () {
-	return this.db.any(PeersSql.clear);
-};
-
-/**
- * Insert a new peer to database
- * @param {Array<Object>} peers - Array of peer objects to be inserted. Objects can contain any of fields [PeersRepo's dbFields property]{@link PeersRepo#dbFields}
- * @return {Promise}
- */
-PeersRepo.prototype.insert = function (peers) {
-	return this.db.none(this.pgp.helpers.insert(peers, this.cs));
-};
-
-module.exports = PeersRepo;
+module.exports = PeersRepository;
