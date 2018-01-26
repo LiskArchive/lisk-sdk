@@ -322,12 +322,12 @@ class AccountsRepo {
 		const pgp = this.pgp;
 
 		let dynamicConditions = [];
-		if(filters.multisig) {
+		if(filters && filters.multisig) {
 			dynamicConditions.push(pgp.as.format('"multimin" > 0'));
 			delete filters.multisig;
 		}
 
-		if(Array.isArray(filters.address) && filters.address.length) {
+		if(filters && Array.isArray(filters.address) && filters.address.length) {
 			dynamicConditions.push(pgp.as.format('"address" IN ($1:csv)', [filters.address]));
 			delete filters.address;
 		}
@@ -345,9 +345,21 @@ class AccountsRepo {
 
 		// Apply sort only if provided
 		if(options.sortField) {
-			sortField = options.sortField;
-			sortMethod = options.sortMethod || 'DESC';
-			sql = sql + ' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
+
+			if(typeof options.sortField === 'string') {
+				sortField = options.sortField;
+				sortMethod = options.sortMethod || 'DESC';
+				sql = sql + ' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
+
+			// As per implementation of sort sortBy helper helpers/sort_by
+			} else if (Array.isArray(options.sortField) && options.sortField.length) {
+				let sortSQL = [];
+
+				options.sortField.map((field, index) => {
+					sortSQL.push(this.pgp.as.format('$1:name $2:raw', [field, options.sortMethod[index]]));
+				});
+				sql = sql + `ORDER BY ${sortSQL.join(', ')}`;
+			}
 		}
 
 		// Limit the result only if limit param is provided
