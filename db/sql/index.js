@@ -47,6 +47,10 @@ module.exports = {
 		getDelegatesByPublicKeys: link('delegates/getDelegatesByPublicKeys.sql'),
 		insertFork: link('delegates/insertFork.sql')
 	},
+	multisignatures: {
+		getMemberPublicKeys: link('multisignatures/getMemberPublicKeys.sql'),
+		getGroupIds: link('multisignatures/getGroupIds.sql')
+	},
 	peers: {
 		list: link('peers/list.sql'),
 		clear: link('peers/clear.sql')
