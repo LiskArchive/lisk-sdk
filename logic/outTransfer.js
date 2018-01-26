@@ -15,7 +15,7 @@
 
 var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
-var exceptions = require('../helpers/exceptions.js');
+var milestones = require('../helpers/milestones.js');
 
 // Private fields
 var modules, library, __private = {};
@@ -71,7 +71,7 @@ OutTransfer.prototype.calculateFee = function (transaction, sender) {
  */
 OutTransfer.prototype.verify = function (transaction, sender, cb) {
 	var lastBlock = modules.blocks.lastBlock.get();
-	if (lastBlock.height >= exceptions.blockHeightToDisableDappTransfers) {
+	if (lastBlock.height >= milestones.disableDappTransfers) {
 		return setImmediate(cb, 'Transaction type ' + transaction.type + ' is frozen');
 	}
 
