@@ -28,7 +28,7 @@ module.exports = {
 		getIdSequence: link('blocks/getIdSequence.sql'),
 		loadBlocksOffset: link('blocks/loadBlocksOffset.sql'),
 		loadLastBlock: link('blocks/loadLastBlock.sql'),
-		loadLastNBlock: link('blocks/loadLastNBlock.sql'),
+		loadLastNBlockIds: link('blocks/loadLastNBlockIds.sql'),
 		blockExists: link('blocks/blockExists.sql'),
 		deleteAfterBlock: link('blocks/deleteAfterBlock.sql'),
 		getBlocksForTransport: link('blocks/getBlocksForTransport.sql'),
