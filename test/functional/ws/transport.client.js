@@ -13,6 +13,7 @@
  */
 'use strict';
 
+require('../functional.js');
 var express = require('express');
 var randomstring = require('randomstring');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');

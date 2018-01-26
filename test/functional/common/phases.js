@@ -14,6 +14,7 @@
 'use strict';
 
 var Promise = require('bluebird');
+require('../functional.js');
 
 var apiHelpers = require('../../common/helpers/api');
 var waitFor = require('../../common/utils/waitFor');
