@@ -957,10 +957,6 @@ describe('transport', function () {
 					}
 				};
 
-				restoreRewiredDeps = TransportModule.__set__({
-					library: library
-				});
-
 				modules = {
 					peers: {
 						calculateConsensus: sinonSandbox.stub().returns(100)
@@ -985,53 +981,57 @@ describe('transport', function () {
 			done();
 		});
 
-		describe('poorConsensus', () => {
+		describe('poorConsensus', function () {
 
 			var isPoorConsensusResult;
 
-			describe('when library.config.forging.force is true', () => {
+			describe('when library.config.forging.force is true', function () {
 
-				beforeEach(done => {
+				beforeEach(function (done) {
 					library.config.forging.force = true;
 					isPoorConsensusResult = transportInstance.poorConsensus();
 					done();
 				});
 
-				it('should return false', () => {
+
+				it('should return false', function (done) {
 					expect(isPoorConsensusResult).to.be.false;
+					done();
 				});
 			});
 
-			describe('when library.config.forging.force is false', () => {
+			describe('when library.config.forging.force is false', function () {
 
-				beforeEach(done => {
+				beforeEach(function (done) {
 					library.config.forging.force = false;
 					done();
 				});
 
-				describe('when modules.peers.calculateConsensus() < constants.minBroadhashConsensus', () => {
+				describe('when modules.peers.calculateConsensus() < constants.minBroadhashConsensus', function () {
 
-					beforeEach(done => {
+					beforeEach(function (done) {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(50);
 						isPoorConsensusResult = transportInstance.poorConsensus();
 						done();
 					});
 
-					it('should return true', () => {
+					it('should return true', function (done) {
 						expect(isPoorConsensusResult).to.be.true;
+						done();
 					});
 				});
 
-				describe('when modules.peers.calculateConsensus() >= constants.minBroadhashConsensus', () => {
+				describe('when modules.peers.calculateConsensus() >= constants.minBroadhashConsensus', function () {
 
-					beforeEach(done => {
+					beforeEach(function (done) {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(51);
 						isPoorConsensusResult = transportInstance.poorConsensus();
 						done();
 					});
 
-					it('should return false', () => {
+					it('should return false', function (done) {
 						expect(isPoorConsensusResult).to.be.false;
+						done();
 					});
 				});
 			});
