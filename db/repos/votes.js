@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var PQ = require('pg-promise').ParameterizedQuery;
+const sql = require('../sql').votes;
 
 /**
  * Votes database interaction module
@@ -22,46 +22,44 @@ var PQ = require('pg-promise').ParameterizedQuery;
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {VotesRepo}
+ * @return {VotesRepository}
  */
-function VotesRepo (db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class VotesRepository {
 
-	this.sortFields = [
-		'username',
-		'address',
-		'publicKey'
-	];
+	constructor (db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
+
+		// TODO: A proper repository shouldn't need to export any properties like this:
+		this.sortFields = [
+			'username',
+			'address',
+			'publicKey'
+		];
+	}
+
+	/**
+	 * Searches votes for delegate with an address
+	 * @param {Object} params
+	 * @param {string} params.address
+	 * @param {int} params.limit
+	 * @param {int} params.offset
+	 * @return {Promise}
+	 */
+	list (params) {
+		// TODO: Should use a result-specific method, not .query
+		return this.db.query(sql.getVotes, params);
+	}
+
+	/**
+	 * Counts votes for a delegate with an address
+	 * @param {string} address
+	 * @return {Promise<number>}
+	 */
+	count (address) {
+		return this.db.one(sql.getVotesCount, address, a => +a.count);
+	}
+
 }
 
-var Queries = {
-	getVotes: new PQ('SELECT "dependentId" FROM mem_accounts2delegates WHERE "accountId" = $1 LIMIT $2 OFFSET $3'),
-
-	getVotesCount: new PQ('SELECT COUNT("dependentId") AS "votesCount" FROM mem_accounts2delegates WHERE "accountId" = $1')
-};
-
-/**
- * Search votes for delegate with an address
- * @param {Object} params
- * @param {string} params.address
- * @param {int} params.limit
- * @param {int} params.offset
- * @return {Promise}
- */
-VotesRepo.prototype.list = function (params) {
-	return this.db.query(Queries.getVotes, [params.address, params.limit, params.offset]);
-};
-
-/**
- * Count votes for a delegate with an address
- * @param {string} address
- * @return {Promise}
- */
-VotesRepo.prototype.count = function (address) {
-	return this.db.one(Queries.getVotesCount, [address]).then(function (result) {
-		return result.votesCount;
-	});
-};
-
-module.exports = VotesRepo;
+module.exports = VotesRepository;

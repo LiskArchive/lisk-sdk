@@ -227,7 +227,7 @@ function Account (db, schema, logger, cb) {
 			name: 'rank',
 			type: 'BigInt',
 			conv: Number,
-			expression: 'row_number() OVER (ORDER BY a."vote" DESC, a."publicKey" ASC)::int'
+			expression: '(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = a."address")::int'
 		},
 		{
 			name: 'rewards',
