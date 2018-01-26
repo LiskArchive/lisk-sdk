@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 'use strict';
+
 /**
- * @namespace exceptions
+ * @namespace milestones
  * @memberof module:helpers
  * @property {integer} disableDappTransfers
  */
