@@ -288,7 +288,7 @@ __private.receiveTransaction = function(
 
 /**
  * Returns true if broadcaster consensus is less than minBroadhashConsensus.
- * Returns false if consensus is undefined.
+ * Returns false if library.config.forging.force is true.
  * @return {boolean}
  */
 Transport.prototype.poorConsensus = function() {
