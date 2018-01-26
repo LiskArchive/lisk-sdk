@@ -225,7 +225,7 @@ __private.insertSeeds = function (cb) {
 		});
 	}, function (err) {
 		library.logger.trace('Peers->insertSeeds - Peers discovered', {updated: updated, total: library.config.peers.list.length});
-		return setImmediate(cb);
+		return setImmediate(cb, err);
 	});
 };
 
@@ -267,11 +267,11 @@ __private.dbLoad = function (cb) {
 			}
 		}, function (err) {
 			library.logger.trace('Peers->dbLoad Peers discovered', {updated: updated, total: rows.length});
-			return setImmediate(cb);
+			return setImmediate(cb, err);
 		});
 	}).catch(function (err) {
 		library.logger.error('Import peers from database failed', {error: err.message || err});
-		return setImmediate(cb);
+		return setImmediate(cb, err);
 	});
 };
 
@@ -303,7 +303,7 @@ __private.dbSave = function (cb) {
 		})
 		.catch(err => {
 			library.logger.error('Export peers to database failed', {error: err.message || err});
-			return setImmediate(cb);
+			return setImmediate(cb, err);
 		});
 };
 
