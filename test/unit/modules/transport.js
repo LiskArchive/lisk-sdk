@@ -108,7 +108,7 @@ describe('transport', function () {
 		done();
 	});
 
-	describe('Transport constructor', function () {
+	describe('constructor', function () {
 
 		describe('library', function () {
 
