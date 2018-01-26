@@ -101,8 +101,8 @@ OutTransfer.prototype.verify = function (transaction, sender, cb) {
  * @return {setImmediateCallback} errors messages | transaction
  */
 OutTransfer.prototype.process = function (transaction, sender, cb) {
-	library.db.dapps.countByTransactionId(transaction.asset.outTransfer.dappId).then(function (row) {
-		if (row.count === 0) {
+	library.db.dapps.countByTransactionId(transaction.asset.outTransfer.dappId).then(function (count) {
+		if (count === 0) {
 			return setImmediate(cb, 'Application not found: ' + transaction.asset.outTransfer.dappId);
 		}
 
@@ -110,8 +110,8 @@ OutTransfer.prototype.process = function (transaction, sender, cb) {
 			return setImmediate(cb, 'Transaction is already processed: ' + transaction.asset.outTransfer.transactionId);
 		}
 
-		library.db.dapps.countByOutTransactionId(transaction.asset.outTransfer.transactionId).then(function (row) {
-			if (row.count > 0) {
+		library.db.dapps.countByOutTransactionId(transaction.asset.outTransfer.transactionId).then(function (count) {
+			if (count > 0) {
 				return setImmediate(cb, 'Transaction is already confirmed: ' + transaction.asset.outTransfer.transactionId);
 			} else {
 				return setImmediate(cb, null, transaction);

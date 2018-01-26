@@ -80,8 +80,8 @@ InTransfer.prototype.verify = function (transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	(tx || library.db).dapps.countByTransactionId(transaction.asset.inTransfer.dappId).then(function (row) {
-		if (row.count === 0) {
+	(tx || library.db).dapps.countByTransactionId(transaction.asset.inTransfer.dappId).then(function (count) {
+		if (count === 0) {
 			return setImmediate(cb, 'Application not found: ' + transaction.asset.inTransfer.dappId);
 		} else {
 			return setImmediate(cb);

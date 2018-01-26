@@ -282,8 +282,8 @@ describe('outTransfer', function () {
 			describe('when dapp does not exist', function () {
 
 				beforeEach(function () {
-					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 0});
-					dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves({count: 0});
+					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves(0);
+					dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves(0);
 				});
 
 				it('should call callback with error', function (done) {
@@ -297,8 +297,8 @@ describe('outTransfer', function () {
 			describe('when dapp exists', function () {
 
 				beforeEach(function () {
-					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 1});
-					dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves({count: 1});
+					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves(1);
+					dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves(1);
 				});
 
 				describe('when unconfirmed out transfer exists', function () {
@@ -364,7 +364,7 @@ describe('outTransfer', function () {
 						describe('when confirmed outTransfer transaction exists', function () {
 
 							beforeEach(function () {
-								dbStub.dapps.countByOutTransactionId.withArgs(transaction.id).resolves({count: 1});
+								dbStub.dapps.countByOutTransactionId.withArgs(transaction.id).resolves(1);
 							});
 
 							it('should call callback with error', function (done) {
@@ -378,8 +378,8 @@ describe('outTransfer', function () {
 						describe('when confirmed outTransfer transaction does not exist', function () {
 
 							beforeEach(function () {
-								dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 1});
-								dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves({count: 0});
+								dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves(1);
+								dbStub.dapps.countByOutTransactionId = sinonSandbox.stub().resolves(0);
 							});
 
 							it('should call callback with error = null', function (done) {

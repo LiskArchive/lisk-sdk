@@ -290,7 +290,7 @@ describe('inTransfer', function () {
 			describe('when dapp does not exist', function () {
 
 				beforeEach(function () {
-					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 0});
+					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves(0);
 				});
 
 				it('should call callback with error', function (done) {
@@ -304,7 +304,7 @@ describe('inTransfer', function () {
 			describe('when dapp exists', function () {
 
 				beforeEach(function () {
-					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves({count: 1});
+					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves(1);
 				});
 
 				it('should call callback with error = undefined', function (done) {
@@ -514,7 +514,7 @@ describe('inTransfer', function () {
 				expect(accountsStub.mergeAccountAndGet.calledWith(sinonSandbox.match({round: slots.calcRound(dummyBlock.height)}))).to.be.true;
 			});
 		});
-		
+
 		describe('when modules.accounts.mergeAccountAndGet fails', function () {
 
 			beforeEach(function () {
