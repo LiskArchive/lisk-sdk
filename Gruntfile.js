@@ -63,7 +63,9 @@ module.exports = function (grunt) {
 						util.format('cp %s/genesisBlock.json %s', __dirname, version_dir),
 						util.format('cp %s/LICENSE %s', __dirname, version_dir),
 						util.format('mkdir -p %s/sql', version_dir),
-						util.format('cp -r %s/db/sql %s/sql/', __dirname, version_dir) // TODO: Make it skip non-SQL files
+						// The following two lines will copy all SQL files, preserving the folder structure:
+						util.format('find %s/db/sql -type d | sed "s|^.*/db/sql||" | xargs -I {} mkdir -p %s/sql{}', __dirname, version_dir),
+						util.format('find %s/db/sql -type f -name "*.sql" | sed "s|^.*/db/sql||" | xargs -I {} cp %s/db/sql{} %s/sql{}', __dirname, __dirname, version_dir)
 					].join(' && ');
 				}
 			},
