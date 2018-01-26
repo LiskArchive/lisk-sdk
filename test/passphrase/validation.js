@@ -233,7 +233,7 @@ describe('passphrase validation', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
-			it('should return the amount of uppercase character', () => {
+			it('should return the number of uppercase characters', () => {
 				const uppercased = countUppercaseCharacters(passphrase);
 				return uppercased.should.be.equal(expectedAmountUppercaseCharacter);
 			});
@@ -264,14 +264,14 @@ describe('passphrase validation', () => {
 	});
 
 	describe('validatePassphrase', () => {
-		const passphraseIsValid = [];
+		const emptyErrorArray = [];
 
 		describe('given a valid passphrase', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
-			it('should return an array without the errors', () => {
-				return validatePassphrase(passphrase).should.be.eql(passphraseIsValid);
+			it('should return an empty array', () => {
+				return validatePassphrase(passphrase).should.be.eql(emptyErrorArray);
 			});
 		});
 
@@ -279,33 +279,33 @@ describe('passphrase validation', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge actor';
 
-			const passphraseTooManyWordsError = [
+			const passphraseTooManyWordsErrors = [
 				{
 					code: 'INVALID_AMOUNT_OF_WORDS',
 					message:
 						'Passphrase contains 13 words instead of expected 12. Please check the passphrase.',
 					expected: 12,
-					has: 13,
+					actual: 13,
 				},
 				{
 					code: 'INVALID_AMOUNT_OF_WHITESPACES',
 					message:
 						'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.',
 					expected: 11,
-					has: 12,
+					actual: 12,
 				},
 				{
 					code: 'INVALID_MNEMONIC',
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 					expected: true,
-					has: false,
+					actual: false,
 				},
 			];
 
 			it('should return the array with the errors', () => {
 				return validatePassphrase(passphrase).should.be.eql(
-					passphraseTooManyWordsError,
+					passphraseTooManyWordsErrors,
 				);
 			});
 		});
@@ -319,21 +319,21 @@ describe('passphrase validation', () => {
 					message:
 						'Passphrase contains 11 words instead of expected 12. Please check the passphrase.',
 					expected: 12,
-					has: 11,
+					actual: 11,
 				},
 				{
 					code: 'INVALID_AMOUNT_OF_WHITESPACES',
 					message:
 						'Passphrase contains 10 whitespaces instead of expected 11. Please check the passphrase.',
 					expected: 11,
-					has: 10,
+					actual: 10,
 				},
 				{
 					code: 'INVALID_MNEMONIC',
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 					expected: true,
-					has: false,
+					actual: false,
 				},
 			];
 
@@ -353,14 +353,14 @@ describe('passphrase validation', () => {
 					message:
 						'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.',
 					expected: 11,
-					has: 12,
+					actual: 12,
 				},
 				{
 					code: 'INVALID_MNEMONIC',
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 					expected: true,
-					has: false,
+					actual: false,
 				},
 			];
 
@@ -380,14 +380,14 @@ describe('passphrase validation', () => {
 					message:
 						'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.',
 					expected: 11,
-					has: 12,
+					actual: 12,
 				},
 				{
 					code: 'INVALID_MNEMONIC',
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 					expected: true,
-					has: false,
+					actual: false,
 				},
 			];
 
@@ -407,14 +407,14 @@ describe('passphrase validation', () => {
 					message:
 						'Passphrase contains 13 whitespaces instead of expected 11. Please check the passphrase.',
 					expected: 11,
-					has: 13,
+					actual: 13,
 				},
 				{
 					code: 'INVALID_MNEMONIC',
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 					expected: true,
-					has: false,
+					actual: false,
 				},
 			];
 
@@ -434,14 +434,14 @@ describe('passphrase validation', () => {
 					message:
 						'Passphrase contains 3 uppercase character instead of expected 0. Please check the passphrase.',
 					expected: 0,
-					has: 3,
+					actual: 3,
 				},
 				{
 					code: 'INVALID_MNEMONIC',
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 					expected: true,
-					has: false,
+					actual: false,
 				},
 			];
 
@@ -461,7 +461,7 @@ describe('passphrase validation', () => {
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 					expected: true,
-					has: false,
+					actual: false,
 				},
 			];
 
@@ -477,9 +477,9 @@ describe('passphrase validation', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
-			it('should return the array without the error', () => {
+			it('should return an empty array', () => {
 				return validatePassphrase(passphrase, wordlist).should.be.eql(
-					passphraseIsValid,
+					emptyErrorArray,
 				);
 			});
 		});
@@ -494,7 +494,7 @@ describe('passphrase validation', () => {
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 					expected: true,
-					has: false,
+					actual: false,
 				},
 			];
 

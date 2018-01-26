@@ -30,7 +30,7 @@ export const countUppercaseCharacters = passphrase => {
 export const validatePassphrase = (passphrase, wordlist) => {
 	const expectedWords = 12;
 	const expectedWhitespaces = 11;
-	const expectedUppercaseCharacter = 0;
+	const expectedUppercaseCharacterCount = 0;
 	const wordsInPassphrase = countPassphraseWords(passphrase);
 	const whiteSpacesInPassphrase = countPassphraseWhitespaces(passphrase);
 	const uppercaseCharacterInPassphrase = countUppercaseCharacters(passphrase);
@@ -41,7 +41,7 @@ export const validatePassphrase = (passphrase, wordlist) => {
 			code: 'INVALID_AMOUNT_OF_WORDS',
 			message: `Passphrase contains ${wordsInPassphrase} words instead of expected ${expectedWords}. Please check the passphrase.`,
 			expected: expectedWords,
-			has: wordsInPassphrase,
+			actual: wordsInPassphrase,
 		};
 		errors.push(passphraseWordError);
 	}
@@ -51,17 +51,17 @@ export const validatePassphrase = (passphrase, wordlist) => {
 			code: 'INVALID_AMOUNT_OF_WHITESPACES',
 			message: `Passphrase contains ${whiteSpacesInPassphrase} whitespaces instead of expected ${expectedWhitespaces}. Please check the passphrase.`,
 			expected: expectedWhitespaces,
-			has: whiteSpacesInPassphrase,
+			actual: whiteSpacesInPassphrase,
 		};
 		errors.push(whiteSpaceError);
 	}
 
-	if (uppercaseCharacterInPassphrase !== expectedUppercaseCharacter) {
+	if (uppercaseCharacterInPassphrase !== expectedUppercaseCharacterCount) {
 		const uppercaseCharacterError = {
 			code: 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER',
-			message: `Passphrase contains ${uppercaseCharacterInPassphrase} uppercase character instead of expected ${expectedUppercaseCharacter}. Please check the passphrase.`,
-			expected: expectedUppercaseCharacter,
-			has: uppercaseCharacterInPassphrase,
+			message: `Passphrase contains ${uppercaseCharacterInPassphrase} uppercase character instead of expected ${expectedUppercaseCharacterCount}. Please check the passphrase.`,
+			expected: expectedUppercaseCharacterCount,
+			actual: uppercaseCharacterInPassphrase,
 		};
 		errors.push(uppercaseCharacterError);
 	}
@@ -77,7 +77,7 @@ export const validatePassphrase = (passphrase, wordlist) => {
 			message:
 				'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 			expected: true,
-			has: false,
+			actual: false,
 		};
 		errors.push(validationError);
 	}
