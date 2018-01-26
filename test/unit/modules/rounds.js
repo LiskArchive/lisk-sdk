@@ -775,7 +775,7 @@ describe('rounds', function () {
 
 			describe('when (block.height+1) % slots.delegates === 0', function () {
 
-				describe('when there is no error form queries', function () {
+				describe('when queries are successful', function () {
 
 					var res;
 
@@ -826,7 +826,7 @@ describe('rounds', function () {
 					});
 				});
 
-				describe('when query clearRoundSnapshot fails', function () {
+				describe('when clearRoundSnapshot query fails', function () {
 
 					var res;
 
@@ -878,7 +878,7 @@ describe('rounds', function () {
 					});
 				});
 
-				describe('when query performRoundSnapshot fails', function () {
+				describe('when performRoundSnapshot query fails', function () {
 
 					var res;
 
@@ -930,7 +930,7 @@ describe('rounds', function () {
 					});
 				});
 
-				describe('when query clearVotesSnapshot fails', function () {
+				describe('when clearVotesSnapshot query fails', function () {
 
 					var res;
 
@@ -982,7 +982,7 @@ describe('rounds', function () {
 					});
 				});
 
-				describe('when query performVotesSnapshot fails', function () {
+				describe('when performVotesSnapshot query fails', function () {
 
 					var res;
 
