@@ -13,6 +13,7 @@
  */
 'use strict';
 
+require('../../functional.js');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/helpers/api');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;

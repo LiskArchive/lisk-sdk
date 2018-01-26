@@ -13,6 +13,7 @@
  */
 'use strict';
 
+require('../functional.js');
 var Promise = require('bluebird');
 
 var apiHelpers = require('../../common/helpers/api');
