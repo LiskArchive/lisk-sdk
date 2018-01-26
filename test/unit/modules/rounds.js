@@ -466,10 +466,6 @@ describe('rounds', function () {
 			truncateBlocks_stub.resetHistory();
 			sumRound_stub.resetHistory();
 			getOutsiders_stub.resetHistory();
-			clearRoundSnapshot_stub.resetHistory();
-			performRoundSnapshot_stub.resetHistory();
-			clearVotesSnapshot_stub.resetHistory();
-			performVotesSnapshot_stub.resetHistory();
 		};
 
 		before(function () {
@@ -485,18 +481,6 @@ describe('rounds', function () {
 			// Set more stubs
 			set('__private.sumRound', sumRound_stub);
 			set('__private.getOutsiders', getOutsiders_stub);
-			clearRoundSnapshot_stub = sinon.stub(db.rounds, 'clearRoundSnapshot').resolves();
-			performRoundSnapshot_stub = sinon.stub(db.rounds, 'performRoundSnapshot').resolves();
-			clearVotesSnapshot_stub = sinon.stub(db.rounds, 'clearVotesSnapshot').resolves();
-			performVotesSnapshot_stub = sinon.stub(db.rounds, 'performVotesSnapshot').resolves();
-		});
-
-		after(function () {
-			// Clear stubs
-			clearRoundSnapshot_stub.restore();
-			performRoundSnapshot_stub.restore();
-			clearVotesSnapshot_stub.restore();
-			performVotesSnapshot_stub.restore();
 		});
 
 		describe('testing branches', function () {
@@ -782,42 +766,272 @@ describe('rounds', function () {
 
 		describe('performing round snapshot (queries)', function () {
 
-			var bus;
-
-			before(function () {
-				bus = get('library.bus.message');
-				bus.reset();
-			});
+			function clearStubs () {
+				clearRoundSnapshot_stub.restore();
+				performRoundSnapshot_stub.restore();
+				clearVotesSnapshot_stub.restore();
+				performVotesSnapshot_stub.restore();
+			}
 
 			describe('when (block.height+1) % slots.delegates === 0', function () {
 
-				before(function (done) {
-					block = {height: 100};
-					rounds.tick(block, function (err) {
-						expect(err).to.not.exist;
-						done();
+				describe('when queries are successful', function () {
+
+					var res;
+
+					before(function (done) {
+						// Init fake round logic
+						function Round (__scope, __t) {
+							roundScope = __scope;
+
+							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
+							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
+							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
+							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+						}
+						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+						Round.prototype.land = land_stub;
+						Round.prototype.truncateBlocks = truncateBlocks_stub;
+						Rounds.__set__('Round', Round);
+
+						block = {height: 100};
+						rounds.tick(block, function (err) {
+							res = err;
+							done();
+						});
+					});
+
+					after(function () {
+						clearStubs();
+					});
+
+					it('should result with no error', function () {
+						expect(res).to.not.exist;
+					});
+
+					it('clearRoundSnapshot query should be called once', function () {
+						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('performRoundSnapshot query should be called once', function () {
+						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('clearVotesSnapshot query should be called once', function () {
+						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('performVotesSnapshot query should be called once', function () {
+						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 				});
 
-				after(function () {
-					resetStubsHistory();
-					bus.reset();
+				describe('when clearRoundSnapshot query fails', function () {
+
+					var res;
+
+					before(function (done) {
+						// Init fake round logic
+						function Round (__scope, __t) {
+							roundScope = __scope;
+
+							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').rejects('clearRoundSnapshot');
+							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
+							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
+							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+						}
+						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+						Round.prototype.land = land_stub;
+						Round.prototype.truncateBlocks = truncateBlocks_stub;
+						Rounds.__set__('Round', Round);
+
+						block = {height: 100};
+						rounds.tick(block, function (err) {
+							res = err;
+							done();
+						});
+					});
+
+					after(function () {
+						clearStubs();
+					});
+
+					it('should result with BatchError and first error = fail', function () {
+						expect(res.name).to.equal('BatchError');
+						expect(res.first.name).to.equal('clearRoundSnapshot');
+					});
+
+					it('clearRoundSnapshot query should be called once', function () {
+						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('performRoundSnapshot query should be called once', function () {
+						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('clearVotesSnapshot query should be called once', function () {
+						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('performVotesSnapshot query should be called once', function () {
+						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+					});
 				});
 
-				it('clearRoundSnapshot query should be called once', function () {
-					expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
+				describe('when performRoundSnapshot query fails', function () {
+
+					var res;
+
+					before(function (done) {
+						// Init fake round logic
+						function Round (__scope, __t) {
+							roundScope = __scope;
+
+							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
+							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').rejects('performRoundSnapshot');
+							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
+							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+						}
+						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+						Round.prototype.land = land_stub;
+						Round.prototype.truncateBlocks = truncateBlocks_stub;
+						Rounds.__set__('Round', Round);
+
+						block = {height: 100};
+						rounds.tick(block, function (err) {
+							res = err;
+							done();
+						});
+					});
+
+					after(function () {
+						clearStubs();
+					});
+
+					it('should result with BatchError and first error = fail', function () {
+						expect(res.name).to.equal('BatchError');
+						expect(res.first.name).to.equal('performRoundSnapshot');
+					});
+
+					it('clearRoundSnapshot query should be called once', function () {
+						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('performRoundSnapshot query should be called once', function () {
+						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('clearVotesSnapshot query should be called once', function () {
+						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('performVotesSnapshot query should be called once', function () {
+						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+					});
 				});
 
-				it('performRoundSnapshot query should be called once', function () {
-					expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+				describe('when clearVotesSnapshot query fails', function () {
+
+					var res;
+
+					before(function (done) {
+						// Init fake round logic
+						function Round (__scope, __t) {
+							roundScope = __scope;
+
+							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
+							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
+							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').rejects('clearVotesSnapshot');
+							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+						}
+						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+						Round.prototype.land = land_stub;
+						Round.prototype.truncateBlocks = truncateBlocks_stub;
+						Rounds.__set__('Round', Round);
+
+						block = {height: 100};
+						rounds.tick(block, function (err) {
+							res = err;
+							done();
+						});
+					});
+
+					after(function () {
+						clearStubs();
+					});
+
+					it('should result with BatchError and first error = fail', function () {
+						expect(res.name).to.equal('BatchError');
+						expect(res.first.name).to.equal('clearVotesSnapshot');
+					});
+
+					it('clearRoundSnapshot query should be called once', function () {
+						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('performRoundSnapshot query should be called once', function () {
+						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('clearVotesSnapshot query should be called once', function () {
+						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('performVotesSnapshot query should be called once', function () {
+						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+					});
 				});
 
-				it('clearVotesSnapshot query should be called once', function () {
-					expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
-				});
+				describe('when performVotesSnapshot query fails', function () {
 
-				it('performVotesSnapshot query should be called once', function () {
-					expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+					var res;
+
+					before(function (done) {
+						// Init fake round logic
+						function Round (__scope, __t) {
+							roundScope = __scope;
+
+							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
+							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
+							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
+							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').rejects('performVotesSnapshot');
+						}
+						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+						Round.prototype.land = land_stub;
+						Round.prototype.truncateBlocks = truncateBlocks_stub;
+						Rounds.__set__('Round', Round);
+
+						block = {height: 100};
+						rounds.tick(block, function (err) {
+							res = err;
+							done();
+						});
+					});
+
+					after(function () {
+						clearStubs();
+					});
+
+					it('should result with BatchError and first error = fail', function () {
+						expect(res.name).to.equal('BatchError');
+						expect(res.first.name).to.equal('performVotesSnapshot');
+					});
+
+					it('clearRoundSnapshot query should be called once', function () {
+						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('performRoundSnapshot query should be called once', function () {
+						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('clearVotesSnapshot query should be called once', function () {
+						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
+					});
+
+					it('performVotesSnapshot query should be called once', function () {
+						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+					});
 				});
 			});
 
@@ -833,22 +1047,21 @@ describe('rounds', function () {
 
 				after(function () {
 					resetStubsHistory();
-					bus.reset();
 				});
 
-				it('clearRoundSnapshot query should be called once', function () {
+				it('clearRoundSnapshot query should be not called', function () {
 					expect(clearRoundSnapshot_stub.calledOnce).to.be.false;
 				});
 
-				it('performRoundSnapshot query should be called once', function () {
+				it('performRoundSnapshot query should be not called', function () {
 					expect(performRoundSnapshot_stub.calledOnce).to.be.false;
 				});
 
-				it('clearVotesSnapshot query should be called once', function () {
+				it('clearVotesSnapshot query should be not called', function () {
 					expect(clearVotesSnapshot_stub.calledOnce).to.be.false;
 				});
 
-				it('performVotesSnapshot query should be called once', function () {
+				it('performVotesSnapshot query should be not called', function () {
 					expect(performVotesSnapshot_stub.calledOnce).to.be.false;
 				});
 			});
