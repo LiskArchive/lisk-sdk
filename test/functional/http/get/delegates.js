@@ -21,6 +21,7 @@ var genesisDelegates = require('../../../data/genesis_delegates.json');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
+var slots = require('../../../../helpers/slots');
 
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
@@ -105,7 +106,7 @@ describe('GET /delegates', function () {
 				});
 			});
 
-			it.only('using no secondPublicKey should return an empty array', function () {
+			it('using no secondPublicKey should return an empty array', function () {
 				return delegatesEndpoint.makeRequest({secondPublicKey: ''}, 200).then(function (res) {
 					expect(res.body.data).to.be.empty;
 				});
@@ -406,6 +407,95 @@ describe('GET /delegates', function () {
 			it('every forger nextSlot should be greater than currentSlot', function () {
 				forgersData.data.forEach(function (forger) {
 					expect(forgersData.meta.currentSlot).to.be.at.most(forger.nextSlot);
+				});
+			});
+		});
+	});
+
+	describe('GET /{publicKey}/forged', function () {
+
+		var forgedEndpoint = new swaggerEndpoint('GET /delegates/{publicKey}/forged');
+
+		describe('publicKey', function () {
+
+			it('using known address should be ok', function () {
+				return forgedEndpoint.makeRequest({ publicKey: validDelegate.publicKey }, 200).then(function (res) {
+					var group = res.body.data;
+					expect(parseInt(group.fees)).to.be.at.least(0);
+					expect(parseInt(group.rewards)).to.be.at.least(0);
+					expect(parseInt(group.forged)).to.be.at.least(0);
+					expect(parseInt(group.count)).to.be.at.least(0);
+				});
+			});
+
+			it('using unknown publicKey should return empty result', function () {
+				return forgedEndpoint.makeRequest({ publicKey: randomUtil.account().publicKey }, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
+				});
+			});
+
+			it('using invalid publicKey should fail', function () {
+				return forgedEndpoint.makeRequest({ publicKey: 'InvalidPublicKey' }, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
+				});
+			});
+
+			it('using empty publicKey should fail', function () {
+				return forgedEndpoint.makeRequest({ address: ' ' }, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
+				});
+			});
+
+			it('using null publicKey should fail', function () {
+				return forgedEndpoint.makeRequest({ address: null }, 400).then(function (res) {
+					expectSwaggerParamError(res, 'publicKey');
+				});
+			});
+
+			describe('?', function () {
+
+				describe('fromTimestamp', function () {
+
+					it('using too small fromTimestamp should fail', function () {
+						return forgedEndpoint.makeRequest({ publicKey: validDelegate.publicKey, fromTimestamp: -1 }, 400).then(function (res) {
+							expectSwaggerParamError(res, 'fromTimestamp');
+						});
+					});
+
+					it('using valid fromTimestamp should return transactions', function () {
+						// Last hour lisk time
+						var queryTime = slots.getTime() - 60 * 60;
+
+						return forgedEndpoint.makeRequest({ publicKey: validDelegate.publicKey, fromTimestamp: queryTime }, 200).then(function (res) {
+							var group = res.body.data;
+							expect(parseInt(group.fees)).to.be.at.least(0);
+							expect(parseInt(group.rewards)).to.be.at.least(0);
+							expect(parseInt(group.forged)).to.be.at.least(0);
+							expect(parseInt(group.count)).to.be.at.least(0);
+						});
+					});
+				});
+
+				describe('toTimestamp', function () {
+
+					it('using too small toTimestamp should fail', function () {
+						return forgedEndpoint.makeRequest({ publicKey: validDelegate.publicKey, toTimestamp: 0 }, 400).then(function (res) {
+							expectSwaggerParamError(res, 'toTimestamp');
+						});
+					});
+
+					it('using valid toTimestamp should return transactions', function () {
+						// Current lisk time
+						var queryTime = slots.getTime();
+
+						return forgedEndpoint.makeRequest({ publicKey: validDelegate.publicKey, toTimestamp: queryTime }, 200).then(function (res) {
+							var group = res.body.data;
+							expect(parseInt(group.fees)).to.be.at.least(0);
+							expect(parseInt(group.rewards)).to.be.at.least(0);
+							expect(parseInt(group.forged)).to.be.at.least(0);
+							expect(parseInt(group.count)).to.be.at.least(0);
+						});
+					});
 				});
 			});
 		});

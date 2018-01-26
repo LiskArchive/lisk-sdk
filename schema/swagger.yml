@@ -1795,8 +1795,8 @@ definitions:
         type: string
         example: "65000000"
       count:
-        type: integer
-        example: 20131
+        type: string
+        example: "100"
 
   Dapp:
     type: object

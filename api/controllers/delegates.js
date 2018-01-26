@@ -117,7 +117,7 @@ DelegatesController.getForgedByAccount = function (context, next) {
 	modules.blocks.utils.aggregateBlocksReward(filters, function (err, reward) {
 		if (err) { 
 			if (err === 'Account not found or is not a delegate') {
-				return next(swaggerHelper.generateParamsErrorObject(['publicKey']));
+				return next(swaggerHelper.generateParamsErrorObject([params.publicKey], ['Account not found or is not a delegate']));
 			} else {
 				return next(err); 
 			}
