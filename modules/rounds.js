@@ -228,7 +228,7 @@ Rounds.prototype.tick = function (block, done) {
 			}
 		}).then(function () {
 			// Check if we are one block before last block of round, if yes - perform round snapshot
-			if ((block.height+1) % slots.delegates === 0) {
+			if ((block.height + 1) % slots.delegates === 0) {
 				library.logger.debug('Performing round snapshot...');
 
 				return t.batch([
