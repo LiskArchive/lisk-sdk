@@ -32,7 +32,7 @@ class PeersRepository {
 		this.db = db;
 		this.pgp = pgp;
 
-		if(!cs.insert) {
+		if (!cs.insert) {
 			cs.insert = new pgp.helpers.ColumnSet([
 				'ip', 'wsPort', 'state', 'height', 'os', 'version', 'clock',
 				{
