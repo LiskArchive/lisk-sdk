@@ -894,6 +894,9 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#checkReDial', function () {
+		var secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
+		var recipient = '10279923186189318946L';
+		var amount = 100000000;
 
 		it('should check if all the peers are already banned', function () {
 			(lisk.api().checkReDial()).should.be.equal(true);
