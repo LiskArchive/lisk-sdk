@@ -61,9 +61,7 @@ class PeersRepository {
 	/**
 	 * Inserts a new peer into database
 	 *
-	 * @param {Array<Object>} peers
-	 * Array of peer objects to be inserted.
-	 *
+	 * @param {Array<Object>} peers - Array of peer objects to be inserted.
 	 * @return {Promise<null>}
 	 */
 	insert (peers) {
