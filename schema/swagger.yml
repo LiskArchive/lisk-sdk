@@ -16,7 +16,7 @@ swagger: '2.0'
 info:
   description: Lisk API Documentation
   title: Lisk API Documentation
-  version: '1.0.21'
+  version: '1.0.22'
   contact:
     email: admin@lisk.io
   license:
