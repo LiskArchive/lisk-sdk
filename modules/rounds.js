@@ -17,6 +17,7 @@ var async = require('async');
 var constants = require('../helpers/constants.js');
 var Round = require('../logic/round.js');
 var slots = require('../helpers/slots.js');
+var Promise = require('bluebird');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -226,6 +227,23 @@ Rounds.prototype.tick = function (block, done) {
 					}
 				});
 			}
+		}).then(function () {
+			// Check if we are one block before last block of round, if yes - perform round snapshot
+			if ((block.height+1) % slots.delegates === 0) {
+				library.logger.debug('Performing round snapshot...');
+
+				return t.batch([
+					t.rounds.clearRoundSnapshot(),
+					t.rounds.performRoundSnapshot(),
+					t.rounds.clearVotesSnapshot(),
+					t.rounds.performVotesSnapshot()
+				]).then(function () {
+					library.logger.trace('Round snapshot done');
+				}).catch(function (err) {
+					library.logger.error('Round snapshot failed', err);
+					return Promise.reject(err);
+				});
+			}
 		});
 	}
 
@@ -257,30 +275,6 @@ Rounds.prototype.tick = function (block, done) {
 				library.logger.error(err.stack);
 				return setImmediate(cb, err);
 			});
-		},
-		function (cb) {
-			// Check if we are one block before last block of round, if yes - perform round snapshot
-			if ((block.height+1) % slots.delegates === 0) {
-				library.logger.debug('Performing round snapshot...');
-
-				library.db.tx(function (t) {
-					return t.batch([
-						library.db.rounds.clearRoundSnapshot(),
-						library.db.rounds.performRoundSnapshot(),
-						library.db.rounds.clearVotesSnapshot(),
-						library.db.rounds.performVotesSnapshot()
-					]);
-				}).then(function () {
-					library.logger.trace('Round snapshot done');
-					return setImmediate(cb);
-				}).catch(function (err) {
-					library.logger.error('Round snapshot failed', err);
-					return setImmediate(cb, err);
-				});
-			} else {
-				return setImmediate(cb);
-			}
-
 		}
 	], function (err) {
 		// Stop round ticking
