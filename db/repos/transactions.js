@@ -286,12 +286,12 @@ TransactionsRepo.prototype.save = function (transactions) {
 	// In order to avoid nested transactions, aka savepoints, we need to walk up the task chain,
 	// and see if there is any task above us that's a transaction:
 	let insideTransaction, ctx = this.db.ctx;
-	while(ctx && !insideTransaction) {
+	while (ctx && !insideTransaction) {
 		insideTransaction = ctx.isTX;
 		ctx = ctx.parent;
 	}
 
-	if(this.db.ctx && insideTransaction) {
+	if (this.db.ctx && insideTransaction) {
 		return this.db.batch(batch);
 	} else {
 		return this.db.tx(function (t) {
