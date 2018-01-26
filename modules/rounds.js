@@ -17,7 +17,6 @@ var async = require('async');
 var constants = require('../helpers/constants.js');
 var Round = require('../logic/round.js');
 var slots = require('../helpers/slots.js');
-var Promise = require('bluebird');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -241,7 +240,7 @@ Rounds.prototype.tick = function (block, done) {
 					library.logger.trace('Round snapshot done');
 				}).catch(function (err) {
 					library.logger.error('Round snapshot failed', err);
-					return Promise.reject(err);
+					throw err;
 				});
 			}
 		});
