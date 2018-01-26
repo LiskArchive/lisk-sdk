@@ -942,7 +942,7 @@ describe('Lisk.api()', function () {
 			var thisLSK = lisk.api();
 			thisLSK.currentPeer = '';
 
-			thisLSK.sendLSK('123', 10, '1235', null, function (e) {
+			thisLSK.sendLSK(recipient, amount, secret, null, function (e) {
 				(e.message).should.be.equal('could not create http request. Please try again.');
 				done();
 			});
@@ -952,7 +952,7 @@ describe('Lisk.api()', function () {
 			var thisLSK = lisk.api();
 			thisLSK.currentPeer = '';
 			const options = {
-				'secret': '123',
+				'secret': secret,
 				'secendSecret': null,
 				'lifetime': 5,
 				'min': 5,
