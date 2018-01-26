@@ -591,7 +591,7 @@ describe('rounds', function () {
 	describe('applyRound', function () {
 
 		var res;
-		var none_stub;
+		var batch_stub;
 		var scope;
 
 		function sumChanges (forward, backwards) {
@@ -628,10 +628,6 @@ describe('rounds', function () {
 			});
 			return results;
 		};
-
-		before(function () {
-			none_stub = sinonSandbox.stub(db, 'none').returns(Promise.resolve('success'));
-		});
 
 		describe.skip('with no delegates', function () {
 
@@ -695,7 +691,9 @@ describe('rounds', function () {
 					var called = 0;
 
 					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = false;
 							round = new Round(_.cloneDeep(scope), t);
@@ -706,7 +704,7 @@ describe('rounds', function () {
 					it('query should be called', function () {
 						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
+							expect(batch_stub.called).to.be.true;
 						});
 					});
 
@@ -739,7 +737,9 @@ describe('rounds', function () {
 					var called = 0;
 
 					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = true;
 							round = new Round(_.cloneDeep(scope), t);
@@ -750,7 +750,7 @@ describe('rounds', function () {
 					it('query should be called', function () {
 						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
+							expect(batch_stub.called).to.be.true;
 						});
 					});
 
@@ -827,18 +827,20 @@ describe('rounds', function () {
 					var called = 0;
 
 					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = false;
 							round = new Round(_.cloneDeep(scope), t);
-							res = round.land();
+							res = round.applyRound();
 						});
 					});
 
 					it('query should be called', function () {
 						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
+							expect(batch_stub.called).to.be.true;
 						});
 					});
 
@@ -890,7 +892,9 @@ describe('rounds', function () {
 					var called = 0;
 
 					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = true;
 							round = new Round(_.cloneDeep(scope), t);
@@ -901,7 +905,7 @@ describe('rounds', function () {
 					it('query should be called', function () {
 						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
+							expect(batch_stub.called).to.be.true;
 						});
 					});
 
@@ -1005,7 +1009,9 @@ describe('rounds', function () {
 					var called = 0;
 
 					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = false;
 							round = new Round(_.cloneDeep(scope), t);
@@ -1016,7 +1022,7 @@ describe('rounds', function () {
 					it('query should be called', function () {
 						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
+							expect(batch_stub.called).to.be.true;
 						});
 					});
 
@@ -1087,7 +1093,9 @@ describe('rounds', function () {
 					var called = 0;
 
 					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = true;
 							round = new Round(_.cloneDeep(scope), t);
@@ -1095,12 +1103,10 @@ describe('rounds', function () {
 						});
 					});
 
-
-
 					it('query should be called', function () {
 						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
+							expect(batch_stub.called).to.be.true;
 						});
 					});
 
@@ -1220,7 +1226,9 @@ describe('rounds', function () {
 					var called = 0;
 
 					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = false;
 							round = new Round(_.cloneDeep(scope), t);
@@ -1233,7 +1241,7 @@ describe('rounds', function () {
 					it('query should be called', function () {
 						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
+							expect(batch_stub.called).to.be.true;
 						});
 					});
 
@@ -1323,7 +1331,9 @@ describe('rounds', function () {
 					var called = 0;
 
 					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = true;
 							round = new Round(_.cloneDeep(scope), t);
@@ -1336,7 +1346,7 @@ describe('rounds', function () {
 					it('query should be called', function () {
 						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
+							expect(batch_stub.called).to.be.true;
 						});
 					});
 
@@ -1459,7 +1469,7 @@ describe('rounds', function () {
 
 	describe('land', function () {
 
-		var none_stub;
+		var batch_stub;
 		var roundOutsiders_stub;
 		var updateVotes_stub;
 		var getVotes_stub;
@@ -1482,9 +1492,10 @@ describe('rounds', function () {
 				address: '16010222169256538112L'
 			};
 
+			round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 			return db.task(function (t) {
 				// Init stubs
-				none_stub = sinonSandbox.stub(t, 'none').resolves();
+				batch_stub = sinonSandbox.stub(t, 'none').resolves();
 				roundOutsiders_stub = sinonSandbox.stub(t.rounds, 'updateMissedBlocks').resolves();
 				getVotes_stub = sinonSandbox.stub(t.rounds, 'getVotes').resolves([delegate]);
 				updateVotes_stub = sinonSandbox.stub(t.rounds, 'updateVotes').resolves('QUERY');
@@ -1524,7 +1535,7 @@ describe('rounds', function () {
 
 	describe('backwardLand', function () {
 
-		var none_stub;
+		var batch_stub;
 		var roundOutsiders_stub;
 		var updateVotes_stub;
 		var getVotes_stub;
@@ -1549,9 +1560,10 @@ describe('rounds', function () {
 				address: '16010222169256538112L'
 			};
 
+			round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 			return db.task(function (t) {
 				// Init stubs
-				none_stub = sinonSandbox.stub(t, 'none').resolves();
+				batch_stub = sinonSandbox.stub(t, 'none').resolves();
 				roundOutsiders_stub = sinonSandbox.stub(t.rounds, 'updateMissedBlocks').resolves();
 				getVotes_stub = sinonSandbox.stub(t.rounds, 'getVotes').resolves([delegate]);
 				updateVotes_stub = sinonSandbox.stub(t.rounds, 'updateVotes').resolves('QUERY');
