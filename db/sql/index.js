@@ -28,7 +28,7 @@ module.exports = {
 		getIdSequence: link('blocks/getIdSequence.sql'),
 		loadBlocksOffset: link('blocks/loadBlocksOffset.sql'),
 		loadLastBlock: link('blocks/loadLastBlock.sql'),
-		loadLastNBlock: link('blocks/loadLastNBlock.sql'),
+		loadLastNBlockIds: link('blocks/loadLastNBlockIds.sql'),
 		blockExists: link('blocks/blockExists.sql'),
 		deleteAfterBlock: link('blocks/deleteAfterBlock.sql'),
 		getBlocksForTransport: link('blocks/getBlocksForTransport.sql'),
@@ -53,6 +53,7 @@ module.exports = {
 	rounds: {
 		getVotes: link('rounds/getVotes.sql'),
 		updateVotes: link('rounds/updateVotes.sql'),
+		updateMissedBlocks: link('rounds/updateMissedBlocks.sql'),
 		updateBlockId: link('rounds/updateBlockId.sql'),
 		summedRound: link('rounds/summedRound.sql'),
 		clearRoundSnapshot: link('rounds/clearRoundSnapshot.sql'),
