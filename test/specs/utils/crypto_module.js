@@ -241,5 +241,35 @@ describe('Crypto class', () => {
 				});
 			},
 		);
+		Given(
+			'a message "Hello World" with a public key "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and a signature "KjyhJ+/Peyv2KsjDsfWs9pl8q2K6n941Z9GI7cusvF3IF3+4jQOoaRzgM0j1abEhvKnno8Q79cBWOC81/4Q8CQ=="',
+			given.aMessageWithAPublicKeyAndASignature,
+			() => {
+				When(
+					'no error occurs attempting to verify the message using the public key and the signature',
+					when.noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
+					() => {
+						Then(
+							'lisk-js crypto should be used to verify the message',
+							then.liskJSCryptoShouldBeUsedToVerifyTheMessage,
+						);
+						Then(
+							'the verified message should be returned',
+							then.theVerifiedMessageShouldBeReturned,
+						);
+					},
+				);
+				When(
+					'an error occurs attempting to verify the message using the public key and the signature',
+					when.anErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
+					() => {
+						Then(
+							'the error response should be handled',
+							then.theErrorResponseShouldBeHandled,
+						);
+					},
+				);
+			},
+		);
 	});
 });
