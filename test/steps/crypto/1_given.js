@@ -18,6 +18,16 @@ import cryptography from '../../../src/utils/cryptography';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { getFirstQuotedString, getQuotedStrings } from '../utils';
 
+export function aMessageWithAPublicKeyAndASignature() {
+	const [message, publicKey, signature] = getQuotedStrings(
+		this.test.parent.title,
+	);
+
+	this.test.ctx.message = message;
+	this.test.ctx.publicKey = publicKey;
+	this.test.ctx.signature = signature;
+}
+
 export function theMessageUnderThePassphraseHasSignature() {
 	const signature = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.signature = signature;
@@ -46,10 +56,17 @@ export function aCryptoInstanceHasBeenInitialised() {
 	this.test.ctx.cryptography = cryptography;
 }
 
-export function aSenderPublicKey() {
-	const senderPublicKey = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.senderPublicKey = senderPublicKey;
+export function aSignature() {
+	const signature = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.signature = signature;
 }
+
+export function aPublicKey() {
+	const publicKey = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.publicKey = publicKey;
+}
+
+export const aSenderPublicKey = aPublicKey;
 
 export function aNonce() {
 	const nonce = getFirstQuotedString(this.test.parent.title);

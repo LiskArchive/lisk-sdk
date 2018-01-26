@@ -17,6 +17,26 @@ import lisk from 'lisk-js';
 import cryptography from '../../../src/utils/cryptography';
 import { getFirstQuotedString } from '../utils';
 
+export function theVerifiedMessageShouldBeReturned() {
+	const { returnValue } = this.test.ctx;
+	const verified = { verified: true };
+	return returnValue.should.eql(verified);
+}
+
+export function liskJSCryptoShouldBeUsedToVerifyTheMessage() {
+	const { message, publicKey, signature } = this.test.ctx;
+	return lisk.crypto.verifyMessageWithPublicKey.should.be.calledWithExactly({
+		publicKey,
+		signature,
+		message,
+	});
+}
+
+export function itShouldResolveToTheResultOfVerifyingTheMessage() {
+	const { returnValue, cryptoResult } = this.test.ctx;
+	return returnValue.should.be.fulfilledWith(cryptoResult);
+}
+
 export function itShouldSignTheMessageWithThePassphrase() {
 	const { message, passphrase } = this.test.ctx;
 	return expect(cryptography.signMessage).to.be.calledWithExactly({
