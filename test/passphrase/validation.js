@@ -422,7 +422,7 @@ describe('passphrase validation', () => {
 		describe('given a passphrase with an extra whitespace in the beginning', () => {
 			const passphrase =
 				' model actor shallow eight glue upper seat lobster reason label enlist bridge';
-			const passphraseTooManyWhitespacesErrorsss = [
+			const passphraseInvalidMnemonicErrors = [
 				{
 					code: 'INVALID_AMOUNT_OF_WHITESPACES',
 					message:
@@ -442,7 +442,7 @@ describe('passphrase validation', () => {
 
 			it('should return the array with the errors', () => {
 				return getPassphraseValidationErrors(passphrase).should.be.eql(
-					passphraseTooManyWhitespacesErrorsss,
+					passphraseInvalidMnemonicErrors,
 				);
 			});
 		});
@@ -450,7 +450,7 @@ describe('passphrase validation', () => {
 		describe('given a passphrase with an extra whitespace in the end', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge ';
-			const passphraseTooManyWhitespacesErrorsss = [
+			const passphraseInvalidMnemonicErrors = [
 				{
 					code: 'INVALID_AMOUNT_OF_WHITESPACES',
 					message:
@@ -470,7 +470,7 @@ describe('passphrase validation', () => {
 
 			it('should return the array with the errors', () => {
 				return getPassphraseValidationErrors(passphrase).should.be.eql(
-					passphraseTooManyWhitespacesErrorsss,
+					passphraseInvalidMnemonicErrors,
 				);
 			});
 		});
@@ -478,7 +478,7 @@ describe('passphrase validation', () => {
 		describe('given a passphrase with too many whitespaces in between words', () => {
 			const passphrase =
 				'model actor shallow eight glue  upper seat  lobster reason label enlist bridge';
-			const passphraseTooManyWhitespacesErrorsss = [
+			const passphraseInvalidMnemonicErrors = [
 				{
 					code: 'INVALID_AMOUNT_OF_WHITESPACES',
 					message:
@@ -498,7 +498,7 @@ describe('passphrase validation', () => {
 
 			it('should return the array with the errors', () => {
 				return getPassphraseValidationErrors(passphrase).should.be.eql(
-					passphraseTooManyWhitespacesErrorsss,
+					passphraseInvalidMnemonicErrors,
 				);
 			});
 		});
