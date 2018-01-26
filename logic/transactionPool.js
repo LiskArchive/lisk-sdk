@@ -1,6 +1,7 @@
 'use strict';
 
 var async = require('async');
+var _ = require('lodash');
 var config = require('../config.json');
 var constants = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
@@ -411,6 +412,7 @@ TransactionPool.prototype.reindexQueues = function () {
  */
 TransactionPool.prototype.processBundled = function (cb) {
 	var bundled = self.getBundledTransactionList(true, self.bundleLimit);
+	self.printQueues('Process bundled --- transaction pool START');
 
 	async.eachSeries(bundled, function (transaction, eachSeriesCb) {
 		if (!transaction) {
@@ -437,6 +439,7 @@ TransactionPool.prototype.processBundled = function (cb) {
 			}
 		});
 	}, function (err) {
+		self.printQueues('Process bundled --- transaction pool END');
 		return setImmediate(cb, err);
 	});
 };
@@ -584,6 +587,27 @@ TransactionPool.prototype.expireTransactions = function (cb) {
 	});
 };
 
+TransactionPool.prototype.printQueues = function (calledFrom) {
+	['bundled', 'queued', 'multisignature', 'unconfirmed'].forEach(function (queue) {
+		if (self[queue].transactions.length > 0) {
+			library.logger.debug(calledFrom + ' - ' + queue + ': ', _.map(self[queue].transactions, function (trs) {
+				var queuesToCheck = ['bundled', 'queued', 'multisignature', 'unconfirmed'].filter(function (q) {
+					return q !== queue;
+				});
+				queuesToCheck.forEach(function (queueToCheck) {
+					var duplicatedTrs = self[queueToCheck].transactions.find(function (t) {
+						return trs.id && t.id === trs.id;
+					});
+					if (duplicatedTrs) {
+						library.logger.debug('Transaction is duplicated in queues: ' + queueToCheck + ' ' +  queue + ' id: ' + trs.id);
+					}
+				});
+				return trs.id || trs;
+			}).filter(function (t) { return t; }));
+		}
+	});
+};
+
 /**
  * Applies the next block of unconfirmed transactions.
  * Including up to 5 multisignature transactions when there is spare capacity.
@@ -598,6 +622,7 @@ TransactionPool.prototype.expireTransactions = function (cb) {
 TransactionPool.prototype.fillPool = function (cb) {
 	var unconfirmedCount = self.countUnconfirmed();
 	library.logger.debug('Transaction pool size: ' + unconfirmedCount);
+	self.printQueues('Fill Pool step A');
 
 	if (unconfirmedCount >= constants.maxTxsPerBlock) {
 		return setImmediate(cb);
@@ -614,7 +639,11 @@ TransactionPool.prototype.fillPool = function (cb) {
 		transactions = self.getQueuedTransactionList(true, constants.maxTxsPerBlock).slice(0, spare);
 		transactions = multisignatures.concat(transactions);
 
-		return __private.applyUnconfirmedList(transactions, cb);
+		library.logger.debug('transactions to apply', _.map(transactions, 'id'));
+		return __private.applyUnconfirmedList(transactions, function (err, res) { 
+			self.printQueues('Fill Pool step B');
+			cb(err, res);
+		});
 	}
 };
 

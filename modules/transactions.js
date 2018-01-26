@@ -587,6 +587,10 @@ Transactions.prototype.onBind = function (scope) {
 	);
 };
 
+Transactions.prototype.printQueues = function (calledFrom) {
+	__private.transactionPool.printQueues(calledFrom);
+};
+
 // Shared API
 /**
  * @todo implement API comments with apidoc.

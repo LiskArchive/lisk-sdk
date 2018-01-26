@@ -340,6 +340,7 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 	// Transactions to rewind in case of error.
 	var appliedTransactions = {};
 
+	modules.transactions.printQueues('Apply Block before undoUnconfirmedList');
 	async.series({
 		// Rewind any unconfirmed transactions before applying block.
 		// TODO: It should be possible to remove this call if we can guarantee that only this function is processing transactions atomically. Then speed should be improved further.
@@ -352,12 +353,14 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 
 					return process.exit(0);
 				} else {
+					modules.transactions.printQueues('Apply Block after undoUnconfirmedList');
 					return setImmediate(seriesCb);
 				}
 			});
 		},
 		// Apply transactions to unconfirmed mem_accounts fields.
 		applyUnconfirmed: function (seriesCb) {
+			modules.transactions.printQueues('Apply Block before applyUnconfirmedList');
 			async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
 				// DATABASE write
 				modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
@@ -393,6 +396,7 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 							}
 						});
 					}, function (seriesError) {
+						modules.transactions.printQueues('Apply Block after applyUnconfirmedList');
 						if (seriesError) {
 							// Fatal error, memory tables will be inconsistent
 							library.logger.error('Failed to undo unconfirmed block transactions list', seriesError);
@@ -436,6 +440,7 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 					});
 				});
 			}, function (err) {
+				modules.transactions.printQueues('Apply Block after applyconfirmedList');
 				return setImmediate(seriesCb, err);
 			});
 		},
