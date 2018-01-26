@@ -1,0 +1,18 @@
+{
+	"env": {
+		"mocha": true
+	},
+	"globals": {
+		"_": true,
+		"__testContext": true,
+		"expect": true,
+		"gc": true,
+		"sinonSandbox": true
+	},
+  	"rules": {
+	  "mocha/no-pending-tests": 0,
+	  "mocha/no-synchronous-tests": 0,
+	  "mocha/no-nested-tests": 0,
+	  "mocha/no-identical-title": 0
+	}
+}

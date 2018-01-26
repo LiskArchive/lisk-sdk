@@ -1,3 +1,5 @@
+/*eslint-disable */
+
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -44,7 +46,7 @@ module.exports = function (grunt) {
 		obfuscator: {
 			files: files,
 			entry: appFile,
-			out: 'release/' + appFile,
+			out: `release/${appFile}`,
 			strings: true,
 			root: __dirname
 		},
@@ -69,11 +71,11 @@ module.exports = function (grunt) {
 			},
 
 			folder: {
-				command: 'mkdir -p ' + release_dir
+				command: `mkdir -p ${release_dir}`
 			},
 
 			build: {
-				command: 'cd ' + version_dir + '/ && touch build && echo "v' + today + '" > build'
+				command: `cd ${version_dir}/ && touch build && echo "v${today}" > build`
 			},
 
 			mocha: {
@@ -114,23 +116,14 @@ module.exports = function (grunt) {
 		compress: {
 			main: {
 				options: {
-					archive: version_dir + '.tar.gz',
+					archive: `${version_dir}.tar.gz`,
 					mode: 'tgz',
 					level: 6
 				},
 				files: [
-					{ expand: true, cwd: release_dir, src: [config.version + '/**'], dest: './' }
+					{ expand: true, cwd: release_dir, src: [`${config.version}/**`], dest: './' }
 				]
 			}
-		},
-
-		eslint: {
-			options: {
-				configFile: '.eslintrc.json',
-				format: 'codeframe',
-				fix: false
-			},
-			target: '.'
 		}
 	});
 
@@ -139,16 +132,9 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-obfuscator');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-contrib-compress');
-	grunt.loadNpmTasks('grunt-eslint');
 
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:createBundles', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('coverageReport', ['exec:coverageReport']);
-	grunt.registerTask('eslint-nofix', ['eslint']);
-
-	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
-		grunt.config.set('eslint.options.fix', true);
-		grunt.task.run('eslint');
-	});
 
 	grunt.registerTask('default', 'mocha');
 };
