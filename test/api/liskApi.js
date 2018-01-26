@@ -936,7 +936,7 @@ describe('Lisk.api()', function () {
 			thisLSK.currentPeer = '';
 
 			thisLSK.sendRequest('blocks/getHeight').then(function (e) {
-				(e.message).should.be.equal('Could not create HTTP request to any of the given peers');
+				(e.message).should.be.equal('Could not create HTTP request to any of the given peers.');
 				done();
 			});
 		});
