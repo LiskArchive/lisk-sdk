@@ -750,13 +750,13 @@ __private.applyUnconfirmedList = function (transactions, cb) {
 		__private.processVerifyTransaction(transaction, false, function (err, sender) {
 			if (err) {
 				library.logger.error('Failed to process / verify unconfirmed transaction: ' + transaction.id, err);
-				self.removeUnconfirmedTransaction(transaction.id);
+				self.removeQueuedTransaction(transaction.id);
 				return setImmediate(eachSeriesCb);
 			}
 			modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 				if (err) {
 					library.logger.error('Failed to apply unconfirmed transaction: ' + transaction.id, err);
-					self.removeUnconfirmedTransaction(transaction.id);
+					self.removeQueuedTransaction(transaction.id);
 				} else {
 					// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
 					self.addUnconfirmedTransaction(transaction);
