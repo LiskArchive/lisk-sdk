@@ -13,6 +13,7 @@
  */
 'use strict';
 
+require('../../functional.js');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var Promise = require('bluebird');
 

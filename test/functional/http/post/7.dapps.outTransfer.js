@@ -13,6 +13,7 @@
  */
 'use strict';
 
+require('../../functional.js');
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
@@ -386,5 +387,16 @@ describe('POST /api/transactions (type 7) outTransfer dapp', function () {
 	describe('confirmation', function () {
 
 		phases.confirmation(goodTransactions, badTransactions);
+	});
+
+	describe.only('check frozen type', function () {
+
+		it('transaction should be rejected', function () {
+			transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 10 * normalizer, account.password);
+
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				expect(res.body.message).to.be.equal('Transaction type ' + transaction.type + ' is frozen');
+			});
+		});
 	});
 });

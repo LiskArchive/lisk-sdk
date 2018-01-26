@@ -13,10 +13,11 @@
  */
 'use strict';
 
-before(function (done) {
-	require('./common/utils/waitFor').blockchainReady(done);
-});
-
-afterEach(function () {
-	sinonSandbox.restore();
-});
+/**
+ * @namespace milestones
+ * @memberof module:helpers
+ * @property {integer} disableDappTransfers
+ */
+module.exports = {
+	disableDappTransfers: 0
+};
