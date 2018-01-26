@@ -5,7 +5,7 @@ var constants = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var extend = require('extend');
 var _ = require('lodash');
-
+var TransactionPool = require('./transactionPool.js');
 // Private fields
 var modules, library, self, __private = {};
 
@@ -143,6 +143,7 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 	params.limit = params.limit || self.config.peerLimit;
 	params.broadhash = params.broadhash || null;
 
+	TransactionPool.prototype.printQueues('broadcaster start');
 	async.waterfall([
 		function getPeers (waterCb) {
 			if (!params.peers) {
@@ -173,6 +174,7 @@ Broadcaster.prototype.broadcast = function (params, options, cb) {
 			});
 		}
 	], function (err, peers) {
+		TransactionPool.prototype.printQueues('broadcaster end');
 		if (cb) {
 			return setImmediate(cb, err, {body: null, peer: peers});
 		}

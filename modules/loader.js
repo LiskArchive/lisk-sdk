@@ -3,6 +3,7 @@
 var async = require('async');
 var constants = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
+var TransactionPool = require('../logic/transactionPool.js');
 var ip = require('ip');
 var sandboxHelper = require('../helpers/sandbox.js');
 var schema = require('../schema/loader.js');
@@ -539,6 +540,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
 					var lastBlock = modules.blocks.lastBlock.get();
 
+					TransactionPool.prototype.printQueues('Sync loop - load blocks from network START');
 					function loadBlocks () {
 						__private.blocksToSync = peer.height;
 
@@ -576,6 +578,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 					}
 				},
 				function (err) {
+					TransactionPool.prototype.printQueues('Sync loop - load blocks from network END');
 					if (err) {
 						library.logger.error('Failed to load blocks from network', err);
 						return setImmediate(cb, err);
