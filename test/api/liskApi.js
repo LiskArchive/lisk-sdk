@@ -894,6 +894,9 @@ describe('Lisk.api()', function () {
 	});
 
 	describe('#checkReDial', function () {
+		var secret = 'soap arm custom rhythm october dove chunk force own dial two odor';
+		var recipient = '10279923186189318946L';
+		var amount = 100000000;
 
 		it('should check if all the peers are already banned', function () {
 			(lisk.api().checkReDial()).should.be.equal(true);
@@ -933,7 +936,34 @@ describe('Lisk.api()', function () {
 			thisLSK.currentPeer = '';
 
 			thisLSK.sendRequest('blocks/getHeight').then(function (e) {
-				(e.message).should.be.equal('could not create http request to any of the given peers');
+				(e.message).should.be.equal('Could not create HTTP request to any of the given peers.');
+				done();
+			});
+		});
+
+		it('should stop redial when using a PUT request', function (done) {
+			var thisLSK = lisk.api();
+			thisLSK.currentPeer = '';
+
+			thisLSK.sendLSK(recipient, amount, secret, null, function (e) {
+				(e.message).should.be.equal('Could not create HTTP request. Please try again.');
+				done();
+			});
+		});
+
+		it('should stop redial when using a POST request', function (done) {
+			var thisLSK = lisk.api();
+			thisLSK.currentPeer = '';
+			const options = {
+				'secret': secret,
+				'secendSecret': null,
+				'lifetime': 5,
+				'min': 5,
+				'keysgroup': ['1234', '123456']
+			};
+
+			thisLSK.sendRequest('multisignatures', options, function (e) {
+				(e.message).should.be.equal('Could not create HTTP request. Please try again.');
 				done();
 			});
 		});
