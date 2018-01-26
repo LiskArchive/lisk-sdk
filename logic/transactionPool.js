@@ -21,11 +21,13 @@ var modules, library, self, __private = {};
  * @param {Transaction} transaction - Transaction logic instance.
  * @param {bus} bus - Bus instance.
  * @param {Object} logger - Logger instance.
+ * @param {Sequence} balancesSequence - balances sequence.
  */
 // Constructor
-function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, logger) {
+function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, logger, balancesSequence) {
 	library = {
 		logger: logger,
+		balancesSequence: balancesSequence,
 		bus: bus,
 		logic: {
 			transaction: transaction,
@@ -415,13 +417,15 @@ TransactionPool.prototype.processBundled = function (cb) {
 			return setImmediate(eachSeriesCb);
 		}
 
-		self.removeBundledTransaction(transaction.id);
-		delete transaction.bundled;
-
 		__private.processVerifyTransaction(transaction, true, function (err, sender) {
+			// Remove bundled transaction after asynchronous processVerifyTransaction to avoid race conditions
+			self.removeBundledTransaction(transaction.id);
+			// Delete bundled flag from transaction
+			// so it is qualified as "queued" in queueTransaction
+			delete transaction.bundled;
+
 			if (err) {
 				library.logger.debug('Failed to process / verify bundled transaction: ' + transaction.id, err);
-				self.removeUnconfirmedTransaction(transaction);
 				return setImmediate(eachSeriesCb);
 			} else {
 				self.queueTransaction(transaction, function (err) {
@@ -534,10 +538,16 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 				if (err) {
 					library.logger.error('Failed to undo unconfirmed transaction: ' + transaction.id, err);
 				} else {
-					// Transaction successfully undone from unconfirmed states, move it to queued list
-					self.addQueuedTransaction(transaction);
+					// Transaction successfully undone from unconfirmed states, try move it to queued list
+					library.balancesSequence.add(function (balancesSequenceCb) {
+						self.processUnconfirmedTransaction(transaction, false, function (err) {
+							if (err) {
+								library.logger.debug('Failed to queue transaction back after successful undo unconfirmed: ' + transaction.id, err);
+							}
+							return setImmediate(balancesSequenceCb);
+						});
+					}, eachSeriesCb);
 				}
-				return setImmediate(eachSeriesCb);
 			});
 		} else {
 			return setImmediate(eachSeriesCb);
@@ -638,6 +648,16 @@ __private.getTransactionList = function (transactions, reverse, limit) {
 };
 
 /**
+ * Check if transaction exists in unconfirmed queue.
+ * @private
+ * @param {Object} transaction - Transaction object.
+ * @returns {Boolean}
+ */
+__private.isTransactionInUnconfirmedQueue = function (transaction) {
+	return typeof(self.unconfirmed.index[transaction.id]) === 'number';
+};
+
+/**
  * Processes and verifies a transaction.
  * @private
  * @implements {accounts.setAccountAndGet}
@@ -652,6 +672,12 @@ __private.getTransactionList = function (transactions, reverse, limit) {
 __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 	if (!transaction) {
 		return setImmediate(cb, 'Missing transaction');
+	}
+
+	// At this point, transaction should not be in unconfirmed state, but this is a final barrier to stop us from
+	// making unconfirmed state dirty.
+	if (__private.isTransactionInUnconfirmedQueue(transaction)) {
+		return setImmediate(cb, 'Transaction is already in unconfirmed state');
 	}
 
 	async.waterfall([
@@ -732,13 +758,13 @@ __private.applyUnconfirmedList = function (transactions, cb) {
 		__private.processVerifyTransaction(transaction, false, function (err, sender) {
 			if (err) {
 				library.logger.error('Failed to process / verify unconfirmed transaction: ' + transaction.id, err);
-				self.removeUnconfirmedTransaction(transaction.id);
+				self.removeQueuedTransaction(transaction.id);
 				return setImmediate(eachSeriesCb);
 			}
 			modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
 				if (err) {
 					library.logger.error('Failed to apply unconfirmed transaction: ' + transaction.id, err);
-					self.removeUnconfirmedTransaction(transaction.id);
+					self.removeQueuedTransaction(transaction.id);
 				} else {
 					// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
 					self.addUnconfirmedTransaction(transaction);
