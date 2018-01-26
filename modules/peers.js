@@ -294,10 +294,10 @@ __private.dbSave = function (cb) {
 
 	// Wrap sql queries in transaction and execute
 	library.db.tx('modules:peers:dbSave', function (t) {
-		return t.peers.clear().then(function (value) {
+		return t.peers.clear().then(function () {
 			return t.peers.insert(peers);
 		});
-	}).then(function (data) {
+	}).then(function () {
 		library.logger.info('Peers exported to database');
 		return setImmediate(cb);
 	}).catch(function (err) {

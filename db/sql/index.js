@@ -52,7 +52,8 @@ module.exports = {
 		getGroupIds: link('multisignatures/getGroupIds.sql')
 	},
 	peers: {
-		// sql to be included
+		list: link('peers/list.sql'),
+		clear: link('peers/clear.sql')
 	},
 	rounds: {
 		getVotes: link('rounds/getVotes.sql'),

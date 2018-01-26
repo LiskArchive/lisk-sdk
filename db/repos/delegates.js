@@ -25,6 +25,7 @@ const sql = require('../sql').delegates;
  * @return {DelegatesRepository}
  */
 class DelegatesRepository {
+
 	constructor (db, pgp) {
 		this.db = db;
 		this.pgp = pgp;

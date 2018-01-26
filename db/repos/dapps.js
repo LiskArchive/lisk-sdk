@@ -76,7 +76,6 @@ class DappsRepository {
 	 * @return {Promise}
 	 */
 	list (params) {
-
 		// TODO: Use cases need to be reviewed, and new methods added before it can be made into a proper external SQL
 		const query = [
 			'SELECT "name" COLLATE "C", "description", "tags", "link", "type", "category", "icon", "transactionId" FROM dapps',

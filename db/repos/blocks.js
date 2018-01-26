@@ -29,7 +29,6 @@ const cs = {}; // Reusable ColumnSet objects
 class BlocksRepository {
 
 	constructor (db, pgp) {
-
 		this.db = db;
 		this.pgp = pgp;
 
