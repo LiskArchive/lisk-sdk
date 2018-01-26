@@ -13,9 +13,9 @@
  */
 'use strict';
 
+require('../../functional.js');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var Promise = require('bluebird');
-require('../../functional.js');
 
 var randomUtil = require('../../../common/utils/random');
 var accountFixtures = require('../../../fixtures/accounts');
