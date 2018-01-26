@@ -102,14 +102,25 @@ describe('system test (type 1) - checking validated second signature registratio
 						});
 					});
 
-					it('type ' + index + ': ' + key + ' with correct second signature should be ok', function (done) {
-						localCommon.loadTransactionType(key, account, dapp, null, function (transaction) {
-							localCommon.addTransaction(library, transaction, function (err, res) {
-								expect(res).to.equal(transaction.id);
-								done();
+					if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
+						it('type ' + index + ': ' + key + ' with correct second signature should be rejected', function (done) {
+							localCommon.loadTransactionType(key, account, dapp, null, function (transaction) {
+								localCommon.addTransaction(library, transaction, function (err, res) {
+									expect(err).to.equal('Transaction type ' + transaction.type + ' is frozen');
+									done();
+								});
 							});
 						});
-					});
+					} else {
+						it('type ' + index + ': ' + key + ' with correct second signature should be ok', function (done) {
+							localCommon.loadTransactionType(key, account, dapp, null, function (transaction) {
+								localCommon.addTransaction(library, transaction, function (err, res) {
+									expect(res).to.equal(transaction.id);
+									done();
+								});
+							});
+						});
+					}
 				};
 			});
 		});
