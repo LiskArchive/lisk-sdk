@@ -225,7 +225,7 @@ __private.insertSeeds = function (cb) {
 		});
 	}, function (err) {
 		library.logger.trace('Peers->insertSeeds - Peers discovered', {updated: updated, total: library.config.peers.list.length});
-		return setImmediate(cb, err);
+		return setImmediate(cb);
 	});
 };
 
@@ -267,11 +267,11 @@ __private.dbLoad = function (cb) {
 			}
 		}, function (err) {
 			library.logger.trace('Peers->dbLoad Peers discovered', {updated: updated, total: rows.length});
-			return setImmediate(cb, err);
+			return setImmediate(cb);
 		});
 	}).catch(function (err) {
 		library.logger.error('Import peers from database failed', {error: err.message || err});
-		return setImmediate(cb, err);
+		return setImmediate(cb);
 	});
 };
 
@@ -293,18 +293,17 @@ __private.dbSave = function (cb) {
 	}
 
 	// Wrap sql queries in transaction and execute
-	library.db.tx('modules:peers:dbSave', function * (t) {
-		yield t.peers.clear();
-		yield t.peers.insert(peers);
-	})
-		.then(() => {
-			library.logger.info('Peers exported to database');
-			return setImmediate(cb);
-		})
-		.catch(err => {
-			library.logger.error('Export peers to database failed', {error: err.message || err});
-			return setImmediate(cb, err);
+	library.db.tx('modules:peers:dbSave', function (t) {
+		return t.peers.clear().then(function () {
+			return t.peers.insert(peers);
 		});
+	}).then(function () {
+		library.logger.info('Peers exported to database');
+		return setImmediate(cb);
+	}).catch(function (err) {
+		library.logger.error('Export peers to database failed', {error: err.message || err});
+		return setImmediate(cb);
+	});
 };
 
 /**
