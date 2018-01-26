@@ -68,7 +68,7 @@ class RoundsRepository {
 	updateMissedBlocks (backwards, outsiders) {
 		return this.db.none(sql.updateMissedBlocks, {
 			change: backwards ? '- 1' : '+ 1',
-			outsiders: outsiders
+			outsiders
 		});
 	}
 
