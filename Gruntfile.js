@@ -73,7 +73,6 @@ module.exports = function (grunt) {
 		'force:on',
 		'browserify',
 		'eslint',
-		'uglify',
-		'watch'
+		'uglify'
 	]);
 };

@@ -938,6 +938,33 @@ describe('Lisk.api()', function () {
 			});
 		});
 
+		it('should stop redial when using a PUT request', function (done) {
+			var thisLSK = lisk.api();
+			thisLSK.currentPeer = '';
+
+			thisLSK.sendLSK('123', 10, '1235', null, function (e) {
+				(e.message).should.be.equal('could not create http request. Please try again.');
+				done();
+			});
+		});
+
+		it('should stop redial when using a POST request', function (done) {
+			var thisLSK = lisk.api();
+			thisLSK.currentPeer = '';
+			const options = {
+				'secret': '123',
+				'secendSecret': null,
+				'lifetime': 5,
+				'min': 5,
+				'keysgroup': ['1234', '123456']
+			};
+
+			thisLSK.sendRequest('multisignatures', options, function (e) {
+				(e.message).should.be.equal('could not create http request. Please try again.');
+				done();
+			});
+		});
+
 		it('should redial to new node when randomPeer is set true', function (done) {
 			var thisLSK = lisk.api({ randomPeer: true, node: '123' });
 
