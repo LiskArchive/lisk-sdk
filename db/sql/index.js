@@ -48,8 +48,8 @@ module.exports = {
 		insertFork: link('delegates/insertFork.sql')
 	},
 	multisignatures: {
-		getMemberPublicKeys: load('multisignatures/getMemberPublicKeys.sql'),
-		getGroupIds: load('multisignatures/getGroupIds.sql')
+		getMemberPublicKeys: link('multisignatures/getMemberPublicKeys.sql'),
+		getGroupIds: link('multisignatures/getGroupIds.sql')
 	},
 	peers: {
 		// sql to be included
