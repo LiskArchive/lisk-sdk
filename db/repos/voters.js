@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var PQ = require('pg-promise').ParameterizedQuery;
+const sql = require('../sql').voters;
 
 /**
  * Voters database interaction module
@@ -22,46 +22,44 @@ var PQ = require('pg-promise').ParameterizedQuery;
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {VotersRepo}
+ * @return {VotersRepository}
  */
-function VotersRepo (db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class VotersRepository {
 
-	this.sortFields = [
-		'username',
-		'address',
-		'publicKey'
-	];
+	constructor (db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
+
+		// TODO: A proper repository shouldn't need to export any properties like this:
+		this.sortFields = [
+			'username',
+			'address',
+			'publicKey'
+		];
+	}
+
+	/**
+	 * Searches the voters for a delegate with a public Key
+	 * @param {Object} params
+	 * @param {string} params.publicKey
+	 * @param {int} params.limit
+	 * @param {int} params.offset
+	 * @return {Promise}
+	 */
+	list (params) {
+		// TODO: Should use a result-specific method, not .query
+		return this.db.query(sql.getVoters, params);
+	}
+
+	/**
+	 * Counts voters for a delegate with a public key
+	 * @param {string} publicKey
+	 * @return {Promise<number>}
+	 */
+	count (publicKey) {
+		return this.db.one(sql.getVotersCount, publicKey, a => +a.count);
+	}
+
 }
 
-var Queries = {
-	getVoters: new PQ('SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = $1 LIMIT $2 OFFSET $3'),
-
-	getVotersCount: new PQ('SELECT COUNT("accountId") AS "votersCount" FROM mem_accounts2delegates WHERE "dependentId" = $1')
-};
-
-/**
- * Search the voters for a delegate with a public Key
- * @param {Object} params
- * @param {string} params.publicKey
- * @param {int} params.limit
- * @param {int} params.offset
- * @return {Promise}
- */
-VotersRepo.prototype.list = function (params) {
-	return this.db.query(Queries.getVoters, [params.publicKey, params.limit, params.offset]);
-};
-
-/**
- * Count voters for a delegate with a public key
- * @param {string} publicKey
- * @return {Promise}
- */
-VotersRepo.prototype.count = function (publicKey) {
-	return this.db.one(Queries.getVotersCount, [publicKey]).then(function (result) {
-		return result.votersCount;
-	});
-};
-
-module.exports = VotersRepo;
+module.exports = VotersRepository;

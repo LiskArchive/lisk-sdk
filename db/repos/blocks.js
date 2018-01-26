@@ -210,7 +210,7 @@ class BlocksRepository {
 	 * @param {limit} - Number of blocks to load
 	 */
 	loadLastNBlockIds (limit) {
-		return this.db.query(Queries.loadLastNBlockIds, [limit]);
+		return this.db.query(sql.loadLastNBlockIds, [limit]);
 	}
 
 	/**

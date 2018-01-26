@@ -281,7 +281,8 @@ describe('account', function () {
 		var allAccounts;
 
 		before(function (done) {
-			account.getAll({}, function (err, res) {
+			// Use high limit to be sure that we grab all accounts
+			account.getAll({limit: 1000}, function (err, res) {
 				allAccounts = res;
 				done();
 			});
@@ -349,10 +350,10 @@ describe('account', function () {
 			});
 		});
 
-		it('should ignore limit when below 1', function (done) {
+		it('should use default limit when limit below 1', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
 				return {username: v.username};
-			});
+			}).slice(0, constants.activeDelegates);
 
 			account.getAll({
 				limit: 0,
@@ -364,10 +365,10 @@ describe('account', function () {
 			});
 		});
 
-		it('should ignore offset when below 1', function (done) {
+		it('should use default limit and ignore offset when offset below 1', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
 				return {username: v.username};
-			});
+			}).slice(0, constants.activeDelegates);
 
 			account.getAll({
 				offset: 0,
