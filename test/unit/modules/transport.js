@@ -23,12 +23,11 @@ var modulesLoader = require('../../common/modulesLoader');
 var TransportModule = rewire('../../../modules/transport.js');
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
-
 describe('transport', function () {
 
 	var dbStub, loggerStub, busStub, schemaStub, networkStub, balancesSequenceStub,
-		transactionStub, blockStub, peersStub, broadcasterStubRef, transportInstance,
-		library, __private, modules, defaultScope, restoreRewiredTopDeps, peerStub;
+	    transactionStub, blockStub, peersStub, broadcasterStubRef, transportInstance,
+	    library, __private, modules, defaultScope, restoreRewiredTopDeps, peerStub;
 
 	const SAMPLE_SIGNATURE_1 = '32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739';
 	const SAMPLE_SIGNATURE_2 = '61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595';
@@ -143,6 +142,7 @@ describe('transport', function () {
 	});
 
 	describe('__private', function () {
+
 		var __privateOriginal, restoreRewiredDeps;
 
 		beforeEach(function (done) {
@@ -383,6 +383,7 @@ describe('transport', function () {
 		});
 
 		describe('receiveSignature', function () {
+
 			var restoreRewiredDeps;
 
 			beforeEach(function (done) {
@@ -432,7 +433,6 @@ describe('transport', function () {
 						done();
 					});
 				});
-
 			});
 
 			describe('when library.schema.validate succeeds', function () {
