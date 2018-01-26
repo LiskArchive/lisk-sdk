@@ -64,7 +64,8 @@ describe('transactionPool', function () {
 			config.broadcasts.releaseLimit,
 			sinon.spy(), // transaction
 			sinon.spy(), // bus
-			logger // logger
+			logger, // logger
+			{add: sinon.spy()}
 		);
 
 		// Bind fake modules

@@ -21,11 +21,13 @@ var modules, library, self, __private = {};
  * @param {Transaction} transaction - Transaction logic instance.
  * @param {bus} bus - Bus instance.
  * @param {Object} logger - Logger instance.
+ * @param {Sequence} balancesSequence - balances sequence.
  */
 // Constructor
-function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, logger) {
+function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, logger, balancesSequence) {
 	library = {
 		logger: logger,
+		balancesSequence: balancesSequence,
 		bus: bus,
 		logic: {
 			transaction: transaction,
@@ -536,10 +538,16 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 				if (err) {
 					library.logger.error('Failed to undo unconfirmed transaction: ' + transaction.id, err);
 				} else {
-					// Transaction successfully undone from unconfirmed states, move it to queued list
-					self.addQueuedTransaction(transaction);
+					// Transaction successfully undone from unconfirmed states, try move it to queued list
+					library.balancesSequence.add(function (balancesSequenceCb) {
+						self.processUnconfirmedTransaction(transaction, false, function (err) {
+							if (err) {
+								library.logger.debug('Failed to queue transaction back after successful undo unconfirmed: ' + transaction.id, err);
+							}
+							return setImmediate(balancesSequenceCb);
+						});
+					}, eachSeriesCb);
 				}
-				return setImmediate(eachSeriesCb);
 			});
 		} else {
 			return setImmediate(eachSeriesCb);
