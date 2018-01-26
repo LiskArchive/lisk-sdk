@@ -37,37 +37,47 @@ var ip = require('ip');
  * @constructor
  * @return {boolean} True if the format is valid
  */
+var _ = require('lodash');
 var z_schema = require('z-schema');
 var FormatValidators = require('z-schema/src/FormatValidators');
 var constants = require('./constants');
 
 var liskFormats = {
 	id: function (str) {
-		return /^$/.test(str) || /^[0-9]+$/g.test(str);
+		return str === '' || /^[0-9]+$/g.test(str);
 	},
 
 	additionalData: function (str) {
+		if (typeof(str) !== 'string') {
+			return false;
+		}
+
 		return Buffer.from(str).length <= constants.additionalData.maxLength;
 	},
 
 	address: function (str) {
-		return /^$/.test(str) || /^[0-9]+[L]$/ig.test(str);
+		return str === '' || /^[0-9]+L$/ig.test(str);
 	},
 
 	username: function (str) {
-		return /^$/.test(str) || /^[a-z0-9!@$&_.]+$/ig.test(str);
+		if (typeof(str) !== 'string') {
+			return false;
+		}
+
+		return /^[a-z0-9!@$&_.]*$/ig.test(str);
 	},
 
 	hex: function (str) {
-		return /^[a-f0-9]*$/i.test(str);
+		return str === '' || /^[a-f0-9]+$/i.test(str);
 	},
 
 	publicKey: function (str) {
-		return /^$/.test(str) || /^[a-f0-9]{64}$/i.test(str);
+		return str === '' || /^[a-f0-9]{64}$/i.test(str);
 	},
 
+	// currently this allow empty values e.g. ',,,' or '' - is this correct?
 	csv: function (str) {
-		if (!str) {
+		if (typeof(str) !== 'string') {
 			return false;
 		}
 
@@ -81,11 +91,11 @@ var liskFormats = {
 	},
 
 	signature: function (str) {
-		return /^$/.test(str) || /^[a-f0-9]{128}$/i.test(str);
+		return str === '' || /^[a-f0-9]{128}$/i.test(str);
 	},
 
 	queryList: function (obj) {
-		if (obj == null || obj == undefined) {
+		if (obj == null || typeof(obj) !== 'object' || _.isArray(obj)) {
 			return false;
 		}
 
@@ -94,7 +104,7 @@ var liskFormats = {
 	},
 
 	delegatesList: function (obj) {
-		if (obj == null || obj == undefined) {
+		if (obj == null || typeof(obj) !== 'object' || _.isArray(obj)) {
 			return false;
 		}
 
@@ -117,14 +127,22 @@ var liskFormats = {
 	},
 
 	os: function (str) {
-		return /^$/.test(str) || /^[a-z0-9-_.+]+$/ig.test(str);
+		if (typeof(str) !== 'string') {
+			return false;
+		}
+
+		return /^[a-z0-9-_.+]*$/ig.test(str);
 	},
 
 	version: function (str) {
-		return /^$/.test(str) || /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str);
+		return str === '' || /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str);
 	},
 
 	ipOrFQDN: function (str) {
+		if (typeof(str) !== 'string') {
+			return false;
+		}
+
 		return ip.isV4Format(str) || FormatValidators.hostname(str);
 	},
 };
