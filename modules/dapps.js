@@ -13,14 +13,14 @@
  */
 'use strict';
 
-var apiCodes = require('../helpers/apiCodes.js');
-var ApiError = require('../helpers/apiError.js');
+var apiCodes = require('../helpers/api_codes.js');
+var ApiError = require('../helpers/api_error.js');
 var DApp = require('../logic/dapp.js');
-var dappCategories = require('../helpers/dappCategories.js');
-var InTransfer = require('../logic/inTransfer.js');
+var dappCategories = require('../helpers/dapp_categories.js');
+var InTransfer = require('../logic/in_transfer.js');
 var sortBy = require('../helpers/sort_by.js').sortBy;
-var OutTransfer = require('../logic/outTransfer.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
+var OutTransfer = require('../logic/out_transfer.js');
+var transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

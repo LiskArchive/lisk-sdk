@@ -23,7 +23,7 @@ var constants = require('../helpers/constants.js');
 var createQueryFile = require('../db').createQueryFile;
 var slots = require('../helpers/slots.js');
 var sortBy = require('../helpers/sort_by.js');
-var BlockReward = require('../logic/blockReward.js');
+var BlockReward = require('./block_reward.js');
 var Bignum = require('../helpers/bignum.js');
 
 // Private fields

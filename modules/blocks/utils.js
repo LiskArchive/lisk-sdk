@@ -15,7 +15,7 @@
 
 var _ = require('lodash');
 var constants = require('../../helpers/constants.js');
-var transactionTypes = require('../../helpers/transactionTypes.js');
+var transactionTypes = require('../../helpers/transaction_types.js');
 
 var modules, library, self, __private = {};
 

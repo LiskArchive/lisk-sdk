@@ -16,7 +16,7 @@
 var crypto = require('crypto');
 var lisk = require('lisk-js');
 var application = require('../../../common/application');
-var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
+var clearDatabaseTable = require('../../../common/db_sandbox').clearDatabaseTable;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 

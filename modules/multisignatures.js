@@ -18,9 +18,9 @@ var crypto = require('crypto');
 var extend = require('extend');
 var genesisblock = null;
 var Multisignature = require('../logic/multisignature.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
-var apiError = require('../helpers/apiError');
-var errorCodes = require('../helpers/apiCodes');
+var transactionTypes = require('../helpers/transaction_types.js');
+var ApiError = require('../helpers/api_error');
+var errorCodes = require('../helpers/api_codes');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -196,7 +196,7 @@ Multisignatures.prototype.getGroup = function (address, cb) {
 				}
 
 				if (!account) {
-					return setImmediate(seriesCb, new apiError('Multisignature account not found', errorCodes.NOT_FOUND));
+					return setImmediate(seriesCb, new ApiError('Multisignature account not found', errorCodes.NOT_FOUND));
 				}
 
 				scope.group = {
@@ -310,7 +310,7 @@ Multisignatures.prototype.shared = {
 					}
 
 					if (!account) {
-						return setImmediate(seriesCb, new apiError('Multisignature membership account not found', errorCodes.NOT_FOUND));
+						return setImmediate(seriesCb, new ApiError('Multisignature membership account not found', errorCodes.NOT_FOUND));
 					}
 
 					scope.targetAccount = account;

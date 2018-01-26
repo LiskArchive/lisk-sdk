@@ -17,7 +17,7 @@ require('../functional.js');
 var Promise = require('bluebird');
 
 var apiHelpers = require('../../common/helpers/api');
-var waitFor = require('../../common/utils/waitFor');
+var waitFor = require('../../common/utils/wait_for');
 
 function confirmation (goodTransactions, badTransactions, pendingMultisignatures) {
 
