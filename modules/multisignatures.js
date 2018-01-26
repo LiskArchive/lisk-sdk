@@ -214,7 +214,7 @@ Multisignatures.prototype.getGroup = function (address, cb) {
 			});
 		},
 		getMembers: function (seriesCb) {
-			library.db.multisignatures.getMultisignatureMemberPublicKeys(scope.group.address).then(function (memberAccountKeys) {
+			library.db.multisignatures.getMemberPublicKeys(scope.group.address).then(function (memberAccountKeys) {
 				var addresses = [];
 
 				memberAccountKeys.forEach(function (key) {
@@ -319,7 +319,7 @@ Multisignatures.prototype.shared = {
 				});
 			},
 			getGroupAccountIds: function (seriesCb) {
-				library.db.multisignatures.getMultisignatureGroupIds(scope.targetAccount.publicKey).then(function (groupAccountIds) {
+				library.db.multisignatures.getGroupIds(scope.targetAccount.publicKey).then(function (groupAccountIds) {
 					scope.groups = [];
 
 					async.each(groupAccountIds, function (groupId, callback){
