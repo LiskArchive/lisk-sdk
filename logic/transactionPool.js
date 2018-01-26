@@ -641,6 +641,16 @@ __private.getTransactionList = function (transactions, reverse, limit) {
 };
 
 /**
+ * Check if transaction exists in unconfirmed queue.
+ * @private
+ * @param {Object} transaction - Transaction object.
+ * @returns {Boolean}
+ */
+__private.isTransactionInUnconfirmedQueue = function (transaction) {
+	return typeof(self.unconfirmed.index[transaction.id]) === 'number';
+};
+
+/**
  * Processes and verifies a transaction.
  * @private
  * @implements {accounts.setAccountAndGet}
@@ -655,6 +665,12 @@ __private.getTransactionList = function (transactions, reverse, limit) {
 __private.processVerifyTransaction = function (transaction, broadcast, cb) {
 	if (!transaction) {
 		return setImmediate(cb, 'Missing transaction');
+	}
+
+	// At this point, transaction should not be in unconfirmed state, but this is a final barrier to stop us from
+	// making unconfirmed state dirty.
+	if (__private.isTransactionInUnconfirmedQueue(transaction)) {
+		return setImmediate(cb, 'Transaction is already in unconfirmed state');
 	}
 
 	async.waterfall([
