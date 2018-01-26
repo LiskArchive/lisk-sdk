@@ -55,35 +55,22 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	describe('adding to pool other transactions from same account', function () {
 
 		Object.keys(transactionTypes).forEach(function (key, index) {
-			if (key != 'MULTI') {
+			if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
+				it('type ' + index + ': ' + key + ' should be rejected', function (done) {
+					localCommon.loadTransactionType(key, scenarios.regular.account, scenarios.regular.dapp, true, function (transaction) {
+						localCommon.addTransaction(library, transaction, function (err, res) {
+							expect(err).to.equal('Transaction type ' + transaction.type + ' is frozen');
+							done();
+						});
+					});
+				});
+			} else if (key != 'MULTI') {
 				it('type ' + index + ': ' + key + ' should be ok', function (done) {
-					switch (key) {
-						case 'SEND':
-							transaction = lisk.transaction.createTransaction(randomUtil.account().address, 1, scenarios.regular.account.password);
-							break;
-						case 'SIGNATURE':
-							transaction = lisk.signature.createSignature(scenarios.regular.account.password, scenarios.regular.account.secondPassword);
-							break;
-						case 'DELEGATE':
-							transaction = lisk.delegate.createDelegate(scenarios.regular.account.password, scenarios.regular.account.username);
-							break;
-						case 'VOTE':
-							transaction = lisk.vote.createVote(scenarios.regular.account.password, ['+' + accountFixtures.existingDelegate.publicKey]);
-							break;
-						case 'DAPP':
-							transaction = lisk.dapp.createDapp(scenarios.regular.account.password, null, randomUtil.guestbookDapp);
-							break;
-						case 'IN_TRANSFER':
-							transaction = lisk.transfer.createInTransfer(scenarios.regular.dapp.id, 1, scenarios.regular.account.password);
-							break;
-						case 'OUT_TRANSFER':
-							transaction = lisk.transfer.createOutTransfer(scenarios.regular.dapp.id, randomUtil.transaction().id, randomUtil.account().address, 1, scenarios.regular.account.password);
-							break;
-					};
-
-					localCommon.addTransaction(library, transaction, function (err, res) {
-						expect(res).to.equal(transaction.id);
-						done();
+					localCommon.loadTransactionType(key, scenarios.regular.account, scenarios.regular.dapp, true, function (transaction) {
+						localCommon.addTransaction(library, transaction, function (err, res) {
+							expect(res).to.equal(transaction.id);
+							done();
+						});
 					});
 				});
 			};

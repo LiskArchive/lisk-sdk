@@ -89,7 +89,16 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 		describe('without second signature', function () {
 
 			Object.keys(transactionTypes).forEach(function (key, index) {
-				if (key != 'SIGNATURE') {
+				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
+					it('type ' + index + ': ' + key + ' should be rejected', function (done) {
+						localCommon.loadTransactionType(key, account, dapp, true, function (transaction) {
+							localCommon.addTransaction(library, transaction, function (err, res) {
+								expect(err).to.equal('Transaction type ' + transaction.type + ' is frozen');
+								done();
+							});
+						});
+					});
+				} else if (key != 'SIGNATURE') {
 					it('type ' + index + ': ' + key + ' should be ok', function (done) {
 						localCommon.loadTransactionType(key, account, dapp, true, function (transaction) {
 							localCommon.addTransaction(library, transaction, function (err, res) {
