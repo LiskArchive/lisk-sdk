@@ -936,7 +936,7 @@ describe('Lisk.api()', function () {
 			thisLSK.currentPeer = '';
 
 			thisLSK.sendRequest('blocks/getHeight').then(function (e) {
-				(e.message).should.be.equal('could not create http request to any of the given peers');
+				(e.message).should.be.equal('Could not create HTTP request to any of the given peers');
 				done();
 			});
 		});
@@ -946,7 +946,7 @@ describe('Lisk.api()', function () {
 			thisLSK.currentPeer = '';
 
 			thisLSK.sendLSK(recipient, amount, secret, null, function (e) {
-				(e.message).should.be.equal('could not create http request. Please try again.');
+				(e.message).should.be.equal('Could not create HTTP request. Please try again.');
 				done();
 			});
 		});
@@ -963,7 +963,7 @@ describe('Lisk.api()', function () {
 			};
 
 			thisLSK.sendRequest('multisignatures', options, function (e) {
-				(e.message).should.be.equal('could not create http request. Please try again.');
+				(e.message).should.be.equal('Could not create HTTP request. Please try again.');
 				done();
 			});
 		});
