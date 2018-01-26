@@ -77,7 +77,7 @@ class AccountsRepo {
 
 		// ONLY USED IN SELECT
 		const dynamicFields = [
-			{name: 'rank', cast: 'bigint', mod: ':raw', init: () => 'row_number() OVER (ORDER BY "vote" DESC, "publicKey" ASC)'},
+			{name: 'rank', cast: 'bigint', mod: ':raw', init: () => '(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::int'},
 			{name: 'delegates', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")'},
 			{name: 'u_delegates', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")'},
 			{name: 'multisignatures', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2multisignatures WHERE "accountId" = "mem_accounts"."address")'},

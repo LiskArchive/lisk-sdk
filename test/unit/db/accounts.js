@@ -49,7 +49,6 @@ function generateAccount () {
 		'producedBlocks': '9',
 		'missedBlocks': '0',
 		'fees': '0',
-		'rank': '1',
 		'rewards': '0',
 		'virgin': true
 	};
@@ -212,13 +211,13 @@ describe('db', function () {
 
 					describe('dynamic fields', function () {
 
-						it('should fetch "rank" based on query (row_number() OVER (ORDER BY "vote" DESC, "publicKey" ASC))', function () {
+						it('should fetch "rank" based on query \'(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::int\'', function () {
 							var actualResult;
 
 							return db.accounts.list({}, ['rank']).then(function (data) {
 								actualResult = data;
 
-								return db.query('SELECT row_number() OVER (ORDER BY "vote" DESC, "publicKey" ASC) as rank FROM mem_accounts').then(function (result) {
+								return db.query('SELECT (SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::bigint as rank FROM mem_accounts').then(function (result) {
 									expect(actualResult).to.eql(result);
 								});
 							});
@@ -517,7 +516,7 @@ describe('db', function () {
 					return db.accounts.upsert(account, 'address').then(function (value) {
 						return db.accounts.list({address: account.address}).then(function (result) {
 							expect(result.length).to.be.eql(1);
-							expect(account).to.be.eql(result[0]);
+							expect(account).to.be.eql(_.omit(result[0], 'rank'));
 						});
 					});
 				});
@@ -538,7 +537,11 @@ describe('db', function () {
 								expect(result.length).to.be.eql(1);
 
 								expect(result[0]).to.not.be.eql(account1);
-								expect(_.omit(result[0], db.accounts.getImmutableFields())).to.be.eql(_.omit(account2, db.accounts.getImmutableFields()));
+
+								var omittedFields = db.accounts.getImmutableFields();
+								omittedFields.push('rank');
+
+								expect(_.omit(result[0], omittedFields)).to.be.eql(_.omit(account2, omittedFields));
 							});
 						});
 					});
@@ -574,7 +577,7 @@ describe('db', function () {
 
 								var immutableFields = db.accounts.getImmutableFields();
 
-								Object.keys(result[0]).forEach(function (field) {
+								Object.keys(_.omit(result[0], 'rank')).forEach(function (field) {
 
 									if(immutableFields.indexOf(field) !== -1) {
 										// If its an immutable field
@@ -609,7 +612,7 @@ describe('db', function () {
 
 								var immutableFields = db.accounts.getImmutableFields();
 
-								Object.keys(result[0]).forEach(function (field) {
+								Object.keys(_.omit(result[0], 'rank')).forEach(function (field) {
 
 									if(immutableFields.indexOf(field) !== -1) {
 										// If its an immutable field
@@ -637,7 +640,7 @@ describe('db', function () {
 
 								expect(result.length).to.eql(1);
 
-								expect(result[0]).to.eql(updatedAccount);
+								expect(_.omit(result[0], 'rank')).to.eql(updatedAccount);
 							});
 						});
 					});
