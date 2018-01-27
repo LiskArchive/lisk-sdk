@@ -79,7 +79,7 @@ class MigrationsRepository {
 						};
 					})
 					.filter(f => f && fs.statSync(f.path).isFile() && (!lastMigrationId || +f.id > lastMigrationId))
-					.each(f => {
+					.forEach(f => {
 						f.file = new this.pgp.QueryFile(f.path, {minify: true, noWarnings: true});
 					});
 			});
