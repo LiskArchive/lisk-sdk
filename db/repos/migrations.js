@@ -20,7 +20,6 @@ const sql = require('../sql').migrations;
 const {sqlRoot} = require('../sql/config');
 
 /**
- * Migrator functions
  * @class
  * @private
  * @param {Object} pgp - pg promise
@@ -109,7 +108,7 @@ class MigrationsRepository {
 			}).then(t1.batch);
 		});
 	}
-	
+
 	/**
 	 * Executes 'runtime.sql' file, that set peers clock to null and state to 1.
 	 * @method
