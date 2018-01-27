@@ -16,7 +16,8 @@
 const monitor = require('pg-monitor');
 const repos = require('require-all')(__dirname + '/repos');
 
-const initOptions = {
+// TODO: Had to change it from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
+let initOptions = {
 	pgNative: true,
 
 	// Extending the database protocol with our custom repositories;
