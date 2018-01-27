@@ -100,12 +100,13 @@ class MigrationsRepository {
 				lastId = yield t1.migrations.getLastId();
 			}
 			const updates = yield t1.migrations.readPending(lastId);
-			yield updates.map(u => {
+			const savePoints = updates.map(u => {
 				return t1.tx(u.name, function * (t2) {
 					yield t2.none(u.file);
 					yield t2.none(sql.add, u);
 				});
-			}).then(t1.batch);
+			});
+			yield t1.batch(savePoints);
 		});
 	}
 
