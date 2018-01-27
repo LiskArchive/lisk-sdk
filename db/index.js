@@ -19,6 +19,7 @@ const repos = require('require-all')(__dirname + '/repos');
 // TODO: Had to change it from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
 let initOptions = {
 	pgNative: true,
+	capSQL: true,
 
 	// Extending the database protocol with our custom repositories;
 	// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
