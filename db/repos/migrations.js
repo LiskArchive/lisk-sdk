@@ -13,17 +13,19 @@
  */
 'use strict';
 
-const Promise = require('bluebird');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 const sql = require('../sql').migrations;
 const {sqlRoot} = require('../sql/config');
 
 /**
+ * Migrations database interaction module
+ * @memberof module:migrations
  * @class
- * @private
- * @param {Object} pgp - pg promise
- * @param {Object} db - pg connection
+ * @param {Database} db - Instance of database object from pg-promise
+ * @param {Object} pgp - pg-promise instance to utilize helpers
+ * @constructor
+ * @return {MigrationsRepository}
  */
 class MigrationsRepository {
 
@@ -51,23 +53,14 @@ class MigrationsRepository {
 	}
 
 	/**
-	 * Reads 'sql/migrations/updates' folder and returns an array of QueryFile
-	 * objects that need to be executed.
+	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
 	 * @method
 	 * @param {number} lastMigrationId
 	 * @return {Promise<Array<{id, name, path, file}>>}
 	 */
 	readPending (lastMigrationId) {
 		const migrationsPath = path.join(sqlRoot, 'migrations/updates');
-		return new Promise((resolve, reject) => {
-			fs.readdir(migrationsPath, (err, files) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve(files);
-				}
-			});
-		})
+		return fs.readdir(migrationsPath)
 			.then(files => {
 				return files
 					.map(f => {
@@ -87,14 +80,14 @@ class MigrationsRepository {
 	}
 
 	/**
-	 * Creates and exasync.waterfallecute a db query for each pending migration.
+	 * Applies all pending migration updates.
+	 *
+	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
 	 * @method
-	 * @param {Array} pendingMigrations
-	 * @param {function} waterCb - Callback function
-	 * @return {function} waterCb with error | appliedMigrations
+	 * @return {Promise}
 	 */
-	applyPending () {
-		return this.db.tx('applyPending', function * (t1) {
+	applyUpdates () {
+		return this.db.tx('applyUpdates', function * (t1) {
 			const hasMigrations = yield t1.migrations.hasMigrations();
 			let lastId = 0;
 			if(hasMigrations) {
@@ -102,7 +95,7 @@ class MigrationsRepository {
 			}
 			const updates = yield t1.migrations.readPending(lastId);
 			for(let i = 0;i < updates.length;i ++) {
-				const u = updates[i], tag = 'applyPending:' + u.name;
+				const u = updates[i], tag = 'update:' + u.name;
 				yield t1.tx(tag, function * (t2) {
 					yield t2.none(u.file);
 					yield t2.none(sql.add, u);
@@ -112,12 +105,13 @@ class MigrationsRepository {
 	}
 
 	/**
-	 * Executes 'runtime.sql' file, that set peers clock to null and state to 1.
+	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
 	 * @method
-	 * @param {function} waterCb - Callback function
-	 * @return {function} waterCb with error
+	 * @return {Promise<null>}
 	 */
 	applyRuntime () {
+		// we use a transaction here, because migrations/runtime.sql
+		// contains multiple sql statements:
 		return this.db.tx('applyRuntime', t => t.none(sql.runtime));
 	}
 }

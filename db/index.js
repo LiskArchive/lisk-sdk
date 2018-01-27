@@ -36,12 +36,10 @@ const pgp = require('pg-promise')(initOptions);
  * Connects to the database
  * @requires pg-promise
  * @requires pg-monitor
- * @implements Migrator
  * @function connect
  * @param {Object} config
  * @param {function} logger
- * @param {function} cb
- * @return {function} error|cb
+ * @return {Promise<pg-promise.Database>}
  */
 module.exports.connect = (config, logger) => {
 	try {
@@ -63,7 +61,7 @@ module.exports.connect = (config, logger) => {
 
 	const db = pgp(config);
 
-	return db.migrations.applyPending().then(() => db);
+	return db.migrations.applyUpdates().then(() => db);
 };
 
 /**
