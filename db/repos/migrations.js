@@ -101,13 +101,13 @@ class MigrationsRepository {
 				lastId = yield t1.migrations.getLastId();
 			}
 			const updates = yield t1.migrations.readPending(lastId);
-			const savePoints = updates.map(u => {
-				return t1.tx(u.name, function * (t2) {
+			for(let i = 0;i < updates.length;i ++) {
+				const u = updates[i], tag = 'applyPending:' + u.name;
+				yield t1.tx(tag, function * (t2) {
 					yield t2.none(u.file);
 					yield t2.none(sql.add, u);
 				});
-			});
-			yield t1.batch(savePoints);
+			}
 		});
 	}
 
