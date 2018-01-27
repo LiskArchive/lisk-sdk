@@ -61,7 +61,9 @@ function DBSandbox (dbConfig, testDatabaseName) {
 DBSandbox.prototype.create = function (cb) {
 	child_process.exec('dropdb ' + this.dbConfig.database, function () {
 		child_process.exec('createdb ' + this.dbConfig.database, function () {
-			database.connect(this.dbConfig, console, cb);
+			database.connect(this.dbConfig, console)
+				.then(db => cb(null, db))
+				.catch(err => cb(err));
 		}.bind(this));
 	}.bind(this));
 };
