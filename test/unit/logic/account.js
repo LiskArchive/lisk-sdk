@@ -84,7 +84,10 @@ describe('account', function () {
 
 		before(function (done) {
 			dbStub = {
-				query: sinonSandbox.stub().resolves()
+				query: sinonSandbox.stub().resolves(),
+				migrations: {
+					applyRuntime: sinonSandbox.stub().resolves()
+				}
 			};
 
 			new Account(dbStub, modulesLoader.scope.schema, modulesLoader.scope.logger, function (err, lgAccount) {
