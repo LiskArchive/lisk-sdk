@@ -11,14 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Add Height Column to Peers
- *
+/**
+ * Rename port to wsPort in peers table.
  */
 
-BEGIN;
-
-ALTER TABLE "peers" ADD COLUMN "height" INT;
-
-CREATE INDEX IF NOT EXISTS "peers_height" ON "peers"("height");
-
-COMMIT;
+ALTER TABLE "peers" RENAME COLUMN "port" to "wsPort";

@@ -11,13 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Remove peers_dapp table
+/*
+ * Setting unique constraints on delegates table
  */
 
-BEGIN;
-
-DROP TABLE IF EXISTS "peers_dapp";
-
-DROP INDEX IF EXISTS "peers_dapp_unique";
-
-COMMIT;
+ALTER TABLE delegates ADD CONSTRAINT delegates_unique UNIQUE ("username", "transactionId");

@@ -15,8 +15,6 @@
  *
  */
 
-BEGIN;
-
 DROP TRIGGER IF EXISTS protect_mem_accounts ON "mem_accounts";
 
 DROP FUNCTION IF EXISTS revert_mem_account();
@@ -73,5 +71,3 @@ END $$;
 CREATE TRIGGER protect_mem_accounts
   BEFORE UPDATE ON "mem_accounts" FOR EACH ROW
   EXECUTE PROCEDURE revert_mem_account();
-
-COMMIT;
