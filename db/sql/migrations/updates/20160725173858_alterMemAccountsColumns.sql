@@ -11,12 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/*
- * Setting unique constraints on delegates table
+/* Alter Mem Accounts Columns
+ *
  */
 
-BEGIN;
+ALTER TABLE "mem_accounts" ALTER COLUMN "multimin" TYPE SMALLINT;
 
-ALTER TABLE delegates ADD CONSTRAINT delegates_unique UNIQUE ("username", "transactionId");
+ALTER TABLE "mem_accounts" ALTER COLUMN "u_multimin" TYPE SMALLINT;
 
-COMMIT;
+ALTER TABLE "mem_accounts" ALTER COLUMN "multilifetime" TYPE SMALLINT;
+
+ALTER TABLE "mem_accounts" ALTER COLUMN "u_multilifetime" TYPE SMALLINT;

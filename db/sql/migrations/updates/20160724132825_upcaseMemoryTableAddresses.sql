@@ -15,8 +15,6 @@
  *
  */
 
-BEGIN;
-
 UPDATE "mem_accounts" AS m
    SET "balance" = (m."balance" + l."balance"),
        "u_balance" = (m."u_balance" + l."u_balance")
@@ -40,5 +38,3 @@ UPDATE "mem_accounts2u_delegates" SET "accountId" = UPPER("accountId") WHERE "ac
 UPDATE "mem_accounts2multisignatures" SET "accountId" = UPPER("accountId") WHERE "accountId" LIKE '%l';
 
 UPDATE "mem_accounts2u_multisignatures" SET "accountId" = UPPER("accountId") WHERE "accountId" LIKE '%l';
-
-COMMIT;

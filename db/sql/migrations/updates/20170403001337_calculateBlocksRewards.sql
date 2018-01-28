@@ -15,8 +15,6 @@
  * Create data type and functions for calculating blocks rewards data
  */
 
-BEGIN;
-
 -- Create new data type which will store block rewards info
 CREATE TYPE blockRewards AS (supply bigint, start int, distance bigint, milestones bigint[][]);
 
@@ -128,5 +126,3 @@ CREATE FUNCTION calcSupply(block_height int DEFAULT NULL) RETURNS bigint LANGUAG
 	-- Return calculated supply
 	RETURN r.supply;
 END $$;
-
-COMMIT;
