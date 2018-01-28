@@ -89,10 +89,7 @@ class MigrationsRepository {
 	applyUpdates () {
 		return this.db.tx('applyUpdates', function * (t1) {
 			const hasMigrations = yield t1.migrations.hasMigrations();
-			let lastId = 0;
-			if(hasMigrations) {
-				lastId = yield t1.migrations.getLastId();
-			}
+			const lastId = hasMigrations ? yield t1.migrations.getLastId() : 0;
 			const updates = yield t1.migrations.readPending(lastId);
 			for(let i = 0;i < updates.length;i ++) {
 				const u = updates[i], tag = 'update:' + u.name;
