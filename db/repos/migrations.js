@@ -66,7 +66,7 @@ class MigrationsRepository {
 	}
 
 	/**
-	 * Executes 'migrations/memoryTable.sql' file, to create and configure all memory tables.
+	 * Executes 'migrations/memoryTables.sql' file, to create and configure all memory tables.
 	 * @method
 	 * @return {Promise<null>}
 	 */
