@@ -61,7 +61,7 @@ module.exports.connect = (config, logger) => {
 
 	const db = pgp(config);
 
-	return db.migrations.applyUpdates().then(() => db);
+	return db.migrations.applyAll().then(() => db);
 };
 
 /**

@@ -32,6 +32,7 @@ class MigrationsRepository {
 	constructor (db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
+		this.inTransaction = db.ctx && db.ctx.inTransaction;
 	}
 
 	/**
@@ -53,41 +54,52 @@ class MigrationsRepository {
 	}
 
 	/**
+	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
+	 * @method
+	 * @return {Promise<null>}
+	 */
+	applyRuntime () {
+		// use a transaction when not in one, as migrations/runtime.sql
+		// contains multiple sql statements:
+		const job = t => t.none(sql.runtime);
+		return this.inTransaction ? job(this.db) : this.db.tx('applyRuntime', job);
+	}
+
+	/**
 	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
 	 * @method
 	 * @param {number} lastMigrationId
 	 * @return {Promise<Array<{id, name, path, file}>>}
 	 */
 	readPending (lastMigrationId) {
-		const migrationsPath = path.join(sqlRoot, 'migrations/updates');
-		return fs.readdir(migrationsPath)
-			.then(files => {
-				return files
-					.map(f => {
-						const m = f.match(/(\d+)_(\S+).sql/);
-						return m && {
-							id: m[1],
-							name: m[2],
-							path: path.join(migrationsPath, f)
-						};
-					})
-					.filter(f => f && fs.statSync(f.path).isFile() && (!lastMigrationId || +f.id > lastMigrationId))
-					.map(f => {
-						f.file = new this.pgp.QueryFile(f.path, {minify: true, noWarnings: true});
-						return f;
-					});
-			});
+		const updatesPath = path.join(sqlRoot, 'migrations/updates');
+		return fs.readdir(updatesPath)
+			.then(files => files
+				.map(f => {
+					const m = f.match(/(\d+)_(\S+).sql/);
+					return m && {
+						id: m[1],
+						name: m[2],
+						path: path.join(updatesPath, f)
+					};
+				})
+				.filter(f => f && fs.statSync(f.path).isFile() && (!lastMigrationId || +f.id > lastMigrationId))
+				.map(f => {
+					f.file = new this.pgp.QueryFile(f.path, {minify: true, noWarnings: true});
+					return f;
+				})
+			);
 	}
 
 	/**
-	 * Applies all pending migration updates.
+	 * Applies a cumulative update: all pending migrations + runtime.
 	 *
 	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
 	 * @method
 	 * @return {Promise}
 	 */
-	applyUpdates () {
-		return this.db.tx('applyUpdates', function * (t1) {
+	applyAll () {
+		return this.db.tx('applyAll', function * (t1) {
 			const hasMigrations = yield t1.migrations.hasMigrations();
 			const lastId = hasMigrations ? yield t1.migrations.getLastId() : 0;
 			const updates = yield t1.migrations.readPending(lastId);
@@ -98,19 +110,10 @@ class MigrationsRepository {
 					yield t2.none(sql.add, u);
 				});
 			}
+			yield t1.migrations.applyRuntime();
 		});
 	}
 
-	/**
-	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
-	 * @method
-	 * @return {Promise<null>}
-	 */
-	applyRuntime () {
-		// we use a transaction here, because migrations/runtime.sql
-		// contains multiple sql statements:
-		return this.db.tx('applyRuntime', t => t.none(sql.runtime));
-	}
 }
 
 module.exports = MigrationsRepository;
