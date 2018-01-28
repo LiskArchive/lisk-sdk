@@ -15,8 +15,6 @@
  * Recreate full_blocks_list, add join for transfer table.
  */
 
-BEGIN;
-
 DROP VIEW IF EXISTS full_blocks_list;
 
 CREATE VIEW full_blocks_list AS
@@ -76,5 +74,3 @@ LEFT OUTER JOIN dapps AS dapp ON dapp."transactionId" = t."id"
 LEFT OUTER JOIN intransfer AS it ON it."transactionId" = t."id"
 LEFT OUTER JOIN outtransfer AS ot ON ot."transactionId" = t."id"
 LEFT OUTER JOIN transfer AS tf ON tf."transactionId" = t."id";
-
-COMMIT;

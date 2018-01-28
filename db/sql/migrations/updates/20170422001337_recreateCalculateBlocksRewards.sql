@@ -18,8 +18,6 @@
  * - Recreate calcSupply, improved performance, change type to IMMUTABLE
  */
 
-BEGIN;
-
 -- Drop old functions and data type
 DROP FUNCTION IF EXISTS getBlockRewards();
 DROP FUNCTION IF EXISTS calcBlockReward(int);
@@ -155,5 +153,3 @@ CREATE FUNCTION calcSupply_test(height_start int, height_end int, expected_rewar
 		-- All tests passed - return true
 		RETURN true;
 END $$;
-
-COMMIT;

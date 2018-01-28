@@ -11,18 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Alter Mem Accounts Columns
- *
+/*
+ * Add index for performance
  */
 
-BEGIN;
-
-ALTER TABLE "mem_accounts" ALTER COLUMN "multimin" TYPE SMALLINT;
-
-ALTER TABLE "mem_accounts" ALTER COLUMN "u_multimin" TYPE SMALLINT;
-
-ALTER TABLE "mem_accounts" ALTER COLUMN "multilifetime" TYPE SMALLINT;
-
-ALTER TABLE "mem_accounts" ALTER COLUMN "u_multilifetime" TYPE SMALLINT;
-
-COMMIT;
+-- Add 'mem_accounts2delegates_depId' index for fast delegates voters counting
+CREATE INDEX IF NOT EXISTS "mem_accounts2delegates_depId" ON mem_accounts2delegates("dependentId");

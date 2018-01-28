@@ -26,7 +26,7 @@ const sqlRoot = isDev ? __dirname : path.join(__dirname, './sql');
 
 /////////////////////////////////////////
 // Provides dynamic link to an SQL file:
-module.exports = file => {
+function link(file) {
 
 	const fullPath = path.join(sqlRoot, file); // Generating full path;
 
@@ -44,3 +44,5 @@ module.exports = file => {
 
 	return qf;
 };
+
+module.exports = {link, sqlRoot};
