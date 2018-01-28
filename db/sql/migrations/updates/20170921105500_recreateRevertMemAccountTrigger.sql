@@ -17,8 +17,6 @@
  * Allowing 'u_username' and 'username' fields to be set to NULL when undoing transactions
  */
 
-BEGIN;
-
 CREATE OR REPLACE FUNCTION revert_mem_account() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 
 BEGIN
@@ -68,5 +66,3 @@ BEGIN
   RETURN NEW;
 
 END $$;
-
-COMMIT;

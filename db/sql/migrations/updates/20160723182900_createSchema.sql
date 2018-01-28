@@ -15,8 +15,6 @@
  *
  */
 
-BEGIN;
-
 /* Tables */
 CREATE TABLE IF NOT EXISTS "migrations"(
   "id" VARCHAR(22) NOT NULL PRIMARY KEY,
@@ -165,4 +163,3 @@ CREATE INDEX IF NOT EXISTS "multisignatures_trs_id" ON "multisignatures"("transa
 CREATE INDEX IF NOT EXISTS "dapps_trs_id" ON "dapps"("transactionId");
 CREATE INDEX IF NOT EXISTS "dapps_name" ON "dapps"("name");
 
-COMMIT;

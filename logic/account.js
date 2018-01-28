@@ -14,14 +14,10 @@
 'use strict';
 
 var _ = require('lodash');
-var async = require('async');
 var pgp = require('pg-promise');
-var path = require('path');
 var jsonSql = require('json-sql')();
 jsonSql.setDialect('postgresql');
 var constants = require('../helpers/constants.js');
-var createQueryFile = require('../db').createQueryFile;
-var slots = require('../helpers/slots.js');
 var sortBy = require('../helpers/sort_by.js');
 var BlockReward = require('../logic/blockReward.js');
 var Bignum = require('../helpers/bignum.js');
@@ -535,15 +531,12 @@ Account.prototype.bind = function (blocks) {
  * @returns {setImmediateCallback} cb|error.
  */
 Account.prototype.createTables = function (cb) {
-	var sqlPath = path.join(__dirname, '../db/sql/init/memoryTables.sql');
-	var queryFile = createQueryFile(sqlPath);
-
-	this.scope.db.query(queryFile).then(function () {
-		return setImmediate(cb);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Account#createTables error');
-	});
+	this.scope.db.migrations.createMemoryTables()
+		.then(() => setImmediate(cb))
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Account#createTables error');
+		});
 };
 
 /**

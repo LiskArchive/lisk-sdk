@@ -11,14 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Add constraints to improve upserts
+/* Add Height Column to Peers
  *
  */
 
-BEGIN;
+ALTER TABLE "peers" ADD COLUMN "height" INT;
 
-ALTER TABLE "peers"
-  ADD CONSTRAINT "address_unique" UNIQUE
-  USING INDEX "peers_unique";
-
-COMMIT;
+CREATE INDEX IF NOT EXISTS "peers_height" ON "peers"("height");

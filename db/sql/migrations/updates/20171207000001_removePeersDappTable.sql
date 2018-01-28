@@ -11,13 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/*
- * Add index for performance
+/* Remove peers_dapp table
  */
 
-BEGIN;
+DROP TABLE IF EXISTS "peers_dapp";
 
--- Add 'mem_accounts2delegates_depId' index for fast delegates voters counting
-CREATE INDEX IF NOT EXISTS "mem_accounts2delegates_depId" ON mem_accounts2delegates("dependentId");
-
-COMMIT;
+DROP INDEX IF EXISTS "peers_dapp_unique";
