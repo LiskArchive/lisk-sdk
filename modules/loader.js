@@ -716,9 +716,6 @@ Loader.prototype.findGoodPeers = function (peers) {
  * @return {setImmediateCallback} err | __private.network (good peers)
  */
 Loader.prototype.getNetwork = function (cb) {
-	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.lastBlock.get().height) === 1) {
-		return setImmediate(cb, null, __private.network);
-	}
 	modules.peers.list({normalized: false}, function (err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
