@@ -86,7 +86,7 @@ describe('account', function () {
 			dbStub = {
 				query: sinonSandbox.stub().resolves(),
 				migrations: {
-					applyRuntime: sinonSandbox.stub().resolves()
+					createMemoryTables: sinonSandbox.stub().resolves()
 				}
 			};
 

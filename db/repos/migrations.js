@@ -59,8 +59,7 @@ class MigrationsRepository {
 	 * @return {Promise<null>}
 	 */
 	applyRuntime () {
-		// use a transaction when not in one, as migrations/runtime.sql
-		// contains multiple sql statements:
+		// must use a transaction here when not in one:
 		const job = t => t.none(sql.runtime);
 		return this.inTransaction ? job(this.db) : this.db.tx('applyRuntime', job);
 	}
@@ -71,8 +70,7 @@ class MigrationsRepository {
 	 * @return {Promise<null>}
 	 */
 	createMemoryTables () {
-		// use a transaction when not in one, as migrations/memoryTables.sql
-		// contains multiple sql statements:
+		// must use a transaction here when not in one:
 		const job = t => t.none(sql.memoryTables);
 		return this.inTransaction ? job(this.db) : this.db.tx('createMemoryTables', job);
 	}
