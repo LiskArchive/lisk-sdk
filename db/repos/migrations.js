@@ -66,6 +66,18 @@ class MigrationsRepository {
 	}
 
 	/**
+	 * Executes 'migrations/memoryTable.sql' file, to create and configure all memory tables.
+	 * @method
+	 * @return {Promise<null>}
+	 */
+	createMemoryTables () {
+		// use a transaction when not in one, as migrations/memoryTables.sql
+		// contains multiple sql statements:
+		const job = t => t.none(sql.memoryTables);
+		return this.inTransaction ? job(this.db) : this.db.tx('createMemoryTables', job);
+	}
+
+	/**
 	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
 	 * @method
 	 * @param {number} lastMigrationId

@@ -531,7 +531,7 @@ Account.prototype.bind = function (blocks) {
  * @returns {setImmediateCallback} cb|error.
  */
 Account.prototype.createTables = function (cb) {
-	this.scope.db.migrations.applyRuntime()
+	this.scope.db.migrations.createMemoryTables()
 		.then(() => setImmediate(cb))
 		.catch(err => {
 			library.logger.error(err.stack);
