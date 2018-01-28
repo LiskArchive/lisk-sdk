@@ -192,8 +192,7 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 			if (err) {
 				library.logger.debug(err, transaction);
 			}
-
-			return setImmediate(eachSeriesCb);
+			return setImmediate(eachSeriesCb, err);
 		});
 	}, cb);
 };

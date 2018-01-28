@@ -13,6 +13,7 @@
  */
 'use strict';
 
+require('../../functional.js');
 var WSServer = require('../../../common/ws/serverMaster');
 var swaggerEndpoint = require('../../../common/swaggerSpec');
 var apiHelpers = require('../../../common/helpers/api');

@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var PQ = require('pg-promise').ParameterizedQuery;
+const sql = require('../sql').dapps;
 
 /**
  * Dapps database interaction module
@@ -22,87 +22,83 @@ var PQ = require('pg-promise').ParameterizedQuery;
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {DappsRepo}
+ * @return {DappsRepository}
  */
-function DappsRepo (db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class DappsRepository {
 
-	this.sortFields = ['name'];
-}
+	constructor (db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
 
-var DappsSql = {
-	countByTransactionId: new PQ('SELECT COUNT(*)::int AS "count" FROM dapps WHERE "transactionId" = $1'),
+		// TODO: A proper repository shouldn't need to export any properties like this:
+		this.sortFields = ['name'];
+	}
 
-	countByOutTransactionId: new PQ('SELECT COUNT(*)::int AS "count" FROM outtransfer WHERE "outTransactionId" = $1'),
+	/**
+	 * Counts dapps by transaction id
+	 * @param {string} id
+	 * @return {Promise<number>}
+	 */
+	countByTransactionId (id) {
+		return this.db.one(sql.countByTransactionId, id, a => +a.count);
+	}
 
-	getExisting: new PQ('SELECT "name", "link" FROM dapps WHERE ("name" = $1 OR "link" = $2) AND "transactionId" != $3'),
+	/**
+	 * Counts dapps by out transfer transaction id
+	 * @param {string} id
+	 * @return {Promise<number>}
+	 */
+	countByOutTransactionId (id) {
+		return this.db.one(sql.countByOutTransactionId, id, a => +a.count);
+	}
 
-	// Need to fix "or" or "and" in query
-	list: function (params) {
-		return [
+	/**
+	 * Checks if a dapp exists
+	 * @param {Object} params
+	 * @param {string} params.transactionId
+	 * @param {string} params.name
+	 * @param {string} params.link
+	 * @return {Promise}
+	 */
+	getExisting (params) {
+		// TODO: Should use a result-specific method, not .query
+		return this.db.query(sql.getExisting, params);
+	}
+
+	/**
+	 * Searches existing dapps in database
+	 * @param {Object} params
+	 * @param {Array} params.where
+	 * @param {string} params.sortField
+	 * @param {string} params.sortMethod
+	 * @param {int} params.limit
+	 * @param {int} params.offset
+	 * @return {Promise}
+	 */
+	list (params) {
+		// TODO: Use cases need to be reviewed, and new methods added before it can be made into a proper external SQL
+		const query = [
 			'SELECT "name" COLLATE "C", "description", "tags", "link", "type", "category", "icon", "transactionId" FROM dapps',
 			((params.where && params.where.length) ? 'WHERE ' + params.where.join(' OR ') : ''),
 			(params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
 			'LIMIT ${limit} OFFSET ${offset}'
 		].filter(Boolean).join(' ');
-	},
 
-	getGenesis: new PQ('SELECT b."height" AS "height", b."id" AS "id", t."senderId" AS "authorId" FROM trs t INNER JOIN blocks b ON t."blockId" = b."id" WHERE t."id" = $1')
-};
+		// TODO: Should use a result-specific method, not .query
+		return this.db.query(query, params);
+	}
 
-/**
- * Count dapps by transaction id
- * @param {string} id
- * @return {Promise}
- */
-DappsRepo.prototype.countByTransactionId = function (id) {
-	return this.db.one(DappsSql.countByTransactionId, [id]);
-};
+	// TODO: Remove DappsRepository#getGenesis and use relevant function from db/blocks
+	/**
+	 * Gets Genesis block
+	 * @param {string} id
+	 * @return {Promise}
+	 */
+	getGenesis (id) {
+		// TODO: Should use a result-specific method, not .query
+		return this.db.query(sql.getGenesis, [id]);
+	}
 
-/**
- * Count dapps by out transfer transaction id
- * @param {string} id
- * @return {Promise}
- */
-DappsRepo.prototype.countByOutTransactionId = function (id) {
-	return this.db.one(DappsSql.countByOutTransactionId, [id]);
-};
+}
 
-/**
- * Check if a dapp exists
- * @param {Object} params
- * @param {string} params.transactionId
- * @param {string} params.name
- * @param {string} params.link
- * @return {Promise}
- */
-DappsRepo.prototype.getExisting = function (params) {
-	return this.db.query(DappsSql.getExisting, [params.name, params.link, params.transactionId]);
-};
-
-/**
- * Search existing dapps in database
- * @param {Object} params
- * @param {Array} params.where
- * @param {string} params.sortField
- * @param {string} params.sortMethod
- * @param {int} params.limit
- * @param {int} params.offset
- * @return {Promise}
- */
-DappsRepo.prototype.list = function (params) {
-	return this.db.query(DappsSql.list(params), params);
-};
-
-// TODO: Remove DappsRepo#getGenesis and use relevant function from db/blocks
-/**
- * Get Genesis block
- * @param {string} id
- * @return {Promise}
- */
-DappsRepo.prototype.getGenesis = function (id) {
-	return this.db.query(DappsSql.getGenesis, [id]);
-};
-
-module.exports = DappsRepo;
+module.exports = DappsRepository;

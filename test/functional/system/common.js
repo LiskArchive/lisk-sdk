@@ -141,6 +141,9 @@ function loadTransactionType (key, account, dapp, secondPassword, cb) {
 		case 'SEND':
 			transaction = lisk.transaction.createTransaction(randomUtil.account().address, 1, accountCopy.password, accountCopy.secondPassword);
 			break;
+		case 'SIGNATURE':
+			transaction = lisk.signature.createSignature(account.password, account.secondPassword);
+			break;
 		case 'DELEGATE':
 			transaction = lisk.delegate.createDelegate(accountCopy.password, accountCopy.username, accountCopy.secondPassword);
 			break;

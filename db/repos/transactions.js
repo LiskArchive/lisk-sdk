@@ -283,8 +283,9 @@ TransactionsRepo.prototype.save = function (transactions) {
 		batch.push(self.db[self.transactionsRepoMap[type]].save(groupedTransactions[type]));
 	});
 
-	// To avoid nested transactions aka transactions savepoints
-	if(this.db.ctx.isTX) {
+	// In order to avoid nested transactions, and thus SAVEPOINT-s,
+	// we check when there is a transaction on this level or above:
+	if (this.db.ctx && this.db.ctx.inTransaction) {
 		return this.db.batch(batch);
 	} else {
 		return this.db.tx(function (t) {

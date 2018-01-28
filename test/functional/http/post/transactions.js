@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 'use strict';
+
+require('../../functional.js');
 var randomUtil = require('../../../common/utils/random');
 var swaggerSpec = require('../../../common/swaggerSpec');
 var expectSwaggerParamError = require('../../../common/helpers/api').expectSwaggerParamError;

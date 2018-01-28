@@ -432,7 +432,9 @@ d.run(function () {
 		}],
 		db: function (cb) {
 			var db = require('./db');
-			db.connect(config.db, dbLogger, cb);
+			db.connect(config.db, dbLogger)
+				.then(db => cb(null, db))
+				.catch(err => cb(err));
 		},
 		/**
 		 * It tries to connect with redis server based on config. provided in config.json file

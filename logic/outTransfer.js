@@ -15,6 +15,7 @@
 
 var constants = require('../helpers/constants.js');
 var slots = require('../helpers/slots.js');
+var milestones = require('../helpers/milestones.js');
 
 // Private fields
 var modules, library, __private = {};
@@ -44,9 +45,10 @@ function OutTransfer (db, schema, logger) {
  * Binds input modules to private variable module.
  * @param {Accounts} accounts
  */
-OutTransfer.prototype.bind = function (accounts) {
+OutTransfer.prototype.bind = function (accounts, blocks) {
 	modules = {
 		accounts: accounts,
+		blocks: blocks
 	};
 };
 
@@ -68,6 +70,11 @@ OutTransfer.prototype.calculateFee = function (transaction, sender) {
  * @return {setImmediateCallback} errors messages | transaction
  */
 OutTransfer.prototype.verify = function (transaction, sender, cb) {
+	var lastBlock = modules.blocks.lastBlock.get();
+	if (lastBlock.height >= milestones.disableDappTransfers) {
+		return setImmediate(cb, 'Transaction type ' + transaction.type + ' is frozen');
+	}
+
 	if (!transaction.recipientId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
@@ -101,8 +108,8 @@ OutTransfer.prototype.verify = function (transaction, sender, cb) {
  * @return {setImmediateCallback} errors messages | transaction
  */
 OutTransfer.prototype.process = function (transaction, sender, cb) {
-	library.db.dapps.countByTransactionId(transaction.asset.outTransfer.dappId).then(function (row) {
-		if (row.count === 0) {
+	library.db.dapps.countByTransactionId(transaction.asset.outTransfer.dappId).then(function (count) {
+		if (count === 0) {
 			return setImmediate(cb, 'Application not found: ' + transaction.asset.outTransfer.dappId);
 		}
 
@@ -110,8 +117,8 @@ OutTransfer.prototype.process = function (transaction, sender, cb) {
 			return setImmediate(cb, 'Transaction is already processed: ' + transaction.asset.outTransfer.transactionId);
 		}
 
-		library.db.dapps.countByOutTransactionId(transaction.asset.outTransfer.transactionId).then(function (row) {
-			if (row.count > 0) {
+		library.db.dapps.countByOutTransactionId(transaction.asset.outTransfer.transactionId).then(function (count) {
+			if (count > 0) {
 				return setImmediate(cb, 'Transaction is already confirmed: ' + transaction.asset.outTransfer.transactionId);
 			} else {
 				return setImmediate(cb, null, transaction);

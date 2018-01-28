@@ -29,7 +29,6 @@ const cs = {}; // Reusable ColumnSet objects
 class BlocksRepository {
 
 	constructor (db, pgp) {
-
 		this.db = db;
 		this.pgp = pgp;
 
@@ -210,7 +209,7 @@ class BlocksRepository {
 	 * @param {limit} - Number of blocks to load
 	 */
 	loadLastNBlockIds (limit) {
-		return this.db.query(Queries.loadLastNBlockIds, [limit]);
+		return this.db.query(sql.loadLastNBlockIds, [limit]);
 	}
 
 	/**

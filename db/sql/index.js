@@ -13,7 +13,7 @@
  */
 'use strict';
 
-const link = require('./config');
+const {link} = require('./config');
 
 module.exports = {
 	accounts: {
@@ -28,24 +28,43 @@ module.exports = {
 		getIdSequence: link('blocks/getIdSequence.sql'),
 		loadBlocksOffset: link('blocks/loadBlocksOffset.sql'),
 		loadLastBlock: link('blocks/loadLastBlock.sql'),
-		loadLastNBlock: link('blocks/loadLastNBlock.sql'),
+		loadLastNBlockIds: link('blocks/loadLastNBlockIds.sql'),
 		blockExists: link('blocks/blockExists.sql'),
 		deleteAfterBlock: link('blocks/deleteAfterBlock.sql'),
 		getBlocksForTransport: link('blocks/getBlocksForTransport.sql'),
 		getHeightByLastId: link('blocks/getHeightByLastId.sql'),
 		getCommonBlock: link('blocks/getCommonBlock.sql')
 	},
+	dapps: {
+		countByOutTransactionId: link('dapps/countByOutTransactionId.sql'),
+		countByTransactionId: link('dapps/countByTransactionId.sql'),
+		getExisting: link('dapps/getExisting.sql'),
+		getGenesis: link('dapps/getGenesis.sql'),
+		list: link('dapps/list.sql')
+	},
 	delegates: {
 		countDuplicatedDelegates: link('delegates/countDuplicatedDelegates.sql'),
 		getDelegatesByPublicKeys: link('delegates/getDelegatesByPublicKeys.sql'),
 		insertFork: link('delegates/insertFork.sql')
 	},
+	multisignatures: {
+		getMemberPublicKeys: link('multisignatures/getMemberPublicKeys.sql'),
+		getGroupIds: link('multisignatures/getGroupIds.sql')
+	},
+	migrations: {
+		getLastId: link('migrations/getLastId.sql'),
+		add: link('migrations/add.sql'),
+		memoryTables: link('migrations/memoryTables.sql'),
+		runtime: link('migrations/runtime.sql')
+	},
 	peers: {
-		// sql to be included
+		list: link('peers/list.sql'),
+		clear: link('peers/clear.sql')
 	},
 	rounds: {
 		getVotes: link('rounds/getVotes.sql'),
 		updateVotes: link('rounds/updateVotes.sql'),
+		updateMissedBlocks: link('rounds/updateMissedBlocks.sql'),
 		updateBlockId: link('rounds/updateBlockId.sql'),
 		summedRound: link('rounds/summedRound.sql'),
 		clearRoundSnapshot: link('rounds/clearRoundSnapshot.sql'),
