@@ -134,7 +134,7 @@ __private.syncTimer = function () {
 
 		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
 			library.sequence.add(function (sequenceCb) {
-				async.retry(__private.retries, __private.sync, sequenceCb);
+				__private.sync(sequenceCb);
 			}, function (err) {
 				if (err) {
 					library.logger.error('Sync timer', err);
