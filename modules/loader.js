@@ -138,7 +138,6 @@ __private.syncTimer = function () {
 			}, function (err) {
 				if (err) {
 					library.logger.error('Sync timer', err);
-					__private.initialize();
 				}
 				return setImmediate(cb);
 			});
@@ -805,10 +804,6 @@ Loader.prototype.onPeersReady = function () {
 			}
 		}, function (err) {
 			library.logger.trace('Transactions and signatures pulled');
-
-			if (err) {
-				__private.initialize();
-			}
 		});
 	});
 };
