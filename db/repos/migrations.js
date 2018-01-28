@@ -19,7 +19,8 @@ const sql = require('../sql').migrations;
 const {sqlRoot} = require('../sql/config');
 
 /**
- * Migrations database interaction module
+ * Database migrations interaction module.
+ *
  * @memberof module:migrations
  * @class
  * @param {Database} db - Instance of database object from pg-promise
@@ -36,7 +37,8 @@ class MigrationsRepository {
 	}
 
 	/**
-	 * Verifies presence of the 'migrations' OID named relation
+	 * Verifies presence of the 'migrations' OID named relation.
+	 *
 	 * @method
 	 * @return {Promise<boolean>}
 	 */
@@ -46,6 +48,7 @@ class MigrationsRepository {
 
 	/**
 	 * Gets id of the last migration record, or 0, if none exist.
+	 *
 	 * @method
 	 * @return {Promise<number>}
 	 */
@@ -55,28 +58,31 @@ class MigrationsRepository {
 
 	/**
 	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
+	 *
 	 * @method
 	 * @return {Promise<null>}
 	 */
 	applyRuntime () {
-		// must use a transaction here when not in one:
+		// Must use a transaction here when not in one:
 		const job = t => t.none(sql.runtime);
 		return this.inTransaction ? job(this.db) : this.db.tx('applyRuntime', job);
 	}
 
 	/**
 	 * Executes 'migrations/memoryTables.sql' file, to create and configure all memory tables.
+	 *
 	 * @method
 	 * @return {Promise<null>}
 	 */
 	createMemoryTables () {
-		// must use a transaction here when not in one:
+		// Must use a transaction here when not in one:
 		const job = t => t.none(sql.memoryTables);
 		return this.inTransaction ? job(this.db) : this.db.tx('createMemoryTables', job);
 	}
 
 	/**
 	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
+	 *
 	 * @method
 	 * @param {number} lastMigrationId
 	 * @return {Promise<Array<{id, name, path, file}>>}
@@ -103,8 +109,8 @@ class MigrationsRepository {
 
 	/**
 	 * Applies a cumulative update: all pending migrations + runtime.
-	 *
 	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
+	 *
 	 * @method
 	 * @return {Promise}
 	 */
@@ -113,7 +119,7 @@ class MigrationsRepository {
 			const hasMigrations = yield t1.migrations.hasMigrations();
 			const lastId = hasMigrations ? yield t1.migrations.getLastId() : 0;
 			const updates = yield t1.migrations.readPending(lastId);
-			for(let i = 0;i < updates.length;i ++) {
+			for (let i = 0;i < updates.length;i ++) {
 				const u = updates[i], tag = 'update:' + u.name;
 				yield t1.tx(tag, function * (t2) {
 					yield t2.none(u.file);
