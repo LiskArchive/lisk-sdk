@@ -11,15 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-'use strict';/*eslint*/
+'use strict';/* eslint */
 
-var crypto = require('crypto');
-var async = require('async');
 var rewire = require('rewire');
 
-var ed = require('../../../helpers/ed');
 var constants = require('../../../helpers/constants.js');
-var bignum = require('../../../helpers/bignum.js');
 
 var application = require('../../common/application.js');
 
@@ -62,12 +58,11 @@ var validAccount = {
 };
 
 describe('account', function () {
-
 	var account;
 	var accountLogic;
 
 	before(function (done) {
-		application.init({sandbox: {name: 'lisk_test_logic_accounts'}}, function (err, scope) {
+		application.init({ sandbox: { name: 'lisk_test_logic_accounts' } }, function (err, scope) {
 			account = scope.logic.account;
 			done();
 		});
@@ -78,7 +73,6 @@ describe('account', function () {
 	});
 
 	describe('Account constructor', function () {
-
 		var library;
 		var dbStub;
 
@@ -111,7 +105,6 @@ describe('account', function () {
 	});
 
 	describe('createTables', function () {
-
 		it('should create the tables', function (done) {
 			accountLogic.createTables(function (err, res) {
 				expect(err).to.not.exist;
@@ -122,7 +115,6 @@ describe('account', function () {
 	});
 
 	describe('removeTables', function () {
-
 		it('should remove the tables', function (done) {
 			accountLogic.removeTables(function (err, res) {
 				expect(err).to.not.exist;
@@ -139,7 +131,6 @@ describe('account', function () {
 	});
 
 	describe('verifyPublicKey', function () {
-
 		it('should be okay for empty params', function () {
 			expect(account.verifyPublicKey()).to.be.undefined;
 		});
@@ -170,7 +161,6 @@ describe('account', function () {
 	});
 
 	describe('toDB', function () {
-
 		it('should normalize address and transform publicKey and secondPublicKey to Buffer hex', function (done) {
 			var raw = {
 				address: '16313739661670634666l',
@@ -188,11 +178,10 @@ describe('account', function () {
 	});
 
 	describe('get', function () {
-
 		it('should only get requested fields for account', function (done) {
 			var requestedFields = ['username', 'isDelegate', 'address', 'publicKey'];
 
-			account.get({address: validAccount.address}, requestedFields, function (err, res) {
+			account.get({ address: validAccount.address }, requestedFields, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('object');
 				expect(Object.keys(res)).to.eql(requestedFields);
@@ -201,7 +190,7 @@ describe('account', function () {
 		});
 
 		it('should get all fields if fields parameters is not set', function (done) {
-			account.get({address: validAccount.address}, function (err, res) {
+			account.get({ address: validAccount.address }, function (err, res) {
 				expect(err).to.not.exist;
 				expect(Object.keys(res)).to.eql(Object.keys(validAccount));
 				done();
@@ -209,7 +198,7 @@ describe('account', function () {
 		});
 
 		it('should return null for non-existent account', function (done) {
-			account.get({address: 'invalid address'}, function (err, res) {
+			account.get({ address: 'invalid address' }, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.equal(null);
 				done();
@@ -217,7 +206,7 @@ describe('account', function () {
 		});
 
 		it('should get the correct account against address', function (done) {
-			account.get({address: validAccount.address}, function (err, res) {
+			account.get({ address: validAccount.address }, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('object');
 				expect(res.username).to.equal(validAccount.username);
@@ -231,7 +220,6 @@ describe('account', function () {
 	});
 
 	describe('calculateApproval', function () {
-
 		it('when voterBalance = 0 and totalSupply = 0, it should return 0', function () {
 			expect(account.calculateApproval(0, 0)).to.equal(0);
 		});
@@ -255,7 +243,6 @@ describe('account', function () {
 	});
 
 	describe('calculateProductivity', function () {
-
 		it('when missedBlocks = 0 and producedBlocks = 0, it should return 0', function () {
 			expect(account.calculateProductivity(0, 0)).to.equal(0);
 		});
@@ -280,12 +267,11 @@ describe('account', function () {
 	});
 
 	describe('getAll', function () {
-
 		var allAccounts;
 
 		before(function (done) {
 			// Use high limit to be sure that we grab all accounts
-			account.getAll({limit: 1000}, function (err, res) {
+			account.getAll({ limit: 1000 }, function (err, res) {
 				allAccounts = res;
 				done();
 			});
@@ -298,7 +284,7 @@ describe('account', function () {
 				'non-existent-field'
 			];
 
-			account.getAll({address: validAccount.address}, fields, function (err, res) {
+			account.getAll({ address: validAccount.address }, fields, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.length).to.equal(1);
 				expect(res[0].username).to.equal(validAccount.username);
@@ -311,7 +297,7 @@ describe('account', function () {
 		it('should only get requested fields for account', function (done) {
 			var requestedFields = ['username', 'isDelegate', 'address', 'publicKey'];
 
-			account.get({address: validAccount.address}, requestedFields, function (err, res) {
+			account.get({ address: validAccount.address }, requestedFields, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('object');
 				expect(Object.keys(res)).to.eql(requestedFields);
@@ -355,7 +341,7 @@ describe('account', function () {
 
 		it('should use default limit when limit below 1', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {username: v.username};
+				return { username: v.username };
 			}).slice(0, constants.activeDelegates);
 
 			account.getAll({
@@ -370,7 +356,7 @@ describe('account', function () {
 
 		it('should use default limit and ignore offset when offset below 1', function (done) {
 			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {username: v.username};
+				return { username: v.username };
 			}).slice(0, constants.activeDelegates);
 
 			account.getAll({
@@ -384,7 +370,7 @@ describe('account', function () {
 		});
 
 		it('should fetch correct result using address as filter', function (done) {
-			account.getAll({address: validAccount.address }, function (err, res) {
+			account.getAll({ address: validAccount.address }, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.length).to.equal(1);
 				expect(res[0].username).to.equal(validAccount.username);
@@ -397,7 +383,7 @@ describe('account', function () {
 		});
 
 		it('should fetch correct result using address as filter when its in lower case', function (done) {
-			account.getAll({address: validAccount.address.toLowerCase() }, function (err, res) {
+			account.getAll({ address: validAccount.address.toLowerCase() }, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.length).to.equal(1);
 				expect(res[0].username).to.equal(validAccount.username);
@@ -410,7 +396,7 @@ describe('account', function () {
 		});
 
 		it('should fetch correct result using username as filter', function (done) {
-			account.getAll({username: validAccount.username}, function (err, res) {
+			account.getAll({ username: validAccount.username }, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.length).to.equal(1);
 				expect(res[0].username).to.equal(validAccount.username);
@@ -423,7 +409,7 @@ describe('account', function () {
 		});
 
 		it('should fetch all delegates using isDelegate filter', function (done) {
-			account.getAll({isDelegate: 1}, function (err, res) {
+			account.getAll({ isDelegate: 1 }, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.filter(function (a) {
 					return a.isDelegate === 1;
@@ -433,15 +419,15 @@ describe('account', function () {
 		});
 
 		it('should throw error if unrelated filters are provided', function (done) {
-			account.getAll({publicKey: validAccount.publicKey, unrelatedfield: 'random value'}, function (err, res) {
+			account.getAll({ publicKey: validAccount.publicKey, unrelatedfield: 'random value' }, function (err) {
 				expect(err).to.equal('Account#getAll error');
 				done();
 			});
 		});
 
 		it('should fetch results with limit of 50', function (done) {
-			var sortedUsernames = _.sortBy(allAccounts, 'username').map(function (v) {
-				return {username: v.username};
+			_.sortBy(allAccounts, 'username').map(function (v) {
+				return { username: v.username };
 			}).slice(0, 50);
 
 			account.getAll({
@@ -468,9 +454,8 @@ describe('account', function () {
 		});
 
 		describe('sort using string as argument', function () {
-
 			it('should sort the result according to field type in ascending order', function (done) {
-				account.getAll({sort: 'username:asc'}, ['username'], function (err, res) {
+				account.getAll({ sort: 'username:asc' }, ['username'], function (err, res) {
 					expect(err).to.not.exist;
 					expect(res).to.eql(_.sortBy(res, 'username'));
 					done();
@@ -479,7 +464,7 @@ describe('account', function () {
 
 
 			it('should sort the result according to field type in descending order', function (done) {
-				account.getAll({sort: 'username:desc'}, ['username'], function (err, res) {
+				account.getAll({ sort: 'username:desc' }, ['username'], function (err, res) {
 					expect(err).to.not.exist;
 					expect(res).to.eql(_.sortBy(res, 'username').reverse());
 					done();
@@ -488,9 +473,8 @@ describe('account', function () {
 		});
 
 		describe('sort using object as argument', function () {
-
 			it('should sort the result according to field type in ascending order', function (done) {
-				account.getAll({sort: {'username': 1}}, ['username'], function (err, res) {
+				account.getAll({ sort: { username: 1 } }, ['username'], function (err, res) {
 					expect(err).to.not.exist;
 					expect(res).to.eql(_.sortBy(res, 'username'));
 					done();
@@ -498,7 +482,7 @@ describe('account', function () {
 			});
 
 			it('should sort the result according to field type in descending order', function (done) {
-				account.getAll({sort: {'username': -1}}, ['username'], function (err, res) {
+				account.getAll({ sort: { username: -1 } }, ['username'], function (err, res) {
 					expect(err).to.not.exist;
 					expect(res).to.eql(_.sortBy(res, 'username').reverse());
 					done();
@@ -508,9 +492,8 @@ describe('account', function () {
 	});
 
 	describe('set', function () {
-
 		it('should insert an account', function (done) {
-			account.set('123L', {u_username: 'test_set_insert'}, function (err, res) {
+			account.set('123L', { u_username: 'test_set_insert' }, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.undefined;
 				done();
@@ -518,7 +501,7 @@ describe('account', function () {
 		});
 
 		it('should set provided fields when valid', function (done) {
-			account.set(validAccount.address, {u_username: 'test_set', vote: 1}, function (err, res) {
+			account.set(validAccount.address, { u_username: 'test_set', vote: 1 }, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.undefined;
 				done();
@@ -526,7 +509,7 @@ describe('account', function () {
 		});
 
 		it('should throw error when unrelated fields are provided', function (done) {
-			account.set(validAccount.address, {unrelatedfield: 'random value'}, function (err, res) {
+			account.set(validAccount.address, { unrelatedfield: 'random value' }, function (err) {
 				expect(err).to.equal('Account#set error');
 				done();
 			});
@@ -534,9 +517,8 @@ describe('account', function () {
 	});
 
 	describe('merge', function () {
-
 		it('should merge diff when values are correct', function (done) {
-			account.merge(validAccount.address, {multisignatures: ['MS1'], delegates: ['DLG1']}, function (err, res) {
+			account.merge(validAccount.address, { multisignatures: ['MS1'], delegates: ['DLG1'] }, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.delegates).to.deep.equal(['DLG1']);
 				expect(res.multisignatures).to.deep.equal(['MS1']);
@@ -545,51 +527,49 @@ describe('account', function () {
 		});
 
 		describe('verify public key', function () {
-
 			it('should throw error if parameter is not a string', function () {
 				expect(function () {
-					account.merge(validAccount.address, {publicKey: 1});
+					account.merge(validAccount.address, { publicKey: 1 });
 				}).to.throw('Invalid public key, must be a string');
 			});
 
 			it('should throw error if parameter is of invalid length', function () {
 				expect(function () {
-					account.merge(validAccount.address, {publicKey: '231312312321'});
+					account.merge(validAccount.address, { publicKey: '231312312321' });
 				}).to.throw('Invalid public key, must be 64 characters long');
 			});
 
 			it('should throw error if parameter is not a hex string', function () {
 				expect(function () {
-					account.merge(validAccount.address, {publicKey: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az'});
+					account.merge(validAccount.address, { publicKey: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az' });
 				}).to.throw('Invalid public key, must be a hex string');
 			});
 		});
 
 		describe('check database constraints', function () {
-
 			it('should throw error when address does not exist for u_delegates', function (done) {
-				account.merge('1L', {u_delegates: [validAccount.publicKey]}, function (err, res) {
+				account.merge('1L', { u_delegates: [validAccount.publicKey] }, function (err) {
 					expect(err).to.equal('Account#merge error');
 					done();
 				});
 			});
 
 			it('should throw error when address does not exist for delegates', function (done) {
-				account.merge('1L', {delegates: [validAccount.publicKey]}, function (err, res) {
+				account.merge('1L', { delegates: [validAccount.publicKey] }, function (err) {
 					expect(err).to.equal('Account#merge error');
 					done();
 				});
 			});
 
 			it('should throw error when address does not exist for u_multisignatures', function (done) {
-				account.merge('1L', {u_multisignatures: [validAccount.publicKey]}, function (err, res) {
+				account.merge('1L', { u_multisignatures: [validAccount.publicKey] }, function (err) {
 					expect(err).to.equal('Account#merge error');
 					done();
 				});
 			});
 
 			it('should throw error when address does not exist for multisignatures', function (done) {
-				account.merge('1L', {multisignatures: [validAccount.publicKey]}, function (err, res) {
+				account.merge('1L', { multisignatures: [validAccount.publicKey] }, function (err) {
 					expect(err).to.equal('Account#merge error');
 					done();
 				});
@@ -597,7 +577,7 @@ describe('account', function () {
 		});
 
 		it('should throw error when a numeric field receives non numeric value', function (done) {
-			account.merge(validAccount.address, {balance: 'Not a Number'}, function (err, res) {
+			account.merge(validAccount.address, { balance: 'Not a Number' }, function (err) {
 				expect(err).to.equal('Encountered unsane number: Not a Number');
 				done();
 			});
@@ -605,7 +585,6 @@ describe('account', function () {
 	});
 
 	describe('remove', function () {
-
 		it('should remove an account', function (done) {
 			account.remove('123L', function (err, res) {
 				expect(err).to.not.exist;

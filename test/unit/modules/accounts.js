@@ -11,17 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-'use strict';/*eslint*/
+'use strict';/* eslint */
 
-var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum.js');
-var crypto = require('crypto');
-var async = require('async');
 
-var constants = require('../../../helpers/constants.js');
-var application = require('../../common/application.js');
 var AccountModule = require('../../../modules/accounts.js');
-var modulesLoader = require('../../common/modulesLoader');
 var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
 
@@ -55,64 +49,60 @@ var validAccount = {
 	virgin: 1
 };
 
-describe('accounts', function () {
-
+describe('accounts', () => {
 	var accounts;
 	var accountLogic;
 
-	before(function (done) {
-		application.init({sandbox: {name: 'lisk_test_accounts'}}, function (err, scope) {
+	before(done => {
+		application.init({ sandbox: { name: 'lisk_test_accounts' } }, (err, scope) => {
 			// For correctly initializing setting blocks module
-			scope.modules.blocks.lastBlock.set({height: 10});
+			scope.modules.blocks.lastBlock.set({ height: 10 });
 			accounts = scope.modules.accounts;
 			accountLogic = scope.logic.account;
 			done(err);
 		});
 	});
 
-	after(function (done) {
+	after(done => {
 		application.cleanup(done);
 	});
 
-	describe('constructor', function () {
-
-		it('should throw with no params', function () {
-			expect(function () {
+	describe('constructor', () => {
+		it('should throw with no params', () => {
+			expect(() => {
 				new AccountModule();
 			}).to.throw();
 		});
 	});
 
-	describe('generateAddressByPublicKey', function () {
-
-		it('should generate correct address for the publicKey provided', function () {
+	describe('generateAddressByPublicKey', () => {
+		it('should generate correct address for the publicKey provided', () => {
 			expect(accounts.generateAddressByPublicKey(validAccount.publicKey)).to.equal(validAccount.address);
 		});
 
 		// TODO: Design a throwable test
-		it.skip('should throw error for invalid publicKey', function () {
+		it.skip('should throw error for invalid publicKey', () => {
 			var invalidPublicKey = 'invalidPublicKey';
 
-			expect(function () {
+			expect(() => {
 				accounts.generateAddressByPublicKey(invalidPublicKey);
 			}).to.throw('Invalid public key: ', invalidPublicKey);
 		});
 	});
 
-	describe('getAccount', function () {
-
-		it('should convert publicKey filter to address and call account.get', function (done) {
+	describe('getAccount', () => {
+		it('should convert publicKey filter to address and call account.get', done => {
 			var getAccountStub = sinonSandbox.stub(accountLogic, 'get');
 
-			accounts.getAccount({publicKey: validAccount.publicKey});
+			accounts.getAccount({ publicKey: validAccount.publicKey });
 			expect(getAccountStub.calledOnce).to.be.ok;
-			expect(getAccountStub.calledWith({address: validAccount.address})).to.be.ok;
+			expect(getAccountStub.calledWith({ address: validAccount.address })).to.be.ok;
 			getAccountStub.restore();
 			done();
 		});
 
-		it('should get correct account for address', function (done) {
-			accounts.getAccount({address: validAccount.address}, function (err, res) {
+		it('should get correct account for address', done => {
+			accounts.getAccount({ address: validAccount.address }, (err, res) => {
 				expect(err).to.not.exist;
 				expect(res.address).to.equal(validAccount.address);
 				expect(res.publicKey).to.equal(validAccount.publicKey);
@@ -122,88 +112,81 @@ describe('accounts', function () {
 		});
 	});
 
-	describe('getAccounts', function () {
-
-		it('should get accounts for the filter provided', function (done) {
-			accounts.getAccounts({secondSignature: 0}, function (err, res) {
+	describe('getAccounts', () => {
+		it('should get accounts for the filter provided', done => {
+			accounts.getAccounts({ secondSignature: 0 }, (err, res) => {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array');
-				expect(res.filter(function (a) {
-					return a.secondSignature != 0;
-				}).length).to.equal(0);
+				expect(res.filter(a => a.secondSignature != 0).length).to.equal(0);
 				done();
 			});
 		});
 
-		it('should internally call logic/account.getAll method', function (done) {
+		it('should internally call logic/account.getAll method', done => {
 			var getAllSpy = sinonSandbox.spy(accountLogic, 'getAll');
 
-			accounts.getAccounts({address : validAccount.address}, function (err, res) {
+			accounts.getAccounts({ address: validAccount.address }, (err, res) => {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array').to.have.length(1);
-				expect(getAllSpy.withArgs({address : validAccount.address})).to.be.ok;
+				expect(getAllSpy.withArgs({ address: validAccount.address })).to.be.ok;
 				getAllSpy.restore();
 				done();
 			});
 		});
 	});
 
-	describe('onBind', function () {
-
-		it('should throw error with empty params', function () {
+	describe('onBind', () => {
+		it('should throw error with empty params', () => {
 			expect(accounts.onBind).to.throw();
 		});
 	});
 
-	describe('isLoaded', function () {
-
-		it('should return true when modules are loaded', function () {
+	describe('isLoaded', () => {
+		it('should return true when modules are loaded', () => {
 			expect(accounts.isLoaded).to.be.ok;
 		});
 	});
 
-	describe('shared', function () {
-
-		describe('getAccounts', function () {
-
-			it('should return empty accounts array when account does not exist', function (done) {
+	describe('shared', () => {
+		describe('getAccounts', () => {
+			it('should return empty accounts array when account does not exist', done => {
 				accounts.shared.getAccounts({
 					address: randomUtil.account().address
-				}, function (err, res){
+				}, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).be.an('array').which.has.length(0);
 					done();
 				});
 			});
 
-			it('should return account using publicKey', function (done) {
+			it('should return account using publicKey', done => {
 				accounts.shared.getAccounts({
 					publicKey: validAccount.publicKey
-				}, function (err, res){
+				}, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.be.an('array');
 					done();
 				});
 			});
 
-			it('should return account using address', function (done) {
+			it('should return account using address', done => {
 				accounts.shared.getAccounts({
 					address: validAccount.address
-				}, function (err, res){
+				}, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.be.an('array');
 					done();
 				});
 			});
 
-			it('should return top 10 accounts ordered by descending balance', function (done) {
+			it('should return top 10 accounts ordered by descending balance', done => {
 				var limit = 10;
 				var sort = 'balance:desc';
 
 				accounts.shared.getAccounts({
 					limit: limit,
 					sort: sort
-				}, function (err, res) {
+				}, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.have.length(10);
 					for (var i = 0; i < limit - 1; i++) {
@@ -213,7 +196,7 @@ describe('accounts', function () {
 				});
 			});
 
-			it('should return accounts in the range 10 to 20 ordered by descending balance', function (done) {
+			it('should return accounts in the range 10 to 20 ordered by descending balance', done => {
 				var limit = 10;
 				var offset = 10;
 				var sort = 'balance:desc';
@@ -222,7 +205,7 @@ describe('accounts', function () {
 					limit: limit,
 					offset: offset,
 					sort: sort
-				}, function (err, res) {
+				}, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.have.length(10);
 					for (var i = 0; i < limit - 1; i++) {

@@ -18,6 +18,6 @@
  * - 1: FILE
  */
 module.exports = {
-	DAPP : 0,
+	DAPP: 0,
 	FILE: 1
 };

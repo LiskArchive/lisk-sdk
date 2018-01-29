@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-'use strict';/*eslint*/
+'use strict';/* eslint */
 
 var crypto = require('crypto');
 var rewire = require('rewire');
@@ -36,9 +36,6 @@ var validSender = {
 	address: '4835566122337813671L',
 	secondPublicKey: 'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7'
 };
-
-var senderHash = crypto.createHash('sha256').update(validSender.password, 'utf8').digest();
-var senderKeypair = ed.makeKeypair(senderHash);
 
 var validTransaction = {
 	id: '5197781214824378819',
@@ -82,14 +79,13 @@ var rawValidTransaction = {
 	s_publicKey: 'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7'
 };
 
-describe('signature', function () {
-
+describe('signature', () => {
 	var transactionMock;
 	var accountsMock;
 	var signature;
 	var dummyBlock;
 
-	beforeEach(function (done) {
+	beforeEach(done => {
 		dummyBlock = {
 			id: '9314232245035524467',
 			height: 1
@@ -104,46 +100,42 @@ describe('signature', function () {
 		done();
 	});
 
-	afterEach(function () {
+	afterEach(() => {
 		transactionMock.restore();
 		accountsMock.setAccountAndGet.reset();
 	});
 
-	describe('with transaction and sender objects', function () {
-
+	describe('with transaction and sender objects', () => {
 		var transaction;
 		var rawTransaction;
 		var sender;
 
-		beforeEach(function () {
+		beforeEach(() => {
 			transaction = _.cloneDeep(validTransaction);
 			rawTransaction = _.cloneDeep(rawValidTransaction);
 			sender = _.cloneDeep(validSender);
 		});
 
-		describe('constructor', function () {
-
+		describe('constructor', () => {
 			var library;
 
-			beforeEach(function () {
+			beforeEach(() => {
 				new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger);
 				library = Signature.__get__('library');
 			});
 
-			it('should attach schema to library variable', function () {
+			it('should attach schema to library variable', () => {
 				expect(library.schema).to.eql(modulesLoader.scope.schema);
 			});
 
-			it('should attach logger to library variable', function () {
+			it('should attach logger to library variable', () => {
 				expect(library.logger).to.eql(modulesLoader.scope.logger);
 			});
 		});
 
-		describe('bind', function () {
-
-			describe('modules', function () {
-
-				it('should assign accounts', function () {
+		describe('bind', () => {
+			describe('modules', () => {
+				it('should assign accounts', () => {
 					signature.bind(accountsMock);
 					var modules = Signature.__get__('modules');
 					expect(modules).to.eql({
@@ -153,77 +145,69 @@ describe('signature', function () {
 			});
 		});
 
-		describe('calculateFee', function () {
-
+		describe('calculateFee', () => {
 			var fee;
 
-			beforeEach(function () {
+			beforeEach(() => {
 				fee = signature.calculateFee.call(transactionMock, transaction);
 			});
 
-			it('should return constants.fees.secondSignature', function () {
+			it('should return constants.fees.secondSignature', () => {
 				expect(fee).to.equal(constants.fees.secondSignature);
 			});
 		});
 
-		describe('verify', function () {
-
-			describe('when transaction is invalid', function () {
-
-				describe('when asset = undefined', function () {
-
-					it('should call callback with error = "Invalid transaction asset"', function (done) {
+		describe('verify', () => {
+			describe('when transaction is invalid', () => {
+				describe('when asset = undefined', () => {
+					it('should call callback with error = "Invalid transaction asset"', done => {
 						delete transaction.asset;
 
-						signature.verify(transaction, sender, function (err) {
+						signature.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid transaction asset');
 							done();
 						});
 					});
 				});
 
-				describe('when signature = undefined', function () {
-
-					it('should call callback with error = "Invalid transaction asset', function (done) {
+				describe('when signature = undefined', () => {
+					it('should call callback with error = "Invalid transaction asset', done => {
 						delete transaction.asset.signature;
 
-						signature.verify(transaction, sender, function (err) {
+						signature.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid transaction asset');
 							done();
 						});
 					});
 				});
 
-				describe('when amount != 0', function () {
-
-					it('should call callback with error = "Invalid transaction amount', function (done) {
+				describe('when amount != 0', () => {
+					it('should call callback with error = "Invalid transaction amount', done => {
 						transaction.amount = 1;
 
-						signature.verify(transaction, sender, function (err) {
+						signature.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid transaction amount');
 							done();
 						});
 					});
 				});
 
-				describe('when publicKey = undefined', function () {
-
-					it('should call callback with error = "Invalid public key', function (done) {
+				describe('when publicKey = undefined', () => {
+					it('should call callback with error = "Invalid public key', done => {
 						delete transaction.asset.signature.publicKey;
 
-						signature.verify(transaction, sender, function (err) {
+						signature.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid public key');
 							done();
 						});
 					});
 				});
 
-				describe('when publicKey is invalid', function () {
-
-					it('should call callback with error = "Invalid public key', function (done) {
+				describe('when publicKey is invalid', () => {
+					it('should call callback with error = "Invalid public key', done => {
 						transaction.asset.signature.publicKey = 'invalid-public-key';
 
-						signature.verify(transaction, sender, function (err) {
+						signature.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid public key');
 							done();
 						});
@@ -231,311 +215,287 @@ describe('signature', function () {
 				});
 			});
 
-			describe('when transaction is valid', function () {
-
-				it('should call callback with error = null', function (done) {
+			describe('when transaction is valid', () => {
+				it('should call callback with error = null', done => {
 					signature.verify(transaction, sender, done);
 				});
 			});
 		});
 
-		describe('process', function () {
-
-			it('should call callback with error = null', function (done) {
+		describe('process', () => {
+			it('should call callback with error = null', done => {
 				signature.process(transaction, sender, done);
 			});
 
-			it('should call callback with result = transaction', function (done) {
-				signature.process(transaction, sender, function (err, res) {
+			it('should call callback with result = transaction', done => {
+				signature.process(transaction, sender, (err, res) => {
 					expect(res).to.eql(transaction);
 					done();
 				});
 			});
 		});
 
-		describe('getBytes', function () {
-
-			describe('when asset is invalid', function () {
-
-				describe('when transaction.asset.signature.publicKey is a number', function () {
-
+		describe('getBytes', () => {
+			describe('when asset is invalid', () => {
+				describe('when transaction.asset.signature.publicKey is a number', () => {
 					var validNumber = 1;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						transaction.asset.signature.publicKey = validNumber;
 					});
 
-					it('should throw', function () {
+					it('should throw', () => {
 						expect(signature.getBytes.bind(transaction)).to.throw();
 					});
 				});
 
-				describe('when transaction.asset = undefined', function () {
-
-					beforeEach(function () {
+				describe('when transaction.asset = undefined', () => {
+					beforeEach(() => {
 						delete transaction.asset;
 					});
 
-					it('should throw', function () {
+					it('should throw', () => {
 						expect(signature.getBytes.bind(transaction)).to.throw();
 					});
 				});
 			});
 
-			describe('when asset is valid', function () {
-
-				describe('when transaction.asset.signature.publicKey is defined', function () {
-
+			describe('when asset is valid', () => {
+				describe('when transaction.asset.signature.publicKey is defined', () => {
 					var signatureBytes;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						signatureBytes = signature.getBytes(transaction);
 					});
 
-					it('should return bytes in hex format', function () {
+					it('should return bytes in hex format', () => {
 						expect(signatureBytes).to.eql(Buffer.from(transaction.asset.signature.publicKey, 'hex'));
 					});
 
-					it('should return bytes of length 32', function () {
+					it('should return bytes of length 32', () => {
 						expect(signatureBytes.length).to.equal(32);
 					});
 				});
 			});
 		});
 
-		describe('apply', function () {
-
-			beforeEach(function (done) {
+		describe('apply', () => {
+			beforeEach(done => {
 				signature.apply(validTransaction, dummyBlock, sender, done);
 			});
 
-			it('should call modules.accounts.setAccountAndGet', function () {
+			it('should call modules.accounts.setAccountAndGet', () => {
 				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ address: sender.address }))).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with secondSignature = 1', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondSignature: 1}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with secondSignature = 1', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ secondSignature: 1 }))).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 0}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ u_secondSignature: 0 }))).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with secondPublicKey = validTransaction.asset.signature.publicKey', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondPublicKey: validTransaction.asset.signature.publicKey}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with secondPublicKey = validTransaction.asset.signature.publicKey', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ secondPublicKey: validTransaction.asset.signature.publicKey }))).to.be.true;
 			});
 		});
 
-		describe('undo', function () {
-
-			beforeEach(function (done) {
+		describe('undo', () => {
+			beforeEach(done => {
 				signature.undo(validTransaction, dummyBlock, sender, done);
 			});
 
-			it('should call modules.accounts.setAccountAndGet', function () {
+			it('should call modules.accounts.setAccountAndGet', () => {
 				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ address: sender.address }))).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with secondSignature = 0', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondSignature: 0}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with secondSignature = 0', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ secondSignature: 0 }))).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 1}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ u_secondSignature: 1 }))).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with secondPublicKey = null', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({secondPublicKey: null}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with secondPublicKey = null', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ secondPublicKey: null }))).to.be.true;
 			});
 		});
 
-		describe('applyUnconfirmed', function () {
-
-			describe('when sender has u_secondSignature', function () {
-
-				beforeEach(function () {
+		describe('applyUnconfirmed', () => {
+			describe('when sender has u_secondSignature', () => {
+				beforeEach(() => {
 					sender.u_secondSignature = 'some-second-siganture';
 				});
 
-				it('should call callback with error', function (done) {
-					signature.applyUnconfirmed.call(transactionMock, transaction, sender, function (err) {
+				it('should call callback with error', done => {
+					signature.applyUnconfirmed.call(transactionMock, transaction, sender, err => {
 						expect(err).to.equal('Second signature already enabled');
 						done();
 					});
 				});
 			});
 
-			describe('when sender has secondSignature', function () {
-
-				beforeEach(function () {
+			describe('when sender has secondSignature', () => {
+				beforeEach(() => {
 					sender.secondSignature = 'some-second-siganture';
 				});
 
 
-				it('should call callback with error', function (done) {
-					signature.applyUnconfirmed.call(transactionMock, transaction, sender, function (err) {
+				it('should call callback with error', done => {
+					signature.applyUnconfirmed.call(transactionMock, transaction, sender, err => {
 						expect(err).to.equal('Second signature already enabled');
 						done();
 					});
 				});
 			});
 
-			beforeEach(function (done) {
+			beforeEach(done => {
 				signature.applyUnconfirmed(validTransaction, sender, done);
 			});
 
-			it('should call modules.accounts.setAccountAndGet', function () {
+			it('should call modules.accounts.setAccountAndGet', () => {
 				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ address: sender.address }))).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 1}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ u_secondSignature: 1 }))).to.be.true;
 			});
 		});
 
-		describe('undoUnconfirmed', function () {
-
-			beforeEach(function (done) {
+		describe('undoUnconfirmed', () => {
+			beforeEach(done => {
 				signature.undoUnconfirmed(validTransaction, sender, done);
 			});
 
-			it('should call modules.accounts.setAccountAndGet', function () {
+			it('should call modules.accounts.setAccountAndGet', () => {
 				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with address = sender.address', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({address: sender.address}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ address: sender.address }))).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', function () {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({u_secondSignature: 0}))).to.be.true;
+			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', () => {
+				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ u_secondSignature: 0 }))).to.be.true;
 			});
 		});
 
-		describe('objectNormalize', function () {
-
-			describe('schema.validate should validate against signature schema', function () {
-
+		describe('objectNormalize', () => {
+			describe('schema.validate should validate against signature schema', () => {
 				var library;
 				var schemaSpy;
 
-				beforeEach(function () {
+				beforeEach(() => {
 					library = Signature.__get__('library');
 					schemaSpy = sinonSandbox.spy(library.schema, 'validate');
 					signature.objectNormalize(transaction);
 				});
 
-				afterEach(function () {
+				afterEach(() => {
 					schemaSpy.restore();
 				});
 
-				it('call schema validate once', function () {
+				it('call schema validate once', () => {
 					expect(schemaSpy.calledOnce).to.equal(true);
 				});
 
-				it('signature schema', function () {
+				it('signature schema', () => {
 					expect(schemaSpy.calledWithExactly(transaction.asset.signature, Signature.prototype.schema)).to.equal(true);
 				});
 			});
 
-			describe('when schema.validate fails', function () {
-
-				describe('for non-string types', function () {
-
+			describe('when schema.validate fails', () => {
+				describe('for non-string types', () => {
 					var nonStrings = _.difference(typesRepresentatives.allTypes, typesRepresentatives.strings);
 
-					nonStrings.forEach(function (type) {
-						it('should throw when username type is ' + type.description, function () {
+					nonStrings.forEach(type => {
+						it(`should throw when username type is ${type.description}`, () => {
 							transaction.asset.signature.publicKey = type.input;
-							expect(function () {
+							expect(() => {
 								signature.objectNormalize(transaction);
-							}).to.throw('Failed to validate signature schema: Expected type string but found type ' + type.expectation);
+							}).to.throw(`Failed to validate signature schema: Expected type string but found type ${type.expectation}`);
 						});
 					});
 				});
 
-				describe('for non-publicKey format strings', function () {
-
+				describe('for non-publicKey format strings', () => {
 					var nonEmptyStrings = typesRepresentatives.nonEmptyStrings;
 
-					nonEmptyStrings.forEach(function (type) {
-						it('should throw when username is: ' + type.description, function () {
+					nonEmptyStrings.forEach(type => {
+						it(`should throw when username is: ${type.description}`, () => {
 							transaction.asset.signature.publicKey = type.input;
-							expect(function () {
+							expect(() => {
 								signature.objectNormalize(transaction);
-							}).to.throw('Failed to validate signature schema: Object didn\'t pass validation for format publicKey: ' + type.input);
+							}).to.throw(`Failed to validate signature schema: Object didn't pass validation for format publicKey: ${type.input}`);
 						});
 					});
 				});
 			});
 
-			describe('when library.schema.validate succeeds', function () {
-
-				it('should return transaction', function () {
+			describe('when library.schema.validate succeeds', () => {
+				it('should return transaction', () => {
 					expect(signature.objectNormalize(transaction)).to.eql(transaction);
 				});
 			});
 		});
 
-		describe('dbRead', function () {
-
-			describe('when publicKey is undefined', function () {
-
-				beforeEach(function () {
+		describe('dbRead', () => {
+			describe('when publicKey is undefined', () => {
+				beforeEach(() => {
 					delete rawTransaction.s_publicKey;
 				});
 
-				it('should return null', function () {
+				it('should return null', () => {
 					expect(signature.dbRead(rawTransaction)).to.eql(null);
 				});
 			});
 
-			describe('with valid signature properties', function () {
-
+			describe('with valid signature properties', () => {
 				var publicKey = 'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7';
 				var transactionId = '5197781214824378819';
 
-				it('should return publicKey property', function () {
+				it('should return publicKey property', () => {
 					expect(signature.dbRead(rawTransaction).signature.publicKey).to.equal(publicKey);
 				});
 
-				it('should return transactionId', function () {
+				it('should return transactionId', () => {
 					expect(signature.dbRead(rawTransaction).signature.transactionId).to.eql(transactionId);
 				});
 			});
 		});
 
-		describe('ready', function () {
-
-			it('should return true for single signature transaction', function () {
+		describe('ready', () => {
+			it('should return true for single signature transaction', () => {
 				expect(signature.ready(transaction, sender)).to.equal(true);
 			});
 
-			it('should return false for multi signature transaction with less signatures', function () {
+			it('should return false for multi signature transaction with less signatures', () => {
 				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
 				expect(signature.ready(transaction, sender)).to.equal(false);
 			});
 
-			it('should return true for multi signature transaction with at least min signatures', function () {
+			it('should return true for multi signature transaction with at least min signatures', () => {
 				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 				sender.multimin = 1;
 
 				delete transaction.signature;
 				// Not really correct signature, but we are not testing that over here
-				transaction.signature = crypto.randomBytes(64).toString('hex');;
+				transaction.signature = crypto.randomBytes(64).toString('hex');
 				transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
 				expect(signature.ready(transaction, sender)).to.equal(true);

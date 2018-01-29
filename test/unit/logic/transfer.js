@@ -11,10 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-'use strict';/*eslint*/
+'use strict';/* eslint */
 
 var crypto = require('crypto');
-var async = require('async');
 var randomstring = require('randomstring');
 
 var accountFixtures = require('../../fixtures/accounts');
@@ -56,17 +55,6 @@ var validSender = {
 	virgin: 0
 };
 
-var validTransactionData = {
-	type: 0,
-	amount: 8067474861277,
-	sender: validSender,
-	senderId: '16313739661670634666L',
-	recipientId: '2460251951231579923L',
-	fee: 10000000,
-	keypair: senderKeypair,
-	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-};
-
 var validTransaction = {
 	id: '16140284222734558289',
 	rowId: 133,
@@ -101,15 +89,14 @@ var rawValidTransaction = {
 	confirmations: 8343
 };
 
-describe('transfer', function () {
-
+describe('transfer', () => {
 	var transfer;
 	var transactionLogic;
 	var transferBindings;
 	var accountModule;
 
-	before(function (done) {
-		application.init({sandbox: {name: 'lisk_test_logic_transfer'}}, function (err, scope) {
+	before(done => {
+		application.init({ sandbox: { name: 'lisk_test_logic_transfer' } }, (err, scope) => {
 			accountModule = scope.modules.accounts;
 			transfer = new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema);
 			transferBindings = {
@@ -122,34 +109,32 @@ describe('transfer', function () {
 		});
 	});
 
-	after(function (done) {
+	after(done => {
 		application.cleanup(done);
 	});
 
-	describe('bind', function () {
-
-		it('should be okay with correct params', function () {
-			expect(function () {
+	describe('bind', () => {
+		it('should be okay with correct params', () => {
+			expect(() => {
 				transfer.bind(transferBindings.account);
 			}).to.not.throw();
 		});
 
-		after(function () {
+		after(() => {
 			transfer.bind(transferBindings.account);
 		});
 	});
 
-	describe('calculateFee', function () {
-
-		it('should throw error if given no params', function () {
+	describe('calculateFee', () => {
+		it('should throw error if given no params', () => {
 			expect(transfer.calculateFee).to.throw();
 		});
 
-		it('should return the correct fee when data field is not set', function () {
+		it('should return the correct fee when data field is not set', () => {
 			expect(transfer.calculateFee.call(transactionLogic, validTransaction)).to.equal(constants.fees.send);
 		});
 
-		it('should return the correct fee when data field is set', function () {
+		it('should return the correct fee when data field is set', () => {
 			var transaction = _.clone(validTransaction);
 			transaction.asset = {
 				data: '0'
@@ -159,47 +144,44 @@ describe('transfer', function () {
 		});
 	});
 
-	describe('verify', function () {
-
-		it('should return error if recipientId is not set', function (done) {
+	describe('verify', () => {
+		it('should return error if recipientId is not set', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
 
-			transfer.verify(transaction, validSender, function (err) {
+			transfer.verify(transaction, validSender, err => {
 				expect(err).to.equal('Missing recipient');
 				done();
 			});
 		});
 
-		it('should return error if amount is less than 0', function (done) {
+		it('should return error if amount is less than 0', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.amount = -10;
 
-			transfer.verify(transaction, validSender, function (err) {
+			transfer.verify(transaction, validSender, err => {
 				expect(err).to.equal('Invalid transaction amount');
 				done();
 			});
 		});
 
-		it('should verify okay for valid transaction', function (done) {
+		it('should verify okay for valid transaction', done => {
 			transfer.verify(validTransaction, validSender, done);
 		});
 	});
 
-	describe('process', function () {
-
-		it('should be okay', function (done) {
+	describe('process', () => {
+		it('should be okay', done => {
 			transfer.process(validTransaction, validSender, done);
 		});
 	});
 
-	describe('getBytes', function () {
-
-		it('should return null for empty asset', function () {
+	describe('getBytes', () => {
+		it('should return null for empty asset', () => {
 			expect(transfer.getBytes(validTransaction)).to.eql(null);
 		});
 
-		it('should return bytes of data asset', function () {
+		it('should return bytes of data asset', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			var data = '1\'';
 			transaction.asset = {
@@ -209,7 +191,7 @@ describe('transfer', function () {
 			expect(transfer.getBytes(transaction)).to.eql(Buffer.from(data, 'utf8'));
 		});
 
-		it('should be okay for utf-8 data value', function () {
+		it('should be okay for utf-8 data value', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			var data = 'Zażółć gęślą jaźń';
 			transaction.asset = {
@@ -220,38 +202,37 @@ describe('transfer', function () {
 		});
 	});
 
-	describe('apply', function () {
-
+	describe('apply', () => {
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1
 		};
 
-		function undoTransaction (transaction, sender, done) {
+		function undoTransaction(transaction, sender, done) {
 			transfer.undo.call(transactionLogic, transaction, dummyBlock, sender, done);
 		}
 
-		it('should return error if recipientid is not set', function (done) {
+		it('should return error if recipientid is not set', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
-			transfer.apply.call(transactionLogic, transaction, dummyBlock, validSender, function (err) {
+			transfer.apply.call(transactionLogic, transaction, dummyBlock, validSender, err => {
 				expect(err).to.equal('Invalid public key');
 				done();
 			});
 		});
 
-		it('should be okay for a valid transaction', function (done) {
-			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
+		it('should be okay for a valid transaction', done => {
+			accountModule.getAccount({ address: validTransaction.recipientId }, (err, accountBefore) => {
 				expect(err).to.not.exist;
 				expect(accountBefore).to.exist;
 
 				var amount = new bignum(validTransaction.amount.toString());
 				var balanceBefore = new bignum(accountBefore.balance.toString());
 
-				transfer.apply.call(transactionLogic, validTransaction, dummyBlock, validSender, function (err) {
+				transfer.apply.call(transactionLogic, validTransaction, dummyBlock, validSender, err => {
 					expect(err).to.not.exist;
 
-					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
+					accountModule.getAccount({ address: validTransaction.recipientId }, (err, accountAfter) => {
 						expect(err).to.not.exist;
 						expect(accountAfter).to.exist;
 
@@ -264,38 +245,37 @@ describe('transfer', function () {
 		});
 	});
 
-	describe('undo', function () {
-
+	describe('undo', () => {
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1
 		};
 
-		function applyTransaction (transaction, sender, done) {
+		function applyTransaction(transaction, sender, done) {
 			transfer.apply.call(transactionLogic, transaction, dummyBlock, sender, done);
 		}
 
-		it('should return error if recipientid is not set', function (done) {
+		it('should return error if recipientid is not set', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
 
-			transfer.undo.call(transactionLogic, transaction, dummyBlock, validSender, function (err) {
+			transfer.undo.call(transactionLogic, transaction, dummyBlock, validSender, err => {
 				expect(err).to.equal('Invalid public key');
 				done();
 			});
 		});
 
-		it('should be okay for a valid transaction', function (done) {
-			accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountBefore) {
+		it('should be okay for a valid transaction', done => {
+			accountModule.getAccount({ address: validTransaction.recipientId }, (err, accountBefore) => {
 				expect(err).to.not.exist;
 
 				var amount = new bignum(validTransaction.amount.toString());
 				var balanceBefore = new bignum(accountBefore.balance.toString());
 
-				transfer.undo.call(transactionLogic, validTransaction, dummyBlock, validSender, function (err) {
+				transfer.undo.call(transactionLogic, validTransaction, dummyBlock, validSender, err => {
 					expect(err).to.not.exist;
 
-					accountModule.getAccount({address: validTransaction.recipientId}, function (err, accountAfter) {
+					accountModule.getAccount({ address: validTransaction.recipientId }, (err, accountAfter) => {
 						var balanceAfter = new bignum(accountAfter.balance.toString());
 
 						expect(err).to.not.exist;
@@ -307,30 +287,27 @@ describe('transfer', function () {
 		});
 	});
 
-	describe('applyUnconfirmed', function () {
-
-		it('should be okay with valid params', function (done) {
+	describe('applyUnconfirmed', () => {
+		it('should be okay with valid params', done => {
 			transfer.applyUnconfirmed.call(transactionLogic, validTransaction, validSender, done);
 		});
 	});
 
-	describe('undoUnconfirmed', function () {
-
-		it('should be okay with valid params', function (done) {
+	describe('undoUnconfirmed', () => {
+		it('should be okay with valid params', done => {
 			transfer.undoUnconfirmed.call(transactionLogic, validTransaction, validSender, done);
 		});
 	});
 
-	describe('objectNormalize', function () {
-
-		it('should remove blockId from transaction', function () {
+	describe('objectNormalize', () => {
+		it('should remove blockId from transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.blockId = '9314232245035524467';
 
 			expect(transfer.objectNormalize(transaction)).to.not.have.key('blockId');
 		});
 
-		it('should not remove data field', function () {
+		it('should not remove data field', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: '123'
@@ -339,60 +316,59 @@ describe('transfer', function () {
 			expect(transfer.objectNormalize(transaction).asset).to.eql(transaction.asset);
 		});
 
-		it('should throw error if value is null', function () {
+		it('should throw error if value is null', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: null
 			};
 
-			expect(function () {
+			expect(() => {
 				transfer.objectNormalize(transaction);
 			}).to.throw('Failed to validate transfer schema: Expected type string but found type null');
 		});
 
-		it('should throw error if value is undefined', function () {
+		it('should throw error if value is undefined', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: undefined
 			};
 
-			expect(function () {
+			expect(() => {
 				transfer.objectNormalize(transaction);
 			}).to.throw('Failed to validate transfer schema: Expected type string but found type undefined');
 		});
 
-		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength +  ' characters', function () {
+		it(`should throw error if data field length is greater than ${constants.additionalData.maxLength} characters`, () => {
 			var invalidString = randomstring.generate(constants.additionalData.maxLength + 1);
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: invalidString
 			};
 
-			expect(function () {
+			expect(() => {
 				transfer.objectNormalize(transaction);
-			}).to.throw('Failed to validate transfer schema: Object didn\'t pass validation for format additionalData: ' + invalidString);
+			}).to.throw(`Failed to validate transfer schema: Object didn't pass validation for format additionalData: ${invalidString}`);
 		});
 
-		it('should throw error if data field length is greater than ' + constants.additionalData.maxLength + ' bytes', function () {
-			var invalidString = randomstring.generate(constants.additionalData.maxLength - 1) + '现';
+		it(`should throw error if data field length is greater than ${constants.additionalData.maxLength} bytes`, () => {
+			var invalidString = `${randomstring.generate(constants.additionalData.maxLength - 1)}现`;
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: invalidString
 			};
 
-			expect(function () {
+			expect(() => {
 				transfer.objectNormalize(transaction);
-			}).to.throw('Failed to validate transfer schema: Object didn\'t pass validation for format additionalData: ' + invalidString);
+			}).to.throw(`Failed to validate transfer schema: Object didn't pass validation for format additionalData: ${invalidString}`);
 		});
 	});
 
-	describe('dbRead', function () {
-
-		it('should return null when data field is not set', function () {
+	describe('dbRead', () => {
+		it('should return null when data field is not set', () => {
 			expect(transfer.dbRead(rawValidTransaction)).to.eql(null);
 		});
 
-		it('should be okay when data field is set', function () {
+		it('should be okay when data field is set', () => {
 			var rawTransaction = _.cloneDeep(rawValidTransaction);
 			var data = '123';
 			rawTransaction.tf_data = data;
@@ -403,13 +379,12 @@ describe('transfer', function () {
 		});
 	});
 
-	describe('ready', function () {
-
-		it('should return true for single signature transaction', function () {
+	describe('ready', () => {
+		it('should return true for single signature transaction', () => {
 			expect(transfer.ready(validTransaction, validSender)).to.equal(true);
 		});
 
-		it('should return false for multi signature transaction with less signatures', function () {
+		it('should return false for multi signature transaction with less signatures', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
@@ -417,7 +392,7 @@ describe('transfer', function () {
 			expect(transactionLogic.ready(transaction, vs)).to.equal(false);
 		});
 
-		it('should return true for multi signature transaction with alteast min signatures', function () {
+		it('should return true for multi signature transaction with alteast min signatures', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];

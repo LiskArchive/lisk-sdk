@@ -34,7 +34,7 @@ if (process.env.SILENT === 'true') {
 	testContext.debug = console.log;
 }
 
-testContext.baseUrl = 'http://' + testContext.config.address + ':' + testContext.config.httpPort;
+testContext.baseUrl = `http://${testContext.config.address}:${testContext.config.httpPort}`;
 testContext.api = supertest(testContext.baseUrl);
 
 var _ = require('lodash');
@@ -49,7 +49,7 @@ _.mixin({
 	dbSort: function (arr, sortOrder) {
 		var sortFactor = (sortOrder === 'desc' ? -1 : 1);
 
-		return _.clone(arr).sort(function (a, b) {
+		return _.clone(arr).sort((a, b) => {
 			// If first element is empty push it downard
 			if (!_.isEmpty(a) && _.isEmpty(b)) { return sortFactor * -1; }
 
@@ -75,7 +75,7 @@ _.mixin({
 	 */
 	appearsInLast: function (arr, valueCheck) {
 		// Get list of indexes of desired value
-		var indices = _.compact(arr.map(function (data, index) {
+		var indices = _.compact(arr.map((data, index) => {
 			if (data === valueCheck) { return index; }
 		}));
 
@@ -98,9 +98,7 @@ _.mixin({
 	sortNumbers: function (arr, sortOrder) {
 		var sortFactor = (sortOrder === 'desc' ? -1 : 1);
 
-		return arr.sort(function (a, b) {
-			return (a - b) * sortFactor;
-		});
+		return arr.sort((a, b) => (a - b) * sortFactor);
 	}
 }, { chain: false });
 

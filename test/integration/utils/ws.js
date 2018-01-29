@@ -30,20 +30,20 @@ module.exports = {
 			query: WSServerMaster.generatePeerHeaders()
 		};
 		var connectedTo = 0;
-		configurations.forEach(function (configuration) {
+		configurations.forEach(configuration => {
 			monitorWSClient.port = configuration.wsPort;
 			var socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
-			socket.on('connect', function () {
+			socket.on('connect', () => {
 				sockets.push(socket);
 				connectedTo += 1;
 				if (connectedTo === configurations.length) {
 					cb(null, sockets);
 				}
 			});
-			socket.on('error', function (err) {});
-			socket.on('connectAbort', function () {
-				cb('Unable to establish WS connection with ' + configuration.ip + ':' + configuration.wsPort);
+			socket.on('error', () => {});
+			socket.on('connectAbort', () => {
+				cb(`Unable to establish WS connection with ${configuration.ip}:${configuration.wsPort}`);
 			});
 		});
 	}

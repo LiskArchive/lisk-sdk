@@ -17,7 +17,7 @@ var popsicle = require('popsicle');
 var apiCodes = require('../../../helpers/apiCodes');
 
 var headers = {
-	'Accept': 'application/json',
+	Accept: 'application/json',
 	'Content-Type': 'application/json'
 };
 
@@ -25,36 +25,36 @@ var endpoints = {
 	versions: {
 		'0.9.*': {
 			getBlocks: function (ip, port) {
-				return 'http://' + ip + ':' + port + '/api/blocks';
+				return `http://${ip}:${port}/api/blocks`;
 			},
 			getHeight: function (ip, port) {
-				return 'http://' + ip + ':' + port + '/api/blocks/getHeight';
+				return `http://${ip}:${port}/api/blocks/getHeight`;
 			},
 			getTransactions: function (ip, port) {
-				return 'http://' + ip + ':' + port + '/peer/blocks';
+				return `http://${ip}:${port}/peer/blocks`;
 			},
 			postTransaction: function (ip, port) {
-				return 'http://' + ip + ':' + port + '/peer/transactions';
+				return `http://${ip}:${port}/peer/transactions`;
 			},
 			enableForging: function (ip, port) {
-				return 'http://' + ip + ':' + port + '/api/delegates/forging/enable';
+				return `http://${ip}:${port}/api/delegates/forging/enable`;
 			}
 		},
 		'1.0.0': {
 			getBlocks: function (ip, port) {
-				return 'http://' + ip + ':' + port + '/api/blocks';
+				return `http://${ip}:${port}/api/blocks`;
 			},
 			getHeight: function (ip, port) {
-				return 'http://' + ip + ':' + port + '/api/node/status';
+				return `http://${ip}:${port}/api/node/status`;
 			},
 			postTransaction: function (ip, port) {
-				return 'http://' + ip + ':' + port + '/api/transactions';
+				return `http://${ip}:${port}/api/transactions`;
 			},
 			enableForging: function (ip, port) {
-				return 'http://' + ip + ':' + port + '/api/node/status/forging';
+				return `http://${ip}:${port}/api/node/status/forging`;
 			},
 			getTransactions: function (ip, port) {
-				return 'http://' + ip + ':' + port + '/api/transactions';
+				return `http://${ip}:${port}/api/transactions`;
 			}
 		}
 	}
@@ -76,9 +76,9 @@ module.exports = {
 		return popsicle.get({
 			url: endpoints.versions[currentVersion].getBlocks(ip || '127.0.0.1', port || 4000),
 			headers: headers
-		}).then(function (res) {
+		}).then(res => {
 			if (res.status !== apiCodes.OK) {
-				throw new Error('Failed to get blocks from peer: ' + res.body);
+				throw new Error(`Failed to get blocks from peer: ${res.body}`);
 			}
 			return JSON.parse(res.body).data;
 		});
@@ -88,16 +88,14 @@ module.exports = {
 		return popsicle.get({
 			url: endpoints.versions[currentVersion].getHeight(ip || '127.0.0.1', port || 4000),
 			headers: headers
-		}).then(function (res) {
-			return res.body.height;
-		});
+		}).then(res => res.body.height);
 	},
 
 	getTransaction: function (transactionId, port, ip) {
 		return popsicle.get({
-			url: endpoints.versions[currentVersion].getTransactions(ip || '127.0.0.1', port || 4000) + '?id=' + transactionId,
+			url: `${endpoints.versions[currentVersion].getTransactions(ip || '127.0.0.1', port || 4000)}?id=${transactionId}`,
 			headers: headers
-		}).then(function (res) {
+		}).then(res => {
 			if (currentVersion === '1.0.0') {
 				return JSON.parse(res.body).data[0];
 			} else {
@@ -114,13 +112,13 @@ module.exports = {
 				decryptionKey: 'elephant tree paris dragon chair galaxy',
 				publicKey: keys.publicKey
 			}
-		}).then(function (res) {
+		}).then(res => {
 			if (res.status !== apiCodes.OK) {
-				throw new Error('Failed to enable forging for delegate with publicKey: ' + keys.publicKey);
+				throw new Error(`Failed to enable forging for delegate with publicKey: ${keys.publicKey}`);
 			}
 			return JSON.parse(res.body).data[0];
-		}).catch(function (err) {
-			throw new Error('Failed to enable forging for delegate with publicKey: ' + keys.publicKey + JSON.stringify(err));
+		}).catch(err => {
+			throw new Error(`Failed to enable forging for delegate with publicKey: ${keys.publicKey}${JSON.stringify(err)}`);
 		});
 	}
 };

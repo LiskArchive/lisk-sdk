@@ -51,9 +51,9 @@ var middleware = {
 	 */
 	errorLogger: function (logger, err, req, res, next) {
 		if (!err) { return next(); }
-		logger.error('API error ' + req.url, err.message);
+		logger.error(`API error ${req.url}`, err.message);
 		console.trace(err);
-		res.status(500).send({success: false, error: 'API error: ' + err.message});
+		res.status(500).send({ success: false, error: `API error: ${err.message}` });
 	},
 
 	/**
@@ -65,7 +65,7 @@ var middleware = {
 	 */
 	logClientConnections: function (logger, req, res, next) {
 		// Log client connections
-		logger.log(req.method + ' ' + req.url + ' from ' + req.ip);
+		logger.log(`${req.method} ${req.url} from ${req.ip}`);
 
 		return next();
 	},
@@ -79,7 +79,7 @@ var middleware = {
 	 */
 	blockchainReady: function (isLoaded, req, res, next) {
 		if (isLoaded()) { return next(); }
-		res.status(500).send({success: false, error: 'Blockchain is loading'});
+		res.status(500).send({ success: false, error: 'Blockchain is loading' });
 	},
 
 	/**
@@ -88,8 +88,8 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	notFound: function (req, res, next) {
-		return res.status(500).send({success: false, error: 'API endpoint not found'});
+	notFound: function (req, res) {
+		return res.status(500).send({ success: false, error: 'API endpoint not found' });
 	},
 
 	/**
@@ -101,10 +101,10 @@ var middleware = {
 	 */
 	sanitize: function (property, schema, cb) {
 		// TODO: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
-		return function (req, res, next) {
-			req.sanitize(req[property], schema, function (err, report, sanitized) {
+		return function (req, res) {
+			req.sanitize(req[property], schema, (err, report, sanitized) => {
 				if (!report.isValid) {
-					return res.json({success: false, error: report.issues});
+					return res.json({ success: false, error: report.issues });
 				}
 				return cb(sanitized, respond.bind(null, res));
 			});
@@ -140,10 +140,10 @@ var middleware = {
 			rejectDisallowed(publicApiAllowed, config.api.enabled);
 		}
 
-		function rejectDisallowed (apiAllowed, isEnabled) {
+		function rejectDisallowed(apiAllowed, isEnabled) {
 			return apiAllowed ? next() : isEnabled ?
-				res.status(403).send({success: false, error: 'API access denied'}) :
-				res.status(500).send({success: false, error: 'API access disabled'});
+				res.status(403).send({ success: false, error: 'API access denied' }) :
+				res.status(500).send({ success: false, error: 'API access disabled' });
 		}
 	},
 
@@ -172,7 +172,7 @@ var middleware = {
 		}
 
 		var key = req.originalUrl;
-		cache.getJsonForKey(key, function (err, cachedValue) {
+		cache.getJsonForKey(key, (err, cachedValue) => {
 			// There was an error or value doesn't exist for key
 			if (err || !cachedValue) {
 				// Monkey patching res.json function only if we expect to cache response
@@ -200,11 +200,11 @@ var middleware = {
  * @param {string} err
  * @param {Object} response
  */
-function respond (res, err, response) {
+function respond(res, err, response) {
 	if (err) {
-		res.json({'success': false, 'error': err});
+		res.json({ success: false, error: err });
 	} else {
-		return res.json(extend({}, {'success': true}, response));
+		return res.json(extend({}, { success: true }, response));
 	}
 }
 
@@ -217,7 +217,7 @@ function respond (res, err, response) {
  * @param {ApiError} err
  * @param {Object} response
  */
-function respondWithCode (res, err, response) {
+function respondWithCode(res, err, response) {
 	if (err) {
 		return res.status(err.code || apiCodes.INTERNAL_SERVER_ERROR).json(err.toJson());
 	} else {
@@ -236,7 +236,7 @@ function respondWithCode (res, err, response) {
  * @param {Object} router
  * @param {function} isLoaded
  */
-function registerEndpoint (route, app, router, isLoaded) {
+function registerEndpoint(route, app, router, isLoaded) {
 	router.use(middleware.notFound);
 	router.use(middleware.blockchainReady.bind(null, isLoaded));
 	app.use(route, router);

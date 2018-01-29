@@ -31,16 +31,16 @@ var testDatabaseNames = [];
  * @param {Object} db
  * @param {function} cb
  */
-function clearDatabaseTable (db, logger, table, cb) {
-	db.query('DELETE FROM ' + table).then(function (result) {
+function clearDatabaseTable(db, logger, table, cb) {
+	db.query(`DELETE FROM ${table}`).then(result => {
 		cb(null, result);
-	}).catch(function (err) {
-		console.error('Failed to clear database table: ' + table);
+	}).catch(err => {
+		console.error(`Failed to clear database table: ${table}`);
 		throw err;
 	});
 }
 
-function DBSandbox (dbConfig, testDatabaseName) {
+function DBSandbox(dbConfig, testDatabaseName) {
 	this.dbConfig = dbConfig;
 	this.originalDatabaseName = dbConfig.database;
 	this.testDatabaseName = testDatabaseName || this.originalDatabaseName;
@@ -48,24 +48,24 @@ function DBSandbox (dbConfig, testDatabaseName) {
 	testDatabaseNames.push(this.testDatabaseName);
 
 	var dropCreatedDatabases = function () {
-		testDatabaseNames.forEach(function (testDatabaseName) {
-			child_process.exec('dropdb ' + testDatabaseName);
+		testDatabaseNames.forEach(testDatabaseName => {
+			child_process.exec(`dropdb ${testDatabaseName}`);
 		});
 	};
 
-	process.on('exit', function () {
+	process.on('exit', () => {
 		dropCreatedDatabases();
 	});
 }
 
 DBSandbox.prototype.create = function (cb) {
-	child_process.exec('dropdb ' + this.dbConfig.database, function () {
-		child_process.exec('createdb ' + this.dbConfig.database, function () {
+	child_process.exec(`dropdb ${this.dbConfig.database}`, () => {
+		child_process.exec(`createdb ${this.dbConfig.database}`, () => {
 			database.connect(this.dbConfig, console)
 				.then(db => cb(null, db))
 				.catch(err => cb(err));
-		}.bind(this));
-	}.bind(this));
+		});
+	});
 };
 
 DBSandbox.prototype.destroy = function (logger) {

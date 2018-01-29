@@ -20,67 +20,64 @@ var randomUtil = require('../../../common/utils/random');
 var localCommon = require('./../common');
 var normalizer = require('../../../common/utils/normalizer');
 
-describe('system test (type 2) - double delegate registrations', function () {
-
+describe('system test (type 2) - double delegate registrations', () => {
 	var library;
-	localCommon.beforeBlock('system_2_2_delegates_3', function (lib) {
+	localCommon.beforeBlock('system_2_2_delegates_3', lib => {
 		library = lib;
 	});
 
 	var i = 0;
 	var t = 0;
 	while (i < 30) {
-
-		describe('executing 30 times', function () {
-
+		describe('executing 30 times', () => {
 			var account = randomUtil.account();
 			var account2 = randomUtil.account();
-			var transaction, transaction1, transaction2;
+			var transaction,
+transaction1,
+transaction2;
 			transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 
-			before(function (done) {
+			before(done => {
 				console.log(++t);
-				localCommon.addTransactionsAndForge(library, [transaction], function (err, res) {
+				localCommon.addTransactionsAndForge(library, [transaction], () => {
 					done();
 				});
 			});
 
-			describe('with two different accounts using same username', function () {
-
-				before(function (done) {
+			describe('with two different accounts using same username', () => {
+				before(done => {
 					transaction = lisk.transaction.createTransaction(account2.address, 1000 * normalizer, accountFixtures.genesis.password);
 					localCommon.addTransactionsAndForge(library, [transaction], done);
 				});
 
-				it('adding to pool delegate registration should be ok', function (done) {
+				it('adding to pool delegate registration should be ok', done => {
 					transaction1 = lisk.delegate.createDelegate(account.password, account.username);
-					localCommon.addTransaction(library, transaction1, function (err, res) {
+					localCommon.addTransaction(library, transaction1, (err, res) => {
 						expect(res).to.equal(transaction1.id);
 						done();
 					});
 				});
 
-				it('adding to pool delegate registration from different account and same username should be ok', function (done) {
+				it('adding to pool delegate registration from different account and same username should be ok', done => {
 					transaction2 = lisk.delegate.createDelegate(account2.password, account.username);
-					localCommon.addTransaction(library, transaction2, function (err, res) {
+					localCommon.addTransaction(library, transaction2, (err, res) => {
 						expect(res).to.equal(transaction2.id);
 						done();
 					});
 				});
 
-				describe('after forging one block', function () {
-
-					before(function (done) {
-						localCommon.forge(library, function (err, res) {
+				describe('after forging one block', () => {
+					before(done => {
+						localCommon.forge(library, () => {
 							done();
 						});
 					});
 
-					it('first delegate registration to arrive should not be included', function (done) {
+					it('first delegate registration to arrive should not be included', done => {
 						var filter = {
 							id: transaction1.id
 						};
-						localCommon.getTransactionFromModule(library, filter, function (err, res) {
+						localCommon.getTransactionFromModule(library, filter, (err, res) => {
 							expect(err).to.be.null;
 							expect(res).to.have.property('transactions').which.is.an('Array');
 							expect(res.transactions.length).to.equal(0);
@@ -88,11 +85,11 @@ describe('system test (type 2) - double delegate registrations', function () {
 						});
 					});
 
-					it('last delegate registration to arrive should be included', function (done) {
+					it('last delegate registration to arrive should be included', done => {
 						var filter = {
 							id: transaction2.id
 						};
-						localCommon.getTransactionFromModule(library, filter, function (err, res) {
+						localCommon.getTransactionFromModule(library, filter, (err, res) => {
 							expect(err).to.be.null;
 							expect(res).to.have.property('transactions').which.is.an('Array');
 							expect(res.transactions.length).to.equal(1);
@@ -101,15 +98,15 @@ describe('system test (type 2) - double delegate registrations', function () {
 						});
 					});
 
-					it('adding to pool delegate registration with already registered username should fail', function (done) {
-						localCommon.addTransaction(library, transaction1, function (err, res) {
-							expect(err).to.equal('Username ' + account.username + ' already exists');
+					it('adding to pool delegate registration with already registered username should fail', done => {
+						localCommon.addTransaction(library, transaction1, (err) => {
+							expect(err).to.equal(`Username ${account.username} already exists`);
 							done();
 						});
 					});
 
-					it('adding to pool delegate registration from same account should fail', function (done) {
-						localCommon.addTransaction(library, transaction2, function (err, res) {
+					it('adding to pool delegate registration from same account should fail', done => {
+						localCommon.addTransaction(library, transaction2, (err) => {
 							expect(err).to.equal('Account is already a delegate');
 							done();
 						});
@@ -118,5 +115,5 @@ describe('system test (type 2) - double delegate registrations', function () {
 			});
 		});
 		i++;
-	};
+	}
 });

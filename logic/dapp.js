@@ -19,7 +19,8 @@ var dappCategories = require('../helpers/dappCategories.js');
 var valid_url = require('valid-url');
 
 // Private fields
-var library, __private = {};
+var library,
+__private = {};
 
 __private.unconfirmedNames = {};
 __private.unconfirmedLinks = {};
@@ -36,7 +37,7 @@ __private.unconfirmedAscii = {};
  * @param {Object} network
  */
 // Constructor
-function DApp (db, logger, schema, network) {
+function DApp(db, logger, schema, network) {
 	library = {
 		db: db,
 		logger: logger,
@@ -53,11 +54,9 @@ DApp.prototype.bind = function () {};
 
 /**
  * Returns dapp fee from constants.
- * @param {transaction} transaction
- * @param {account} sender
  * @return {number} fee
  */
-DApp.prototype.calculateFee = function (transaction, sender) {
+DApp.prototype.calculateFee = function () {
 	return constants.fees.dappRegistration;
 };
 
@@ -148,13 +147,11 @@ DApp.prototype.verify = function (transaction, sender, cb, tx) {
 	if (transaction.asset.dapp.tags) {
 		var tags = transaction.asset.dapp.tags.split(',');
 
-		tags = tags.map(function (tag) {
-			return tag.trim();
-		}).sort();
+		tags = tags.map(tag => tag.trim()).sort();
 
 		for (i = 0; i < tags.length - 1; i++) {
 			if (tags[i + 1] === tags[i]) {
-				return setImmediate(cb, 'Encountered duplicate tag: ' + tags[i] + ' in application');
+				return setImmediate(cb, `Encountered duplicate tag: ${tags[i]} in application`);
 			}
 		}
 	}
@@ -163,21 +160,21 @@ DApp.prototype.verify = function (transaction, sender, cb, tx) {
 		name: transaction.asset.dapp.name,
 		link: transaction.asset.dapp.link || null,
 		transactionId: transaction.id
-	}).then(function (rows) {
+	}).then(rows => {
 		var dapp = rows[0];
 
 		if (dapp) {
 			if (dapp.name === transaction.asset.dapp.name) {
-				return setImmediate(cb, 'Application name already exists: ' + dapp.name);
+				return setImmediate(cb, `Application name already exists: ${dapp.name}`);
 			} else if (dapp.link === transaction.asset.dapp.link) {
-				return setImmediate(cb, 'Application link already exists: ' + dapp.link);
+				return setImmediate(cb, `Application link already exists: ${dapp.link}`);
 			} else {
 				return setImmediate(cb, 'Application already exists');
 			}
 		} else {
 			return setImmediate(cb, null, transaction);
 		}
-	}).catch(function (err) {
+	}).catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'DApp#verify error');
 	});
@@ -252,7 +249,7 @@ DApp.prototype.getBytes = function (transaction) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.apply = function (transaction, block, sender, cb, tx) {
+DApp.prototype.apply = function (transaction, block, sender, cb) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 
@@ -278,7 +275,7 @@ DApp.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb|errors
  */
-DApp.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
+DApp.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
 		return setImmediate(cb, 'Application name already exists');
 	}
@@ -300,7 +297,7 @@ DApp.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
+DApp.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 
@@ -377,9 +374,7 @@ DApp.prototype.objectNormalize = function (transaction) {
 	var report = library.schema.validate(transaction.asset.dapp, DApp.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate dapp schema: ' + library.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate dapp schema: ${library.schema.getLastErrors().map(err => err.message).join(', ')}`;
 	}
 
 	return transaction;
@@ -404,7 +399,7 @@ DApp.prototype.dbRead = function (raw) {
 			icon: raw.dapp_icon
 		};
 
-		return {dapp: dapp};
+		return { dapp: dapp };
 	}
 };
 

@@ -18,7 +18,7 @@
  * @param {SlaveWAMPServer} slaveWAMPServer - used to send verified update requests to master process.
  * @constructor
  */
-function SlaveToMasterSender (slaveWAMPServer) {
+function SlaveToMasterSender(slaveWAMPServer) {
 	this.slaveWAMPServer = slaveWAMPServer;
 }
 
@@ -42,7 +42,7 @@ SlaveToMasterSender.prototype.send = function (procedureName, updateType, peer, 
  * @param {function} cb
  */
 SlaveToMasterSender.prototype.getPeer = function (nonce, cb) {
-	this.slaveWAMPServer.sendToMaster('list', {query: {nonce: nonce}}, nonce, function (err, result) {
+	this.slaveWAMPServer.sendToMaster('list', { query: { nonce: nonce } }, nonce, (err, result) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}

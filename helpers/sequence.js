@@ -23,7 +23,7 @@ var util = require('util');
  * @constructor
  * @param {string} config
  */
-function Sequence (config) {
+function Sequence(config) {
 	var _default = {
 		onWarning: null,
 		warningLimit: 50
@@ -32,11 +32,11 @@ function Sequence (config) {
 	var self = this;
 	this.sequence = [];
 
-	setImmediate(function nextSequenceTick () {
+	setImmediate(function nextSequenceTick() {
 		if (_default.onWarning && self.sequence.length >= _default.warningLimit) {
 			_default.onWarning(self.sequence.length, _default.warningLimit);
 		}
-		self.__tick(function () {
+		self.__tick(() => {
 			setTimeout(nextSequenceTick, 3);
 		});
 	});
@@ -71,12 +71,12 @@ Sequence.prototype.__tick = function (cb) {
  * @param {function} done
  */
 Sequence.prototype.add = function (worker, args, done) {
-	if (!done && args && typeof(args) === 'function') {
+	if (!done && args && typeof (args) === 'function') {
 		done = args;
 		args = undefined;
 	}
-	if (worker && typeof(worker) === 'function') {
-		var task = {worker: worker, done: done};
+	if (worker && typeof (worker) === 'function') {
+		var task = { worker: worker, done: done };
 		if (util.isArray(args)) {
 			task.args = args;
 		}

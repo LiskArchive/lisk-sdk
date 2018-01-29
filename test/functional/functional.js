@@ -1,3 +1,5 @@
+/*eslint-disable */
+
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -13,6 +15,6 @@
  */
 'use strict';
 
-before(function (done) {
+before(done => {
 	require('../common/utils/waitFor').blockchainReady(done);
 });

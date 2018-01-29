@@ -14,16 +14,16 @@
 'use strict';
 
 var async = require('async');
-var crypto = require('crypto');
-var extend = require('extend');
-var genesisblock = null;
 var Multisignature = require('../logic/multisignature.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var apiError = require('../helpers/apiError');
 var errorCodes = require('../helpers/apiCodes');
+/* eslint-disable */
+var genesisblock = null;
+/* eslint-disable */
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules, library, self, __private = {};
 
 __private.assetTypes = {};
 
@@ -38,7 +38,7 @@ __private.assetTypes = {};
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Multisignatures (cb, scope) {
+function Multisignatures(cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
@@ -83,8 +83,8 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 	}
 	var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(transaction.transactionId);
 
-	function done (cb) {
-		library.balancesSequence.add(function (cb) {
+	function done(cb) {
+		library.balancesSequence.add(cb => {
 			var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(transaction.transactionId);
 
 			if (!multisignatureTransaction) {
@@ -93,7 +93,7 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 
 			modules.accounts.getAccount({
 				address: multisignatureTransaction.senderId
-			}, function (err, sender) {
+			}, (err, sender) => {
 				if (err) {
 					return setImmediate(cb, err);
 				} else if (!sender) {
@@ -142,7 +142,7 @@ Multisignatures.prototype.processSignature = function (transaction, cb) {
 	} else {
 		modules.accounts.getAccount({
 			address: multisignatureTransaction.senderId
-		}, function (err, account) {
+		}, (err, account) => {
 			if (err) {
 				return setImmediate(cb, 'Multisignature account not found');
 			}
@@ -188,9 +188,9 @@ Multisignatures.prototype.getGroup = function (address, cb) {
 
 	async.series({
 		getAccount: function (seriesCb) {
-			var multiSigFilters = Object.assign({}, {address: address}, {multimin: {$gt: 0}});
+			var multiSigFilters = Object.assign({}, { address: address }, { multimin: { $gt: 0 } });
 
-			library.logic.account.get(multiSigFilters, function (err, account) {
+			library.logic.account.get(multiSigFilters, (err, account) => {
 				if (err) {
 					return setImmediate(seriesCb, err);
 				}
@@ -214,15 +214,15 @@ Multisignatures.prototype.getGroup = function (address, cb) {
 			});
 		},
 		getMembers: function (seriesCb) {
-			library.db.multisignatures.getMemberPublicKeys(scope.group.address).then(function (memberAccountKeys) {
+			library.db.multisignatures.getMemberPublicKeys(scope.group.address).then(memberAccountKeys => {
 				var addresses = [];
 
-				memberAccountKeys.forEach(function (key) {
+				memberAccountKeys.forEach(key => {
 					addresses.push(modules.accounts.generateAddressByPublicKey(key));
 				});
 
-				modules.accounts.getAccounts({address: { $in: addresses}}, ['address', 'publicKey', 'secondPublicKey'], function (err, accounts) {
-					accounts.forEach(function (account) {
+				modules.accounts.getAccounts({ address: { $in: addresses } }, ['address', 'publicKey', 'secondPublicKey'], (err, accounts) => {
+					accounts.forEach(account => {
 						scope.group.members.push({
 							address: account.address,
 							publicKey: account.publicKey,
@@ -234,7 +234,7 @@ Multisignatures.prototype.getGroup = function (address, cb) {
 				});
 			});
 		}
-	}, function (err) {
+	}, err => {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
@@ -283,7 +283,7 @@ Multisignatures.prototype.shared = {
 	 * @returns {setImmediateCallbackObject}
 	 */
 	getGroups: function (filters, cb) {
-		modules.multisignatures.getGroup(filters.address, function (err, group) {
+		modules.multisignatures.getGroup(filters.address, (err, group) => {
 			if (err) {
 				return setImmediate(cb, err);
 			} else {
@@ -304,7 +304,7 @@ Multisignatures.prototype.shared = {
 
 		async.series({
 			getAccount: function (seriesCb) {
-				library.logic.account.get({address: filters.address}, function (err, account) {
+				library.logic.account.get({ address: filters.address }, (err, account) => {
 					if (err) {
 						return setImmediate(seriesCb, err);
 					}
@@ -319,21 +319,19 @@ Multisignatures.prototype.shared = {
 				});
 			},
 			getGroupAccountIds: function (seriesCb) {
-				library.db.multisignatures.getGroupIds(scope.targetAccount.publicKey).then(function (groupAccountIds) {
+				library.db.multisignatures.getGroupIds(scope.targetAccount.publicKey).then(groupAccountIds => {
 					scope.groups = [];
 
-					async.each(groupAccountIds, function (groupId, callback){
-						modules.multisignatures.getGroup(groupId, function (err, group) {
+					async.each(groupAccountIds, (groupId, callback) => {
+						modules.multisignatures.getGroup(groupId, (err, group) => {
 							scope.groups.push(group);
 
 							return setImmediate(callback);
 						});
-					}, function (err) {
-						return setImmediate(seriesCb, err);
-					});
+					}, err => setImmediate(seriesCb, err));
 				});
 			}
-		}, function (err) {
+		}, err => {
 			if (err) {
 				return setImmediate(cb, err);
 			} else {

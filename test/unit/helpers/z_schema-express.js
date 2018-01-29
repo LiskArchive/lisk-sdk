@@ -15,10 +15,8 @@
 
 var z_schema_express = require('../../../helpers/z_schema-express');
 
-describe('z_schema.express', function () {
-
+describe('z_schema.express', () => {
 	var zSchemaExpressResultFunction;
-	var reqSanitizeFunction;
 	var reqSanitizeFunctionResult;
 	var validZSchema;
 	var validReq;
@@ -29,8 +27,8 @@ describe('z_schema.express', function () {
 	var validErr = null;
 	var validValid = true;
 
-	before(function () {
-		validIssues = validErr ? validErr[0].message + ': ' + validErr[0].path : null;
+	before(() => {
+		validIssues = validErr ? `${validErr[0].message}: ${validErr[0].path}` : null;
 		validObject = {
 			isValid: validValid,
 			issues: validIssues
@@ -43,30 +41,28 @@ describe('z_schema.express', function () {
 		validNextCb = sinonSandbox.spy();
 	});
 
-	beforeEach(function () {
+	beforeEach(() => {
 		zSchemaExpressResultFunction = z_schema_express(validZSchema);
-		reqSanitizeFunction = zSchemaExpressResultFunction(validReq, validRes, validNextCb);
-		reqSanitizeFunctionResult = validReq.sanitize('value','schema',validNextCb);
+		zSchemaExpressResultFunction(validReq, validRes, validNextCb);
+		reqSanitizeFunctionResult = validReq.sanitize('value', 'schema', validNextCb);
 	});
 
-	afterEach(function () {
+	afterEach(() => {
 		validNextCb.reset();
 	});
 
-	it('should add a sanitize function to the request-object', function () {
+	it('should add a sanitize function to the request-object', () => {
 		expect(validReq.sanitize).to.be.a('function');
 	});
 
-	it('should call callback', function () {
+	it('should call callback', () => {
 		expect(validNextCb.calledOnce).to.be.true;
 	});
 
-	describe('sanitize', function () {
-
-		describe('when the schema is invalid', function () {
-
-			before(function () {
-				validErr = [{'message' : 'message','path': 'a/path'}];
+	describe('sanitize', () => {
+		describe('when the schema is invalid', () => {
+			before(() => {
+				validErr = [{ message: 'message', path: 'a/path' }];
 				validValid = false;
 				validObject = {
 					isValid: false,
@@ -75,14 +71,13 @@ describe('z_schema.express', function () {
 				validZSchema.validate.returns(validObject);
 			});
 
-			it('should return invalid object', function () {
+			it('should return invalid object', () => {
 				expect(reqSanitizeFunctionResult).to.eq(validObject);
 			});
 		});
 
-		describe('when the schema is valid', function () {
-
-			before(function () {
+		describe('when the schema is valid', () => {
+			before(() => {
 				validErr = null;
 				validValid = true;
 				validObject = {
@@ -92,7 +87,7 @@ describe('z_schema.express', function () {
 				validZSchema.validate.returns(validObject);
 			});
 
-			it('should return valid object', function () {
+			it('should return valid object', () => {
 				expect(reqSanitizeFunctionResult).to.eq(validObject);
 			});
 		});

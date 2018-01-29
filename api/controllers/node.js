@@ -17,7 +17,6 @@ var _ = require('lodash');
 var checkIpInList = require('../../helpers/checkIpInList.js');
 var apiCodes = require('../../helpers/apiCodes');
 var swaggerHelper = require('../../helpers/swagger');
-var ApiError = require('../../helpers/apiError');
 
 // Private Fields
 var modules;
@@ -30,13 +29,13 @@ var config;
  * @classdesc Main System methods.
  * @param {scope} scope - App instance.
  */
-function NodeController (scope) {
+function NodeController(scope) {
 	modules = scope.modules;
 	config = scope.config;
 }
 
 NodeController.getConstants = function (context, next) {
-	modules.node.shared.getConstants(null, function (err, data) {
+	modules.node.shared.getConstants(null, (err, data) => {
 		try {
 			if (err) { return next(err); }
 
@@ -58,7 +57,6 @@ NodeController.getConstants = function (context, next) {
 			data.fees.data = data.fees.data.toString();
 
 			next(null, data);
-
 		} catch (error) {
 			next(error);
 		}
@@ -66,7 +64,7 @@ NodeController.getConstants = function (context, next) {
 };
 
 NodeController.getStatus = function (context, next) {
-	modules.node.shared.getStatus(null, function (err, data) {
+	modules.node.shared.getStatus(null, (err, data) => {
 		try {
 			if (err) { return next(err); }
 
@@ -77,7 +75,7 @@ NodeController.getStatus = function (context, next) {
 			data.networkHeight = data.networkHeight || 0;
 			data.consensus = data.consensus || 0;
 
-			modules.transactions.shared.getTransactionsCount(function (err, count) {
+			modules.transactions.shared.getTransactionsCount((err, count) => {
 				if (err) { return next(err); }
 
 				data.transactions = count;
@@ -98,7 +96,7 @@ NodeController.getForgingStatus = function (context, next) {
 
 	var publicKey = context.request.swagger.params.publicKey.value;
 
-	modules.node.internal.getForgingStatus(publicKey, function (err, data) {
+	modules.node.internal.getForgingStatus(publicKey, (err, data) => {
 		if (err) { return next(err); }
 
 		next(null, data);
@@ -114,7 +112,7 @@ NodeController.updateForgingStatus = function (context, next) {
 	var publicKey = context.request.swagger.params.data.value.publicKey;
 	var decryptionKey = context.request.swagger.params.data.value.decryptionKey;
 
-	modules.node.internal.toggleForgingStatus(publicKey, decryptionKey, function (err, data) {
+	modules.node.internal.toggleForgingStatus(publicKey, decryptionKey, (err, data) => {
 		if (err) {
 			context.statusCode = apiCodes.NOT_FOUND;
 			return next(err);
@@ -154,14 +152,12 @@ NodeController.getPooledTransactions = function (context, next) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.transactions.shared[stateMap[state]].call(this, _.clone(filters), function (err, data) {
+	modules.transactions.shared[stateMap[state]].call(this, _.clone(filters), (err, data) => {
 		if (err) { return next(err); }
 
-		var transactions = _.map(_.cloneDeep(data.transactions), function (transaction) {
+		var transactions = _.map(_.cloneDeep(data.transactions), transaction => {
 			transaction.senderId = transaction.senderId || '';
 			transaction.recipientId = transaction.recipientId || '';
 			transaction.recipientPublicKey = transaction.recipientPublicKey || '';

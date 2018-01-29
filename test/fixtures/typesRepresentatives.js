@@ -98,7 +98,7 @@ var objects = [
 		expectation: 'object'
 	},
 	{
-		input: {abc: 'abc'},
+		input: { abc: 'abc' },
 		description: 'non empty object',
 		expectation: 'object'
 	},
@@ -223,7 +223,7 @@ var additionalDataValidCases = [
 
 var additionalDataInvalidCases = [
 	{
-		input: faker.random.alphaNumeric(constants.additionalData.maxLength - 1) + '现',
+		input: `${faker.random.alphaNumeric(constants.additionalData.maxLength - 1)}现`,
 		description: 'overflowed string',
 		expectation: 'string'
 	},

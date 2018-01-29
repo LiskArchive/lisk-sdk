@@ -23,7 +23,10 @@ var BlockReward = require('../logic/blockReward.js');
 var Bignum = require('../helpers/bignum.js');
 
 // Private fields
-var self, library, modules, __private = {};
+var self,
+library,
+modules,
+__private = {};
 
 /**
  * Main account logic.
@@ -36,7 +39,7 @@ var self, library, modules, __private = {};
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */
-function Account (db, schema, logger, cb) {
+function Account(db, schema, logger, cb) {
 	this.scope = {
 		db: db,
 		schema: schema,
@@ -158,25 +161,25 @@ function Account (db, schema, logger, cb) {
 			name: 'delegates',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2delegates WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${this.table}2delegates WHERE "accountId" = a."address")`
 		},
 		{
 			name: 'u_delegates',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_delegates WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${this.table}2u_delegates WHERE "accountId" = a."address")`
 		},
 		{
 			name: 'multisignatures',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2multisignatures WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${this.table}2multisignatures WHERE "accountId" = a."address")`
 		},
 		{
 			name: 'u_multisignatures',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_multisignatures WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${this.table}2u_multisignatures WHERE "accountId" = a."address")`
 		},
 		{
 			name: 'multimin',
@@ -275,12 +278,10 @@ function Account (db, schema, logger, cb) {
 		}
 	];
 
-	this.computedFields = this.model.filter(function (field) {
-		return field.computedField;
-	});
+	this.computedFields = this.model.filter(field => field.computedField);
 
 	// Obtains fields from model
-	this.fields = this.model.map(function (field) {
+	this.fields = this.model.map(field => {
 		var _tmp = {};
 
 		if (field.expression) {
@@ -302,25 +303,25 @@ function Account (db, schema, logger, cb) {
 
 	// Obtains bynary fields from model
 	this.binary = [];
-	this.model.forEach(function (field) {
+	this.model.forEach(field => {
 		if (field.type === 'Binary') {
 			this.binary.push(field.name);
 		}
-	}.bind(this));
+	});
 
 	// Obtains conv from model
 	this.conv = {};
-	this.model.forEach(function (field) {
+	this.model.forEach(field => {
 		this.conv[field.name] = field.conv;
-	}.bind(this));
+	});
 
 	// Obtains editable fields from model
 	this.editable = [];
-	this.model.forEach(function (field) {
+	this.model.forEach(field => {
 		if (!field.immutable) {
 			this.editable.push(field.name);
 		}
-	}.bind(this));
+	});
 
 	return setImmediate(cb, null, this);
 }
@@ -550,14 +551,15 @@ Account.prototype.createTables = function (cb) {
  * @returns {setImmediateCallback} cb|error.
  */
 Account.prototype.removeTables = function (cb) {
-	var sqles = [], sql;
+	var sqles = [],
+sql;
 
 	[this.table,
 		'mem_round',
 		'mem_accounts2delegates',
 		'mem_accounts2u_delegates',
 		'mem_accounts2multisignatures',
-		'mem_accounts2u_multisignatures'].forEach(function (table) {
+		'mem_accounts2u_multisignatures'].forEach(table => {
 		sql = jsonSql.build({
 			type: 'remove',
 			table: table
@@ -565,9 +567,7 @@ Account.prototype.removeTables = function (cb) {
 		sqles.push(sql.query);
 	});
 
-	this.scope.db.query(sqles.join('')).then(function () {
-		return setImmediate(cb);
-	}).catch(function (err) {
+	this.scope.db.query(sqles.join('')).then(() => setImmediate(cb)).catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Account#removeTables error');
 	});
@@ -583,10 +583,10 @@ Account.prototype.objectNormalize = function (account) {
 	var report = this.scope.schema.validate(account, Account.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate account schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw `Failed to validate account schema: ${this.scope.schema.getLastErrors().map(err => {
 			var path = err.path.replace('#/', '').trim();
 			return [path, ': ', err.message, ' (', account[path], ')'].join('');
-		}).join(', ');
+		}).join(', ')}`;
 	}
 
 	return account;
@@ -620,7 +620,7 @@ Account.prototype.verifyPublicKey = function (publicKey) {
  * @returns {Object} Normalized address.
  */
 Account.prototype.toDB = function (raw) {
-	this.binary.forEach(function (field) {
+	this.binary.forEach(field => {
 		if (raw[field]) {
 			raw[field] = Buffer.from(raw[field], 'hex');
 		}
@@ -640,17 +640,13 @@ Account.prototype.toDB = function (raw) {
  * @returns {setImmediateCallback} Returns null or Object with database data.
  */
 Account.prototype.get = function (filter, fields, cb, tx) {
-	if (typeof(fields) === 'function') {
+	if (typeof (fields) === 'function') {
 		tx = cb;
 		cb = fields;
-		fields = this.fields.map(function (field) {
-			return field.alias || field.field;
-		});
+		fields = this.fields.map(field => field.alias || field.field);
 	}
 
-	this.getAll(filter, fields, function (err, data) {
-		return setImmediate(cb, err, data && data.length ? data[0] : null);
-	}, tx);
+	this.getAll(filter, fields, (err, data) => setImmediate(cb, err, data && data.length ? data[0] : null), tx);
 };
 
 /**
@@ -663,15 +659,13 @@ Account.prototype.get = function (filter, fields, cb, tx) {
 Account.prototype.getAll = function (filter, fields, cb, tx) {
 	if (typeof fields === 'function') {
 		cb = fields;
-		fields = this.fields.map(function (field) {
-			return field.alias || field.field;
-		});
+		fields = this.fields.map(field => field.alias || field.field);
 	}
 
 	var fieldsAddedForComputation = [];
-	this.computedFields.forEach(function (field) {
+	this.computedFields.forEach(field => {
 		if (fields.indexOf(field.name) !== -1) {
-			field.dependentFields.forEach(function (dependentField) {
+			field.dependentFields.forEach(dependentField => {
 				if (fields.indexOf(dependentField) == -1) {
 					// Add the dependent field to the fields array if it's required.
 					fieldsAddedForComputation.push(dependentField);
@@ -681,19 +675,19 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 		}
 	});
 
-	var realFields = this.fields.filter(function (field) {
-		return !field.computedField && fields.indexOf(field.alias || field.field) !== -1;
-	});
+	var realFields = this.fields.filter(field => !field.computedField && fields.indexOf(field.alias || field.field) !== -1);
 
 	var realConv = {};
-	Object.keys(this.conv).forEach(function (key) {
+	Object.keys(this.conv).forEach(key => {
 		if (fields.indexOf(key) !== -1) {
 			realConv[key] = this.conv[key];
 		}
-	}.bind(this));
+	});
 
 	var DEFAULT_LIMIT = constants.activeDelegates;
-	var limit, offset, sort;
+	var limit,
+offset,
+sort;
 
 
 	if (filter.offset > 0) {
@@ -761,35 +755,35 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 
 	var self = this;
 
-	(tx || this.scope.db).query(sql.query, sql.values).then(function (rows) {
+	(tx || this.scope.db).query(sql.query, sql.values).then(rows => {
 		var lastBlock = modules.blocks.lastBlock.get();
 		// If the last block height is undefined, it means it's a genesis block with height = 1
 		// look for a constant for total supply
 		var totalSupply = lastBlock.height ? __private.blockReward.calcSupply(lastBlock.height) : 0;
 
 		if (fields.indexOf('approval') !== -1) {
-			rows.forEach(function (accountRow) {
+			rows.forEach(accountRow => {
 				accountRow.approval = self.calculateApproval(accountRow.vote, totalSupply);
 			});
 		}
 
 		if (fields.indexOf('productivity') !== -1) {
-			rows.forEach(function (accountRow) {
+			rows.forEach(accountRow => {
 				accountRow.productivity = self.calculateProductivity(accountRow.producedBlocks, accountRow.missedBlocks);
 			});
 		}
 
 		if (fieldsAddedForComputation.length > 0) {
 			// Remove the fields which were only added for computation
-			rows.forEach(function (accountRow) {
-				fieldsAddedForComputation.forEach(function (field) {
+			rows.forEach(accountRow => {
+				fieldsAddedForComputation.forEach(field => {
 					delete accountRow[field];
 				});
 			});
 		}
 
 		return setImmediate(cb, null, rows);
-	}).catch(function (err) {
+	}).catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Account#getAll error');
 	});
@@ -804,7 +798,7 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 Account.prototype.calculateApproval = function (votersBalance, totalSupply) {
 	// votersBalance and totalSupply are sent as strings, we convert them into bignum and send the response as number as well.
 	var votersBalanceBignum = new Bignum(votersBalance || 0);
-	var totalSupplyBignum =  new Bignum(totalSupply);
+	var totalSupplyBignum = new Bignum(totalSupply);
 	var approvalBignum = (votersBalanceBignum.dividedBy(totalSupplyBignum)).times(100).round(2);
 	return !(approvalBignum.isNaN()) ? approvalBignum.toNumber() : 0;
 };
@@ -845,9 +839,7 @@ Account.prototype.set = function (address, fields, cb, tx) {
 		modifier: this.toDB(fields)
 	});
 
-	(tx || this.scope.db).none(sql.query, sql.values).then(function () {
-		return setImmediate(cb);
-	}).catch(function (err) {
+	(tx || this.scope.db).none(sql.query, sql.values).then(() => setImmediate(cb)).catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Account#set error');
 	});
@@ -862,7 +854,12 @@ Account.prototype.set = function (address, fields, cb, tx) {
  * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
  */
 Account.prototype.merge = function (address, diff, cb, tx) {
-	var update = {}, remove = {}, insert = {}, insert_object = {}, remove_object = {}, round = [];
+	var update = {},
+remove = {},
+insert = {},
+insert_object = {},
+remove_object = {},
+round = [];
 
 	// Verify public key
 	this.verifyPublicKey(diff.publicKey);
@@ -870,8 +867,9 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 	// Normalize address
 	address = String(address).toUpperCase();
 
-	this.editable.forEach(function (value) {
-		var val, i;
+	this.editable.forEach(value => {
+		var val,
+i;
 
 		if (diff[value] !== undefined) {
 			var trueValue = diff[value];
@@ -881,7 +879,7 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 					break;
 				case Number:
 					if (isNaN(trueValue) || trueValue === Infinity) {
-						return setImmediate(cb, 'Encountered unsane number: ' + trueValue);
+						return setImmediate(cb, `Encountered unsane number: ${trueValue}`);
 					} else if (Math.abs(trueValue) === trueValue && trueValue !== 0) {
 						update.$inc = update.$inc || {};
 						update.$inc[value] = Math.floor(trueValue);
@@ -995,12 +993,12 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 	var sqles = [];
 
 	if (Object.keys(remove).length) {
-		Object.keys(remove).forEach(function (el) {
+		Object.keys(remove).forEach(el => {
 			var sql = jsonSql.build({
 				type: 'remove',
-				table: self.table + '2' + el,
+				table: `${self.table}2${el}`,
 				condition: {
-					dependentId: {$in: remove[el]},
+					dependentId: { $in: remove[el] },
 					accountId: address
 				}
 			});
@@ -1009,11 +1007,11 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 	}
 
 	if (Object.keys(insert).length) {
-		Object.keys(insert).forEach(function (el) {
+		Object.keys(insert).forEach(el => {
 			for (var i = 0; i < insert[el].length; i++) {
 				var sql = jsonSql.build({
 					type: 'insert',
-					table: self.table + '2' + el,
+					table: `${self.table}2${el}`,
 					values: {
 						accountId: address,
 						dependentId: insert[el][i]
@@ -1025,11 +1023,11 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 	}
 
 	if (Object.keys(remove_object).length) {
-		Object.keys(remove_object).forEach(function (el) {
+		Object.keys(remove_object).forEach(el => {
 			remove_object[el].accountId = address;
 			var sql = jsonSql.build({
 				type: 'remove',
-				table: self.table + '2' + el,
+				table: `${self.table}2${el}`,
 				condition: remove_object[el]
 			});
 			sqles.push(sql);
@@ -1037,12 +1035,12 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 	}
 
 	if (Object.keys(insert_object).length) {
-		Object.keys(insert_object).forEach(function (el) {
+		Object.keys(insert_object).forEach(el => {
 			insert_object[el].accountId = address;
 			for (var i = 0; i < insert_object[el].length; i++) {
 				var sql = jsonSql.build({
 					type: 'insert',
-					table: self.table + '2' + el,
+					table: `${self.table}2${el}`,
 					values: insert_object[el]
 				});
 				sqles.push(sql);
@@ -1062,20 +1060,18 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 		sqles.push(sql);
 	}
 
-	function done (err) {
+	function done(err) {
 		if (cb.length !== 2) {
 			return setImmediate(cb, err);
 		} else {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			self.get({address: address}, cb, tx);
+			self.get({ address: address }, cb, tx);
 		}
 	}
 
-	var queries = sqles.concat(round).map(function (sql) {
-		return pgp.as.format(sql.query, sql.values);
-	}).join('');
+	var queries = sqles.concat(round).map(sql => pgp.as.format(sql.query, sql.values)).join('');
 
 	if (!cb) {
 		return queries;
@@ -1085,9 +1081,7 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 		return done();
 	}
 
-	(tx || this.scope.db).none(queries).then(function () {
-		return done();
-	}).catch(function (err) {
+	(tx || this.scope.db).none(queries).then(() => done()).catch(err => {
 		library.logger.error(err.stack);
 		return done('Account#merge error');
 	});
@@ -1107,9 +1101,7 @@ Account.prototype.remove = function (address, cb) {
 			address: address
 		}
 	});
-	this.scope.db.none(sql.query, sql.values).then(function () {
-		return setImmediate(cb, null, address);
-	}).catch(function (err) {
+	this.scope.db.none(sql.query, sql.values).then(() => setImmediate(cb, null, address)).catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Account#remove error');
 	});

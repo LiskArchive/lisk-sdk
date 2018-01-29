@@ -18,8 +18,8 @@ var fs = require('fs');
 var path = require('path');
 
 // Created this before in global scope as its dependency of test/node.js
-if(typeof before !== 'function') {
-	global.before = function before (description, cb) {
+if (typeof before !== 'function') {
+	global.before = function before(description, cb) {
 		cb = typeof description === 'function' ? description : cb;
 		cb();
 	};
@@ -27,10 +27,9 @@ if(typeof before !== 'function') {
 
 var application = require('../test/common/application.js');
 
-application.init({}, function (err, scope) {
-
+application.init({}, (err, scope) => {
 	var replServer = repl.start({
-		prompt: 'lisk-core [' + scope.config.db.database + '] > ',
+		prompt: `lisk-core [${scope.config.db.database}] > `,
 	});
 
 	replServer.context.config = scope.config;
@@ -41,7 +40,7 @@ application.init({}, function (err, scope) {
 	var helpers = {};
 
 	var helpersFolder = './helpers/';
-	fs.readdirSync(helpersFolder).forEach(function (file) {
+	fs.readdirSync(helpersFolder).forEach(file => {
 		var filePath = path.resolve(helpersFolder, file);
 		var fileName = path.basename(filePath, '.js');
 		helpers[fileName] = require(filePath);
@@ -56,11 +55,10 @@ application.init({}, function (err, scope) {
 		console.log(data);
 	};
 
-	replServer.on('exit', function () {
+	replServer.on('exit', () => {
 		console.log('Goodbye! See you later.');
 		process.exit();
 	});
-
 }, {});
 
 
@@ -72,7 +70,7 @@ application.init({}, function (err, scope) {
  * Receives a 'uncaughtException' signal and emits a cleanup.
  * @listens uncaughtException
  */
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', err => {
 	// Handle error safely
 	console.log('System error', { message: err.message, stack: err.stack });
 	/**
@@ -90,6 +88,6 @@ process.on('uncaughtException', function (err) {
  * Receives a 'unhandledRejection' signal and emits a cleanup.
  * @listens unhandledRejection
  */
-process.on('unhandledRejection', function (reason, p) {
+process.on('unhandledRejection', (reason, p) => {
 	console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });

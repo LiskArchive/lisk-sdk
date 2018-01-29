@@ -13,6 +13,10 @@
 	  "mocha/no-pending-tests": 0,
 	  "mocha/no-synchronous-tests": 0,
 	  "mocha/no-nested-tests": 0,
-	  "mocha/no-identical-title": 0
+	  "mocha/no-identical-title": 0,
+	  "mocha/no-skipped-tests": 0,
+	  "mocha/no-top-level-hooks": 0,
+	  "mocha/no-exclusive-tests": 0,
+	  "mocha/handle-done-callback": 0
 	}
 }

@@ -22,8 +22,7 @@ var normalizer = require('../../common/utils/normalizer');
 
 var transactionTypes = require('../../../helpers/transactionTypes.js');
 
-describe('system test (type 1) - checking validated second signature registrations against other transaction types', function () {
-
+describe('system test (type 1) - checking validated second signature registrations against other transaction types', () => {
 	var library;
 
 	var account = randomUtil.account();
@@ -33,38 +32,37 @@ describe('system test (type 1) - checking validated second signature registratio
 	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
 	dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock('system_1_X_second_sign_validated', function (lib) {
+	localCommon.beforeBlock('system_1_X_second_sign_validated', lib => {
 		library = lib;
 	});
 
-	before(function (done) {
-		localCommon.addTransactionsAndForge(library, [creditTransaction], function (err, res) {
-			localCommon.addTransactionsAndForge(library, [dappTransaction], function (err, res) {
+	before(done => {
+		localCommon.addTransactionsAndForge(library, [creditTransaction], () => {
+			localCommon.addTransactionsAndForge(library, [dappTransaction], () => {
 				done();
 			});
 		});
 	});
 
-	it('adding to pool second signature registration should be ok', function (done) {
-		localCommon.addTransaction(library, transaction, function (err, res) {
+	it('adding to pool second signature registration should be ok', done => {
+		localCommon.addTransaction(library, transaction, (err, res) => {
 			expect(res).to.equal(transaction.id);
 			done();
 		});
 	});
 
-	describe('after forging one block', function () {
-
-		before(function (done) {
-			localCommon.forge(library, function (err, res) {
+	describe('after forging one block', () => {
+		before(done => {
+			localCommon.forge(library, () => {
 				done();
 			});
 		});
 
-		it('transaction should be included', function (done) {
+		it('transaction should be included', done => {
 			var filter = {
 				id: transaction.id
 			};
-			localCommon.getTransactionFromModule(library, filter, function (err, res) {
+			localCommon.getTransactionFromModule(library, filter, (err, res) => {
 				expect(err).to.be.null;
 				expect(res).to.have.property('transactions').which.is.an('Array');
 				expect(res.transactions.length).to.equal(1);
@@ -73,29 +71,28 @@ describe('system test (type 1) - checking validated second signature registratio
 			});
 		});
 
-		it('adding to pool second signature registration for same account should fail', function (done) {
-			localCommon.addTransaction(library, transaction, function (err, res) {
+		it('adding to pool second signature registration for same account should fail', done => {
+			localCommon.addTransaction(library, transaction, err => {
 				expect(err).to.equal('Missing sender second signature');
 				done();
 			});
 		});
 
-		describe('adding to pool other transaction types from the same account', function () {
-
-			Object.keys(transactionTypes).forEach(function (key, index) {
+		describe('adding to pool other transaction types from the same account', () => {
+			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key != 'SIGNATURE') {
-					it('type ' + index + ': ' + key + ' without second signature should fail', function (done) {
-						localCommon.loadTransactionType(key, account, dapp, true, function (transaction) {
-							localCommon.addTransaction(library, transaction, function (err, res) {
+					it(`type ${index}: ${key} without second signature should fail`, done => {
+						localCommon.loadTransactionType(key, account, dapp, true, transaction => {
+							localCommon.addTransaction(library, transaction, err => {
 								expect(err).to.equal('Missing sender second signature');
 								done();
 							});
 						});
 					});
 
-					it('type ' + index + ': ' + key + ' with second signature not matching registered second passphrase should fail', function (done) {
-						localCommon.loadTransactionType(key, account, dapp, false, function (transaction) {
-							localCommon.addTransaction(library, transaction, function (err, res) {
+					it(`type ${index}: ${key} with second signature not matching registered second passphrase should fail`, done => {
+						localCommon.loadTransactionType(key, account, dapp, false, transaction => {
+							localCommon.addTransaction(library, transaction, err => {
 								expect(err).to.equal('Failed to verify second signature');
 								done();
 							});
@@ -103,25 +100,25 @@ describe('system test (type 1) - checking validated second signature registratio
 					});
 
 					if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
-						it('type ' + index + ': ' + key + ' with correct second signature should be rejected', function (done) {
-							localCommon.loadTransactionType(key, account, dapp, null, function (transaction) {
-								localCommon.addTransaction(library, transaction, function (err, res) {
-									expect(err).to.equal('Transaction type ' + transaction.type + ' is frozen');
+						it(`type ${index}: ${key} with correct second signature should be rejected`, done => {
+							localCommon.loadTransactionType(key, account, dapp, null, transaction => {
+								localCommon.addTransaction(library, transaction, err => {
+									expect(err).to.equal(`Transaction type ${transaction.type} is frozen`);
 									done();
 								});
 							});
 						});
 					} else {
-						it('type ' + index + ': ' + key + ' with correct second signature should be ok', function (done) {
-							localCommon.loadTransactionType(key, account, dapp, null, function (transaction) {
-								localCommon.addTransaction(library, transaction, function (err, res) {
+						it(`type ${index}: ${key} with correct second signature should be ok`, done => {
+							localCommon.loadTransactionType(key, account, dapp, null, transaction => {
+								localCommon.addTransaction(library, transaction, (err, res) => {
 									expect(res).to.equal(transaction.id);
 									done();
 								});
 							});
 						});
 					}
-				};
+				}
 			});
 		});
 	});

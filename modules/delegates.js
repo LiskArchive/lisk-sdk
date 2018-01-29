@@ -17,20 +17,19 @@ var _ = require('lodash');
 var async = require('async');
 var apiCodes = require('../helpers/apiCodes.js');
 var ApiError = require('../helpers/apiError.js');
-var bignum = require('../helpers/bignum.js');
 var BlockReward = require('../logic/blockReward.js');
-var checkIpInList = require('../helpers/checkIpInList.js');
 var constants = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var crypto = require('crypto');
 var Delegate = require('../logic/delegate.js');
-var extend = require('extend');
-var sortBy = require('../helpers/sort_by.js').sortBy;
 var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules,
+library,
+self,
+__private = {};
 
 __private.assetTypes = {};
 __private.loaded = false;
@@ -48,7 +47,7 @@ __private.tmpKeypairs = {};
  * @return {setImmediateCallback} Callback function with `self` as argument.
  */
 // Constructor
-function Delegates (cb, scope) {
+function Delegates(cb, scope) {
 	library = {
 		logger: scope.logger,
 		sequence: scope.sequence,
@@ -93,15 +92,13 @@ function Delegates (cb, scope) {
 __private.getKeysSortByVote = function (cb) {
 	modules.accounts.getAccounts({
 		isDelegate: 1,
-		sort: {'vote': -1, 'publicKey': 1},
+		sort: { vote: -1, publicKey: 1 },
 		limit: slots.delegates
-	}, ['publicKey'], function (err, rows) {
+	}, ['publicKey'], (err, rows) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		return setImmediate(cb, null, rows.map(function (el) {
-			return el.publicKey;
-		}));
+		return setImmediate(cb, null, rows.map(el => el.publicKey));
 	});
 };
 
@@ -112,13 +109,13 @@ __private.getKeysSortByVote = function (cb) {
  * @returns {setImmediateCallback}
  */
 __private.getDelegatesFromPreviousRound = function (cb) {
-	library.db.rounds.getDelegatesSnapshot(slots.delegates).then(function (rows) {
+	library.db.rounds.getDelegatesSnapshot(slots.delegates).then(rows => {
 		var delegatesPublicKeys = [];
-		rows.forEach(function (row) {
+		rows.forEach(row => {
 			delegatesPublicKeys.push(row.publicKey.toString('hex'));
 		});
 		return setImmediate(cb, null, delegatesPublicKeys);
-	}).catch(function (err) {
+	}).catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'getDelegatesSnapshot database query failed');
 	});
@@ -132,7 +129,7 @@ __private.getDelegatesFromPreviousRound = function (cb) {
  * @returns {setImmediateCallback} error message | cb
  */
 __private.validateBlockSlot = function (block, source, cb) {
-	self.generateDelegateList(block.height, source, function (err, activeDelegates) {
+	self.generateDelegateList(block.height, source, (err, activeDelegates) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -143,8 +140,8 @@ __private.validateBlockSlot = function (block, source, cb) {
 		if (delegateId && block.generatorPublicKey === delegateId) {
 			return setImmediate(cb);
 		} else {
-			library.logger.error('Expected generator: ' + delegateId + ' Received generator: ' + block.generatorPublicKey);
-			return setImmediate(cb, 'Failed to verify slot: ' + currentSlot);
+			library.logger.error(`Expected generator: ${delegateId} Received generator: ${block.generatorPublicKey}`);
+			return setImmediate(cb, `Failed to verify slot: ${currentSlot}`);
 		}
 	});
 };
@@ -158,7 +155,7 @@ __private.validateBlockSlot = function (block, source, cb) {
  * @returns {setImmediateCallback} error | cb | object {time, keypair}
  */
 __private.getBlockSlotData = function (slot, height, cb) {
-	self.generateDelegateList(height, null, function (err, activeDelegates) {
+	self.generateDelegateList(height, null, (err, activeDelegates) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -171,7 +168,7 @@ __private.getBlockSlotData = function (slot, height, cb) {
 			var delegate_id = activeDelegates[delegate_pos];
 
 			if (delegate_id && __private.keypairs[delegate_id]) {
-				return setImmediate(cb, null, {time: slots.getSlotTime(currentSlot), keypair: __private.keypairs[delegate_id]});
+				return setImmediate(cb, null, { time: slots.getSlotTime(currentSlot), keypair: __private.keypairs[delegate_id] });
 			}
 		}
 
@@ -208,7 +205,7 @@ __private.forge = function (cb) {
 		return setImmediate(cb);
 	}
 
-	__private.getBlockSlotData(currentSlot, lastBlock.height + 1, function (err, currentBlockData) {
+	__private.getBlockSlotData(currentSlot, lastBlock.height + 1, (err, currentBlockData) => {
 		if (err || currentBlockData === null) {
 			library.logger.warn('Skipping delegate slot', err);
 			return setImmediate(cb);
@@ -219,13 +216,13 @@ __private.forge = function (cb) {
 			return setImmediate(cb);
 		}
 
-		library.sequence.add(function (cb) {
+		library.sequence.add(cb => {
 			if (modules.transport.poorConsensus()) {
 				return setImmediate(cb, ['Inadequate broadhash consensus', modules.peers.getLastConsensus(), '%'].join(' '));
 			}
 			library.logger.info(['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(' '));
 			modules.blocks.process.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
-		}, function (err) {
+		}, err => {
 			if (err) {
 				library.logger.error('Failed to generate block within delegate slot', err);
 			} else {
@@ -237,7 +234,7 @@ __private.forge = function (cb) {
 					'height:', forgedBlock.height,
 					'round:', slots.calcRound(forgedBlock.height),
 					'slot:', slots.getSlotNumber(currentBlockData.time),
-					'reward:' + forgedBlock.reward
+					`reward:${forgedBlock.reward}`
 				].join(' '));
 			}
 
@@ -277,7 +274,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb, tx) {
 		return setImmediate(cb, 'Votes must be an array');
 	}
 
-	modules.accounts.getAccount({publicKey: publicKey}, function (err, account) {
+	modules.accounts.getAccount({ publicKey: publicKey }, (err, account) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -288,9 +285,10 @@ __private.checkDelegates = function (publicKey, votes, state, cb, tx) {
 
 		var delegates = (state === 'confirmed') ? account.delegates : account.u_delegates;
 		var existing_votes = Array.isArray(delegates) ? delegates.length : 0;
-		var additions = 0, removals = 0;
+		var additions = 0,
+removals = 0;
 
-		async.eachSeries(votes, function (action, cb) {
+		async.eachSeries(votes, (action, cb) => {
 			var math = action[0];
 
 			if (math === '+') {
@@ -310,7 +308,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb, tx) {
 				return setImmediate(cb, 'Invalid public key');
 			}
 
-			modules.accounts.getAccount({ publicKey: publicKey, isDelegate: 1 }, function (err, account) {
+			modules.accounts.getAccount({ publicKey: publicKey, isDelegate: 1 }, (err, account) => {
 				if (err) {
 					return setImmediate(cb, err);
 				}
@@ -320,16 +318,16 @@ __private.checkDelegates = function (publicKey, votes, state, cb, tx) {
 				}
 
 				if (math === '+' && (delegates != null && delegates.indexOf(publicKey) !== -1)) {
-					return setImmediate(cb, 'Failed to add vote, delegate "' + account.username + '" already voted for');
+					return setImmediate(cb, `Failed to add vote, delegate "${account.username}" already voted for`);
 				}
 
 				if (math === '-' && (delegates === null || delegates.indexOf(publicKey) === -1)) {
-					return setImmediate(cb, 'Failed to remove vote, delegate "' + account.username + '" was not voted for');
+					return setImmediate(cb, `Failed to remove vote, delegate "${account.username}" was not voted for`);
 				}
 
 				return setImmediate(cb);
 			}, tx);
-		}, function (err) {
+		}, err => {
 			if (err) {
 				return setImmediate(cb, err);
 			}
@@ -339,7 +337,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb, tx) {
 			if (total_votes > constants.activeDelegates) {
 				var exceeded = total_votes - constants.activeDelegates;
 
-				return setImmediate(cb, 'Maximum number of ' + constants.activeDelegates + ' votes exceeded (' + exceeded + ' too many)');
+				return setImmediate(cb, `Maximum number of ${constants.activeDelegates} votes exceeded (${exceeded} too many)`);
 			} else {
 				return setImmediate(cb);
 			}
@@ -362,7 +360,7 @@ __private.loadDelegates = function (cb) {
 		library.logger.info(['Loading', secretsList.length, 'delegates using encrypted secrets from config'].join(' '));
 	}
 
-	async.eachSeries(secretsList, function (encryptedItem, seriesCb) {
+	async.eachSeries(secretsList, (encryptedItem, seriesCb) => {
 		var secret;
 		try {
 			secret = __private.decryptSecret(encryptedItem.encryptedSecret, library.config.forging.defaultKey);
@@ -378,7 +376,7 @@ __private.loadDelegates = function (cb) {
 
 		modules.accounts.getAccount({
 			publicKey: keypair.publicKey.toString('hex')
-		}, function (err, account) {
+		}, (err, account) => {
 			if (err) {
 				return setImmediate(seriesCb, err);
 			}
@@ -412,13 +410,13 @@ Delegates.prototype.toggleForgingStatus = function (publicKey, secretKey, cb) {
 	var actionDisable = false;
 
 	var keypair;
-	var encryptedList, decryptedSecret, encryptedItem;
+	var encryptedList,
+decryptedSecret,
+encryptedItem;
 	encryptedList = library.config.forging.secret;
-	encryptedItem = _.find(encryptedList, function (item) {
-		return item.publicKey === publicKey;
-	});
+	encryptedItem = _.find(encryptedList, item => item.publicKey === publicKey);
 
-	if (!!encryptedItem) {
+	if (encryptedItem) {
 		try {
 			decryptedSecret = __private.decryptSecret(encryptedItem.encryptedSecret, secretKey);
 		} catch (e) {
@@ -442,7 +440,7 @@ Delegates.prototype.toggleForgingStatus = function (publicKey, secretKey, cb) {
 		actionEnable = true;
 	}
 
-	modules.accounts.getAccount({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
+	modules.accounts.getAccount({ publicKey: keypair.publicKey.toString('hex') }, (err, account) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -453,13 +451,13 @@ Delegates.prototype.toggleForgingStatus = function (publicKey, secretKey, cb) {
 			if (actionEnable) {
 				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 				forgingStatus = true;
-				library.logger.info('Forging enabled on account: ' + account.address);
+				library.logger.info(`Forging enabled on account: ${account.address}`);
 			}
 
 			if (actionDisable) {
 				delete __private.keypairs[keypair.publicKey.toString('hex')];
 				forgingStatus = false;
-				library.logger.info('Forging disabled on account: ' + account.address);
+				library.logger.info(`Forging disabled on account: ${account.address}`);
 			}
 
 			return setImmediate(cb, null, {
@@ -482,9 +480,9 @@ Delegates.prototype.toggleForgingStatus = function (publicKey, secretKey, cb) {
  */
 Delegates.prototype.generateDelegateList = function (height, source, cb) {
 	// Set default function for getting delegates
-	source = source ? source : __private.getKeysSortByVote;
+	source = source || __private.getKeysSortByVote;
 
-	source(function (err, truncDelegateList) {
+	source((err, truncDelegateList) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -540,7 +538,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 		throw 'Invalid query argument, expected object';
 	}
 	if (query.search) {
-		query.username = {$like: '%' + query.search + '%'};
+		query.username = { $like: `%${query.search}%` };
 		delete query.search;
 	}
 	query.isDelegate = 1;
@@ -556,9 +554,7 @@ Delegates.prototype.getDelegates = function (query, cb) {
 		'rank',
 		'approval',
 		'productivity'
-	], function (err, delegates) {
-		return setImmediate(cb, err, delegates);
-	});
+	], (err, delegates) => setImmediate(cb, err, delegates));
 };
 
 /**
@@ -578,7 +574,7 @@ Delegates.prototype.getForgers = function (query, cb) {
 	var currentSlot = slots.getSlotNumber();
 	var forgerKeys = [];
 
-	self.generateDelegateList(currentBlock.height, null, function (err, activeDelegates) {
+	self.generateDelegateList(currentBlock.height, null, (err, activeDelegates) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -589,16 +585,14 @@ Delegates.prototype.getForgers = function (query, cb) {
 			}
 		}
 
-		library.db.delegates.getDelegatesByPublicKeys(forgerKeys).then(function (rows) {
-			rows.map(function (forger) {
+		library.db.delegates.getDelegatesByPublicKeys(forgerKeys).then(rows => {
+			rows.map(forger => {
 				forger.nextSlot = activeDelegates.indexOf(forger.publicKey) + currentSlot + 1;
 
 				return forger;
 			});
 			return setImmediate(cb, null, rows);
-		}).catch(function (error) {
-			return setImmediate(cb, error);
-		});
+		}).catch(error => setImmediate(cb, error));
 	});
 };
 
@@ -643,7 +637,7 @@ Delegates.prototype.fork = function (block, cause) {
 		cause: cause
 	};
 
-	library.db.delegates.insertFork(fork).then(function () {
+	library.db.delegates.insertFork(fork).then(() => {
 		library.network.io.sockets.emit('delegates/fork', fork);
 	});
 };
@@ -686,8 +680,8 @@ Delegates.prototype.onBind = function (scope) {
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
 
-	__private.loadDelegates(function (err) {
-		function nextForge (cb) {
+	__private.loadDelegates(err => {
+		function nextForge(cb) {
 			if (err) {
 				library.logger.error('Failed to load delegates', err);
 			}
@@ -695,9 +689,7 @@ Delegates.prototype.onBlockchainReady = function () {
 			async.series([
 				__private.forge,
 				modules.transactions.fillPool
-			], function () {
-				return setImmediate(cb);
-			});
+			], () => setImmediate(cb));
 		}
 
 		jobsQueue.register('delegatesNextForge', nextForge, 1000);
@@ -741,7 +733,7 @@ Delegates.prototype.shared = {
 		var lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
 		var currentSlot = slots.getSlotNumber();
 
-		modules.delegates.getForgers(filters, function (err, forgers) {
+		modules.delegates.getForgers(filters, (err, forgers) => {
 			if (err) {
 				return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
 			}
@@ -752,7 +744,7 @@ Delegates.prototype.shared = {
 					lastBlock: lastBlock.height,
 					lastBlockSlot: lastBlockSlot,
 					currentSlot: currentSlot
-				}});
+				} });
 		});
 	},
 
@@ -772,11 +764,11 @@ Delegates.prototype.shared = {
 	 * @returns {setImmediateCallbackObject}
 	 */
 	getDelegates: function (filters, cb) {
-		modules.delegates.getDelegates(filters, function (err, delegates) {
+		modules.delegates.getDelegates(filters, (err, delegates) => {
 			if (err) {
 				return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
 			}
-			return setImmediate(cb, null,  delegates);
+			return setImmediate(cb, null, delegates);
 		});
 	}
 };

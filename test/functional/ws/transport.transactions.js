@@ -23,7 +23,7 @@ var randomUtil = require('../../common/utils/random');
 
 var normalizeTransactionObject = require('../../common/helpers/api').normalizeTransactionObject;
 
-function postTransaction (transaction, done) {
+function postTransaction(transaction, done) {
 	transaction = normalizeTransactionObject(transaction);
 
 	ws.call('postTransactions', {
@@ -31,32 +31,30 @@ function postTransaction (transaction, done) {
 	}, done, true);
 }
 
-describe('Posting transaction (type 0)', function () {
-
+describe('Posting transaction (type 0)', () => {
 	var transaction;
 	var goodTransactions = [];
 	var badTransactions = [];
 	var account = randomUtil.account();
 
-	beforeEach(function () {
+	beforeEach(() => {
 		transaction = randomUtil.transaction();
 	});
 
-	describe('transaction processing', function () {
-
-		it('when sender has no funds should fail', function (done) {
+	describe('transaction processing', () => {
+		it('when sender has no funds should fail', done => {
 			var transaction = lisk.transaction.createTransaction('1L', 1, account.password);
 
-			postTransaction(transaction, function (err, res) {
+			postTransaction(transaction, (err, res) => {
 				expect(res).to.have.property('success').to.be.not.ok;
-				expect(res).to.have.property('message').to.equal('Account does not have enough LSK: ' + account.address + ' balance: 0');
+				expect(res).to.have.property('message').to.equal(`Account does not have enough LSK: ${account.address} balance: 0`);
 				badTransactions.push(transaction);
 				done();
 			});
 		});
 
-		it('when sender has funds should be ok', function (done) {
-			postTransaction(transaction, function (err, res) {
+		it('when sender has funds should be ok', done => {
+			postTransaction(transaction, (err, res) => {
 				expect(res).to.have.property('success').to.be.ok;
 				expect(res).to.have.property('transactionId').to.equal(transaction.id);
 				goodTransactions.push(transaction);
@@ -65,8 +63,7 @@ describe('Posting transaction (type 0)', function () {
 		});
 	});
 
-	describe('confirmation', function () {
-
+	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 });

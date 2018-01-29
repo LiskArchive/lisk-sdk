@@ -20,15 +20,12 @@ var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 var typesRepresentatives = require('../../../fixtures/typesRepresentatives');
 
-var constants = require('../../../../helpers/constants');
-
 var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
 var errorCodes = require('../../../../helpers/apiCodes');
 
-describe('POST /api/transactions (type 0) transfer funds', function () {
-
+describe('POST /api/transactions (type 0) transfer funds', () => {
 	var transaction;
 	var goodTransaction = randomUtil.transaction();
 	var badTransactions = [];
@@ -39,57 +36,53 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 	var account = randomUtil.account();
 	var accountOffset = randomUtil.account();
 
-	describe('schema validations', function () {
-
-		typesRepresentatives.allTypes.forEach(function (test) {
-			it('using ' + test.description + ' should fail', function () {
-				return sendTransactionPromise(test.input, 400).then(function (res) {
+	describe('schema validations', () => {
+		typesRepresentatives.allTypes.forEach(test => {
+			it(`using ${test.description} should fail`, () => sendTransactionPromise(test.input, 400).then(res => {
 					expect(res).to.have.nested.property('body.message').that.is.not.empty;
-				});
-			});
+				}));
 		});
 	});
 
-	describe('transaction processing', function () {
-
-		it('mutating data used to build the transaction id should fail', function () {
+	describe('transaction processing', () => {
+		it('mutating data used to build the transaction id should fail', () => {
 			transaction = randomUtil.transaction();
 			transaction.timestamp += 1;
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
 				expect(res.body.message).to.be.equal('Invalid transaction id');
 				badTransactions.push(transaction);
 			});
 		});
 
-		it('using zero amount should fail', function () {
+		it('using zero amount should fail', () => {
 			transaction = lisk.transaction.createTransaction(account.address, 0, accountFixtures.genesis.password);
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
 				expect(res.body.message).to.be.equal('Invalid transaction amount');
 				badTransactions.push(transaction);
 			});
 		});
 
-		it('when sender has no funds should fail', function () {
+		it('when sender has no funds should fail', () => {
 			transaction = lisk.transaction.createTransaction('1L', 1, account.password);
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-				expect(res.body.message).to.be.equal('Account does not have enough LSK: ' + account.address + ' balance: 0');
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
+				expect(res.body.message).to.be.equal(`Account does not have enough LSK: ${account.address} balance: 0`);
 				badTransactions.push(transaction);
 			});
 		});
 
-		it('using entire balance should fail', function () {
-			transaction = lisk.transaction.createTransaction(account.address, Math.floor(accountFixtures.genesis.balance) , accountFixtures.genesis.password);
+		it('using entire balance should fail', () => {
+			transaction = lisk.transaction.createTransaction(account.address, Math.floor(accountFixtures.genesis.balance), accountFixtures.genesis.password);
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
 				expect(res.body.message).to.match(/^Account does not have enough LSK: [0-9]+L balance: /);
 				badTransactions.push(transaction);
 			});
 		});
 
-		it('from the genesis account should fail', function () {
+		it('from the genesis account should fail', () => {
 			var signedTransactionFromGenesis = {
 				type: 0,
 				amount: 1000,
@@ -103,76 +96,69 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				fee: 0.1 * normalizer
 			};
 
-			return sendTransactionPromise(signedTransactionFromGenesis, errorCodes.PROCESSING_ERROR).then(function (res) {
+			return sendTransactionPromise(signedTransactionFromGenesis, errorCodes.PROCESSING_ERROR).then(res => {
 				expect(res.body.message).to.be.equal('Invalid sender. Can not send from genesis account');
 				badTransactions.push(signedTransactionFromGenesis);
 			});
 		});
 
-		it('when sender has funds should be ok', function () {
-			return sendTransactionPromise(goodTransaction).then(function (res) {
+		it('when sender has funds should be ok', () => sendTransactionPromise(goodTransaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 				goodTransactions.push(goodTransaction);
-			});
-		});
+			}));
 
-		it('sending transaction with same id twice should fail', function () {
-			return sendTransactionPromise(goodTransaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-				expect(res.body.message).to.be.equal('Transaction is already processed: ' + goodTransaction.id);
-			});
-		});
+		it('sending transaction with same id twice should fail', () => sendTransactionPromise(goodTransaction, errorCodes.PROCESSING_ERROR).then(res => {
+				expect(res.body.message).to.be.equal(`Transaction is already processed: ${goodTransaction.id}`);
+			}));
 
-		it('sending transaction with same id twice but newer timestamp should fail', function () {
+		it('sending transaction with same id twice but newer timestamp should fail', () => {
 			cloneGoodTransaction.timestamp += 1;
 
-			return sendTransactionPromise(cloneGoodTransaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-				expect(res.body.message).to.be.equal('Transaction is already processed: ' + cloneGoodTransaction.id);
+			return sendTransactionPromise(cloneGoodTransaction, errorCodes.PROCESSING_ERROR).then(res => {
+				expect(res.body.message).to.be.equal(`Transaction is already processed: ${cloneGoodTransaction.id}`);
 			});
 		});
 
-		it('sending transaction with same id twice but older timestamp should fail', function () {
+		it('sending transaction with same id twice but older timestamp should fail', () => {
 			cloneGoodTransaction.timestamp -= 1;
 
-			return sendTransactionPromise(cloneGoodTransaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-				expect(res.body.message).to.be.equal('Transaction is already processed: ' + cloneGoodTransaction.id);
+			return sendTransactionPromise(cloneGoodTransaction, errorCodes.PROCESSING_ERROR).then(res => {
+				expect(res.body.message).to.be.equal(`Transaction is already processed: ${cloneGoodTransaction.id}`);
 			});
 		});
 
-		describe('with offset', function () {
-
-			it('using -10000 should be ok', function () {
+		describe('with offset', () => {
+			it('using -10000 should be ok', () => {
 				transaction = lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, -10000);
 
-				return sendTransactionPromise(transaction).then(function (res) {
+				return sendTransactionPromise(transaction).then(res => {
 					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 					goodTransactions.push(transaction);
 				});
 			});
 
-			it('using future timestamp should fail', function () {
+			it('using future timestamp should fail', () => {
 				transaction = lisk.transaction.createTransaction(accountOffset.address, 1, accountFixtures.genesis.password, null, null, 10000);
 
-				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
 					expect(res.body.message).to.be.equal('Invalid transaction timestamp. Timestamp is in the future');
 					badTransactions.push(transaction);
 				});
 			});
 		});
 
-		describe('with additional data field', function () {
-
-			describe('invalid cases', function () {
-
+		describe('with additional data field', () => {
+			describe('invalid cases', () => {
 				var invalidCases = typesRepresentatives.additionalDataInvalidCases
 					.concat(typesRepresentatives.nonStrings);
 
-				invalidCases.forEach(function (test) {
-					it('using ' + test.description + ' should fail', function () {
+				invalidCases.forEach(test => {
+					it(`using ${test.description} should fail`, () => {
 						var accountAdditionalData = randomUtil.account();
 						transaction = lisk.transaction.createTransaction(accountAdditionalData.address, 1, accountFixtures.genesis.password);
 						transaction.asset.data = test.input;
 
-						return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+						return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
 							expect(res.body.message).to.not.be.empty;
 							badTransactions.push(transaction);
 						});
@@ -180,17 +166,16 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 				});
 			});
 
-			describe('valid cases', function () {
-
+			describe('valid cases', () => {
 				var validCases = typesRepresentatives.additionalDataValidCases
 					.concat(typesRepresentatives.strings);
 
-				validCases.forEach(function (test) {
-					it('using ' + test.description + ' should be ok', function () {
+				validCases.forEach(test => {
+					it(`using ${test.description} should be ok`, () => {
 						var accountAdditionalData = randomUtil.account();
 						transaction = lisk.transaction.createTransaction(accountAdditionalData.address, 1, accountFixtures.genesis.password, null, test.input);
 
-						return sendTransactionPromise(transaction).then(function (res) {
+						return sendTransactionPromise(transaction).then(res => {
 							expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 							goodTransactions.push(transaction);
 						});
@@ -200,17 +185,13 @@ describe('POST /api/transactions (type 0) transfer funds', function () {
 		});
 	});
 
-	describe('confirmation', function () {
-
+	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 
-	describe('validation', function () {
-
-		it('sending already confirmed transaction should fail', function () {
-			return sendTransactionPromise(goodTransaction, errorCodes.PROCESSING_ERROR).then(function (res) {
-				expect(res.body.message).to.be.equal('Transaction is already confirmed: ' + goodTransaction.id);
-			});
-		});
+	describe('validation', () => {
+		it('sending already confirmed transaction should fail', () => sendTransactionPromise(goodTransaction, errorCodes.PROCESSING_ERROR).then(res => {
+				expect(res.body.message).to.be.equal(`Transaction is already confirmed: ${goodTransaction.id}`);
+			}));
 	});
 });

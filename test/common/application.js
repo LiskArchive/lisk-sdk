@@ -21,23 +21,22 @@ var async = require('async');
 var DBSandbox = require('./DBSandbox').DBSandbox;
 
 var swagger = require('../../config/swagger');
-var database = require('../../db');
 var jobsQueue = require('../../helpers/jobsQueue');
 var Sequence = require('../../helpers/sequence');
-var dbRepos = require('require-all')(__dirname + '/../../db');
+var dbRepos = require('require-all')(`${__dirname}/../../db`);
 
 var dbSandbox;
 var currentAppScope;
 
-function init (options, cb) {
-	options = options ? options : {};
+function init(options, cb) {
+	options = options || {};
 	options.scope = options.scope ? options.scope : {};
 	// Wait for genesisBlock only if false is provided
 	options.scope.waitForGenesisBlock = options.waitForGenesisBlock !== false;
 
 	if (options.sandbox) {
 		dbSandbox = new DBSandbox(options.sandbox.config || __testContext.config.db, options.sandbox.name);
-		dbSandbox.create(function (err, __db) {
+		dbSandbox.create((err, __db) => {
 			options.scope.db = __db;
 			__init(options.scope, cb);
 		});
@@ -47,11 +46,12 @@ function init (options, cb) {
 }
 
 // Init whole application inside tests
-function __init (initScope, done) {
+function __init(initScope, done) {
 	__testContext.debug('initApplication: Application initialization inside test environment started...');
 
 	jobsQueue.jobs = {};
-	var modules = [], rewiredModules = {};
+	var modules = [],
+rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
 		promiseLib: Promise,
@@ -60,8 +60,8 @@ function __init (initScope, done) {
 
 		// Extending the database protocol with our custom repositories;
 		// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
-		extend: function (object, dc) {
-			Object.keys(dbRepos).forEach(function (repoName) {
+		extend: function (object) {
+			Object.keys(dbRepos).forEach(repoName => {
 				object[repoName] = new dbRepos[repoName](object, pgp);
 			});
 		}
@@ -73,22 +73,20 @@ function __init (initScope, done) {
 		db = pgp(__testContext.config.db);
 	}
 
-	__testContext.debug('initApplication: Target database - ' + __testContext.config.db.database);
+	__testContext.debug(`initApplication: Target database - ${__testContext.config.db.database}`);
 
 	// Clear tables
-	db.task(function (t) {
-		return t.batch([
+	db.task(t => t.batch([
 			t.none('DELETE FROM blocks WHERE height > 1'),
 			t.none('DELETE FROM blocks'),
 			t.none('DELETE FROM mem_accounts')
-		]);
-	}).then(function () {
+		])).then(() => {
 		var logger = initScope.logger || {
 			trace: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
-			info:  sinonSandbox.spy(),
-			log:   sinonSandbox.spy(),
-			warn:  sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			log: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
 			error: sinonSandbox.spy()
 		};
 
@@ -144,7 +142,7 @@ function __init (initScope, done) {
 			},
 			dbSequence: ['logger', function (scope, cb) {
 				var sequence = new Sequence({
-					onWarning: function (current, limit) {
+					onWarning: function (current) {
 						scope.logger.warn('DB queue', current);
 					}
 				});
@@ -152,7 +150,7 @@ function __init (initScope, done) {
 			}],
 			sequence: ['logger', function (scope, cb) {
 				var sequence = new Sequence({
-					onWarning: function (current, limit) {
+					onWarning: function (current) {
 						scope.logger.warn('Main queue', current);
 					}
 				});
@@ -160,7 +158,7 @@ function __init (initScope, done) {
 			}],
 			balancesSequence: ['logger', function (scope, cb) {
 				var sequence = new Sequence({
-					onWarning: function (current, limit) {
+					onWarning: function (current) {
 						scope.logger.warn('Balance queue', current);
 					}
 				});
@@ -183,16 +181,16 @@ function __init (initScope, done) {
 						var args = [];
 						Array.prototype.push.apply(args, arguments);
 						var topic = args.shift();
-						var eventName = 'on' + changeCase.pascalCase(topic);
+						var eventName = `on${changeCase.pascalCase(topic)}`;
 
 						// Iterate over modules and execute event functions (on*)
-						modules.forEach(function (module) {
+						modules.forEach(module => {
 							if (typeof (module[eventName]) === 'function') {
 								jobsQueue.jobs = {};
 								module[eventName].apply(module[eventName], args);
 							}
 							if (module.submodules) {
-								async.each(module.submodules, function (submodule) {
+								async.each(module.submodules, submodule => {
 									if (submodule && typeof (submodule[eventName]) === 'function') {
 										submodule[eventName].apply(submodule[eventName], args);
 									}
@@ -270,7 +268,7 @@ function __init (initScope, done) {
 				var tasks = {};
 				scope.rewiredModules = {};
 
-				Object.keys(modulesInit).forEach(function (name) {
+				Object.keys(modulesInit).forEach(name => {
 					tasks[name] = function (cb) {
 						var Instance = rewire(modulesInit[name]);
 						rewiredModules[name] = Instance;
@@ -279,7 +277,7 @@ function __init (initScope, done) {
 					};
 				});
 
-				async.parallel(tasks, function (err, results) {
+				async.parallel(tasks, (err, results) => {
 					cb(err, results);
 				});
 			}],
@@ -291,7 +289,7 @@ function __init (initScope, done) {
 				scope.logic.peers.bindModules(scope.modules);
 				cb();
 			}]
-		}, function (err, scope) {
+		}, (err, scope) => {
 			scope.rewiredModules = rewiredModules;
 			currentAppScope = scope;
 			__testContext.debug('initApplication: Rewired modules available');
@@ -313,12 +311,12 @@ function __init (initScope, done) {
 				__testContext.debug('initApplication: Loading delegates...');
 
 				var loadDelegates = scope.rewiredModules.delegates.__get__('__private.loadDelegates');
-				loadDelegates(function (err) {
+				loadDelegates(err => {
 					var keypairs = scope.rewiredModules.delegates.__get__('__private.keypairs');
 					var delegates_cnt = Object.keys(keypairs).length;
 					expect(delegates_cnt).to.equal(__testContext.config.forging.secret.length);
 
-					__testContext.debug('initApplication: Delegates loaded from config file - ' + delegates_cnt);
+					__testContext.debug(`initApplication: Delegates loaded from config file - ${delegates_cnt}`);
 					__testContext.debug('initApplication: Done');
 
 					if (initScope.waitForGenesisBlock) {
@@ -328,16 +326,16 @@ function __init (initScope, done) {
 			};
 		});
 	});
-};
+}
 
-function cleanup (done) {
-	async.eachSeries(currentAppScope.modules, function (module, cb) {
+function cleanup(done) {
+	async.eachSeries(currentAppScope.modules, (module, cb) => {
 		if (typeof (module.cleanup) === 'function') {
 			module.cleanup(cb);
 		} else {
 			cb();
 		}
-	}, function (err) {
+	}, err => {
 		if (err) {
 			currentAppScope.logger.error(err);
 		} else {
@@ -349,7 +347,7 @@ function cleanup (done) {
 		}
 		done(err);
 	});
-};
+}
 
 module.exports = {
 	init: init,

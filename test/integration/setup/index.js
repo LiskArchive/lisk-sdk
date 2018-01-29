@@ -50,12 +50,10 @@ module.exports = {
 				network.enableForgingOnDelegates(configurations, cbSeries);
 			},
 			function (cbSeries) {
-				utils.logger.log('Waiting ' + WAIT_BEFORE_CONNECT_MS / 1000 + ' seconds for nodes to establish connections');
+				utils.logger.log(`Waiting ${WAIT_BEFORE_CONNECT_MS / 1000} seconds for nodes to establish connections`);
 				setTimeout(cbSeries, WAIT_BEFORE_CONNECT_MS);
 			}
-		], function (err, res) {
-			return cb(err, res);
-		});
+		], (err, res) => cb(err, res));
 	},
 
 	exit: function (cb) {

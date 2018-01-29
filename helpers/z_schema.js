@@ -114,11 +114,11 @@ var liskFormats = {
 	},
 
 	parsedInt: function (value) {
-		/*eslint-disable eqeqeq */
+		/* eslint-disable eqeqeq */
 		if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
 			return false;
 		}
-		/*eslint-enable eqeqeq */
+		/* eslint-enable eqeqeq */
 		value = parseInt(value);
 		return true;
 	},
@@ -153,7 +153,7 @@ var liskFormats = {
 };
 
 // Register the formats
-Object.keys(liskFormats).forEach(function (formatName) {
+Object.keys(liskFormats).forEach(formatName => {
 	z_schema.registerFormat(formatName, liskFormats[formatName]);
 });
 

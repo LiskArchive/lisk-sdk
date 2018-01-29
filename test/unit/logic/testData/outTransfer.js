@@ -27,7 +27,7 @@ var validSender = {
 	address: '12566082625150495618L',
 	secondPublicKey: '32f8c9b4b674c027de01fa685596bdc4ed07caabf6ecac3a8273be6fc4cbe842'
 };
-var validTransaction =  {
+var validTransaction = {
 	id: '12010334009048463571',
 	height: 382,
 	blockId: '7608840392099654665',

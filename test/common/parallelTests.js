@@ -18,8 +18,7 @@ var find = require('find');
 
 var maxParallelism = 20;
 
-function parallelTests (tag, suite, section) {
-
+function parallelTests(tag, suite, section) {
 	var suiteFolder = null;
 
 	switch (suite) {
@@ -47,14 +46,14 @@ function parallelTests (tag, suite, section) {
 					console.warn('Invalid section argument. Options are: get, post, ws or system');
 					process.exit();
 					break;
-			};
+			}
 			break;
 
 		default:
 			console.warn('Invalid suite argument. Options are: unit or functional');
 			process.exit();
 			break;
-	};
+	}
 
 	var mochaArguments = [];
 
@@ -74,7 +73,7 @@ function parallelTests (tag, suite, section) {
 		default:
 			mochaArguments.push('--', '--grep', '@slow|@unstable', '--invert');
 			break;
-	};
+	}
 
 	// Looking recursevely for javascript files not containing the word "common"
 	var pathfiles = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
@@ -87,7 +86,7 @@ function parallelTests (tag, suite, section) {
 		var istanbulArguments = coverageArguments.concat(mochaArguments);
 
 		var child = child_process.spawn('node_modules/.bin/istanbul', istanbulArguments, {
-			cwd: __dirname + '/../..',
+			cwd: `${__dirname}/../..`,
 			detached: true,
 			stdio: 'inherit'
 		});
@@ -96,12 +95,12 @@ function parallelTests (tag, suite, section) {
 		parallelTestsRunning[child.pid] = child;
 
 		var cleanupRunningTests = function () {
-			Object.keys(parallelTestsRunning).forEach(function (k) {
+			Object.keys(parallelTestsRunning).forEach(k => {
 				parallelTestsRunning[k].kill('SIGTERM');
 			});
 		};
 
-		child.on('close', function (code) {
+		child.on('close', code => {
 			if (code === 0) {
 				console.log('Test finished successfully:', test);
 				delete parallelTestsRunning[child.pid];
@@ -120,7 +119,7 @@ function parallelTests (tag, suite, section) {
 			process.exit(code);
 		});
 
-		child.on('error', function (err) {
+		child.on('error', err => {
 			console.error(err);
 			cleanupRunningTests();
 			process.exit();

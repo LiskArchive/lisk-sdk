@@ -25,7 +25,7 @@ var columnSet;
  * @constructor
  * @return {AccountsRepo}
  */
-function AccountsRepo (db, pgp) {
+function AccountsRepo(db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
@@ -45,8 +45,8 @@ function AccountsRepo (db, pgp) {
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
+		var table = new pgp.helpers.TableName({ table: this.dbTable, schema: 'public' });
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, { table: table });
 	}
 
 	this.cs = columnSet;
@@ -106,7 +106,7 @@ AccountsRepo.prototype.upsert = function (data, conflictingFields) {
 	return this.db.none(
 		this.pgp.helpers.concat([
 			this.pgp.helpers.insert(this.cs, data),
-			'ON CONFLICT ( ' + conflictingFields.join(',') + ') DO',
+			`ON CONFLICT ( ${conflictingFields.join(',')}) DO`,
 			this.pgp.helpers.update(this.cs, data)
 		]));
 };

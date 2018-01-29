@@ -26,16 +26,16 @@ var exceptions = require('./exceptions');
  * @param {Object} scope
  */
 // Constructor
-function RoundChanges (scope) {
+function RoundChanges(scope) {
 	this.roundFees = Math.floor(scope.roundFees) || 0;
 	this.roundRewards = (scope.roundRewards || []);
 
 	// Apply exception for round if required
 	if (exceptions.rounds[scope.round]) {
 		// Apply rewards factor
-		this.roundRewards.forEach(function (reward, index) {
+		this.roundRewards.forEach((reward, index) => {
 			this.roundRewards[index] = new bignum(reward.toPrecision(15)).times(exceptions.rounds[scope.round].rewards_factor).floor();
-		}.bind(this));
+		});
 
 		// Apply fees factor and bonus
 		this.roundFees = new bignum(this.roundFees.toPrecision(15)).times(exceptions.rounds[scope.round].fees_factor).plus(exceptions.rounds[scope.round].fees_bonus).floor();

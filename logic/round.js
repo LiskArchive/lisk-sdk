@@ -25,7 +25,7 @@ var RoundChanges = require('../helpers/RoundChanges.js');
  * @constructor
  */
 // Constructor
-function Round (scope, t) {
+function Round(scope, t) {
 	this.scope = {
 		backwards: scope.backwards,
 		round: scope.round,
@@ -57,9 +57,9 @@ function Round (scope, t) {
 	}
 
 	// Iterate over requiredProperties, checking for undefined scope properties
-	requiredProperties.forEach(function (property) {
+	requiredProperties.forEach(property => {
 		if (scope[property] === undefined) {
-			throw 'Missing required scope property: ' + property;
+			throw `Missing required scope property: ${property}`;
 		}
 	});
 }
@@ -111,10 +111,8 @@ Round.prototype.getVotes = function () {
 Round.prototype.updateVotes = function () {
 	var self = this;
 
-	return self.getVotes(self.scope.round).then(function (votes) {
-		var queries = votes.map(function (vote) {
-			return self.t.rounds.updateVotes(self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate), Math.floor(vote.amount));
-		});
+	return self.getVotes(self.scope.round).then(votes => {
+		var queries = votes.map(vote => self.t.rounds.updateVotes(self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate), Math.floor(vote.amount)));
 
 		if (queries.length > 0) {
 			return self.t.batch(queries);
@@ -217,7 +215,7 @@ Round.prototype.applyRound = function () {
 	var remainderDelegate = delegates[remainderIndex];
 
 	// Get round changes for chosen delegate
-	var changes = roundChanges.at(remainderIndex);
+	changes = roundChanges.at(remainderIndex);
 
 	// Apply fees remaining to chosen delegate
 	if (changes.feesRemaining > 0) {
@@ -265,9 +263,7 @@ Round.prototype.land = function () {
 		.then(this.applyRound.bind(this))
 		.then(this.updateVotes.bind(this))
 		.then(this.flushRound.bind(this))
-		.then(function () {
-			return this.t;
-		}.bind(this));
+		.then(() => this.t);
 };
 
 /**
@@ -297,9 +293,7 @@ Round.prototype.backwardLand = function () {
 		.then(this.flushRound.bind(this))
 		.then(this.restoreRoundSnapshot.bind(this))
 		.then(this.restoreVotesSnapshot.bind(this))
-		.then(function () {
-			return this.t;
-		}.bind(this));
+		.then(() => this.t);
 };
 
 // Export

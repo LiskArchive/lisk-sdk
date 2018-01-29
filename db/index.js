@@ -1,3 +1,5 @@
+/*eslint-disable */
+
 /*
  * Copyright © 2018 Lisk Foundation
  *

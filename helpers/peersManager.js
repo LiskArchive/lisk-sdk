@@ -13,7 +13,7 @@
  */
 'use strict';
 
-function PeersManager () {
+function PeersManager() {
 	this.peers = {};
 	this.addressToNonceMap = {};
 	this.nonceToAddressMap = {};

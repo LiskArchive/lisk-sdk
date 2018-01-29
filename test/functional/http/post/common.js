@@ -23,11 +23,10 @@ var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
 var errorCodes = require('../../../../helpers/apiCodes');
 
-function invalidAssets (option, badTransactions) {
-
+function invalidAssets(option, badTransactions) {
 	var transaction;
 
-	beforeEach(function () {
+	beforeEach(() => {
 		switch (option) {
 			case 'signature':
 				transaction = lisk.signature.createSignature(accountFixtures.genesis.password, randomUtil.password());
@@ -39,7 +38,7 @@ function invalidAssets (option, badTransactions) {
 				transaction = lisk.vote.createVote(accountFixtures.genesis.password, []);
 				break;
 			case 'multisignature':
-				transaction = lisk.multisignature.createMultisignature(accountFixtures.genesis.password, null, ['+' + accountFixtures.existingDelegate.publicKey], 1, 2);
+				transaction = lisk.multisignature.createMultisignature(accountFixtures.genesis.password, null, [`+${accountFixtures.existingDelegate.publicKey}`], 1, 2);
 				break;
 			case 'dapp':
 				transaction = lisk.dapp.createDapp(accountFixtures.genesis.password, null, randomUtil.guestbookDapp);
@@ -50,51 +49,49 @@ function invalidAssets (option, badTransactions) {
 			case 'outTransfer':
 				transaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, Date.now(), accountFixtures.genesis.password);
 				break;
-		};
+		}
 	});
 
-	describe('using invalid asset values', function () {
-
-		typesRepresentatives.allTypes.forEach(function (test) {
-			it('using ' + test.description + ' should fail', function () {
+	describe('using invalid asset values', () => {
+		typesRepresentatives.allTypes.forEach(test => {
+			it(`using ${test.description} should fail`, () => {
 				transaction.asset = test.input;
 
 				var expectedResponse = (test.expectation === 'object' && test.description !== 'date' ? errorCodes.PROCESSING_ERROR : errorCodes.BAD_REQUEST);
 
-				return apiHelpers.sendTransactionPromise(transaction, expectedResponse).then(function (res) {
+				return apiHelpers.sendTransactionPromise(transaction, expectedResponse).then(res => {
 					expect(res.body.message).to.not.be.empty;
 					badTransactions.push(transaction);
 				});
 			});
 		});
 
-		it('deleting object should fail', function () {
+		it('deleting object should fail', () => {
 			delete transaction.asset;
 
-			return apiHelpers.sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(res => {
 				expect(res.body.message).to.not.be.empty;
 				badTransactions.push(transaction);
 			});
 		});
 	});
 
-	describe('using invalid asset.' + option + ' values', function () {
-
-		typesRepresentatives.allTypes.forEach(function (test) {
-			it('using ' + test.description + ' should fail', function () {
+	describe(`using invalid asset.${option} values`, () => {
+		typesRepresentatives.allTypes.forEach(test => {
+			it(`using ${test.description} should fail`, () => {
 				transaction.asset[option] = test.input;
 
-				return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+				return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
 					expect(res.body.message).to.not.be.empty;
 					badTransactions.push(transaction);
 				});
 			});
 		});
 
-		it('deleting object should fail', function () {
+		it('deleting object should fail', () => {
 			delete transaction.asset[option];
 
-			return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(function (res) {
+			return apiHelpers.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
 				expect(res.body.message).to.not.be.empty;
 				badTransactions.push(transaction);
 			});

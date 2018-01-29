@@ -21,58 +21,53 @@ var jobsQueue = require('../../../helpers/jobsQueue.js');
 var peers = rewire('../../../modules/peers');
 
 // These tests are breaking other tests (relying on setTimeout) running on the same process because of a time stubbing
-describe('helpers/jobsQueue', function () {
+describe('helpers/jobsQueue', () => {
 	// Test global variables
 	var recallInterval = 1000;
 	var execTimeInterval = 1;
 
-	describe('register', function () {
-
-		describe('should throw an erorr', function () {
-
+	describe('register', () => {
+		describe('should throw an erorr', () => {
 			var validFunction;
 
-			beforeEach(function () {
+			beforeEach(() => {
 				validFunction = sinonSandbox.spy();
 			});
 
-			afterEach(function () {
+			afterEach(() => {
 				expect(validFunction.notCalled).to.be.true;
 			});
 
-			it('should throw an error when trying to pass job that is not a function', function () {
-				expect(function () {
+			it('should throw an error when trying to pass job that is not a function', () => {
+				expect(() => {
 					jobsQueue.register('test_job', 'test', recallInterval);
 				}).to.throw('Syntax error - invalid parameters supplied');
 			});
 
-			it('should throw an error when trying to pass name that is not a string', function () {
-				expect(function () {
+			it('should throw an error when trying to pass name that is not a string', () => {
+				expect(() => {
 					jobsQueue.register(123, validFunction, recallInterval);
 				}).to.throw('Syntax error - invalid parameters supplied');
 			});
 
-			it('should throw an error when trying to pass time that is not integer', function () {
-				expect(function () {
+			it('should throw an error when trying to pass time that is not integer', () => {
+				expect(() => {
 					jobsQueue.register('test_job', validFunction, 0.22);
 				}).to.throw('Syntax error - invalid parameters supplied');
 			});
 		});
 
-		describe('should register', function () {
-
-			function dummyFunction (cb) {
+		describe('should register', () => {
+			function dummyFunction(cb) {
 				setTimeout(cb, execTimeInterval);
 			}
 
-			function testExecution (job, name, spy) {
-
+			function testExecution(job, name, spy) {
 				var expectingTimesToCall = 5;
 				var interval = execTimeInterval + recallInterval;
 
-				setTimeout(function () {
+				setTimeout(() => {
 					expect(jobsQueue.jobs).to.be.an('object');
-
 				}, expectingTimesToCall * interval);
 
 				expect(jobsQueue.jobs).to.be.an('object');
@@ -83,7 +78,7 @@ describe('helpers/jobsQueue', function () {
 				expect(spy.callCount).to.equal(1);
 
 				// Every next execution should happen after execTimeInterval+recallInterval and not before
-				clock.tick(interval-10);
+				clock.tick(interval - 10);
 				expect(spy.callCount).to.equal(1);
 
 				clock.tick(11);
@@ -93,7 +88,7 @@ describe('helpers/jobsQueue', function () {
 				expect(job).to.not.equal(jobsQueue.jobs[name]);
 
 				// Next execution should happen after recallInterval+execTimeInterval
-				clock.tick(interval-10);
+				clock.tick(interval - 10);
 				expect(spy.callCount).to.equal(2);
 
 				clock.tick(11);
@@ -103,7 +98,7 @@ describe('helpers/jobsQueue', function () {
 				expect(job).to.not.equal(jobsQueue.jobs[name]);
 
 				// Next execution should happen after recallInterval+execTimeInterval
-				clock.tick(interval-10);
+				clock.tick(interval - 10);
 				expect(spy.callCount).to.equal(3);
 
 				clock.tick(11);
@@ -115,16 +110,16 @@ describe('helpers/jobsQueue', function () {
 
 			var clock;
 
-			before(function () {
+			before(() => {
 				clock = sinonSandbox.useFakeTimers();
 			});
 
-			after(function () {
+			after(() => {
 				jobsQueue.jobs = {};
 				clock.restore();
 			});
 
-			it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', function () {
+			it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', () => {
 				var name = 'job1';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
@@ -132,7 +127,7 @@ describe('helpers/jobsQueue', function () {
 				testExecution(job, name, spy);
 			});
 
-			it('should register second new job correctly and call properly (job exec: 10s, job recall: 1s)', function () {
+			it('should register second new job correctly and call properly (job exec: 10s, job recall: 1s)', () => {
 				execTimeInterval = 10000;
 
 				var name = 'job2';
@@ -142,7 +137,7 @@ describe('helpers/jobsQueue', function () {
 				testExecution(job, name, spy);
 			});
 
-			it('should register third new job correctly call properly (job exec: 2s, job recall: 10s)', function () {
+			it('should register third new job correctly call properly (job exec: 2s, job recall: 10s)', () => {
 				recallInterval = 10000;
 				execTimeInterval = 2000;
 
@@ -153,19 +148,19 @@ describe('helpers/jobsQueue', function () {
 				testExecution(job, name, spy);
 			});
 
-			it('should throw an error immediately when trying to register same job twice', function () {
+			it('should throw an error immediately when trying to register same job twice', () => {
 				var name = 'job4';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
 				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(4);
 				testExecution(job, name, spy);
 
-				expect(function () {
+				expect(() => {
 					jobsQueue.register('job4', dummyFunction, recallInterval);
 				}).to.throw('Synchronous job job4 already registered');
 			});
 
-			it('should use same instance when required in different module (because of modules cache)', function () {
+			it('should use same instance when required in different module (because of modules cache)', () => {
 				var jobsQueuePeers = peers.__get__('jobsQueue');
 				// Instances should be the same
 				expect(jobsQueuePeers).to.equal(jobsQueue);

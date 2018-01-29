@@ -25,9 +25,9 @@
  * @param {Array} options.sortFields
  * @return {Object} error | {sortField, sortMethod}.
  */
-function sortBy (sort, options) {
+function sortBy(sort, options) {
 	options = (typeof options === 'object') ? options : {};
-	options.sortField  = options.sortField  || null;
+	options.sortField = options.sortField || null;
 	options.sortMethod = options.sortMethod || null;
 	options.sortFields = Array.isArray(options.sortFields) ? options.sortFields : [];
 
@@ -37,7 +37,8 @@ function sortBy (sort, options) {
 		options.quoteField = Boolean(options.quoteField);
 	}
 
-	var sortField, sortMethod;
+	var sortField,
+sortMethod;
 
 	if (sort) {
 		var sortBy = String(sort).split(':');
@@ -48,7 +49,7 @@ function sortBy (sort, options) {
 		}
 	}
 
-	function prefixField (sortField) {
+	function prefixField(sortField) {
 		if (!sortField) {
 			return sortField;
 		} else if (typeof options.fieldPrefix === 'string') {
@@ -60,9 +61,9 @@ function sortBy (sort, options) {
 		}
 	}
 
-	function quoteField (sortField) {
+	function quoteField(sortField) {
 		if (sortField && options.quoteField) {
-			return ('"' + sortField + '"');
+			return (`"${sortField}"`);
 		} else {
 			return sortField;
 		}
@@ -104,9 +105,9 @@ function sortBy (sort, options) {
  * @param {Array} sortableFields
  * @returns {Object}[={}] returns {} if incorrect format of sortQuery given or if field
  */
-function sortQueryToJsonSqlFormat (sortQuery, sortableFields) {
+function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {
 	if (sortableFields.indexOf(sortQuery) !== -1) {
-		sortQuery = sortQuery + ':asc';
+		sortQuery += ':asc';
 	}
 	var sortQueryMatched = typeof sortQuery !== 'string' ? null : sortQuery.match(/^([a-zA-Z0-9]+):(asc|desc)$/);
 	if (!sortQueryMatched || sortableFields.indexOf(sortQueryMatched[1]) === -1) {
@@ -121,7 +122,7 @@ function sortQueryToJsonSqlFormat (sortQuery, sortableFields) {
 	var sortMethod = sortQueryMatched[2];
 	result[sortField] = sortMethodsToNumbersMap[sortMethod];
 	return result;
-};
+}
 
 module.exports = {
 	sortQueryToJsonSqlFormat: sortQueryToJsonSqlFormat,
