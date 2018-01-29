@@ -105,7 +105,7 @@ DelegatesController.getForgers = function (context, next) {
 	});
 };
 
-DelegatesController.getForgedByAccount = function (context, next) {
+DelegatesController.getForgingStatistics = function (context, next) {
 	var params = context.request.swagger.params;
 	
 	var filters = {

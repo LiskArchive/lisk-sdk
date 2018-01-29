@@ -595,33 +595,33 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
-  /delegates/{publicKey}/forged:
+  /delegates/{address}/forging_stats:
     x-swagger-router-controller: delegates
     get:
       tags:
       - Delegates
-      summary: Requests forging statistics by delegate publicKey
-      operationId: getForgedByAccount
+      summary: Requests forging stats by delegate address
+      operationId: getForgingStatistics
       x-lisk-cache-enabled: true
       description:
-        By passing an existing delegate publicKey, you can read
+        By passing an existing delegate address, you can read
         their forging statistics within a window of time
       produces:
       - application/json
       parameters:
         - in: path
-          name: publicKey
-          description: Public key to query
+          name: address
+          description: Address to query
           required: true
           type: string
-          format: publicKey
+          format: address
         - $ref: '#/parameters/fromTimestamp'
         - $ref: '#/parameters/toTimestamp'
       responses:
         200:
-          description: Results matching specified delegate publicKey
+          description: Results matching specified delegate address
           schema:
-            $ref: '#/definitions/ForgedResponse'
+            $ref: '#/definitions/ForgingStatsResponse'
         400:
           description: Malformed query or parameters
           schema:
@@ -1345,7 +1345,7 @@ definitions:
       links:
         type: object
 
-  ForgedResponse:
+  ForgingStatsResponse:
     type: object
     required:
       - data
@@ -1353,7 +1353,7 @@ definitions:
       - links
     properties:
       data:
-        $ref: '#/definitions/Forged'
+        $ref: '#/definitions/ForgingStats'
       meta:
         type: object
       links:
@@ -1777,7 +1777,7 @@ definitions:
         type: number
         example: 4368793
 
-  Forged:
+  ForgingStats:
     type: object
     required:
       - fees
