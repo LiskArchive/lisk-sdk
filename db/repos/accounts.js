@@ -183,16 +183,16 @@ class AccountsRepo {
 			conflictingFields = [conflictingFields];
 		}
 
-			return Promise.reject('Error: db.accounts.upsert - required conflictingFields');
 		if (!Array.isArray(conflictingFields) || !conflictingFields.length) {
+			return Promise.reject('Error: db.accounts.upsert - invalid conflictingFields argument');
 		}
 
 		if (!updateData) {
 			updateData = Object.assign({}, data);
 		}
 
-			return Promise.reject('Unknown field provided to upsert');
 		if (_.difference(_.union(Object.keys(data), Object.keys(updateData)), this.getDBFields()).length) {
+			return Promise.reject('Unknown field provided to db.accounts.upsert');
 		}
 
 		if (conflictingFields.length === 1 && conflictingFields[0] === 'address') {
@@ -239,8 +239,8 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	update (address, data) {
-			return Promise.reject('Error: db.accounts.update - required address not specified');
 		if (!address) {
+			return Promise.reject('Error: db.accounts.update - invalid address argument');
 		}
 
 		return this.db.none(this.pgp.helpers.update(data, this.cs.update) + this.pgp.as.format(' WHERE $1:name=$2', ['address', address]));
@@ -418,8 +418,8 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	removeDependencies (address, dependentId, dependency) {
-			return Promise.reject(`Error: db.account.removeDependencies called with wrong parameter dependency=${dependency}`);
 		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
+			return Promise.reject(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`);
 		}
 
 		return this.db.none(sql.removeAccountDependencies, {
@@ -438,8 +438,8 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	insertDependencies (address, dependentId, dependency) {
-			return Promise.reject(`Error: db.account.removeDependencies called with wrong parameter dependency=${dependency}`);
 		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
+			return Promise.reject(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`);
 		}
 
 		const dependentTable = new this.pgp.helpers.TableName({table: `${this.dbTable}2${dependency}`, schema: 'public'});
