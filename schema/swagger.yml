@@ -600,12 +600,13 @@ paths:
     get:
       tags:
       - Delegates
-      summary: Requests forging stats by delegate address
+      summary: Requests forging stats by delegate
       operationId: getForgingStatistics
       x-lisk-cache-enabled: true
       description:
         By passing an existing delegate address, you can read
-        their forging statistics within a window of time
+        its forging statistics within a window of time which 
+        by default is from the Lisk epoch to the date.
       produces:
       - application/json
       parameters:
@@ -1355,7 +1356,19 @@ definitions:
       data:
         $ref: '#/definitions/ForgingStats'
       meta:
-        type: object
+       type: object
+       required:
+         - fromTimestamp
+         - toTimestamp
+       properties:
+         fromTimestamp:
+           description: Starting timestamp of records to query
+           type: integer
+           example: 0
+         toTimestamp:
+           description: Ending timestamp of records to query
+           type: integer
+           example: 100
       links:
         type: object
 

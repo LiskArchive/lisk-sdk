@@ -131,7 +131,10 @@ DelegatesController.getForgingStatistics = function (context, next) {
 				forged: forged,
 				count: reward.count
 			},
-			meta: {},
+			meta: {
+				fromTimestamp: filters.start,
+				toTimestamp: filters.end
+			},
 			links: {}
 		};
 		return next(null, response);

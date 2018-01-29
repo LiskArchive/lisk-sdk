@@ -355,7 +355,7 @@ Utils.prototype.getBlockProgressLogger = function (transactionsCount, logsFreque
  * @async
  * @method aggregateBlocksReward
  * @param  {Object}   filter
- * @param  {string}   filter.account Delegate account
+ * @param  {string}   filter.address Delegate address
  * @param  {number}   [filter.start] Start timestamp
  * @param  {number}   [filter.end] End timestamp
  * @param  {function} cb Callback function
