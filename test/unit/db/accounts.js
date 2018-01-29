@@ -549,7 +549,7 @@ describe('db', function () {
 				it('should insert only the columns specified in columnSet.insert', function () {
 					var account = generateAccount();
 
-					// delegates is not mentioned in cs.insert so it should be skipped
+					// Delegates is not mentioned in cs.insert so it should be skipped
 					account.delegates = [randomstring.generate(10).toLowerCase()];
 
 					return db.accounts.upsert(account, 'address').then(function (value) {
@@ -564,7 +564,7 @@ describe('db', function () {
 					var originalAccount = generateAccount();
 					var updatedAccount = generateAccount();
 
-					// Since DB trigger protects to update username only if it was null before
+					// Since DB trigger protects from updating username only if it was null before
 					delete originalAccount.username;
 					delete originalAccount.u_username;
 
@@ -576,11 +576,11 @@ describe('db', function () {
 								var immutableFields = db.accounts.getImmutableFields();
 
 								Object.keys(_.omit(result[0], 'rank')).forEach(function (field) {
-										// If its an immutable field
 									if (immutableFields.indexOf(field) !== -1) {
+										// If it's an immutable field
 										expect(result[0][field], field).to.eql(originalAccount[field]);
 									} else {
-										// If its not an immutable field
+										// If it's not an immutable field
 										expect(result[0][field], field).to.eql(updatedAccount[field]);
 									}
 								});
@@ -593,7 +593,7 @@ describe('db', function () {
 					var originalAccount = generateAccount();
 					var updatedAccount = generateAccount();
 
-					// Since DB trigger protects to update username only if it was null before
+					// Since DB trigger protects from updating username only if it was null before
 					delete originalAccount.username;
 					delete originalAccount.u_username;
 
@@ -607,11 +607,11 @@ describe('db', function () {
 								var immutableFields = db.accounts.getImmutableFields();
 
 								Object.keys(_.omit(result[0], 'rank')).forEach(function (field) {
-										// If its an immutable field
 									if (immutableFields.indexOf(field) !== -1) {
+										// If it's an immutable field
 										expect(result[0][field], field).to.eql(originalAccount[field]);
 									} else {
-										// If its not an immutable field
+										// If it's not an immutable field
 										expect(result[0][field], field).to.eql(updatedAccount[field]);
 									}
 								});
@@ -730,7 +730,7 @@ describe('db', function () {
 					var account = generateAccount();
 					var updateAccount = generateAccount();
 
-					// Since DB trigger protects to update username only if it was null before
+					// Since DB trigger protects from updating username only if it was null before
 					delete account.username;
 					delete account.u_username;
 
