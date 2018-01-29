@@ -69,9 +69,8 @@ const attemptWriteToFile = (value, dotNotationArray) => {
 		throw new FileSystemError(WRITE_FAIL_WARNING);
 	}
 
-	const variablePath = path.join('.');
 	const result = {
-		message: `Successfully set ${variablePath} to ${value}.`,
+		message: `Successfully set ${dotNotationArray.join('.')} to ${value}.`,
 	};
 
 	if (!writeSuccess) {
