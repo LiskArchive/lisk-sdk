@@ -194,24 +194,25 @@ Round.prototype.restoreVotesSnapshot = function () {
 Round.prototype.applyRound = function () {
 	var roundChanges = new RoundChanges(this.scope);
 	var queries = [];
+	var self = this;
+	var changes, delegates, delegate, p;
 
 	// Reverse delegates if going backwards
-	var delegates = (this.scope.backwards) ? this.scope.roundDelegates.reverse() : this.scope.roundDelegates;
+	delegates = (self.scope.backwards) ? self.scope.roundDelegates.reverse() : self.scope.roundDelegates;
 
 	// Reverse rewards if going backwards
-	if (this.scope.backwards) {
-		this.scope.roundRewards.reverse();
+	if (self.scope.backwards) {
+		self.scope.roundRewards.reverse();
 	}
 
 	// Apply round changes to each delegate
-	for (var i = 0; i < this.scope.roundDelegates.length; i++) {
-		var delegate = this.scope.roundDelegates[i];
-		var changes = roundChanges.at(i);
+	for (var i = 0; i < self.scope.roundDelegates.length; i++) {
+		delegate = self.scope.roundDelegates[i];
+		changes = roundChanges.at(i);
 
 		this.scope.library.logger.trace('Delegate changes', { delegate: delegate, changes: changes });
-		var self = this;
 
-		var p = new Promise(function (resolve, reject) {
+		p = new Promise(function (resolve, reject) {
 			self.scope.modules.accounts.mergeAccountAndGet({
 				publicKey: delegate,
 				balance: (self.scope.backwards ? -changes.balance : changes.balance),
@@ -236,7 +237,7 @@ Round.prototype.applyRound = function () {
 	var remainderDelegate = delegates[remainderIndex];
 
 	// Get round changes for chosen delegate
-	var changes = roundChanges.at(remainderIndex);
+	changes = roundChanges.at(remainderIndex);
 
 	// Apply fees remaining to chosen delegate
 	if (changes.feesRemaining > 0) {
@@ -244,7 +245,7 @@ Round.prototype.applyRound = function () {
 
 		this.scope.library.logger.trace('Fees remaining', { index: remainderIndex, delegate: remainderDelegate, fees: feesRemaining });
 
-		var p = new Promise(function (resolve, reject) {
+		p = new Promise(function (resolve, reject) {
 			self.scope.modules.accounts.mergeAccountAndGet({
 				publicKey: remainderDelegate,
 				balance: feesRemaining,
@@ -263,7 +264,7 @@ Round.prototype.applyRound = function () {
 		queries.push(p);
 	}
 
-	this.scope.library.logger.trace('Applying round', queries);
+	self.scope.library.logger.trace('Applying round', queries);
 
 	if (queries.length > 0) {
 		return this.t.batch(queries);
