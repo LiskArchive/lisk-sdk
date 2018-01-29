@@ -24,7 +24,8 @@ const constants = require('../../helpers/constants');
 let columnSet;
 
 /**
- * Accounts database interaction module
+ * Accounts database interaction module.
+ *
  * @memberof module:accounts
  * @class
  * @param {Database} db - Instance of database object from pg-promise
@@ -42,7 +43,7 @@ class AccountsRepo {
 
 		const ifNotExists = c => !c.exists;
 
-		// Used in SELECT, UPDATE, INSERT
+		// Used in SELECT, UPDATE, INSERT queries
 		const normalFields = [
 			{name: 'isDelegate', cast: 'int::boolean', skip: ifNotExists},
 			{name: 'u_isDelegate', cast: 'int::boolean', skip: ifNotExists},
@@ -70,12 +71,12 @@ class AccountsRepo {
 			{name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists}
 		];
 
-		// ONLY USED IN SELECT and INSERT
+		// Only used in SELECT and INSERT queries
 		const immutableFields = [
 			{ name: 'address', mod: ':raw', init: () => 'UPPER("address")'}
 		];
 
-		// ONLY USED IN SELECT
+		// Only used in SELECT queries
 		const dynamicFields = [
 			{name: 'rank', cast: 'bigint', mod: ':raw', init: () => '(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::int'},
 			{name: 'delegates', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")'},
@@ -113,7 +114,7 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Get list of all database fields
+	 * Get list of all database fields.
 	 *
 	 * @return {array}
 	 */
@@ -121,6 +122,11 @@ class AccountsRepo {
 		return _.map(this.dbFields, (field) => (field.prop || field.name));
 	}
 
+	/**
+	 * Get list of all immutable fields.
+	 *
+	 * @return {array}
+	 */
 	getImmutableFields () {
 		return _.difference(
 			_.map(this.cs.insert.columns, (field) => (field.prop || field.name)),
@@ -128,7 +134,8 @@ class AccountsRepo {
 	};
 
 	/**
-	 * Count mem accounts
+	 * Count accounts in mem_accounts.
+	 *
 	 * @return {Promise}
 	 */
 	countMemAccounts () {
@@ -136,7 +143,8 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Update mem accounts
+	 * Update mem_accounts.
+	 *
 	 * @return {Promise}
 	 */
 	updateMemAccounts () {
@@ -144,7 +152,8 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Get orphan mem accounts
+	 * Get orphan mem_accounts.
+	 *
 	 * @return {Promise}
 	 */
 	getOrphanedMemAccounts () {
@@ -152,7 +161,8 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Get delegates
+	 * Get delegates.
+	 *
 	 * @return {Promise}
 	 */
 	getDelegates () {
@@ -160,7 +170,8 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Update or insert into mem_accounts
+	 * Update or insert into mem_accounts.
+	 *
 	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
 	 * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
 	 * @param {Object} updateData - Attributes to be updated, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.update}
@@ -211,20 +222,17 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Create the record in mem_accounts
-	 * It is encouraged to use **db.accounts.updsert** instead
+	 * Create the record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
 	 *
 	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
 	 * @return {Promise}
-	 *
 	 */
 	insert (data) {
 		return this.db.none(this.pgp.helpers.insert(data, this.cs.insert));
 	}
 
 	/**
-	 * Update record in mem_accounts
-	 * It is encouraged to use **db.accounts.updsert** instead
+	 * Update record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
 	 *
 	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
 	 * @param {string} address - Address of the account to be updated
@@ -239,9 +247,9 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Increment a field value in mem_accounts
+	 * Increment a field value in mem_accounts.
 	 *
-	 * @param {string} address - Address of the record to increment
+	 * @param {string} address - Address of the account to increment
 	 * @param {string} field - Name of the field to increment
 	 * @param {Number} value - Value to be incremented
 	 * @return {Promise}
@@ -256,11 +264,11 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Increment a field value in mem_accounts
+	 * Decrement a field value in mem_accounts.
 	 *
-	 * @param {string} address - Address of the record to increment
-	 * @param {string} field - Name of the field to increment
-	 * @param {Number} value - Value to be incremented
+	 * @param {string} address - Address of the account to decrement
+	 * @param {string} field - Name of the field to decrement
+	 * @param {Number} value - Value to be decremented
 	 * @return {Promise}
 	 */
 	decrement (address, field, value) {
@@ -273,7 +281,7 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Delete record from mem_accounts
+	 * Delete an account from mem_accounts.
 	 *
 	 * @param {string} address - Address of the account to be updated
 	 * @return {Promise}
@@ -284,7 +292,7 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Clear data in memory tables
+	 * Clear data in memory tables:
 	 * - mem_round
 	 * - mem_accounts2delegates
 	 * - mem_accounts2u_delegates
@@ -298,18 +306,18 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Search account based on generic conditions
+	 * Search account based on generic conditions.
 	 *
-	 * For filters you can pass additional attribute "multisig: true" to fetch only multisig accounts
-	 * You can pass **array of address** to the fetch multiple accounts
+	 * For filters you can pass additional attribute "multisig: true" to fetch only multisig accounts.
+	 * You can pass **array of addresses** to the fetch multiple accounts.
 	 *
 	 * @param {Object} filters - Object of filters to be applied in WHERE clause
 	 * @param {array} fields - Array of data fields to search
 	 * @param {Object} options - Object with different options
-	 * @param {int} options.limit - Limit of results
-	 * @param {int} options.offset - Offset of results
-	 * @param {string} options.sortField - sort key
-	 * @param {string} options.sortMethod - sort method ASC or DESC
+	 * @param {int} options.limit - Limit applied to results
+	 * @param {int} options.offset - Offset applied to results
+	 * @param {string} options.sortField - Sort key
+	 * @param {string} options.sortMethod - Sort method ASC or DESC
 	 * @param {string} options.extraCondition - Extra conditions to be appended to fetch objects. It must be properly formatted
 	 * @return {Promise}
 	 */
@@ -371,7 +379,7 @@ class AccountsRepo {
 				return filterKeys.indexOf(column.name) >= 0;
 			});
 
-			// TODO : Improve this logic to convert set statement to composite logic
+			// TODO: Improve this logic to convert set statement to composite logic
 			conditions = pgp.helpers.sets(filters, filteredColumns).replace(/(,")/,' AND "');
 		}
 
@@ -402,7 +410,7 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Remove account dependencies from mem_accounts2[u_]delegates or mem_accounts2[u_]multisignatures
+	 * Remove account dependencies from mem_accounts2[u_]delegates or mem_accounts2[u_]multisignatures.
 	 *
 	 * @param {string} address - Address of the account
 	 * @param {string} dependentId - Dependent address
@@ -422,7 +430,7 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Insert account dependencies from mem_accounts2[u_]delegates or mem_accounts2[u_]multisignatures
+	 * Insert account dependencies from mem_accounts2[u_]delegates or mem_accounts2[u_]multisignatures.
 	 *
 	 * @param {string} address - Address of the account
 	 * @param {string} dependentId - Dependent address
