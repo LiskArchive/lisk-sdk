@@ -18,7 +18,7 @@ const QF = require('pg-promise').QueryFile;
 const _ = require('lodash');
 const path = require('path');
 const Promise = require('bluebird');
-const  migrationsSql = require('../sql').migrations;
+const  sql = require('../sql').accounts;
 const constants = require('../../helpers/constants');
 
 let columnSet;
@@ -299,7 +299,7 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	resetMemTables () {
-		return this.db.none(migrationsSql.resetMemoryTables);
+		return this.db.none(sql.resetMemoryTables);
 	}
 
 	/**

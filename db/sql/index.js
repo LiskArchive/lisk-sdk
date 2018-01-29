@@ -17,7 +17,7 @@ const {link} = require('./config');
 
 module.exports = {
 	accounts: {
-		// sql to be included
+		resetMemoryTables: link('accounts/resetMemoryTables.sql'),
 	},
 	blocks: {
 		aggregateBlocksReward: link('blocks/aggregateBlocksReward.sql'),
@@ -56,7 +56,6 @@ module.exports = {
 		getLastId: link('migrations/getLastId.sql'),
 		add: link('migrations/add.sql'),
 		memoryTables: link('migrations/memoryTables.sql'),
-		resetMemoryTables: link('migrations/resetMemoryTables.sql'),
 		runtime: link('migrations/runtime.sql')
 	},
 	peers: {
