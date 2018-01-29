@@ -2082,6 +2082,12 @@ definitions:
       description:
         type: string
         description: Param description specified in schema
+      path:
+        type: array
+        description: The array/object paths which identify the param associated with the error
+        items:
+          type: string
+          example: publicKey
 
   Account:
     type: object
