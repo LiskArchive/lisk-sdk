@@ -221,7 +221,6 @@ Multisignatures.prototype.getGroup = function (address, cb) {
 				});
 
 				modules.accounts.getAccounts({address: addresses}, ['address', 'publicKey', 'secondPublicKey'], function (err, accounts) {
-
 					accounts.forEach(function (account) {
 						scope.group.members.push({
 							address: account.address,

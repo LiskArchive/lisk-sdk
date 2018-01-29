@@ -224,6 +224,7 @@ class RoundsRepository {
 			balanceMode: ( mode === '-' ? '-' : '')
 		});
 	}
+
 }
 
 module.exports = RoundsRepository;

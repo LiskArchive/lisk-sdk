@@ -646,12 +646,12 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 	}
 
 	var computedFields = {
-		approval: 		['vote'],
-		productivity: 	['producedBlocks', 'missedBlocks', 'rank']
+		approval: ['vote'],
+		productivity: ['producedBlocks', 'missedBlocks', 'rank']
 	};
 
 	// If fields are not provided append computed fields
-	if(!fields) {
+	if (!fields) {
 		fields = this.scope.db.accounts.getDBFields();
 		fields = fields.concat(Object.keys(computedFields));
 	}
@@ -660,8 +660,7 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 	var performComputationFor = [];
 
 	Object.keys(computedFields).forEach(function (computedField) {
-		if(fields.indexOf(computedField) !== -1) {
-
+		if (fields.indexOf(computedField) !== -1) {
 			// Add computed field to list to process later
 			performComputationFor.push(computedField);
 
@@ -678,7 +677,6 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 
 	var DEFAULT_LIMIT = constants.activeDelegates;
 	var limit = DEFAULT_LIMIT, offset = 0, sort = {sortField: '', sortMethod: ''};
-
 
 	if (filter.offset > 0) {
 		offset = filter.offset;
@@ -799,19 +797,17 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 	var self = this;
 
 	// If merge was called without any diff object
-	if(Object.keys(diff).length === 0) {
+	if (Object.keys(diff).length === 0) {
 		return self.get({address: address}, cb, tx);
 	}
 
 	// Loop through each of updated attribute
 	(tx || self.scope.db).tx('logic:account:merge', function (dbTx) {
-
 		var promises = [];
 
 		Object.keys(diff).forEach(function (updatedField) {
-
 			// Return if updated field is not editable
-			if(self.editable.indexOf(updatedField) === -1) {
+			if (self.editable.indexOf(updatedField) === -1) {
 				return;
 			}
 
@@ -833,7 +829,7 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 					}
 
 					// If updated value is positive number
-					if(Math.abs(updatedValue) === updatedValue && updatedValue !== 0) {
+					if (Math.abs(updatedValue) === updatedValue && updatedValue !== 0) {
 						promises.push(dbTx.accounts.increment(address, updatedField, Math.floor(updatedValue)));
 
 					// If updated value is negative number
@@ -841,12 +837,12 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 						promises.push(dbTx.accounts.decrement(address, updatedField, Math.floor(Math.abs(updatedValue))));
 
 						// If money is taken out from an account so its an active account now.
-						if(updatedField === 'u_balance') {
+						if (updatedField === 'u_balance') {
 							promises.push(dbTx.accounts.update(address, {virgin: 0}));
 						}
 					}
 
-					if(updatedField === 'balance') {
+					if (updatedField === 'balance') {
 						promises.push(dbTx.rounds.insertRoundInformationWithAmount(address, diff.blockId, diff.round, updatedValue));
 					}
 					break;
@@ -861,27 +857,26 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 							var mode = updatedValueItem[0];
 							var dependentId = '';
 
-							if(mode === '-' || mode === '+') {
+							if (mode === '-' || mode === '+') {
 								dependentId = updatedValueItem.slice(1);
 							} else {
 								dependentId = updatedValueItem;
 								mode = '+';
 							}
 
-							if(mode === '-') {
+							if (mode === '-') {
 								promises.push(dbTx.accounts.removeDependencies(address, dependentId, updatedField));
 							} else {
 								promises.push(dbTx.accounts.insertDependencies(address, dependentId, updatedField));
 							}
 
-							if(updatedField === 'delegates') {
+							if (updatedField === 'delegates') {
 								promises.push(dbTx.rounds.insertRoundInformationWithDelegate(address, diff.blockId, diff.round, dependentId, mode));
 							}
 						});
-
 					// If we received update as array of objects
 					} else if (_.isObject(updatedValue[0])) {
-						//TODO: Need to look the usage of object based diff param
+						// TODO: Need to look the usage of object based diff param
 					}
 					break;
 			}
@@ -889,7 +884,6 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 
 		// Run all db operations in a batch
 		return dbTx.batch(promises);
-
 	}).then(function () {
 		return self.get({address: address}, cb, tx);
 	}).catch(function (err) {

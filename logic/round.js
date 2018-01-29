@@ -81,7 +81,7 @@ Round.prototype.mergeBlockGenerator = function () {
 			blockId: self.scope.block.id,
 			round: self.scope.round
 		}, function (err, account) {
-			if(err){
+			if (err) {
 				return reject(err);
 			}
 
@@ -222,7 +222,7 @@ Round.prototype.applyRound = function () {
 				fees: (self.scope.backwards ? -changes.fees : changes.fees),
 				rewards: (self.scope.backwards ? -changes.rewards : changes.rewards)
 			}, function (err, account) {
-				if(err){
+				if (err) {
 					return reject(err);
 				}
 				return resolve(account);
@@ -254,7 +254,7 @@ Round.prototype.applyRound = function () {
 				round: self.scope.round,
 				fees: feesRemaining
 			}, function (err, account) {
-				if(err){
+				if (err) {
 					return reject(err);
 				}
 				return resolve(account);

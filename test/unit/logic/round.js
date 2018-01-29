@@ -277,7 +277,6 @@ describe('rounds', function () {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with proper params', function () {
-
 				expect(round.scope.modules.accounts.mergeAccountAndGet).to.be.calledWith(args);
 			});
 		});
@@ -457,7 +456,6 @@ describe('rounds', function () {
 		var updateBlockId_stub;
 		var res;
 		var scope;
-
 
 		describe('when going forward', function () {
 
@@ -1236,8 +1234,6 @@ describe('rounds', function () {
 						});
 					});
 
-
-
 					it('query should be called', function () {
 						return res.then(function (res) {
 							expect(res).to.equal('success');
@@ -1340,8 +1336,6 @@ describe('rounds', function () {
 							res = round.applyRound();
 						});
 					});
-
-
 
 					it('query should be called', function () {
 						return res.then(function (res) {

@@ -40,7 +40,7 @@ function sortBy (sort, options) {
 
 	var sortField, sortMethod;
 
-	if ( typeof(sort) === 'string') {
+	if (typeof(sort) === 'string') {
 		var sortBy = String(sort).split(':');
 		sortField = sortBy[0].replace(/[^\w\s]/gi, '');
 
@@ -49,12 +49,12 @@ function sortBy (sort, options) {
 		} else {
 			sortMethod = 'ASC';
 		}
-	} else if ( typeof(sort) === 'object') {
+	} else if (typeof(sort) === 'object') {
 		var keys = Object.keys(sort);
 
-		if(keys.length === 0 ) {
+		if (keys.length === 0 ) {
 			return self.sortBy('');
-		} else if(keys.length === 1 ) {
+		} else if (keys.length === 1 ) {
 			return self.sortBy(keys[0] + ':' + (sort[keys[0]] === -1 ? 'desc' : 'asc'), options );
 		} else {
 			var sortFields = [];
