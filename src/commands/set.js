@@ -92,13 +92,13 @@ const setString = dotNotation => value => {
 };
 
 const handlers = {
-	json: setBoolean('json'),
-	name: setString('name'),
-	pretty: setBoolean('pretty'),
-	'api.testnet': setBoolean('api.testnet'),
-	'api.ssl': setBoolean('api.ssl'),
-	'api.node': setString('api.node'),
-	'api.port': setString('api.port'),
+	json: setBoolean,
+	name: setString,
+	pretty: setBoolean,
+	'api.testnet': setBoolean,
+	'api.ssl': setBoolean,
+	'api.node': setString,
+	'api.port': setString,
 };
 
 export const actionCreator = () => async ({ variable, value }) => {
@@ -106,7 +106,7 @@ export const actionCreator = () => async ({ variable, value }) => {
 		throw new ValidationError('Unsupported variable name.');
 	}
 
-	return handlers[variable](value);
+	return handlers[variable](variable)(value);
 };
 
 const set = createCommand({
