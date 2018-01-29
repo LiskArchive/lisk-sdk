@@ -88,11 +88,11 @@ describe('db', function () {
 
 			describe('resetMemTables', function () {
 
-				it('process without any error', function () {
+				it('should process without any error', function () {
 					return db.accounts.resetMemTables();
 				});
 
-				it('empty the table "mem_round"', function () {
+				it('should empty the table "mem_round"', function () {
 					return db.accounts.resetMemTables().then(function () {
 						return db.one('SELECT COUNT(*)::int as count FROM mem_round');
 					}).then(function (row) {
@@ -100,7 +100,7 @@ describe('db', function () {
 					});
 				});
 
-				it('empty the table "mem_accounts2delegates"', function () {
+				it('should empty the table "mem_accounts2delegates"', function () {
 					return db.accounts.resetMemTables().then(function () {
 						return db.one('SELECT COUNT(*)::int as count FROM mem_accounts2delegates');
 					}).then(function (row) {
@@ -108,7 +108,7 @@ describe('db', function () {
 					});
 				});
 
-				it('empty the table "mem_accounts2u_delegates"', function () {
+				it('should empty the table "mem_accounts2u_delegates"', function () {
 					return db.accounts.resetMemTables().then(function () {
 						return db.one('SELECT COUNT(*)::int as count FROM mem_accounts2u_delegates');
 					}).then(function (row) {
@@ -116,7 +116,7 @@ describe('db', function () {
 					});
 				});
 
-				it('empty the table "mem_accounts2multisignatures"', function () {
+				it('should empty the table "mem_accounts2multisignatures"', function () {
 					return db.accounts.resetMemTables().then(function () {
 						return db.one('SELECT COUNT(*)::int as count FROM mem_accounts2multisignatures');
 					}).then(function (row) {
@@ -124,7 +124,7 @@ describe('db', function () {
 					});
 				});
 
-				it('empty the table "mem_accounts2u_multisignatures"', function () {
+				it('should empty the table "mem_accounts2u_multisignatures"', function () {
 					return db.accounts.resetMemTables().then(function () {
 						return db.one('SELECT COUNT(*)::int as count FROM mem_accounts2u_multisignatures');
 					}).then(function (row) {
@@ -174,7 +174,7 @@ describe('db', function () {
 						});
 					});
 
-					it('should skip if any unkown field specified ["address", "unKnownField"]', function () {
+					it('should skip any unknown field specified ["address", "unKnownField"]', function () {
 						return db.accounts.list({}, ['address', 'unKnownField']).then(function (data) {
 							data.forEach(function (account) {
 								expect(account).to.have.all.keys(['address']);
@@ -184,7 +184,7 @@ describe('db', function () {
 
 					describe('property names', function () {
 
-						it('should return "producedblokcs" column if "producedBlocks" is asked', function () {
+						it('should return "producedBlocks" column if "producedBlocks" is asked', function () {
 							var actualResult;
 
 							return db.accounts.list({}, ['producedBlocks']).then(function (data) {
@@ -196,7 +196,7 @@ describe('db', function () {
 							});
 						});
 
-						it('should return "missedblocks" column if "missedBlocks" is asked', function () {
+						it('should return "missedBlocks" column if "missedBlocks" is asked', function () {
 							var actualResult;
 
 							return db.accounts.list({}, ['missedBlocks']).then(function (data) {
@@ -266,79 +266,79 @@ describe('db', function () {
 
 					describe('data casting', function () {
 
-						it('should return "isDelegate"  as "boolean"', function () {
+						it('should return "isDelegate" as "boolean"', function () {
 							return db.accounts.list({}, ['isDelegate'], {limit: 1}).then(function (data) {
 								expect(data[0].isDelegate).to.be.a('boolean');
 							});
 						});
 
-						it('should return "u_isDelegate"  as "boolean"', function () {
+						it('should return "u_isDelegate" as "boolean"', function () {
 							return db.accounts.list({}, ['u_isDelegate'], {limit: 1}).then(function (data) {
 								expect(data[0].u_isDelegate).to.be.a('boolean');
 							});
 						});
 
-						it('should return "secondSignature"  as "boolean"', function () {
+						it('should return "secondSignature" as "boolean"', function () {
 							return db.accounts.list({}, ['secondSignature'], {limit: 1}).then(function (data) {
 								expect(data[0].secondSignature).to.be.a('boolean');
 							});
 						});
 
-						it('should return "u_secondSignature"  as "boolean"', function () {
+						it('should return "u_secondSignature" as "boolean"', function () {
 							return db.accounts.list({}, ['u_secondSignature'], {limit: 1}).then(function (data) {
 								expect(data[0].u_secondSignature).to.be.a('boolean');
 							});
 						});
 
-						it('should return "balance"  as "bigint"', function () {
+						it('should return "balance" as "bigint"', function () {
 							return db.accounts.list({}, ['balance'], {limit: 1}).then(function (data) {
 								expect(data[0].balance).to.be.a('string');
 							});
 						});
 
-						it('should return "u_balance"  as "bigint"', function () {
+						it('should return "u_balance" as "bigint"', function () {
 							return db.accounts.list({}, ['u_balance'], {limit: 1}).then(function (data) {
 								expect(data[0].u_balance).to.be.a('string');
 							});
 						});
 
-						it('should return "rate"  as "bigint"', function () {
+						it('should return "rate" as "bigint"', function () {
 							return db.accounts.list({}, ['rate'], {limit: 1}).then(function (data) {
 								expect(data[0].rate).to.be.a('string');
 							});
 						});
 
-						it('should return "fees"  as "bigint"', function () {
+						it('should return "fees" as "bigint"', function () {
 							return db.accounts.list({}, ['fees'], {limit: 1}).then(function (data) {
 								expect(data[0].fees).to.be.a('string');
 							});
 						});
 
-						it('should return "rewards"  as "bigint"', function () {
+						it('should return "rewards" as "bigint"', function () {
 							return db.accounts.list({}, ['rewards'], {limit: 1}).then(function (data) {
 								expect(data[0].rewards).to.be.a('string');
 							});
 						});
 
-						it('should return "vote"  as "bigint"', function () {
+						it('should return "vote" as "bigint"', function () {
 							return db.accounts.list({}, ['vote'], {limit: 1}).then(function (data) {
 								expect(data[0].vote).to.be.a('string');
 							});
 						});
 
-						it('should return "producedBlocks"  as "bigint"', function () {
+						it('should return "producedBlocks" as "bigint"', function () {
 							return db.accounts.list({}, ['producedBlocks'], {limit: 1}).then(function (data) {
 								expect(data[0].producedBlocks).to.be.a('string');
 							});
 						});
 
-						it('should return "missedBlocks"  as "bigint"', function () {
+						it('should return "missedBlocks" as "bigint"', function () {
 							return db.accounts.list({}, ['missedBlocks'], {limit: 1}).then(function (data) {
 								expect(data[0].missedBlocks).to.be.a('string');
 							});
 						});
 
-						it('should return "virgin"  as "boolean"', function () {
+						it('should return "virgin" as "boolean"', function () {
 							return db.accounts.list({}, ['virgin'], {limit: 1}).then(function (data) {
 								expect(data[0].virgin).to.be.a('boolean');
 							});
@@ -453,7 +453,7 @@ describe('db', function () {
 							});
 						});
 
-						it('should return all result if no limit is specified', function () {
+						it('should return all results if no limit is specified', function () {
 							var count;
 
 							return db.accounts.list({}, ['address']).then(function (data) {
@@ -465,13 +465,13 @@ describe('db', function () {
 							});
 						});
 
-						it('should return 10 result if options.limit=10', function () {
+						it('should return 10 results if options.limit=10', function () {
 							return db.accounts.list({}, ['address'], {limit: 10}).then(function (data) {
 								expect(data.length).to.be.equal(10);
 							});
 						});
 
-						it('should skip first 10 result if options.offset=10', function () {
+						it('should skip first 10 results if options.offset=10', function () {
 							var previousData;
 
 							return db.accounts.list({}, ['address'], {limit: 11}).then(function (data) {
@@ -502,7 +502,7 @@ describe('db', function () {
 					});
 				});
 
-				it('should success with null', function () {
+				it('should succeed with null', function () {
 					var account = generateAccount();
 
 					return db.accounts.upsert(account, 'address').then(function (result) {
@@ -525,7 +525,7 @@ describe('db', function () {
 					var account1 = generateAccount();
 					var account2 = generateAccount();
 
-					// Since DB trigger protects to update username only if it was null before
+					// Since DB trigger protects from updating username only if it was null before
 					delete account1.username;
 					delete account1.u_username;
 
@@ -628,7 +628,7 @@ describe('db', function () {
 					});
 				});
 
-				it('should match the values for conflict keys case sensitive', function () {
+				it('should match the values for conflict keys case sensitively', function () {
 					var originalAccount = generateAccount();
 					var updatedAccount = generateAccount();
 
@@ -674,7 +674,7 @@ describe('db', function () {
 					return db.accounts.insert(account);
 				});
 
-				it('should success with null', function () {
+				it('should succeed with null', function () {
 					var account = generateAccount();
 
 					return db.accounts.insert(account).then(function (result) {
@@ -714,7 +714,7 @@ describe('db', function () {
 					});
 				});
 
-				it('should success with null', function () {
+				it('should succeed with null', function () {
 					var account = generateAccount();
 					var updateAccount = generateAccount();
 
