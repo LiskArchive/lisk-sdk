@@ -1488,9 +1488,7 @@ describe('rounds', () => {
 				round = new Round(_.cloneDeep(scope), t);
 				res = round.land();
 			});
-			/* eslint-disable */
-			round = new Round(_.cloneDeep(scope), db);
-			/* eslint-disable */
+			round = new Round(_.cloneDeep(scope), db); // eslint-disable-line
 			res = round.land();
 		});
 

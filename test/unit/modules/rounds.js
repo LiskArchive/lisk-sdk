@@ -20,9 +20,7 @@ var rewire = require('rewire');
 var Rounds = rewire('../../../modules/rounds.js');
 
 var sinon = sinonSandbox;
-/* eslint-disable */
-var Round = rewire('../../../logic/round.js');
-/* eslint-disable */
+var Round = rewire('../../../logic/round.js'); // eslint-disable-line
 var DBSandbox = require('../../common/DBSandbox').DBSandbox;
 
 describe('rounds', () => {

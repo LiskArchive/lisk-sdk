@@ -513,9 +513,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb, tx)
 
 			for (var s = 0; s < multisignatures.length; s++) {
 				if (transaction.requesterPublicKey && multisignatures[s] === transaction.requesterPublicKey) {
-					/* eslint-disable */
-					continue;
-					/* eslint-disable */
+					continue; // eslint-disable-line
 				}
 
 				if (this.verifySignature(transaction, multisignatures[s], transaction.signatures[d])) {

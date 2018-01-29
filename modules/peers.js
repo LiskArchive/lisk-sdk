@@ -16,16 +16,19 @@
 var _ = require('lodash');
 var async = require('async');
 var ip = require('ip');
-/* eslint-disable */
-var pgp = require('pg-promise')(); // We also initialize library here
-/* eslint-disable */
+// We also initialize library here
+var pgp = require('pg-promise')(); // eslint-disable-line
 var constants = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failureCodes.js');
 var jobsQueue = require('../helpers/jobsQueue.js');
 var Peer = require('../logic/peer.js');
 
 // Private fields
-var modules, library, self, __private = {}, definitions;
+var modules,
+library,
+self,
+__private = {},
+definitions;
 
 /**
  * Initializes library with scope content.
@@ -102,7 +105,9 @@ __private.getByFilter = function (filter, cb) {
 
 	// Randomizing peers (using Fisher-Yates-Durstenfeld shuffle algorithm)
 	var shuffle = function (array) {
-		var m = array.length, t, i;
+		var m = array.length,
+		t,
+		i;
 		// While there remain elements to shuffle
 		while (m) {
 			// Pick a remaining element
@@ -452,7 +457,10 @@ Peers.prototype.list = function (options, cb) {
 	function randomList(peers, cb) {
 		// Get full peers list (random)
 		__private.getByFilter({ normalized: options.normalized }, (err, peersList) => {
-			var accepted, found, matched, picked;
+			var accepted,
+			found,
+			matched,
+			picked;
 
 			found = peersList.length;
 			var attempt = attempts.pop();

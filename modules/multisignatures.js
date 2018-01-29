@@ -18,12 +18,13 @@ var Multisignature = require('../logic/multisignature.js');
 var transactionTypes = require('../helpers/transactionTypes.js');
 var apiError = require('../helpers/apiError');
 var errorCodes = require('../helpers/apiCodes');
-/* eslint-disable */
-var genesisblock = null;
-/* eslint-disable */
+var genesisblock = null; // eslint-disable-line
 
 // Private fields
-var modules, library, self, __private = {};
+var modules,
+library,
+self,
+__private = {};
 
 __private.assetTypes = {};
 

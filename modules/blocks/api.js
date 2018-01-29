@@ -20,9 +20,7 @@ var sortBy = require('../../helpers/sort_by.js').sortBy;
 var library,
 self,
 __private = {};
-/* eslint-disable */
-var modules;
-/* eslint-disable */
+var modules; // eslint-disable-line
 /**
  * Initializes library.
  * @memberof module:blocks
@@ -74,7 +72,8 @@ function API(logger, db, block, schema, dbSequence) {
  * @return {Object}   cb.data List of normalized blocks
  */
 __private.list = function (filter, cb) {
-	var params = {}, where = [];
+	var params = {},
+	where = [];
 
 	if (filter.id) {
 		where.push('"b_id" = ${id}');
