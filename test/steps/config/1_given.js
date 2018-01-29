@@ -22,7 +22,7 @@ export function aConfig() {
 	const config = {
 		name: 'testy',
 		json: true,
-		liskJS: {
+		api: {
 			testnet: false,
 			node: 'localhost',
 			port: 7357,

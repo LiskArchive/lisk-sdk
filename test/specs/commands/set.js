@@ -580,7 +580,7 @@ describe('set command', () => {
 							);
 						});
 					});
-					Given('a variable "liskJS.testnet"', given.aVariable, () => {
+					Given('a variable "api.testnet"', given.aVariable, () => {
 						Given('an unknown value "xxx"', given.anUnknownValue, () => {
 							When(
 								'the action is called with the variable and the value',
@@ -623,7 +623,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.testnet" to boolean true',
+														'it should update the config nested variable "api.testnet" to boolean true',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -631,7 +631,7 @@ describe('set command', () => {
 														then.itShouldResolveToAnObjectWithWarning,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.testnet to true."',
+														'it should resolve to an object with message "Successfully set api.testnet to true."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},
@@ -653,7 +653,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.testnet" to boolean true',
+														'it should update the config nested variable "api.testnet" to boolean true',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -661,7 +661,7 @@ describe('set command', () => {
 														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.testnet to true."',
+														'it should resolve to an object with message "Successfully set api.testnet to true."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},
@@ -677,7 +677,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.testnet" to boolean true',
+														'it should update the config nested variable "api.testnet" to boolean true',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -685,7 +685,7 @@ describe('set command', () => {
 														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.testnet to true."',
+														'it should resolve to an object with message "Successfully set api.testnet to true."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},
@@ -725,7 +725,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.testnet" to boolean false',
+														'it should update the config nested variable "api.testnet" to boolean false',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -733,7 +733,7 @@ describe('set command', () => {
 														then.itShouldResolveToAnObjectWithWarning,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.testnet to false."',
+														'it should resolve to an object with message "Successfully set api.testnet to false."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},
@@ -755,7 +755,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.testnet" to boolean false',
+														'it should update the config nested variable "api.testnet" to boolean false',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -763,7 +763,7 @@ describe('set command', () => {
 														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.testnet to false."',
+														'it should resolve to an object with message "Successfully set api.testnet to false."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},
@@ -779,7 +779,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.testnet" to boolean false',
+														'it should update the config nested variable "api.testnet" to boolean false',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -787,7 +787,7 @@ describe('set command', () => {
 														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.testnet to false."',
+														'it should resolve to an object with message "Successfully set api.testnet to false."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},
@@ -799,7 +799,7 @@ describe('set command', () => {
 						});
 					});
 
-					Given('a variable "liskJS.ssl"', given.aVariable, () => {
+					Given('a variable "api.ssl"', given.aVariable, () => {
 						Given('an unknown value "xxx"', given.anUnknownValue, () => {
 							When(
 								'the action is called with the variable and the value',
@@ -842,7 +842,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.ssl" to boolean true',
+														'it should update the config nested variable "api.ssl" to boolean true',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -850,7 +850,7 @@ describe('set command', () => {
 														then.itShouldResolveToAnObjectWithWarning,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.ssl to true."',
+														'it should resolve to an object with message "Successfully set api.ssl to true."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},
@@ -872,7 +872,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.ssl" to boolean true',
+														'it should update the config nested variable "api.ssl" to boolean true',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -880,7 +880,7 @@ describe('set command', () => {
 														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.ssl to true."',
+														'it should resolve to an object with message "Successfully set api.ssl to true."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},
@@ -896,7 +896,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.ssl" to boolean true',
+														'it should update the config nested variable "api.ssl" to boolean true',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -904,7 +904,7 @@ describe('set command', () => {
 														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.ssl to true."',
+														'it should resolve to an object with message "Successfully set api.ssl to true."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},
@@ -944,7 +944,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.ssl" to boolean false',
+														'it should update the config nested variable "api.ssl" to boolean false',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -952,7 +952,7 @@ describe('set command', () => {
 														then.itShouldResolveToAnObjectWithWarning,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.ssl to false."',
+														'it should resolve to an object with message "Successfully set api.ssl to false."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},
@@ -974,7 +974,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.ssl" to boolean false',
+														'it should update the config nested variable "api.ssl" to boolean false',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -982,7 +982,7 @@ describe('set command', () => {
 														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.ssl to false."',
+														'it should resolve to an object with message "Successfully set api.ssl to false."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},
@@ -998,7 +998,7 @@ describe('set command', () => {
 												when.theActionIsCalledWithTheVariableAndTheValue,
 												() => {
 													Then(
-														'it should update the config nested variable "liskJS.ssl" to boolean false',
+														'it should update the config nested variable "api.ssl" to boolean false',
 														then.itShouldUpdateTheConfigNestedVariableToBoolean,
 													);
 													Then(
@@ -1006,7 +1006,7 @@ describe('set command', () => {
 														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 													);
 													Then(
-														'it should resolve to an object with message "Successfully set liskJS.ssl to false."',
+														'it should resolve to an object with message "Successfully set api.ssl to false."',
 														then.itShouldResolveToAnObjectWithMessage,
 													);
 												},

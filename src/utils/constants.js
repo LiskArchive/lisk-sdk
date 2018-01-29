@@ -40,8 +40,8 @@ export const CONFIG_VARIABLES = [
 	'json',
 	'name',
 	'pretty',
-	'liskJS.testnet',
-	'liskJS.ssl',
-	'liskJS.node',
-	'liskJS.port',
+	'api.testnet',
+	'api.ssl',
+	'api.node',
+	'api.port',
 ];
