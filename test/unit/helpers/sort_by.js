@@ -93,7 +93,7 @@ describe('SortBy', function () {
 
 			describe('when given as object', function () {
 
-				it('should return empty object when sort is empty object', function () {
+				it('should return object with empty values when sort is empty object', function () {
 					expect(SortBy.sortBy({})).to.eql({sortField: '', sortMethod: ''});
 				});
 

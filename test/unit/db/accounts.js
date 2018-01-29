@@ -435,7 +435,7 @@ describe('db', function () {
 						it('should fail if unknown sort field is specified', function (done) {
 							db.accounts.list({}, ['address'], {sortField: 'unknownField', limit: 10})
 								.then(function (value) {
-									done(value);
+									done('Error was expected');
 								})
 								.catch(function (reason) {
 									expect(reason.message).to.eql('column "unknownField" does not exist');
@@ -628,7 +628,7 @@ describe('db', function () {
 					});
 				});
 
-				it('should match the conflict keys case sensitive', function () {
+				it('should match the values for conflict keys case sensitive', function () {
 					var originalAccount = generateAccount();
 					var updatedAccount = generateAccount();
 
@@ -696,7 +696,7 @@ describe('db', function () {
 					});
 				});
 
-				it('should skip any unknown attribute', function () {
+				it('should not throw error when any unknown attribute is passed', function () {
 					var account = generateAccount();
 					account.unknownColumn = 'unnownValue';
 
@@ -759,7 +759,7 @@ describe('db', function () {
 					});
 				});
 
-				it('should skip any unknown attribute', function () {
+				it('should not throw error when any unknown attribute is passed', function () {
 					var account = generateAccount();
 					var updateAccount = generateAccount();
 
