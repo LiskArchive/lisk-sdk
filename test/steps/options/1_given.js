@@ -20,6 +20,11 @@ import {
 	getBooleans,
 } from '../utils';
 
+export function anOptionsObjectWithSignatureSetTo() {
+	const signature = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { signature };
+}
+
 export function anArrayOfOptions() {
 	const options = getQuotedStrings(this.test.parent.title);
 	this.test.ctx.options = options;

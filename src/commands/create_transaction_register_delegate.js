@@ -40,7 +40,7 @@ export const actionCreator = vorpal => async ({ username, options }) => {
 	} = options;
 
 	return signature === false
-		? processInputs(username)
+		? processInputs(username)({ passphrase: null, secondPassphrase: null })
 		: getInputsFromSources(vorpal, {
 				passphrase: {
 					source: passphraseSource,

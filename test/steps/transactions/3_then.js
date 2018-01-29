@@ -111,6 +111,11 @@ export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassph
 	});
 }
 
+export function itShouldResolveToTheCreatedTransactionWithoutSignature() {
+	const { returnValue, createdTransaction } = this.test.ctx;
+	return returnValue.should.be.fulfilledWith(createdTransaction);
+}
+
 export function itShouldResolveToTheCreatedTransaction() {
 	const { returnValue, createdTransaction } = this.test.ctx;
 	return expect(returnValue).to.eventually.equal(createdTransaction);
@@ -120,6 +125,15 @@ export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndT
 	const { passphrase, delegateUsername } = this.test.ctx;
 	return expect(transactions.registerDelegate).to.be.calledWithExactly({
 		passphrase,
+		username: delegateUsername,
+		secondPassphrase: null,
+	});
+}
+
+export function itShouldCreateARegisterDelegateTransactionUsingTheDelegateUsername() {
+	const { delegateUsername } = this.test.ctx;
+	return transactions.registerDelegate.should.be.calledWithExactly({
+		passphrase: null,
 		username: delegateUsername,
 		secondPassphrase: null,
 	});

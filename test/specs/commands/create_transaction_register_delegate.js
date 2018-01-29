@@ -33,12 +33,12 @@ describe('create transaction register delegate command', () => {
 						given.aDelegateUsername,
 						() => {
 							Given(
-								'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"',
-								given.aPassphrase,
+								'a Lisk object that can create transactions',
+								given.aLiskObjectThatCanCreateTransactions,
 								() => {
 									Given(
-										'a Lisk object that can create transactions',
-										given.aLiskObjectThatCanCreateTransactions,
+										'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"',
+										given.aPassphrase,
 										() => {
 											Given(
 												'an empty options object',
@@ -259,6 +259,26 @@ describe('create transaction register delegate command', () => {
 																},
 															);
 														},
+													);
+												},
+											);
+										},
+									);
+									Given(
+										'an options object with signature set to "false"',
+										given.anOptionsObjectWithSignatureSetTo,
+										() => {
+											When(
+												'the action is called with the delegate username and the options',
+												when.theActionIsCalledWithTheDelegateUsernameAndTheOptions,
+												() => {
+													Then(
+														'it should create a register delegate transaction using the passphrase, the second passphrase and the delegate username',
+														then.itShouldCreateARegisterDelegateTransactionUsingTheDelegateUsername,
+													);
+													Then(
+														'it should resolve to the created transaction',
+														then.itShouldResolveToTheCreatedTransaction,
 													);
 												},
 											);
