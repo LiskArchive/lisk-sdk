@@ -200,21 +200,13 @@ class RoundsRepository {
 	 * @return {Promise}
 	 */
 	insertRoundInformationWithDelegate (address, blockId, round, delegateId, mode) {
-		if(mode === '-') {
-			return this.db.none(sql.insertRoundInformationWithRemovingDelegate, {
-				address: address,
-				blockId: blockId,
-				round: round,
-				delegate: delegateId
-			});
-		} else {
-			return this.db.none(sql.insertRoundInformationWithAddingDelegate, {
-				address: address,
-				blockId: blockId,
-				round: round,
-				delegate: delegateId
-			});
-		}
+		return this.db.none(sql.insertRoundInformationWithDelegate, {
+			address: address,
+			blockId: blockId,
+			round: round,
+			delegate: delegateId,
+			balanceMode: ( mode === '-' ? '-' : '')
+		});
 	}
 }
 
