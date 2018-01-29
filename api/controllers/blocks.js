@@ -70,6 +70,7 @@ BlocksController.getBlocks = function (context, next) {
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
+				count: data.length
 			}
 		});
 	});
