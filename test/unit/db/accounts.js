@@ -19,7 +19,6 @@ var randomstring = require('randomstring');
 var db;
 var validAccount;
 
-
 function generateAccount () {
 	return {
 		'username': randomstring.generate(10).toLowerCase(),
@@ -94,7 +93,7 @@ describe('db', function () {
 
 				it('should empty the table "mem_round"', function () {
 					return db.accounts.resetMemTables().then(function () {
-						return db.one('SELECT COUNT(*)::int as count FROM mem_round');
+						return db.one('SELECT COUNT(*)::int AS count FROM mem_round');
 					}).then(function (row) {
 						expect(row.count).to.equal(0);
 					});
@@ -102,7 +101,7 @@ describe('db', function () {
 
 				it('should empty the table "mem_accounts2delegates"', function () {
 					return db.accounts.resetMemTables().then(function () {
-						return db.one('SELECT COUNT(*)::int as count FROM mem_accounts2delegates');
+						return db.one('SELECT COUNT(*)::int AS count FROM mem_accounts2delegates');
 					}).then(function (row) {
 						expect(row.count).to.equal(0);
 					});
@@ -110,7 +109,7 @@ describe('db', function () {
 
 				it('should empty the table "mem_accounts2u_delegates"', function () {
 					return db.accounts.resetMemTables().then(function () {
-						return db.one('SELECT COUNT(*)::int as count FROM mem_accounts2u_delegates');
+						return db.one('SELECT COUNT(*)::int AS count FROM mem_accounts2u_delegates');
 					}).then(function (row) {
 						expect(row.count).to.equal(0);
 					});
@@ -118,7 +117,7 @@ describe('db', function () {
 
 				it('should empty the table "mem_accounts2multisignatures"', function () {
 					return db.accounts.resetMemTables().then(function () {
-						return db.one('SELECT COUNT(*)::int as count FROM mem_accounts2multisignatures');
+						return db.one('SELECT COUNT(*)::int AS count FROM mem_accounts2multisignatures');
 					}).then(function (row) {
 						expect(row.count).to.equal(0);
 					});
@@ -126,7 +125,7 @@ describe('db', function () {
 
 				it('should empty the table "mem_accounts2u_multisignatures"', function () {
 					return db.accounts.resetMemTables().then(function () {
-						return db.one('SELECT COUNT(*)::int as count FROM mem_accounts2u_multisignatures');
+						return db.one('SELECT COUNT(*)::int AS count FROM mem_accounts2u_multisignatures');
 					}).then(function (row) {
 						expect(row.count).to.equal(0);
 					});
@@ -190,7 +189,7 @@ describe('db', function () {
 							return db.accounts.list({}, ['producedBlocks']).then(function (data) {
 								actualResult = data;
 
-								return db.query('SELECT producedblocks::bigint as "producedBlocks" FROM mem_accounts').then(function (result) {
+								return db.query('SELECT producedblocks::bigint AS "producedBlocks" FROM mem_accounts').then(function (result) {
 									expect(actualResult).to.eql(result);
 								});
 							});
@@ -202,7 +201,7 @@ describe('db', function () {
 							return db.accounts.list({}, ['missedBlocks']).then(function (data) {
 								actualResult = data;
 
-								return db.query('SELECT missedblocks::bigint as "missedBlocks" FROM mem_accounts').then(function (result) {
+								return db.query('SELECT missedblocks::bigint AS "missedBlocks" FROM mem_accounts').then(function (result) {
 									expect(actualResult).to.eql(result);
 								});
 							});
@@ -217,7 +216,7 @@ describe('db', function () {
 							return db.accounts.list({}, ['rank']).then(function (data) {
 								actualResult = data;
 
-								return db.query('SELECT (SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::bigint as rank FROM mem_accounts').then(function (result) {
+								return db.query('SELECT (SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::bigint AS rank FROM mem_accounts').then(function (result) {
 									expect(actualResult).to.eql(result);
 								});
 							});
@@ -226,7 +225,7 @@ describe('db', function () {
 						it('should fetch "delegates" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")', function () {
 							return db.accounts.list({}, ['address', 'delegates']).then(function (data) {
 								return Promise.map(data, function (account) {
-									return db.one('SELECT (ARRAY_AGG("dependentId")) as "delegates" FROM mem_accounts2delegates WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
+									return db.one('SELECT (ARRAY_AGG("dependentId")) AS "delegates" FROM mem_accounts2delegates WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
 										expect(account.delegates).to.be.eql(result.delegates);
 									});
 								});
@@ -236,7 +235,7 @@ describe('db', function () {
 						it('should fetch "u_delegates" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")', function () {
 							return db.accounts.list({}, ['address', 'u_delegates']).then(function (data) {
 								return Promise.map(data, function (account) {
-									return db.one('SELECT (ARRAY_AGG("dependentId")) as "u_delegates" FROM mem_accounts2u_delegates WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
+									return db.one('SELECT (ARRAY_AGG("dependentId")) AS "u_delegates" FROM mem_accounts2u_delegates WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
 										expect(account.u_delegates).to.be.eql(result.u_delegates);
 									});
 								});
@@ -246,7 +245,7 @@ describe('db', function () {
 						it('should fetch "multisignatures" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2multisignatures WHERE "accountId" = "mem_accounts"."address")', function () {
 							return db.accounts.list({}, ['address', 'multisignatures']).then(function (data) {
 								return Promise.map(data, function (account) {
-									return db.one('SELECT (ARRAY_AGG("dependentId")) as "multisignatures" FROM mem_accounts2multisignatures WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
+									return db.one('SELECT (ARRAY_AGG("dependentId")) AS "multisignatures" FROM mem_accounts2multisignatures WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
 										expect(account.multisignatures).to.be.eql(result.multisignatures);
 									});
 								});
@@ -256,7 +255,7 @@ describe('db', function () {
 						it('should fetch "u_multisignatures" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_multisignatures WHERE "accountId" = "mem_accounts"."address")', function () {
 							return db.accounts.list({}, ['address', 'u_multisignatures']).then(function (data) {
 								return Promise.map(data, function (account) {
-									return db.one('SELECT (ARRAY_AGG("dependentId")) as "u_multisignatures" FROM mem_accounts2u_multisignatures WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
+									return db.one('SELECT (ARRAY_AGG("dependentId")) AS "u_multisignatures" FROM mem_accounts2u_multisignatures WHERE "accountId" = \''+ account.address +'\'').then(function (result) {
 										expect(account.u_multisignatures).to.be.eql(result.u_multisignatures);
 									});
 								});
@@ -572,17 +571,14 @@ describe('db', function () {
 					return db.accounts.upsert(originalAccount, 'address').then(function (value) {
 						return db.accounts.upsert(originalAccount, 'address', updatedAccount).then(function (value) {
 							return db.accounts.list({address: originalAccount.address}).then(function (result) {
-
 								expect(result.length).to.eql(1);
 
 								var immutableFields = db.accounts.getImmutableFields();
 
 								Object.keys(_.omit(result[0], 'rank')).forEach(function (field) {
-
-									if(immutableFields.indexOf(field) !== -1) {
 										// If its an immutable field
+									if (immutableFields.indexOf(field) !== -1) {
 										expect(result[0][field], field).to.eql(originalAccount[field]);
-
 									} else {
 										// If its not an immutable field
 										expect(result[0][field], field).to.eql(updatedAccount[field]);
@@ -597,7 +593,6 @@ describe('db', function () {
 					var originalAccount = generateAccount();
 					var updatedAccount = generateAccount();
 
-
 					// Since DB trigger protects to update username only if it was null before
 					delete originalAccount.username;
 					delete originalAccount.u_username;
@@ -607,17 +602,14 @@ describe('db', function () {
 					return db.accounts.upsert(originalAccount, 'address').then(function (value) {
 						return db.accounts.upsert(updatedAccount, 'address').then(function (value) {
 							return db.accounts.list({address: originalAccount.address}).then(function (result) {
-
 								expect(result.length).to.eql(1);
 
 								var immutableFields = db.accounts.getImmutableFields();
 
 								Object.keys(_.omit(result[0], 'rank')).forEach(function (field) {
-
-									if(immutableFields.indexOf(field) !== -1) {
 										// If its an immutable field
+									if (immutableFields.indexOf(field) !== -1) {
 										expect(result[0][field], field).to.eql(originalAccount[field]);
-
 									} else {
 										// If its not an immutable field
 										expect(result[0][field], field).to.eql(updatedAccount[field]);
@@ -637,7 +629,6 @@ describe('db', function () {
 					return db.accounts.upsert(originalAccount, 'username').then(function (value) {
 						return db.accounts.upsert(updatedAccount, 'username').then(function (value) {
 							return db.accounts.list({username: updatedAccount.username}).then(function (result) {
-
 								expect(result.length).to.eql(1);
 
 								expect(_.omit(result[0], 'rank')).to.eql(updatedAccount);
@@ -656,7 +647,6 @@ describe('db', function () {
 					return db.accounts.upsert(originalAccount, 'address').then(function (value) {
 						return db.accounts.upsert(updatedAccount, ['username', 'u_username']).then(function (value) {
 							return db.accounts.list({username: updatedAccount.username}).then(function (result) {
-
 								expect(result.length).to.eql(1);
 
 								expect(result[0].address).to.eql(originalAccount.address);
@@ -746,9 +736,7 @@ describe('db', function () {
 
 					return db.accounts.insert(account).then(function (value) {
 						return db.accounts.update(account.address, updateAccount).then(function (value) {
-
 							return db.accounts.list({address: account.address}).then(function (result) {
-
 								db.accounts.cs.update.columns.forEach(function (column) {
 									expect(result.length).to.eql(1);
 
