@@ -42,8 +42,13 @@ const writeConfigToFile = newConfig => {
 
 const checkBoolean = value => ['true', 'false'].includes(value);
 
-const setNestedConfigProperty = newValue => (obj, pathComponent, i, path) => {
-	if (i === path.length - 1) {
+const setNestedConfigProperty = newValue => (
+	obj,
+	pathComponent,
+	i,
+	dotNotationArray,
+) => {
+	if (i === dotNotationArray.length - 1) {
 		// eslint-disable-next-line no-param-reassign
 		obj[pathComponent] = newValue;
 		return config;
@@ -51,16 +56,15 @@ const setNestedConfigProperty = newValue => (obj, pathComponent, i, path) => {
 	return obj[pathComponent];
 };
 
-const attemptWriteToFile = (variable, value, path) => {
+const attemptWriteToFile = (value, dotNotationArray) => {
 	const writeSuccess = writeConfigToFile(config);
 
 	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
 		throw new FileSystemError(WRITE_FAIL_WARNING);
 	}
 
-	const variablePath = path.join('.');
 	const result = {
-		message: `Successfully set ${variablePath} to ${value}.`,
+		message: `Successfully set ${dotNotationArray.join('.')} to ${value}.`,
 	};
 
 	if (!writeSuccess) {
@@ -70,30 +74,31 @@ const attemptWriteToFile = (variable, value, path) => {
 	return result;
 };
 
-const setBoolean = (variable, path) => value => {
+const setBoolean = dotNotation => value => {
 	if (!checkBoolean(value)) {
 		throw new ValidationError('Value must be a boolean.');
 	}
-
+	const dotNotationArray = dotNotation.split('.');
 	const newValue = value === 'true';
-	path.reduce(setNestedConfigProperty(newValue), config);
+	dotNotationArray.reduce(setNestedConfigProperty(newValue), config);
 
-	return attemptWriteToFile(variable, value);
+	return attemptWriteToFile(value, dotNotationArray);
 };
 
-const setString = (variable, path) => value => {
-	path.reduce(setNestedConfigProperty(value), config);
-	return attemptWriteToFile(variable, value, path);
+const setString = dotNotation => value => {
+	const dotNotationArray = dotNotation.split('.');
+	dotNotationArray.reduce(setNestedConfigProperty(value), config);
+	return attemptWriteToFile(value, dotNotationArray);
 };
 
 const handlers = {
-	json: setBoolean('json', ['json']),
-	name: setString('name', ['name']),
-	pretty: setBoolean('pretty', ['pretty']),
-	'liskJS.testnet': setBoolean('testnet', ['liskJS', 'testnet']),
-	'liskJS.ssl': setBoolean('ssl', ['liskJS', 'ssl']),
-	'liskJS.node': setString('node', ['liskJS', 'node']),
-	'liskJS.port': setString('port', ['liskJS', 'port']),
+	json: setBoolean('json'),
+	name: setString('name'),
+	pretty: setBoolean('pretty'),
+	'liskJS.testnet': setBoolean('liskJS.testnet'),
+	'liskJS.ssl': setBoolean('liskJS.ssl'),
+	'liskJS.node': setString('liskJS.node'),
+	'liskJS.port': setString('liskJS.port'),
 };
 
 export const actionCreator = () => async ({ variable, value }) => {
