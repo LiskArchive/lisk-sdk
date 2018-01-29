@@ -15,8 +15,6 @@
  *
  */
 
-BEGIN;
-
 DROP VIEW IF EXISTS blocks_list;
 
 CREATE VIEW blocks_list AS
@@ -118,5 +116,3 @@ SELECT t."id" AS "t_id",
 FROM trs t
 
 INNER JOIN blocks b ON t."blockId" = b."id";
-
-COMMIT;

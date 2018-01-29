@@ -15,8 +15,6 @@
  *
  */
 
-BEGIN;
-
 CREATE TABLE IF NOT EXISTS "mem_accounts"(
   "username" VARCHAR(20),
   "isDelegate" SMALLINT DEFAULT 0,
@@ -81,5 +79,3 @@ CREATE TABLE IF NOT EXISTS "mem_accounts2u_multisignatures"(
   "dependentId" VARCHAR(64) NOT NULL,
   FOREIGN KEY ("accountId") REFERENCES mem_accounts("address") ON DELETE CASCADE
 );
-
-COMMIT;

@@ -12,11 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /*
- * Add 'm_recipientPublicKey' column to 'trs_list' view
- * Change 't_senderPublicKey' data type from 'string' to 'bytea'
+ * Recreate 'trs_list' view for performance
  */
-
-BEGIN;
 
 DROP VIEW IF EXISTS trs_list;
 
@@ -36,11 +33,9 @@ SELECT t."id" AS "t_id",
        ENCODE(t."signature", 'hex') AS "t_signature",
        ENCODE(t."signSignature", 'hex') AS "t_SignSignature",
        t."signatures" AS "t_signatures",
-       (SELECT MAX("height") + 1 FROM blocks) - b."height" AS "confirmations"
+       (SELECT height + 1 FROM blocks ORDER BY height DESC LIMIT 1) - b."height" AS "confirmations"
 
 FROM trs t
 
-INNER JOIN blocks b ON t."blockId" = b."id"
+LEFT JOIN blocks b ON t."blockId" = b."id"
 LEFT JOIN mem_accounts m ON t."recipientId" = m."address";
-
-COMMIT;

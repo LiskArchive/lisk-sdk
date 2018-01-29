@@ -235,13 +235,12 @@ var modulesLoader = new function () {
 		if (this.db) {
 			return cb(null, this.db);
 		}
-		database.connect(this.scope.config.db, this.logger, function (err, db) {
-			if (err) {
-				return cb(err);
-			}
-			this.db = db;
-			cb(null, this.db);
-		}.bind(this));
+		database.connect(this.scope.config.db, this.logger)
+			.then(db => {
+				this.db = db;
+				cb(null, db);
+			})
+			.catch(err => cb(err));
 	};
 
 	/**

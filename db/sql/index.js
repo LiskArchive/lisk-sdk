@@ -13,7 +13,7 @@
  */
 'use strict';
 
-const link = require('./config');
+const {link} = require('./config');
 
 module.exports = {
 	accounts: {
@@ -50,6 +50,12 @@ module.exports = {
 	multisignatures: {
 		getMemberPublicKeys: link('multisignatures/getMemberPublicKeys.sql'),
 		getGroupIds: link('multisignatures/getGroupIds.sql')
+	},
+	migrations: {
+		getLastId: link('migrations/getLastId.sql'),
+		add: link('migrations/add.sql'),
+		memoryTables: link('migrations/memoryTables.sql'),
+		runtime: link('migrations/runtime.sql')
 	},
 	peers: {
 		list: link('peers/list.sql'),

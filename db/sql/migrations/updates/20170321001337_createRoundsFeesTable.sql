@@ -15,8 +15,6 @@
  * Create table 'rounds_fees', calculate fees & populate it, set triggers
  */
 
-BEGIN;
-
 -- Create table 'rounds_fees' for storing fees
 CREATE TABLE IF NOT EXISTS "rounds_fees"(
 	"height"    INT     NOT NULL,
@@ -133,5 +131,3 @@ CREATE TRIGGER rounds_fees_insert
 	FOR EACH ROW
 	WHEN (NEW.height % 101 = 0)
 	EXECUTE PROCEDURE round_fees_insert();
-
-COMMIT;

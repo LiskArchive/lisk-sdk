@@ -15,8 +15,6 @@
  * Recreate 'trs_list' view, normalize addresses, add indexes
  */
 
-BEGIN;
-
 DROP VIEW IF EXISTS trs_list;
 
 CREATE VIEW trs_list AS
@@ -44,5 +42,3 @@ LEFT JOIN mem_accounts m ON t."recipientId" = m."address";
 
 CREATE INDEX IF NOT EXISTS "trs_upper_sender_id" ON "trs"(UPPER("senderId"));
 CREATE INDEX IF NOT EXISTS "trs_upper_recipient_id" ON "trs"(UPPER("recipientId"));
-
-COMMIT;

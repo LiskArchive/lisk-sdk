@@ -15,8 +15,6 @@
  * Add various indexes for performance
  */
 
-BEGIN;
-
 -- Add 'mem_accounts_address' index for 'address'
 CREATE INDEX IF NOT EXISTS "mem_accounts_address" ON "mem_accounts" ("address");
 
@@ -34,5 +32,3 @@ CREATE INDEX IF NOT EXISTS "mem_accounts_block_id" ON "mem_accounts" ("blockId")
 
 -- Add 'blocks_rounds' index for dealing with rounds
 CREATE INDEX IF NOT EXISTS "blocks_rounds" ON "blocks" ((CEIL(height / 101::float)::int));
-
-COMMIT;
