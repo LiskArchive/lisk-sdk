@@ -206,7 +206,7 @@ describe('GET /api/votes', () => {
 		});
 
 		describe('increased votes numbers after posting vote transaction', () => {
-			it('should increase votes and votesUsed after posting a vote', (done) => {
+			it('should increase votes and votesUsed after posting a vote', done => {
 				var account = randomUtil.account();
 				var creditTransaction = lisk.transaction.createTransaction(
 					account.address,

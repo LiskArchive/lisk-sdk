@@ -87,7 +87,7 @@ transaction2;
 		});
 
 		it('adding to pool second signature registration for same account should fail', done => {
-			localCommon.addTransaction(library, transaction1, (err) => {
+			localCommon.addTransaction(library, transaction1, err => {
 				expect(err).to.equal('Missing sender second signature');
 				done();
 			});

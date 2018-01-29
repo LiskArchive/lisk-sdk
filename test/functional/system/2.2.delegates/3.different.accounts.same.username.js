@@ -99,14 +99,14 @@ transaction2;
 					});
 
 					it('adding to pool delegate registration with already registered username should fail', done => {
-						localCommon.addTransaction(library, transaction1, (err) => {
+						localCommon.addTransaction(library, transaction1, err => {
 							expect(err).to.equal(`Username ${account.username} already exists`);
 							done();
 						});
 					});
 
 					it('adding to pool delegate registration from same account should fail', done => {
-						localCommon.addTransaction(library, transaction2, (err) => {
+						localCommon.addTransaction(library, transaction2, err => {
 							expect(err).to.equal('Account is already a delegate');
 							done();
 						});

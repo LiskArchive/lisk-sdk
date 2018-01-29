@@ -99,7 +99,7 @@ describe('cached endpoints', () => {
 		});
 
 		it('should not cache if response is not a success', () => {
-			return blocksEndpoint.makeRequest({ height: -100 }, 400).then(res => {
+			blocksEndpoint.makeRequest({ height: -100 }, 400).then(res => {
 				expectSwaggerParamError(res, 'height');
 				return getJsonForKeyPromise(res.req.path);
 			}).then(response => {

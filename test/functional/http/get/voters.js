@@ -216,7 +216,7 @@ describe('GET /api/voters', () => {
 			});
 
 			describe('limit=2 & offset=1', () => {
-				it('should return 2 voters, containing 1 from the previous result', (done) => {
+				it('should return 2 voters, containing 1 from the previous result', done => {
 					var voters = null;
 
 					votersEndpoint.makeRequest({ limit: 2, offset: 0, username: validVotedDelegate.delegateName }, 200).then(res => {

@@ -94,7 +94,7 @@ transaction2;
 
 					it('adding to pool delegate registration from same account should fail', done => {
 						transaction2 = lisk.delegate.createDelegate(account.password, randomUtil.delegateName());
-						localCommon.addTransaction(library, transaction2, (err) => {
+						localCommon.addTransaction(library, transaction2, err => {
 							expect(err).to.equal('Account is already a delegate');
 							done();
 						});

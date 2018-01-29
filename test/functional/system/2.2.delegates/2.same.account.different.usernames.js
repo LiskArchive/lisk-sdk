@@ -32,8 +32,8 @@ describe('system test (type 2) - double delegate registrations', () => {
 		describe('executing 30 times', () => {
 			var account = randomUtil.account();
 			var transaction,
-transaction1,
-transaction2;
+			transaction1,
+			transaction2;
 			var differentDelegateName = randomUtil.delegateName();
 			transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 
@@ -95,7 +95,7 @@ transaction2;
 
 					it('adding to pool delegate registration from same account should fail', done => {
 						transaction2 = lisk.delegate.createDelegate(account.password, randomUtil.delegateName());
-						localCommon.addTransaction(library, transaction2, (err) => {
+						localCommon.addTransaction(library, transaction2, err => {
 							expect(err).to.equal('Account is already a delegate');
 							done();
 						});

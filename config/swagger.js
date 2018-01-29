@@ -83,7 +83,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 		var swaggerExpress = runner.expressMiddleware();
 
 		// Check the response and act appropriately on error
-		runner.on('responseValidationError', (validationResponse) => {
+		runner.on('responseValidationError', validationResponse => {
 			// TODO: Troubleshoot why default validation hook considers json response as string response
 			if (validationResponse.errors[0].code !== 'INVALID_RESPONSE_BODY') {
 				logger.error('Swagger Response Validation Errors:');

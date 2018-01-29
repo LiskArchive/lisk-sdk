@@ -42,7 +42,7 @@ describe('GET /api/accounts', () => {
 
 				var signatures = [];
 				scenario.members.map(function (member) {
-					signatures.push(apiHelpers.createSignatureObject(scenario.multiSigTransaction, member));
+					return signatures.push(apiHelpers.createSignatureObject(scenario.multiSigTransaction, member));
 				});
 
 				return signatureEndpoint.makeRequest({ signatures: signatures }, 200);
