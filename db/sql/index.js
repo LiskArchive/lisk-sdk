@@ -18,6 +18,13 @@ const {link} = require('./config');
 module.exports = {
 	accounts: {
 		resetMemoryTables: link('accounts/resetMemoryTables.sql'),
+		countMemAccounts: link('accounts/countMemAccounts.sql'),
+		updateMemAccounts: link('accounts/updateMemAccounts.sql'),
+		getOrphanedMemAccounts: link('accounts/getOrphanedMemAccounts.sql'),
+		getDelegates: link('accounts/getDelegates.sql'),
+		incrementAccount: link('accounts/incrementAccount.sql'),
+		decrementAccount: link('accounts/decrementAccount.sql'),
+		removeAccountDependencies: link('accounts/removeAccountDependencies.sql')
 	},
 	blocks: {
 		aggregateBlocksReward: link('blocks/aggregateBlocksReward.sql'),

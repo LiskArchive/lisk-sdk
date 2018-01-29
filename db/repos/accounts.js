@@ -132,7 +132,7 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	countMemAccounts () {
-		return this.db.one(Queries.countMemAccounts);
+		return this.db.one(sql.countMemAccounts);
 	}
 
 	/**
@@ -140,7 +140,7 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	updateMemAccounts () {
-		return this.db.none(Queries.updateMemAccounts);
+		return this.db.none(sql.updateMemAccounts);
 	}
 
 	/**
@@ -148,7 +148,7 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	getOrphanedMemAccounts () {
-		return this.db.query(Queries.getOrphanedMemAccounts);
+		return this.db.query(sql.getOrphanedMemAccounts);
 	}
 
 	/**
@@ -156,7 +156,7 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	getDelegates () {
-		return this.db.query(Queries.getDelegates);
+		return this.db.query(sql.getDelegates);
 	}
 
 	/**
@@ -252,7 +252,7 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	increment (address, field, value) {
-		return this.db.none(Queries.increment,{
+		return this.db.none(sql.incrementAccount,{
 			table: this.dbTable,
 			field: field,
 			value: value,
@@ -269,7 +269,7 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	decrement (address, field, value) {
-		return this.db.none(Queries.decrement,{
+		return this.db.none(sql.decrementAccount,{
 			table: this.dbTable,
 			field: field,
 			value: value,
@@ -421,7 +421,7 @@ class AccountsRepo {
 			return Promise.reject(`Error: db.account.removeDependencies called with wrong parameter dependency=${dependency}`);
 		}
 
-		return this.db.none(Queries.removeAccountDependencies, {
+		return this.db.none(sql.removeAccountDependencies, {
 			table: `${this.dbTable}2${dependency}`,
 			address: address,
 			dependentId: dependentId
@@ -450,22 +450,6 @@ class AccountsRepo {
 		}, null, dependentTable));
 	}
 }
-
-const Queries = {
-	countMemAccounts: 'SELECT COUNT(*)::int FROM mem_accounts WHERE "blockId" = (SELECT "id" FROM "blocks" ORDER BY "height" DESC LIMIT 1)',
-
-	updateMemAccounts: 'UPDATE mem_accounts SET "u_isDelegate" = "isDelegate", "u_secondSignature" = "secondSignature", "u_username" = "username", "u_balance" = "balance", "u_delegates" = "delegates", "u_multisignatures" = "multisignatures", "u_multimin" = "multimin", "u_multilifetime" = "multilifetime" WHERE "u_isDelegate" <> "isDelegate" OR "u_secondSignature" <> "secondSignature" OR "u_username" <> "username" OR "u_balance" <> "balance" OR "u_delegates" <> "delegates" OR "u_multisignatures" <> "multisignatures" OR "u_multimin" <> "multimin" OR "u_multilifetime" <> "multilifetime";',
-
-	getOrphanedMemAccounts: 'SELECT a."blockId", b."id" FROM mem_accounts a LEFT OUTER JOIN blocks b ON b."id" = a."blockId" WHERE a."blockId" IS NOT NULL AND a."blockId" != \'0\' AND b."id" IS NULL',
-
-	getDelegates: 'SELECT ENCODE("publicKey", \'hex\') FROM mem_accounts WHERE "isDelegate" = 1',
-
-	increment: 'UPDATE ${table:name} SET ${field:name} = ${field:name} + ${value}::bigint WHERE "address"=${address}',
-
-	decrement: 'UPDATE ${table:name} SET ${field:name} = ${field:name} - ${value}::bigint WHERE "address"=${address}',
-
-	removeAccountDependencies: 'DELETE FROM ${table:name} WHERE "accountId" = ${address} AND "dependentId" = ${dependentId}',
-};
 
 // Generate select SQL based on column set definition and conditions
 function Selects (columnSet, fields, pgp) {
