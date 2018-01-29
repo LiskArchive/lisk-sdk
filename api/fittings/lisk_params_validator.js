@@ -39,7 +39,7 @@ module.exports = function create (fittingDef, bagpipes) {
 
 				error.errors = _.map(validateResult.errors, function (e) {
 					var errors = _.pick(e, ['code', 'message', 'in', 'name', 'errors']);
-					errors.errors = _.map(e.errors, function (e) { return _.pick(e, ['code', 'message'] ); });
+					errors.errors = _.map(e.errors, function (e) { return _.pick(e, ['code', 'message', 'path'] ); });
 					return errors;
 				});
 			}
