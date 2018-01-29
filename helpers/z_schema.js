@@ -75,7 +75,7 @@ var liskFormats = {
 		return str === '' || /^[a-f0-9]{64}$/i.test(str);
 	},
 
-	// currently this allow empty values e.g. ',,,' or '' - is this correct?
+	// Currently this allow empty values e.g. ',,,' or '' - is this correct?
 	csv: function (str) {
 		if (typeof(str) !== 'string') {
 			return false;
@@ -151,7 +151,6 @@ var liskFormats = {
 Object.keys(liskFormats).forEach(function (formatName) {
 	z_schema.registerFormat(formatName, liskFormats[formatName]);
 });
-
 
 // Assigned as custom attribute to be used later
 // since z_schema.getRegisteredFormats() only resturns keys not the methods
