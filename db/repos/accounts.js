@@ -18,7 +18,7 @@ const QF = require('pg-promise').QueryFile;
 const _ = require('lodash');
 const path = require('path');
 const Promise = require('bluebird');
-const  sql = require('../sql').accounts;
+const sql = require('../sql').accounts;
 const constants = require('../../helpers/constants');
 
 let columnSet;
@@ -167,26 +167,24 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	upsert (data, conflictingFields, updateData) {
-
 		// If single field is specified as conflict field
-		if(typeof(conflictingFields) === 'string') {
+		if (typeof(conflictingFields) === 'string') {
 			conflictingFields = [conflictingFields];
 		}
 
-		if(!Array.isArray(conflictingFields) || !conflictingFields.length) {
 			return Promise.reject('Error: db.accounts.upsert - required conflictingFields');
+		if (!Array.isArray(conflictingFields) || !conflictingFields.length) {
 		}
 
-		if(!updateData) {
+		if (!updateData) {
 			updateData = Object.assign({}, data);
 		}
 
-		if(_.difference(_.union(Object.keys(data), Object.keys(updateData)), this.getDBFields()).length) {
 			return Promise.reject('Unknown field provided to upsert');
+		if (_.difference(_.union(Object.keys(data), Object.keys(updateData)), this.getDBFields()).length) {
 		}
 
-		if(conflictingFields.length === 1 && conflictingFields[0] === 'address') {
-
+		if (conflictingFields.length === 1 && conflictingFields[0] === 'address') {
 			const sql = '${insertSQL:raw} ON CONFLICT(${conflictFields:name}) DO UPDATE SET ${setsSQL:raw}';
 
 			return this.db.none(sql, {
@@ -194,9 +192,7 @@ class AccountsRepo {
 				conflictFields: conflictingFields,
 				setsSQL: this.pgp.helpers.sets(updateData, this.cs.update)
 			});
-
 		} else {
-
 			let conditionObject = {};
 			conflictingFields.forEach(function (field) {
 				conditionObject[field] = data[field];
@@ -204,7 +200,7 @@ class AccountsRepo {
 
 			return this.db.tx('db:accounts:upsert', function (t) {
 				return t.accounts.list(conditionObject, ['address']).then(function (result) {
-					if(result.length) {
+					if (result.length) {
 						return t.accounts.update(result[0].address, updateData);
 					} else {
 						return t.accounts.insert(data);
@@ -235,9 +231,8 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	update (address, data) {
-
-		if(!address) {
 			return Promise.reject('Error: db.accounts.update - required address not specified');
+		if (!address) {
 		}
 
 		return this.db.none(this.pgp.helpers.update(data, this.cs.update) + this.pgp.as.format(' WHERE $1:name=$2', ['address', address]));
@@ -322,35 +317,33 @@ class AccountsRepo {
 		const pgp = this.pgp;
 
 		let dynamicConditions = [];
-		if(filters && filters.multisig) {
+		if (filters && filters.multisig) {
 			dynamicConditions.push(pgp.as.format('"multimin" > 0'));
 			delete filters.multisig;
 		}
 
-		if(filters && Array.isArray(filters.address) && filters.address.length) {
+		if (filters && Array.isArray(filters.address) && filters.address.length) {
 			dynamicConditions.push(pgp.as.format('"address" IN ($1:csv)', [filters.address]));
 			delete filters.address;
 		}
 
-		if(filters && _.difference(Object.keys(filters), this.getDBFields()).length) {
+		if (filters && _.difference(Object.keys(filters), this.getDBFields()).length) {
 			return Promise.reject('Unknown filter field provided to list');
 		}
 
 		let sql = '${fields:raw} ${conditions:raw} ';
 		let limit, offset, sortField='', sortMethod='', conditions='';
 
-		if(!options) {
+		if (!options) {
 			options = {};
 		}
 
 		// Apply sort only if provided
-		if(options.sortField) {
-
-			if(typeof options.sortField === 'string') {
+		if (options.sortField) {
+			if (typeof options.sortField === 'string') {
 				sortField = options.sortField;
 				sortMethod = options.sortMethod || 'DESC';
 				sql = sql + ' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
-
 			// As per implementation of sort sortBy helper helpers/sort_by
 			} else if (Array.isArray(options.sortField) && options.sortField.length) {
 				let sortSQL = [];
@@ -363,7 +356,7 @@ class AccountsRepo {
 		}
 
 		// Limit the result only if limit param is provided
-		if(options.limit) {
+		if (options.limit) {
 			limit = options.limit;
 			offset = options.offset || 0;
 
@@ -372,7 +365,7 @@ class AccountsRepo {
 
 		const selectClause = Selects(this.cs.select, fields, pgp);
 
-		if(filters) {
+		if (filters) {
 			const filterKeys = Object.keys(filters);
 			let filteredColumns = this.cs.insert.columns.filter(function (column) {
 				return filterKeys.indexOf(column.name) >= 0;
@@ -382,14 +375,14 @@ class AccountsRepo {
 			conditions = pgp.helpers.sets(filters, filteredColumns).replace(/(,")/,' AND "');
 		}
 
-		if(conditions.length || options.extraCondition || dynamicConditions.length) {
+		if (conditions.length || options.extraCondition || dynamicConditions.length) {
 			conditions = conditions.length ? [conditions] : [];
 
-			if(options.extraCondition) {
+			if (options.extraCondition) {
 				conditions.push(options.extraCondition);
 			}
 
-			if(dynamicConditions.length) {
+			if (dynamicConditions.length) {
 				conditions.push(dynamicConditions.join(' AND '));
 			}
 
@@ -402,7 +395,8 @@ class AccountsRepo {
 			sortField: sortField,
 			sortMethod: sortMethod,
 			limit: limit,
-			offset: offset});
+			offset: offset
+		});
 
 		return this.db.query(query);
 	}
@@ -416,9 +410,8 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	removeDependencies (address, dependentId, dependency) {
-
-		if(['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
 			return Promise.reject(`Error: db.account.removeDependencies called with wrong parameter dependency=${dependency}`);
+		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
 		}
 
 		return this.db.none(sql.removeAccountDependencies, {
@@ -437,9 +430,8 @@ class AccountsRepo {
 	 * @return {Promise}
 	 */
 	insertDependencies (address, dependentId, dependency) {
-
-		if(['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
 			return Promise.reject(`Error: db.account.removeDependencies called with wrong parameter dependency=${dependency}`);
+		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
 		}
 
 		const dependentTable = new this.pgp.helpers.TableName({table: `${this.dbTable}2${dependency}`, schema: 'public'});
@@ -459,13 +451,12 @@ function Selects (columnSet, fields, pgp) {
 
 	this.rawType = true;
 	this.toPostgres = () => {
-
 		const selectSQL = 'SELECT $1:raw FROM $2^';
 		const selectClauseWithName = '$1:name$2:raw AS $3:name';
 		const selectClauseWithSQL = '($1:raw)$2:raw AS $3:name';
 
 		// Select all fields if none is provided
-		if(!fields || !fields.length) {
+		if (!fields || !fields.length) {
 			fields =  _.map(columnSet.columns, column => column.prop || column.name);
 		}
 
@@ -473,19 +464,20 @@ function Selects (columnSet, fields, pgp) {
 		const selectFields = [];
 
 		columnSet.columns.map(column => {
-			if(fields.includes(column.name) || fields.includes(column.prop)) {
-
+			if (fields.includes(column.name) || fields.includes(column.prop)) {
 				const propName = column.prop ? column.prop : column.name;
 
-				if(column.init) {
+				if (column.init) {
 					selectFields.push(pgp.as.format(selectClauseWithSQL, [column.init(column), column.castText, propName]));
 				} else {
 					selectFields.push(pgp.as.format(selectClauseWithName, [column.name, column.castText, propName]));
 				}
 			}
 		});
+
 		return pgp.as.format(selectSQL, [selectFields.join(','), table]);
 	};
+
 }
 
 module.exports = AccountsRepo;
