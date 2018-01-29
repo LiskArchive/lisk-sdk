@@ -91,9 +91,13 @@ def cleanUpMaster() {
 
 def archiveLogs() {
 	sh '''
-	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
+	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}" || true
 	'''
-	archiveArtifacts "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*"
+	try {
+		archiveArtifacts artifacts: "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*", allowEmptyArchive: true
+	} catch (err) {
+		echo err
+	}
 }
 
 def runAction(action) {
