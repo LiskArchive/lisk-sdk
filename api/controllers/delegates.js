@@ -109,19 +109,19 @@ DelegatesController.getForgingStatistics = function (context, next) {
 	var params = context.request.swagger.params;
 	
 	var filters = {
-		generatorPublicKey: params.publicKey.value,
+		address: params.address.value,
 		start: params.fromTimestamp.value || constants.epochTime.getTime(),
 		end: params.toTimestamp.value || Date.now()
 	};
 
 	modules.blocks.utils.aggregateBlocksReward(filters, function (err, reward) {
 		if (err) { 
-			if (err === 'Account not found or is not a delegate') {
-				return next(swaggerHelper.generateParamsErrorObject([params.publicKey], ['Account not found or is not a delegate']));
+			if (err === 'Account not found' || err === 'Account is not a delegate') {
+				return next(swaggerHelper.generateParamsErrorObject([params.address], [err]));
 			} else {
 				return next(err); 
-			}
-		}
+			};
+		};
 
 		var forged = new bignum(reward.fees).plus(new bignum(reward.rewards)).toString();
 		var response = {

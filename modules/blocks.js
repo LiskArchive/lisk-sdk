@@ -59,7 +59,7 @@ function Blocks (cb, scope) {
 			scope.logger, scope.logic.block, scope.logic.peers, scope.logic.transaction,
 			scope.schema, scope.db, scope.dbSequence, scope.sequence, scope.genesisblock
 		),
-		utils:   new blocksUtils(scope.logger, scope.logic.block, scope.logic.transaction,
+		utils:   new blocksUtils(scope.logger, scope.logic.account, scope.logic.block, scope.logic.transaction,
 			scope.db, scope.dbSequence, scope.genesisblock
 		),
 		chain:   new blocksChain(
