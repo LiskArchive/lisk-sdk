@@ -862,7 +862,7 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 							var dependentId = '';
 
 							if(mode === '-' || mode === '+') {
-								dependentId = updatedValueItem.slice('1');
+								dependentId = updatedValueItem.slice(1);
 							} else {
 								dependentId = updatedValueItem;
 								mode = '+';
