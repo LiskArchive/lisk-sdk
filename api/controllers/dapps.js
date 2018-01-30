@@ -19,20 +19,24 @@ var _ = require('lodash');
 var modules;
 
 /**
+ * Description.
+ *
  * @class
- * @memberof controllers
- * @requires lodash
- * @param {Object} scope - App instance.
- * @todo: add description of DappsController
+ * @memberof api/controllers
+ * @require lodash
+ * @param {Object} scope - App instance
+ * @todo: Add description of DappsController
  */
 function DappsController(scope) {
 	modules = scope.modules;
 }
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 DappsController.getDapps = function (context, next) {
 	var params = context.request.swagger.params;

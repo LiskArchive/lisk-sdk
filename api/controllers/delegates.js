@@ -19,20 +19,24 @@ var _ = require('lodash');
 var modules;
 
 /**
+ * Description.
+ *
  * @class
  * @memberof controllers
  * @requires lodash
- * @param {Object} scope - App instance.
- * @todo: add description of DelegatesController
+ * @param {Object} scope - App instance
+ * @todo: Add description of DelegatesController
  */
 function DelegatesController(scope) {
 	modules = scope.modules;
 }
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 DelegatesController.getDelegates = function (context, next) {
 	var params = context.request.swagger.params;
@@ -86,9 +90,11 @@ DelegatesController.getDelegates = function (context, next) {
 };
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 DelegatesController.getForgers = function (context, next) {
 	var params = context.request.swagger.params;

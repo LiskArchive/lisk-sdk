@@ -23,6 +23,8 @@ var modules;
 var config;
 
 /**
+ * Description.
+ *
  * @class
  * @memberof controllers
  * @requires lodash
@@ -31,8 +33,8 @@ var config;
  * @requires helpers/checkIpInList
  * @requires helpers/swagger.generateParamsErrorObject
  * @requires helpers/swagger.invalidParams
- * @param {Object} scope - App instance.
- * @todo: add description of NodeController
+ * @param {Object} scope - App instance
+ * @todo: Add description of NodeController
  */
 function NodeController(scope) {
 	modules = scope.modules;
@@ -40,9 +42,11 @@ function NodeController(scope) {
 }
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 NodeController.getConstants = function (context, next) {
 	modules.node.shared.getConstants(null, (err, data) => {
@@ -74,9 +78,11 @@ NodeController.getConstants = function (context, next) {
 };
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 NodeController.getStatus = function (context, next) {
 	modules.node.shared.getStatus(null, (err, data) => {
@@ -104,9 +110,11 @@ NodeController.getStatus = function (context, next) {
 };
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 NodeController.getForgingStatus = function (context, next) {
 	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
@@ -124,9 +132,11 @@ NodeController.getForgingStatus = function (context, next) {
 };
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 NodeController.updateForgingStatus = function (context, next) {
 	if (!checkIpInList(config.forging.access.whiteList, context.request.ip)) {
@@ -148,9 +158,11 @@ NodeController.updateForgingStatus = function (context, next) {
 };
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 NodeController.getPooledTransactions = function (context, next) {
 	var invalidParams = swaggerHelper.invalidParams(context.request);

@@ -19,20 +19,24 @@ var _ = require('lodash');
 var modules;
 
 /**
+ * Description.
+ *
  * @class
  * @memberof controllers
  * @requires lodash
- * @param {Object} scope - App instance.
- * @todo: add description of PeersController
+ * @param {Object} scope - App instance
+ * @todo: Add description of PeersController
  */
 function PeersController(scope) {
 	modules = scope.modules;
 }
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 PeersController.getPeers = function (context, next) {
 	var params = context.request.swagger.params;

@@ -23,6 +23,8 @@ var generateParamsErrorObject = swaggerHelper.generateParamsErrorObject;
 var modules;
 
 /**
+ * Description.
+ *
  * @class
  * @memberof controllers
  * @requires lodash
@@ -30,16 +32,18 @@ var modules;
  * @requires helpers/apiCodes.NOT_FOUND
  * @requires helpers/swagger.generateParamsErrorObject
  * @param {Object} scope - App instance.
- * @todo: add description of VotersController
+ * @todo: Add description of VotersController
  */
 function VotersController(scope) {
 	modules = scope.modules;
 }
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 VotersController.getVoters = function (context, next) {
 	var params = context.request.swagger.params;
@@ -98,9 +102,11 @@ VotersController.getVoters = function (context, next) {
 };
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 VotersController.getVotes = function (context, next) {
 	var params = context.request.swagger.params;

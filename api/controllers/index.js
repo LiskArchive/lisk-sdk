@@ -12,7 +12,7 @@
 * Removal or modification of this copyright notice is prohibited.
 */
 /**
- * Functional Namespace `controllers`
+ * Namespace `api/controllers`
  *
- * @namespace controllers
+ * @namespace api/controllers
  */

@@ -19,21 +19,25 @@ var ApiError = require('../../helpers/api_error');
 var modules;
 
 /**
+ * Description.
+ *
  * @class
  * @memberof controllers
  * @requires lodash
  * @requires helpers/apiError
- * @param {Object} scope - App instance.
- * @todo: add description of SignaturesController
+ * @param {Object} scope - App instance
+ * @todo: Add description of SignaturesController
  */
 function SignaturesController(scope) {
 	modules = scope.modules;
 }
 
 /**
- * @param {Object} context
- * @param {function} next
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @param {Object} context - Description
+ * @param {function} next - Description
+ * @todo: Add description of the function and its parameters
  */
 SignaturesController.postSignatures = function (context, next) {
 	var signatures = context.request.swagger.params.signatures.value;
