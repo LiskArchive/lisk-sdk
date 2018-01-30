@@ -76,7 +76,8 @@ DelegatesController.getDelegates = function (context, next) {
 			data: data,
 			meta: {
 				offset: filters.offset,
-				limit: filters.limit
+				limit: filters.limit,
+				count: data.length
 			}
 		});
 	});

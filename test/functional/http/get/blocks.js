@@ -259,5 +259,14 @@ describe('GET /blocks', function () {
 				});
 			});
 		});
+
+		describe('count', function () {
+
+			it('should return count of the transactions with response', function () {
+				return blocksEndpoint.makeRequest({}, 200).then(function (res) {
+					expect(res.body.meta.count).to.be.a('number');
+				});
+			});
+		});
 	});
 });

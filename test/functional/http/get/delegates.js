@@ -105,7 +105,7 @@ describe('GET /delegates', function () {
 				});
 			});
 
-			it.only('using no secondPublicKey should return an empty array', function () {
+			it('using no secondPublicKey should return an empty array', function () {
 				return delegatesEndpoint.makeRequest({secondPublicKey: ''}, 200).then(function (res) {
 					expect(res.body.data).to.be.empty;
 				});
@@ -362,6 +362,15 @@ describe('GET /delegates', function () {
 			it('using offset=-1 should fail', function () {
 				return delegatesEndpoint.makeRequest({offset: -1}, 400).then(function (res) {
 					expectSwaggerParamError(res, 'offset');
+				});
+			});
+		});
+
+		describe('count', function () {
+
+			it('should return count of the transactions with response', function () {
+				return delegatesEndpoint.makeRequest({}, 200).then(function (res) {
+					expect(res.body.meta.count).to.be.a('number');
 				});
 			});
 		});
