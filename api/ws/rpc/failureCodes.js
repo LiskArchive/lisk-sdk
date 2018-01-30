@@ -12,19 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 'use strict';
+
 /**
- * Description of the module.
- * @module
- * @requires debug
- * @requires helpers/swagger_module_registry.getCache
- * @requires helpers/swagger_module_registry.getLogger
- * @todo: add description of the module
- */
-/**
- * Description of failureCodes
- * @constant
- * @name FailureCodes
- * @todo: add description
+ * Description.
+ *
+ * @name failureCodes
+ * @memberof api/ws.rpc
+ * @todo: Add description
  */
 module.exports = {
 	INVALID_HEADERS: 4100,
@@ -55,8 +49,11 @@ module.exports = {
 };
 
 /**
- * Description of errorMessages.
- * @todo: add description
+ * Description.
+ *
+ * @name errorMessages
+ * @memberof api/ws.rpc
+ * @todo: Add description
  */
 module.exports.errorMessages = {
 	4100: 'Invalid headers',
@@ -79,10 +76,14 @@ module.exports.errorMessages = {
 };
 
 /**
+ * Description.
+ *
  * @class
- * @param {number} code - Description of the param.
- * @param {string} message - Description of the param.
- * @param {string} description - Description of the param.
+ * @memberof api/ws.rpc
+ * @param {number} code - Description of the param
+ * @param {string} message - Description of the param
+ * @param {string} description - Description of the param
+ * @todo: Add descriptions
  */
 function PeerUpdateError (code, message, description) {
 	this.code = code;
