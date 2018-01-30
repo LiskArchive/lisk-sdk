@@ -13,15 +13,57 @@
  */
 'use strict';
 
-const PQ = require('pg-promise').ParameterizedQuery;
-const QF = require('pg-promise').QueryFile;
 const _ = require('lodash');
-const path = require('path');
 const Promise = require('bluebird');
 const sql = require('../sql').accounts;
-const constants = require('../../helpers/constants');
 
-let columnSet;
+const cs = {}; // Reusable ColumnSet objects
+
+const ifNotExists = c => !c.exists;
+
+// Used in SELECT, UPDATE, INSERT queries
+const normalFields = [
+	{name: 'isDelegate', cast: 'int::boolean', skip: ifNotExists},
+	{name: 'u_isDelegate', cast: 'int::boolean', skip: ifNotExists},
+	{name: 'secondSignature', cast: 'int::boolean', skip: ifNotExists},
+	{name: 'u_secondSignature', cast: 'int::boolean', skip: ifNotExists},
+	{name: 'balance', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'u_balance', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'rate', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'multimin', def: 0, skip: ifNotExists},
+	{name: 'u_multimin', def: 0, skip: ifNotExists},
+	{name: 'multilifetime', def: 0, skip: ifNotExists},
+	{name: 'u_multilifetime', def: 0, skip: ifNotExists},
+	{name: 'blockId', def: null, skip: ifNotExists},
+	{name: 'nameexist', def: 0, skip: ifNotExists},
+	{name: 'u_nameexist', def: 0, skip: ifNotExists},
+	{name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'producedblocks', cast: 'bigint', def: '0', prop: 'producedBlocks', skip: ifNotExists},
+	{name: 'missedblocks', cast: 'bigint', def: '0', prop: 'missedBlocks', skip: ifNotExists},
+	{name: 'username', def: null, skip: ifNotExists},
+	{name: 'u_username', def: null, skip: ifNotExists},
+	{name: 'publicKey', mod: ':raw', init: () => 'ENCODE("publicKey", \'hex\')', skip: ifNotExists},
+	{name: 'secondPublicKey', mod: ':raw', init: () => 'ENCODE("secondPublicKey", \'hex\')', skip: ifNotExists},
+	{name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists}
+];
+
+// Only used in SELECT and INSERT queries
+const immutableFields = [
+	{ name: 'address', mod: ':raw', init: () => 'UPPER(address)'}
+];
+
+// Only used in SELECT queries
+const dynamicFields = [
+	{name: 'rank', init: () => sql.columnRank},
+	{name: 'delegates', init: () => sql.columnDelegates},
+	{name: 'u_delegates', init: () => sql.columnUDelegates},
+	{name: 'multisignatures', init: () => sql.columnMultisignatures},
+	{name: 'u_multisignatures', init: () => sql.columnUMultisignatures}
+];
+
+const allFields = _.union(normalFields, immutableFields, dynamicFields);
 
 /**
  * Accounts database interaction module.
@@ -31,73 +73,24 @@ let columnSet;
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {AccountsRepo}
+ * @return {AccountsRepository}
  */
-class AccountsRepo {
+class AccountsRepository {
 
 	constructor (db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 
 		this.dbTable = 'mem_accounts';
+		this.dbFields = allFields;
+		this.cs = cs;
 
-		const ifNotExists = c => !c.exists;
-
-		// Used in SELECT, UPDATE, INSERT queries
-		const normalFields = [
-			{name: 'isDelegate', cast: 'int::boolean', skip: ifNotExists},
-			{name: 'u_isDelegate', cast: 'int::boolean', skip: ifNotExists},
-			{name: 'secondSignature', cast: 'int::boolean', skip: ifNotExists},
-			{name: 'u_secondSignature', cast: 'int::boolean', skip: ifNotExists},
-			{name: 'balance', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'u_balance', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'rate', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'multimin', def: 0, skip: ifNotExists},
-			{name: 'u_multimin', def: 0, skip: ifNotExists},
-			{name: 'multilifetime', def: 0, skip: ifNotExists},
-			{name: 'u_multilifetime', def: 0, skip: ifNotExists},
-			{name: 'blockId', def: null, skip: ifNotExists},
-			{name: 'nameexist', def: 0, skip: ifNotExists},
-			{name: 'u_nameexist', def: 0, skip: ifNotExists},
-			{name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'producedblocks', cast: 'bigint', def: '0', prop: 'producedBlocks', skip: ifNotExists},
-			{name: 'missedblocks', cast: 'bigint', def: '0', prop: 'missedBlocks', skip: ifNotExists},
-			{name: 'username', def: null, skip: ifNotExists},
-			{name: 'u_username', def: null, skip: ifNotExists},
-			{name: 'publicKey', mod: ':raw', init: () => 'ENCODE("publicKey", \'hex\')', skip: ifNotExists},
-			{name: 'secondPublicKey', mod: ':raw', init: () => 'ENCODE("secondPublicKey", \'hex\')', skip: ifNotExists},
-			{name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists}
-		];
-
-		// Only used in SELECT and INSERT queries
-		const immutableFields = [
-			{ name: 'address', mod: ':raw', init: () => 'UPPER("address")'}
-		];
-
-		// Only used in SELECT queries
-		const dynamicFields = [
-			{name: 'rank', cast: 'bigint', mod: ':raw', init: () => '(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::int'},
-			{name: 'delegates', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")'},
-			{name: 'u_delegates', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")'},
-			{name: 'multisignatures', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2multisignatures WHERE "accountId" = "mem_accounts"."address")'},
-			{name: 'u_multisignatures', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_multisignatures WHERE "accountId" = "mem_accounts"."address")'}
-		];
-
-		this.dbFields = _.union(normalFields, immutableFields, dynamicFields);
-
-		if (!columnSet) {
-			columnSet = {};
-
-			const table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-
-			columnSet.select = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
-
-			columnSet.update = new pgp.helpers.ColumnSet(normalFields, {table: table});
-			columnSet.update = columnSet.update.merge([
-				{name: 'publicKey', mod: ':raw', init: (object) => (object.value === undefined || object.value === null) ? 'NULL' : `DECODE('${object.value}', 'hex')`, skip: ifNotExists},
-				{name: 'secondPublicKey', mod: ':raw', init: (object) => (object.value === undefined || object.value === null) ? 'NULL' : `DECODE('${object.value}', 'hex')`, skip: ifNotExists},
+		if (!cs.select) {
+			cs.select = new pgp.helpers.ColumnSet(allFields, {table: this.dbTable});
+			cs.update = new pgp.helpers.ColumnSet(normalFields, {table: this.dbTable});
+			cs.update = cs.update.merge([
+				{name: 'publicKey', mod: ':raw', init: c => (c.value === undefined || c.value === null) ? 'NULL' : `DECODE('${c.value}', 'hex')`, skip: ifNotExists},
+				{name: 'secondPublicKey', mod: ':raw', init: c => (c.value === undefined || c.value === null) ? 'NULL' : `DECODE('${c.value}', 'hex')`, skip: ifNotExists},
 				{name: 'isDelegate', cast: 'int', def: 0, skip: ifNotExists},
 				{name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists},
 				{name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists},
@@ -105,12 +98,11 @@ class AccountsRepo {
 				{name: 'virgin', cast: 'int', def: 1},
 			]);
 
-			columnSet.insert = columnSet.update.merge([
-				{name: 'address', mod: ':raw', init: (object) => `UPPER('${object.value}')`}
+			cs.insert = cs.update.merge([
+				{name: 'address', mod: ':raw', init: c => `UPPER('${c.value}')`}
 			]);
 		}
 
-		this.cs = columnSet;
 	}
 
 	/**
@@ -488,4 +480,4 @@ function Selects (columnSet, fields, pgp) {
 
 }
 
-module.exports = AccountsRepo;
+module.exports = AccountsRepository;
