@@ -18,7 +18,7 @@ var _ = require('lodash');
 var CORS = require('cors');
 
 /**
- * Description.
+ * Description of the function.
  *
  * @func create_cors
  * @memberof api/fittings
@@ -37,7 +37,7 @@ module.exports = function create(fittingDef) {
 	var middleware = CORS(_.pick(fittingDef, validCorsOptions));
 
 	/**
-	 * Description.
+	 * Description of the function.
 	 *
 	 * @func lisk_cors
 	 * @memberof api/fittings

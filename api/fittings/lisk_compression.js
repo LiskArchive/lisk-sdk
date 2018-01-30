@@ -18,7 +18,7 @@ var _ = require('lodash');
 var compression = require('compression');
 
 /**
- * Description.
+ * Description of the function.
  *
  * @func create_compression
  * @memberof api/fittings
@@ -37,7 +37,7 @@ module.exports = function create(fittingDef) {
 	var middleware = compression(_.pick(fittingDef, validCorsOptions));
 
 	/**
-	 * Description.
+	 * Description of the function.
 	 *
 	 * @func lisk_compression
 	 * @memberof api/fittings

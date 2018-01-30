@@ -17,7 +17,7 @@ var debug = require('debug')('swagger:lisk:cache');
 var modules = require('../../helpers/swagger_module_registry');
 
 /**
- * Description.
+ * Description of the function.
  *
  * @func create_caches
  * @memberof api/fittings

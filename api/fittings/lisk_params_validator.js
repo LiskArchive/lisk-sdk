@@ -17,7 +17,7 @@ var _ = require('lodash');
 var debug = require('debug')('swagger:lisk:params_validator');
 
 /**
- * Description.
+ * Description of the function.
  *
  * @func create_params_validator
  * @memberof api/fittings
@@ -30,7 +30,7 @@ var debug = require('debug')('swagger:lisk:params_validator');
  */
 module.exports = function create() {
 	/**
-	 * Description.
+	 * Description of the function.
 	 *
 	 * @func lisk_params_validator
 	 * @memberof api/fittings

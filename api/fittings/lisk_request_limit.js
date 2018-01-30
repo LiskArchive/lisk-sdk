@@ -26,7 +26,7 @@ var defaults = {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
  * @func create_request_limit
  * @memberof api/fittings
@@ -64,7 +64,7 @@ module.exports = function create(fittingDef) {
 	var middleware = new RateLimit(_.clone(limits));
 
 	/**
-	 * Description.
+	 * Description of the function.
 	 *
 	 * @func lisk_request_limit
 	 * @memberof api/fittings

@@ -17,7 +17,7 @@ var debug = require('debug')('swagger:lisk:error_handler');
 var util = require('util');
 
 /**
- * Description.
+ * Description of the function.
  *
  * @func create_error_handler
  * @memberof api/fittings
@@ -32,7 +32,7 @@ module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
 
 	/**
-	 * Description.
+	 * Description of the function.
 	 *
 	 * @func lisk_error_handler
 	 * @memberof api/fittings

@@ -17,7 +17,7 @@ var debug = require('debug')('swagger:lisk:response_formatter');
 var _ = require('lodash');
 
 /**
- * Description.
+ * Description of the function.
  *
  * @func create_response_formatter
  * @memberof api/fittings
@@ -30,7 +30,7 @@ var _ = require('lodash');
  */
 module.exports = function create() {
 	/**
-	 * Description.
+	 * Description of the function.
 	 *
 	 * @func lisk_response_formatter
 	 * @memberof api/fittings
