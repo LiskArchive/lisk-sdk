@@ -99,6 +99,43 @@ describe('blocks/utils', function () {
 		});
 	});
 
+	describe('onBind', function () {
+
+		var modulesStub;
+		var modules;
+
+		before(function () {
+			modulesStub = {
+				blocks: {
+					lastBlock: {
+						get: sinonSandbox.stub().returns({id: '9314232245035524467', height: 1}),
+						set: sinonSandbox.stub().returns({id: '9314232245035524467', height: 1})
+					},
+					utils: {
+						readDbRows: blocksUtilsModule.readDbRows
+					}
+				}
+			};
+			loggerStub.trace.reset();
+			__private.loaded = false;
+
+			blocksUtilsModule.onBind(modulesStub);
+			modules = BlocksUtils.__get__('modules');
+		});
+
+		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', function () {
+			expect(loggerStub.trace.args[0][0]).to.equal('Blocks->Utils: Shared modules bind.');
+		});
+
+		it('should create a modules object { blocks: scope.blocks }', function () {
+			expect(modules.blocks).to.equal(modulesStub.blocks);
+		});
+
+		it('should set __private.loaded to true', function () {
+			expect(__private.loaded).to.be.true;
+		});
+	});
+
 	describe('readDbRows', function () {
 
 		it('should loop through all given rows');
@@ -361,14 +398,5 @@ describe('blocks/utils', function () {
 		});
 
 		it('should return a new instance of BlockProgressLogger');
-	});
-
-	describe('onBind', function () {
-
-		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."');
-
-		it('should create a modules object { blocks: scope.blocks }');
-
-		it('should set __private.loaded to true');
 	});
 });
