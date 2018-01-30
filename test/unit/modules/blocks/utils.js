@@ -15,61 +15,127 @@
 
 'use strict';
 
-describe('blocks/utils', () => {
-	describe('Utils', () => {
-		describe('library', () => {
-			it('should assign logger');
+var rewire = require('rewire');
+var modulesLoader = require('../../../common/modulesLoader');
+var BlocksUtils= rewire('../../../../modules/blocks/utils.js');
 
-			it('should assign db');
+var viewRow_full_blocks_list = [{
+	b_id: '13068833527549895884',
+	b_height: 3,
+	t_id: '6950874693022090568',
+	t_type: 0
+}];
 
-			it('should assign dbSequence');
+describe('blocks/utils', function () {
 
-			it('should assign genesisblock');
+	var __private;
+	var library;
+	var blocksUtilsModule;
+	var dbStub;
+	var loggerStub;
+	var blockStub;
+	var transactionStub;
 
-			describe('should assign logic', () => {
-				it('should assign block');
+	describe('Utils', function () {
 
-				it('should assign transaction');
+		before(function (done) {
+			dbStub = {
+				blocks: {
+					getIdSequence: sinonSandbox.stub().resolves(),
+					getHeightByLastId: sinonSandbox.stub().resolves(['1']),
+					loadLastBlock: sinonSandbox.stub().resolves(viewRow_full_blocks_list),
+					loadBlocksData: sinonSandbox.stub().resolves(viewRow_full_blocks_list),
+					aggregateBlocksReward: sinonSandbox.stub().resolves()
+				}
+			};
+
+			blockStub = {
+				dbRead: sinonSandbox.stub().withArgs(viewRow_full_blocks_list).returns({id: viewRow_full_blocks_list[0].b_id, height: viewRow_full_blocks_list[0].b_height})
+			};
+			transactionStub = {
+				dbRead: sinonSandbox.stub().withArgs(viewRow_full_blocks_list).returns({id: viewRow_full_blocks_list[0].t_id, type: viewRow_full_blocks_list[0].t_type})
+			};
+
+			loggerStub = {
+				trace: sinonSandbox.spy(),
+				info:  sinonSandbox.spy(),
+				error: sinonSandbox.spy()
+			};
+
+			blocksUtilsModule =  new BlocksUtils(loggerStub, blockStub, transactionStub, dbStub, modulesLoader.scope.dbSequence, modulesLoader.scope.genesisblock);
+			library = BlocksUtils.__get__('library');
+			__private = BlocksUtils.__get__('__private');
+			done();
+		});
+
+		describe('library', function () {
+
+			it('should assign logger', function () {
+				expect(library.logger).to.eql(loggerStub);
+			});
+
+			it('should assign db', function () {
+				expect(library.db).to.eql(dbStub);
+			});
+
+			it('should assign dbSequence', function () {
+				expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
+			});
+
+			describe('should assign logic', function () {
+
+				it('should assign block', function () {
+					expect(library.logic.block).to.eql(blockStub);
+				});
+
+				it('should assign transaction', function () {
+					expect(library.logic.transaction).to.eql(transactionStub);
+				});
 			});
 		});
 
-		it('should set self to this');
-
-		it(
-			'should call library.logger.trace with "Blocks->Utils: Submodule initialized."'
-		);
-
-		it('should return self');
+		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."', function () {
+			expect(loggerStub.trace.args[0][0]).to.equal('Blocks->Utils: Submodule initialized.');
+		});
 	});
 
-	describe('readDbRows', () => {
+	describe('readDbRows', function () {
+
 		it('should loop through all given rows');
 
 		it('should call library.logic.block.dbRead with every row');
 
-		describe('when block with id does not exist', () => {
+		describe('when block with id does not exist', function () {
+
 			it('should not return the block');
 		});
 
-		describe('when block with id exists', () => {
-			describe('and block indices are duplicated', () => {
+		describe('when block with id exists', function () {
+
+			describe('and block indices are duplicated', function () {
+
 				it('should not return duplicated blocks');
 			});
 
-			describe('and block indices are unique', () => {
-				describe('and there are no transactions in the block', () => {
+			describe('and block indices are unique', function () {
+
+				describe('and there are no transactions in the block', function () {
+
 					it('should return the block containing transactions = {}');
 				});
 
-				describe('and there are transactions in the block', () => {
+				describe('and there are transactions in the block', function () {
+
 					it('should return the block containing transactions');
 				});
 			});
 		});
 	});
 
-	describe('loadBlocksPart', () => {
-		describe('when there is no error when loading block array', () => {
+	describe('loadBlocksPart', function () {
+
+		describe('when there is no error when loading block array', function () {
+
 			it('should be normalized');
 
 			it('should call callback with error = undefined');
@@ -77,33 +143,41 @@ describe('blocks/utils', () => {
 			it('should call callback with blocks as result');
 		});
 
-		describe('when error is defined', () => {
+		describe('when error is defined', function () {
+
 			it('should call callback with the error object');
 
 			it('should call callback with blocks as result');
 		});
 	});
 
-	describe('loadLastBlock', () => {
+	describe('loadLastBlock', function () {
+
 		it('should call library.dbSequence.add');
 
 		it('should call library.db.query to load the last block');
 
-		describe('when db query fails', () => {
+		describe('when db query fails', function () {
+
 			it('should call logger.error with error stack');
 
 			it('should call callback with the Blocks#loadLastBlock error');
 		});
 
-		describe('when db.query succeeds', () => {
-			describe('sorting the block.transactions array', () => {
-				describe('when block.id equals genesis.block.id', () => {
-					describe('and transactionType equals VOTE', () => {
+		describe('when db.query succeeds', function () {
+
+			describe('sorting the block.transactions array', function () {
+
+				describe('when block.id equals genesis.block.id', function () {
+
+					describe('and transactionType equals VOTE', function () {
+
 						it('should move it to the end of the block array');
 					});
 				});
 
-				describe('when transactionType equals SIGNATURE', () => {
+				describe('when transactionType equals SIGNATURE', function () {
+
 					it('should move it to the end of the block.transactions array');
 				});
 			});
@@ -116,39 +190,38 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('getIdSequence', () => {
+	describe('getIdSequence', function () {
+
 		it('should call modules.blocks.lastBlock.get');
 
 		it('should call library.db.query');
 
 		it('should call library.db.query with sql.getIdSequence');
 
-		it(
-			'should call library.db.query with {height: height, limit: 5, delegates: constants.activeDelegates}'
-		);
+		it('should call library.db.query with {height: height, limit: 5, delegates: constants.activeDelegates}');
 
-		describe('when db query fails', () => {
+		describe('when db query fails', function () {
+
 			it('should call logger.error with error stack');
 
 			it('should call callback with the Blocks#getIdSequence error');
 		});
 
-		describe('when db query succeeds', () => {
-			describe('and returns no results', () => {
+		describe('when db query succeeds', function () {
+
+			describe('and returns no results', function () {
+
 				it('should call callback with an error');
 			});
 
-			it(
-				'should add the genesis block to the end of the block array, if it does not contain it already'
-			);
+			it('should add the genesis block to the end of the block array, if it does not contain it already');
 
-			it(
-				'should add the last block to the beginning of the block array, if it does not contain it already'
-			);
+			it('should add the last block to the beginning of the block array, if it does not contain it already');
 
 			it('should call callback with error = null');
 
-			describe('result object', () => {
+			describe('result object', function () {
+
 				it('should assign firstHeight to the height of the last block');
 
 				it('should assign ids to a string of the block ids');
@@ -158,24 +231,30 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('loadBlocksData', () => {
-		describe('when 3 parameters are passed to loadBlocksData', () => {
+	describe('loadBlocksData', function () {
+
+		describe('when 3 parameters are passed to loadBlocksData', function () {
+
 			it('should call third parameter');
 		});
 
-		describe('when 2 parameters are passed to loadBlocksData', () => {
+		describe('when 2 parameters are passed to loadBlocksData', function () {
+
 			it('should call second parameter');
 		});
 
-		describe('when filter.id and filter.lastId are defined', () => {
+		describe('when filter.id and filter.lastId are defined',function () {
+
 			it('should call callback with Invalid Filter error');
 		});
 
-		describe('when filter.lastId is undefined and filter.id is defined', () => {
+		describe('when filter.lastId is undefined and filter.id is defined', function () {
+
 			it('should set params.id to filter.id');
 		});
 
-		describe('when filter.id is undefined and filter.lastId is defined', () => {
+		describe('when filter.id is undefined and filter.lastId is defined', function () {
+
 			it('should set params.lastId to filter.lastId');
 		});
 
@@ -185,26 +264,32 @@ describe('blocks/utils', () => {
 
 		it('should call library.db.blocks.getHeightByLastId');
 
-		describe('when filter.lastId exists', () => {
-			it('should call library.db.query with {lastId: filter.lastId}');
+		describe('when filter.lastId exists', function () {
+
+		   it('should call library.db.query with {lastId: filter.lastId}');
 		});
 
-		describe('when filter.lastId does not exist', () => {
-			it('should call library.db.query with {lastId: null}');
+		describe('when filter.lastId does not exist', function () {
+
+		   it('should call library.db.query with {lastId: null}');
 		});
 
-		describe('when db query fails', () => {
+		describe('when db query fails', function () {
+
 			it('should call logger.error with error stack');
 
 			it('should call callback with the Blocks#loadBlockData error');
 		});
 
-		describe('when db query succeeds', () => {
-			describe('and does not return results', () => {
+		describe('when db query succeeds', function () {
+
+			describe('and does not return results', function () {
+
 				it('should set height to 0');
 			});
 
-			describe('and returns results', () => {
+			describe('and returns results', function () {
+
 				it('should set height to rows[0].height');
 			});
 
@@ -218,7 +303,8 @@ describe('blocks/utils', () => {
 
 			it('should call library.db.query with params)');
 
-			describe('when db query succeeds', () => {
+			describe('when db query succeeds', function () {
+
 				it('should call callback with error = null');
 
 				it('should call callback with result containing the rows');
@@ -226,41 +312,48 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('getBlockProgressLogger', () => {
-		describe('BlockProgressLogger', () => {
+	describe('getBlockProgressLogger', function () {
+
+		describe('BlockProgressLogger', function () {
+
 			it('should set this.target to transactionsCount');
 
-			it(
-				'should set this.step to Math.floor(transactionsCount / logsFrequency);'
-			);
+			it('should set this.step to Math.floor(transactionsCount / logsFrequency);');
 
 			it('should set this.applied to 0');
 
-			describe('reset function', () => {
+			describe('reset function', function () {
+
 				it('should set this.applied to 0');
 			});
 
-			describe('applyNext function', () => {
-				describe('when this.applied >= this.target', () => {
+			describe('applyNext function', function () {
+
+				describe('when this.applied >= this.target', function () {
+
 					it('should throw error');
 				});
 
 				it('should increment this.applied');
 
-				describe('when this.applied = 1', () => {
+				describe('when this.applied = 1', function () {
+
 					it('should call this.log');
 				});
 
-				describe('when this.applied = this.target', () => {
+				describe('when this.applied = this.target', function () {
+
 					it('should call this.log');
 				});
 
-				describe('when this.applied %this.step = 1', () => {
+				describe('when this.applied %this.step = 1', function () {
+
 					it('should call this.log');
 				});
 			});
 
-			describe('log function', () => {
+			describe('log function', function () {
+
 				it('should call library.logger.info with msg');
 
 				it('should call library.logger.info with message');
@@ -270,10 +363,9 @@ describe('blocks/utils', () => {
 		it('should return a new instance of BlockProgressLogger');
 	});
 
-	describe('onBind', () => {
-		it(
-			'should call library.logger.trace with "Blocks->Utils: Shared modules bind."'
-		);
+	describe('onBind', function () {
+
+		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."');
 
 		it('should create a modules object { blocks: scope.blocks }');
 
