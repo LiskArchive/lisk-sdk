@@ -18,11 +18,11 @@ var Promise = require('bluebird');
 var rewire = require('rewire');
 var async = require('async');
 
-var DBSandbox = require('./DBSandbox').DBSandbox;
+var DBSandbox = require('./db_sandbox').DBSandbox;
 
 var swagger = require('../../config/swagger');
 var database = require('../../db');
-var jobsQueue = require('../../helpers/jobsQueue');
+var jobsQueue = require('../../helpers/jobs_queue');
 var Sequence = require('../../helpers/sequence');
 var dbRepos = require('require-all')(__dirname + '/../../db/repos');
 
@@ -115,7 +115,7 @@ function __init (initScope, done) {
 				cb(null, __testContext.config);
 			},
 			genesisblock: function (cb) {
-				var genesisblock = require('../data/genesisBlock.json');
+				var genesisblock = require('../data/genesis_block.json');
 				cb(null, { block: genesisblock });
 			},
 
@@ -133,7 +133,7 @@ function __init (initScope, done) {
 
 				var dummySocketCluster = { on: function () { } };
 				var dummyWAMPServer = new MasterWAMPServer(dummySocketCluster, {});
-				var wsRPC = require('../../api/ws/rpc/wsRPC.js').wsRPC;
+				var wsRPC = require('../../api/ws/rpc/ws_rpc.js').wsRPC;
 
 				wsRPC.setServer(dummyWAMPServer);
 				wsRPC.clientsConnectionsMap = {};
@@ -207,7 +207,7 @@ function __init (initScope, done) {
 				cb(null, db);
 			},
 			rpc: ['db', 'bus', 'logger', function (scope, cb) {
-				var wsRPC = require('../../api/ws/rpc/wsRPC').wsRPC;
+				var wsRPC = require('../../api/ws/rpc/ws_rpc').wsRPC;
 				var transport = require('../../api/ws/transport');
 				var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 

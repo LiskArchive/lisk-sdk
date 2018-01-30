@@ -13,7 +13,7 @@
  */
 'use strict';/*eslint*/
 
-var genesisDelegates = require('../../data/genesisDelegates.json');
+var genesisDelegates = require('../../data/genesis_delegates.json');
 var accountFixtures = require('../../fixtures/accounts');
 
 var application = require('../../common/application');

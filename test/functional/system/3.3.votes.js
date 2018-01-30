@@ -17,11 +17,12 @@ var lisk = require('lisk-js');
 
 var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
-var localCommon = require('./common'); 
+var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
 
+
 describe('system test (type 3) - voting with duplicate submissions', function () {
-	
+
 	var library;
 	localCommon.beforeBlock('system_3_3_votes', function (lib) {
 		library = lib;

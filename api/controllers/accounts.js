@@ -14,7 +14,7 @@
 'use strict';
 
 var _ = require('lodash');
-var ApiError = require('../../helpers/apiError');
+var ApiError = require('../../helpers/api_error');
 var swaggerHelper = require('../../helpers/swagger');
 
 // Private Fields

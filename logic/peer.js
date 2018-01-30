@@ -15,7 +15,7 @@
 
 var _ = require('lodash');
 var ip = require('ip');
-var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
+var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 /**
  * Creates a peer.

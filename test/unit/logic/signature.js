@@ -16,9 +16,9 @@
 var crypto = require('crypto');
 var rewire = require('rewire');
 
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 
-var typesRepresentatives = require('../../fixtures/typesRepresentatives');
+var typesRepresentatives = require('../../fixtures/types_representatives');
 
 var Signature = rewire('../../../logic/signature');
 var constants = require('../../../helpers/constants');

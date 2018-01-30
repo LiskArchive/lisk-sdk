@@ -18,7 +18,7 @@ var lisk = require('lisk-js');
 
 var accountFixtures = require('../../fixtures/accounts');
 
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 var randomUtil = require('../../common/utils/random');
 
 var Cache = require('../../../modules/cache');

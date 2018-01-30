@@ -15,18 +15,11 @@
 
 var _ = require('lodash');
 var async = require('async');
-var extend = require('extend');
-var fs = require('fs');
 var ip = require('ip');
-var path = require('path');
-var pgp = require('pg-promise')(); // We also initialize library here
-var util = require('util');
 
-var apiCodes = require('../helpers/apiCodes.js');
-var ApiError = require('../helpers/apiError.js');
 var constants = require('../helpers/constants.js');
-var failureCodes = require('../api/ws/rpc/failureCodes.js');
-var jobsQueue = require('../helpers/jobsQueue.js');
+var failureCodes = require('../api/ws/rpc/failure_codes.js');
+var jobsQueue = require('../helpers/jobs_queue.js');
 var Peer = require('../logic/peer.js');
 
 // Private fields

@@ -21,12 +21,12 @@ var Broadcaster = require('../logic/broadcaster.js');
 var bignum = require('../helpers/bignum.js');
 var bson = require('../helpers/bson.js');
 var constants = require('../helpers/constants.js');
-var failureCodes = require('../api/ws/rpc/failureCodes');
+var failureCodes = require('../api/ws/rpc/failure_codes');
 var Peer = require('../logic/peer');
-var PeerUpdateError = require('../api/ws/rpc/failureCodes').PeerUpdateError;
+var PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 var Rules = require('../api/ws/workers/rules');
 var System = require('../modules/system');
-var wsRPC = require('../api/ws/rpc/wsRPC').wsRPC;
+var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 // Private fields
 var modules, definitions, library, self, __private = {};
