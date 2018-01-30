@@ -44,14 +44,14 @@ const normalFields = [
 	{name: 'missedblocks', cast: 'bigint', def: '0', prop: 'missedBlocks', skip: ifNotExists},
 	{name: 'username', def: null, skip: ifNotExists},
 	{name: 'u_username', def: null, skip: ifNotExists},
-	{name: 'publicKey', mod: ':raw', init: () => 'ENCODE("publicKey", \'hex\')', skip: ifNotExists},
-	{name: 'secondPublicKey', mod: ':raw', init: () => 'ENCODE("secondPublicKey", \'hex\')', skip: ifNotExists},
+	{name: 'publicKey', mod: ':raw', init: () => 'encode("publicKey", \'hex\')', skip: ifNotExists},
+	{name: 'secondPublicKey', mod: ':raw', init: () => 'encode("secondPublicKey", \'hex\')', skip: ifNotExists},
 	{name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists}
 ];
 
 // Only used in SELECT and INSERT queries
 const immutableFields = [
-	{ name: 'address', mod: ':raw', init: () => 'UPPER(address)'}
+	{ name: 'address', mod: ':raw', init: () => 'upper(address)'}
 ];
 
 // Only used in SELECT queries
@@ -89,8 +89,8 @@ class AccountsRepository {
 			cs.select = new pgp.helpers.ColumnSet(allFields, {table: this.dbTable});
 			cs.update = new pgp.helpers.ColumnSet(normalFields, {table: this.dbTable});
 			cs.update = cs.update.merge([
-				{name: 'publicKey', mod: ':raw', init: c => (c.value === undefined || c.value === null) ? 'NULL' : `DECODE('${c.value}', 'hex')`, skip: ifNotExists},
-				{name: 'secondPublicKey', mod: ':raw', init: c => (c.value === undefined || c.value === null) ? 'NULL' : `DECODE('${c.value}', 'hex')`, skip: ifNotExists},
+				{name: 'publicKey', mod: ':raw', init: c => (c.value === undefined || c.value === null) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists},
+				{name: 'secondPublicKey', mod: ':raw', init: c => (c.value === undefined || c.value === null) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists},
 				{name: 'isDelegate', cast: 'int', def: 0, skip: ifNotExists},
 				{name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists},
 				{name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists},
@@ -99,7 +99,7 @@ class AccountsRepository {
 			]);
 
 			cs.insert = cs.update.merge([
-				{name: 'address', mod: ':raw', init: c => `UPPER('${c.value}')`}
+				{name: 'address', mod: ':raw', init: c => `upper('${c.value}')`}
 			]);
 		}
 
@@ -318,12 +318,12 @@ class AccountsRepository {
 
 		let dynamicConditions = [];
 		if (filters && filters.multisig) {
-			dynamicConditions.push(pgp.as.format('"multimin" > 0'));
+			dynamicConditions.push(pgp.as.format('multimin > 0'));
 			delete filters.multisig;
 		}
 
 		if (filters && Array.isArray(filters.address) && filters.address.length) {
-			dynamicConditions.push(pgp.as.format('"address" IN ($1:csv)', [filters.address]));
+			dynamicConditions.push(pgp.as.format('address IN ($1:csv)', [filters.address]));
 			delete filters.address;
 		}
 
@@ -351,7 +351,7 @@ class AccountsRepository {
 				options.sortField.map((field, index) => {
 					sortSQL.push(this.pgp.as.format('$1:name $2:raw', [field, options.sortMethod[index]]));
 				});
-				sql = sql + `ORDER BY ${sortSQL.join(', ')}`;
+				sql = sql + `ORDER BY ${sortSQL.join()}`;
 			}
 		}
 
