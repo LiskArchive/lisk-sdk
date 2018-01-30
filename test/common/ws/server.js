@@ -13,7 +13,7 @@
  */
 'use strict';
 
-require('../../setup'); // ensure availability of global variables
+require('../../setup'); // Ensure availability of global variables
 
 var randomstring = require('randomstring');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
