@@ -431,7 +431,7 @@ class AccountsRepository {
 	 */
 	insertDependencies (address, dependentId, dependency) {
 		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
-			return Promise.reject(new TypeError(`Error: db.accounts.removeDependencies called with invalid argument dependency=${dependency}`));
+			return Promise.reject(new TypeError(`Error: db.accounts.insertDependencies called with invalid argument dependency=${dependency}`));
 		}
 
 		const dependentTable = new this.pgp.helpers.TableName({table: `${this.dbTable}2${dependency}`, schema: 'public'});
