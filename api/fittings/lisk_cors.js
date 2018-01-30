@@ -18,21 +18,17 @@ var _ = require('lodash');
 var CORS = require('cors');
 
 /**
- * Description of the module.
- * @module
+ * Description.
+ *
+ * @func create_cors
+ * @memberof api/fittings
+ * @requires cors
  * @requires debug
  * @requires lodash
- * @requires cors
- * @todo: add description of the module
- */
-
-/**
- * Description of the function.
- * @func create
- * @param {Object} fittingDef - Description of the param.
- * @param {Object} bagpipes - Description of the param.
- * @returns {function} lisk_cors
- * @todo: add description of the function and its parameters
+ * @param {Object} fittingDef - Description of the param
+ * @param {Object} bagpipes - Description of the param
+ * @returns {function} {@link api/fittings.lisk_cors}
+ * @todo: Add description of the function and its parameters
  */
 module.exports = function create (fittingDef, bagpipes) {
 
@@ -42,11 +38,13 @@ module.exports = function create (fittingDef, bagpipes) {
 	var middleware = CORS(_.pick(fittingDef, validCorsOptions));
 
 	/**
-	 * Description of the function.
+	 * Description.
+	 *
 	 * @func lisk_cors
-	 * @param {Object} context - Description of the param.
-	 * @param {function} cb - Description of the param.
-	 * @todo: add description of the function and its parameters
+	 * @memberof api/fittings
+	 * @param {Object} context - Description of the param
+	 * @param {function} cb - Description of the param
+	 * @todo: Add description of the function and its parameters
 	 */
 	return function lisk_cors (context, cb) {
 		debug('exec');

@@ -26,22 +26,18 @@ var defaults = {
 };
 
 /**
- * Description of the module.
- * @module
+ * Description.
+ *
+ * @func create_request_limit
+ * @memberof api/fittings
  * @requires debug
- * @requires lodash
  * @requires express-rate-limit
  * @requires helpers/swagger_module_registry.getConfig
- * @todo: add description of the module
- */
-
-/**
- * Description of the function.
- * @func create
- * @param {Object} fittingDef - Description of the param.
- * @param {Object} bagpipes - Description of the param.
- * @returns {function} lisk_request_limit
- * @todo: add description of the function and its parameters
+ * @requires lodash
+ * @param {Object} fittingDef - Description of the param
+ * @param {Object} bagpipes - Description of the param
+ * @returns {function} {@link api/fittings.lisk_request_limit}
+ * @todo: Add description of the function and its parameters
  */
 module.exports = function create (fittingDef, bagpipes) {
 
@@ -69,12 +65,14 @@ module.exports = function create (fittingDef, bagpipes) {
 	var middleware = new RateLimit(_.clone(limits));
 
 	/**
-	 * Description of the function.
+	 * Description.
+	 *
 	 * @func lisk_request_limit
-	 * @param {Object} context - Description of the param.
-	 * @param {function} cb - Description of the param.
-	 * @returns {function} lisk_request_limit
-	 * @todo: add description of the function and its parameters
+	 * @memberof api/fittings
+	 * @param {Object} context - Description of the param
+	 * @param {function} cb - Description of the param
+	 * @returns {function} {@link api/fittings.lisk_request_limit}
+	 * @todo: Add description of the function and its parameters
 	 */
 	function lisk_request_limit (context, cb) {
 		debug('exec');

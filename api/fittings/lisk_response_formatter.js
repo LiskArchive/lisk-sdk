@@ -15,30 +15,29 @@
 
 var debug = require('debug')('swagger:lisk:response_formatter');
 var _ = require('lodash');
-/**
- * Description of the module.
- * @module
- * @requires debug
- * @requires lodash
- * @todo: add description of the module
- */
 
 /**
- * Description of the function.
- * @func create
- * @param {Object} fittingDef - Description of the param.
- * @param {Object} bagpipes - Description of the param.
- * @returns {function} lisk_response_formatter
- * @todo: add description of the function and its parameters
+ * Description.
+ *
+ * @func create_response_formatter
+ * @memberof api/fittings
+ * @requires debug
+ * @requires lodash
+ * @param {Object} fittingDef - Description of the param
+ * @param {Object} bagpipes - Description of the param
+ * @returns {function} {@link api/fittings.lisk_response_formatter}
+ * @todo: Add description of the function and its parameters
  */
 module.exports = function create (fittingDef, bagpipes) {
 
 	/**
-	 * Description of the function.
+	 * Description.
+	 *
 	 * @func lisk_response_formatter
-	 * @param {Object} context - Description of the param.
-	 * @param {function} next - Description of the param.
-	 * @todo: add description of the function and its parameters
+	 * @memberof api/fittings
+	 * @param {Object} context - Description of the param
+	 * @param {function} next - Description of the param
+	 * @todo: Add description of the function and its parameters
 	 */
 	return function lisk_response_formatter (context, next) {
 

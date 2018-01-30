@@ -17,29 +17,27 @@ var _ = require('lodash');
 var debug = require('debug')('swagger:lisk:params_validator');
 
 /**
- * Description of the module.
- * @module
+ * Description.
+ *
+ * @func create_params_validator
+ * @memberof api/fittings
  * @requires debug
  * @requires lodash
- * @todo: add description of the module
+ * @param {Object} fittingDef - Description of the param
+ * @param {Object} bagpipes - Description of the param
+ * @returns {function} {@link api/fittings.lisk_params_validator}
+ * @todo: Add description of the function and its parameters
  */
-
-/**
- * Description of the function.
-* @func create
-* @param {Object} fittingDef - Description of the param.
-* @param {Object} bagpipes - Description of the param.
-* @returns {function} lisk_params_validator
-* @todo: add description of the function and its parameters
-*/
 module.exports = function create (fittingDef, bagpipes) {
 
 	/**
-	 * Description of the function.
+	 * Description.
+	 *
 	 * @func lisk_params_validator
-	 * @param {Object} context - Description of the param.
-	 * @param {function} cb - Description of the param.
-	 * @todo: add description of the function and its parameters
+	 * @memberof api/fittings
+	 * @param {Object} context - Description of the param
+	 * @param {function} cb - Description of the param
+	 * @todo: Add description of the function and its parameters
 	 */
 	return function lisk_params_validator (context, cb) {
 
