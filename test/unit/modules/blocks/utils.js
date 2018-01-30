@@ -33,8 +33,8 @@ describe('blocks/utils', function () {
 	var blocksUtilsModule;
 	var dbStub;
 	var loggerStub;
-	var blockStub;
-	var transactionStub;
+	var blockMock;
+	var transactionMock;
 
 	describe('Utils', function () {
 
@@ -49,11 +49,15 @@ describe('blocks/utils', function () {
 				}
 			};
 
-			blockStub = {
-				dbRead: sinonSandbox.stub().withArgs(viewRow_full_blocks_list).returns({id: viewRow_full_blocks_list[0].b_id, height: viewRow_full_blocks_list[0].b_height})
+			blockMock = {
+				dbRead: function (input) {
+					return({id: input.b_id, height: input.b_height});
+				}
 			};
-			transactionStub = {
-				dbRead: sinonSandbox.stub().withArgs(viewRow_full_blocks_list).returns({id: viewRow_full_blocks_list[0].t_id, type: viewRow_full_blocks_list[0].t_type})
+			transactionMock = {
+				dbRead: function (input) {
+					return({id: input.t_id, type: input.t_type});
+				}
 			};
 
 			loggerStub = {
@@ -62,7 +66,7 @@ describe('blocks/utils', function () {
 				error: sinonSandbox.spy()
 			};
 
-			blocksUtilsModule =  new BlocksUtils(loggerStub, blockStub, transactionStub, dbStub, modulesLoader.scope.dbSequence, modulesLoader.scope.genesisblock);
+			blocksUtilsModule =  new BlocksUtils(loggerStub, blockMock, transactionMock, dbStub, modulesLoader.scope.dbSequence, modulesLoader.scope.genesisblock);
 			library = BlocksUtils.__get__('library');
 			__private = BlocksUtils.__get__('__private');
 			done();
@@ -85,11 +89,11 @@ describe('blocks/utils', function () {
 			describe('should assign logic', function () {
 
 				it('should assign block', function () {
-					expect(library.logic.block).to.eql(blockStub);
+					expect(library.logic.block).to.eql(blockMock);
 				});
 
 				it('should assign transaction', function () {
-					expect(library.logic.transaction).to.eql(transactionStub);
+					expect(library.logic.transaction).to.eql(transactionMock);
 				});
 			});
 		});
@@ -145,6 +149,28 @@ describe('blocks/utils', function () {
 			expect(blockObject[0].height).to.equal(viewRow_full_blocks_list[0].b_height);
 			expect(blockObject[0].transactions[0].id).to.equal(viewRow_full_blocks_list[0].t_id);
 			expect(blockObject[0].transactions[0].type).to.equal(viewRow_full_blocks_list[0].t_type);
+			done();
+		});
+
+		it('should generate fake signature for genesis block', function (done) {
+			var genesisBlock_view_full_blocks_list = [
+				{
+					b_id: '6524861224470851795',
+					b_height: 1,
+					t_id: '1465651642158264047',
+					t_type: 0
+				},{
+					b_id: '6524861224470851795',
+					b_height: 1,
+					t_id: '3634383815892709956',
+					t_type: 2
+				}
+			];
+
+			var blockObject = blocksUtilsModule.readDbRows(genesisBlock_view_full_blocks_list);
+
+			expect(blockObject[0].id).to.equal('6524861224470851795');
+			expect(blockObject[0].generationSignature).to.equal('0000000000000000000000000000000000000000000000000000000000000000');
 			done();
 		});
 	});
