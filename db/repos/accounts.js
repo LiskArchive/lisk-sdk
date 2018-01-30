@@ -149,7 +149,7 @@ class AccountsRepository {
 	 * @return {Promise}
 	 */
 	getOrphanedMemAccounts () {
-		return this.db.query(sql.getOrphanedMemAccounts);
+		return this.db.any(sql.getOrphanedMemAccounts);
 	}
 
 	/**
@@ -158,7 +158,7 @@ class AccountsRepository {
 	 * @return {Promise}
 	 */
 	getDelegates () {
-		return this.db.query(sql.getDelegates);
+		return this.db.any(sql.getDelegates);
 	}
 
 	/**

@@ -338,7 +338,7 @@ __private.loadBlockChain = function () {
 						return count < offset;
 					}, function (cb) {
 						if (count > 1) {
-							library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
+							library.logger.info('Rebuilding blockchain, current block height: ' + (offset + 1));
 						}
 						modules.blocks.process.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
 							if (err) {
@@ -398,7 +398,7 @@ __private.loadBlockChain = function () {
 			var matched = (
 				row.id === __private.genesisBlock.block.id &&
 				row.payloadHash.toString('hex') === __private.genesisBlock.block.payloadHash &&
-				row.blockSignature.toString('hex')  === __private.genesisBlock.block.blockSignature
+				row.blockSignature.toString('hex') === __private.genesisBlock.block.blockSignature
 			);
 			if (matched) {
 				library.logger.info('Genesis block matched with database');
@@ -429,88 +429,84 @@ __private.loadBlockChain = function () {
 		}
 	}
 
-	library.db.task(checkMemTables).then(function (res) {
-		var countBlocks = res[0];
-		var getGenesisBlock = res[1];
-		var countMemAccounts = res[2];
-		var getMemRounds = res[3];
-		var countDuplicatedDelegates = res[4];
+	library.db.task(checkMemTables)
+		.spread(function (countBlocks, getGenesisBlock, countMemAccounts, getMemRounds, countDuplicatedDelegates) {
 
-		var count = countBlocks.count;
-		library.logger.info('Blocks ' + count);
+			var count = countBlocks.count;
+			library.logger.info('Blocks ' + count);
 
-		var round = slots.calcRound(count);
+			var round = slots.calcRound(count);
 
-		if (count === 1) {
-			return reload(count);
-		}
-
-		matchGenesisBlock(getGenesisBlock[0]);
-
-		verify = verifySnapshot(count, round);
-
-		if (verify) {
-			return reload(count, 'Blocks verification enabled');
-		}
-
-		var missed = !(countMemAccounts.count);
-
-		if (missed) {
-			return reload(count, 'Detected missed blocks in mem_accounts');
-		}
-
-		var unapplied = getMemRounds.filter(function (row) {
-			return (row.round !== String(round));
-		});
-
-		if (unapplied.length > 0) {
-			return reload(count, 'Detected unapplied rounds in mem_round');
-		}
-
-		var duplicatedDelegates = +countDuplicatedDelegates[0].count;
-
-		if (duplicatedDelegates > 0) {
-			library.logger.error('Delegates table corrupted with duplicated entries');
-			return process.emit('exit');
-		}
-
-		function updateMemAccounts (t) {
-			var promises = [
-				t.accounts.updateMemAccounts(),
-				t.accounts.getOrphanedMemAccounts(),
-				t.accounts.getDelegates()
-			];
-
-			return t.batch(promises);
-		}
-
-		library.db.task(updateMemAccounts).then(function (res) {
-			var updateMemAccounts      = res[0];
-			var getOrphanedMemAccounts = res[1];
-			var getDelegates           = res[2];
-
-			if (getOrphanedMemAccounts.length > 0) {
-				return reload(count, 'Detected orphaned blocks in mem_accounts');
+			if (count === 1) {
+				return reload(count);
 			}
 
-			if (getDelegates.length === 0) {
-				return reload(count, 'No delegates found');
+			matchGenesisBlock(getGenesisBlock[0]);
+
+			verify = verifySnapshot(count, round);
+
+			if (verify) {
+				return reload(count, 'Blocks verification enabled');
 			}
 
-			modules.blocks.utils.loadLastBlock(function (err, block) {
-				if (err) {
-					return reload(count, err || 'Failed to load last block');
-				} else {
-					__private.lastBlock = block;
-					library.logger.info('Blockchain ready');
-					library.bus.message('blockchainReady');
-				}
+			var missed = !(countMemAccounts.count);
+
+			if (missed) {
+				return reload(count, 'Detected missed blocks in mem_accounts');
+			}
+
+			var unapplied = getMemRounds.filter(function (row) {
+				return (row.round !== String(round));
 			});
+
+			if (unapplied.length > 0) {
+				return reload(count, 'Detected unapplied rounds in mem_round');
+			}
+
+			var duplicatedDelegates = +countDuplicatedDelegates[0].count;
+
+			if (duplicatedDelegates > 0) {
+				library.logger.error('Delegates table corrupted with duplicated entries');
+				return process.emit('exit');
+			}
+
+			function updateMemAccounts (t) {
+				var promises = [
+					t.accounts.updateMemAccounts(),
+					t.accounts.getOrphanedMemAccounts(),
+					t.accounts.getDelegates()
+				];
+
+				return t.batch(promises);
+			}
+
+			// TODO: Missing .catch handler, see #1446
+			library.db.task(updateMemAccounts)
+				.spread(function (updateMemAccounts, getOrphanedMemAccounts, getDelegates) {
+
+					if (getOrphanedMemAccounts.length > 0) {
+						return reload(count, 'Detected orphaned blocks in mem_accounts');
+					}
+
+					if (getDelegates.length === 0) {
+						return reload(count, 'No delegates found');
+					}
+
+					modules.blocks.utils.loadLastBlock(function (err, block) {
+						if (err) {
+							return reload(count, err || 'Failed to load last block');
+						} else {
+							__private.lastBlock = block;
+							library.logger.info('Blockchain ready');
+							library.bus.message('blockchainReady');
+						}
+					});
+				});
+		})
+		.catch(function (err) {
+			library.logger.error(err.stack || err);
+			return process.emit('exit');
 		});
-	}).catch(function (err) {
-		library.logger.error(err.stack || err);
-		return process.emit('exit');
-	});
 };
 
 /**
