@@ -17,6 +17,13 @@ var wsApi = require('../../helpers/wsApi');
 var wsRPC = require('./rpc/wsRPC').wsRPC;
 var slaveRPCStub = require('./rpc/wsRPC').slaveRPCStub;
 
+/**
+ * Description.
+ *
+ * @class
+ * @param {Object} transportModule - Description
+ * @todo: Add description of the function and its parameters
+ */
 function TransportWSApi (transportModule) {
 
 	wsRPC.getServer().registerRPCEndpoints({
