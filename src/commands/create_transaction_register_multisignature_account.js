@@ -55,6 +55,7 @@ export const actionCreator = vorpal => async ({
 	const {
 		passphrase: passphraseSource,
 		'second-passphrase': secondPassphraseSource,
+		signature,
 	} = options;
 
 	const publicKeys = validatePublicKeys(keysgroup);
@@ -66,24 +67,30 @@ export const actionCreator = vorpal => async ({
 	const transactionLifetime = parseInt(lifetime, 10);
 	const transactionMinimumConfirmations = parseInt(minimum, 10);
 
-	return getInputsFromSources(vorpal, {
-		passphrase: {
-			source: passphraseSource,
-			repeatPrompt: true,
-		},
-		secondPassphrase: !secondPassphraseSource
-			? null
-			: {
-					source: secondPassphraseSource,
+	return signature === false
+		? processInputs(
+				transactionLifetime,
+				transactionMinimumConfirmations,
+				publicKeysWithPlus,
+			)({ passphrase: null, secondPassphrase: null })
+		: getInputsFromSources(vorpal, {
+				passphrase: {
+					source: passphraseSource,
 					repeatPrompt: true,
 				},
-	}).then(
-		processInputs(
-			transactionLifetime,
-			transactionMinimumConfirmations,
-			publicKeysWithPlus,
-		),
-	);
+				secondPassphrase: !secondPassphraseSource
+					? null
+					: {
+							source: secondPassphraseSource,
+							repeatPrompt: true,
+						},
+			}).then(
+				processInputs(
+					transactionLifetime,
+					transactionMinimumConfirmations,
+					publicKeysWithPlus,
+				),
+			);
 };
 
 const createTransactionRegisterMultisignatureAccount = createCommand({

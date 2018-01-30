@@ -158,6 +158,20 @@ export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheS
 	});
 }
 
+export function itShouldCreateARegisterMultisignatureAccountTransactionUsingTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
+	const { keysgroup, lifetime, minimum } = this.test.ctx;
+	const publicKeysWithPlus = keysgroup.map(publicKey => {
+		return `+${publicKey}`;
+	});
+	return transactions.registerMultisignature.should.be.calledWithExactly({
+		passphrase: null,
+		secondPassphrase: null,
+		keysgroup: publicKeysWithPlus,
+		lifetime,
+		minimum,
+	});
+}
+
 export function itShouldCreateARegisterMultisignatureAccountTransactionUsingThePassphraseTheSecondPassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
 	const {
 		passphrase,
