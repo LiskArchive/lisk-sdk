@@ -6,6 +6,6 @@
 
 (
   SELECT array_agg("dependentId")
-  FROM mmem_accounts2u_delegates
+  FROM mem_accounts2u_delegates
   WHERE "accountId" = mem_accounts.address
 )
