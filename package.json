@@ -30,6 +30,7 @@
     "console": "node scripts/console.js",
     "lint": "./node_modules/.bin/eslint .",
     "lint:fix": "./node_modules/.bin/eslint --fix .",
+	"format": "prettier --write \"./*.{js,json,md}\" \"{api,config,db,docs,helpers,logic,modules,schema,scripts,tasks,test}{,/**}/*.{js,json,md}\"",
     "cover:fetch": "./node_modules/.bin/grunt exec:fetchCoverage --verbose",
     "cover:report": "./node_modules/.bin/grunt coverageReport --verbose",
     "test": "./node_modules/.bin/grunt",
