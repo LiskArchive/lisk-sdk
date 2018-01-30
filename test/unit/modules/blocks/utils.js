@@ -201,40 +201,93 @@ describe('blocks/utils', function () {
 
 	describe('loadLastBlock', function () {
 
-		it('should call library.dbSequence.add');
+		it('should return error when loadLastBlock sql fails', function (done) {
+			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves();
+			loggerStub.error.reset();
 
-		it('should call library.db.query to load the last block');
-
-		describe('when db query fails', function () {
-
-			it('should call logger.error with error stack');
-
-			it('should call callback with the Blocks#loadLastBlock error');
+			blocksUtilsModule.loadLastBlock(function (err, cb) {
+				expect(loggerStub.error.args[0][0]).to.contains('TypeError: Cannot read property \'length\' of undefined');
+				expect(err).to.equal('Blocks#loadLastBlock error');
+				done();
+			});
 		});
 
-		describe('when db.query succeeds', function () {
+		describe('sorting the block.transactions array', function () {
 
-			describe('sorting the block.transactions array', function () {
+			it('should move votes to the end when block is genesis block', function (done) {
+				var genesisBlock_votes = [
+					{
+						b_id: '6524861224470851795',
+						b_height: 1,
+						t_id: '1465651642158264047',
+						t_type: 3
+					},{
+						b_id: '6524861224470851795',
+						b_height: 1,
+						t_id: '3634383815892709956',
+						t_type: 2
+					},{
+						b_id: '6524861224470851795',
+						b_height: 1,
+						t_id: '3634383815892709957',
+						t_type: 0
+					}
+				];
+				library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves(genesisBlock_votes);
 
-				describe('when block.id equals genesis.block.id', function () {
-
-					describe('and transactionType equals VOTE', function () {
-
-						it('should move it to the end of the block array');
-					});
-				});
-
-				describe('when transactionType equals SIGNATURE', function () {
-
-					it('should move it to the end of the block.transactions array');
+				blocksUtilsModule.loadLastBlock(function (err, cb) {
+					expect(cb).to.be.an('object');
+					expect(cb.id).to.equal('6524861224470851795');
+					expect(cb.transactions[0].id).to.equal('3634383815892709956');
+					expect(cb.transactions[0].type).to.equal(2);
+					expect(cb.transactions[1].id).to.equal('3634383815892709957');
+					expect(cb.transactions[1].type).to.equal(0);
+					expect(cb.transactions[2].id).to.equal('1465651642158264047');
+					expect(cb.transactions[2].type).to.equal(3);
+					done();
 				});
 			});
 
-			it('should call modules.blocks.lastBlock.set with block');
+			it('should move signatures to the end always', function (done) {
+				var genesisBlock_votes = [
+					{
+						b_id: '6524861224470851000',
+						b_height: 1,
+						t_id: '1465651642158264047',
+						t_type: 3
+					},{
+						b_id: '6524861224470851000',
+						b_height: 1,
+						t_id: '3634383815892709955',
+						t_type: 2
+					},{
+						b_id: '6524861224470851000',
+						b_height: 1,
+						t_id: '3634383815892709956',
+						t_type: 1
+					},{
+						b_id: '6524861224470851000',
+						b_height: 1,
+						t_id: '3634383815892709957',
+						t_type: 0
+					}
+				];
+				library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves(genesisBlock_votes);
 
-			it('should call callback with error = null');
-
-			it('should call callback with result containing the block');
+				blocksUtilsModule.loadLastBlock(function (err, cb) {
+					expect(cb).to.be.an('object');
+					expect(cb.id).to.equal('6524861224470851000');
+					expect(cb.transactions[0].id).to.equal('1465651642158264047');
+					expect(cb.transactions[0].type).to.equal(3);
+					expect(cb.transactions[1].id).to.equal('3634383815892709955');
+					expect(cb.transactions[1].type).to.equal(2);
+					expect(cb.transactions[2].id).to.equal('3634383815892709957');
+					expect(cb.transactions[2].type).to.equal(0);
+					expect(cb.transactions[3].id).to.equal('3634383815892709956');
+					expect(cb.transactions[3].type).to.equal(1);
+					done();
+				});
+			});
 		});
 	});
 
