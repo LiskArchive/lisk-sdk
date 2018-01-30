@@ -113,11 +113,9 @@ var liskFormats = {
 	},
 
 	parsedInt: function (value) {
-		/* eslint-disable eqeqeq */
 		if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
 			return false;
 		}
-		/* eslint-enable eqeqeq */
 		value = parseInt(value);
 		return true;
 	},

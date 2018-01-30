@@ -364,11 +364,9 @@ d.run(() => {
 						return value;
 					}
 
-					/* eslint-disable eqeqeq */
 					if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, radix))) {
 						return value;
 					}
-					/* eslint-enable eqeqeq */
 					return parseInt(value);
 				}
 			}));

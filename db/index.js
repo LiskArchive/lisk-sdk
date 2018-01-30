@@ -1,5 +1,3 @@
-/*eslint-disable */
-
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -16,10 +14,10 @@
 'use strict';
 
 const monitor = require('pg-monitor');
-const repos = require('require-all')(__dirname + '/repos');
+const repos = require('require-all')(`${__dirname}/repos`);
 
 // TODO: Had to change it from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
-let initOptions = {
+let initOptions = { //eslint-disable-line
 	pgNative: true,
 	capSQL: true,
 
@@ -47,6 +45,7 @@ module.exports.connect = (config, logger) => {
 	try {
 		monitor.detach();
 	} catch (ex) {
+		logger.log('database connect exception - ', ex);
 	}
 
 	monitor.attach(initOptions, config.logEvents);
