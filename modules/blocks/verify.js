@@ -14,8 +14,8 @@
 'use strict';
 
 var async = require('async');
+var BlockReward = require('../../logic/block_reward.js');
 var _ = require('lodash');
-var BlockReward = require('../../logic/blockReward.js');
 var constants = require('../../helpers/constants.js');
 var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');

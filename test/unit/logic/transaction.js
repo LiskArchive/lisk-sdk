@@ -19,12 +19,12 @@ var lisk = require('lisk-js');
 
 var accountFixtures = require('../../fixtures/accounts');
 
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 var application = require('../../common/application');
 
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum');
-var transactionTypes = require('../../../helpers/transactionTypes');
+var transactionTypes = require('../../../helpers/transaction_types');
 var slots = require('../../../helpers/slots');
 var constants = require('../../../helpers/constants');
 
@@ -35,8 +35,8 @@ var Delegate = require('../../../logic/delegate');
 var Signature = require('../../../logic/signature');
 var Multisignature = require('../../../logic/multisignature');
 var Dapp = require('../../../logic/dapp');
-var InTransfer = require('../../../logic/inTransfer');
-var OutTransfer = require('../../../logic/outTransfer');
+var InTransfer = require('../../../logic/in_transfer');
+var OutTransfer = require('../../../logic/out_transfer');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());

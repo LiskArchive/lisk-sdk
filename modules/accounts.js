@@ -14,14 +14,9 @@
 'use strict';
 
 var bignum = require('../helpers/bignum.js');
-var BlockReward = require('../logic/blockReward.js');
-var slots = require('../helpers/slots.js');
-var constants = require('../helpers/constants.js');
+var BlockReward = require('../logic/block_reward.js');
 var crypto = require('crypto');
-var apiCodes = require('../helpers/apiCodes.js');
-var ApiError = require('../helpers/apiError.js');
-var extend = require('extend');
-var transactionTypes = require('../helpers/transactionTypes.js');
+var transactionTypes = require('../helpers/transaction_types.js');
 var Vote = require('../logic/vote.js');
 
 // Private fields

@@ -16,7 +16,7 @@
 var _ = require('lodash');
 var async = require('async');
 var crypto = require('crypto');
-var transactionTypes = require('../../helpers/transactionTypes.js');
+var transactionTypes = require('../../helpers/transaction_types.js');
 var Promise = require('bluebird');
 
 var modules, library, self, __private = {};
