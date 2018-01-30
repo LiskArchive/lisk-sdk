@@ -89,8 +89,8 @@ class AccountsRepository {
 			cs.select = new pgp.helpers.ColumnSet(allFields, {table: this.dbTable});
 			cs.update = new pgp.helpers.ColumnSet(normalFields, {table: this.dbTable});
 			cs.update = cs.update.merge([
-				{name: 'publicKey', mod: ':raw', init: c => (c.value === undefined || c.value === null) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists},
-				{name: 'secondPublicKey', mod: ':raw', init: c => (c.value === undefined || c.value === null) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists},
+				{name: 'publicKey', mod: ':raw', init: c => _.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists},
+				{name: 'secondPublicKey', mod: ':raw', init: c => _.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists},
 				{name: 'isDelegate', cast: 'int', def: 0, skip: ifNotExists},
 				{name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists},
 				{name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists},
