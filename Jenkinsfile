@@ -96,7 +96,7 @@ def archiveLogs() {
 	try {
 		archiveArtifacts artifacts: "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*", allowEmptyArchive: true
 	} catch (err) {
-		echo err
+		echo "Error: ${err}"
 	}
 }
 
