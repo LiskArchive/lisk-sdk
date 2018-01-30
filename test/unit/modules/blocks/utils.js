@@ -138,34 +138,14 @@ describe('blocks/utils', function () {
 
 	describe('readDbRows', function () {
 
-		it('should loop through all given rows');
+		it('should transform a full_blocks_list view row into a block object', function (done) {
+			var blockObject = blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
 
-		it('should call library.logic.block.dbRead with every row');
-
-		describe('when block with id does not exist', function () {
-
-			it('should not return the block');
-		});
-
-		describe('when block with id exists', function () {
-
-			describe('and block indices are duplicated', function () {
-
-				it('should not return duplicated blocks');
-			});
-
-			describe('and block indices are unique', function () {
-
-				describe('and there are no transactions in the block', function () {
-
-					it('should return the block containing transactions = {}');
-				});
-
-				describe('and there are transactions in the block', function () {
-
-					it('should return the block containing transactions');
-				});
-			});
+			expect(blockObject[0].id).to.equal(viewRow_full_blocks_list[0].b_id);
+			expect(blockObject[0].height).to.equal(viewRow_full_blocks_list[0].b_height);
+			expect(blockObject[0].transactions[0].id).to.equal(viewRow_full_blocks_list[0].t_id);
+			expect(blockObject[0].transactions[0].type).to.equal(viewRow_full_blocks_list[0].t_type);
+			done();
 		});
 	});
 
