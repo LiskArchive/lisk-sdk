@@ -29,16 +29,16 @@ describe('create transaction register second passphrase command', () => {
 				given.anAction,
 				() => {
 					Given(
-						'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"',
-						given.aPassphrase,
+						'a Lisk object that can create transactions',
+						given.aLiskObjectThatCanCreateTransactions,
 						() => {
 							Given(
-								'a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"',
-								given.aSecondPassphrase,
+								'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"',
+								given.aPassphrase,
 								() => {
 									Given(
-										'a Lisk object that can create transactions',
-										given.aLiskObjectThatCanCreateTransactions,
+										'a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"',
+										given.aSecondPassphrase,
 										() => {
 											Given(
 												'an empty options object',
@@ -197,6 +197,38 @@ describe('create transaction register second passphrase command', () => {
 																		then.itShouldResolveToTheCreatedTransaction,
 																	);
 																},
+															);
+														},
+													);
+												},
+											);
+										},
+									);
+								},
+							);
+							Given(
+								'a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"',
+								given.aSecondPassphrase,
+								() => {
+									Given(
+										'an options object with signature set to "false"',
+										given.anOptionsObjectWithSignatureSetTo,
+										() => {
+											Given(
+												'the second passphrase can be retrieved from its source',
+												given.theSecondPassphraseCanBeRetrievedFromItsSource,
+												() => {
+													When(
+														'the action is called with the options',
+														when.theActionIsCalledWithTheOptions,
+														() => {
+															Then(
+																'it should create a register second passphrase transaction using the second passphrase',
+																then.itShouldCreateARegisterSecondPassphraseTransactionUsingTheSecondPassphrase,
+															);
+															Then(
+																'it should resolve to the created transaction',
+																then.itShouldResolveToTheCreatedTransaction,
 															);
 														},
 													);
