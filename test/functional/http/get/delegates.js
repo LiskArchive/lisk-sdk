@@ -102,7 +102,7 @@ return apiHelpers.sendTransactionPromise(creditTransaction).then(res => {
 });
 
 			it('using no secondPublicKey should return an empty array', function () {
-				return delegatesEndpoint.makeRequest({secondPublicKey: ''}, 200).then(function (res) {
+				return delegatesEndpoint.makeRequest({ secondPublicKey: '' }, 200).then(function (res) {
 					expect(res.body.data).to.be.empty;
 				});
 });
@@ -177,9 +177,8 @@ return delegatesEndpoint.makeRequest({ username: 'unknownusername' }, 200).then(
 
 		// TOFIX: #1445
 		describe.skip('search', function () {
-
 			it('using blank search should fail', function () {
-				return delegatesEndpoint.makeRequest({search: ''}, 400).then(function (res) {
+				return delegatesEndpoint.makeRequest({ search: '' }, 400).then(function (res) {
 					expectSwaggerParamError(res, 'search');
 				});
 });
@@ -396,11 +395,9 @@ return delegatesEndpoint.makeRequest({ offset: -1 }, 400).then(res => {
 	});
 
 	describe('GET /{address}/forging_stats', function () {
-
 		var forgedEndpoint = new swaggerEndpoint('GET /delegates/{address}/forging_stats');
 
 		describe('address', function () {
-
 			it('using known address should be ok', function () {
 				return forgedEndpoint.makeRequest({ address: validDelegate.address }, 200).then(function (res) {
 					var group = res.body.data;
@@ -439,9 +436,7 @@ return delegatesEndpoint.makeRequest({ offset: -1 }, 400).then(res => {
 			});
 
 			describe('?', function () {
-
 				describe('fromTimestamp', function () {
-
 					it('using too small fromTimestamp should fail', function () {
 						return forgedEndpoint.makeRequest({ address: validDelegate.address, fromTimestamp: -1 }, 400).then(function (res) {
 							expectSwaggerParamError(res, 'fromTimestamp');
@@ -466,7 +461,6 @@ return delegatesEndpoint.makeRequest({ offset: -1 }, 400).then(res => {
 				});
 
 				describe('toTimestamp', function () {
-
 					it('using too small toTimestamp should fail', function () {
 						return forgedEndpoint.makeRequest({ address: validDelegate.address, toTimestamp: 0 }, 400).then(function (res) {
 							expectSwaggerParamError(res, 'toTimestamp');

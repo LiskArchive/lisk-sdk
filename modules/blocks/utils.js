@@ -13,7 +13,6 @@
  */
 'use strict';
 
-var async = require('async');
 var _ = require('lodash');
 var constants = require('../../helpers/constants.js');
 var transactionTypes = require('../../helpers/transaction_types.js');

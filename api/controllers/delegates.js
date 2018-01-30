@@ -105,7 +105,7 @@ DelegatesController.getForgers = function (context, next) {
 
 DelegatesController.getForgingStatistics = function (context, next) {
 	var params = context.request.swagger.params;
-	
+
 	var filters = {
 		address: params.address.value,
 		start: params.fromTimestamp.value || constants.epochTime.getTime(),
@@ -113,13 +113,13 @@ DelegatesController.getForgingStatistics = function (context, next) {
 	};
 
 	modules.blocks.utils.aggregateBlocksReward(filters, function (err, reward) {
-		if (err) { 
+		if (err) {
 			if (err === 'Account not found' || err === 'Account is not a delegate') {
 				return next(swaggerHelper.generateParamsErrorObject([params.address], [err]));
 			} else {
-				return next(err); 
-			};
-		};
+				return next(err);
+			}
+		}
 
 		var forged = new bignum(reward.fees).plus(new bignum(reward.rewards)).toString();
 		var response = {
