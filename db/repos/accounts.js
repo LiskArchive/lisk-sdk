@@ -17,7 +17,53 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 const sql = require('../sql').accounts;
 
-let columnSet;
+const cs = {}; // Reusable ColumnSet objects
+
+const ifNotExists = c => !c.exists;
+
+// Used in SELECT, UPDATE, INSERT queries
+const normalFields = [
+	{name: 'isDelegate', cast: 'int::boolean', skip: ifNotExists},
+	{name: 'u_isDelegate', cast: 'int::boolean', skip: ifNotExists},
+	{name: 'secondSignature', cast: 'int::boolean', skip: ifNotExists},
+	{name: 'u_secondSignature', cast: 'int::boolean', skip: ifNotExists},
+	{name: 'balance', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'u_balance', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'rate', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'multimin', def: 0, skip: ifNotExists},
+	{name: 'u_multimin', def: 0, skip: ifNotExists},
+	{name: 'multilifetime', def: 0, skip: ifNotExists},
+	{name: 'u_multilifetime', def: 0, skip: ifNotExists},
+	{name: 'blockId', def: null, skip: ifNotExists},
+	{name: 'nameexist', def: 0, skip: ifNotExists},
+	{name: 'u_nameexist', def: 0, skip: ifNotExists},
+	{name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists},
+	{name: 'producedblocks', cast: 'bigint', def: '0', prop: 'producedBlocks', skip: ifNotExists},
+	{name: 'missedblocks', cast: 'bigint', def: '0', prop: 'missedBlocks', skip: ifNotExists},
+	{name: 'username', def: null, skip: ifNotExists},
+	{name: 'u_username', def: null, skip: ifNotExists},
+	{name: 'publicKey', mod: ':raw', init: () => 'encode("publicKey", \'hex\')', skip: ifNotExists},
+	{name: 'secondPublicKey', mod: ':raw', init: () => 'encode("secondPublicKey", \'hex\')', skip: ifNotExists},
+	{name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists}
+];
+
+// Only used in SELECT and INSERT queries
+const immutableFields = [
+	{ name: 'address', mod: ':raw', init: () => 'upper(address)'}
+];
+
+// Only used in SELECT queries
+const dynamicFields = [
+	{name: 'rank', init: () => sql.columnRank},
+	{name: 'delegates', init: () => sql.columnDelegates},
+	{name: 'u_delegates', init: () => sql.columnUDelegates},
+	{name: 'multisignatures', init: () => sql.columnMultisignatures},
+	{name: 'u_multisignatures', init: () => sql.columnUMultisignatures}
+];
+
+const allFields = _.union(normalFields, immutableFields, dynamicFields);
 
 /**
  * Accounts database interaction module.
@@ -27,85 +73,36 @@ let columnSet;
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {AccountsRepo}
+ * @return {AccountsRepository}
  */
-class AccountsRepo {
-	constructor(db, pgp) {
+class AccountsRepository {
+
+	constructor (db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 
 		this.dbTable = 'mem_accounts';
+		this.dbFields = allFields;
+		this.cs = cs;
 
-		const ifNotExists = c => !c.exists;
+		if (!cs.select) {
+			cs.select = new pgp.helpers.ColumnSet(allFields, {table: this.dbTable});
+			cs.update = new pgp.helpers.ColumnSet(normalFields, {table: this.dbTable});
+			cs.update = cs.update.merge([
+				{name: 'publicKey', mod: ':raw', init: c => _.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists},
+				{name: 'secondPublicKey', mod: ':raw', init: c => _.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists},
+				{name: 'isDelegate', cast: 'int', def: 0, skip: ifNotExists},
+				{name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists},
+				{name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists},
+				{name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists},
+				{name: 'virgin', cast: 'int', def: 1},
+			]);
 
-		// Used in SELECT, UPDATE, INSERT queries
-		const normalFields = [
-			{ name: 'isDelegate', cast: 'int::boolean', skip: ifNotExists },
-			{ name: 'u_isDelegate', cast: 'int::boolean', skip: ifNotExists },
-			{ name: 'secondSignature', cast: 'int::boolean', skip: ifNotExists },
-			{ name: 'u_secondSignature', cast: 'int::boolean', skip: ifNotExists },
-			{ name: 'balance', cast: 'bigint', def: '0', skip: ifNotExists },
-			{ name: 'u_balance', cast: 'bigint', def: '0', skip: ifNotExists },
-			{ name: 'rate', cast: 'bigint', def: '0', skip: ifNotExists },
-			{ name: 'multimin', def: 0, skip: ifNotExists },
-			{ name: 'u_multimin', def: 0, skip: ifNotExists },
-			{ name: 'multilifetime', def: 0, skip: ifNotExists },
-			{ name: 'u_multilifetime', def: 0, skip: ifNotExists },
-			{ name: 'blockId', def: null, skip: ifNotExists },
-			{ name: 'nameexist', def: 0, skip: ifNotExists },
-			{ name: 'u_nameexist', def: 0, skip: ifNotExists },
-			{ name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists },
-			{ name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists },
-			{ name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists },
-			{ name: 'producedblocks', cast: 'bigint', def: '0', prop: 'producedBlocks', skip: ifNotExists },
-			{ name: 'missedblocks', cast: 'bigint', def: '0', prop: 'missedBlocks', skip: ifNotExists },
-			{ name: 'username', def: null, skip: ifNotExists },
-			{ name: 'u_username', def: null, skip: ifNotExists },
-			{ name: 'publicKey', mod: ':raw', init: () => 'ENCODE("publicKey", \'hex\')', skip: ifNotExists },
-		{ name: 'secondPublicKey', mod: ':raw', init: () => 'ENCODE("secondPublicKey", \'hex\')', skip: ifNotExists },
-		{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists }
-	];
-
-		// Only used in SELECT and INSERT queries
-		const immutableFields = [
-			{ name: 'address', mod: ':raw', init: () => 'UPPER("address")' }
-	];
-
-		// Only used in SELECT queries
-		const dynamicFields = [
-			{ name: 'rank', cast: 'bigint', mod: ':raw', init: () => '(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::int' },
-		{ name: 'delegates', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")' },
-		{ name: 'u_delegates', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")' },
-		{ name: 'multisignatures', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2multisignatures WHERE "accountId" = "mem_accounts"."address")' },
-		{ name: 'u_multisignatures', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_multisignatures WHERE "accountId" = "mem_accounts"."address")' }
-	];
-
-		this.dbFields = _.union(normalFields, immutableFields, dynamicFields);
-
-		if (!columnSet) {
-			columnSet = {};
-
-			const table = new pgp.helpers.TableName({ table: this.dbTable, schema: 'public' });
-
-			columnSet.select = new pgp.helpers.ColumnSet(this.dbFields, { table: table });
-
-			columnSet.update = new pgp.helpers.ColumnSet(normalFields, { table: table });
-			columnSet.update = columnSet.update.merge([
-				{ name: 'publicKey', mod: ':raw', init: object => (object.value === undefined || object.value === null) ? 'NULL' : `DECODE('${object.value}', 'hex')`, skip: ifNotExists },
-			{ name: 'secondPublicKey', mod: ':raw', init: object => (object.value === undefined || object.value === null) ? 'NULL' : `DECODE('${object.value}', 'hex')`, skip: ifNotExists },
-			{ name: 'isDelegate', cast: 'int', def: 0, skip: ifNotExists },
-			{ name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists },
-			{ name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists },
-			{ name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists },
-			{ name: 'virgin', cast: 'int', def: 1 },
-		]);
-
-			columnSet.insert = columnSet.update.merge([
-				{ name: 'address', mod: ':raw', init: object => `UPPER('${object.value}')` }
-		]);
+			cs.insert = cs.update.merge([
+				{name: 'address', mod: ':raw', init: c => `upper('${c.value}')`}
+			]);     
 		}
 
-		this.cs = columnSet;
 	}
 
 	/**
@@ -129,12 +126,12 @@ class AccountsRepo {
 	}
 
 	/**
-	 * Count accounts in mem_accounts.
+	 * Counts memory accounts by blocks.
 	 *
-	 * @return {Promise}
+	 * @return {Promise<number>}
 	 */
-	countMemAccounts() {
-		return this.db.one(sql.countMemAccounts);
+	countMemAccounts () {
+		return this.db.one(sql.countMemAccounts, [], a => +a.count);
 	}
 
 	/**
@@ -151,8 +148,8 @@ class AccountsRepo {
 	 *
 	 * @return {Promise}
 	 */
-	getOrphanedMemAccounts() {
-		return this.db.query(sql.getOrphanedMemAccounts);
+	getOrphanedMemAccounts () {
+		return this.db.any(sql.getOrphanedMemAccounts);
 	}
 
 	/**
@@ -160,16 +157,16 @@ class AccountsRepo {
 	 *
 	 * @return {Promise}
 	 */
-	getDelegates() {
-		return this.db.query(sql.getDelegates);
+	getDelegates () {
+		return this.db.any(sql.getDelegates);
 	}
 
 	/**
 	 * Update or insert into mem_accounts.
 	 *
-	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
-	 * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
-	 * @param {Object} updateData - Attributes to be updated, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.update}
+	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
+	 * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#dbFields}
+	 * @param {Object} updateData - Attributes to be updated, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.update}
 	 * @return {Promise}
 	 */
 	upsert(data, conflictingFields, updateData) {
@@ -179,7 +176,7 @@ class AccountsRepo {
 		}
 
 		if (!Array.isArray(conflictingFields) || !conflictingFields.length) {
-			return Promise.reject('Error: db.accounts.upsert - invalid conflictingFields argument'); // eslint-disable-line prefer-promise-reject-errors
+			return Promise.reject(new TypeError('Error: db.accounts.upsert - invalid conflictingFields argument'));
 		}
 
 		if (!updateData) {
@@ -187,7 +184,7 @@ class AccountsRepo {
 		}
 
 		if (_.difference(_.union(Object.keys(data), Object.keys(updateData)), this.getDBFields()).length) {
-			return Promise.reject('Unknown field provided to db.accounts.upsert'); // eslint-disable-line prefer-promise-reject-errors
+			return Promise.reject(new Error('Unknown field provided to db.accounts.upsert')); // eslint-disable-line prefer-promise-reject-errors
 		}
 
 		if (conflictingFields.length === 1 && conflictingFields[0] === 'address') {
@@ -219,7 +216,7 @@ class AccountsRepo {
 	/**
 	 * Create the record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
 	 *
-	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
+	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
 	 * @return {Promise}
 	 */
 	insert(data) {
@@ -229,13 +226,13 @@ class AccountsRepo {
 	/**
 	 * Update record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
 	 *
-	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
+	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
 	 * @param {string} address - Address of the account to be updated
 	 * @return {Promise}
 	 */
 	update(address, data) {
 		if (!address) {
-			return Promise.reject('Error: db.accounts.update - invalid address argument'); // eslint-disable-line prefer-promise-reject-errors
+			return Promise.reject(new TypeError('Error: db.accounts.update - invalid address argument')); // eslint-disable-line prefer-promise-reject-errors
 		}
 
 		return this.db.none(this.pgp.helpers.update(data, this.cs.update) + this.pgp.as.format(' WHERE $1:name=$2', ['address', address]));
@@ -321,12 +318,12 @@ class AccountsRepo {
 
 		const dynamicConditions = [];
 		if (filters && filters.multisig) {
-			dynamicConditions.push(pgp.as.format('"multimin" > 0'));
+			dynamicConditions.push(pgp.as.format('multimin > 0'));
 			delete filters.multisig;
 		}
 
 		if (filters && Array.isArray(filters.address) && filters.address.length) {
-			dynamicConditions.push(pgp.as.format('"address" IN ($1:csv)', [filters.address]));
+			dynamicConditions.push(pgp.as.format('address IN ($1:csv)', [filters.address]));
 			delete filters.address;
 		}
 
@@ -357,8 +354,8 @@ class AccountsRepo {
 
 				options.sortField.map((field, index) => {
 					sortSQL.push(this.pgp.as.format('$1:name $2:raw', [field, options.sortMethod[index]]));
-			});
-				sql += `ORDER BY ${sortSQL.join(', ')}`;
+				});
+				sql += `ORDER BY ${sortSQL.join()}`;
 			}
 		}
 
@@ -418,7 +415,7 @@ class AccountsRepo {
 	 */
 	removeDependencies(address, dependentId, dependency) {
 		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
-			return Promise.reject(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`); // eslint-disable-line prefer-promise-reject-errors
+			return Promise.reject(new TypeError(`Error: db.accounts.removeDependencies called with invalid argument dependency=${dependency}`)); // eslint-disable-line prefer-promise-reject-errors
 		}
 
 		return this.db.none(sql.removeAccountDependencies, {
@@ -438,7 +435,7 @@ class AccountsRepo {
 	 */
 	insertDependencies(address, dependentId, dependency) {
 		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
-			return Promise.reject(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`); // eslint-disable-line prefer-promise-reject-errors
+			return Promise.reject(new TypeError(`Error: db.accounts.insertDependencies called with invalid argument dependency=${dependency}`)); // eslint-disable-line prefer-promise-reject-errors
 		}
 
 		const dependentTable = new this.pgp.helpers.TableName({ table: `${this.dbTable}2${dependency}`, schema: 'public' });
@@ -486,4 +483,4 @@ function Selects(columnSet, fields, pgp) {
 	};
 }
 
-module.exports = AccountsRepo;
+module.exports = AccountsRepository;

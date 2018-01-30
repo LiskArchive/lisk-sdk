@@ -21,6 +21,7 @@ var genesisDelegates = require('../../../data/genesis_delegates.json');
 var accountFixtures = require('../../../fixtures/accounts');
 
 var constants = require('../../../../helpers/constants');
+var slots = require('../../../../helpers/slots');
 
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
@@ -100,8 +101,8 @@ return apiHelpers.sendTransactionPromise(creditTransaction).then(res => {
 				});
 });
 
-			it.only('using no secondPublicKey should return an empty array', () => {
- return delegatesEndpoint.makeRequest({ secondPublicKey: '' }, 200).then(res => {
+			it('using no secondPublicKey should return an empty array', function () {
+				return delegatesEndpoint.makeRequest({ secondPublicKey: '' }, 200).then(function (res) {
 					expect(res.body.data).to.be.empty;
 				});
 });
@@ -174,9 +175,10 @@ return delegatesEndpoint.makeRequest({ username: 'unknownusername' }, 200).then(
 });
 		});
 
-		describe('search', () => {
-			it('using blank search should fail', () => {
- return delegatesEndpoint.makeRequest({ search: '' }, 400).then(res => {
+		// TOFIX: #1445
+		describe.skip('search', function () {
+			it('using blank search should fail', function () {
+				return delegatesEndpoint.makeRequest({ search: '' }, 400).then(function (res) {
 					expectSwaggerParamError(res, 'search');
 				});
 });
@@ -387,6 +389,99 @@ return delegatesEndpoint.makeRequest({ offset: -1 }, 400).then(res => {
 			it('every forger nextSlot should be greater than currentSlot', () => {
 				forgersData.data.forEach(forger => {
 					expect(forgersData.meta.currentSlot).to.be.at.most(forger.nextSlot);
+				});
+			});
+		});
+	});
+
+	describe('GET /{address}/forging_stats', function () {
+		var forgedEndpoint = new swaggerEndpoint('GET /delegates/{address}/forging_stats');
+
+		describe('address', function () {
+			it('using known address should be ok', function () {
+				return forgedEndpoint.makeRequest({ address: validDelegate.address }, 200).then(function (res) {
+					var group = res.body.data;
+					expect(parseInt(group.fees)).to.be.at.least(0);
+					expect(parseInt(group.rewards)).to.be.at.least(0);
+					expect(parseInt(group.forged)).to.be.at.least(0);
+					expect(parseInt(group.count)).to.be.at.least(0);
+					var meta = res.body.meta;
+					expect(parseInt(meta.fromTimestamp)).to.be.at.least(0);
+					expect(parseInt(meta.toTimestamp)).to.be.at.least(1);
+				});
+			});
+
+			it('using unknown address should return empty result', function () {
+				return forgedEndpoint.makeRequest({ address: randomUtil.account().address }, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
+				});
+			});
+
+			it('using invalid address should fail', function () {
+				return forgedEndpoint.makeRequest({ address: 'InvalidAddress' }, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
+				});
+			});
+
+			it('using empty address should fail', function () {
+				return forgedEndpoint.makeRequest({ address: ' ' }, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
+				});
+			});
+
+			it('using null address should fail', function () {
+				return forgedEndpoint.makeRequest({ address: null }, 400).then(function (res) {
+					expectSwaggerParamError(res, 'address');
+				});
+			});
+
+			describe('?', function () {
+				describe('fromTimestamp', function () {
+					it('using too small fromTimestamp should fail', function () {
+						return forgedEndpoint.makeRequest({ address: validDelegate.address, fromTimestamp: -1 }, 400).then(function (res) {
+							expectSwaggerParamError(res, 'fromTimestamp');
+						});
+					});
+
+					it('using valid fromTimestamp should return transactions', function () {
+						// Last hour lisk time
+						var queryTime = slots.getTime() - 60 * 60;
+
+						return forgedEndpoint.makeRequest({ address: validDelegate.address, fromTimestamp: queryTime }, 200).then(function (res) {
+							var group = res.body.data;
+							expect(parseInt(group.fees)).to.be.at.least(0);
+							expect(parseInt(group.rewards)).to.be.at.least(0);
+							expect(parseInt(group.forged)).to.be.at.least(0);
+							expect(parseInt(group.count)).to.be.at.least(0);
+							var meta = res.body.meta;
+							expect(parseInt(meta.fromTimestamp)).to.be.at.least(0);
+							expect(parseInt(meta.toTimestamp)).to.be.at.least(1);
+						});
+					});
+				});
+
+				describe('toTimestamp', function () {
+					it('using too small toTimestamp should fail', function () {
+						return forgedEndpoint.makeRequest({ address: validDelegate.address, toTimestamp: 0 }, 400).then(function (res) {
+							expectSwaggerParamError(res, 'toTimestamp');
+						});
+					});
+
+					it('using valid toTimestamp should return transactions', function () {
+						// Current lisk time
+						var queryTime = slots.getTime();
+
+						return forgedEndpoint.makeRequest({ address: validDelegate.address, toTimestamp: queryTime }, 200).then(function (res) {
+							var group = res.body.data;
+							expect(parseInt(group.fees)).to.be.at.least(0);
+							expect(parseInt(group.rewards)).to.be.at.least(0);
+							expect(parseInt(group.forged)).to.be.at.least(0);
+							expect(parseInt(group.count)).to.be.at.least(0);
+							var meta = res.body.meta;
+							expect(parseInt(meta.fromTimestamp)).to.be.at.least(0);
+							expect(parseInt(meta.toTimestamp)).to.be.at.least(1);
+						});
+					});
 				});
 			});
 		});

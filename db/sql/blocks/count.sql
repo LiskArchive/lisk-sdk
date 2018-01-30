@@ -1,7 +1,7 @@
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Counts all blocks
 
-  PARAMETERS: ?
+  PARAMETERS: None
 */
 
 SELECT count(*)::int

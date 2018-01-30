@@ -14,21 +14,33 @@
 'use strict';
 
 var _ = require('lodash');
+var bignum = require('../../helpers/bignum.js');
+var swaggerHelper = require('../../helpers/swagger');
+var constants = require('../../helpers/constants.js');
 
 // Private Fields
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class DelegatesController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * Description of the function.
+ *
+ * @class
+ * @memberof api/controllers
+ * @requires lodash
+ * @param {Object} scope - App instance
+ * @todo: Add description of DelegatesController
  */
 function DelegatesController(scope) {
 	modules = scope.modules;
 }
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 DelegatesController.getDelegates = function (context, next) {
 	var params = context.request.swagger.params;
 
@@ -80,6 +92,13 @@ DelegatesController.getDelegates = function (context, next) {
 	});
 };
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 DelegatesController.getForgers = function (context, next) {
 	var params = context.request.swagger.params;
 
@@ -97,6 +116,42 @@ DelegatesController.getForgers = function (context, next) {
 		data.links = {};
 
 		next(null, data);
+	});
+};
+
+DelegatesController.getForgingStatistics = function (context, next) {
+	var params = context.request.swagger.params;
+
+	var filters = {
+		address: params.address.value,
+		start: params.fromTimestamp.value || constants.epochTime.getTime(),
+		end: params.toTimestamp.value || Date.now()
+	};
+
+	modules.blocks.utils.aggregateBlocksReward(filters, function (err, reward) {
+		if (err) {
+			if (err === 'Account not found' || err === 'Account is not a delegate') {
+				return next(swaggerHelper.generateParamsErrorObject([params.address], [err]));
+			} else {
+				return next(err);
+			}
+		}
+
+		var forged = new bignum(reward.fees).plus(new bignum(reward.rewards)).toString();
+		var response = {
+			data: {
+				fees: reward.fees,
+				rewards: reward.rewards,
+				forged: forged,
+				count: reward.count
+			},
+			meta: {
+				fromTimestamp: filters.start,
+				toTimestamp: filters.end
+			},
+			links: {}
+		};
+		return next(null, response);
 	});
 };
 

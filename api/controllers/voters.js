@@ -23,16 +23,28 @@ var generateParamsErrorObject = swaggerHelper.generateParamsErrorObject;
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class VotersController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * Description of the function.
+ *
+ * @class
+ * @memberof api/controllers
+ * @requires lodash
+ * @requires helpers/apiCodes.NOT_FOUND
+ * @requires helpers/apiError
+ * @requires helpers/swagger.generateParamsErrorObject
+ * @param {Object} scope - App instance
+ * @todo: Add description of VotersController
  */
 function VotersController(scope) {
 	modules = scope.modules;
 }
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 VotersController.getVoters = function (context, next) {
 	var params = context.request.swagger.params;
 
@@ -89,6 +101,13 @@ VotersController.getVoters = function (context, next) {
 	});
 };
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 VotersController.getVotes = function (context, next) {
 	var params = context.request.swagger.params;
 

@@ -434,50 +434,43 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 		}
 	}
 
-	library.db.task(checkMemTables).then(function (res) {
-		var countBlocks = res[0];
-		var getGenesisBlock = res[1];
-		var countMemAccounts = res[2];
-		var getMemRounds = res[3];
-		var countDuplicatedDelegates = res[4];
+	library.db.task(checkMemTables)
+		.spread(function (blocksCount, getGenesisBlock, memAccountsCount, getMemRounds, duplicatedDelegatesCount) {
 
-		var count = countBlocks.count;
-		library.logger.info(`Blocks ${count}`);
+			library.logger.info(`Blocks ${blocksCount}`);
 
-		var round = slots.calcRound(count);
+			var round = slots.calcRound(blocksCount);
 
-		if (count === 1) {
-			return reload(count);
-		}
+			if (blocksCount === 1) {
+				return reload(blocksCount);
+			}
 
-		matchGenesisBlock(getGenesisBlock[0]);
+			matchGenesisBlock(getGenesisBlock[0]);
 
-		verify = verifySnapshot(count, round);
+			verify = verifySnapshot(blocksCount, round);
 
-		if (verify) {
-			return reload(count, 'Blocks verification enabled');
-		}
+			if (verify) {
+				return reload(blocksCount, 'Blocks verification enabled');
+			}
 
-		var missed = !(countMemAccounts.count);
+			var missed = !(memAccountsCount);
 
-		if (missed) {
-			return reload(count, 'Detected missed blocks in mem_accounts');
-		}
+			if (missed) {
+				return reload(blocksCount, 'Detected missed blocks in mem_accounts');
+			}
 
-		var unapplied = getMemRounds.filter(function (row) {
-			return (row.round !== String(round));
-		});
+			var unapplied = getMemRounds.filter(function (row) {
+				return (row.round !== String(round));
+			});
 
-		if (unapplied.length > 0) {
-			return reload(count, 'Detected unapplied rounds in mem_round');
-		}
+			if (unapplied.length > 0) {
+				return reload(blocksCount, 'Detected unapplied rounds in mem_round');
+			}
 
-		var duplicatedDelegates = +countDuplicatedDelegates[0].count;
-
-		if (duplicatedDelegates > 0) {
-			library.logger.error('Delegates table corrupted with duplicated entries');
-			return process.emit('exit');
-		}
+			if (duplicatedDelegatesCount > 0) {
+				library.logger.error('Delegates table corrupted with duplicated entries');
+				return process.emit('exit');
+			}
 
 		function updateMemAccounts(t) {
 			var promises = [
@@ -485,36 +478,36 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 				t.accounts.getOrphanedMemAccounts(),
 				t.accounts.getDelegates()
 			];
-
-			return t.batch(promises);
-		}
-
-		library.db.task(updateMemAccounts).then(function (res) {
-			var getOrphanedMemAccounts = res[1];
-			var getDelegates = res[2];
-
-			if (getOrphanedMemAccounts.length > 0) {
-				return reload(count, 'Detected orphaned blocks in mem_accounts');
+				return t.batch(promises);
 			}
 
-			if (getDelegates.length === 0) {
-				return reload(count, 'No delegates found');
-			}
+			// TODO: Missing .catch handler, see #1446
+			library.db.task(updateMemAccounts)
+				.spread(function (updateMemAccounts, getOrphanedMemAccounts, getDelegates) {
 
-			modules.blocks.utils.loadLastBlock(function (err, block) {
-				if (err) {
-					return reload(count, err || 'Failed to load last block');
-				} else {
-					__private.lastBlock = block;
-					library.logger.info('Blockchain ready');
-					library.bus.message('blockchainReady');
-				}
-			});
+					if (getOrphanedMemAccounts.length > 0) {
+						return reload(blocksCount, 'Detected orphaned blocks in mem_accounts');
+					}
+
+					if (getDelegates.length === 0) {
+						return reload(blocksCount, 'No delegates found');
+					}
+
+					modules.blocks.utils.loadLastBlock(function (err, block) {
+						if (err) {
+							return reload(blocksCount, err || 'Failed to load last block');
+						} else {
+							__private.lastBlock = block;
+							library.logger.info('Blockchain ready');
+							library.bus.message('blockchainReady');
+						}
+					});
+				});
+		})
+		.catch(function (err) {
+			library.logger.error(err.stack || err);
+			return process.emit('exit');
 		});
-	}).catch(function (err) {
-		library.logger.error(err.stack || err);
-		return process.emit('exit');
-	});
 };
 
 /**
