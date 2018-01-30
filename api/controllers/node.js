@@ -26,7 +26,7 @@ var config;
  * Description.
  *
  * @class
- * @memberof controllers
+ * @memberof api/controllers
  * @requires lodash
  * @requires helpers/apiCodes.FORBIDDEN
  * @requires helpers/apiCodes.NOT_FOUND

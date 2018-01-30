@@ -22,7 +22,7 @@ var modules;
  * Description.
  *
  * @class
- * @memberof controllers
+ * @memberof api/controllers
  * @requires lodash
  * @requires helpers/apiError
  * @param {Object} scope - App instance

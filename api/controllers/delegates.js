@@ -22,7 +22,7 @@ var modules;
  * Description.
  *
  * @class
- * @memberof controllers
+ * @memberof api/controllers
  * @requires lodash
  * @param {Object} scope - App instance
  * @todo: Add description of DelegatesController
