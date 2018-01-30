@@ -19,7 +19,7 @@ var ApiError = require('../../helpers/api_error');
 var modules;
 
 /**
- * Description.
+ * Description of the function.
  *
  * @class
  * @memberof api/controllers
@@ -33,10 +33,10 @@ function SignaturesController(scope) {
 }
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 SignaturesController.postSignatures = function (context, next) {

@@ -21,7 +21,7 @@ var swaggerHelper = require('../../helpers/swagger');
 var modules;
 
 /**
- * Description.
+ * Description of the function.
  *
  * @class
  * @memberof api/controllers
@@ -36,10 +36,10 @@ function AccountsController(scope) {
 }
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 AccountsController.getAccounts = function (context, next) {
@@ -90,10 +90,10 @@ AccountsController.getAccounts = function (context, next) {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 AccountsController.getMultisignatureGroups = function (context, next) {
@@ -131,10 +131,10 @@ AccountsController.getMultisignatureGroups = function (context, next) {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 AccountsController.getMultisignatureMemberships = function (context, next) {

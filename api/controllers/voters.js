@@ -23,7 +23,7 @@ var generateParamsErrorObject = swaggerHelper.generateParamsErrorObject;
 var modules;
 
 /**
- * Description.
+ * Description of the function.
  *
  * @class
  * @memberof api/controllers
@@ -39,10 +39,10 @@ function VotersController(scope) {
 }
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 VotersController.getVoters = function (context, next) {
@@ -102,10 +102,10 @@ VotersController.getVoters = function (context, next) {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 VotersController.getVotes = function (context, next) {

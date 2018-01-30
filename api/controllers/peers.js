@@ -19,7 +19,7 @@ var _ = require('lodash');
 var modules;
 
 /**
- * Description.
+ * Description of the function.
  *
  * @class
  * @memberof api/controllers
@@ -32,10 +32,10 @@ function PeersController(scope) {
 }
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 PeersController.getPeers = function (context, next) {

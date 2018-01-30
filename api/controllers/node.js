@@ -23,7 +23,7 @@ var modules;
 var config;
 
 /**
- * Description.
+ * Description of the function.
  *
  * @class
  * @memberof api/controllers
@@ -42,10 +42,10 @@ function NodeController(scope) {
 }
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 NodeController.getConstants = function (context, next) {
@@ -78,10 +78,10 @@ NodeController.getConstants = function (context, next) {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 NodeController.getStatus = function (context, next) {
@@ -110,10 +110,10 @@ NodeController.getStatus = function (context, next) {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 NodeController.getForgingStatus = function (context, next) {
@@ -132,10 +132,10 @@ NodeController.getForgingStatus = function (context, next) {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 NodeController.updateForgingStatus = function (context, next) {
@@ -158,10 +158,10 @@ NodeController.updateForgingStatus = function (context, next) {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 NodeController.getPooledTransactions = function (context, next) {

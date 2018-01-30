@@ -21,7 +21,7 @@ var ApiError = require('../../helpers/api_error');
 var modules;
 
 /**
- * Description.
+ * Description of the function.
  *
  * @class
  * @memberof api/controllers
@@ -37,10 +37,10 @@ function TransactionsController(scope) {
 }
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 TransactionsController.getTransactions = function (context, next) {
@@ -102,10 +102,10 @@ TransactionsController.getTransactions = function (context, next) {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} context - Description
- * @param {function} next - Description
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
 TransactionsController.postTransactions = function (context, next) {
