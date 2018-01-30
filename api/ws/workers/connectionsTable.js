@@ -14,8 +14,10 @@
 'use strict';
 
 /**
- * ConnectionsTable - stores connection (socket) ids and matches them with peer's nonces
- * @constructor
+ * ConnectionsTable - stores connection (socket) ids and matches them with peer's nonces.
+ *
+ * @class
+ * @memberof api/ws.workers
  */
 function ConnectionsTable () {
 	this.connectionIdToNonceMap = {};
@@ -23,25 +25,33 @@ function ConnectionsTable () {
 }
 
 /**
- * @param {string} connectionId
+ * Description.
+ *
+ * @param {string} connectionId - Description
  * @returns {string|undefined} returns matching nonce if an entry was added previously
+ * @todo: Add description of the function and its parameters
  */
 ConnectionsTable.prototype.getNonce = function (connectionId) {
 	return this.connectionIdToNonceMap[connectionId];
 };
 
 /**
- * @param {string} nonce
+ * Description.
+ *
+ * @param {string} nonce - Description
  * @returns {string|undefined} returns matching connectionId if an entry was added previously
+ * @todo: Add description of the function and its parameters
  */
 ConnectionsTable.prototype.getConnectionId = function (nonce) {
 	return this.nonceToConnectionIdMap[nonce];
 };
 
 /**
- * Links peer via nonce with given connectionId
- * @param {string} nonce
- * @param {string} connectionId
+ * Links peer via nonce with given connectionId.
+ *
+ * @param {string} nonce - Description
+ * @param {string} connectionId - Description
+ * @todo: Add descriptions of the parameters
  */
 ConnectionsTable.prototype.add = function (nonce, connectionId) {
 
@@ -57,8 +67,10 @@ ConnectionsTable.prototype.add = function (nonce, connectionId) {
 };
 
 /**
- * Removes a peer with assigned connectionId
- * @param {string} nonce
+ * Removes a peer with assigned connectionId.
+ *
+ * @param {string} nonce - Description
+ * @todo: Add description of the parameter
  */
 ConnectionsTable.prototype.remove = function (nonce) {
 	if (!nonce) {

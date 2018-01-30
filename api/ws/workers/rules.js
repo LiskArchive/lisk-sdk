@@ -38,10 +38,14 @@ var ON_MASTER = {
 };
 
 /**
- * @param {function} insert
- * @param {function} remove
- * @param {function} block
- * @constructor
+ * Description.
+ *
+ * @class
+ * @memberof api/ws
+ * @param {function} insert - Description
+ * @param {function} remove - Description
+ * @param {function} block - Description
+ * @todo: Add description of class and its parameters
  */
 function Rules (insert, remove, block) {
 	this.rules = {};

@@ -14,20 +14,23 @@
 'use strict';
 
 /**
- * Sends messages from slave processes to master
- * @param {SlaveWAMPServer} slaveWAMPServer - used to send verified update requests to master process.
- * @constructor
+ * Sends messages from slave processes to master.
+ *
+ * @class
+ * @param {Object} slaveWAMPServer - used to send verified update requests to master process.
  */
 function SlaveToMasterSender (slaveWAMPServer) {
 	this.slaveWAMPServer = slaveWAMPServer;
 }
 
 /**
- * Sends requests to main process with SocketCluster authKey attached
- * @param {string} procedureName
- * @param {number} updateType
- * @param {Object} peer
- * @param {function} cb
+ * Sends requests to main process with SocketCluster authKey attached.
+ *
+ * @param {string} procedureName - Description
+ * @param {number} updateType - Description
+ * @param {Object} peer - Description
+ * @param {function} cb - Description
+ * @todo: Add descriptions for the parameters
  */
 SlaveToMasterSender.prototype.send = function (procedureName, updateType, peer, cb) {
 	this.slaveWAMPServer.sendToMaster(procedureName, {
@@ -38,8 +41,11 @@ SlaveToMasterSender.prototype.send = function (procedureName, updateType, peer, 
 };
 
 /**
- * @param {string} nonce
- * @param {function} cb
+ * Description.
+ *
+ * @param {string} nonce - Description
+ * @param {function} cb - Description
+ * @todo: Add description of the function and its parameters
  */
 SlaveToMasterSender.prototype.getPeer = function (nonce, cb) {
 	this.slaveWAMPServer.sendToMaster('list', {query: {nonce: nonce}}, nonce, function (err, result) {
