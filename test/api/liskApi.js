@@ -1116,7 +1116,7 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('Integration test retry routing', function () {
+	describe('integration test retry routing', function () {
 		var thisLSK = lisk.api();
 		var popsicleStub;
 		beforeEach(function () {
