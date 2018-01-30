@@ -41,7 +41,7 @@ var ON_MASTER = {
  * Description.
  *
  * @class
- * @memberof api/ws
+ * @memberof api/ws.rpc
  * @param {function} insert - Description
  * @param {function} remove - Description
  * @param {function} block - Description

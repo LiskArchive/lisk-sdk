@@ -21,6 +21,7 @@ var slaveRPCStub = require('./rpc/wsRPC').slaveRPCStub;
  * Description.
  *
  * @class
+ * @memberof api/ws
  * @param {Object} transportModule - Description
  * @todo: Add description of the function and its parameters
  */
