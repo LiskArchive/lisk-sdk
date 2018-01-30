@@ -34,7 +34,7 @@ export const signMessageWithPassphrase = (message, passphrase) => {
 	return {
 		message,
 		publicKey: bufferToHex(publicKey),
-		signature: Buffer.from(signature).toString('base64'),
+		signature: bufferToHex(signature),
 	};
 };
 
@@ -43,8 +43,8 @@ export const verifyMessageWithPublicKey = ({
 	signature,
 	publicKey,
 }) => {
-	const msgBytes = Buffer.from(message);
-	const signatureBytes = Buffer.from(signature, 'base64');
+	const msgBytes = Buffer.from(message, 'utf8');
+	const signatureBytes = hexToBuffer(signature);
 	const publicKeyBytes = hexToBuffer(publicKey);
 
 	if (publicKeyBytes.length !== 32) {
@@ -86,8 +86,8 @@ export const signMessageWithTwoPassphrases = (
 		message,
 		publicKey: bufferToHex(keypairBytes.publicKey),
 		secondPublicKey: bufferToHex(secondKeypairBytes.publicKey),
-		signature: Buffer.from(signature).toString('base64'),
-		secondSignature: Buffer.from(secondSignature).toString('base64'),
+		signature: bufferToHex(signature),
+		secondSignature: bufferToHex(secondSignature),
 	};
 };
 
@@ -98,11 +98,11 @@ export const verifyMessageWithTwoPublicKeys = ({
 	publicKey,
 	secondPublicKey,
 }) => {
-	const messageBytes = Buffer.from(message);
-	const signatureBytes = Buffer.from(signature, 'base64');
-	const secondSignatureBytes = Buffer.from(secondSignature, 'base64');
-	const publicKeyBytes = Buffer.from(hexToBuffer(publicKey));
-	const secondPublicKeyBytes = Buffer.from(hexToBuffer(secondPublicKey));
+	const messageBytes = Buffer.from(message, 'utf8');
+	const signatureBytes = hexToBuffer(signature);
+	const secondSignatureBytes = hexToBuffer(secondSignature);
+	const publicKeyBytes = hexToBuffer(publicKey);
+	const secondPublicKeyBytes = hexToBuffer(secondPublicKey);
 
 	if (signatureBytes.length !== naclInstance.crypto_sign_BYTES) {
 		throw new Error(

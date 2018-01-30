@@ -46,9 +46,9 @@ describe('sign', () => {
 		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const defaultMessage = 'Some default text.';
 	const defaultSignature =
-		'l07qwsfn2dpCqic8jKro5ut2b6KaMbN3MvIubS5h6EAhBoSeYeNVH/cNfTWRcKYZhmnhBhtrSqYZl+Jrh+OnBA==';
+		'974eeac2c7e7d9da42aa273c8caae8e6eb766fa29a31b37732f22e6d2e61e8402106849e61e3551ff70d7d359170a6198669e1061b6b4aa61997e26b87e3a704';
 	const defaultSecondSignature =
-		'/ZOPadM9cMlAu5lFeeEfTl7hjnFWNJl6uXUzBdXsDQMa7gP22owcJZwf3sNLTvVG5inAe7PHekvO6dsBfayIDQ==';
+		'fd938f69d33d70c940bb994579e11f4e5ee18e715634997ab9753305d5ec0d031aee03f6da8c1c259c1fdec34b4ef546e629c07bb3c77a4bcee9db017dac880d';
 	const defaultPrintedMessage = `
 -----BEGIN LISK SIGNED MESSAGE-----
 -----MESSAGE-----
