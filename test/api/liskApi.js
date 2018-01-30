@@ -1115,4 +1115,21 @@ describe('Lisk.api()', function () {
 			});
 		});
 	});
+
+	describe('integration test retry routing', function () {
+		var thisLSK = lisk.api();
+		var popsicleStub;
+		beforeEach(function () {
+			popsicleStub = sinon.stub(thisLSK, 'doPopsicleRequest').rejects({ sorry: 'request probably timed out' });
+		});
+
+		describe('when a timeout occurs', function () {
+			it('should just call the api request once', function (done) {
+				thisLSK.sendLSK('1234L', '100', '1234', null, function () {
+					popsicleStub.callCount.should.be.equal(1);
+					done();
+				});
+			});
+		});
+	});
 });
