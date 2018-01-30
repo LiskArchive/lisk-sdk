@@ -164,9 +164,9 @@ class AccountsRepository {
 	/**
 	 * Update or insert into mem_accounts.
 	 *
-	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
-	 * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
-	 * @param {Object} updateData - Attributes to be updated, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.update}
+	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
+	 * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#dbFields}
+	 * @param {Object} updateData - Attributes to be updated, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.update}
 	 * @return {Promise}
 	 */
 	upsert (data, conflictingFields, updateData) {
@@ -176,7 +176,7 @@ class AccountsRepository {
 		}
 
 		if (!Array.isArray(conflictingFields) || !conflictingFields.length) {
-			return Promise.reject('Error: db.accounts.upsert - invalid conflictingFields argument');
+			return Promise.reject(new TypeError('Error: db.accounts.upsert - invalid conflictingFields argument'));
 		}
 
 		if (!updateData) {
@@ -184,7 +184,7 @@ class AccountsRepository {
 		}
 
 		if (_.difference(_.union(Object.keys(data), Object.keys(updateData)), this.getDBFields()).length) {
-			return Promise.reject('Unknown field provided to db.accounts.upsert');
+			return Promise.reject(new Error('Unknown field provided to db.accounts.upsert'));
 		}
 
 		if (conflictingFields.length === 1 && conflictingFields[0] === 'address') {
@@ -216,7 +216,7 @@ class AccountsRepository {
 	/**
 	 * Create the record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
 	 *
-	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
+	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
 	 * @return {Promise}
 	 */
 	insert (data) {
@@ -226,13 +226,13 @@ class AccountsRepository {
 	/**
 	 * Update record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
 	 *
-	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
+	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
 	 * @param {string} address - Address of the account to be updated
 	 * @return {Promise}
 	 */
 	update (address, data) {
 		if (!address) {
-			return Promise.reject('Error: db.accounts.update - invalid address argument');
+			return Promise.reject(new TypeError('Error: db.accounts.update - invalid address argument'));
 		}
 
 		return this.db.none(this.pgp.helpers.update(data, this.cs.update) + this.pgp.as.format(' WHERE $1:name=$2', ['address', address]));
@@ -411,7 +411,7 @@ class AccountsRepository {
 	 */
 	removeDependencies (address, dependentId, dependency) {
 		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
-			return Promise.reject(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`);
+			return Promise.reject(new TypeError(`Error: db.accounts.removeDependencies called with invalid argument dependency=${dependency}`));
 		}
 
 		return this.db.none(sql.removeAccountDependencies, {
@@ -431,7 +431,7 @@ class AccountsRepository {
 	 */
 	insertDependencies (address, dependentId, dependency) {
 		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
-			return Promise.reject(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`);
+			return Promise.reject(new TypeError(`Error: db.accounts.removeDependencies called with invalid argument dependency=${dependency}`));
 		}
 
 		const dependentTable = new this.pgp.helpers.TableName({table: `${this.dbTable}2${dependency}`, schema: 'public'});
