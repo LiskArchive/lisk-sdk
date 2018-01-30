@@ -82,6 +82,16 @@ export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublic
 	});
 }
 
+export function itShouldCreateATransferTransactionUsingTheAddressAndTheAmount() {
+	const { address, amount } = this.test.ctx;
+	return transactions.transfer.should.be.calledWithExactly({
+		recipientId: address,
+		amount,
+		passphrase: null,
+		secondPassphrase: null,
+	});
+}
+
 export function itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase() {
 	const { passphrase, secondPassphrase, address, amount } = this.test.ctx;
 	return expect(transactions.transfer).to.be.calledWithExactly({

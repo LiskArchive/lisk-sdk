@@ -41,23 +41,29 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 	const {
 		passphrase: passphraseSource,
 		'second-passphrase': secondPassphraseSource,
+		signature,
 	} = options;
 
 	validateAmount(amount);
 	validateAddress(address);
 
-	return getInputsFromSources(vorpal, {
-		passphrase: {
-			source: passphraseSource,
-			repeatPrompt: true,
-		},
-		secondPassphrase: !secondPassphraseSource
-			? null
-			: {
-					source: secondPassphraseSource,
+	return signature === false
+		? processInputs(amount, address)({
+				passphrase: null,
+				secondPassphrase: null,
+			})
+		: getInputsFromSources(vorpal, {
+				passphrase: {
+					source: passphraseSource,
 					repeatPrompt: true,
 				},
-	}).then(processInputs(amount, address));
+				secondPassphrase: !secondPassphraseSource
+					? null
+					: {
+							source: secondPassphraseSource,
+							repeatPrompt: true,
+						},
+			}).then(processInputs(amount, address));
 };
 
 const createTransactionTransfer = createCommand({
