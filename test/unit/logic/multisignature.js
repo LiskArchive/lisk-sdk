@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-'use strict';/* eslint */
+'use strict';
 
 var lisk = require('lisk-js');
 var crypto = require('crypto');
