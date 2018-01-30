@@ -111,7 +111,7 @@ class BlocksRepository {
 	 * Counts all blocks
 	 * @return {Promise<number>}
 	 */
-	count () {
+	count() {
 		return this.db.one(sql.count, [], a => +a.count);
 	}
 

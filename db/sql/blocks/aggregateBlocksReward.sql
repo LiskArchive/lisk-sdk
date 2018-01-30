@@ -11,7 +11,7 @@ WITH delegate AS
      AND m."publicKey" = decode($1, 'hex')
    LIMIT 1),
      rewards AS
-  (SELECT count(1) AS count,
+  (SELECT count(*),
           sum(reward) AS rewards
    FROM blocks
    WHERE "generatorPublicKey" = decode($1, 'hex')

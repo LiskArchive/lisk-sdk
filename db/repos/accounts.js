@@ -23,44 +23,44 @@ const ifNotExists = c => !c.exists;
 
 // Used in SELECT, UPDATE, INSERT queries
 const normalFields = [
-	{name: 'isDelegate', cast: 'int::boolean', skip: ifNotExists},
-	{name: 'u_isDelegate', cast: 'int::boolean', skip: ifNotExists},
-	{name: 'secondSignature', cast: 'int::boolean', skip: ifNotExists},
-	{name: 'u_secondSignature', cast: 'int::boolean', skip: ifNotExists},
-	{name: 'balance', cast: 'bigint', def: '0', skip: ifNotExists},
-	{name: 'u_balance', cast: 'bigint', def: '0', skip: ifNotExists},
-	{name: 'rate', cast: 'bigint', def: '0', skip: ifNotExists},
-	{name: 'multimin', def: 0, skip: ifNotExists},
-	{name: 'u_multimin', def: 0, skip: ifNotExists},
-	{name: 'multilifetime', def: 0, skip: ifNotExists},
-	{name: 'u_multilifetime', def: 0, skip: ifNotExists},
-	{name: 'blockId', def: null, skip: ifNotExists},
-	{name: 'nameexist', def: 0, skip: ifNotExists},
-	{name: 'u_nameexist', def: 0, skip: ifNotExists},
-	{name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists},
-	{name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists},
-	{name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists},
-	{name: 'producedblocks', cast: 'bigint', def: '0', prop: 'producedBlocks', skip: ifNotExists},
-	{name: 'missedblocks', cast: 'bigint', def: '0', prop: 'missedBlocks', skip: ifNotExists},
-	{name: 'username', def: null, skip: ifNotExists},
-	{name: 'u_username', def: null, skip: ifNotExists},
-	{name: 'publicKey', mod: ':raw', init: () => 'encode("publicKey", \'hex\')', skip: ifNotExists},
-	{name: 'secondPublicKey', mod: ':raw', init: () => 'encode("secondPublicKey", \'hex\')', skip: ifNotExists},
-	{name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists}
+	{ name: 'isDelegate', cast: 'int::boolean', skip: ifNotExists },
+	{ name: 'u_isDelegate', cast: 'int::boolean', skip: ifNotExists },
+	{ name: 'secondSignature', cast: 'int::boolean', skip: ifNotExists },
+	{ name: 'u_secondSignature', cast: 'int::boolean', skip: ifNotExists },
+	{ name: 'balance', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'u_balance', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'rate', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'multimin', def: 0, skip: ifNotExists },
+	{ name: 'u_multimin', def: 0, skip: ifNotExists },
+	{ name: 'multilifetime', def: 0, skip: ifNotExists },
+	{ name: 'u_multilifetime', def: 0, skip: ifNotExists },
+	{ name: 'blockId', def: null, skip: ifNotExists },
+	{ name: 'nameexist', def: 0, skip: ifNotExists },
+	{ name: 'u_nameexist', def: 0, skip: ifNotExists },
+	{ name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'producedblocks', cast: 'bigint', def: '0', prop: 'producedBlocks', skip: ifNotExists },
+	{ name: 'missedblocks', cast: 'bigint', def: '0', prop: 'missedBlocks', skip: ifNotExists },
+	{ name: 'username', def: null, skip: ifNotExists },
+	{ name: 'u_username', def: null, skip: ifNotExists },
+	{ name: 'publicKey', mod: ':raw', init: () => 'encode("publicKey", \'hex\')', skip: ifNotExists },
+	{ name: 'secondPublicKey', mod: ':raw', init: () => 'encode("secondPublicKey", \'hex\')', skip: ifNotExists },
+	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists }
 ];
 
 // Only used in SELECT and INSERT queries
 const immutableFields = [
-	{ name: 'address', mod: ':raw', init: () => 'upper(address)'}
+	{ name: 'address', mod: ':raw', init: () => 'upper(address)' }
 ];
 
 // Only used in SELECT queries
 const dynamicFields = [
-	{name: 'rank', init: () => sql.columnRank},
-	{name: 'delegates', init: () => sql.columnDelegates},
-	{name: 'u_delegates', init: () => sql.columnUDelegates},
-	{name: 'multisignatures', init: () => sql.columnMultisignatures},
-	{name: 'u_multisignatures', init: () => sql.columnUMultisignatures}
+	{ name: 'rank', init: () => sql.columnRank },
+	{ name: 'delegates', init: () => sql.columnDelegates },
+	{ name: 'u_delegates', init: () => sql.columnUDelegates },
+	{ name: 'multisignatures', init: () => sql.columnMultisignatures },
+	{ name: 'u_multisignatures', init: () => sql.columnUMultisignatures }
 ];
 
 const allFields = _.union(normalFields, immutableFields, dynamicFields);
@@ -76,8 +76,7 @@ const allFields = _.union(normalFields, immutableFields, dynamicFields);
  * @return {AccountsRepository}
  */
 class AccountsRepository {
-
-	constructor (db, pgp) {
+	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 
@@ -86,23 +85,22 @@ class AccountsRepository {
 		this.cs = cs;
 
 		if (!cs.select) {
-			cs.select = new pgp.helpers.ColumnSet(allFields, {table: this.dbTable});
-			cs.update = new pgp.helpers.ColumnSet(normalFields, {table: this.dbTable});
+			cs.select = new pgp.helpers.ColumnSet(allFields, { table: this.dbTable });
+			cs.update = new pgp.helpers.ColumnSet(normalFields, { table: this.dbTable });
 			cs.update = cs.update.merge([
-				{name: 'publicKey', mod: ':raw', init: c => _.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists},
-				{name: 'secondPublicKey', mod: ':raw', init: c => _.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists},
-				{name: 'isDelegate', cast: 'int', def: 0, skip: ifNotExists},
-				{name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists},
-				{name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists},
-				{name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists},
-				{name: 'virgin', cast: 'int', def: 1},
+				{ name: 'publicKey', mod: ':raw', init: c => _.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists },
+				{ name: 'secondPublicKey', mod: ':raw', init: c => _.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists },
+				{ name: 'isDelegate', cast: 'int', def: 0, skip: ifNotExists },
+				{ name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists },
+				{ name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists },
+				{ name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists },
+				{ name: 'virgin', cast: 'int', def: 1 },
 			]);
 
 			cs.insert = cs.update.merge([
-				{name: 'address', mod: ':raw', init: c => `upper('${c.value}')`}
-			]);     
+				{ name: 'address', mod: ':raw', init: c => `upper('${c.value}')` }
+			]);
 		}
-
 	}
 
 	/**
@@ -130,7 +128,7 @@ class AccountsRepository {
 	 *
 	 * @return {Promise<number>}
 	 */
-	countMemAccounts () {
+	countMemAccounts() {
 		return this.db.one(sql.countMemAccounts, [], a => +a.count);
 	}
 
@@ -148,7 +146,7 @@ class AccountsRepository {
 	 *
 	 * @return {Promise}
 	 */
-	getOrphanedMemAccounts () {
+	getOrphanedMemAccounts() {
 		return this.db.any(sql.getOrphanedMemAccounts);
 	}
 
@@ -157,7 +155,7 @@ class AccountsRepository {
 	 *
 	 * @return {Promise}
 	 */
-	getDelegates () {
+	getDelegates() {
 		return this.db.any(sql.getDelegates);
 	}
 

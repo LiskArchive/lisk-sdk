@@ -84,13 +84,13 @@ function TransactionsRepo(db, pgp) {
 }
 
 var Queries = {
-	count: 'SELECT COUNT("id")::int AS "count" FROM trs',
+	count: 'SELECT COUNT(*)::int AS "count" FROM trs',
 
-	countById: new PQ('SELECT COUNT("id")::int AS "count" FROM trs WHERE "id" = $1'),
+	countById: new PQ('SELECT COUNT(*)::int AS "count" FROM trs WHERE "id" = $1'),
 
 	countList: function (params) {
 		return [
-			'SELECT COUNT(1) FROM trs_list',
+			'SELECT COUNT(*) FROM trs_list',
 			(params.where.length || params.owner ? 'WHERE' : ''),
 			(params.where.length ? `(${params.where.join(' ')})` : ''),
 			// FIXME: Backward compatibility, should be removed after transitional period

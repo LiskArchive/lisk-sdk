@@ -442,7 +442,7 @@ describe('db', function () {
 							return db.accounts.list({}, ['address']).then(function (data) {
 								count = data.length;
 
-								return db.one('SELECT COUNT(address)::int as count from mem_accounts').then(function (result) {
+								return db.one('SELECT COUNT(*)::int as count from mem_accounts').then(function (result) {
 									expect(result.count).to.be.equal(count);
 								});
 							});
