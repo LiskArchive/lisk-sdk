@@ -69,7 +69,7 @@ var getVotersForDelegates = function (filters, delegate, cb) {
 };
 
 var populateVoters = function (sort, addresses, cb) {
-	modules.accounts.getAccounts({address: {$in: addresses}, sort: sort}, ['address', 'balance', 'publicKey'], cb);
+	modules.accounts.getAccounts({address: addresses, sort: sort}, ['address', 'balance', 'publicKey'], cb);
 };
 
 var getVotersCountForDelegates = function (delegate, cb) {
@@ -115,7 +115,7 @@ var getVotesForDelegates = function (filters, delegate, cb) {
 };
 
 var populateVotes = function (sort, addresses, cb) {
-	modules.accounts.getAccounts({address: {$in: addresses}, sort: sort}, ['address', 'balance', 'publicKey', 'username'], cb);
+	modules.accounts.getAccounts({address: addresses, sort: sort}, ['address', 'balance', 'publicKey', 'username'], cb);
 };
 
 /**
