@@ -4,5 +4,5 @@
   PARAMETERS: ?
 */
 
-SELECT count("rowId")::int
+SELECT count(*)::int
 FROM blocks
