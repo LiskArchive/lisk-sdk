@@ -29,19 +29,21 @@ __private = {};
  * @classdesc Main Utils logic.
  * Allows utils functions for blocks.
  * @param {Object} logger
+ * @param {Account} account
  * @param {Block} block
  * @param {Transaction} transaction
  * @param {Database} db
  * @param {Sequence} dbSequence
  * @param {Object} genesisblock
  */
-function Utils(logger, block, transaction, db, dbSequence, genesisblock) {
+function Utils(logger, account, block, transaction, db, dbSequence, genesisblock) {
 	library = {
 		logger: logger,
 		db: db,
 		dbSequence: dbSequence,
 		genesisblock: genesisblock,
 		logic: {
+			account: account,
 			block: block,
 			transaction: transaction,
 		},
@@ -349,8 +351,8 @@ Utils.prototype.getBlockProgressLogger = function (transactionsCount, logsFreque
  * @public
  * @async
  * @method aggregateBlocksReward
- * @param  {Object}   filter ID of block to begin with
- * @param  {string}   filter.generatorPublicKey Delegate public key
+ * @param  {Object}   filter
+ * @param  {string}   filter.address Delegate address
  * @param  {number}   [filter.start] Start timestamp
  * @param  {number}   [filter.end] End timestamp
  * @param  {function} cb Callback function
@@ -364,28 +366,40 @@ Utils.prototype.getBlockProgressLogger = function (transactionsCount, logsFreque
 Utils.prototype.aggregateBlocksReward = function (filter, cb) {
 	var params = {};
 
-	params.generatorPublicKey = filter.generatorPublicKey;
-	params.delegates = constants.activeDelegates;
-
-	if (filter.start !== undefined) {
-		params.start = filter.start - constants.epochTime.getTime() / 1000;
-	}
-
-	if (filter.end !== undefined) {
-		params.end = filter.end - constants.epochTime.getTime() / 1000;
-	}
-
-	// Get calculated rewards
-	library.db.blocks.aggregateBlocksReward(params).then(rows => {
-		var data = rows[0];
-		if (data.delegate === null) {
-			return setImmediate(cb, 'Account not found or is not a delegate');
+	library.logic.account.get({ address: filter.address }, function (err, account) {
+		if (err) {
+			return setImmediate(cb, err);
 		}
-		data = { fees: data.fees || '0', rewards: data.rewards || '0', count: data.count || '0' };
-		return setImmediate(cb, null, data);
-	}).catch(err => {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
+
+		if (!account) {
+			return setImmediate(cb, 'Account not found');
+		}
+
+		params.generatorPublicKey = account.publicKey;
+		params.delegates = constants.activeDelegates;
+
+		if (filter.start !== undefined) {
+			params.start = (filter.start - constants.epochTime.getTime()) / 1000;
+			params.start = params.start.toFixed();
+		}
+
+		if (filter.end !== undefined) {
+			params.end = (filter.end - constants.epochTime.getTime()) / 1000;
+			params.end = params.end.toFixed();
+		}
+
+		// Get calculated rewards
+		library.db.blocks.aggregateBlocksReward(params).then(function (rows) {
+			var data = rows[0];
+			if (data.delegate === null) {
+				return setImmediate(cb, 'Account is not a delegate');
+			}
+			data = { fees: data.fees || '0', rewards: data.rewards || '0', count: data.count || '0' };
+			return setImmediate(cb, null, data);
+		}).catch(function (err) {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
+		});
 	});
 };
 

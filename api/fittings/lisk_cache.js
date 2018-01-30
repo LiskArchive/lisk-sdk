@@ -13,9 +13,22 @@
  */
 'use strict';
 
-var modules = require('../../helpers/swagger_module_registry');
 var debug = require('debug')('swagger:lisk:cache');
+var modules = require('../../helpers/swagger_module_registry');
 
+/**
+ * Description of the function.
+ *
+ * @func create_caches
+ * @memberof api/fittings
+ * @requires debug
+ * @requires helpers/swagger_module_registry.getCache
+ * @requires helpers/swagger_module_registry.getLogger
+ * @param {Object} fittingDef - Description of the param
+ * @param {Object} bagpipes - Description of the param
+ * @returns {function} {@link api/fittings.lisk_cache}
+ * @todo: Add description of the function and its parameters
+ */
 module.exports = function create(fittingDef) {
 	var cache = modules.getCache();
 	var logger = modules.getLogger();
@@ -24,6 +37,16 @@ module.exports = function create(fittingDef) {
 
 	debug('create', mode);
 
+	/**
+	 * Description of the function.
+	 *
+	 * @func lisk_cache
+	 * @memberof api/fittings
+	 * @param {Object} context - Description of the param
+	 * @param {function} next - Description of the param
+	 * @todo: Add description of the function and its parameters
+	 * @todo: Add @returns-tag
+	 */
 	return function lisk_cache(context, next) {
 		debug('exec', mode);
 

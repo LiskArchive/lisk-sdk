@@ -21,16 +21,27 @@ var swaggerHelper = require('../../helpers/swagger');
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class AccountsController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * Description of the function.
+ *
+ * @class
+ * @memberof api/controllers
+ * @requires lodash
+ * @requires helpers/apiError
+ * @requires helpers/swagger.generateParamsErrorObject
+ * @param {Object} scope - App instance
+ * @todo: Add description of AccountsController
  */
 function AccountsController(scope) {
 	modules = scope.modules;
 }
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 AccountsController.getAccounts = function (context, next) {
 	var params = context.request.swagger.params;
 
@@ -78,6 +89,13 @@ AccountsController.getAccounts = function (context, next) {
 	});
 };
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 AccountsController.getMultisignatureGroups = function (context, next) {
 	var params = context.request.swagger.params;
 
@@ -112,6 +130,13 @@ AccountsController.getMultisignatureGroups = function (context, next) {
 	});
 };
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 AccountsController.getMultisignatureMemberships = function (context, next) {
 	var params = context.request.swagger.params;
 
