@@ -65,6 +65,7 @@ DelegatesController.getDelegates = function (context, next) {
 
 			delegate.missedBlocks = parseInt(delegate.missedBlocks);
 			delegate.producedBlocks = parseInt(delegate.producedBlocks);
+			delegate.rank = parseInt(delegate.rank);
 
 			return delegate;
 		});

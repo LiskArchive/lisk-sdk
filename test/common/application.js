@@ -23,7 +23,7 @@ var DBSandbox = require('./DBSandbox').DBSandbox;
 var swagger = require('../../config/swagger');
 var jobsQueue = require('../../helpers/jobsQueue');
 var Sequence = require('../../helpers/sequence');
-var dbRepos = require('require-all')(`${__dirname}/../../db`);
+var dbRepos = require('require-all')(`${__dirname}/../../db/repos`);
 
 var dbSandbox;
 var currentAppScope;

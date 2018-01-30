@@ -17,7 +17,14 @@ const {link} = require('./config');
 
 module.exports = {
 	accounts: {
-		// sql to be included
+		resetMemoryTables: link('accounts/resetMemoryTables.sql'),
+		countMemAccounts: link('accounts/countMemAccounts.sql'),
+		updateMemAccounts: link('accounts/updateMemAccounts.sql'),
+		getOrphanedMemAccounts: link('accounts/getOrphanedMemAccounts.sql'),
+		getDelegates: link('accounts/getDelegates.sql'),
+		incrementAccount: link('accounts/incrementAccount.sql'),
+		decrementAccount: link('accounts/decrementAccount.sql'),
+		removeAccountDependencies: link('accounts/removeAccountDependencies.sql')
 	},
 	blocks: {
 		aggregateBlocksReward: link('blocks/aggregateBlocksReward.sql'),
@@ -76,7 +83,9 @@ module.exports = {
 		getMemRounds: link('rounds/getMemRounds.sql'),
 		flush: link('rounds/flush.sql'),
 		truncateBlocks: link('rounds/truncateBlocks.sql'),
-		getDelegatesSnapshot: link('rounds/getDelegatesSnapshot.sql')
+		getDelegatesSnapshot: link('rounds/getDelegatesSnapshot.sql'),
+		insertRoundInformationWithAmount: link('rounds/insertRoundInformationWithAmount.sql'),
+		insertRoundInformationWithDelegate: link('rounds/insertRoundInformationWithDelegate.sql')
 	},
 	votes: {
 		getVotes: link('votes/getVotes.sql'),

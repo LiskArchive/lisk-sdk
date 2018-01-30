@@ -137,9 +137,9 @@ __private.syncTimer = function () {
 		library.logger.trace('Sync timer trigger', { loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get() });
 
 		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
-			library.sequence.add(sequenceCb => {
+			library.sequence.add(function (sequenceCb) {
 				async.retry(__private.retries, __private.sync, sequenceCb);
-			}, err => {
+			}, function (err) {
 				if (err) {
 					library.logger.error('Sync timer', err);
 					__private.initialize();
@@ -169,7 +169,7 @@ __private.syncTimer = function () {
 __private.loadSignatures = function (cb) {
 	async.waterfall([
 		function (waterCb) {
-			self.getNetwork((err, network) => {
+			self.getNetwork(function (err, network) {
 				if (err) {
 					return setImmediate(waterCb, err);
 				} else {
@@ -180,28 +180,34 @@ __private.loadSignatures = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log(`Loading signatures from: ${peer.string}`);
-			peer.rpc.getSignatures((err, res) => {
+			peer.rpc.getSignatures(function (err, res) {
 				if (err) {
 					peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
 					return setImmediate(waterCb, err);
 				} else {
-					library.schema.validate(res, definitions.WSSignaturesResponse, err => setImmediate(waterCb, err, res.signatures));
+					library.schema.validate(res, definitions.WSSignaturesResponse, function (err) {
+						return setImmediate(waterCb, err, res.signatures);
+					});
 				}
 			});
 		},
 		function (signatures, waterCb) {
-			library.sequence.add(cb => {
-				async.eachSeries(signatures, (signature, eachSeriesCb) => {
-					async.eachSeries(signature.signatures, (s, eachSeriesCb) => {
+			library.sequence.add(function (cb) {
+				async.eachSeries(signatures, function (signature, eachSeriesCb) {
+					async.eachSeries(signature.signatures, function (s, eachSeriesCb) {
 						modules.multisignatures.processSignature({
 							signature: s,
 							transactionId: signature.transactionId
-						}, err => setImmediate(eachSeriesCb, err));
+						}, function (err) {
+							return setImmediate(eachSeriesCb, err);
+						});
 					}, eachSeriesCb);
 				}, cb);
 			}, waterCb);
 		}
-	], err => setImmediate(cb, err));
+	], function (err) {
+		return setImmediate(cb, err);
+	});
 };
 
 /**
@@ -223,7 +229,7 @@ __private.loadSignatures = function (cb) {
 __private.loadTransactions = function (cb) {
 	async.waterfall([
 		function (waterCb) {
-			self.getNetwork((err, network) => {
+			self.getNetwork(function (err, network) {
 				if (err) {
 					return setImmediate(waterCb, err);
 				} else {
@@ -234,12 +240,12 @@ __private.loadTransactions = function (cb) {
 		},
 		function (peer, waterCb) {
 			library.logger.log(`Loading transactions from: ${peer.string}`);
-			peer.rpc.getTransactions((err, res) => {
+			peer.rpc.getTransactions(function (err, res) {
 				if (err) {
 					peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
 					return setImmediate(waterCb, err);
 				}
-				library.schema.validate(res, definitions.WSTransactionsResponse, err => {
+				library.schema.validate(res, definitions.WSTransactionsResponse, function (err) {
 					if (err) {
 						return setImmediate(waterCb, err[0].message);
 					} else {
@@ -249,7 +255,7 @@ __private.loadTransactions = function (cb) {
 			});
 		},
 		function (peer, transactions, waterCb) {
-			async.eachSeries(transactions, (transaction, eachSeriesCb) => {
+			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
 				var id = (transaction ? transactions.id : 'null');
 
 				try {
@@ -264,14 +270,16 @@ __private.loadTransactions = function (cb) {
 				}
 
 				return setImmediate(eachSeriesCb);
-			}, err => setImmediate(waterCb, err, transactions));
+			}, function (err) {
+				return setImmediate(waterCb, err, transactions);
+			});
 		},
 		function (transactions, waterCb) {
-			async.eachSeries(transactions, (transaction, eachSeriesCb) => {
-				library.balancesSequence.add(cb => {
+			async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+				library.balancesSequence.add(function (cb) {
 					transaction.bundled = true;
 					modules.transactions.processUnconfirmedTransaction(transaction, false, cb);
-				}, err => {
+				}, function (err) {
 					if (err) {
 						// TODO: Validate if error propagation required
 						library.logger.debug(err);
@@ -280,7 +288,9 @@ __private.loadTransactions = function (cb) {
 				});
 			}, waterCb);
 		}
-	], err => setImmediate(cb, err));
+	], function (err) {
+		return setImmediate(cb, err);
+	});
 };
 
 /**
@@ -293,7 +303,7 @@ __private.loadTransactions = function (cb) {
  * 2. Matches genesis block with database.
  * 3. Verifies snapshot mode.
  * 4. Recreates memory tables when neccesary:
- *  - Calls logic.account to removeTables and createTables
+ *  - Calls logic.account to resetMemTables
  *  - Calls block to load block. When blockchain ready emits a bus message.
  * 5. Detects orphaned blocks in `mem_accounts` and gets delegates.
  * 6. Loads last block and emits a bus message blockchain is ready.
@@ -301,8 +311,7 @@ __private.loadTransactions = function (cb) {
  * @implements {library.db.task}
  * @implements {slots.calcRound}
  * @implements {library.bus.message}
- * @implements {library.logic.account.removeTables}
- * @implements {library.logic.account.createTables}
+ * @implements {library.logic.account.resetMemTables}
  * @implements {async.until}
  * @implements {modules.blocks.loadBlocksOffset}
  * @implements {modules.blocks.deleteAfterBlock}
@@ -319,17 +328,8 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 		verify = true;
 		__private.total = count;
 		async.series({
-			removeTables: function (seriesCb) {
-				library.logic.account.removeTables(err => {
-					if (err) {
-						throw err;
-					} else {
-						return setImmediate(seriesCb);
-					}
-				});
-			},
-			createTables: function (seriesCb) {
-				library.logic.account.createTables(err => {
+			resetMemTables: function (seriesCb) {
+				library.logic.account.resetMemTables(function (err) {
 					if (err) {
 						throw err;
 					} else {
@@ -339,11 +339,13 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 			},
 			loadBlocksOffset: function (seriesCb) {
 				async.until(
-					() => count < offset, cb => {
+					function () {
+						return count < offset;
+					}, function (cb) {
 						if (count > 1) {
 							library.logger.info(`Rebuilding blockchain, current block height: ${offset + 1}`);
 						}
-						modules.blocks.process.loadBlocksOffset(limit, offset, verify, (err, lastBlock) => {
+						modules.blocks.process.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
 							if (err) {
 								return setImmediate(cb, err);
 							}
@@ -353,15 +355,17 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 
 							return setImmediate(cb);
 						});
-					}, err => setImmediate(seriesCb, err)
+					}, function (err) {
+						return setImmediate(seriesCb, err);
+					}
 				);
 			}
-		}, err => {
+		}, function (err) {
 			if (err) {
 				library.logger.error(err);
 				if (err.block) {
 					library.logger.error(`Blockchain failed at: ${err.block.height}`);
-					modules.blocks.chain.deleteAfterBlock(err.block.id, () => {
+					modules.blocks.chain.deleteAfterBlock(err.block.id, function () {
 						library.logger.error('Blockchain clipped');
 						library.bus.message('blockchainReady');
 					});
@@ -430,7 +434,7 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 		}
 	}
 
-	library.db.task(checkMemTables).then(res => {
+	library.db.task(checkMemTables).then(function (res) {
 		var countBlocks = res[0];
 		var getGenesisBlock = res[1];
 		var countMemAccounts = res[2];
@@ -460,7 +464,9 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 			return reload(count, 'Detected missed blocks in mem_accounts');
 		}
 
-		var unapplied = getMemRounds.filter(row => (row.round !== String(round)));
+		var unapplied = getMemRounds.filter(function (row) {
+			return (row.round !== String(round));
+		});
 
 		if (unapplied.length > 0) {
 			return reload(count, 'Detected unapplied rounds in mem_round');
@@ -483,7 +489,7 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 			return t.batch(promises);
 		}
 
-		library.db.task(updateMemAccounts).then(res => {
+		library.db.task(updateMemAccounts).then(function (res) {
 			var getOrphanedMemAccounts = res[1];
 			var getDelegates = res[2];
 
@@ -495,7 +501,7 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 				return reload(count, 'No delegates found');
 			}
 
-			modules.blocks.utils.loadLastBlock((err, block) => {
+			modules.blocks.utils.loadLastBlock(function (err, block) {
 				if (err) {
 					return reload(count, err || 'Failed to load last block');
 				} else {
@@ -505,7 +511,7 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 				}
 			});
 		});
-	}).catch(err => {
+	}).catch(function (err) {
 		library.logger.error(err.stack || err);
 		return process.emit('exit');
 	});
@@ -526,34 +532,36 @@ __private.loadBlocksFromNetwork = function (cb) {
 	var errorCount = 0;
 	var loaded = false;
 
-	self.getNetwork((err, network) => {
+	self.getNetwork(function (err, network) {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
 			async.whilst(
-				() => !loaded && errorCount < 5,
-				next => {
+				function () {
+					return !loaded && errorCount < 5;
+				},
+				function (next) {
 					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
 					var lastBlock = modules.blocks.lastBlock.get();
 
 					function loadBlocks() {
 						__private.blocksToSync = peer.height;
 
-						modules.blocks.process.loadBlocksFromPeer(peer, (err, lastValidBlock) => {
+						modules.blocks.process.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 							if (err) {
 								library.logger.error(err.toString());
 								library.logger.error(`Failed to load blocks from: ${peer.string}`);
 								errorCount += 1;
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
-							lastBlock = null;
+							lastValidBlock = lastBlock = null;
 							next();
 						});
 					}
 
 					function getCommonBlock(cb) {
 						library.logger.info(`Looking for common block with: ${peer.string}`);
-						modules.blocks.process.getCommonBlock(peer, lastBlock.height, (err, commonBlock) => {
+						modules.blocks.process.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
 							if (!commonBlock) {
 								if (err) { library.logger.error(err.toString()); }
 								library.logger.error(`Failed to find common block with: ${peer.string}`);
@@ -572,7 +580,7 @@ __private.loadBlocksFromNetwork = function (cb) {
 						getCommonBlock(loadBlocks);
 					}
 				},
-				err => {
+				function (err) {
 					if (err) {
 						library.logger.error('Failed to load blocks from network', err);
 						return setImmediate(cb, err);
@@ -622,7 +630,7 @@ __private.sync = function (cb) {
 			library.logger.debug('Establishing broadhash consensus after sync');
 			return modules.transport.getPeers({ limit: constants.maxPeers }, seriesCb);
 		}
-	}, err => {
+	}, function (err) {
 		__private.isActive = false;
 		__private.syncTrigger(false);
 		__private.blocksToSync = 0;
@@ -645,10 +653,10 @@ Loader.prototype.findGoodPeers = function (peers) {
 	var lastBlockHeight = modules.blocks.lastBlock.get().height;
 	library.logger.trace('Good peers - received', { count: peers.length });
 
-	peers = peers.filter(item =>
+	peers = peers.filter(function (item) {
 		// Remove unreachable peers or heights below last block height
-		item != null && item.height >= lastBlockHeight
-	);
+		return item != null && item.height >= lastBlockHeight;
+	});
 
 	library.logger.trace('Good peers - filtered', { count: peers.length });
 
@@ -657,7 +665,9 @@ Loader.prototype.findGoodPeers = function (peers) {
 		return { height: 0, peers: [] };
 	} else {
 		// Order peers by descending height
-		peers = peers.sort((a, b) => b.height - a.height);
+		peers = peers.sort(function (a, b) {
+			return b.height - a.height;
+		});
 
 		var histogram = {};
 		var max = 0;
@@ -678,7 +688,11 @@ Loader.prototype.findGoodPeers = function (peers) {
 		}
 
 		// Perform histogram cut of peers too far from histogram maximum
-		peers = peers.filter(item => item && Math.abs(height - item.height) < aggregation + 1).map(item => library.logic.peers.create(item));
+		peers = peers.filter(function (item) {
+			return item && Math.abs(height - item.height) < aggregation + 1;
+		}).map(function (item) {
+			return library.logic.peers.create(item);
+		});
 
 		library.logger.trace('Good peers - accepted', { count: peers.length });
 		library.logger.debug('Good peers', peers);
@@ -700,7 +714,7 @@ Loader.prototype.getNetwork = function (cb) {
 	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.lastBlock.get().height) === 1) {
 		return setImmediate(cb, null, __private.network);
 	}
-	modules.peers.list({ normalized: false }, (err, peers) => {
+	modules.peers.list({ normalized: false }, function (err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -755,11 +769,11 @@ Loader.prototype.onPeersReady = function () {
 	// Enforce sync early
 	__private.syncTimer();
 
-	setImmediate(() => {
+	setImmediate(function load() {
 		async.series({
 			loadTransactions: function (seriesCb) {
 				if (__private.loaded) {
-					async.retry(__private.retries, __private.loadTransactions, err => {
+					async.retry(__private.retries, __private.loadTransactions, function (err) {
 						if (err) {
 							library.logger.log('Unconfirmed transactions loader', err);
 						}
@@ -772,7 +786,7 @@ Loader.prototype.onPeersReady = function () {
 			},
 			loadSignatures: function (seriesCb) {
 				if (__private.loaded) {
-					async.retry(__private.retries, __private.loadSignatures, err => {
+					async.retry(__private.retries, __private.loadSignatures, function (err) {
 						if (err) {
 							library.logger.log('Signatures loader', err);
 						}
@@ -783,7 +797,7 @@ Loader.prototype.onPeersReady = function () {
 					return setImmediate(seriesCb);
 				}
 			}
-		}, err => {
+		}, function (err) {
 			library.logger.trace('Transactions and signatures pulled');
 
 			if (err) {

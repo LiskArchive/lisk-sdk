@@ -17,8 +17,8 @@
  * Validates sort options, methods and fields.
  * @memberof module:helpers
  * @function
- * @param {Array} sort
- * @param {Object} options
+ * @param {string|Object} sort
+ * @param {Object} [options]
  * @param {string} options.fieldPrefix
  * @param {string} options.sortField
  * @param {string} options.sortMethod - asc / desc
@@ -30,6 +30,7 @@ function sortBy(sort, options) {
 	options.sortField = options.sortField || null;
 	options.sortMethod = options.sortMethod || null;
 	options.sortFields = Array.isArray(options.sortFields) ? options.sortFields : [];
+	var self = this;
 
 	if (typeof options.quoteField === 'undefined') {
 		options.quoteField = true;
@@ -40,12 +41,31 @@ function sortBy(sort, options) {
 	var sortField,
 sortMethod;
 
-	if (sort) {
+	if (typeof (sort) === 'string') {
 		var sortBy = String(sort).split(':');
 		sortField = sortBy[0].replace(/[^\w\s]/gi, '');
 
 		if (sortBy.length === 2) {
 			sortMethod = sortBy[1] === 'desc' ? 'DESC' : 'ASC';
+		} else {
+			sortMethod = 'ASC';
+		}
+	} else if (typeof (sort) === 'object') {
+		var keys = Object.keys(sort);
+
+		if (keys.length === 0) {
+			return self.sortBy('');
+		} else if (keys.length === 1) {
+			return self.sortBy(`${keys[0]}:${sort[keys[0]] === -1 ? 'desc' : 'asc'}`, options);
+		} else {
+			var sortFields = [];
+			var sortMethods = [];
+			keys.forEach(function (key) {
+				var sortResult = self.sortBy(`${key}:${sort[key] === -1 ? 'desc' : 'asc'}`, options);
+				sortFields.push(sortResult.sortField);
+				sortMethods.push(sortResult.sortMethod);
+			});
+			return { sortField: sortFields, sortMethod: sortMethods };
 		}
 	}
 
@@ -90,8 +110,8 @@ sortMethod;
 	}
 
 	return {
-		sortField: quoteField(sortField),
-		sortMethod: sortMethod
+		sortField: quoteField(sortField) || '',
+		sortMethod: sortField ? sortMethod : ''
 	};
 }
 

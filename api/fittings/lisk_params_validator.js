@@ -37,7 +37,7 @@ module.exports = function create() {
 
 				error.errors = _.map(validateResult.errors, e => {
 					var errors = _.pick(e, ['code', 'message', 'in', 'name', 'errors']);
-					errors.errors = _.map(e.errors, e => _.pick(e, ['code', 'message']));
+					errors.errors = _.map(e.errors, e => _.pick(e, ['code', 'message', 'path']));
 					return errors;
 				});
 			}

@@ -20,41 +20,20 @@ var Promise = require('bluebird');
 // Instantiate test subject
 var Round = rewire('../../../logic/round.js');
 
-var sinon = sinonSandbox;
 var slots = require('../../../helpers/slots.js');
 var bignum = require('../../../helpers/bignum.js');
 var genesisBlock = require('../../data/genesisBlock.json');
 var DBSandbox = require('../../common/DBSandbox').DBSandbox;
 
-describe('rounds', () => {
+describe('rounds', function () {
 	var db;
 	var dbSandbox;
 	var round;
 	var validScope;
 
-	// Init fake logger
-	var logger = {
-		trace: sinon.spy(),
-		debug: sinon.spy(),
-		info: sinon.spy(),
-		log: sinon.spy(),
-		warn: sinon.spy(),
-		error: sinon.spy()
-	};
-
-	var resetStates = function () {
-		logger.trace.reset();
-		logger.debug.reset();
-		logger.info.reset();
-		logger.log.reset();
-		logger.warn.reset();
-		logger.error.reset();
-		round.scope.modules.accounts.mergeAccountAndGet.reset();
-	};
-
-	before(done => {
+	before(function (done) {
 		dbSandbox = new DBSandbox(__testContext.config.db, 'rounds_logic');
-		dbSandbox.create((err, __db) => {
+		dbSandbox.create(function (err, __db) {
 			db = __db;
 
 			validScope = {
@@ -66,11 +45,18 @@ describe('rounds', () => {
 				roundRewards: [10],
 				library: {
 					db: undefined,
-					logger: logger
+					logger: {
+						trace: sinonSandbox.spy(),
+						debug: sinonSandbox.spy(),
+						info: sinonSandbox.spy(),
+						log: sinonSandbox.spy(),
+						warn: sinonSandbox.spy(),
+						error: sinonSandbox.spy()
+					}
 				},
 				modules: {
 					accounts: {
-						mergeAccountAndGet: sinon.spy()
+						mergeAccountAndGet: sinonSandbox.stub()
 					}
 				},
 				block: {
@@ -84,38 +70,38 @@ describe('rounds', () => {
 	});
 
 	function isPromise(obj) {
-		return typeof obj.then === 'function';
+		return typeof obj.then == 'function';
 	}
 
-	describe('constructor', () => {
+	describe('constructor', function () {
 		var scope;
 
-		describe('when calling with required properties', () => {
-			before(() => {
+		describe('when calling with required properties', function () {
+			before(function () {
 				scope = _.cloneDeep(validScope);
 				round = new Round(_.cloneDeep(scope), db);
 			});
 
-			it('should return Round instance', () => {
+			it('should return Round instance', function () {
 				expect(round).to.be.instanceof(Round);
 			});
 
-			it('should set scope', () => {
+			it('should set scope', function () {
 				expect(round.scope).to.deep.equal(scope);
 			});
 
-			it('should set t', () => {
+			it('should set t', function () {
 				expect(round.t).to.deep.equal(db);
 			});
 		});
 
-		describe('when calling with missing properties', () => {
-			beforeEach(() => {
+		describe('when calling with missing properties', function () {
+			beforeEach(function () {
 				scope = _.cloneDeep(validScope);
 			});
 
-			describe.skip('library', () => {
-				it('should throw', () => {
+			describe.skip('library', function () {
+				it('should throw', function () {
 					var property = 'library';
 					delete scope[property];
 					try {
@@ -126,8 +112,8 @@ describe('rounds', () => {
 				});
 			});
 
-			describe.skip('modules', () => {
-				it('should throw', () => {
+			describe.skip('modules', function () {
+				it('should throw', function () {
 					var property = 'modules';
 					delete scope[property];
 					try {
@@ -138,8 +124,8 @@ describe('rounds', () => {
 				});
 			});
 
-			describe.skip('block', () => {
-				it('should throw', () => {
+			describe.skip('block', function () {
+				it('should throw', function () {
 					var property = 'block';
 					delete scope[property];
 					try {
@@ -150,8 +136,8 @@ describe('rounds', () => {
 				});
 			});
 
-			describe('round', () => {
-				it('should throw', () => {
+			describe('round', function () {
+				it('should throw', function () {
 					var property = 'round';
 					delete scope[property];
 					try {
@@ -162,8 +148,8 @@ describe('rounds', () => {
 				});
 			});
 
-			describe('backwards', () => {
-				it('should throw', () => {
+			describe('backwards', function () {
+				it('should throw', function () {
 					var property = 'backwards';
 					delete scope[property];
 					try {
@@ -174,14 +160,14 @@ describe('rounds', () => {
 				});
 			});
 
-			describe('when finish round', () => {
-				beforeEach(() => {
+			describe('when finish round', function () {
+				beforeEach(function () {
 					// Set finishRound, so now we need additional properties
 					scope.finishRound = true;
 				});
 
-				describe('roundFees', () => {
-					it('should throw', () => {
+				describe('roundFees', function () {
+					it('should throw', function () {
 						var property = 'roundFees';
 						delete scope[property];
 						try {
@@ -192,8 +178,8 @@ describe('rounds', () => {
 					});
 				});
 
-				describe('roundRewards', () => {
-					it('should throw', () => {
+				describe('roundRewards', function () {
+					it('should throw', function () {
 						var property = 'roundRewards';
 						delete scope[property];
 						try {
@@ -204,8 +190,8 @@ describe('rounds', () => {
 					});
 				});
 
-				describe('roundDelegates', () => {
-					it('should throw', () => {
+				describe('roundDelegates', function () {
+					it('should throw', function () {
 						var property = 'roundDelegates';
 						delete scope[property];
 						try {
@@ -216,8 +202,8 @@ describe('rounds', () => {
 					});
 				});
 
-				describe('roundOutsiders', () => {
-					it('should throw', () => {
+				describe('roundOutsiders', function () {
+					it('should throw', function () {
 						var property = 'roundOutsiders';
 						delete scope[property];
 						try {
@@ -231,136 +217,127 @@ describe('rounds', () => {
 		});
 	});
 
-	describe('mergeBlockGenerator', () => {
-		var none_stub;
+	describe('mergeBlockGenerator', function () {
 		var scope;
 
-		afterEach(() => {
-			resetStates();
-			none_stub.restore();
-		});
+		describe('when going forward', function () {
+			var args = null;
 
-		describe('when going forward', () => {
-			before(() => {
+			before(function () {
 				scope = _.cloneDeep(validScope);
 				scope.backwards = false;
 				round = new Round(_.cloneDeep(scope), db);
-				none_stub = sinon.stub(db, 'none').returns(Promise.resolve());
-				return round.mergeBlockGenerator();
-			});
-
-			it('should call modules.accounts.mergeAccountAndGet with proper params', () => {
-				var args = {
+				args = {
 					blockId: scope.block.id,
 					producedblocks: 1,
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round
 				};
-				expect(round.scope.modules.accounts.mergeAccountAndGet).to.be.calledWithExactly(args);
-			});
-		});
-
-		describe('when going backwards', () => {
-			before(() => {
-				scope = _.cloneDeep(validScope);
-				scope.backwards = true;
-				round = new Round(_.cloneDeep(scope), db);
-				none_stub = sinon.stub(db, 'none').returns(Promise.resolve());
+				scope.modules.accounts.mergeAccountAndGet.callsArgWith(1, null, args);
 				return round.mergeBlockGenerator();
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with proper params', () => {
-				var args = {
+			it('should call modules.accounts.mergeAccountAndGet with proper params', function () {
+				expect(round.scope.modules.accounts.mergeAccountAndGet).to.be.calledWith(args);
+			});
+		});
+
+		describe('when going backwards', function () {
+			var args = null;
+
+			before(function () {
+				scope = _.cloneDeep(validScope);
+				scope.backwards = true;
+				round = new Round(_.cloneDeep(scope), db);
+				args = {
 					blockId: scope.block.id,
 					producedblocks: -1,
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round
 				};
-				expect(round.scope.modules.accounts.mergeAccountAndGet).to.be.calledWithExactly(args);
+				scope.modules.accounts.mergeAccountAndGet.callsArgWith(1, null, args);
+				return round.mergeBlockGenerator();
+			});
+
+			it('should call modules.accounts.mergeAccountAndGet with proper params', function () {
+				expect(round.scope.modules.accounts.mergeAccountAndGet).to.be.calledWith(args);
 			});
 		});
 	});
 
-	describe('updateMissedBlocks', () => {
+	describe('updateMissedBlocks', function () {
 		var scope;
 		var stub;
 		var res;
 
-		describe('when there are no outsiders', () => {
-			before(() => {
+		describe('when there are no outsiders', function () {
+			before(function () {
 				scope = _.cloneDeep(validScope);
 				res = round.updateMissedBlocks();
 			});
 
-			it('should return t object', () => {
+			it('should return t object', function () {
 				expect(res).to.not.be.instanceOf(Promise);
 				expect(res).to.deep.equal(db);
 			});
 		});
 
-		describe('when there are outsiders', () => {
-			before(() => {
+		describe('when there are outsiders', function () {
+			before(function () {
 				scope = _.cloneDeep(validScope);
 				scope.roundOutsiders = ['abc'];
 				round = new Round(_.cloneDeep(scope), db);
-				stub = sinon.stub(db.rounds, 'updateMissedBlocks');
+				stub = sinonSandbox.stub(db.rounds, 'updateMissedBlocks');
 				stub.withArgs(scope.backwards, scope.roundOutsiders).resolves('success');
 				res = round.updateMissedBlocks();
 			});
 
-			after(() => {
-				// Restore states
-				resetStates();
-				stub.restore();
-			});
-
-			it('should return promise', () => {
+			it('should return promise', function () {
 				expect(isPromise(res)).to.be.true;
 			});
 
-			it('query should be called with proper args', () => res.then(res => {
+			it('query should be called with proper args', function () {
+				return res.then(function (res) {
 					expect(res).to.equal('success');
 					expect(stub.calledWith(scope.backwards, scope.roundOutsiders)).to.be.true;
-				}));
+				});
+			});
 		});
 	});
 
-	describe('getVotes', () => {
+	describe('getVotes', function () {
 		var stub;
 		var res;
 		var scope;
 
-		before(() => {
+		before(function () {
 			scope = _.cloneDeep(validScope);
-			stub = sinon.stub(db.rounds, 'getVotes');
+			stub = sinonSandbox.stub(db.rounds, 'getVotes');
 			stub.withArgs(scope.round).resolves('success');
 			res = round.getVotes();
 		});
 
-		after(() => {
-			// Restore states
-			stub.restore();
-		});
-
-		it('should return promise', () => {
+		it('should return promise', function () {
 			expect(isPromise(res)).to.be.true;
 		});
 
-		it('query should be called with proper args', () => res.then(res => {
+		it('query should be called with proper args', function () {
+			return res.then(function (res) {
 				expect(res).to.equal('success');
 				expect(stub.calledWith(scope.round)).to.be.true;
-			}));
+			});
+		});
 	});
 
-	describe('updateVotes', () => {
+	describe('updateVotes', function () {
 		var getVotes_stub;
 		var updateVotes_stub;
 		var res;
 		var scope;
 		var delegate;
 
-		describe('when getVotes returns at least one entry', () => {
-			before(() => {
+		describe('when getVotes returns at least one entry', function () {
+			before(function () {
 				scope = _.cloneDeep(validScope);
 
 				delegate = {
@@ -374,11 +351,11 @@ describe('rounds', () => {
 					return delegate.address;
 				};
 
-				return db.task(t => {
+				return db.task(function (t) {
 					// Init stubs
-					getVotes_stub = sinon.stub(t.rounds, 'getVotes');
+					getVotes_stub = sinonSandbox.stub(t.rounds, 'getVotes');
 					getVotes_stub.withArgs(scope.round).resolves([delegate, delegate]);
-					updateVotes_stub = sinon.stub(t.rounds, 'updateVotes');
+					updateVotes_stub = sinonSandbox.stub(t.rounds, 'updateVotes');
 					updateVotes_stub.withArgs(delegate.address, delegate.amount).resolves('QUERY');
 
 					round = new Round(_.cloneDeep(scope), t);
@@ -386,35 +363,31 @@ describe('rounds', () => {
 				});
 			});
 
-			after(() => {
-				// Restore states
-				getVotes_stub.restore();
-				updateVotes_stub.restore();
-			});
-
-			it('should return promise', () => {
+			it('should return promise', function () {
 				expect(isPromise(res)).to.be.true;
 			});
 
-			it('getVotes query should be called with proper args', () => {
+			it('getVotes query should be called with proper args', function () {
 				expect(getVotes_stub.calledWith(scope.round)).to.be.true;
 			});
 
-			it('updateVotes should be called twice', () => {
+			it('updateVotes should be called twice', function () {
 				expect(updateVotes_stub.calledTwice).to.be.true;
 			});
 
-			it('updateVotes query should be called with proper args', () => {
+			it('updateVotes query should be called with proper args', function () {
 				expect(updateVotes_stub.alwaysCalledWith(delegate.address, delegate.amount)).to.be.true;
 			});
 
-			it('getVotes result should contain 2 queries', () => res.then(res => {
+			it('getVotes result should contain 2 queries', function () {
+				return res.then(function (res) {
 					expect(res).to.deep.equal(['QUERY', 'QUERY']);
-				}));
+				});
+			});
 		});
 
-		describe('when getVotes returns no entries', () => {
-			before(() => {
+		describe('when getVotes returns no entries', function () {
+			before(function () {
 				scope = _.cloneDeep(validScope);
 
 				delegate = {
@@ -428,11 +401,11 @@ describe('rounds', () => {
 					return delegate.address;
 				};
 
-				return db.task(t => {
+				return db.task(function (t) {
 					// Init stubs
-					getVotes_stub = sinon.stub(t.rounds, 'getVotes');
+					getVotes_stub = sinonSandbox.stub(t.rounds, 'getVotes');
 					getVotes_stub.withArgs(scope.round).resolves([]);
-					updateVotes_stub = sinon.stub(t.rounds, 'updateVotes');
+					updateVotes_stub = sinonSandbox.stub(t.rounds, 'updateVotes');
 					updateVotes_stub.withArgs(delegate.address, delegate.amount).resolves('QUERY');
 
 					round = new Round(_.cloneDeep(scope), t);
@@ -440,174 +413,156 @@ describe('rounds', () => {
 				});
 			});
 
-			after(() => {
-				// Restore states
-				getVotes_stub.restore();
-				updateVotes_stub.restore();
-			});
-
-			it('should return promise', () => {
+			it('should return promise', function () {
 				expect(isPromise(res)).to.be.true;
 			});
 
-			it('getVotes query should be called with proper args', () => {
+			it('getVotes query should be called with proper args', function () {
 				expect(getVotes_stub.calledWith(scope.round)).to.be.true;
 			});
 
-			it('updateVotes should be not called', () => {
+			it('updateVotes should be not called', function () {
 				expect(updateVotes_stub.called).to.be.false;
 			});
 		});
 	});
 
-	describe('markBlockId', () => {
+	describe('markBlockId', function () {
 		var updateBlockId_stub;
 		var res;
 		var scope;
 
-		afterEach(() => {
-			resetStates();
-		});
-
-		describe('when going forward', () => {
-			before(() => {
+		describe('when going forward', function () {
+			before(function () {
 				scope = _.cloneDeep(validScope);
 				scope.backwards = false;
 				round = new Round(_.cloneDeep(scope), db);
 			});
 
-			it('should return t object', () => {
+			it('should return t object', function () {
 				var res = round.markBlockId();
 				expect(isPromise(res)).to.be.false;
 				expect(res).to.deep.equal(db);
 			});
 		});
 
-		describe('when going backwards', () => {
-			before(() => {
+		describe('when going backwards', function () {
+			before(function () {
 				scope = _.cloneDeep(validScope);
 				scope.backwards = true;
-				updateBlockId_stub = sinon.stub(db.rounds, 'updateBlockId');
+				updateBlockId_stub = sinonSandbox.stub(db.rounds, 'updateBlockId');
 				updateBlockId_stub.withArgs(scope.block.id, '0').resolves('success');
 				round = new Round(_.cloneDeep(scope), db);
 				res = round.markBlockId();
 			});
 
-			it('should return promise', () => {
+			it('should return promise', function () {
 				expect(isPromise(res)).to.be.true;
 			});
 
-			it('updateBlockId query should be called with proper args', () => res.then(res => {
+			it('updateBlockId query should be called with proper args', function () {
+				return res.then(function (res) {
 					expect(res).to.equal('success');
 					expect(updateBlockId_stub.calledWith(scope.block.id, '0')).to.be.true;
-				}));
+				});
+			});
 		});
 	});
 
-	describe('flushRound', () => {
+	describe('flushRound', function () {
 		var stub;
 		var res;
 
-		before(() => {
-			stub = sinon.stub(db.rounds, 'flush');
+		before(function () {
+			stub = sinonSandbox.stub(db.rounds, 'flush');
 			stub.withArgs(validScope.round).resolves('success');
 			res = round.flushRound();
 		});
 
-		after(() => {
-			stub.restore();
-		});
-
-		it('should return promise', () => {
+		it('should return promise', function () {
 			expect(isPromise(res)).to.be.true;
 		});
 
-		it('query should be called with proper args', () => res.then(res => {
+		it('query should be called with proper args', function () {
+			return res.then(function (res) {
 				expect(res).to.equal('success');
 				expect(stub.calledWith(validScope.round)).to.be.true;
-			}));
+			});
+		});
 	});
 
-	describe('truncateBlocks', () => {
+	describe('truncateBlocks', function () {
 		var stub;
 		var res;
 
-		before(() => {
-			stub = sinon.stub(db.rounds, 'truncateBlocks');
+		before(function () {
+			stub = sinonSandbox.stub(db.rounds, 'truncateBlocks');
 			stub.withArgs(validScope.block.height).resolves('success');
 			res = round.truncateBlocks();
 		});
 
-		after(() => {
-			stub.restore();
-		});
-
-		it('should return promise', () => {
+		it('should return promise', function () {
 			expect(isPromise(res)).to.be.true;
 		});
 
-		it('query should be called with proper args', () => res.then(res => {
+		it('query should be called with proper args', function () {
+			return res.then(function (res) {
 				expect(res).to.equal('success');
 				expect(stub.calledWith(validScope.block.height)).to.be.true;
-			}));
+			});
+		});
 	});
 
-	describe('restoreRoundSnapshot', () => {
-		var stub;
+	describe('restoreRoundSnapshot', function () {
 		var res;
 
-		before(() => {
-			stub = sinon.stub(db.rounds, 'restoreRoundSnapshot');
-			stub.withArgs().resolves('success');
+		before(function () {
+			sinonSandbox.stub(db.rounds, 'restoreRoundSnapshot').withArgs().resolves('success');
 			res = round.restoreRoundSnapshot();
 		});
 
-		after(() => {
-			stub.restore();
-		});
-
-		it('should return promise', () => {
+		it('should return promise', function () {
 			expect(isPromise(res)).to.be.true;
 		});
 
-		it('query should be called with no args', () => res.then(res => {
+		it('query should be called with no args', function () {
+			return res.then(function (res) {
 				expect(res).to.equal('success');
-				expect(stub.calledWith()).to.be.true;
-			}));
+				expect(db.rounds.restoreRoundSnapshot.calledWith()).to.be.true;
+			});
+		});
 	});
 
-	describe('restoreVotesSnapshot', () => {
+	describe('restoreVotesSnapshot', function () {
 		var stub;
 		var res;
 
-		before(() => {
-			stub = sinon.stub(db.rounds, 'restoreVotesSnapshot');
+		before(function () {
+			stub = sinonSandbox.stub(db.rounds, 'restoreVotesSnapshot');
 			stub.withArgs().resolves('success');
 			res = round.restoreVotesSnapshot();
 		});
 
-		after(() => {
-			stub.restore();
-		});
-
-		it('should return promise', () => {
+		it('should return promise', function () {
 			expect(isPromise(res)).to.be.true;
 		});
 
-		it('query should be called with no args', () => res.then(res => {
+		it('query should be called with no args', function () {
+			return res.then(function (res) {
 				expect(res).to.equal('success');
 				expect(stub.calledWith()).to.be.true;
-			}));
+			});
+		});
 	});
 
-	describe('applyRound', () => {
+	describe('applyRound', function () {
 		var res;
-		var none_stub;
+		var batch_stub;
 		var scope;
 
 		function sumChanges(forward, backwards) {
 			var results = {};
-			forward.forEach(res => {
+			forward.forEach(function (res) {
 				if (results[res.publicKey]) {
 					results[res.publicKey].balance += res.balance || 0;
 					results[res.publicKey].u_balance += res.u_balance || 0;
@@ -622,7 +577,7 @@ describe('rounds', () => {
 					};
 				}
 			});
-			backwards.forEach(res => {
+			backwards.forEach(function (res) {
 				if (results[res.publicKey]) {
 					results[res.publicKey].balance += res.balance || 0;
 					results[res.publicKey].u_balance += res.u_balance || 0;
@@ -640,17 +595,9 @@ describe('rounds', () => {
 			return results;
 		}
 
-		before(() => {
-			none_stub = sinon.stub(db, 'none').returns(Promise.resolve('success'));
-		});
-
-		after(() => {
-			none_stub.restore();
-		});
-
-		describe.skip('with no delegates', () => {
-			describe('forward', () => {
-				before(() => {
+		describe.skip('with no delegates', function () {
+			describe('forward', function () {
+				before(function () {
 					scope = _.cloneDeep(validScope);
 					scope.backwards = false;
 					scope.roundDelegates = [];
@@ -658,23 +605,19 @@ describe('rounds', () => {
 					res = round.applyRound();
 				});
 
-				after(() => {
-					resetStates();
-				});
-
-				it('should return t object', () => {
+				it('should return t object', function () {
 					var res = round.markBlockId();
 					expect(isPromise(res)).to.be.false;
 					expect(res).to.deep.equal(db);
 				});
 
-				it('should not call mergeAccountAndGet', () => {
+				it('should not call mergeAccountAndGet', function () {
 					expect(round.scope.modules.accounts.mergeAccountAndGet.called).to.be.false;
 				});
 			});
 
-			describe('backwards', () => {
-				before(() => {
+			describe('backwards', function () {
+				before(function () {
 					scope = _.cloneDeep(validScope);
 					scope.backwards = true;
 					scope.roundDelegates = [];
@@ -682,15 +625,11 @@ describe('rounds', () => {
 					res = round.applyRound();
 				});
 
-				after(() => {
-					resetStates();
-				});
-
-				it('should not call mergeAccountAndGet', () => {
+				it('should not call mergeAccountAndGet', function () {
 					expect(round.scope.modules.accounts.mergeAccountAndGet.called).to.be.false;
 				});
 
-				it('should return t object', () => {
+				it('should return t object', function () {
 					var res = round.markBlockId();
 					expect(isPromise(res)).to.be.false;
 					expect(res).to.deep.equal(db);
@@ -698,36 +637,38 @@ describe('rounds', () => {
 			});
 		});
 
-		describe('with only one delegate', () => {
-			describe('when there are no remaining fees', () => {
+		describe('with only one delegate', function () {
+			describe('when there are no remaining fees', function () {
 				var forwardResults = [];
 				var backwardsResults = [];
 
-				before(() => {
+				before(function () {
 					validScope.roundDelegates = [genesisBlock.generatorPublicKey];
 					validScope.roundFees = slots.delegates; // 1 LSK fee per delegate, no remaining fees
 				});
 
-				describe('forward', () => {
+				describe('forward', function () {
 					var called = 0;
 
-					before(() => {
-						scope = _.cloneDeep(validScope);
-						scope.backwards = false;
-						round = new Round(_.cloneDeep(scope), db);
-						res = round.applyRound();
+					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
+							scope = _.cloneDeep(validScope);
+							scope.backwards = false;
+							round = new Round(_.cloneDeep(scope), t);
+							res = round.applyRound();
+						});
 					});
 
-					after(() => {
-						resetStates();
-					});
-
-					it('query should be called', () => res.then(res => {
+					it('query should be called', function () {
+						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
-						}));
+							expect(batch_stub.called).to.be.true;
+						});
+					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
+					it('should call mergeAccountAndGet with proper args (apply rewards)', function () {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -746,31 +687,33 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should not call mergeAccountAndGet another time (for apply remaining fees)', () => {
+					it('should not call mergeAccountAndGet another time (for apply remaining fees)', function () {
 						expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(called);
 					});
 				});
 
-				describe('backwards', () => {
+				describe('backwards', function () {
 					var called = 0;
 
-					before(() => {
-						scope = _.cloneDeep(validScope);
-						scope.backwards = true;
-						round = new Round(_.cloneDeep(scope), db);
-						res = round.applyRound();
+					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
+							scope = _.cloneDeep(validScope);
+							scope.backwards = true;
+							round = new Round(_.cloneDeep(scope), t);
+							res = round.applyRound();
+						});
 					});
 
-					after(() => {
-						resetStates();
-					});
-
-					it('query should be called', () => res.then(res => {
+					it('query should be called', function () {
+						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
-						}));
+							expect(batch_stub.called).to.be.true;
+						});
+					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
+					it('should call mergeAccountAndGet with proper args (apply rewards)', function () {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(validScope.roundRewards[index].toPrecision(15)).plus(new bignum(validScope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(validScope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -789,73 +732,75 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should not call mergeAccountAndGet another time (for apply remaining fees)', () => {
+					it('should not call mergeAccountAndGet another time (for apply remaining fees)', function () {
 						expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(called);
 					});
 				});
 
-				describe('consistency checks for each delegate', () => {
+				describe('consistency checks for each delegate', function () {
 					var result;
 
-					before(() => {
+					before(function () {
 						result = sumChanges(forwardResults, backwardsResults);
 					});
 
-					it('balance should sum to 0', () => {
-						_.each(result, res => {
+					it('balance should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.balance).to.equal(0);
 						});
 					});
 
-					it('u_balance should sum to 0', () => {
-						_.each(result, res => {
+					it('u_balance should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.u_balance).to.equal(0);
 						});
 					});
 
-					it('fees should sum to 0', () => {
-						_.each(result, res => {
+					it('fees should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.fees).to.equal(0);
 						});
 					});
 
-					it('rewards should sum to 0', () => {
-						_.each(result, res => {
+					it('rewards should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.rewards).to.equal(0);
 						});
 					});
 				});
 			});
 
-			describe('when there are remaining fees', () => {
+			describe('when there are remaining fees', function () {
 				var forwardResults = [];
 				var backwardsResults = [];
 
-				before(() => {
+				before(function () {
 					validScope.roundDelegates = [genesisBlock.generatorPublicKey];
 					validScope.roundFees = 100; // 0 LSK fee per delegate, 100 remaining fees
 				});
 
-				describe('forward', () => {
+				describe('forward', function () {
 					var called = 0;
 
-					before(() => {
-						scope = _.cloneDeep(validScope);
-						scope.backwards = false;
-						round = new Round(_.cloneDeep(scope), db);
-						res = round.applyRound();
+					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
+							scope = _.cloneDeep(validScope);
+							scope.backwards = false;
+							round = new Round(_.cloneDeep(scope), t);
+							res = round.applyRound();
+						});
 					});
 
-					after(() => {
-						resetStates();
-					});
-
-					it('query should be called', () => res.then(res => {
+					it('query should be called', function () {
+						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
-						}));
+							expect(batch_stub.called).to.be.true;
+						});
+					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
+					it('should call mergeAccountAndGet with proper args (apply rewards)', function () {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(validScope.roundRewards[index].toPrecision(15)).plus(new bignum(validScope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(validScope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -874,7 +819,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', () => {
+					it('should call mergeAccountAndGet with proper args (fees)', function () {
 						var index = 0; // Delegate index on list
 						var feesPerDelegate = new bignum(validScope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor();
 						var remainingFees = Number(new bignum(validScope.roundFees.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates)).toFixed());
@@ -893,31 +838,33 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', () => {
+					it('should not call mergeAccountAndGet another time (completed)', function () {
 						expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(called);
 					});
 				});
 
-				describe('backwards', () => {
+				describe('backwards', function () {
 					var called = 0;
 
-					before(() => {
-						scope = _.cloneDeep(validScope);
-						scope.backwards = true;
-						round = new Round(_.cloneDeep(scope), db);
-						res = round.applyRound();
+					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
+							scope = _.cloneDeep(validScope);
+							scope.backwards = true;
+							round = new Round(_.cloneDeep(scope), t);
+							res = round.applyRound();
+						});
 					});
 
-					after(() => {
-						resetStates();
-					});
-
-					it('query should be called', () => res.then(res => {
+					it('query should be called', function () {
+						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
-						}));
+							expect(batch_stub.called).to.be.true;
+						});
+					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
+					it('should call mergeAccountAndGet with proper args (apply rewards)', function () {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(validScope.roundRewards[index].toPrecision(15)).plus(new bignum(validScope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(validScope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -936,7 +883,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', () => {
+					it('should call mergeAccountAndGet with proper args (fees)', function () {
 						var index = 0; // Delegate index on list
 						var feesPerDelegate = new bignum(validScope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor();
 						var remainingFees = Number(new bignum(validScope.roundFees.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates)).toFixed());
@@ -955,38 +902,38 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', () => {
+					it('should not call mergeAccountAndGet another time (completed)', function () {
 						expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(called);
 					});
 				});
 
-				describe('consistency checks for each delegate', () => {
+				describe('consistency checks for each delegate', function () {
 					var result;
 
-					before(() => {
+					before(function () {
 						result = sumChanges(forwardResults, backwardsResults);
 					});
 
-					it('balance should sum to 0', () => {
-						_.each(result, res => {
+					it('balance should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.balance).to.equal(0);
 						});
 					});
 
-					it('u_balance should sum to 0', () => {
-						_.each(result, res => {
+					it('u_balance should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.u_balance).to.equal(0);
 						});
 					});
 
-					it('fees should sum to 0', () => {
-						_.each(result, res => {
+					it('fees should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.fees).to.equal(0);
 						});
 					});
 
-					it('rewards should sum to 0', () => {
-						_.each(result, res => {
+					it('rewards should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.rewards).to.equal(0);
 						});
 					});
@@ -994,12 +941,12 @@ describe('rounds', () => {
 			});
 		});
 
-		describe('with 3 delegates', () => {
-			describe('when there are no remaining fees', () => {
+		describe('with 3 delegates', function () {
+			describe('when there are no remaining fees', function () {
 				var forwardResults = [];
 				var backwardsResults = [];
 
-				before(() => {
+				before(function () {
 					validScope.roundDelegates = [
 						'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 						'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
@@ -1009,26 +956,28 @@ describe('rounds', () => {
 					validScope.roundFees = slots.delegates; // 1 LSK fee per delegate, no remaining fees
 				});
 
-				describe('forward', () => {
+				describe('forward', function () {
 					var called = 0;
 
-					before(() => {
-						scope = _.cloneDeep(validScope);
-						scope.backwards = false;
-						round = new Round(_.cloneDeep(scope), db);
-						res = round.applyRound();
+					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
+							scope = _.cloneDeep(validScope);
+							scope.backwards = false;
+							round = new Round(_.cloneDeep(scope), t);
+							res = round.applyRound();
+						});
 					});
 
-					after(() => {
-						resetStates();
-					});
-
-					it('query should be called', () => res.then(res => {
+					it('query should be called', function () {
+						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
-						}));
+							expect(batch_stub.called).to.be.true;
+						});
+					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', function () {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1047,7 +996,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', function () {
 						var index = 1; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1066,7 +1015,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', function () {
 						var index = 2; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1085,31 +1034,33 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should not call mergeAccountAndGet another time (for applying remaining fees)', () => {
+					it('should not call mergeAccountAndGet another time (for applying remaining fees)', function () {
 						expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(called);
 					});
 				});
 
-				describe('backwards', () => {
+				describe('backwards', function () {
 					var called = 0;
 
-					before(() => {
-						scope = _.cloneDeep(validScope);
-						scope.backwards = true;
-						round = new Round(_.cloneDeep(scope), db);
-						res = round.applyRound();
+					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
+							scope = _.cloneDeep(validScope);
+							scope.backwards = true;
+							round = new Round(_.cloneDeep(scope), t);
+							res = round.applyRound();
+						});
 					});
 
-					after(() => {
-						resetStates();
-					});
-
-					it('query should be called', () => res.then(res => {
+					it('query should be called', function () {
+						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
-						}));
+							expect(batch_stub.called).to.be.true;
+						});
+					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', function () {
 						var index = 2; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1128,7 +1079,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', function () {
 						var index = 1; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1147,7 +1098,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', function () {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1166,49 +1117,49 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should not call mergeAccountAndGet another time (for applying remaining fees)', () => {
+					it('should not call mergeAccountAndGet another time (for applying remaining fees)', function () {
 						expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(called);
 					});
 				});
 
-				describe('consistency checks for each delegate', () => {
+				describe('consistency checks for each delegate', function () {
 					var result;
 
-					before(() => {
+					before(function () {
 						result = sumChanges(forwardResults, backwardsResults);
 					});
 
-					it('balance should sum to 0', () => {
-						_.each(result, res => {
+					it('balance should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.balance).to.equal(0);
 						});
 					});
 
-					it('u_balance should sum to 0', () => {
-						_.each(result, res => {
+					it('u_balance should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.u_balance).to.equal(0);
 						});
 					});
 
-					it('fees should sum to 0', () => {
-						_.each(result, res => {
+					it('fees should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.fees).to.equal(0);
 						});
 					});
 
-					it('rewards should sum to 0', () => {
-						_.each(result, res => {
+					it('rewards should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.rewards).to.equal(0);
 						});
 					});
 				});
 			});
 
-			describe('when there are remaining fees', () => {
+			describe('when there are remaining fees', function () {
 				var forwardResults = [];
 				var backwardsResults = [];
 
-				before(() => {
+				before(function () {
 					validScope.roundDelegates = [
 						'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 						'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
@@ -1218,26 +1169,28 @@ describe('rounds', () => {
 					validScope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
 				});
 
-				describe('forward', () => {
+				describe('forward', function () {
 					var called = 0;
 
-					before(() => {
-						scope = _.cloneDeep(validScope);
-						scope.backwards = false;
-						round = new Round(_.cloneDeep(scope), db);
-						res = round.applyRound();
+					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
+							scope = _.cloneDeep(validScope);
+							scope.backwards = false;
+							round = new Round(_.cloneDeep(scope), t);
+							res = round.applyRound();
+						});
 					});
 
-					after(() => {
-						resetStates();
-					});
-
-					it('query should be called', () => res.then(res => {
+					it('query should be called', function () {
+						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
-						}));
+							expect(batch_stub.called).to.be.true;
+						});
+					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', function () {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1256,7 +1209,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', function () {
 						var index = 1; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1275,7 +1228,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', function () {
 						var index = 2; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1294,7 +1247,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', () => {
+					it('should call mergeAccountAndGet with proper args (fees)', function () {
 						var index = 2; // Delegate index on list
 						var feesPerDelegate = new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor();
 						var remainingFees = Number(new bignum(scope.roundFees.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates)).toFixed());
@@ -1313,31 +1266,33 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', () => {
+					it('should not call mergeAccountAndGet another time (completed)', function () {
 						expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(called);
 					});
 				});
 
-				describe('backwards', () => {
+				describe('backwards', function () {
 					var called = 0;
 
-					before(() => {
-						scope = _.cloneDeep(validScope);
-						scope.backwards = true;
-						round = new Round(_.cloneDeep(scope), db);
-						res = round.applyRound();
+					before(function () {
+						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+						return db.task(function (t) {
+							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
+							scope = _.cloneDeep(validScope);
+							scope.backwards = true;
+							round = new Round(_.cloneDeep(scope), t);
+							res = round.applyRound();
+						});
 					});
 
-					after(() => {
-						resetStates();
-					});
-
-					it('query should be called', () => res.then(res => {
+					it('query should be called', function () {
+						return res.then(function (res) {
 							expect(res).to.equal('success');
-							expect(none_stub.called).to.be.true;
-						}));
+							expect(batch_stub.called).to.be.true;
+						});
+					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', function () {
 						var index = 2; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1356,7 +1311,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', function () {
 						var index = 1; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1375,7 +1330,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
+					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', function () {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(new bignum(scope.roundRewards[index].toPrecision(15)).plus(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor()).toFixed());
 						var feesPerDelegate = Number(new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor().toFixed());
@@ -1394,7 +1349,7 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', () => {
+					it('should call mergeAccountAndGet with proper args (fees)', function () {
 						var index = 2; // Delegate index on list
 						var feesPerDelegate = new bignum(scope.roundFees.toPrecision(15)).dividedBy(slots.delegates).floor();
 						var remainingFees = Number(new bignum(scope.roundFees.toPrecision(15)).minus(feesPerDelegate.times(slots.delegates)).toFixed());
@@ -1413,38 +1368,38 @@ describe('rounds', () => {
 						called++;
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', () => {
+					it('should not call mergeAccountAndGet another time (completed)', function () {
 						expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(called);
 					});
 				});
 
-				describe('consistency checks for each delegate', () => {
+				describe('consistency checks for each delegate', function () {
 					var result;
 
-					before(() => {
+					before(function () {
 						result = sumChanges(forwardResults, backwardsResults);
 					});
 
-					it('balance should sum to 0', () => {
-						_.each(result, res => {
+					it('balance should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.balance).to.equal(0);
 						});
 					});
 
-					it('u_balance should sum to 0', () => {
-						_.each(result, res => {
+					it('u_balance should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.u_balance).to.equal(0);
 						});
 					});
 
-					it('fees should sum to 0', () => {
-						_.each(result, res => {
+					it('fees should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.fees).to.equal(0);
 						});
 					});
 
-					it('rewards should sum to 0', () => {
-						_.each(result, res => {
+					it('rewards should sum to 0', function () {
+						_.each(result, function (res) {
 							expect(res.rewards).to.equal(0);
 						});
 					});
@@ -1453,8 +1408,8 @@ describe('rounds', () => {
 		});
 	});
 
-	describe('land', () => {
-		var none_stub;
+	describe('land', function () {
+		var batch_stub; //eslint-disable-line
 		var roundOutsiders_stub;
 		var updateVotes_stub;
 		var getVotes_stub;
@@ -1462,7 +1417,7 @@ describe('rounds', () => {
 		var res;
 		var scope;
 
-		before(() => {
+		before(function () {
 			scope = _.cloneDeep(validScope);
 			// Init required properties
 			scope.roundOutsiders = ['abc'];
@@ -1477,60 +1432,49 @@ describe('rounds', () => {
 				address: '16010222169256538112L'
 			};
 
-			return db.task(t => {
+			round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+			return db.task(function (t) {
 				// Init stubs
-				none_stub = sinon.stub(t, 'none').resolves();
-				roundOutsiders_stub = sinon.stub(t.rounds, 'updateMissedBlocks').resolves();
-				getVotes_stub = sinon.stub(t.rounds, 'getVotes').resolves([delegate]);
-				updateVotes_stub = sinon.stub(t.rounds, 'updateVotes').resolves('QUERY');
-				flush_stub = sinon.stub(t.rounds, 'flush').resolves();
+				batch_stub = sinonSandbox.stub(t, 'none').resolves();
+				roundOutsiders_stub = sinonSandbox.stub(t.rounds, 'updateMissedBlocks').resolves();
+				getVotes_stub = sinonSandbox.stub(t.rounds, 'getVotes').resolves([delegate]);
+				updateVotes_stub = sinonSandbox.stub(t.rounds, 'updateVotes').resolves('QUERY');
+				flush_stub = sinonSandbox.stub(t.rounds, 'flush').resolves();
 
 				round = new Round(_.cloneDeep(scope), t);
 				res = round.land();
 			});
-			round = new Round(_.cloneDeep(scope), db); // eslint-disable-line
-			res = round.land();
 		});
 
-		after(() => {
-			// Restore states
-			none_stub.restore();
-			roundOutsiders_stub.restore();
-			updateVotes_stub.restore();
-			flush_stub.restore();
-			getVotes_stub.restore();
-			resetStates();
-		});
-
-		it('should return promise', () => {
+		it('should return promise', function () {
 			expect(isPromise(res)).to.be.true;
 		});
 
-		it('query getVotes should be called twice', () => {
+		it('query getVotes should be called twice', function () {
 			// 2x updateVotes which calls 1x getVotes
 			expect(getVotes_stub.callCount).to.equal(2);
 		});
 
-		it('query updateVotes should be called twice', () => {
+		it('query updateVotes should be called twice', function () {
 			expect(updateVotes_stub.callCount).to.equal(2);
 		});
 
-		it('query updateMissedBlocks should be called once', () => {
+		it('query updateMissedBlocks should be called once', function () {
 			expect(roundOutsiders_stub.callCount).to.equal(1);
 		});
 
-		it('query flushRound should be called twice', () => {
+		it('query flushRound should be called twice', function () {
 			expect(flush_stub.callCount).to.equal(2);
 		});
 
-		it('modules.accounts.mergeAccountAndGet should be called 4 times', () => {
+		it('modules.accounts.mergeAccountAndGet should be called 4 times', function () {
 			// 3x delegates + 1x remaining fees
 			expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(4);
 		});
 	});
 
-	describe('backwardLand', () => {
-		var none_stub;
+	describe('backwardLand', function () {
+		var batch_stub; //eslint-disable-line
 		var roundOutsiders_stub;
 		var updateVotes_stub;
 		var getVotes_stub;
@@ -1540,7 +1484,7 @@ describe('rounds', () => {
 		var res;
 		var scope;
 
-		before(() => {
+		before(function () {
 			scope = _.cloneDeep(validScope);
 			// Init required properties
 			scope.roundOutsiders = ['abc'];
@@ -1555,64 +1499,53 @@ describe('rounds', () => {
 				address: '16010222169256538112L'
 			};
 
-			return db.task(t => {
+			round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
+			return db.task(function (t) {
 				// Init stubs
-				none_stub = sinon.stub(t, 'none').resolves();
-				roundOutsiders_stub = sinon.stub(t.rounds, 'updateMissedBlocks').resolves();
-				getVotes_stub = sinon.stub(t.rounds, 'getVotes').resolves([delegate]);
-				updateVotes_stub = sinon.stub(t.rounds, 'updateVotes').resolves('QUERY');
-				flush_stub = sinon.stub(t.rounds, 'flush').resolves();
-				restoreRoundSnapshot_stub = sinon.stub(t.rounds, 'restoreRoundSnapshot').resolves();
-				restoreVotesSnapshot_stub = sinon.stub(t.rounds, 'restoreVotesSnapshot').resolves();
+				batch_stub = sinonSandbox.stub(t, 'none').resolves();
+				roundOutsiders_stub = sinonSandbox.stub(t.rounds, 'updateMissedBlocks').resolves();
+				getVotes_stub = sinonSandbox.stub(t.rounds, 'getVotes').resolves([delegate]);
+				updateVotes_stub = sinonSandbox.stub(t.rounds, 'updateVotes').resolves('QUERY');
+				flush_stub = sinonSandbox.stub(t.rounds, 'flush').resolves();
+				restoreRoundSnapshot_stub = sinonSandbox.stub(t.rounds, 'restoreRoundSnapshot').resolves();
+				restoreVotesSnapshot_stub = sinonSandbox.stub(t.rounds, 'restoreVotesSnapshot').resolves();
 
 				round = new Round(_.cloneDeep(scope), t);
 				res = round.backwardLand();
 			});
 		});
 
-		after(() => {
-			// Restore states
-			none_stub.restore();
-			roundOutsiders_stub.restore();
-			updateVotes_stub.restore();
-			flush_stub.restore();
-			getVotes_stub.restore();
-			restoreRoundSnapshot_stub.restore();
-			restoreVotesSnapshot_stub.restore();
-			resetStates();
-		});
-
-		it('should return promise', () => {
+		it('should return promise', function () {
 			expect(isPromise(res)).to.be.true;
 		});
 
-		it('query getVotes should be called twice', () => {
+		it('query getVotes should be called twice', function () {
 			// 2x updateVotes which calls 1x getVotes
 			expect(getVotes_stub.callCount).to.equal(2);
 		});
 
-		it('query updateVotes should be called twice', () => {
+		it('query updateVotes should be called twice', function () {
 			expect(updateVotes_stub.callCount).to.equal(2);
 		});
 
-		it('query updateMissedBlocks should be called once', () => {
+		it('query updateMissedBlocks should be called once', function () {
 			expect(roundOutsiders_stub.callCount).to.equal(1);
 		});
 
-		it('query flushRound should be called twice', () => {
+		it('query flushRound should be called twice', function () {
 			expect(flush_stub.callCount).to.equal(2);
 		});
 
-		it('modules.accounts.mergeAccountAndGet should be called 4 times', () => {
+		it('modules.accounts.mergeAccountAndGet should be called 4 times', function () {
 			// 3x delegates + 1x remaining fees
 			expect(round.scope.modules.accounts.mergeAccountAndGet.callCount).to.equal(4);
 		});
 
-		it('query restoreRoundSnapshot should be called once', () => {
+		it('query restoreRoundSnapshot should be called once', function () {
 			expect(restoreRoundSnapshot_stub.callCount).to.equal(1);
 		});
 
-		it('query restoreVotesSnapshot should be called once', () => {
+		it('query restoreVotesSnapshot should be called once', function () {
 			expect(restoreVotesSnapshot_stub.callCount).to.equal(1);
 		});
 	});
