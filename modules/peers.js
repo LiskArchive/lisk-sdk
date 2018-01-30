@@ -17,7 +17,7 @@ var _ = require('lodash');
 var async = require('async');
 var ip = require('ip');
 // We also initialize library here
-var pgp = require('pg-promise')(); // eslint-disable-line
+var pgp = require('pg-promise')(); // eslint-disable-line no-unused-vars
 var constants = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failure_codes.js');
 var jobsQueue = require('../helpers/jobs_queue.js');

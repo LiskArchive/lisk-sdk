@@ -27,7 +27,7 @@ var waitFor = require('../../../common/utils/wait_for');
 Promise.promisify(waitFor.newRound);
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError; //eslint-disable-line
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', () => {
 	var delegatesEndpoint = new swaggerEndpoint('GET /delegates');

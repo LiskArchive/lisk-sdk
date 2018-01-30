@@ -1409,7 +1409,7 @@ describe('rounds', function () {
 	});
 
 	describe('land', function () {
-		var batch_stub; //eslint-disable-line
+		var batch_stub; // eslint-disable-line no-unused-vars
 		var roundOutsiders_stub;
 		var updateVotes_stub;
 		var getVotes_stub;
@@ -1474,7 +1474,7 @@ describe('rounds', function () {
 	});
 
 	describe('backwardLand', function () {
-		var batch_stub; //eslint-disable-line
+		var batch_stub; // eslint-disable-line no-unused-vars
 		var roundOutsiders_stub;
 		var updateVotes_stub;
 		var getVotes_stub;

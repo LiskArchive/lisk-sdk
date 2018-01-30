@@ -22,7 +22,7 @@ Promise.promisify(waitFor.blocks);
 
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError; //eslint-disable-line
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /blocks', () => {
 	var blocksEndpoint = new swaggerEndpoint('GET /blocks');

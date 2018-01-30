@@ -132,7 +132,7 @@ describe('vote', function () {
 	after(function (done) {
 		application.cleanup(done);
 	});
-	/* eslint-disable */
+	/* eslint-disable mocha/no-sibling-hooks */
 	before(function (done) {
 		// create new account for testing;
 		var transfer = new Transfer();
@@ -175,7 +175,7 @@ describe('vote', function () {
 			done();
 		});
 	});
-	/* eslint-disable */
+	/* eslint-enable */
 
 	describe('bind', function () {
 		it('should be okay with correct params', function () {

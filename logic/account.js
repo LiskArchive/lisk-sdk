@@ -20,7 +20,7 @@ var BlockReward = require('./block_reward.js');
 var Bignum = require('../helpers/bignum.js');
 
 // Private fields
-var self,// eslint-disable-line
+var self, // eslint-disable-line no-unused-vars
 library,
 modules,
 

@@ -20,7 +20,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 
 var typesRepresentatives = require('../../../fixtures/types_representatives');
 
-var phases = require('../../common/phases'); //eslint-disable-line
+var phases = require('../../common/phases');
 var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');

@@ -20,7 +20,7 @@ var sortBy = require('../../helpers/sort_by.js').sortBy;
 var library,
 self,
 __private = {};
-var modules; // eslint-disable-line
+var modules; // eslint-disable-line no-unused-vars
 /**
  * Initializes library.
  * @memberof module:blocks

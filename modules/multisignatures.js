@@ -18,7 +18,7 @@ var Multisignature = require('../logic/multisignature.js');
 var transactionTypes = require('../helpers/transaction_types.js');
 var ApiError = require('../helpers/api_error');
 var errorCodes = require('../helpers/api_codes');
-var genesisblock = null; // eslint-disable-line
+var genesisblock = null; // eslint-disable-line no-unused-vars
 
 // Private fields
 var modules,

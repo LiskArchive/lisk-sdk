@@ -11,13 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-'use strict';/* eslint */
+'use strict';
 
 var bignum = require('../../../helpers/bignum.js');
 
 var AccountModule = require('../../../modules/accounts.js');
 var randomUtil = require('../../common/utils/random');
-var application = require('../../common/application'); // eslint-disable-line
+var application = require('../../common/application');
 
 var validAccount = {
 	username: 'genesis_100',

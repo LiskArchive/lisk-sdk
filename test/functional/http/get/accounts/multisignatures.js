@@ -21,7 +21,7 @@ var accountFixtures = require('../../../../fixtures/accounts');
 var apiHelpers = require('../../../../common/helpers/api');
 var waitFor = require('../../../../common/utils/wait_for');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError; //eslint-disable-line
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/accounts', () => {
 	var signatureEndpoint = new swaggerEndpoint('POST /signatures');

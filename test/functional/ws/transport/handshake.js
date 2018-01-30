@@ -22,7 +22,7 @@ var testConfig = require('../../../data/config.json');
 
 var failureCodes = require('../../../../api/ws/rpc/failure_codes');
 
-var ws = require('../../../common/ws/communication'); //eslint-disable-line
+var ws = require('../../../common/ws/communication'); // eslint-disable-line no-unused-vars
 var wsServer = require('../../../common/ws/server');
 var WSServerMaster = require('../../../common/ws/server_master');
 

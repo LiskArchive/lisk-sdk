@@ -18,8 +18,8 @@ var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
 var accountFixtures = require('../../../fixtures/accounts');
-var common = require('./common'); //eslint-disable-line
-var phases = require('../../common/phases'); //eslint-disable-line
+var common = require('./common');
+var phases = require('../../common/phases');
 
 var constants = require('../../../../helpers/constants');
 var bignum = require('../../../../helpers/bignum.js');

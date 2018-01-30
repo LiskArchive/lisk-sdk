@@ -11,13 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-'use strict';/* eslint */
+'use strict';
 
 var crypto = require('crypto');
 var rewire = require('rewire');
 
 var modulesLoader = require('../../common/modules_loader');
-var typesRepresentatives = require('../../fixtures/types_representatives'); // eslint-disable-line
+var typesRepresentatives = require('../../fixtures/types_representatives'); // eslint-disable-line no-unused-vars
 
 var OutTransfer = rewire('../../../logic/out_transfer');
 var constants = require('../../../helpers/constants');

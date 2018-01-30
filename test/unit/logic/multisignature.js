@@ -520,13 +520,13 @@ describe('multisignature', () => {
 	});
 
 	it('undo', () => {
-		/* eslint-disable */
+		/* eslint-disable mocha/no-sibling-hooks */
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
 			accountMock.merge = sinonSandbox.stub().callsArg(2);
 			multisignature.undo(transaction, dummyBlock, sender, done);
 		});
-		/* eslint-disable */
+		/* eslint-enable */
 
 		it('should set __private.unconfirmedSignatures[sender.address] = true', () => {
 			var unconfirmedSignatures = Multisignature.__get__('__private.unconfirmedSignatures');
