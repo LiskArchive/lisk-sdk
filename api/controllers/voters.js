@@ -31,7 +31,7 @@ var modules;
  * @requires helpers/apiCodes.NOT_FOUND
  * @requires helpers/apiError
  * @requires helpers/swagger.generateParamsErrorObject
- * @param {Object} scope - App instance.
+ * @param {Object} scope - App instance
  * @todo: Add description of VotersController
  */
 function VotersController(scope) {
