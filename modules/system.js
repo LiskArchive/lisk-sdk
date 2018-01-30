@@ -16,12 +16,13 @@
 var async = require('async');
 var crypto = require('crypto');
 var os = require('os');
-var _ = require('lodash');
-var constants = require('../helpers/constants.js');
 var semver = require('semver');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules,
+library,
+self,
+__private = {};
 
 var rcRegExp = /[a-z]+$/;
 
@@ -42,7 +43,7 @@ var rcRegExp = /[a-z]+$/;
  * @param {scope} scope - App instance.
  */
 // Constructor
-function System (cb, scope) {
+function System(cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
@@ -164,16 +165,16 @@ System.prototype.getBroadhash = function (cb) {
 		return __private.broadhash;
 	}
 
-	library.db.blocks.list({offset: 0, limit: 5, sortField: 'b_height', sortMethod: 'DESC'}).then(function (rows) {
+	library.db.blocks.list({ offset: 0, limit: 5, sortField: 'b_height', sortMethod: 'DESC' }).then(rows => {
 		if (rows.length <= 1) {
 			return setImmediate(cb, null, __private.nethash);
 		} else {
-			var seed = rows.map(function (row) { return row.id; }).join('');
+			var seed = rows.map(row => row.id).join('');
 			var hash = crypto.createHash('sha256').update(seed, 'utf8').digest();
 
 			return setImmediate(cb, null, hash.toString('hex'));
 		}
-	}).catch(function (err) {
+	}).catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, err);
 	});
@@ -241,7 +242,7 @@ System.prototype.nonceCompatible = function (nonce) {
 System.prototype.update = function (cb) {
 	async.series({
 		getBroadhash: function (seriesCb) {
-			self.getBroadhash(function (err, hash) {
+			self.getBroadhash((err, hash) => {
 				if (!err) {
 					__private.broadhash = hash;
 				}
@@ -253,7 +254,7 @@ System.prototype.update = function (cb) {
 			__private.height = modules.blocks.lastBlock.get().height;
 			return setImmediate(seriesCb);
 		}
-	}, function (err) {
+	}, err => {
 		library.logger.debug('System headers', __private);
 		modules.transport.headers(__private);
 		return setImmediate(cb, err);

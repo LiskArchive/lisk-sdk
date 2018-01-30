@@ -22,7 +22,7 @@ module.exports = {
 			length: 64,
 			custom: 'abcdefghijklmnopqrstuvwxyz0123456789!$&_.'
 		});
-		return _.range(unmatchedAmount).reduce(function (result) {
+		return _.range(unmatchedAmount).reduce(result => {
 			result.unmatchedBroadhashes.push(randomstring.generate({
 				length: 63,
 				custom: 'abcdefghijklmnopqrstuvwxyz0123456789!$&_.'

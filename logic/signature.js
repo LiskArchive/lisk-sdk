@@ -17,7 +17,8 @@ var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 
 // Private fields
-var modules, library;
+var modules,
+library;
 
 /**
  * Initializes library.
@@ -28,8 +29,8 @@ var modules, library;
  * @param {Object} logger
  */
 // Constructor
-function Signature (schema, logger) {
-	library ={
+function Signature(schema, logger) {
+	library = {
 		schema: schema,
 		logger: logger,
 	};
@@ -48,11 +49,9 @@ Signature.prototype.bind = function (accounts) {
 /**
  * Obtains constant fee secondSignature.
  * @see {@link module:helpers~constants}
- * @param {transaction} transaction - Unnecessary parameter.
- * @param {account} sender - Unnecessary parameter.
  * @returns {number} Secondsignature fee.
  */
-Signature.prototype.calculateFee = function (transaction, sender) {
+Signature.prototype.calculateFee = function () {
 	return constants.fees.secondSignature;
 };
 
@@ -174,7 +173,7 @@ Signature.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Second signature already enabled');
 	}
 
-	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 1}, cb, tx);
+	modules.accounts.setAccountAndGet({ address: sender.address, u_secondSignature: 1 }, cb, tx);
 };
 
 /**
@@ -186,7 +185,7 @@ Signature.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
  * @param {function} cb - Callback function.
  */
 Signature.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
-	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 0}, cb, tx);
+	modules.accounts.setAccountAndGet({ address: sender.address, u_secondSignature: 0 }, cb, tx);
 };
 /**
  * @typedef signature
@@ -214,9 +213,7 @@ Signature.prototype.objectNormalize = function (transaction) {
 	var report = library.schema.validate(transaction.asset.signature, Signature.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate signature schema: ' + library.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate signature schema: ${library.schema.getLastErrors().map(err => err.message).join(', ')}`;
 	}
 
 	return transaction;
@@ -237,7 +234,7 @@ Signature.prototype.dbRead = function (raw) {
 			publicKey: raw.s_publicKey
 		};
 
-		return {signature: signature};
+		return { signature: signature };
 	}
 };
 

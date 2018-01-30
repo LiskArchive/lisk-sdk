@@ -1,27 +1,22 @@
 'use strict';
 
-var chai = require('chai');
 var expect = require('chai').expect;
 var lisk = require('lisk-js');
 
 var accountFixtures = require('../../../fixtures/accounts');
 
-var application = require('../../../common/application');
 var randomUtil = require('../../../common/utils/random');
 
 var localCommon = require('../common');
 
 describe('system test (blocks) - chain/deleteLastBlock', function () {
-
 	var library;
 	localCommon.beforeBlock('system_blocks_chain', function (lib) {
 		library = lib;
 	});
 
 	describe('deleteLastBlock', function () {
-
 		describe('errors', function () {
-
 			it('should fail when trying to delete genesis block', function (done) {
 				library.modules.blocks.chain.deleteLastBlock(function (err, res) {
 					expect(err).to.equal('Cannot delete genesis block');
@@ -32,7 +27,6 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 		});
 
 		describe('single transaction scenarios: create transaction, forge, delete block, forge again', function () {
-
 			var testAccount;
 			var testAccountData;
 			var testAccountDataAfterBlock;
@@ -40,21 +34,20 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 			var testReceiptData;
 			var fieldsToCompare;
 
-			function createAccountWithFunds (done) {
+			function createAccountWithFunds(done) {
 				testAccount = randomUtil.account();
-				var sendTransaction = lisk.transaction.createTransaction(testAccount.address, 100000000*100, accountFixtures.genesis.password);
+				var sendTransaction = lisk.transaction.createTransaction(testAccount.address, 100000000 * 100, accountFixtures.genesis.password);
 				localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 			}
 
 			describe('(type 0) transfer funds', function () {
-
 				before('create account with funds', function (done) {
 					createAccountWithFunds(done);
 					fieldsToCompare = ['balance', 'u_balance', 'blockId', 'virgin', 'publicKey'];
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						testAccountData = res;
 						expect(res.virgin).to.equal(true);
 						expect(res.publicKey).to.be.null;
@@ -69,7 +62,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						testAccountDataAfterBlock = res;
 						expect(res.virgin).to.equal(false);
 						expect(res.publicKey).to.not.be.null;
@@ -78,7 +71,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should get account data from receipt', function (done) {
-					library.logic.account.get({address: testReceipt.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testReceipt.address }, fieldsToCompare, function (err, res) {
 						testReceiptData = res;
 						expect(res.virgin).to.equal(true);
 						expect(res.publicKey).to.be.null;
@@ -95,7 +88,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testAccountData.balance);
 						expect(res.u_balance).to.equal(testAccountData.u_balance);
 						// FIXME: Incorrect blockId
@@ -106,7 +99,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should get account data from receipt', function (done) {
-					library.logic.account.get({address: testReceipt.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testReceipt.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal('0');
 						expect(res.u_balance).to.equal('0');
 						// CHECKME: virgin should be 1
@@ -120,7 +113,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 						expect(res.u_balance).to.equal(testAccountDataAfterBlock.u_balance);
 						expect(res.publicKey).to.equal(testAccountDataAfterBlock.publicKey);
@@ -131,7 +124,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should get account data from receipt', function (done) {
-					library.logic.account.get({address: testReceipt.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testReceipt.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testReceiptData.balance);
 						expect(res.u_balance).to.equal(testReceiptData.u_balance);
 						// FIXME: virgin should be 1 (account without outgoing transaction)
@@ -142,14 +135,13 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 			});
 
 			describe('(type 1) register second signature', function () {
-
 				before('create account with funds', function (done) {
 					createAccountWithFunds(done);
 					fieldsToCompare = ['balance', 'u_balance', 'blockId', 'virgin', 'publicKey', 'secondPublicKey', 'secondSignature', 'u_secondSignature'];
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						testAccountData = res;
 						expect(res.virgin).to.equal(true);
 						expect(res.publicKey).to.be.null;
@@ -166,7 +158,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						testAccountDataAfterBlock = res;
 						expect(res.virgin).to.equal(false);
 						expect(res.publicKey).to.not.be.null;
@@ -186,7 +178,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testAccountData.balance);
 						expect(res.u_balance).to.equal(testAccountData.u_balance);
 						expect(res.secondPublicKey).to.be.null;
@@ -204,7 +196,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 						expect(res.u_balance).to.equal(testAccountDataAfterBlock.u_balance);
 						expect(res.publicKey).to.equal(testAccountDataAfterBlock.publicKey);
@@ -218,7 +210,6 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 			});
 
 			describe('(type 2) register delegate', function () {
-
 				before('create account with funds', function (done) {
 					createAccountWithFunds(done);
 					fieldsToCompare = ['balance', 'u_balance', 'blockId', 'virgin', 'publicKey', 'isDelegate', 'u_isDelegate', 'username', 'u_username', 'missedBlocks', 'producedBlocks', 'rank', 'rewards', 'vote'];
@@ -226,7 +217,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						testAccountData = res;
 						expect(res.virgin).to.equal(true);
 						expect(res.publicKey).to.be.null;
@@ -249,7 +240,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						testAccountDataAfterBlock = res;
 						expect(res.virgin).to.equal(false);
 						expect(res.publicKey).to.not.be.null;
@@ -275,7 +266,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testAccountData.balance);
 						expect(res.u_balance).to.equal(testAccountData.u_balance);
 						expect(res.isDelegate).to.equal(false);
@@ -299,7 +290,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 						expect(res.u_balance).to.equal(testAccountDataAfterBlock.u_balance);
 						expect(res.publicKey).to.equal(testAccountDataAfterBlock.publicKey);
@@ -320,14 +311,13 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 			});
 
 			describe('(type 3) votes', function () {
-
 				before('create account with funds', function (done) {
 					createAccountWithFunds(done);
 					fieldsToCompare = ['balance', 'u_balance', 'blockId', 'virgin', 'publicKey', 'delegates', 'u_delegates'];
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						testAccountData = res;
 						expect(res.virgin).to.equal(true);
 						expect(res.publicKey).to.be.null;
@@ -338,12 +328,12 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should forge a block', function (done) {
-					var voteTransaction = lisk.vote.createVote(testAccount.password, ['+' + accountFixtures.existingDelegate.publicKey]);
+					var voteTransaction = lisk.vote.createVote(testAccount.password, [`+${accountFixtures.existingDelegate.publicKey}`]);
 					localCommon.addTransactionsAndForge(library, [voteTransaction], done);
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						testAccountDataAfterBlock = res;
 						expect(res.virgin).to.equal(false);
 						expect(res.publicKey).to.not.be.null;
@@ -362,7 +352,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testAccountData.balance);
 						expect(res.u_balance).to.equal(testAccountData.u_balance);
 						expect(res.delegates).to.be.null;
@@ -379,7 +369,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 						expect(res.u_balance).to.equal(testAccountDataAfterBlock.u_balance);
 						expect(res.publicKey).to.equal(testAccountDataAfterBlock.publicKey);
@@ -393,14 +383,13 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 			});
 
 			describe('(type 4) register multisignature', function () {
-
 				before('create account with funds', function (done) {
 					createAccountWithFunds(done);
 					fieldsToCompare = ['balance', 'u_balance', 'blockId', 'virgin', 'publicKey', 'multilifetime', 'u_multilifetime', 'multimin', 'u_multimin', 'multisignatures', 'u_multisignatures'];
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						testAccountData = res;
 						expect(res.virgin).to.equal(true);
 						expect(res.publicKey).to.be.null;
@@ -415,7 +404,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should forge a block', function (done) {
-					var multisigTransaction = lisk.multisignature.createMultisignature(testAccount.password, null, ['+' + accountFixtures.existingDelegate.publicKey], 1, 1);
+					var multisigTransaction = lisk.multisignature.createMultisignature(testAccount.password, null, [`+${accountFixtures.existingDelegate.publicKey}`], 1, 1);
 					var signTransaction = lisk.multisignature.signTransaction(multisigTransaction, accountFixtures.existingDelegate.password);
 					multisigTransaction.signatures = [signTransaction];
 					multisigTransaction.ready = true;
@@ -423,7 +412,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						testAccountDataAfterBlock = res;
 						expect(res.virgin).to.equal(false);
 						expect(res.publicKey).to.not.be.null;
@@ -446,7 +435,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testAccountData.balance);
 						expect(res.u_balance).to.equal(testAccountData.u_balance);
 						expect(res.multilifetime).to.equal(0);
@@ -467,7 +456,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				it('should validate account data from sender', function (done) {
-					library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+					library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 						expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 						expect(res.u_balance).to.equal(testAccountDataAfterBlock.u_balance);
 						expect(res.publicKey).to.equal(testAccountDataAfterBlock.publicKey);
@@ -484,17 +473,15 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 			});
 
-			describe('dapps' ,function () {
-
+			describe('dapps', function () {
 				before('create account with funds', function (done) {
 					createAccountWithFunds(done);
 					fieldsToCompare = ['balance', 'u_balance', 'blockId', 'virgin', 'publicKey'];
 				});
 
 				describe('(type 5) register dapp', function () {
-
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							testAccountData = res;
 							expect(res.virgin).to.equal(true);
 							expect(res.publicKey).to.be.null;
@@ -509,7 +496,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 					});
 
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							testAccountDataAfterBlock = res;
 							expect(res.virgin).to.equal(false);
 							expect(res.publicKey).to.not.be.null;
@@ -526,7 +513,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 					});
 
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							// FIXME: Incorrect blockId
@@ -541,7 +528,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 					});
 
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 							expect(res.u_balance).to.equal(testAccountDataAfterBlock.u_balance);
 							expect(res.publicKey).to.equal(testAccountDataAfterBlock.publicKey);
@@ -553,9 +540,8 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				describe.skip('(type 6) inTransfer dapp', function () {
-
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							testAccountData = res;
 							// expect(res.virgin).to.equal(true);
 							// expect(res.publicKey).to.be.null;
@@ -569,7 +555,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 					});
 
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							testAccountDataAfterBlock = res;
 							expect(res.virgin).to.equal(false);
 							expect(res.publicKey).to.not.be.null;
@@ -586,7 +572,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 					});
 
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							// FIXME: Incorrect blockId
@@ -601,7 +587,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 					});
 
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 							expect(res.u_balance).to.equal(testAccountDataAfterBlock.u_balance);
 							expect(res.publicKey).to.equal(testAccountDataAfterBlock.publicKey);
@@ -613,9 +599,8 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 				});
 
 				describe.skip('(type 7) outTransfer dapp', function () {
-
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							testAccountData = res;
 							// expect(res.virgin).to.equal(true);
 							// expect(res.publicKey).to.be.null;
@@ -625,14 +610,14 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 
 					it('should forge a block', function (done) {
 						var outTransferTransaction = lisk.transfer.createOutTransfer(randomUtil.guestbookDapp.id, randomUtil.transaction().id, accountFixtures.genesis.address, 10 * 100000000, testAccount.password);
-						localCommon.addTransactionsAndForge(library, [outTransferTransaction], function (err, res) {
+						localCommon.addTransactionsAndForge(library, [outTransferTransaction], function (err) {
 							expect(err).to.equal('Transaction type 7 is frozen');
 							done();
 						});
 					});
 
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							testAccountDataAfterBlock = res;
 							expect(res.virgin).to.equal(false);
 							expect(res.publicKey).to.not.be.null;
@@ -649,7 +634,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 					});
 
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							// FIXME: Incorrect blockId
@@ -664,7 +649,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function () {
 					});
 
 					it('should validate account data from sender', function (done) {
-						library.logic.account.get({address: testAccount.address}, fieldsToCompare, function (err, res) {
+						library.logic.account.get({ address: testAccount.address }, fieldsToCompare, function (err, res) {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 							expect(res.u_balance).to.equal(testAccountDataAfterBlock.u_balance);
 							expect(res.publicKey).to.equal(testAccountDataAfterBlock.publicKey);

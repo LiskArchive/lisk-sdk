@@ -13,8 +13,7 @@
  */
 'use strict';
 
-describe('lisk_compression', function () {
-
+describe('lisk_compression', () => {
 	it('should be a factory function that names 2 arguments');
 
 	it('should create a middleware accepting 2 arguments');

@@ -13,8 +13,7 @@
  */
 'use strict';
 
-describe('lisk_response_formatter', function () {
-
+describe('lisk_response_formatter', () => {
 	it('should be a factory function that names 2 argument');
 
 	it('should create a middleware accepting 2 arguments');

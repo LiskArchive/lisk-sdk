@@ -1,0 +1,25 @@
+{
+	"env": {
+		"mocha": true
+	},
+	"globals": {
+		"_": true,
+		"__testContext": true,
+		"expect": true,
+		"gc": true,
+		"sinonSandbox": true
+	},
+  	"rules": {
+		// To Keep
+		"arrow-body-style": 0,
+		// To Remove
+		"mocha/handle-done-callback": 0,
+		"mocha/no-exclusive-tests": 0,
+		"mocha/no-identical-title": 0,
+		"mocha/no-nested-tests": 0,
+		"mocha/no-pending-tests": 0,
+		"mocha/no-skipped-tests": 0,
+		"mocha/no-synchronous-tests": 0,
+		"mocha/no-top-level-hooks": 0
+	}
+}

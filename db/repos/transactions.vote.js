@@ -25,7 +25,7 @@ var columnSet;
  * @constructor
  * @return {VoteTransactionsRepo}
  */
-function VoteTransactionsRepo (db, pgp) {
+function VoteTransactionsRepo(db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
@@ -38,8 +38,8 @@ function VoteTransactionsRepo (db, pgp) {
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
+		var table = new pgp.helpers.TableName({ table: this.dbTable, schema: 'public' });
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, { table: table });
 	}
 
 	this.cs = columnSet;
@@ -55,12 +55,10 @@ VoteTransactionsRepo.prototype.save = function (transactions) {
 		transactions = [transactions];
 	}
 
-	transactions = transactions.map(function (transaction) {
-		return {
+	transactions = transactions.map(transaction => ({
 			votes: Array.isArray(transaction.asset.votes) ? transaction.asset.votes.join(',') : null,
 			transactionId: transaction.id
-		};
-	});
+		}));
 
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };

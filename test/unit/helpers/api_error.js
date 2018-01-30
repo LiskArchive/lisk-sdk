@@ -15,40 +15,37 @@
 
 var ApiError = require('../../../helpers/api_error.js');
 
-describe('helpers/apiError', function () {
-
+describe('helpers/apiError', () => {
 	var apiError;
 	var validErrorMessage;
 	var validErrorCode;
 
-	beforeEach(function () {
+	beforeEach(() => {
 		validErrorMessage = 'Valid error message';
 		validErrorCode = 501;
 		apiError = new ApiError(validErrorMessage, validErrorCode);
 	});
 
-	describe('constructor', function () {
-
-		it('should be an Error instance', function () {
+	describe('constructor', () => {
+		it('should be an Error instance', () => {
 			expect(apiError).to.have.instanceOf(Error);
 		});
 
-		it('should assign field message = "Valid error message"', function () {
+		it('should assign field message = "Valid error message"', () => {
 			expect(apiError).to.have.property('message').equal(validErrorMessage);
 		});
 
-		it('should assign field code = 501', function () {
+		it('should assign field code = 501', () => {
 			expect(apiError).to.have.property('code').equal(validErrorCode);
 		});
 	});
 
-	describe('toJson', function () {
-
-		it('should return Object type result', function () {
+	describe('toJson', () => {
+		it('should return Object type result', () => {
 			expect(apiError.toJson()).to.be.an('Object');
 		});
 
-		it('should return result containing message = "Valid error message"', function () {
+		it('should return result containing message = "Valid error message"', () => {
 			expect(apiError.toJson()).to.have.property('message').equal(validErrorMessage);
 		});
 	});

@@ -23,7 +23,8 @@ var extend = require('extend');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var self, __private = {};
+var self,
+__private = {};
 
 /**
  * @typedef {Object} privateTypes
@@ -53,7 +54,7 @@ __private.types = {};
  * @return {setImmediateCallback} With `this` as data.
  */
 // Constructor
-function Transaction (db, ed, schema, genesisblock, account, logger, cb) {
+function Transaction(db, ed, schema, genesisblock, account, logger, cb) {
 	this.scope = {
 		db: db,
 		ed: ed,
@@ -160,7 +161,7 @@ Transaction.prototype.getHash = function (transaction) {
  */
 Transaction.prototype.getBytes = function (transaction, skipSignature, skipSecondSignature) {
 	if (!__private.types[transaction.type]) {
-		throw 'Unknown transaction type ' + transaction.type;
+		throw `Unknown transaction type ${transaction.type}`;
 	}
 
 	var bb;
@@ -188,7 +189,7 @@ Transaction.prototype.getBytes = function (transaction, skipSignature, skipSecon
 
 		if (transaction.recipientId) {
 			var recipient = transaction.recipientId.slice(0, -1);
-			recipient = new bignum(recipient).toBuffer({size: 8});
+			recipient = new bignum(recipient).toBuffer({ size: 8 });
 
 			for (i = 0; i < 8; i++) {
 				bb.writeByte(recipient[i] || 0);
@@ -238,7 +239,7 @@ Transaction.prototype.getBytes = function (transaction, skipSignature, skipSecon
  */
 Transaction.prototype.ready = function (transaction, sender) {
 	if (!__private.types[transaction.type]) {
-		throw 'Unknown transaction type ' + transaction.type;
+		throw `Unknown transaction type ${transaction.type}`;
 	}
 
 	if (!sender) {
@@ -255,9 +256,7 @@ Transaction.prototype.ready = function (transaction, sender) {
  * @return {setImmediateCallback} error | row.count
  */
 Transaction.prototype.countById = function (transaction, cb) {
-	self.scope.db.transactions.countById(transaction.id).then(function (count) {
-		return setImmediate(cb, null, count);
-	}).catch(function (err) {
+	self.scope.db.transactions.countById(transaction.id).then(count => setImmediate(cb, null, count)).catch(err => {
 		self.scope.logger.error(err.stack);
 		return setImmediate(cb, 'Transaction#countById error');
 	});
@@ -270,11 +269,11 @@ Transaction.prototype.countById = function (transaction, cb) {
  * @return {setImmediateCallback} error | cb
  */
 Transaction.prototype.checkConfirmed = function (transaction, cb) {
-	this.countById(transaction, function (err, count) {
+	this.countById(transaction, (err, count) => {
 		if (err) {
 			return setImmediate(cb, err);
 		} else if (count > 0) {
-			return setImmediate(cb, 'Transaction is already confirmed: ' + transaction.id);
+			return setImmediate(cb, `Transaction is already confirmed: ${transaction.id}`);
 		} else {
 			return setImmediate(cb);
 		}
@@ -298,7 +297,7 @@ Transaction.prototype.checkBalance = function (amount, balance, transaction, sen
 		exceeded: exceeded,
 		error: exceeded ? [
 			'Account does not have enough LSK:', sender.address,
-			'balance:', new bignum(sender[balance].toString() || '0').div(Math.pow(10,8))
+			'balance:', new bignum(sender[balance].toString() || '0').div(Math.pow(10, 8))
 		].join(' ') : null
 	};
 };
@@ -321,7 +320,7 @@ Transaction.prototype.process = function (transaction, sender, requester, cb, tx
 
 	// Check transaction type
 	if (!__private.types[transaction.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + transaction.type);
+		return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
 	}
 
 	// if (!this.ready(trs, sender)) {
@@ -354,13 +353,13 @@ Transaction.prototype.process = function (transaction, sender, requester, cb, tx
 	transaction.senderId = sender.address;
 
 	// Call process on transaction type
-	__private.types[transaction.type].process.call(this, transaction, sender, function (err, transaction) {
+	__private.types[transaction.type].process.call(this, transaction, sender, (err, transaction) => {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
 			return setImmediate(cb, null, transaction);
 		}
-	}.bind(this), tx);
+	}, tx);
 };
 
 /**
@@ -389,7 +388,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb, tx)
 
 	// Check transaction type
 	if (!__private.types[transaction.type]) {
-		return setImmediate(cb, 'Unknown transaction type ' + transaction.type);
+		return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
 	}
 
 	// Check for missing sender second signature
@@ -438,7 +437,6 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb, tx)
 	var multisignatures = sender.multisignatures || [];
 	if (multisignatures.length === 0) {
 		if (transaction.asset && transaction.asset.multisignature && transaction.asset.multisignature.keysgroup) {
-
 			for (var i = 0; i < transaction.asset.multisignature.keysgroup.length; i++) {
 				var key = transaction.asset.multisignature.keysgroup[i];
 
@@ -498,7 +496,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb, tx)
 
 	// Check that signatures are unique
 	if (transaction.signatures && transaction.signatures.length) {
-		var signatures = transaction.signatures.reduce(function (p, c) {
+		var signatures = transaction.signatures.reduce((p, c) => {
 			if (p.indexOf(c) < 0) { p.push(c); }
 			return p;
 		}, []);
@@ -515,7 +513,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb, tx)
 
 			for (var s = 0; s < multisignatures.length; s++) {
 				if (transaction.requesterPublicKey && multisignatures[s] === transaction.requesterPublicKey) {
-					continue;
+					continue; // eslint-disable-line no-continue
 				}
 
 				if (this.verifySignature(transaction, multisignatures[s], transaction.signatures[d])) {
@@ -554,7 +552,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb, tx)
 	}
 
 	// Call verify on transaction type
-	__private.types[transaction.type].verify.call(this, transaction, sender, function (err) {
+	__private.types[transaction.type].verify.call(this, transaction, sender, err => {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
@@ -576,7 +574,7 @@ Transaction.prototype.verify = function (transaction, sender, requester, cb, tx)
  */
 Transaction.prototype.verifySignature = function (transaction, publicKey, signature) {
 	if (!__private.types[transaction.type]) {
-		throw 'Unknown transaction type ' + transaction.type;
+		throw `Unknown transaction type ${transaction.type}`;
 	}
 
 	if (!signature) { return false; }
@@ -605,7 +603,7 @@ Transaction.prototype.verifySignature = function (transaction, publicKey, signat
  */
 Transaction.prototype.verifySecondSignature = function (transaction, publicKey, signature) {
 	if (!__private.types[transaction.type]) {
-		throw 'Unknown transaction type ' + transaction.type;
+		throw `Unknown transaction type ${transaction.type}`;
 	}
 
 	if (!signature) { return false; }
@@ -681,12 +679,12 @@ Transaction.prototype.apply = function (transaction, block, sender, cb, tx) {
 
 	amount = amount.toNumber();
 
-	this.scope.logger.trace('Logic/Transaction->apply', {sender: sender.address, balance: -amount, blockId: block.id, round: slots.calcRound(block.height)});
+	this.scope.logger.trace('Logic/Transaction->apply', { sender: sender.address, balance: -amount, blockId: block.id, round: slots.calcRound(block.height) });
 	this.scope.account.merge(sender.address, {
 		balance: -amount,
 		blockId: block.id,
 		round: slots.calcRound(block.height)
-	}, function (err, sender) {
+	}, (err, sender) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -694,20 +692,18 @@ Transaction.prototype.apply = function (transaction, block, sender, cb, tx) {
 		 * calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
 		 * DApp, InTransfer or OutTransfer.
 		 */
-		__private.types[transaction.type].apply.call(this, transaction, block, sender, function (err) {
+		__private.types[transaction.type].apply.call(this, transaction, block, sender, err => {
 			if (err) {
 				this.scope.account.merge(sender.address, {
 					balance: amount,
 					blockId: block.id,
 					round: slots.calcRound(block.height)
-				}, function (err) {
-					return setImmediate(cb, err);
-				}, tx);
+				}, err => setImmediate(cb, err), tx);
 			} else {
 				return setImmediate(cb);
 			}
-		}.bind(this), tx);
-	}.bind(this), tx);
+		}, tx);
+	}, tx);
 };
 
 /**
@@ -724,32 +720,30 @@ Transaction.prototype.apply = function (transaction, block, sender, cb, tx) {
  */
 Transaction.prototype.undo = function (transaction, block, sender, cb) {
 	var amount = new bignum(transaction.amount.toString());
-	    amount = amount.plus(transaction.fee.toString()).toNumber();
+	amount = amount.plus(transaction.fee.toString()).toNumber();
 
-	this.scope.logger.trace('Logic/Transaction->undo', {sender: sender.address, balance: amount, blockId: block.id, round: slots.calcRound(block.height)});
+	this.scope.logger.trace('Logic/Transaction->undo', { sender: sender.address, balance: amount, blockId: block.id, round: slots.calcRound(block.height) });
 	this.scope.account.merge(sender.address, {
 		balance: amount,
 		blockId: block.id,
 		round: slots.calcRound(block.height)
-	}, function (err, sender) {
+	}, (err, sender) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
-		__private.types[transaction.type].undo.call(this, transaction, block, sender, function (err) {
+		__private.types[transaction.type].undo.call(this, transaction, block, sender, err => {
 			if (err) {
 				this.scope.account.merge(sender.address, {
 					balance: -amount,
 					blockId: block.id,
 					round: slots.calcRound(block.height)
-				}, function (err) {
-					return setImmediate(cb, err);
-				});
+				}, err => setImmediate(cb, err));
 			} else {
 				return setImmediate(cb);
 			}
-		}.bind(this));
-	}.bind(this));
+		});
+	});
 };
 
 /**
@@ -786,21 +780,19 @@ Transaction.prototype.applyUnconfirmed = function (transaction, sender, requeste
 
 	amount = amount.toNumber();
 
-	this.scope.account.merge(sender.address, {u_balance: -amount}, function (err, sender) {
+	this.scope.account.merge(sender.address, { u_balance: -amount }, (err, sender) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
-		__private.types[transaction.type].applyUnconfirmed.call(this, transaction, sender, function (err) {
+		__private.types[transaction.type].applyUnconfirmed.call(this, transaction, sender, err => {
 			if (err) {
-				this.scope.account.merge(sender.address, {u_balance: amount}, function (err2) {
-					return setImmediate(cb, err2 || err);
-				}, tx);
+				this.scope.account.merge(sender.address, { u_balance: amount }, err2 => setImmediate(cb, err2 || err), tx);
 			} else {
 				return setImmediate(cb);
 			}
-		}.bind(this), tx);
-	}.bind(this), tx);
+		}, tx);
+	}, tx);
 };
 
 /**
@@ -817,23 +809,21 @@ Transaction.prototype.applyUnconfirmed = function (transaction, sender, requeste
  */
 Transaction.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
 	var amount = new bignum(transaction.amount.toString());
-	    amount = amount.plus(transaction.fee.toString()).toNumber();
+	amount = amount.plus(transaction.fee.toString()).toNumber();
 
-	this.scope.account.merge(sender.address, {u_balance: amount}, function (err, sender) {
+	this.scope.account.merge(sender.address, { u_balance: amount }, (err, sender) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
-		__private.types[transaction.type].undoUnconfirmed.call(this, transaction, sender, function (err) {
+		__private.types[transaction.type].undoUnconfirmed.call(this, transaction, sender, err => {
 			if (err) {
-				this.scope.account.merge(sender.address, {u_balance: -amount}, function (err2) {
-					return setImmediate(cb, err2 || err);
-				}, tx);
+				this.scope.account.merge(sender.address, { u_balance: -amount }, err2 => setImmediate(cb, err2 || err), tx);
 			} else {
 				return setImmediate(cb);
 			}
-		}.bind(this), tx);
-	}.bind(this), tx);
+		}, tx);
+	}, tx);
 };
 
 /**
@@ -847,14 +837,12 @@ Transaction.prototype.afterSave = function (transaction, cb) {
 	var tx_type = __private.types[transaction.type];
 
 	if (!tx_type) {
-		return setImmediate(cb, 'Unknown transaction type ' + transaction.type);
-	} else {
-		if (typeof tx_type.afterSave === 'function') {
+		return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
+	} else if (typeof tx_type.afterSave === 'function') {
 			return tx_type.afterSave.call(this, transaction, cb);
 		} else {
 			return setImmediate(cb);
 		}
-	}
 };
 
 /**
@@ -964,7 +952,7 @@ Transaction.prototype.objectNormalize = function (transaction) {
 		throw 'Empty trs passed';
 	}
 	if (!__private.types[transaction.type]) {
-		throw 'Unknown transaction type ' + transaction.type;
+		throw `Unknown transaction type ${transaction.type}`;
 	}
 
 	for (var i in transaction) {
@@ -984,9 +972,7 @@ Transaction.prototype.objectNormalize = function (transaction) {
 	var report = this.scope.schema.validate(transaction, Transaction.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate transaction schema: ' + self.scope.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate transaction schema: ${self.scope.schema.getLastErrors().map(err => err.message).join(', ')}`;
 	}
 
 	try {
@@ -1030,7 +1016,7 @@ Transaction.prototype.dbRead = function (raw) {
 		};
 
 		if (!__private.types[transaction.type]) {
-			throw 'Unknown transaction type ' + transaction.type;
+			throw `Unknown transaction type ${transaction.type}`;
 		}
 
 		var asset = __private.types[transaction.type].dbRead.call(this, raw);

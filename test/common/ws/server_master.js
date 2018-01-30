@@ -26,13 +26,13 @@ var random = require('../../common/utils/random');
  *
  * @constructor
  */
-function WSServerMaster () {
+function WSServerMaster() {
 	this.masterProcess = null;
 	this.ip = '127.0.0.1';
 
 	this.headers = WSServerMaster.generatePeerHeaders({
 		ip: this.ip,
-		version: '0.0.' + (Math.floor(Math.random() * 10) + 1)
+		version: `0.0.${Math.floor(Math.random() * 10) + 1}`
 	});
 
 	this.wsPort = this.headers.wsPort;
@@ -55,18 +55,18 @@ WSServerMaster.prototype.start = function () {
 			env: process.env
 		});
 
-		self.masterProcess.on('error', function () {
+		self.masterProcess.on('error', () => {
 			self.stop();
 			reject();
 		});
 
-		self.masterProcess.on('close', function () {
+		self.masterProcess.on('close', () => {
 			self.masterProcess = null;
 			self.stop();
 		});
 
-		self.masterProcess.on('message', function (message) {
-			if(message === 'ready') {
+		self.masterProcess.on('message', message => {
+			if (message === 'ready') {
 				resolve();
 			} else {
 				reject(message);
@@ -110,7 +110,7 @@ WSServerMaster.generatePeerHeaders = function (headers) {
  *
  * @return {object}
  */
-WSServerMaster.prototype.getHeaders  = function () {
+WSServerMaster.prototype.getHeaders = function () {
 	return this.headers;
 };
 

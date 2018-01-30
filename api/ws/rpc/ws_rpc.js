@@ -14,7 +14,6 @@
 'use strict';
 
 var _ = require('lodash');
-var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 
@@ -55,13 +54,13 @@ var wsRPC = {
 	 */
 	getClientRPCStub: function (ip, port) {
 		if (!ip || !port) {
-			throw new Error('RPC client needs ip and port to establish WS connection with: ' + ip + ':' + port);
+			throw new Error(`RPC client needs ip and port to establish WS connection with: ${ip}:${port}`);
 		}
 
-		var address = ip + ':' + port;
+		var address = `${ip}:${port}`;
 		var connectionState = this.clientsConnectionsMap[address];
 
-		//first time init || previously rejected
+		// first time init || previously rejected
 		if (!connectionState || connectionState.status === ConnectionState.STATUS.DISCONNECTED) {
 			connectionState = new ConnectionState(ip, port);
 			this.clientsConnectionsMap[address] = connectionState;
@@ -88,7 +87,7 @@ ConnectionState.STATUS = {
 	DISCONNECTED: 4
 };
 
-function ConnectionState (ip, port) {
+function ConnectionState(ip, port) {
 	this.ip = ip;
 	this.port = +port;
 	this.status = ConnectionState.STATUS.NEW;
@@ -127,17 +126,18 @@ ConnectionState.prototype.resolve = function (socket) {
  * @returns {clientStub}
  */
 var ClientRPCStub = function (connectionState) {
+	var wsServer;
 	try {
-		var wsServer = wsRPC.getServer();
+		wsServer = wsRPC.getServer();
 	} catch (wsServerNotInitializedException) {
 		return {};
 	}
 
 	return _.reduce(Object.assign({}, wsServer.endpoints.rpc, wsServer.endpoints.event),
-		function (availableCalls, procedureHandler, procedureName) {
+		(availableCalls, procedureHandler, procedureName) => {
 			availableCalls[procedureName] = this.sendAfterSocketReadyCb(connectionState)(procedureName);
 			return availableCalls;
-		}.bind(this), {});
+		}, {});
 };
 
 
@@ -145,7 +145,6 @@ var ClientRPCStub = function (connectionState) {
  * @param {ConnectionState} connectionState
  */
 ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
-
 	var options = {
 		hostname: connectionState.ip,
 		port: connectionState.port,
@@ -157,19 +156,17 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 	var clientSocket = wsRPC.scClient.connect(options);
 	wsRPC.wampClient.upgradeToWAMP(clientSocket);
 
-	clientSocket.on('accepted', function () {
-		return connectionState.resolve(clientSocket);
-	});
+	clientSocket.on('accepted', () => connectionState.resolve(clientSocket));
 
-	clientSocket.on('error', function () {
+	clientSocket.on('error', () => {
 		clientSocket.disconnect();
 	});
 
-	clientSocket.on('connectAbort', function () {
+	clientSocket.on('connectAbort', () => {
 		connectionState.reject(new PeerUpdateError(failureCodes.HANDSHAKE_ERROR, failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]));
 	});
 
-	clientSocket.on('disconnect', function (code, description) {
+	clientSocket.on('disconnect', (code, description) => {
 		connectionState.reject(new PeerUpdateError(code, failureCodes.errorMessages[code], description));
 	});
 };
@@ -192,15 +189,9 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
 				ClientRPCStub.prototype.initializeNewConnection(connectionState);
 			}
 
-			connectionState.socketDefer.promise.timeout(1000).then(function (socket) {
-				return socket.wampSend(procedureName, data)
-					.then(function (res) {
-						return setImmediate(cb, null, res);
-					})
-					.catch(function (err) {
-						return setImmediate(cb, err);
-					});
-			}).catch(function (err) {
+			connectionState.socketDefer.promise.timeout(1000).then(socket => socket.wampSend(procedureName, data)
+					.then(res => setImmediate(cb, null, res))
+					.catch(err => setImmediate(cb, err))).catch(err => {
 				if (err && err.name === 'TimeoutError') {
 					err = new PeerUpdateError(failureCodes.CONNECTION_TIMEOUT, failureCodes.errorMessages[failureCodes.CONNECTION_TIMEOUT]);
 				}

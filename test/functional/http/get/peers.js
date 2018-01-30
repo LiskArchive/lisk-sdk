@@ -17,10 +17,8 @@ require('../../functional.js');
 var WSServer = require('../../../common/ws/server_master');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
-var Promise = require('bluebird');
 
 describe('GET /peers', function () {
-
 	var peersEndpoint = new swaggerEndpoint('GET /peers');
 	var wsServer1 = new WSServer();
 	var wsServer2 = new WSServer();
@@ -68,14 +66,11 @@ describe('GET /peers', function () {
 	};
 
 	Object.keys(paramSet).forEach(function (param) {
-
 		// Describe each param
 		describe(param, function () {
-
 			paramSet[param].invalid.forEach(function (val) {
-
 				// Test case for each invalid param
-				it('using invalid value ' + param + '=' + val, function () {
+				it(`using invalid value ${param}=${val}`, function () {
 					var params = {};
 					params[param] = val;
 					return peersEndpoint.makeRequest(params, 400).then(function (res) {
@@ -85,13 +80,12 @@ describe('GET /peers', function () {
 			});
 
 			paramSet[param].valid.forEach(function (val) {
-
 				// Test case for each valid param
-				it('using valid value ' + param + '=' + val, function () {
+				it(`using valid value ${param}=${val}`, function () {
 					var params = {};
 					params[param] = val;
 					return peersEndpoint.makeRequest(params, 200).then(function (res) {
-						if(paramSet[param].checkResponse) {
+						if (paramSet[param].checkResponse) {
 							res.body.data.forEach(function (peer) {
 								expect(peer[param]).to.be.eql(val);
 							});
@@ -103,37 +97,36 @@ describe('GET /peers', function () {
 	});
 
 	describe('pass data from a real peer', function () {
-
-		it('using a valid httpPort = ' + validHeaders.httpPort + ' should return the result', function () {
-			return peersEndpoint.makeRequest({httpPort: validHeaders.httpPort}, 200)
+		it(`using a valid httpPort = ${validHeaders.httpPort} should return the result`, function () {
+			return peersEndpoint.makeRequest({ httpPort: validHeaders.httpPort }, 200)
 				.then(function (res) {
 					expect(res.body.data[0].httpPort).to.be.eql(validHeaders.httpPort);
 				});
 		});
 
-		it('using state = ' + validHeaders.state + ' should return the result', function () {
-			return peersEndpoint.makeRequest({state: validHeaders.state}, 200)
+		it(`using state = ${validHeaders.state} should return the result`, function () {
+			return peersEndpoint.makeRequest({ state: validHeaders.state }, 200)
 				.then(function (res) {
 					expect(res.body.data[0].state).to.be.eql(2);
 				});
 		});
 
-		it('using version = "' + validHeaders.version + '" should return the result', function () {
-			return peersEndpoint.makeRequest({version: validHeaders.version}, 200)
+		it(`using version = "${validHeaders.version}" should return the result`, function () {
+			return peersEndpoint.makeRequest({ version: validHeaders.version }, 200)
 				.then(function (res) {
 					expect(res.body.data[0].version).to.be.eql(validHeaders.version);
 				});
 		});
 
-		it('using valid broadhash = "' + validHeaders.broadhash + '" should return the result', function () {
-			return peersEndpoint.makeRequest({broadhash: validHeaders.broadhash}, 200)
+		it(`using valid broadhash = "${validHeaders.broadhash}" should return the result`, function () {
+			return peersEndpoint.makeRequest({ broadhash: validHeaders.broadhash }, 200)
 				.then(function (res) {
 					expect(res.body.data[0].broadhash).to.be.eql(validHeaders.broadhash);
 				});
 		});
 
 		it('using sort = "version:asc" should return results in ascending order by version', function () {
-			return peersEndpoint.makeRequest({sort: 'version:asc'}, 200)
+			return peersEndpoint.makeRequest({ sort: 'version:asc' }, 200)
 				.then(function (res) {
 					var versions = _(res.body.data).map('version').value();
 					expect(_.clone(versions).sort()).to.be.eql(versions);
@@ -141,7 +134,7 @@ describe('GET /peers', function () {
 		});
 
 		it('using sort = "version:desc" should return results in descending order by version', function () {
-			return peersEndpoint.makeRequest({sort: 'version:desc'}, 200)
+			return peersEndpoint.makeRequest({ sort: 'version:desc' }, 200)
 				.then(function (res) {
 					var versions = _(res.body.data).map('version').value();
 					expect(_.clone(versions).sort().reverse()).to.be.eql(versions);
@@ -152,12 +145,12 @@ describe('GET /peers', function () {
 			var limit = 1;
 			var firstObject = null;
 
-			return peersEndpoint.makeRequest({limit: limit}, 200)
+			return peersEndpoint.makeRequest({ limit: limit }, 200)
 				.then(function (res) {
 					expect(res.body.data.length).to.be.at.most(limit);
 					firstObject = res.body.data[0];
 
-					return peersEndpoint.makeRequest({limit: limit, offset: 1}, 200);
+					return peersEndpoint.makeRequest({ limit: limit, offset: 1 }, 200);
 				})
 				.then(function (res) {
 					expect(res.body.data.length).to.be.at.most(limit);

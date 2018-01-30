@@ -29,7 +29,7 @@ var modules;
  * @classdesc Main System methods.
  * @param {scope} scope - App instance.
  */
-function VotersController (scope) {
+function VotersController(scope) {
 	modules = scope.modules;
 }
 
@@ -47,23 +47,23 @@ VotersController.getVoters = function (context, next) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	if (!(filters.username || filters.address || filters.publicKey || filters.secondPublicKey)) {
 		var error = generateParamsErrorObject(
 			[params.address, params.publicKey, params.secondPublicKey, params.username],
-			['address is required if publicKey, secondPublicKey and username not provided.',
-			 'publicKey is required if address, secondPublicKey and username not provided.',
-			 'secondPublicKey is required if address, publicKey and username not provided.',
-			 'username is required if publicKey, secondPublicKey and address not provided.']
+			[
+				'address is required if publicKey, secondPublicKey and username not provided.',
+				'publicKey is required if address, secondPublicKey and username not provided.',
+				'secondPublicKey is required if address, publicKey and username not provided.',
+				'username is required if publicKey, secondPublicKey and address not provided.'
+			]
 		);
 
 		return next(error);
 	}
 
-	modules.voters.shared.getVoters(_.clone(filters), function (err, data) {
+	modules.voters.shared.getVoters(_.clone(filters), (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
@@ -103,23 +103,23 @@ VotersController.getVotes = function (context, next) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	if (!(filters.username || filters.address || filters.publicKey || filters.secondPublicKey)) {
 		var error = generateParamsErrorObject(
 			[params.address, params.publicKey, params.secondPublicKey, params.username],
-			['address is required if publicKey, secondPublicKey and username not provided.',
-			 'publicKey is required if address, secondPublicKey and username not provided.',
-			 'secondPublicKey is required if address, publicKey and username not provided.',
-			 'username is required if publicKey, secondPublicKey and address not provided.']
+			[
+				'address is required if publicKey, secondPublicKey and username not provided.',
+				'publicKey is required if address, secondPublicKey and username not provided.',
+				'secondPublicKey is required if address, publicKey and username not provided.',
+				'username is required if publicKey, secondPublicKey and address not provided.'
+			]
 		);
 
 		return next(error);
 	}
 
-	modules.voters.shared.getVotes(_.clone(filters), function (err, data) {
+	modules.voters.shared.getVotes(_.clone(filters), (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
@@ -131,7 +131,7 @@ VotersController.getVotes = function (context, next) {
 
 		data = _.cloneDeep(data);
 
-		data.votes.concat(data).forEach(function (entity) {
+		data.votes.concat(data).forEach(entity => {
 			if (_.isNull(entity.username)) {
 				entity.username = '';
 			}

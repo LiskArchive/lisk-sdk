@@ -16,30 +16,27 @@
 var failureCodes = require('../../../../../api/ws/rpc/failure_codes');
 var Rules = require('../../../../../api/ws/workers/rules');
 
-describe('Rules', function () {
-
+describe('Rules', () => {
 	var rules;
 	var insertMock = sinonSandbox.spy();
 	var removeMock = sinonSandbox.spy();
 	var blockMock = sinonSandbox.spy();
 
-	beforeEach(function () {
+	beforeEach(() => {
 		rules = new Rules(insertMock, removeMock, blockMock);
 		insertMock.reset();
 		removeMock.reset();
 		blockMock.reset();
 	});
 
-	describe('constructor', function () {
-
-		it('should construct set of rules', function () {
+	describe('constructor', () => {
+		it('should construct set of rules', () => {
 			expect(rules).to.have.property('rules').not.to.be.empty;
 		});
 	});
 
-	describe('rules', function () {
-
-		it('should have entries for every configuration', function () {
+	describe('rules', () => {
+		it('should have entries for every configuration', () => {
 			expect(rules.rules).to.have.nested.property('0.true.true.true').to.be.a('function');
 			expect(rules.rules).to.have.nested.property('0.true.true.false').to.be.a('function');
 			expect(rules.rules).to.have.nested.property('0.true.false.true').to.be.a('function');
@@ -59,39 +56,36 @@ describe('Rules', function () {
 			expect(rules.rules).to.have.nested.property('1.false.false.false').to.be.a('function');
 		});
 
-		describe('error codes', function () {
-
+		describe('error codes', () => {
 			var updateType;
 
-			describe('insert', function () {
-
-				beforeEach(function () {
+			describe('insert', () => {
+				beforeEach(() => {
 					updateType = Rules.UPDATES.INSERT;
 				});
 
-				it('should return ALREADY_ADDED code when present on master, nonce is present, and present connection id', function () {
+				it('should return ALREADY_ADDED code when present on master, nonce is present, and present connection id', () => {
 					rules.rules[updateType][true][true][true]();
 					expect(blockMock.calledWithExactly(failureCodes.ALREADY_ADDED)).to.be.true;
 				});
 
-				it('should return DIFFERENT_CONN_ID code when present on master, nonce is not present, and present connection id', function () {
+				it('should return DIFFERENT_CONN_ID code when present on master, nonce is not present, and present connection id', () => {
 					rules.rules[updateType][true][false][true]();
 					expect(blockMock.calledWithExactly(failureCodes.DIFFERENT_CONN_ID)).to.be.true;
 				});
 			});
 
-			describe('remove', function () {
-
-				beforeEach(function () {
+			describe('remove', () => {
+				beforeEach(() => {
 					updateType = Rules.UPDATES.REMOVE;
 				});
 
-				it('should return ALREADY_ADDED code when not present on master, nonce is not present, and not present connection id', function () {
+				it('should return ALREADY_ADDED code when not present on master, nonce is not present, and not present connection id', () => {
 					rules.rules[updateType][false][false][false]();
 					expect(blockMock.calledWithExactly(failureCodes.ALREADY_REMOVED)).to.be.true;
 				});
 
-				it('should return DIFFERENT_CONN_ID code when present on master, nonce is not present, and present connection id', function () {
+				it('should return DIFFERENT_CONN_ID code when present on master, nonce is not present, and present connection id', () => {
 					rules.rules[updateType][true][false][true]();
 					expect(blockMock.calledWithExactly(failureCodes.DIFFERENT_CONN_ID)).to.be.true;
 				});

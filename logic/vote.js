@@ -21,7 +21,9 @@ var _ = require('lodash');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var modules, library, self;
+var modules,
+library,
+self;
 
 // Constructor
 /**
@@ -34,13 +36,12 @@ var modules, library, self;
  * @param {Object} logger
  * @param {ZSchema} schema
  */
-function Vote (logger, schema) {
+function Vote(logger, schema) {
 	self = this;
 	library = {
 		logger: logger,
 		schema: schema
 	};
-
 }
 
 // Public methods
@@ -59,7 +60,7 @@ Vote.prototype.bind = function (delegates) {
  * @see {@link module:helpers/constants}
  * @return {number} fee
  */
-Vote.prototype.calculateFee = function (transaction, sender) {
+Vote.prototype.calculateFee = function () {
 	return constants.fees.vote;
 };
 
@@ -94,20 +95,19 @@ Vote.prototype.verify = function (transaction, sender, cb, tx) {
 		return setImmediate(cb, ['Voting limit exceeded. Maximum is', constants.maxVotesPerTransaction, 'votes per transaction'].join(' '));
 	}
 
-	async.eachSeries(transaction.asset.votes, function (vote, eachSeriesCb) {
-		self.verifyVote(vote, function (err) {
+	async.eachSeries(transaction.asset.votes, (vote, eachSeriesCb) => {
+		self.verifyVote(vote, err => {
 			if (err) {
 				return setImmediate(eachSeriesCb, ['Invalid vote at index', transaction.asset.votes.indexOf(vote), '-', err].join(' '));
 			} else {
 				return setImmediate(eachSeriesCb);
 			}
 		}, tx);
-	}, function (err) {
+	}, err => {
 		if (err) {
 			return setImmediate(cb, err);
 		} else {
-
-			if (transaction.asset.votes.length > _.uniqBy(transaction.asset.votes, function (v) { return v.slice(1); }).length) {
+			if (transaction.asset.votes.length > _.uniqBy(transaction.asset.votes, v => v.slice(1)).length) {
 				return setImmediate(cb, 'Multiple votes for same delegate are not allowed');
 			}
 
@@ -122,7 +122,7 @@ Vote.prototype.verify = function (transaction, sender, cb, tx) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} error message | cb.
  */
-Vote.prototype.verifyVote = function (vote, cb, tx) {
+Vote.prototype.verifyVote = function (vote, cb) {
 	if (typeof vote !== 'string') {
 		return setImmediate(cb, 'Invalid vote type');
 	}
@@ -147,7 +147,7 @@ Vote.prototype.verifyVote = function (vote, cb, tx) {
  * exceptions votes list)
  */
 Vote.prototype.checkConfirmedDelegates = function (transaction, cb, tx) {
-	modules.delegates.checkConfirmedDelegates(transaction.senderPublicKey, transaction.asset.votes, function (err) {
+	modules.delegates.checkConfirmedDelegates(transaction.senderPublicKey, transaction.asset.votes, err => {
 		if (err && exceptions.votes.indexOf(transaction.id) > -1) {
 			library.logger.debug(err);
 			library.logger.debug(JSON.stringify(transaction));
@@ -167,7 +167,7 @@ Vote.prototype.checkConfirmedDelegates = function (transaction, cb, tx) {
  * exceptions votes list)
  */
 Vote.prototype.checkUnconfirmedDelegates = function (transaction, cb, tx) {
-	modules.delegates.checkUnconfirmedDelegates(transaction.senderPublicKey, transaction.asset.votes, function (err) {
+	modules.delegates.checkUnconfirmedDelegates(transaction.senderPublicKey, transaction.asset.votes, err => {
 		if (err && exceptions.votes.indexOf(transaction.id) > -1) {
 			library.logger.debug(err);
 			library.logger.debug(JSON.stringify(transaction));
@@ -225,14 +225,12 @@ Vote.prototype.apply = function (transaction, block, sender, cb, tx) {
 		function (seriesCb) {
 			self.checkConfirmedDelegates(transaction, seriesCb, tx);
 		},
-		function (seriesCb) {
+		function () {
 			parent.scope.account.merge(sender.address, {
 				delegates: transaction.asset.votes,
 				blockId: block.id,
 				round: slots.calcRound(block.height)
-			}, function (err) {
-				return setImmediate(cb, err);
-			}, tx);
+			}, err => setImmediate(cb, err), tx);
 		}
 	], cb);
 };
@@ -258,9 +256,7 @@ Vote.prototype.undo = function (transaction, block, sender, cb) {
 		delegates: votesInvert,
 		blockId: block.id,
 		round: slots.calcRound(block.height)
-	}, function (err) {
-		return setImmediate(cb, err);
-	});
+	}, err => setImmediate(cb, err));
 };
 
 /**
@@ -283,9 +279,7 @@ Vote.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
 		function (seriesCb) {
 			parent.scope.account.merge(sender.address, {
 				u_delegates: transaction.asset.votes
-			}, function (err) {
-				return setImmediate(seriesCb, err);
-			}, tx);
+			}, err => setImmediate(seriesCb, err), tx);
 		}
 	], cb);
 };
@@ -306,9 +300,7 @@ Vote.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
 
 	var votesInvert = Diff.reverse(transaction.asset.votes);
 
-	this.scope.account.merge(sender.address, {u_delegates: votesInvert}, function (err) {
-		return setImmediate(cb, err);
-	}, tx);
+	this.scope.account.merge(sender.address, { u_delegates: votesInvert }, err => setImmediate(cb, err), tx);
 };
 
 /**
@@ -342,9 +334,7 @@ Vote.prototype.objectNormalize = function (transaction) {
 	var report = library.schema.validate(transaction.asset, Vote.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate vote schema: ' + library.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate vote schema: ${library.schema.getLastErrors().map(err => err.message).join(', ')}`;
 	}
 
 	return transaction;
@@ -361,7 +351,7 @@ Vote.prototype.dbRead = function (raw) {
 	} else {
 		var votes = raw.v_votes.split(',');
 
-		return {votes: votes};
+		return { votes: votes };
 	}
 };
 

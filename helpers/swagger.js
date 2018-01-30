@@ -38,12 +38,12 @@ var resolvedSwaggerSpec = null;
  * Get extended version of swagger validator.
  * @return {Object} - Instance of z-schema validator.
  */
-function getValidator () {
+function getValidator() {
 	// Get validator instace attached to Swagger
 	var validator = SwayHelpers.getJSONSchemaValidator();
 
 	// Register lisk formats with swagger
-	Object.keys(ZSchema.formatsCache).forEach(function (formatName) {
+	Object.keys(ZSchema.formatsCache).forEach(formatName => {
 		// Extend swagger validator with our formats
 		validator.constructor.registerFormat(formatName, ZSchema.formatsCache[formatName]);
 	});
@@ -55,8 +55,7 @@ function getValidator () {
  * Get resolved swagger spec in JSON format.
  * @return {Promise} - Resolved promise with content of resolved json spec.
  */
-function getResolvedSwaggerSpec () {
-
+function getResolvedSwaggerSpec() {
 	if (resolvedSwaggerSpec) {
 		return Promise.resolve(resolvedSwaggerSpec);
 	} else {
@@ -71,7 +70,7 @@ function getResolvedSwaggerSpec () {
 			}
 		};
 
-		return jsonRefs.resolveRefs(content, options).then(function (results) {
+		return jsonRefs.resolveRefs(content, options).then(results => {
 			resolvedSwaggerSpec = results.resolved;
 			return resolvedSwaggerSpec;
 		});
@@ -82,7 +81,7 @@ function getResolvedSwaggerSpec () {
  * Get swagger spec in JSON format.
  * @return {Object} - JSON object with swagger spec.
  */
-function getSwaggerSpec () {
+function getSwaggerSpec() {
 	return YAML.safeLoad(fs.readFileSync(path.join(__dirname, '..', 'schema', 'swagger.yml')));
 }
 
@@ -93,19 +92,19 @@ function getSwaggerSpec () {
  * @param {Array} [codes] - List of error codes.
  * @return {object}
  */
-function generateParamsErrorObject (params, messages, codes) {
+function generateParamsErrorObject(params, messages, codes) {
 	if (!codes) { codes = []; }
 
 	var error = new Error('Validation errors');
 	error.statusCode = 400;
 
-	error.errors = params.map(function (p, i) {
+	error.errors = params.map((p, i) => {
 		var def = p.parameterObject;
 
 		if (def) {
-			return {name: def.name, message: messages[i], in: def.in, code: (codes[i] || 'INVALID_PARAM')};
+			return { name: def.name, message: messages[i], in: def.in, code: (codes[i] || 'INVALID_PARAM') };
 		} else {
-			return {name: p, message: 'Unknown request parameter', in: 'query', code: (codes[i] || 'UNKNOWN_PARAM')};
+			return { name: p, message: 'Unknown request parameter', in: 'query', code: (codes[i] || 'UNKNOWN_PARAM') };
 		}
 	});
 
@@ -117,7 +116,7 @@ function generateParamsErrorObject (params, messages, codes) {
  * @param {object} request - Request object.
  * @return {boolean}
  */
-function invalidParams (request) {
+function invalidParams(request) {
 	var swaggerParams = Object.keys(request.swagger.params);
 	var requestParams = Object.keys(request.query);
 

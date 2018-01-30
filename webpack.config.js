@@ -18,7 +18,7 @@ var nodeExternals = require('webpack-node-externals');
 module.exports = {
 	entry: './workers_controller.js',
 	output: {
-		path: __dirname + '/release',
+		path: `${__dirname}/release`,
 		filename: 'workers_controller.js',
 		libraryTarget: 'commonjs2'
 	},

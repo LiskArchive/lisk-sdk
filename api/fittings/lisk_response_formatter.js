@@ -16,15 +16,13 @@
 var debug = require('debug')('swagger:lisk:response_formatter');
 var _ = require('lodash');
 
-module.exports = function create (fittingDef, bagpipes) {
-
-	return function lisk_response_formatter (context, next) {
-
+module.exports = function create() {
+	return function lisk_response_formatter(context, next) {
 		debug('exec');
 		debug('received data:', context.input);
 
 		if (_.isEmpty(context.input)) {
-			context.headers = {'content-type': 'application/json'};
+			context.headers = { 'content-type': 'application/json' };
 			next(null, {});
 			return;
 		}
@@ -51,7 +49,7 @@ module.exports = function create (fittingDef, bagpipes) {
 
 		debug('setting headers: \'content-type\': \'application/json\'');
 
-		context.headers = {'content-type': 'application/json'};
+		context.headers = { 'content-type': 'application/json' };
 		next(null, output);
 	};
 };

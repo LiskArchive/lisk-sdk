@@ -26,30 +26,23 @@ var sendTransactionsPromise = require('../../../common/helpers/api').sendTransac
 var getTransaction = require('../../utils/http').getTransaction;
 
 module.exports = function (params) {
-
-	describe('postTransactions @slow', function () {
-
+	describe('postTransactions @slow', () => {
 		var transactions = [];
 		var maximum = 1000;
 
-		function confirmTransactionsOnAllNodes () {
-			return Promise.all(_.flatMap(params.configurations, function (configuration) {
-				return transactions.map(function (transaction) {
-					return getTransaction(transaction.id, configuration.httpPort);
-				});
-			})).then(function (results) {
-				results.forEach(function (transaction) {
+		function confirmTransactionsOnAllNodes() {
+			return Promise.all(_.flatMap(params.configurations, configuration => { return transactions.map(transaction => { return getTransaction(transaction.id, configuration.httpPort); }); })).then(results => {
+				results.forEach(transaction => {
 					expect(transaction).to.have.property('id').that.is.an('string');
 				});
 			});
 		}
 
-		describe('sending 1000 bundled transfers to random addresses', function () {
-
+		describe('sending 1000 bundled transfers to random addresses', () => {
 			var count = 1;
 
-			before(function (done) {
-				async.doUntil(function (next) {
+			before(done => {
+				async.doUntil(next => {
 					var bundled = [];
 					for (var i = 0; i < params.configurations[0].broadcasts.releaseLimit; i++) {
 						var transaction = lisk.transaction.createTransaction(
@@ -62,26 +55,23 @@ module.exports = function (params) {
 						count++;
 					}
 					sendTransactionsPromise(bundled).then(next);
-				}, function () {
-					return (count >= maximum);
-				}, function () {
+				}, () => { return (count >= maximum); }, () => {
 					done();
 				});
 			});
 
-			it('should confirm all transactions on all nodes', function (done) {
+			it('should confirm all transactions on all nodes', done => {
 				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
-				waitFor.blocks(blocksToWait, function () {
+				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes().then(done);
 				});
 			});
 		});
 
-		describe('sending 1000 single transfers to random addresses', function () {
-
-			before(function () {
+		describe('sending 1000 single transfers to random addresses', () => {
+			before(() => {
 				transactions = [];
-				return Promise.all(_.range(maximum).map(function () {
+				return Promise.all(_.range(maximum).map(() => {
 					var transaction = lisk.transaction.createTransaction(
 						randomUtil.account().address,
 						randomUtil.number(100000000, 1000000000),
@@ -92,9 +82,9 @@ module.exports = function (params) {
 				}));
 			});
 
-			it('should confirm all transactions on all nodes', function (done) {
+			it('should confirm all transactions on all nodes', done => {
 				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
-				waitFor.blocks(blocksToWait, function () {
+				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes().then(done);
 				});
 			});

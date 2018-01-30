@@ -27,8 +27,7 @@ var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
  * @return calls accept method
  */
 // Constructor
-function Peer (peer) {
-
+function Peer(peer) {
 	Object.defineProperties(this, {
 		rpc: {
 			get: function () {
@@ -102,11 +101,11 @@ Peer.prototype.accept = function (peer) {
 	peer = this.normalize(peer);
 
 	// Accept only supported and defined properties
-	_.each(this.properties, function (key) {
+	_.each(this.properties, key => {
 		if (peer[key] !== null && peer[key] !== undefined) {
 			this[key] = peer[key];
 		}
-	}.bind(this));
+	});
 
 	// Adjust properties according to rules
 	if (/^[0-9]+$/.test(this.ip)) {
@@ -114,7 +113,7 @@ Peer.prototype.accept = function (peer) {
 	}
 
 	if (this.ip && this.wsPort) {
-		this.string = this.ip + ':' + this.wsPort;
+		this.string = `${this.ip}:${this.wsPort}`;
 	}
 
 	return this;
@@ -174,12 +173,12 @@ Peer.prototype.update = function (peer) {
 	peer = this.normalize(peer);
 
 	// Accept only supported properties
-	_.each(this.properties, function (key) {
+	_.each(this.properties, key => {
 		// Change value only when is defined
 		if (peer[key] !== null && peer[key] !== undefined && !_.includes(this.immutable, key)) {
 			this[key] = peer[key];
 		}
-	}.bind(this));
+	});
 
 	return this;
 };
@@ -190,9 +189,9 @@ Peer.prototype.update = function (peer) {
 Peer.prototype.object = function () {
 	var copy = {};
 
-	_.each(this.properties, function (key) {
+	_.each(this.properties, key => {
 		copy[key] = this[key];
-	}.bind(this));
+	});
 
 	delete copy.rpc;
 	return copy;

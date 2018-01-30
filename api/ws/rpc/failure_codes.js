@@ -67,14 +67,14 @@ module.exports.errorMessages = {
  * @param {string}[description=undefined] description
  * @constructor
  */
-function PeerUpdateError (code, message, description) {
+function PeerUpdateError(code, message, description) {
 	this.code = code;
 	this.message = message;
 	this.description = description;
 }
 
 PeerUpdateError.prototype.toString = function () {
-	return JSON.stringify({code: this.code, message: this.message, description: this.description});
+	return JSON.stringify({ code: this.code, message: this.message, description: this.description });
 };
 
 PeerUpdateError.prototype = new Error();
