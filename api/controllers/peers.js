@@ -25,12 +25,11 @@ var modules;
  * @classdesc Main System methods.
  * @param {scope} scope - App instance.
  */
-function PeersController (scope) {
+function PeersController(scope) {
 	modules = scope.modules;
 }
 
 PeersController.getPeers = function (context, next) {
-
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -48,17 +47,14 @@ PeersController.getPeers = function (context, next) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.peers.shared.getPeers(filters, function (err, data) {
-
+	modules.peers.shared.getPeers(filters, (err, data) => {
 		if (err) { return next(err); }
 
 		data = _.cloneDeep(data);
 
-		data = _.map(data, function (peer) {
+		data = _.map(data, peer => {
 			delete peer.updated;
 			delete peer.clock;
 			return peer;

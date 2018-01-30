@@ -25,7 +25,7 @@ var modules;
  * @classdesc Main System methods.
  * @param {scope} scope - App instance.
  */
-function DelegatesController (scope) {
+function DelegatesController(scope) {
 	modules = scope.modules;
 }
 
@@ -45,16 +45,14 @@ DelegatesController.getDelegates = function (context, next) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.delegates.shared.getDelegates(_.clone(filters), function (err, data) {
+	modules.delegates.shared.getDelegates(_.clone(filters), (err, data) => {
 		if (err) { return next(err); }
 
 		data = _.cloneDeep(data);
 
-		data = _.map(data, function (delegate) {
+		data = _.map(data, delegate => {
 			delegate.account = {
 				address: delegate.address,
 				publicKey: delegate.publicKey,
@@ -90,7 +88,7 @@ DelegatesController.getForgers = function (context, next) {
 		offset: params.offset.value
 	};
 
-	modules.delegates.shared.getForgers(_.clone(filters), function (err, data) {
+	modules.delegates.shared.getForgers(_.clone(filters), (err, data) => {
 		if (err) { return next(err); }
 
 		data.meta.limit = filters.limit;

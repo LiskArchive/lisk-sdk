@@ -24,14 +24,14 @@ module.exports = Field;
  * @param {*} thisArg Value used as this reference within rule callback calls.
  * @constructor
  */
-function Field (validator, path, value, rules, thisArg) {
+function Field(validator, path, value, rules, thisArg) {
 	this.isAsync = false;
 	this.hasError = false;
 	this.rules = rules;
 	this.value = value;
 	this.report = [];
-	this.path = path||[];
-	this.thisArg = thisArg||null;
+	this.path = path || [];
+	this.thisArg = thisArg || null;
 	this._stack = Object.keys(rules);
 	this.validator = validator;
 	this.inProgress = false;
@@ -70,7 +70,10 @@ Field.prototype.validate = function (callback) {
 		this.hasCallback = false;
 	}
 
-	var descriptor, result, accept, value;
+	var descriptor,
+result,
+accept,
+value;
 	while (stack.length) {
 		var rule = stack.shift();
 		value = this.value;
@@ -78,7 +81,7 @@ Field.prototype.validate = function (callback) {
 
 		try {
 			if (!this.validator.hasRule(rule) && !this.validator.skipMissed) {
-				throw new Error('Rule "' + rule + '" not found for "' + this.path.join('.') + '".');
+				throw new Error(`Rule "${rule}" not found for "${this.path.join('.')}".`);
 			}
 
 			descriptor = this.validator.getRule(rule);
@@ -103,9 +106,9 @@ Field.prototype.validate = function (callback) {
 
 			if (result === false) {
 				report.push({
-					path : this.path,
-					rule : rule,
-					accept : accept
+					path: this.path,
+					rule: rule,
+					accept: accept
 				});
 
 				this.hasError = true;
@@ -114,8 +117,8 @@ Field.prototype.validate = function (callback) {
 		} catch (err) {
 			if (!err.field) {
 				Object.defineProperty(err, 'field', {
-					enumerable : false,
-					value : this
+					enumerable: false,
+					value: this
 				});
 			}
 			this.validator.onError(this, err);
@@ -157,7 +160,7 @@ Field.prototype.end = function (err) {
 Field.prototype.async = function (callback) {
 	this.isAsync = true;
 	var self = this;
-	callback(function (err){
+	callback(function (err) {
 		if (arguments.length > 1) {
 			self.value = arguments[1];
 		}
@@ -167,8 +170,8 @@ Field.prototype.async = function (callback) {
 		if (err) {
 			if (!err.hasOwnProperty('field')) {
 				Object.defineProperty(err, 'field', {
-					enumerable : false,
-					value : self
+					enumerable: false,
+					value: self
 				});
 				self.validator.onError(self, err);
 			}
@@ -183,7 +186,7 @@ Field.prototype.async = function (callback) {
  * Report an invalid validation result
  * @param {{}} report Validation report object
  */
-Field.prototype.issue = function (report){
+Field.prototype.issue = function (report) {
 	this.hasError = true;
 	report.path = this.path.concat(report.path);
 	this.report.push(report);

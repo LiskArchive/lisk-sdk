@@ -15,8 +15,6 @@
 
 var SCWorker = require('socketcluster/scworker');
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
-var WAMPServer = require('wamp-socket-cluster/WAMPServer');
-var testConfig = require('../../data/config.json');
 
 var worker = SCWorker.create({
 	run: function () {
@@ -31,9 +29,11 @@ var worker = SCWorker.create({
 			}
 		});
 
-		scServer.on('connection', function (socket) {
+		scServer.on('connection', socket => {
 			slaveWAMPServer.upgradeToWAMP(socket);
 			socket.emit('accepted');
 		});
 	}
 });
+
+module.exports = worker;

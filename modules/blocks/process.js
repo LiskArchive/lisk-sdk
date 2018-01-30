@@ -19,7 +19,11 @@ var constants = require('../../helpers/constants.js');
 var Peer = require('../../logic/peer.js');
 var slots = require('../../helpers/slots.js');
 
-var modules, definitions, library, self, __private = {};
+var modules,
+definitions,
+library,
+self,
+__private = {};
 
 /**
  * Initializes library.
@@ -37,7 +41,7 @@ var modules, definitions, library, self, __private = {};
  * @param {Sequence} sequence
  * @param {Object} genesisblock
  */
-function Process (logger, block, peers, transaction, schema, db, dbSequence, sequence, genesisblock) {
+function Process(logger, block, peers, transaction, schema, db, dbSequence, sequence, genesisblock) {
 	library = {
 		logger: logger,
 		schema: schema,
@@ -70,7 +74,7 @@ __private.receiveBlock = function (block, cb) {
 	library.logger.info([
 		'Received new block id:', block.id,
 		'height:', block.height,
-		'round:',  slots.calcRound(block.height),
+		'round:', slots.calcRound(block.height),
 		'slot:', slots.getSlotNumber(block.timestamp),
 		'reward:', block.reward
 	].join(' '));
@@ -130,7 +134,7 @@ __private.receiveForkOne = function (block, lastBlock, cb) {
 			// Delete last 2 blocks
 			modules.blocks.chain.deleteLastBlock,
 			modules.blocks.chain.deleteLastBlock
-		], function (err) {
+		], err => {
 			if (err) {
 				library.logger.error('Fork recovery failed', err);
 			}
@@ -198,7 +202,7 @@ __private.receiveForkFive = function (block, lastBlock, cb) {
 			function (seriesCb) {
 				return __private.receiveBlock(block, seriesCb);
 			}
-		], function (err) {
+		], err => {
 			if (err) {
 				library.logger.error('Fork recovery failed', err);
 			}
@@ -227,17 +231,15 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 	async.waterfall([
 		function (waterCb) {
 			// Get IDs sequence (comma separated list)
-			modules.blocks.utils.getIdSequence(height, function (err, res) {
-				return setImmediate(waterCb, err, res);
-			});
+			modules.blocks.utils.getIdSequence(height, (err, res) => setImmediate(waterCb, err, res));
 		},
 		function (res, waterCb) {
 			var ids = res.ids;
 			// Perform request to supplied remote peer
 			peer = library.logic.peers.create(peer);
-			peer.rpc.blocksCommon({ids: ids}, function (err, res) {
+			peer.rpc.blocksCommon({ ids: ids }, (err, res) => {
 				if (err) {
-					peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
+					peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
 					return setImmediate(waterCb, err);
 				} else if (!res.common) {
 					// FIXME: Need better checking here, is base on 'common' property enough?
@@ -250,7 +252,7 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 		},
 		function (common, waterCb) {
 			// Validate remote peer response via schema
-			library.schema.validate(common, definitions.CommonBlock, function (err) {
+			library.schema.validate(common, definitions.CommonBlock, err => {
 				if (err) {
 					return setImmediate(waterCb, err[0].message);
 				} else {
@@ -264,7 +266,7 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 				id: common.id,
 				previousBlock: common.previousBlock,
 				height: common.height
-			}).then(function (rows) {
+			}).then(rows => {
 				if (!rows.length || !rows[0].count) {
 					// Block doesn't exists - comparison failed
 					comparisionFailed = true;
@@ -273,13 +275,13 @@ Process.prototype.getCommonBlock = function (peer, height, cb) {
 					// Block exists - it's common between our node and remote peer
 					return setImmediate(waterCb, null, common);
 				}
-			}).catch(function (err) {
+			}).catch(err => {
 				// SQL error occurred
 				library.logger.error(err.stack);
 				return setImmediate(waterCb, 'Blocks#getCommonBlock error');
 			});
 		}
-	], function (err, res) {
+	], (err, res) => {
 		// If comparison failed and current consensus is low - perform chain recovery
 		if (comparisionFailed && modules.transport.poorConsensus()) {
 			return modules.blocks.chain.recoverChain(cb);
@@ -309,16 +311,16 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 	var newLimit = limit + (offset || 0);
 	var params = { limit: newLimit, offset: offset || 0 };
 
-	library.logger.debug('Loading blocks offset', {limit: limit, offset: offset, verify: verify});
+	library.logger.debug('Loading blocks offset', { limit: limit, offset: offset, verify: verify });
 	// Execute in sequence via dbSequence
-	library.dbSequence.add(function (cb) {
+	library.dbSequence.add(cb => {
 		// Loads full blocks from database
 		// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
-		library.db.blocks.loadBlocksOffset(params.offset, params.limit).then(function (rows) {
+		library.db.blocks.loadBlocksOffset(params.offset, params.limit).then(rows => {
 			// Normalize blocks
 			var blocks = modules.blocks.utils.readDbRows(rows);
 
-			async.eachSeries(blocks, function (block, cb) {
+			async.eachSeries(blocks, (block, cb) => {
 				// Stop processing if node shutdown was requested
 				if (modules.blocks.isCleaning.get()) {
 					return setImmediate(cb);
@@ -349,33 +351,28 @@ Process.prototype.loadBlocksOffset = function (limit, offset, verify, cb) {
 								return setImmediate(seriesCb);
 							}
 						}
-					}, function (err) {
+					}, err => {
 						if (err) {
 							return setImmediate(cb, err);
 						} else {
 							// Apply block - broadcast: false, saveBlock: false
-							modules.blocks.chain.applyBlock(block, false, function (err) {
+							modules.blocks.chain.applyBlock(block, false, err => {
 								setImmediate(cb, err);
 							});
 						}
 					});
-
-				} else {
-					if (block.id === library.genesisblock.block.id) {
-						modules.blocks.chain.applyGenesisBlock(block, function (err) {
+				} else if (block.id === library.genesisblock.block.id) {
+						modules.blocks.chain.applyGenesisBlock(block, err => {
 							setImmediate(cb, err);
 						});
 					} else {
 						// Apply block - broadcast: false, saveBlock: false
-						modules.blocks.chain.applyBlock(block, false, function (err) {
+						modules.blocks.chain.applyBlock(block, false, err => {
 							setImmediate(cb, err);
 						}, false);
 					}
-				}
-			}, function (err) {
-				return setImmediate(cb, err, modules.blocks.lastBlock.get());
-			});
-		}).catch(function (err) {
+			}, err => setImmediate(cb, err, modules.blocks.lastBlock.get()));
+		}).catch(err => {
 			library.logger.error(err);
 			return setImmediate(cb, ['Blocks#loadBlocksOffset error', err].join(': '));
 		});
@@ -398,13 +395,13 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 	var lastValidBlock = modules.blocks.lastBlock.get();
 
 	peer = library.logic.peers.create(peer);
-	library.logger.info('Loading blocks from: ' + peer.string);
+	library.logger.info(`Loading blocks from: ${peer.string}`);
 
-	function getFromPeer (seriesCb) {
-		peer.rpc.blocks({lastBlockId: lastValidBlock.id, peer: library.logic.peers.me()}, function (err, res) {
+	function getFromPeer(seriesCb) {
+		peer.rpc.blocks({ lastBlockId: lastValidBlock.id, peer: library.logic.peers.me() }, (err, res) => {
 			err = err || res.error;
 			if (err) {
-				peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
+				peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
 				return setImmediate(seriesCb, err);
 			} else {
 				return setImmediate(seriesCb, null, res.blocks);
@@ -412,7 +409,7 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 		});
 	}
 
-	function validateBlocks (blocks, seriesCb) {
+	function validateBlocks(blocks, seriesCb) {
 		var report = library.schema.validate(blocks, definitions.WSBlocksList);
 
 		if (!report) {
@@ -422,13 +419,13 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 		}
 	}
 	// Process all received blocks
-	function processBlocks (blocks, seriesCb) {
+	function processBlocks(blocks, seriesCb) {
 		// Skip if ther is no blocks
 		if (blocks.length === 0) {
 			return setImmediate(seriesCb);
 		}
 		// Iterate over received blocks, normalize block first...
-		async.eachSeries(modules.blocks.utils.readDbRows(blocks), function (block, eachSeriesCb) {
+		async.eachSeries(modules.blocks.utils.readDbRows(blocks), (block, eachSeriesCb) => {
 			if (modules.blocks.isCleaning.get()) {
 				// Cancel processing if node shutdown was requested
 				return setImmediate(eachSeriesCb);
@@ -436,22 +433,20 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 				// ...then process block
 				return processBlock(block, eachSeriesCb);
 			}
-		}, function (err) {
-			return setImmediate(seriesCb, err);
-		});
+		}, err => setImmediate(seriesCb, err));
 	}
 	// Process single block
-	function processBlock (block, seriesCb) {
+	function processBlock(block, seriesCb) {
 		// Start block processing - broadcast: false, saveBlock: true
-		modules.blocks.verify.processBlock(block, false, true, function (err) {
+		modules.blocks.verify.processBlock(block, false, true, err => {
 			if (!err) {
 				// Update last valid block
 				lastValidBlock = block;
-				library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), 'height: ' + block.height);
+				library.logger.info(['Block', block.id, 'loaded from:', peer.string].join(' '), `height: ${block.height}`);
 			} else {
 				var id = (block ? block.id : 'null');
 
-				library.logger.debug('Block processing failed', {id: id, err: err.toString(), module: 'blocks', block: block});
+				library.logger.debug('Block processing failed', { id: id, err: err.toString(), module: 'blocks', block: block });
 			}
 			return seriesCb(err);
 		});
@@ -461,9 +456,9 @@ Process.prototype.loadBlocksFromPeer = function (peer, cb) {
 		getFromPeer,
 		validateBlocks,
 		processBlocks
-	], function (err) {
+	], err => {
 		if (err) {
-			return setImmediate(cb, 'Error loading blocks: ' + (err.message || err), lastValidBlock);
+			return setImmediate(cb, `Error loading blocks: ${err.message || err}`, lastValidBlock);
 		} else {
 			return setImmediate(cb, null, lastValidBlock);
 		}
@@ -488,8 +483,8 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 	var transactions = modules.transactions.getUnconfirmedTransactionList(false, constants.maxTxsPerBlock);
 	var ready = [];
 
-	async.eachSeries(transactions, function (transaction, cb) {
-		modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, function (err, sender) {
+	async.eachSeries(transactions, (transaction, cb) => {
+		modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, (err, sender) => {
 			if (err || !sender) {
 				return setImmediate(cb, 'Sender not found');
 			}
@@ -497,7 +492,7 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 			// Check transaction depends on type
 			if (library.logic.transaction.ready(transaction, sender)) {
 				// Verify transaction
-				library.logic.transaction.verify(transaction, sender, function (err) {
+				library.logic.transaction.verify(transaction, sender, () => {
 					ready.push(transaction);
 					return setImmediate(cb);
 				});
@@ -505,7 +500,7 @@ Process.prototype.generateBlock = function (keypair, timestamp, cb) {
 				return setImmediate(cb);
 			}
 		});
-	}, function () {
+	}, () => {
 		var block;
 
 		try {
@@ -543,15 +538,11 @@ __private.validateBlockSlot = function (block, lastBlock, cb) {
 	if (lastBlock.height % slots.delegates === 0 || roundLastBlock < roundNextBlock) {
 		// Check if block was generated by the right active delagate from previous round.
 		// DATABASE: Read only to mem_accounts to extract active delegate list
-		modules.delegates.validateBlockSlotAgainstPreviousRound(block, function (err) {
-			return setImmediate(cb, err);
-		});
+		modules.delegates.validateBlockSlotAgainstPreviousRound(block, err => setImmediate(cb, err));
 	} else {
 		// Check if block was generated by the right active delagate.
 		// DATABASE: Read only to mem_accounts to extract active delegate list
-		modules.delegates.validateBlockSlot(block, function (err) {
-			return setImmediate(cb, err);
-		});
+		modules.delegates.validateBlockSlot(block, err => setImmediate(cb, err));
 	}
 };
 
@@ -568,7 +559,7 @@ Process.prototype.onReceiveBlock = function (block) {
 	var lastBlock;
 
 	// Execute in sequence via sequence
-	library.sequence.add(function (cb) {
+	library.sequence.add(cb => {
 		// When client is not loaded, is syncing or round is ticking
 		// Do not receive new blocks as client is not ready
 		if (!__private.loaded || modules.loader.syncing() || modules.rounds.ticking()) {

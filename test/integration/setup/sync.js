@@ -45,7 +45,7 @@ module.exports = {
 				var isPickedWithProbability = function (n) {
 					return !!n && Math.random() <= n;
 				};
-				configurations.forEach(function (configuration) {
+				configurations.forEach(configuration => {
 					if (isPickedWithProbability(syncModeArgs.probability)) {
 						peersList.push({
 							ip: configuration.ip,
@@ -69,7 +69,7 @@ module.exports = {
 				if (!Array.isArray(syncModeArgs.indices)) {
 					throw new Error('Provide peers indices to sync with as an array');
 				}
-				configurations.forEach(function (configuration, index) {
+				configurations.forEach((configuration, index) => {
 					if (syncModeArgs.indices.indexOf(index) !== -1) {
 						peersList.push({
 							ip: configuration.ip,

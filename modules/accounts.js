@@ -20,7 +20,10 @@ var transactionTypes = require('../helpers/transaction_types.js');
 var Vote = require('../logic/vote.js');
 
 // Private fields
-var modules, library, self, __private = {};
+var modules,
+library,
+self,
+__private = {};
 
 __private.assetTypes = {};
 
@@ -35,7 +38,7 @@ __private.assetTypes = {};
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
-function Accounts (cb, scope) {
+function Accounts(cb, scope) {
 	library = {
 		ed: scope.ed,
 		schema: scope.schema,
@@ -72,10 +75,10 @@ Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
-	var address = bignum.fromBuffer(temp).toString() + 'L';
+	var address = `${bignum.fromBuffer(temp).toString()}L`;
 
 	if (!address) {
-		throw 'Invalid public key: ' + publicKey;
+		throw `Invalid public key: ${publicKey}`;
 	}
 
 	return address;
@@ -141,11 +144,11 @@ Accounts.prototype.setAccountAndGet = function (data, cb, tx) {
 		}
 	}
 
-	library.logic.account.set(address, data, function (err) {
+	library.logic.account.set(address, data, err => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		return library.logic.account.get({address: address}, cb, tx);
+		return library.logic.account.get({ address: address }, cb, tx);
 	}, tx);
 };
 
@@ -230,12 +233,12 @@ Accounts.prototype.shared = {
 	 * @returns {setImmediateCallbackObject}
 	 */
 	getAccounts: function (filters, cb) {
-		library.logic.account.getAll(filters, function (err, accounts) {
+		library.logic.account.getAll(filters, (err, accounts) => {
 			if (err) {
 				return setImmediate(cb, err);
 			}
 
-			accounts = accounts.map(function (account) {
+			accounts = accounts.map(account => {
 				var delegate = {};
 
 				// Only create delegate properties if account has a username

@@ -25,8 +25,7 @@ const sql = require('../sql').delegates;
  * @return {DelegatesRepository}
  */
 class DelegatesRepository {
-
-	constructor (db, pgp) {
+	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 	}
@@ -36,7 +35,7 @@ class DelegatesRepository {
 	 * @param {Object} fork
 	 * @return {Promise}
 	 */
-	insertFork (fork) {
+	insertFork(fork) {
 		return this.db.none(sql.insertFork, fork);
 	}
 
@@ -46,7 +45,7 @@ class DelegatesRepository {
 	 * @return {Promise}
 	 */
 	getDelegatesByPublicKeys (publicKeys) {
-		return this.db.any(sql.getDelegatesByPublicKeys, {publicKeys});
+		return this.db.any(sql.getDelegatesByPublicKeys, { publicKeys });
 	}
 
 	/**

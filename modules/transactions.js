@@ -43,7 +43,7 @@ __private.assetTypes = {};
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Transactions (cb, scope) {
+function Transactions(cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
@@ -85,20 +85,20 @@ __private.list = function (filter, cb) {
 	var params = {};
 	var where = [];
 	var allowedFieldsMap = {
-		id:                  '"t_id" = ${id}',
-		blockId:             '"t_blockId" = ${blockId}',
-		fromHeight:          '"b_height" >= ${fromHeight}',
-		toHeight:            '"b_height" <= ${toHeight}',
-		fromTimestamp:       '"t_timestamp" >= ${fromTimestamp}',
-		toTimestamp:         '"t_timestamp" <= ${toTimestamp}',
-		senderId:            '"t_senderId" IN (${senderId:csv})',
-		recipientId:         '"t_recipientId" IN (${recipientId:csv})',
-		senderPublicKey:     'ENCODE ("t_senderPublicKey", \'hex\') IN (${senderPublicKey:csv})',
-		recipientPublicKey:  'ENCODE ("m_recipientPublicKey", \'hex\') IN (${recipientPublicKey:csv})',
-		minAmount:           '"t_amount" >= ${minAmount}',
-		maxAmount:           '"t_amount" <= ${maxAmount}',
-		type:                '"t_type" = ${type}',
-		minConfirmations:    'confirmations >= ${minConfirmations}',
+		id: '"t_id" = ${id}',
+		blockId: '"t_blockId" = ${blockId}',
+		fromHeight: '"b_height" >= ${fromHeight}',
+		toHeight: '"b_height" <= ${toHeight}',
+		fromTimestamp: '"t_timestamp" >= ${fromTimestamp}',
+		toTimestamp: '"t_timestamp" <= ${toTimestamp}',
+		senderId: '"t_senderId" IN (${senderId:csv})',
+		recipientId: '"t_recipientId" IN (${recipientId:csv})',
+		senderPublicKey: 'ENCODE ("t_senderPublicKey", \'hex\') IN (${senderPublicKey:csv})',
+		recipientPublicKey: 'ENCODE ("m_recipientPublicKey", \'hex\') IN (${recipientPublicKey:csv})',
+		minAmount: '"t_amount" >= ${minAmount}',
+		maxAmount: '"t_amount" <= ${maxAmount}',
+		type: '"t_type" = ${type}',
+		minConfirmations: 'confirmations >= ${minConfirmations}',
 		limit: null,
 		offset: null,
 		sort: null,
@@ -113,17 +113,17 @@ __private.list = function (filter, cb) {
 		// Mutating parametres when unix timestamp is supplied
 		if (_.includes(['fromUnixTime', 'toUnixTime'], field)) {
 			// Lisk epoch is 1464109200 as unix timestamp
-			value = value - constants.epochTime.getTime() / 1000;
+			value -= constants.epochTime.getTime() / 1000;
 			field = field.replace('UnixTime', 'Timestamp');
 		}
 
 		if (!_.includes(_.keys(allowedFieldsMap), field)) {
-			throw new Error('Parameter is not supported: ' + field);
+			throw new Error(`Parameter is not supported: ${field}`);
 		}
 
 		// Checking for empty parameters, 0 is allowed for few
 		if (!value && !(value === 0 && _.includes(['fromTimestamp', 'minAmount', 'minConfirmations', 'type', 'offset'], field))) {
-			throw new Error('Value for parameter [' + field + '] cannot be empty');
+			throw new Error(`Value for parameter [${field}] cannot be empty`);
 		}
 
 		if (allowedFieldsMap[field]) {
@@ -168,11 +168,11 @@ __private.list = function (filter, cb) {
 			sortFields: library.db.transactions.sortFields,
 			fieldPrefix: function (sortField) {
 				if (['height'].indexOf(sortField) > -1) {
-					return 'b_' + sortField;
+					return `b_${sortField}`;
 				} else if (['confirmations'].indexOf(sortField) > -1) {
 					return sortField;
 				} else {
-					return 't_' + sortField;
+					return `t_${sortField}`;
 				}
 			}
 		}
@@ -188,7 +188,7 @@ __private.list = function (filter, cb) {
 	library.db.transactions.countList(Object.assign({}, {
 		where: where,
 		owner: owner
-	}, params)).then(function (rows) {
+	}, params)).then(rows => {
 		count = rows.length ? rows[0].count : 0;
 		return library.db.transactions.list(Object.assign({}, {
 			where: where,
@@ -196,18 +196,16 @@ __private.list = function (filter, cb) {
 			sortField: sort.sortField,
 			sortMethod: sort.sortMethod
 		}, params));
-	}).then(function (rows) {
+	}).then(rows => {
 		rawTransactionRows = rows;
 		return __private.getAssetForIds(groupTransactionIdsByType(rows));
-	}).then(function (rows) {
+	}).then(rows => {
 		var assetRowsByTransactionId = {};
-		_.each(rows, function (row) {
+		_.each(rows, row => {
 			assetRowsByTransactionId[row.transaction_id] = row;
 		});
 
-		var transactions = rawTransactionRows.map(function (rawTransactionRow) {
-			return library.logic.transaction.dbRead(_.merge(rawTransactionRow, assetRowsByTransactionId[rawTransactionRow.t_id]));
-		});
+		var transactions = rawTransactionRows.map(rawTransactionRow => library.logic.transaction.dbRead(_.merge(rawTransactionRow, assetRowsByTransactionId[rawTransactionRow.t_id])));
 
 		var data = {
 			transactions: transactions,
@@ -215,15 +213,16 @@ __private.list = function (filter, cb) {
 		};
 
 		return setImmediate(cb, null, data);
-	}).catch(function (err) {
+	})
+.catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Transactions#list error');
 	});
 };
 
-function groupTransactionIdsByType (rawTransactions) {
+function groupTransactionIdsByType(rawTransactions) {
 	var groupedTransactions = _.groupBy(rawTransactions, 't_type');
-	var transactionIdsByType = _.map(_.keys(groupedTransactions), function (type) {
+	var transactionIdsByType = _.map(_.keys(groupedTransactions), type => {
 		var groupedTransactionsId = {};
 		groupedTransactionsId[type] = _.map(groupedTransactions[type], 't_id');
 		return groupedTransactionsId;
@@ -287,19 +286,19 @@ __private.getPooledTransactions = function (method, filters, cb) {
 
 	// Filter transactions
 	if (filters.id || filters.recipientId || filters.recipientPublicKey || filters.senderId || filters.senderPublicKey || filters.type) {
-		toSend = _.filter(transactions, _.omit(filters, ['limit', 'offset', 'sort']) );
+		toSend = _.filter(transactions, _.omit(filters, ['limit', 'offset', 'sort']));
 	} else {
 		toSend = _.cloneDeep(transactions);
 	}
 
 	// Sort the results
-	var sortAttribute = sortBy(filters.sort, {quoteField: false});
+	var sortAttribute = sortBy(filters.sort, { quoteField: false });
 	toSend = _.orderBy(toSend, [sortAttribute.sortField], [sortAttribute.sortMethod.toLowerCase()]);
 
 	// Paginate filtered transactions
 	toSend = toSend.slice(filters.offset, (filters.offset + filters.limit));
 
-	return setImmediate(cb, null, {transactions: toSend, count: transactions.length});
+	return setImmediate(cb, null, { transactions: toSend, count: transactions.length });
 };
 
 // Public methods
@@ -447,9 +446,8 @@ Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb, tx)
 
 	if (!sender && transaction.blockId !== library.genesisblock.block.id) {
 		return setImmediate(cb, 'Invalid block id');
-	} else {
-		if (transaction.requesterPublicKey) {
-			modules.accounts.getAccount({publicKey: transaction.requesterPublicKey}, function (err, requester) {
+	} else if (transaction.requesterPublicKey) {
+			modules.accounts.getAccount({ publicKey: transaction.requesterPublicKey }, (err, requester) => {
 				if (err) {
 					return setImmediate(cb, err);
 				}
@@ -463,7 +461,6 @@ Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb, tx)
 		} else {
 			library.logic.transaction.applyUnconfirmed(transaction, sender, cb, tx);
 		}
-	}
 };
 
 /**
@@ -477,7 +474,7 @@ Transactions.prototype.applyUnconfirmed = function (transaction, sender, cb, tx)
 Transactions.prototype.undoUnconfirmed = function (transaction, cb, tx) {
 	library.logger.debug('Undoing unconfirmed transaction', transaction.id);
 
-	modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
+	modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, (err, sender) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -564,27 +561,23 @@ Transactions.prototype.shared = {
 	 * @returns {setImmediateCallbackObject}
 	 */
 	getTransactions: function (filters, cb) {
-		__private.list(filters, function (err, data) {
+		__private.list(filters, (err, data) => {
 			if (err) {
-				return setImmediate(cb, 'Failed to get transactions: ' + err);
+				return setImmediate(cb, `Failed to get transactions: ${err}`);
 			} else {
-				return setImmediate(cb, null, {transactions: data.transactions, count: data.count});
+				return setImmediate(cb, null, { transactions: data.transactions, count: data.count });
 			}
 		});
 	},
 
 	getTransactionsCount: function (cb) {
-		library.db.transactions.count().then(function (transactionsCount) {
-			return setImmediate(cb, null, {
+		library.db.transactions.count().then(transactionsCount => setImmediate(cb, null, {
 				confirmed: transactionsCount,
 				unconfirmed: Object.keys(__private.transactionPool.unconfirmed.index).length,
 				unprocessed: Object.keys(__private.transactionPool.queued.index).length,
 				unsigned: Object.keys(__private.transactionPool.multisignature.index).length,
 				total: transactionsCount + Object.keys(__private.transactionPool.unconfirmed.index).length + Object.keys(__private.transactionPool.queued.index).length + Object.keys(__private.transactionPool.multisignature.index).length
-			});
-		}, function (err) {
-			return setImmediate(cb, 'Failed to count transactions');
-		});
+			}), () => setImmediate(cb, 'Failed to count transactions'));
 	},
 
 	getUnProcessedTransactions: function (filters, cb) {
@@ -600,7 +593,7 @@ Transactions.prototype.shared = {
 	},
 
 	postTransactions: function (transactions, cb) {
-		return modules.transport.shared.postTransactions({transactions: transactions}, function (err, res) {
+		return modules.transport.shared.postTransactions({ transactions: transactions }, (err, res) => {
 			var error = null;
 			var response = null;
 

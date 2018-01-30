@@ -15,65 +15,62 @@
 
 var lisk = require('lisk-js');
 
-var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 var Scenarios = require('../common/scenarios');
 var localCommon = require('./common');
 var transactionTypes = require('../../../helpers/transaction_types.js');
 
-describe('system test (type 4) - sending transactions on top of unconfirmed multisignature registration', function () {
-
-	var library, transaction;
+describe('system test (type 4) - sending transactions on top of unconfirmed multisignature registration', () => {
+	var library;
 
 	var scenarios = {
-		'regular': new Scenarios.Multisig()
+		regular: new Scenarios.Multisig()
 	};
 
 	scenarios.regular.dapp = randomUtil.application();
 	var dappTransaction = lisk.dapp.createDapp(scenarios.regular.account.password, null, scenarios.regular.dapp);
 	scenarios.regular.dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock('system_4_X_multisig_unconfirmed', function (lib) {
+	localCommon.beforeBlock('system_4_X_multisig_unconfirmed', lib => {
 		library = lib;
 	});
 
-	before(function (done) {
-		localCommon.addTransactionsAndForge(library, [scenarios.regular.creditTransaction], function (err, res) {
-			localCommon.addTransactionsAndForge(library, [dappTransaction], function (err, res) {
+	before(done => {
+		localCommon.addTransactionsAndForge(library, [scenarios.regular.creditTransaction], () => {
+			localCommon.addTransactionsAndForge(library, [dappTransaction], () => {
 				done();
 			});
 		});
 	});
 
-	it('adding to pool multisig registration should be ok', function (done) {
-		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, function (err, res) {
+	it('adding to pool multisig registration should be ok', done => {
+		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, (err, res) => {
 			expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
 			done();
 		});
 	});
 
-	describe('adding to pool other transactions from same account', function () {
-
-		Object.keys(transactionTypes).forEach(function (key, index) {
+	describe('adding to pool other transactions from same account', () => {
+		Object.keys(transactionTypes).forEach((key, index) => {
 			if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
-				it('type ' + index + ': ' + key + ' should be rejected', function (done) {
-					localCommon.loadTransactionType(key, scenarios.regular.account, scenarios.regular.dapp, true, function (transaction) {
-						localCommon.addTransaction(library, transaction, function (err, res) {
-							expect(err).to.equal('Transaction type ' + transaction.type + ' is frozen');
+				it(`type ${index}: ${key} should be rejected`, done => {
+					localCommon.loadTransactionType(key, scenarios.regular.account, scenarios.regular.dapp, true, transaction => {
+						localCommon.addTransaction(library, transaction, err => {
+							expect(err).to.equal(`Transaction type ${transaction.type} is frozen`);
 							done();
 						});
 					});
 				});
 			} else if (key != 'MULTI') {
-				it('type ' + index + ': ' + key + ' should be ok', function (done) {
-					localCommon.loadTransactionType(key, scenarios.regular.account, scenarios.regular.dapp, true, function (transaction) {
-						localCommon.addTransaction(library, transaction, function (err, res) {
+				it(`type ${index}: ${key} should be ok`, done => {
+					localCommon.loadTransactionType(key, scenarios.regular.account, scenarios.regular.dapp, true, transaction => {
+						localCommon.addTransaction(library, transaction, (err, res) => {
 							expect(res).to.equal(transaction.id);
 							done();
 						});
 					});
 				});
-			};
+			}
 		});
 	});
 });

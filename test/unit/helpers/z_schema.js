@@ -59,9 +59,7 @@ var shouldReturnTrueForEmptyStringValues = function () {
 };
 
 describe('schema - custom formats', function () {
-
 	describe('id', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'id'
@@ -93,7 +91,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('additionalData', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'additionalData'
@@ -102,7 +99,7 @@ describe('schema - custom formats', function () {
 
 		it('should return false if string is longer than maxLength (either chars or bytes)', function () {
 			var invalidData = [];
-			invalidData.push(randomstring.generate(constants.additionalData.maxLength - 1) + '现');
+			invalidData.push(`${randomstring.generate(constants.additionalData.maxLength - 1)}现`);
 			invalidData.push(randomstring.generate(constants.additionalData.maxLength + 1));
 
 			invalidData.forEach(function (item) {
@@ -125,7 +122,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('address', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'address'
@@ -161,7 +157,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('username', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'username'
@@ -183,7 +178,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('hex', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'hex'
@@ -205,7 +199,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('publicKey', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'publicKey'
@@ -237,7 +230,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('csv', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'csv'
@@ -255,7 +247,7 @@ describe('schema - custom formats', function () {
 		});
 
 		it('should return false for too many csv values', function () {
-			var invalidCsv = '1' + Array(1100).join(',1') ;
+			var invalidCsv = `1${Array(1100).join(',1')}`;
 			expect(validator.validate(invalidCsv, this.schema)).to.equal(false);
 		});
 
@@ -263,7 +255,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('signature', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'signature'
@@ -295,7 +286,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('queryList', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'queryList'
@@ -317,7 +307,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('delegatesList', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'delegatesList'
@@ -339,7 +328,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('parsedInt', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'parsedInt'
@@ -366,7 +354,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('os', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'os'
@@ -388,7 +375,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('version', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'version'
@@ -416,7 +402,6 @@ describe('schema - custom formats', function () {
 	});
 
 	describe('ipOrFQDN', function () {
-
 		beforeEach(function () {
 			this.schema = {
 				format: 'ipOrFQDN'

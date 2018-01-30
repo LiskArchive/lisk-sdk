@@ -20,7 +20,11 @@ var BlockReward = require('./block_reward.js');
 var Bignum = require('../helpers/bignum.js');
 
 // Private fields
-var self, library, modules, __private = {};
+var self, // eslint-disable-line no-unused-vars
+library,
+modules,
+
+__private = {};
 
 /**
  * Main account logic.
@@ -33,7 +37,7 @@ var self, library, modules, __private = {};
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */
-function Account (db, schema, logger, cb) {
+function Account(db, schema, logger, cb) {
 	this.scope = {
 		db: db,
 		schema: schema,
@@ -155,25 +159,25 @@ function Account (db, schema, logger, cb) {
 			name: 'delegates',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2delegates WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${this.table}2delegates WHERE "accountId" = a."address")`
 		},
 		{
 			name: 'u_delegates',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_delegates WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${this.table}2u_delegates WHERE "accountId" = a."address")`
 		},
 		{
 			name: 'multisignatures',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2multisignatures WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${this.table}2multisignatures WHERE "accountId" = a."address")`
 		},
 		{
 			name: 'u_multisignatures',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_multisignatures WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${this.table}2u_multisignatures WHERE "accountId" = a."address")`
 		},
 		{
 			name: 'multimin',
@@ -545,10 +549,10 @@ Account.prototype.objectNormalize = function (account) {
 	var report = this.scope.schema.validate(account, Account.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate account schema: ' + this.scope.schema.getLastErrors().map(function (err) {
+		throw `Failed to validate account schema: ${this.scope.schema.getLastErrors().map(function (err) {
 			var path = err.path.replace('#/', '').trim();
 			return [path, ': ', err.message, ' (', account[path], ')'].join('');
-		}).join(', ');
+		}).join(', ')}`;
 	}
 
 	return account;
@@ -602,7 +606,7 @@ Account.prototype.toDB = function (raw) {
  * @returns {setImmediateCallback} Returns null or Object with database data.
  */
 Account.prototype.getMultiSignature = function (filter, fields, cb, tx) {
-	if (typeof(fields) === 'function') {
+	if (typeof (fields) === 'function') {
 		tx = cb;
 		cb = fields;
 		fields = null;
@@ -621,7 +625,7 @@ Account.prototype.getMultiSignature = function (filter, fields, cb, tx) {
  * @returns {setImmediateCallback} Returns null or Object with database data.
  */
 Account.prototype.get = function (filter, fields, cb, tx) {
-	if (typeof(fields) === 'function') {
+	if (typeof (fields) === 'function') {
 		tx = cb;
 		cb = fields;
 		fields = null;
@@ -676,7 +680,9 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 	});
 
 	var DEFAULT_LIMIT = constants.activeDelegates;
-	var limit = DEFAULT_LIMIT, offset = 0, sort = {sortField: '', sortMethod: ''};
+	var limit = DEFAULT_LIMIT,
+offset = 0,
+sort = { sortField: '', sortMethod: '' };
 
 	if (filter.offset > 0) {
 		offset = filter.offset;
@@ -690,13 +696,13 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 
 	if (filter.sort) {
 		var allowedSortFields = ['username', 'balance', 'rank', 'missedBlocks', 'vote', 'publicKey'];
-		sort = sortBy.sortBy(filter.sort, {sortFields: allowedSortFields, quoteField: false});
+		sort = sortBy.sortBy(filter.sort, { sortFields: allowedSortFields, quoteField: false });
 	}
 	delete filter.sort;
 
 	var self = this;
 
-	(tx || this.scope.db).accounts.list(filter, fields, {limit: limit, offset: offset, sortField: sort.sortField, sortMethod: sort.sortMethod}).then(function (rows) {
+	(tx || this.scope.db).accounts.list(filter, fields, { limit: limit, offset: offset, sortField: sort.sortField, sortMethod: sort.sortMethod }).then(function (rows) {
 		var lastBlock = modules.blocks.lastBlock.get();
 		// If the last block height is undefined, it means it's a genesis block with height = 1
 		// look for a constant for total supply
@@ -739,7 +745,7 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 Account.prototype.calculateApproval = function (votersBalance, totalSupply) {
 	// votersBalance and totalSupply are sent as strings, we convert them into bignum and send the response as number as well.
 	var votersBalanceBignum = new Bignum(votersBalance || 0);
-	var totalSupplyBignum =  new Bignum(totalSupply);
+	var totalSupplyBignum = new Bignum(totalSupply);
 	var approvalBignum = (votersBalanceBignum.dividedBy(totalSupplyBignum)).times(100).round(2);
 	return !(approvalBignum.isNaN()) ? approvalBignum.toNumber() : 0;
 };
@@ -798,7 +804,7 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 
 	// If merge was called without any diff object
 	if (Object.keys(diff).length === 0) {
-		return self.get({address: address}, cb, tx);
+		return self.get({ address: address }, cb, tx);
 	}
 
 	// Loop through each of updated attribute
@@ -825,20 +831,20 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 				// [u_]balance, [u_]multimin, [u_]multilifetime, rate, fees, rank, rewards, votes, producedBlocks, missedBlocks
 				case Number:
 					if (isNaN(updatedValue) || updatedValue === Infinity) {
-						throw 'Encountered insane number: ' + updatedValue;
+						throw `Encountered insane number: ${updatedValue}`;
 					}
 
 					// If updated value is positive number
 					if (Math.abs(updatedValue) === updatedValue && updatedValue !== 0) {
 						promises.push(dbTx.accounts.increment(address, updatedField, Math.floor(updatedValue)));
 
-					// If updated value is negative number
-					} else if (updatedValue < 0 ) {
+						// If updated value is negative number
+					} else if (updatedValue < 0) {
 						promises.push(dbTx.accounts.decrement(address, updatedField, Math.floor(Math.abs(updatedValue))));
 
 						// If money is taken out from an account so its an active account now.
 						if (updatedField === 'u_balance') {
-							promises.push(dbTx.accounts.update(address, {virgin: 0}));
+							promises.push(dbTx.accounts.update(address, { virgin: 0 }));
 						}
 					}
 
@@ -852,7 +858,6 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 					// If we received update as array of strings
 					if (_.isString(updatedValue[0])) {
 						updatedValue.forEach(function (updatedValueItem) {
-
 							// Fetch first character
 							var mode = updatedValueItem[0];
 							var dependentId = '';
@@ -874,7 +879,7 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 								promises.push(dbTx.rounds.insertRoundInformationWithDelegate(address, diff.blockId, diff.round, dependentId, mode));
 							}
 						});
-					// If we received update as array of objects
+						// If we received update as array of objects
 					} else if (_.isObject(updatedValue[0])) {
 						// TODO: Need to look the usage of object based diff param
 					}
@@ -885,7 +890,7 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 		// Run all db operations in a batch
 		return dbTx.batch(promises);
 	}).then(function () {
-		return self.get({address: address}, cb, tx);
+		return self.get({ address: address }, cb, tx);
 	}).catch(function (err) {
 		library.logger.error(err.stack);
 		return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');

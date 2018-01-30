@@ -17,7 +17,7 @@
  * ConnectionsTable - stores connection (socket) ids and matches them with peer's nonces
  * @constructor
  */
-function ConnectionsTable () {
+function ConnectionsTable() {
 	this.connectionIdToNonceMap = {};
 	this.nonceToConnectionIdMap = {};
 }
@@ -44,7 +44,6 @@ ConnectionsTable.prototype.getConnectionId = function (nonce) {
  * @param {string} connectionId
  */
 ConnectionsTable.prototype.add = function (nonce, connectionId) {
-
 	if (!nonce) {
 		throw new Error('Cannot add connection table entry without nonce');
 	}

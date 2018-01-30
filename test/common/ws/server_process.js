@@ -21,26 +21,26 @@ var Promise = require('bluebird');
 var sinon = require('sinon');
 var sandbox = sinon.createSandbox();
 
-function WSServer (headers) {
+function WSServer(headers) {
 	this.headers = headers;
 
 	this.validNonce = randomstring.generate(16);
 	this.socketCluster = null;
-	this.rpcServer =  null;
+	this.rpcServer = null;
 	this.socketClient = null;
 
 	this.options = {
 		workers: 1,
 		port: this.headers.wsPort,
 		wsEngine: 'uws',
-		appName: 'LiskTestServer-' + randomstring.generate(8),
+		appName: `LiskTestServer-${randomstring.generate(8)}`,
 		secretKey: 'liskSecretKey',
 		headers: headers,
 		perMessageDeflate: false,
 		pingInterval: 5000,
 		pingTimeout: 60000,
 		processTermTimeout: 10000,
-		workerController: __dirname + '/server_worker.js'
+		workerController: `${__dirname}/server_worker.js`
 	};
 }
 
@@ -67,27 +67,27 @@ WSServer.prototype.start = function () {
 
 			self.rpcServer.registerRPCEndpoints({
 				updatePeer: sandbox.stub().callsArgWith(1, null),
-				height:  sandbox.stub().callsArgWith(1, null, {success: true, height: self.options.headers}),
+				height: sandbox.stub().callsArgWith(1, null, { success: true, height: self.options.headers }),
 				status: sandbox.stub().callsArgWith(1, null, self.options.headers),
-				list: sandbox.stub().callsArgWith(1, null, {peers: []}),
-				blocks:  sandbox.stub().callsArgWith(1, null, {blocks: []}),
-				getSignatures:  sandbox.stub().callsArgWith(1, null, {signatures: []}),
-				getTransactions:  sandbox.stub().callsArgWith(1, null, {transactions: []}),
+				list: sandbox.stub().callsArgWith(1, null, { peers: [] }),
+				blocks: sandbox.stub().callsArgWith(1, null, { blocks: [] }),
+				getSignatures: sandbox.stub().callsArgWith(1, null, { signatures: [] }),
+				getTransactions: sandbox.stub().callsArgWith(1, null, { transactions: [] }),
 				postTransactions: sandbox.stub().callsArgWith(1, null),
 				postSignatures: sandbox.stub().callsArgWith(1, null),
-				postBlock: sandbox.stub().callsArgWith(1, null, {success: true, blockId: null}),
-				blocksCommon: sandbox.stub().callsArgWith(1, null, {success: true, common: null})
+				postBlock: sandbox.stub().callsArgWith(1, null, { success: true, blockId: null }),
+				blocksCommon: sandbox.stub().callsArgWith(1, null, { success: true, common: null })
 			});
 
 			self.socketClient.start().then(resolve);
 		});
 
-		self.socketCluster.on('fail', function (err) {
+		self.socketCluster.on('fail', function () {
 			self.stop();
 			reject();
 		});
 
-		self.socketCluster.on('error', function (err) {
+		self.socketCluster.on('error', function () {
 			self.stop();
 		});
 	});

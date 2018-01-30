@@ -20,9 +20,8 @@ var failureCodes = require('../rpc/failure_codes');
 var PeerUpdateError = require('../rpc/failure_codes').PeerUpdateError;
 var swaggerHelper = require('../../../helpers/swagger');
 var definitions = swaggerHelper.getSwaggerSpec().definitions;
-var z_schema =  swaggerHelper.getValidator();
+var z_schema = swaggerHelper.getValidator();
 var Peer = require('../../../logic/peer');
-var Z_schema = require('../../../helpers/z_schema');
 
 var self;
 
@@ -31,7 +30,7 @@ var self;
  * @param {SlaveWAMPServer} slaveWAMPServer - used to send verified update requests to master process.
  * @constructor
  */
-function PeersUpdateRules (slaveWAMPServer) {
+function PeersUpdateRules(slaveWAMPServer) {
 	this.slaveToMasterSender = new SlaveToMasterSender(slaveWAMPServer);
 	this.rules = new Rules(this.insert, this.remove, this.block);
 	self = this;
@@ -46,7 +45,7 @@ PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
 	try {
 		connectionsTable.add(peer.nonce, connectionId);
 		peer.state = Peer.STATE.CONNECTED;
-		self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.INSERT, peer, function (err) {
+		self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.INSERT, peer, err => {
 			if (err) {
 				connectionsTable.remove(peer.nonce);
 				if (!err.code) {
@@ -68,7 +67,7 @@ PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
 PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
 	try {
 		connectionsTable.remove(peer.nonce);
-		self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.REMOVE, peer, function (err) {
+		self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.REMOVE, peer, err => {
 			if (err && !err.code) {
 				connectionsTable.add(peer.nonce, connectionId);
 				err = new PeerUpdateError(failureCodes.ON_MASTER.UPDATE.TRANSPORT, failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.TRANSPORT], err);
@@ -98,7 +97,7 @@ PeersUpdateRules.prototype.internal = {
 	 * @param {function} cb
 	 */
 	update: function (updateType, peer, connectionId, cb) {
-		self.slaveToMasterSender.getPeer(peer.nonce, function (err, onMasterPresence) {
+		self.slaveToMasterSender.getPeer(peer.nonce, (err, onMasterPresence) => {
 			if (err) {
 				return setImmediate(cb, new PeerUpdateError(
 					failureCodes.ON_MASTER.UPDATE.CHECK_PRESENCE,
@@ -122,7 +121,7 @@ PeersUpdateRules.prototype.external = {
 	 * @param {function} cb
 	 */
 	update: function (request, cb) {
-		z_schema.validate(request, definitions.WSPeerUpdateRequest, function (err) {
+		z_schema.validate(request, definitions.WSPeerUpdateRequest, err => {
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
