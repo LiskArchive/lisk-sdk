@@ -21,16 +21,28 @@ var ApiError = require('../../helpers/api_error');
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class TransactionsController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * Description of the function.
+ *
+ * @class
+ * @memberof api/controllers
+ * @requires lodash
+ * @requires helpers/apiError
+ * @requires helpers/swagger.generateParamsErrorObject
+ * @requires helpers/swagger.invalidParams
+ * @param {Object} scope - App instance
+ * @todo: Add description of TransactionsController
  */
 function TransactionsController(scope) {
 	modules = scope.modules;
 }
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 TransactionsController.getTransactions = function (context, next) {
 	var invalidParams = swaggerHelper.invalidParams(context.request);
 
@@ -89,6 +101,13 @@ TransactionsController.getTransactions = function (context, next) {
 	});
 };
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 TransactionsController.postTransactions = function (context, next) {
 	var transactions = context.request.swagger.params.transactions.value;
 
