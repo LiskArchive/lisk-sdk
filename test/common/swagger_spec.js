@@ -37,7 +37,7 @@ chai.use((chai, utils) => {
 		if (!result) {
 			utils.flag(this, 'message', 'InvalidResponseBody');
 
-			errorDetail = _.map(validator.getLastErrors(), object => `${object.code}: ${object.path.join('.')} | ${object.message}`).join('\n');
+			errorDetail = _.map(validator.getLastErrors(), object => { return `${object.code}: ${object.path.join('.')} | ${object.message}`; }).join('\n');
 		}
 
 		this.assert(result, errorDetail);

@@ -116,7 +116,7 @@ describe('handshake', () => {
 						typeRepresentatives.strings
 					);
 
-					var validValues = _.map(new Array(10), () => randomstring.generate(16));
+					var validValues = _.map(new Array(10), () => { return randomstring.generate(16); });
 
 					invalidTypes.forEach(type => {
 						it(`should call callback with error.description when input is: ${type.description}`, done => {
@@ -147,7 +147,7 @@ describe('handshake', () => {
 				});
 
 				describe('height', () => {
-					var validValues = _.map(new Array(10), () => Math.floor(Math.random() * (Number.MAX_VALUE)));
+					var validValues = _.map(new Array(10), () => { return Math.floor(Math.random() * (Number.MAX_VALUE)); });
 
 					var invalidTypes = _.difference(typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,

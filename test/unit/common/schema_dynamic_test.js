@@ -162,7 +162,7 @@ SchemaDynamicTest.prototype.testRequired = function (testedFunction, validArgume
 			eachCb();
 		});
 	}.bind(this);
-	var missingFieldsDescriptions = properties.map(property => ({ description: property }));
+	var missingFieldsDescriptions = properties.map(property => { return { description: property }; });
 	this.carpetTesting(test, missingFieldsDescriptions, 'should return an error when invoked without %s');
 };
 

@@ -25,7 +25,8 @@ describe('PUT /node/status/forging', () => {
 	var toggleForgingEndpoint = new swaggerEndpoint('PUT /node/status/forging');
 	var forgingStatusEndpoint = new swaggerEndpoint('GET /node/status/forging');
 
-	before(() => forgingStatusEndpoint.makeRequest({ publicKey: validDelegate.publicKey }, 200).then(res => {
+	before(() => {
+ return forgingStatusEndpoint.makeRequest({ publicKey: validDelegate.publicKey }, 200).then(res => {
 			if (!res.body.data[0].forging) {
 				return toggleForgingEndpoint.makeRequest({ data: { publicKey: validDelegate.publicKey, decryptionKey: validDelegate.key } }, 200)
 					.then(res => {
@@ -33,14 +34,17 @@ describe('PUT /node/status/forging', () => {
 						expect(res.body.data[0].forging).to.be.true;
 					});
 			}
-		}));
+		});
+});
 
 	// TODO: Find a library for supertest to make request from a proxy server
 	it('called from unauthorized IP should fail');
 
-	it('using no params should fail', () => toggleForgingEndpoint.makeRequest({ data: {} }, 400).then(res => {
+	it('using no params should fail', () => {
+ return toggleForgingEndpoint.makeRequest({ data: {} }, 400).then(res => {
 			expectSwaggerParamError(res, 'data');
-		}));
+		});
+});
 
 	it('using invalid publicKey should fail', () => {
 		var invalidPublicKey = '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';

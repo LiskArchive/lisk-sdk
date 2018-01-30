@@ -306,7 +306,7 @@ describe('block', () => {
 				beforeEach(() => {
 					data.transactions = transactions;
 					generatedBlock = block.create(data);
-					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
+					transactionsOrder = generatedBlock.transactions.map(trs => { return trs.type; });
 				});
 
 				it('should sort transactions in the correct order', () => {
@@ -324,10 +324,10 @@ describe('block', () => {
 					var transactionsOrder;
 
 					beforeEach(() => {
-						multipleMultisigTx = Array(...Array(5)).map(() => transactionsByTypes[transactionTypes.MULTI]);
+						multipleMultisigTx = Array(...Array(5)).map(() => { return transactionsByTypes[transactionTypes.MULTI]; });
 						data.transactions = multipleMultisigTx.concat(transactions);
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
+						transactionsOrder = generatedBlock.transactions.map(trs => { return trs.type; });
 					});
 
 					it('should sort transactions in the correct order', () => {
@@ -343,12 +343,12 @@ describe('block', () => {
 					var transactionsOrder;
 
 					beforeEach(() => {
-						multipleMultisigTx = Array(...Array(5)).map(() => transactionsByTypes[transactionTypes.MULTI]);
+						multipleMultisigTx = Array(...Array(5)).map(() => { return transactionsByTypes[transactionTypes.MULTI]; });
 						// Add multisig transactions after the 3rd transaction in array
 						transactions.splice(...[3, 0].concat(multipleMultisigTx));
 						data.transactions = transactions;
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
+						transactionsOrder = generatedBlock.transactions.map(trs => { return trs.type; });
 					});
 
 					it('should sort transactions in the correct order', () => {
@@ -364,10 +364,10 @@ describe('block', () => {
 					var transactionsOrder;
 
 					beforeEach(() => {
-						multipleMultisigTx = Array(...Array(5)).map(() => transactionsByTypes[transactionTypes.MULTI]);
+						multipleMultisigTx = Array(...Array(5)).map(() => { return transactionsByTypes[transactionTypes.MULTI]; });
 						data.transactions = transactions.concat(multipleMultisigTx);
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
+						transactionsOrder = generatedBlock.transactions.map(trs => { return trs.type; });
 					});
 
 					it('should sort transactions in the correct order', () => {
@@ -383,10 +383,10 @@ describe('block', () => {
 					var transactionsOrder;
 
 					beforeEach(() => {
-						multipleMultisigTx = Array(...Array(5)).map(() => transactionsByTypes[transactionTypes.MULTI]);
+						multipleMultisigTx = Array(...Array(5)).map(() => { return transactionsByTypes[transactionTypes.MULTI]; });
 						data.transactions = _.shuffle(transactions.concat(multipleMultisigTx));
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
+						transactionsOrder = generatedBlock.transactions.map(trs => { return trs.type; });
 					});
 
 					it('should sort transactions in the correct order', () => {

@@ -74,7 +74,7 @@ describe('blocks/process', () => {
 					db.none(insert)
 						.then(() => {
 							seriesCb(null, true);
-						}).catch(err => setImmediate(err));
+						}).catch(err => { return setImmediate(err); });
 				}, err => {
 					if (err) {
 						return setImmediate(err);

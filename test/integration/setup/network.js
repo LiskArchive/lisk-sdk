@@ -34,6 +34,6 @@ module.exports = {
 				enableForgingPromises.push(enableForgingPromise);
 			});
 		});
-		Promise.all(enableForgingPromises).then(forgingResults => cb(forgingResults.some(forgingResult => !forgingResult.forging) ? 'Enabling forging failed for some of delegates' : null)).catch(error => cb(error));
+		Promise.all(enableForgingPromises).then(forgingResults => { return cb(forgingResults.some(forgingResult => { return !forgingResult.forging; }) ? 'Enabling forging failed for some of delegates' : null); }).catch(error => { return cb(error); });
 	}
 };

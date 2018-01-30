@@ -39,9 +39,11 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 	describe('schema validations', () => {
 		typesRepresentatives.allTypes.forEach(test => {
-			it(`using ${test.description} should fail`, () => sendTransactionPromise(test.input, 400).then(res => {
+			it(`using ${test.description} should fail`, () => {
+ return sendTransactionPromise(test.input, 400).then(res => {
 					expect(res).to.have.nested.property('body.message').that.is.not.empty;
-				}));
+				});
+});
 		});
 	});
 
@@ -103,14 +105,18 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			});
 		});
 
-		it('when sender has funds should be ok', () => sendTransactionPromise(goodTransaction).then(res => {
+		it('when sender has funds should be ok', () => {
+ return sendTransactionPromise(goodTransaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 				goodTransactions.push(goodTransaction);
-			}));
+			});
+});
 
-		it('sending transaction with same id twice should fail', () => sendTransactionPromise(goodTransaction, errorCodes.PROCESSING_ERROR).then(res => {
+		it('sending transaction with same id twice should fail', () => {
+ return sendTransactionPromise(goodTransaction, errorCodes.PROCESSING_ERROR).then(res => {
 				expect(res.body.message).to.be.equal(`Transaction is already processed: ${goodTransaction.id}`);
-			}));
+			});
+});
 
 		it('sending transaction with same id twice but newer timestamp should fail', () => {
 			cloneGoodTransaction.timestamp += 1;
@@ -191,8 +197,10 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 	});
 
 	describe('validation', () => {
-		it('sending already confirmed transaction should fail', () => sendTransactionPromise(goodTransaction, errorCodes.PROCESSING_ERROR).then(res => {
+		it('sending already confirmed transaction should fail', () => {
+ return sendTransactionPromise(goodTransaction, errorCodes.PROCESSING_ERROR).then(res => {
 				expect(res.body.message).to.be.equal(`Transaction is already confirmed: ${goodTransaction.id}`);
-			}));
+			});
+});
 	});
 });

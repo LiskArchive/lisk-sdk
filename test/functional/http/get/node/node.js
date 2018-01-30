@@ -24,10 +24,12 @@ describe('GET /node', () => {
 
 		var constantsResponse;
 
-		before(() => endPoint.makeRequest()
+		before(() => {
+ return endPoint.makeRequest()
 				.then(response => {
 					constantsResponse = response.body.data;
-				}));
+				});
+});
 
 		it('should return a result containing nethash = "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"', () => {
 			expect(constantsResponse.nethash).to.be.equal('198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d');
@@ -90,7 +92,7 @@ describe('GET /node', () => {
 	describe('/status', () => {
 		var ndoeStatusEndpoint = swaggerEndpoint('GET /node/status 200');
 
-		it('should return node status', () => ndoeStatusEndpoint.makeRequest());
+		it('should return node status', () => { return ndoeStatusEndpoint.makeRequest(); });
 
 		describe('GET /forging', () => {
 			var forgingEndpoint = new swaggerEndpoint('GET /node/status/forging');
@@ -98,17 +100,23 @@ describe('GET /node', () => {
 			// TODO: Find a library for supertest to make request from a proxy server
 			it('called from unauthorized IP should fail');
 
-			it('using no params should return full list of internal forgers', () => forgingEndpoint.makeRequest({}, 200).then(res => {
+			it('using no params should return full list of internal forgers', () => {
+ return forgingEndpoint.makeRequest({}, 200).then(res => {
 					expect(res.body.data.length).to.be.eql(__testContext.config.forging.secret.length);
-				}));
+				});
+});
 
-			it('using invalid publicKey should fail', () => forgingEndpoint.makeRequest({ publicKey: 'invalidPublicKey' }, 400).then(res => {
+			it('using invalid publicKey should fail', () => {
+ return forgingEndpoint.makeRequest({ publicKey: 'invalidPublicKey' }, 400).then(res => {
 					expectSwaggerParamError(res, 'publicKey');
-				}));
+				});
+});
 
-			it('using empty publicKey should should fail', () => forgingEndpoint.makeRequest({ publicKey: 'invalidPublicKey' }, 400).then(res => {
+			it('using empty publicKey should should fail', () => {
+ return forgingEndpoint.makeRequest({ publicKey: 'invalidPublicKey' }, 400).then(res => {
 					expectSwaggerParamError(res, 'publicKey');
-				}));
+				});
+});
 
 			it('using existing publicKey should be ok', () => {
 				var publicKey = __testContext.config.forging.secret[0].publicKey;

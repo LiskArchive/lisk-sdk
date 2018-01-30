@@ -174,7 +174,7 @@ function sendTransactionPromise(transaction, expectedStatusCode) {
 function sendTransactionsPromise(transactions, expectedStatusCode) {
 	expectedStatusCode = expectedStatusCode || 200;
 
-	return Promise.map(transactions, transaction => sendTransactionPromise(transaction, expectedStatusCode));
+	return Promise.map(transactions, transaction => { return sendTransactionPromise(transaction, expectedStatusCode); });
 }
 
 function sendSignature(signature, transaction, cb) {
@@ -267,7 +267,7 @@ function getBlocks(params, cb) {
  */
 function expectSwaggerParamError(res, param) {
 	expect(res.body.message).to.be.eql('Validation errors');
-	expect(res.body.errors.map(p => p.name)).to.contain(param);
+	expect(res.body.errors.map(p => { return p.name; })).to.contain(param);
 }
 
 /**

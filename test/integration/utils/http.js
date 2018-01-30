@@ -88,7 +88,7 @@ module.exports = {
 		return popsicle.get({
 			url: endpoints.versions[currentVersion].getHeight(ip || '127.0.0.1', port || 4000),
 			headers: headers
-		}).then(res => res.body.height);
+		}).then(res => { return res.body.height; });
 	},
 
 	getTransaction: function (transactionId, port, ip) {

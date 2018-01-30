@@ -62,12 +62,14 @@ multisigSender;
 		describe('check sender db rows', () => {
 			var accountRow;
 
-			before('get mem_account, mem_account2multisignature and mem_account2u_multisignature rows', () => localCommon.getAccountFromDb(library, multisigAccount.address).then(res => {
+			before('get mem_account, mem_account2multisignature and mem_account2u_multisignature rows', () => {
+ return localCommon.getAccountFromDb(library, multisigAccount.address).then(res => {
 					accountRow = res;
-				}));
+				});
+});
 
 			it('should include rows in mem_accounts2multisignatures', () => {
-				var signKeysInDb = _.map(accountRow.mem_accounts2multisignatures, row => row.dependentId);
+				var signKeysInDb = _.map(accountRow.mem_accounts2multisignatures, row => { return row.dependentId; });
 				expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
 			});
 
@@ -80,7 +82,7 @@ multisigSender;
 			});
 
 			it('should include rows in mem_accounts2u_multisignatures', () => {
-				var signKeysInDb = _.map(accountRow.mem_accounts2u_multisignatures, row => row.dependentId);
+				var signKeysInDb = _.map(accountRow.mem_accounts2u_multisignatures, row => { return row.dependentId; });
 				expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
 			});
 
@@ -138,9 +140,11 @@ multisigSender;
 			describe('sender db rows', () => {
 				var accountRow;
 
-				before('get mem_account, mem_account2multisignature and mem_account2u_multisignature rows', () => localCommon.getAccountFromDb(library, multisigAccount.address).then(res => {
+				before('get mem_account, mem_account2multisignature and mem_account2u_multisignature rows', () => {
+ return localCommon.getAccountFromDb(library, multisigAccount.address).then(res => {
 						accountRow = res;
-					}));
+					});
+});
 
 				it('should have no rows in mem_accounts2multisignatures', () => {
 					expect(accountRow.mem_accounts2multisignatures).to.eql([]);
@@ -225,9 +229,11 @@ multisigSender;
 		describe('check sender db rows', () => {
 			var accountRow;
 
-			before('get mem_account, mem_account2multisignature and mem_account2u_multisignature rows', () => localCommon.getAccountFromDb(library, multisigAccount.address).then(res => {
+			before('get mem_account, mem_account2multisignature and mem_account2u_multisignature rows', () => {
+ return localCommon.getAccountFromDb(library, multisigAccount.address).then(res => {
 					accountRow = res;
-				}));
+				});
+});
 
 			it('should have no rows in mem_accounts2multisignatures', () => {
 				expect(accountRow.mem_accounts2multisignatures).to.eql([]);
@@ -242,7 +248,7 @@ multisigSender;
 			});
 
 			it('should include rows in mem_accounts2u_multisignatures', () => {
-				var signKeysInDb = _.map(accountRow.mem_accounts2u_multisignatures, row => row.dependentId);
+				var signKeysInDb = _.map(accountRow.mem_accounts2u_multisignatures, row => { return row.dependentId; });
 				expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
 			});
 

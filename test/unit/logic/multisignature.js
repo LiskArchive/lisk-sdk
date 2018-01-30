@@ -239,7 +239,7 @@ describe('multisignature', () => {
 		describe('when min = 15', () => {
 			before(() => {
 				transaction.asset.multisignature.min = 15;
-				transaction.asset.keysgroup = _.map(new Array(16), () => `+${randomUtil.account().publicKey}`);
+				transaction.asset.keysgroup = _.map(new Array(16), () => { return `+${randomUtil.account().publicKey}`; });
 			});
 
 			it('should call callback with error = null', done => {
@@ -836,7 +836,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when array length is greater than maximum acceptable value', () => {
-				var keysgroup = Array(...Array(constants.multisigConstraints.keysgroup.maxItems + 1)).map(() => `+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`);
+				var keysgroup = Array(...Array(constants.multisigConstraints.keysgroup.maxItems + 1)).map(() => { return `+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`; });
 				var transaction	= lisk.multisignature.createMultisignature(accountFixtures.genesis.password, null, keysgroup, 1, 2);
 
 				expect(() => {
@@ -846,7 +846,7 @@ describe('multisignature', () => {
 		});
 
 		it('should return transaction when asset is valid', () => {
-			var transaction	= lisk.multisignature.createMultisignature(accountFixtures.genesis.password, null, Array(...Array(10)).map(() => `+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`), 1, 2);
+			var transaction	= lisk.multisignature.createMultisignature(accountFixtures.genesis.password, null, Array(...Array(10)).map(() => { return `+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`; }), 1, 2);
 
 			expect(multisignature.objectNormalize(transaction)).to.eql(transaction);
 		});

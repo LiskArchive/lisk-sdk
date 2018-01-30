@@ -25,11 +25,11 @@ module.exports = {
 	},
 
 	launchTestNodes: function (cb) {
-		child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', err => cb(err));
+		child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', err => { return cb(err); });
 	},
 
 	clearLogs: function (cb) {
-		child_process.exec('rm -rf test/integration/logs/*', err => cb(err));
+		child_process.exec('rm -rf test/integration/logs/*', err => { return cb(err); });
 	},
 
 	runMochaTests: function (testsPaths, cb) {
@@ -47,7 +47,7 @@ module.exports = {
 			}
 		});
 
-		child.on('error', err => cb(err));
+		child.on('error', err => { return cb(err); });
 	},
 
 	killTestNodes: function (cb) {

@@ -107,7 +107,7 @@ function generateNodePeers(numOfPeers, syncMode, syncModeArgs) {
 
 function generateNodesConfig(numOfPeers, syncMode, forgingNodesIndices) {
 	var secretsInChunk = Math.ceil(baseConfig.forging.secret.length / forgingNodesIndices.length);
-	var secretsChunks = forgingNodesIndices.map((val, index) => baseConfig.forging.secret.slice(index * secretsInChunk, (index + 1) * secretsInChunk));
+	var secretsChunks = forgingNodesIndices.map((val, index) => { return baseConfig.forging.secret.slice(index * secretsInChunk, (index + 1) * secretsInChunk); });
 
 	return Array(...new Array(numOfPeers)).map((val, index) => {
 		var isForging = forgingNodesIndices.indexOf(index) !== -1;
@@ -172,15 +172,15 @@ function generatePM2NodesConfig(testNodeConfigs) {
 }
 
 function clearLogs(cb) {
-	child_process.exec('rm -rf test/integration/logs/*', err => cb(err));
+	child_process.exec('rm -rf test/integration/logs/*', err => { return cb(err); });
 }
 
 function launchTestNodes(cb) {
-	child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', err => cb(err));
+	child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', err => { return cb(err); });
 }
 
 function killTestNodes(cb) {
-	child_process.exec('node_modules/.bin/pm2 delete all', err => cb(err));
+	child_process.exec('node_modules/.bin/pm2 delete all', err => { return cb(err); });
 }
 
 function runFunctionalTests(cb) {
@@ -199,7 +199,7 @@ function runFunctionalTests(cb) {
 		}
 	});
 
-	child.on('error', err => cb(err));
+	child.on('error', err => { return cb(err); });
 }
 
 function recreateDatabases(done) {
@@ -298,20 +298,22 @@ describe('integration', function () {
 	});
 
 	describe('Peers mutual connections', () => {
-		it('should return a list of peer mutually interconnected', () => Promise.all(sockets.map(socket => socket.wampSend('list', {}))).then(results => {
+		it('should return a list of peer mutually interconnected', () => {
+ return Promise.all(sockets.map(socket => { return socket.wampSend('list', {}); })).then(results => {
 				results.forEach(result => {
 					expect(result).to.have.property('success').to.be.ok;
 					expect(result).to.have.property('peers').to.be.a('array');
-					var peerPorts = result.peers.map(p => p.wsPort);
-					var allPeerPorts = testNodeConfigs.map(testNodeConfig => testNodeConfig.wsPort);
+					var peerPorts = result.peers.map(p => { return p.wsPort; });
+					var allPeerPorts = testNodeConfigs.map(testNodeConfig => { return testNodeConfig.wsPort; });
 					expect(_.intersection(allPeerPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
 				});
-			}));
+			});
+});
 	});
 
 	describe('forging', () => {
 		function getNetworkStatus(cb) {
-			Promise.all(sockets.map(socket => socket.wampSend('status'))).then(results => {
+			Promise.all(sockets.map(socket => { return socket.wampSend('status'); })).then(results => {
 				var maxHeight = 1;
 				var heightSum = 0;
 				results.forEach(result => {
@@ -379,9 +381,11 @@ describe('integration', function () {
 				expect(networkAverageHeight).to.be.above(1);
 			});
 
-			it('should have different peers heights propagated correctly on peers lists', () => Promise.all(sockets.map(socket => socket.wampSend('list'))).then(results => {
-					expect(results.some(peersList => peersList.peers.some(peer => peer.height > 1)));
-				}));
+			it('should have different peers heights propagated correctly on peers lists', () => {
+ return Promise.all(sockets.map(socket => { return socket.wampSend('list'); })).then(results => {
+					expect(results.some(peersList => { return peersList.peers.some(peer => { return peer.height > 1; }); }));
+				});
+});
 		});
 	});
 
@@ -393,16 +397,20 @@ describe('integration', function () {
 		describe('blocks', () => {
 			var nodesBlocks;
 
-			before(() => Promise.all(testNodeConfigs.map(testNodeConfig => popsicle.get({
+			before(() => {
+ return Promise.all(testNodeConfigs.map(testNodeConfig => {
+ return popsicle.get({
 						url: `http://${testNodeConfig.ip}:${testNodeConfig.wsPort - 1000}/api/blocks`,
 						headers: {
 							Accept: 'application/json',
 							'Content-Type': 'application/json'
 						}
-					}))).then(results => {
-					nodesBlocks = results.map(res => JSON.parse(res.body).data);
+					});
+})).then(results => {
+					nodesBlocks = results.map(res => { return JSON.parse(res.body).data; });
 					expect(nodesBlocks).to.have.lengthOf(testNodeConfigs.length);
-				}));
+				});
+});
 
 			it('should contain non empty blocks after running functional tests', () => {
 				nodesBlocks.forEach(blocks => {
@@ -428,10 +436,12 @@ describe('integration', function () {
 		describe('transactions', () => {
 			var nodesTransactions = [];
 
-			before(() => Promise.all(sockets.map(socket => socket.wampSend('blocks'))).then(results => {
-					nodesTransactions = results.map(res => res.blocks);
+			before(() => {
+ return Promise.all(sockets.map(socket => { return socket.wampSend('blocks'); })).then(results => {
+					nodesTransactions = results.map(res => { return res.blocks; });
 					expect(nodesTransactions).to.have.lengthOf(testNodeConfigs.length);
-				}));
+				});
+});
 
 			it('should contain non empty transactions after running functional tests', () => {
 				nodesTransactions.forEach(transactions => {

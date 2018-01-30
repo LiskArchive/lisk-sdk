@@ -21,13 +21,17 @@ var expectSwaggerParamError = require('../../../common/helpers/api').expectSwagg
 describe('POST /api/transactions (general)', () => {
 	var transactionsEndpoint = new swaggerSpec('POST /transactions');
 
-	it('should fail if empty transactions posted', () => transactionsEndpoint.makeRequest({ transactions: [] }, 400).then(res => {
+	it('should fail if empty transactions posted', () => {
+ return transactionsEndpoint.makeRequest({ transactions: [] }, 400).then(res => {
 			expectSwaggerParamError(res, 'transactions');
 			expect(res.body.errors[0].errors[0].code).to.be.equal('ARRAY_LENGTH_SHORT');
-		}));
+		});
+});
 
-	it('should fail on more than one transactions at a time', () => transactionsEndpoint.makeRequest({ transactions: [randomUtil.transaction(), randomUtil.transaction()] }, 400).then(res => {
+	it('should fail on more than one transactions at a time', () => {
+ return transactionsEndpoint.makeRequest({ transactions: [randomUtil.transaction(), randomUtil.transaction()] }, 400).then(res => {
 			expectSwaggerParamError(res, 'transactions');
 			expect(res.body.errors[0].errors[0].code).to.be.equal('ARRAY_LENGTH_LONG');
-		}));
+		});
+});
 });

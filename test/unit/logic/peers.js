@@ -52,7 +52,7 @@ describe('peers', () => {
 
 	function arePeersEqual(peerA, peerB) {
 		var allPeersProperties = function (peer) {
-			return 	_.keys(peer).every(property => Peer.prototype.properties.concat(['string', 'rpc']).indexOf(property) !== -1);
+			return 	_.keys(peer).every(property => { return Peer.prototype.properties.concat(['string', 'rpc']).indexOf(property) !== -1; });
 		};
 
 		if (!allPeersProperties(peerA)) {
@@ -69,7 +69,7 @@ describe('peers', () => {
 			throw new Error('Insufficient data to compare the peers (no port or ip provided)');
 		}
 
-		return commonProperties.every(property => peerA[property] === peerB[property]);
+		return commonProperties.every(property => { return peerA[property] === peerB[property]; });
 	}
 
 	describe('create', () => {

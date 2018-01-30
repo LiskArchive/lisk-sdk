@@ -53,7 +53,7 @@ module.exports = {
 				utils.logger.log(`Waiting ${WAIT_BEFORE_CONNECT_MS / 1000} seconds for nodes to establish connections`);
 				setTimeout(cbSeries, WAIT_BEFORE_CONNECT_MS);
 			}
-		], (err, res) => cb(err, res));
+		], (err, res) => { return cb(err, res); });
 	},
 
 	exit: function (cb) {

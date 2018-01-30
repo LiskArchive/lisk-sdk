@@ -239,7 +239,7 @@ var modulesLoader = new function () {
 				this.db = db;
 				cb(null, db);
 			})
-			.catch(err => cb(err));
+			.catch(err => { return cb(err); });
 	};
 
 	/**

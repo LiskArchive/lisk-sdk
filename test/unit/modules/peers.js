@@ -110,7 +110,7 @@ describe('peers', () => {
 
 		describe('when logic.peers.list returns 1000 random connected peers', () => {
 			before(() => {
-				randomPeers = _.range(1000).map(() => generateRandomActivePeer());
+				randomPeers = _.range(1000).map(() => { return generateRandomActivePeer(); });
 				peersLogicMock.list = sinonSandbox.stub().returns(randomPeers);
 			});
 
@@ -175,7 +175,7 @@ describe('peers', () => {
 						});
 
 						it('should return 100 results with the same broadhash', () => {
-							expect(listResult.filter(peer => peer.broadhash === validBroadhash)).be.an('array').and.have.lengthOf(100);
+							expect(listResult.filter(peer => { return peer.broadhash === validBroadhash; })).be.an('array').and.have.lengthOf(100);
 						});
 					});
 
@@ -190,11 +190,11 @@ describe('peers', () => {
 						});
 
 						it('should return 250 results with the same broadhash', () => {
-							expect(listResult.filter(peer => peer.broadhash === validBroadhash)).be.an('array').and.have.lengthOf(250);
+							expect(listResult.filter(peer => { return peer.broadhash === validBroadhash; })).be.an('array').and.have.lengthOf(250);
 						});
 
 						it('should return 250 results with different broadhash', () => {
-							expect(listResult.filter(peer => peer.broadhash !== validBroadhash)).be.an('array').and.have.lengthOf(250);
+							expect(listResult.filter(peer => { return peer.broadhash !== validBroadhash; })).be.an('array').and.have.lengthOf(250);
 						});
 
 						describe('options.attempt', () => {
@@ -502,7 +502,7 @@ describe('peers', () => {
 			var broadhashes;
 
 			before(() => {
-				oneHundredActivePeers = _.range(100).map(() => generateRandomActivePeer());
+				oneHundredActivePeers = _.range(100).map(() => { return generateRandomActivePeer(); });
 				broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
 				systemModuleMock.getBroadhash = sinonSandbox.stub().returns(broadhashes.matchedBroadhash);
 				validActive = oneHundredActivePeers;

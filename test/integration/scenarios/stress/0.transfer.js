@@ -31,7 +31,7 @@ module.exports = function (params) {
 		var maximum = 1000;
 
 		function confirmTransactionsOnAllNodes() {
-			return Promise.all(_.flatMap(params.configurations, configuration => transactions.map(transaction => getTransaction(transaction.id, configuration.httpPort)))).then(results => {
+			return Promise.all(_.flatMap(params.configurations, configuration => { return transactions.map(transaction => { return getTransaction(transaction.id, configuration.httpPort); }); })).then(results => {
 				results.forEach(transaction => {
 					expect(transaction).to.have.property('id').that.is.an('string');
 				});
@@ -55,7 +55,7 @@ module.exports = function (params) {
 						count++;
 					}
 					sendTransactionsPromise(bundled).then(next);
-				}, () => (count >= maximum), () => {
+				}, () => { return (count >= maximum); }, () => {
 					done();
 				});
 			});

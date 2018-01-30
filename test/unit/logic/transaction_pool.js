@@ -57,11 +57,11 @@ describe('transactionPool', () => {
 		logger.warn.reset();
 		logger.error.reset();
 
-		dummyProcessVerifyTransaction = sinon.spy((transaction, broadcast, cb) => cb());
+		dummyProcessVerifyTransaction = sinon.spy((transaction, broadcast, cb) => { return cb(); });
 		TransactionPool.__set__('__private.processVerifyTransaction', dummyProcessVerifyTransaction);
-		dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => cb());
+		dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => { return cb(); });
 		TransactionPool.__set__('modules.transactions.applyUnconfirmed', dummyApplyUnconfirmed);
-		dummyUndoUnconfirmed = sinon.spy((transaction, cb) => cb());
+		dummyUndoUnconfirmed = sinon.spy((transaction, cb) => { return cb(); });
 		TransactionPool.__set__('modules.transactions.undoUnconfirmed', dummyUndoUnconfirmed);
 	};
 
@@ -226,7 +226,7 @@ describe('transactionPool', () => {
 						var error = 'verify error';
 
 						before(done => {
-							dummyProcessVerifyTransaction = sinon.spy((transaction, broadcast, cb) => cb(error));
+							dummyProcessVerifyTransaction = sinon.spy((transaction, broadcast, cb) => { return cb(error); });
 							TransactionPool.__set__('__private.processVerifyTransaction', dummyProcessVerifyTransaction);
 
 							applyUnconfirmed([badTransaction], err => {
@@ -294,7 +294,7 @@ describe('transactionPool', () => {
 						var error = 'apply error';
 
 						before(done => {
-							dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => cb(error));
+							dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => { return cb(error); });
 							TransactionPool.__set__('modules.transactions.applyUnconfirmed', dummyApplyUnconfirmed);
 
 							applyUnconfirmed([badTransaction], err => {
@@ -439,7 +439,7 @@ describe('transactionPool', () => {
 
 						it('should return valid ids array', () => {
 							expect(lastIds).to.be.an('array');
-							expect(lastIds).to.deep.equal(_.map(transactions, tx => tx.id));
+							expect(lastIds).to.deep.equal(_.map(transactions, tx => { return tx.id; }));
 						});
 
 						describe('modules.transactions.undoUnconfirmed', () => {
@@ -490,7 +490,7 @@ describe('transactionPool', () => {
 						var error = 'undo error';
 
 						before(done => {
-							dummyUndoUnconfirmed = sinon.spy((transaction, cb) => cb(error));
+							dummyUndoUnconfirmed = sinon.spy((transaction, cb) => { return cb(error); });
 							TransactionPool.__set__('modules.transactions.undoUnconfirmed', dummyUndoUnconfirmed);
 
 							transactionPool.addUnconfirmedTransaction(badTransaction);
@@ -511,7 +511,7 @@ describe('transactionPool', () => {
 
 						it('should return valid ids array', () => {
 							expect(lastIds).to.be.an('array');
-							expect(lastIds).to.deep.equal(_.map(transactions, tx => tx.id));
+							expect(lastIds).to.deep.equal(_.map(transactions, tx => { return tx.id; }));
 						});
 
 						it('should log an proper error', () => {

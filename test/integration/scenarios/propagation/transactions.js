@@ -19,10 +19,12 @@ module.exports = function (params) {
 	describe('blocks', () => {
 		var nodesTransactions = [];
 
-		before(() => Promise.all(params.sockets.map(socket => socket.wampSend('blocks'))).then(results => {
-				nodesTransactions = results.map(res => res.blocks);
+		before(() => {
+ return Promise.all(params.sockets.map(socket => { return socket.wampSend('blocks'); })).then(results => {
+				nodesTransactions = results.map(res => { return res.blocks; });
 				expect(nodesTransactions).to.have.lengthOf(params.configurations.length);
-			}));
+			});
+});
 
 		it('should contain non empty transactions after running functional tests', () => {
 			nodesTransactions.forEach(transactions => {

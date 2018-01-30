@@ -98,7 +98,7 @@ _.mixin({
 	sortNumbers: function (arr, sortOrder) {
 		var sortFactor = (sortOrder === 'desc' ? -1 : 1);
 
-		return arr.sort((a, b) => (a - b) * sortFactor);
+		return arr.sort((a, b) => { return (a - b) * sortFactor; });
 	}
 }, { chain: false });
 

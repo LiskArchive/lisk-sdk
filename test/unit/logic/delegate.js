@@ -211,7 +211,7 @@ describe('delegate', () => {
 			});
 
 			it('should call callback with error if username is longer than 20 characters', done => {
-				transaction.asset.delegate.username = Array(...Array(21)).map(() => 'n').join('');
+				transaction.asset.delegate.username = Array(...Array(21)).map(() => { return 'n'; }).join('');
 
 				delegate.verify(transaction, sender, err => {
 					expect(err).to.equal('Username is too long. Maximum is 20 characters');

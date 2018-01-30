@@ -20,9 +20,11 @@ module.exports = function (params) {
 	describe('blocks', () => {
 		var nodesBlocks;
 
-		before(() => Promise.all(params.configurations.map(configuration => utils.http.getBlocks(configuration.httpPort))).then(blocksResults => {
+		before(() => {
+ return Promise.all(params.configurations.map(configuration => { return utils.http.getBlocks(configuration.httpPort); })).then(blocksResults => {
 				nodesBlocks = blocksResults;
-			}));
+			});
+});
 
 		it('should be able to get blocks list from every peer', () => {
 			expect(nodesBlocks).to.have.lengthOf(params.configurations.length);

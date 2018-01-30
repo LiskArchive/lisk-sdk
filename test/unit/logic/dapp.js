@@ -232,7 +232,7 @@ describe('dapp', () => {
 
 				describe('when dapp name is longer than 32 characters', () => {
 					it('should call callback with error = "Application name is too long. Maximum is 32 characters"', done => {
-						transaction.asset.dapp.name = Array(...Array(33)).map(() => 'a').join('');
+						transaction.asset.dapp.name = Array(...Array(33)).map(() => { return 'a'; }).join('');
 
 						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Application name is too long. Maximum is 32 characters');
@@ -243,7 +243,7 @@ describe('dapp', () => {
 
 				describe('when dapp description is longer than 160 characters', () => {
 					it('should call callback with error = "Application description is too long. Maximum is 160 characters"', done => {
-						transaction.asset.dapp.description = Array(...Array(161)).map(() => 'a').join('');
+						transaction.asset.dapp.description = Array(...Array(161)).map(() => { return 'a'; }).join('');
 
 						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Application description is too long. Maximum is 160 characters');
@@ -254,7 +254,7 @@ describe('dapp', () => {
 
 				describe('when dapp tags are longer than 160 characters', () => {
 					it('should call callback with error = "Application tags is too long. Maximum is 160 characters"', done => {
-						transaction.asset.dapp.tags = Array(...Array(161)).map(() => 'a').join('');
+						transaction.asset.dapp.tags = Array(...Array(161)).map(() => { return 'a'; }).join('');
 
 						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Application tags is too long. Maximum is 160 characters');
@@ -265,7 +265,7 @@ describe('dapp', () => {
 
 				describe('when dapp tags duplicate', () => {
 					it('should call callback with error = "Encountered duplicate tag: a in application"', done => {
-						transaction.asset.dapp.tags = Array(...Array(3)).map(() => 'a').join(',');
+						transaction.asset.dapp.tags = Array(...Array(3)).map(() => { return 'a'; }).join(',');
 
 						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Encountered duplicate tag: a in application');
@@ -671,7 +671,7 @@ describe('dapp', () => {
 					var otherTypes = typeRepresentatives.others;
 
 					var invalidNames = ['', _.fill(new Array(33), 'a'), _.fill(new Array(34), 'b')];
-					var validNames = _.fill(new Array(5), 'a').map(() => randomUtil.applicationName());
+					var validNames = _.fill(new Array(5), 'a').map(() => { return randomUtil.applicationName(); });
 
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
@@ -709,7 +709,7 @@ describe('dapp', () => {
 					);
 
 					var invalidDescriptions = [_.fill(new Array(161), 'a'), _.fill(new Array(162), 'b')];
-					var validDescriptions = _.fill(new Array(33), 'a').map(() => randomstring.generate(Math.random() * 160));
+					var validDescriptions = _.fill(new Array(33), 'a').map(() => { return randomstring.generate(Math.random() * 160); });
 
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
@@ -815,7 +815,7 @@ describe('dapp', () => {
 					// TODO: Schema checks only check whether property is a string or not,
 					// and not whether value is actually a link. We need to handle it here.
 					var invalidLinks = [_.fill(new Array(2002), 'a'), _.fill(new Array(2001), 'a')];
-					var validLinks = _.fill(new Array(5), '').map(() => randomUtil.applicationName());
+					var validLinks = _.fill(new Array(5), '').map(() => { return randomUtil.applicationName(); });
 
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
@@ -848,7 +848,7 @@ describe('dapp', () => {
 					// TODO: Schema checks only check whether property is a string or not,
 					// and not whether value is actually a link. We need to handle it here.
 					var invalidIcons = [_.fill(new Array(2002), 'a'), _.fill(new Array(2001), 'a')];
-					var validIcons = _.fill(new Array(5), '').map(() => randomUtil.applicationName());
+					var validIcons = _.fill(new Array(5), '').map(() => { return randomUtil.applicationName(); });
 
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {

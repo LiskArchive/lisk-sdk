@@ -21,32 +21,41 @@ var waitFor = require('../../common/utils/wait_for');
 
 function confirmation(goodTransactions, badTransactions, pendingMultisignatures) {
 	describe('after transactions get confirmed', () => {
-		before(() => waitFor.confirmations(_.map(goodTransactions, 'id')));
+		before(() => { return waitFor.confirmations(_.map(goodTransactions, 'id')); });
 
-		it('bad transactions should not be confirmed', () => Promise.map(badTransactions, transaction => {
+		it('bad transactions should not be confirmed', () => {
+			return Promise.map(badTransactions, transaction => {
 				var params = [
 					`id=${transaction.id}`
 				];
 				return apiHelpers.getTransactionsPromise(params).then(res => {
 					expect(res.body.data).to.have.length(0);
 				});
-			}));
+			});
+		});
 
-		it('good transactions should not be unconfirmed', () => Promise.map(goodTransactions, transaction => apiHelpers.getUnconfirmedTransactionPromise(transaction.id).then(res => {
+		it('good transactions should not be unconfirmed', () => {
+			return Promise.map(goodTransactions, transaction => {
+				return apiHelpers.getUnconfirmedTransactionPromise(transaction.id).then(res => {
 					expect(res.body.data).to.be.empty;
-				})));
+				});
+			});
+		});
 
-		it('good transactions should be confirmed', () => Promise.map(goodTransactions, transaction => {
+		it('good transactions should be confirmed', () => {
+			return Promise.map(goodTransactions, transaction => {
 				var params = [
 					`id=${transaction.id}`
 				];
 				return apiHelpers.getTransactionsPromise(params).then(res => {
 					expect(res.body.data).to.have.length(1);
 				});
-			}));
+			});
+		});
 
 		if (pendingMultisignatures) {
-			it('pendingMultisignatures should remain in the pending queue', () => Promise.map(pendingMultisignatures, transaction => {
+			it('pendingMultisignatures should remain in the pending queue', () => {
+                return Promise.map(pendingMultisignatures, transaction => {
 					var params = [
 						`id=${transaction.id}`
 					];
@@ -55,16 +64,19 @@ function confirmation(goodTransactions, badTransactions, pendingMultisignatures)
 						expect(res.body.data).to.have.length(1);
 						expect(res.body.data[0].id).to.be.equal(transaction.id);
 					});
-				}));
+				});
+			});
 
-			it('pendingMultisignatures should not be confirmed', () => Promise.map(pendingMultisignatures, transaction => {
+			it('pendingMultisignatures should not be confirmed', () => {
+                return Promise.map(pendingMultisignatures, transaction => {
 					var params = [
 						`id=${transaction.id}`
 					];
 					return apiHelpers.getTransactionsPromise(params).then(res => {
 						expect(res.body.data).to.have.length(0);
 					});
-				}));
+				});
+			});
 		}
 	});
 }

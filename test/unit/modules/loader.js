@@ -119,7 +119,7 @@ describe('loader', () => {
 					wsPort: '4000',
 					height: 2
 				}
-			], (a, b) => a.ip === b.ip && a.wsPort === b.wsPort && a.height === b.height)).to.be.ok;
+			], (a, b) => { return a.ip === b.ip && a.wsPort === b.wsPort && a.height === b.height; })).to.be.ok;
 		});
 	});
 });

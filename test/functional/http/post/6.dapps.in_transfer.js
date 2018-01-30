@@ -166,7 +166,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				});
 			});
 
-			it('using > balance should fail', () => apiHelpers.getAccountsPromise(`address=${account.address}`)
+			it('using > balance should fail', () => {
+ return apiHelpers.getAccountsPromise(`address=${account.address}`)
 					.then(res => {
 						expect(res.body).to.have.nested.property('data').to.have.lengthOf(1);
 
@@ -179,7 +180,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 					.then(res => {
 						expect(res.body.message).to.match(/^Account does not have enough LSK: /);
 						badTransactions.push(transaction);
-					}));
+					});
+});
 		});
 	});
 

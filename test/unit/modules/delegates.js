@@ -171,10 +171,12 @@ describe('delegates', () => {
 			});
 
 			it('should load all 101 delegates', done => {
-				config.forging.secret = genesisDelegates.delegates.map(delegate => ({
+				config.forging.secret = genesisDelegates.delegates.map(delegate => {
+ return {
 						encryptedSecret: delegate.encryptedSecret,
 						publicKey: delegate.publicKey
-					}));
+					};
+});
 
 				loadDelegates(err => {
 					expect(err).to.not.exist;

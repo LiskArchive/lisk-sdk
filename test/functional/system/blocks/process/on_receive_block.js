@@ -42,10 +42,12 @@ describe('onReceiveBlock()', () => {
 	after(application.cleanup);
 
 	afterEach(done => {
-		db.task(t => t.batch([
+		db.task(t => {
+ return t.batch([
 				db.none('DELETE FROM blocks WHERE "height" > 1;'),
 				db.none('DELETE FROM forks_stat;')
-			])).then(() => {
+			]);
+}).then(() => {
 			library.modules.blocks.lastBlock.set(genesisBlock);
 			done();
 		});
@@ -88,7 +90,7 @@ describe('onReceiveBlock()', () => {
 				});
 			},
 			function (delegatePublicKey, seriesCb) {
-				delegate = _.find(genesisDelegates, delegate => delegate.publicKey === delegatePublicKey);
+				delegate = _.find(genesisDelegates, delegate => { return delegate.publicKey === delegatePublicKey; });
 				var keypair = getKeypair(delegate.secret);
 
 				__testContext.debug(`		Last block height: ${last_block.height} Last block ID: ${last_block.id} Last block timestamp: ${last_block.timestamp} Next slot: ${slot} Next delegate PK: ${delegatePublicKey} Next block timestamp: ${slots.getSlotTime(slot)}`);
@@ -132,7 +134,7 @@ describe('onReceiveBlock()', () => {
 
 		return generateDelegateListPromisified(lastBlock.height, null).then(list => {
 			var delegatePublicKey = list[slot % slots.delegates];
-			return getKeypair(_.find(genesisDelegates, delegate => delegate.publicKey === delegatePublicKey).secret);
+			return getKeypair(_.find(genesisDelegates, delegate => { return delegate.publicKey === delegatePublicKey; }).secret);
 		}).catch(err => {
 			throw err;
 		});
@@ -439,7 +441,7 @@ describe('onReceiveBlock()', () => {
 
 					describe('when delegate slot is invalid', () => {
 						beforeEach(() => {
-							keypair = getKeypair(_.find(genesisDelegates, value => value.publicKey != lastBlock.generatorPublicKey).publicKey);
+							keypair = getKeypair(_.find(genesisDelegates, value => { return value.publicKey != lastBlock.generatorPublicKey; }).publicKey);
 						});
 
 						it('should reject received block', done => {
@@ -503,7 +505,7 @@ describe('onReceiveBlock()', () => {
 								// Slot and generatorPublicKey belongs to delegate who forged second last block
 								slot = slots.getSlotNumber(secondLastBlock.timestamp);
 								timestamp = slots.getSlotTime(slot);
-								keypair = getKeypair(_.find(genesisDelegates, delegate => delegate.publicKey === secondLastBlock.generatorPublicKey).secret);
+								keypair = getKeypair(_.find(genesisDelegates, delegate => { return delegate.publicKey === secondLastBlock.generatorPublicKey; }).secret);
 							});
 
 							it('should reject received block and delete last block', done => {
@@ -597,7 +599,7 @@ describe('onReceiveBlock()', () => {
 						secondLastBlock = forgedBlocks[forgedBlocks.length - 2];
 						lastBlock = forgedBlocks[forgedBlocks.length - 1];
 						slot = slots.getSlotNumber(lastBlock.timestamp);
-						keypair = getKeypair(_.find(genesisDelegates, delegate => lastBlock.generatorPublicKey == delegate.publicKey).secret);
+						keypair = getKeypair(_.find(genesisDelegates, delegate => { return lastBlock.generatorPublicKey == delegate.publicKey; }).secret);
 						done();
 					});
 				});

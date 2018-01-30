@@ -129,7 +129,7 @@ function getValidKeypairForSlot(library, slot) {
 
 	return generateDelegateListPromisified(lastBlock.height, null).then(list => {
 		var delegatePublicKey = list[slot % slots.delegates];
-		var secret = _.find(genesisDelegates, delegate => delegate.publicKey === delegatePublicKey).secret;
+		var secret = _.find(genesisDelegates, delegate => { return delegate.publicKey === delegatePublicKey; }).secret;
 		return secret;
 	}).catch(err => {
 		throw err;
@@ -793,13 +793,15 @@ describe('blocks/verify', () => {
 				onBlockchainReady = blockVerify.prototype.onBlockchainReady;
 			});
 
-			it('should set the __private.lastNBlockIds variable', () => onBlockchainReady().then(() => {
+			it('should set the __private.lastNBlockIds variable', () => {
+ return onBlockchainReady().then(() => {
 					var lastNBlockIds = blockVerify.__get__('__private.lastNBlockIds');
 					expect(lastNBlockIds).to.be.an('array').and.to.have.length.below(constants.blockSlotWindow + 1);
 					_.each(lastNBlockIds, value => {
 						expect(value).to.be.a('string');
 					});
-				}));
+				});
+});
 		});
 
 		describe('onNewBlock', () => {
@@ -862,9 +864,9 @@ describe('blocks/verify', () => {
 							blockVerify.prototype.onNewBlock(dummyBlock);
 						});
 
-						recentNBlockIds = blockIds.filter((value, index) => blockIds.length - 1 - index < constants.blockSlotWindow);
+						recentNBlockIds = blockIds.filter((value, index) => { return blockIds.length - 1 - index < constants.blockSlotWindow; });
 
-						olderThanNBlockIds = blockIds.filter((value, index) => blockIds.length - 1 - index >= constants.blockSlotWindow);
+						olderThanNBlockIds = blockIds.filter((value, index) => { return blockIds.length - 1 - index >= constants.blockSlotWindow; });
 					});
 
 					it(`should maintain last ${constants.blockSlotWindow} blockIds in lastNBlockIds queue`, () => {

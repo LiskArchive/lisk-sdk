@@ -76,11 +76,13 @@ rewiredModules = {};
 	__testContext.debug(`initApplication: Target database - ${__testContext.config.db.database}`);
 
 	// Clear tables
-	db.task(t => t.batch([
+	db.task(t => {
+        return t.batch([
 			t.none('DELETE FROM blocks WHERE height > 1'),
 			t.none('DELETE FROM blocks'),
 			t.none('DELETE FROM mem_accounts')
-		])).then(() => {
+		]);
+	}).then(() => {
 		var logger = initScope.logger || {
 			trace: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
