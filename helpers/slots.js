@@ -22,7 +22,7 @@ var constants = require('./constants.js');
  * Gets constant time from Lisk epoch.
  * @returns {number} epochTime from constants.
  */
-function beginEpochTime () {
+function beginEpochTime() {
 	var d = constants.epochTime;
 
 	return d;
@@ -33,7 +33,7 @@ function beginEpochTime () {
  * @param {number|undefined} time - Time in unix seconds.
  * @returns {number} current time - lisk epoch time.
  */
-function getEpochTime (time) {
+function getEpochTime(time) {
 	if (time === undefined) {
 		time = Date.now();
 	}

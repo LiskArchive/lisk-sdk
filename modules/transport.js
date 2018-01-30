@@ -14,22 +14,22 @@
 'use strict';
 
 var async = require('async');
-var crypto = require('crypto');
-var ip = require('ip');
 
 var Broadcaster = require('../logic/broadcaster.js');
-var bignum = require('../helpers/bignum.js');
 var bson = require('../helpers/bson.js');
 var constants = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failure_codes');
-var Peer = require('../logic/peer');
 var PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 var Rules = require('../api/ws/workers/rules');
 var System = require('../modules/system');
 var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 // Private fields
-var modules, definitions, library, self, __private = {};
+var modules,
+definitions,
+library,
+self,
+__private = {};
 
 __private.headers = {};
 __private.loaded = false;
@@ -45,7 +45,7 @@ __private.messages = {};
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Transport (cb, scope) {
+function Transport(cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
@@ -95,7 +95,7 @@ __private.removePeer = function (options, extraMessage) {
 		return false;
 	}
 
-	library.logger.debug([options.code, 'Removing peer', options.peer.ip + ':' + options.peer.wsPort, extraMessage].join(' '));
+	library.logger.debug([options.code, 'Removing peer', `${options.peer.ip}:${options.peer.wsPort}`, extraMessage].join(' '));
 	return modules.peers.remove(options.peer);
 };
 
@@ -113,7 +113,7 @@ __private.receiveSignatures = function (query, cb) {
 
 	async.series({
 		validateSchema: function (seriesCb) {
-			library.schema.validate(query, definitions.WSSignaturesList, function (err) {
+			library.schema.validate(query, definitions.WSSignaturesList, err => {
 				if (err) {
 					return setImmediate(seriesCb, 'Invalid signatures body');
 				} else {
@@ -124,8 +124,8 @@ __private.receiveSignatures = function (query, cb) {
 		receiveSignatures: function (seriesCb) {
 			signatures = query.signatures;
 
-			async.eachSeries(signatures, function (signature, eachSeriesCb) {
-				__private.receiveSignature(signature, function (err) {
+			async.eachSeries(signatures, (signature, eachSeriesCb) => {
+				__private.receiveSignature(signature, err => {
 					if (err) {
 						library.logger.debug(err, signature);
 					}
@@ -134,9 +134,7 @@ __private.receiveSignatures = function (query, cb) {
 				});
 			}, seriesCb);
 		}
-	}, function (err) {
-		return setImmediate(cb, err);
-	});
+	}, err => setImmediate(cb, err));
 };
 
 /**
@@ -150,14 +148,14 @@ __private.receiveSignatures = function (query, cb) {
  * @return {setImmediateCallback} cb | error messages
  */
 __private.receiveSignature = function (query, cb) {
-	library.schema.validate(query, definitions.Signature, function (err) {
+	library.schema.validate(query, definitions.Signature, err => {
 		if (err) {
-			return setImmediate(cb, 'Invalid signature body ' + err[0].message);
+			return setImmediate(cb, `Invalid signature body ${err[0].message}`);
 		}
 
-		modules.multisignatures.processSignature(query, function (err) {
+		modules.multisignatures.processSignature(query, err => {
 			if (err) {
-				return setImmediate(cb, 'Error processing signature: ' + err);
+				return setImmediate(cb, `Error processing signature: ${err}`);
 			} else {
 				return setImmediate(cb);
 			}
@@ -182,13 +180,13 @@ __private.receiveTransactions = function (query, peer, extraLogMessage, cb) {
 
 	transactions = query.transactions;
 
-	async.eachSeries(transactions, function (transaction, eachSeriesCb) {
+	async.eachSeries(transactions, (transaction, eachSeriesCb) => {
 		if (!transaction) {
 			return setImmediate(eachSeriesCb, 'Unable to process transaction. Transaction is undefined.');
 		}
 		transaction.bundled = true;
 
-		__private.receiveTransaction(transaction, peer, extraLogMessage, function (err) {
+		__private.receiveTransaction(transaction, peer, extraLogMessage, err => {
 			if (err) {
 				library.logger.debug(err, transaction);
 			}
@@ -218,20 +216,20 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 	try {
 		transaction = library.logic.transaction.objectNormalize(transaction);
 	} catch (e) {
-		library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'transport', transaction: transaction});
+		library.logger.debug('Transaction normalization failed', { id: id, err: e.toString(), module: 'transport', transaction: transaction });
 
-		__private.removePeer({peer: peer, code: 'ETRANSACTION'}, extraLogMessage);
+		__private.removePeer({ peer: peer, code: 'ETRANSACTION' }, extraLogMessage);
 
-		return setImmediate(cb, 'Invalid transaction body - ' + e.toString());
+		return setImmediate(cb, `Invalid transaction body - ${e.toString()}`);
 	}
 
-	library.balancesSequence.add(function (cb) {
+	library.balancesSequence.add(cb => {
 		if (!peer) {
-			library.logger.debug('Received transaction ' + transaction.id + ' from public client');
+			library.logger.debug(`Received transaction ${transaction.id} from public client`);
 		} else {
-			library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + library.logic.peers.peersManager.getAddress(peer.nonce));
+			library.logger.debug(`Received transaction ${transaction.id} from peer ${library.logic.peers.peersManager.getAddress(peer.nonce)}`);
 		}
-		modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {
+		modules.transactions.processUnconfirmedTransaction(transaction, true, err => {
 			if (err) {
 				library.logger.debug(['Transaction', id].join(' '), err.toString());
 				if (transaction) { library.logger.debug('Transaction', transaction); }
@@ -328,7 +326,7 @@ Transport.prototype.onBlockchainReady = function () {
  */
 Transport.prototype.onSignature = function (signature, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(signature)) {
-		__private.broadcaster.enqueue({}, {api: 'postSignatures', data: {signature: signature}});
+		__private.broadcaster.enqueue({}, { api: 'postSignatures', data: { signature: signature } });
 		library.network.io.sockets.emit('signature/change', signature);
 	}
 };
@@ -344,7 +342,7 @@ Transport.prototype.onSignature = function (signature, broadcast) {
  */
 Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
-		__private.broadcaster.enqueue({}, {api: 'postTransactions', data: {transaction: transaction}});
+		__private.broadcaster.enqueue({}, { api: 'postTransactions', data: { transaction: transaction } });
 		library.network.io.sockets.emit('transactions/change', transaction);
 	}
 };
@@ -361,28 +359,28 @@ Transport.prototype.onUnconfirmedTransaction = function (transaction, broadcast)
  */
 Transport.prototype.onBroadcastBlock = function (block, broadcast) {
 	if (broadcast) {
-		modules.system.update(function () {
+		modules.system.update(() => {
 			if (__private.broadcaster.maxRelays(block)) {
 				return library.logger.debug('Broadcasting block aborted - max block relays exceeded');
 			} else if (modules.loader.syncing()) {
 				return library.logger.debug('Broadcasting block aborted - blockchain synchronization in progress');
 			}
-			modules.peers.list({normalized: false}, function (err, peers) {
+			modules.peers.list({ normalized: false }, (err, peers) => {
 				if (!peers || peers.length === 0) {
 					return library.logger.debug('Broadcasting block aborted - active peer list empty');
 				}
-				async.each(peers, function (peer, cb) {
-					peer.rpc.updateMyself(library.logic.peers.me(), function (err) {
+				async.each(peers, (peer, cb) => {
+					peer.rpc.updateMyself(library.logic.peers.me(), err => {
 						if (err) {
-							library.logger.debug('Failed to notify peer about self',  err);
-							__private.removePeer({peer: peer, code: 'ECOMMUNICATION'});
+							library.logger.debug('Failed to notify peer about self', err);
+							__private.removePeer({ peer: peer, code: 'ECOMMUNICATION' });
 						} else {
 							library.logger.debug('Successfully notified peer about self', peer.string);
 						}
 						return cb();
 					});
-				}, function () {
-					__private.broadcaster.broadcast({limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}, {api: 'postBlock', data: {block: block}, immediate: true});
+				}, () => {
+					__private.broadcaster.broadcast({ limit: constants.maxPeers, broadhash: modules.system.getBroadhash() }, { api: 'postBlock', data: { block: block }, immediate: true });
 				});
 			});
 		});
@@ -416,10 +414,10 @@ Transport.prototype.isLoaded = function () {
 Transport.prototype.shared = {
 	blocksCommon: function (query, cb) {
 		query = query || {};
-		return library.schema.validate(query, definitions.WSBlocksCommonRequest, function (err, valid) {
+		return library.schema.validate(query, definitions.WSBlocksCommonRequest, err => {
 			if (err) {
-				err = err[0].message + ': ' + err[0].path;
-				library.logger.debug('Common block request validation failed', {err: err.toString(), req: query});
+				err = `${err[0].message}: ${err[0].path}`;
+				library.logger.debug('Common block request validation failed', { err: err.toString(), req: query });
 				return setImmediate(cb, err);
 			}
 
@@ -429,25 +427,20 @@ Transport.prototype.shared = {
 				// Separate by comma into an array
 				.split(',')
 				// Reject any non-numeric values
-				.filter(function (id) {
-					return /^[0-9]+$/.test(id);
-				});
+				.filter(id => /^[0-9]+$/.test(id));
 
 			if (!escapedIds.length) {
-				library.logger.debug('Common block request validation failed', {err: 'ESCAPE', req: query.ids});
+				library.logger.debug('Common block request validation failed', { err: 'ESCAPE', req: query.ids });
 
-				__private.removePeer({peer: query.peer, code: 'ECOMMON'});
+				__private.removePeer({ peer: query.peer, code: 'ECOMMON' });
 
 				return setImmediate(cb, 'Invalid block id sequence');
 			}
 
-			library.db.blocks.getBlocksForTransport(escapedIds).then(function (rows) {
-				return setImmediate(cb, null, { success: true, common: rows[0] || null });
-			}).catch(function (err) {
+			library.db.blocks.getBlocksForTransport(escapedIds).then(rows => setImmediate(cb, null, { success: true, common: rows[0] || null })).catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, 'Failed to get common block');
 			});
-
 		});
 	},
 
@@ -460,48 +453,48 @@ Transport.prototype.shared = {
 		modules.blocks.utils.loadBlocksData({
 			limit: 34, // 1977100 bytes
 			lastId: query.lastBlockId
-		}, function (err, data) {
+		}, (err, data) => {
 			if (err) {
-				return setImmediate(cb, null, {blocks: []});
+				return setImmediate(cb, null, { blocks: [] });
 			}
 
-			return setImmediate(cb, null, {blocks: data});
+			return setImmediate(cb, null, { blocks: data });
 		});
 	},
 
 	postBlock: function (query, cb) {
 		query = query || {};
+		var block;
 		try {
-			var block;
 			if (query.block) {
 				query.block = bson.deserialize(Buffer.from(query.block));
 				block = modules.blocks.verify.addBlockProperties(query.block);
 			}
 			block = library.logic.block.objectNormalize(block);
 		} catch (e) {
-			library.logger.debug('Block normalization failed', {err: e.toString(), module: 'transport', block: query.block });
+			library.logger.debug('Block normalization failed', { err: e.toString(), module: 'transport', block: query.block });
 
-			__private.removePeer({peer: query.peer, code: 'EBLOCK'});
+			__private.removePeer({ peer: query.peer, code: 'EBLOCK' });
 
 			return setImmediate(cb, e.toString());
 		}
 
 		library.bus.message('receiveBlock', block);
 
-		return setImmediate(cb, null, {success: true, blockId: block.id});
+		return setImmediate(cb, null, { success: true, blockId: block.id });
 	},
 
 	list: function (req, cb) {
 		req = req || {};
 		var peersFinder = !req.query ? modules.peers.list : modules.peers.shared.getPeers;
-		peersFinder(Object.assign({}, {limit: constants.maxPeers}, req.query), function (err, peers) {
+		peersFinder(Object.assign({}, { limit: constants.maxPeers }, req.query), (err, peers) => {
 			peers = (!err ? peers : []);
-			return setImmediate(cb, null, {success: !err, peers: peers});
+			return setImmediate(cb, null, { success: !err, peers: peers });
 		});
 	},
 
 	height: function (req, cb) {
-		return setImmediate(cb, null, {success: true, height: modules.system.getHeight()});
+		return setImmediate(cb, null, { success: true, height: modules.system.getHeight() });
 	},
 
 	status: function (req, cb) {
@@ -519,19 +512,19 @@ Transport.prototype.shared = {
 
 	postSignatures: function (query, cb) {
 		if (query.signatures) {
-			__private.receiveSignatures(query, function (err) {
+			__private.receiveSignatures(query, err => {
 				if (err) {
-					return setImmediate(cb, null, {success: false, message: err});
+					return setImmediate(cb, null, { success: false, message: err });
 				} else {
-					return setImmediate(cb, null, {success: true});
+					return setImmediate(cb, null, { success: true });
 				}
 			});
 		} else {
-			__private.receiveSignature(query.signature, function (err, id) {
+			__private.receiveSignature(query.signature, err => {
 				if (err) {
-					return setImmediate(cb, null, {success: false, message: err});
+					return setImmediate(cb, null, { success: false, message: err });
 				} else {
-					return setImmediate(cb, null, {success: true});
+					return setImmediate(cb, null, { success: true });
 				}
 			});
 		}
@@ -541,7 +534,7 @@ Transport.prototype.shared = {
 		var transactions = modules.transactions.getMultisignatureTransactionList(true, constants.maxSharedTxs);
 		var signatures = [];
 
-		async.eachSeries(transactions, function (transaction, __cb) {
+		async.eachSeries(transactions, (transaction, __cb) => {
 			if (transaction.signatures && transaction.signatures.length) {
 				signatures.push({
 					transaction: transaction.id,
@@ -549,36 +542,34 @@ Transport.prototype.shared = {
 				});
 			}
 			return setImmediate(__cb);
-		}, function () {
-			return setImmediate(cb, null, {success: true, signatures: signatures});
-		});
+		}, () => setImmediate(cb, null, { success: true, signatures: signatures }));
 	},
 
 	getTransactions: function (query, cb) {
 		var transactions = modules.transactions.getMergedTransactionList(true, constants.maxSharedTxs);
-		return setImmediate(cb, null, {success: true, transactions: transactions});
+		return setImmediate(cb, null, { success: true, transactions: transactions });
 	},
 
 	postTransactions: function (query, cb) {
-		library.schema.validate(query, definitions.WSTransactionsRequest, function (err) {
+		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {
-				return setImmediate(cb, null, {success: false, message: err});
+				return setImmediate(cb, null, { success: false, message: err });
 			}
 
 			if (query.transactions.length == 1) {
-				__private.receiveTransaction(query.transactions[0], query.peer, query.extraLogMessage, function (err, id) {
+				__private.receiveTransaction(query.transactions[0], query.peer, query.extraLogMessage, (err, id) => {
 					if (err) {
-						return setImmediate(cb, null, {success: false,  message: err});
+						return setImmediate(cb, null, { success: false, message: err });
 					} else {
-						return setImmediate(cb, null, {success: true, transactionId: id});
+						return setImmediate(cb, null, { success: true, transactionId: id });
 					}
 				});
 			} else {
-				__private.receiveTransactions(query, query.peer, query.extraLogMessage, function (err) {
+				__private.receiveTransactions(query, query.peer, query.extraLogMessage, err => {
 					if (err) {
-						return setImmediate(cb, null, {success: false, message: err});
+						return setImmediate(cb, null, { success: false, message: err });
 					}
-					return setImmediate(cb, null, {success: true});
+					return setImmediate(cb, null, { success: true });
 				});
 			}
 		});
@@ -594,7 +585,7 @@ Transport.prototype.shared = {
  * @param {function} cb
  */
 __private.checkInternalAccess = function (query, cb) {
-	library.schema.validate(query, definitions.WSAccessObject, function (err) {
+	library.schema.validate(query, definitions.WSAccessObject, err => {
 		if (err) {
 			return setImmediate(cb, err[0].message);
 		}
@@ -616,7 +607,7 @@ Transport.prototype.internal = {
 	 * @param {function} cb
 	 */
 	updatePeer: function (query, cb) {
-		__private.checkInternalAccess(query, function (err) {
+		__private.checkInternalAccess(query, err => {
 			if (err) {
 				return setImmediate(cb, err);
 			}

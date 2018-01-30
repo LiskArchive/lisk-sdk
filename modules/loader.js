@@ -22,7 +22,11 @@ var slots = require('../helpers/slots.js');
 require('colors');
 
 // Private fields
-var modules, definitions, library, self, __private = {}, shared = {};
+var modules,
+definitions,
+library,
+self,
+__private = {};
 
 __private.loaded = false;
 __private.isActive = false;
@@ -45,7 +49,7 @@ __private.retries = 5;
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Loader (cb, scope) {
+function Loader(cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
@@ -105,7 +109,7 @@ __private.syncTrigger = function (turnOn) {
 	}
 	if (turnOn === true && !__private.syncIntervalId) {
 		library.logger.trace('Setting sync interval');
-		setImmediate(function nextSyncTrigger () {
+		setImmediate(function nextSyncTrigger() {
 			library.logger.trace('Sync trigger');
 			library.network.io.sockets.emit('loader/sync', {
 				blocks: __private.blocksToSync,
@@ -129,8 +133,8 @@ __private.syncTrigger = function (turnOn) {
 __private.syncTimer = function () {
 	library.logger.trace('Setting sync timer');
 
-	function nextSync (cb) {
-		library.logger.trace('Sync timer trigger', {loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get()});
+	function nextSync(cb) {
+		library.logger.trace('Sync timer trigger', { loaded: __private.loaded, syncing: self.syncing(), last_receipt: modules.blocks.lastReceipt.get() });
 
 		if (__private.loaded && !self.syncing() && modules.blocks.lastReceipt.isStale()) {
 			library.sequence.add(function (sequenceCb) {
@@ -175,10 +179,10 @@ __private.loadSignatures = function (cb) {
 			});
 		},
 		function (peer, waterCb) {
-			library.logger.log('Loading signatures from: ' + peer.string);
+			library.logger.log(`Loading signatures from: ${peer.string}`);
 			peer.rpc.getSignatures(function (err, res) {
 				if (err) {
-					peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
+					peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
 					return setImmediate(waterCb, err);
 				} else {
 					library.schema.validate(res, definitions.WSSignaturesResponse, function (err) {
@@ -235,10 +239,10 @@ __private.loadTransactions = function (cb) {
 			});
 		},
 		function (peer, waterCb) {
-			library.logger.log('Loading transactions from: ' + peer.string);
+			library.logger.log(`Loading transactions from: ${peer.string}`);
 			peer.rpc.getTransactions(function (err, res) {
 				if (err) {
-					peer.applyHeaders({state: Peer.STATE.DISCONNECTED});
+					peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
 					return setImmediate(waterCb, err);
 				}
 				library.schema.validate(res, definitions.WSTransactionsResponse, function (err) {
@@ -257,7 +261,7 @@ __private.loadTransactions = function (cb) {
 				try {
 					transaction = library.logic.transaction.objectNormalize(transaction);
 				} catch (e) {
-					library.logger.debug('Transaction normalization failed', {id: id, err: e.toString(), module: 'loader', transaction: transaction});
+					library.logger.debug('Transaction normalization failed', { id: id, err: e.toString(), module: 'loader', transaction: transaction });
 
 					library.logger.warn(['Transaction', id, 'is not valid, peer removed'].join(' '), peer.string);
 					modules.peers.remove(peer.ip, peer.wsPort);
@@ -316,10 +320,11 @@ __private.loadTransactions = function (cb) {
  * @throws {string} On failure to match genesis block with database.
  */
 __private.loadBlockChain = function () {
-	var offset = 0, limit = Number(library.config.loading.loadPerIteration) || 1000;
+	var offset = 0,
+limit = Number(library.config.loading.loadPerIteration) || 1000;
 	var verify = Boolean(library.config.loading.verifyOnLoading);
 
-	function load (count) {
+	function load(count) {
 		verify = true;
 		__private.total = count;
 		async.series({
@@ -338,14 +343,14 @@ __private.loadBlockChain = function () {
 						return count < offset;
 					}, function (cb) {
 						if (count > 1) {
-							library.logger.info('Rebuilding blockchain, current block height: '  + (offset + 1));
+							library.logger.info(`Rebuilding blockchain, current block height: ${offset + 1}`);
 						}
 						modules.blocks.process.loadBlocksOffset(limit, offset, verify, function (err, lastBlock) {
 							if (err) {
 								return setImmediate(cb, err);
 							}
 
-							offset = offset + limit;
+							offset += limit;
 							__private.lastBlock = lastBlock;
 
 							return setImmediate(cb);
@@ -359,8 +364,8 @@ __private.loadBlockChain = function () {
 			if (err) {
 				library.logger.error(err);
 				if (err.block) {
-					library.logger.error('Blockchain failed at: ' + err.block.height);
-					modules.blocks.chain.deleteAfterBlock(err.block.id, function (err, res) {
+					library.logger.error(`Blockchain failed at: ${err.block.height}`);
+					modules.blocks.chain.deleteAfterBlock(err.block.id, function () {
 						library.logger.error('Blockchain clipped');
 						library.bus.message('blockchainReady');
 					});
@@ -372,7 +377,7 @@ __private.loadBlockChain = function () {
 		});
 	}
 
-	function reload (count, message) {
+	function reload(count, message) {
 		if (message) {
 			library.logger.warn(message);
 			library.logger.warn('Recreating memory tables');
@@ -381,7 +386,7 @@ __private.loadBlockChain = function () {
 		return load(count);
 	}
 
-	function checkMemTables (t) {
+	function checkMemTables(t) {
 		var promises = [
 			t.blocks.count(),
 			t.blocks.getGenesisBlock(),
@@ -393,12 +398,12 @@ __private.loadBlockChain = function () {
 		return t.batch(promises);
 	}
 
-	function matchGenesisBlock (row) {
+	function matchGenesisBlock(row) {
 		if (row) {
 			var matched = (
 				row.id === __private.genesisBlock.block.id &&
 				row.payloadHash.toString('hex') === __private.genesisBlock.block.payloadHash &&
-				row.blockSignature.toString('hex')  === __private.genesisBlock.block.blockSignature
+				row.blockSignature.toString('hex') === __private.genesisBlock.block.blockSignature
 			);
 			if (matched) {
 				library.logger.info('Genesis block matched with database');
@@ -408,7 +413,7 @@ __private.loadBlockChain = function () {
 		}
 	}
 
-	function verifySnapshot (count, round) {
+	function verifySnapshot(count, round) {
 		if (library.config.loading.snapshot !== undefined || library.config.loading.snapshot > 0) {
 			library.logger.info('Snapshot mode enabled');
 
@@ -422,7 +427,7 @@ __private.loadBlockChain = function () {
 				modules.rounds.setSnapshotRound(library.config.loading.snapshot);
 			}
 
-			library.logger.info('Snapshotting to end of round: ' + library.config.loading.snapshot);
+			library.logger.info(`Snapshotting to end of round: ${library.config.loading.snapshot}`);
 			return true;
 		} else {
 			return false;
@@ -437,7 +442,7 @@ __private.loadBlockChain = function () {
 		var countDuplicatedDelegates = res[4];
 
 		var count = countBlocks.count;
-		library.logger.info('Blocks ' + count);
+		library.logger.info(`Blocks ${count}`);
 
 		var round = slots.calcRound(count);
 
@@ -474,7 +479,7 @@ __private.loadBlockChain = function () {
 			return process.emit('exit');
 		}
 
-		function updateMemAccounts (t) {
+		function updateMemAccounts(t) {
 			var promises = [
 				t.accounts.updateMemAccounts(),
 				t.accounts.getOrphanedMemAccounts(),
@@ -485,9 +490,8 @@ __private.loadBlockChain = function () {
 		}
 
 		library.db.task(updateMemAccounts).then(function (res) {
-			var updateMemAccounts      = res[0];
 			var getOrphanedMemAccounts = res[1];
-			var getDelegates           = res[2];
+			var getDelegates = res[2];
 
 			if (getOrphanedMemAccounts.length > 0) {
 				return reload(count, 'Detected orphaned blocks in mem_accounts');
@@ -540,13 +544,13 @@ __private.loadBlocksFromNetwork = function (cb) {
 					var peer = network.peers[Math.floor(Math.random() * network.peers.length)];
 					var lastBlock = modules.blocks.lastBlock.get();
 
-					function loadBlocks () {
+					function loadBlocks() {
 						__private.blocksToSync = peer.height;
 
 						modules.blocks.process.loadBlocksFromPeer(peer, function (err, lastValidBlock) {
 							if (err) {
 								library.logger.error(err.toString());
-								library.logger.error('Failed to load blocks from: ' + peer.string);
+								library.logger.error(`Failed to load blocks from: ${peer.string}`);
 								errorCount += 1;
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
@@ -555,12 +559,12 @@ __private.loadBlocksFromNetwork = function (cb) {
 						});
 					}
 
-					function getCommonBlock (cb) {
-						library.logger.info('Looking for common block with: ' + peer.string);
+					function getCommonBlock(cb) {
+						library.logger.info(`Looking for common block with: ${peer.string}`);
 						modules.blocks.process.getCommonBlock(peer, lastBlock.height, function (err, commonBlock) {
 							if (!commonBlock) {
 								if (err) { library.logger.error(err.toString()); }
-								library.logger.error('Failed to find common block with: ' + peer.string);
+								library.logger.error(`Failed to find common block with: ${peer.string}`);
 								errorCount += 1;
 								return next();
 							} else {
@@ -614,7 +618,7 @@ __private.sync = function (cb) {
 	async.series({
 		getPeersBefore: function (seriesCb) {
 			library.logger.debug('Establishing broadhash consensus before sync');
-			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+			return modules.transport.getPeers({ limit: constants.maxPeers }, seriesCb);
 		},
 		loadBlocksFromNetwork: function (seriesCb) {
 			return __private.loadBlocksFromNetwork(seriesCb);
@@ -624,7 +628,7 @@ __private.sync = function (cb) {
 		},
 		getPeersAfter: function (seriesCb) {
 			library.logger.debug('Establishing broadhash consensus after sync');
-			return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+			return modules.transport.getPeers({ limit: constants.maxPeers }, seriesCb);
 		}
 	}, function (err) {
 		__private.isActive = false;
@@ -647,21 +651,21 @@ __private.sync = function (cb) {
  */
 Loader.prototype.findGoodPeers = function (peers) {
 	var lastBlockHeight = modules.blocks.lastBlock.get().height;
-	library.logger.trace('Good peers - received', {count: peers.length});
+	library.logger.trace('Good peers - received', { count: peers.length });
 
 	peers = peers.filter(function (item) {
 		// Remove unreachable peers or heights below last block height
 		return item != null && item.height >= lastBlockHeight;
 	});
 
-	library.logger.trace('Good peers - filtered', {count: peers.length});
+	library.logger.trace('Good peers - filtered', { count: peers.length });
 
 	// No peers found
 	if (peers.length === 0) {
-		return {height: 0, peers: []};
+		return { height: 0, peers: [] };
 	} else {
 		// Order peers by descending height
-		peers = peers.sort(function (a,b) {
+		peers = peers.sort(function (a, b) {
 			return b.height - a.height;
 		});
 
@@ -690,10 +694,10 @@ Loader.prototype.findGoodPeers = function (peers) {
 			return library.logic.peers.create(item);
 		});
 
-		library.logger.trace('Good peers - accepted', {count: peers.length});
+		library.logger.trace('Good peers - accepted', { count: peers.length });
 		library.logger.debug('Good peers', peers);
 
-		return {height: height, peers: peers};
+		return { height: height, peers: peers };
 	}
 };
 
@@ -710,7 +714,7 @@ Loader.prototype.getNetwork = function (cb) {
 	if (__private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.lastBlock.get().height) === 1) {
 		return setImmediate(cb, null, __private.network);
 	}
-	modules.peers.list({normalized: false}, function (err, peers) {
+	modules.peers.list({ normalized: false }, function (err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -761,11 +765,11 @@ Loader.prototype.loaded = function () {
  * @return {function} Calling __private.syncTimer()
  */
 Loader.prototype.onPeersReady = function () {
-	library.logger.trace('Peers ready', {module: 'loader'});
+	library.logger.trace('Peers ready', { module: 'loader' });
 	// Enforce sync early
 	__private.syncTimer();
 
-	setImmediate(function load () {
+	setImmediate(function load() {
 		async.series({
 			loadTransactions: function (seriesCb) {
 				if (__private.loaded) {

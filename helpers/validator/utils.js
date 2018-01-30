@@ -19,10 +19,10 @@ exports.extend = extend;
 exports.copy = copy;
 exports.inherits = util.inherits;
 
-function extend (target, source) {
+function extend(target) {
 	if (!target || typeof target !== 'object') { return target; }
 
-	Array.prototype.slice.call(arguments).forEach(function (source){
+	Array.prototype.slice.call(arguments).forEach(source => {
 		if (!source || typeof source !== 'object') { return; }
 
 		util._extend(target, source);
@@ -31,14 +31,14 @@ function extend (target, source) {
 	return target;
 }
 
-function copy (target) {
+function copy(target) {
 	if (!target || typeof target !== 'object') { return target; }
 
 	if (Array.isArray(target)) {
 		return target.map(copy);
 	} else if (target.constructor === Object) {
 		var result = {};
-		Object.getOwnPropertyNames(target).forEach(function (name){
+		Object.getOwnPropertyNames(target).forEach(name => {
 			result[name] = copy(target[name]);
 		});
 		return result;

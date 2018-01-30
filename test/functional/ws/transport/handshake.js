@@ -22,14 +22,13 @@ var testConfig = require('../../../data/config.json');
 
 var failureCodes = require('../../../../api/ws/rpc/failure_codes');
 
-var ws = require('../../../common/ws/communication');
+var ws = require('../../../common/ws/communication'); // eslint-disable-line no-unused-vars
 var wsServer = require('../../../common/ws/server');
 var WSServerMaster = require('../../../common/ws/server_master');
 
-describe('handshake', function () {
-
+describe('handshake', () => {
 	var wsServerPort = 9999;
-	var frozenHeaders = WSServerMaster.generatePeerHeaders({wsPort: wsServerPort, nonce: wsServer.validNonce});
+	var frozenHeaders = WSServerMaster.generatePeerHeaders({ wsPort: wsServerPort, nonce: wsServer.validNonce });
 	var validClientSocketOptions;
 	var clientSocket;
 	var currentConnectedSocket;
@@ -38,20 +37,20 @@ describe('handshake', function () {
 	var disconnectStub;
 	var errorStub;
 
-	function connect () {
+	function connect() {
 		clientSocket = scClient.connect(validClientSocketOptions);
 		clientSocket.on('connectAbort', connectAbortStub);
 		clientSocket.on('disconnect', disconnectStub);
 		clientSocket.on('error', errorStub);
 	}
 
-	function disconnect () {
+	function disconnect() {
 		if (clientSocket && clientSocket.id) {
 			clientSocket.disconnect();
 		}
 	}
 
-	function expectDisconnect (test, cb) {
+	function expectDisconnect(test, cb) {
 		var disconnectHandler = function (code, description) {
 			// Prevent from calling done() multiple times
 			clientSocket.off('disconnect', disconnectHandler);
@@ -61,11 +60,11 @@ describe('handshake', function () {
 		test.timeout(1000);
 	}
 
-	function expectConnect (test, cb) {
+	function expectConnect(test, cb) {
 		var disconnectHandler = function (code, description) {
 			currentConnectedSocket = null;
 			clientSocket.off('disconnect', disconnectHandler);
-			expect('socket had been disconnected with error code: ' + code + ' - ' + (description || failureCodes.errorMessages[code]))
+			expect(`socket had been disconnected with error code: ${code} - ${description || failureCodes.errorMessages[code]}`)
 				.equal('socket should stay connected');
 			return cb(code);
 		};
@@ -84,7 +83,7 @@ describe('handshake', function () {
 		test.timeout(1000);
 	}
 
-	beforeEach(function () {
+	beforeEach(() => {
 		validClientSocketOptions = {
 			protocol: 'http',
 			hostname: '127.0.0.1',
@@ -96,18 +95,16 @@ describe('handshake', function () {
 		errorStub = sinonSandbox.spy();
 	});
 
-	afterEach(function () {
+	afterEach(() => {
 		disconnect();
 	});
 
-	describe('with invalid headers', function () {
-
-		describe('should fail with INVALID_HEADERS code and description', function () {
-
+	describe('with invalid headers', () => {
+		describe('should fail with INVALID_HEADERS code and description', () => {
 			it('without headers', function (done) {
 				delete validClientSocketOptions.query;
 				connect();
-				expectDisconnect(this, function (code) {
+				expectDisconnect(this, code => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					done();
 				});
@@ -116,7 +113,7 @@ describe('handshake', function () {
 			it('with empty headers', function (done) {
 				validClientSocketOptions.query = {};
 				connect();
-				expectDisconnect(this, function (code, description) {
+				expectDisconnect(this, (code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Missing required property');
 					done();
@@ -126,7 +123,7 @@ describe('handshake', function () {
 			it('without port', function (done) {
 				delete validClientSocketOptions.query.wsPort;
 				connect();
-				expectDisconnect(this, function (code, description) {
+				expectDisconnect(this, (code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Expected type integer but found type not-a-number');
 					done();
@@ -136,7 +133,7 @@ describe('handshake', function () {
 			it('without height', function (done) {
 				delete validClientSocketOptions.query.height;
 				connect();
-				expectDisconnect(this, function (code, description) {
+				expectDisconnect(this, (code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('height: Expected type integer but found type not-a-number');
 					done();
@@ -146,7 +143,7 @@ describe('handshake', function () {
 			it('without version', function (done) {
 				delete validClientSocketOptions.query.version;
 				connect();
-				expectDisconnect(this, function (code, description) {
+				expectDisconnect(this, (code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Missing required property: version');
 					done();
@@ -156,7 +153,7 @@ describe('handshake', function () {
 			it('without nethash', function (done) {
 				delete validClientSocketOptions.query.nethash;
 				connect();
-				expectDisconnect(this, function (code, description) {
+				expectDisconnect(this, (code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Missing required property: nethash');
 					done();
@@ -165,22 +162,21 @@ describe('handshake', function () {
 		});
 	});
 
-	describe('with valid headers', function () {
-
+	describe('with valid headers', () => {
 		var originalPort;
 
-		before(function () {
+		before(() => {
 			originalPort = wsServer.options.wsPort;
 			wsServer.options.wsPort = wsServerPort;
 			wsServer.start();
 		});
 
-		after(function () {
+		after(() => {
 			wsServer.stop();
 			wsServer.options.wsPort = originalPort;
 		});
 
-		beforeEach(function () {
+		beforeEach(() => {
 			/**
 			 * Change of state
 			 * from: not present nonce, not present connectionId, present on master
@@ -189,11 +185,9 @@ describe('handshake', function () {
 			validClientSocketOptions.query.nonce = randomstring.generate(16);
 		});
 
-		describe('when present on master', function () {
-
-			describe('when nonce is not present', function () {
-
-				beforeEach(function () {
+		describe('when present on master', () => {
+			describe('when nonce is not present', () => {
+				beforeEach(() => {
 					validClientSocketOptions.query.nonce = randomstring.generate(16);
 				});
 
@@ -210,9 +204,8 @@ describe('handshake', function () {
 				});
 			});
 
-			describe('when nonce is present', function () {
-
-				it('should succeed when connectionId is present', function () {
+			describe('when nonce is present', () => {
+				it('should succeed when connectionId is present', () => {
 					// Impossible to recreate
 				});
 
@@ -225,33 +218,31 @@ describe('handshake', function () {
 			});
 		});
 
-		describe('when not present on master @unstable', function () {
-
+		describe('when not present on master @unstable', () => {
 			var wampClient = new WAMPClient();
 
 			beforeEach(function (done) {
 				connect();
 				wampClient.upgradeToWAMP(clientSocket);
-				setTimeout(function () {
+				setTimeout(() => {
 					validClientSocketOptions.query.state = 1;
 					clientSocket.wampSend('updateMyself', validClientSocketOptions.query)
-						.then(function () {
+						.then(() => {
 							done();
 						})
-						.catch(function (err) {
+						.catch(err => {
 							done(err);
 						});
 				}, 1000);
 				this.timeout(2000);
 			});
 
-			afterEach(function () {
+			afterEach(() => {
 				disconnect();
 			});
 
-			describe('when nonce is not present', function () {
-
-				beforeEach(function () {
+			describe('when nonce is not present', () => {
+				beforeEach(() => {
 					validClientSocketOptions.query.nonce = randomstring.generate(16);
 					disconnect();
 				});
@@ -268,9 +259,8 @@ describe('handshake', function () {
 				});
 			});
 
-			describe('when nonce is present', function () {
-
-				beforeEach(function () {
+			describe('when nonce is present', () => {
+				beforeEach(() => {
 					disconnect();
 				});
 

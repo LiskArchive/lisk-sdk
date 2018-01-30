@@ -25,7 +25,7 @@ var modules;
  * @classdesc Main System methods.
  * @param {scope} scope - App instance.
  */
-function DappsController (scope) {
+function DappsController(scope) {
 	modules = scope.modules;
 }
 
@@ -41,17 +41,15 @@ DappsController.getDapps = function (context, next) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.dapps.shared.getDapps(_.clone(filters), function (err, data) {
+	modules.dapps.shared.getDapps(_.clone(filters), (err, data) => {
 		try {
 			if (err) { return next(err); }
 
 			data = _.cloneDeep(data);
 
-			data = _.map(data, function (dapp) {
+			data = _.map(data, dapp => {
 				if (_.isNull(dapp.description)) {
 					dapp.description = '';
 				}
@@ -71,7 +69,6 @@ DappsController.getDapps = function (context, next) {
 					limit: filters.limit
 				}
 			});
-
 		} catch (error) {
 			next(error);
 		}

@@ -13,12 +13,10 @@
  */
 'use strict';
 
-var wsApi = require('../../helpers/ws_api');
 var wsRPC = require('./rpc/ws_rpc').wsRPC;
 var slaveRPCStub = require('./rpc/ws_rpc').slaveRPCStub;
 
-function TransportWSApi (transportModule) {
-
+function TransportWSApi(transportModule) {
 	wsRPC.getServer().registerRPCEndpoints({
 		updatePeer: transportModule.internal.updatePeer,
 		blocksCommon: transportModule.shared.blocksCommon,

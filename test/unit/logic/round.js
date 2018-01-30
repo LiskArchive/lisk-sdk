@@ -26,7 +26,6 @@ var genesisBlock = require('../../data/genesis_block.json');
 var DBSandbox = require('../../common/db_sandbox').DBSandbox;
 
 describe('rounds', function () {
-
 	var db;
 	var dbSandbox;
 	var round;
@@ -70,16 +69,14 @@ describe('rounds', function () {
 		});
 	});
 
-	function isPromise (obj) {
+	function isPromise(obj) {
 		return typeof obj.then == 'function';
 	}
 
 	describe('constructor', function () {
-
 		var scope;
 
 		describe('when calling with required properties', function () {
-
 			before(function () {
 				scope = _.cloneDeep(validScope);
 				round = new Round(_.cloneDeep(scope), db);
@@ -99,131 +96,120 @@ describe('rounds', function () {
 		});
 
 		describe('when calling with missing properties', function () {
-
 			beforeEach(function () {
 				scope = _.cloneDeep(validScope);
 			});
 
 			describe.skip('library', function () {
-
 				it('should throw', function () {
 					var property = 'library';
 					delete scope[property];
 					try {
 						round = new Round(_.cloneDeep(scope), db);
 					} catch (err) {
-						expect(err).to.equal('Missing required scope property: ' + property);
+						expect(err).to.equal(`Missing required scope property: ${property}`);
 					}
 				});
 			});
 
 			describe.skip('modules', function () {
-
 				it('should throw', function () {
 					var property = 'modules';
 					delete scope[property];
 					try {
 						round = new Round(_.cloneDeep(scope), db);
 					} catch (err) {
-						expect(err).to.equal('Missing required scope property: ' + property);
+						expect(err).to.equal(`Missing required scope property: ${property}`);
 					}
 				});
 			});
 
 			describe.skip('block', function () {
-
 				it('should throw', function () {
 					var property = 'block';
 					delete scope[property];
 					try {
 						round = new Round(_.cloneDeep(scope), db);
 					} catch (err) {
-						expect(err).to.equal('Missing required scope property: ' + property);
+						expect(err).to.equal(`Missing required scope property: ${property}`);
 					}
 				});
 			});
 
 			describe('round', function () {
-
 				it('should throw', function () {
 					var property = 'round';
 					delete scope[property];
 					try {
 						round = new Round(_.cloneDeep(scope), db);
 					} catch (err) {
-						expect(err).to.equal('Missing required scope property: ' + property);
+						expect(err).to.equal(`Missing required scope property: ${property}`);
 					}
 				});
 			});
 
 			describe('backwards', function () {
-
 				it('should throw', function () {
 					var property = 'backwards';
 					delete scope[property];
 					try {
 						round = new Round(_.cloneDeep(scope), db);
 					} catch (err) {
-						expect(err).to.equal('Missing required scope property: ' + property);
+						expect(err).to.equal(`Missing required scope property: ${property}`);
 					}
 				});
 			});
 
 			describe('when finish round', function () {
-
 				beforeEach(function () {
 					// Set finishRound, so now we need additional properties
 					scope.finishRound = true;
 				});
 
 				describe('roundFees', function () {
-
 					it('should throw', function () {
 						var property = 'roundFees';
 						delete scope[property];
 						try {
 							round = new Round(_.cloneDeep(scope), db);
 						} catch (err) {
-							expect(err).to.equal('Missing required scope property: ' + property);
+							expect(err).to.equal(`Missing required scope property: ${property}`);
 						}
 					});
 				});
 
 				describe('roundRewards', function () {
-
 					it('should throw', function () {
 						var property = 'roundRewards';
 						delete scope[property];
 						try {
 							round = new Round(_.cloneDeep(scope), db);
 						} catch (err) {
-							expect(err).to.equal('Missing required scope property: ' + property);
+							expect(err).to.equal(`Missing required scope property: ${property}`);
 						}
 					});
 				});
 
 				describe('roundDelegates', function () {
-
 					it('should throw', function () {
 						var property = 'roundDelegates';
 						delete scope[property];
 						try {
 							round = new Round(_.cloneDeep(scope), db);
 						} catch (err) {
-							expect(err).to.equal('Missing required scope property: ' + property);
+							expect(err).to.equal(`Missing required scope property: ${property}`);
 						}
 					});
 				});
 
 				describe('roundOutsiders', function () {
-
 					it('should throw', function () {
 						var property = 'roundOutsiders';
 						delete scope[property];
 						try {
 							round = new Round(_.cloneDeep(scope), db);
 						} catch (err) {
-							expect(err).to.equal('Missing required scope property: ' + property);
+							expect(err).to.equal(`Missing required scope property: ${property}`);
 						}
 					});
 				});
@@ -232,11 +218,9 @@ describe('rounds', function () {
 	});
 
 	describe('mergeBlockGenerator', function () {
-
 		var scope;
 
 		describe('when going forward', function () {
-
 			var args = null;
 
 			before(function () {
@@ -259,7 +243,6 @@ describe('rounds', function () {
 		});
 
 		describe('when going backwards', function () {
-
 			var args = null;
 
 			before(function () {
@@ -283,13 +266,11 @@ describe('rounds', function () {
 	});
 
 	describe('updateMissedBlocks', function () {
-
 		var scope;
 		var stub;
 		var res;
 
 		describe('when there are no outsiders', function () {
-
 			before(function () {
 				scope = _.cloneDeep(validScope);
 				res = round.updateMissedBlocks();
@@ -302,7 +283,6 @@ describe('rounds', function () {
 		});
 
 		describe('when there are outsiders', function () {
-
 			before(function () {
 				scope = _.cloneDeep(validScope);
 				scope.roundOutsiders = ['abc'];
@@ -326,7 +306,6 @@ describe('rounds', function () {
 	});
 
 	describe('getVotes', function () {
-
 		var stub;
 		var res;
 		var scope;
@@ -351,7 +330,6 @@ describe('rounds', function () {
 	});
 
 	describe('updateVotes', function () {
-
 		var getVotes_stub;
 		var updateVotes_stub;
 		var res;
@@ -359,7 +337,6 @@ describe('rounds', function () {
 		var delegate;
 
 		describe('when getVotes returns at least one entry', function () {
-
 			before(function () {
 				scope = _.cloneDeep(validScope);
 
@@ -410,7 +387,6 @@ describe('rounds', function () {
 		});
 
 		describe('when getVotes returns no entries', function () {
-
 			before(function () {
 				scope = _.cloneDeep(validScope);
 
@@ -452,13 +428,11 @@ describe('rounds', function () {
 	});
 
 	describe('markBlockId', function () {
-
 		var updateBlockId_stub;
 		var res;
 		var scope;
 
 		describe('when going forward', function () {
-
 			before(function () {
 				scope = _.cloneDeep(validScope);
 				scope.backwards = false;
@@ -473,7 +447,6 @@ describe('rounds', function () {
 		});
 
 		describe('when going backwards', function () {
-
 			before(function () {
 				scope = _.cloneDeep(validScope);
 				scope.backwards = true;
@@ -497,7 +470,6 @@ describe('rounds', function () {
 	});
 
 	describe('flushRound', function () {
-
 		var stub;
 		var res;
 
@@ -520,7 +492,6 @@ describe('rounds', function () {
 	});
 
 	describe('truncateBlocks', function () {
-
 		var stub;
 		var res;
 
@@ -543,7 +514,6 @@ describe('rounds', function () {
 	});
 
 	describe('restoreRoundSnapshot', function () {
-
 		var res;
 
 		before(function () {
@@ -564,7 +534,6 @@ describe('rounds', function () {
 	});
 
 	describe('restoreVotesSnapshot', function () {
-
 		var stub;
 		var res;
 
@@ -587,15 +556,14 @@ describe('rounds', function () {
 	});
 
 	describe('applyRound', function () {
-
 		var res;
 		var batch_stub;
 		var scope;
 
-		function sumChanges (forward, backwards) {
+		function sumChanges(forward, backwards) {
 			var results = {};
 			forward.forEach(function (res) {
-				if(results[res.publicKey]) {
+				if (results[res.publicKey]) {
 					results[res.publicKey].balance += res.balance || 0;
 					results[res.publicKey].u_balance += res.u_balance || 0;
 					results[res.publicKey].rewards += res.rewards || 0;
@@ -610,7 +578,7 @@ describe('rounds', function () {
 				}
 			});
 			backwards.forEach(function (res) {
-				if(results[res.publicKey]) {
+				if (results[res.publicKey]) {
 					results[res.publicKey].balance += res.balance || 0;
 					results[res.publicKey].u_balance += res.u_balance || 0;
 					results[res.publicKey].rewards += res.rewards || 0;
@@ -625,12 +593,10 @@ describe('rounds', function () {
 				}
 			});
 			return results;
-		};
+		}
 
 		describe.skip('with no delegates', function () {
-
 			describe('forward', function () {
-
 				before(function () {
 					scope = _.cloneDeep(validScope);
 					scope.backwards = false;
@@ -651,7 +617,6 @@ describe('rounds', function () {
 			});
 
 			describe('backwards', function () {
-
 				before(function () {
 					scope = _.cloneDeep(validScope);
 					scope.backwards = true;
@@ -673,9 +638,7 @@ describe('rounds', function () {
 		});
 
 		describe('with only one delegate', function () {
-
 			describe('when there are no remaining fees', function () {
-
 				var forwardResults = [];
 				var backwardsResults = [];
 
@@ -685,7 +648,6 @@ describe('rounds', function () {
 				});
 
 				describe('forward', function () {
-
 					var called = 0;
 
 					before(function () {
@@ -731,7 +693,6 @@ describe('rounds', function () {
 				});
 
 				describe('backwards', function () {
-
 					var called = 0;
 
 					before(function () {
@@ -777,7 +738,6 @@ describe('rounds', function () {
 				});
 
 				describe('consistency checks for each delegate', function () {
-
 					var result;
 
 					before(function () {
@@ -811,7 +771,6 @@ describe('rounds', function () {
 			});
 
 			describe('when there are remaining fees', function () {
-
 				var forwardResults = [];
 				var backwardsResults = [];
 
@@ -821,7 +780,6 @@ describe('rounds', function () {
 				});
 
 				describe('forward', function () {
-
 					var called = 0;
 
 					before(function () {
@@ -886,7 +844,6 @@ describe('rounds', function () {
 				});
 
 				describe('backwards', function () {
-
 					var called = 0;
 
 					before(function () {
@@ -951,7 +908,6 @@ describe('rounds', function () {
 				});
 
 				describe('consistency checks for each delegate', function () {
-
 					var result;
 
 					before(function () {
@@ -986,9 +942,7 @@ describe('rounds', function () {
 		});
 
 		describe('with 3 delegates', function () {
-
 			describe('when there are no remaining fees', function () {
-
 				var forwardResults = [];
 				var backwardsResults = [];
 
@@ -1003,7 +957,6 @@ describe('rounds', function () {
 				});
 
 				describe('forward', function () {
-
 					var called = 0;
 
 					before(function () {
@@ -1087,7 +1040,6 @@ describe('rounds', function () {
 				});
 
 				describe('backwards', function () {
-
 					var called = 0;
 
 					before(function () {
@@ -1171,7 +1123,6 @@ describe('rounds', function () {
 				});
 
 				describe('consistency checks for each delegate', function () {
-
 					var result;
 
 					before(function () {
@@ -1205,7 +1156,6 @@ describe('rounds', function () {
 			});
 
 			describe('when there are remaining fees', function () {
-
 				var forwardResults = [];
 				var backwardsResults = [];
 
@@ -1220,7 +1170,6 @@ describe('rounds', function () {
 				});
 
 				describe('forward', function () {
-
 					var called = 0;
 
 					before(function () {
@@ -1323,7 +1272,6 @@ describe('rounds', function () {
 				});
 
 				describe('backwards', function () {
-
 					var called = 0;
 
 					before(function () {
@@ -1426,7 +1374,6 @@ describe('rounds', function () {
 				});
 
 				describe('consistency checks for each delegate', function () {
-
 					var result;
 
 					before(function () {
@@ -1462,8 +1409,7 @@ describe('rounds', function () {
 	});
 
 	describe('land', function () {
-
-		var batch_stub;
+		var batch_stub; // eslint-disable-line no-unused-vars
 		var roundOutsiders_stub;
 		var updateVotes_stub;
 		var getVotes_stub;
@@ -1528,8 +1474,7 @@ describe('rounds', function () {
 	});
 
 	describe('backwardLand', function () {
-
-		var batch_stub;
+		var batch_stub; // eslint-disable-line no-unused-vars
 		var roundOutsiders_stub;
 		var updateVotes_stub;
 		var getVotes_stub;

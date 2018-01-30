@@ -28,7 +28,7 @@ var __private = {};
  * @classdesc Main BlockReward logic.
  */
 // Constructor
-function BlockReward () {
+function BlockReward() {
 	// Array of milestones
 	this.milestones = constants.rewards.milestones;
 
@@ -105,10 +105,11 @@ BlockReward.prototype.calcSupply = function (height) {
 	}
 
 	var milestone = this.calcMilestone(height);
-	var supply    = constants.totalAmount;
-	var rewards   = [];
+	var supply = constants.totalAmount;
+	var rewards = [];
 
-	var amount = 0, multiplier = 0;
+	var amount = 0,
+multiplier = 0;
 
 	// Remove offset from height
 	height -= this.rewardOffset - 1;
@@ -136,7 +137,7 @@ BlockReward.prototype.calcSupply = function (height) {
 		}
 	}
 
-	for (i = 0; i < rewards.length; i++) {
+	for (let i = 0; i < rewards.length; i++) {
 		var reward = rewards[i];
 		supply += reward[0] * reward[1];
 	}

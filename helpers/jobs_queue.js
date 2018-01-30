@@ -20,7 +20,7 @@ var jobsQueue = {
 	register: function (name, job, time) {
 		// Check if job is already registered - we check only if property exists, because value can be undefined
 		if (hasOwnProperty.call(this.jobs, name)) {
-			throw new Error('Synchronous job ' + name  + ' already registered');
+			throw new Error(`Synchronous job ${name} already registered`);
 		}
 
 		// Check if job is function, name is string and time is integer
@@ -29,7 +29,7 @@ var jobsQueue = {
 		}
 
 		var nextJob = function () {
-			return job(function () {
+			return job(() => {
 				jobsQueue.jobs[name] = setTimeout(nextJob, time);
 			});
 		};

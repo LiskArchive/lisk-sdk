@@ -27,8 +27,7 @@ var constants = require('../helpers/constants.js');
  * @param {Object} packageJson
  * @returns {Object} configData
  */
-function Config (packageJson) {
-
+function Config(packageJson) {
 	program
 		.version(packageJson.version)
 		.option('-c, --config <path>', 'config file path')
@@ -75,7 +74,7 @@ function Config (packageJson) {
 
 	if (program.peers) {
 		if (typeof program.peers === 'string') {
-			appConfig.peers.list = program.peers.split(',').map(function (peer) {
+			appConfig.peers.list = program.peers.split(',').map(peer => {
 				peer = peer.split(':');
 				return {
 					ip: peer.shift(),
@@ -118,7 +117,7 @@ function Config (packageJson) {
  * @private
  * @param {Object} configData
  */
-function validateForce (configData) {
+function validateForce(configData) {
 	if (configData.forging.force) {
 		var index = constants.nethashes.indexOf(configData.nethash);
 

@@ -19,9 +19,9 @@ var accountFixtures = require('../../fixtures/accounts');
 
 var randomUtil = require('../../common/utils/random');
 
-function Multisig (options) {
+function Multisig(options) {
 	if (!options) {
-		var options = {};
+		options = {};
 	}
 
 	this.account = randomUtil.account();
@@ -31,11 +31,12 @@ function Multisig (options) {
 	if (!options.members) {
 		options.members = 3;
 	}
-	var i, auxAccount;
+	var i,
+auxAccount;
 	for (i = 0; i < options.members - 1; i++) {
 		auxAccount = randomUtil.account();
 		this.members.push(auxAccount);
-		this.keysgroup.push('+' + auxAccount.publicKey);
+		this.keysgroup.push(`+${auxAccount.publicKey}`);
 	}
 
 	this.min = options.min || options.members - 1;

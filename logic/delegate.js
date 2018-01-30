@@ -18,7 +18,9 @@ var constants = require('../helpers/constants.js');
 var exceptions = require('../helpers/exceptions.js');
 
 // Private fields
-var modules, library, self;
+var modules,
+library,
+self;
 
 /**
  * Initializes library.
@@ -28,7 +30,7 @@ var modules, library, self;
  * @param {logger} logger
  * @param {ZSchema} schema
  */
-function Delegate (logger, schema) {
+function Delegate(logger, schema) {
 	self = this;
 	library = {
 		schema: schema,
@@ -53,7 +55,7 @@ Delegate.prototype.bind = function (accounts) {
  * @returns {number} constants.fees.delegate
  * @todo Delete unused transaction, sender parameters.
  */
-Delegate.prototype.calculateFee = function (transaction, sender) {
+Delegate.prototype.calculateFee = function () {
 	return constants.fees.delegate;
 };
 
@@ -111,9 +113,7 @@ Delegate.prototype.verify = function (transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Username can only contain alphanumeric characters with the exception of !@$&_.');
 	}
 
-	self.checkConfirmed(transaction, function (err) {
-		return setImmediate(cb, err, transaction);
-	}, tx);
+	self.checkConfirmed(transaction, err => setImmediate(cb, err, transaction), tx);
 };
 
 /**
@@ -170,7 +170,7 @@ Delegate.prototype.checkDuplicates = function (transaction, username, isDelegate
 			query[username] = transaction.asset.delegate.username;
 			return modules.accounts.getAccount(query, [username], eachCb, tx);
 		}
-	}, function (err, res) {
+	}, (err, res) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -178,7 +178,7 @@ Delegate.prototype.checkDuplicates = function (transaction, username, isDelegate
 			return setImmediate(cb, 'Account is already a delegate');
 		}
 		if (res.duplicatedUsername) {
-			return setImmediate(cb, 'Username ' + transaction.asset.delegate.username + ' already exists');
+			return setImmediate(cb, `Username ${transaction.asset.delegate.username} already exists`);
 		}
 		return setImmediate(cb);
 	});
@@ -190,7 +190,7 @@ Delegate.prototype.checkDuplicates = function (transaction, username, isDelegate
  * @param {function} cb - Callback function.
  */
 Delegate.prototype.checkConfirmed = function (transaction, cb, tx) {
-	self.checkDuplicates(transaction, 'username', 'isDelegate', function (err) {
+	self.checkDuplicates(transaction, 'username', 'isDelegate', err => {
 		if (err && exceptions.delegates.indexOf(transaction.id) > -1) {
 			library.logger.debug(err);
 			library.logger.debug(JSON.stringify(transaction));
@@ -206,9 +206,7 @@ Delegate.prototype.checkConfirmed = function (transaction, cb, tx) {
  * @param {function} cb - Callback function.
  */
 Delegate.prototype.checkUnconfirmed = function (transaction, cb, tx) {
-	self.checkDuplicates(transaction, 'u_username', 'u_isDelegate', function (err) {
-		return setImmediate(cb, err, transaction);
-	}, tx);
+	self.checkDuplicates(transaction, 'u_username', 'u_isDelegate', err => setImmediate(cb, err, transaction), tx);
 };
 
 /**
@@ -331,9 +329,7 @@ Delegate.prototype.objectNormalize = function (transaction) {
 	var report = library.schema.validate(transaction.asset.delegate, Delegate.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate delegate schema: ' + library.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate delegate schema: ${library.schema.getLastErrors().map(err => err.message).join(', ')}`;
 	}
 
 	return transaction;
@@ -354,7 +350,7 @@ Delegate.prototype.dbRead = function (raw) {
 			address: raw.t_senderId
 		};
 
-		return {delegate: delegate};
+		return { delegate: delegate };
 	}
 };
 

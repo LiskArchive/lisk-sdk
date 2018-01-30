@@ -21,7 +21,9 @@ var exceptions = require('../helpers/exceptions.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var modules, library, __private = {};
+var modules,
+library,
+__private = {};
 
 __private.unconfirmedSignatures = {};
 
@@ -36,7 +38,7 @@ __private.unconfirmedSignatures = {};
  * @param {Object} logger
  */
 // Constructor
-function Multisignature (schema, network, transaction, account, logger) {
+function Multisignature(schema, network, transaction, account, logger) {
 	library = {
 		schema: schema,
 		network: network,
@@ -63,10 +65,9 @@ Multisignature.prototype.bind = function (accounts) {
  * Obtains constant fee multisignature and multiply by quantity of signatures.
  * @see {@link module:helpers~constants}
  * @param {transaction} transaction
- * @param {account} sender - Unnecessary parameter.
  * @returns {number} Quantity of multisignature keysgroup * multisignature fees.
  */
-Multisignature.prototype.calculateFee = function (transaction, sender) {
+Multisignature.prototype.calculateFee = function (transaction) {
 	return (transaction.asset.multisignature.keysgroup.length + 1) * constants.fees.multisignature;
 };
 
@@ -79,7 +80,7 @@ Multisignature.prototype.calculateFee = function (transaction, sender) {
  * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
  * transaction validated.
  */
-Multisignature.prototype.verify = function (transaction, sender, cb, tx) {
+Multisignature.prototype.verify = function (transaction, sender, cb) {
 	if (!transaction.asset || !transaction.asset.multisignature) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
@@ -108,7 +109,7 @@ Multisignature.prototype.verify = function (transaction, sender, cb, tx) {
 		}
 	}
 
-	if (transaction.asset.multisignature.lifetime < constants.multisigConstraints.lifetime.minimum  ||
+	if (transaction.asset.multisignature.lifetime < constants.multisigConstraints.lifetime.minimum ||
 		transaction.asset.multisignature.lifetime > constants.multisigConstraints.lifetime.maximum) {
 		return setImmediate(cb, ['Invalid multisignature lifetime. Must be between', constants.multisigConstraints.lifetime.minimum, 'and',
 			constants.multisigConstraints.lifetime.maximum].join(' '));
@@ -143,11 +144,11 @@ Multisignature.prototype.verify = function (transaction, sender, cb, tx) {
 		}
 	}
 
-	if (transaction.asset.multisignature.keysgroup.indexOf('+' + sender.publicKey) !== -1) {
+	if (transaction.asset.multisignature.keysgroup.indexOf(`+${sender.publicKey}`) !== -1) {
 		return setImmediate(cb, 'Invalid multisignature keysgroup. Can not contain sender');
 	}
 
-	async.eachSeries(transaction.asset.multisignature.keysgroup, function (key, cb) {
+	async.eachSeries(transaction.asset.multisignature.keysgroup, (key, cb) => {
 		if (!key || typeof key !== 'string') {
 			return setImmediate(cb, 'Invalid member in keysgroup');
 		}
@@ -170,12 +171,12 @@ Multisignature.prototype.verify = function (transaction, sender, cb, tx) {
 		}
 
 		return setImmediate(cb);
-	}, function (err) {
+	}, err => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
-		var keysgroup = transaction.asset.multisignature.keysgroup.reduce(function (p, c) {
+		var keysgroup = transaction.asset.multisignature.keysgroup.reduce((p, c) => {
 			if (p.indexOf(c) < 0) { p.push(c); }
 			return p;
 		}, []);
@@ -205,10 +206,9 @@ Multisignature.prototype.process = function (transaction, sender, cb) {
  * @requires bytebuffer
  * @see {@link https://github.com/dcodeIO/bytebuffer.js/wiki/API}
  * @param {transaction} transaction - Uses multisignature from asset.
- * @param {boolean} skip
  * @returns {!Array} Contents as an ArrayBuffer.
  */
-Multisignature.prototype.getBytes = function (transaction, skip) {
+Multisignature.prototype.getBytes = function (transaction) {
 	var keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''), 'utf8');
 
 	var bb = new ByteBuffer(1 + 1 + keysgroupBuffer.length, true);
@@ -241,13 +241,13 @@ Multisignature.prototype.apply = function (transaction, block, sender, cb, tx) {
 		multilifetime: transaction.asset.multisignature.lifetime,
 		blockId: block.id,
 		round: slots.calcRound(block.height)
-	}, function (err) {
+	}, err => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
 		// Get public keys
-		async.eachSeries(transaction.asset.multisignature.keysgroup, function (transaction, cb) {
+		async.eachSeries(transaction.asset.multisignature.keysgroup, (transaction, cb) => {
 			var key = transaction.substring(1);
 			var address = modules.accounts.generateAddressByPublicKey(key);
 
@@ -255,9 +255,7 @@ Multisignature.prototype.apply = function (transaction, block, sender, cb, tx) {
 			modules.accounts.setAccountAndGet({
 				address: address,
 				publicKey: key
-			}, function (err) {
-				return setImmediate(cb, err);
-			}, tx);
+			}, err => setImmediate(cb, err), tx);
 		}, cb);
 	}, tx);
 };
@@ -282,9 +280,7 @@ Multisignature.prototype.undo = function (transaction, block, sender, cb) {
 		multilifetime: -transaction.asset.multisignature.lifetime,
 		blockId: block.id,
 		round: slots.calcRound(block.height)
-	}, function (err) {
-		return setImmediate(cb, err);
-	});
+	}, err => setImmediate(cb, err));
 };
 
 /**
@@ -306,9 +302,7 @@ Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb, t
 		u_multisignatures: transaction.asset.multisignature.keysgroup,
 		u_multimin: transaction.asset.multisignature.min,
 		u_multilifetime: transaction.asset.multisignature.lifetime
-	}, function (err) {
-		return setImmediate(cb, err);
-	}, tx);
+	}, err => setImmediate(cb, err), tx);
 };
 
 /**
@@ -330,9 +324,7 @@ Multisignature.prototype.undoUnconfirmed = function (transaction, sender, cb, tx
 		u_multisignatures: multiInvert,
 		u_multimin: -transaction.asset.multisignature.min,
 		u_multilifetime: -transaction.asset.multisignature.lifetime
-	}, function (err) {
-		return setImmediate(cb, err);
-	}, tx);
+	}, err => setImmediate(cb, err), tx);
 };
 
 /**
@@ -374,9 +366,7 @@ Multisignature.prototype.objectNormalize = function (transaction) {
 	var report = library.schema.validate(transaction.asset.multisignature, Multisignature.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate multisignature schema: ' + library.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate multisignature schema: ${library.schema.getLastErrors().map(err => err.message).join(', ')}`;
 	}
 
 	return transaction;
@@ -403,7 +393,7 @@ Multisignature.prototype.dbRead = function (raw) {
 			multisignature.keysgroup = [];
 		}
 
-		return {multisignature: multisignature};
+		return { multisignature: multisignature };
 	}
 };
 

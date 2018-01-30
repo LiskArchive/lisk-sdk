@@ -18,7 +18,9 @@ var slots = require('../helpers/slots.js');
 var milestones = require('../helpers/milestones.js');
 
 // Private fields
-var modules, library, __private = {};
+var modules,
+library,
+__private = {};
 
 __private.unconfirmedOutTansfers = {};
 
@@ -32,7 +34,7 @@ __private.unconfirmedOutTansfers = {};
  * @param {Object} logger
  */
 // Constructor
-function OutTransfer (db, schema, logger) {
+function OutTransfer(db, schema, logger) {
 	library = {
 		db: db,
 		schema: schema,
@@ -54,11 +56,9 @@ OutTransfer.prototype.bind = function (accounts, blocks) {
 
 /**
  * Returns send fee from constants.
- * @param {transaction} transaction
- * @param {account} sender
  * @return {number} fee
  */
-OutTransfer.prototype.calculateFee = function (transaction, sender) {
+OutTransfer.prototype.calculateFee = function () {
 	return constants.fees.send;
 };
 
@@ -72,7 +72,7 @@ OutTransfer.prototype.calculateFee = function (transaction, sender) {
 OutTransfer.prototype.verify = function (transaction, sender, cb) {
 	var lastBlock = modules.blocks.lastBlock.get();
 	if (lastBlock.height >= milestones.disableDappTransfers) {
-		return setImmediate(cb, 'Transaction type ' + transaction.type + ' is frozen');
+		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
 	}
 
 	if (!transaction.recipientId) {
@@ -108,27 +108,23 @@ OutTransfer.prototype.verify = function (transaction, sender, cb) {
  * @return {setImmediateCallback} errors messages | transaction
  */
 OutTransfer.prototype.process = function (transaction, sender, cb) {
-	library.db.dapps.countByTransactionId(transaction.asset.outTransfer.dappId).then(function (count) {
+	library.db.dapps.countByTransactionId(transaction.asset.outTransfer.dappId).then(count => {
 		if (count === 0) {
-			return setImmediate(cb, 'Application not found: ' + transaction.asset.outTransfer.dappId);
+			return setImmediate(cb, `Application not found: ${transaction.asset.outTransfer.dappId}`);
 		}
 
 		if (__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId]) {
-			return setImmediate(cb, 'Transaction is already processed: ' + transaction.asset.outTransfer.transactionId);
+			return setImmediate(cb, `Transaction is already processed: ${transaction.asset.outTransfer.transactionId}`);
 		}
 
-		library.db.dapps.countByOutTransactionId(transaction.asset.outTransfer.transactionId).then(function (count) {
+		library.db.dapps.countByOutTransactionId(transaction.asset.outTransfer.transactionId).then(count => {
 			if (count > 0) {
-				return setImmediate(cb, 'Transaction is already confirmed: ' + transaction.asset.outTransfer.transactionId);
+				return setImmediate(cb, `Transaction is already confirmed: ${transaction.asset.outTransfer.transactionId}`);
 			} else {
 				return setImmediate(cb, null, transaction);
 			}
-		}).catch(function (err) {
-			return setImmediate(cb, err);
-		});
-	}).catch(function (err) {
-		return setImmediate(cb, err);
-	});
+		}).catch(err => setImmediate(cb, err));
+	}).catch(err => setImmediate(cb, err));
 };
 
 /**
@@ -170,7 +166,7 @@ OutTransfer.prototype.getBytes = function (transaction) {
 OutTransfer.prototype.apply = function (transaction, block, sender, cb, tx) {
 	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false;
 
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
+	modules.accounts.setAccountAndGet({ address: transaction.recipientId }, err => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -181,9 +177,7 @@ OutTransfer.prototype.apply = function (transaction, block, sender, cb, tx) {
 			u_balance: transaction.amount,
 			blockId: block.id,
 			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		}, tx);
+		}, err => setImmediate(cb, err), tx);
 	}, tx);
 };
 
@@ -203,7 +197,7 @@ OutTransfer.prototype.apply = function (transaction, block, sender, cb, tx) {
 OutTransfer.prototype.undo = function (transaction, block, sender, cb) {
 	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true;
 
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
+	modules.accounts.setAccountAndGet({ address: transaction.recipientId }, err => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -213,9 +207,7 @@ OutTransfer.prototype.undo = function (transaction, block, sender, cb) {
 			u_balance: -transaction.amount,
 			blockId: block.id,
 			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		});
+		}, err => setImmediate(cb, err));
 	});
 };
 
@@ -226,7 +218,7 @@ OutTransfer.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-OutTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
+OutTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true;
 	return setImmediate(cb);
 };
@@ -238,7 +230,7 @@ OutTransfer.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) 
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-OutTransfer.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
+OutTransfer.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 	__private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false;
 	return setImmediate(cb);
 };
@@ -274,9 +266,7 @@ OutTransfer.prototype.objectNormalize = function (transaction) {
 	var report = library.schema.validate(transaction.asset.outTransfer, OutTransfer.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate outTransfer schema: ' + library.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate outTransfer schema: ${library.schema.getLastErrors().map(err => err.message).join(', ')}`;
 	}
 
 	return transaction;
@@ -296,7 +286,7 @@ OutTransfer.prototype.dbRead = function (raw) {
 			transactionId: raw.ot_outTransactionId
 		};
 
-		return {outTransfer: outTransfer};
+		return { outTransfer: outTransfer };
 	}
 };
 
