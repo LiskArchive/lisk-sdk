@@ -151,20 +151,25 @@ describe('blocks/utils', function () {
 
 	describe('loadBlocksPart', function () {
 
-		describe('when there is no error when loading block array', function () {
+		it('should return error when loadLastBlock sql fails', function (done) {
+			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves();
 
-			it('should be normalized');
-
-			it('should call callback with error = undefined');
-
-			it('should call callback with blocks as result');
+			blocksUtilsModule.loadLastBlock(function (err, cb) {
+				expect(err).to.equal('Blocks#loadLastBlock error');
+				done();
+			});
 		});
 
-		describe('when error is defined', function () {
+		it('should return block object', function (done) {
+			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves(viewRow_full_blocks_list);
 
-			it('should call callback with the error object');
-
-			it('should call callback with blocks as result');
+			blocksUtilsModule.loadLastBlock(function (err, cb) {
+				expect(err).to.be.null;
+				expect(cb).to.be.an('object');
+				expect(cb.id).to.equal('13068833527549895884');
+				expect(cb.transactions[0].id).to.equal('6950874693022090568');
+				done();
+			});
 		});
 	});
 
