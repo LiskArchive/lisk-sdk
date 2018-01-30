@@ -46,18 +46,18 @@ module.exports = function (config) {
 		fatal: 'FTL'
 	};
 
-	config.filename = process.cwd() + '/' + (config.filename || 'logs.log');
+	config.filename = `${process.cwd()}/${config.filename || 'logs.log'}`;
 
 	config.errorLevel = config.errorLevel || 'log';
 
-	child_process.execSync('mkdir -p ' + path.dirname(config.filename));
-	var log_file = fs.createWriteStream(config.filename, {flags: 'a'});
+	child_process.execSync(`mkdir -p ${path.dirname(config.filename)}`);
+	var log_file = fs.createWriteStream(config.filename, { flags: 'a' });
 
 	exports.setLevel = function (errorLevel) {
 		config.errorLevel = errorLevel;
 	};
 
-	function snipsecret (data) {
+	function snipsecret(data) {
 		for (var key in data) {
 			if (key.search(/secret/i) > -1) {
 				data[key] = 'XXXXXXXXXX';
@@ -66,8 +66,8 @@ module.exports = function (config) {
 		return data;
 	}
 
-	Object.keys(config.levels).forEach(function (name) {
-		function log (message, data) {
+	Object.keys(config.levels).forEach(name => {
+		function log(message, data) {
 			var log = {
 				level: name,
 				timestamp: strftime('%F %T', new Date())
@@ -97,9 +97,9 @@ module.exports = function (config) {
 
 			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
 				if (log.data) {
-					console.log('['+log.symbol.bgYellow.black+']', log.timestamp.grey, '|', log.message, '-', log.data);
+					console.log(`[${log.symbol.bgYellow.black}]`, log.timestamp.grey, '|', log.message, '-', log.data);
 				} else {
-					console.log('['+log.symbol.bgYellow.black+']', log.timestamp.grey, '|', log.message);
+					console.log(`[${log.symbol.bgYellow.black}]`, log.timestamp.grey, '|', log.message);
 				}
 			}
 		}

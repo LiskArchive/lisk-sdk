@@ -19,6 +19,7 @@
  * @property {number} activeDelegates - The default number of delegates.
  * @property {number} maxVotesPerTransaction - The maximum number of votes in vote type transaction.
  * @property {number} addressLength - The default address length.
+ * @property {number} blockSlotWindow - The default no. of previous blocks to keep in memory.
  * @property {number} blockHeaderLength - The default block header length.
  * @property {number} blockReceiptTimeOut
  * @property {number} confirmationLength
@@ -57,6 +58,7 @@
 var constants = {
 	activeDelegates: 101,
 	addressLength: 208,
+	blockSlotWindow: 5,
 	additionalData: {
 		minLength: 1,
 		maxLength: 64
@@ -120,9 +122,9 @@ var constants = {
 			400000000, // Milestone 1
 			300000000, // Milestone 2
 			200000000, // Milestone 3
-			100000000  // Milestone 4
+			100000000 // Milestone 4
 		],
-		offset: 1451520,   // Start rewards at block (n)
+		offset: 1451520, // Start rewards at block (n)
 		distance: 3000000, // Distance between each milestone
 	},
 	signatureLength: 196,

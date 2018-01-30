@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var PQ = require('pg-promise').ParameterizedQuery;
+const sql = require('../sql').multisignatures;
 
 /**
  * Multisignature database interaction module
@@ -22,39 +22,31 @@ var PQ = require('pg-promise').ParameterizedQuery;
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {MultisignaturesRepo}
+ * @return {MultisignaturesRepository}
  */
-function MultisignaturesRepo (db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class MultisignaturesRepository {
+	constructor(db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
+	}
+
+	/**
+	 * Gets list of public keys for a member address
+	 * @param {string} address - Address of a member
+	 * @return {Promise}
+	 */
+	getMemberPublicKeys(address) {
+		return this.db.one(sql.getMemberPublicKeys, { address }, a => a.memberAccountKeys);
+	}
+
+	/**
+	 * Gets list of addresses for group by a public key
+	 * @param {string} publicKey - Public key of a group
+	 * @return {Promise}
+	 */
+	getGroupIds(publicKey) {
+		return this.db.one(sql.getGroupIds, { publicKey }, a => a.groupAccountIds);
+	}
 }
 
-var Queries = {
-	getMultisignatureMemberPublicKeys: new PQ('SELECT ARRAY_AGG("dependentId") AS "memberAccountKeys" FROM mem_accounts2multisignatures WHERE "accountId" = $1'),
-
-	getMultisignatureGroupIds: new PQ('SELECT ARRAY_AGG("accountId") AS "groupAccountIds" FROM mem_accounts2multisignatures WHERE "dependentId" = $1')
-};
-
-/**
- * Get list of public keys for a member address
- * @param {string} address - Address of a member
- * @return {Promise}
- */
-MultisignaturesRepo.prototype.getMultisignatureMemberPublicKeys = function (address) {
-	return this.db.one(Queries.getMultisignatureMemberPublicKeys, [address]).then(function (result) {
-		return result.memberAccountKeys;
-	});
-};
-
-/**
- * Get list of addresses for group by a public key
- * @param {string} publicKey - Public key of a group
- * @return {Promise}
- */
-MultisignaturesRepo.prototype.getMultisignatureGroupIds = function (publicKey) {
-	return this.db.one(Queries.getMultisignatureGroupIds, [publicKey]).then(function (result) {
-		return result.groupAccountIds;
-	});
-};
-
-module.exports = MultisignaturesRepo;
+module.exports = MultisignaturesRepository;

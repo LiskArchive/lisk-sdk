@@ -25,7 +25,7 @@ var modules;
  * @classdesc Main System methods.
  * @param {scope} scope - App instance.
  */
-function BlocksController (scope) {
+function BlocksController(scope) {
 	modules = scope.modules;
 }
 
@@ -42,16 +42,14 @@ BlocksController.getBlocks = function (context, next) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.blocks.shared.getBlocks(_.clone(filters), function (err, data) {
+	modules.blocks.shared.getBlocks(_.clone(filters), (err, data) => {
 		if (err) { return next(err); }
 
 		data = _.cloneDeep(data);
 
-		data = _.map(data, function (block) {
+		data = _.map(data, block => {
 			block.totalAmount = block.totalAmount.toString();
 			block.totalFee = block.totalFee.toString();
 			block.reward = block.reward.toString();

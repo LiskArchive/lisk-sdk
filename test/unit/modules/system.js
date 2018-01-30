@@ -13,12 +13,9 @@
  */
 'use strict';
 
-describe('system', function () {
-
-	describe('constructor', function () {
-
-		describe('library', function () {
-
+describe('system', () => {
+	describe('constructor', () => {
+		describe('library', () => {
 			it('should assign logger');
 
 			it('should assign db');
@@ -36,10 +33,8 @@ describe('system', function () {
 			it('should assign config.nonce');
 		});
 
-		describe('__private', function () {
-
-			describe('os', function () {
-
+		describe('__private', () => {
+			describe('os', () => {
 				it('should call platform on os library');
 
 				it('should call release on os library');
@@ -64,10 +59,8 @@ describe('system', function () {
 			it('should assign nonce from config.nonce');
 		});
 
-		describe('version', function () {
-
-			describe('when version contains a letter', function () {
-
+		describe('version', () => {
+			describe('when version contains a letter', () => {
 				it('should assign this.minVersion without any letter');
 
 				it('should assign the last character to this.minVersionChar');
@@ -79,80 +72,64 @@ describe('system', function () {
 		it('should return the System instance');
 	});
 
-	describe('static', function () {
-
-		describe('setHeaders', function () {
-
+	describe('static', () => {
+		describe('setHeaders', () => {
 			it('should assign the argument to __private');
 		});
 
-		describe('getHeaders', function () {
-
+		describe('getHeaders', () => {
 			it('should return __private');
 		});
 	});
 
-	describe('getOS', function () {
-
+	describe('getOS', () => {
 		it('should __private.os');
 	});
 
-	describe('getVersion', function () {
-
+	describe('getVersion', () => {
 		it('should __private.version');
 	});
 
-	describe('getPort', function () {
-
+	describe('getPort', () => {
 		it('should __private.wsPort');
 	});
 
-	describe('getHeight', function () {
-
+	describe('getHeight', () => {
 		it('should __private.height');
 	});
 
-	describe('getNethash', function () {
-
+	describe('getNethash', () => {
 		it('should __private.nethash');
 	});
 
-	describe('getNonce', function () {
-
+	describe('getNonce', () => {
 		it('should __private.nonce');
 	});
 
-	describe('getBroadhash', function () {
-
-		describe('when argument is not a function', function () {
-
+	describe('getBroadhash', () => {
+		describe('when argument is not a function', () => {
 			it('should __private.broadhash');
 		});
 
-		describe('when argument is a function', function () {
-
+		describe('when argument is a function', () => {
 			it('should call db.query with sql.getBroadhash');
 
 			it('should call db.query with limit = 5');
 
-			describe('when db.query fails', function () {
-
+			describe('when db.query fails', () => {
 				it('should call callback with error');
 
 				it('should call the logger.error with error stack');
 			});
 
-			describe('when db.query succeeds', function () {
-
-				describe('and returns no or one result', function () {
-
+			describe('when db.query succeeds', () => {
+				describe('and returns no or one result', () => {
 					it('should call callback with error = null');
 
 					it('should call callback with __private.nethash');
 				});
 
-				describe('and returns more then one results', function () {
-
+				describe('and returns more then one results', () => {
 					it('should call crypto.createHash with sha256');
 
 					it('should call crypto.update with concatenation of results ids');
@@ -169,24 +146,19 @@ describe('system', function () {
 		});
 	});
 
-	describe('getMinVersion', function () {
-
+	describe('getMinVersion', () => {
 		it('should __private.minVersion');
 	});
 
-	describe('networkCompatible', function () {
-
+	describe('networkCompatible', () => {
 		it('should return true if argument is equal to __private.nethash');
 
 		it('should return false if argument is not equal to __private.nethash');
 	});
 
-	describe('versionCompatible', function () {
-
-		describe('when version contains', function () {
-
-			describe('when system version contains a letter', function () {
-
+	describe('versionCompatible', () => {
+		describe('when version contains', () => {
+			describe('when system version contains a letter', () => {
 				it('should return true if both version number and version letter are equals with system');
 
 				it('should return false if both version number and version letter are different than system');
@@ -196,8 +168,7 @@ describe('system', function () {
 				it('should return false if version letter is different than system');
 			});
 
-			describe('when system version does not contain a letter', function () {
-
+			describe('when system version does not contain a letter', () => {
 				it('should call semver.satisfies with system minVersion');
 
 				it('should call semver.satisfies with version with stripped letter');
@@ -206,16 +177,14 @@ describe('system', function () {
 			});
 		});
 
-		describe('when version without a letter passed', function () {
-
+		describe('when version without a letter passed', () => {
 			it('should call semver.satisfies with system minVersion');
 
 			it('should call semver.satisfies with version');
 		});
 	});
 
-	describe('nonceCompatible', function () {
-
+	describe('nonceCompatible', () => {
 		it('should return if nonce exists and is different than the system nonce');
 
 		it('should return false if nonce does not exist');
@@ -223,8 +192,7 @@ describe('system', function () {
 		it('should return false if nonce exists and is equal to the system nonce');
 	});
 
-	describe('update', function () {
-
+	describe('update', () => {
 		it('should call getBroadhash with function');
 
 		it('should update __private.broadhash when getBroadhash returns no error');
@@ -244,10 +212,8 @@ describe('system', function () {
 		it('should never call callback with an error');
 	});
 
-	describe('onBind', function () {
-
-		describe('modules', function () {
-
+	describe('onBind', () => {
+		describe('modules', () => {
 			it('should assign blocks');
 
 			it('should assign transport');

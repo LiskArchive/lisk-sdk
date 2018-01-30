@@ -13,17 +13,21 @@
  */
 'use strict';
 
-var apiCodes = require('../helpers/apiCodes.js');
-var ApiError = require('../helpers/apiError.js');
+var apiCodes = require('../helpers/api_codes.js');
+var ApiError = require('../helpers/api_error.js');
 var DApp = require('../logic/dapp.js');
-var dappCategories = require('../helpers/dappCategories.js');
-var InTransfer = require('../logic/inTransfer.js');
+var dappCategories = require('../helpers/dapp_categories.js');
+var InTransfer = require('../logic/in_transfer.js');
 var sortBy = require('../helpers/sort_by.js').sortBy;
-var OutTransfer = require('../logic/outTransfer.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
+var OutTransfer = require('../logic/out_transfer.js');
+var transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules,
+library,
+self,
+__private = {},
+shared = {};
 
 __private.assetTypes = {};
 
@@ -46,7 +50,7 @@ __private.assetTypes = {};
  * @todo Add 'use strict';
  */
 // Constructor
-function DApps (cb, scope) {
+function DApps(cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
@@ -94,7 +98,7 @@ function DApps (cb, scope) {
 	 * Receives an 'exit' signal and calls stopDApp for each launched application.
 	 * @listens exit
 	 */
-	process.on('exit', function () {
+	process.on('exit', () => {
 	});
 
 	setImmediate(cb, null, self);
@@ -110,7 +114,8 @@ function DApps (cb, scope) {
  * @return {setImmediateCallback} cb, error | cb, null, application
  */
 __private.list = function (filter, cb) {
-	var params = {}, where = [];
+	var params = {},
+where = [];
 
 	if (filter.transactionId) {
 		where.push('"transactionId" = ${transactionId}');
@@ -173,9 +178,7 @@ __private.list = function (filter, cb) {
 		where: where,
 		sortField: sort.sortField,
 		sortMethod: sort.sortMethod
-	}, params)).then(function (rows) {
-		return setImmediate(cb, null, rows);
-	}).catch(function (err) {
+	}, params)).then(rows => setImmediate(cb, null, rows)).catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, err);
 	});
@@ -198,11 +201,13 @@ DApps.prototype.onBind = function (scope) {
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
 		scope.accounts,
+		scope.blocks,
 		shared
 	);
 
 	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind(
 		scope.accounts,
+		scope.blocks,
 		scope.dapps
 	);
 };
@@ -237,7 +242,7 @@ DApps.prototype.shared = {
 	 * @return {Array.<Object>}
 	 */
 	getDapps: function (parameters, cb) {
-		__private.list(parameters, function (err, dapps) {
+		__private.list(parameters, (err, dapps) => {
 			if (err) {
 				return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
 			} else {
@@ -249,7 +254,7 @@ DApps.prototype.shared = {
 
 // Shared API
 shared.getGenesis = function (req, cb, tx) {
-	(tx || library.db).dapps.getGenesis(req.dappid).then(function (rows) {
+	(tx || library.db).dapps.getGenesis(req.dappid).then(rows => {
 		if (rows.length === 0) {
 			return setImmediate(cb, 'Application genesis block not found');
 		} else {
@@ -262,7 +267,7 @@ shared.getGenesis = function (req, cb, tx) {
 				dappid: req.dappid
 			});
 		}
-	}).catch(function (err) {
+	}).catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'DApp#getGenesis error');
 	});

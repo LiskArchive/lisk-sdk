@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var PQ = require('pg-promise').ParameterizedQuery;
+const sql = require('../sql').delegates;
 
 /**
  * Delegates database interaction module
@@ -22,46 +22,42 @@ var PQ = require('pg-promise').ParameterizedQuery;
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {DappsRepo}
+ * @return {DelegatesRepository}
  */
-function DelegatesRepo (db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class DelegatesRepository {
+	constructor(db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
+	}
+
+	/**
+	 * Inserts a fork data table entry
+	 * @param {Object} fork
+	 * @return {Promise}
+	 */
+	insertFork(fork) {
+		return this.db.none(sql.insertFork, fork);
+	}
+
+	/**
+	 * Gets delegates for a list of public keys
+	 * @param {string} publicKeys - Comma Separated list of public keys
+	 * @return {Promise}
+	 */
+	getDelegatesByPublicKeys(publicKeys) {
+		return this.db.any(sql.getDelegatesByPublicKeys, { publicKeys });
+	}
+
+	/**
+	 * Count duplicate delegates by transactionId
+	 * @return {Promise}
+	 */
+	countDuplicatedDelegates() {
+		// TODO: This should use method .one, with inline conversion
+		return this.db.query(sql.countDuplicatedDelegates);
+	}
 }
 
-var DelegatesSql = {
-	countDuplicatedDelegates: 'WITH duplicates AS (SELECT COUNT(1) FROM delegates GROUP BY "transactionId" HAVING COUNT(1) > 1) SELECT count(1) FROM duplicates',
+// TODO: Move DelegatesRepository#insertFork into a separate db repo
 
-	insertFork: new PQ('INSERT INTO forks_stat ("delegatePublicKey", "blockTimestamp", "blockId", "blockHeight", "previousBlock", "cause") VALUES ($1, $2, $3, $4, $5, $6)'),
-
-	getDelegatesByPublicKeys: 'SELECT ENCODE("publicKey", \'hex\') as "publicKey", username, address FROM mem_accounts WHERE "isDelegate" = 1 AND ENCODE("publicKey", \'hex\') IN ($1:csv) ORDER BY vote ASC, "publicKey" DESC'
-};
-
-/**
- * Count duplicate delegates by transactionId
- * @return {Promise}
- */
-DelegatesRepo.prototype.countDuplicatedDelegates = function () {
-	return this.db.query(DelegatesSql.countDuplicatedDelegates);
-};
-
-// TODO: Move DelegatesRepo#insertFork to a seperate db repos
-/**
- * Insert a fork data table entry
- * @param {Object} fork
- * @return {promise}
- */
-DelegatesRepo.prototype.insertFork = function (fork) {
-	return this.db.none(DelegatesSql.insertFork, [fork.delegatePublicKey, fork.blockTimestamp, fork.blockId, fork.blockHeight, fork.previousBlock, fork.cause]);
-};
-
-/**
- * Get delegates for list of public keys
- * @param {string} publicKeys - Comma Separated list of public keys
- * @return {Promise}
- */
-DelegatesRepo.prototype.getDelegatesByPublicKeys = function (publicKeys) {
-	return this.db.query(DelegatesSql.getDelegatesByPublicKeys, [publicKeys]);
-};
-
-module.exports = DelegatesRepo;
+module.exports = DelegatesRepository;

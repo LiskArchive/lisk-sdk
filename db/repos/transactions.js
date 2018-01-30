@@ -15,7 +15,7 @@
 
 var PQ = require('pg-promise').ParameterizedQuery;
 var _ = require('lodash');
-var transactionTypes = require('../../helpers/transactionTypes');
+var transactionTypes = require('../../helpers/transaction_types');
 var columnSet;
 
 /**
@@ -27,7 +27,7 @@ var columnSet;
  * @constructor
  * @return {TransactionsRepo}
  */
-function TransactionsRepo (db, pgp) {
+function TransactionsRepo(db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
@@ -65,8 +65,8 @@ function TransactionsRepo (db, pgp) {
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
+		var table = new pgp.helpers.TableName({ table: this.dbTable, schema: 'public' });
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, { table: table });
 		columnSet.insert = columnSet.insert.merge([{ name: 'recipientId', def: null }]);
 	}
 
@@ -92,9 +92,9 @@ var Queries = {
 		return [
 			'SELECT COUNT(1) FROM trs_list',
 			(params.where.length || params.owner ? 'WHERE' : ''),
-			(params.where.length ? '(' + params.where.join(' ') + ')' : ''),
+			(params.where.length ? `(${params.where.join(' ')})` : ''),
 			// FIXME: Backward compatibility, should be removed after transitional period
-			(params.where.length && params.owner ? ' AND ' + params.owner : params.owner)
+			(params.where.length && params.owner ? ` AND ${params.owner}` : params.owner)
 		].filter(Boolean).join(' ');
 	},
 
@@ -105,10 +105,10 @@ var Queries = {
 			'ENCODE ("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", ENCODE ("m_recipientPublicKey", \'hex\') AS "m_recipientPublicKey"',
 			'FROM trs_list',
 			(params.where.length || params.owner ? 'WHERE' : ''),
-			(params.where.length ? '(' + params.where.join(' ') + ')' : ''),
+			(params.where.length ? `(${params.where.join(' ')})` : ''),
 			// FIXME: Backward compatibility, should be removed after transitional period
-			(params.where.length && params.owner ? ' AND ' + params.owner : params.owner),
-			(params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
+			(params.where.length && params.owner ? ` AND ${params.owner}` : params.owner),
+			(params.sortField ? `ORDER BY ${[params.sortField, params.sortMethod].join(' ')}` : ''),
 			'LIMIT ${limit} OFFSET ${offset}'
 		].filter(Boolean).join(' ');
 	},
@@ -135,9 +135,7 @@ var Queries = {
  * @return {Promise}
  */
 TransactionsRepo.prototype.count = function () {
-	return this.db.one(Queries.count).then(function (result) {
-		return result.count;
-	});
+	return this.db.one(Queries.count).then(result => result.count);
 };
 
 /**
@@ -146,9 +144,7 @@ TransactionsRepo.prototype.count = function () {
  * @return {Promise}
  */
 TransactionsRepo.prototype.countById = function (id) {
-	return this.db.one(Queries.countById, [id]).then(function (result) {
-		return result.count;
-	});
+	return this.db.one(Queries.countById, [id]).then(result => result.count);
 };
 
 /**
@@ -262,7 +258,7 @@ TransactionsRepo.prototype.save = function (transactions) {
 		saveTransactions = [saveTransactions];
 	}
 
-	saveTransactions.forEach(function (transaction) {
+	saveTransactions.forEach(transaction => {
 		try {
 			transaction.senderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
 			transaction.signature = Buffer.from(transaction.signature, 'hex');
@@ -279,17 +275,16 @@ TransactionsRepo.prototype.save = function (transactions) {
 
 	var groupedTransactions = _.groupBy(saveTransactions, 'type');
 
-	Object.keys(groupedTransactions).forEach(function (type) {
+	Object.keys(groupedTransactions).forEach(type => {
 		batch.push(self.db[self.transactionsRepoMap[type]].save(groupedTransactions[type]));
 	});
 
-	// To avoid nested transactions aka transactions savepoints
-	if(this.db.ctx.isTX) {
+	// In order to avoid nested transactions, and thus SAVEPOINT-s,
+	// we check when there is a transaction on this level or above:
+	if (this.db.ctx && this.db.ctx.inTransaction) {
 		return this.db.batch(batch);
 	} else {
-		return this.db.tx(function (t) {
-			return t.batch(batch);
-		});
+		return this.db.tx(t => t.batch(batch));
 	}
 };
 

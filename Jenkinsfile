@@ -46,7 +46,7 @@ def buildDependencies() {
 def startLisk() {
 	try {
 		sh '''
-		cp test/data/config.json test/data/genesisBlock.json .
+		cp test/data/config.json test/data/genesis_block.json .
 		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
 		'''
 	} catch (err) {
@@ -91,9 +91,13 @@ def cleanUpMaster() {
 
 def archiveLogs() {
 	sh '''
-	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
+	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}" || true
 	'''
-	archiveArtifacts "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*"
+	try {
+		archiveArtifacts artifacts: "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*", allowEmptyArchive: true
+	} catch (err) {
+		echo "Error: ${err}"
+	}
 }
 
 def runAction(action) {
@@ -138,19 +142,6 @@ def reportCoverage(node) {
 }
 
 def report() {
-	step([
-		$class: 'GitHubCommitStatusSetter',
-		errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
-		contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins-ci/func-unit'],
-		statusResultSource: [
-			$class: 'ConditionalStatusResultSource',
-			results: [
-					[$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: 'This commit looks good :)'],
-					[$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: 'This commit failed testing :('],
-					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build somehow escaped evaluation']
-			]
-		]
-	])
 	if (currentBuild.result == 'FAILURE') {
 		def prBranch = ''
 		if (env.CHANGE_BRANCH != null) {

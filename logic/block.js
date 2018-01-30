@@ -13,14 +13,13 @@
  */
 'use strict';
 
-var slots = require('../helpers/slots.js');
 var crypto = require('crypto');
 var bignum = require('../helpers/bignum.js');
 var ByteBuffer = require('bytebuffer');
-var BlockReward = require('../logic/blockReward.js');
+var BlockReward = require('./block_reward.js');
 var constants = require('../helpers/constants.js');
 
-var transactionTypes = require('../helpers/transactionTypes.js');
+var transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
 var __private = {};
@@ -37,7 +36,7 @@ var __private = {};
  * @return {setImmediateCallback} With `this` as data.
  */
 // Constructor
-function Block (ed, schema, transaction, cb) {
+function Block(ed, schema, transaction, cb) {
 	this.scope = {
 		ed: ed,
 		schema: schema,
@@ -71,7 +70,7 @@ __private.getAddressByPublicKey = function (publicKey) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
-	var address = bignum.fromBuffer(temp).toString() + 'L';
+	var address = `${bignum.fromBuffer(temp).toString()}L`;
 	return address;
 };
 
@@ -89,7 +88,7 @@ __private.getAddressByPublicKey = function (publicKey) {
  * @returns {block} block
  */
 Block.prototype.create = function (data) {
-	var transactions = data.transactions.sort(function compare (a, b) {
+	var transactions = data.transactions.sort((a, b) => {
 		// Place MULTI transaction after all other transaction types
 		if (a.type === transactionTypes.MULTI && b.type !== transactionTypes.MULTI) { return 1; }
 		// Place all other transaction types before MULTI transaction
@@ -106,7 +105,9 @@ Block.prototype.create = function (data) {
 	var nextHeight = (data.previousBlock) ? data.previousBlock.height + 1 : 1;
 
 	var reward = __private.blockReward.calcReward(nextHeight),
-	    totalFee = 0, totalAmount = 0, size = 0;
+		totalFee = 0,
+totalAmount = 0,
+size = 0;
 
 	var blockTransactions = [];
 	var payloadHash = crypto.createHash('sha256');
@@ -176,7 +177,8 @@ Block.prototype.sign = function (block, keypair) {
  */
 Block.prototype.getBytes = function (block) {
 	var size = 4 + 4 + 8 + 4 + 4 + 8 + 8 + 4 + 4 + 4 + 32 + 32 + 64;
-	var b, i;
+	var b,
+i;
 
 	try {
 		var bb = new ByteBuffer(size, true);
@@ -184,7 +186,7 @@ Block.prototype.getBytes = function (block) {
 		bb.writeInt(block.timestamp);
 
 		if (block.previousBlock) {
-			var pb = new bignum(block.previousBlock).toBuffer({size: '8'});
+			var pb = new bignum(block.previousBlock).toBuffer({ size: '8' });
 
 			for (i = 0; i < 8; i++) {
 				bb.writeByte(pb[i]);
@@ -359,9 +361,7 @@ Block.prototype.objectNormalize = function (block) {
 	var report = this.scope.schema.validate(block, Block.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate block schema: ' + this.scope.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate block schema: ${this.scope.schema.getLastErrors().map(err => err.message).join(', ')}`;
 	}
 
 	try {
@@ -407,11 +407,10 @@ Block.prototype.getHash = function (block) {
 
 /**
  * Returns send fees from constants.
- * @param {block} block
  * @return {number} fee
  * @todo delete unused input parameter
  */
-Block.prototype.calculateFee = function (block) {
+Block.prototype.calculateFee = function () {
 	return constants.fees.send;
 };
 

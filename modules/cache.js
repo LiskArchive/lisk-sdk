@@ -11,8 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+'use strict';
+
 var async = require('async');
-var transactionTypes = require('../helpers/transactionTypes.js');
+var transactionTypes = require('../helpers/transaction_types.js');
 var cacheReady = true;
 var errorCacheDisabled = 'Cache Unavailable';
 var client;
@@ -26,7 +28,7 @@ var cacheEnabled;
  * @param {function} cb
  * @param {Object} scope
  */
-function Cache (cb, scope) {
+function Cache(cb, scope) {
 	self = this;
 	client = scope.cache.client;
 	logger = scope.logger;
@@ -62,7 +64,7 @@ Cache.prototype.getJsonForKey = function (key, cb) {
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
 	}
-	client.get(key, function (err, value) {
+	client.get(key, (err, value) => {
 		if (err) {
 			return cb(err, value);
 		}
@@ -112,24 +114,23 @@ Cache.prototype.removeByPattern = function (pattern, cb) {
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
 	}
-	var keys, cursor = 0;
-	async.doWhilst(function iteratee (whilstCb) {
-		client.scan(cursor, 'MATCH', pattern, function (err, res) {
+	var keys,
+cursor = 0;
+	async.doWhilst(whilstCb => {
+		client.scan(cursor, 'MATCH', pattern, (err, res) => {
 			if (err) {
 				return whilstCb(err);
 			} else {
 				cursor = Number(res.shift());
 				keys = res.shift();
-				if (keys.length > 0 ) {
+				if (keys.length > 0) {
 					client.del(keys, whilstCb);
 				} else {
 					return whilstCb();
 				}
 			}
 		});
-	}, function test () {
-		return cursor > 0;
-	}, cb);
+	}, () => cursor > 0, cb);
 };
 
 /**
@@ -172,7 +173,7 @@ Cache.prototype.quit = function (cb) {
  * @param {Broadcast} broadcast
  * @param {function} cb
  */
-Cache.prototype.onNewBlock = function (cb) {
+Cache.prototype.onNewBlock = function (block, cb) {
 	cb = cb || function () {};
 
 	logger.debug(['Cache - onNewBlock', '| Status:', self.isConnected()].join(' '));
@@ -180,8 +181,8 @@ Cache.prototype.onNewBlock = function (cb) {
 		logger.debug(errorCacheDisabled);
 		return cb(errorCacheDisabled);
 	}
-	async.map(['/api/blocks*', '/api/transactions*'], function (pattern, mapCb) {
-		self.removeByPattern(pattern, function (err) {
+	async.map(['/api/blocks*', '/api/transactions*'], (pattern, mapCb) => {
+		self.removeByPattern(pattern, err => {
 			if (err) {
 				logger.error(['Cache - Error clearing keys with pattern:', pattern, 'on new block'].join(' '));
 			} else {
@@ -201,9 +202,9 @@ Cache.prototype.onFinishRound = function (round, cb) {
 	cb = cb || function () {};
 
 	logger.debug(['Cache - onFinishRound', '| Status:', self.isConnected()].join(' '));
-	if(!self.isReady()) { return cb(errorCacheDisabled); }
+	if (!self.isReady()) { return cb(errorCacheDisabled); }
 	var pattern = '/api/delegates*';
-	self.removeByPattern(pattern, function (err) {
+	self.removeByPattern(pattern, err => {
 		if (err) {
 			logger.error(['Cache - Error clearing keys with pattern:', pattern, 'round finish'].join(' '));
 		} else {
@@ -222,15 +223,13 @@ Cache.prototype.onTransactionsSaved = function (transactions, cb) {
 	cb = cb || function () {};
 
 	logger.debug(['Cache - onTransactionsSaved', '| Status:', self.isConnected()].join(' '));
-	if(!self.isReady()) { return cb(errorCacheDisabled); }
+	if (!self.isReady()) { return cb(errorCacheDisabled); }
 	var pattern = '/api/delegates*';
 
-	var delegateTransaction = transactions.find(function (transaction) {
-		return !!transaction && transaction.type === transactionTypes.DELEGATE;
-	});
+	var delegateTransaction = transactions.find(transaction => !!transaction && transaction.type === transactionTypes.DELEGATE);
 
-	if (!!delegateTransaction) {
-		self.removeByPattern(pattern, function (err) {
+	if (delegateTransaction) {
+		self.removeByPattern(pattern, err => {
 			if (err) {
 				logger.error(['Cache - Error clearing keys with pattern:', pattern, 'on delegate transaction'].join(' '));
 			} else {

@@ -28,8 +28,7 @@ var _ = require('lodash');
  * @returns {function} {@link api/fittings.lisk_response_formatter}
  * @todo: Add description of the function and its parameters
  */
-module.exports = function create (fittingDef, bagpipes) {
-
+module.exports = function create() {
 	/**
 	 * Description.
 	 *
@@ -39,13 +38,12 @@ module.exports = function create (fittingDef, bagpipes) {
 	 * @param {function} next - Description of the param
 	 * @todo: Add description of the function and its parameters
 	 */
-	return function lisk_response_formatter (context, next) {
-
+	return function lisk_response_formatter(context, next) {
 		debug('exec');
 		debug('received data:', context.input);
 
 		if (_.isEmpty(context.input)) {
-			context.headers = {'content-type': 'application/json'};
+			context.headers = { 'content-type': 'application/json' };
 			next(null, {});
 			return;
 		}
@@ -72,7 +70,7 @@ module.exports = function create (fittingDef, bagpipes) {
 
 		debug('setting headers: \'content-type\': \'application/json\'');
 
-		context.headers = {'content-type': 'application/json'};
+		context.headers = { 'content-type': 'application/json' };
 		next(null, output);
 	};
 };

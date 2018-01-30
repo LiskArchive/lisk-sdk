@@ -19,7 +19,10 @@ var Round = require('../logic/round.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules,
+library,
+self,
+__private = {};
 
 __private.loaded = false;
 __private.ticking = false;
@@ -35,7 +38,7 @@ __private.ticking = false;
  * @todo Apply node pattern for callbacks: callback always at the end.
  */
 // Constructor
-function Rounds (cb, scope) {
+function Rounds(cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
@@ -75,9 +78,7 @@ Rounds.prototype.ticking = function () {
  * @return {setImmediateCallback}
  */
 Rounds.prototype.flush = function (round, cb) {
-	library.db.rounds.flush(round).then(function () {
-		return setImmediate(cb);
-	}).catch(function (err) {
+	library.db.rounds.flush(round).then(() => setImmediate(cb)).catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Rounds#flush error');
 	});
@@ -114,17 +115,15 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 		(prevRound === round && nextRound !== round) || (block.height === 1 || block.height === 101)
 	);
 
-	function BackwardTick (t) {
+	function BackwardTick(t) {
 		var promised = new Round(scope, t);
 
 		library.logger.debug('Performing backward tick');
 		library.logger.trace(scope);
 
-		return promised.mergeBlockGenerator().then(function () {
+		return promised.mergeBlockGenerator().then(() => {
 			if (scope.finishRound) {
-				return promised.backwardLand().then(function () {
-					return promised.markBlockId();
-				});
+				return promised.backwardLand().then(() => promised.markBlockId());
 			} else {
 				return promised.markBlockId();
 			}
@@ -153,14 +152,12 @@ Rounds.prototype.backwardTick = function (block, previousBlock, done) {
 		},
 		function (cb) {
 			// Perform round tick
-			library.db.tx(BackwardTick).then(function () {
-				return setImmediate(cb);
-			}).catch(function (err) {
+			library.db.tx(BackwardTick).then(() => setImmediate(cb)).catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, err);
 			});
 		}
-	], function (err) {
+	], err => {
 		// Stop round ticking
 		__private.ticking = false;
 		return done(err);
@@ -209,21 +206,38 @@ Rounds.prototype.tick = function (block, done) {
 		(round !== nextRound) || (block.height === 1 || block.height === 101)
 	);
 
-	function Tick (t) {
+	function Tick(t) {
 		var promised = new Round(scope, t);
 
 		library.logger.debug('Performing forward tick');
 		library.logger.trace(scope);
 
-		return promised.mergeBlockGenerator().then(function () {
+		return promised.mergeBlockGenerator().then(() => {
 			if (scope.finishRound) {
-				return promised.land().then(function () {
+				return promised.land().then(() => {
 					library.bus.message('finishRound', round);
 					if (scope.snapshotRound) {
-						return promised.truncateBlocks().then(function () {
+						return promised.truncateBlocks().then(() => {
 							scope.finishSnapshot = true;
 						});
 					}
+				});
+			}
+		}).then(() => {
+			// Check if we are one block before last block of round, if yes - perform round snapshot
+			if ((block.height + 1) % slots.delegates === 0) {
+				library.logger.debug('Performing round snapshot...');
+
+				return t.batch([
+					t.rounds.clearRoundSnapshot(),
+					t.rounds.performRoundSnapshot(),
+					t.rounds.clearVotesSnapshot(),
+					t.rounds.performVotesSnapshot()
+				]).then(() => {
+					library.logger.trace('Round snapshot done');
+				}).catch(err => {
+					library.logger.error('Round snapshot failed', err);
+					throw err;
 				});
 			}
 		});
@@ -251,38 +265,12 @@ Rounds.prototype.tick = function (block, done) {
 		},
 		// Perform round tick
 		function (cb) {
-			library.db.tx(Tick).then(function () {
-				return setImmediate(cb);
-			}).catch(function (err) {
+			library.db.tx(Tick).then(() => setImmediate(cb)).catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, err);
 			});
-		},
-		function (cb) {
-			// Check if we are one block before last block of round, if yes - perform round snapshot
-			if ((block.height+1) % slots.delegates === 0) {
-				library.logger.debug('Performing round snapshot...');
-
-				library.db.tx(function (t) {
-					return t.batch([
-						t.rounds.clearRoundSnapshot(),
-						t.rounds.performRoundSnapshot(),
-						t.rounds.clearVotesSnapshot(),
-						t.rounds.performVotesSnapshot()
-					]);
-				}).then(function () {
-					library.logger.trace('Round snapshot done');
-					return setImmediate(cb);
-				}).catch(function (err) {
-					library.logger.error('Round snapshot failed', err);
-					return setImmediate(cb, err);
-				});
-			} else {
-				return setImmediate(cb);
-			}
-
 		}
-	], function (err) {
+	], err => {
 		// Stop round ticking
 		__private.ticking = false;
 
@@ -324,7 +312,7 @@ Rounds.prototype.onBlockchainReady = function () {
  * @emits rounds/change
  */
 Rounds.prototype.onFinishRound = function (round) {
-	library.network.io.sockets.emit('rounds/change', {number: round});
+	library.network.io.sockets.emit('rounds/change', { number: round });
 };
 
 /**
@@ -354,16 +342,16 @@ __private.getOutsiders = function (scope, cb) {
 	if (scope.block.height === 1) {
 		return setImmediate(cb);
 	}
-	modules.delegates.generateDelegateList(scope.block.height, null, function (err, roundDelegates) {
+	modules.delegates.generateDelegateList(scope.block.height, null, (err, roundDelegates) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		async.eachSeries(roundDelegates, function (delegate, eachCb) {
+		async.eachSeries(roundDelegates, (delegate, eachCb) => {
 			if (scope.roundDelegates.indexOf(delegate) === -1) {
 				scope.roundOutsiders.push(modules.accounts.generateAddressByPublicKey(delegate));
 			}
 			return setImmediate(eachCb);
-		}, function (err) {
+		}, err => {
 			library.logger.trace('Got outsiders', scope.roundOutsiders);
 			return setImmediate(cb, err);
 		});
@@ -382,10 +370,10 @@ __private.getOutsiders = function (scope, cb) {
 __private.sumRound = function (scope, cb) {
 	library.logger.debug('Summing round', scope.round);
 
-	library.db.rounds.summedRound(scope.round, constants.activeDelegates).then(function (rows) {
+	library.db.rounds.summedRound(scope.round, constants.activeDelegates).then(rows => {
 		var rewards = [];
 
-		rows[0].rewards.forEach(function (reward) {
+		rows[0].rewards.forEach(reward => {
 			rewards.push(Math.floor(reward));
 		});
 
@@ -398,7 +386,7 @@ __private.sumRound = function (scope, cb) {
 		library.logger.trace('roundDelegates', scope.roundDelegates);
 
 		return setImmediate(cb);
-	}).catch(function (err) {
+	}).catch(err => {
 		library.logger.error('Failed to sum round', scope.round);
 		library.logger.error(err.stack);
 		return setImmediate(cb, err);

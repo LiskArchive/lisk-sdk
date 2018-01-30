@@ -28,8 +28,7 @@ var util = require('util');
  * @returns {function} {@link api/fittings.lisk_error_handler}
  * @todo: Add description of the function and its parameters
  */
-module.exports = function create (fittingDef, bagpipes) {
-
+module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
 
 	/**
@@ -41,8 +40,7 @@ module.exports = function create (fittingDef, bagpipes) {
 	 * @param {function} cb - Description of the param
 	 * @todo: Add description of the function and its parameters
 	 */
-	return function lisk_error_handler (context, next) {
-
+	return function lisk_error_handler(context, next) {
 		if (!util.isError(context.error)) { return next(); }
 
 		var err = context.error;
@@ -52,7 +50,7 @@ module.exports = function create (fittingDef, bagpipes) {
 				context.statusCode = context.response.statusCode;
 			} else if (err.statusCode && err.statusCode >= 400) {
 				context.statusCode = err.statusCode;
-				delete(err.statusCode);
+				delete (err.statusCode);
 			} else {
 				context.statusCode = 500;
 			}
@@ -63,7 +61,7 @@ module.exports = function create (fittingDef, bagpipes) {
 		debug('stack: %s', context.error.stack);
 
 		if (context.statusCode === 500) {
-			if(!fittingDef.handle500Errors) {
+			if (!fittingDef.handle500Errors) {
 				return next(err);
 			}
 
@@ -74,7 +72,7 @@ module.exports = function create (fittingDef, bagpipes) {
 
 		context.headers['Content-Type'] = 'application/json';
 		Object.defineProperty(err, 'message', { enumerable: true }); // Include message property in response
-		delete(context.error);
+		delete (context.error);
 		next(null, JSON.stringify(err));
 	};
 };

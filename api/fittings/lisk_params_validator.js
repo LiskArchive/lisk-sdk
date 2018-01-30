@@ -28,8 +28,7 @@ var debug = require('debug')('swagger:lisk:params_validator');
  * @returns {function} {@link api/fittings.lisk_params_validator}
  * @todo: Add description of the function and its parameters
  */
-module.exports = function create (fittingDef, bagpipes) {
-
+module.exports = function create() {
 	/**
 	 * Description.
 	 *
@@ -39,8 +38,7 @@ module.exports = function create (fittingDef, bagpipes) {
 	 * @param {function} cb - Description of the param
 	 * @todo: Add description of the function and its parameters
 	 */
-	return function lisk_params_validator (context, cb) {
-
+	return function lisk_params_validator(context, cb) {
 		var error = null;
 
 		// TODO: Add support for validating accept header against produces declarations
@@ -56,11 +54,11 @@ module.exports = function create (fittingDef, bagpipes) {
 				error = new Error('Validation errors');
 				error.statusCode = 400;
 
-				validateResult.errors.forEach(function (error) { debug('param error: %j', error); });
+				validateResult.errors.forEach(error => { debug('param error: %j', error); });
 
-				error.errors = _.map(validateResult.errors, function (e) {
+				error.errors = _.map(validateResult.errors, e => {
 					var errors = _.pick(e, ['code', 'message', 'in', 'name', 'errors']);
-					errors.errors = _.map(e.errors, function (e) { return _.pick(e, ['code', 'message'] ); });
+					errors.errors = _.map(e.errors, e => _.pick(e, ['code', 'message', 'path']));
 					return errors;
 				});
 			}

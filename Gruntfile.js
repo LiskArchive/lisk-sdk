@@ -15,36 +15,41 @@
 
 var moment = require('moment');
 var util = require('util');
+const path = require('path');
+
+var appFile = 'app.js'; // Application file name
 
 module.exports = function (grunt) {
 	var files = [
 		'logger.js',
-		'workersController.js',
+		'workers_controller.js',
 		'api/**/*.js',
 		'helpers/**/*.js',
 		'modules/**/*.js',
 		'logic/*.js',
 		'schema/**/*.js',
 		'sql/**/*.js',
-		'app.js'
+		appFile
 	];
 
 	var today = moment().format('HH:mm:ss DD/MM/YYYY');
 
 	var config = require('./config.json');
 
-	var release_dir = __dirname + '/release/';
+	const rootDir = __dirname;
+	var release_dir = path.join(rootDir, '/release/');
 	var version_dir = release_dir + config.version;
+	const output_dir = path.join('release/', appFile);
 
 	var maxBufferSize = require('buffer').kMaxLength - 1;
 
 	grunt.initConfig({
 		obfuscator: {
 			files: files,
-			entry: 'app.js',
-			out: 'release/app.js',
+			entry: appFile,
+			out: output_dir,
 			strings: true,
-			root: __dirname
+			root: rootDir
 		},
 
 		exec: {
@@ -54,25 +59,26 @@ module.exports = function (grunt) {
 						util.format('mkdir -p %s', version_dir),
 						util.format('mkdir -p %s/logs', version_dir),
 						util.format('mkdir -p %s/pids', version_dir),
-						util.format('cp %s/app.js %s', release_dir, version_dir),
-						util.format('cp %s/workersController.js %s', release_dir, version_dir),
-						util.format('cp %s/config.json %s', __dirname, version_dir),
-						util.format('cp %s/package.json %s', __dirname, version_dir),
-						util.format('cp %s/genesisBlock.json %s', __dirname, version_dir),
-						util.format('cp %s/LICENSE %s', __dirname, version_dir),
-						util.format('mkdir -p %s/db/sql/init/migrations', version_dir),
-						util.format('cp %s/db/sql/init/*.sql %s/db/sql/init/', __dirname, version_dir),
-						util.format('cp %s/db/sql/init/migrations/*.sql %s/db/sql/init/migrations/', __dirname, version_dir),
+						util.format('cp %s/%s %s', release_dir, appFile, version_dir),
+						util.format('cp %s/workers_controller.js %s', release_dir, version_dir),
+						util.format('cp %s/config.json %s', rootDir, version_dir),
+						util.format('cp %s/package.json %s', rootDir, version_dir),
+						util.format('cp %s/genesis_block.json %s', rootDir, version_dir),
+						util.format('cp %s/LICENSE %s', rootDir, version_dir),
+						util.format('mkdir -p %s/sql', version_dir),
+						// The following two lines will copy all SQL files, preserving the folder structure:
+						util.format('find %s/db/sql -type d | sed "s|^.*/db/sql||" | xargs -I {} mkdir -p %s/sql{}', rootDir, version_dir),
+						util.format('find %s/db/sql -type f -name "*.sql" | sed "s|^.*/db/sql||" | xargs -I {} cp %s/db/sql{} %s/sql{}', rootDir, rootDir, version_dir)
 					].join(' && ');
 				}
 			},
 
 			folder: {
-				command: 'mkdir -p ' + release_dir
+				command: `mkdir -p ${release_dir}`
 			},
 
 			build: {
-				command: 'cd ' + version_dir + '/ && touch build && echo "v' + today + '" > build'
+				command: `cd ${version_dir}/ && touch build && echo "v${today}" > build`
 			},
 
 			mocha: {
@@ -82,14 +88,14 @@ module.exports = function (grunt) {
 						if (tag !== 'slow') {
 							slowTag = '--grep @slow --invert';
 						}
-						return './node_modules/.bin/_mocha --bail test/integration/index.js ' + slowTag;
+						return `./node_modules/.bin/_mocha --bail test/integration/index.js ${slowTag}`;
 					} else {
 						var toExecute = [
 							tag,
 							suite,
 							section
 						].filter(function (val) { return val; }).join(' ');
-						return 'node test/common/parallelTests.js ' + toExecute;
+						return `node test/common/parallel_tests.js ${toExecute}`;
 					}
 				},
 				maxBuffer: maxBufferSize
@@ -113,23 +119,14 @@ module.exports = function (grunt) {
 		compress: {
 			main: {
 				options: {
-					archive: version_dir + '.tar.gz',
+					archive: `${version_dir}.tar.gz`,
 					mode: 'tgz',
 					level: 6
 				},
 				files: [
-					{ expand: true, cwd: release_dir, src: [config.version + '/**'], dest: './' }
+					{ expand: true, cwd: release_dir, src: [`${config.version}/**`], dest: './' }
 				]
 			}
-		},
-
-		eslint: {
-			options: {
-				configFile: '.eslintrc.json',
-				format: 'codeframe',
-				fix: false
-			},
-			target: '.'
 		}
 	});
 
@@ -138,16 +135,9 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-obfuscator');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-contrib-compress');
-	grunt.loadNpmTasks('grunt-eslint');
 
 	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:createBundles', 'exec:package', 'exec:build', 'compress']);
 	grunt.registerTask('coverageReport', ['exec:coverageReport']);
-	grunt.registerTask('eslint-nofix', ['eslint']);
-
-	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
-		grunt.config.set('eslint.options.fix', true);
-		grunt.task.run('eslint');
-	});
 
 	grunt.registerTask('default', 'mocha');
 };

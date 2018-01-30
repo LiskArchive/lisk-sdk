@@ -12,19 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 def report() {
-	step([
-		$class: 'GitHubCommitStatusSetter',
-		errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
-		contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins-ci/integration'],
-		statusResultSource: [
-			$class: 'ConditionalStatusResultSource',
-			results: [
-					[$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: 'This commit looks good :)'],
-					[$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: 'This commit failed testing :('],
-					[$class: 'AnyBuildResult', state: 'FAILURE', message: 'This build somehow escaped evaluation']
-			]
-		]
-	])
 	if (currentBuild.result == 'FAILURE') {
 		def prBranch = ''
 		if (env.CHANGE_BRANCH != null) {
@@ -59,7 +46,7 @@ node('node-06') {
 					sudo service postgresql restart
 					rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/"
 					npm install
-					cp test/data/config.json test/data/genesisBlock.json .
+					cp test/data/config.json test/data/genesis_block.json .
 				'''
 			} catch (err) {
 				statusFail()

@@ -15,7 +15,7 @@
 
 var _ = require('lodash');
 var swaggerHelper = require('../../helpers/swagger');
-var ApiError = require('../../helpers/apiError');
+var ApiError = require('../../helpers/api_error');
 
 // Private Fields
 var modules;
@@ -27,7 +27,7 @@ var modules;
  * @classdesc Main System methods.
  * @param {scope} scope - App instance.
  */
-function TransactionsController (scope) {
+function TransactionsController(scope) {
 	modules = scope.modules;
 }
 
@@ -60,14 +60,12 @@ TransactionsController.getTransactions = function (context, next) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.transactions.shared.getTransactions(_.clone(filters), function (err, data) {
+	modules.transactions.shared.getTransactions(_.clone(filters), (err, data) => {
 		if (err) { return next(err); }
 
-		var transactions = _.map(_.cloneDeep(data.transactions), function (transaction) {
+		var transactions = _.map(_.cloneDeep(data.transactions), transaction => {
 			transaction.senderId = transaction.senderId || '';
 			transaction.recipientId = transaction.recipientId || '';
 			transaction.recipientPublicKey = transaction.recipientPublicKey || '';
@@ -94,7 +92,7 @@ TransactionsController.getTransactions = function (context, next) {
 TransactionsController.postTransactions = function (context, next) {
 	var transactions = context.request.swagger.params.transactions.value;
 
-	modules.transactions.shared.postTransactions(transactions, function (err, data) {
+	modules.transactions.shared.postTransactions(transactions, (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = err.code;
@@ -106,8 +104,8 @@ TransactionsController.postTransactions = function (context, next) {
 		if (err) { return next(err); }
 
 		next(null, {
-			data: {message: data},
-			meta: {status: true}
+			data: { message: data },
+			meta: { status: true }
 		});
 	});
 };

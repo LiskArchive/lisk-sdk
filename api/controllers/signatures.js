@@ -13,8 +13,7 @@
  */
 'use strict';
 
-var _ = require('lodash');
-var ApiError = require('../../helpers/apiError');
+var ApiError = require('../../helpers/api_error');
 
 // Private Fields
 var modules;
@@ -26,14 +25,14 @@ var modules;
  * @classdesc Main System methods.
  * @param {scope} scope - App instance.
  */
-function SignaturesController (scope) {
+function SignaturesController(scope) {
 	modules = scope.modules;
 }
 
 SignaturesController.postSignatures = function (context, next) {
 	var signatures = context.request.swagger.params.signatures.value;
 
-	modules.signatures.shared.postSignatures(signatures, function (err, data) {
+	modules.signatures.shared.postSignatures(signatures, (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = err.code;
@@ -44,8 +43,8 @@ SignaturesController.postSignatures = function (context, next) {
 		}
 
 		next(null, {
-			data: {message: data.status},
-			meta: {status: true}
+			data: { message: data.status },
+			meta: { status: true }
 		});
 	});
 };

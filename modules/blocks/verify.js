@@ -14,17 +14,21 @@
 'use strict';
 
 var async = require('async');
-var BlockReward = require('../../logic/blockReward.js');
+var BlockReward = require('../../logic/block_reward.js');
+var _ = require('lodash');
 var constants = require('../../helpers/constants.js');
 var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
 var exceptions = require('../../helpers/exceptions.js');
-var bson = require('../../helpers/bson.js');
 
-var modules, library, self, __private = {};
+var modules,
+library,
+self,
+__private = {};
 
+__private.lastNBlockIds = [];
 
-function Verify (logger, block, transaction, db) {
+function Verify(logger, block, transaction, db) {
 	library = {
 		logger: logger,
 		db: db,
@@ -87,7 +91,7 @@ __private.checkTransaction = function (block, transaction, cb) {
 		function (waterCb) {
 			// Get account from database if any (otherwise cold wallet).
 			// DATABASE: read only
-			modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, waterCb);
+			modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, waterCb);
 		},
 		function (sender, waterCb) {
 			// Check if transaction id valid against database state (mem_* tables).
@@ -103,8 +107,7 @@ __private.checkTransaction = function (block, transaction, cb) {
  * Set height according to the given last block
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method setHeight
  * @param  {Object}  block Target block
  * @param  {Object}  lastBlock Last block
  * @return {Object}  block Target block
@@ -119,8 +122,7 @@ __private.setHeight = function (block, lastBlock) {
  * Verify block signature
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifySignature
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
@@ -147,8 +149,7 @@ __private.verifySignature = function (block, result) {
  * Verify previous block
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifyPreviousBlock
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
@@ -164,11 +165,29 @@ __private.verifyPreviousBlock = function (block, result) {
 };
 
 /**
+ * Verify block is not one of the last {constants.blockSlotWindow} saved blocks
+ *
+ * @private
+ * @method verifyAgainstLastNBlockIds
+ * @param  {Object}  block Target block
+ * @param  {Object}  result Verification results
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifyAgainstLastNBlockIds = function (block, result) {
+	if (__private.lastNBlockIds.indexOf(block.id) !== -1) {
+		result.errors.push('Block already exists in chain');
+	}
+
+	return result;
+};
+
+/**
  * Verify block version
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifyVersion
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
@@ -187,8 +206,7 @@ __private.verifyVersion = function (block, result) {
  * Verify block reward
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifyReward
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
@@ -209,8 +227,7 @@ __private.verifyReward = function (block, result) {
  * Verify block id
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifyId
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
@@ -233,8 +250,7 @@ __private.verifyId = function (block, result) {
  * Verify block payload (transactions)
  *
  * @private
- * @method verifyBlock
- * @method verifyReceipt
+ * @method verifyPayload
  * @param  {Object}  block Target block
  * @param  {Object}  result Verification results
  * @return {Object}  result Verification results
@@ -270,7 +286,7 @@ __private.verifyPayload = function (block, result) {
 		}
 
 		if (appliedTransactions[transaction.id]) {
-			result.errors.push('Encountered duplicate transaction: ' + transaction.id);
+			result.errors.push(`Encountered duplicate transaction: ${transaction.id}`);
 		}
 
 		appliedTransactions[transaction.id] = transaction;
@@ -298,7 +314,7 @@ __private.verifyPayload = function (block, result) {
  * Verify block for fork cause one
  *
  * @private
- * @method verifyBlock
+ * @method verifyForkOne
  * @param  {Object}  block Target block
  * @param  {Object}  lastBlock Last block
  * @param  {Object}  result Verification results
@@ -319,7 +335,7 @@ __private.verifyForkOne = function (block, lastBlock, result) {
  * Verify block slot according to timestamp
  *
  * @private
- * @method verifyBlock
+ * @method verifyBlockSlot
  * @param  {Object}  block Target block
  * @param  {Object}  lastBlock Last block
  * @param  {Object}  result Verification results
@@ -333,6 +349,33 @@ __private.verifyBlockSlot = function (block, lastBlock, result) {
 
 	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
 		result.errors.push('Invalid block timestamp');
+	}
+
+	return result;
+};
+
+/**
+ * Verify block slot window according to application time
+ *
+ * @private
+ * @method verifyBlockSlotWindow
+ * @param  {Object}  block Target block
+ * @return {Object}  result Verification results
+ * @return {boolean} result.verified Indicator that verification passed
+ * @return {Array}   result.errors Array of validation errors
+ */
+__private.verifyBlockSlotWindow = function (block, result) {
+	var currentApplicationSlot = slots.getSlotNumber();
+	var blockSlot = slots.getSlotNumber(block.timestamp);
+
+	// Reject block if it's slot is older than constants.blockSlotWindow
+	if (currentApplicationSlot - blockSlot > constants.blockSlotWindow) {
+		result.errors.push('Block slot is too old');
+	}
+
+	// Reject block if it's slot is in the future
+	if (currentApplicationSlot < blockSlot) {
+		result.errors.push('Block slot is in the future');
 	}
 
 	return result;
@@ -357,6 +400,8 @@ Verify.prototype.verifyReceipt = function (block) {
 
 	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
+	result = __private.verifyAgainstLastNBlockIds(block, result);
+	result = __private.verifyBlockSlotWindow(block, result);
 	result = __private.verifyVersion(block, result);
 	result = __private.verifyReward(block, result);
 	result = __private.verifyId(block, result);
@@ -366,6 +411,33 @@ Verify.prototype.verifyReceipt = function (block) {
 	result.errors.reverse();
 
 	return result;
+};
+
+/**
+ * Loads last {constants.blockSlotWindow} blocks from the database into memory. Called when application triggeres blockchainReady event.
+ *
+ * @method onBlockchainReady
+ */
+Verify.prototype.onBlockchainReady = function () {
+	return library.db.blocks.loadLastNBlockIds(constants.blockSlotWindow).then(function (blockIds) {
+		__private.lastNBlockIds = _.map(blockIds, 'id');
+	}).catch(function (err) {
+		library.logger.error(`Unable to load last ${constants.blockSlotWindow} block ids`);
+		library.logger.error(err);
+	});
+};
+
+/**
+ * Maintains __private.lastNBlock variable - a queue of fixed length (constants.blockSlotWindow). Called when application triggers newBlock event.
+ *
+ * @method onNewBlock
+ * @param {block} block
+ */
+Verify.prototype.onNewBlock = function (block) {
+	__private.lastNBlockIds.push(block.id);
+	if (__private.lastNBlockIds.length > constants.blockSlotWindow) {
+		__private.lastNBlockIds.shift();
+	}
 };
 
 /**
@@ -446,7 +518,7 @@ Verify.prototype.deleteBlockProperties = function (block) {
 		delete reducedBlock.version;
 	}
 	// verifyBlock ensures numberOfTransactions is transactions.length
-	if (typeof(reducedBlock.numberOfTransactions) === 'number') {
+	if (typeof (reducedBlock.numberOfTransactions) === 'number') {
 		delete reducedBlock.numberOfTransactions;
 	}
 	if (reducedBlock.totalAmount === 0) {

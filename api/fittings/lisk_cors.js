@@ -30,8 +30,7 @@ var CORS = require('cors');
  * @returns {function} {@link api/fittings.lisk_cors}
  * @todo: Add description of the function and its parameters
  */
-module.exports = function create (fittingDef, bagpipes) {
-
+module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
 
 	var validCorsOptions = ['origin', 'methods', 'allowedHeaders'];
@@ -46,7 +45,7 @@ module.exports = function create (fittingDef, bagpipes) {
 	 * @param {function} cb - Description of the param
 	 * @todo: Add description of the function and its parameters
 	 */
-	return function lisk_cors (context, cb) {
+	return function lisk_cors(context, cb) {
 		debug('exec');
 		middleware(context.request, context.response, cb);
 	};

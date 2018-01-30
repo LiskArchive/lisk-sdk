@@ -82,16 +82,6 @@ This sections provides details on what you need install on your system in order 
   npm install -g pm2
   ```
 
-#### Special note about NPM 5
-
-Due to an issue with NPM 5.4.x and higher, node-sodium currently cannot be built. Therefore it is recommended to fixate the local NPM version at 5.3.x if you are running NPM 5.4.x or higher.
-
-All Systems - This may require sudo depending on your environment:
-
-```
-npm install -g npm@5.3.0
-```
-
 ### PostgreSQL (version 9.6):
 
    - Ubuntu/Debian:
@@ -232,10 +222,10 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
   createdb lisk_test
   ```
 
-2. Ensure Lisk is configured to run on the same local network used by the tests. Replace the files **config.json** and **genesisBlock.json** with those located under the **test/data** directory:
+2. Ensure Lisk is configured to run on the same local network used by the tests. Replace the files **config.json** and **genesis_block.json** with those located under the **test/data** directory:
 
   ```
-  cp test/data/config.json test/data/genesisBlock.json .
+  cp test/data/config.json test/data/genesis_block.json .
   ```
 
 3. Launch Lisk (runs on port 4000):
