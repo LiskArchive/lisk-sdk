@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var httpApi = require('./httpApi');
+var httpApi = require('./http_api');
 var extend = require('extend');
 
 /**

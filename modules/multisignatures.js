@@ -18,9 +18,9 @@ var crypto = require('crypto');
 var extend = require('extend');
 var genesisblock = null;
 var Multisignature = require('../logic/multisignature.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
-var apiError = require('../helpers/apiError');
-var errorCodes = require('../helpers/apiCodes');
+var transactionTypes = require('../helpers/transaction_types.js');
+var ApiError = require('../helpers/api_error');
+var errorCodes = require('../helpers/api_codes');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};
@@ -188,15 +188,14 @@ Multisignatures.prototype.getGroup = function (address, cb) {
 
 	async.series({
 		getAccount: function (seriesCb) {
-			var multiSigFilters = Object.assign({}, {address: address}, {multimin: {$gt: 0}});
 
-			library.logic.account.get(multiSigFilters, function (err, account) {
+			library.logic.account.getMultiSignature({address: address}, function (err, account) {
 				if (err) {
 					return setImmediate(seriesCb, err);
 				}
 
 				if (!account) {
-					return setImmediate(seriesCb, new apiError('Multisignature account not found', errorCodes.NOT_FOUND));
+					return setImmediate(seriesCb, new ApiError('Multisignature account not found', errorCodes.NOT_FOUND));
 				}
 
 				scope.group = {
@@ -221,7 +220,7 @@ Multisignatures.prototype.getGroup = function (address, cb) {
 					addresses.push(modules.accounts.generateAddressByPublicKey(key));
 				});
 
-				modules.accounts.getAccounts({address: { $in: addresses}}, ['address', 'publicKey', 'secondPublicKey'], function (err, accounts) {
+				modules.accounts.getAccounts({address: addresses}, ['address', 'publicKey', 'secondPublicKey'], function (err, accounts) {
 					accounts.forEach(function (account) {
 						scope.group.members.push({
 							address: account.address,
@@ -310,7 +309,7 @@ Multisignatures.prototype.shared = {
 					}
 
 					if (!account) {
-						return setImmediate(seriesCb, new apiError('Multisignature membership account not found', errorCodes.NOT_FOUND));
+						return setImmediate(seriesCb, new ApiError('Multisignature membership account not found', errorCodes.NOT_FOUND));
 					}
 
 					scope.targetAccount = account;

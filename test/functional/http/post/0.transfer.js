@@ -18,14 +18,12 @@ var lisk = require('lisk-js');
 
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
-var typesRepresentatives = require('../../../fixtures/typesRepresentatives');
-
-var constants = require('../../../../helpers/constants');
+var typesRepresentatives = require('../../../fixtures/types_representatives');
 
 var sendTransactionPromise = require('../../../common/helpers/api').sendTransactionPromise;
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
-var errorCodes = require('../../../../helpers/apiCodes');
+var errorCodes = require('../../../../helpers/api_codes');
 
 describe('POST /api/transactions (type 0) transfer funds', function () {
 

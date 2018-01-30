@@ -15,12 +15,12 @@
 
 var lisk = require('lisk-js');
 var application = require('../../../common/application');
-var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
+var clearDatabaseTable = require('../../../common/db_sandbox').clearDatabaseTable;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 var rewire = require('rewire');
 
-var modulesLoader = require('../../../common/modulesLoader');
+var modulesLoader = require('../../../common/modules_loader');
 var BlocksApi = rewire('../../../../modules/blocks/api.js');
 
 describe('blocks/api', function () {

@@ -28,11 +28,11 @@ pipeline {
 				createdb lisk_test
 				cd "${params.MIGRATE_FROM}"
 				cp test/config.json .
-				cp test/genesisBlock.json .
+				cp test/genesis_block.json .
 				npm install
 				cd "../${params.MIGRATE_TO}"
 				cp test/data/config.json .
-				cp test/data/genesisBlock.json .
+				cp test/data/genesis_block.json .
 				npm install
 				sudo service postgresql restart
 				"""

@@ -23,7 +23,7 @@ var bignum = require('../../../helpers/bignum.js');
 
 var application = require('../../common/application.js');
 
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 var Account = rewire('../../../logic/account.js');
 
 var validAccount = {
@@ -110,21 +110,10 @@ describe('account', function () {
 		});
 	});
 
-	describe('createTables', function () {
-
-		it('should create the tables', function (done) {
-			accountLogic.createTables(function (err, res) {
-				expect(err).to.not.exist;
-				expect(res).to.be.undefined;
-				done();
-			});
-		});
-	});
-
-	describe('removeTables', function () {
+	describe('resetMemTables', function () {
 
 		it('should remove the tables', function (done) {
-			accountLogic.removeTables(function (err, res) {
+			account.resetMemTables(function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.undefined;
 				done();
@@ -195,7 +184,7 @@ describe('account', function () {
 			account.get({address: validAccount.address}, requestedFields, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('object');
-				expect(Object.keys(res)).to.eql(requestedFields);
+				expect(Object.keys(res).sort()).to.eql(requestedFields.sort());
 				done();
 			});
 		});
@@ -203,7 +192,7 @@ describe('account', function () {
 		it('should get all fields if fields parameters is not set', function (done) {
 			account.get({address: validAccount.address}, function (err, res) {
 				expect(err).to.not.exist;
-				expect(Object.keys(res)).to.eql(Object.keys(validAccount));
+				expect(Object.keys(res).sort()).to.eql(Object.keys(validAccount).sort());
 				done();
 			});
 		});
@@ -221,7 +210,7 @@ describe('account', function () {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('object');
 				expect(res.username).to.equal(validAccount.username);
-				expect(res.isDelegate).to.equal(validAccount.isDelegate);
+				expect(res.isDelegate).to.equal((validAccount.isDelegate ? true : false));
 				expect(res.address).to.equal(validAccount.address);
 				expect(res.publicKey).to.equal(validAccount.publicKey);
 				expect(res.delegates).to.equal(validAccount.delegates);
@@ -314,7 +303,7 @@ describe('account', function () {
 			account.get({address: validAccount.address}, requestedFields, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('object');
-				expect(Object.keys(res)).to.eql(requestedFields);
+				expect(Object.keys(res).sort()).to.eql(requestedFields.sort());
 				done();
 			});
 		});
@@ -388,7 +377,7 @@ describe('account', function () {
 				expect(err).to.not.exist;
 				expect(res.length).to.equal(1);
 				expect(res[0].username).to.equal(validAccount.username);
-				expect(res[0].isDelegate).to.equal(validAccount.isDelegate);
+				expect(res[0].isDelegate).to.equal((validAccount.isDelegate ? true : false));
 				expect(res[0].address).to.equal(validAccount.address);
 				expect(res[0].publicKey).to.equal(validAccount.publicKey);
 				expect(res[0].delegates).to.equal(validAccount.delegates);
@@ -401,7 +390,7 @@ describe('account', function () {
 				expect(err).to.not.exist;
 				expect(res.length).to.equal(1);
 				expect(res[0].username).to.equal(validAccount.username);
-				expect(res[0].isDelegate).to.equal(validAccount.isDelegate);
+				expect(res[0].isDelegate).to.equal((validAccount.isDelegate ? true : false));
 				expect(res[0].address).to.equal(validAccount.address);
 				expect(res[0].publicKey).to.equal(validAccount.publicKey);
 				expect(res[0].delegates).to.equal(validAccount.delegates);
@@ -414,7 +403,7 @@ describe('account', function () {
 				expect(err).to.not.exist;
 				expect(res.length).to.equal(1);
 				expect(res[0].username).to.equal(validAccount.username);
-				expect(res[0].isDelegate).to.equal(validAccount.isDelegate);
+				expect(res[0].isDelegate).to.equal((validAccount.isDelegate ? true : false));
 				expect(res[0].address).to.equal(validAccount.address);
 				expect(res[0].publicKey).to.equal(validAccount.publicKey);
 				expect(res[0].delegates).to.equal(validAccount.delegates);
@@ -426,7 +415,7 @@ describe('account', function () {
 			account.getAll({isDelegate: 1}, function (err, res) {
 				expect(err).to.not.exist;
 				expect(res.filter(function (a) {
-					return a.isDelegate === 1;
+					return a.isDelegate === true;
 				}).length).to.equal(res.length);
 				done();
 			});
@@ -598,7 +587,7 @@ describe('account', function () {
 
 		it('should throw error when a numeric field receives non numeric value', function (done) {
 			account.merge(validAccount.address, {balance: 'Not a Number'}, function (err, res) {
-				expect(err).to.equal('Encountered unsane number: Not a Number');
+				expect(err).to.equal('Encountered insane number: Not a Number');
 				done();
 			});
 		});

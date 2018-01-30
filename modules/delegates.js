@@ -15,19 +15,15 @@
 
 var _ = require('lodash');
 var async = require('async');
-var apiCodes = require('../helpers/apiCodes.js');
-var ApiError = require('../helpers/apiError.js');
-var bignum = require('../helpers/bignum.js');
-var BlockReward = require('../logic/blockReward.js');
-var checkIpInList = require('../helpers/checkIpInList.js');
+var apiCodes = require('../helpers/api_codes.js');
+var ApiError = require('../helpers/api_error.js');
+var BlockReward = require('../logic/block_reward.js');
 var constants = require('../helpers/constants.js');
-var jobsQueue = require('../helpers/jobsQueue.js');
+var jobsQueue = require('../helpers/jobs_queue.js');
 var crypto = require('crypto');
 var Delegate = require('../logic/delegate.js');
-var extend = require('extend');
-var sortBy = require('../helpers/sort_by.js').sortBy;
 var slots = require('../helpers/slots.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
+var transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
 var modules, library, self, __private = {}, shared = {};

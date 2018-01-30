@@ -46,7 +46,7 @@ def buildDependencies() {
 def startLisk() {
 	try {
 		sh '''
-		cp test/data/config.json test/data/genesisBlock.json .
+		cp test/data/config.json test/data/genesis_block.json .
 		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
 		'''
 	} catch (err) {
@@ -91,9 +91,13 @@ def cleanUpMaster() {
 
 def archiveLogs() {
 	sh '''
-	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}"
+	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}" || true
 	'''
-	archiveArtifacts "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*"
+	try {
+		archiveArtifacts artifacts: "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*", allowEmptyArchive: true
+	} catch (err) {
+		echo "Error: ${err}"
+	}
 }
 
 def runAction(action) {

@@ -15,10 +15,9 @@
 
 var _ = require('lodash');
 var async = require('async');
-var crypto = require('crypto');
 
-var apiCodes = require('../helpers/apiCodes');
-var ApiError = require('../helpers/apiError');
+var apiCodes = require('../helpers/api_codes');
+var ApiError = require('../helpers/api_error');
 var constants = require('../helpers/constants');
 
 // Private fields
@@ -70,7 +69,7 @@ var getVotersForDelegates = function (filters, delegate, cb) {
 };
 
 var populateVoters = function (sort, addresses, cb) {
-	modules.accounts.getAccounts({address: {$in: addresses}, sort: sort}, ['address', 'balance', 'publicKey'], cb);
+	modules.accounts.getAccounts({address: addresses, sort: sort}, ['address', 'balance', 'publicKey'], cb);
 };
 
 var getVotersCountForDelegates = function (delegate, cb) {
@@ -116,7 +115,7 @@ var getVotesForDelegates = function (filters, delegate, cb) {
 };
 
 var populateVotes = function (sort, addresses, cb) {
-	modules.accounts.getAccounts({address: {$in: addresses}, sort: sort}, ['address', 'balance', 'publicKey', 'username'], cb);
+	modules.accounts.getAccounts({address: addresses, sort: sort}, ['address', 'balance', 'publicKey', 'username'], cb);
 };
 
 /**

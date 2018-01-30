@@ -24,7 +24,7 @@ if(typeof before !== 'function') {
 		cb();
 	};
 }
-
+require('../test/setup');
 var application = require('../test/common/application.js');
 
 application.init({}, function (err, scope) {

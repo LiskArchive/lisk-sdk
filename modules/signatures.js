@@ -13,10 +13,10 @@
  */
 'use strict';
 
-var apiCodes = require('../helpers/apiCodes.js');
-var ApiError = require('../helpers/apiError.js');
+var apiCodes = require('../helpers/api_codes.js');
+var ApiError = require('../helpers/api_error.js');
 var Signature = require('../logic/signature.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
+var transactionTypes = require('../helpers/transaction_types.js');
 var _ = require('lodash');
 
 // Private fields

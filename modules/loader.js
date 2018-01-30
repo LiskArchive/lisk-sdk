@@ -15,7 +15,7 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
-var jobsQueue = require('../helpers/jobsQueue.js');
+var jobsQueue = require('../helpers/jobs_queue.js');
 var Peer = require('../logic/peer.js');
 var slots = require('../helpers/slots.js');
 
@@ -299,7 +299,7 @@ __private.loadTransactions = function (cb) {
  * 2. Matches genesis block with database.
  * 3. Verifies snapshot mode.
  * 4. Recreates memory tables when neccesary:
- *  - Calls logic.account to removeTables and createTables
+ *  - Calls logic.account to resetMemTables
  *  - Calls block to load block. When blockchain ready emits a bus message.
  * 5. Detects orphaned blocks in `mem_accounts` and gets delegates.
  * 6. Loads last block and emits a bus message blockchain is ready.
@@ -307,8 +307,7 @@ __private.loadTransactions = function (cb) {
  * @implements {library.db.task}
  * @implements {slots.calcRound}
  * @implements {library.bus.message}
- * @implements {library.logic.account.removeTables}
- * @implements {library.logic.account.createTables}
+ * @implements {library.logic.account.resetMemTables}
  * @implements {async.until}
  * @implements {modules.blocks.loadBlocksOffset}
  * @implements {modules.blocks.deleteAfterBlock}
@@ -324,17 +323,8 @@ __private.loadBlockChain = function () {
 		verify = true;
 		__private.total = count;
 		async.series({
-			removeTables: function (seriesCb) {
-				library.logic.account.removeTables(function (err) {
-					if (err) {
-						throw err;
-					} else {
-						return setImmediate(seriesCb);
-					}
-				});
-			},
-			createTables: function (seriesCb) {
-				library.logic.account.createTables(function (err) {
+			resetMemTables: function (seriesCb) {
+				library.logic.account.resetMemTables(function (err) {
 					if (err) {
 						throw err;
 					} else {
