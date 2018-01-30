@@ -30,9 +30,9 @@ describe('system test (type 0) - double transfers', function () {
 	var i = 0;
 	var t = 0;
 	while (i < 1) {
-		
+
 		describe('executing 30 times', function () {
-			
+
 			var account = randomUtil.account();
 			var transaction = lisk.transaction.createTransaction(account.address, 1100 * normalizer, accountFixtures.genesis.password);
 			var transaction1, transaction2;

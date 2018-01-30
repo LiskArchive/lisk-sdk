@@ -14,10 +14,9 @@
 'use strict';
 
 var _ = require('lodash');
-var checkIpInList = require('../../helpers/checkIpInList.js');
-var apiCodes = require('../../helpers/apiCodes');
+var checkIpInList = require('../../helpers/check_ip_in_list.js');
+var apiCodes = require('../../helpers/api_codes');
 var swaggerHelper = require('../../helpers/swagger');
-var ApiError = require('../../helpers/apiError');
 
 // Private Fields
 var modules;

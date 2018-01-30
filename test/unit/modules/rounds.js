@@ -22,7 +22,7 @@ var Rounds = rewire('../../../modules/rounds.js');
 
 var sinon = sinonSandbox;
 var Round = rewire('../../../logic/round.js');
-var DBSandbox = require('../../common/DBSandbox').DBSandbox;
+var DBSandbox = require('../../common/db_sandbox').DBSandbox;
 
 describe('rounds', function () {
 

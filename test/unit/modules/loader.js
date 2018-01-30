@@ -16,8 +16,8 @@
 var express = require('express');
 var rewire  = require('rewire');
 
-var jobsQueue = require('../../../helpers/jobsQueue');
-var modulesLoader = require('../../common/modulesLoader');
+var jobsQueue = require('../../../helpers/jobs_queue');
+var modulesLoader = require('../../common/modules_loader');
 var swaggerHelper = require('../../../helpers/swagger');
 
 describe('loader', function () {

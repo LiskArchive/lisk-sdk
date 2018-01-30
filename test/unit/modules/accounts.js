@@ -21,7 +21,7 @@ var async = require('async');
 var constants = require('../../../helpers/constants.js');
 var application = require('../../common/application.js');
 var AccountModule = require('../../../modules/accounts.js');
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
 

@@ -19,7 +19,7 @@ var expect = chai.expect;
 
 var swaggerHelper = require('../../../helpers/swagger');
 
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 var TransportModule = rewire('../../../modules/transport.js');
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.

@@ -23,8 +23,8 @@ var PQ = require('pg-promise').ParameterizedQuery;
 var accountFixtures = require('../../../../fixtures/accounts');
 var slots = require('../../../../../helpers/slots');
 var constants = require('../../../../../helpers/constants');
-var genesisBlock = require('../../../../data/genesisBlock.json');
-var genesisDelegates = require('../../../../data/genesisDelegates.json').delegates;
+var genesisBlock = require('../../../../data/genesis_block.json');
+var genesisDelegates = require('../../../../data/genesis_delegates.json').delegates;
 var application = require('../../../../common/application.js');
 
 describe('onReceiveBlock()', function () {

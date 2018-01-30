@@ -21,7 +21,7 @@ var appFile = 'app.js'; // Application file name
 module.exports = function (grunt) {
 	var files = [
 		'logger.js',
-		'workersController.js',
+		'workers_controller.js',
 		'api/**/*.js',
 		'helpers/**/*.js',
 		'modules/**/*.js',
@@ -57,10 +57,10 @@ module.exports = function (grunt) {
 						util.format('mkdir -p %s/logs', version_dir),
 						util.format('mkdir -p %s/pids', version_dir),
 						util.format('cp %s/%s %s', release_dir, appFile, version_dir),
-						util.format('cp %s/workersController.js %s', release_dir, version_dir),
+						util.format('cp %s/workers_controller.js %s', release_dir, version_dir),
 						util.format('cp %s/config.json %s', __dirname, version_dir),
 						util.format('cp %s/package.json %s', __dirname, version_dir),
-						util.format('cp %s/genesisBlock.json %s', __dirname, version_dir),
+						util.format('cp %s/genesis_block.json %s', __dirname, version_dir),
 						util.format('cp %s/LICENSE %s', __dirname, version_dir),
 						util.format('mkdir -p %s/sql', version_dir),
 						// The following two lines will copy all SQL files, preserving the folder structure:
@@ -92,7 +92,7 @@ module.exports = function (grunt) {
 							suite,
 							section
 						].filter(function (val) { return val; }).join(' ');
-						return 'node test/common/parallelTests.js ' + toExecute;
+						return 'node test/common/parallel_tests.js ' + toExecute;
 					}
 				},
 				maxBuffer: maxBufferSize

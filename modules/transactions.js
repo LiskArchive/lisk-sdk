@@ -14,21 +14,17 @@
 'use strict';
 
 var _ = require('lodash');
-var async = require('async');
 var constants = require('../helpers/constants.js');
-var crypto = require('crypto');
-var extend = require('extend');
-var apiCodes = require('../helpers/apiCodes.js');
-var ApiError = require('../helpers/apiError.js');
+var apiCodes = require('../helpers/api_codes.js');
+var ApiError = require('../helpers/api_error.js');
 var sortBy = require('../helpers/sort_by.js').sortBy;
-var TransactionPool = require('../logic/transactionPool.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
+var TransactionPool = require('../logic/transaction_pool.js');
+var transactionTypes = require('../helpers/transaction_types.js');
 var Transfer = require('../logic/transfer.js');
 var Promise = require('bluebird');
 
 // Private fields
 var __private = {};
-var shared = {};
 var modules;
 var library;
 var self;

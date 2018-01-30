@@ -17,7 +17,7 @@ var lisk = require('lisk-js');
 var Promise = require('bluebird');
 
 var accountFixtures = require('../../fixtures/accounts');
-var swaggerSpec = require('../../common/swaggerSpec');
+var swaggerSpec = require('../swagger_spec');
 
 var http = {
 	abstractRequest: function (options, done) {

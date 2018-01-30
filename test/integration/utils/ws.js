@@ -14,7 +14,7 @@
 'use strict';
 
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-var WSServerMaster = require('../../common/ws/serverMaster');
+var WSServerMaster = require('../../common/ws/server_master');
 var scClient = require('socketcluster-client');
 
 module.exports = {

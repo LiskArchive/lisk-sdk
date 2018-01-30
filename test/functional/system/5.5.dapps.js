@@ -71,7 +71,7 @@ describe('system test (type 5) - dapp registrations with repeated values', funct
 			done();
 		});
 	});
-	
+
 	it('adding to pool dapp transaction 3 should be ok', function (done) {
 		transaction3 = lisk.dapp.createDapp(account.password, null, dappDuplicateNameFail, -10000);
 		badTransactions.push(transaction3);
@@ -132,13 +132,13 @@ describe('system test (type 5) - dapp registrations with repeated values', funct
 				done();
 			});
 		});
-		
+
 		it('last dapp transactions to arrive should be included', function (done) {
 			async.every(goodTransactions, function (transaction, callback) {
 				var filter = {
 					id: transaction.id
 				};
-				
+
 				localCommon.getTransactionFromModule(library, filter, function (err, res) {
 					expect(err).to.be.null;
 					expect(res).to.have.property('transactions').which.is.an('Array');

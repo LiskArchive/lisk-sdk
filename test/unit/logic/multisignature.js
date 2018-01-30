@@ -18,14 +18,14 @@ var crypto = require('crypto');
 var async = require('async');
 var rewire = require('rewire');
 
-var testData = require('./testData/multisignature');
+var testData = require('./test_data/multisignature');
 var accountFixtures = require('../../fixtures/accounts');
 
 var constants = require('../../../helpers/constants');
 var slots = require('../../../helpers/slots');
 var Diff = require('../../../helpers/diff');
 var ed = require('../../../helpers/ed');
-var transactionTypes = require('../../../helpers/transactionTypes');
+var transactionTypes = require('../../../helpers/transaction_types');
 var constants = require('../../../helpers/constants');
 var Transaction = require('../../../logic/transaction');
 var AccountLogic = require('../../../logic/account');
@@ -33,7 +33,7 @@ var Multisignature = rewire('../../../logic/multisignature');
 var AccountModule = require('../../../modules/accounts');
 
 var randomUtil = require('../../common/utils/random');
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 
 var validPassword = testData.validPassword;
 var validKeypair = testData.validKeypair;

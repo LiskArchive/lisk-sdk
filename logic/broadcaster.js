@@ -15,7 +15,7 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
-var jobsQueue = require('../helpers/jobsQueue.js');
+var jobsQueue = require('../helpers/jobs_queue.js');
 var extend = require('extend');
 var _ = require('lodash');
 var bson = require('../helpers/bson.js');
