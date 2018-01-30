@@ -16,10 +16,8 @@
 var _ = require('lodash');
 var debug = require('debug')('swagger:lisk:params_validator');
 
-module.exports = function create (fittingDef, bagpipes) {
-
-	return function lisk_params_validator (context, cb) {
-
+module.exports = function create() {
+	return function lisk_params_validator(context, cb) {
 		var error = null;
 
 		// TODO: Add support for validating accept header against produces declarations
@@ -35,11 +33,11 @@ module.exports = function create (fittingDef, bagpipes) {
 				error = new Error('Validation errors');
 				error.statusCode = 400;
 
-				validateResult.errors.forEach(function (error) { debug('param error: %j', error); });
+				validateResult.errors.forEach(error => { debug('param error: %j', error); });
 
-				error.errors = _.map(validateResult.errors, function (e) {
+				error.errors = _.map(validateResult.errors, e => {
 					var errors = _.pick(e, ['code', 'message', 'in', 'name', 'errors']);
-					errors.errors = _.map(e.errors, function (e) { return _.pick(e, ['code', 'message', 'path'] ); });
+					errors.errors = _.map(e.errors, e => _.pick(e, ['code', 'message', 'path']));
 					return errors;
 				});
 			}

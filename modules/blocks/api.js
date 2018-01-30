@@ -15,12 +15,12 @@
 
 var apiCodes = require('../../helpers/api_codes.js');
 var ApiError = require('../../helpers/api_error.js');
-var blockReward = require('../../logic/block_reward.js');
-var constants = require('../../helpers/constants.js');
 var sortBy = require('../../helpers/sort_by.js').sortBy;
 
-var modules, library, self, __private = {};
-
+var library,
+self,
+__private = {};
+var modules; // eslint-disable-line no-unused-vars
 /**
  * Initializes library.
  * @memberof module:blocks
@@ -33,7 +33,7 @@ var modules, library, self, __private = {};
  * @param {ZSchema} schema
  * @param {Sequence} dbSequence
  */
-function API (logger, db, block, schema, dbSequence) {
+function API(logger, db, block, schema, dbSequence) {
 	library = {
 		logger: logger,
 		db: db,
@@ -72,7 +72,8 @@ function API (logger, db, block, schema, dbSequence) {
  * @return {Object}   cb.data List of normalized blocks
  */
 __private.list = function (filter, cb) {
-	var params = {}, where = [];
+	var params = {},
+	where = [];
 
 	if (filter.id) {
 		where.push('"b_id" = ${id}');
@@ -145,7 +146,7 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, sort.error);
 	}
 
-	library.db.blocks.list(Object.assign({}, {where: where, sortField: sort.sortField, sortMethod: sort.sortMethod}, params)).then(function (rows) {
+	library.db.blocks.list(Object.assign({}, { where: where, sortField: sort.sortField, sortMethod: sort.sortMethod }, params)).then(rows => {
 		var blocks = [];
 		// Normalize blocks
 		for (var i = 0; i < rows.length; i++) {
@@ -153,7 +154,7 @@ __private.list = function (filter, cb) {
 			blocks.push(library.logic.block.dbRead(rows[i]));
 		}
 		return setImmediate(cb, null, blocks);
-	}).catch(function (err) {
+	}).catch(err => {
 		library.logger.error(err.stack);
 		return setImmediate(cb, 'Blocks#list error');
 	});
@@ -164,8 +165,8 @@ API.prototype.getBlocks = function (filters, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	library.dbSequence.add(function (cb) {
-		__private.list(filters, function (err, data) {
+	library.dbSequence.add(cb => {
+		__private.list(filters, (err, data) => {
 			if (err) {
 				return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
 			}

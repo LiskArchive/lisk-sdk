@@ -25,8 +25,7 @@ const sql = require('../sql').voters;
  * @return {VotersRepository}
  */
 class VotersRepository {
-
-	constructor (db, pgp) {
+	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 
@@ -46,7 +45,7 @@ class VotersRepository {
 	 * @param {int} params.offset
 	 * @return {Promise}
 	 */
-	list (params) {
+	list(params) {
 		// TODO: Should use a result-specific method, not .query
 		return this.db.query(sql.getVoters, params);
 	}
@@ -56,10 +55,9 @@ class VotersRepository {
 	 * @param {string} publicKey
 	 * @return {Promise<number>}
 	 */
-	count (publicKey) {
+	count(publicKey) {
 		return this.db.one(sql.getVotersCount, publicKey, a => +a.count);
 	}
-
 }
 
 module.exports = VotersRepository;

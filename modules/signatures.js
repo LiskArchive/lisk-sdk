@@ -17,10 +17,12 @@ var apiCodes = require('../helpers/api_codes.js');
 var ApiError = require('../helpers/api_error.js');
 var Signature = require('../logic/signature.js');
 var transactionTypes = require('../helpers/transaction_types.js');
-var _ = require('lodash');
 
 // Private fields
-var modules, library, self, __private = {};
+var modules,
+library,
+self,
+__private = {};
 
 __private.assetTypes = {};
 
@@ -35,7 +37,7 @@ __private.assetTypes = {};
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Signatures (cb, scope) {
+function Signatures(cb, scope) {
 	library = {
 		schema: scope.schema,
 		ed: scope.ed,
@@ -97,20 +99,20 @@ Signatures.prototype.shared = {
 	 * @return {setImmediateCallback}
 	 */
 	postSignatures: function (signatures, cb) {
-		return modules.transport.shared.postSignatures({signatures: signatures}, function (err, res) {
+		return modules.transport.shared.postSignatures({ signatures: signatures }, (err, res) => {
 			var processingError = /(error|processing)/ig;
 			var badRequestBodyError = /(invalid|signature)/ig;
 
 			if (res.success === false) {
 				if (processingError.exec(res.message).length === 2) {
 					return setImmediate(cb, new ApiError(res.message, apiCodes.PROCESSING_ERROR));
-				} else if(badRequestBodyError.exec(res.message).length === 2) {
+				} else if (badRequestBodyError.exec(res.message).length === 2) {
 					return setImmediate(cb, new ApiError(res.message, apiCodes.BAD_REQUEST));
 				} else {
 					return setImmediate(cb, new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR));
 				}
 			} else {
-				return setImmediate(cb, null, {status: 'Signature Accepted'});
+				return setImmediate(cb, null, { status: 'Signature Accepted' });
 			}
 		});
 	}

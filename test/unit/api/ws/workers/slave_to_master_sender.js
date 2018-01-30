@@ -15,14 +15,13 @@
 
 var SlaveToMasterSender = require('../../../../../api/ws/workers/slave_to_master_sender');
 
-describe('SlaveToMasterSender', function () {
-
+describe('SlaveToMasterSender', () => {
 	var slaveWAMPServerMock;
 	var slaveToMasterSender;
 	var validNonce;
 	var validCb;
 
-	before(function () {
+	before(() => {
 		slaveWAMPServerMock = {
 			worker: {
 				options: {
@@ -35,25 +34,24 @@ describe('SlaveToMasterSender', function () {
 		slaveToMasterSender = new SlaveToMasterSender(slaveWAMPServerMock);
 	});
 
-	beforeEach(function () {
+	beforeEach(() => {
 		validNonce = '0123456789ABCDEF';
 		validCb = sinonSandbox.spy();
 	});
 
-	describe('constructor', function () {
-		it('should have slaveWAMPServer assigned', function () {
+	describe('constructor', () => {
+		it('should have slaveWAMPServer assigned', () => {
 			expect(slaveToMasterSender).to.have.property('slaveWAMPServer').to.equal(slaveWAMPServerMock);
 		});
 	});
 
-	describe('send', function () {
-
+	describe('send', () => {
 		var expectedPayload;
 		var validProcedureName;
 		var validPeer;
 		var validUpdateType;
 
-		beforeEach(function () {
+		beforeEach(() => {
 			validProcedureName = 'validProcedureName';
 			validUpdateType = 1;
 			validPeer = {
@@ -66,31 +64,29 @@ describe('SlaveToMasterSender', function () {
 			};
 		});
 
-		describe('should call sendToMaster with', function () {
-
-			beforeEach(function () {
+		describe('should call sendToMaster with', () => {
+			beforeEach(() => {
 				slaveToMasterSender.send(validProcedureName, validUpdateType, validPeer, validCb);
 			});
 
-			it('passed procedure as a first argument', function () {
+			it('passed procedure as a first argument', () => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[0]).equal(validProcedureName);
 			});
 
-			it('expected payload as a second argument', function () {
+			it('expected payload as a second argument', () => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[1]).eql(expectedPayload);
 			});
 
-			it('nonce as a third argument', function () {
+			it('nonce as a third argument', () => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[2]).equal(validNonce);
 			});
 		});
 	});
 
-	describe('getPeer', function () {
-
+	describe('getPeer', () => {
 		var expectedPayload;
 
-		beforeEach(function () {
+		beforeEach(() => {
 			expectedPayload = {
 				query: {
 					nonce: validNonce
@@ -98,48 +94,47 @@ describe('SlaveToMasterSender', function () {
 			};
 		});
 
-		it('should return an error received from master', function (done) {
+		it('should return an error received from master', done => {
 			slaveWAMPServerMock.sendToMaster.restore();
 			slaveWAMPServerMock.sendToMaster = sinonSandbox.stub(slaveWAMPServerMock, 'sendToMaster').callsArgWith(3, 'On master error');
-			slaveToMasterSender.getPeer(validNonce, function (err) {
+			slaveToMasterSender.getPeer(validNonce, err => {
 				expect(err).to.equal('On master error');
 				done();
 			});
 		});
 
-		it('should return false if peers list from master is empty', function (done) {
+		it('should return false if peers list from master is empty', done => {
 			slaveWAMPServerMock.sendToMaster.restore();
-			slaveWAMPServerMock.sendToMaster = sinonSandbox.stub(slaveWAMPServerMock, 'sendToMaster').callsArgWith(3, null, {peers: []});
-			slaveToMasterSender.getPeer(validNonce, function (err, res) {
+			slaveWAMPServerMock.sendToMaster = sinonSandbox.stub(slaveWAMPServerMock, 'sendToMaster').callsArgWith(3, null, { peers: [] });
+			slaveToMasterSender.getPeer(validNonce, (err, res) => {
 				expect(res).to.be.false;
 				done();
 			});
 		});
 
-		it('should return true if peers list from master is not empty', function (done) {
+		it('should return true if peers list from master is not empty', done => {
 			slaveWAMPServerMock.sendToMaster.restore();
-			slaveWAMPServerMock.sendToMaster = sinonSandbox.stub(slaveWAMPServerMock, 'sendToMaster').callsArgWith(3, null, {peers: [1]});
-			slaveToMasterSender.getPeer(validNonce, function (err, res) {
+			slaveWAMPServerMock.sendToMaster = sinonSandbox.stub(slaveWAMPServerMock, 'sendToMaster').callsArgWith(3, null, { peers: [1] });
+			slaveToMasterSender.getPeer(validNonce, (err, res) => {
 				expect(res).to.be.true;
 				done();
 			});
 		});
 
-		describe('should call sendToMaster with', function () {
-
-			beforeEach(function () {
+		describe('should call sendToMaster with', () => {
+			beforeEach(() => {
 				slaveToMasterSender.getPeer(validNonce, validCb);
 			});
 
-			it('list a first argument', function () {
+			it('list a first argument', () => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[0]).equal('list');
 			});
 
-			it('expected payload as a second argument', function () {
+			it('expected payload as a second argument', () => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[1]).eql(expectedPayload);
 			});
 
-			it('nonce as a third argument', function () {
+			it('nonce as a third argument', () => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[2]).equal(validNonce);
 			});
 		});

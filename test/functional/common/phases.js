@@ -19,71 +19,67 @@ var Promise = require('bluebird');
 var apiHelpers = require('../../common/helpers/api');
 var waitFor = require('../../common/utils/wait_for');
 
-function confirmation (goodTransactions, badTransactions, pendingMultisignatures) {
+function confirmation(goodTransactions, badTransactions, pendingMultisignatures) {
+	describe('after transactions get confirmed', () => {
+		before(() => { return waitFor.confirmations(_.map(goodTransactions, 'id')); });
 
-	describe('after transactions get confirmed', function () {
-
-		before(function () {
-			return waitFor.confirmations(_.map(goodTransactions, 'id'));
-		});
-
-		it('bad transactions should not be confirmed', function () {
-			return Promise.map(badTransactions, function (transaction) {
+		it('bad transactions should not be confirmed', () => {
+			return Promise.map(badTransactions, transaction => {
 				var params = [
-					'id=' + transaction.id
+					`id=${transaction.id}`
 				];
-				return apiHelpers.getTransactionsPromise(params).then(function (res) {
+				return apiHelpers.getTransactionsPromise(params).then(res => {
 					expect(res.body.data).to.have.length(0);
 				});
 			});
 		});
 
-		it('good transactions should not be unconfirmed', function () {
-			return Promise.map(goodTransactions, function (transaction) {
-				return apiHelpers.getUnconfirmedTransactionPromise(transaction.id).then(function (res) {
+		it('good transactions should not be unconfirmed', () => {
+			return Promise.map(goodTransactions, transaction => {
+				return apiHelpers.getUnconfirmedTransactionPromise(transaction.id).then(res => {
 					expect(res.body.data).to.be.empty;
 				});
 			});
 		});
 
-		it('good transactions should be confirmed', function () {
-			return Promise.map(goodTransactions, function (transaction) {
+		it('good transactions should be confirmed', () => {
+			return Promise.map(goodTransactions, transaction => {
 				var params = [
-					'id=' + transaction.id
+					`id=${transaction.id}`
 				];
-				return apiHelpers.getTransactionsPromise(params).then(function (res) {
+				return apiHelpers.getTransactionsPromise(params).then(res => {
 					expect(res.body.data).to.have.length(1);
 				});
 			});
 		});
 
 		if (pendingMultisignatures) {
-			it('pendingMultisignatures should remain in the pending queue', function () {
-				return Promise.map(pendingMultisignatures, function (transaction) {
+			it('pendingMultisignatures should remain in the pending queue', () => {
+                return Promise.map(pendingMultisignatures, transaction => {
 					var params = [
-						'id=' + transaction.id
+						`id=${transaction.id}`
 					];
 
-					return apiHelpers.getPendingMultisignaturesPromise(params).then(function (res) {
+					return apiHelpers.getPendingMultisignaturesPromise(params).then(res => {
 						expect(res.body.data).to.have.length(1);
 						expect(res.body.data[0].id).to.be.equal(transaction.id);
 					});
 				});
 			});
 
-			it('pendingMultisignatures should not be confirmed', function () {
-				return Promise.map(pendingMultisignatures, function (transaction) {
+			it('pendingMultisignatures should not be confirmed', () => {
+                return Promise.map(pendingMultisignatures, transaction => {
 					var params = [
-						'id=' + transaction.id
+						`id=${transaction.id}`
 					];
-					return apiHelpers.getTransactionsPromise(params).then(function (res) {
+					return apiHelpers.getTransactionsPromise(params).then(res => {
 						expect(res.body.data).to.have.length(0);
 					});
 				});
 			});
-		};
+		}
 	});
-};
+}
 
 module.exports = {
 	confirmation: confirmation

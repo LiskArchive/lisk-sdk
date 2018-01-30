@@ -48,7 +48,7 @@ var liskFormats = {
 	},
 
 	additionalData: function (str) {
-		if (typeof(str) !== 'string') {
+		if (typeof (str) !== 'string') {
 			return false;
 		}
 
@@ -60,7 +60,7 @@ var liskFormats = {
 	},
 
 	username: function (str) {
-		if (typeof(str) !== 'string') {
+		if (typeof (str) !== 'string') {
 			return false;
 		}
 
@@ -77,7 +77,7 @@ var liskFormats = {
 
 	// Currently this allow empty values e.g. ',,,' or '' - is this correct?
 	csv: function (str) {
-		if (typeof(str) !== 'string') {
+		if (typeof (str) !== 'string') {
 			return false;
 		}
 
@@ -95,7 +95,7 @@ var liskFormats = {
 	},
 
 	queryList: function (obj) {
-		if (obj == null || typeof(obj) !== 'object' || _.isArray(obj)) {
+		if (obj == null || typeof (obj) !== 'object' || _.isArray(obj)) {
 			return false;
 		}
 
@@ -104,7 +104,7 @@ var liskFormats = {
 	},
 
 	delegatesList: function (obj) {
-		if (obj == null || typeof(obj) !== 'object' || _.isArray(obj)) {
+		if (obj == null || typeof (obj) !== 'object' || _.isArray(obj)) {
 			return false;
 		}
 
@@ -113,11 +113,9 @@ var liskFormats = {
 	},
 
 	parsedInt: function (value) {
-		/*eslint-disable eqeqeq */
 		if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
 			return false;
 		}
-		/*eslint-enable eqeqeq */
 		value = parseInt(value);
 		return true;
 	},
@@ -127,7 +125,7 @@ var liskFormats = {
 	},
 
 	os: function (str) {
-		if (typeof(str) !== 'string') {
+		if (typeof (str) !== 'string') {
 			return false;
 		}
 
@@ -139,7 +137,7 @@ var liskFormats = {
 	},
 
 	ipOrFQDN: function (str) {
-		if (typeof(str) !== 'string') {
+		if (typeof (str) !== 'string') {
 			return false;
 		}
 
@@ -148,7 +146,7 @@ var liskFormats = {
 };
 
 // Register the formats
-Object.keys(liskFormats).forEach(function (formatName) {
+Object.keys(liskFormats).forEach(formatName => {
 	z_schema.registerFormat(formatName, liskFormats[formatName]);
 });
 

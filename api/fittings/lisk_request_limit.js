@@ -25,8 +25,7 @@ var defaults = {
 	windowMs: 60000 // 1 minute window
 };
 
-module.exports = function create (fittingDef, bagpipes) {
-
+module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
 	var limits = {};
 	var appConfigLimits = {};
@@ -50,7 +49,7 @@ module.exports = function create (fittingDef, bagpipes) {
 
 	var middleware = new RateLimit(_.clone(limits));
 
-	function lisk_request_limit (context, cb) {
+	function lisk_request_limit(context, cb) {
 		debug('exec');
 		middleware(context.request, context.response, cb);
 	}
@@ -58,5 +57,5 @@ module.exports = function create (fittingDef, bagpipes) {
 	lisk_request_limit.limits = limits;
 	lisk_request_limit.defaults = defaults;
 
-	return lisk_request_limit ;
+	return lisk_request_limit;
 };

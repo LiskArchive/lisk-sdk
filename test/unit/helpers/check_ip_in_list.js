@@ -13,116 +13,105 @@
  */
 'use strict';
 
-var ip = require('ip');
-
 var checkIpInList = require('../../../helpers/check_ip_in_list');
 
-describe('checkIpInList', function () {
-
-	describe('CheckIpInList', function () {
-
+describe('checkIpInList', () => {
+	describe('CheckIpInList', () => {
 		var validReturnListIsEmpty;
 		var validList;
 		var validAddress;
 		var spyConsoleError;
 		var checkIpInListResult;
 
-		before(function () {
+		before(() => {
 			validReturnListIsEmpty = true;
-			validList = ['1.2.3.4','5.6.7.8'];
+			validList = ['1.2.3.4', '5.6.7.8'];
 			validAddress = '1.2.3.4';
 			spyConsoleError = sinonSandbox.spy(console, 'error');
 		});
 
-		beforeEach(function () {
+		beforeEach(() => {
 			checkIpInListResult = checkIpInList(validList, validAddress, validReturnListIsEmpty);
 		});
 
-		afterEach(function () {
+		afterEach(() => {
 		});
 
-		after(function () {
+		after(() => {
 		});
 
-		describe('when returnListIsEmpty is not a boolean', function () {
-
-			before(function () {
+		describe('when returnListIsEmpty is not a boolean', () => {
+			before(() => {
 				validReturnListIsEmpty = null;
 			});
 
-			it('should set returnListIsEmpty to true', function () {
+			it('should set returnListIsEmpty to true', () => {
 				expect(checkIpInListResult).to.eq(true);
 			});
 		});
 
-		describe('when validList is not an array', function () {
-
-			before(function () {
+		describe('when validList is not an array', () => {
+			before(() => {
 				validReturnListIsEmpty = true;
 				validList = null;
 			});
 
-			it('should return validReturnListIsEmpty', function () {
+			it('should return validReturnListIsEmpty', () => {
 				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
 			});
 		});
 
-		describe('when validList is an empty list', function () {
-
-			before(function () {
+		describe('when validList is an empty list', () => {
+			before(() => {
 				validList = [];
 			});
 
-			it('should return validReturnListIsEmpty', function () {
+			it('should return validReturnListIsEmpty', () => {
 				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
 			});
 		});
 
-		describe('when all the entries in validList are not in the right format', function () {
-
-			before(function () {
+		describe('when all the entries in validList are not in the right format', () => {
+			before(() => {
 				validList = ['abc', 'shzduvsg'];
 			});
 
-			it('should return validReturnListIsEmpty', function () {
+			it('should return validReturnListIsEmpty', () => {
 				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
 			});
 
-			it('should call console.error with "CheckIpInList:" + error', function () {
+			it('should call console.error with "CheckIpInList:" + error', () => {
 				sinonSandbox.assert.called(spyConsoleError);
 			});
 		});
 
-		describe('when some entries in validList are not in the right format', function () {
-
-			before(function () {
+		describe('when some entries in validList are not in the right format', () => {
+			before(() => {
 				validList = ['abc', '1.2.3.4'];
 			});
 
-			it('should call console.error with "CheckIpInList:" + error', function () {
+			it('should call console.error with "CheckIpInList:" + error', () => {
 				sinonSandbox.assert.called(spyConsoleError);
 			});
 		});
 
-		describe('when validList does not contain validAddress', function () {
-
-			before(function () {
-				validList = ['1.2.3.4','5.6.7.8'];
+		describe('when validList does not contain validAddress', () => {
+			before(() => {
+				validList = ['1.2.3.4', '5.6.7.8'];
 				validAddress = '127.0.0.1';
 			});
 
-			it('should return validReturnListIsEmpty', function () {
+			it('should return validReturnListIsEmpty', () => {
 				expect(checkIpInListResult).to.eq(false);
 			});
 		});
 
-		describe('when validList contains validAddress', function () {
-
-			before(function () {
+		describe('when validList contains validAddress', () => {
+			before(() => {
 				validAddress = '1.2.3.4';
 			});
 
-			it('should return validReturnListIsEmpty', function () {
+			it('should return validReturnListIsEmpty', () => {
 				expect(checkIpInListResult).to.eq(true);
 			});
 		});

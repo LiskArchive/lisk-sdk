@@ -20,13 +20,15 @@ var constants = require('../../helpers/constants.js');
 var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
 var exceptions = require('../../helpers/exceptions.js');
-var bson = require('../../helpers/bson.js');
 
-var modules, library, self, __private = {};
+var modules,
+library,
+self,
+__private = {};
 
 __private.lastNBlockIds = [];
 
-function Verify (logger, block, transaction, db) {
+function Verify(logger, block, transaction, db) {
 	library = {
 		logger: logger,
 		db: db,
@@ -89,7 +91,7 @@ __private.checkTransaction = function (block, transaction, cb) {
 		function (waterCb) {
 			// Get account from database if any (otherwise cold wallet).
 			// DATABASE: read only
-			modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, waterCb);
+			modules.accounts.getAccount({ publicKey: transaction.senderPublicKey }, waterCb);
 		},
 		function (sender, waterCb) {
 			// Check if transaction id valid against database state (mem_* tables).
@@ -176,7 +178,7 @@ __private.verifyPreviousBlock = function (block, result) {
 __private.verifyAgainstLastNBlockIds = function (block, result) {
 	if (__private.lastNBlockIds.indexOf(block.id) !== -1) {
 		result.errors.push('Block already exists in chain');
-	};
+	}
 
 	return result;
 };
@@ -284,7 +286,7 @@ __private.verifyPayload = function (block, result) {
 		}
 
 		if (appliedTransactions[transaction.id]) {
-			result.errors.push('Encountered duplicate transaction: ' + transaction.id);
+			result.errors.push(`Encountered duplicate transaction: ${transaction.id}`);
 		}
 
 		appliedTransactions[transaction.id] = transaction;
@@ -420,7 +422,7 @@ Verify.prototype.onBlockchainReady = function () {
 	return library.db.blocks.loadLastNBlockIds(constants.blockSlotWindow).then(function (blockIds) {
 		__private.lastNBlockIds = _.map(blockIds, 'id');
 	}).catch(function (err) {
-		library.logger.error('Unable to load last ' + constants.blockSlotWindow + ' block ids');
+		library.logger.error(`Unable to load last ${constants.blockSlotWindow} block ids`);
 		library.logger.error(err);
 	});
 };
@@ -516,7 +518,7 @@ Verify.prototype.deleteBlockProperties = function (block) {
 		delete reducedBlock.version;
 	}
 	// verifyBlock ensures numberOfTransactions is transactions.length
-	if (typeof(reducedBlock.numberOfTransactions) === 'number') {
+	if (typeof (reducedBlock.numberOfTransactions) === 'number') {
 		delete reducedBlock.numberOfTransactions;
 	}
 	if (reducedBlock.totalAmount === 0) {

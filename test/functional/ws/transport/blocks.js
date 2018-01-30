@@ -20,8 +20,7 @@ var genesisblock = require('../../../data/genesis_block.json');
 var verify = require('../../../../modules/blocks/verify');
 var bson = require('../../../../helpers/bson');
 
-describe('WS transport blocks', function () {
-
+describe('WS transport blocks', () => {
 	var testBlock = {
 		id: '2807833455815592401',
 		version: 0,
@@ -42,13 +41,12 @@ describe('WS transport blocks', function () {
 		totalForged: '0'
 	};
 
-	describe('blocks', function () {
-
-		it('using valid headers should be ok', function (done) {
-			ws.call('blocks', null, function (err, res) {
+	describe('blocks', () => {
+		it('using valid headers should be ok', done => {
+			ws.call('blocks', null, (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				expect(res).to.have.property('blocks').that.is.an('array');
-				res.blocks.forEach(function (block) {
+				res.blocks.forEach(block => {
 					expect(block).to.have.property('b_id').that.is.a('string');
 					expect(block).to.have.property('b_version').that.is.a('number');
 					expect(block).to.have.property('b_timestamp').that.is.a('number');
@@ -97,10 +95,9 @@ describe('WS transport blocks', function () {
 		});
 	});
 
-	describe('blocksCommon', function () {
-
-		it('using no params should fail', function (done) {
-			ws.call('blocksCommon', function (err, res) {
+	describe('blocksCommon', () => {
+		it('using no params should fail', done => {
+			ws.call('blocksCommon', (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				expect(res).to.be.undefined;
 				expect(err).to.equal('Missing required property: ids: ');
@@ -108,16 +105,16 @@ describe('WS transport blocks', function () {
 			});
 		});
 
-		it('using ids == "";"";"" should fail', function (done) {
-			ws.call('blocksCommon', {ids: '"";"";""'}, function (err, res) {
+		it('using ids == "";"";"" should fail', done => {
+			ws.call('blocksCommon', { ids: '"";"";""' }, (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				expect(err).to.equal('Invalid block id sequence');
 				done();
 			});
 		});
 
-		it('using ids == \'\',\'\',\'\' should fail', function (done) {
-			ws.call('blocksCommon',  {ids: '\'\',\'\',\'\''}, function (err, res) {
+		it('using ids == \'\',\'\',\'\' should fail', done => {
+			ws.call('blocksCommon', { ids: '\'\',\'\',\'\'' }, (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
 				expect(err).to.equal('Invalid block id sequence');
@@ -125,24 +122,24 @@ describe('WS transport blocks', function () {
 			});
 		});
 
-		it('using ids == "","","" should fail', function (done) {
-			ws.call('blocksCommon', {ids: '"","",""'}, function (err, res) {
+		it('using ids == "","","" should fail', done => {
+			ws.call('blocksCommon', { ids: '"","",""' }, (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				expect(err).to.equal('Invalid block id sequence');
 				done();
 			});
 		});
 
-		it('using ids == one,two,three should fail', function (done) {
-			ws.call('blocksCommon', {ids: 'one,two,three'}, function (err, res) {
+		it('using ids == one,two,three should fail', done => {
+			ws.call('blocksCommon', { ids: 'one,two,three' }, (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				expect(err).to.equal('Invalid block id sequence');
 				done();
 			});
 		});
 
-		it('using ids == "1","2","3" should be ok and return null common block', function (done) {
-			ws.call('blocksCommon', {ids: '"1","2","3"'}, function (err, res) {
+		it('using ids == "1","2","3" should be ok and return null common block', done => {
+			ws.call('blocksCommon', { ids: '"1","2","3"' }, (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
 				expect(res).to.have.property('common').to.be.null;
@@ -150,8 +147,8 @@ describe('WS transport blocks', function () {
 			});
 		});
 
-		it('using ids == \'1\',\'2\',\'3\' should be ok and return null common block', function (done) {
-			ws.call('blocksCommon', {ids: '\'1\',\'2\',\'3\''}, function (err, res) {
+		it('using ids == \'1\',\'2\',\'3\' should be ok and return null common block', done => {
+			ws.call('blocksCommon', { ids: '\'1\',\'2\',\'3\'' }, (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
 				expect(res).to.have.property('common').to.be.null;
@@ -159,8 +156,8 @@ describe('WS transport blocks', function () {
 			});
 		});
 
-		it('using ids == 1,2,3 should be ok and return null common block', function (done) {
-			ws.call('blocksCommon', {ids: '1,2,3'}, function (err, res) {
+		it('using ids == 1,2,3 should be ok and return null common block', done => {
+			ws.call('blocksCommon', { ids: '1,2,3' }, (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
 				expect(res).to.have.property('common').to.be.null;
@@ -168,8 +165,8 @@ describe('WS transport blocks', function () {
 			});
 		});
 
-		it('using ids which include genesisblock.id should be ok', function (done) {
-			ws.call('blocksCommon', {ids: [genesisblock.id.toString(),'2','3'].join(',')}, function (err, res) {
+		it('using ids which include genesisblock.id should be ok', done => {
+			ws.call('blocksCommon', { ids: [genesisblock.id.toString(), '2', '3'].join(',') }, (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 
 				expect(res).to.have.property('common').to.be.an('object');
@@ -182,22 +179,21 @@ describe('WS transport blocks', function () {
 		});
 	});
 
-	describe('postBlock', function () {
-
-		it('using no block should fail', function (done) {
-			ws.call('postBlock', function (err, res) {
+	describe('postBlock', () => {
+		it('using no block should fail', done => {
+			ws.call('postBlock', (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				expect(err).to.contain('Failed to validate block schema');
 				done();
 			});
 		});
 
-		it('using invalid block schema should fail', function (done) {
+		it('using invalid block schema should fail', done => {
 			var blockSignature = genesisblock.blockSignature;
 			genesisblock.blockSignature = null;
 			genesisblock = verify.prototype.deleteBlockProperties(genesisblock);
 
-			ws.call('postBlock', { block: bson.serialize(genesisblock) }, function (err, res) {
+			ws.call('postBlock', { block: bson.serialize(genesisblock) }, (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				expect(err).to.contain('Failed to validate block schema');
 				genesisblock.blockSignature = blockSignature;
@@ -205,13 +201,13 @@ describe('WS transport blocks', function () {
 			});
 		});
 
-		it('using valid block schema should be ok', function (done) {
-			testBlock.transactions.forEach(function (transaction) {
+		it('using valid block schema should be ok', done => {
+			testBlock.transactions.forEach(transaction => {
 				if (transaction.asset && transaction.asset.delegate) {
 					transaction.asset.delegate.publicKey = transaction.senderPublicKey;
 				}
 			});
-			ws.call('postBlock', { block: bson.serialize(testBlock) }, function (err, res) {
+			ws.call('postBlock', { block: bson.serialize(testBlock) }, (err, res) => {
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(err), JSON.stringify(res));
 				expect(res).to.have.property('blockId').to.equal('2807833455815592401');
 				done();

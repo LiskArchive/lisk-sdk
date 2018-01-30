@@ -19,7 +19,7 @@
  * @param {number} code
  * @constructor
  */
-function ApiError (message, code) {
+function ApiError(message, code) {
 	this.message = message;
 	this.code = code;
 }

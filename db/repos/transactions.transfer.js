@@ -26,7 +26,7 @@ var columnSet;
  * @constructor
  * @return {TransferTransactionsRepo}
  */
-function TransferTransactionsRepo (db, pgp) {
+function TransferTransactionsRepo(db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
@@ -39,8 +39,8 @@ function TransferTransactionsRepo (db, pgp) {
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
+		var table = new pgp.helpers.TableName({ table: this.dbTable, schema: 'public' });
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, { table: table });
 	}
 
 	this.cs = columnSet;
@@ -56,7 +56,7 @@ TransferTransactionsRepo.prototype.save = function (transactions) {
 		transactions = [transactions];
 	}
 
-	transactions = transactions.map(function (transaction) {
+	transactions = transactions.map(transaction => {
 		if (transaction.asset && transaction.asset.data) {
 			try {
 				return {

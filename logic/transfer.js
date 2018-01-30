@@ -18,7 +18,8 @@ var bignum = require('../helpers/bignum.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var modules, library;
+var modules,
+library;
 
 /**
  * Main transfer logic.
@@ -27,7 +28,7 @@ var modules, library;
  * @classdesc Main transfer logic.
  */
 // Constructor
-function Transfer (logger, schema) {
+function Transfer(logger, schema) {
 	library = {
 		logger: logger,
 		schema: schema,
@@ -51,7 +52,7 @@ Transfer.prototype.bind = function (accounts) {
  * @param {account} sender
  * @return {number} fee
  */
-Transfer.prototype.calculateFee = function (transaction, sender) {
+Transfer.prototype.calculateFee = function (transaction) {
 	var fee = new bignum(constants.fees.send);
 	if (transaction.asset && transaction.asset.data) {
 		fee = fee.plus(constants.fees.data);
@@ -67,7 +68,7 @@ Transfer.prototype.calculateFee = function (transaction, sender) {
  * @param {function} cb
  * @return {setImmediateCallback} errors | transaction
  */
-Transfer.prototype.verify = function (transaction, sender, cb, tx) {
+Transfer.prototype.verify = function (transaction, sender, cb) {
 	if (!transaction.recipientId) {
 		return setImmediate(cb, 'Missing recipient');
 	}
@@ -120,7 +121,7 @@ Transfer.prototype.getBytes = function (transaction) {
  * @return {setImmediateCallback} error, cb
  */
 Transfer.prototype.apply = function (transaction, block, sender, cb, tx) {
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
+	modules.accounts.setAccountAndGet({ address: transaction.recipientId }, err => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -131,9 +132,7 @@ Transfer.prototype.apply = function (transaction, block, sender, cb, tx) {
 			u_balance: transaction.amount,
 			blockId: block.id,
 			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		}, tx);
+		}, err => setImmediate(cb, err), tx);
 	}, tx);
 };
 
@@ -150,7 +149,7 @@ Transfer.prototype.apply = function (transaction, block, sender, cb, tx) {
  * @return {setImmediateCallback} error, cb
  */
 Transfer.prototype.undo = function (transaction, block, sender, cb) {
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
+	modules.accounts.setAccountAndGet({ address: transaction.recipientId }, err => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -161,9 +160,7 @@ Transfer.prototype.undo = function (transaction, block, sender, cb) {
 			u_balance: -transaction.amount,
 			blockId: block.id,
 			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		});
+		}, err => setImmediate(cb, err));
 	});
 };
 
@@ -173,7 +170,7 @@ Transfer.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-Transfer.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
+Transfer.prototype.applyUnconfirmed = function (transaction, sender, cb) {
 	return setImmediate(cb);
 };
 
@@ -183,7 +180,7 @@ Transfer.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-Transfer.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
+Transfer.prototype.undoUnconfirmed = function (transaction, sender, cb) {
 	return setImmediate(cb);
 };
 
@@ -220,9 +217,7 @@ Transfer.prototype.objectNormalize = function (transaction) {
 	var report = library.schema.validate(transaction.asset, Transfer.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate transfer schema: ' + library.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate transfer schema: ${library.schema.getLastErrors().map(err => err.message).join(', ')}`;
 	}
 
 	return transaction;
@@ -235,7 +230,7 @@ Transfer.prototype.objectNormalize = function (transaction) {
  */
 Transfer.prototype.dbRead = function (raw) {
 	if (raw.tf_data) {
-		return {data: raw.tf_data};
+		return { data: raw.tf_data };
 	}
 
 	return null;
