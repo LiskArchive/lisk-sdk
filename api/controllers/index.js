@@ -12,7 +12,5 @@
 * Removal or modification of this copyright notice is prohibited.
 */
 /**
- * Namespace `api/controllers`
- *
  * @namespace api/controllers
  */
