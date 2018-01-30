@@ -1116,7 +1116,7 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe.only('Integration test retry routing', function () {
+	describe('Integration test retry routing', function () {
 		var thisLSK = lisk.api();
 		var options, stub, sendRequestSpy, sendRequestFailureSpy;
 		beforeEach(function () {
@@ -1128,7 +1128,7 @@ describe('Lisk.api()', function () {
 				port: '7000',
 				bannedPeers: []
 			};
-			stub = sinon.stub(thisLSK, 'doPopsicleRequest').rejects({ sorry: 'no error message' });
+			stub = sinon.stub(thisLSK, 'doPopsicleRequest').rejects({ sorry: 'request probably timed out' });
 			spy = sinon.spy(thisLSK, 'sendRequest');
 			sendRequestFailureSpy = sinon.spy(thisLSK, 'handleSendRequestFailures');
 		});
