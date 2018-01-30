@@ -430,29 +430,28 @@ __private.loadBlockChain = function () {
 	}
 
 	library.db.task(checkMemTables)
-		.spread(function (countBlocks, getGenesisBlock, countMemAccounts, getMemRounds, countDuplicatedDelegates) {
+		.spread(function (blocksCount, getGenesisBlock, memAccountsCount, getMemRounds, duplicatedDelegatesCount) {
 
-			var count = countBlocks.count;
-			library.logger.info('Blocks ' + count);
+			library.logger.info('Blocks ' + blocksCount);
 
-			var round = slots.calcRound(count);
+			var round = slots.calcRound(blocksCount);
 
-			if (count === 1) {
-				return reload(count);
+			if (blocksCount === 1) {
+				return reload(blocksCount);
 			}
 
 			matchGenesisBlock(getGenesisBlock[0]);
 
-			verify = verifySnapshot(count, round);
+			verify = verifySnapshot(blocksCount, round);
 
 			if (verify) {
-				return reload(count, 'Blocks verification enabled');
+				return reload(blocksCount, 'Blocks verification enabled');
 			}
 
-			var missed = !(countMemAccounts);
+			var missed = !(memAccountsCount);
 
 			if (missed) {
-				return reload(count, 'Detected missed blocks in mem_accounts');
+				return reload(blocksCount, 'Detected missed blocks in mem_accounts');
 			}
 
 			var unapplied = getMemRounds.filter(function (row) {
@@ -460,12 +459,10 @@ __private.loadBlockChain = function () {
 			});
 
 			if (unapplied.length > 0) {
-				return reload(count, 'Detected unapplied rounds in mem_round');
+				return reload(blocksCount, 'Detected unapplied rounds in mem_round');
 			}
 
-			var duplicatedDelegates = +countDuplicatedDelegates[0].count;
-
-			if (duplicatedDelegates > 0) {
+			if (duplicatedDelegatesCount > 0) {
 				library.logger.error('Delegates table corrupted with duplicated entries');
 				return process.emit('exit');
 			}
@@ -485,16 +482,16 @@ __private.loadBlockChain = function () {
 				.spread(function (updateMemAccounts, getOrphanedMemAccounts, getDelegates) {
 
 					if (getOrphanedMemAccounts.length > 0) {
-						return reload(count, 'Detected orphaned blocks in mem_accounts');
+						return reload(blocksCount, 'Detected orphaned blocks in mem_accounts');
 					}
 
 					if (getDelegates.length === 0) {
-						return reload(count, 'No delegates found');
+						return reload(blocksCount, 'No delegates found');
 					}
 
 					modules.blocks.utils.loadLastBlock(function (err, block) {
 						if (err) {
-							return reload(count, err || 'Failed to load last block');
+							return reload(blocksCount, err || 'Failed to load last block');
 						} else {
 							__private.lastBlock = block;
 							library.logger.info('Blockchain ready');

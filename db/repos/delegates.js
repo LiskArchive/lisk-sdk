@@ -38,7 +38,7 @@ class DelegatesRepository {
 	 */
 	insertFork (fork) {
 		return this.db.none(sql.insertFork, fork);
-	};
+	}
 
 	/**
 	 * Gets delegates for a list of public keys
@@ -47,16 +47,15 @@ class DelegatesRepository {
 	 */
 	getDelegatesByPublicKeys (publicKeys) {
 		return this.db.any(sql.getDelegatesByPublicKeys, {publicKeys});
-	};
+	}
 
 	/**
-	 * Count duplicate delegates by transactionId
-	 * @return {Promise}
+	 * Counts duplicate delegates by transactionId.
+	 * @return {Promise<number>}
 	 */
 	countDuplicatedDelegates () {
-		// TODO: This should use method .one, with inline conversion
-		return this.db.query(sql.countDuplicatedDelegates);
-	};
+		return this.db.one(sql.countDuplicatedDelegates, [], a => +a.count);
+	}
 
 }
 

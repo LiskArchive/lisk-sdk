@@ -33,7 +33,7 @@ class BlocksRepository {
 		this.pgp = pgp;
 
 		this.dbTable = 'blocks';
-		
+
 		this.sortFields = [
 			'id',
 			'timestamp',
@@ -45,7 +45,7 @@ class BlocksRepository {
 			'numberOfTransactions',
 			'generatorPublicKey'
 		];
-		
+
 		this.dbFields = [
 			'id',
 			'version',
@@ -61,7 +61,7 @@ class BlocksRepository {
 			'generatorPublicKey',
 			'blockSignature'
 		];
-		
+
 		if (!cs.insert) {
 			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: this.dbTable});
 		}
@@ -109,12 +109,11 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Count blocks
-	 * @return {Promise}
+	 * Counts all blocks
+	 * @return {Promise<number>}
 	 */
 	count () {
-		// TODO: Must use inline result conversion
-		return this.db.one(sql.count);
+		return this.db.one(sql.count, [], a => +a.count);
 	}
 
 	/**
