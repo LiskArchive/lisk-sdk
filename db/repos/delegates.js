@@ -44,7 +44,7 @@ class DelegatesRepository {
 	 * @param {string} publicKeys - Comma Separated list of public keys
 	 * @return {Promise}
 	 */
-	getDelegatesByPublicKeys (publicKeys) {
+	getDelegatesByPublicKeys(publicKeys) {
 		return this.db.any(sql.getDelegatesByPublicKeys, { publicKeys });
 	}
 
@@ -52,10 +52,9 @@ class DelegatesRepository {
 	 * Counts duplicate delegates by transactionId.
 	 * @return {Promise<number>}
 	 */
-	countDuplicatedDelegates () {
+	countDuplicatedDelegates() {
 		return this.db.one(sql.countDuplicatedDelegates, [], a => +a.count);
 	}
-
 }
 
 // TODO: Move DelegatesRepository#insertFork into a separate db repo

@@ -436,7 +436,6 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 
 	library.db.task(checkMemTables)
 		.spread(function (blocksCount, getGenesisBlock, memAccountsCount, getMemRounds, duplicatedDelegatesCount) {
-
 			library.logger.info(`Blocks ${blocksCount}`);
 
 			var round = slots.calcRound(blocksCount);
@@ -484,7 +483,6 @@ limit = Number(library.config.loading.loadPerIteration) || 1000;
 			// TODO: Missing .catch handler, see #1446
 			library.db.task(updateMemAccounts)
 				.spread(function (updateMemAccounts, getOrphanedMemAccounts, getDelegates) {
-
 					if (getOrphanedMemAccounts.length > 0) {
 						return reload(blocksCount, 'Detected orphaned blocks in mem_accounts');
 					}
