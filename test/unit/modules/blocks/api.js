@@ -13,11 +13,11 @@
  */
 'use strict';
 
-var application = require('../../../common/application');
 var rewire = require('rewire');
 
-var modulesLoader = require('../../../common/modulesLoader');
+var modulesLoader = require('../../../common/modules_loader');
 var BlocksApi = rewire('../../../../modules/blocks/api.js');
+var application = require('../../../common/application'); // eslint-disable-line
 
 describe('blocks/api', () => {
 	var blocksApi;

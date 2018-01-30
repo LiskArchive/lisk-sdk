@@ -14,8 +14,8 @@
 'use strict';
 
 var _ = require('lodash');
-var apiCodes = require('../../helpers/apiCodes');
-var ApiError = require('../../helpers/apiError');
+var apiCodes = require('../../helpers/api_codes');
+var ApiError = require('../../helpers/api_error');
 var swaggerHelper = require('../../helpers/swagger');
 var generateParamsErrorObject = swaggerHelper.generateParamsErrorObject;
 

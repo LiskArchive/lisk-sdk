@@ -16,10 +16,10 @@
 var crypto = require('crypto');
 var bignum = require('../helpers/bignum.js');
 var ByteBuffer = require('bytebuffer');
-var BlockReward = require('../logic/blockReward.js');
+var BlockReward = require('./block_reward.js');
 var constants = require('../helpers/constants.js');
 
-var transactionTypes = require('../helpers/transactionTypes.js');
+var transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
 var __private = {};

@@ -25,10 +25,10 @@ var constants = require('../../../../helpers/constants');
 
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
-var waitFor = require('../../../common/utils/waitFor');
+var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
-var errorCodes = require('../../../../helpers/apiCodes');
+var errorCodes = require('../../../../helpers/api_codes');
 
 describe('POST /api/transactions (type 3) votes', () => {
 	var transaction;

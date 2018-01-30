@@ -13,9 +13,9 @@
  */
 'use strict';
 
-var wsRPC = require('../../../api/ws/rpc/wsRPC').wsRPC;
-var ClientRPCStub = require('../../../api/ws/rpc/wsRPC').ClientRPCStub;
-var ConnectionState = require('../../../api/ws/rpc/wsRPC').ConnectionState;
+var wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
+var ClientRPCStub = require('../../../api/ws/rpc/ws_rpc').ClientRPCStub;
+var ConnectionState = require('../../../api/ws/rpc/ws_rpc').ConnectionState;
 
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 

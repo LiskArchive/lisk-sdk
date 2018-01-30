@@ -16,7 +16,7 @@
 var _ = require('lodash');
 var constants = require('../helpers/constants.js');
 var sortBy = require('../helpers/sort_by.js');
-var BlockReward = require('../logic/blockReward.js');
+var BlockReward = require('./block_reward.js');
 var Bignum = require('../helpers/bignum.js');
 
 // Private fields

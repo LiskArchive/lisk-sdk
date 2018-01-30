@@ -15,9 +15,14 @@
 
 require('../../functional.js');
 
-var swaggerEndpoint = require('../../../common/swaggerSpec');
+var Promise = require('bluebird');
+
+var waitFor = require('../../../common/utils/wait_for');
+Promise.promisify(waitFor.blocks);
+
+var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError; //eslint-disable-line
 
 describe('GET /blocks', () => {
 	var blocksEndpoint = new swaggerEndpoint('GET /blocks');

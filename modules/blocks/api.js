@@ -13,8 +13,8 @@
  */
 'use strict';
 
-var apiCodes = require('../../helpers/apiCodes.js');
-var ApiError = require('../../helpers/apiError.js');
+var apiCodes = require('../../helpers/api_codes.js');
+var ApiError = require('../../helpers/api_error.js');
 var sortBy = require('../../helpers/sort_by.js').sortBy;
 
 var library,

@@ -46,7 +46,7 @@ def buildDependencies() {
 def startLisk() {
 	try {
 		sh '''
-		cp test/data/config.json test/data/genesisBlock.json .
+		cp test/data/config.json test/data/genesis_block.json .
 		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
 		'''
 	} catch (err) {

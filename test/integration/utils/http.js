@@ -14,7 +14,7 @@
 'use strict';
 
 var popsicle = require('popsicle');
-var apiCodes = require('../../../helpers/apiCodes');
+var apiCodes = require('../../../helpers/api_codes');
 
 var headers = {
 	Accept: 'application/json',

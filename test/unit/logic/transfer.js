@@ -18,10 +18,10 @@ var randomstring = require('randomstring');
 
 var accountFixtures = require('../../fixtures/accounts');
 
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 var application = require('../../common/application');
 
-var transactionTypes = require('../../../helpers/transactionTypes');
+var transactionTypes = require('../../../helpers/transaction_types');
 var ed = require('../../../helpers/ed');
 var constants = require('../../../helpers/constants');
 var bignum = require('../../../helpers/bignum');

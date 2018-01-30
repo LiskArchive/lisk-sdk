@@ -20,9 +20,9 @@ var accounts = require('../../fixtures/accounts');
 var constants = require('../../../helpers/constants');
 var ed = require('../../../helpers/ed');
 var exceptions = require('../../../helpers/exceptions');
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 var random = require('../../common/utils/random');
-var SchemaDynamicTest = require('../common/schemaDynamicTest.js');
+var SchemaDynamicTest = require('../common/schema_dynamic_test.js');
 
 var Delegate = rewire('../../../logic/delegate.js');
 

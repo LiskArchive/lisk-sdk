@@ -16,8 +16,8 @@
 var bignum = require('../../../helpers/bignum.js');
 
 var AccountModule = require('../../../modules/accounts.js');
-var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
+var application = require('../../common/application'); // eslint-disable-line
 
 var validAccount = {
 	username: 'genesis_100',

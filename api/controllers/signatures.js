@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var ApiError = require('../../helpers/apiError');
+var ApiError = require('../../helpers/api_error');
 
 // Private Fields
 var modules;

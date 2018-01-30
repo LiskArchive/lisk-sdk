@@ -14,9 +14,9 @@
 'use strict';
 
 require('../../functional.js');
-var genesisDelegates = require('../../../data/genesisDelegates.json');
+var genesisDelegates = require('../../../data/genesis_delegates.json');
 
-var swaggerEndpoint = require('../../../common/swaggerSpec');
+var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 

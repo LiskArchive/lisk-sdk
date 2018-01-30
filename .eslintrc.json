@@ -1,8 +1,5 @@
 {
 	"extends": ["lisk-base"],
-	"env": {
-		"node": true
-	},
 	"plugins": ["mocha"],
 	"rules": {
 		"array-callback-return": 0,
@@ -50,7 +47,7 @@
 		"require-jsdoc": 0,
 		"strict": 0,
 		"vars-on-top": 0,
-		/*plug-in rules*/
+		// plug-in rules
 		"import/newline-after-import": 0,
 		"import/no-dynamic-require": 0,
 		"import/no-extraneous-dependencies": 0,

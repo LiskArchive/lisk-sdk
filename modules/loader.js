@@ -15,7 +15,7 @@
 
 var async = require('async');
 var constants = require('../helpers/constants.js');
-var jobsQueue = require('../helpers/jobsQueue.js');
+var jobsQueue = require('../helpers/jobs_queue.js');
 var Peer = require('../logic/peer.js');
 var slots = require('../helpers/slots.js');
 

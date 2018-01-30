@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var RoundChanges = require('../helpers/RoundChanges.js');
+var RoundChanges = require('../helpers/round_changes.js');
 var Promise = require('bluebird');
 
 /**

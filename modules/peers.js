@@ -19,8 +19,8 @@ var ip = require('ip');
 // We also initialize library here
 var pgp = require('pg-promise')(); // eslint-disable-line
 var constants = require('../helpers/constants.js');
-var failureCodes = require('../api/ws/rpc/failureCodes.js');
-var jobsQueue = require('../helpers/jobsQueue.js');
+var failureCodes = require('../api/ws/rpc/failure_codes.js');
+var jobsQueue = require('../helpers/jobs_queue.js');
 var Peer = require('../logic/peer.js');
 
 // Private fields

@@ -21,11 +21,11 @@ var accountFixtures = require('../../fixtures/accounts');
 
 var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 
 var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff');
-var transactionTypes = require('../../../helpers/transactionTypes');
+var transactionTypes = require('../../../helpers/transaction_types');
 var constants = require('../../../helpers/constants');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');

@@ -22,7 +22,7 @@ var generateRandomActivePeer = require('../../fixtures/peers').generateRandomAct
 var constants = require('../../../helpers/constants');
 
 var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers').generateMatchedAndUnmatchedBroadhashes;
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 var random = require('../../common/utils/random');
 var swagerHelper = require('../../../helpers/swagger');
 

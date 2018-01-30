@@ -17,16 +17,17 @@ var lisk = require('lisk-js');
 var crypto = require('crypto');
 var rewire = require('rewire');
 
-var testData = require('./testData/multisignature');
+var testData = require('./test_data/multisignature');
 var accountFixtures = require('../../fixtures/accounts');
 
 var slots = require('../../../helpers/slots');
 var Diff = require('../../../helpers/diff');
+
 var constants = require('../../../helpers/constants');
 var Multisignature = rewire('../../../logic/multisignature');
 
 var randomUtil = require('../../common/utils/random');
-var modulesLoader = require('../../common/modulesLoader');
+var modulesLoader = require('../../common/modules_loader');
 
 var validKeypair = testData.validKeypair;
 var validSender = testData.validSender;

@@ -32,11 +32,11 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	var goodTransactions = [];
 	var badTransactions = [];
 	var transaction1,
-transaction2,
-transaction3,
-transaction4,
-transaction5,
-transaction6;
+	transaction2,
+	transaction3,
+	transaction4,
+	transaction5,
+	transaction6;
 
 	var dappDuplicate = randomUtil.application();
 	var dappDuplicateNameSuccess = randomUtil.application();
@@ -136,13 +136,13 @@ transaction6;
 			});
 		});
 
-		it('last dapp transactions to arrive should be included', done => {
-			async.every(goodTransactions, (transaction, callback) => {
+		it('last dapp transactions to arrive should be included', function (done) {
+			async.every(goodTransactions, function (transaction, callback) {
 				var filter = {
 					id: transaction.id
 				};
 
-				localCommon.getTransactionFromModule(library, filter, (err, res) => {
+				localCommon.getTransactionFromModule(library, filter, function (err, res) {
 					expect(err).to.be.null;
 					expect(res).to.have.property('transactions').which.is.an('Array');
 					expect(res.transactions.length).to.equal(1);

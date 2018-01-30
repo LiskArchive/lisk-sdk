@@ -179,7 +179,7 @@ class AccountsRepo {
 		}
 
 		if (!Array.isArray(conflictingFields) || !conflictingFields.length) {
-			return Promise.reject(new Error('Error: db.accounts.upsert - invalid conflictingFields argument'));
+			return Promise.reject('Error: db.accounts.upsert - invalid conflictingFields argument'); //eslint-disable-line
 		}
 
 		if (!updateData) {
@@ -187,7 +187,7 @@ class AccountsRepo {
 		}
 
 		if (_.difference(_.union(Object.keys(data), Object.keys(updateData)), this.getDBFields()).length) {
-			return Promise.reject(new Error('Unknown field provided to db.accounts.upsert'));
+			return Promise.reject('Unknown field provided to db.accounts.upsert'); //eslint-disable-line
 		}
 
 		if (conflictingFields.length === 1 && conflictingFields[0] === 'address') {
@@ -235,7 +235,7 @@ class AccountsRepo {
 	 */
 	update(address, data) {
 		if (!address) {
-			return Promise.reject(new Error('Error: db.accounts.update - invalid address argument'));
+			return Promise.reject('Error: db.accounts.update - invalid address argument'); //eslint-disable-line
 		}
 
 		return this.db.none(this.pgp.helpers.update(data, this.cs.update) + this.pgp.as.format(' WHERE $1:name=$2', ['address', address]));
@@ -331,7 +331,7 @@ class AccountsRepo {
 		}
 
 		if (filters && _.difference(Object.keys(filters), this.getDBFields()).length) {
-			return Promise.reject(new Error('Unknown filter field provided to list'));
+			return Promise.reject('Unknown filter field provided to list'); //eslint-disable-line
 		}
 
 		let sql = '${fields:raw} ${conditions:raw} ';
@@ -418,7 +418,7 @@ class AccountsRepo {
 	 */
 	removeDependencies(address, dependentId, dependency) {
 		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
-			return Promise.reject(new Error(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`));
+			return Promise.reject(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`); //eslint-disable-line
 		}
 
 		return this.db.none(sql.removeAccountDependencies, {
@@ -438,7 +438,7 @@ class AccountsRepo {
 	 */
 	insertDependencies(address, dependentId, dependency) {
 		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
-			return Promise.reject(new Error(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`));
+			return Promise.reject(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`); //eslint-disable-line
 		}
 
 		const dependentTable = new this.pgp.helpers.TableName({ table: `${this.dbTable}2${dependency}`, schema: 'public' });

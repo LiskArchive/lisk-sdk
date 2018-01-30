@@ -14,7 +14,7 @@
 'use strict';
 
 var set = require('lodash').set;
-var codes = require('../rpc/failureCodes');
+var codes = require('../rpc/failure_codes');
 
 var UPDATES = {
 	INSERT: 0,

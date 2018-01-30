@@ -14,10 +14,10 @@
 'use strict';
 
 var _ = require('lodash');
-var failureCodes = require('../api/ws/rpc/failureCodes.js');
+var failureCodes = require('../api/ws/rpc/failure_codes.js');
 var Peer = require('../logic/peer.js');
 var System = require('../modules/system.js');
-var peersManager = require('../helpers/peersManager.js');
+var peersManager = require('../helpers/peers_manager.js');
 
 // Private fields
 var __private = {};

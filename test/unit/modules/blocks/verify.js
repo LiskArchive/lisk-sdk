@@ -13,21 +13,21 @@
  */
 'use strict';
 
-var async = require('async');
 var _ = require('lodash');
 var crypto = require('crypto');
 
 var rewire = require('rewire');
 var constants = require('../../../../helpers/constants');
 
-var application = require('../../../common/application');
+var application = require('../../../common/application'); // eslint-disable-line
+var async = require('async'); // eslint-disable-line
+var clearDatabaseTable = require('../../../common/db_sandbox').clearDatabaseTable; // eslint-disable-line
+var modulesLoader = require('../../../common/modules_loader'); // eslint-disable-line
 var random = require('../../../common/utils/random');
-var modulesLoader = require('../../../common/modulesLoader');
 var slots = require('../../../../helpers/slots.js');
-var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
 var Promise = require('bluebird');
-var genesisBlock = require('../../../data/genesisBlock.json');
-var genesisDelegates = require('../../../data/genesisDelegates.json').delegates;
+var genesisBlock = require('../../../data/genesis_block.json');
+var genesisDelegates = require('../../../data/genesis_delegates.json').delegates;
 
 var previousBlock = {
 	blockSignature: '696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',

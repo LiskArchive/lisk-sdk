@@ -18,17 +18,16 @@ var crypto = require('crypto');
 var rewire = require('rewire');
 var randomstring = require('randomstring');
 
-
-var modulesLoader = require('../../common/modulesLoader.js');
+var modulesLoader = require('../../common/modules_loader.js');
 
 var randomUtil = require('../../common/utils/random');
 
 var Dapp = rewire('../../../logic/dapp.js');
 var constants = require('../../../helpers/constants');
 
-var typeRepresentatives = require('../../fixtures/typesRepresentatives.js');
+var typeRepresentatives = require('../../fixtures/types_representatives.js');
 
-var testData = require('./testData/dapp.js');
+var testData = require('./test_data/dapp.js');
 
 var validKeypair = testData.validKeypair;
 var validSender = testData.validSender;

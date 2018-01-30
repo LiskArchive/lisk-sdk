@@ -17,8 +17,8 @@ var rewire = require('rewire');
 var crypto = require('crypto');
 
 var ed = require('../../../helpers/ed');
-var modulesLoader = require('../../common/modulesLoader');
-var transactionTypes = require('../../../helpers/transactionTypes.js');
+var modulesLoader = require('../../common/modules_loader');
+var transactionTypes = require('../../../helpers/transaction_types.js');
 var Block = rewire('../../../logic/block.js');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';

@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var failureCodes = require('../../../../../api/ws/rpc/failureCodes');
+var failureCodes = require('../../../../../api/ws/rpc/failure_codes');
 var Rules = require('../../../../../api/ws/workers/rules');
 
 describe('Rules', () => {
