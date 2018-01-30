@@ -126,12 +126,12 @@ class AccountsRepository {
 	};
 
 	/**
-	 * Count accounts in mem_accounts.
+	 * Counts memory accounts by blocks.
 	 *
-	 * @return {Promise}
+	 * @return {Promise<number>}
 	 */
 	countMemAccounts () {
-		return this.db.one(sql.countMemAccounts);
+		return this.db.one(sql.countMemAccounts, [], a => +a.count);
 	}
 
 	/**

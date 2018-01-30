@@ -16,11 +16,11 @@
  */
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Counts memory accounts by blocks.
 
-  PARAMETERS: ?
+  PARAMETERS: None
 */
 
-SELECT count(*)::int
+SELECT count(*)
 FROM mem_accounts
-WHERE "blockId" = (SELECT id FROM blocks ORDER BY height DESC LIMIT 1);
+WHERE "blockId" = (SELECT id FROM blocks ORDER BY height DESC LIMIT 1)

@@ -449,7 +449,7 @@ __private.loadBlockChain = function () {
 				return reload(count, 'Blocks verification enabled');
 			}
 
-			var missed = !(countMemAccounts.count);
+			var missed = !(countMemAccounts);
 
 			if (missed) {
 				return reload(count, 'Detected missed blocks in mem_accounts');
