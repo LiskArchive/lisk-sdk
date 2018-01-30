@@ -26,16 +26,16 @@ describe('create transaction cast votes', () => {
 		() => {
 			Given('an action "create transaction cast votes"', given.anAction, () => {
 				Given(
-					'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"',
-					given.aPassphrase,
+					'a Lisk object that can create transactions',
+					given.aLiskObjectThatCanCreateTransactions,
 					() => {
 						Given(
-							'a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"',
-							given.aSecondPassphrase,
+							'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"',
+							given.aPassphrase,
 							() => {
 								Given(
-									'a Lisk object that can create transactions',
-									given.aLiskObjectThatCanCreateTransactions,
+									'a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"',
+									given.aSecondPassphrase,
 									() => {
 										Given(
 											'the passphrase can be retrieved from its source',
@@ -804,6 +804,32 @@ describe('create transaction cast votes', () => {
 													},
 												);
 											},
+										);
+									},
+								);
+							},
+						);
+					},
+				);
+				Given(
+					'a public key that should be voted for "1234567812345678123456781234567812345678123456781234567812345678"',
+					given.aPublicKeyThatShouldBeVotedFor,
+					() => {
+						Given(
+							'an options object with votes set to "1234567812345678123456781234567812345678123456781234567812345678" and signature set to "false"',
+							given.anOptionsObjectWithVotesSetToAndSignatureSetTo,
+							() => {
+								When(
+									'the action is called with the options',
+									when.theActionIsCalledWithTheOptions,
+									() => {
+										Then(
+											'it should create a cast votes transaction with the passphrase and the public keys prepended with a plus',
+											then.itShouldCreateACastVotesTransactionWithThePublicKeysPrependedWithAPlus,
+										);
+										Then(
+											'it should resolve to the created transaction',
+											then.itShouldResolveToTheCreatedTransaction,
 										);
 									},
 								);

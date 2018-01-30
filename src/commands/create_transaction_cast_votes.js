@@ -51,6 +51,7 @@ export const actionCreator = vorpal => async ({ options }) => {
 		'second-passphrase': secondPassphraseSource,
 		votes,
 		unvotes,
+		signature,
 	} = options;
 
 	if (!votes && !unvotes) {
@@ -88,18 +89,20 @@ export const actionCreator = vorpal => async ({ options }) => {
 
 	const allVotes = [...prependedVotes, ...prependedUnvotes];
 
-	return getInputsFromSources(vorpal, {
-		passphrase: {
-			source: passphraseSource,
-			repeatPrompt: true,
-		},
-		secondPassphrase: !secondPassphraseSource
-			? null
-			: {
-					source: secondPassphraseSource,
+	return signature === false
+		? processInputs(allVotes)({ passphrase: null, secondPassphrase: null })
+		: getInputsFromSources(vorpal, {
+				passphrase: {
+					source: passphraseSource,
 					repeatPrompt: true,
 				},
-	}).then(processInputs(allVotes));
+				secondPassphrase: !secondPassphraseSource
+					? null
+					: {
+							source: secondPassphraseSource,
+							repeatPrompt: true,
+						},
+			}).then(processInputs(allVotes));
 };
 
 const createTransactionCastVotes = createCommand({

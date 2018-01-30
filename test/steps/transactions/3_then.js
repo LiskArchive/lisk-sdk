@@ -52,6 +52,16 @@ export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicK
 	});
 }
 
+export function itShouldCreateACastVotesTransactionWithThePublicKeysPrependedWithAPlus() {
+	const { votePublicKeys } = this.test.ctx;
+	const votes = prependPlusToPublicKeys(votePublicKeys);
+	return transactions.castVotes.should.be.calledWithExactly({
+		passphrase: null,
+		delegates: votes,
+		secondPassphrase: null,
+	});
+}
+
 export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublicKeysPrependedWithAMinus() {
 	const { passphrase, unvotePublicKeys } = this.test.ctx;
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
