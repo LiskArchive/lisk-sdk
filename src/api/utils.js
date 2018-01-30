@@ -32,6 +32,7 @@ export const netHashOptions = ({ port }) => {
 		version: '1.0.0',
 		minVersion: '>=0.5.0',
 		port,
+		Accept: 'text/plain, text/html, application/json',
 	};
 
 	return {
