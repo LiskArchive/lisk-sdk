@@ -15,11 +15,13 @@
 
 const monitor = require('pg-monitor');
 const repos = require('require-all')(`${__dirname}/repos`);
+const Promise = require('bluebird');
 
 // TODO: Had to change it from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
 let initOptions = { // eslint-disable-line prefer-const
 	pgNative: true,
 	capSQL: true,
+	promiseLib: Promise,
 
 	// Extending the database protocol with our custom repositories;
 	// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend

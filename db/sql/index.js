@@ -24,7 +24,12 @@ module.exports = {
 		getDelegates: link('accounts/getDelegates.sql'),
 		incrementAccount: link('accounts/incrementAccount.sql'),
 		decrementAccount: link('accounts/decrementAccount.sql'),
-		removeAccountDependencies: link('accounts/removeAccountDependencies.sql')
+		removeAccountDependencies: link('accounts/removeAccountDependencies.sql'),
+		columnDelegates: link('accounts/columnDelegates.sql'),
+		columnUDelegates: link('accounts/columnUDelegates.sql'),
+		columnMultisignatures: link('accounts/columnMultisignatures.sql'),
+		columnUMultisignatures: link('accounts/columnUMultisignatures.sql'),
+		columnRank: link('accounts/columnRank.sql')
 	},
 	blocks: {
 		aggregateBlocksReward: link('blocks/aggregateBlocksReward.sql'),

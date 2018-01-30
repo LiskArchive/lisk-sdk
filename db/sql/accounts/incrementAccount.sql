@@ -23,4 +23,4 @@
 
 UPDATE ${table:name}
 SET ${field:name} = ${field:name} + ${value}::bigint
-WHERE "address"=${address}
+WHERE address = ${address}

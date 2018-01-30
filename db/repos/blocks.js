@@ -108,12 +108,11 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Count blocks
-	 * @return {Promise}
+	 * Counts all blocks
+	 * @return {Promise<number>}
 	 */
-	count() {
-		// TODO: Must use inline result conversion
-		return this.db.one(sql.count);
+	count () {
+		return this.db.one(sql.count, [], a => +a.count);
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
-  DESCRIPTION: Counts duplicated delegates.
+  DESCRIPTION: Counts duplicate delegates by transactionId.
 
   PARAMETERS: None
 */

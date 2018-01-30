@@ -478,7 +478,7 @@ describe('db', function () {
 					db.accounts.upsert(account).then(function (value) {
 						done(value);
 					}).catch(function (error) {
-						expect(error).to.be.eql('Error: db.accounts.upsert - invalid conflictingFields argument');
+						expect(error.message).to.be.eql('Error: db.accounts.upsert - invalid conflictingFields argument');
 						done();
 					});
 				});
@@ -701,7 +701,7 @@ describe('db', function () {
 					db.accounts.update(null, account).then(function () {
 						done('should raise error if no address specified');
 					}).catch(function (reason) {
-						expect(reason).to.eql('Error: db.accounts.update - invalid address argument');
+						expect(reason.message).to.eql('Error: db.accounts.update - invalid address argument');
 						done();
 					});
 				});
