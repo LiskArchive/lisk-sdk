@@ -1116,7 +1116,7 @@ describe('Lisk.api()', function () {
 		});
 	});
 
-	describe('Integration test retry routing', function () {
+	describe.only('Integration test retry routing', function () {
 		var thisLSK = lisk.api();
 		var options, stub, sendRequestSpy, sendRequestFailureSpy;
 		beforeEach(function () {
@@ -1134,12 +1134,9 @@ describe('Lisk.api()', function () {
 		});
 
 		describe('when a timeout occurs', function () {
-			it('should do something', function (done) {
+			it('should just call the api request once', function (done) {
 				thisLSK.sendLSK('1234L', '100', '1234', null, function (result) {
-					const firstCallId = stub.firstCall.args[0].requestParams.transaction.id;
-					const secondCallId = stub.secondCall.args[0].requestParams.transaction.id;
-					firstCallId.should.be.eql(secondCallId);
-					console.log(result);
+					stub.callCount.should.be.equal(1)
 					done();
 				});
 			});
