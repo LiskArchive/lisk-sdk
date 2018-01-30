@@ -1115,4 +1115,34 @@ describe('Lisk.api()', function () {
 			});
 		});
 	});
+
+	describe('Integration test retry routing', function () {
+		var thisLSK = lisk.api();
+		var options, stub, sendRequestSpy, sendRequestFailureSpy;
+		beforeEach(function () {
+			options = {
+				ssl: false,
+				node: '',
+				randomPeer: true,
+				testnet: true,
+				port: '7000',
+				bannedPeers: []
+			};
+			stub = sinon.stub(thisLSK, 'doPopsicleRequest').rejects({ sorry: 'no error message' });
+			spy = sinon.spy(thisLSK, 'sendRequest');
+			sendRequestFailureSpy = sinon.spy(thisLSK, 'handleSendRequestFailures');
+		});
+
+		describe('when a timeout occurs', function () {
+			it('should do something', function (done) {
+				thisLSK.sendLSK('1234L', '100', '1234', null, function (result) {
+					const firstCallId = stub.firstCall.args[0].requestParams.transaction.id;
+					const secondCallId = stub.secondCall.args[0].requestParams.transaction.id;
+					firstCallId.should.be.eql(secondCallId);
+					console.log(result);
+					done();
+				});
+			});
+		});
+	});
 });
