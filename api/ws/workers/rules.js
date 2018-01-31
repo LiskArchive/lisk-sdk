@@ -38,14 +38,14 @@ var ON_MASTER = {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
  * @class
  * @memberof api.ws.workers
  * @see Parent: {@link api.ws.workers}
- * @param {function} insert - Description
- * @param {function} remove - Description
- * @param {function} block - Description
+ * @param {function} insert - Description of the param
+ * @param {function} remove - Description of the param
+ * @param {function} block - Description of the param
  * @todo: Add description of class and its parameters
  */
 function Rules (insert, remove, block) {

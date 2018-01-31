@@ -32,13 +32,13 @@ var self;
  * @class
  * @memberof api.ws.workers
  * @see Parent: {@link api.ws.workers}
+ * @requires api/ws/rpc/failureCodes
+ * @requires api/ws/workers/connectionsTable
+ * @requires api/ws/workers/rules
+ * @requires api/ws/workers/slaveToMaster
  * @requires helpers/swagger
  * @requires helpers/z_schema
  * @requires logic/peer
- * @requires api/ws/rpc/failureCodes
- * @requires api/ws/workers/connectionsTable
- * @requires api/ws/workers/slaveToMaster
- * @requires api/ws/workers/rules
  * @param {Object} slaveWAMPServer - used to send verified update requests to master process
  */
 function PeersUpdateRules (slaveWAMPServer) {
@@ -48,11 +48,11 @@ function PeersUpdateRules (slaveWAMPServer) {
 }
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} peer - Description
- * @param {string} connectionId - Description
- * @param {function} cb - Description
+ * @param {Object} peer - Description of the param
+ * @param {string} connectionId - Description of the param
+ * @param {function} cb - Description of the param
  * @todo: Add description of the functions and its parameters
  * @todo: Add returns-tag
  */
@@ -75,11 +75,11 @@ PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {Object} peer - Description
- * @param {string} connectionId - Description
- * @param {function} cb - Description
+ * @param {Object} peer - Description of the param
+ * @param {string} connectionId - Description of the param
+ * @param {function} cb - Description of the param
  * @todo: Add description of the functions and its parameters
  * @todo: Add returns-tag
  */
@@ -99,12 +99,12 @@ PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {number} code - Description
- * @param {Object} peer - Description
- * @param {string} connectionId - Description
- * @param {function} cb - Description
+ * @param {number} code - Description of the param
+ * @param {Object} peer - Description of the param
+ * @param {string} connectionId - Description of the param
+ * @param {function} cb - Description of the param
  * @todo: Add description of the functions and its parameters
  * @todo: Add returns-tag
  */
@@ -114,17 +114,16 @@ PeersUpdateRules.prototype.block = function (code, peer, connectionId, cb) {
 
 /**
  * Description
- *
  */
 PeersUpdateRules.prototype.internal = {
 	/**
-	 * Description.
+	 * Description of the function.
 	 *
 	 * @memberof api.ws.workers.PeersUpdateRules
-	 * @param {number} updateType - Description
-	 * @param {Object} peer - Description
-	 * @param {string} connectionId - Description
-	 * @param {function} cb - Description
+	 * @param {number} updateType - Description of the param
+	 * @param {Object} peer - Description of the param
+	 * @param {string} connectionId - Description of the param
+	 * @param {function} cb - Description of the param
 	 * @todo: Add description of the functions and its parameters
 	 * @todo: Add returns-tag
 	 */
@@ -146,11 +145,10 @@ PeersUpdateRules.prototype.internal = {
 
 /**
  * Description
- *
  */
 PeersUpdateRules.prototype.external = {
 	/**
-	 * Description.
+	 * Description of the function.
 	 *
 	 * @memberof api.ws.workers.PeersUpdateRules
 	 * @param {Object} request - peer object with extra requests fields added by SlaveWAMPServer

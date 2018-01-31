@@ -19,7 +19,7 @@
  */
 
 /**
- * Description.
+ * Description of the object.
  *
  * @name failureCodes
  * @memberof api.ws.rpc.failureCodes
@@ -55,7 +55,7 @@ module.exports = {
 };
 
 /**
- * Description.
+ * Description of the object.
  *
  * @name errorMessages
  * @memberof api.ws.rpc.failureCodes
@@ -82,7 +82,7 @@ module.exports.errorMessages = {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
  * @class
  * @memberof api.ws.rpc.failureCodes

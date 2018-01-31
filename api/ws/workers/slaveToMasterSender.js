@@ -28,10 +28,10 @@ function SlaveToMasterSender (slaveWAMPServer) {
 /**
  * Sends requests to main process with SocketCluster authKey attached.
  *
- * @param {string} procedureName - Description
- * @param {number} updateType - Description
- * @param {Object} peer - Description
- * @param {function} cb - Description
+ * @param {string} procedureName - Description of the param
+ * @param {number} updateType - Description of the param
+ * @param {Object} peer - Description of the param
+ * @param {function} cb - Description of the param
  * @todo: Add descriptions for the parameters
  */
 SlaveToMasterSender.prototype.send = function (procedureName, updateType, peer, cb) {
@@ -43,10 +43,10 @@ SlaveToMasterSender.prototype.send = function (procedureName, updateType, peer, 
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {string} nonce - Description
- * @param {function} cb - Description
+ * @param {string} nonce - Description of the param
+ * @param {function} cb - Description of the param
  * @todo: Add description of the function and its parameters
  */
 SlaveToMasterSender.prototype.getPeer = function (nonce, cb) {

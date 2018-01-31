@@ -18,12 +18,12 @@ var wsRPC = require('./rpc/wsRPC').wsRPC;
 var slaveRPCStub = require('./rpc/wsRPC').slaveRPCStub;
 
 /**
- * Description.
+ * Description of the function.
  *
  * @class
  * @memberof api.ws
  * @see Parent: {@link api.ws}
- * @param {Object} transportModule - Description
+ * @param {Object} transportModule - Description of the param
  * @todo: Add description of the function and its parameters
  */
 function TransportWSApi (transportModule) {

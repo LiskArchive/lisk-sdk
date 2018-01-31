@@ -26,9 +26,9 @@ function ConnectionsTable () {
 }
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {string} connectionId - Description
+ * @param {string} connectionId - Description of the param
  * @returns {string|undefined} returns matching nonce if an entry was added previously
  * @todo: Add description of the function and its parameters
  */
@@ -37,9 +37,9 @@ ConnectionsTable.prototype.getNonce = function (connectionId) {
 };
 
 /**
- * Description.
+ * Description of the function.
  *
- * @param {string} nonce - Description
+ * @param {string} nonce - Description of the param
  * @returns {string|undefined} returns matching connectionId if an entry was added previously
  * @todo: Add description of the function and its parameters
  */
@@ -50,8 +50,8 @@ ConnectionsTable.prototype.getConnectionId = function (nonce) {
 /**
  * Links peer via nonce with given connectionId.
  *
- * @param {string} nonce - Description
- * @param {string} connectionId - Description
+ * @param {string} nonce - Description of the param
+ * @param {string} connectionId - Description of the param
  * @todo: Add descriptions of the parameters
  */
 ConnectionsTable.prototype.add = function (nonce, connectionId) {
@@ -70,7 +70,7 @@ ConnectionsTable.prototype.add = function (nonce, connectionId) {
 /**
  * Removes a peer with assigned connectionId.
  *
- * @param {string} nonce - Description
+ * @param {string} nonce - Description of the param
  * @todo: Add description of the parameter
  */
 ConnectionsTable.prototype.remove = function (nonce) {
