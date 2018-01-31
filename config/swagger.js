@@ -24,7 +24,7 @@ require('../helpers/swagger').getValidator();
 
 /**
  * Configure swagger node runner with the app.
- * It loads swagger specification and map every thing with an active express app.
+ * It loads the swagger specification and maps everything with an active express app.
  *
  * @module
  * @see Parent: {@link config}
