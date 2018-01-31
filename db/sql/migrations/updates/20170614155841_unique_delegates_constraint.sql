@@ -14,10 +14,9 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Setting unique constraints on delegates table.
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+ALTER TABLE delegates ADD CONSTRAINT delegates_unique UNIQUE ("username", "transactionId");

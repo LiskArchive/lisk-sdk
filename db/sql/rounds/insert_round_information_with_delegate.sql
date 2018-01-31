@@ -14,10 +14,14 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: ?
 
-  PARAMETERS: None
+  PARAMETERS: ?
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+INSERT INTO mem_round
+	("address", "amount", "delegate", "blockId", "round")
+SELECT
+	${address}, (${balanceMode:raw}balance)::bigint, ${delegate}, ${blockId}, ${round}
+	FROM mem_accounts
+	WHERE address = ${address}

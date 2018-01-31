@@ -14,10 +14,11 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Add constraints to improve upserts.
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+ALTER TABLE "peers"
+  ADD CONSTRAINT "address_unique" UNIQUE
+  USING INDEX "peers_unique";

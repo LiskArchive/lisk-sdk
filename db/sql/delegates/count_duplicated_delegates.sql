@@ -14,10 +14,17 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Counts duplicate delegates by transactionId.
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+WITH duplicates AS
+  (
+    SELECT count(*)
+    FROM delegates
+    GROUP BY "transactionId"
+    HAVING count(*) > 1
+  )
+SELECT count(*)
+FROM duplicates

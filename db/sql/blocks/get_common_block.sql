@@ -14,10 +14,14 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: ?
 
-  PARAMETERS: None
+  PARAMETERS: ?
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+SELECT count(*)::int
+FROM blocks
+WHERE
+  id = ${id}
+  AND height = ${height}
+  ${comparePreviousBlock:raw}

@@ -14,10 +14,12 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Gets list of addresses for group by a public key
 
-  PARAMETERS: None
+  PARAMETERS:
+  		- publicKey: Public key of a group (string)
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+SELECT array_agg("accountId") AS "groupAccountIds"
+FROM mem_accounts2multisignatures
+WHERE "dependentId" = ${publicKey}

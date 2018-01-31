@@ -14,10 +14,11 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Add Broadhash Column to Peers.
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+ALTER TABLE "peers" ADD COLUMN "broadhash" bytea;
+
+CREATE INDEX IF NOT EXISTS "peers_broadhash" ON "peers"("broadhash");

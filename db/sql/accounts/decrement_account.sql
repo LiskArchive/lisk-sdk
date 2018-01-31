@@ -14,10 +14,11 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: ?
 
-  PARAMETERS: None
+  PARAMETERS: ?
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+UPDATE ${table:name}
+SET ${field:name} = ${field:name} - ${value}::bigint
+WHERE address = ${address}

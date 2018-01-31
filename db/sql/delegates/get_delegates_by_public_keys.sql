@@ -14,10 +14,18 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Gets delegates for a list of public keys.
 
-  PARAMETERS: None
+  PARAMETERS:
+      publicKeys - array of public keys (strings)
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+SELECT encode("publicKey", 'hex') AS "publicKey",
+       username,
+       address
+FROM mem_accounts
+WHERE
+  "isDelegate" = 1
+  AND encode("publicKey", 'hex') IN (${publicKeys:csv})
+ORDER BY vote ASC,
+         "publicKey" DESC

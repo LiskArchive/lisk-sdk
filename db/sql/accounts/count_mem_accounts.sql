@@ -14,10 +14,11 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Counts memory accounts by blocks.
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+SELECT count(*)
+FROM mem_accounts
+WHERE "blockId" = (SELECT id FROM blocks ORDER BY height DESC LIMIT 1)

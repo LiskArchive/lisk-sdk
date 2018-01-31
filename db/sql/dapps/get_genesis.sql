@@ -14,10 +14,12 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: ?
 
-  PARAMETERS: None
+  PARAMETERS: ?
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+SELECT b.height AS height, b.id AS id, t."senderId" AS "authorId"
+FROM trs t
+INNER JOIN blocks b ON t."blockId" = b.id
+WHERE t.id = $1

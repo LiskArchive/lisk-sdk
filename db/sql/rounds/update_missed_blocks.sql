@@ -14,10 +14,13 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: ?
 
-  PARAMETERS: None
+  PARAMETERS:
+    - change - can be either '+ 1' or '- 1'
+    - outsiders - array of something?
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+UPDATE mem_accounts
+SET missedblocks = missedblocks ${change:raw}
+WHERE address IN (${outsiders:csv})

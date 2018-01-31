@@ -14,10 +14,10 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
-
-  PARAMETERS: None
+  DESCRIPTION: ?
+  PARAMETERS: ?
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+SELECT "publicKey"
+FROM mem_votes_snapshot
+ORDER BY vote DESC, "publicKey" ASC LIMIT $1

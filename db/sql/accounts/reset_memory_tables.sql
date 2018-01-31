@@ -14,10 +14,13 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: ?
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+DELETE FROM mem_round;
+DELETE FROM mem_accounts2delegates;
+DELETE FROM mem_accounts2u_delegates;
+DELETE FROM mem_accounts2multisignatures;
+DELETE FROM mem_accounts2u_multisignatures;

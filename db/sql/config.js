@@ -43,6 +43,6 @@ function link(file) {
 	}
 
 	return qf;
-};
+}
 
 module.exports = {link, sqlRoot};

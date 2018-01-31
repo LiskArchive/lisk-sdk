@@ -14,10 +14,12 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Selects id of the last migration record, if there is any
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+SELECT id
+FROM migrations
+ORDER BY id DESC
+LIMIT 1

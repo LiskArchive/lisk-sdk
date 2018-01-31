@@ -14,10 +14,13 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Dynamic-field query for column "multisignatures"
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+(
+  SELECT array_agg("dependentId")
+  FROM mem_accounts2multisignatures
+  WHERE "accountId" = mem_accounts.address
+)

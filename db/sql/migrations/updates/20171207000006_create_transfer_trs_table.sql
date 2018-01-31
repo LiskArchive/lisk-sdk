@@ -14,10 +14,15 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Create transfer trs table and index.
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+CREATE TABLE IF NOT EXISTS "transfer" (
+  "data" BYTEA NOT NULL,
+  "transactionId" VARCHAR(20) NOT NULL,
+  FOREIGN KEY("transactionId") REFERENCES "trs"("id") ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS "transfer_trs_id" ON "transfer"("transactionId");

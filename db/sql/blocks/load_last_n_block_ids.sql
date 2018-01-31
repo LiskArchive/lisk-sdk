@@ -14,10 +14,10 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+	DESCRIPTION: Get last N blocks ids ordered by height.
 
-  PARAMETERS: None
+	PARAMETERS: {Limit} Number of block ids to get
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+SELECT id FROM blocks
+ORDER BY height DESC LIMIT $1

@@ -17,56 +17,56 @@ const {link} = require('./config');
 
 module.exports = {
 	accounts: {
-		resetMemoryTables: link('accounts/resetMemoryTables.sql'),
-		countMemAccounts: link('accounts/countMemAccounts.sql'),
-		updateMemAccounts: link('accounts/updateMemAccounts.sql'),
-		getOrphanedMemAccounts: link('accounts/getOrphanedMemAccounts.sql'),
-		getDelegates: link('accounts/getDelegates.sql'),
-		incrementAccount: link('accounts/incrementAccount.sql'),
-		decrementAccount: link('accounts/decrementAccount.sql'),
-		removeAccountDependencies: link('accounts/removeAccountDependencies.sql'),
-		columnDelegates: link('accounts/columnDelegates.sql'),
-		columnUDelegates: link('accounts/columnUDelegates.sql'),
-		columnMultisignatures: link('accounts/columnMultisignatures.sql'),
-		columnUMultisignatures: link('accounts/columnUMultisignatures.sql'),
-		columnRank: link('accounts/columnRank.sql')
+		resetMemoryTables: link('accounts/reset_memory_tables.sql'),
+		countMemAccounts: link('accounts/count_mem_accounts.sql'),
+		updateMemAccounts: link('accounts/update_mem_accounts.sql'),
+		getOrphanedMemAccounts: link('accounts/get_orphaned_mem_accounts.sql'),
+		getDelegates: link('accounts/get_delegates.sql'),
+		incrementAccount: link('accounts/increment_account.sql'),
+		decrementAccount: link('accounts/decrement_account.sql'),
+		removeAccountDependencies: link('accounts/remove_account_dependencies.sql'),
+		columnDelegates: link('accounts/column_delegates.sql'),
+		columnUDelegates: link('accounts/column_u_delegates.sql'),
+		columnMultisignatures: link('accounts/column_multisignatures.sql'),
+		columnUMultisignatures: link('accounts/column_u_multisignatures.sql'),
+		columnRank: link('accounts/column_rank.sql')
 	},
 	blocks: {
-		aggregateBlocksReward: link('blocks/aggregateBlocksReward.sql'),
+		aggregateBlocksReward: link('blocks/aggregate_blocks_reward.sql'),
 		count: link('blocks/count.sql'),
-		deleteBlock: link('blocks/deleteBlock.sql'),
-		getGenesisBlock: link('blocks/getGenesisBlock.sql'),
-		getGenesisBlockId: link('blocks/getGenesisBlockId.sql'),
-		getIdSequence: link('blocks/getIdSequence.sql'),
-		loadBlocksOffset: link('blocks/loadBlocksOffset.sql'),
-		loadLastBlock: link('blocks/loadLastBlock.sql'),
-		loadLastNBlockIds: link('blocks/loadLastNBlockIds.sql'),
-		blockExists: link('blocks/blockExists.sql'),
-		deleteAfterBlock: link('blocks/deleteAfterBlock.sql'),
-		getBlocksForTransport: link('blocks/getBlocksForTransport.sql'),
-		getHeightByLastId: link('blocks/getHeightByLastId.sql'),
-		getCommonBlock: link('blocks/getCommonBlock.sql')
+		deleteBlock: link('blocks/delete_block.sql'),
+		getGenesisBlock: link('blocks/get_genesis_block.sql'),
+		getGenesisBlockId: link('blocks/get_genesis_block_id.sql'),
+		getIdSequence: link('blocks/get_id_sequence.sql'),
+		loadBlocksOffset: link('blocks/load_blocks_offset.sql'),
+		loadLastBlock: link('blocks/load_last_block.sql'),
+		loadLastNBlockIds: link('blocks/load_last_n_block_ids.sql'),
+		blockExists: link('blocks/block_exists.sql'),
+		deleteAfterBlock: link('blocks/delete_after_block.sql'),
+		getBlocksForTransport: link('blocks/get_blocks_for_transport.sql'),
+		getHeightByLastId: link('blocks/get_height_by_last_id.sql'),
+		getCommonBlock: link('blocks/get_common_block.sql')
 	},
 	dapps: {
-		countByOutTransactionId: link('dapps/countByOutTransactionId.sql'),
-		countByTransactionId: link('dapps/countByTransactionId.sql'),
-		getExisting: link('dapps/getExisting.sql'),
-		getGenesis: link('dapps/getGenesis.sql'),
+		countByOutTransactionId: link('dapps/count_by_out_transaction_id.sql'),
+		countByTransactionId: link('dapps/count_by_transaction_id.sql'),
+		getExisting: link('dapps/get_existing.sql'),
+		getGenesis: link('dapps/get_genesis.sql'),
 		list: link('dapps/list.sql')
 	},
 	delegates: {
-		countDuplicatedDelegates: link('delegates/countDuplicatedDelegates.sql'),
-		getDelegatesByPublicKeys: link('delegates/getDelegatesByPublicKeys.sql'),
-		insertFork: link('delegates/insertFork.sql')
+		countDuplicatedDelegates: link('delegates/count_duplicated_delegates.sql'),
+		getDelegatesByPublicKeys: link('delegates/get_delegates_by_public_keys.sql'),
+		insertFork: link('delegates/insert_fork.sql')
 	},
 	multisignatures: {
-		getMemberPublicKeys: link('multisignatures/getMemberPublicKeys.sql'),
-		getGroupIds: link('multisignatures/getGroupIds.sql')
+		getMemberPublicKeys: link('multisignatures/get_member_public_keys.sql'),
+		getGroupIds: link('multisignatures/get_group_ids.sql')
 	},
 	migrations: {
-		getLastId: link('migrations/getLastId.sql'),
+		getLastId: link('migrations/get_last_id.sql'),
 		add: link('migrations/add.sql'),
-		memoryTables: link('migrations/memoryTables.sql'),
+		memoryTables: link('migrations/memory_tables.sql'),
 		runtime: link('migrations/runtime.sql')
 	},
 	peers: {
@@ -74,30 +74,30 @@ module.exports = {
 		clear: link('peers/clear.sql')
 	},
 	rounds: {
-		getVotes: link('rounds/getVotes.sql'),
-		updateVotes: link('rounds/updateVotes.sql'),
-		updateMissedBlocks: link('rounds/updateMissedBlocks.sql'),
-		updateBlockId: link('rounds/updateBlockId.sql'),
-		summedRound: link('rounds/summedRound.sql'),
-		clearRoundSnapshot: link('rounds/clearRoundSnapshot.sql'),
-		performRoundSnapshot: link('rounds/performRoundSnapshot.sql'),
-		restoreRoundSnapshot: link('rounds/restoreRoundSnapshot.sql'),
-		clearVotesSnapshot: link('rounds/clearVotesSnapshot.sql'),
-		performVotesSnapshot: link('rounds/performVotesSnapshot.sql'),
-		restoreVotesSnapshot: link('rounds/restoreVotesSnapshot.sql'),
-		getMemRounds: link('rounds/getMemRounds.sql'),
+		getVotes: link('rounds/get_votes.sql'),
+		updateVotes: link('rounds/update_votes.sql'),
+		updateMissedBlocks: link('rounds/update_missed_blocks.sql'),
+		updateBlockId: link('rounds/update_blockId.sql'),
+		summedRound: link('rounds/summed_round.sql'),
+		clearRoundSnapshot: link('rounds/clear_round_snapshot.sql'),
+		performRoundSnapshot: link('rounds/perform_round_snapshot.sql'),
+		restoreRoundSnapshot: link('rounds/restore_round_snapshot.sql'),
+		clearVotesSnapshot: link('rounds/clear_votes_snapshot.sql'),
+		performVotesSnapshot: link('rounds/perform_votes_snapshot.sql'),
+		restoreVotesSnapshot: link('rounds/restore_votes_snapshot.sql'),
+		getMemRounds: link('rounds/get_mem_rounds.sql'),
 		flush: link('rounds/flush.sql'),
-		truncateBlocks: link('rounds/truncateBlocks.sql'),
-		getDelegatesSnapshot: link('rounds/getDelegatesSnapshot.sql'),
-		insertRoundInformationWithAmount: link('rounds/insertRoundInformationWithAmount.sql'),
-		insertRoundInformationWithDelegate: link('rounds/insertRoundInformationWithDelegate.sql')
+		truncateBlocks: link('rounds/truncate_blocks.sql'),
+		getDelegatesSnapshot: link('rounds/get_delegates_snapshot.sql'),
+		insertRoundInformationWithAmount: link('rounds/insert_round_information_with_amount.sql'),
+		insertRoundInformationWithDelegate: link('rounds/insert_round_information_with_delegate.sql')
 	},
 	votes: {
-		getVotes: link('votes/getVotes.sql'),
-		getVotesCount: link('votes/getVotesCount.sql')
+		getVotes: link('votes/get_votes.sql'),
+		getVotesCount: link('votes/get_votes_count.sql')
 	},
 	voters: {
-		getVoters: link('voters/getVoters.sql'),
-		getVotersCount: link('voters/getVotersCount.sql')
+		getVoters: link('voters/get_voters.sql'),
+		getVotersCount: link('voters/get_voters_count.sql')
 	}
 };

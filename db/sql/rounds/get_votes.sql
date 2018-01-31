@@ -14,10 +14,11 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: ?
 
-  PARAMETERS: None
+  PARAMETERS: ?
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+SELECT d.delegate, d.amount
+FROM (SELECT m.delegate, sum(m.amount) AS amount, round FROM mem_round m GROUP BY m.delegate, m.round) AS d
+WHERE round = $1::bigint

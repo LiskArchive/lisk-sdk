@@ -14,10 +14,12 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Gets list of public keys for a member address
 
-  PARAMETERS: None
+  PARAMETERS:
+  		- address: Address of a member (string)
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+SELECT array_agg("dependentId") AS "memberAccountKeys"
+FROM mem_accounts2multisignatures
+WHERE "accountId" = ${address}

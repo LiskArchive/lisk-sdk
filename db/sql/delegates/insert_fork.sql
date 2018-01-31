@@ -14,10 +14,30 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Inserts a fork statistics.
 
-  PARAMETERS: None
+  PARAMETERS:
+      delegatePublicKey - ?
+      blockTimestamp - ?
+      blockId - ?
+      blockHeight - ?
+      previousBlock - ?
+      cause - ?
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+INSERT INTO forks_stat(
+  "delegatePublicKey",
+  "blockTimestamp",
+  "blockId",
+  "blockHeight",
+  "previousBlock",
+  cause
+)
+VALUES (
+  ${delegatePublicKey},
+  ${blockTimestamp},
+  ${blockId},
+  ${blockHeight},
+  ${previousBlock},
+  ${cause}
+)

@@ -14,10 +14,10 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Adds index for performance.
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+-- Add 'mem_accounts2delegates_depId' index for fast delegates voters counting
+CREATE INDEX IF NOT EXISTS "mem_accounts2delegates_depId" ON mem_accounts2delegates("dependentId");

@@ -14,10 +14,11 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Remove peers_dapp table and its indexes.
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+DROP TABLE IF EXISTS "peers_dapp";
+
+DROP INDEX IF EXISTS "peers_dapp_unique";

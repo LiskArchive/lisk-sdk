@@ -14,10 +14,11 @@
 
 
 /*
-  DESCRIPTION: Gets all peers from database
+  DESCRIPTION: Add Height Column to Peers.
 
   PARAMETERS: None
 */
 
-SELECT ip, "wsPort", state, os, version, encode(broadhash, 'hex') AS broadhash, height, clock
-FROM peers
+ALTER TABLE "peers" ADD COLUMN "height" INT;
+
+CREATE INDEX IF NOT EXISTS "peers_height" ON "peers"("height");
