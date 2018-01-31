@@ -110,7 +110,7 @@ def runAction(action) {
 		} else {
 			sh """
 			cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-			npm test -- ${action}
+			npm test -- ${action} | grep -v -e "^query" -e "connect connect" -e "disconnect disconnect" -e "transact tx"
 			"""
 		}
 	} catch (err) {
