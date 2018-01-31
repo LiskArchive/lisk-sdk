@@ -253,15 +253,7 @@ Utils.prototype.getIdSequence = function (height, cb) {
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.rows List of blocks
  */
-Utils.prototype.loadBlocksData = function (filter, options, cb) {
-	//FIXME: options is not used
-	if (arguments.length < 3) {
-		cb = options;
-		options = {};
-	}
-
-	options = options || {};
-
+Utils.prototype.loadBlocksData = function (filter, cb) {
 	var params = { limit: filter.limit || 1 };
 
 	//FIXME: filter.id is not used
