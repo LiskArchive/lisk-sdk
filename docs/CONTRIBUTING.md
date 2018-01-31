@@ -113,6 +113,7 @@ out [the required template](ISSUE_TEMPLATE.md), the information it asks for
 helps us resolve issues faster.
 
 > **Note:** If you find a **Closed** issue that seems like it is the same thing
+
     that you’re experiencing, open a new issue and include a link to the original
     issue in the body of your new one.
 
