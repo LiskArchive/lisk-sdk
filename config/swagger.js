@@ -24,17 +24,19 @@ require('../helpers/swagger').getValidator();
 
 /**
  * Configure swagger node runner with the app.
- * It loads swagger specification and map every thing with an active express app
- * @requires swagger-node-runner
- * @requires path
+ * It loads swagger specification and map every thing with an active express app.
+ *
+ * @module
+ * @see Parent: {@link config}
  * @requires fs
  * @requires js-yaml
- * @module config:swagger
+ * @requires path
+ * @requires swagger-node-runner
  * @param {Object} app - An express app to which map the swagger details
  * @param {Object} config - Application Configurations
  * @param {Object} logger - Application Logger
  * @param {Object} scope - Application Scope
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
  * @returns {void}
  */
 function bootstrapSwagger(app, config, logger, scope, cb) {
