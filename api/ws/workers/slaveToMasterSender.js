@@ -17,6 +17,8 @@
  * Sends messages from slave processes to master.
  *
  * @class
+ * @memberof api.ws.workers
+ * @see Parent: {@link api.ws.workers}
  * @param {Object} slaveWAMPServer - used to send verified update requests to master process.
  */
 function SlaveToMasterSender (slaveWAMPServer) {

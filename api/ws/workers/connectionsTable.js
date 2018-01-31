@@ -17,7 +17,8 @@
  * ConnectionsTable - stores connection (socket) ids and matches them with peer's nonces.
  *
  * @class
- * @memberof api/ws.workers
+ * @memberof api.ws.workers
+ * @see Parent: {@link api.ws.workers}
  */
 function ConnectionsTable () {
 	this.connectionIdToNonceMap = {};

@@ -30,7 +30,8 @@ var self;
  * Secures peers updates. Used only by workers.
  *
  * @class
- * @memberof api/ws.workers
+ * @memberof api.ws.workers
+ * @see Parent: {@link api.ws.workers}
  * @requires helpers/swagger
  * @requires helpers/z_schema
  * @requires logic/peer
@@ -111,13 +112,15 @@ PeersUpdateRules.prototype.block = function (code, peer, connectionId, cb) {
 	return setImmediate(cb, new PeerUpdateError(code, failureCodes.errorMessages[code]));
 };
 
-
 /**
- * Description.
+ * Description
+ *
  */
 PeersUpdateRules.prototype.internal = {
 	/**
-	 * @memberof api/ws.workers.PeersUpdateRules
+	 * Description.
+	 *
+	 * @memberof api.ws.workers.PeersUpdateRules
 	 * @param {number} updateType - Description
 	 * @param {Object} peer - Description
 	 * @param {string} connectionId - Description
@@ -142,17 +145,22 @@ PeersUpdateRules.prototype.internal = {
 };
 
 /**
- * Description.
+ * Description
  *
- * @param {Object} request - peer object with extra requests fields added by SlaveWAMPServer
- * @param {Object} request.data - peer's data
- * @param {string} request.socketId - connection id
- * @param {string} request.workerId - worker id
- * @param {function} cb - Description
- * @todo: Add description of the functions and its parameters
- * @todo: Add returns-tag
  */
 PeersUpdateRules.prototype.external = {
+	/**
+	 * Description.
+	 *
+	 * @memberof api.ws.workers.PeersUpdateRules
+	 * @param {Object} request - peer object with extra requests fields added by SlaveWAMPServer
+	 * @param {Object} request.data - peer's data
+	 * @param {string} request.socketId - connection id
+	 * @param {string} request.workerId - worker id
+	 * @param {function} cb - Description
+	 * @todo: Add description of the functions and its parameters
+	 * @todo: Add returns-tag
+	 */
 	update: function (request, cb) {
 		z_schema.validate(request, definitions.WSPeerUpdateRequest, function (err) {
 			if (err) {
