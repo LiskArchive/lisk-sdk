@@ -13,6 +13,7 @@
 		"func-names": 0,
 		"global-require": 0,
 		"guard-for-in": 0,
+		"generator-star-spacing": ["error", {"before": false, "after": false}],
 		"lines-around-directive": 0,
 		"max-len": 0,
 		"new-cap": 0,
@@ -45,7 +46,9 @@
 		"radix": 0,
 		"require-jsdoc": 0,
 		"strict": 0,
+		"space-before-function-paren": [2, "never"],
 		"vars-on-top": 0,
+		"wrap-iife": 0,
 		// plug-in rules
 		"import/newline-after-import": 0,
 		"import/no-dynamic-require": 0,

@@ -36,8 +36,7 @@ BigNumber.fromBuffer = function (buf, opts) {
 	var size = opts.size === 'auto' ? Math.ceil(buf.length) : (opts.size || 1);
 
 	if (buf.length % size !== 0) {
-		throw new RangeError(`Buffer length (${buf.length})`
-			+ ` must be a multiple of size (${size})`
+		throw new RangeError(`Buffer length (${buf.length}) must be a multiple of size (${size})`
 		);
 	}
 
