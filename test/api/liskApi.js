@@ -34,6 +34,7 @@ describe('Lisk API module', () => {
 		version: '1.0.0',
 		minVersion: '>=0.5.0',
 		port: sslPort,
+		Accept: 'application/json',
 	};
 	const testnetNethash = Object.assign({}, defaultNethash, {
 		nethash: testnetHash,
@@ -202,6 +203,7 @@ describe('Lisk API module', () => {
 					version: '0.0.0a',
 					minVersion: '>=0.5.0',
 					port: sslPort,
+					Accept: 'application/json',
 				};
 				LSK = new LiskAPI({ nethash: ownNethash });
 				return LSK.should.have.property('nethash').be.eql(expectedDevNethash);
