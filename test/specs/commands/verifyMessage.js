@@ -71,6 +71,18 @@ describe('verify message command', () => {
 														);
 													},
 												);
+												Given('a message "Hello world"', given.aMessage, () => {
+													When(
+														'the action is called with the options, the message, the public key and the signature',
+														when.theActionIsCalledWithTheOptionsTheMessageThePublicKeyAndTheSignature,
+														() => {
+															Then(
+																'it should resolve to the result of verifying the message',
+																then.itShouldResolveToTheResultOfVerifyingTheMessage,
+															);
+														},
+													);
+												});
 											},
 										);
 										Given(
@@ -82,8 +94,8 @@ describe('verify message command', () => {
 													given.anErrorOccursRetrievingTheInputsFromTheirSources,
 													() => {
 														When(
-															'the action is called with the options, the public key, the signature and the message',
-															when.theActionIsCalledWithTheOptionsThePublicKeyTheSignatureAndTheMessage,
+															'the action is called with the options, the public key and the signature',
+															when.theActionIsCalledWithTheOptionsThePublicKeyAndTheSignature,
 															() => {
 																Then(
 																	'it should reject with the error message',
@@ -98,6 +110,14 @@ describe('verify message command', () => {
 													when.theActionIsCalledWithTheOptionsThePublicKeyAndTheSignature,
 													() => {
 														Then(
+															'it should get the inputs from sources using the Vorpal instance',
+															then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance,
+														);
+														Then(
+															'it should get the inputs from sources using the message source',
+															then.itShouldGetTheInputsFromSourcesUsingTheMessageSource,
+														);
+														Then(
 															'it should resolve to the result of verifying the message',
 															then.itShouldResolveToTheResultOfVerifyingTheMessage,
 														);
@@ -105,24 +125,6 @@ describe('verify message command', () => {
 												);
 											},
 										);
-										Given('a message "Hello world"', given.aMessage, () => {
-											Given(
-												'an empty options object',
-												given.anEmptyOptionsObject,
-												() => {
-													When(
-														'the action is called with the options, the message, the public key and the signature',
-														when.theActionIsCalledWithTheOptionsTheMessageThePublicKeyAndTheSignature,
-														() => {
-															Then(
-																'it should resolve to the result of verifying the message',
-																then.itShouldResolveToTheResultOfVerifyingTheMessage,
-															);
-														},
-													);
-												},
-											);
-										});
 									},
 								);
 							},

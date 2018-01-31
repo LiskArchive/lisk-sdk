@@ -52,11 +52,7 @@ export const actionCreator = vorpal => async ({
 	}
 
 	return getInputsFromSources(vorpal, {
-		data: message
-			? null
-			: {
-					source: messageSource,
-				},
+		data: message ? null : { source: messageSource },
 	}).then(processInputs(publicKey, signature, message));
 };
 

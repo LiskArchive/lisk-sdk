@@ -174,6 +174,38 @@ describe('Crypto class', () => {
 							});
 						});
 					});
+					describe('#verifyMessage', () => {
+						Given(
+							'a message "Hello World" with a public key "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and a signature "KjyhJ+/Peyv2KsjDsfWs9pl8q2K6n941Z9GI7cusvF3IF3+4jQOoaRzgM0j1abEhvKnno8Q79cBWOC81/4Q8CQ=="',
+							given.aMessageWithAPublicKeyAndASignature,
+							() => {
+								When(
+									'no error occurs attempting to verify the message using the public key and the signature',
+									when.noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
+									() => {
+										Then(
+											'lisk-js crypto should be used to verify the message',
+											then.liskJSCryptoShouldBeUsedToVerifyTheMessage,
+										);
+										Then(
+											'the the message should be verified',
+											then.theMessageVerificationShouldBeReturned,
+										);
+									},
+								);
+								When(
+									'an error occurs attempting to verify the message using the public key and the signature',
+									when.anErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
+									() => {
+										Then(
+											'the error response should be handled',
+											then.theErrorResponseShouldBeHandled,
+										);
+									},
+								);
+							},
+						);
+					});
 					Given(
 						'a recipient passphrase "polar save winner any focus slide runway ghost finish invite regret laugh" with private key "08595f178e7470ad2cbe054b29f60311a0f808be969cde6c274819580a428dcd31919b459d28b1c611afb4db3de95c5769f4891c3f771c7dbcb53a45c452cc25" and public key "31919b459d28b1c611afb4db3de95c5769f4891c3f771c7dbcb53a45c452cc25"',
 						given.aRecipientPassphraseWithPrivateKeyAndPublicKey,
@@ -239,36 +271,6 @@ describe('Crypto class', () => {
 						},
 					);
 				});
-			},
-		);
-		Given(
-			'a message "Hello World" with a public key "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and a signature "KjyhJ+/Peyv2KsjDsfWs9pl8q2K6n941Z9GI7cusvF3IF3+4jQOoaRzgM0j1abEhvKnno8Q79cBWOC81/4Q8CQ=="',
-			given.aMessageWithAPublicKeyAndASignature,
-			() => {
-				When(
-					'no error occurs attempting to verify the message using the public key and the signature',
-					when.noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
-					() => {
-						Then(
-							'lisk-js crypto should be used to verify the message',
-							then.liskJSCryptoShouldBeUsedToVerifyTheMessage,
-						);
-						Then(
-							'the verified message should be returned',
-							then.theVerifiedMessageShouldBeReturned,
-						);
-					},
-				);
-				When(
-					'an error occurs attempting to verify the message using the public key and the signature',
-					when.anErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
-					() => {
-						Then(
-							'the error response should be handled',
-							then.theErrorResponseShouldBeHandled,
-						);
-					},
-				);
 			},
 		);
 	});

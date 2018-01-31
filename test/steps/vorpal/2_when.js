@@ -17,15 +17,8 @@ import { wrapActionCreator, createCommand } from '../../../src/utils/helpers';
 import execFile from '../../../src/exec_file';
 import { getFirstQuotedString } from '../utils';
 
-export function theActionIsCalledWithTheOptionsThePublicKeyTheSignatureAndTheMessage() {
-	const { action, options, publicKey, signature, message } = this.test.ctx;
-	const returnValue = action({ options, publicKey, signature, message });
-	this.test.ctx.returnValue = returnValue;
-	return returnValue.catch(e => e);
-}
-
 export function theActionIsCalledWithTheOptionsTheMessageThePublicKeyAndTheSignature() {
-	const { action, options, publicKey, signature, message } = this.test.ctx;
+	const { action, options, message, publicKey, signature } = this.test.ctx;
 	const returnValue = action({ options, publicKey, signature, message });
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);

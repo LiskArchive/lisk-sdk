@@ -17,10 +17,10 @@ import lisk from 'lisk-js';
 import cryptography from '../../../src/utils/cryptography';
 import { getFirstQuotedString } from '../utils';
 
-export function theVerifiedMessageShouldBeReturned() {
+export function theMessageVerificationShouldBeReturned() {
 	const { returnValue } = this.test.ctx;
-	const verified = { verified: true };
-	return returnValue.should.eql(verified);
+	const verification = { verified: true };
+	return returnValue.should.eql(verification);
 }
 
 export function liskJSCryptoShouldBeUsedToVerifyTheMessage() {
