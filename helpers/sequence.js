@@ -23,20 +23,20 @@ var util = require('util');
  * @constructor
  * @param {string} config
  */
-function Sequence (config) {
+function Sequence(config) {
 	var _default = {
 		onWarning: null,
-		warningLimit: 50
+		warningLimit: 50,
 	};
 	_default = extend(_default, config);
 	var self = this;
 	this.sequence = [];
 
-	setImmediate(function nextSequenceTick () {
+	setImmediate(function nextSequenceTick() {
 		if (_default.onWarning && self.sequence.length >= _default.warningLimit) {
 			_default.onWarning(self.sequence.length, _default.warningLimit);
 		}
-		self.__tick(function () {
+		self.__tick(() => {
 			setTimeout(nextSequenceTick, 3);
 		});
 	});
@@ -47,17 +47,19 @@ function Sequence (config) {
  * @param {function} cb
  * @return {setImmediateCallback} With cb or task.done
  */
-Sequence.prototype.__tick = function (cb) {
+Sequence.prototype.__tick = function(cb) {
 	var task = this.sequence.shift();
 	if (!task) {
 		return setImmediate(cb);
 	}
-	var args = [function (err, res) {
-		if (task.done) {
-			setImmediate(task.done, err, res);
-		}
-		setImmediate(cb);
-	}];
+	var args = [
+		function(err, res) {
+			if (task.done) {
+				setImmediate(task.done, err, res);
+			}
+			setImmediate(cb);
+		},
+	];
 	if (task.args) {
 		args = args.concat(task.args);
 	}
@@ -70,13 +72,13 @@ Sequence.prototype.__tick = function (cb) {
  * @param {Array} args
  * @param {function} done
  */
-Sequence.prototype.add = function (worker, args, done) {
-	if (!done && args && typeof(args) === 'function') {
+Sequence.prototype.add = function(worker, args, done) {
+	if (!done && args && typeof args === 'function') {
 		done = args;
 		args = undefined;
 	}
-	if (worker && typeof(worker) === 'function') {
-		var task = {worker: worker, done: done};
+	if (worker && typeof worker === 'function') {
+		var task = { worker: worker, done: done };
 		if (util.isArray(args)) {
 			task.args = args;
 		}
@@ -88,7 +90,7 @@ Sequence.prototype.add = function (worker, args, done) {
  * Gets pending task in sequence.
  * @return {number} sequence lenght.
  */
-Sequence.prototype.count = function () {
+Sequence.prototype.count = function() {
 	return this.sequence.length;
 };
 

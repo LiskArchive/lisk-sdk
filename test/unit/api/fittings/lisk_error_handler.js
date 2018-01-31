@@ -13,8 +13,7 @@
  */
 'use strict';
 
-describe('lisk_error_handler', function () {
-
+describe('lisk_error_handler', () => {
 	it('should be a factory function that names 2 arguments');
 
 	it('should create a middleware accepting 2 arguments');

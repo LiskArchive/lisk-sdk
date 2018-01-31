@@ -16,12 +16,11 @@
 var SwaggerRunner = require('swagger-node-runner');
 var path = require('path');
 var fs = require('fs');
-var YAML = require('js-yaml');
 var _ = require('lodash');
 var swaggerHelper = require('../helpers/swagger');
 
 // Its necessary to require this file to extend swagger validator with our custom formats
-var validator = require('../helpers/swagger').getValidator();
+require('../helpers/swagger').getValidator();
 
 /**
  * Configure swagger node runner with the app.
@@ -38,32 +37,33 @@ var validator = require('../helpers/swagger').getValidator();
  * @param {function} cb - Callback function.
  * @returns {void}
  */
-function bootstrapSwagger (app, config, logger, scope, cb) {
+function bootstrapSwagger(app, config, logger, scope, cb) {
 	// Register modules to be used in swagger fittings
 	require('../helpers/swagger_module_registry').bind(scope);
 
 	// Load Swagger controllers and bind the scope
 	var controllerFolder = '/api/controllers/';
-	fs.readdirSync(config.root + controllerFolder).forEach(function (file) {
+	fs.readdirSync(config.root + controllerFolder).forEach(file => {
 		require(config.root + controllerFolder + file)(scope);
 	});
 
 	var swaggerConfig = {
 		appRoot: config.root,
-		configDir: config.root + '/config/swagger',
-		swaggerFile: path.join(config.root + '/schema/swagger.yml'),
+		configDir: `${config.root}/config/swagger`,
+		swaggerFile: path.join(`${config.root}/schema/swagger.yml`),
 		enforceUniqueOperationId: true,
 		startWithErrors: false,
-		startWithWarnings: true
+		startWithWarnings: true,
 	};
 
 	// Swagger express middleware
-	SwaggerRunner.create(swaggerConfig, function (errors, runner) {
+	SwaggerRunner.create(swaggerConfig, (errors, runner) => {
 		if (errors) {
 			// Ignore unused definition warning
-			errors.validationWarnings = _.filter(errors.validationWarnings, function (error) {
-				return error.code !== 'UNUSED_DEFINITION';
-			});
+			errors.validationWarnings = _.filter(
+				errors.validationWarnings,
+				error => error.code !== 'UNUSED_DEFINITION'
+			);
 
 			// Some error occurred in configuring the swagger
 			if (!_.isEmpty(errors.validationErrors)) {
@@ -76,7 +76,10 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 				logger.error(errors.validationWarnings);
 			}
 
-			if (!_.isEmpty(errors.validationErrors) || !_.isEmpty(errors.validationWarnings) ) {
+			if (
+				!_.isEmpty(errors.validationErrors) ||
+				!_.isEmpty(errors.validationWarnings)
+			) {
 				cb(errors);
 				return;
 			}
@@ -86,7 +89,7 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		var swaggerExpress = runner.expressMiddleware();
 
 		// Check the response and act appropriately on error
-		runner.on('responseValidationError', function (validationResponse, request, response) {
+		runner.on('responseValidationError', validationResponse => {
 			// TODO: Troubleshoot why default validation hook considers json response as string response
 			if (validationResponse.errors[0].code !== 'INVALID_RESPONSE_BODY') {
 				logger.error('Swagger Response Validation Errors:');
@@ -100,12 +103,18 @@ function bootstrapSwagger (app, config, logger, scope, cb) {
 		// To be used in test cases or getting configuration runtime
 		app.swaggerRunner = runner;
 
-		swaggerHelper.getResolvedSwaggerSpec().then(function (resolvedSchema) {
-			// Successfully mounted the swagger runner
-			cb(null, {swaggerRunner: runner, definitions: resolvedSchema.definitions});
-		}).catch(function (reason) {
-			cb(reason);
-		});
+		swaggerHelper
+			.getResolvedSwaggerSpec()
+			.then(resolvedSchema => {
+				// Successfully mounted the swagger runner
+				cb(null, {
+					swaggerRunner: runner,
+					definitions: resolvedSchema.definitions,
+				});
+			})
+			.catch(reason => {
+				cb(reason);
+			});
 	});
 }
 

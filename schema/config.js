@@ -21,43 +21,43 @@ module.exports = {
 			wsPort: {
 				type: 'integer',
 				minimum: 1,
-				maximum: 65535
+				maximum: 65535,
 			},
 			httpPort: {
 				type: 'integer',
 				minimum: 1,
-				maximum: 65535
+				maximum: 65535,
 			},
 			address: {
 				type: 'string',
-				format: 'ip'
+				format: 'ip',
 			},
 			version: {
 				type: 'string',
 				format: 'version',
 				minLength: 5,
-				maxLength: 12
+				maxLength: 12,
 			},
 			minVersion: {
-				type: 'string'
+				type: 'string',
 			},
 			fileLogLevel: {
-				type: 'string'
+				type: 'string',
 			},
 			logFileName: {
-				type: 'string'
+				type: 'string',
 			},
 			consoleLogLevel: {
-				type: 'string'
+				type: 'string',
 			},
 			trustProxy: {
-				type: 'boolean'
+				type: 'boolean',
 			},
 			topAccounts: {
-				type: 'boolean'
+				type: 'boolean',
 			},
 			cacheEnabled: {
-				type: 'boolean'
+				type: 'boolean',
 			},
 			db: {
 				type: 'object',
@@ -68,43 +68,54 @@ module.exports = {
 					port: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 65535
+						maximum: 65535,
 					},
 					database: {
-						type: 'string'
+						type: 'string',
 					},
 					user: {
-						type: 'string'
+						type: 'string',
 					},
 					password: {
-						type: 'string'
+						type: 'string',
 					},
 					min: {
-						type: 'integer'
+						type: 'integer',
 					},
 					max: {
-						type: 'integer'
+						type: 'integer',
 					},
 					poolIdleTimeout: {
-						type: 'integer'
+						type: 'integer',
 					},
 					reapIntervalMillis: {
-						type: 'integer'
+						type: 'integer',
 					},
 					logEvents: {
-						type: 'array'
+						type: 'array',
 					},
 					logFileName: {
-						type: 'string'
+						type: 'string',
 					},
 					consoleLogLevel: {
-						type: 'string'
+						type: 'string',
 					},
 					fileLogLevel: {
-						type: 'string'
-					}
+						type: 'string',
+					},
 				},
-				required: ['host', 'port', 'database', 'user', 'password', 'min', 'max', 'poolIdleTimeout', 'reapIntervalMillis', 'logEvents']
+				required: [
+					'host',
+					'port',
+					'database',
+					'user',
+					'password',
+					'min',
+					'max',
+					'poolIdleTimeout',
+					'reapIntervalMillis',
+					'logEvents',
+				],
 			},
 			redis: {
 				type: 'object',
@@ -116,36 +127,36 @@ module.exports = {
 					port: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 65535
+						maximum: 65535,
 					},
 					db: {
 						type: 'integer',
 						minimum: 0,
-						maximum: 15
+						maximum: 15,
 					},
 					password: {
-						type: ['string', 'null']
-					}
+						type: ['string', 'null'],
+					},
 				},
-				required: ['host', 'port', 'db', 'password']
+				required: ['host', 'port', 'db', 'password'],
 			},
 			api: {
 				type: 'object',
 				properties: {
 					enabled: {
-						type: 'boolean'
+						type: 'boolean',
 					},
 					access: {
 						type: 'object',
 						properties: {
 							public: {
-								type: 'boolean'
+								type: 'boolean',
 							},
 							whiteList: {
-								type: 'array'
-							}
+								type: 'array',
+							},
 						},
-						required: ['public', 'whiteList']
+						required: ['public', 'whiteList'],
 					},
 					options: {
 						type: 'object',
@@ -154,54 +165,54 @@ module.exports = {
 								type: 'object',
 								properties: {
 									max: {
-										type: 'integer'
+										type: 'integer',
 									},
 									delayMs: {
-										type: 'integer'
+										type: 'integer',
 									},
 									delayAfter: {
-										type: 'integer'
+										type: 'integer',
 									},
 									windowMs: {
-										type: 'integer'
-									}
+										type: 'integer',
+									},
 								},
-								required: ['max', 'delayMs', 'delayAfter', 'windowMs']
-							}
+								required: ['max', 'delayMs', 'delayAfter', 'windowMs'],
+							},
 						},
-						required: ['limits']
-					}
+						required: ['limits'],
+					},
 				},
-				required: ['enabled', 'access', 'options']
+				required: ['enabled', 'access', 'options'],
 			},
 			peers: {
 				type: 'object',
 				properties: {
 					enabled: {
-						type: 'boolean'
+						type: 'boolean',
 					},
 					list: {
-						type: 'array'
+						type: 'array',
 					},
 					access: {
 						type: 'object',
 						properties: {
 							blackList: {
-								type: 'array'
-							}
+								type: 'array',
+							},
 						},
-						required: ['blackList']
+						required: ['blackList'],
 					},
 					options: {
 						properties: {
 							timeout: {
-								type: 'integer'
-							}
+								type: 'integer',
+							},
 						},
-						required: ['timeout']
-					}
+						required: ['timeout'],
+					},
 				},
-				required: ['enabled', 'list', 'access', 'options']
+				required: ['enabled', 'list', 'access', 'options'],
 			},
 			broadcasts: {
 				type: 'object',
@@ -209,111 +220,139 @@ module.exports = {
 					broadcastInterval: {
 						type: 'integer',
 						minimum: 1000,
-						maximum: 60000
+						maximum: 60000,
 					},
 					broadcastLimit: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 100
+						maximum: 100,
 					},
 					parallelLimit: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 100
+						maximum: 100,
 					},
 					releaseLimit: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 25
+						maximum: 25,
 					},
 					relayLimit: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 100
-					}
+						maximum: 100,
+					},
 				},
-				required: ['broadcastInterval', 'broadcastLimit', 'parallelLimit', 'releaseLimit', 'relayLimit']
+				required: [
+					'broadcastInterval',
+					'broadcastLimit',
+					'parallelLimit',
+					'releaseLimit',
+					'relayLimit',
+				],
 			},
 			transactions: {
 				type: 'object',
 				maxTxsPerQueue: {
 					type: 'integer',
 					minimum: 100,
-					maximum: 5000
+					maximum: 5000,
 				},
-				required: ['maxTxsPerQueue']
+				required: ['maxTxsPerQueue'],
 			},
 			forging: {
 				type: 'object',
 				properties: {
 					force: {
-						type: 'boolean'
+						type: 'boolean',
 					},
 					defaultKey: {
-						type: 'string'
+						type: 'string',
 					},
 					secret: {
-						type: 'array'
+						type: 'array',
 					},
 					access: {
 						type: 'object',
 						properties: {
 							whiteList: {
-								type: 'array'
-							}
+								type: 'array',
+							},
 						},
-						required: ['whiteList']
-					}
+						required: ['whiteList'],
+					},
 				},
-				required: ['force', 'secret', 'access']
+				required: ['force', 'secret', 'access'],
 			},
 			loading: {
 				type: 'object',
 				properties: {
 					verifyOnLoading: {
-						type: 'boolean'
+						type: 'boolean',
 					},
 					loadPerIteration: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 5000
-					}
+						maximum: 5000,
+					},
 				},
-				required: ['verifyOnLoading', 'loadPerIteration']
+				required: ['verifyOnLoading', 'loadPerIteration'],
 			},
 			ssl: {
 				type: 'object',
 				properties: {
 					enabled: {
-						type: 'boolean'
+						type: 'boolean',
 					},
 					options: {
 						type: 'object',
 						properties: {
 							port: {
-								type: 'integer'
+								type: 'integer',
 							},
 							address: {
 								type: 'string',
 								format: 'ip',
 							},
 							key: {
-								type: 'string'
+								type: 'string',
 							},
 							cert: {
-								type: 'string'
-							}
+								type: 'string',
+							},
 						},
-						required: ['port', 'address', 'key', 'cert']
-					}
+						required: ['port', 'address', 'key', 'cert'],
+					},
 				},
-				required: ['enabled', 'options']
+				required: ['enabled', 'options'],
 			},
 			nethash: {
 				type: 'string',
-				format: 'hex'
-			}
+				format: 'hex',
+			},
 		},
-		required: ['wsPort', 'httpPort',  'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'nethash', 'cacheEnabled', 'redis']
-	}
+		required: [
+			'wsPort',
+			'httpPort',
+			'address',
+			'version',
+			'minVersion',
+			'fileLogLevel',
+			'logFileName',
+			'consoleLogLevel',
+			'trustProxy',
+			'topAccounts',
+			'db',
+			'api',
+			'peers',
+			'broadcasts',
+			'transactions',
+			'forging',
+			'loading',
+			'ssl',
+			'nethash',
+			'cacheEnabled',
+			'redis',
+		],
+	},
 };

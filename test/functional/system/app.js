@@ -15,15 +15,14 @@
 
 var application = require('../../common/application');
 
-describe('app', function () {
-
-	it('init successfully without any error', function (done) {
-		application.init({sandbox: {name: 'lisk_test_app'}}, function (err, scope) {
+describe('app', () => {
+	it('init successfully without any error', done => {
+		application.init({ sandbox: { name: 'lisk_test_app' } }, err => {
 			done(err);
 		});
 	});
 
-	it('cleanup sandboxed application successfully', function (done) {
+	it('cleanup sandboxed application successfully', done => {
 		application.cleanup(done);
 	});
 });

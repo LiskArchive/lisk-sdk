@@ -16,36 +16,39 @@
 var Promise = require('bluebird');
 var utils = require('../../utils');
 
-module.exports = function (params) {
-
-	describe('blocks', function () {
-
+module.exports = function(params) {
+	describe('blocks', () => {
 		var nodesBlocks;
 
-		before(function () {
-			return Promise.all(params.configurations.map(function (configuration) {
-				return utils.http.getBlocks(configuration.httpPort);
-			})).then(function (blocksResults) {
+		before(() => {
+			return Promise.all(
+				params.configurations.map(configuration => {
+					return utils.http.getBlocks(configuration.httpPort);
+				})
+			).then(blocksResults => {
 				nodesBlocks = blocksResults;
 			});
 		});
 
-		it('should be able to get blocks list from every peer', function () {
+		it('should be able to get blocks list from every peer', () => {
 			expect(nodesBlocks).to.have.lengthOf(params.configurations.length);
 		});
 
-		it('should contain non empty blocks after running functional tests', function () {
-			nodesBlocks.forEach(function (blocks) {
+		it('should contain non empty blocks after running functional tests', () => {
+			nodesBlocks.forEach(blocks => {
 				expect(blocks).to.be.an('array').and.not.to.be.empty;
 			});
 		});
 
-		it('should have all peers at the same height', function () {
-			var uniquePeersHeights = _(nodesBlocks).map('length').uniq().value();
+		it('should have all peers at the same height', () => {
+			var uniquePeersHeights = _(nodesBlocks)
+				.map('length')
+				.uniq()
+				.value();
 			expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
 		});
 
-		it('should have all blocks the same at all peers', function () {
+		it('should have all blocks the same at all peers', () => {
 			var patternBlocks = nodesBlocks[0];
 			for (var i = 0; i < patternBlocks.length; i += 1) {
 				for (var j = 1; j < nodesBlocks.length; j += 1) {

@@ -27,8 +27,7 @@ var constants = require('../helpers/constants.js');
  * @param {Object} packageJson
  * @returns {Object} configData
  */
-function Config (packageJson) {
-
+function Config(packageJson) {
 	program
 		.version(packageJson.version)
 		.option('-c, --config <path>', 'config file path')
@@ -42,7 +41,10 @@ function Config (packageJson) {
 		.parse(process.argv);
 
 	var configPath = program.config;
-	var appConfig = fs.readFileSync(path.resolve(process.cwd(), (configPath || 'config.json')), 'utf8');
+	var appConfig = fs.readFileSync(
+		path.resolve(process.cwd(), configPath || 'config.json'),
+		'utf8'
+	);
 
 	if (!appConfig.length) {
 		console.log('Failed to read config file');
@@ -75,11 +77,11 @@ function Config (packageJson) {
 
 	if (program.peers) {
 		if (typeof program.peers === 'string') {
-			appConfig.peers.list = program.peers.split(',').map(function (peer) {
+			appConfig.peers.list = program.peers.split(',').map(peer => {
 				peer = peer.split(':');
 				return {
 					ip: peer.shift(),
-					wsPort: peer.shift() || appConfig.wsPort
+					wsPort: peer.shift() || appConfig.wsPort,
 				};
 			});
 		} else {
@@ -92,9 +94,7 @@ function Config (packageJson) {
 	}
 
 	if (program.snapshot) {
-		appConfig.loading.snapshot = Math.abs(
-			Math.floor(program.snapshot)
-		);
+		appConfig.loading.snapshot = Math.abs(Math.floor(program.snapshot));
 	}
 
 	if (process.env.NODE_ENV === 'test') {
@@ -118,7 +118,7 @@ function Config (packageJson) {
  * @private
  * @param {Object} configData
  */
-function validateForce (configData) {
+function validateForce(configData) {
 	if (configData.forging.force) {
 		var index = constants.nethashes.indexOf(configData.nethash);
 
