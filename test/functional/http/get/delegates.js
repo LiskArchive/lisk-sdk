@@ -175,8 +175,7 @@ return delegatesEndpoint.makeRequest({ username: 'unknownusername' }, 200).then(
 });
 		});
 
-		// TOFIX: #1445
-		describe.skip('search', function () {
+		describe('search', function () {
 			it('using blank search should fail', function () {
 				return delegatesEndpoint.makeRequest({ search: '' }, 400).then(function (res) {
 					expectSwaggerParamError(res, 'search');
@@ -184,10 +183,10 @@ return delegatesEndpoint.makeRequest({ username: 'unknownusername' }, 200).then(
 });
 
 			it('using the special match all character should return all results', () => {
- return delegatesEndpoint.makeRequest({ search: '%' }, 200).then(res => {
+				return delegatesEndpoint.makeRequest({ search: '%' }, 200).then(res => {
 					expect(res.body.data).to.have.length.of.at.least(10);
 				});
-});
+			});
 
 			it('using valid search with length=1 should be ok', () => { return delegatesEndpoint.makeRequest({ search: 'g' }, 200); });
 
