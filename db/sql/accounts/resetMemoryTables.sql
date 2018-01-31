@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Lisk Memory Tables
- *
- */
+
+
+/*
+  DESCRIPTION: ?
+
+  PARAMETERS: None
+*/
 
 DELETE FROM mem_round;
 DELETE FROM mem_accounts2delegates;

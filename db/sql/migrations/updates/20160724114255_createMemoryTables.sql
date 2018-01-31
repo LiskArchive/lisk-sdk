@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Create Memory Tables
- *
- */
+
+
+/*
+  DESCRIPTION: Creates memory tables.
+
+  PARAMETERS: None
+*/
 
 CREATE TABLE IF NOT EXISTS "mem_accounts"(
   "username" VARCHAR(20),

@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Alter Mem Accounts Columns
- *
- */
+
+
+/*
+  DESCRIPTION: Alter Mem Accounts Columns.
+
+  PARAMETERS: None
+*/
 
 ALTER TABLE "mem_accounts" ALTER COLUMN "multimin" TYPE SMALLINT;
 

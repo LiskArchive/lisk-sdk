@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Add constraints to improve upserts
- *
- */
+
+
+/*
+  DESCRIPTION: Add constraints to improve upserts.
+
+  PARAMETERS: None
+*/
 
 ALTER TABLE "peers"
   ADD CONSTRAINT "address_unique" UNIQUE

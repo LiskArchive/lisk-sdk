@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Upcase Memory Table Addresses
- *
- */
+
+
+/*
+  DESCRIPTION: Upcase Memory Table Addresses.
+
+  PARAMETERS: None
+*/
 
 UPDATE "mem_accounts" AS m
    SET "balance" = (m."balance" + l."balance"),

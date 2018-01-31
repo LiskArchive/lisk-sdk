@@ -11,9 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Lisk Memory Tables
- *
- */
+
 
 /*
   DESCRIPTION: Counts memory accounts by blocks.

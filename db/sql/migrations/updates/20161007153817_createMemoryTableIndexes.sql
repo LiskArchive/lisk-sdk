@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Create Memory Table Indexes
- *
- */
+
+
+/*
+  DESCRIPTION: Create Memory Table Indexes.
+
+  PARAMETERS: None
+*/
 
 CREATE INDEX IF NOT EXISTS "mem_round_address" ON "mem_round"("address");
 

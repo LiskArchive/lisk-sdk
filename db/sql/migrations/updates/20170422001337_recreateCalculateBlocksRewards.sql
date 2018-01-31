@@ -11,12 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+
 /*
- * - Recreate blockRewards data type and function getBlockRewards (simplify milestones)
- * - Recreate calcBlockReward function, improved performance
- * - Create calcSupply_test function - for testing calcSupply
- * - Recreate calcSupply, improved performance, change type to IMMUTABLE
- */
+  DESCRIPTION:
+     - Recreate blockRewards data type and function getBlockRewards (simplify milestones)
+     - Recreate calcBlockReward function, improved performance
+     - Create calcSupply_test function - for testing calcSupply
+     - Recreate calcSupply, improved performance, change type to IMMUTABLE
+
+  PARAMETERS: None
+*/
 
 -- Drop old functions and data type
 DROP FUNCTION IF EXISTS getBlockRewards();

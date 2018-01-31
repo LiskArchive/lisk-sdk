@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/**
- * Recreate full_blocks_list, add join for transfer table.
- */
+
+
+/*
+  DESCRIPTION: Recreate full_blocks_list, add join for transfer table.
+
+  PARAMETERS: None
+*/
 
 DROP VIEW IF EXISTS full_blocks_list;
 

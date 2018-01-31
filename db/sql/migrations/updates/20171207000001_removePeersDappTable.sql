@@ -11,8 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Remove peers_dapp table
- */
+
+
+/*
+  DESCRIPTION: Remove peers_dapp table and its indexes.
+
+  PARAMETERS: None
+*/
 
 DROP TABLE IF EXISTS "peers_dapp";
 

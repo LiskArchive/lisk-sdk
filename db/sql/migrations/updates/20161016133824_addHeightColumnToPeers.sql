@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Add Height Column to Peers
- *
- */
+
+
+/*
+  DESCRIPTION: Add Height Column to Peers.
+
+  PARAMETERS: None
+*/
 
 ALTER TABLE "peers" ADD COLUMN "height" INT;
 

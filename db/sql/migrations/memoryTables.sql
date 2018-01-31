@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Lisk Memory Tables
- *
- */
+
+
+/*
+  DESCRIPTION: Creates memory tables and indexes, if those do not exist.
+
+  PARAMETERS: None
+*/
 
 CREATE TABLE IF NOT EXISTS "mem_accounts"(
   "username" VARCHAR(20),

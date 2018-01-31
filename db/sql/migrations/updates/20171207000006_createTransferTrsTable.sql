@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/**
- * Create transfer trs table and index.
- */
+
+
+/*
+  DESCRIPTION: Create transfer trs table and index.
+
+  PARAMETERS: None
+*/
 
 CREATE TABLE IF NOT EXISTS "transfer" (
   "data" BYTEA NOT NULL,

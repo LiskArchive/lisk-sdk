@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+
 /*
- * Recreate 'trs_list' view for performance
- */
+  DESCRIPTION: Recreate 'trs_list' view for performance.
+
+  PARAMETERS: None
+*/
 
 DROP VIEW IF EXISTS trs_list;
 

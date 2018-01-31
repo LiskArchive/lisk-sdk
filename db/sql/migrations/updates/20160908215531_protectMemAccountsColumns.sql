@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Protect Mem Accounts Columns
- *
- */
+
+
+/*
+  DESCRIPTION: Protect Mem Accounts Columns.
+
+  PARAMETERS: None
+*/
 
 DROP TRIGGER IF EXISTS protect_mem_accounts ON "mem_accounts";
 

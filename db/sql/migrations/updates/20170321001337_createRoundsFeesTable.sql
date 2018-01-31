@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+
 /*
- * Create table 'rounds_fees', calculate fees & populate it, set triggers
- */
+  DESCRIPTION: Create table 'rounds_fees', calculate fees & populate it, set triggers.
+
+  PARAMETERS: None
+*/
 
 -- Create table 'rounds_fees' for storing fees
 CREATE TABLE IF NOT EXISTS "rounds_fees"(

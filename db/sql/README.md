@@ -23,8 +23,10 @@ Each SQL file follows the following guidelines at the moment:
 The details must be provided when creating a new SQL file.
 
 * SQL uses capital case only for reserved words and SQL constants, while function names use low case
-* Camel-case column names are wrapped in double quotes, while low-case ones are not
-* Avoid as much as possible use of [Index Variables], and use [Named Parameters] instead, with `${name}` syntax
+* Camel-case column names are wrapped in double quotes, while low-case ones are not, except when the name
+  uses a reserved SQL word or type, like `"timestamp""`, for example
+* Avoid as much as possible use of [Index Variables], and use [Named Parameters] instead, with `${name}` syntax.
+* Comments in the file can use both `/* multiline */` and `-- single-line` syntax.
 
 ## adding files
 
@@ -42,4 +44,3 @@ the SQL file immediately. This feature is provided automatically by the [QueryFi
 [Index Variables]:https://github.com/vitaly-t/pg-promise#index-variables
 [Named Parameters]:https://github.com/vitaly-t/pg-promise#named-parameters
 [QueryFile]:http://vitaly-t.github.io/pg-promise/QueryFile.html
-

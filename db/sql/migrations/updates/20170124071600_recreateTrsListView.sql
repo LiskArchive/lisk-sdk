@@ -11,10 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+
 /*
- * Add 'm_recipientPublicKey' column to 'trs_list' view
- * Change 't_senderPublicKey' data type from 'string' to 'bytea'
- */
+  DESCRIPTION: Adds 'm_recipientPublicKey' column to 'trs_list' view, plus changes 't_senderPublicKey' data type from 'string' to 'bytea'
+
+  PARAMETERS: None
+*/
 
 DROP VIEW IF EXISTS trs_list;
 

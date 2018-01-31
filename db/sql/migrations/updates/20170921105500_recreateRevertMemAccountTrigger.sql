@@ -11,11 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+
 /*
- * Recreate revert_mem_account trigger
- *
- * Allowing 'u_username' and 'username' fields to be set to NULL when undoing transactions
- */
+  DESCRIPTION: Recreate revert_mem_account trigger;
+               Allowing 'u_username' and 'username' fields to be set to NULL when undoing transactions
+
+  PARAMETERS: None
+*/
 
 CREATE OR REPLACE FUNCTION revert_mem_account() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
 

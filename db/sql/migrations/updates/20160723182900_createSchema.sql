@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Create Schema
- *
- */
+
+
+/*
+  DESCRIPTION: Creates schema.
+
+  PARAMETERS: None
+*/
 
 /* Tables */
 CREATE TABLE IF NOT EXISTS "migrations"(

@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Create Views
- *
- */
+
+
+/*
+  DESCRIPTION: Creates views.
+
+  PARAMETERS: None
+*/
 
 DROP VIEW IF EXISTS blocks_list;
 

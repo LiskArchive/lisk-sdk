@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+
 /*
- * Recreate 'trs_list' view, normalize addresses, add indexes
- */
+  DESCRIPTION: Recreate 'trs_list' view, normalize addresses, add indexes.
+
+  PARAMETERS: None
+*/
 
 DROP VIEW IF EXISTS trs_list;
 

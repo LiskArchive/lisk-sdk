@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+
 /*
- * Add various indexes for performance
- */
+  DESCRIPTION: Adds various indexes for performance.
+
+  PARAMETERS: None
+*/
 
 -- Add 'mem_accounts_address' index for 'address'
 CREATE INDEX IF NOT EXISTS "mem_accounts_address" ON "mem_accounts" ("address");

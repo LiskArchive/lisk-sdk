@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Add Broadhash Column to Peers
- *
- */
+
+
+/*
+  DESCRIPTION: Add Broadhash Column to Peers.
+
+  PARAMETERS: None
+*/
 
 ALTER TABLE "peers" ADD COLUMN "broadhash" bytea;
 

@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* Add Virgin Column to Mem Accounts
- *
- */
+
+
+/*
+  DESCRIPTION: Add Virgin Column to Mem Accounts.
+
+  PARAMETERS: None
+*/
 
 ALTER TABLE "mem_accounts" ADD COLUMN "virgin" SMALLINT DEFAULT 1;
 

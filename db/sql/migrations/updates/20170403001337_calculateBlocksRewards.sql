@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+
 /*
- * Create data type and functions for calculating blocks rewards data
- */
+  DESCRIPTION: Create data type and functions for calculating blocks rewards data.
+
+  PARAMETERS: None
+*/
 
 -- Create new data type which will store block rewards info
 CREATE TYPE blockRewards AS (supply bigint, start int, distance bigint, milestones bigint[][]);
