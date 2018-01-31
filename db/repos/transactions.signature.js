@@ -25,7 +25,7 @@ var columnSet;
  * @constructor
  * @return {SignatureTransactionsRepo}
  */
-function SignatureTransactionsRepo (db, pgp) {
+function SignatureTransactionsRepo(db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
@@ -38,8 +38,8 @@ function SignatureTransactionsRepo (db, pgp) {
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
+		var table = new pgp.helpers.TableName({ table: this.dbTable, schema: 'public' });
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, { table: table });
 	}
 
 	this.cs = columnSet;
@@ -56,12 +56,10 @@ SignatureTransactionsRepo.prototype.save = function (transactions) {
 	}
 
 	try {
-		transactions = transactions.map(function (transaction) {
-			return {
+		transactions = transactions.map(transaction => ({
 				transactionId: transaction.id,
 				publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex')
-			};
-		});
+			}));
 	} catch (e) {
 		throw e;
 	}

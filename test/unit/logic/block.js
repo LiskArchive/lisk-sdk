@@ -17,8 +17,8 @@ var rewire = require('rewire');
 var crypto = require('crypto');
 
 var ed = require('../../../helpers/ed');
-var modulesLoader = require('../../common/modulesLoader');
-var transactionTypes = require('../../../helpers/transactionTypes.js');
+var modulesLoader = require('../../common/modules_loader');
+var transactionTypes = require('../../../helpers/transaction_types.js');
 var Block = rewire('../../../logic/block.js');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
@@ -208,7 +208,7 @@ transactionsByTypes[transactionTypes.IN_TRANSFER] = {
 	fee: 10000000,
 	signature: '46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
 	asset: {
-		inTransfer:{
+		inTransfer: {
 			dappId: '7400202127695414450'
 		}
 	}
@@ -232,27 +232,27 @@ transactionsByTypes[transactionTypes.OUT_TRANSFER] = {
 	}
 };
 
-function expectedOrderOfTransactions (sortedTransactions) {
+function expectedOrderOfTransactions(sortedTransactions) {
 	var sorted = true;
 
 	for (var i = 0; i < sortedTransactions.length - 1; i++) {
 		// Transactions should always be in ascending order of types unless next transaction is MULTI
-		if (sortedTransactions[i].type > sortedTransactions[i+1].type
-			&& sortedTransactions[i+1].type !== transactionTypes.MULTI) {
+		if (sortedTransactions[i].type > sortedTransactions[i + 1].type
+			&& sortedTransactions[i + 1].type !== transactionTypes.MULTI) {
 			sorted = false;
 			return sorted;
 		}
 
 		// MULTI transaction should always come after all transaction types
-		if (sortedTransactions[i].type < sortedTransactions[i+1].type
+		if (sortedTransactions[i].type < sortedTransactions[i + 1].type
 			&& sortedTransactions[i].type === transactionTypes.MULTI) {
 			sorted = false;
 			return sorted;
 		}
 
 		// Within transaction types, the transactions should be ordered in descending order of amount
-		if (sortedTransactions[i].type === sortedTransactions[i+1].type &&
-			sortedTransactions[i].amount < sortedTransactions[i+1].amount) {
+		if (sortedTransactions[i].type === sortedTransactions[i + 1].type &&
+			sortedTransactions[i].amount < sortedTransactions[i + 1].amount) {
 			sorted = false;
 			return sorted;
 		}
@@ -261,14 +261,13 @@ function expectedOrderOfTransactions (sortedTransactions) {
 	return sorted;
 }
 
-describe('block', function () {
-
+describe('block', () => {
 	var block;
 	var data;
 	var transactionStub;
 	var transactions = [];
 
-	before(function () {
+	before(() => {
 		transactionStub = {
 			getBytes: sinonSandbox.stub(),
 			objectNormalize: sinonSandbox.stub()
@@ -277,138 +276,120 @@ describe('block', function () {
 		block = new Block(modulesLoader.scope.ed, modulesLoader.scope.schema, transactionStub);
 	});
 
-	describe('with valid block and data', function () {
-
-		beforeEach(function () {
+	describe('with valid block and data', () => {
+		beforeEach(() => {
 			data = _.cloneDeep(validDataForBlock);
 			transactions = _.values(transactionsByTypes);
 		});
 
-		describe('create', function () {
-
+		describe('create', () => {
 			var blockNormalizeStub;
 
-			before(function () {
+			before(() => {
 				blockNormalizeStub = sinonSandbox.stub(block, 'objectNormalize').returnsArg(0);
 
 				transactionStub.getBytes.returns(Buffer.from('dummy transaction bytes'));
 				transactionStub.objectNormalize.returnsArg(0);
 			});
 
-			after(function () {
+			after(() => {
 				blockNormalizeStub.reset();
 				transactionStub.getBytes.reset();
 				transactionStub.objectNormalize.reset();
 			});
 
-			describe('when one of all transaction types are present', function () {
-
+			describe('when one of all transaction types are present', () => {
 				var generatedBlock;
 				var transactionsOrder;
 				var correctOrder = [0, 1, 2, 3, 5, 6, 7, 4];
 
-				beforeEach(function () {
+				beforeEach(() => {
 					data.transactions = transactions;
 					generatedBlock = block.create(data);
-					transactionsOrder = generatedBlock.transactions.map(function (trs) {
-						return trs.type;
-					});
+					transactionsOrder = generatedBlock.transactions.map(trs => { return trs.type; });
 				});
 
-				it('should sort transactions in the correct order', function () {
+				it('should sort transactions in the correct order', () => {
 					expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
 					expect(transactionsOrder).to.eql(correctOrder);
 				});
 			});
 
-			describe('when there are multiple multisignature transactions', function () {
-
+			describe('when there are multiple multisignature transactions', () => {
 				var correctOrderOfTransactions = [0, 1, 2, 3, 5, 6, 7, 4, 4, 4, 4, 4, 4];
 
-				describe('in the beginning', function () {
-
+				describe('in the beginning', () => {
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(function () {
-						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
+					beforeEach(() => {
+						multipleMultisigTx = Array(...Array(5)).map(() => { return transactionsByTypes[transactionTypes.MULTI]; });
 						data.transactions = multipleMultisigTx.concat(transactions);
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(function (trs) {
-							return trs.type;
-						});
+						transactionsOrder = generatedBlock.transactions.map(trs => { return trs.type; });
 					});
 
-					it('should sort transactions in the correct order', function () {
+					it('should sort transactions in the correct order', () => {
 						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
 						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
 						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 					});
 				});
 
-				describe('at the middle', function () {
-
+				describe('at the middle', () => {
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(function () {
-						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
+					beforeEach(() => {
+						multipleMultisigTx = Array(...Array(5)).map(() => { return transactionsByTypes[transactionTypes.MULTI]; });
 						// Add multisig transactions after the 3rd transaction in array
-						transactions.splice.apply(transactions, [3, 0].concat(multipleMultisigTx));
+						transactions.splice(...[3, 0].concat(multipleMultisigTx));
 						data.transactions = transactions;
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(function (trs) {
-							return trs.type;
-						});
+						transactionsOrder = generatedBlock.transactions.map(trs => { return trs.type; });
 					});
 
-					it('should sort transactions in the correct order', function () {
+					it('should sort transactions in the correct order', () => {
 						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
 						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
 						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 					});
 				});
 
-				describe('at the end', function () {
-
+				describe('at the end', () => {
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(function () {
-						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
+					beforeEach(() => {
+						multipleMultisigTx = Array(...Array(5)).map(() => { return transactionsByTypes[transactionTypes.MULTI]; });
 						data.transactions = transactions.concat(multipleMultisigTx);
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(function (trs) {
-							return trs.type;
-						});
+						transactionsOrder = generatedBlock.transactions.map(trs => { return trs.type; });
 					});
 
-					it('should sort transactions in the correct order', function () {
+					it('should sort transactions in the correct order', () => {
 						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
 						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
 						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 					});
 				});
 
-				describe('shuffled', function () {
-
+				describe('shuffled', () => {
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(function () {
-						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
+					beforeEach(() => {
+						multipleMultisigTx = Array(...Array(5)).map(() => { return transactionsByTypes[transactionTypes.MULTI]; });
 						data.transactions = _.shuffle(transactions.concat(multipleMultisigTx));
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(function (trs) {
-							return trs.type;
-						});
+						transactionsOrder = generatedBlock.transactions.map(trs => { return trs.type; });
 					});
 
-					it('should sort transactions in the correct order', function () {
+					it('should sort transactions in the correct order', () => {
 						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
 						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
 						expect(transactionsOrder).to.eql(correctOrderOfTransactions);

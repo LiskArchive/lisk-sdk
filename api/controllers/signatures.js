@@ -13,27 +13,36 @@
  */
 'use strict';
 
-var _ = require('lodash');
-var ApiError = require('../../helpers/apiError');
+var ApiError = require('../../helpers/api_error');
 
 // Private Fields
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class SignaturesController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * Description of the function.
+ *
+ * @class
+ * @memberof api/controllers
+ * @requires lodash
+ * @requires helpers/apiError
+ * @param {Object} scope - App instance
+ * @todo: Add description of SignaturesController
  */
-function SignaturesController (scope) {
+function SignaturesController(scope) {
 	modules = scope.modules;
 }
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 SignaturesController.postSignatures = function (context, next) {
 	var signatures = context.request.swagger.params.signatures.value;
 
-	modules.signatures.shared.postSignatures(signatures, function (err, data) {
+	modules.signatures.shared.postSignatures(signatures, (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = err.code;
@@ -44,8 +53,8 @@ SignaturesController.postSignatures = function (context, next) {
 		}
 
 		next(null, {
-			data: {message: data.status},
-			meta: {status: true}
+			data: { message: data.status },
+			meta: { status: true }
 		});
 	});
 };

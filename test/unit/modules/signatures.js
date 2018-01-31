@@ -13,19 +13,15 @@
  */
 'use strict';
 
-describe('signatures', function () {
-
-	describe('isLoaded', function () {
-
+describe('signatures', () => {
+	describe('isLoaded', () => {
 		it('should return true if modules exists');
 
 		it('should return true if modules does not exist');
 	});
 
-	describe('onBind', function () {
-
-		describe('modules', function () {
-
+	describe('onBind', () => {
+		describe('modules', () => {
 			it('should assign accounts');
 
 			it('should assign transactions');
@@ -33,18 +29,14 @@ describe('signatures', function () {
 			it('should assign transport');
 		});
 
-		describe('assetTypes', function () {
-
+		describe('assetTypes', () => {
 			it('should call bind on signature logic with scope.accounts');
 		});
 	});
 
-	describe('shared', function () {
-
-		describe('postSignatures', function () {
-
-			describe('when modules not are loaded', function () {
-
+	describe('shared', () => {
+		describe('postSignatures', () => {
+			describe('when modules not are loaded', () => {
 				it('should call callback with ApiError');
 
 				it('should call callback with ApiError containing message = "Blockchain is loading"');
@@ -52,29 +44,24 @@ describe('signatures', function () {
 				it('should call callback with ApiError containing code = 500');
 			});
 
-			describe('when modules are loaded', function () {
-
+			describe('when modules are loaded', () => {
 				it('should call modules.transport.shared.postSignatures with req.body');
 
-				describe('when modules.transport.shared.postSignatures fails with result', function () {
-
+				describe('when modules.transport.shared.postSignatures fails with result', () => {
 					it('should call callback with ApiError');
 
 					it('should call callback with ApiError containing message = "Blockchain is loading"');
 
-					describe('when result.message = "Invalid signatures body"', function () {
-
+					describe('when result.message = "Invalid signatures body"', () => {
 						it('should call callback with ApiError containing code = 400');
 					});
 
-					describe('when result.message != "Invalid signatures body"', function () {
-
+					describe('when result.message != "Invalid signatures body"', () => {
 						it('should call callback with ApiError containing code = 500');
 					});
 				});
 
-				describe('when modules.transport.shared.postSignatures succeeds with result', function () {
-
+				describe('when modules.transport.shared.postSignatures succeeds with result', () => {
 					it('should call callback with error = null');
 
 					it('should call callback with result containing status = "Signature Accepted"');

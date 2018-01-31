@@ -39,21 +39,18 @@
 var async = require('async');
 var extend = require('extend');
 var fs = require('fs');
-var https = require('https');
 var path = require('path');
 var SocketCluster = require('socketcluster');
-var util = require('util');
 
-var genesisblock = require('./genesisBlock.json');
+var genesisblock = require('./genesis_block.json');
 var Logger = require('./logger.js');
-var workersControllerPath = path.join(__dirname, 'workersController');
-var wsRPC = require('./api/ws/rpc/wsRPC').wsRPC;
+var workersControllerPath = path.join(__dirname, 'workers_controller');
+var wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 
 var AppConfig = require('./helpers/config.js');
 var git = require('./helpers/git.js');
-var httpApi = require('./helpers/httpApi.js');
+var httpApi = require('./helpers/http_api.js');
 var Sequence = require('./helpers/sequence.js');
-var z_schema = require('./helpers/z_schema.js');
 var swagger = require('./config/swagger');
 var swaggerHelper = require('./helpers/swagger');
 
@@ -67,8 +64,8 @@ var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
 var lastCommit = '';
 
 if (typeof gc !== 'undefined') {
-	setInterval(function () {
-		gc();
+	setInterval(() => {
+		gc();// eslint-disable-line no-undef
 	}, 60000);
 }
 
@@ -121,7 +118,8 @@ var config = {
  * The Object is initialized here and pass to others as parameter.
  * @property {Object} - Logger instance.
  */
-var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel,
+var logger = new Logger({ echo: appConfig.consoleLogLevel,
+errorLevel: appConfig.fileLogLevel,
 	filename: appConfig.logFileName });
 
 var dbLogger = null;
@@ -149,13 +147,13 @@ try {
  */
 var d = require('domain').create();
 
-d.on('error', function (err) {
+d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
 	process.exit(0);
 });
 
 // runs domain
-d.run(function () {
+d.run(() => {
 	var modules = [];
 	async.auto({
 		/**
@@ -228,7 +226,10 @@ d.run(function () {
 			var server = require('http').createServer(app);
 			var io = require('socket.io')(server);
 
-			var privateKey, certificate, https, https_io;
+			var privateKey,
+			certificate,
+			https,
+			https_io;
 
 			if (scope.config.ssl.enabled) {
 				privateKey = fs.readFileSync(scope.config.ssl.options.key);
@@ -237,7 +238,7 @@ d.run(function () {
 				https = require('https').createServer({
 					key: privateKey,
 					cert: certificate,
-					ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:' + 'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:' + '!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
+					ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
 				}, app);
 
 				https_io = require('socket.io')(https);
@@ -279,7 +280,7 @@ d.run(function () {
 					protocolOptions: {
 						key: fs.readFileSync(scope.config.ssl.options.key),
 						cert: fs.readFileSync(scope.config.ssl.options.cert),
-						ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:' + 'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:' + '!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
+						ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
 					}
 				});
 			}
@@ -296,16 +297,15 @@ d.run(function () {
 			var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 			scope.network.app.rpc = wsRPC.setServer(new MasterWAMPServer(scope.socketCluster, childProcessOptions));
 
-			scope.socketCluster.on('ready', function () {
+			scope.socketCluster.on('ready', () => {
 				scope.logger.info('Socket Cluster ready for incoming connections');
 				cb();
 			});
-
 		}],
 
 		dbSequence: ['logger', function (scope, cb) {
 			var sequence = new Sequence({
-				onWarning: function (current, limit) {
+				onWarning: function (current) {
 					scope.logger.warn('DB queue', current);
 				}
 			});
@@ -314,7 +314,7 @@ d.run(function () {
 
 		sequence: ['logger', function (scope, cb) {
 			var sequence = new Sequence({
-				onWarning: function (current, limit) {
+				onWarning: function (current) {
 					scope.logger.warn('Main queue', current);
 				}
 			});
@@ -323,7 +323,7 @@ d.run(function () {
 
 		balancesSequence: ['logger', function (scope, cb) {
 			var sequence = new Sequence({
-				onWarning: function (current, limit) {
+				onWarning: function (current) {
 					scope.logger.warn('Balance queue', current);
 				}
 			});
@@ -339,7 +339,6 @@ d.run(function () {
 		 * @param {function} cb - Callback function.
 		 */
 		connect: ['config', 'genesisblock', 'logger', 'build', 'network', function (scope, cb) {
-			var path = require('path');
 			var bodyParser = require('body-parser');
 			var methodOverride = require('method-override');
 			var queryParser = require('express-query-int');
@@ -347,9 +346,9 @@ d.run(function () {
 
 			scope.config.nonce = randomstring.generate(16);
 			scope.network.app.use(require('express-domain-middleware'));
-			scope.network.app.use(bodyParser.raw({limit: '2mb'}));
-			scope.network.app.use(bodyParser.urlencoded({extended: true, limit: '2mb', parameterLimit: 5000}));
-			scope.network.app.use(bodyParser.json({limit: '2mb'}));
+			scope.network.app.use(bodyParser.raw({ limit: '2mb' }));
+			scope.network.app.use(bodyParser.urlencoded({ extended: true, limit: '2mb', parameterLimit: 5000 }));
+			scope.network.app.use(bodyParser.json({ limit: '2mb' }));
 			scope.network.app.use(methodOverride());
 
 			var ignore = ['id', 'name', 'username', 'blockId', 'transactionId', 'address', 'recipientId', 'senderId'];
@@ -365,16 +364,14 @@ d.run(function () {
 						return value;
 					}
 
-					/*eslint-disable eqeqeq */
 					if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, radix))) {
 						return value;
 					}
-					/*eslint-enable eqeqeq */
 					return parseInt(value);
 				}
 			}));
 
-			scope.network.app.use(require('./helpers/z_schema-express.js')(scope.schema));
+			scope.network.app.use(require('./helpers/z_schema_express.js')(scope.schema));
 
 			scope.network.app.use(httpApi.middleware.logClientConnections.bind(null, scope.logger));
 
@@ -411,16 +408,16 @@ d.run(function () {
 					var args = [];
 					Array.prototype.push.apply(args, arguments);
 					var topic = args.shift();
-					var eventName = 'on' + changeCase.pascalCase(topic);
+					var eventName = `on${changeCase.pascalCase(topic)}`;
 
 					// Iterate over modules and execute event functions (on*)
-					modules.forEach(function (module) {
-						if (typeof(module[eventName]) === 'function') {
+					modules.forEach(module => {
+						if (typeof (module[eventName]) === 'function') {
 							module[eventName].apply(module[eventName], args);
 						}
 						if (module.submodules) {
-							async.each(module.submodules, function (submodule) {
-								if (submodule && typeof(submodule[eventName]) === 'function') {
+							async.each(module.submodules, submodule => {
+								if (submodule && typeof (submodule[eventName]) === 'function') {
 									submodule[eventName].apply(submodule[eventName], args);
 								}
 							});
@@ -503,18 +500,17 @@ d.run(function () {
 		 * @param {nodeStyleCallback} cb - Callback function with resulted load.
 		 */
 		modules: ['network', 'connect', 'webSocket', 'config', 'logger', 'bus', 'sequence', 'dbSequence', 'balancesSequence', 'db', 'logic', 'cache', function (scope, cb) {
-
 			var tasks = {};
 
-			Object.keys(config.modules).forEach(function (name) {
+			Object.keys(config.modules).forEach(name => {
 				tasks[name] = function (cb) {
 					var d = require('domain').create();
 
-					d.on('error', function (err) {
-						scope.logger.fatal('Domain ' + name, {message: err.message, stack: err.stack});
+					d.on('error', err => {
+						scope.logger.fatal(`Domain ${name}`, { message: err.message, stack: err.stack });
 					});
 
-					d.run(function () {
+					d.run(() => {
 						logger.debug('Loading module', name);
 						var Klass = require(config.modules[name]);
 						var obj = new Klass(cb, scope);
@@ -523,7 +519,7 @@ d.run(function () {
 				};
 			});
 
-			async.parallel(tasks, function (err, results) {
+			async.parallel(tasks, (err, results) => {
 				cb(err, results);
 			});
 		}],
@@ -537,14 +533,14 @@ d.run(function () {
 		 * @param {function} cb - Callback function.
 		 */
 		api: ['modules', 'logger', 'network', 'webSocket', function (scope, cb) {
-			Object.keys(config.api).forEach(function (moduleName) {
-				Object.keys(config.api[moduleName]).forEach(function (protocol) {
+			Object.keys(config.api).forEach(moduleName => {
+				Object.keys(config.api[moduleName]).forEach(protocol => {
 					var apiEndpointPath = config.api[moduleName][protocol];
 					try {
 						var ApiEndpoint = require(apiEndpointPath);
 						new ApiEndpoint(scope.modules[moduleName], scope.network.app, scope.logger, scope.modules.cache);
 					} catch (e) {
-						scope.logger.error('Unable to load API endpoint for ' + moduleName + ' of ' + protocol, e.message);
+						scope.logger.error(`Unable to load API endpoint for ${moduleName} of ${protocol}`, e.message);
 					}
 				});
 			});
@@ -572,13 +568,13 @@ d.run(function () {
 		 * @param {nodeStyleCallback} cb - Callback function with `scope.network`.
 		 */
 		listen: ['ready', function (scope, cb) {
-			scope.network.server.listen(scope.config.httpPort, scope.config.address, function (err) {
-				scope.logger.info('Lisk started: ' + scope.config.address + ':' + scope.config.httpPort);
+			scope.network.server.listen(scope.config.httpPort, scope.config.address, err => {
+				scope.logger.info(`Lisk started: ${scope.config.address}:${scope.config.httpPort}`);
 
 				if (!err) {
 					if (scope.config.ssl.enabled) {
-						scope.network.https.listen(scope.config.ssl.options.port, scope.config.ssl.options.address, function (err) {
-							scope.logger.info('Lisk https started: ' + scope.config.ssl.options.address + ':' + scope.config.ssl.options.port);
+						scope.network.https.listen(scope.config.ssl.options.port, scope.config.ssl.options.address, err => {
+							scope.logger.info(`Lisk https started: ${scope.config.ssl.options.address}:${scope.config.ssl.options.port}`);
 
 							cb(err, scope.network);
 						});
@@ -590,7 +586,7 @@ d.run(function () {
 				}
 			});
 		}]
-	}, function (err, scope) {
+	}, (err, scope) => {
 		if (err) {
 			logger.fatal(err);
 		} else {
@@ -630,16 +626,16 @@ d.run(function () {
 			 * Receives a 'cleanup' signal and cleans all modules.
 			 * @listens cleanup
 			 */
-			process.once('cleanup', function () {
+			process.once('cleanup', () => {
 				scope.logger.info('Cleaning up...');
 				scope.socketCluster.destroy();
-				async.eachSeries(modules, function (module, cb) {
-					if (typeof(module.cleanup) === 'function') {
+				async.eachSeries(modules, (module, cb) => {
+					if (typeof (module.cleanup) === 'function') {
 						module.cleanup(cb);
 					} else {
 						setImmediate(cb);
 					}
-				}, function (err) {
+				}, err => {
 					if (err) {
 						scope.logger.error(err);
 					} else {
@@ -657,7 +653,7 @@ d.run(function () {
 			 * Receives a 'SIGTERM' signal and emits a cleanup.
 			 * @listens SIGTERM
 			 */
-			process.once('SIGTERM', function () {
+			process.once('SIGTERM', () => {
 				/**
 				 * emits cleanup once 'SIGTERM'.
 				 * @emits cleanup
@@ -673,7 +669,7 @@ d.run(function () {
 			 * Receives an 'exit' signal and emits a cleanup.
 			 * @listens exit
 			 */
-			process.once('exit', function () {
+			process.once('exit', () => {
 				/**
 				 * emits cleanup once 'exit'.
 				 * @emits cleanup
@@ -689,7 +685,7 @@ d.run(function () {
 			 * Receives a 'SIGINT' signal and emits a cleanup.
 			 * @listens SIGINT
 			 */
-			process.once('SIGINT', function () {
+			process.once('SIGINT', () => {
 				/**
 				 * emits cleanup once 'SIGINT'.
 				 * @emits cleanup
@@ -708,7 +704,7 @@ d.run(function () {
  * Receives a 'uncaughtException' signal and emits a cleanup.
  * @listens uncaughtException
  */
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', err => {
 	// Handle error safely
 	logger.fatal('System error', { message: err.message, stack: err.stack });
 	/**

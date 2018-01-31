@@ -16,9 +16,8 @@
 var async = require('async');
 var rewire = require('rewire');
 
-var transactionTypes = require('../../../helpers/transactionTypes.js');
-var constants = require('../../../helpers/constants.js');
-var modulesLoader = require('../../common/modulesLoader');
+var transactionTypes = require('../../../helpers/transaction_types.js');
+var modulesLoader = require('../../common/modules_loader');
 
 var AccountLogic = require('../../../logic/account.js');
 var TransactionLogic = require('../../../logic/transaction.js');
@@ -33,11 +32,10 @@ var DelegateLogic = require('../../../logic/delegate.js');
 var SignatureLogic = require('../../../logic/signature.js');
 var MultisignatureLogic = require('../../../logic/multisignature.js');
 var DappLogic = require('../../../logic/dapp.js');
-var InTransferLogic = require('../../../logic/inTransfer.js');
-var OutTransferLogic = require('../../../logic/outTransfer.js');
+var InTransferLogic = require('../../../logic/in_transfer.js');
+var OutTransferLogic = require('../../../logic/out_transfer.js');
 
-describe('transactions', function () {
-
+describe('transactions', () => {
 	var transactionsModule;
 	var dbStub;
 	var TransactionTypeMap = {};
@@ -50,7 +48,7 @@ describe('transactions', function () {
 	TransactionTypeMap[transactionTypes.IN_TRANSFER] = 'getInTransferByIds';
 	TransactionTypeMap[transactionTypes.OUT_TRANSFER] = 'getOutTransferByIds';
 
-	function attachAllAssets (transactionLogic, accountLogic, delegatesModule, accountsModule) {
+	function attachAllAssets(transactionLogic, accountLogic, delegatesModule, accountsModule) {
 		var sendLogic = transactionLogic.attachAssetType(transactionTypes.SEND, new TransferLogic());
 		sendLogic.bind(accountsModule);
 		expect(sendLogic).to.be.an.instanceof(TransferLogic);
@@ -84,7 +82,7 @@ describe('transactions', function () {
 		return transactionLogic;
 	}
 
-	before(function (done) {
+	before(done => {
 		dbStub = {
 			transactions: {
 				sortFields: [
@@ -105,13 +103,13 @@ describe('transactions', function () {
 			}
 		};
 
-		Object.keys(TransactionTypeMap).forEach(function (key) {
+		Object.keys(TransactionTypeMap).forEach(key => {
 			dbStub.transactions[TransactionTypeMap[key]] = sinonSandbox.stub().resolves();
 		});
 
 		async.auto({
 			accountLogic: function (cb) {
-				modulesLoader.initLogic(AccountLogic, {db: dbStub}, cb);
+				modulesLoader.initLogic(AccountLogic, { db: dbStub }, cb);
 			},
 			transactionLogic: ['accountLogic', function (result, cb) {
 				modulesLoader.initLogic(TransactionLogic, {
@@ -151,9 +149,9 @@ describe('transactions', function () {
 					db: dbStub
 				}, cb);
 			}]
-		}, function (err, result){
+		}, (err, result) => {
 			expect(err).to.not.exist;
-			modulesLoader.initModule(TransactionModule, {db: dbStub, logic: {transaction: result.transactionLogic}}, function (err, __transactionModule) {
+			modulesLoader.initModule(TransactionModule, { db: dbStub, logic: { transaction: result.transactionLogic } }, (err, __transactionModule) => {
 				expect(err).to.not.exist;
 
 				transactionsModule = __transactionModule;
@@ -180,20 +178,18 @@ describe('transactions', function () {
 		});
 	});
 
-	beforeEach(function () {
+	beforeEach(() => {
 		dbStub.transactions.countList.reset();
 		dbStub.transactions.list.reset();
 
-		Object.keys(TransactionTypeMap).forEach(function (key) {
+		Object.keys(TransactionTypeMap).forEach(key => {
 			dbStub.transactions[TransactionTypeMap[key]].reset();
 		});
 	});
 
-	describe('Transaction#shared', function () {
-
-		describe('getTransaction', function () {
-
-			function getTransactionsById (id, done) {
+	describe('Transaction#shared', () => {
+		describe('getTransaction', () => {
+			function getTransactionsById(id, done) {
 				transactionsModule.shared.getTransactions({ id: id }, done);
 			}
 
@@ -366,11 +362,11 @@ describe('transactions', function () {
 				}
 			};
 
-			it('should get transaction for send transaction id', function (done) {
+			it('should get transaction for send transaction id', done => {
 				var transactionId = transactionsByType[transactionTypes.SEND].transactionId;
 				var transaction = transactionsByType[transactionTypes.SEND].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
 
 				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '10707276464897629547',
@@ -395,7 +391,7 @@ describe('transactions', function () {
 					tf_data: 'extra information'
 				}]);
 
-				getTransactionsById(transactionId, function (err, res) {
+				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transactions').which.is.an('Array');
 					expect(res.transactions[0].type).to.equal(transaction.type);
@@ -413,11 +409,11 @@ describe('transactions', function () {
 				});
 			});
 
-			it('should get transaction with singature asset for transaction id', function (done) {
+			it('should get transaction with singature asset for transaction id', done => {
 				var transactionId = transactionsByType[transactionTypes.SIGNATURE].transactionId;
 				var transaction = transactionsByType[transactionTypes.SIGNATURE].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
 
 				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '11286126025791281057',
@@ -442,7 +438,7 @@ describe('transactions', function () {
 					s_publicKey: 'e26ede27ed390a9da260b5f5b76db5908a164044d3d1f9d2b24116dd5b25dc72'
 				}]);
 
-				getTransactionsById(transactionId, function (err, res) {
+				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transactions').which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
@@ -455,11 +451,11 @@ describe('transactions', function () {
 				});
 			});
 
-			it('should get transaction with delegate asset for transaction id', function (done) {
+			it('should get transaction with delegate asset for transaction id', done => {
 				var transactionId = transactionsByType[transactionTypes.DELEGATE].transactionId;
 				var transaction = transactionsByType[transactionTypes.DELEGATE].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
 
 				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '6092156606242987573',
@@ -484,7 +480,7 @@ describe('transactions', function () {
 					d_username: '&im'
 				}]);
 
-				getTransactionsById(transactionId, function (err, res) {
+				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transactions').which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
@@ -499,11 +495,11 @@ describe('transactions', function () {
 				});
 			});
 
-			it('should get transaction with vote asset for transaction id', function (done) {
+			it('should get transaction with vote asset for transaction id', done => {
 				var transactionId = transactionsByType[transactionTypes.VOTE].transactionId;
 				var transaction = transactionsByType[transactionTypes.VOTE].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
 
 				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '6820432253266933365',
@@ -528,7 +524,7 @@ describe('transactions', function () {
 					v_votes: '+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f,+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
 				}]);
 
-				getTransactionsById(transactionId, function (err, res) {
+				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transactions').which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
@@ -541,11 +537,11 @@ describe('transactions', function () {
 				});
 			});
 
-			it('should get transaction with MULTI asset for transaction id', function (done) {
+			it('should get transaction with MULTI asset for transaction id', done => {
 				var transactionId = transactionsByType[transactionTypes.MULTI].transactionId;
 				var transaction = transactionsByType[transactionTypes.MULTI].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
 
 				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '481620703379194749',
@@ -572,7 +568,7 @@ describe('transactions', function () {
 					m_keysgroup: '+f497c0187575ca25d01e4afc454b04be71a4f3a45c48b86e6e86c71fdeecb4f4,+cbc6f7f616035cbc5d21c398735d5dc1baf68eec7f4671fba2390b34eb4fd854'
 				}]);
 
-				getTransactionsById(transactionId, function (err, res) {
+				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transactions').which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
@@ -587,11 +583,11 @@ describe('transactions', function () {
 				});
 			});
 
-			it('should get transaction with DAPP asset for transaction id', function (done) {
+			it('should get transaction with DAPP asset for transaction id', done => {
 				var transactionId = transactionsByType[transactionTypes.DAPP].transactionId;
 				var transaction = transactionsByType[transactionTypes.DAPP].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{count: 1}]);
+				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
 
 				dbStub.transactions.list.onCall(0).resolves([{
 					t_id: '1907088915785679339',
@@ -622,7 +618,7 @@ describe('transactions', function () {
 					dapp_icon: null
 				}]);
 
-				getTransactionsById(transactionId, function (err, res) {
+				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transactions').which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
@@ -638,11 +634,11 @@ describe('transactions', function () {
 				});
 			});
 
-			it.skip('should get transaction with intransfer asset for transaction id', function (done) {
+			it.skip('should get transaction with intransfer asset for transaction id', done => {
 				var transactionId = transactionsByType[transactionTypes.IN_TRANSFER].transactionId;
 				var transaction = transactionsByType[transactionTypes.IN_TRANSFER].transaction;
 
-				getTransactionsById(transactionId, function (err, res) {
+				getTransactionsById(transactionId, (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.have.property('transactions').which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);

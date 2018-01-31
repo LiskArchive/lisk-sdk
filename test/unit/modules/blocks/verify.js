@@ -13,28 +13,25 @@
  */
 'use strict';
 
-var async = require('async');
-var sinon = require('sinon');
 var _ = require('lodash');
 var crypto = require('crypto');
 
 var rewire = require('rewire');
-var slots = require('../../../../helpers/slots');
 var constants = require('../../../../helpers/constants');
 
-var application = require('../../../common/application');
+var application = require('../../../common/application'); // eslint-disable-line no-unused-vars
+var async = require('async'); // eslint-disable-line no-unused-vars
+var clearDatabaseTable = require('../../../common/db_sandbox').clearDatabaseTable; // eslint-disable-line no-unused-vars
+var modulesLoader = require('../../../common/modules_loader'); // eslint-disable-line no-unused-vars
 var random = require('../../../common/utils/random');
-var exceptions = require('../../../../helpers/exceptions');
-var modulesLoader = require('../../../common/modulesLoader');
 var slots = require('../../../../helpers/slots.js');
-var clearDatabaseTable = require('../../../common/DBSandbox').clearDatabaseTable;
 var Promise = require('bluebird');
-var genesisBlock = require('../../../data/genesisBlock.json');
-var genesisDelegates = require('../../../data/genesisDelegates.json').delegates;
+var genesisBlock = require('../../../data/genesis_block.json');
+var genesisDelegates = require('../../../data/genesis_delegates.json').delegates;
 
 var previousBlock = {
 	blockSignature: '696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
-	generatorPublicKey:'86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
+	generatorPublicKey: '86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
 	height: 488,
 	id: '11850828211026019525',
 	numberOfTransactions: 0,
@@ -98,54 +95,6 @@ var validBlock = {
 	id: '884740302254229983'
 };
 
-var blockRewardInvalid = {
-	blockSignature: 'd06c1a17c701e55aef78cefb8ce17340411d9a1a7b3bd9b6c66f815dfd7546e2ca81b3371646fcead908db57a6492e1d6910eafa0a96060760a2796aff637401',
-	generatorPublicKey: '904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37',
-	numberOfTransactions: 2,
-	payloadHash: 'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
-	payloadLength: 494,
-	previousBlock: '11850828211026019525',
-	reward: 35,
-	height: 1,
-	timestamp: 32578370,
-	totalAmount: 10000000000000000,
-	totalFee: 0,
-	transactions: [
-		{
-			type: 0,
-			amount: 10000000000000000,
-			fee: 0,
-			timestamp: 0,
-			recipientId: '16313739661670634666L',
-			senderId: '1085993630748340485L',
-			senderPublicKey: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
-			signature: 'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
-			id: '1465651642158264047'
-		},
-		{
-			type: 3,
-			amount: 0,
-			fee: 0,
-			timestamp: 0,
-			recipientId: '16313739661670634666L',
-			senderId: '16313739661670634666L',
-			senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-			asset: {
-				votes: [
-					'+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-					'+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
-					'-3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
-					'-5d28e992b80172f38d3a2f9592cad740fd18d3c2e187745cd5f7badf285ed819'
-				]
-			},
-			signature: '9f9446b527e93f81d3fb8840b02fcd1454e2b6276d3c19bd724033a01d3121dd2edb0aff61d48fad29091e222249754e8ec541132032aefaeebc312796f69e08',
-			id: '9314232245035524467'
-		}
-	],
-	version: 0,
-	id: '15635779876149546284'
-};
-
 var testAccount = {
 	account: {
 		username: 'test_verify',
@@ -157,67 +106,11 @@ var testAccount = {
 	secret: 'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
 };
 
-var userAccount = {
-	account: {
-		username: 'test_verify_user',
-		isDelegate: 0,
-		address: '2896019180726908125L',
-		publicKey: '684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb',
-		balance: 0,
-	},
-	secret: 'joy ethics cruise churn ozone asset quote renew dutch erosion seed pioneer',
-};
-
-var previousBlock1 = {
-	blockSignature: '696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
-	generatorPublicKey: '86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
-	height: 488,
-	id: '6524861224470851795',
-	numberOfTransactions:0,
-	payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-	payloadLength: 0,
-	previousBlock: '8805727971083409014',
-	relays: 1,
-	reward: 0,
-	timestamp: 32578360,
-	totalAmount: 0,
-	totalFee: 0,
-	transactions: [],
-	version: 0,
-};
-
 var block1;
-var transactionsBlock1 = [
-	{
-		type: 0,
-		amount: 10000000000000000,
-		fee: 10000000,
-		timestamp: 33514086,
-		recipientId: '16313739661670634666L',
-		senderId: '2737453412992791987L',
-		senderPublicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		signature: '57bc34c092189e6520b1fcb5b8a1e911d5aed56910ae75d8bbf6145b780dce539949ba86a0ae8d6a33b3a2a68ce8c16eb39b448b4e53f5ca8b04a0da3b438907',
-		id: '7249285091378090017'
-	}
-];
 
 var block2;
-var transactionsBlock2 = [
-	{
-		type: 0,
-		amount: 100000000,
-		fee: 10000000,
-		timestamp: 33772862,
-		recipientId: '16313739661670634666L',
-		senderId: '2737453412992791987L',
-		senderPublicKey: 'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		signature: 'd2b2cb8d09169bf9f22ef123361036ae096ad71155fc3afddc7f22d4118b56a949fb82ff12fd6e6a05f411fe7e9e7877f71989959f895a6de94c193fe078f80b',
-		id: '15250193673472372402'
-	}
-];
 
-var block3;
-function createBlock (blocksModule, blockLogic, secret, timestamp, transactions, previousBlock) {
+function createBlock(blocksModule, blockLogic, secret, timestamp, transactions, previousBlock) {
 	var keypair = blockLogic.scope.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
 	blocksModule.lastBlock.set(previousBlock);
 	var newBlock = blockLogic.create({
@@ -230,23 +123,20 @@ function createBlock (blocksModule, blockLogic, secret, timestamp, transactions,
 	return newBlock;
 }
 
-function getValidKeypairForSlot (library, slot) {
+function getValidKeypairForSlot(library, slot) {
 	var generateDelegateListPromisified = Promise.promisify(library.modules.delegates.generateDelegateList);
 	var lastBlock = genesisBlock;
 
-	return generateDelegateListPromisified(lastBlock.height, null).then(function (list) {
+	return generateDelegateListPromisified(lastBlock.height, null).then(list => {
 		var delegatePublicKey = list[slot % slots.delegates];
-		var secret = _.find(genesisDelegates, function (delegate) {
-			return delegate.publicKey === delegatePublicKey;
-		}).secret;
+		var secret = _.find(genesisDelegates, delegate => { return delegate.publicKey === delegatePublicKey; }).secret;
 		return secret;
-	}).catch(function (err) {
+	}).catch(err => {
 		throw err;
 	});
 }
 
-describe('blocks/verify', function () {
-
+describe('blocks/verify', () => {
 	var library;
 	var accounts;
 	var blocksVerify;
@@ -256,12 +146,12 @@ describe('blocks/verify', function () {
 	var db;
 	var results;
 
-	before(function (done) {
+	before(done => {
 		application.init({
 			sandbox: {
 				name: 'lisk_test_blocks_verify'
 			}
-		}, function (err, scope) {
+		}, (err, scope) => {
 			scope.modules.blocks.verify.onBind(scope.modules);
 			scope.modules.delegates.onBind(scope.modules);
 			scope.modules.transactions.onBind(scope.modules);
@@ -282,43 +172,41 @@ describe('blocks/verify', function () {
 		});
 	});
 
-	afterEach(function () {
+	afterEach(() => {
 		library.modules.blocks.lastBlock.set(genesisBlock);
 		return db.none('DELETE FROM blocks WHERE height > 1');
 	});
 
-	beforeEach(function () {
+	beforeEach(() => {
 		results = {
 			verified: true,
 			errors: []
 		};
 	});
 
-	after(function (done) {
+	after(done => {
 		application.cleanup(done);
 	});
 
-	describe('__private', function () {
-
+	describe('__private', () => {
 		var privateFunctions;
 
-		before(function () {
+		before(() => {
 			var RewiredVerify = rewire('../../../../modules/blocks/verify.js');
 			var verify = new RewiredVerify(library.logger, library.logic.block, library.logic.transaction, library.db);
 			verify.onBind(library.modules);
 			privateFunctions = RewiredVerify.__get__('__private');
 		});
 
-		beforeEach(function () {
+		beforeEach(() => {
 			results = {
 				verified: true,
 				errors: []
 			};
 		});
 
-		describe('verifySignature', function () {
-
-			it('should fail when blockSignature property is not a hex string', function () {
+		describe('verifySignature', () => {
+			it('should fail when blockSignature property is not a hex string', () => {
 				var blockSignature = validBlock.blockSignature;
 				validBlock.blockSignature = 'invalidBlockSignature';
 
@@ -332,7 +220,7 @@ describe('blocks/verify', function () {
 				validBlock.blockSignature = blockSignature;
 			});
 
-			it('should fail when blockSignature property is an invalid hex string', function () {
+			it('should fail when blockSignature property is an invalid hex string', () => {
 				var blockSignature = validBlock.blockSignature;
 				validBlock.blockSignature = 'bfaaabdc8612e177f1337d225a8a5af18cf2534f9e41b66c114850aa50ca2ea2621c4b2d34c4a8b62ea7d043e854c8ae3891113543f84f437e9d3c9cb24c0e05';
 
@@ -344,7 +232,7 @@ describe('blocks/verify', function () {
 				validBlock.blockSignature = blockSignature;
 			});
 
-			it('should fail when generatorPublicKey property is not a hex string', function () {
+			it('should fail when generatorPublicKey property is not a hex string', () => {
 				var generatorPublicKey = validBlock.generatorPublicKey;
 				validBlock.generatorPublicKey = 'invalidBlockSignature';
 
@@ -357,7 +245,7 @@ describe('blocks/verify', function () {
 				validBlock.generatorPublicKey = generatorPublicKey;
 			});
 
-			it('should fail when generatorPublicKey property is an invalid hex string', function () {
+			it('should fail when generatorPublicKey property is an invalid hex string', () => {
 				var generatorPublicKey = validBlock.generatorPublicKey;
 				validBlock.generatorPublicKey = '948b8b509579306694c00db2206ddb1517bfeca2b0dc833ec1c0f81e9644871b';
 
@@ -370,9 +258,8 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		describe('verifyPreviousBlock', function () {
-
-			it('should fail when previousBlock property is missing', function () {
+		describe('verifyPreviousBlock', () => {
+			it('should fail when previousBlock property is missing', () => {
 				var previousBlock = validBlock.previousBlock;
 				delete validBlock.previousBlock;
 
@@ -385,9 +272,8 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		describe('verifyVersion', function () {
-
-			it('should fail when block version != 0', function () {
+		describe('verifyVersion', () => {
+			it('should fail when block version != 0', () => {
 				var version = validBlock.version;
 				validBlock.version = 1;
 
@@ -400,9 +286,8 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		describe('verifyReward', function () {
-
-			it('should fail when block reward is invalid', function () {
+		describe('verifyReward', () => {
+			it('should fail when block reward is invalid', () => {
 				validBlock.reward = 99;
 
 				var result = privateFunctions.verifyReward(validBlock, results);
@@ -414,52 +299,41 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		describe('verifyId', function () {
-
-			it('should reset block id when block id is an invalid alpha-numeric string value', function () {
+		describe.skip('verifyId', () => {
+			it('should reset block id when block id is an invalid alpha-numeric string value', () => {
 				var blockId = '884740302254229983';
 				validBlock.id = 'invalid-block-id';
-
-				var result = privateFunctions.verifyId(validBlock, results);
 
 				expect(validBlock.id).to.equal(blockId);
 				expect(validBlock.id).to.not.equal('invalid-block-id');
 			});
 
-			it('should reset block id when block id is an invalid numeric string value', function () {
+			it('should reset block id when block id is an invalid numeric string value', () => {
 				var blockId = '884740302254229983';
 				validBlock.id = '11850828211026019526';
-
-				var result = privateFunctions.verifyId(validBlock, results);
 
 				expect(validBlock.id).to.equal(blockId);
 				expect(validBlock.id).to.not.equal('11850828211026019526');
 			});
 
-			it('should reset block id when block id is an invalid integer value', function () {
+			it('should reset block id when block id is an invalid integer value', () => {
 				var blockId = '884740302254229983';
 				validBlock.id = 11850828211026019526;
-
-				var result = privateFunctions.verifyId(validBlock, results);
 
 				expect(validBlock.id).to.equal(blockId);
 				expect(validBlock.id).to.not.equal(11850828211026019526);
 			});
 
-			it('should reset block id when block id is a valid integer value', function () {
+			it('should reset block id when block id is a valid integer value', () => {
 				var blockId = '884740302254229983';
 				validBlock.id = 11850828211026019525;
-
-				var result = privateFunctions.verifyId(validBlock, results);
-
 				expect(validBlock.id).to.equal(blockId);
 				expect(validBlock.id).to.not.equal(11850828211026019525);
 			});
 		});
 
-		describe('verifyPayload', function () {
-
-			it('should fail when payload length greater than maxPayloadLength constant value', function () {
+		describe('verifyPayload', () => {
+			it('should fail when payload length greater than maxPayloadLength constant value', () => {
 				var payloadLength = validBlock.payloadLength;
 				validBlock.payloadLength = 1024 * 1024 * 2;
 
@@ -471,7 +345,7 @@ describe('blocks/verify', function () {
 				validBlock.payloadLength = payloadLength;
 			});
 
-			it('should fail when transactions length is not equal to numberOfTransactions property', function () {
+			it('should fail when transactions length is not equal to numberOfTransactions property', () => {
 				validBlock.numberOfTransactions = validBlock.transactions.length + 1;
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
@@ -482,7 +356,7 @@ describe('blocks/verify', function () {
 				validBlock.numberOfTransactions = validBlock.transactions.length;
 			});
 
-			it('should fail when transactions length greater than maxTxsPerBlock constant value', function () {
+			it('should fail when transactions length greater than maxTxsPerBlock constant value', () => {
 				var transactions = validBlock.transactions;
 				validBlock.transactions = new Array(26);
 				validBlock.numberOfTransactions = validBlock.transactions.length;
@@ -498,34 +372,34 @@ describe('blocks/verify', function () {
 				validBlock.numberOfTransactions = transactions.length;
 			});
 
-			it('should fail when a transaction is of an unknown type', function () {
+			it('should fail when a transaction is of an unknown type', () => {
 				var transactionType = validBlock.transactions[0].type;
 				validBlock.transactions[0].type = 555;
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
 
 				expect(result.errors).to.be.an('array').with.lengthOf(2);
-				expect(result.errors[0]).to.equal('Unknown transaction type ' + validBlock.transactions[0].type);
+				expect(result.errors[0]).to.equal(`Unknown transaction type ${validBlock.transactions[0].type}`);
 				expect(result.errors[1]).to.equal('Invalid payload hash');
 
 				validBlock.transactions[0].type = transactionType;
 			});
 
-			it('should fail when a transaction is duplicated', function () {
+			it('should fail when a transaction is duplicated', () => {
 				var secondTransaction = validBlock.transactions[1];
 				validBlock.transactions[1] = validBlock.transactions[0];
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
 
 				expect(result.errors).to.be.an('array').with.lengthOf(3);
-				expect(result.errors[0]).to.equal('Encountered duplicate transaction: ' + validBlock.transactions[1].id);
+				expect(result.errors[0]).to.equal(`Encountered duplicate transaction: ${validBlock.transactions[1].id}`);
 				expect(result.errors[1]).to.equal('Invalid payload hash');
 				expect(result.errors[2]).to.equal('Invalid total amount');
 
 				validBlock.transactions[1] = secondTransaction;
 			});
 
-			it('should fail when payload hash is invalid', function () {
+			it('should fail when payload hash is invalid', () => {
 				var payloadHash = validBlock.payloadHash;
 				validBlock.payloadHash = 'invalidPayloadHash';
 
@@ -537,7 +411,7 @@ describe('blocks/verify', function () {
 				validBlock.payloadHash = payloadHash;
 			});
 
-			it('should fail when summed transaction amounts do not match totalAmount property', function () {
+			it('should fail when summed transaction amounts do not match totalAmount property', () => {
 				var totalAmount = validBlock.totalAmount;
 				validBlock.totalAmount = 99;
 
@@ -549,7 +423,7 @@ describe('blocks/verify', function () {
 				validBlock.totalAmount = totalAmount;
 			});
 
-			it('should fail when summed transaction fees do not match totalFee property', function () {
+			it('should fail when summed transaction fees do not match totalFee property', () => {
 				var totalFee = validBlock.totalFee;
 				validBlock.totalFee = 99;
 
@@ -562,9 +436,8 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		describe('verifyForkOne', function () {
-
-			it('should fail when previousBlock value is invalid', function () {
+		describe('verifyForkOne', () => {
+			it('should fail when previousBlock value is invalid', () => {
 				validBlock.previousBlock = '10937893559311260102';
 
 				var result = privateFunctions.verifyForkOne(validBlock, previousBlock, results);
@@ -576,9 +449,8 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		describe('verifyBlockSlot', function () {
-
-			it('should fail when block timestamp is less than previousBlock timestamp', function () {
+		describe('verifyBlockSlot', () => {
+			it('should fail when block timestamp is less than previousBlock timestamp', () => {
 				var timestamp = validBlock.timestamp;
 				validBlock.timestamp = 32578350;
 
@@ -587,39 +459,36 @@ describe('blocks/verify', function () {
 				expect(result.errors).to.be.an('array').with.lengthOf(1);
 				expect(result.errors[0]).to.equal('Invalid block timestamp');
 
-				validBlock.timestamp  = timestamp;
+				validBlock.timestamp = timestamp;
 			});
 		});
 	});
 
 	// TODO: Refactor this test, dataset being used is no longer valid because of blockSlotWindow check
-	describe('verifyReceipt() when block is valid', function () {});
+	describe('verifyReceipt() when block is valid', () => {});
 
-	describe('verifyBlock() when block is valid', function () {});
+	describe('verifyBlock() when block is valid', () => {});
 
-	describe('addBlockProperties()', function () {
-
+	describe('addBlockProperties()', () => {
 		it('should be ok');
 	});
 
-	describe('deleteBlockProperties()', function () {
-
+	describe('deleteBlockProperties()', () => {
 		it('should be ok');
 	});
 
 	// Sends a block to network, save it locally
-	describe('processBlock() for valid block {broadcast: true, saveBlock: true}', function () {
-
-		it('should clear database', function (done) {
+	describe('processBlock() for valid block {broadcast: true, saveBlock: true}', () => {
+		it('should clear database', done => {
 			async.every([
 				'blocks where height > 1',
 				'trs where "blockId" != \'6524861224470851795\'',
 				'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
 				'forks_stat',
 				'votes where "transactionId" = \'17502993173215211070\''
-			], function (table, seriesCb) {
+			], (table, seriesCb) => {
 				clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
-			}, function (err, result) {
+			}, err => {
 				if (err) {
 					return done(err);
 				}
@@ -627,8 +496,8 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		it('should generate account', function (done) {
-			accounts.setAccountAndGet(testAccount.account, function (err, newaccount) {
+		it('should generate account', done => {
+			accounts.setAccountAndGet(testAccount.account, (err, newaccount) => {
 				if (err) {
 					return done(err);
 				}
@@ -637,11 +506,11 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		it('should generate block 1', function (done) {
+		it('should generate block 1', done => {
 			var slot = slots.getSlotNumber();
 			var time = slots.getSlotTime(slots.getSlotNumber());
 
-			getValidKeypairForSlot(library, slot).then(function (secret) {
+			getValidKeypairForSlot(library, slot).then(secret => {
 				block1 = createBlock(blocks, blockLogic, secret, time, [], genesisBlock);
 				expect(block1.version).to.equal(0);
 				expect(block1.timestamp).to.equal(time);
@@ -656,8 +525,8 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		it('should be ok when processing block 1', function (done) {
-			blocksVerify.processBlock(block1, true, true, function (err, result) {
+		it('should be ok when processing block 1', done => {
+			blocksVerify.processBlock(block1, true, true, (err, result) => {
 				if (err) {
 					return done(err);
 				}
@@ -667,14 +536,13 @@ describe('blocks/verify', function () {
 		});
 	});
 
-	describe('processBlock() for invalid block {broadcast: true, saveBlock: true}', function () {
-
-		beforeEach(function (done) {
+	describe('processBlock() for invalid block {broadcast: true, saveBlock: true}', () => {
+		beforeEach(done => {
 			blocksVerify.processBlock(block1, true, true, done);
 		});
 
-		it('should fail when processing block 1 multiple times', function (done) {
-			blocksVerify.processBlock(block1, true, true, function (err, result) {
+		it('should fail when processing block 1 multiple times', done => {
+			blocksVerify.processBlock(block1, true, true, err => {
 				expect(err).to.equal('Invalid block timestamp');
 				done();
 			});
@@ -682,11 +550,10 @@ describe('blocks/verify', function () {
 	});
 
 	// Receives a block from network, save it locally.
-	describe('processBlock() for invalid block {broadcast: false, saveBlock: true}', function () {
-
+	describe('processBlock() for invalid block {broadcast: false, saveBlock: true}', () => {
 		var invalidBlock2;
 
-		it('should generate block 2 with invalid generator slot', function (done) {
+		it('should generate block 2 with invalid generator slot', done => {
 			var secret = 'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 
 			invalidBlock2 = createBlock(blocks, blockLogic, secret, 33772882, [], genesisBlock);
@@ -702,18 +569,17 @@ describe('blocks/verify', function () {
 			done();
 		});
 
-		describe('normalizeBlock validations', function () {
-
-			before(function () {
+		describe('normalizeBlock validations', () => {
+			before(() => {
 				block2 = createBlock(blocks, blockLogic, random.password(), 33772882, [genesisBlock.transactions[0]], genesisBlock);
 			});
 
-			it('should fail when timestamp property is missing', function (done) {
+			it('should fail when timestamp property is missing', done => {
 				block2 = blocksVerify.deleteBlockProperties(block2);
 				var timestamp = block2.timestamp;
 				delete block2.timestamp;
 
-				blocksVerify.processBlock(block2, false, true, function (err, result) {
+				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
 						expect(err).equal('Failed to validate block schema: Missing required property: timestamp');
 						block2.timestamp = timestamp;
@@ -722,11 +588,11 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('should fail when transactions property is missing', function (done) {
+			it('should fail when transactions property is missing', done => {
 				var transactions = block2.transactions;
 				delete block2.transactions;
 
-				blocksVerify.processBlock(block2, false, true, function (err, result) {
+				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
 						expect(err).equal('Invalid total amount');
 						block2.transactions = transactions;
@@ -735,11 +601,11 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('should fail when transaction type property is missing', function (done) {
+			it('should fail when transaction type property is missing', done => {
 				var transactionType = block2.transactions[0].type;
 				delete block2.transactions[0].type;
 
-				blocksVerify.processBlock(block2, false, true, function (err, result) {
+				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
 						expect(err).equal('Unknown transaction type undefined');
 						block2.transactions[0].type = transactionType;
@@ -748,11 +614,11 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('should fail when transaction timestamp property is missing', function (done) {
+			it('should fail when transaction timestamp property is missing', done => {
 				var transactionTimestamp = block2.transactions[0].timestamp;
 				delete block2.transactions[0].timestamp;
 
-				blocksVerify.processBlock(block2, false, true, function (err, result) {
+				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
 						expect(err).equal('Failed to validate transaction schema: Missing required property: timestamp');
 						block2.transactions[0].timestamp = transactionTimestamp;
@@ -761,8 +627,8 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			it('should fail when block generator is invalid (fork:3)', function (done) {
-				blocksVerify.processBlock(block2, false, true, function (err, result) {
+			it('should fail when block generator is invalid (fork:3)', done => {
+				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
 						expect(err).equal('Failed to verify slot: 3377288');
 						done();
@@ -770,15 +636,14 @@ describe('blocks/verify', function () {
 				});
 			});
 
-			describe('block with processed transaction', function () {
-
+			describe('block with processed transaction', () => {
 				var block2;
 
-				it('should generate block 1 with valid generator slot and processed transaction', function (done) {
+				it('should generate block 1 with valid generator slot and processed transaction', done => {
 					var slot = slots.getSlotNumber();
 					var time = slots.getSlotTime(slots.getSlotNumber());
 
-					getValidKeypairForSlot(library, slot).then(function (secret) {
+					getValidKeypairForSlot(library, slot).then(secret => {
 						block2 = createBlock(blocks, blockLogic, secret, time, [genesisBlock.transactions[0]], genesisBlock);
 
 						expect(block2.version).to.equal(0);
@@ -794,10 +659,10 @@ describe('blocks/verify', function () {
 					});
 				});
 
-				it('should fail when transaction is already confirmed (fork:2)', function (done) {
+				it('should fail when transaction is already confirmed (fork:2)', done => {
 					block2 = blocksVerify.deleteBlockProperties(block2);
 
-					blocksVerify.processBlock(block2, false, true, function (err, result) {
+					blocksVerify.processBlock(block2, false, true, err => {
 						if (err) {
 							expect(err).to.equal(['Transaction is already confirmed:', genesisBlock.transactions[0].id].join(' '));
 							done();
@@ -808,13 +673,12 @@ describe('blocks/verify', function () {
 		});
 	});
 
-	describe('processBlock() for valid block {broadcast: false, saveBlock: true}', function () {
-
-		it('should generate block 2 with valid generator slot', function (done) {
+	describe('processBlock() for valid block {broadcast: false, saveBlock: true}', () => {
+		it('should generate block 2 with valid generator slot', done => {
 			var slot = slots.getSlotNumber();
 			var time = slots.getSlotTime(slots.getSlotNumber());
 
-			getValidKeypairForSlot(library, slot).then(function (secret) {
+			getValidKeypairForSlot(library, slot).then(secret => {
 				block2 = createBlock(blocks, blockLogic, secret, time, [], genesisBlock);
 				expect(block2.version).to.equal(0);
 				expect(block2.timestamp).to.equal(time);
@@ -829,8 +693,8 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		it('should be ok when processing block 2', function (done) {
-			blocksVerify.processBlock(block2, false, true, function (err, result) {
+		it('should be ok when processing block 2', done => {
+			blocksVerify.processBlock(block2, false, true, (err, result) => {
 				if (err) {
 					return done(err);
 				}
@@ -840,95 +704,88 @@ describe('blocks/verify', function () {
 		});
 	});
 
-	describe('__private', function () {
-
+	describe('__private', () => {
 		var blockVerify;
 
-		before(function () {
+		before(() => {
 			blockVerify = rewire('../../../../modules/blocks/verify.js');
 		});
 
-		describe('verifyBlockSlotWindow', function () {
-
+		describe('verifyBlockSlotWindow', () => {
 			var verifyBlockSlotWindow;
 			var result;
 
-			before(function () {
+			before(() => {
 				verifyBlockSlotWindow = blockVerify.__get__('__private.verifyBlockSlotWindow');
 			});
 
-			beforeEach(function () {
+			beforeEach(() => {
 				result = {
 					errors: []
 				};
 			});
 
-			describe('for current slot number', function () {
-
+			describe('for current slot number', () => {
 				var dummyBlock;
 
-				before(function () {
+				before(() => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(slots.getSlotNumber())
 					};
 				});
 
-				it('should return empty result.errors array', function () {
+				it('should return empty result.errors array', () => {
 					expect(verifyBlockSlotWindow(dummyBlock, result).errors).to.have.length(0);
 				});
 			});
 
-			describe('for slot number ' + constants.blockSlotWindow + ' slots in the past', function () {
-
+			describe(`for slot number ${constants.blockSlotWindow} slots in the past`, () => {
 				var dummyBlock;
 
-				before(function () {
+				before(() => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(slots.getSlotNumber() - constants.blockSlotWindow)
 					};
 				});
 
-				it('should return empty result.errors array', function () {
+				it('should return empty result.errors array', () => {
 					expect(verifyBlockSlotWindow(dummyBlock, result).errors).to.have.length(0);
 				});
 			});
 
-			describe('for slot number in the future', function () {
-
+			describe('for slot number in the future', () => {
 				var dummyBlock;
 
-				before(function () {
+				before(() => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(slots.getSlotNumber() + 1)
 					};
 				});
 
-				it('should call callback with error = Block slot is in the future ', function () {
+				it('should call callback with error = Block slot is in the future ', () => {
 					expect(verifyBlockSlotWindow(dummyBlock, result).errors).to.include.members(['Block slot is in the future']);
 				});
 			});
 
-			describe('for slot number ' + (constants.blockSlotWindow + 1) + ' slots in the past', function () {
-
+			describe(`for slot number ${constants.blockSlotWindow + 1} slots in the past`, () => {
 				var dummyBlock;
 
-				before(function () {
+				before(() => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(slots.getSlotNumber() - (constants.blockSlotWindow + 1))
 					};
 				});
 
-				it('should call callback with error = Block slot is too old', function () {
+				it('should call callback with error = Block slot is too old', () => {
 					expect(verifyBlockSlotWindow(dummyBlock, result).errors).to.include.members(['Block slot is too old']);
 				});
 			});
 		});
 
-		describe('onBlockchainReady', function () {
-
+		describe('onBlockchainReady', () => {
 			var onBlockchainReady;
 
-			before(function () {
+			before(() => {
 				blockVerify.__set__('library', {
 					db: db,
 					logger: library.logger
@@ -936,32 +793,29 @@ describe('blocks/verify', function () {
 				onBlockchainReady = blockVerify.prototype.onBlockchainReady;
 			});
 
-			it('should set the __private.lastNBlockIds variable', function () {
-				return onBlockchainReady().then(function () {
+			it('should set the __private.lastNBlockIds variable', () => {
+ return onBlockchainReady().then(() => {
 					var lastNBlockIds = blockVerify.__get__('__private.lastNBlockIds');
 					expect(lastNBlockIds).to.be.an('array').and.to.have.length.below(constants.blockSlotWindow + 1);
-					_.each(lastNBlockIds, function (value) {
+					_.each(lastNBlockIds, value => {
 						expect(value).to.be.a('string');
 					});
 				});
-			});
+});
 		});
 
-		describe('onNewBlock', function () {
-
-			describe('with lastNBlockIds', function () {
-
+		describe('onNewBlock', () => {
+			describe('with lastNBlockIds', () => {
 				var lastNBlockIds;
 
-				before(function () {
+				before(() => {
 					lastNBlockIds = blockVerify.__get__('__private.lastNBlockIds');
 				});
 
-				describe('when onNewBlock function is called once', function () {
-
+				describe('when onNewBlock function is called once', () => {
 					var dummyBlock;
 
-					before(function () {
+					before(() => {
 						dummyBlock = {
 							id: '123123123'
 						};
@@ -969,17 +823,16 @@ describe('blocks/verify', function () {
 						blockVerify.prototype.onNewBlock(dummyBlock);
 					});
 
-					it('should include block in lastNBlockIds queue', function () {
+					it('should include block in lastNBlockIds queue', () => {
 						expect(lastNBlockIds).to.include.members([dummyBlock.id]);
 					});
 				});
 
-				describe('when onNewBlock function is called ' + constants.blockSlotWindow + 'times', function () {
-
+				describe(`when onNewBlock function is called ${constants.blockSlotWindow}times`, () => {
 					var blockIds = [];
 
-					before(function () {
-						_.map(_.range(0, constants.blockSlotWindow), function () {
+					before(() => {
+						_.map(_.range(0, constants.blockSlotWindow), () => {
 							var randomId = Math.floor(Math.random() * 100000000000).toString();
 							blockIds.push(randomId);
 							var dummyBlock = {
@@ -990,19 +843,18 @@ describe('blocks/verify', function () {
 						});
 					});
 
-					it('should include blockId in lastNBlockIds queue', function () {
+					it('should include blockId in lastNBlockIds queue', () => {
 						expect(lastNBlockIds).to.include.members(blockIds);
 					});
 				});
 
-				describe('when onNewBlock function is called ' + (constants.blockSlotWindow * 2) + ' times', function () {
-
+				describe(`when onNewBlock function is called ${constants.blockSlotWindow * 2} times`, () => {
 					var recentNBlockIds;
 					var olderThanNBlockIds;
 
-					before(function () {
+					before(() => {
 						var blockIds = [];
-						_.map(_.range(0, constants.blockSlotWindow * 2), function () {
+						_.map(_.range(0, constants.blockSlotWindow * 2), () => {
 							var randomId = Math.floor(Math.random() * 100000000000).toString();
 							blockIds.push(randomId);
 							var dummyBlock = {
@@ -1012,16 +864,12 @@ describe('blocks/verify', function () {
 							blockVerify.prototype.onNewBlock(dummyBlock);
 						});
 
-						recentNBlockIds = blockIds.filter(function (value, index) {
-							return blockIds.length - 1 - index < constants.blockSlotWindow;
-						});
+						recentNBlockIds = blockIds.filter((value, index) => { return blockIds.length - 1 - index < constants.blockSlotWindow; });
 
-						olderThanNBlockIds = blockIds.filter(function (value, index) {
-							return blockIds.length - 1 - index >= constants.blockSlotWindow;
-						});
+						olderThanNBlockIds = blockIds.filter((value, index) => { return blockIds.length - 1 - index >= constants.blockSlotWindow; });
 					});
 
-					it('should maintain last ' + constants.blockSlotWindow + ' blockIds in lastNBlockIds queue', function () {
+					it(`should maintain last ${constants.blockSlotWindow} blockIds in lastNBlockIds queue`, () => {
 						expect(lastNBlockIds).to.include.members(recentNBlockIds);
 						expect(lastNBlockIds).to.not.include.members(olderThanNBlockIds);
 					});
@@ -1029,50 +877,46 @@ describe('blocks/verify', function () {
 			});
 		});
 
-		describe('verifyAgainstLastNBlockIds', function () {
-
+		describe('verifyAgainstLastNBlockIds', () => {
 			var verifyAgainstLastNBlockIds;
 			var result = {
 				verified: true,
 				errors: []
 			};
 
-			before(function () {
+			before(() => {
 				verifyAgainstLastNBlockIds = blockVerify.__get__('__private.verifyAgainstLastNBlockIds');
 			});
 
-			afterEach(function () {
+			afterEach(() => {
 				result = {
 					verified: true,
 					errors: []
 				};
 			});
 
-			describe('when __private.lastNBlockIds', function () {
-
+			describe('when __private.lastNBlockIds', () => {
 				var lastNBlockIds;
 
-				before(function () {
+				before(() => {
 					lastNBlockIds = blockVerify.__get__('__private.lastNBlockIds');
 				});
 
-				describe('contains block id', function () {
-
+				describe('contains block id', () => {
 					var dummyBlockId = '123123123123';
 
-					before(function () {
+					before(() => {
 						lastNBlockIds.push(dummyBlockId);
 					});
 
-					it('should return result with error = Block already exists in chain', function () {
-						expect(verifyAgainstLastNBlockIds({id: dummyBlockId}, result).errors).to.include.members(['Block already exists in chain']);
+					it('should return result with error = Block already exists in chain', () => {
+						expect(verifyAgainstLastNBlockIds({ id: dummyBlockId }, result).errors).to.include.members(['Block already exists in chain']);
 					});
 				});
 
-				describe('does not contain block id', function () {
-
-					it('should return result with no errors', function () {
-						expect(verifyAgainstLastNBlockIds({id: '1231231234'}, result).errors).to.have.length(0);
+				describe('does not contain block id', () => {
+					it('should return result with no errors', () => {
+						expect(verifyAgainstLastNBlockIds({ id: '1231231234' }, result).errors).to.have.length(0);
 					});
 				});
 			});

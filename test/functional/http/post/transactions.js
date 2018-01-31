@@ -15,24 +15,23 @@
 
 require('../../functional.js');
 var randomUtil = require('../../../common/utils/random');
-var swaggerSpec = require('../../../common/swaggerSpec');
+var swaggerSpec = require('../../../common/swagger_spec');
 var expectSwaggerParamError = require('../../../common/helpers/api').expectSwaggerParamError;
 
-describe('POST /api/transactions (general)', function () {
-
+describe('POST /api/transactions (general)', () => {
 	var transactionsEndpoint = new swaggerSpec('POST /transactions');
 
-	it('should fail if empty transactions posted', function () {
-		return transactionsEndpoint.makeRequest({transactions: []}, 400).then(function (res) {
+	it('should fail if empty transactions posted', () => {
+ return transactionsEndpoint.makeRequest({ transactions: [] }, 400).then(res => {
 			expectSwaggerParamError(res, 'transactions');
 			expect(res.body.errors[0].errors[0].code).to.be.equal('ARRAY_LENGTH_SHORT');
 		});
-	});
+});
 
-	it('should fail on more than one transactions at a time', function () {
-		return transactionsEndpoint.makeRequest({transactions: [randomUtil.transaction(), randomUtil.transaction()]}, 400).then(function (res) {
+	it('should fail on more than one transactions at a time', () => {
+ return transactionsEndpoint.makeRequest({ transactions: [randomUtil.transaction(), randomUtil.transaction()] }, 400).then(res => {
 			expectSwaggerParamError(res, 'transactions');
 			expect(res.body.errors[0].errors[0].code).to.be.equal('ARRAY_LENGTH_LONG');
 		});
-	});
+});
 });

@@ -27,13 +27,12 @@ const cs = {}; // Reusable ColumnSet objects
  * @return {BlocksRepository}
  */
 class BlocksRepository {
-
-	constructor (db, pgp) {
+	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 
 		this.dbTable = 'blocks';
-		
+
 		this.sortFields = [
 			'id',
 			'timestamp',
@@ -45,7 +44,7 @@ class BlocksRepository {
 			'numberOfTransactions',
 			'generatorPublicKey'
 		];
-		
+
 		this.dbFields = [
 			'id',
 			'version',
@@ -61,9 +60,9 @@ class BlocksRepository {
 			'generatorPublicKey',
 			'blockSignature'
 		];
-		
+
 		if (!cs.insert) {
-			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: this.dbTable});
+			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, { table: this.dbTable });
 		}
 	}
 
@@ -72,7 +71,7 @@ class BlocksRepository {
 	 * Get the genesis block
 	 * @return {Promise}
 	 */
-	getGenesisBlock () {
+	getGenesisBlock() {
 		return this.db.any(sql.getGenesisBlock);
 	}
 
@@ -81,7 +80,7 @@ class BlocksRepository {
 	 * @param {string} id
 	 * @return {Promise}
 	 */
-	getGenesisBlockId (id) {
+	getGenesisBlockId(id) {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.getGenesisBlockId, [id]);
 	}
@@ -91,7 +90,7 @@ class BlocksRepository {
 	 * @param {string} id
 	 * @return {Promise}
 	 */
-	deleteBlock (id) {
+	deleteBlock(id) {
 		return this.db.none(sql.deleteBlock, [id]);
 	}
 
@@ -103,18 +102,17 @@ class BlocksRepository {
 	 * @param {int} params.end - End time for aggregation period
 	 * @return {Promise}
 	 */
-	aggregateBlocksReward (params) {
+	aggregateBlocksReward(params) {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.aggregateBlocksReward, [params.generatorPublicKey, params.start, params.end]);
 	}
 
 	/**
-	 * Count blocks
-	 * @return {Promise}
+	 * Counts all blocks
+	 * @return {Promise<number>}
 	 */
-	count () {
-		// TODO: Must use inline result conversion
-		return this.db.one(sql.count);
+	count() {
+		return this.db.one(sql.count, [], a => +a.count);
 	}
 
 	/**
@@ -127,7 +125,7 @@ class BlocksRepository {
 	 * @param {int} params.offset
 	 * @return {Promise}
 	 */
-	list (params) {
+	list(params) {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(Queries.list(params), params);
 	}
@@ -140,7 +138,7 @@ class BlocksRepository {
 	 * @param {int} params.limit
 	 * @return {Promise}
 	 */
-	getIdSequence (params) {
+	getIdSequence(params) {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.getIdSequence, params);
 	}
@@ -153,9 +151,9 @@ class BlocksRepository {
 	 * @param {int} params.height
 	 * @return {Promise}
 	 */
-	getCommonBlock (params) {
+	getCommonBlock(params) {
 		// TODO: Must use a result-specific method, not .query
-		params.comparePreviousBlock = params.previousBlock ? this.pgp.as.format('AND "previousBlock" = ${previousBlock}', params): '';
+		params.comparePreviousBlock = params.previousBlock ? this.pgp.as.format('AND "previousBlock" = ${previousBlock}', params) : '';
 		return this.db.query(sql.getCommonBlock, params);
 	}
 
@@ -165,7 +163,7 @@ class BlocksRepository {
 	 * @param {string} lastId - Id of the block to search
 	 * @return {Promise}
 	 */
-	getHeightByLastId (lastId) {
+	getHeightByLastId(lastId) {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.getHeightByLastId, [lastId]);
 	}
@@ -179,7 +177,7 @@ class BlocksRepository {
 	 * @param {int} params.limit
 	 * @return {Promise}
 	 */
-	loadBlocksData (params) {
+	loadBlocksData(params) {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(Queries.loadBlocksData(params), params);
 	}
@@ -190,7 +188,7 @@ class BlocksRepository {
 	 * @param {int} limit
 	 * @return {Promise}
 	 */
-	loadBlocksOffset (offset, limit) {
+	loadBlocksOffset(offset, limit) {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.loadBlocksOffset, [offset, limit]);
 	}
@@ -199,7 +197,7 @@ class BlocksRepository {
 	 * Load the last block including transactions
 	 * @return {Promise}
 	 */
-	loadLastBlock () {
+	loadLastBlock() {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.loadLastBlock);
 	}
@@ -208,7 +206,7 @@ class BlocksRepository {
 	 * Load last N block ids from the database
 	 * @param {limit} - Number of blocks to load
 	 */
-	loadLastNBlockIds (limit) {
+	loadLastNBlockIds(limit) {
 		return this.db.query(sql.loadLastNBlockIds, [limit]);
 	}
 
@@ -218,7 +216,7 @@ class BlocksRepository {
 	 * @return {Promise}
 	 * @throws {QueryResultError} - Multiple rows were not expected - in the case of multiple blocks found with same id
 	 */
-	blockExists (id) {
+	blockExists(id) {
 		return this.db.oneOrNone(sql.blockExists, [id]);
 	}
 
@@ -227,7 +225,7 @@ class BlocksRepository {
 	 * @param {string} id
 	 * @return {Promise}
 	 */
-	deleteAfterBlock (id) {
+	deleteAfterBlock(id) {
 		return this.db.none(sql.deleteAfterBlock, [id]);
 	}
 
@@ -236,7 +234,7 @@ class BlocksRepository {
 	 * @param {string} ids - Comma separated string of ids
 	 * @return {Promise}
 	 */
-	getBlocksForTransport (ids) {
+	getBlocksForTransport(ids) {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.getBlocksForTransport, [ids]);
 	}
@@ -246,9 +244,10 @@ class BlocksRepository {
 	 * @param {Object} block - Attributes to be inserted, can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
 	 * @return {Promise}
 	 */
-	save (block) {
+	save(block) {
+		var saveBlock;
 		try {
-			var saveBlock = Object.assign({}, block);
+			saveBlock = Object.assign({}, block);
 			saveBlock.payloadHash = Buffer.from(block.payloadHash, 'hex');
 			saveBlock.generatorPublicKey = Buffer.from(block.generatorPublicKey, 'hex');
 			saveBlock.blockSignature = Buffer.from(block.blockSignature, 'hex');
@@ -259,7 +258,6 @@ class BlocksRepository {
 
 		return this.db.none(this.pgp.helpers.insert(saveBlock, cs.insert));
 	}
-
 }
 
 // TODO: All these queries need to be thrown away, and use proper implementation inside corresponding methods.
@@ -269,8 +267,8 @@ const Queries = {
 	list: function (params) {
 		return [
 			'SELECT * FROM blocks_list',
-			((params.where && params.where.length) ? 'WHERE ' + params.where.join(' AND ') : ''),
-			(params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
+			((params.where && params.where.length) ? `WHERE ${params.where.join(' AND ')}` : ''),
+			(params.sortField ? `ORDER BY ${[params.sortField, params.sortMethod].join(' ')}` : ''),
 			'LIMIT ${limit} OFFSET ${offset}'
 		].filter(Boolean).join(' ');
 	},

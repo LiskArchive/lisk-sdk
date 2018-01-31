@@ -4,7 +4,7 @@
   PARAMETERS: ?
 */
 
-SELECT count(id)::int
+SELECT count(*)::int
 FROM blocks
 WHERE
   id = ${id}

@@ -17,14 +17,35 @@ var debug = require('debug')('swagger:lisk:cors');
 var _ = require('lodash');
 var CORS = require('cors');
 
-module.exports = function create (fittingDef, bagpipes) {
-
+/**
+ * Description of the function.
+ *
+ * @func create_cors
+ * @memberof api/fittings
+ * @requires cors
+ * @requires debug
+ * @requires lodash
+ * @param {Object} fittingDef - Description of the param
+ * @param {Object} bagpipes - Description of the param
+ * @returns {function} {@link api/fittings.lisk_cors}
+ * @todo: Add description of the function and its parameters
+ */
+module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
 
 	var validCorsOptions = ['origin', 'methods', 'allowedHeaders'];
 	var middleware = CORS(_.pick(fittingDef, validCorsOptions));
 
-	return function lisk_cors (context, cb) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func lisk_cors
+	 * @memberof api/fittings
+	 * @param {Object} context - Description of the param
+	 * @param {function} cb - Description of the param
+	 * @todo: Add description of the function and its parameters
+	 */
+	return function lisk_cors(context, cb) {
 		debug('exec');
 		middleware(context.request, context.response, cb);
 	};

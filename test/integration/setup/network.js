@@ -15,31 +15,25 @@
 
 var async = require('async');
 var Promise = require('bluebird');
-var waitUntilBlockchainReady = require('../../common/utils/waitFor').blockchainReady;
+var waitUntilBlockchainReady = require('../../common/utils/wait_for').blockchainReady;
 var utils = require('../utils');
 
 module.exports = {
 
 	waitForAllNodesToBeReady: function (configurations, cb) {
-		async.forEachOf(configurations, function (configuration, index, eachCb) {
-			waitUntilBlockchainReady(eachCb, 20, 2000, 'http://' + configuration.ip + ':' + configuration.httpPort);
+		async.forEachOf(configurations, (configuration, index, eachCb) => {
+			waitUntilBlockchainReady(eachCb, 20, 2000, `http://${configuration.ip}:${configuration.httpPort}`);
 		}, cb);
 	},
 
 	enableForgingOnDelegates: function (configurations, cb) {
 		var enableForgingPromises = [];
-		configurations.forEach(function (configuration) {
-			configuration.forging.secret.map(function (keys) {
+		configurations.forEach(configuration => {
+			configuration.forging.secret.map(keys => {
 				var enableForgingPromise = utils.http.enableForging(keys, configuration.httpPort);
 				enableForgingPromises.push(enableForgingPromise);
 			});
 		});
-		Promise.all(enableForgingPromises).then(function (forgingResults) {
-			return cb(forgingResults.some(function (forgingResult) {
-				return !forgingResult.forging;
-			}) ? 'Enabling forging failed for some of delegates' : null);
-		}).catch(function (error) {
-			return cb(error);
-		});
+		Promise.all(enableForgingPromises).then(forgingResults => { return cb(forgingResults.some(forgingResult => { return !forgingResult.forging; }) ? 'Enabling forging failed for some of delegates' : null); }).catch(error => { return cb(error); });
 	}
 };

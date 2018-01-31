@@ -15,7 +15,6 @@
 
 var scClient = require('socketcluster-client');
 var Promise = require('bluebird');
-var randomstring = require('randomstring');
 
 var testConfig = require('../../data/config.json');
 
@@ -27,9 +26,8 @@ var testConfig = require('../../data/config.json');
  * @param {object} handlers - object containing callback handlers for native socket client
  * @constructor
  */
-function WSClient (headers, handlers) {
-
-	var handlers = handlers || {};
+function WSClient(headers, handlers) {
+	handlers = handlers || {};
 
 	this.id = null;
 	this.headers = headers;
@@ -72,23 +70,23 @@ WSClient.prototype.start = function () {
 			resolve(data);
 		});
 
-		self.client.on('close', function (err) {
+		self.client.on('close', function () {
 			reject();
 		});
 
-		self.client.on('error', function (err) {
+		self.client.on('error', function () {
 			reject();
 		});
 
-		self.client.on('disconnect', function (err) {
+		self.client.on('disconnect', function () {
 			self.stop();
 		});
 
-		self.client.on('connectAbort', function (err) {
+		self.client.on('connectAbort', function () {
 			self.stop();
 		});
 
-		self.client.on('fail', function (err) {
+		self.client.on('fail', function () {
 			self.stop();
 		});
 

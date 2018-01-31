@@ -1,8 +1,8 @@
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Counts all blocks
 
-  PARAMETERS: ?
+  PARAMETERS: None
 */
 
-SELECT count("rowId")::int
+SELECT count(*)::int
 FROM blocks

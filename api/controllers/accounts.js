@@ -14,23 +14,34 @@
 'use strict';
 
 var _ = require('lodash');
-var ApiError = require('../../helpers/apiError');
+var ApiError = require('../../helpers/api_error');
 var swaggerHelper = require('../../helpers/swagger');
 
 // Private Fields
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class AccountsController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * Description of the function.
+ *
+ * @class
+ * @memberof api/controllers
+ * @requires lodash
+ * @requires helpers/apiError
+ * @requires helpers/swagger.generateParamsErrorObject
+ * @param {Object} scope - App instance
+ * @todo: Add description of AccountsController
  */
-function AccountsController (scope) {
+function AccountsController(scope) {
 	modules = scope.modules;
 }
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 AccountsController.getAccounts = function (context, next) {
 	var params = context.request.swagger.params;
 
@@ -45,16 +56,14 @@ AccountsController.getAccounts = function (context, next) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.accounts.shared.getAccounts(_.clone(filters), function (err, data) {
+	modules.accounts.shared.getAccounts(_.clone(filters), (err, data) => {
 		if (err) { return next(err); }
 
 		data = _.cloneDeep(data);
 
-		data = _.map(data, function (account) {
+		data = _.map(data, account => {
 			if (_.isEmpty(account.delegate)) {
 				delete account.delegate;
 			} else {
@@ -80,6 +89,13 @@ AccountsController.getAccounts = function (context, next) {
 	});
 };
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 AccountsController.getMultisignatureGroups = function (context, next) {
 	var params = context.request.swagger.params;
 
@@ -88,15 +104,13 @@ AccountsController.getMultisignatureGroups = function (context, next) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	if (!filters.address) {
 		return next(swaggerHelper.generateParamsErrorObject(['address'], ['Invalid address specified']));
 	}
 
-	modules.multisignatures.shared.getGroups(_.clone(filters), function (err, data) {
+	modules.multisignatures.shared.getGroups(_.clone(filters), (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = err.code;
@@ -116,6 +130,13 @@ AccountsController.getMultisignatureGroups = function (context, next) {
 	});
 };
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 AccountsController.getMultisignatureMemberships = function (context, next) {
 	var params = context.request.swagger.params;
 
@@ -124,15 +145,13 @@ AccountsController.getMultisignatureMemberships = function (context, next) {
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	if (!filters.address) {
 		return next(swaggerHelper.generateParamsErrorObject(['address'], ['Invalid address specified']));
 	}
 
-	modules.multisignatures.shared.getMemberships(_.clone(filters), function (err, data) {
+	modules.multisignatures.shared.getMemberships(_.clone(filters), (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = err.code;

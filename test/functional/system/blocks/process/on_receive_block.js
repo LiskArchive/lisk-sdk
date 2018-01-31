@@ -23,17 +23,16 @@ var PQ = require('pg-promise').ParameterizedQuery;
 var accountFixtures = require('../../../../fixtures/accounts');
 var slots = require('../../../../../helpers/slots');
 var constants = require('../../../../../helpers/constants');
-var genesisBlock = require('../../../../data/genesisBlock.json');
-var genesisDelegates = require('../../../../data/genesisDelegates.json').delegates;
+var genesisBlock = require('../../../../data/genesis_block.json');
+var genesisDelegates = require('../../../../data/genesis_delegates.json').delegates;
 var application = require('../../../../common/application.js');
 
-describe('onReceiveBlock()', function () {
-
+describe('onReceiveBlock()', () => {
 	var library;
 	var db;
 
-	before(function (done) {
-		application.init({sandbox: {name: 'lisk_test_blocks_process'}}, function (err, scope) {
+	before(done => {
+		application.init({ sandbox: { name: 'lisk_test_blocks_process' } }, (err, scope) => {
 			library = scope;
 			db = scope.db;
 			setTimeout(done, 5000);
@@ -42,19 +41,19 @@ describe('onReceiveBlock()', function () {
 
 	after(application.cleanup);
 
-	afterEach(function (done) {
-		db.task(function (t) {
-			return t.batch([
+	afterEach(done => {
+		db.task(t => {
+ return t.batch([
 				db.none('DELETE FROM blocks WHERE "height" > 1;'),
 				db.none('DELETE FROM forks_stat;')
 			]);
-		}).then(function () {
+}).then(() => {
 			library.modules.blocks.lastBlock.set(genesisBlock);
 			done();
 		});
 	});
 
-	function createBlock (transactions, timestamp, keypair, previousBlock) {
+	function createBlock(transactions, timestamp, keypair, previousBlock) {
 		var block = library.logic.block.create({
 			keypair: keypair,
 			timestamp: timestamp,
@@ -67,15 +66,15 @@ describe('onReceiveBlock()', function () {
 		return block;
 	}
 
-	function forge (forgingSlot, cb) {
+	function forge(forgingSlot, cb) {
 		var last_block = library.modules.blocks.lastBlock.get();
 		var slot = forgingSlot || slots.getSlotNumber(last_block.timestamp) + 1;
 		var delegate;
 
-		function getNextForger (offset, cb) {
+		function getNextForger(offset, cb) {
 			offset = !offset ? 0 : offset;
 			var keys = library.rewiredModules.delegates.__get__('__private.getKeysSortByVote');
-			library.modules.delegates.generateDelegateList(last_block.height + 1, keys, function (err, delegateList) {
+			library.modules.delegates.generateDelegateList(last_block.height + 1, keys, (err, delegateList) => {
 				var nextForger = delegateList[(slot + offset) % slots.delegates];
 				return cb(nextForger);
 			});
@@ -86,30 +85,28 @@ describe('onReceiveBlock()', function () {
 		async.waterfall([
 			transactionPool.fillPool,
 			function (cb) {
-				getNextForger(null, function (delegatePublicKey) {
+				getNextForger(null, delegatePublicKey => {
 					cb(null, delegatePublicKey);
 				});
 			},
 			function (delegatePublicKey, seriesCb) {
-				delegate = _.find(genesisDelegates, function (delegate) {
-					return delegate.publicKey === delegatePublicKey;
-				});
+				delegate = _.find(genesisDelegates, delegate => { return delegate.publicKey === delegatePublicKey; });
 				var keypair = getKeypair(delegate.secret);
 
-				__testContext.debug('		Last block height: ' + last_block.height + ' Last block ID: ' + last_block.id + ' Last block timestamp: ' + last_block.timestamp + ' Next slot: ' + slot + ' Next delegate PK: ' + delegatePublicKey + ' Next block timestamp: ' + slots.getSlotTime(slot));
-				library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot) + 5, function (err) {
+				__testContext.debug(`		Last block height: ${last_block.height} Last block ID: ${last_block.id} Last block timestamp: ${last_block.timestamp} Next slot: ${slot} Next delegate PK: ${delegatePublicKey} Next block timestamp: ${slots.getSlotTime(slot)}`);
+				library.modules.blocks.process.generateBlock(keypair, slots.getSlotTime(slot) + 5, err => {
 					if (err) { return seriesCb(err); }
 					last_block = library.modules.blocks.lastBlock.get();
-					__testContext.debug('		New last block height: ' + last_block.height + ' New last block ID: ' + last_block.id);
+					__testContext.debug(`		New last block height: ${last_block.height} New last block ID: ${last_block.id}`);
 					return seriesCb(err);
 				});
 			}
-		], function (err) {
+		], err => {
 			cb(err, last_block);
 		});
 	}
 
-	function forgeMultipleBlocks (numberOfBlocksToForge, cb) {
+	function forgeMultipleBlocks(numberOfBlocksToForge, cb) {
 		var forgedBlocks = [];
 		// Setting the initialSlot based on the numberOfBlocksToForge. Because:
 		// a) We don't want to forge blocks with timestamp too far in the past
@@ -117,42 +114,38 @@ describe('onReceiveBlock()', function () {
 		// This allows us to play with onReceiveBlock function and different fork scenarios
 		var initialSlot = slots.getSlotNumber() - numberOfBlocksToForge + 1;
 
-		async.mapSeries(_.range(0, numberOfBlocksToForge), function (offset, seriesCb) {
-			forge(initialSlot + offset, function (err, forgedBlock) {
+		async.mapSeries(_.range(0, numberOfBlocksToForge), (offset, seriesCb) => {
+			forge(initialSlot + offset, (err, forgedBlock) => {
 				forgedBlocks.push(forgedBlock);
 				seriesCb(err);
 			});
-		}, function (err) {
+		}, err => {
 			cb(err, forgedBlocks);
 		});
 	}
 
-	function getKeypair (secret) {
+	function getKeypair(secret) {
 		return library.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
 	}
 
-	function getValidKeypairForSlot (slot) {
+	function getValidKeypairForSlot(slot) {
 		var generateDelegateListPromisified = Promise.promisify(library.modules.delegates.generateDelegateList);
 		var lastBlock = library.modules.blocks.lastBlock.get();
 
-		return generateDelegateListPromisified(lastBlock.height, null).then(function (list) {
+		return generateDelegateListPromisified(lastBlock.height, null).then(list => {
 			var delegatePublicKey = list[slot % slots.delegates];
-			return getKeypair(_.find(genesisDelegates, function (delegate) {
-				return delegate.publicKey === delegatePublicKey;
-			}).secret);
-		}).catch(function (err) {
+			return getKeypair(_.find(genesisDelegates, delegate => { return delegate.publicKey === delegatePublicKey; }).secret);
+		}).catch(err => {
 			throw err;
 		});
 	}
 
-	function getBlocks (cb) {
-		library.sequence.add(function (sequenceCb) {
-
-			db.query(new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')).then(function (rows) {
-
+	function getBlocks(cb) {
+		library.sequence.add(sequenceCb => {
+			db.query(new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')).then(rows => {
 				sequenceCb();
 				cb(null, _.map(rows, 'id'));
-			}).catch(function (err) {
+			}).catch(err => {
 				sequenceCb();
 				__testContext.debug(err.stack);
 				cb(err);
@@ -160,57 +153,52 @@ describe('onReceiveBlock()', function () {
 		});
 	}
 
-	function verifyForkStat (blockId, cause) {
-		return db.one('SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}', {blockId: blockId, cause: cause}).then(function (res) {
+	function verifyForkStat(blockId, cause) {
+		return db.one('SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}', { blockId: blockId, cause: cause }).then(res => {
 			expect(res.blockId).to.equal(blockId);
 		});
 	}
 
-	describe('onReceiveBlock (empty transactions)', function () {
-
-		describe('for valid block', function () {
-
+	describe('onReceiveBlock (empty transactions)', () => {
+		describe('for valid block', () => {
 			var lastBlock;
 			var block;
 
-			before(function () {
+			before(() => {
 				lastBlock = library.modules.blocks.lastBlock.get();
 				var slot = slots.getSlotNumber();
-				return getValidKeypairForSlot(slot).then(function (keypair) {
+				return getValidKeypairForSlot(slot).then(keypair => {
 					block = createBlock([], slots.getSlotTime(slot), keypair, lastBlock);
 				});
 			});
 
-			it('should add block to blockchain', function (done) {
+			it('should add block to blockchain', done => {
 				library.modules.blocks.process.onReceiveBlock(block);
-				getBlocks(function (err, blockIds) {
+				getBlocks((err, blockIds) => {
 					expect(err).to.not.exist;
 					expect(blockIds).to.have.length(2);
 					expect(blockIds).to.include.members([block.id, lastBlock.id]);
 					done();
-				});;
+				});
 			});
 		});
 
-		describe('forkThree', function () {
-
-			describe('validate block slot', function () {
-
-				describe('when generator is not a delegate', function () {
-
+		describe('forkThree', () => {
+			describe('validate block slot', () => {
+				describe('when generator is not a delegate', () => {
 					var lastBlock;
 					var block;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						lastBlock = library.modules.blocks.lastBlock.get();
 						var slot = slots.getSlotNumber();
 						var nonDelegateKeypair = getKeypair(accountFixtures.genesis.password);
 						block = createBlock([], slots.getSlotTime(slot), nonDelegateKeypair, lastBlock);
 					});
 
-					it('should not add block to blockchain', function (done) {
+					it('should not add block to blockchain', done => {
 						library.modules.blocks.process.onReceiveBlock(block);
-						getBlocks(function (err, blockIds) {
+						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(1);
 							expect(blockIds).to.include.members([lastBlock.id]);
@@ -219,23 +207,22 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when block generator has incorrect slot', function () {
-
+				describe('when block generator has incorrect slot', () => {
 					var lastBlock;
 					var block;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						lastBlock = library.modules.blocks.lastBlock.get();
 						// Using last block's slot
 						var slot = slots.getSlotNumber() - 1;
-						return getValidKeypairForSlot(slot - 1).then(function (keypair) {
+						return getValidKeypairForSlot(slot - 1).then(keypair => {
 							block = createBlock([], slots.getTime(slot), keypair, lastBlock);
 						});
 					});
 
-					it('should not add block to blockchain', function (done) {
+					it('should not add block to blockchain', done => {
 						library.modules.blocks.process.onReceiveBlock(block);
-						getBlocks(function (err, blockIds) {
+						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(1);
 							expect(blockIds).to.include.members([lastBlock.id]);
@@ -246,14 +233,13 @@ describe('onReceiveBlock()', function () {
 			});
 		});
 
-		describe('forkOne', function () {
-
+		describe('forkOne', () => {
 			var forgedBlocks = [];
 			var secondLastBlock;
 			var lastBlock;
 
-			beforeEach('forge 300 blocks', function (done) {
-				forgeMultipleBlocks(300, function (err, blocks) {
+			beforeEach('forge 300 blocks', done => {
+				forgeMultipleBlocks(300, (err, blocks) => {
 					expect(err).to.not.exist;
 					forgedBlocks = blocks;
 					secondLastBlock = forgedBlocks[forgedBlocks.length - 2];
@@ -262,15 +248,14 @@ describe('onReceiveBlock()', function () {
 				});
 			});
 
-			describe('when received block timestamp is greater than previous block', function () {
-
+			describe('when received block timestamp is greater than previous block', () => {
 				var blockWithGreaterTimestamp;
 				var slot;
 				var keypair;
 
-				beforeEach(function () {
+				beforeEach(() => {
 					slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
-					return getValidKeypairForSlot(slot).then(function (kp) {
+					return getValidKeypairForSlot(slot).then(kp => {
 						keypair = kp;
 						var dummyBlock = {
 							id: '0',
@@ -284,8 +269,8 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				it('should reject received block', function (done) {
-					getBlocks(function (err, blockIds) {
+				it('should reject received block', done => {
+					getBlocks((err, blockIds) => {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(10);
 						expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
@@ -295,15 +280,14 @@ describe('onReceiveBlock()', function () {
 				});
 			});
 
-			describe('when received block timestamp is lower than previous block', function () {
-
+			describe('when received block timestamp is lower than previous block', () => {
 				var blockWithLowerTimestamp;
 				var slot;
 				var keypair;
 
-				beforeEach(function () {
+				beforeEach(() => {
 					slot = slots.getSlotNumber(lastBlock.timestamp);
-					return getValidKeypairForSlot(slot).then(function (kp) {
+					return getValidKeypairForSlot(slot).then(kp => {
 						keypair = kp;
 						var dummyBlock = {
 							id: '0',
@@ -314,8 +298,8 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				it('should reject received block and delete last two blocks', function (done) {
-					getBlocks(function (err, blockIds) {
+				it('should reject received block and delete last two blocks', done => {
+					getBlocks((err, blockIds) => {
 						expect(err).to.not.exist;
 						expect(blockIds).to.not.include.members([lastBlock.id, secondLastBlock.id, blockWithLowerTimestamp.id]);
 						return verifyForkStat(blockWithLowerTimestamp.id, 1).then(done);
@@ -323,26 +307,24 @@ describe('onReceiveBlock()', function () {
 				});
 			});
 
-			describe('when block height is mutated', function () {
-
+			describe('when block height is mutated', () => {
 				var mutatedHeight;
 
-				beforeEach(function () {
+				beforeEach(() => {
 					mutatedHeight = lastBlock.height + 1;
 				});
 
-				describe('when received block is from previous round (101 blocks back)', function () {
-
+				describe('when received block is from previous round (101 blocks back)', () => {
 					var blockFromPreviousRound;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						blockFromPreviousRound = forgedBlocks[forgedBlocks.length - constants.activeDelegates];
 						blockFromPreviousRound.height = mutatedHeight;
 						library.modules.blocks.process.onReceiveBlock(blockFromPreviousRound);
 					});
 
-					it('should reject received block', function (done) {
-						getBlocks(function (err, blockIds) {
+					it('should reject received block', done => {
+						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.not.include(blockFromPreviousRound.id);
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
@@ -351,18 +333,17 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when received block is from same round and ' + (constants.blockSlotWindow - 1) + ' slots in the past', function () {
-
+				describe(`when received block is from same round and ${constants.blockSlotWindow - 1} slots in the past`, () => {
 					var inSlotsWindowBlock;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						inSlotsWindowBlock = forgedBlocks[forgedBlocks.length - (constants.blockSlotWindow - 1)];
 						inSlotsWindowBlock.height = mutatedHeight;
 						library.modules.blocks.process.onReceiveBlock(inSlotsWindowBlock);
 					});
 
-					it('should reject received block', function (done) {
-						getBlocks(function (err, blockIds) {
+					it('should reject received block', done => {
+						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							// expect(blockIds).to.not.include(inSlotsWindowBlock.id);
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
@@ -371,18 +352,17 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when received block is from same round and greater than ' + constants.blockSlotWindow + ' slots in the past', function () {
-
+				describe(`when received block is from same round and greater than ${constants.blockSlotWindow} slots in the past`, () => {
 					var outOfSlotWindowBlock;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						outOfSlotWindowBlock = forgedBlocks[forgedBlocks.length - (constants.blockSlotWindow + 2)];
 						outOfSlotWindowBlock.height = mutatedHeight;
 						library.modules.blocks.process.onReceiveBlock(outOfSlotWindowBlock);
 					});
 
-					it('should reject received block', function (done) {
-						getBlocks(function (err, blockIds) {
+					it('should reject received block', done => {
+						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							// expect(blockIds).to.not.include(outOfSlotWindowBlock.id);
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
@@ -391,13 +371,12 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when received block is from a future slot', function () {
-
+				describe('when received block is from a future slot', () => {
 					var blockFromFutureSlot;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						var slot = slots.getSlotNumber() + 1;
-						return getValidKeypairForSlot(slot).then(function (keypair) {
+						return getValidKeypairForSlot(slot).then(keypair => {
 							var dummyBlock = {
 								id: '0',
 								height: mutatedHeight - 1
@@ -407,8 +386,8 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					it('should reject received block', function (done) {
-						getBlocks(function (err, blockIds) {
+					it('should reject received block', done => {
+						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.not.include(blockFromFutureSlot.id);
 							expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
@@ -419,42 +398,39 @@ describe('onReceiveBlock()', function () {
 			});
 		});
 
-		describe('forkFive', function () {
-
-			describe('with 5 blocks forged', function () {
-
+		describe('forkFive', () => {
+			describe('with 5 blocks forged', () => {
 				var secondLastBlock;
 				var lastBlock;
 				var slot;
 				var keypair;
 
-				beforeEach(function (done) {
-					forgeMultipleBlocks(5, function (err, forgedBlocks) {
+				beforeEach(done => {
+					forgeMultipleBlocks(5, (err, forgedBlocks) => {
 						expect(err).to.not.exist;
 
 						secondLastBlock = forgedBlocks[forgedBlocks.length - 2];
 						lastBlock = forgedBlocks[forgedBlocks.length - 1];
 
 						slot = slots.getSlotNumber(lastBlock.timestamp);
-						return getValidKeypairForSlot(slot).then(function (kp) {
+						return getValidKeypairForSlot(slot).then(kp => {
 							keypair = kp;
 							done();
 						});
 					});
 				});
 
-				describe('when timestamp is greater than last block', function () {
-
+				describe('when timestamp is greater than last block', () => {
 					var timestamp;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						timestamp = lastBlock.timestamp + 1;
 					});
 
-					it('should reject received block', function (done) {
+					it('should reject received block', done => {
 						var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 						library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
-						getBlocks(function (err, blockIds) {
+						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(6);
 							expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
@@ -463,18 +439,15 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					describe('when delegate slot is invalid', function () {
-
-						beforeEach(function () {
-							keypair = getKeypair(_.find(genesisDelegates, function (value) {
-								return value.publicKey != lastBlock.generatorPublicKey;
-							}).publicKey);
+					describe('when delegate slot is invalid', () => {
+						beforeEach(() => {
+							keypair = getKeypair(_.find(genesisDelegates, value => { return value.publicKey != lastBlock.generatorPublicKey; }).publicKey);
 						});
 
-						it('should reject received block', function (done) {
+						it('should reject received block', done => {
 							var blockWithGreaterTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithGreaterTimestamp);
-							getBlocks(function (err, blockIds) {
+							getBlocks((err, blockIds) => {
 								expect(err).to.not.exist;
 								expect(blockIds).to.not.include(blockWithGreaterTimestamp.id);
 								expect(blockIds).to.include.members([lastBlock.id, secondLastBlock.id]);
@@ -484,27 +457,25 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when timestamp is lower than last block', function () {
-
+				describe('when timestamp is lower than last block', () => {
 					var timestamp;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						timestamp = lastBlock.timestamp - 1;
 					});
 
-					describe('when block slot is invalid', function () {
-
-						beforeEach(function () {
+					describe('when block slot is invalid', () => {
+						beforeEach(() => {
 							slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
-							return getValidKeypairForSlot(slot).then(function (kp) {
+							return getValidKeypairForSlot(slot).then(kp => {
 								keypair = kp;
 							});
 						});
 
-						it('should reject received block when blockslot is invalid', function (done) {
+						it('should reject received block when blockslot is invalid', done => {
 							var blockWithInvalidSlot = createBlock([], timestamp, keypair, secondLastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithInvalidSlot);
-							getBlocks(function (err, blockIds) {
+							getBlocks((err, blockIds) => {
 								expect(err).to.not.exist;
 								expect(blockIds).to.have.length(6);
 								expect(blockIds).to.not.include(blockWithInvalidSlot.id);
@@ -514,12 +485,11 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					describe('when blockslot and generator publicKey is valid', function () {
-
-						it('should replace last block with received block', function (done) {
+					describe('when blockslot and generator publicKey is valid', () => {
+						it('should replace last block with received block', done => {
 							var blockWithLowerTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 							library.modules.blocks.process.onReceiveBlock(blockWithLowerTimestamp);
-							getBlocks(function (err, blockIds) {
+							getBlocks((err, blockIds) => {
 								expect(err).to.not.exist;
 								expect(blockIds).to.have.length(6);
 								expect(blockIds).to.not.include(lastBlock.id);
@@ -529,23 +499,19 @@ describe('onReceiveBlock()', function () {
 						});
 					});
 
-					describe('when generator publicKey and timestamp is different', function () {
-
-						describe('when timestamp is inside slot window', function () {
-
-							beforeEach(function () {
+					describe('when generator publicKey and timestamp is different', () => {
+						describe('when timestamp is inside slot window', () => {
+							beforeEach(() => {
 								// Slot and generatorPublicKey belongs to delegate who forged second last block
 								slot = slots.getSlotNumber(secondLastBlock.timestamp);
 								timestamp = slots.getSlotTime(slot);
-								keypair = getKeypair(_.find(genesisDelegates, function (delegate) {
-									return delegate.publicKey === secondLastBlock.generatorPublicKey;
-								}).secret);
+								keypair = getKeypair(_.find(genesisDelegates, delegate => { return delegate.publicKey === secondLastBlock.generatorPublicKey; }).secret);
 							});
 
-							it('should reject received block and delete last block', function (done) {
+							it('should reject received block and delete last block', done => {
 								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 								library.modules.blocks.process.onReceiveBlock(blockWithDifferentKeyAndTimestamp);
-								getBlocks(function (err, blockIds) {
+								getBlocks((err, blockIds) => {
 									expect(err).to.not.exist;
 									expect(blockIds).to.have.length(5);
 									expect(blockIds).to.include.members([secondLastBlock.id]);
@@ -555,23 +521,22 @@ describe('onReceiveBlock()', function () {
 							});
 						});
 
-						describe('when timestamp is outside slot window', function () {
-
+						describe('when timestamp is outside slot window', () => {
 							var timestamp;
 
-							beforeEach(function () {
+							beforeEach(() => {
 								// Slot and generatorPublicKey belongs to delegate who is 6 slots behind current slot
 								slot = slots.getSlotNumber() - (constants.blockSlotWindow + 1);
 								timestamp = slots.getSlotTime(slot);
-								return getValidKeypairForSlot(slot).then(function (kp) {
+								return getValidKeypairForSlot(slot).then(kp => {
 									keypair = kp;
 								});
 							});
 
-							it('should reject received block when blockslot outside window', function (done) {
+							it('should reject received block when blockslot outside window', done => {
 								var blockWithDifferentKeyAndTimestamp = createBlock([], timestamp, keypair, secondLastBlock);
 								library.modules.blocks.process.onReceiveBlock(blockWithDifferentKeyAndTimestamp);
-								getBlocks(function (err, blockIds) {
+								getBlocks((err, blockIds) => {
 									expect(err).to.not.exist;
 									expect(blockIds).to.have.length(6);
 									expect(blockIds).to.not.include(blockWithDifferentKeyAndTimestamp.id);
@@ -583,37 +548,36 @@ describe('onReceiveBlock()', function () {
 					});
 				});
 
-				describe('when last block skipped a slot', function () {
-
+				describe('when last block skipped a slot', () => {
 					var nextSlotBlock;
 					var nextSlotKeypair;
 
-					beforeEach(function (done) {
-						Promise.all([getValidKeypairForSlot(slot + 1), getValidKeypairForSlot(slot + 2)]).then(function (keypairs) {
+					beforeEach(done => {
+						Promise.all([getValidKeypairForSlot(slot + 1), getValidKeypairForSlot(slot + 2)]).then(keypairs => {
 							keypair = keypairs[0];
 							nextSlotKeypair = keypairs[1];
 							nextSlotBlock = createBlock([], slots.getSlotTime(slot + 2), nextSlotKeypair, lastBlock);
 
-							function sendSkippedSlotBlock () {
+							function sendSkippedSlotBlock() {
 								library.modules.blocks.process.onReceiveBlock(nextSlotBlock);
 								done();
 							}
 
-							(function waitUntilSkippedSlotBlockIsValid () {
+							(function waitUntilSkippedSlotBlockIsValid() {
 								if (slots.getSlotNumber() < slot + 2) {
-									__testContext.debug('Waiting for slot: ' + (slot + 2) + ', current slot: ' + slots.getSlotNumber());
+									__testContext.debug(`Waiting for slot: ${slot + 2}, current slot: ${slots.getSlotNumber()}`);
 									setTimeout(waitUntilSkippedSlotBlockIsValid, 1000);
 								} else {
 									sendSkippedSlotBlock();
 								}
-							})();
+							}());
 						});
 					});
 
-					it('should delete skipped block and save received block (with lower slot)', function (done) {
+					it('should delete skipped block and save received block (with lower slot)', done => {
 						var blockWithUnskippedSlot = createBlock([], slots.getSlotTime(slot + 1), keypair, lastBlock);
 						library.modules.blocks.process.onReceiveBlock(blockWithUnskippedSlot);
-						getBlocks(function (err, blockIds) {
+						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(7);
 							expect(blockIds).to.not.include(nextSlotBlock.id);
@@ -624,36 +588,32 @@ describe('onReceiveBlock()', function () {
 				});
 			});
 
-			describe('with 100 blocks forged', function () {
-
+			describe('with 100 blocks forged', () => {
 				var secondLastBlock;
 				var lastBlock;
 				var keypair;
 				var slot;
 
-				beforeEach(function (done) {
-					forgeMultipleBlocks(100, function (err, forgedBlocks) {
+				beforeEach(done => {
+					forgeMultipleBlocks(100, (err, forgedBlocks) => {
 						secondLastBlock = forgedBlocks[forgedBlocks.length - 2];
 						lastBlock = forgedBlocks[forgedBlocks.length - 1];
 						slot = slots.getSlotNumber(lastBlock.timestamp);
-						keypair = getKeypair(_.find(genesisDelegates, function (delegate) {
-							return lastBlock.generatorPublicKey == delegate.publicKey;
-						}).secret);
+						keypair = getKeypair(_.find(genesisDelegates, delegate => { return lastBlock.generatorPublicKey == delegate.publicKey; }).secret);
 						done();
 					});
 				});
 
-				describe('after new round', function () {
-
+				describe('after new round', () => {
 					var blockFromPreviousRound;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						blockFromPreviousRound = createBlock([], slots.getSlotTime(slot), keypair, secondLastBlock);
 					});
 
-					it('should delete last block and save received block (from previous round)', function (done) {
+					it('should delete last block and save received block (from previous round)', done => {
 						library.modules.blocks.process.onReceiveBlock(blockFromPreviousRound);
-						getBlocks(function (err, blockIds) {
+						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(10);
 							expect(blockIds).to.not.include(lastBlock.id);
@@ -665,24 +625,22 @@ describe('onReceiveBlock()', function () {
 			});
 		});
 
-		describe('discard blocks', function () {
-
-			describe('when block is already processed', function () {
-
+		describe('discard blocks', () => {
+			describe('when block is already processed', () => {
 				var lastBlock;
 				var block;
 
-				beforeEach(function (done) {
+				beforeEach(done => {
 					lastBlock = library.modules.blocks.lastBlock.get();
-					forge(null, function (err, forgedBlock) {
+					forge(null, (err, forgedBlock) => {
 						block = forgedBlock;
 						done();
 					});
 				});
 
-				it('should reject received block', function (done) {
+				it('should reject received block', done => {
 					library.modules.blocks.process.onReceiveBlock(block);
-					getBlocks(function (err, blockIds) {
+					getBlocks((err, blockIds) => {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(2);
 						expect(blockIds).to.include.members([block.id, lastBlock.id]);
@@ -691,11 +649,10 @@ describe('onReceiveBlock()', function () {
 				});
 			});
 
-			describe('when block does not match blockchain', function () {
-
+			describe('when block does not match blockchain', () => {
 				var differentChainBlock;
 
-				beforeEach(function () {
+				beforeEach(() => {
 					var dummyLastBlock = {
 						height: 11,
 						id: '14723131253653198332'
@@ -705,9 +662,9 @@ describe('onReceiveBlock()', function () {
 					differentChainBlock = createBlock([], slots.getSlotTime(10), keypair, dummyLastBlock);
 				});
 
-				it('should reject received block', function (done) {
+				it('should reject received block', done => {
 					library.modules.blocks.process.onReceiveBlock(differentChainBlock);
-					getBlocks(function (err, blockIds) {
+					getBlocks((err, blockIds) => {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(1);
 						expect(blockIds).to.not.include(differentChainBlock.id);

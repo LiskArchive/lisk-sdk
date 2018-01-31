@@ -13,10 +13,9 @@
  */
 'use strict';
 
-var crypto = require('crypto');
 var _ = require('lodash');
 
-var BlockReward = require('../logic/blockReward.js');
+var BlockReward = require('../logic/block_reward.js');
 var constants = require('../helpers/constants.js');
 
 // Private fields
@@ -35,7 +34,7 @@ var loaded;
  * @param {scope} scope - App instance.
  */
 // Constructor
-function Node (cb, scope) {
+function Node(cb, scope) {
 	library = {
 		build: scope.build,
 		lastCommit: scope.lastCommit,
@@ -63,15 +62,13 @@ Node.prototype.internal = {
 		var keyPairs = modules.delegates.getForgersKeyPairs();
 		var internalForgers = library.config.forging.secret;
 
-		var fullList = internalForgers.map(function (forger) {
-			return {forging: !!forger.publicKey, publicKey: forger.publicKey};
-		});
+		var fullList = internalForgers.map(forger => ({ forging: !!forger.publicKey, publicKey: forger.publicKey }));
 
-		if(publicKey && _.find(fullList, { publicKey: publicKey})) {
-			return setImmediate(cb, null, [{publicKey: publicKey, forging: !!keyPairs[publicKey]}]);
+		if (publicKey && _.find(fullList, { publicKey: publicKey })) {
+			return setImmediate(cb, null, [{ publicKey: publicKey, forging: !!keyPairs[publicKey] }]);
 		}
 
-		if(publicKey && !_.find(fullList, { publicKey: publicKey})) {
+		if (publicKey && !_.find(fullList, { publicKey: publicKey })) {
 			return setImmediate(cb, null, []);
 		}
 
@@ -86,7 +83,7 @@ Node.prototype.internal = {
 	 * @returns {setImmediateCallbackObject}
 	 */
 	toggleForgingStatus: function (publicKey, decryptionKey, cb) {
-		modules.delegates.toggleForgingStatus(publicKey, decryptionKey, function (err, result) {
+		modules.delegates.toggleForgingStatus(publicKey, decryptionKey, (err, result) => {
 			if (err) { return setImmediate(cb, err); }
 
 			return setImmediate(cb, null, result);
@@ -119,8 +116,8 @@ Node.prototype.shared = {
 		if (!loaded) {
 			return setImmediate(cb, 'Blockchain is loading');
 		}
-		modules.loader.getNetwork(function (err, network) {
-			network = network || {height: null};
+		modules.loader.getNetwork((err, network) => {
+			network = network || { height: null };
 			return setImmediate(cb, null, {
 				broadhash: modules.system.getBroadhash(),
 				consensus: modules.peers.getLastConsensus() || null,

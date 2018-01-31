@@ -30,7 +30,7 @@ random.number = function (min, max) {
 };
 
 // Returns the expected fee for the given amount with data property
-random.expectedFeeForTransactionWithData = function (amount) {
+random.expectedFeeForTransactionWithData = function () {
 	return parseInt(constants.fees.transaction) + parseInt(constants.fees.data);
 };
 
@@ -84,7 +84,7 @@ random.application = function () {
 		description: 'Blockchain based home monitoring tool',
 		tags: 'monitoring temperature power sidechain',
 		type: random.number(0, 2),
-		link: 'https://' + random.applicationName() + '.zip',
+		link: `https://${random.applicationName()}.zip`,
 		icon: 'https://raw.githubusercontent.com/MaxKK/blockDataDapp/master/icon.png'
 	};
 

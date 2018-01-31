@@ -13,16 +13,18 @@
  */
 'use strict';
 
-var constants     = require('../helpers/constants.js');
+var constants = require('../helpers/constants.js');
 // Submodules
-var blocksAPI     = require('./blocks/api');
-var blocksVerify  = require('./blocks/verify');
+var blocksAPI = require('./blocks/api');
+var blocksVerify = require('./blocks/verify');
 var blocksProcess = require('./blocks/process');
-var blocksUtils   = require('./blocks/utils');
-var blocksChain   = require('./blocks/chain');
+var blocksUtils = require('./blocks/utils');
+var blocksChain = require('./blocks/chain');
 
 // Private fields
-var modules, library, self, __private = {};
+var library,
+self,
+__private = {};
 
 __private.lastBlock = {};
 __private.lastReceipt = null;
@@ -42,44 +44,42 @@ __private.isActive = false;
  * @return {setImmediateCallback} Callback function with `self` as data.
  */
 // Constructor
-function Blocks (cb, scope) {
+function Blocks(cb, scope) {
 	library = {
 		logger: scope.logger,
 	};
 
 	// Initialize submodules with library content
 	this.submodules = {
-		api:     new blocksAPI(
+		api: new blocksAPI(
 			scope.logger, scope.db, scope.logic.block, scope.schema, scope.dbSequence
 		),
-		verify:  new blocksVerify(scope.logger, scope.logic.block,
+		verify: new blocksVerify(scope.logger, scope.logic.block,
 			scope.logic.transaction, scope.db
 		),
 		process: new blocksProcess(
 			scope.logger, scope.logic.block, scope.logic.peers, scope.logic.transaction,
 			scope.schema, scope.db, scope.dbSequence, scope.sequence, scope.genesisblock
 		),
-		utils:   new blocksUtils(scope.logger, scope.logic.block, scope.logic.transaction,
+		utils: new blocksUtils(scope.logger, scope.logic.account, scope.logic.block, scope.logic.transaction,
 			scope.db, scope.dbSequence, scope.genesisblock
 		),
-		chain:   new blocksChain(
+		chain: new blocksChain(
 			scope.logger, scope.logic.block, scope.logic.transaction, scope.db,
 			scope.genesisblock, scope.bus, scope.balancesSequence
 		)
 	};
 
 	// Expose submodules
-	this.shared  = this.submodules.api;
-	this.verify  = this.submodules.verify;
+	this.shared = this.submodules.api;
+	this.verify = this.submodules.verify;
 	this.process = this.submodules.process;
-	this.utils   = this.submodules.utils;
-	this.chain   = this.submodules.chain;
+	this.utils = this.submodules.utils;
+	this.chain = this.submodules.chain;
 
 	self = this;
 
-	this.submodules.chain.saveGenesisBlock(function (err) {
-		return setImmediate(cb, err, self);
-	});
+	this.submodules.chain.saveGenesisBlock(err => setImmediate(cb, err, self));
 }
 
 /**
@@ -163,7 +163,7 @@ Blocks.prototype.isCleaning = {
  * Modules are not required in this file.
  * @param {modules} scope Exposed modules
  */
-Blocks.prototype.onBind = function (scope) {
+Blocks.prototype.onBind = function () {
 	// TODO: move here blocks submodules modules load from app.js.
 	// Set module as loaded
 	__private.loaded = true;
@@ -187,7 +187,7 @@ Blocks.prototype.cleanup = function (cb) {
 		return setImmediate(cb);
 	} else {
 		// Module is not ready, repeat
-		setImmediate(function nextWatch () {
+		setImmediate(function nextWatch() {
 			if (__private.isActive) {
 				library.logger.info('Waiting for block processing to finish...');
 				setTimeout(nextWatch, 10000); // 10 sec
