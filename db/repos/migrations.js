@@ -141,9 +141,12 @@ class MigrationsRepository {
 	 */
 	applyAll() {
 		return this.db.tx('applyAll', function*(t1) {
-			yield t1.migrations.underscorePatch();
 			const hasMigrations = yield t1.migrations.hasMigrations();
-			const lastId = hasMigrations ? yield t1.migrations.getLastId() : 0;
+			let lastId = 0;
+			if (hasMigrations) {
+				lastId = yield t1.migrations.getLastId();
+				yield t1.migrations.underscorePatch();
+			}
 			const updates = yield t1.migrations.readPending(lastId);
 			for (let i = 0; i < updates.length; i++) {
 				const u = updates[i];
