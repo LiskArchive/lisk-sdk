@@ -89,7 +89,7 @@ function setUpLiskJSAPIStubs() {
 	this.test.ctx.broadcastSignaturesResponse = broadcastSignaturesResponse;
 
 	sandbox
-		.stub(liskAPIInstance, 'broadcastSignedTransaction')
+		.stub(liskAPIInstance, 'broadcastTransaction')
 		.returns(broadcastSignedTransactionResponse);
 	sandbox
 		.stub(liskAPIInstance, 'broadcastSignatures')
