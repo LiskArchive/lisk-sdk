@@ -40,8 +40,8 @@ function API(logger, db, block, schema, dbSequence) {
 		schema: schema,
 		dbSequence: dbSequence,
 		logic: {
-			block: block
-		}
+			block: block,
+		},
 	};
 	self = this;
 	library.logger.trace('Blocks->API: Submodule initialized.');
@@ -71,7 +71,7 @@ function API(logger, db, block, schema, dbSequence) {
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.data List of normalized blocks
  */
-__private.list = function (filter, cb) {
+__private.list = function(filter, cb) {
 	var params = {};
 	var where = [];
 
@@ -135,32 +135,43 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
-	var sort = sortBy(
-		(filter.sort || 'height:desc'), {
-			sortFields: library.db.blocks.sortFields,
-			fieldPrefix: 'b_'
-		}
-	);
+	var sort = sortBy(filter.sort || 'height:desc', {
+		sortFields: library.db.blocks.sortFields,
+		fieldPrefix: 'b_',
+	});
 
 	if (sort.error) {
 		return setImmediate(cb, sort.error);
 	}
 
-	library.db.blocks.list(Object.assign({}, { where: where, sortField: sort.sortField, sortMethod: sort.sortMethod }, params)).then(rows => {
-		var blocks = [];
-		// Normalize blocks
-		for (var i = 0; i < rows.length; i++) {
-			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-			blocks.push(library.logic.block.dbRead(rows[i]));
-		}
-		return setImmediate(cb, null, blocks);
-	}).catch(err => {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#list error');
-	});
+	library.db.blocks
+		.list(
+			Object.assign(
+				{},
+				{
+					where: where,
+					sortField: sort.sortField,
+					sortMethod: sort.sortMethod,
+				},
+				params
+			)
+		)
+		.then(rows => {
+			var blocks = [];
+			// Normalize blocks
+			for (var i = 0; i < rows.length; i++) {
+				// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
+				blocks.push(library.logic.block.dbRead(rows[i]));
+			}
+			return setImmediate(cb, null, blocks);
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Blocks#list error');
+		});
 };
 
-API.prototype.getBlocks = function (filters, cb) {
+API.prototype.getBlocks = function(filters, cb) {
 	if (!__private.loaded) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
@@ -168,7 +179,10 @@ API.prototype.getBlocks = function (filters, cb) {
 	library.dbSequence.add(cb => {
 		__private.list(filters, (err, data) => {
 			if (err) {
-				return setImmediate(cb, new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR));
+				return setImmediate(
+					cb,
+					new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR)
+				);
 			}
 
 			return setImmediate(cb, null, data);
@@ -182,11 +196,11 @@ API.prototype.getBlocks = function (filters, cb) {
  * - system
  * @param {modules} scope Exposed modules
  */
-API.prototype.onBind = function (scope) {
+API.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->API: Shared modules bind.');
 	modules = {
 		blocks: scope.blocks,
-		system: scope.system
+		system: scope.system,
 	};
 
 	// Set module as loaded

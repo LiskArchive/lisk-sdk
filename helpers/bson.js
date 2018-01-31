@@ -31,7 +31,7 @@ var bs = {};
  * @param {Object} data
  * @return {Buffer}
  */
-bs.serialize = function (data) {
+bs.serialize = function(data) {
 	return bson.serialize(data);
 };
 
@@ -41,7 +41,7 @@ bs.serialize = function (data) {
  * @param {Buffer} data
  * @return {Object}
  */
-bs.deserialize = function (data) {
+bs.deserialize = function(data) {
 	return bson.deserialize(data);
 };
 

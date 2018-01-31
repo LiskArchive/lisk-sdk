@@ -1,5 +1,4 @@
-sql files
----------
+## sql files
 
 This folder contains all SQL files used in the project:
 
@@ -13,6 +12,7 @@ Each SQL file follows the following guidelines at the moment:
 
 * The file name uses the underscore convention
 * The file must contain the generic Copyright &copy; note at the top, followed by the documentation header:
+
 ```
 /*
   DESCRIPTION: ?
@@ -20,6 +20,7 @@ Each SQL file follows the following guidelines at the moment:
   PARAMETERS: ?
 */
 ```
+
 The details must be provided when creating a new SQL file.
 
 * SQL uses capital case only for reserved words and SQL constants, while function names use low case
@@ -46,6 +47,6 @@ When editing an SQL file on the development machine, you do not need to restart 
 to see the immediate change. The development environment is configured to detect any change, and reload
 the SQL file immediately. This feature is provided automatically by the [QueryFile] class (option `debug`).
 
-[Index Variables]:https://github.com/vitaly-t/pg-promise#index-variables
-[Named Parameters]:https://github.com/vitaly-t/pg-promise#named-parameters
-[QueryFile]:http://vitaly-t.github.io/pg-promise/QueryFile.html
+[index variables]: https://github.com/vitaly-t/pg-promise#index-variables
+[named parameters]: https://github.com/vitaly-t/pg-promise#named-parameters
+[queryfile]: http://vitaly-t.github.io/pg-promise/QueryFile.html

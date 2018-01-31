@@ -22,7 +22,11 @@ describe('lisk_compression', () => {
 
 	it('should accept "swagger_cache_key" as config param');
 
-	it('should cache responses for endpoints for which "swagger_cache_key" is set true');
+	it(
+		'should cache responses for endpoints for which "swagger_cache_key" is set true'
+	);
 
-	it('should not cache responses for endpoints for which "swagger_cache_key" is set false or not provided');
+	it(
+		'should not cache responses for endpoints for which "swagger_cache_key" is set false or not provided'
+	);
 });

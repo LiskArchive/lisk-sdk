@@ -30,7 +30,7 @@ let initOptions = {
 		Object.keys(repos).forEach(repoName => {
 			object[repoName] = new repos[repoName](object, pgp);
 		});
-	}
+	},
 };
 
 const pgp = require('pg-promise')(initOptions);

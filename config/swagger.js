@@ -53,14 +53,17 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 		swaggerFile: path.join(`${config.root}/schema/swagger.yml`),
 		enforceUniqueOperationId: true,
 		startWithErrors: false,
-		startWithWarnings: true
+		startWithWarnings: true,
 	};
 
 	// Swagger express middleware
 	SwaggerRunner.create(swaggerConfig, (errors, runner) => {
 		if (errors) {
 			// Ignore unused definition warning
-			errors.validationWarnings = _.filter(errors.validationWarnings, error => error.code !== 'UNUSED_DEFINITION');
+			errors.validationWarnings = _.filter(
+				errors.validationWarnings,
+				error => error.code !== 'UNUSED_DEFINITION'
+			);
 
 			// Some error occurred in configuring the swagger
 			if (!_.isEmpty(errors.validationErrors)) {
@@ -73,7 +76,10 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 				logger.error(errors.validationWarnings);
 			}
 
-			if (!_.isEmpty(errors.validationErrors) || !_.isEmpty(errors.validationWarnings)) {
+			if (
+				!_.isEmpty(errors.validationErrors) ||
+				!_.isEmpty(errors.validationWarnings)
+			) {
 				cb(errors);
 				return;
 			}
@@ -97,12 +103,18 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 		// To be used in test cases or getting configuration runtime
 		app.swaggerRunner = runner;
 
-		swaggerHelper.getResolvedSwaggerSpec().then(resolvedSchema => {
-			// Successfully mounted the swagger runner
-			cb(null, { swaggerRunner: runner, definitions: resolvedSchema.definitions });
-		}).catch(reason => {
-			cb(reason);
-		});
+		swaggerHelper
+			.getResolvedSwaggerSpec()
+			.then(resolvedSchema => {
+				// Successfully mounted the swagger runner
+				cb(null, {
+					swaggerRunner: runner,
+					definitions: resolvedSchema.definitions,
+				});
+			})
+			.catch(reason => {
+				cb(reason);
+			});
 	});
 }
 

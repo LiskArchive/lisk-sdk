@@ -43,17 +43,16 @@ function Signatures(cb, scope) {
 		ed: scope.ed,
 		balancesSequence: scope.balancesSequence,
 		logic: {
-			transaction: scope.logic.transaction
-		}
+			transaction: scope.logic.transaction,
+		},
 	};
 	self = this;
 
-	__private.assetTypes[transactionTypes.SIGNATURE] = library.logic.transaction.attachAssetType(
+	__private.assetTypes[
+		transactionTypes.SIGNATURE
+	] = library.logic.transaction.attachAssetType(
 		transactionTypes.SIGNATURE,
-		new Signature(
-			scope.schema,
-			scope.logger
-		)
+		new Signature(scope.schema, scope.logger)
 	);
 
 	setImmediate(cb, null, self);
@@ -64,7 +63,7 @@ function Signatures(cb, scope) {
  * Checks if `modules` is loaded.
  * @return {boolean} True if `modules` is loaded.
  */
-Signatures.prototype.isLoaded = function () {
+Signatures.prototype.isLoaded = function() {
 	return !!modules;
 };
 
@@ -74,16 +73,14 @@ Signatures.prototype.isLoaded = function () {
  * @implements module:signatures#Signature~bind
  * @param {modules} scope - Loaded modules.
  */
-Signatures.prototype.onBind = function (scope) {
+Signatures.prototype.onBind = function(scope) {
 	modules = {
 		accounts: scope.accounts,
 		transactions: scope.transactions,
-		transport: scope.transport
+		transport: scope.transport,
 	};
 
-	__private.assetTypes[transactionTypes.SIGNATURE].bind(
-		scope.accounts
-	);
+	__private.assetTypes[transactionTypes.SIGNATURE].bind(scope.accounts);
 };
 
 // Shared API
@@ -91,31 +88,42 @@ Signatures.prototype.onBind = function (scope) {
  * Public methods, accessible via API
  */
 Signatures.prototype.shared = {
-
 	/**
 	 * Post signatures for transactions.
 	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures.
 	 * @param {function} cb - Callback function.
 	 * @return {setImmediateCallback}
 	 */
-	postSignatures: function (signatures, cb) {
-		return modules.transport.shared.postSignatures({ signatures: signatures }, (err, res) => {
-			var processingError = /(error|processing)/ig;
-			var badRequestBodyError = /(invalid|signature)/ig;
+	postSignatures: function(signatures, cb) {
+		return modules.transport.shared.postSignatures(
+			{ signatures: signatures },
+			(err, res) => {
+				var processingError = /(error|processing)/gi;
+				var badRequestBodyError = /(invalid|signature)/gi;
 
-			if (res.success === false) {
-				if (processingError.exec(res.message).length === 2) {
-					return setImmediate(cb, new ApiError(res.message, apiCodes.PROCESSING_ERROR));
-				} else if (badRequestBodyError.exec(res.message).length === 2) {
-					return setImmediate(cb, new ApiError(res.message, apiCodes.BAD_REQUEST));
+				if (res.success === false) {
+					if (processingError.exec(res.message).length === 2) {
+						return setImmediate(
+							cb,
+							new ApiError(res.message, apiCodes.PROCESSING_ERROR)
+						);
+					} else if (badRequestBodyError.exec(res.message).length === 2) {
+						return setImmediate(
+							cb,
+							new ApiError(res.message, apiCodes.BAD_REQUEST)
+						);
+					} else {
+						return setImmediate(
+							cb,
+							new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR)
+						);
+					}
 				} else {
-					return setImmediate(cb, new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR));
+					return setImmediate(cb, null, { status: 'Signature Accepted' });
 				}
-			} else {
-				return setImmediate(cb, null, { status: 'Signature Accepted' });
 			}
-		});
-	}
+		);
+	},
 };
 
 // Export

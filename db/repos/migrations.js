@@ -42,7 +42,11 @@ class MigrationsRepository {
 	 * @return {Promise<boolean>}
 	 */
 	hasMigrations() {
-		return this.db.proc('to_regclass', 'migrations', a => a ? !!a.to_regclass : false);
+		return this.db.proc(
+			'to_regclass',
+			'migrations',
+			a => (a ? !!a.to_regclass : false)
+		);
 	}
 
 	/**
@@ -52,7 +56,7 @@ class MigrationsRepository {
 	 * @return {Promise<number>}
 	 */
 	getLastId() {
-		return this.db.oneOrNone(sql.getLastId, [], a => a ? +a.id : 0);
+		return this.db.oneOrNone(sql.getLastId, [], a => (a ? +a.id : 0));
 	}
 
 	/**
@@ -76,7 +80,9 @@ class MigrationsRepository {
 	createMemoryTables() {
 		// Must use a transaction here when not in one:
 		const job = t => t.none(sql.memoryTables);
-		return this.inTransaction ? job(this.db) : this.db.tx('createMemoryTables', job);
+		return this.inTransaction
+			? job(this.db)
+			: this.db.tx('createMemoryTables', job);
 	}
 
 	/**
@@ -88,22 +94,32 @@ class MigrationsRepository {
 	 */
 	readPending(lastMigrationId) {
 		const updatesPath = path.join(sqlRoot, 'migrations/updates');
-		return fs.readdir(updatesPath)
-			.then(files => files
+		return fs.readdir(updatesPath).then(files =>
+			files
 				.map(f => {
 					const m = f.match(/(\d+)_(.+).sql/);
-					return m && {
-						id: m[1],
-						name: m[2],
-						path: path.join(updatesPath, f)
-					};
+					return (
+						m && {
+							id: m[1],
+							name: m[2],
+							path: path.join(updatesPath, f),
+						}
+					);
 				})
-				.filter(f => f && fs.statSync(f.path).isFile() && (!lastMigrationId || +f.id > lastMigrationId))
+				.filter(
+					f =>
+						f &&
+						fs.statSync(f.path).isFile() &&
+						(!lastMigrationId || +f.id > lastMigrationId)
+				)
 				.map(f => {
-					f.file = new this.pgp.QueryFile(f.path, { minify: true, noWarnings: true });
+					f.file = new this.pgp.QueryFile(f.path, {
+						minify: true,
+						noWarnings: true,
+					});
 					return f;
 				})
-			);
+		);
 	}
 
 	/**
@@ -114,14 +130,14 @@ class MigrationsRepository {
 	 * @return {Promise}
 	 */
 	applyAll() {
-		return this.db.tx('applyAll', function* (t1) {
+		return this.db.tx('applyAll', function*(t1) {
 			const hasMigrations = yield t1.migrations.hasMigrations();
 			const lastId = hasMigrations ? yield t1.migrations.getLastId() : 0;
 			const updates = yield t1.migrations.readPending(lastId);
 			for (let i = 0; i < updates.length; i++) {
 				const u = updates[i];
 				const tag = `update:${u.name}`;
-				yield t1.tx(tag, function* (t2) {
+				yield t1.tx(tag, function*(t2) {
 					yield t2.none(u.file);
 					yield t2.none(sql.add, u);
 				});

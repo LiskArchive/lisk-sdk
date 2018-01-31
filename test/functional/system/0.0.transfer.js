@@ -29,9 +29,13 @@ describe('system test (type 0) - double transfers', () => {
 	var i = 0;
 	var t = 0;
 	while (i < 1) {
-		describe('executing 30 times', function () {
+		describe('executing 30 times', function() {
 			var account = randomUtil.account();
-			var transaction = lisk.transaction.createTransaction(account.address, 1100 * normalizer, accountFixtures.genesis.password);
+			var transaction = lisk.transaction.createTransaction(
+				account.address,
+				1100 * normalizer,
+				accountFixtures.genesis.password
+			);
 			var transaction1;
 			var transaction2;
 
@@ -43,7 +47,14 @@ describe('system test (type 0) - double transfers', () => {
 			});
 
 			it('adding to pool transfer should be ok', done => {
-				transaction1 = lisk.transaction.createTransaction(accountFixtures.genesis.address, 1000 * normalizer, account.password, null, null, -10000);
+				transaction1 = lisk.transaction.createTransaction(
+					accountFixtures.genesis.address,
+					1000 * normalizer,
+					account.password,
+					null,
+					null,
+					-10000
+				);
 				localCommon.addTransaction(library, transaction1, (err, res) => {
 					expect(res).to.equal(transaction1.id);
 					done();
@@ -51,7 +62,11 @@ describe('system test (type 0) - double transfers', () => {
 			});
 
 			it('adding to pool same transfer with different timestamp should be ok', done => {
-				transaction2 = lisk.transaction.createTransaction(accountFixtures.genesis.address, 1000 * normalizer, account.password);
+				transaction2 = lisk.transaction.createTransaction(
+					accountFixtures.genesis.address,
+					1000 * normalizer,
+					account.password
+				);
 				localCommon.addTransaction(library, transaction2, (err, res) => {
 					expect(res).to.equal(transaction2.id);
 					done();
@@ -67,11 +82,13 @@ describe('system test (type 0) - double transfers', () => {
 
 				it('first transaction to arrive should not be included', done => {
 					var filter = {
-						id: transaction1.id
+						id: transaction1.id,
 					};
 					localCommon.getTransactionFromModule(library, filter, (err, res) => {
 						expect(err).to.be.null;
-						expect(res).to.have.property('transactions').which.is.an('Array');
+						expect(res)
+							.to.have.property('transactions')
+							.which.is.an('Array');
 						expect(res.transactions.length).to.equal(0);
 						done();
 					});
@@ -79,11 +96,13 @@ describe('system test (type 0) - double transfers', () => {
 
 				it('last transaction to arrive should be included', done => {
 					var filter = {
-						id: transaction2.id
+						id: transaction2.id,
 					};
 					localCommon.getTransactionFromModule(library, filter, (err, res) => {
 						expect(err).to.be.null;
-						expect(res).to.have.property('transactions').which.is.an('Array');
+						expect(res)
+							.to.have.property('transactions')
+							.which.is.an('Array');
 						expect(res.transactions.length).to.equal(1);
 						expect(res.transactions[0].id).to.equal(transaction2.id);
 						done();

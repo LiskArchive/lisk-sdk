@@ -23,7 +23,10 @@ describe('ed', () => {
 
 		before(() => {
 			var randomstring = 'ABCDE';
-			var hash = crypto.createHash('sha256').update(randomstring, 'utf8').digest();
+			var hash = crypto
+				.createHash('sha256')
+				.update(randomstring, 'utf8')
+				.digest();
 			keys = ed.makeKeypair(hash);
 		});
 
@@ -44,31 +47,44 @@ describe('ed', () => {
 	describe('sign', () => {
 		var keys;
 		var messageToSign = {
-			field: 'value'
+			field: 'value',
 		};
 
 		before(() => {
 			var randomstring = 'ABCDE';
-			var hash = crypto.createHash('sha256').update(randomstring, 'utf8').digest();
+			var hash = crypto
+				.createHash('sha256')
+				.update(randomstring, 'utf8')
+				.digest();
 			keys = ed.makeKeypair(hash);
 		});
 
 		it('should create signature as Buffer from data as Buffer and privateKey', () => {
-			var signature = ed.sign(Buffer.from(JSON.stringify(messageToSign)), keys.privateKey);
+			var signature = ed.sign(
+				Buffer.from(JSON.stringify(messageToSign)),
+				keys.privateKey
+			);
 			expect(Buffer.isBuffer(signature)).to.be.ok;
 		});
 
 		it('should create signature as Buffer from data as Buffer and a privateKey after Buffer.from function applied on it', () => {
-			var signature = ed.sign(Buffer.from(JSON.stringify(messageToSign)), Buffer.from(keys.privateKey, 'hex'));
+			var signature = ed.sign(
+				Buffer.from(JSON.stringify(messageToSign)),
+				Buffer.from(keys.privateKey, 'hex')
+			);
 			expect(Buffer.isBuffer(signature)).to.be.ok;
 		});
 
 		it('should throw error when passing string as message to sign', () => {
-			expect(ed.sign.bind(null, JSON.stringify(messageToSign), keys.privateKey)).to.throw('argument message must be a buffer');
+			expect(
+				ed.sign.bind(null, JSON.stringify(messageToSign), keys.privateKey)
+			).to.throw('argument message must be a buffer');
 		});
 
 		it('should throw error when passing JSON as message to sign', () => {
-			expect(ed.sign.bind(null, messageToSign, keys.privateKey)).to.throw('argument message must be a buffer');
+			expect(ed.sign.bind(null, messageToSign, keys.privateKey)).to.throw(
+				'argument message must be a buffer'
+			);
 		});
 	});
 
@@ -76,38 +92,73 @@ describe('ed', () => {
 		var keys;
 		var signature;
 		var messageToSign = {
-			field: 'value'
+			field: 'value',
 		};
 
 		before(() => {
 			var randomstring = 'ABCDE';
-			var hash = crypto.createHash('sha256').update(randomstring, 'utf8').digest();
+			var hash = crypto
+				.createHash('sha256')
+				.update(randomstring, 'utf8')
+				.digest();
 			keys = ed.makeKeypair(hash);
-			signature = ed.sign(Buffer.from(JSON.stringify(messageToSign)), keys.privateKey);
+			signature = ed.sign(
+				Buffer.from(JSON.stringify(messageToSign)),
+				keys.privateKey
+			);
 		});
 
 		it('should return true when valid Buffer signature is checked with matching Buffer public key and valid Buffer message', () => {
-			var verified = ed.verify(Buffer.from(JSON.stringify(messageToSign)), signature, keys.publicKey);
+			var verified = ed.verify(
+				Buffer.from(JSON.stringify(messageToSign)),
+				signature,
+				keys.publicKey
+			);
 			expect(verified).to.be.ok;
 		});
 
 		it('should return false when malformed signature is checked with Buffer public key', () => {
-			var wrongSignature = ed.sign(Buffer.from(JSON.stringify('wrong message')), keys.privateKey);
-			var verified = ed.verify(Buffer.from(JSON.stringify(messageToSign)), wrongSignature, keys.publicKey);
+			var wrongSignature = ed.sign(
+				Buffer.from(JSON.stringify('wrong message')),
+				keys.privateKey
+			);
+			var verified = ed.verify(
+				Buffer.from(JSON.stringify(messageToSign)),
+				wrongSignature,
+				keys.publicKey
+			);
 			expect(verified).not.to.be.ok;
 		});
 
 		it('should return false proper signature and proper publicKey is check against malformed data', () => {
-			var verified = ed.verify(Buffer.from('malformed data'), signature, keys.publicKey);
+			var verified = ed.verify(
+				Buffer.from('malformed data'),
+				signature,
+				keys.publicKey
+			);
 			expect(verified).not.to.be.ok;
 		});
 
 		it('should throw an error when proper non hex string signature is checked with matching string hex public key', () => {
-			expect(ed.verify.bind(null, Buffer.from(JSON.stringify(messageToSign)), signature.toString(), keys.publicKey.toString('hex'))).to.throw();
+			expect(
+				ed.verify.bind(
+					null,
+					Buffer.from(JSON.stringify(messageToSign)),
+					signature.toString(),
+					keys.publicKey.toString('hex')
+				)
+			).to.throw();
 		});
 
 		it('should throw an error when proper non hex string signature is checked with matching string non hex public key', () => {
-			expect(ed.verify.bind(null, Buffer.from(JSON.stringify(messageToSign)), signature.toString('hex'), keys.publicKey.toString())).to.throw();
+			expect(
+				ed.verify.bind(
+					null,
+					Buffer.from(JSON.stringify(messageToSign)),
+					signature.toString('hex'),
+					keys.publicKey.toString()
+				)
+			).to.throw();
 		});
 	});
 });

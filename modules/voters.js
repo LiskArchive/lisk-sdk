@@ -38,86 +38,132 @@ function Voters(cb, scope) {
 	library = {
 		db: scope.db,
 		logger: scope.logger,
-		schema: scope.schema
+		schema: scope.schema,
 	};
 	setImmediate(cb, null, this);
 }
 
-var getDelegate = function (query, cb) {
+var getDelegate = function(query, cb) {
 	var dbQuery = _.assign({}, query, { sort: {} });
 
 	delete dbQuery.limit;
 	delete dbQuery.offset;
 
-	return modules.accounts.getAccount(dbQuery, ['publicKey', 'username', 'address', 'balance'], cb);
+	return modules.accounts.getAccount(
+		dbQuery,
+		['publicKey', 'username', 'address', 'balance'],
+		cb
+	);
 };
 
 /**
  * Voters
  */
-var getVotersForDelegates = function (filters, delegate, cb) {
+var getVotersForDelegates = function(filters, delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
-	library.db.voters.list({ publicKey: delegate.publicKey, limit: filters.limit, offset: filters.offset }).then(rows => {
-		var addresses = rows.map(a => a.accountId);
-		return setImmediate(cb, null, addresses);
-	}).catch(err => {
-		library.logger.error(err.stack);
-		return setImmediate(cb, `Failed to get voters for delegate: ${delegate.publicKey}`);
-	});
+	library.db.voters
+		.list({
+			publicKey: delegate.publicKey,
+			limit: filters.limit,
+			offset: filters.offset,
+		})
+		.then(rows => {
+			var addresses = rows.map(a => a.accountId);
+			return setImmediate(cb, null, addresses);
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(
+				cb,
+				`Failed to get voters for delegate: ${delegate.publicKey}`
+			);
+		});
 };
 
-var populateVoters = function (sort, addresses, cb) {
-	modules.accounts.getAccounts({ address: addresses, sort: sort }, ['address', 'balance', 'publicKey'], cb);
+var populateVoters = function(sort, addresses, cb) {
+	modules.accounts.getAccounts(
+		{ address: addresses, sort: sort },
+		['address', 'balance', 'publicKey'],
+		cb
+	);
 };
 
-var getVotersCountForDelegates = function (delegate, cb) {
+var getVotersCountForDelegates = function(delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
 
-	library.db.voters.count(delegate.publicKey).then(votersCount => setImmediate(cb, null, parseInt(votersCount))).catch(err => {
-		library.logger.error(err.stack);
-		return setImmediate(cb, `Failed to get voters count for delegate: ${delegate.publicKey}`);
-	});
+	library.db.voters
+		.count(delegate.publicKey)
+		.then(votersCount => setImmediate(cb, null, parseInt(votersCount)))
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(
+				cb,
+				`Failed to get voters count for delegate: ${delegate.publicKey}`
+			);
+		});
 };
 
 /**
  * Votes
  */
-var getVotesCountForDelegates = function (delegate, cb) {
+var getVotesCountForDelegates = function(delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
 
-	library.db.votes.count(delegate.address).then(votesCount => setImmediate(cb, null, parseInt(votesCount))).catch(err => {
-		library.logger.error(err.stack);
-		return setImmediate(cb, `Failed to get votes count for delegate: ${delegate.address}`);
-	});
+	library.db.votes
+		.count(delegate.address)
+		.then(votesCount => setImmediate(cb, null, parseInt(votesCount)))
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(
+				cb,
+				`Failed to get votes count for delegate: ${delegate.address}`
+			);
+		});
 };
 
-var getVotesForDelegates = function (filters, delegate, cb) {
+var getVotesForDelegates = function(filters, delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
-	library.db.votes.list({ address: delegate.address, limit: filters.limit, offset: filters.offset }).then(rows => {
-		var addresses = rows.map(a => modules.accounts.generateAddressByPublicKey(a.dependentId));
-		return setImmediate(cb, null, addresses);
-	}).catch(err => {
-		library.logger.error(err.stack);
-		return setImmediate(cb, `Failed to get votes for delegate: ${delegate.address}`);
-	});
+	library.db.votes
+		.list({
+			address: delegate.address,
+			limit: filters.limit,
+			offset: filters.offset,
+		})
+		.then(rows => {
+			var addresses = rows.map(a =>
+				modules.accounts.generateAddressByPublicKey(a.dependentId)
+			);
+			return setImmediate(cb, null, addresses);
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(
+				cb,
+				`Failed to get votes for delegate: ${delegate.address}`
+			);
+		});
 };
 
-var populateVotes = function (sort, addresses, cb) {
-	modules.accounts.getAccounts({ address: addresses, sort: sort }, ['address', 'balance', 'publicKey', 'username'], cb);
+var populateVotes = function(sort, addresses, cb) {
+	modules.accounts.getAccounts(
+		{ address: addresses, sort: sort },
+		['address', 'balance', 'publicKey', 'username'],
+		cb
+	);
 };
 
 /**
  * @return {boolean}
  */
-Voters.prototype.isLoaded = function () {
+Voters.prototype.isLoaded = function() {
 	return loaded;
 };
 
@@ -135,22 +181,31 @@ Voters.prototype.shared = {
 	 * @param {int} filters.offset - Offset value for results.
 	 * @param {function} cb - Callback function.
 	 */
-	getVoters: function (filters, cb) {
-		async.autoInject({
-			delegate: getDelegate.bind(null, filters),
-			votersCount: ['delegate', getVotersCountForDelegates],
-			votersAddresses: ['delegate', getVotersForDelegates.bind(null, filters)],
-			populatedVoters: ['votersAddresses', populateVoters.bind(null, filters.sort)]
-		}, (err, results) => {
-			if (err) {
-				return setImmediate(cb, err);
+	getVoters: function(filters, cb) {
+		async.autoInject(
+			{
+				delegate: getDelegate.bind(null, filters),
+				votersCount: ['delegate', getVotersCountForDelegates],
+				votersAddresses: [
+					'delegate',
+					getVotersForDelegates.bind(null, filters),
+				],
+				populatedVoters: [
+					'votersAddresses',
+					populateVoters.bind(null, filters.sort),
+				],
+			},
+			(err, results) => {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+
+				results.delegate.voters = results.populatedVoters;
+				results.delegate.votes = results.votersCount;
+
+				return setImmediate(cb, null, results.delegate);
 			}
-
-			results.delegate.voters = results.populatedVoters;
-			results.delegate.votes = results.votersCount;
-
-			return setImmediate(cb, null, results.delegate);
-		});
+		);
 	},
 
 	/**
@@ -165,24 +220,31 @@ Voters.prototype.shared = {
 	 * @param {int} filters.offset - Offset value for results.
 	 * @param {function} cb - Callback function.
 	 */
-	getVotes: function (filters, cb) {
-		async.autoInject({
-			delegate: getDelegate.bind(null, filters),
-			votesCount: ['delegate', getVotesCountForDelegates],
-			votesAddresses: ['delegate', getVotesForDelegates.bind(null, filters)],
-			populatedVotes: ['votesAddresses', populateVotes.bind(null, filters.sort)]
-		}, (err, results) => {
-			if (err) {
-				return setImmediate(cb, err);
+	getVotes: function(filters, cb) {
+		async.autoInject(
+			{
+				delegate: getDelegate.bind(null, filters),
+				votesCount: ['delegate', getVotesCountForDelegates],
+				votesAddresses: ['delegate', getVotesForDelegates.bind(null, filters)],
+				populatedVotes: [
+					'votesAddresses',
+					populateVotes.bind(null, filters.sort),
+				],
+			},
+			(err, results) => {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+
+				results.delegate.votes = results.populatedVotes;
+				results.delegate.votesUsed = results.votesCount;
+				results.delegate.votesAvailable =
+					constants.maxVotesPerAccount - results.votesCount;
+
+				return setImmediate(cb, null, results.delegate);
 			}
-
-			results.delegate.votes = results.populatedVotes;
-			results.delegate.votesUsed = results.votesCount;
-			results.delegate.votesAvailable = constants.maxVotesPerAccount - results.votesCount;
-
-			return setImmediate(cb, null, results.delegate);
-		});
-	}
+		);
+	},
 };
 
 // Events
@@ -190,9 +252,9 @@ Voters.prototype.shared = {
  * Assigns used modules to modules variable.
  * @param {modules} scope - Loaded modules.
  */
-Voters.prototype.onBind = function (scope) {
+Voters.prototype.onBind = function(scope) {
 	modules = {
-		accounts: scope.accounts
+		accounts: scope.accounts,
 	};
 	loaded = true;
 };

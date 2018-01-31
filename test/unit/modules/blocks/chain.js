@@ -21,14 +21,25 @@ var application = require('../../../common/application'); // eslint-disable-line
 
 var previousBlock;
 
-function createBlock(blocksModule, blockLogic, secret, timestamp, transactions) {
-	var keypair = blockLogic.scope.ed.makeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
+function createBlock(
+	blocksModule,
+	blockLogic,
+	secret,
+	timestamp,
+	transactions
+) {
+	var keypair = blockLogic.scope.ed.makeKeypair(
+		crypto
+			.createHash('sha256')
+			.update(secret, 'utf8')
+			.digest()
+	);
 	blocksModule.lastBlock.set(previousBlock);
 	var newBlock = blockLogic.create({
 		keypair: keypair,
 		timestamp: timestamp,
 		previousBlock: blocksModule.lastBlock.get(),
-		transactions: transactions
+		transactions: transactions,
 	});
 	newBlock.id = blockLogic.getId(newBlock);
 	newBlock.height = previousBlock ? previousBlock.height + 1 : 1;
@@ -44,19 +55,25 @@ describe('blocks/chain', () => {
 
 	before(done => {
 		// Force rewards start at 150-th block
-		application.init({ sandbox: { name: 'lisk_test_blocks_chain' }, waitForGenesisBlock: true }, (err, scope) => {
-			db = scope.db;
-			blocksModule = scope.modules.blocks;
-			blocksChainModule = scope.modules.blocks.chain;
-			blockLogic = scope.logic.block;
-			genesisBlock = scope.genesisblock.block;
-			blocksModule.onBind(scope.modules);
-			blocksChainModule.onBind(scope.modules);
+		application.init(
+			{
+				sandbox: { name: 'lisk_test_blocks_chain' },
+				waitForGenesisBlock: true,
+			},
+			(err, scope) => {
+				db = scope.db;
+				blocksModule = scope.modules.blocks;
+				blocksChainModule = scope.modules.blocks.chain;
+				blockLogic = scope.logic.block;
+				genesisBlock = scope.genesisblock.block;
+				blocksModule.onBind(scope.modules);
+				blocksChainModule.onBind(scope.modules);
 
-			previousBlock = genesisBlock;
+				previousBlock = genesisBlock;
 
-			done();
-		});
+				done();
+			}
+		);
 	});
 
 	after(done => {
@@ -86,7 +103,9 @@ describe('blocks/chain', () => {
 
 		it('should call library.logger.trace"');
 
-		it('should call library.logger.trace with "Blocks->Chain: Submodule initialized."');
+		it(
+			'should call library.logger.trace with "Blocks->Chain: Submodule initialized."'
+		);
 
 		it('should return self');
 	});
@@ -96,7 +115,9 @@ describe('blocks/chain', () => {
 
 		it('should call library.db.blocks.getGenesisBlockId');
 
-		it('should call library.db.query with { id: library.genesisblock.block.id }');
+		it(
+			'should call library.db.query with { id: library.genesisblock.block.id }'
+		);
 
 		describe('when db query fails', () => {
 			it('should call logger.error');
@@ -155,7 +176,9 @@ describe('blocks/chain', () => {
 
 			it('should call library.bus.message with block.transactions');
 
-			it('should call library.logic.transaction.afterSave for every block.transaction');
+			it(
+				'should call library.logic.transaction.afterSave for every block.transaction'
+			);
 
 			describe('when library.logic.transaction.afterSave fails', () => {
 				it('should call callback with error');
@@ -234,16 +257,24 @@ describe('blocks/chain', () => {
 
 		it('should call modules.blocks.utils.getBlockProgressLogger');
 
-		it('should call modules.blocks.utils.getBlockProgressLogger with block.transactions.length');
+		it(
+			'should call modules.blocks.utils.getBlockProgressLogger with block.transactions.length'
+		);
 
-		it('should call modules.blocks.utils.getBlockProgressLogger with block.transactions.length / 100');
+		it(
+			'should call modules.blocks.utils.getBlockProgressLogger with block.transactions.length / 100'
+		);
 
-		it('should call modules.blocks.utils.getBlockProgressLogger with "Genesis block loading"');
+		it(
+			'should call modules.blocks.utils.getBlockProgressLogger with "Genesis block loading"'
+		);
 
 		describe('for every block.transactions', () => {
 			it('should call modules.accounts.setAccountAndGet');
 
-			it('should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}');
+			it(
+				'should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}'
+			);
 
 			describe('when modules.accounts.setAccountAndGet fails', () => {
 				describe('error object', () => {
@@ -330,7 +361,8 @@ describe('blocks/chain', () => {
 	});
 
 	describe('applyBlock', () => {
-		var secret = 'lend crime turkey diary muscle donkey arena street industry innocent network lunar';
+		var secret =
+			'lend crime turkey diary muscle donkey arena street industry innocent network lunar';
 		var block;
 		var transactions;
 
@@ -351,7 +383,13 @@ describe('blocks/chain', () => {
 		});
 
 		it('should apply a valid block successfully', done => {
-			block = createBlock(blocksModule, blockLogic, secret, 32578370, transactions);
+			block = createBlock(
+				blocksModule,
+				blockLogic,
+				secret,
+				32578370,
+				transactions
+			);
 
 			blocksChainModule.applyBlock(block, true, err => {
 				if (err) {
@@ -368,11 +406,27 @@ describe('blocks/chain', () => {
 
 		// TODO: Need to enable it after making block part of the single transaction
 		it.skip('should apply block in a single transaction', done => {
-			block = createBlock(blocksModule, blockLogic, secret, 32578370, transactions);
+			block = createBlock(
+				blocksModule,
+				blockLogic,
+				secret,
+				32578370,
+				transactions
+			);
 
-			db.$config.options.query = function (event) {
-				if (!(event.ctx && event.ctx.isTX && event.ctx.txLevel === 0 && event.ctx.tag === 'Chain:applyBlock')) {
-					return done(`Some query executed outside transaction context: ${event.query}`, event);
+			db.$config.options.query = function(event) {
+				if (
+					!(
+						event.ctx &&
+						event.ctx.isTX &&
+						event.ctx.txLevel === 0 &&
+						event.ctx.tag === 'Chain:applyBlock'
+					)
+				) {
+					return done(
+						`Some query executed outside transaction context: ${event.query}`,
+						event
+					);
 				}
 			};
 
@@ -416,11 +470,15 @@ describe('blocks/chain', () => {
 			describe('for every block.transactions', () => {
 				it('should call modules.accounts.setAccountAndGet');
 
-				it('should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}');
+				it(
+					'should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}'
+				);
 
 				it('should call modules.transactions.applyUnconfirmed');
 
-				it('should call modules.transactions.applyUnconfirmed with transaction');
+				it(
+					'should call modules.transactions.applyUnconfirmed with transaction'
+				);
 
 				it('should call modules.transactions.applyUnconfirmed with sender');
 
@@ -430,7 +488,9 @@ describe('blocks/chain', () => {
 					describe('for every block.transactions', () => {
 						it('should call modules.accounts.getAccount');
 
-						it('should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}');
+						it(
+							'should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}'
+						);
 
 						describe('when modules.accounts.getAccount fails', () => {
 							it('should call callback with error');
@@ -440,9 +500,13 @@ describe('blocks/chain', () => {
 							describe('and transaction.id was already applied', () => {
 								it('should call library.logic.transaction.undoUnconfirmed');
 
-								it('should call library.logic.transaction.undoUnconfirmed with transaction');
+								it(
+									'should call library.logic.transaction.undoUnconfirmed with transaction'
+								);
 
-								it('should call library.logic.transaction.undoUnconfirmed with sender');
+								it(
+									'should call library.logic.transaction.undoUnconfirmed with sender'
+								);
 							});
 						});
 					});
@@ -451,7 +515,9 @@ describe('blocks/chain', () => {
 				describe('for every block.transactions', () => {
 					it('should call modules.accounts.getAccount');
 
-					it('should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}');
+					it(
+						'should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}'
+					);
 
 					describe('when modules.accounts.getAccount fails', () => {
 						it('should call library.logger.error with error');
@@ -475,9 +541,13 @@ describe('blocks/chain', () => {
 						});
 
 						describe('when modules.transactions.apply succeeds', () => {
-							it('should call modules.transactions.removeUnconfirmedTransaction');
+							it(
+								'should call modules.transactions.removeUnconfirmedTransaction'
+							);
 
-							it('should call modules.transactions.removeUnconfirmedTransaction with transaction.id');
+							it(
+								'should call modules.transactions.removeUnconfirmedTransaction with transaction.id'
+							);
 
 							it('should call modules.blocks.lastBlock.set');
 
@@ -502,7 +572,9 @@ describe('blocks/chain', () => {
 
 								it('should call modules.transactions.applyUnconfirmedIds');
 
-								it('should call modules.transactions.applyUnconfirmedIds with unconfirmedTransactionIds');
+								it(
+									'should call modules.transactions.applyUnconfirmedIds with unconfirmedTransactionIds'
+								);
 
 								describe('when modules.transactions.applyUnconfirmedIds fails', () => {
 									describe('when error = "Snapshot finished"', () => {
@@ -544,7 +616,9 @@ describe('blocks/chain', () => {
 			describe('call library.balancesSequence.add', () => {
 				it('should call modules.blocks.utils.loadBlocksPart');
 
-				it('should call modules.blocks.utils.loadBlocksPart with { id: oldLastBlock.previousBlock }');
+				it(
+					'should call modules.blocks.utils.loadBlocksPart with { id: oldLastBlock.previousBlock }'
+				);
 
 				describe('when modules.blocks.utils.loadBlocksPart fails', () => {
 					it('should call callback with error');
@@ -558,12 +632,16 @@ describe('blocks/chain', () => {
 					describe('for every oldLastBlock.transactions', () => {
 						it('should call modules.accounts.getAccount');
 
-						it('should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}');
+						it(
+							'should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}'
+						);
 
 						describe('when modules.accounts.getAccount fails', () => {
 							it('should call library.logger.error with error');
 
-							it('should call library.logger.error "Failed to undo transactions"');
+							it(
+								'should call library.logger.error "Failed to undo transactions"'
+							);
 
 							it('should call process.exit with 0');
 						});
@@ -579,7 +657,9 @@ describe('blocks/chain', () => {
 
 							it('should call modules.transactions.undoUnconfirmed');
 
-							it('should call modules.transactions.undoUnconfirmed with transaction');
+							it(
+								'should call modules.transactions.undoUnconfirmed with transaction'
+							);
 
 							it('should call self.deleteBlock');
 
@@ -588,7 +668,9 @@ describe('blocks/chain', () => {
 							describe('when self.deleteBlock fails', () => {
 								it('should call library.logger.error with error');
 
-								it('should call library.logger.error with "Failed to delete block"');
+								it(
+									'should call library.logger.error with "Failed to delete block"'
+								);
 
 								it('should call process.exit with 0');
 							});

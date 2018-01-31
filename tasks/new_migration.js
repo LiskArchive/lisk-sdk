@@ -17,25 +17,29 @@ var moment = require('moment');
 var fs = require('fs');
 var path = require('path');
 
-module.exports = function (grunt) {
+module.exports = function(grunt) {
 	grunt.registerTask('newMigration', 'Create a new migration file.', name => {
 		var migration = {
 			id: moment().format('YYYYMMDDHHmmss'),
-			name: String(name)
+			name: String(name),
 		};
 
 		if (!migration.name.match(/^[a-z]+$/i)) {
 			grunt.fail.fatal('Invalid migration name');
 		}
 
-		migration.filename = (
-			`${migration.id}_${migration.name}.sql`
-		);
+		migration.filename = `${migration.id}_${migration.name}.sql`;
 
 		grunt.log.write(`Creating migration file: ${migration.filename}`);
 
-		fs.writeFile(path.join(process.cwd(), './db/sql/init/migrations', migration.filename), '', err => {
-			if (err) { grunt.fail.fatal(err); }
-		});
+		fs.writeFile(
+			path.join(process.cwd(), './db/sql/init/migrations', migration.filename),
+			'',
+			err => {
+				if (err) {
+					grunt.fail.fatal(err);
+				}
+			}
+		);
 	});
 };

@@ -20,7 +20,11 @@ describe('lisk_response_formatter', () => {
 
 	it('should only respond with "application/json" content-type');
 
-	it('should always format response with "data", "meta" and "links" attributes');
+	it(
+		'should always format response with "data", "meta" and "links" attributes'
+	);
 
-	it('should check for "data", "meta" and "links" attributes if input provided is an object');
+	it(
+		'should check for "data", "meta" and "links" attributes if input provided is an object'
+	);
 });

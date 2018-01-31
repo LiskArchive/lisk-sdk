@@ -22,7 +22,7 @@ var redis = require('redis');
  * @param {Object} logger
  * @param {function} cb
  */
-module.exports.connect = function (cacheEnabled, config, logger, cb) {
+module.exports.connect = function(cacheEnabled, config, logger, cb) {
 	var isRedisLoaded = false;
 
 	if (!cacheEnabled) {

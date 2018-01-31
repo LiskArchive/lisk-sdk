@@ -37,13 +37,16 @@ function CheckIpInList(list, addr, returnListIsEmpty) {
 		return returnListIsEmpty;
 	}
 
-	if (!list._subNets) { // First call, create subnet list
+	if (!list._subNets) {
+		// First call, create subnet list
 		list._subNets = [];
 		for (i = list.length - 1; i >= 0; i--) {
 			var entry = list[i];
-			if (ip.isV4Format(entry)) { // IPv4 host entry
+			if (ip.isV4Format(entry)) {
+				// IPv4 host entry
 				entry += '/32';
-			} else if (ip.isV6Format(entry)) { // IPv6 host entry
+			} else if (ip.isV6Format(entry)) {
+				// IPv6 host entry
 				entry += '/128';
 			}
 			try {

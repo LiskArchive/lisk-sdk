@@ -25,7 +25,6 @@ var System = require('../../../modules/system');
 var wsServer = null;
 
 var wsRPC = {
-
 	clientsConnectionsMap: {},
 	scClient: scClient,
 	wampClient: new WAMPClient(),
@@ -33,7 +32,7 @@ var wsRPC = {
 	/**
 	 * @param {MasterWAMPServer} __wsServer
 	 */
-	setServer: function (__wsServer) {
+	setServer: function(__wsServer) {
 		wsServer = __wsServer;
 	},
 
@@ -41,7 +40,7 @@ var wsRPC = {
 	 * @throws {Error} if WS server has not been initialized yet
 	 * @returns {MasterWAMPServer} wsServer
 	 */
-	getServer: function () {
+	getServer: function() {
 		if (!wsServer) {
 			throw new Error('WS server has not been initialized!');
 		}
@@ -52,16 +51,21 @@ var wsRPC = {
 	 * @param {number} port
 	 * @returns {ClientRPCStub} {[string]: function} map where keys are all procedures registered
 	 */
-	getClientRPCStub: function (ip, port) {
+	getClientRPCStub: function(ip, port) {
 		if (!ip || !port) {
-			throw new Error(`RPC client needs ip and port to establish WS connection with: ${ip}:${port}`);
+			throw new Error(
+				`RPC client needs ip and port to establish WS connection with: ${ip}:${port}`
+			);
 		}
 
 		var address = `${ip}:${port}`;
 		var connectionState = this.clientsConnectionsMap[address];
 
 		// first time init || previously rejected
-		if (!connectionState || connectionState.status === ConnectionState.STATUS.DISCONNECTED) {
+		if (
+			!connectionState ||
+			connectionState.status === ConnectionState.STATUS.DISCONNECTED
+		) {
 			connectionState = new ConnectionState(ip, port);
 			this.clientsConnectionsMap[address] = connectionState;
 		}
@@ -72,19 +76,19 @@ var wsRPC = {
 	 * @throws {Error} if WS server has not been initialized yet
 	 * @returns {MasterWAMPServer} wsServer
 	 */
-	getServerAuthKey: function () {
+	getServerAuthKey: function() {
 		if (!wsServer) {
 			throw new Error('WS server has not been initialized!');
 		}
 		return wsServer.socketCluster.options.authKey;
-	}
+	},
 };
 
 ConnectionState.STATUS = {
 	NEW: 1,
 	PENDING: 2,
 	ESTABLISHED: 3,
-	DISCONNECTED: 4
+	DISCONNECTED: 4,
 };
 
 function ConnectionState(ip, port) {
@@ -95,17 +99,17 @@ function ConnectionState(ip, port) {
 	this.stub = new ClientRPCStub(this);
 }
 
-ConnectionState.prototype.reconnect = function () {
+ConnectionState.prototype.reconnect = function() {
 	this.status = ConnectionState.STATUS.PENDING;
 	this.socketDefer = PromiseDefer();
 };
 
-ConnectionState.prototype.reject = function (reason) {
+ConnectionState.prototype.reject = function(reason) {
 	this.status = ConnectionState.STATUS.DISCONNECTED;
 	this.socketDefer.reject(reason);
 };
 
-ConnectionState.prototype.resolve = function (socket) {
+ConnectionState.prototype.resolve = function(socket) {
 	this.status = ConnectionState.STATUS.ESTABLISHED;
 	this.socketDefer.resolve(socket);
 };
@@ -120,12 +124,11 @@ ConnectionState.prototype.resolve = function (socket) {
  * @property {function} procedure - procedure that will be called with argument and callback
  */
 
-
 /**
  * @param {ConnectionState} connectionState
  * @returns {clientStub}
  */
-var ClientRPCStub = function (connectionState) {
+var ClientRPCStub = function(connectionState) {
 	var wsServer;
 	try {
 		wsServer = wsRPC.getServer();
@@ -133,24 +136,28 @@ var ClientRPCStub = function (connectionState) {
 		return {};
 	}
 
-	return _.reduce(Object.assign({}, wsServer.endpoints.rpc, wsServer.endpoints.event),
+	return _.reduce(
+		Object.assign({}, wsServer.endpoints.rpc, wsServer.endpoints.event),
 		(availableCalls, procedureHandler, procedureName) => {
-			availableCalls[procedureName] = this.sendAfterSocketReadyCb(connectionState)(procedureName);
+			availableCalls[procedureName] = this.sendAfterSocketReadyCb(
+				connectionState
+			)(procedureName);
 			return availableCalls;
-		}, {});
+		},
+		{}
+	);
 };
-
 
 /**
  * @param {ConnectionState} connectionState
  */
-ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
+ClientRPCStub.prototype.initializeNewConnection = function(connectionState) {
 	var options = {
 		hostname: connectionState.ip,
 		port: connectionState.port,
 		protocol: 'http',
 		autoReconnect: true,
-		query: System.getHeaders()
+		query: System.getHeaders(),
 	};
 
 	var clientSocket = wsRPC.scClient.connect(options);
@@ -163,11 +170,18 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
 	});
 
 	clientSocket.on('connectAbort', () => {
-		connectionState.reject(new PeerUpdateError(failureCodes.HANDSHAKE_ERROR, failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]));
+		connectionState.reject(
+			new PeerUpdateError(
+				failureCodes.HANDSHAKE_ERROR,
+				failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]
+			)
+		);
 	});
 
 	clientSocket.on('disconnect', (code, description) => {
-		connectionState.reject(new PeerUpdateError(code, failureCodes.errorMessages[code], description));
+		connectionState.reject(
+			new PeerUpdateError(code, failureCodes.errorMessages[code], description)
+		);
 	});
 };
 
@@ -175,43 +189,55 @@ ClientRPCStub.prototype.initializeNewConnection = function (connectionState) {
  * @param {ConnectionState} connectionState
  * @returns {function} function to be called with procedure, to be then called with optional argument and/or callback
  */
-ClientRPCStub.prototype.sendAfterSocketReadyCb = function (connectionState) {
-	return function (procedureName) {
+ClientRPCStub.prototype.sendAfterSocketReadyCb = function(connectionState) {
+	return function(procedureName) {
 		/**
 		 * @param {Object} data [data={}] argument passed to procedure
 		 */
-		return function (data, cb) {
-			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function () {};
-			data = (data && !_.isFunction(data)) ? data : {};
+		return function(data, cb) {
+			cb = _.isFunction(cb) ? cb : _.isFunction(data) ? data : function() {};
+			data = data && !_.isFunction(data) ? data : {};
 
-			if (connectionState.status === ConnectionState.STATUS.NEW || connectionState.status === ConnectionState.STATUS.DISCONNECTED) {
+			if (
+				connectionState.status === ConnectionState.STATUS.NEW ||
+				connectionState.status === ConnectionState.STATUS.DISCONNECTED
+			) {
 				connectionState.reconnect();
 				ClientRPCStub.prototype.initializeNewConnection(connectionState);
 			}
 
-			connectionState.socketDefer.promise.timeout(1000).then(socket => socket.wampSend(procedureName, data)
-					.then(res => setImmediate(cb, null, res))
-					.catch(err => setImmediate(cb, err))).catch(err => {
-				if (err && err.name === 'TimeoutError') {
-					err = new PeerUpdateError(failureCodes.CONNECTION_TIMEOUT, failureCodes.errorMessages[failureCodes.CONNECTION_TIMEOUT]);
-				}
-				return setImmediate(cb, err);
-			});
+			connectionState.socketDefer.promise
+				.timeout(1000)
+				.then(socket =>
+					socket
+						.wampSend(procedureName, data)
+						.then(res => setImmediate(cb, null, res))
+						.catch(err => setImmediate(cb, err))
+				)
+				.catch(err => {
+					if (err && err.name === 'TimeoutError') {
+						err = new PeerUpdateError(
+							failureCodes.CONNECTION_TIMEOUT,
+							failureCodes.errorMessages[failureCodes.CONNECTION_TIMEOUT]
+						);
+					}
+					return setImmediate(cb, err);
+				});
 		};
 	};
 };
 
-var remoteAction = function () {
+var remoteAction = function() {
 	throw new Error('Function invoked on master instead of slave process');
 };
 
 var slaveRPCStub = {
-	updateMyself: remoteAction
+	updateMyself: remoteAction,
 };
 
 module.exports = {
 	wsRPC: wsRPC,
 	ConnectionState: ConnectionState,
 	ClientRPCStub: ClientRPCStub,
-	slaveRPCStub: slaveRPCStub
+	slaveRPCStub: slaveRPCStub,
 };

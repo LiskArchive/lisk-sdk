@@ -60,7 +60,6 @@ describe('loader', () => {
 		it('should return Loader instance');
 	});
 
-
 	describe('findGoodPeers', () => {
 		it('should call modules.blocks.lastBlock.get');
 
@@ -72,7 +71,9 @@ describe('loader', () => {
 
 		it('should call library.logger.trace second time');
 
-		it('should call library.logger.trace second time with "Good peers - filtered"');
+		it(
+			'should call library.logger.trace second time with "Good peers - filtered"'
+		);
 
 		describe('when peers = []', () => {
 			it('should call library.logger.trace second time with {count: 0}');
@@ -93,16 +94,22 @@ describe('loader', () => {
 		});
 
 		describe('when peers have height >= modules.blocks.lastBlock.get().height', () => {
-			it('should call library.logger.trace second time with {count: peers.length}');
+			it(
+				'should call library.logger.trace second time with {count: peers.length}'
+			);
 
 			it('should call library.logger.trace third time');
 
-			it('should call library.logger.trace third time with "Good peers - accepted"');
+			it(
+				'should call library.logger.trace third time with "Good peers - accepted"'
+			);
 
 			it('should return result containing height of the highest peer');
 
 			describe('given not accepted peers have heights that differs more than 2 than the highest', () => {
-				it('should call library.logger.trace third time with {count: accepted.length}');
+				it(
+					'should call library.logger.trace third time with {count: accepted.length}'
+				);
 
 				it('should call library.logger.debug');
 
@@ -112,7 +119,9 @@ describe('loader', () => {
 			});
 
 			describe('when peers have heights that differs less than 2 than the highest', () => {
-				it('should call library.logger.trace third time with {count: peers.length}');
+				it(
+					'should call library.logger.trace third time with {count: peers.length}'
+				);
 
 				it('should call library.logger.debug');
 
@@ -149,7 +158,9 @@ describe('loader', () => {
 				it('should assign __private.network');
 
 				describe('when __private.network.peers.length = 0', () => {
-					it('should call callback with error = "Failed to find enough good peers"');
+					it(
+						'should call callback with error = "Failed to find enough good peers"'
+					);
 				});
 
 				describe('when __private.network.peers.length > 0', () => {
@@ -188,7 +199,9 @@ describe('loader', () => {
 			describe('when __private.loadTransactions fails', () => {
 				it('should call library.logger.log');
 
-				it('should call library.logger.log with "Unconfirmed transactions loader"');
+				it(
+					'should call library.logger.log with "Unconfirmed transactions loader"'
+				);
 
 				it('should call library.logger.log with error');
 
@@ -220,7 +233,9 @@ describe('loader', () => {
 
 		it('should call library.logger.trace');
 
-		it('should call library.logger.trace with "Transactions and signatures pulled"');
+		it(
+			'should call library.logger.trace with "Transactions and signatures pulled"'
+		);
 	});
 
 	describe('onBind', () => {

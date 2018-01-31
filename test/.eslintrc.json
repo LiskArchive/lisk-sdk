@@ -9,7 +9,7 @@
 		"gc": true,
 		"sinonSandbox": true
 	},
-  	"rules": {
+	"rules": {
 		// To Keep
 		"arrow-body-style": "off",
 		// To Remove

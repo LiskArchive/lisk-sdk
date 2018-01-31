@@ -41,19 +41,30 @@ function PeersUpdateRules(slaveWAMPServer) {
  * @param {string} connectionId
  * @param {function} cb
  */
-PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
+PeersUpdateRules.prototype.insert = function(peer, connectionId, cb) {
 	try {
 		connectionsTable.add(peer.nonce, connectionId);
 		peer.state = Peer.STATE.CONNECTED;
-		self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.INSERT, peer, err => {
-			if (err) {
-				connectionsTable.remove(peer.nonce);
-				if (!err.code) {
-					err = new PeerUpdateError(failureCodes.ON_MASTER.UPDATE.TRANSPORT, failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.TRANSPORT], err);
+		self.slaveToMasterSender.send(
+			'updatePeer',
+			Rules.UPDATES.INSERT,
+			peer,
+			err => {
+				if (err) {
+					connectionsTable.remove(peer.nonce);
+					if (!err.code) {
+						err = new PeerUpdateError(
+							failureCodes.ON_MASTER.UPDATE.TRANSPORT,
+							failureCodes.errorMessages[
+								failureCodes.ON_MASTER.UPDATE.TRANSPORT
+							],
+							err
+						);
+					}
 				}
+				return setImmediate(cb, err);
 			}
-			return setImmediate(cb, err);
-		});
+		);
 	} catch (ex) {
 		return setImmediate(cb, ex);
 	}
@@ -64,16 +75,25 @@ PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
  * @param {string} connectionId
  * @param {function} cb
  */
-PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
+PeersUpdateRules.prototype.remove = function(peer, connectionId, cb) {
 	try {
 		connectionsTable.remove(peer.nonce);
-		self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.REMOVE, peer, err => {
-			if (err && !err.code) {
-				connectionsTable.add(peer.nonce, connectionId);
-				err = new PeerUpdateError(failureCodes.ON_MASTER.UPDATE.TRANSPORT, failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.TRANSPORT], err);
+		self.slaveToMasterSender.send(
+			'updatePeer',
+			Rules.UPDATES.REMOVE,
+			peer,
+			err => {
+				if (err && !err.code) {
+					connectionsTable.add(peer.nonce, connectionId);
+					err = new PeerUpdateError(
+						failureCodes.ON_MASTER.UPDATE.TRANSPORT,
+						failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.TRANSPORT],
+						err
+					);
+				}
+				return setImmediate(cb, err);
 			}
-			return setImmediate(cb, err);
-		});
+		);
 	} catch (ex) {
 		return setImmediate(cb, ex);
 	}
@@ -85,8 +105,11 @@ PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
  * @param {string} connectionId
  * @param {function} cb
  */
-PeersUpdateRules.prototype.block = function (code, peer, connectionId, cb) {
-	return setImmediate(cb, new PeerUpdateError(code, failureCodes.errorMessages[code]));
+PeersUpdateRules.prototype.block = function(code, peer, connectionId, cb) {
+	return setImmediate(
+		cb,
+		new PeerUpdateError(code, failureCodes.errorMessages[code])
+	);
 };
 
 PeersUpdateRules.prototype.internal = {
@@ -96,20 +119,30 @@ PeersUpdateRules.prototype.internal = {
 	 * @param {string} connectionId
 	 * @param {function} cb
 	 */
-	update: function (updateType, peer, connectionId, cb) {
+	update: function(updateType, peer, connectionId, cb) {
 		self.slaveToMasterSender.getPeer(peer.nonce, (err, onMasterPresence) => {
 			if (err) {
-				return setImmediate(cb, new PeerUpdateError(
-					failureCodes.ON_MASTER.UPDATE.CHECK_PRESENCE,
-					failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.CHECK_PRESENCE],
-					err));
+				return setImmediate(
+					cb,
+					new PeerUpdateError(
+						failureCodes.ON_MASTER.UPDATE.CHECK_PRESENCE,
+						failureCodes.errorMessages[
+							failureCodes.ON_MASTER.UPDATE.CHECK_PRESENCE
+						],
+						err
+					)
+				);
 			}
 			var isNoncePresent = !!connectionsTable.getNonce(connectionId);
-			var isConnectionIdPresent = !!connectionsTable.getConnectionId(peer.nonce);
+			var isConnectionIdPresent = !!connectionsTable.getConnectionId(
+				peer.nonce
+			);
 
-			self.rules.rules[updateType][isNoncePresent][isConnectionIdPresent][onMasterPresence](peer, connectionId, cb);
+			self.rules.rules[updateType][isNoncePresent][isConnectionIdPresent][
+				onMasterPresence
+			](peer, connectionId, cb);
 		});
-	}
+	},
 };
 
 PeersUpdateRules.prototype.external = {
@@ -120,17 +153,28 @@ PeersUpdateRules.prototype.external = {
 	 * @param {string} request.workerId - worker id
 	 * @param {function} cb
 	 */
-	update: function (request, cb) {
+	update: function(request, cb) {
 		z_schema.validate(request, definitions.WSPeerUpdateRequest, err => {
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
-			if (request.socketId !== connectionsTable.getConnectionId(request.data.nonce)) {
-				return setImmediate(cb, new Error('Connection id does not match with corresponding peer'));
+			if (
+				request.socketId !==
+				connectionsTable.getConnectionId(request.data.nonce)
+			) {
+				return setImmediate(
+					cb,
+					new Error('Connection id does not match with corresponding peer')
+				);
 			}
-			self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.INSERT, request.data, cb);
+			self.slaveToMasterSender.send(
+				'updatePeer',
+				Rules.UPDATES.INSERT,
+				request.data,
+				cb
+			);
 		});
-	}
+	},
 };
 
 module.exports = PeersUpdateRules;

@@ -54,7 +54,7 @@ module.exports = function create() {
 			output = {
 				meta: {},
 				data: context.input,
-				links: {}
+				links: {},
 			};
 		} else if (_.isObject(context.input)) {
 			if (Object.keys(context.input).sort() === ['data', 'links', 'meta']) {
@@ -63,12 +63,12 @@ module.exports = function create() {
 				output = {
 					meta: context.input.meta || {},
 					data: context.input.data || context.input,
-					links: context.input.links || {}
+					links: context.input.links || {},
 				};
 			}
 		}
 
-		debug('setting headers: \'content-type\': \'application/json\'');
+		debug("setting headers: 'content-type': 'application/json'");
 
 		context.headers = { 'content-type': 'application/json' };
 		next(null, output);

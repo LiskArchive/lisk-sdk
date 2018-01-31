@@ -38,7 +38,7 @@ function DappsController(scope) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-DappsController.getDapps = function (context, next) {
+DappsController.getDapps = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -46,7 +46,7 @@ DappsController.getDapps = function (context, next) {
 		name: params.name.value,
 		sort: params.sort.value,
 		limit: params.limit.value,
-		offset: params.offset.value
+		offset: params.offset.value,
 	};
 
 	// Remove filters with null values
@@ -54,7 +54,9 @@ DappsController.getDapps = function (context, next) {
 
 	modules.dapps.shared.getDapps(_.clone(filters), (err, data) => {
 		try {
-			if (err) { return next(err); }
+			if (err) {
+				return next(err);
+			}
 
 			data = _.cloneDeep(data);
 
@@ -75,8 +77,8 @@ DappsController.getDapps = function (context, next) {
 				data: data,
 				meta: {
 					offset: filters.offset,
-					limit: filters.limit
-				}
+					limit: filters.limit,
+				},
 			});
 		} catch (error) {
 			next(error);

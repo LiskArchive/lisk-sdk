@@ -159,9 +159,13 @@ describe('system', () => {
 	describe('versionCompatible', () => {
 		describe('when version contains', () => {
 			describe('when system version contains a letter', () => {
-				it('should return true if both version number and version letter are equals with system');
+				it(
+					'should return true if both version number and version letter are equals with system'
+				);
 
-				it('should return false if both version number and version letter are different than system');
+				it(
+					'should return false if both version number and version letter are different than system'
+				);
 
 				it('should return false if version number is different than system');
 
@@ -197,11 +201,15 @@ describe('system', () => {
 
 		it('should update __private.broadhash when getBroadhash returns no error');
 
-		it('should not update __private.broadhash when getBroadhash returns an error');
+		it(
+			'should not update __private.broadhash when getBroadhash returns an error'
+		);
 
 		it('should call modules.blocks.lastBlock.get');
 
-		it('should update __private.height height property of modules.blocks.lastBlock.get result');
+		it(
+			'should update __private.height height property of modules.blocks.lastBlock.get result'
+		);
 
 		it('should call the logger.debug system headers info');
 

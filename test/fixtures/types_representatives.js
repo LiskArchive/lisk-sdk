@@ -22,216 +22,218 @@ var arrays = [
 	{
 		input: [],
 		description: 'empty array',
-		expectation: 'array'
+		expectation: 'array',
 	},
 	{
 		input: ['abc'],
 		description: 'non empty array',
-		expectation: 'array'
-	}
+		expectation: 'array',
+	},
 ];
 
 var booleans = [
 	{
 		input: true,
 		description: 'true',
-		expectation: 'boolean'
+		expectation: 'boolean',
 	},
 	{
 		input: false,
 		description: 'false',
-		expectation: 'boolean'
-	}
+		expectation: 'boolean',
+	},
 ];
 
 var positiveIntegers = [
 	{
 		input: 0,
 		description: 'zero',
-		expectation: 'integer'
+		expectation: 'integer',
 	},
 	{
 		input: 1,
 		description: 'integer',
-		expectation: 'integer'
-	}
+		expectation: 'integer',
+	},
 ];
 
 var negativeIntegers = [
 	{
 		input: -1,
 		description: 'negative integer',
-		expectation: 'integer'
-	}
+		expectation: 'integer',
+	},
 ];
 
 var positiveNumbers = [
 	{
 		input: 0.1,
 		description: 'float',
-		expectation: 'number'
+		expectation: 'number',
 	},
 	{
 		input: Infinity,
 		description: 'infinity',
-		expectation: 'unknown-number'
-	}
+		expectation: 'unknown-number',
+	},
 ];
 
 var negativeNumbers = [
 	{
 		input: -0.1,
 		description: 'negative float',
-		expectation: 'number'
+		expectation: 'number',
 	},
 	{
 		input: -Infinity,
 		description: 'negative infinity',
-		expectation: 'unknown-number'
-	}
+		expectation: 'unknown-number',
+	},
 ];
 
 var objects = [
 	{
 		input: {},
 		description: 'empty object',
-		expectation: 'object'
+		expectation: 'object',
 	},
 	{
 		input: { abc: 'abc' },
 		description: 'non empty object',
-		expectation: 'object'
+		expectation: 'object',
 	},
 	{
 		input: new Date(),
 		description: 'date',
-		expectation: 'object'
-	}
+		expectation: 'object',
+	},
 ];
 
 var others = [
 	{
 		input: NaN,
 		description: 'Not a number',
-		expectation: 'not-a-number'
+		expectation: 'not-a-number',
 	},
 	{
 		input: null,
 		description: 'null',
-		expectation: 'null'
-	}
+		expectation: 'null',
+	},
 ];
 
 var nonEmptyStrings = [
 	{
 		input: '0',
 		description: '0 as string',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: '1',
 		description: 'string integer',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: '0.1',
 		description: 'string number',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: 'abc',
 		description: 'lowercase string',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: 'ABC',
 		description: 'uppercase string',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: 'Abc',
 		description: 'mixed case string',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: '!@#$%^&*()\\}{;\'"<>?/',
 		description: 'special characters',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: faker.random.alphaNumeric(),
 		description: 'alphanumeric',
-		expectation: 'string'
-	}
+		expectation: 'string',
+	},
 ];
 
 var emptyString = [
 	{
 		input: '',
 		description: 'empty string',
-		expectation: 'string'
-	}
+		expectation: 'string',
+	},
 ];
 
 var additionalDataValidCases = [
 	{
 		input: faker.internet.email(),
 		description: 'email',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: faker.internet.url(),
 		description: 'URL',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: faker.internet.ip(),
 		description: 'IP',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: faker.internet.mac(),
 		description: 'MAC',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: faker.random.image(),
 		description: 'image',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: faker.random.uuid(),
 		description: 'uuid',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: faker.phone.phoneNumber(),
 		description: 'phone number',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: faker.finance.iban(),
 		description: 'iban',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: faker.random.alphaNumeric(constants.additionalData.maxLength),
 		description: 'maximum chars',
-		expectation: 'string'
+		expectation: 'string',
 	},
 ];
 
 var additionalDataInvalidCases = [
 	{
-		input: `${faker.random.alphaNumeric(constants.additionalData.maxLength - 1)}现`,
+		input: `${faker.random.alphaNumeric(
+			constants.additionalData.maxLength - 1
+		)}现`,
 		description: 'overflowed string',
-		expectation: 'string'
+		expectation: 'string',
 	},
 	{
 		input: faker.random.alphaNumeric(constants.additionalData.maxLength + 1),
 		description: 'maximum chars + 1',
-		expectation: 'string'
-	}
+		expectation: 'string',
+	},
 ];
 
 var strings = nonEmptyStrings.concat(emptyString);
@@ -271,5 +273,5 @@ module.exports = {
 	emptyString: emptyString,
 	nonEmptyString: difference(allTypes, emptyString),
 	additionalDataValidCases: additionalDataValidCases,
-	additionalDataInvalidCases: additionalDataInvalidCases
+	additionalDataInvalidCases: additionalDataInvalidCases,
 };

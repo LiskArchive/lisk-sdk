@@ -16,41 +16,60 @@
 var Promise = require('bluebird');
 var utils = require('../../utils');
 
-module.exports = function (params) {
+module.exports = function(params) {
 	describe('Peers mutual connections', () => {
 		it('should return a list of peers mutually interconnected', () => {
- return Promise.all(params.sockets.map(socket => { return socket.wampSend('list', {}); })).then(results => {
+			return Promise.all(
+				params.sockets.map(socket => {
+					return socket.wampSend('list', {});
+				})
+			).then(results => {
 				results.forEach(result => {
 					expect(result).to.have.property('success').to.be.true;
-					expect(result).to.have.property('peers').to.be.a('array');
-					var peerPorts = result.peers.map(peer => { return peer.wsPort; });
-					var allPorts = params.configurations.map(configuration => { return configuration.wsPort; });
-					expect(_.intersection(allPorts, peerPorts)).to.be.an('array').and.not.to.be.empty;
+					expect(result)
+						.to.have.property('peers')
+						.to.be.a('array');
+					var peerPorts = result.peers.map(peer => {
+						return peer.wsPort;
+					});
+					var allPorts = params.configurations.map(configuration => {
+						return configuration.wsPort;
+					});
+					expect(_.intersection(allPorts, peerPorts)).to.be.an('array').and.not
+						.to.be.empty;
 				});
 			});
-});
+		});
 	});
 
 	describe('forging', () => {
 		function getNetworkStatus(cb) {
-			Promise.all(params.sockets.map(socket => { return socket.wampSend('status'); })).then(results => {
-				var maxHeight = 1;
-				var heightSum = 0;
-				results.forEach(result => {
-					expect(result).to.have.property('success').to.be.true;
-					expect(result).to.have.property('height').to.be.a('number');
-					if (result.height > maxHeight) {
-						maxHeight = result.height;
-					}
-					heightSum += result.height;
+			Promise.all(
+				params.sockets.map(socket => {
+					return socket.wampSend('status');
+				})
+			)
+				.then(results => {
+					var maxHeight = 1;
+					var heightSum = 0;
+					results.forEach(result => {
+						expect(result).to.have.property('success').to.be.true;
+						expect(result)
+							.to.have.property('height')
+							.to.be.a('number');
+						if (result.height > maxHeight) {
+							maxHeight = result.height;
+						}
+						heightSum += result.height;
+					});
+					return cb(null, {
+						height: maxHeight,
+						averageHeight: heightSum / results.length,
+					});
+				})
+				.catch(err => {
+					cb(err);
 				});
-				return cb(null, {
-					height: maxHeight,
-					averageHeight: heightSum / results.length
-				});
-			}).catch(err => {
-				cb(err);
-			});
 		}
 
 		before(done => {
@@ -66,7 +85,11 @@ module.exports = function (params) {
 						clearInterval(checkingInterval);
 						return done(err);
 					}
-					utils.logger.log(`network status: height - ${res.height}, average height - ${res.averageHeight}`);
+					utils.logger.log(
+						`network status: height - ${res.height}, average height - ${
+							res.averageHeight
+						}`
+					);
 					if (timesNetworkStatusChecked === timesToCheckNetworkStatus) {
 						clearInterval(checkingInterval);
 						return done(null, res);
@@ -102,10 +125,20 @@ module.exports = function (params) {
 			});
 
 			it('should have different peers heights propagated correctly on peers lists', () => {
-return Promise.all(params.sockets.map(socket => { return socket.wampSend('list', {}); })).then(results => {
-					expect(results.some(peersList => { return peersList.peers.some(peer => { return peer.height > 1; }); }));
+				return Promise.all(
+					params.sockets.map(socket => {
+						return socket.wampSend('list', {});
+					})
+				).then(results => {
+					expect(
+						results.some(peersList => {
+							return peersList.peers.some(peer => {
+								return peer.height > 1;
+							});
+						})
+					);
 				});
-});
+			});
 		});
 	});
 };
