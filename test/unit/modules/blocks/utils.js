@@ -364,52 +364,37 @@ describe('blocks/utils', function () {
 
 	describe('getBlockProgressLogger', function () {
 
-		describe('BlockProgressLogger', function () {
+		var testTracker;
 
-			it('should set this.target to transactionsCount');
-
-			it('should set this.step to Math.floor(transactionsCount / logsFrequency);');
-
-			it('should set this.applied to 0');
-
-			describe('reset function', function () {
-
-				it('should set this.applied to 0');
-			});
-
-			describe('applyNext function', function () {
-
-				describe('when this.applied >= this.target', function () {
-
-					it('should throw error');
-				});
-
-				it('should increment this.applied');
-
-				describe('when this.applied = 1', function () {
-
-					it('should call this.log');
-				});
-
-				describe('when this.applied = this.target', function () {
-
-					it('should call this.log');
-				});
-
-				describe('when this.applied %this.step = 1', function () {
-
-					it('should call this.log');
-				});
-			});
-
-			describe('log function', function () {
-
-				it('should call library.logger.info with msg');
-
-				it('should call library.logger.info with message');
-			});
+		beforeEach(function () {
+			loggerStub.info.reset();
 		});
 
-		it('should return a new instance of BlockProgressLogger');
+		it('should initialize BlockProgressLogger', function (done) {
+			testTracker = blocksUtilsModule.getBlockProgressLogger(1, 1, 'Test tracker');
+			done();
+		});
+
+		it('should return valid log information when call applyNext()', function (done) {
+			testTracker.applyNext();
+			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
+			expect(loggerStub.info.args[0][1]).to.equal('100.0 %: applied 1 of 1 transactions');
+			done();
+		});
+
+		it('should throw error when times applied >= transactionsCount', function (done) {
+			expect(function () {
+				testTracker.applyNext();
+			}).to.throw('Cannot apply transaction over the limit: 1');
+			done();
+		});
+
+		it('should return valid log information when reset tracker and call applyNext()', function (done) {
+			testTracker.reset();
+			testTracker.applyNext();
+			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
+			expect(loggerStub.info.args[0][1]).to.equal('100.0 %: applied 1 of 1 transactions');
+			done();
+		});
 	});
 });
