@@ -385,6 +385,17 @@ class AccountsRepository {
 
 		if (
 			filters &&
+			typeof filters.username === 'object' &&
+			filters.username['$like']
+		) {
+			dynamicConditions.push(
+				pgp.as.format('username LIKE $1', [filters.username['$like']])
+			);
+			delete filters.username;
+		}
+
+		if (
+			filters &&
 			_.difference(Object.keys(filters), this.getDBFields()).length
 		) {
 			return Promise.reject('Unknown filter field provided to list'); // eslint-disable-line prefer-promise-reject-errors

@@ -243,8 +243,7 @@ describe('GET /delegates', () => {
 			});
 		});
 
-		// TOFIX: #1445
-		describe.skip('search', function() {
+		describe('search', function() {
 			it('using blank search should fail', function() {
 				return delegatesEndpoint
 					.makeRequest({ search: '' }, 400)
