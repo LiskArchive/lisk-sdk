@@ -14,10 +14,16 @@
 'use strict';
 
 /**
+ * @namespace failureCodes
+ * @memberof api.ws.rpc
+ */
+
+/**
  * Description.
  *
  * @name failureCodes
- * @memberof api/ws.rpc
+ * @memberof api.ws.rpc.failureCodes
+ * @see Parent: {@link api.ws.rpc}
  * @todo: Add description
  */
 module.exports = {
@@ -52,7 +58,7 @@ module.exports = {
  * Description.
  *
  * @name errorMessages
- * @memberof api/ws.rpc
+ * @memberof api.ws.rpc.failureCodes
  * @todo: Add description
  */
 module.exports.errorMessages = {
@@ -79,7 +85,7 @@ module.exports.errorMessages = {
  * Description.
  *
  * @class
- * @memberof api/ws.rpc
+ * @memberof api.ws.rpc.failureCodes
  * @param {number} code - Description of the param
  * @param {string} message - Description of the param
  * @param {string} description - Description of the param
