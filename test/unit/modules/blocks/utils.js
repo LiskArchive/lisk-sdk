@@ -248,7 +248,7 @@ describe('blocks/utils', function () {
 				});
 			});
 
-			it('should move signatures to the end always', function (done) {
+			it('should move signatures to the end', function (done) {
 				var genesisBlock_votes = [
 					{
 						b_id: '6524861224470851000',
@@ -293,42 +293,33 @@ describe('blocks/utils', function () {
 
 	describe('getIdSequence', function () {
 
-		it('should call modules.blocks.lastBlock.get');
+		it('should return error when library.db.blocks.getIdSequence fails', function (done) {
+			loggerStub.error.reset();
 
-		it('should call library.db.query');
-
-		it('should call library.db.query with sql.getIdSequence');
-
-		it('should call library.db.query with {height: height, limit: 5, delegates: constants.activeDelegates}');
-
-		describe('when db query fails', function () {
-
-			it('should call logger.error with error stack');
-
-			it('should call callback with the Blocks#getIdSequence error');
+			blocksUtilsModule.getIdSequence(10, function (err, cb) {
+				expect(loggerStub.error.args[0][0]).to.contains('TypeError: Cannot read property \'length\' of undefined');
+				expect(err).to.equal('Blocks#getIdSequence error');
+				done();
+			});
 		});
 
-		describe('when db query succeeds', function () {
+		it('should return error when no row is found', function (done) {
+			library.db.blocks.getIdSequence = sinonSandbox.stub().resolves([]);
 
-			describe('and returns no results', function () {
-
-				it('should call callback with an error');
+			blocksUtilsModule.getIdSequence(10, function (err, cb) {
+				expect(err).to.equal('Failed to get id sequence for height: 10');
+				done();
 			});
+		});
 
-			it('should add the genesis block to the end of the block array, if it does not contain it already');
+		it('should return valid block id list', function (done) {
+			library.db.blocks.getIdSequence = sinonSandbox.stub().resolves([{id: 1, height:2}, {id: 2, height:3}, {id: 3, height:4}, {id: 4, height:5}]);
 
-			it('should add the last block to the beginning of the block array, if it does not contain it already');
-
-			it('should call callback with error = null');
-
-			describe('result object', function () {
-
-				it('should assign firstHeight to the height of the last block');
-
-				it('should assign ids to a string of the block ids');
+			blocksUtilsModule.getIdSequence(10, function (err, cb) {
+				expect(cb.firstHeight).to.equal(1);
+				expect(cb.ids).to.equal('9314232245035524467,1,2,3,4,6524861224470851795');
+				done();
 			});
-
-			it('should call callback with result object');
 		});
 	});
 
