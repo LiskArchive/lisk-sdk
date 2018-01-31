@@ -35,6 +35,9 @@ When adding a new SQL file, it must be correctly referenced within [./index.js](
 In case of any issue with the SQL file or its reference, the application is configured to throw an error
 into the console and exit the process immediately.
 
+Please note that while each external SQL file must use underscore notation in its name, each reference
+to the file must use the corresponding camel case within [./index.js](./index.js).
+
 ## development notes
 
 When editing an SQL file on the development machine, you do not need to restart the application in order

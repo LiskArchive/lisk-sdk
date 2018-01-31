@@ -91,7 +91,7 @@ class MigrationsRepository {
 		return fs.readdir(updatesPath)
 			.then(files => files
 				.map(f => {
-					const m = f.match(/(\d+)_(\S+).sql/);
+					const m = f.match(/(\d+)_(.+).sql/);
 					return m && {
 						id: m[1],
 						name: m[2],
