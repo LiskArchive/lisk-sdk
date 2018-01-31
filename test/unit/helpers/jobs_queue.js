@@ -123,7 +123,9 @@ describe('helpers/jobsQueue', () => {
 				var name = 'job1';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(1);
+				expect(Object.keys(jobsQueue.jobs))
+					.to.be.an('array')
+					.and.lengthOf(1);
 				testExecution(job, name, spy);
 			});
 
@@ -133,7 +135,9 @@ describe('helpers/jobsQueue', () => {
 				var name = 'job2';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(2);
+				expect(Object.keys(jobsQueue.jobs))
+					.to.be.an('array')
+					.and.lengthOf(2);
 				testExecution(job, name, spy);
 			});
 
@@ -144,7 +148,9 @@ describe('helpers/jobsQueue', () => {
 				var name = 'job3';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(3);
+				expect(Object.keys(jobsQueue.jobs))
+					.to.be.an('array')
+					.and.lengthOf(3);
 				testExecution(job, name, spy);
 			});
 
@@ -152,7 +158,9 @@ describe('helpers/jobsQueue', () => {
 				var name = 'job4';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs)).to.be.an('array').and.lengthOf(4);
+				expect(Object.keys(jobsQueue.jobs))
+					.to.be.an('array')
+					.and.lengthOf(4);
 				testExecution(job, name, spy);
 
 				expect(() => {
@@ -169,7 +177,9 @@ describe('helpers/jobsQueue', () => {
 				var name = 'job5';
 				var spy = sinonSandbox.spy(dummyFunction);
 				var job = jobsQueuePeers.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueuePeers.jobs)).to.be.an('array').and.lengthOf(5);
+				expect(Object.keys(jobsQueuePeers.jobs))
+					.to.be.an('array')
+					.and.lengthOf(5);
 				testExecution(job, name, spy);
 				// Instances still should be the same
 				expect(jobsQueuePeers).to.equal(jobsQueue);

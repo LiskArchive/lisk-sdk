@@ -30,11 +30,7 @@ class VotersRepository {
 		this.pgp = pgp;
 
 		// TODO: A proper repository shouldn't need to export any properties like this:
-		this.sortFields = [
-			'username',
-			'address',
-			'publicKey'
-		];
+		this.sortFields = ['username', 'address', 'publicKey'];
 	}
 
 	/**

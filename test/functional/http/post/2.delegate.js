@@ -48,10 +48,26 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	// Crediting accounts
 	before(() => {
 		var transactions = [];
-		var transaction1 = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
-		var transaction2 = lisk.transaction.createTransaction(accountMinimalFunds.address, constants.fees.delegate, accountFixtures.genesis.password);
-		var transaction3 = lisk.transaction.createTransaction(accountUpperCase.address, constants.fees.delegate, accountFixtures.genesis.password);
-		var transaction4 = lisk.transaction.createTransaction(accountFormerDelegate.address, constants.fees.delegate, accountFixtures.genesis.password);
+		var transaction1 = lisk.transaction.createTransaction(
+			account.address,
+			1000 * normalizer,
+			accountFixtures.genesis.password
+		);
+		var transaction2 = lisk.transaction.createTransaction(
+			accountMinimalFunds.address,
+			constants.fees.delegate,
+			accountFixtures.genesis.password
+		);
+		var transaction3 = lisk.transaction.createTransaction(
+			accountUpperCase.address,
+			constants.fees.delegate,
+			accountFixtures.genesis.password
+		);
+		var transaction4 = lisk.transaction.createTransaction(
+			accountFormerDelegate.address,
+			constants.fees.delegate,
+			accountFixtures.genesis.password
+		);
 		transactions.push(transaction1);
 		transactions.push(transaction2);
 		transactions.push(transaction3);
@@ -77,16 +93,29 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 	describe('transactions processing', () => {
 		it('with no funds should fail', () => {
-			transaction = lisk.delegate.createDelegate(accountNoFunds.password, accountNoFunds.username);
+			transaction = lisk.delegate.createDelegate(
+				accountNoFunds.password,
+				accountNoFunds.username
+			);
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
-				expect(res.body.message).to.be.equal(`Account does not have enough LSK: ${accountNoFunds.address} balance: 0`);
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					`Account does not have enough LSK: ${
+						accountNoFunds.address
+					} balance: 0`
+				);
 				badTransactions.push(transaction);
 			});
 		});
 
 		it('with minimal required amount of funds should be ok', () => {
-			transaction = lisk.delegate.createDelegate(accountMinimalFunds.password, accountMinimalFunds.username);
+			transaction = lisk.delegate.createDelegate(
+				accountMinimalFunds.password,
+				accountMinimalFunds.username
+			);
 
 			return sendTransactionPromise(transaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -97,7 +126,10 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		it('using blank username should fail', () => {
 			transaction = lisk.delegate.createDelegate(account.password, '');
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
 				expect(res.body.message).to.be.equal('Username is undefined');
 				badTransactions.push(transaction);
 			});
@@ -107,33 +139,55 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 			var username = '~!@#$ %^&*()_+.,?/';
 			transaction = lisk.delegate.createDelegate(account.password, username);
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
-				expect(res.body.message).to.be.equal(`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`);
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
+				);
 				badTransactions.push(transaction);
 			});
 		});
 
 		it('using username longer than 20 characters should fail', () => {
 			var delegateName = `${randomUtil.delegateName()}x`;
-			transaction = lisk.delegate.createDelegate(account.password, delegateName);
+			transaction = lisk.delegate.createDelegate(
+				account.password,
+				delegateName
+			);
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
-				expect(res.body.message).to.be.equal('Username is too long. Maximum is 20 characters');
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					'Username is too long. Maximum is 20 characters'
+				);
 				badTransactions.push(transaction);
 			});
 		});
 
 		it('using uppercase username should fail', () => {
-			transaction = lisk.delegate.createDelegate(accountUpperCase.password, accountUpperCase.username.toUpperCase());
+			transaction = lisk.delegate.createDelegate(
+				accountUpperCase.password,
+				accountUpperCase.username.toUpperCase()
+			);
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
 				expect(res.body.message).to.be.equal('Username must be lowercase');
 				badTransactions.push(transaction);
 			});
 		});
 
 		it('using valid params should be ok', () => {
-			transaction = lisk.delegate.createDelegate(account.password, account.username);
+			transaction = lisk.delegate.createDelegate(
+				account.password,
+				account.username
+			);
 
 			return sendTransactionPromise(transaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -148,27 +202,47 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 	describe('validation', () => {
 		it('setting same delegate twice should fail', () => {
-			transaction = lisk.delegate.createDelegate(account.password, account.username);
+			transaction = lisk.delegate.createDelegate(
+				account.password,
+				account.username
+			);
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
 				expect(res.body.message).to.be.equal('Account is already a delegate');
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
 
 		it('using existing username should fail', () => {
-			transaction = lisk.delegate.createDelegate(accountFormerDelegate.password, account.username);
+			transaction = lisk.delegate.createDelegate(
+				accountFormerDelegate.password,
+				account.username
+			);
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
-				expect(res.body.message).to.be.equal(`Username ${account.username} already exists`);
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					`Username ${account.username} already exists`
+				);
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
 
 		it('updating registered delegate should fail', () => {
-			transaction = lisk.delegate.createDelegate(account.password, 'newusername');
+			transaction = lisk.delegate.createDelegate(
+				account.password,
+				'newusername'
+			);
 
-			return sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR).then(res => {
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
 				expect(res.body.message).to.be.equal('Account is already a delegate');
 				badTransactionsEnforcement.push(transaction);
 			});
@@ -176,6 +250,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	});
 
 	describe('confirm validation', () => {
-		phases.confirmation(goodTransactionsEnforcement, badTransactionsEnforcement);
+		phases.confirmation(
+			goodTransactionsEnforcement,
+			badTransactionsEnforcement
+		);
 	});
 });

@@ -61,17 +61,23 @@ describe('PeersManager', () => {
 
 			it('should add entry to peers when invoked with valid arguments', () => {
 				peersManager.add(validPeer);
-				expect(peersManager.peers).to.have.property(validPeer.string).eql(validPeer);
+				expect(peersManager.peers)
+					.to.have.property(validPeer.string)
+					.eql(validPeer);
 			});
 
 			it('should add entry to addressToNonceMap when invoked with valid arguments', () => {
 				peersManager.add(validPeer);
-				expect(peersManager.addressToNonceMap).to.have.property(validPeer.string).eql(validPeer.nonce);
+				expect(peersManager.addressToNonceMap)
+					.to.have.property(validPeer.string)
+					.eql(validPeer.nonce);
 			});
 
 			it('should add entry to nonceToAddressMap when invoked with valid arguments', () => {
 				peersManager.add(validPeer);
-				expect(peersManager.nonceToAddressMap).to.have.property(validPeer.nonce).eql(validPeer.string);
+				expect(peersManager.nonceToAddressMap)
+					.to.have.property(validPeer.nonce)
+					.eql(validPeer.string);
 			});
 
 			it('should prevent from adding peer with the same nonce but different address', () => {
@@ -96,8 +102,8 @@ describe('PeersManager', () => {
 			});
 
 			describe('multiple valid entries', () => {
-				var validPeerA,
-validPeerB;
+				var validPeerA;
+				var validPeerB;
 
 				beforeEach(() => {
 					validPeerA = _.clone(validPeer);
@@ -114,20 +120,36 @@ validPeerB;
 
 				it('should contain multiple entries in peers after multiple valid entries added', () => {
 					expect(Object.keys(peersManager.peers).length).to.equal(2);
-					expect(peersManager.peers).to.have.property(validPeerA.string).eql(validPeerA);
-					expect(peersManager.peers).to.have.property(validPeerB.string).eql(validPeerB);
+					expect(peersManager.peers)
+						.to.have.property(validPeerA.string)
+						.eql(validPeerA);
+					expect(peersManager.peers)
+						.to.have.property(validPeerB.string)
+						.eql(validPeerB);
 				});
 
 				it('should contain multiple entries in addressToNonceMap after multiple valid entries added', () => {
-					expect(Object.keys(peersManager.addressToNonceMap).length).to.equal(2);
-					expect(peersManager.addressToNonceMap).to.have.property(validPeerA.string).equal(validPeerA.nonce);
-					expect(peersManager.addressToNonceMap).to.have.property(validPeerB.string).equal(validPeerB.nonce);
+					expect(Object.keys(peersManager.addressToNonceMap).length).to.equal(
+						2
+					);
+					expect(peersManager.addressToNonceMap)
+						.to.have.property(validPeerA.string)
+						.equal(validPeerA.nonce);
+					expect(peersManager.addressToNonceMap)
+						.to.have.property(validPeerB.string)
+						.equal(validPeerB.nonce);
 				});
 
 				it('should contain multiple entries in nonceToAddressMap after multiple valid entries added', () => {
-					expect(Object.keys(peersManager.addressToNonceMap).length).to.equal(2);
-					expect(peersManager.nonceToAddressMap).to.have.property(validPeerA.nonce).equal(validPeerA.string);
-					expect(peersManager.nonceToAddressMap).to.have.property(validPeerB.nonce).equal(validPeerB.string);
+					expect(Object.keys(peersManager.addressToNonceMap).length).to.equal(
+						2
+					);
+					expect(peersManager.nonceToAddressMap)
+						.to.have.property(validPeerA.nonce)
+						.equal(validPeerA.string);
+					expect(peersManager.nonceToAddressMap)
+						.to.have.property(validPeerB.nonce)
+						.equal(validPeerB.string);
 				});
 			});
 		});
@@ -162,7 +184,9 @@ validPeerB;
 
 			it('should remove previously added valid entry', () => {
 				peersManager.add(validPeer);
-				expect(peersManager.peers).to.have.property(validPeer.string).eql(validPeer);
+				expect(peersManager.peers)
+					.to.have.property(validPeer.string)
+					.eql(validPeer);
 				peersManager.remove(validPeer);
 				expect(peersManager).to.have.property('peers').to.be.empty;
 				expect(peersManager).to.have.property('addressToNonceMap').to.be.empty;
@@ -181,7 +205,9 @@ validPeerB;
 
 			it('should return nonce assigned to connection id when entry exists', () => {
 				peersManager.add(validPeer);
-				expect(peersManager.getNonce(validPeer.string)).to.equal(validPeer.nonce);
+				expect(peersManager.getNonce(validPeer.string)).to.equal(
+					validPeer.nonce
+				);
 			});
 		});
 
@@ -196,7 +222,9 @@ validPeerB;
 
 			it('should return nonce assigned to connection id when entry exists', () => {
 				peersManager.add(validPeer);
-				expect(peersManager.getAddress(validPeer.nonce)).to.equal(validPeer.string);
+				expect(peersManager.getAddress(validPeer.nonce)).to.equal(
+					validPeer.string
+				);
 			});
 		});
 

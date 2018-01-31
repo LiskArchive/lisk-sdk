@@ -13,6 +13,14 @@
  */
 'use strict';
 
+/**
+ * Description of the object.
+ *
+ * @name failureCodes
+ * @memberof api.ws.rpc.failureCodes
+ * @see Parent: {@link api.ws.rpc}
+ * @todo: Add description of the object
+ */
 module.exports = {
 	INVALID_HEADERS: 4100,
 	INCOMPATIBLE_NONCE: 4101,
@@ -27,20 +35,27 @@ module.exports = {
 		UPDATE: {
 			CHECK_PRESENCE: 4200,
 			INVALID_PEER: 4201,
-			TRANSPORT: 4202
+			TRANSPORT: 4202,
 		},
 		REMOVE: {
 			NOT_ON_LIST: 4210,
-			FROZEN_PEER: 4211
+			FROZEN_PEER: 4211,
 		},
 		INSERT: {
 			INSERT_ONLY_FAILURE: 4230,
 			NOT_ACCEPTED: 4231,
-			NONCE_EXISTS: 4232
-		}
-	}
+			NONCE_EXISTS: 4232,
+		},
+	},
 };
 
+/**
+ * Description of the object.
+ *
+ * @name errorMessages
+ * @memberof api.ws.rpc.failureCodes
+ * @todo: Add description of the object
+ */
 module.exports.errorMessages = {
 	4100: 'Invalid headers',
 	4101: 'Request is made by itself',
@@ -58,14 +73,18 @@ module.exports.errorMessages = {
 	4211: 'Attempting to remove a frozen peer',
 	4230: 'Insert only update failed - peer is already listed',
 	4231: 'Cannot accept a peer - private ip address or itself',
-	4232: 'Attempting to insert a peer with nonce already listed'
+	4232: 'Attempting to insert a peer with nonce already listed',
 };
 
 /**
- * @param {number} code
- * @param {string} message
- * @param {string}[description=undefined] description
- * @constructor
+ * Description of the function.
+ *
+ * @class
+ * @memberof api.ws.rpc.failureCodes
+ * @param {number} code - Description of the param
+ * @param {string} message - Description of the param
+ * @param {string} description - Description of the param
+ * @todo: Add description of the function and its parameters
  */
 function PeerUpdateError(code, message, description) {
 	this.code = code;
@@ -73,8 +92,12 @@ function PeerUpdateError(code, message, description) {
 	this.description = description;
 }
 
-PeerUpdateError.prototype.toString = function () {
-	return JSON.stringify({ code: this.code, message: this.message, description: this.description });
+PeerUpdateError.prototype.toString = function() {
+	return JSON.stringify({
+		code: this.code,
+		message: this.message,
+		description: this.description,
+	});
 };
 
 PeerUpdateError.prototype = new Error();

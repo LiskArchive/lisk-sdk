@@ -16,15 +16,19 @@
 var Promise = require('bluebird');
 var utils = require('../../utils');
 
-module.exports = function (params) {
+module.exports = function(params) {
 	describe('blocks', () => {
 		var nodesBlocks;
 
 		before(() => {
- return Promise.all(params.configurations.map(configuration => { return utils.http.getBlocks(configuration.httpPort); })).then(blocksResults => {
+			return Promise.all(
+				params.configurations.map(configuration => {
+					return utils.http.getBlocks(configuration.httpPort);
+				})
+			).then(blocksResults => {
 				nodesBlocks = blocksResults;
 			});
-});
+		});
 
 		it('should be able to get blocks list from every peer', () => {
 			expect(nodesBlocks).to.have.lengthOf(params.configurations.length);
@@ -37,7 +41,10 @@ module.exports = function (params) {
 		});
 
 		it('should have all peers at the same height', () => {
-			var uniquePeersHeights = _(nodesBlocks).map('length').uniq().value();
+			var uniquePeersHeights = _(nodesBlocks)
+				.map('length')
+				.uniq()
+				.value();
 			expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
 		});
 

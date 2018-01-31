@@ -43,7 +43,9 @@ function parallelTests(tag, suite, section) {
 					suiteFolder = 'test/functional/';
 					break;
 				default:
-					console.warn('Invalid section argument. Options are: get, post, ws or system');
+					console.warn(
+						'Invalid section argument. Options are: get, post, ws or system'
+					);
 					process.exit();
 					break;
 			}
@@ -81,20 +83,36 @@ function parallelTests(tag, suite, section) {
 
 	var parallelTestsRunning = {};
 
-	var spawnTest = function (test) {
-		var coverageArguments = ['cover', '--dir', 'test/.coverage-unit', '--include-pid', 'node_modules/.bin/_mocha', test];
+	var spawnTest = function(test) {
+		var coverageArguments = [
+			'cover',
+			'--dir',
+			'test/.coverage-unit',
+			'--include-pid',
+			'node_modules/.bin/_mocha',
+			test,
+		];
 		var istanbulArguments = coverageArguments.concat(mochaArguments);
 
-		var child = child_process.spawn('node_modules/.bin/istanbul', istanbulArguments, {
-			cwd: `${__dirname}/../..`,
-			detached: true,
-			stdio: 'inherit'
-		});
+		var child = child_process.spawn(
+			'node_modules/.bin/istanbul',
+			istanbulArguments,
+			{
+				cwd: `${__dirname}/../..`,
+				detached: true,
+				stdio: 'inherit',
+			}
+		);
 
-		console.log('Running the test:', test, 'as a separate process - pid', child.pid);
+		console.log(
+			'Running the test:',
+			test,
+			'as a separate process - pid',
+			child.pid
+		);
 		parallelTestsRunning[child.pid] = child;
 
-		var cleanupRunningTests = function () {
+		var cleanupRunningTests = function() {
 			Object.keys(parallelTestsRunning).forEach(k => {
 				parallelTestsRunning[k].kill('SIGTERM');
 			});
@@ -132,5 +150,5 @@ function parallelTests(tag, suite, section) {
 parallelTests(process.argv[2], process.argv[3], process.argv[4]);
 
 module.exports = {
-	parallelTests: parallelTests
+	parallelTests: parallelTests,
 };

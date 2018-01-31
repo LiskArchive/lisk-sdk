@@ -32,7 +32,7 @@ function WSServerMaster() {
 
 	this.headers = WSServerMaster.generatePeerHeaders({
 		ip: this.ip,
-		version: `0.0.${Math.floor(Math.random() * 10) + 1}`
+		version: `0.0.${Math.floor(Math.random() * 10) + 1}`,
 	});
 
 	this.wsPort = this.headers.wsPort;
@@ -44,16 +44,20 @@ function WSServerMaster() {
  *
  * @return {Promise}
  */
-WSServerMaster.prototype.start = function () {
+WSServerMaster.prototype.start = function() {
 	var self = this;
 
-	return new Promise(function (resolve, reject) {
-		self.masterProcess = ChildProcess.fork(path.join(__dirname, 'server_process.js'), [JSON.stringify(self.headers)], {
-			cwd: __dirname,
-			detached: false,
-			stdio: 'inherit',
-			env: process.env
-		});
+	return new Promise(function(resolve, reject) {
+		self.masterProcess = ChildProcess.fork(
+			path.join(__dirname, 'server_process.js'),
+			[JSON.stringify(self.headers)],
+			{
+				cwd: __dirname,
+				detached: false,
+				stdio: 'inherit',
+				env: process.env,
+			}
+		);
 
 		self.masterProcess.on('error', () => {
 			self.stop();
@@ -81,7 +85,7 @@ WSServerMaster.prototype.start = function () {
  * @param {Object} [headers] - Existing headers to override with random values
  * @return {{broadhash, height: number, nethash, os: string, ip, wsPort: *|number, httpPort: number|*, version: *, nonce: *|number|{}, status: number}}
  */
-WSServerMaster.generatePeerHeaders = function (headers) {
+WSServerMaster.generatePeerHeaders = function(headers) {
 	if (!headers) {
 		headers = {};
 	}
@@ -99,7 +103,7 @@ WSServerMaster.generatePeerHeaders = function (headers) {
 		nonce: randomstring.generate(16),
 		os: operatingSystems[random.number(0, operatingSystems.length)],
 		version: testConfig.version,
-		minVersion: testConfig.minVersion
+		minVersion: testConfig.minVersion,
 	};
 
 	return Object.assign({}, defaults, headers);
@@ -110,14 +114,14 @@ WSServerMaster.generatePeerHeaders = function (headers) {
  *
  * @return {object}
  */
-WSServerMaster.prototype.getHeaders = function () {
+WSServerMaster.prototype.getHeaders = function() {
 	return this.headers;
 };
 
 /**
  * Stop the server
  */
-WSServerMaster.prototype.stop = function () {
+WSServerMaster.prototype.stop = function() {
 	if (this.masterProcess) {
 		this.masterProcess.kill();
 	}

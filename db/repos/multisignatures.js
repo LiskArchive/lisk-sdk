@@ -36,7 +36,11 @@ class MultisignaturesRepository {
 	 * @return {Promise}
 	 */
 	getMemberPublicKeys(address) {
-		return this.db.one(sql.getMemberPublicKeys, { address }, a => a.memberAccountKeys);
+		return this.db.one(
+			sql.getMemberPublicKeys,
+			{ address },
+			a => a.memberAccountKeys
+		);
 	}
 
 	/**

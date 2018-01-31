@@ -18,7 +18,8 @@ const repos = require('require-all')(`${__dirname}/repos`);
 const Promise = require('bluebird');
 
 // TODO: Had to change it from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
-let initOptions = { // eslint-disable-line prefer-const
+// eslint-disable-next-line prefer-const
+let initOptions = {
 	pgNative: true,
 	capSQL: true,
 	promiseLib: Promise,
@@ -29,7 +30,7 @@ let initOptions = { // eslint-disable-line prefer-const
 		Object.keys(repos).forEach(repoName => {
 			object[repoName] = new repos[repoName](object, pgp);
 		});
-	}
+	},
 };
 
 const pgp = require('pg-promise')(initOptions);

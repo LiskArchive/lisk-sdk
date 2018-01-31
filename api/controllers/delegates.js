@@ -41,7 +41,7 @@ function DelegatesController(scope) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-DelegatesController.getDelegates = function (context, next) {
+DelegatesController.getDelegates = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -53,14 +53,16 @@ DelegatesController.getDelegates = function (context, next) {
 		offset: params.offset.value,
 		sort: params.sort.value,
 		search: params.search.value,
-		rank: params.rank.value
+		rank: params.rank.value,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	modules.delegates.shared.getDelegates(_.clone(filters), (err, data) => {
-		if (err) { return next(err); }
+		if (err) {
+			return next(err);
+		}
 
 		data = _.cloneDeep(data);
 
@@ -68,7 +70,7 @@ DelegatesController.getDelegates = function (context, next) {
 			delegate.account = {
 				address: delegate.address,
 				publicKey: delegate.publicKey,
-				secondPublicKey: delegate.secondPublicKey || ''
+				secondPublicKey: delegate.secondPublicKey || '',
 			};
 
 			delete delegate.secondPublicKey;
@@ -86,8 +88,8 @@ DelegatesController.getDelegates = function (context, next) {
 			data: data,
 			meta: {
 				offset: filters.offset,
-				limit: filters.limit
-			}
+				limit: filters.limit,
+			},
 		});
 	});
 };
@@ -99,16 +101,18 @@ DelegatesController.getDelegates = function (context, next) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-DelegatesController.getForgers = function (context, next) {
+DelegatesController.getForgers = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
 		limit: params.limit.value,
-		offset: params.offset.value
+		offset: params.offset.value,
 	};
 
 	modules.delegates.shared.getForgers(_.clone(filters), (err, data) => {
-		if (err) { return next(err); }
+		if (err) {
+			return next(err);
+		}
 
 		data.meta.limit = filters.limit;
 		data.meta.offset = filters.offset;
@@ -119,37 +123,41 @@ DelegatesController.getForgers = function (context, next) {
 	});
 };
 
-DelegatesController.getForgingStatistics = function (context, next) {
+DelegatesController.getForgingStatistics = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
 		address: params.address.value,
 		start: params.fromTimestamp.value || constants.epochTime.getTime(),
-		end: params.toTimestamp.value || Date.now()
+		end: params.toTimestamp.value || Date.now(),
 	};
 
-	modules.blocks.utils.aggregateBlocksReward(filters, function (err, reward) {
+	modules.blocks.utils.aggregateBlocksReward(filters, function(err, reward) {
 		if (err) {
 			if (err === 'Account not found' || err === 'Account is not a delegate') {
-				return next(swaggerHelper.generateParamsErrorObject([params.address], [err]));
+				return next(
+					swaggerHelper.generateParamsErrorObject([params.address], [err])
+				);
 			} else {
 				return next(err);
 			}
 		}
 
-		var forged = new bignum(reward.fees).plus(new bignum(reward.rewards)).toString();
+		var forged = new bignum(reward.fees)
+			.plus(new bignum(reward.rewards))
+			.toString();
 		var response = {
 			data: {
 				fees: reward.fees,
 				rewards: reward.rewards,
 				forged: forged,
-				count: reward.count
+				count: reward.count,
 			},
 			meta: {
 				fromTimestamp: filters.start,
-				toTimestamp: filters.end
+				toTimestamp: filters.end,
 			},
-			links: {}
+			links: {},
 		};
 		return next(null, response);
 	});
