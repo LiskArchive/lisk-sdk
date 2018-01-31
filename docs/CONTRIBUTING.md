@@ -113,7 +113,6 @@ out [the required template](ISSUE_TEMPLATE.md), the information it asks for
 helps us resolve issues faster.
 
 > **Note:** If you find a **Closed** issue that seems like it is the same thing
-
     that you’re experiencing, open a new issue and include a link to the original
     issue in the body of your new one.
 
@@ -221,20 +220,21 @@ following information:
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally after the first line
 * Consider starting the commit message with an applicable emoji:
-  _ :seedling: `:seedling:` when adding a new feature
-  _ :bug: `:bug:` when fixing a bug
-  _ :books: `:books:` when adding or updating documentation
-  _ :nail_care: `:nail_care:` when making changes to code style (e.g. lint settings)
-  _ :recycle: `:recycle:` when refactoring code
-  _ :fire: `:fire:` when removing code or files (including dependencies)
-  _ :racehorse: `:racehorse:` when improving performance
-  _ :white_check_mark: `:white_check_mark:` when adding or updating tests
-  _ :construction_worker: `:construction_worker:` when updating the build process
-  _ :bowtie: `:bowtie:` when updating CI
-  _ :house: `:house:` when performing chores
-  _ :new: `:new:` when adding a new dependency
-  _ :arrow_up: `:arrow_up:` when upgrading a dependency
-  _ :arrow_down: `:arrow_down:` when downgrading a dependency \* :back: `:back:` when reverting changes
+  * :seedling: `:seedling:` when adding a new feature
+  * :bug: `:bug:` when fixing a bug
+  * :books: `:books:` when adding or updating documentation
+  * :nail_care: `:nail_care:` when making changes to code style (e.g. lint settings)
+  * :recycle: `:recycle:` when refactoring code
+  * :fire: `:fire:` when removing code or files (including dependencies)
+  * :racehorse: `:racehorse:` when improving performance
+  * :white_check_mark: `:white_check_mark:` when adding or updating tests
+  * :construction_worker: `:construction_worker:` when updating the build process
+  * :bowtie: `:bowtie:` when updating CI
+  * :house: `:house:` when performing chores
+  * :new: `:new:` when adding a new dependency
+  * :arrow_up: `:arrow_up:` when upgrading a dependency
+  * :arrow_down: `:arrow_down:` when downgrading a dependency
+  * :back: `:back:` when reverting changes
 
 ### JavaScript Styleguide
 

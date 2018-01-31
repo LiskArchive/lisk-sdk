@@ -74,7 +74,6 @@ This sections provides details on what you need install on your system in order 
   1. Install nvm following their instructions (https://github.com/creationix/nvm#installation)
   2. Install the correct version of Node.js using nvm:
 
-
   ```
   nvm install 6.12.3
   ```
@@ -220,7 +219,6 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 
 1. Recreate the database in order to run the tests against a new blockchain:
 
-
 ```
 dropdb lisk_test
 createdb lisk_test
@@ -228,13 +226,11 @@ createdb lisk_test
 
 2. Ensure Lisk is configured to run on the same local network used by the tests. Replace the files **config.json** and **genesis_block.json** with those located under the **test/data** directory:
 
-
 ```
 cp test/data/config.json test/data/genesis_block.json .
 ```
 
 3. Launch Lisk (runs on port 4000):
-
 
 ```
 NODE_ENV=test node app.js
