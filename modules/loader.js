@@ -785,7 +785,7 @@ Loader.prototype.onPeersReady = function () {
 				}
 			}
 		}, function (err) {
-			library.logger.trace('Transactions and signatures pulled');
+			library.logger.trace('Transactions and signatures pulled', err);
 		});
 	});
 };
