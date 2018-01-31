@@ -51,12 +51,10 @@ function Utils (logger, block, transaction, db, dbSequence, genesisblock) {
 
 /**
  * Normalize blocks and their transactions
- * // FIXME: Looks like that function can accepts both blocks and transactions as param, processing here is not clear
  *
- * @private
  * @method readDbRows
- * @param  {Object} rows List of blocks/transactions?
- * @return {Object} blocks Normalized list of blocks with transactions
+ * @param  {[Object]} rows Data from full_blocks_list view
+ * @return {[Object]} blocks Normalized list of blocks with transactions
  */
 Utils.prototype.readDbRows = function (rows) {
 	var blocks = {};
