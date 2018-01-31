@@ -95,6 +95,7 @@ export const getActionCreator = actionName =>
 		'show copyright': showCopyright.actionCreator,
 		'show warranty': showWarranty.actionCreator,
 		'sign message': signMessage.actionCreator,
+		'verify message': verifyMessage.actionCreator,
 	}[actionName]);
 
 export const createFakeInterface = value => ({

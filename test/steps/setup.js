@@ -105,6 +105,7 @@ const setUpLiskJSCryptoStubs = () => {
 		'getKeys',
 		'getAddressFromPublicKey',
 		'signMessageWithPassphrase',
+		'verifyMessageWithPublicKey',
 	].forEach(methodName => sandbox.stub(lisk.crypto, methodName));
 };
 
@@ -268,6 +269,11 @@ export function tearDownCommandSet() {
 }
 
 export function setUpCommandSignMessage() {
+	setUpCryptoStubs();
+	setUpInputStubs();
+}
+
+export function setUpCommandVerifyMessage() {
 	setUpCryptoStubs();
 	setUpInputStubs();
 }
