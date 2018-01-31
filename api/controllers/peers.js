@@ -38,7 +38,7 @@ function PeersController(scope) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-PeersController.getPeers = function (context, next) {
+PeersController.getPeers = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -52,14 +52,16 @@ PeersController.getPeers = function (context, next) {
 		height: params.height.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
-		sort: params.sort.value
+		sort: params.sort.value,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	modules.peers.shared.getPeers(filters, (err, data) => {
-		if (err) { return next(err); }
+		if (err) {
+			return next(err);
+		}
 
 		data = _.cloneDeep(data);
 
@@ -74,8 +76,8 @@ PeersController.getPeers = function (context, next) {
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
-				total: modules.peers.shared.getPeersCount()
-			}
+				total: modules.peers.shared.getPeersCount(),
+			},
 		});
 	});
 };

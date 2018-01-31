@@ -31,14 +31,17 @@ describe('ClientRPCStub', () => {
 
 	before(() => {
 		socketClusterMock = {
-			on: sinonSandbox.spy()
+			on: sinonSandbox.spy(),
 		};
 		wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
 		// Register RPC
 		var transportModuleMock = { internal: {}, shared: {} };
 		transport(transportModuleMock);
 		// Now ClientRPCStub should contain all methods names
-		validClientRPCStub = wsRPC.getClientRPCStub(validWSServerIp, validWSServerPort);
+		validClientRPCStub = wsRPC.getClientRPCStub(
+			validWSServerIp,
+			validWSServerPort
+		);
 	});
 
 	describe('should contain remote procedure', () => {
@@ -110,15 +113,22 @@ describe('ClientRPCStub', () => {
 		describe('with invalid headers', () => {
 			beforeEach(() => {
 				wsRPC.clientsConnectionsMap = {};
-				validClientRPCStub = wsRPC.getClientRPCStub(validWSServerIp, validWSServerPort);
+				validClientRPCStub = wsRPC.getClientRPCStub(
+					validWSServerIp,
+					validWSServerPort
+				);
 			});
 
 			it('without port should call RPC callback with INVALID_HEADERS error', done => {
 				delete validHeaders.wsPort;
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(err => {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('wsPort: Expected type integer but found type not-a-number');
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal('wsPort: Expected type integer but found type not-a-number');
 					done();
 				});
 			});
@@ -136,8 +146,12 @@ describe('ClientRPCStub', () => {
 				validHeaders.nonce = 'TOO_SHORT';
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(err => {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('nonce: String is too short (9 chars), minimum 16');
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal('nonce: String is too short (9 chars), minimum 16');
 					done();
 				});
 			});
@@ -146,8 +160,12 @@ describe('ClientRPCStub', () => {
 				validHeaders.nonce = 'NONCE_LONGER_THAN_16_CHARS';
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(err => {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('nonce: String is too long (26 chars), maximum 16');
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal('nonce: String is too long (26 chars), maximum 16');
 					done();
 				});
 			});
@@ -156,8 +174,12 @@ describe('ClientRPCStub', () => {
 				delete validHeaders.nonce;
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(err => {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal(': Missing required property: nonce');
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal(': Missing required property: nonce');
 					done();
 				});
 			});
@@ -166,8 +188,12 @@ describe('ClientRPCStub', () => {
 				delete validHeaders.nethash;
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(err => {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal(': Missing required property: nethash');
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal(': Missing required property: nethash');
 					done();
 				});
 			});
@@ -176,8 +202,12 @@ describe('ClientRPCStub', () => {
 				delete validHeaders.height;
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(err => {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('height: Expected type integer but found type not-a-number');
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal('height: Expected type integer but found type not-a-number');
 					done();
 				});
 			});
@@ -186,8 +216,12 @@ describe('ClientRPCStub', () => {
 				delete validHeaders.version;
 				System.setHeaders(validHeaders);
 				validClientRPCStub.status(err => {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal(': Missing required property: version');
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal(': Missing required property: version');
 					done();
 				});
 			});
@@ -199,13 +233,20 @@ describe('ClientRPCStub', () => {
 			before(() => {
 				var invalisServerIp = '1.1.1.1';
 				var invalisServerPort = 1111;
-				validClientRPCStub = wsRPC.getClientRPCStub(invalisServerIp, invalisServerPort);
+				validClientRPCStub = wsRPC.getClientRPCStub(
+					invalisServerIp,
+					invalisServerPort
+				);
 			});
 
 			it('should call RPC callback with CONNECTION_TIMEOUT error', done => {
 				validClientRPCStub.status(err => {
-					expect(err).to.have.property('code').equal(failureCodes.CONNECTION_TIMEOUT);
-					expect(err).to.have.property('message').equal(failureCodes.errorMessages[failureCodes.CONNECTION_TIMEOUT]);
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.CONNECTION_TIMEOUT);
+					expect(err)
+						.to.have.property('message')
+						.equal(failureCodes.errorMessages[failureCodes.CONNECTION_TIMEOUT]);
 					done();
 				});
 			});
@@ -215,13 +256,20 @@ describe('ClientRPCStub', () => {
 			before(() => {
 				var validServerIp = '127.0.0.1';
 				var invalisServerPort = 1111;
-				validClientRPCStub = wsRPC.getClientRPCStub(validServerIp, invalisServerPort);
+				validClientRPCStub = wsRPC.getClientRPCStub(
+					validServerIp,
+					invalisServerPort
+				);
 			});
 
 			it('should call RPC callback with HANDSHAKE_ERROR error', done => {
 				validClientRPCStub.status(err => {
-					expect(err).to.have.property('code').equal(failureCodes.HANDSHAKE_ERROR);
-					expect(err).to.have.property('message').equal(failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]);
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.HANDSHAKE_ERROR);
+					expect(err)
+						.to.have.property('message')
+						.equal(failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]);
 					done();
 				});
 			});

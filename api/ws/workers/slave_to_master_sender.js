@@ -29,25 +29,40 @@ function SlaveToMasterSender(slaveWAMPServer) {
  * @param {Object} peer
  * @param {function} cb
  */
-SlaveToMasterSender.prototype.send = function (procedureName, updateType, peer, cb) {
-	this.slaveWAMPServer.sendToMaster(procedureName, {
-		peer: peer,
-		authKey: this.slaveWAMPServer.worker.options.authKey,
-		updateType: updateType
-	}, peer.nonce, cb);
+SlaveToMasterSender.prototype.send = function(
+	procedureName,
+	updateType,
+	peer,
+	cb
+) {
+	this.slaveWAMPServer.sendToMaster(
+		procedureName,
+		{
+			peer: peer,
+			authKey: this.slaveWAMPServer.worker.options.authKey,
+			updateType: updateType,
+		},
+		peer.nonce,
+		cb
+	);
 };
 
 /**
  * @param {string} nonce
  * @param {function} cb
  */
-SlaveToMasterSender.prototype.getPeer = function (nonce, cb) {
-	this.slaveWAMPServer.sendToMaster('list', { query: { nonce: nonce } }, nonce, (err, result) => {
-		if (err) {
-			return setImmediate(cb, err);
+SlaveToMasterSender.prototype.getPeer = function(nonce, cb) {
+	this.slaveWAMPServer.sendToMaster(
+		'list',
+		{ query: { nonce: nonce } },
+		nonce,
+		(err, result) => {
+			if (err) {
+				return setImmediate(cb, err);
+			}
+			return setImmediate(cb, null, !!result.peers.length);
 		}
-		return setImmediate(cb, null, !!result.peers.length);
-	});
+	);
 };
 
 module.exports = SlaveToMasterSender;

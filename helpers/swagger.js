@@ -45,7 +45,10 @@ function getValidator() {
 	// Register lisk formats with swagger
 	Object.keys(ZSchema.formatsCache).forEach(formatName => {
 		// Extend swagger validator with our formats
-		validator.constructor.registerFormat(formatName, ZSchema.formatsCache[formatName]);
+		validator.constructor.registerFormat(
+			formatName,
+			ZSchema.formatsCache[formatName]
+		);
 	});
 
 	return validator;
@@ -64,10 +67,10 @@ function getResolvedSwaggerSpec() {
 		var options = {
 			includeInvalid: true,
 			loaderOptions: {
-				processContent: function (content, callback) {
+				processContent: function(content, callback) {
 					callback(null, YAML.safeLoad(content.text));
-				}
-			}
+				},
+			},
 		};
 
 		return jsonRefs.resolveRefs(content, options).then(results => {
@@ -82,7 +85,9 @@ function getResolvedSwaggerSpec() {
  * @return {Object} - JSON object with swagger spec.
  */
 function getSwaggerSpec() {
-	return YAML.safeLoad(fs.readFileSync(path.join(__dirname, '..', 'schema', 'swagger.yml')));
+	return YAML.safeLoad(
+		fs.readFileSync(path.join(__dirname, '..', 'schema', 'swagger.yml'))
+	);
 }
 
 /**
@@ -93,7 +98,9 @@ function getSwaggerSpec() {
  * @return {object}
  */
 function generateParamsErrorObject(params, messages, codes) {
-	if (!codes) { codes = []; }
+	if (!codes) {
+		codes = [];
+	}
 
 	var error = new Error('Validation errors');
 	error.statusCode = 400;
@@ -102,9 +109,19 @@ function generateParamsErrorObject(params, messages, codes) {
 		var def = p.parameterObject;
 
 		if (def) {
-			return { name: def.name, message: messages[i], in: def.in, code: (codes[i] || 'INVALID_PARAM') };
+			return {
+				name: def.name,
+				message: messages[i],
+				in: def.in,
+				code: codes[i] || 'INVALID_PARAM',
+			};
 		} else {
-			return { name: p, message: 'Unknown request parameter', in: 'query', code: (codes[i] || 'UNKNOWN_PARAM') };
+			return {
+				name: p,
+				message: 'Unknown request parameter',
+				in: 'query',
+				code: codes[i] || 'UNKNOWN_PARAM',
+			};
 		}
 	});
 
@@ -128,5 +145,5 @@ module.exports = {
 	getResolvedSwaggerSpec: getResolvedSwaggerSpec,
 	getSwaggerSpec: getSwaggerSpec,
 	generateParamsErrorObject: generateParamsErrorObject,
-	invalidParams: invalidParams
+	invalidParams: invalidParams,
 };

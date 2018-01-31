@@ -28,16 +28,19 @@ var BigNumber = require('bignumber.js');
  * @return {ArrayBuffer} new BigNumber instance
  * @throws {RangeError} error description multiple of size
  */
-BigNumber.fromBuffer = function (buf, opts) {
-	if (!opts) { opts = {}; }
+BigNumber.fromBuffer = function(buf, opts) {
+	if (!opts) {
+		opts = {};
+	}
 
-	var endian = { 1: 'big', '-1': 'little' }[opts.endian] || opts.endian || 'big';
+	var endian =
+		{ 1: 'big', '-1': 'little' }[opts.endian] || opts.endian || 'big';
 
-	var size = opts.size === 'auto' ? Math.ceil(buf.length) : (opts.size || 1);
+	var size = opts.size === 'auto' ? Math.ceil(buf.length) : opts.size || 1;
 
 	if (buf.length % size !== 0) {
-		throw new RangeError(`Buffer length (${buf.length})`
-			+ ` must be a multiple of size (${size})`
+		throw new RangeError(
+			`Buffer length (${buf.length}) must be a multiple of size (${size})`
 		);
 	}
 
@@ -45,15 +48,10 @@ BigNumber.fromBuffer = function (buf, opts) {
 	for (var i = 0; i < buf.length; i += size) {
 		var chunk = [];
 		for (var j = 0; j < size; j++) {
-			chunk.push(buf[
-				i + (endian === 'big' ? j : (size - j - 1))
-			]);
+			chunk.push(buf[i + (endian === 'big' ? j : size - j - 1)]);
 		}
 
-		hex.push(chunk
-			.map(c => (c < 16 ? '0' : '') + c.toString(16))
-			.join('')
-		);
+		hex.push(chunk.map(c => (c < 16 ? '0' : '') + c.toString(16)).join(''));
 	}
 
 	return new BigNumber(hex.join(''), 16);
@@ -64,18 +62,26 @@ BigNumber.fromBuffer = function (buf, opts) {
  * @param {Object} opts
  * @return {ArrayBuffer} new buffer | error message invalid option
  */
-BigNumber.prototype.toBuffer = function (opts) {
+BigNumber.prototype.toBuffer = function(opts) {
 	if (typeof opts === 'string') {
-		if (opts !== 'mpint') { return 'Unsupported Buffer representation'; }
+		if (opts !== 'mpint') {
+			return 'Unsupported Buffer representation';
+		}
 
 		var abs = this.abs();
 		var buf = abs.toBuffer({ size: 1, endian: 'big' });
 		var len = buf.length === 1 && buf[0] === 0 ? 0 : buf.length;
-		if (buf[0] & 0x80) { len++; }
+		if (buf[0] & 0x80) {
+			len++;
+		}
 
 		var ret = Buffer.alloc(4 + len);
-		if (len > 0) { buf.copy(ret, 4 + (buf[0] & 0x80 ? 1 : 0)); }
-		if (buf[0] & 0x80) { ret[4] = 0; }
+		if (len > 0) {
+			buf.copy(ret, 4 + (buf[0] & 0x80 ? 1 : 0));
+		}
+		if (buf[0] & 0x80) {
+			ret[4] = 0;
+		}
 
 		ret[0] = len & (0xff << 24);
 		ret[1] = len & (0xff << 16);
@@ -90,33 +96,36 @@ BigNumber.prototype.toBuffer = function (opts) {
 			}
 		}
 		ret[4] = (ret[4] & 0x7f) | (isNeg ? 0x80 : 0);
-		if (isNeg) { ret[ret.length - 1]++; }
+		if (isNeg) {
+			ret[ret.length - 1]++;
+		}
 
 		return ret;
 	}
 
-	if (!opts) { opts = {}; }
+	if (!opts) {
+		opts = {};
+	}
 
-	var endian = { 1: 'big', '-1': 'little' }[opts.endian] || opts.endian || 'big';
+	var endian =
+		{ 1: 'big', '-1': 'little' }[opts.endian] || opts.endian || 'big';
 
 	var hex = this.toString(16);
 	if (hex.charAt(0) === '-') {
- throw new Error(
-		'Converting negative numbers to Buffers not supported yet'
-	);
-}
+		throw new Error('Converting negative numbers to Buffers not supported yet');
+	}
 
-	var size = opts.size === 'auto' ? Math.ceil(hex.length / 2) : (opts.size || 1);
+	var size = opts.size === 'auto' ? Math.ceil(hex.length / 2) : opts.size || 1;
 
 	len = Math.ceil(hex.length / (2 * size)) * size;
 	buf = Buffer.alloc(len);
 
 	// Zero-pad the hex string so the chunks are all `size` long
-	while (hex.length < 2 * len) { hex = `0${hex}`; }
+	while (hex.length < 2 * len) {
+		hex = `0${hex}`;
+	}
 
-	var hx = hex
-		.split(new RegExp(`(.{${2 * size}})`))
-		.filter(s => s.length > 0);
+	var hx = hex.split(new RegExp(`(.{${2 * size}})`)).filter(s => s.length > 0);
 
 	hx.forEach((chunk, i) => {
 		for (var j = 0; j < size; j++) {

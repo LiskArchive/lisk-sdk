@@ -42,7 +42,7 @@ function AccountsController(scope) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-AccountsController.getAccounts = function (context, next) {
+AccountsController.getAccounts = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -52,14 +52,16 @@ AccountsController.getAccounts = function (context, next) {
 		username: params.username.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
-		sort: params.sort.value
+		sort: params.sort.value,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	modules.accounts.shared.getAccounts(_.clone(filters), (err, data) => {
-		if (err) { return next(err); }
+		if (err) {
+			return next(err);
+		}
 
 		data = _.cloneDeep(data);
 
@@ -69,7 +71,9 @@ AccountsController.getAccounts = function (context, next) {
 			} else {
 				account.delegate.rank = parseInt(account.delegate.rank);
 				account.delegate.missedBlocks = parseInt(account.delegate.missedBlocks);
-				account.delegate.producedBlocks = parseInt(account.delegate.producedBlocks);
+				account.delegate.producedBlocks = parseInt(
+					account.delegate.producedBlocks
+				);
 			}
 			if (_.isNull(account.secondPublicKey)) {
 				account.secondPublicKey = '';
@@ -83,8 +87,8 @@ AccountsController.getAccounts = function (context, next) {
 			data: data,
 			meta: {
 				offset: filters.offset,
-				limit: filters.limit
-			}
+				limit: filters.limit,
+			},
 		});
 	});
 };
@@ -96,18 +100,23 @@ AccountsController.getAccounts = function (context, next) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-AccountsController.getMultisignatureGroups = function (context, next) {
+AccountsController.getMultisignatureGroups = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
-		address: params.address.value
+		address: params.address.value,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	if (!filters.address) {
-		return next(swaggerHelper.generateParamsErrorObject(['address'], ['Invalid address specified']));
+		return next(
+			swaggerHelper.generateParamsErrorObject(
+				['address'],
+				['Invalid address specified']
+			)
+		);
 	}
 
 	modules.multisignatures.shared.getGroups(_.clone(filters), (err, data) => {
@@ -124,8 +133,8 @@ AccountsController.getMultisignatureGroups = function (context, next) {
 			data: data,
 			meta: {
 				offset: filters.offset,
-				limit: filters.limit
-			}
+				limit: filters.limit,
+			},
 		});
 	});
 };
@@ -137,38 +146,46 @@ AccountsController.getMultisignatureGroups = function (context, next) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-AccountsController.getMultisignatureMemberships = function (context, next) {
+AccountsController.getMultisignatureMemberships = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
-		address: params.address.value
+		address: params.address.value,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	if (!filters.address) {
-		return next(swaggerHelper.generateParamsErrorObject(['address'], ['Invalid address specified']));
+		return next(
+			swaggerHelper.generateParamsErrorObject(
+				['address'],
+				['Invalid address specified']
+			)
+		);
 	}
 
-	modules.multisignatures.shared.getMemberships(_.clone(filters), (err, data) => {
-		if (err) {
-			if (err instanceof ApiError) {
-				context.statusCode = err.code;
-				delete err.code;
+	modules.multisignatures.shared.getMemberships(
+		_.clone(filters),
+		(err, data) => {
+			if (err) {
+				if (err instanceof ApiError) {
+					context.statusCode = err.code;
+					delete err.code;
+				}
+
+				return next(err);
 			}
 
-			return next(err);
+			next(null, {
+				data: data,
+				meta: {
+					offset: filters.offset,
+					limit: filters.limit,
+				},
+			});
 		}
-
-		next(null, {
-			data: data,
-			meta: {
-				offset: filters.offset,
-				limit: filters.limit
-			}
-		});
-	});
+	);
 };
 
 module.exports = AccountsController;

@@ -40,18 +40,40 @@ const normalFields = [
 	{ name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists },
 	{ name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists },
 	{ name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists },
-	{ name: 'producedblocks', cast: 'bigint', def: '0', prop: 'producedBlocks', skip: ifNotExists },
-	{ name: 'missedblocks', cast: 'bigint', def: '0', prop: 'missedBlocks', skip: ifNotExists },
+	{
+		name: 'producedblocks',
+		cast: 'bigint',
+		def: '0',
+		prop: 'producedBlocks',
+		skip: ifNotExists,
+	},
+	{
+		name: 'missedblocks',
+		cast: 'bigint',
+		def: '0',
+		prop: 'missedBlocks',
+		skip: ifNotExists,
+	},
 	{ name: 'username', def: null, skip: ifNotExists },
 	{ name: 'u_username', def: null, skip: ifNotExists },
-	{ name: 'publicKey', mod: ':raw', init: () => 'encode("publicKey", \'hex\')', skip: ifNotExists },
-	{ name: 'secondPublicKey', mod: ':raw', init: () => 'encode("secondPublicKey", \'hex\')', skip: ifNotExists },
-	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists }
+	{
+		name: 'publicKey',
+		mod: ':raw',
+		init: () => 'encode("publicKey", \'hex\')',
+		skip: ifNotExists,
+	},
+	{
+		name: 'secondPublicKey',
+		mod: ':raw',
+		init: () => 'encode("secondPublicKey", \'hex\')',
+		skip: ifNotExists,
+	},
+	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
 ];
 
 // Only used in SELECT and INSERT queries
 const immutableFields = [
-	{ name: 'address', mod: ':raw', init: () => 'upper(address)' }
+	{ name: 'address', mod: ':raw', init: () => 'upper(address)' },
 ];
 
 // Only used in SELECT queries
@@ -60,7 +82,7 @@ const dynamicFields = [
 	{ name: 'delegates', init: () => sql.columnDelegates },
 	{ name: 'u_delegates', init: () => sql.columnUDelegates },
 	{ name: 'multisignatures', init: () => sql.columnMultisignatures },
-	{ name: 'u_multisignatures', init: () => sql.columnUMultisignatures }
+	{ name: 'u_multisignatures', init: () => sql.columnUMultisignatures },
 ];
 
 const allFields = _.union(normalFields, immutableFields, dynamicFields);
@@ -86,10 +108,24 @@ class AccountsRepository {
 
 		if (!cs.select) {
 			cs.select = new pgp.helpers.ColumnSet(allFields, { table: this.dbTable });
-			cs.update = new pgp.helpers.ColumnSet(normalFields, { table: this.dbTable });
+			cs.update = new pgp.helpers.ColumnSet(normalFields, {
+				table: this.dbTable,
+			});
 			cs.update = cs.update.merge([
-				{ name: 'publicKey', mod: ':raw', init: c => _.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists },
-				{ name: 'secondPublicKey', mod: ':raw', init: c => _.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`, skip: ifNotExists },
+				{
+					name: 'publicKey',
+					mod: ':raw',
+					init: c =>
+						_.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`,
+					skip: ifNotExists,
+				},
+				{
+					name: 'secondPublicKey',
+					mod: ':raw',
+					init: c =>
+						_.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`,
+					skip: ifNotExists,
+				},
 				{ name: 'isDelegate', cast: 'int', def: 0, skip: ifNotExists },
 				{ name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists },
 				{ name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists },
@@ -98,7 +134,7 @@ class AccountsRepository {
 			]);
 
 			cs.insert = cs.update.merge([
-				{ name: 'address', mod: ':raw', init: c => `upper('${c.value}')` }
+				{ name: 'address', mod: ':raw', init: c => `upper('${c.value}')` },
 			]);
 		}
 	}
@@ -109,7 +145,7 @@ class AccountsRepository {
 	 * @return {array}
 	 */
 	getDBFields() {
-		return _.map(this.dbFields, field => (field.prop || field.name));
+		return _.map(this.dbFields, field => field.prop || field.name);
 	}
 
 	/**
@@ -119,8 +155,9 @@ class AccountsRepository {
 	 */
 	getImmutableFields() {
 		return _.difference(
-			_.map(this.cs.insert.columns, field => (field.prop || field.name)),
-		_.map(this.cs.update.columns, field => (field.prop || field.name)));
+			_.map(this.cs.insert.columns, field => field.prop || field.name),
+			_.map(this.cs.update.columns, field => field.prop || field.name)
+		);
 	}
 
 	/**
@@ -169,44 +206,58 @@ class AccountsRepository {
 	 */
 	upsert(data, conflictingFields, updateData) {
 		// If single field is specified as conflict field
-		if (typeof (conflictingFields) === 'string') {
+		if (typeof conflictingFields === 'string') {
 			conflictingFields = [conflictingFields];
 		}
 
 		if (!Array.isArray(conflictingFields) || !conflictingFields.length) {
-			return Promise.reject(new TypeError('Error: db.accounts.upsert - invalid conflictingFields argument'));
+			return Promise.reject(
+				new TypeError(
+					'Error: db.accounts.upsert - invalid conflictingFields argument'
+				)
+			);
 		}
 
 		if (!updateData) {
 			updateData = Object.assign({}, data);
 		}
 
-		if (_.difference(_.union(Object.keys(data), Object.keys(updateData)), this.getDBFields()).length) {
-			return Promise.reject(new Error('Unknown field provided to db.accounts.upsert')); // eslint-disable-line prefer-promise-reject-errors
+		if (
+			_.difference(
+				_.union(Object.keys(data), Object.keys(updateData)),
+				this.getDBFields()
+			).length
+		) {
+			return Promise.reject(
+				new Error('Unknown field provided to db.accounts.upsert')
+			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
 		if (conflictingFields.length === 1 && conflictingFields[0] === 'address') {
-			const sql = '${insertSQL:raw} ON CONFLICT(${conflictFields:name}) DO UPDATE SET ${setsSQL:raw}';
+			const sql =
+				'${insertSQL:raw} ON CONFLICT(${conflictFields:name}) DO UPDATE SET ${setsSQL:raw}';
 
 			return this.db.none(sql, {
 				insertSQL: this.pgp.helpers.insert(data, this.cs.insert),
 				conflictFields: conflictingFields,
-				setsSQL: this.pgp.helpers.sets(updateData, this.cs.update)
+				setsSQL: this.pgp.helpers.sets(updateData, this.cs.update),
 			});
 		} else {
 			const conditionObject = {};
-			conflictingFields.forEach(function (field) {
+			conflictingFields.forEach(function(field) {
 				conditionObject[field] = data[field];
 			});
 
-			return this.db.tx('db:accounts:upsert', function (t) {
-				return t.accounts.list(conditionObject, ['address']).then(function (result) {
-					if (result.length) {
-						return t.accounts.update(result[0].address, updateData);
-					} else {
-						return t.accounts.insert(data);
-					}
-				});
+			return this.db.tx('db:accounts:upsert', function(t) {
+				return t.accounts
+					.list(conditionObject, ['address'])
+					.then(function(result) {
+						if (result.length) {
+							return t.accounts.update(result[0].address, updateData);
+						} else {
+							return t.accounts.insert(data);
+						}
+					});
 			});
 		}
 	}
@@ -230,10 +281,15 @@ class AccountsRepository {
 	 */
 	update(address, data) {
 		if (!address) {
-			return Promise.reject(new TypeError('Error: db.accounts.update - invalid address argument')); // eslint-disable-line prefer-promise-reject-errors
+			return Promise.reject(
+				new TypeError('Error: db.accounts.update - invalid address argument')
+			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
-		return this.db.none(this.pgp.helpers.update(data, this.cs.update) + this.pgp.as.format(' WHERE $1:name=$2', ['address', address]));
+		return this.db.none(
+			this.pgp.helpers.update(data, this.cs.update) +
+				this.pgp.as.format(' WHERE $1:name=$2', ['address', address])
+		);
 	}
 
 	/**
@@ -249,7 +305,7 @@ class AccountsRepository {
 			table: this.dbTable,
 			field: field,
 			value: value,
-			address: address
+			address: address,
 		});
 	}
 
@@ -266,7 +322,7 @@ class AccountsRepository {
 			table: this.dbTable,
 			field: field,
 			value: value,
-			address: address
+			address: address,
 		});
 	}
 
@@ -321,20 +377,25 @@ class AccountsRepository {
 		}
 
 		if (filters && Array.isArray(filters.address) && filters.address.length) {
-			dynamicConditions.push(pgp.as.format('address IN ($1:csv)', [filters.address]));
+			dynamicConditions.push(
+				pgp.as.format('address IN ($1:csv)', [filters.address])
+			);
 			delete filters.address;
 		}
 
-		if (filters && _.difference(Object.keys(filters), this.getDBFields()).length) {
+		if (
+			filters &&
+			_.difference(Object.keys(filters), this.getDBFields()).length
+		) {
 			return Promise.reject('Unknown filter field provided to list'); // eslint-disable-line prefer-promise-reject-errors
 		}
 
 		let sql = '${fields:raw} ${conditions:raw} ';
-		let limit,
-		offset,
-		sortField = '',
-		sortMethod = '',
-		conditions = '';
+		let limit;
+		let offset;
+		let sortField = '';
+		let sortMethod = '';
+		let conditions = '';
 
 		if (!options) {
 			options = {};
@@ -351,7 +412,12 @@ class AccountsRepository {
 				const sortSQL = [];
 
 				options.sortField.map((field, index) => {
-					sortSQL.push(this.pgp.as.format('$1:name $2:raw', [field, options.sortMethod[index]]));
+					sortSQL.push(
+						this.pgp.as.format('$1:name $2:raw', [
+							field,
+							options.sortMethod[index],
+						])
+					);
 				});
 				sql += `ORDER BY ${sortSQL.join()}`;
 			}
@@ -369,15 +435,21 @@ class AccountsRepository {
 
 		if (filters) {
 			const filterKeys = Object.keys(filters);
-			const filteredColumns = this.cs.insert.columns.filter(function (column) {
+			const filteredColumns = this.cs.insert.columns.filter(function(column) {
 				return filterKeys.indexOf(column.name) >= 0;
 			});
 
 			// TODO: Improve this logic to convert set statement to composite logic
-			conditions = pgp.helpers.sets(filters, filteredColumns).replace(/(,")/, ' AND "');
+			conditions = pgp.helpers
+				.sets(filters, filteredColumns)
+				.replace(/(,")/, ' AND "');
 		}
 
-		if (conditions.length || options.extraCondition || dynamicConditions.length) {
+		if (
+			conditions.length ||
+			options.extraCondition ||
+			dynamicConditions.length
+		) {
 			conditions = conditions.length ? [conditions] : [];
 
 			if (options.extraCondition) {
@@ -397,7 +469,7 @@ class AccountsRepository {
 			sortField: sortField,
 			sortMethod: sortMethod,
 			limit: limit,
-			offset: offset
+			offset: offset,
 		});
 
 		return this.db.query(query);
@@ -412,14 +484,25 @@ class AccountsRepository {
 	 * @return {Promise}
 	 */
 	removeDependencies(address, dependentId, dependency) {
-		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
-			return Promise.reject(new TypeError(`Error: db.accounts.removeDependencies called with invalid argument dependency=${dependency}`)); // eslint-disable-line prefer-promise-reject-errors
+		if (
+			[
+				'delegates',
+				'u_delegates',
+				'multisignatures',
+				'u_multisignatures',
+			].indexOf(dependency) === -1
+		) {
+			return Promise.reject(
+				new TypeError(
+					`Error: db.accounts.removeDependencies called with invalid argument dependency=${dependency}`
+				)
+			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
 		return this.db.none(sql.removeAccountDependencies, {
 			table: `${this.dbTable}2${dependency}`,
 			address: address,
-			dependentId: dependentId
+			dependentId: dependentId,
 		});
 	}
 
@@ -432,16 +515,36 @@ class AccountsRepository {
 	 * @return {Promise}
 	 */
 	insertDependencies(address, dependentId, dependency) {
-		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
-			return Promise.reject(new TypeError(`Error: db.accounts.insertDependencies called with invalid argument dependency=${dependency}`)); // eslint-disable-line prefer-promise-reject-errors
+		if (
+			[
+				'delegates',
+				'u_delegates',
+				'multisignatures',
+				'u_multisignatures',
+			].indexOf(dependency) === -1
+		) {
+			return Promise.reject(
+				new TypeError(
+					`Error: db.accounts.insertDependencies called with invalid argument dependency=${dependency}`
+				)
+			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
-		const dependentTable = new this.pgp.helpers.TableName({ table: `${this.dbTable}2${dependency}`, schema: 'public' });
+		const dependentTable = new this.pgp.helpers.TableName({
+			table: `${this.dbTable}2${dependency}`,
+			schema: 'public',
+		});
 
-		return this.db.none(this.pgp.helpers.insert({
-			accountId: address,
-			dependentId: dependentId
-		}, null, dependentTable));
+		return this.db.none(
+			this.pgp.helpers.insert(
+				{
+					accountId: address,
+					dependentId: dependentId,
+				},
+				null,
+				dependentTable
+			)
+		);
 	}
 }
 
@@ -467,15 +570,27 @@ function Selects(columnSet, fields, pgp) {
 
 		columnSet.columns.map(column => {
 			if (fields.includes(column.name) || fields.includes(column.prop)) {
-			const propName = column.prop ? column.prop : column.name;
+				const propName = column.prop ? column.prop : column.name;
 
-			if (column.init) {
-				selectFields.push(pgp.as.format(selectClauseWithSQL, [column.init(column), column.castText, propName]));
-			} else {
-				selectFields.push(pgp.as.format(selectClauseWithName, [column.name, column.castText, propName]));
+				if (column.init) {
+					selectFields.push(
+						pgp.as.format(selectClauseWithSQL, [
+							column.init(column),
+							column.castText,
+							propName,
+						])
+					);
+				} else {
+					selectFields.push(
+						pgp.as.format(selectClauseWithName, [
+							column.name,
+							column.castText,
+							propName,
+						])
+					);
+				}
 			}
-		}
-	});
+		});
 
 		return pgp.as.format(selectSQL, [selectFields.join(','), table]);
 	};

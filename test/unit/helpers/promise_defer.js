@@ -22,13 +22,15 @@ describe('PromiseDefer', () => {
 
 	beforeEach(() => {
 		promiseDefer = PromiseDefer();
-		promiseDefer.promise.then(input => {
-			expect(input.message).to.equal(RESOLVED);
-			input.done();
-		}).catch(input => {
-			expect(input.message).to.equal(REJECTED);
-			input.done();
-		});
+		promiseDefer.promise
+			.then(input => {
+				expect(input.message).to.equal(RESOLVED);
+				input.done();
+			})
+			.catch(input => {
+				expect(input.message).to.equal(REJECTED);
+				input.done();
+			});
 	});
 
 	describe('when it fails', () => {

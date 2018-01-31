@@ -34,181 +34,285 @@ describe('GET /api/votes', () => {
 
 	function expectValidVoterDelegateResponse(res) {
 		expect(res.body.data.votesUsed).to.be.least(res.body.data.votes.length);
-		expect(constants.maxVotesPerAccount).to.be.equal(res.body.data.votesUsed + res.body.data.votesAvailable);
+		expect(constants.maxVotesPerAccount).to.be.equal(
+			res.body.data.votesUsed + res.body.data.votesAvailable
+		);
 	}
 
 	function expectValidNonVoterDelegateResponse(res) {
 		expect(res.body.data.votesUsed).to.be.equal(0);
 		expect(res.body.data.votes).to.be.empty;
-		expect(constants.maxVotesPerAccount).to.be.equal(res.body.data.votesUsed + res.body.data.votesAvailable);
+		expect(constants.maxVotesPerAccount).to.be.equal(
+			res.body.data.votesUsed + res.body.data.votesAvailable
+		);
 	}
 
 	describe('?', () => {
 		describe('required fields', () => {
 			describe('when params are not defined', () => {
 				it('should fail with error message requiring any of param', () => {
- return votesEndpoint.makeRequest({}, 400).then(res => {
+					return votesEndpoint.makeRequest({}, 400).then(res => {
 						expect(res.body.errors).to.have.length(4);
 						expectSwaggerParamError(res, 'username');
 						expectSwaggerParamError(res, 'address');
 						expectSwaggerParamError(res, 'publicKey');
 						expectSwaggerParamError(res, 'secondPublicKey');
 					});
-});
+				});
 			});
 
 			describe('when only sort param provided', () => {
 				it('should fail with error message requiring any of param', () => {
- return votesEndpoint.makeRequest({ sort: 'username:asc' }, 400).then(res => {
-						expect(res.body.errors).to.have.length(4);
-						expectSwaggerParamError(res, 'username');
-						expectSwaggerParamError(res, 'address');
-						expectSwaggerParamError(res, 'publicKey');
-						expectSwaggerParamError(res, 'secondPublicKey');
-					});
-});
+					return votesEndpoint
+						.makeRequest({ sort: 'username:asc' }, 400)
+						.then(res => {
+							expect(res.body.errors).to.have.length(4);
+							expectSwaggerParamError(res, 'username');
+							expectSwaggerParamError(res, 'address');
+							expectSwaggerParamError(res, 'publicKey');
+							expectSwaggerParamError(res, 'secondPublicKey');
+						});
+				});
 			});
 
 			describe('when only offset param provided', () => {
 				it('should fail with error message requiring any of param', () => {
- return votesEndpoint.makeRequest({ offset: 1 }, 400).then(res => {
+					return votesEndpoint.makeRequest({ offset: 1 }, 400).then(res => {
 						expect(res.body.errors).to.have.length(4);
 						expectSwaggerParamError(res, 'username');
 						expectSwaggerParamError(res, 'address');
 						expectSwaggerParamError(res, 'publicKey');
 						expectSwaggerParamError(res, 'secondPublicKey');
 					});
-});
+				});
 			});
 
 			describe('when sort params provided', () => {
 				it('should fail with error message requiring any of param', () => {
-return votesEndpoint.makeRequest({ sort: 'username:asc' }, 400).then(res => {
-						expect(res.body.errors).to.have.length(4);
-						expectSwaggerParamError(res, 'username');
-						expectSwaggerParamError(res, 'address');
-						expectSwaggerParamError(res, 'publicKey');
-						expectSwaggerParamError(res, 'secondPublicKey');
-					});
-});
+					return votesEndpoint
+						.makeRequest({ sort: 'username:asc' }, 400)
+						.then(res => {
+							expect(res.body.errors).to.have.length(4);
+							expectSwaggerParamError(res, 'username');
+							expectSwaggerParamError(res, 'address');
+							expectSwaggerParamError(res, 'publicKey');
+							expectSwaggerParamError(res, 'secondPublicKey');
+						});
+				});
 			});
 
 			describe('when all required params (address, publicKey, username) provided', () => {
 				it('should return the expected result as when db has only 101 delegates', () => {
- return votesEndpoint.makeRequest({
-						address: accountFixtures.existingDelegate.address,
-						publicKey: accountFixtures.existingDelegate.publicKey,
-						username: accountFixtures.existingDelegate.delegateName
-					}, 200).then(res => {
-						expectValidVoterDelegateResponse(res);
-					});
-});
+					return votesEndpoint
+						.makeRequest(
+							{
+								address: accountFixtures.existingDelegate.address,
+								publicKey: accountFixtures.existingDelegate.publicKey,
+								username: accountFixtures.existingDelegate.delegateName,
+							},
+							200
+						)
+						.then(res => {
+							expectValidVoterDelegateResponse(res);
+						});
+				});
 			});
 		});
 
 		describe('publicKey', () => {
 			it('using no publicKey should fail', () => {
-return votesEndpoint.makeRequest({ publicKey: '' }, 400).then(res => {
+				return votesEndpoint.makeRequest({ publicKey: '' }, 400).then(res => {
 					expectSwaggerParamError(res, 'publicKey');
 				});
-});
+			});
 
 			it('using invalid publicKey should fail', () => {
- return votesEndpoint.makeRequest({ publicKey: 'invalidPublicKey' }, 400).then(res => {
-					expectSwaggerParamError(res, 'publicKey');
-				});
-});
+				return votesEndpoint
+					.makeRequest({ publicKey: 'invalidPublicKey' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'publicKey');
+					});
+			});
 
-			it('using valid existing publicKey of genesis delegate should return list of votes it made', () => { return votesEndpoint.makeRequest({ publicKey: voterDelegate.publicKey }, 200).then(expectValidVoterDelegateResponse); });
+			it('using valid existing publicKey of genesis delegate should return list of votes it made', () => {
+				return votesEndpoint
+					.makeRequest({ publicKey: voterDelegate.publicKey }, 200)
+					.then(expectValidVoterDelegateResponse);
+			});
 
-			it('using valid existing publicKey of a delegate account should return the expected result of having no vote', () => { return votesEndpoint.makeRequest({ publicKey: nonVoterDelegate.publicKey }, 200).then(expectValidNonVoterDelegateResponse); });
+			it('using valid existing publicKey of a delegate account should return the expected result of having no vote', () => {
+				return votesEndpoint
+					.makeRequest({ publicKey: nonVoterDelegate.publicKey }, 200)
+					.then(expectValidNonVoterDelegateResponse);
+			});
 
-			it('using valid inexistent publicKey should return empty response and code = 404', () => { return votesEndpoint.makeRequest({ publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8' }, 404); });
+			it('using valid inexistent publicKey should return empty response and code = 404', () => {
+				return votesEndpoint.makeRequest(
+					{
+						publicKey:
+							'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8',
+					},
+					404
+				);
+			});
 		});
 
 		describe('secondPublicKey', () => {
 			it('using no secondPublicKey should fail', () => {
- return votesEndpoint.makeRequest({ secondPublicKey: '' }, 400).then(res => {
-					expectSwaggerParamError(res, 'secondPublicKey');
-				});
-});
+				return votesEndpoint
+					.makeRequest({ secondPublicKey: '' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
+			});
 
 			it('using invalid secondPublicKey should fail', () => {
- return votesEndpoint.makeRequest({ secondPublicKey: 'invalidSecondPublicKey' }, 400).then(res => {
-					expectSwaggerParamError(res, 'secondPublicKey');
-				});
-});
+				return votesEndpoint
+					.makeRequest({ secondPublicKey: 'invalidSecondPublicKey' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
+			});
 
-			it('using valid inexistent secondPublicKey should return empty response and code = 404', () => { return votesEndpoint.makeRequest({ secondPublicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8' }, 404); });
+			it('using valid inexistent secondPublicKey should return empty response and code = 404', () => {
+				return votesEndpoint.makeRequest(
+					{
+						secondPublicKey:
+							'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8',
+					},
+					404
+				);
+			});
 		});
 
 		describe('address', () => {
 			it('using no address should fail', () => {
-return votesEndpoint.makeRequest({ address: '' }, 400).then(res => {
+				return votesEndpoint.makeRequest({ address: '' }, 400).then(res => {
 					expectSwaggerParamError(res, 'address');
 				});
-});
+			});
 
 			it('using invalid address should fail', () => {
- return votesEndpoint.makeRequest({ address: 'invalidAddress' }, 400).then(res => {
-					expectSwaggerParamError(res, 'address');
-				});
-});
+				return votesEndpoint
+					.makeRequest({ address: 'invalidAddress' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'address');
+					});
+			});
 
-			it('using valid existing address of genesis delegate should return list of votes it made', () => { return votesEndpoint.makeRequest({ address: voterDelegate.address }, 200).then(expectValidVoterDelegateResponse); });
+			it('using valid existing address of genesis delegate should return list of votes it made', () => {
+				return votesEndpoint
+					.makeRequest({ address: voterDelegate.address }, 200)
+					.then(expectValidVoterDelegateResponse);
+			});
 
-			it('using valid existing address of a delegate account should return the expected result of having no vote', () => { return votesEndpoint.makeRequest({ address: nonVoterDelegate.address }, 200).then(expectValidNonVoterDelegateResponse); });
+			it('using valid existing address of a delegate account should return the expected result of having no vote', () => {
+				return votesEndpoint
+					.makeRequest({ address: nonVoterDelegate.address }, 200)
+					.then(expectValidNonVoterDelegateResponse);
+			});
 
-			it('using valid inexistent address should return empty response and code = 404', () => { return votesEndpoint.makeRequest({ address: validNotExistingAddress }, 404); });
+			it('using valid inexistent address should return empty response and code = 404', () => {
+				return votesEndpoint.makeRequest(
+					{ address: validNotExistingAddress },
+					404
+				);
+			});
 		});
 
 		describe('username', () => {
 			it('using no username should fail', () => {
-return votesEndpoint.makeRequest({ username: '' }, 400).then(res => {
+				return votesEndpoint.makeRequest({ username: '' }, 400).then(res => {
 					expectSwaggerParamError(res, 'username');
 				});
-});
+			});
 
-			it('using unknown integer username should be ok but not found', () => { return votesEndpoint.makeRequest({ username: 1 }, 404); });
+			it('using unknown integer username should be ok but not found', () => {
+				return votesEndpoint.makeRequest({ username: 1 }, 404);
+			});
 
-			it('using valid existing username of a delegate account should return the expected result of having no vote', () => { return votesEndpoint.makeRequest({ username: nonVoterDelegate.delegateName }, 200).then(expectValidNonVoterDelegateResponse); });
+			it('using valid existing username of a delegate account should return the expected result of having no vote', () => {
+				return votesEndpoint
+					.makeRequest({ username: nonVoterDelegate.delegateName }, 200)
+					.then(expectValidNonVoterDelegateResponse);
+			});
 
-			it('using valid inexistent username should return empty response and code = 404', () => { return votesEndpoint.makeRequest({ username: 'unknownusername' }, 404); });
+			it('using valid inexistent username should return empty response and code = 404', () => {
+				return votesEndpoint.makeRequest({ username: 'unknownusername' }, 404);
+			});
 		});
 
 		describe('sort', () => {
 			describe('sort with any of required field (username)', () => {
 				describe('username', () => {
 					it('should return votes in ascending order', () => {
-return votesEndpoint.makeRequest({ sort: 'username:asc', publicKey: voterDelegate.publicKey }, 200).then(res => {
-							expectValidVoterDelegateResponse(res);
-							expect(_(res.body.data.votes).sortBy('username').map('username').value()).to.to.be.eql(_.map(res.body.data.votes, 'username'));
-						});
-});
+						return votesEndpoint
+							.makeRequest(
+								{ sort: 'username:asc', publicKey: voterDelegate.publicKey },
+								200
+							)
+							.then(res => {
+								expectValidVoterDelegateResponse(res);
+								expect(
+									_(res.body.data.votes)
+										.sortBy('username')
+										.map('username')
+										.value()
+								).to.to.be.eql(_.map(res.body.data.votes, 'username'));
+							});
+					});
 
 					it('should return votes in descending order', () => {
- return votesEndpoint.makeRequest({ sort: 'username:desc', publicKey: voterDelegate.publicKey }, 200).then(res => {
-							expectValidVoterDelegateResponse(res);
-							expect(_(res.body.data.votes).sortBy('username').reverse().map('username')
-.value()).to.to.be.eql(_.map(res.body.data.votes, 'username'));
-						});
-});
+						return votesEndpoint
+							.makeRequest(
+								{ sort: 'username:desc', publicKey: voterDelegate.publicKey },
+								200
+							)
+							.then(res => {
+								expectValidVoterDelegateResponse(res);
+								expect(
+									_(res.body.data.votes)
+										.sortBy('username')
+										.reverse()
+										.map('username')
+										.value()
+								).to.to.be.eql(_.map(res.body.data.votes, 'username'));
+							});
+					});
 				});
 
 				describe('balance', () => {
 					it('should return votes in ascending order', () => {
- return votesEndpoint.makeRequest({ sort: 'balance:asc', publicKey: voterDelegate.publicKey }, 200).then(res => {
-							expectValidVoterDelegateResponse(res);
-							expect(_(res.body.data.votes).map('balance').sortNumbers()).to.be.eql(_.map(res.body.data.votes, 'balance'));
-						});
-});
+						return votesEndpoint
+							.makeRequest(
+								{ sort: 'balance:asc', publicKey: voterDelegate.publicKey },
+								200
+							)
+							.then(res => {
+								expectValidVoterDelegateResponse(res);
+								expect(
+									_(res.body.data.votes)
+										.map('balance')
+										.sortNumbers()
+								).to.be.eql(_.map(res.body.data.votes, 'balance'));
+							});
+					});
 
 					it('should return votes in descending order', () => {
- return votesEndpoint.makeRequest({ sort: 'balance:desc', publicKey: voterDelegate.publicKey }, 200).then(res => {
-							expectValidVoterDelegateResponse(res);
-							expect(_(res.body.data.votes).map('balance').sortNumbers('desc')).to.to.be.eql(_.map(res.body.data.votes, 'balance'));
-						});
-});
+						return votesEndpoint
+							.makeRequest(
+								{ sort: 'balance:desc', publicKey: voterDelegate.publicKey },
+								200
+							)
+							.then(res => {
+								expectValidVoterDelegateResponse(res);
+								expect(
+									_(res.body.data.votes)
+										.map('balance')
+										.sortNumbers('desc')
+								).to.to.be.eql(_.map(res.body.data.votes, 'balance'));
+							});
+					});
 				});
 			});
 		});
@@ -216,25 +320,38 @@ return votesEndpoint.makeRequest({ sort: 'username:asc', publicKey: voterDelegat
 		describe('limit & offset', () => {
 			describe('limit=2', () => {
 				it('should return 2 voters', () => {
-return votesEndpoint.makeRequest({ limit: 2, publicKey: voterDelegate.publicKey }, 200).then(res => {
-						expect(res.body.data.votes).to.have.length(2);
-					});
-});
+					return votesEndpoint
+						.makeRequest({ limit: 2, publicKey: voterDelegate.publicKey }, 200)
+						.then(res => {
+							expect(res.body.data.votes).to.have.length(2);
+						});
+				});
 			});
 
 			describe('limit=2 & offset=1', () => {
 				it('should return 2 voters, containing 1 from the previous result', () => {
 					var votes = null;
 
-					return votesEndpoint.makeRequest({ limit: 2, offset: 0, publicKey: voterDelegate.publicKey }, 200).then(res => {
-						expect(res.body.data.votes).to.have.length(2);
+					return votesEndpoint
+						.makeRequest(
+							{ limit: 2, offset: 0, publicKey: voterDelegate.publicKey },
+							200
+						)
+						.then(res => {
+							expect(res.body.data.votes).to.have.length(2);
 
-						votes = _.map(res.body.data.votes, 'address');
+							votes = _.map(res.body.data.votes, 'address');
 
-						return votesEndpoint.makeRequest({ limit: 2, offset: 1, publicKey: voterDelegate.publicKey }, 200);
-					}).then(res => {
-						expect(_.intersection(votes, _.map(res.body.data.votes, 'address'))).to.have.length(1);
-					});
+							return votesEndpoint.makeRequest(
+								{ limit: 2, offset: 1, publicKey: voterDelegate.publicKey },
+								200
+							);
+						})
+						.then(res => {
+							expect(
+								_.intersection(votes, _.map(res.body.data.votes, 'address'))
+							).to.have.length(1);
+						});
 				});
 			});
 		});
@@ -247,31 +364,55 @@ return votesEndpoint.makeRequest({ limit: 2, publicKey: voterDelegate.publicKey 
 					constants.fees.delegate + constants.fees.vote,
 					accountFixtures.genesis.password
 				);
-				var delegateTransaction = lisk.delegate.createDelegate(account.password, randomstring.generate({
-					length: 10,
-					charset: 'alphabetic',
-					capitalization: 'lowercase'
-				}));
-				var voteTransaction = lisk.vote.createVote(account.password, [`+${nonVoterDelegate.publicKey}`]);
+				var delegateTransaction = lisk.delegate.createDelegate(
+					account.password,
+					randomstring.generate({
+						length: 10,
+						charset: 'alphabetic',
+						capitalization: 'lowercase',
+					})
+				);
+				var voteTransaction = lisk.vote.createVote(account.password, [
+					`+${nonVoterDelegate.publicKey}`,
+				]);
 
-				apiHelpers.sendTransactionPromise(creditTransaction)
-					.then(() => { return waitFor.confirmations([creditTransaction.id]); })
-					.then(() => { return apiHelpers.sendTransactionPromise(delegateTransaction); })
-					.then(() => { return waitFor.confirmations([delegateTransaction.id]); })
-					.then(() => { return votesEndpoint.makeRequest({ address: account.address }, 200); })
+				apiHelpers
+					.sendTransactionPromise(creditTransaction)
+					.then(() => {
+						return waitFor.confirmations([creditTransaction.id]);
+					})
+					.then(() => {
+						return apiHelpers.sendTransactionPromise(delegateTransaction);
+					})
+					.then(() => {
+						return waitFor.confirmations([delegateTransaction.id]);
+					})
+					.then(() => {
+						return votesEndpoint.makeRequest({ address: account.address }, 200);
+					})
 					.then(res => {
 						expectValidNonVoterDelegateResponse(res);
 						expect(res.body.data.address).to.be.equal(account.address);
 						expect(res.body.data.votesUsed).to.be.equal(0);
-						expect(res.body.data.votesAvailable).to.be.equal(constants.maxVotesPerAccount);
+						expect(res.body.data.votesAvailable).to.be.equal(
+							constants.maxVotesPerAccount
+						);
 					})
-					.then(() => { return apiHelpers.sendTransactionPromise(voteTransaction); })
-					.then(() => { return waitFor.confirmations([voteTransaction.id]); })
-					.then(() => { return votesEndpoint.makeRequest({ address: account.address }, 200); })
+					.then(() => {
+						return apiHelpers.sendTransactionPromise(voteTransaction);
+					})
+					.then(() => {
+						return waitFor.confirmations([voteTransaction.id]);
+					})
+					.then(() => {
+						return votesEndpoint.makeRequest({ address: account.address }, 200);
+					})
 					.then(res => {
 						expectValidVoterDelegateResponse(res);
 						expect(res.body.data.votesUsed).to.be.equal(1);
-						expect(_.map(res.body.data.votes, 'publicKey')).to.be.eql([nonVoterDelegate.publicKey]);
+						expect(_.map(res.body.data.votes, 'publicKey')).to.be.eql([
+							nonVoterDelegate.publicKey,
+						]);
 						done();
 					});
 			});

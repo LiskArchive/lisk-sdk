@@ -40,60 +40,72 @@ function WSServer(headers) {
 		pingInterval: 5000,
 		pingTimeout: 60000,
 		processTermTimeout: 10000,
-		workerController: `${__dirname}/server_worker.js`
+		workerController: `${__dirname}/server_worker.js`,
 	};
 }
 
-WSServer.prototype.start = function () {
+WSServer.prototype.start = function() {
 	var self = this;
 
 	var childProcessOptions = {
 		version: self.headers.version,
 		nethash: self.headers.nethash,
 		port: self.headers.wsPort,
-		nonce: self.headers.nonce
+		nonce: self.headers.nonce,
 	};
 
-	return new Promise(function (resolve, reject) {
+	return new Promise(function(resolve, reject) {
 		if (self.socketCluster) {
 			reject(new Error('SocketCluster instance is already running'));
 		}
 
 		self.socketCluster = new SocketCluster(self.options);
 
-		self.socketCluster.on('ready', function () {
+		self.socketCluster.on('ready', function() {
 			self.socketClient = new WSClient(self.options.headers);
-			self.rpcServer = new MasterWAMPServer(self.socketCluster, childProcessOptions);
+			self.rpcServer = new MasterWAMPServer(
+				self.socketCluster,
+				childProcessOptions
+			);
 
 			self.rpcServer.registerRPCEndpoints({
 				updatePeer: sandbox.stub().callsArgWith(1, null),
-				height: sandbox.stub().callsArgWith(1, null, { success: true, height: self.options.headers }),
+				height: sandbox.stub().callsArgWith(1, null, {
+					success: true,
+					height: self.options.headers,
+				}),
 				status: sandbox.stub().callsArgWith(1, null, self.options.headers),
 				list: sandbox.stub().callsArgWith(1, null, { peers: [] }),
 				blocks: sandbox.stub().callsArgWith(1, null, { blocks: [] }),
 				getSignatures: sandbox.stub().callsArgWith(1, null, { signatures: [] }),
-				getTransactions: sandbox.stub().callsArgWith(1, null, { transactions: [] }),
+				getTransactions: sandbox
+					.stub()
+					.callsArgWith(1, null, { transactions: [] }),
 				postTransactions: sandbox.stub().callsArgWith(1, null),
 				postSignatures: sandbox.stub().callsArgWith(1, null),
-				postBlock: sandbox.stub().callsArgWith(1, null, { success: true, blockId: null }),
-				blocksCommon: sandbox.stub().callsArgWith(1, null, { success: true, common: null })
+				postBlock: sandbox
+					.stub()
+					.callsArgWith(1, null, { success: true, blockId: null }),
+				blocksCommon: sandbox
+					.stub()
+					.callsArgWith(1, null, { success: true, common: null }),
 			});
 
 			self.socketClient.start().then(resolve);
 		});
 
-		self.socketCluster.on('fail', function () {
+		self.socketCluster.on('fail', function() {
 			self.stop();
 			reject();
 		});
 
-		self.socketCluster.on('error', function () {
+		self.socketCluster.on('error', function() {
 			self.stop();
 		});
 	});
 };
 
-WSServer.prototype.stop = function () {
+WSServer.prototype.stop = function() {
 	if (!this.socketCluster) {
 		throw new Error('No SocketCluster instance running');
 	}
@@ -104,19 +116,22 @@ WSServer.prototype.stop = function () {
 
 var server = new WSServer(JSON.parse(process.argv[2]));
 
-server.start().then(function () {
-	if (process.send) {
-		process.send('ready');
-	}
-}).catch(function (err) {
-	console.log('Error starting WS server', err);
+server
+	.start()
+	.then(function() {
+		if (process.send) {
+			process.send('ready');
+		}
+	})
+	.catch(function(err) {
+		console.log('Error starting WS server', err);
+		server.stop();
+	});
+
+process.on('close', function() {
 	server.stop();
 });
 
-process.on('close', function () {
-	server.stop();
-});
-
-process.on('exit', function () {
+process.on('exit', function() {
 	server.stop();
 });

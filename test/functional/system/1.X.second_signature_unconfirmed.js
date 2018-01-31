@@ -26,12 +26,19 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 	var library;
 
 	var account = randomUtil.account();
-	var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
+	var transaction = lisk.transaction.createTransaction(
+		account.address,
+		1000 * normalizer,
+		accountFixtures.genesis.password
+	);
 	var dapp = randomUtil.application();
 	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
 	dapp.id = dappTransaction.id;
 	var transactionWith;
-	var transactionSecondSignature = lisk.signature.createSignature(account.password, account.secondPassword);
+	var transactionSecondSignature = lisk.signature.createSignature(
+		account.password,
+		account.secondPassword
+	);
 
 	localCommon.beforeBlock('system_1_X_second_sign_unconfirmed', lib => {
 		library = lib;
@@ -46,10 +53,14 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 	});
 
 	it('adding to pool second signature registration should be ok', done => {
-		localCommon.addTransaction(library, transactionSecondSignature, (err, res) => {
-			expect(res).to.equal(transactionSecondSignature.id);
-			done();
-		});
+		localCommon.addTransaction(
+			library,
+			transactionSecondSignature,
+			(err, res) => {
+				expect(res).to.equal(transactionSecondSignature.id);
+				done();
+			}
+		);
 	});
 
 	describe('validating unconfirmed status while adding to pool other transaction types from same account', () => {
@@ -57,14 +68,26 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'SIGNATURE') {
 					it(`type ${index}: ${key} should fail`, done => {
-						localCommon.addTransaction(library, transactionSecondSignature, err => {
-							expect(err).to.equal(`Transaction is already processed: ${transactionSecondSignature.id}`);
-							done();
-						});
+						localCommon.addTransaction(
+							library,
+							transactionSecondSignature,
+							err => {
+								expect(err).to.equal(
+									`Transaction is already processed: ${
+										transactionSecondSignature.id
+									}`
+								);
+								done();
+							}
+						);
 					});
 
 					it(`type ${index}: ${key} with different timestamp should be ok`, done => {
-						transactionWith = lisk.signature.createSignature(account.password, account.secondPassword, -10000);
+						transactionWith = lisk.signature.createSignature(
+							account.password,
+							account.secondPassword,
+							-10000
+						);
 						localCommon.addTransaction(library, transactionWith, (err, res) => {
 							expect(res).to.equal(transactionWith.id);
 							done();
@@ -72,12 +95,20 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 					});
 				} else {
 					it(`type ${index}: ${key} should fail`, done => {
-						localCommon.loadTransactionType(key, account, dapp, null, transaction => {
-							localCommon.addTransaction(library, transaction, err => {
-								expect(err).to.equal('Sender does not have a second signature');
-								done();
-							});
-						});
+						localCommon.loadTransactionType(
+							key,
+							account,
+							dapp,
+							null,
+							transaction => {
+								localCommon.addTransaction(library, transaction, err => {
+									expect(err).to.equal(
+										'Sender does not have a second signature'
+									);
+									done();
+								});
+							}
+						);
 					});
 				}
 			});
@@ -87,21 +118,35 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					it(`type ${index}: ${key} should be rejected`, done => {
-						localCommon.loadTransactionType(key, account, dapp, true, transaction => {
-							localCommon.addTransaction(library, transaction, err => {
-								expect(err).to.equal(`Transaction type ${transaction.type} is frozen`);
-								done();
-							});
-						});
+						localCommon.loadTransactionType(
+							key,
+							account,
+							dapp,
+							true,
+							transaction => {
+								localCommon.addTransaction(library, transaction, err => {
+									expect(err).to.equal(
+										`Transaction type ${transaction.type} is frozen`
+									);
+									done();
+								});
+							}
+						);
 					});
 				} else if (key != 'SIGNATURE') {
 					it(`type ${index}: ${key} should be ok`, done => {
-						localCommon.loadTransactionType(key, account, dapp, true, transaction => {
-							localCommon.addTransaction(library, transaction, (err, res) => {
-								expect(res).to.equal(transaction.id);
-								done();
-							});
-						});
+						localCommon.loadTransactionType(
+							key,
+							account,
+							dapp,
+							true,
+							transaction => {
+								localCommon.addTransaction(library, transaction, (err, res) => {
+									expect(res).to.equal(transaction.id);
+									done();
+								});
+							}
+						);
 					});
 				}
 			});

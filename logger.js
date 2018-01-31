@@ -21,7 +21,7 @@ var path = require('path');
 
 require('colors');
 
-module.exports = function (config) {
+module.exports = function(config) {
 	config = config || {};
 	var exports = {};
 
@@ -33,7 +33,7 @@ module.exports = function (config) {
 		info: 3,
 		warn: 4,
 		error: 5,
-		fatal: 6
+		fatal: 6,
 	};
 
 	config.level_abbr = config.level_abbr || {
@@ -43,7 +43,7 @@ module.exports = function (config) {
 		info: 'inf',
 		warn: 'WRN',
 		error: 'ERR',
-		fatal: 'FTL'
+		fatal: 'FTL',
 	};
 
 	config.filename = `${process.cwd()}/${config.filename || 'logs.log'}`;
@@ -53,7 +53,7 @@ module.exports = function (config) {
 	child_process.execSync(`mkdir -p ${path.dirname(config.filename)}`);
 	var log_file = fs.createWriteStream(config.filename, { flags: 'a' });
 
-	exports.setLevel = function (errorLevel) {
+	exports.setLevel = function(errorLevel) {
 		config.errorLevel = errorLevel;
 	};
 
@@ -70,7 +70,7 @@ module.exports = function (config) {
 		function log(message, data) {
 			var log = {
 				level: name,
-				timestamp: strftime('%F %T', new Date())
+				timestamp: strftime('%F %T', new Date()),
 			};
 
 			if (message instanceof Error) {
@@ -85,21 +85,53 @@ module.exports = function (config) {
 				log.data = data;
 			}
 
-			log.symbol = config.level_abbr[log.level] ? config.level_abbr[log.level] : '???';
+			log.symbol = config.level_abbr[log.level]
+				? config.level_abbr[log.level]
+				: '???';
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
 				if (log.data) {
-					log_file.write(util.format('[%s] %s | %s - %s\n', log.symbol, log.timestamp, log.message, log.data));
+					log_file.write(
+						util.format(
+							'[%s] %s | %s - %s\n',
+							log.symbol,
+							log.timestamp,
+							log.message,
+							log.data
+						)
+					);
 				} else {
-					log_file.write(util.format('[%s] %s | %s\n', log.symbol, log.timestamp, log.message));
+					log_file.write(
+						util.format(
+							'[%s] %s | %s\n',
+							log.symbol,
+							log.timestamp,
+							log.message
+						)
+					);
 				}
 			}
 
-			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
+			if (
+				config.echo &&
+				config.levels[config.echo] <= config.levels[log.level]
+			) {
 				if (log.data) {
-					console.log(`[${log.symbol.bgYellow.black}]`, log.timestamp.grey, '|', log.message, '-', log.data);
+					console.log(
+						`[${log.symbol.bgYellow.black}]`,
+						log.timestamp.grey,
+						'|',
+						log.message,
+						'-',
+						log.data
+					);
 				} else {
-					console.log(`[${log.symbol.bgYellow.black}]`, log.timestamp.grey, '|', log.message);
+					console.log(
+						`[${log.symbol.bgYellow.black}]`,
+						log.timestamp.grey,
+						'|',
+						log.message
+					);
 				}
 			}
 		}
