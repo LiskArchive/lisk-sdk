@@ -38,6 +38,8 @@ into the console and exit the process immediately.
 Please note that while each external SQL file must use underscore notation in its name, each reference
 to the file must use the corresponding camel case within [./index.js](./index.js).
 
+Try to avoid needlessly repeating in the file name the name of the repository that uses the file.
+
 ## development notes
 
 When editing an SQL file on the development machine, you do not need to restart the application in order
