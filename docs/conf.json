@@ -8,6 +8,7 @@
       "./docs/typedef/",
       "./app.js",
       "./api/",
+	  "./config/",
       "./helpers/",
       "./logic/",
       "./modules/",
