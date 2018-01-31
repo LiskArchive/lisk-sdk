@@ -21,10 +21,10 @@ var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
 var exceptions = require('../../helpers/exceptions.js');
 
-var modules,
-library,
-self,
-__private = {};
+var modules;
+var library;
+var self;
+var __private = {};
 
 __private.lastNBlockIds = [];
 

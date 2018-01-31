@@ -19,10 +19,10 @@ var os = require('os');
 var semver = require('semver');
 
 // Private fields
-var modules,
-library,
-self,
-__private = {};
+var modules;
+var library;
+var self;
+var __private = {};
 
 var rcRegExp = /[a-z]+$/;
 

@@ -23,11 +23,11 @@ var OutTransfer = require('../logic/out_transfer.js');
 var transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
-var modules,
-library,
-self,
-__private = {},
-shared = {};
+var modules;
+var library;
+var self;
+var __private = {};
+var shared = {};
 
 __private.assetTypes = {};
 
@@ -114,8 +114,8 @@ function DApps(cb, scope) {
  * @return {setImmediateCallback} cb, error | cb, null, application
  */
 __private.list = function (filter, cb) {
-	var params = {},
-where = [];
+	var params = {};
+	var where = [];
 
 	if (filter.transactionId) {
 		where.push('"transactionId" = ${transactionId}');

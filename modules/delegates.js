@@ -26,10 +26,10 @@ var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
-var modules,
-library,
-self,
-__private = {};
+var modules;
+var library;
+var self;
+var __private = {};
 
 __private.assetTypes = {};
 __private.loaded = false;
@@ -285,8 +285,8 @@ __private.checkDelegates = function (publicKey, votes, state, cb, tx) {
 
 		var delegates = (state === 'confirmed') ? account.delegates : account.u_delegates;
 		var existing_votes = Array.isArray(delegates) ? delegates.length : 0;
-		var additions = 0,
-removals = 0;
+		var additions = 0;
+		var removals = 0;
 
 		async.eachSeries(votes, (action, cb) => {
 			var math = action[0];
@@ -410,9 +410,9 @@ Delegates.prototype.toggleForgingStatus = function (publicKey, secretKey, cb) {
 	var actionDisable = false;
 
 	var keypair;
-	var encryptedList,
-decryptedSecret,
-encryptedItem;
+	var encryptedList;
+	var decryptedSecret;
+	var encryptedItem;
 	encryptedList = library.config.forging.secret;
 	encryptedItem = _.find(encryptedList, item => item.publicKey === publicKey);
 

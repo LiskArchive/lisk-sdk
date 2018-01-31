@@ -25,11 +25,11 @@ var System = require('../modules/system');
 var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 // Private fields
-var modules,
-definitions,
-library,
-self,
-__private = {};
+var modules;
+var definitions;
+var library;
+var self;
+var __private = {};
 
 __private.headers = {};
 __private.loaded = false;

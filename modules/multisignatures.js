@@ -21,10 +21,10 @@ var errorCodes = require('../helpers/api_codes');
 var genesisblock = null; // eslint-disable-line no-unused-vars
 
 // Private fields
-var modules,
-library,
-self,
-__private = {};
+var modules;
+var library;
+var self;
+var __private = {};
 
 __private.assetTypes = {};
 

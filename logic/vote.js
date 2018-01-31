@@ -21,9 +21,9 @@ var _ = require('lodash');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var modules,
-library,
-self;
+var modules;
+var library;
+var self;
 
 // Constructor
 /**

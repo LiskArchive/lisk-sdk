@@ -119,8 +119,8 @@ class MigrationsRepository {
 			const lastId = hasMigrations ? yield t1.migrations.getLastId() : 0;
 			const updates = yield t1.migrations.readPending(lastId);
 			for (let i = 0; i < updates.length; i++) {
-				const u = updates[i],
-tag = `update:${u.name}`;
+				const u = updates[i];
+				const tag = `update:${u.name}`;
 				yield t1.tx(tag, function* (t2) {
 					yield t2.none(u.file);
 					yield t2.none(sql.add, u);

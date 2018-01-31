@@ -25,8 +25,8 @@ describe('system test (type 1) - double second signature registrations', () => {
 
 	var account = randomUtil.account();
 	var transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
-	var transaction1,
-transaction2;
+	var transaction1;
+	var transaction2;
 
 	localCommon.beforeBlock('system_1_1_second_sign', lib => {
 		library = lib;

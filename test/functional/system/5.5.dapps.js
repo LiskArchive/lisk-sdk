@@ -31,12 +31,12 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	dapp.id = dappTransaction.id;
 	var goodTransactions = [];
 	var badTransactions = [];
-	var transaction1,
-	transaction2,
-	transaction3,
-	transaction4,
-	transaction5,
-	transaction6;
+	var transaction1;
+	var transaction2;
+	var transaction3;
+	var transaction4;
+	var transaction5;
+	var transaction6;
 
 	var dappDuplicate = randomUtil.application();
 	var dappDuplicateNameSuccess = randomUtil.application();

@@ -21,10 +21,10 @@ var _ = require('lodash');
 var bson = require('../helpers/bson.js');
 
 // Private fields
-var modules,
-library,
-self,
-__private = {};
+var modules;
+var library;
+var self;
+var __private = {};
 
 /**
  * Initializes variables, sets Broadcast routes and timer based on

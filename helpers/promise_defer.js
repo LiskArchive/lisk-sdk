@@ -16,8 +16,8 @@
 var Promise = require('bluebird');
 
 function PromiseDefer() {
-	var resolve,
-reject;
+	var resolve;
+	var reject;
 	var promise = new Promise(((__resolve, __reject) => {
 		resolve = __resolve;
 		reject = __reject;

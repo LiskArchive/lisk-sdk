@@ -114,8 +114,8 @@ Cache.prototype.removeByPattern = function (pattern, cb) {
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
 	}
-	var keys,
-cursor = 0;
+	var keys;
+	var cursor = 0;
 	async.doWhilst(whilstCb => {
 		client.scan(cursor, 'MATCH', pattern, (err, res) => {
 			if (err) {

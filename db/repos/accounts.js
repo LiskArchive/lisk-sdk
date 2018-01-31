@@ -330,11 +330,11 @@ class AccountsRepository {
 		}
 
 		let sql = '${fields:raw} ${conditions:raw} ';
-		let limit,
-		offset,
-		sortField = '',
-		sortMethod = '',
-		conditions = '';
+		let limit;
+		let offset;
+		let sortField = '';
+		let sortMethod = '';
+		let conditions = '';
 
 		if (!options) {
 			options = {};

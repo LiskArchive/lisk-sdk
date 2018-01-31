@@ -18,9 +18,9 @@ var constants = require('../helpers/constants.js');
 var exceptions = require('../helpers/exceptions.js');
 
 // Private fields
-var modules,
-library,
-self;
+var modules;
+var library;
+var self;
 
 /**
  * Initializes library.

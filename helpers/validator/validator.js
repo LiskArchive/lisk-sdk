@@ -108,9 +108,9 @@ Validator.prototype.validate = function (value, rules, callback) {
 	var self = this;
 
 	var field = this.createField(null, value, rules);
-	var async,
-finished,
-report;
+	var async;
+	var finished;
+	var report;
 
 	report = {};
 

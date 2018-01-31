@@ -31,8 +31,8 @@ function Multisig(options) {
 	if (!options.members) {
 		options.members = 3;
 	}
-	var i,
-auxAccount;
+	var i;
+	var auxAccount;
 	for (i = 0; i < options.members - 1; i++) {
 		auxAccount = randomUtil.account();
 		this.members.push(auxAccount);

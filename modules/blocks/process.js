@@ -19,11 +19,11 @@ var constants = require('../../helpers/constants.js');
 var Peer = require('../../logic/peer.js');
 var slots = require('../../helpers/slots.js');
 
-var modules,
-definitions,
-library,
-self,
-__private = {};
+var modules;
+var definitions;
+var library;
+var self;
+var __private = {};
 
 /**
  * Initializes library.

@@ -20,10 +20,10 @@ var transactionTypes = require('../helpers/transaction_types.js');
 var Vote = require('../logic/vote.js');
 
 // Private fields
-var modules,
-library,
-self,
-__private = {};
+var modules;
+var library;
+var self;
+var __private = {};
 
 __private.assetTypes = {};
 

@@ -31,9 +31,9 @@ describe('system test (type 2) - double delegate registrations', () => {
 	while (i < 30) {
 		describe('executing 30 times', () => {
 			var account = randomUtil.account();
-			var transaction,
-transaction1,
-transaction2;
+			var transaction;
+			var transaction1;
+			var transaction2;
 			transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
 
 			before(done => {

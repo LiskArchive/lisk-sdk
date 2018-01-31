@@ -18,9 +18,9 @@ var httpMocks = require('node-mocks-http');
 var fitting = require('../../../../api/fittings/lisk_request_limit');
 
 describe('lisk_request_limit', () => {
-	var context,
-limit_fititng,
-next;
+	var context;
+	var limit_fititng;
+	var next;
 
 	beforeEach(() => {
 		context = {

@@ -21,8 +21,8 @@ var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
 
 describe('system test (type 4) - effect of multisignature registration on memory tables', () => {
-	var library,
-multisigSender;
+	var library;
+	var multisigSender;
 
 	var multisigAccount = randomUtil.account();
 	var multisigTransaction;

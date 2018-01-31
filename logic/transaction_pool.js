@@ -20,10 +20,10 @@ var jobsQueue = require('../helpers/jobs_queue.js');
 var transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
-var modules,
-library,
-self,
-__private = {};
+var modules;
+var library;
+var self;
+var __private = {};
 
 /**
  * Initializes variables, sets bundled transaction timer and
@@ -598,8 +598,8 @@ TransactionPool.prototype.fillPool = function (cb) {
 	if (unconfirmedCount >= constants.maxTxsPerBlock) {
 		return setImmediate(cb);
 	} else {
-		var spare = 0,
-spareMulti;
+		var spare = 0;
+		var spareMulti;
 		var multisignatures;
 		var multisignaturesLimit = 5;
 		var transactions;

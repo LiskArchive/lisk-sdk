@@ -104,10 +104,10 @@ Block.prototype.create = function (data) {
 
 	var nextHeight = (data.previousBlock) ? data.previousBlock.height + 1 : 1;
 
-	var reward = __private.blockReward.calcReward(nextHeight),
-		totalFee = 0,
-totalAmount = 0,
-size = 0;
+	var reward = __private.blockReward.calcReward(nextHeight);
+	var totalFee = 0;
+	var totalAmount = 0;
+	var size = 0;
 
 	var blockTransactions = [];
 	var payloadHash = crypto.createHash('sha256');
@@ -177,8 +177,8 @@ Block.prototype.sign = function (block, keypair) {
  */
 Block.prototype.getBytes = function (block) {
 	var size = 4 + 4 + 8 + 4 + 4 + 8 + 8 + 4 + 4 + 4 + 32 + 32 + 64;
-	var b,
-i;
+	var b;
+	var i;
 
 	try {
 		var bb = new ByteBuffer(size, true);

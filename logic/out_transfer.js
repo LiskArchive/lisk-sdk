@@ -18,9 +18,9 @@ var slots = require('../helpers/slots.js');
 var milestones = require('../helpers/milestones.js');
 
 // Private fields
-var modules,
-library,
-__private = {};
+var modules;
+var library;
+var __private = {};
 
 __private.unconfirmedOutTansfers = {};
 

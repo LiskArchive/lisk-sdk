@@ -50,8 +50,8 @@ function __init(initScope, done) {
 	__testContext.debug('initApplication: Application initialization inside test environment started...');
 
 	jobsQueue.jobs = {};
-	var modules = [],
-rewiredModules = {};
+	var modules = [];
+	var rewiredModules = {};
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
 		promiseLib: Promise,

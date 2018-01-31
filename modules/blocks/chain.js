@@ -17,10 +17,10 @@ var async = require('async');
 var transactionTypes = require('../../helpers/transaction_types.js');
 var Promise = require('bluebird');
 
-var modules,
-library,
-self,
-__private = {};
+var modules;
+var library;
+var self;
+var __private = {};
 
 /**
  * Initializes library.

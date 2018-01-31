@@ -23,22 +23,22 @@ var TransportModule = rewire('../../../modules/transport.js');
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
 describe('transport', () => {
-	var dbStub,
-loggerStub,
-busStub,
-schemaStub,
-networkStub,
-balancesSequenceStub,
-		transactionStub,
-blockStub,
-peersStub,
-broadcasterStubRef,
-		library,
-__private,
-modules,
-defaultScope,
-restoreRewiredTopDeps,
-peerStub;
+	var dbStub;
+	var loggerStub;
+	var busStub;
+	var schemaStub;
+	var networkStub;
+	var balancesSequenceStub;
+	var transactionStub;
+	var blockStub;
+	var peersStub;
+	var broadcasterStubRef;
+	var library;
+	var __private;
+	var modules;
+	var defaultScope;
+	var restoreRewiredTopDeps;
+	var peerStub;
 
 	const SAMPLE_SIGNATURE_1 = '32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739';
 	const SAMPLE_SIGNATURE_2 = '61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595';
@@ -213,8 +213,8 @@ peerStub;
 			});
 
 			describe('when options.peer is defined', () => {
-				var removeSpy,
-peerData;
+				var removeSpy;
+				var peerData;
 				var restoreRewiredDeps;
 
 				beforeEach(done => {
@@ -468,8 +468,8 @@ peerData;
 		});
 
 		describe('receiveTransactions', () => {
-			var restoreRewiredDeps,
-query;
+			var restoreRewiredDeps;
+			var query;
 
 			beforeEach(done => {
 				library = {
@@ -611,8 +611,8 @@ query;
 		});
 
 		describe('receiveTransaction', () => {
-			var transaction,
-peerAddressString;
+			var transaction;
+			var peerAddressString;
 
 			beforeEach(() => {
 				transaction = {

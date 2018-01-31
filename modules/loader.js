@@ -22,11 +22,11 @@ var slots = require('../helpers/slots.js');
 require('colors');
 
 // Private fields
-var modules,
-definitions,
-library,
-self,
-__private = {};
+var modules;
+var definitions;
+var library;
+var self;
+var __private = {};
 
 __private.loaded = false;
 __private.isActive = false;
@@ -320,8 +320,8 @@ __private.loadTransactions = function (cb) {
  * @throws {string} On failure to match genesis block with database.
  */
 __private.loadBlockChain = function () {
-	var offset = 0,
-limit = Number(library.config.loading.loadPerIteration) || 1000;
+	var offset = 0;
+	var limit = Number(library.config.loading.loadPerIteration) || 1000;
 	var verify = Boolean(library.config.loading.verifyOnLoading);
 
 	function load(count) {

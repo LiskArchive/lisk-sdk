@@ -19,10 +19,10 @@ var Signature = require('../logic/signature.js');
 var transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
-var modules,
-library,
-self,
-__private = {};
+var modules;
+var library;
+var self;
+var __private = {};
 
 __private.assetTypes = {};
 

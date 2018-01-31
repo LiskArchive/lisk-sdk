@@ -247,8 +247,8 @@ var modulesLoader = new function () {
 	 * @param {function} cb
 	 */
 	this.initCache = function (cb) {
-		var cacheEnabled,
-cacheConfig;
+		var cacheEnabled;
+		var cacheConfig;
 		cacheEnabled = this.scope.config.cacheEnabled;
 		cacheConfig = this.scope.config.redis;
 		cacheHelper.connect(cacheEnabled, cacheConfig, this.logger, (err, __cache) => {

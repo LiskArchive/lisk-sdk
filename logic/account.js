@@ -20,11 +20,11 @@ var BlockReward = require('./block_reward.js');
 var Bignum = require('../helpers/bignum.js');
 
 // Private fields
-var self, // eslint-disable-line no-unused-vars
-library,
-modules,
+var self; // eslint-disable-line no-unused-vars
+var library;
+var modules;
 
-__private = {};
+var __private = {};
 
 /**
  * Main account logic.
@@ -680,9 +680,9 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 	});
 
 	var DEFAULT_LIMIT = constants.activeDelegates;
-	var limit = DEFAULT_LIMIT,
-offset = 0,
-sort = { sortField: '', sortMethod: '' };
+	var limit = DEFAULT_LIMIT;
+	var offset = 0;
+	var sort = { sortField: '', sortMethod: '' };
 
 	if (filter.offset > 0) {
 		offset = filter.offset;

@@ -98,8 +98,8 @@ describe('wsRPC', () => {
 	describe('getClientRPCStub', () => {
 		var initializeNewConnectionStub;
 
-		var validPort = 4000,
-validIp = '127.0.0.1';
+		var validPort = 4000;
+		var validIp = '127.0.0.1';
 
 		beforeEach(() => {
 			initializeNewConnectionStub = sinonSandbox.stub(ClientRPCStub.prototype, 'initializeNewConnection');

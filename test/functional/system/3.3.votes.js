@@ -30,12 +30,12 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 	var t = 0;
 	while (i < 30) {
 		describe('executing 30 times', () => {
-			var transaction1,
-			transaction2,
-			transaction3,
-			transaction4;
-			var account,
-			transaction;
+			var transaction1;
+			var transaction2;
+			var transaction3;
+			var transaction4;
+			var account;
+			var transaction;
 
 			account = randomUtil.account();
 			transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);

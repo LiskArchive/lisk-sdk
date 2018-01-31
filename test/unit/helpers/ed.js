@@ -42,8 +42,8 @@ describe('ed', () => {
 	});
 
 	describe('sign', () => {
-		var keys,
-messageToSign = {
+		var keys;
+		var messageToSign = {
 			field: 'value'
 		};
 
@@ -73,9 +73,9 @@ messageToSign = {
 	});
 
 	describe('verify', () => {
-		var keys,
-signature,
-messageToSign = {
+		var keys;
+		var signature;
+		var messageToSign = {
 			field: 'value'
 		};
 

@@ -70,10 +70,10 @@ Field.prototype.validate = function (callback) {
 		this.hasCallback = false;
 	}
 
-	var descriptor,
-result,
-accept,
-value;
+	var descriptor;
+	var result;
+	var accept;
+	var value;
 	while (stack.length) {
 		var rule = stack.shift();
 		value = this.value;

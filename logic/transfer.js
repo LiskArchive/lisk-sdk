@@ -18,8 +18,8 @@ var bignum = require('../helpers/bignum.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var modules,
-library;
+var modules;
+var library;
 
 /**
  * Main transfer logic.

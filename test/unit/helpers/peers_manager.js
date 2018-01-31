@@ -96,8 +96,8 @@ describe('PeersManager', () => {
 			});
 
 			describe('multiple valid entries', () => {
-				var validPeerA,
-validPeerB;
+				var validPeerA;
+				var validPeerB;
 
 				beforeEach(() => {
 					validPeerA = _.clone(validPeer);

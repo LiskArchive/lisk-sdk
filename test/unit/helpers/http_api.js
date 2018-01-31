@@ -579,10 +579,10 @@ describe('httpApi', function () {
 	});
 
 	describe('registerEndpoint', function () {
-		var validRoute,
-		validApp,
-		validRouter,
-		validIsLoaded;
+		var validRoute;
+		var validApp;
+		var validRouter;
+		var validIsLoaded;
 
 		before(function () {
 			validRoute = null;

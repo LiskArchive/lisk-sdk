@@ -23,8 +23,8 @@ var extend = require('extend');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var self,
-__private = {};
+var self;
+var __private = {};
 
 /**
  * @typedef {Object} privateTypes

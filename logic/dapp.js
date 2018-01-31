@@ -19,8 +19,8 @@ var dappCategories = require('../helpers/dapp_categories.js');
 var valid_url = require('valid-url');
 
 // Private fields
-var library,
-__private = {};
+var library;
+var __private = {};
 
 __private.unconfirmedNames = {};
 __private.unconfirmedLinks = {};

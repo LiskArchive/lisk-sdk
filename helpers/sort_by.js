@@ -38,8 +38,8 @@ function sortBy(sort, options) {
 		options.quoteField = Boolean(options.quoteField);
 	}
 
-	var sortField,
-sortMethod;
+	var sortField;
+	var sortMethod;
 
 	if (typeof (sort) === 'string') {
 		var sortBy = String(sort).split(':');

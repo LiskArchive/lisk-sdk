@@ -17,8 +17,8 @@ var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 
 // Private fields
-var modules,
-library;
+var modules;
+var library;
 
 /**
  * Initializes library.

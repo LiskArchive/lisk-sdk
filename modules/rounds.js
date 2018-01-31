@@ -19,10 +19,10 @@ var Round = require('../logic/round.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var modules,
-library,
-self,
-__private = {};
+var modules;
+var library;
+var self;
+var __private = {};
 
 __private.loaded = false;
 __private.ticking = false;

@@ -193,10 +193,10 @@ Round.prototype.applyRound = function () {
 	var roundChanges = new RoundChanges(this.scope);
 	var queries = [];
 	var self = this;
-	var changes,
-delegates,
-delegate,
-p;
+	var changes;
+	var delegates;
+	var delegate;
+	var p;
 
 	// Reverse delegates if going backwards
 	delegates = (self.scope.backwards) ? self.scope.roundDelegates.reverse() : self.scope.roundDelegates;

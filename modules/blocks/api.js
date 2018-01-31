@@ -17,9 +17,9 @@ var apiCodes = require('../../helpers/api_codes.js');
 var ApiError = require('../../helpers/api_error.js');
 var sortBy = require('../../helpers/sort_by.js').sortBy;
 
-var library,
-self,
-__private = {};
+var library;
+var self;
+var __private = {};
 var modules; // eslint-disable-line no-unused-vars
 /**
  * Initializes library.
@@ -72,8 +72,8 @@ function API(logger, db, block, schema, dbSequence) {
  * @return {Object}   cb.data List of normalized blocks
  */
 __private.list = function (filter, cb) {
-	var params = {},
-	where = [];
+	var params = {};
+	var where = [];
 
 	if (filter.id) {
 		where.push('"b_id" = ${id}');

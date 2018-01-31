@@ -18,9 +18,9 @@ var httpMocks = require('node-mocks-http');
 var fitting = require('../../../../api/fittings/lisk_cors');
 
 describe('lisk_cors', () => {
-	var context,
-cors_fititng,
-next;
+	var context;
+	var cors_fititng;
+	var next;
 
 	beforeEach(() => {
 		context = {

@@ -226,10 +226,10 @@ d.run(() => {
 			var server = require('http').createServer(app);
 			var io = require('socket.io')(server);
 
-			var privateKey,
-			certificate,
-			https,
-			https_io;
+			var privateKey;
+			var certificate;
+			var https;
+			var https_io;
 
 			if (scope.config.ssl.enabled) {
 				privateKey = fs.readFileSync(scope.config.ssl.options.key);

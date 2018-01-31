@@ -22,9 +22,9 @@ var blocksUtils = require('./blocks/utils');
 var blocksChain = require('./blocks/chain');
 
 // Private fields
-var library,
-self,
-__private = {};
+var library;
+var self;
+var __private = {};
 
 __private.lastBlock = {};
 __private.lastReceipt = null;

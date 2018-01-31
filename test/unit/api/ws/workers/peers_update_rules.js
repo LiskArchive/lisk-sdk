@@ -150,10 +150,10 @@ describe('PeersUpdateRules', () => {
 		});
 
 		describe('multiple valid entries', () => {
-			var validPeerA,
-validPeerB,
-validConnectionIdA = `${validConnectionId}A`,
-validConnectionIdB = `${validConnectionId}B`;
+			var validPeerA;
+			var validPeerB;
+			var validConnectionIdA = `${validConnectionId}A`;
+			var validConnectionIdB = `${validConnectionId}B`;
 
 			beforeEach(() => {
 				validPeerA = _.clone(validPeer);

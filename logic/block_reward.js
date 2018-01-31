@@ -108,8 +108,8 @@ BlockReward.prototype.calcSupply = function (height) {
 	var supply = constants.totalAmount;
 	var rewards = [];
 
-	var amount = 0,
-multiplier = 0;
+	var amount = 0;
+	var multiplier = 0;
 
 	// Remove offset from height
 	height -= this.rewardOffset - 1;

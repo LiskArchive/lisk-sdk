@@ -26,8 +26,8 @@ var ip = require('ip');
  * @return {boolean} True if ip is in the list, false otherwise.
  */
 function CheckIpInList(list, addr, returnListIsEmpty) {
-	var i,
-n;
+	var i;
+	var n;
 
 	if (!_.isBoolean(returnListIsEmpty)) {
 		returnListIsEmpty = true;

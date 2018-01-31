@@ -24,11 +24,11 @@ var jobsQueue = require('../helpers/jobs_queue.js');
 var Peer = require('../logic/peer.js');
 
 // Private fields
-var modules,
-library,
-self,
-__private = {},
-definitions;
+var modules;
+var library;
+var self;
+var __private = {};
+var definitions;
 
 /**
  * Initializes library with scope content.
@@ -105,9 +105,9 @@ __private.getByFilter = function (filter, cb) {
 
 	// Randomizing peers (using Fisher-Yates-Durstenfeld shuffle algorithm)
 	var shuffle = function (array) {
-		var m = array.length,
-		t,
-		i;
+		var m = array.length;
+		var t;
+		var i;
 		// While there remain elements to shuffle
 		while (m) {
 			// Pick a remaining element
@@ -457,10 +457,10 @@ Peers.prototype.list = function (options, cb) {
 	function randomList(peers, cb) {
 		// Get full peers list (random)
 		__private.getByFilter({ normalized: options.normalized }, (err, peersList) => {
-			var accepted,
-			found,
-			matched,
-			picked;
+			var accepted;
+			var found;
+			var matched;
+			var picked;
 
 			found = peersList.length;
 			var attempt = attempts.pop();

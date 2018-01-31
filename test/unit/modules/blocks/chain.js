@@ -36,11 +36,11 @@ function createBlock(blocksModule, blockLogic, secret, timestamp, transactions) 
 }
 
 describe('blocks/chain', () => {
-	var blocksModule,
-blocksChainModule,
-blockLogic,
-genesisBlock,
-db;
+	var blocksModule;
+	var blocksChainModule;
+	var blockLogic;
+	var genesisBlock;
+	var db;
 
 	before(done => {
 		// Force rewards start at 150-th block

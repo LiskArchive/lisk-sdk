@@ -21,9 +21,9 @@ var exceptions = require('../helpers/exceptions.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var modules,
-library,
-__private = {};
+var modules;
+var library;
+var __private = {};
 
 __private.unconfirmedSignatures = {};
 
