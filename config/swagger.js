@@ -44,7 +44,9 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 	// Load Swagger controllers and bind the scope
 	var controllerFolder = '/api/controllers/';
 	fs.readdirSync(config.root + controllerFolder).forEach(file => {
-		require(config.root + controllerFolder + file)(scope);
+		if (path.basename(file) !== 'index.js') {
+			require(config.root + controllerFolder + file)(scope);
+		}
 	});
 
 	var swaggerConfig = {
