@@ -35,9 +35,12 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	cors: function (req, res, next) {
+	cors: function(req, res, next) {
 		res.header('Access-Control-Allow-Origin', '*');
-		res.header('Access-Control-Allow-Headers', 'Origin, X-Objected-With, Content-Type, Accept');
+		res.header(
+			'Access-Control-Allow-Headers',
+			'Origin, X-Objected-With, Content-Type, Accept'
+		);
 		return next();
 	},
 
@@ -49,11 +52,15 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	errorLogger: function (logger, err, req, res, next) {
-		if (!err) { return next(); }
+	errorLogger: function(logger, err, req, res, next) {
+		if (!err) {
+			return next();
+		}
 		logger.error(`API error ${req.url}`, err.message);
 		console.trace(err);
-		res.status(500).send({ success: false, error: `API error: ${err.message}` });
+		res
+			.status(500)
+			.send({ success: false, error: `API error: ${err.message}` });
 	},
 
 	/**
@@ -63,7 +70,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	logClientConnections: function (logger, req, res, next) {
+	logClientConnections: function(logger, req, res, next) {
 		// Log client connections
 		logger.log(`${req.method} ${req.url} from ${req.ip}`);
 
@@ -77,8 +84,10 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	blockchainReady: function (isLoaded, req, res, next) {
-		if (isLoaded()) { return next(); }
+	blockchainReady: function(isLoaded, req, res, next) {
+		if (isLoaded()) {
+			return next();
+		}
 		res.status(500).send({ success: false, error: 'Blockchain is loading' });
 	},
 
@@ -88,8 +97,10 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	notFound: function (req, res) {
-		return res.status(500).send({ success: false, error: 'API endpoint not found' });
+	notFound: function(req, res) {
+		return res
+			.status(500)
+			.send({ success: false, error: 'API endpoint not found' });
 	},
 
 	/**
@@ -99,9 +110,9 @@ var middleware = {
 	 * @param {function} cb
 	 * @return {function} Sanitize middleware.
 	 */
-	sanitize: function (property, schema, cb) {
+	sanitize: function(property, schema, cb) {
 		// TODO: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
-		return function (req, res) {
+		return function(req, res) {
 			req.sanitize(req[property], schema, (err, report, sanitized) => {
 				if (!report.isValid) {
 					return res.json({ success: false, error: report.issues });
@@ -119,7 +130,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	attachResponseHeader: function (headerKey, headerValue, req, res, next) {
+	attachResponseHeader: function(headerKey, headerValue, req, res, next) {
 		res.setHeader(headerKey, headerValue);
 		return next();
 	},
@@ -131,19 +142,28 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	applyAPIAccessRules: function (config, req, res, next) {
+	applyAPIAccessRules: function(config, req, res, next) {
 		if (req.url.match(/^\/peer[\/]?.*/)) {
-			var internalApiAllowed = config.peers.enabled && !checkIpInList(config.peers.access.blackList, req.ip, false);
+			var internalApiAllowed =
+				config.peers.enabled &&
+				!checkIpInList(config.peers.access.blackList, req.ip, false);
 			rejectDisallowed(internalApiAllowed, config.peers.enabled);
 		} else {
-			var publicApiAllowed = config.api.enabled && (config.api.access.public || checkIpInList(config.api.access.whiteList, req.ip, false));
+			var publicApiAllowed =
+				config.api.enabled &&
+				(config.api.access.public ||
+					checkIpInList(config.api.access.whiteList, req.ip, false));
 			rejectDisallowed(publicApiAllowed, config.api.enabled);
 		}
 
 		function rejectDisallowed(apiAllowed, isEnabled) {
-			return apiAllowed ? next() : isEnabled ?
-				res.status(403).send({ success: false, error: 'API access denied' }) :
-				res.status(500).send({ success: false, error: 'API access disabled' });
+			return apiAllowed
+				? next()
+				: isEnabled
+					? res.status(403).send({ success: false, error: 'API access denied' })
+					: res
+							.status(500)
+							.send({ success: false, error: 'API access disabled' });
 		}
 	},
 
@@ -154,7 +174,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	attachResponseHeaders: function (getHeaders, req, res, next) {
+	attachResponseHeaders: function(getHeaders, req, res, next) {
 		res.set(getHeaders());
 		return next();
 	},
@@ -166,7 +186,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	useCache: function (logger, cache, req, res, next) {
+	useCache: function(logger, cache, req, res, next) {
 		if (!cache.isReady()) {
 			return next();
 		}
@@ -177,9 +197,12 @@ var middleware = {
 			if (err || !cachedValue) {
 				// Monkey patching res.json function only if we expect to cache response
 				var expressSendJson = res.json;
-				res.json = function (response) {
+				res.json = function(response) {
 					// ToDo: Remove response.success check when API refactor is done (#225)
-					if (response.success || (response.success === undefined && res.statusCode === apiCodes.OK)) {
+					if (
+						response.success ||
+						(response.success === undefined && res.statusCode === apiCodes.OK)
+					) {
 						logger.debug('Cache - Response for key:', req.url);
 						cache.setJsonForKey(key, response);
 					}
@@ -191,7 +214,7 @@ var middleware = {
 				res.json(cachedValue);
 			}
 		});
-	}
+	},
 };
 
 /**
@@ -219,13 +242,21 @@ function respond(res, err, response) {
  */
 function respondWithCode(res, err, response) {
 	if (err) {
-		return res.status(err.code || apiCodes.INTERNAL_SERVER_ERROR).json(err.toJson());
+		return res
+			.status(err.code || apiCodes.INTERNAL_SERVER_ERROR)
+			.json(err.toJson());
 	} else {
-		var isResponseEmpty = function (response) {
-			var firstValue = _(response).values().first();
+		var isResponseEmpty = function(response) {
+			var firstValue = _(response)
+				.values()
+				.first();
 			return _.isArray(firstValue) && _.isEmpty(firstValue);
 		};
-		return res.status(isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK).json(response);
+		return res
+			.status(
+				isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK
+			)
+			.json(response);
 	}
 }
 
@@ -246,5 +277,5 @@ module.exports = {
 	middleware: middleware,
 	registerEndpoint: registerEndpoint,
 	respond: respond,
-	respondWithCode: respondWithCode
+	respondWithCode: respondWithCode,
 };

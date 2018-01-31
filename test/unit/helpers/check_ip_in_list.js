@@ -31,14 +31,16 @@ describe('checkIpInList', () => {
 		});
 
 		beforeEach(() => {
-			checkIpInListResult = checkIpInList(validList, validAddress, validReturnListIsEmpty);
+			checkIpInListResult = checkIpInList(
+				validList,
+				validAddress,
+				validReturnListIsEmpty
+			);
 		});
 
-		afterEach(() => {
-		});
+		afterEach(() => {});
 
-		after(() => {
-		});
+		after(() => {});
 
 		describe('when returnListIsEmpty is not a boolean', () => {
 			before(() => {

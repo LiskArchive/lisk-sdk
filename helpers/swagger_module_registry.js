@@ -24,7 +24,7 @@ function bind(scope) {
 	__private = {
 		config: scope.config,
 		cache: scope.modules.cache,
-		logger: scope.logger
+		logger: scope.logger,
 	};
 }
 
@@ -56,5 +56,5 @@ module.exports = {
 	bind: bind,
 	getCache: getCache,
 	getLogger: getLogger,
-	getConfig: getConfig
+	getConfig: getConfig,
 };

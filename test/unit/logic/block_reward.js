@@ -348,19 +348,27 @@ describe('BlockReward @slow', () => {
 		});
 
 		it('when height == (milestoneFour * 100) should return 147370048100000000', () => {
-			expect(blockReward.calcSupply(13451520 * 100)).to.equal(147370048100000000);
+			expect(blockReward.calcSupply(13451520 * 100)).to.equal(
+				147370048100000000
+			);
 		});
 
 		it('when height == (milestoneFour * 1000) should return 1358006848100000000', () => {
-			expect(blockReward.calcSupply(13451520 * 1000)).to.equal(1358006848100000000);
+			expect(blockReward.calcSupply(13451520 * 1000)).to.equal(
+				1358006848100000000
+			);
 		});
 
 		it('when height == (milestoneFour * 10000) should return 13464374848100000000', () => {
-			expect(blockReward.calcSupply(13451520 * 10000)).to.equal(13464374848100000000);
+			expect(blockReward.calcSupply(13451520 * 10000)).to.equal(
+				13464374848100000000
+			);
 		});
 
 		it('when height == (milestoneFour * 100000) should return 134528054848100000000', () => {
-			expect(blockReward.calcSupply(13451520 * 100000)).to.equal(134528054848100000000);
+			expect(blockReward.calcSupply(13451520 * 100000)).to.equal(
+				134528054848100000000
+			);
 		});
 
 		describe('completely', () => {
@@ -432,7 +440,7 @@ describe('BlockReward @slow', () => {
 					var supply = blockReward.calcSupply(13451519);
 					var prev = supply;
 
-					for (var i = 13451520; i < (13451520 + 100); i++) {
+					for (var i = 13451520; i < 13451520 + 100; i++) {
 						supply = blockReward.calcSupply(i);
 						expect(supply).to.equal(prev + constants.rewards.milestones[4]);
 						prev = supply;

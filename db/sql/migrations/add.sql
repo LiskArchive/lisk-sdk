@@ -22,4 +22,4 @@
 */
 
 INSERT INTO migrations(id, name)
-VALUES(${id}, ${name}) ON CONFLICT DO NOTHING
+VALUES(${id}, ${name})

@@ -24,19 +24,25 @@ describe('system test (type 4) - checking registered multisignature transaction 
 	var library;
 
 	var scenarios = {
-		regular: new Scenarios.Multisig()
-
+		regular: new Scenarios.Multisig(),
 	};
 
 	scenarios.regular.dapp = randomUtil.application();
-	var dappTransaction = lisk.dapp.createDapp(scenarios.regular.account.password, null, scenarios.regular.dapp);
+	var dappTransaction = lisk.dapp.createDapp(
+		scenarios.regular.account.password,
+		null,
+		scenarios.regular.dapp
+	);
 	scenarios.regular.dapp.id = dappTransaction.id;
 
 	scenarios.regular.multiSigTransaction.ready = true;
 	scenarios.regular.multiSigTransaction.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		var signature = lisk.multisignature.signTransaction(scenarios.regular.multiSigTransaction, member.password);
+		var signature = lisk.multisignature.signTransaction(
+			scenarios.regular.multiSigTransaction,
+			member.password
+		);
 		scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
@@ -45,18 +51,26 @@ describe('system test (type 4) - checking registered multisignature transaction 
 	});
 
 	before(done => {
-		localCommon.addTransactionsAndForge(library, [scenarios.regular.creditTransaction], () => {
-			localCommon.addTransactionsAndForge(library, [dappTransaction], () => {
-				done();
-			});
-		});
+		localCommon.addTransactionsAndForge(
+			library,
+			[scenarios.regular.creditTransaction],
+			() => {
+				localCommon.addTransactionsAndForge(library, [dappTransaction], () => {
+					done();
+				});
+			}
+		);
 	});
 
 	it('adding to pool multisignature registration should be ok', done => {
-		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, (err, res) => {
-			expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
-			done();
-		});
+		localCommon.addTransaction(
+			library,
+			scenarios.regular.multiSigTransaction,
+			(err, res) => {
+				expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
+				done();
+			}
+		);
 	});
 
 	describe('after forging one block', () => {
@@ -68,43 +82,65 @@ describe('system test (type 4) - checking registered multisignature transaction 
 
 		it('transaction should be included', done => {
 			var filter = {
-				id: scenarios.regular.multiSigTransaction.id
+				id: scenarios.regular.multiSigTransaction.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {
 				expect(err).to.be.null;
-				expect(res).to.have.property('transactions').which.is.an('Array');
+				expect(res)
+					.to.have.property('transactions')
+					.which.is.an('Array');
 				expect(res.transactions.length).to.equal(1);
-				expect(res.transactions[0].id).to.equal(scenarios.regular.multiSigTransaction.id);
+				expect(res.transactions[0].id).to.equal(
+					scenarios.regular.multiSigTransaction.id
+				);
 				done();
 			});
 		});
 
 		it('adding to pool multisignature registration for same account should fail', done => {
-			localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, err => {
-				expect(err).to.equal('Account already has multisignatures enabled');
-				done();
-			});
+			localCommon.addTransaction(
+				library,
+				scenarios.regular.multiSigTransaction,
+				err => {
+					expect(err).to.equal('Account already has multisignatures enabled');
+					done();
+				}
+			);
 		});
 
 		describe('adding to pool other transaction types from the same account', () => {
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					it(`type ${index}: ${key} should be rejected`, done => {
-						localCommon.loadTransactionType(key, scenarios.regular.account, scenarios.regular.dapp, true, transaction => {
-							localCommon.addTransaction(library, transaction, err => {
-								expect(err).to.equal(`Transaction type ${transaction.type} is frozen`);
-								done();
-							});
-						});
+						localCommon.loadTransactionType(
+							key,
+							scenarios.regular.account,
+							scenarios.regular.dapp,
+							true,
+							transaction => {
+								localCommon.addTransaction(library, transaction, err => {
+									expect(err).to.equal(
+										`Transaction type ${transaction.type} is frozen`
+									);
+									done();
+								});
+							}
+						);
 					});
 				} else if (key != 'MULTI') {
 					it(`type ${index}: ${key} should be ok`, done => {
-						localCommon.loadTransactionType(key, scenarios.regular.account, scenarios.regular.dapp, true, transaction => {
-							localCommon.addTransaction(library, transaction, (err, res) => {
-								expect(res).to.equal(transaction.id);
-								done();
-							});
-						});
+						localCommon.loadTransactionType(
+							key,
+							scenarios.regular.account,
+							scenarios.regular.dapp,
+							true,
+							transaction => {
+								localCommon.addTransaction(library, transaction, (err, res) => {
+									expect(res).to.equal(transaction.id);
+									done();
+								});
+							}
+						);
 					});
 				}
 			});

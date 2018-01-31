@@ -26,8 +26,15 @@ describe('system test (type 1) - checking validated second signature registratio
 	var library;
 
 	var account = randomUtil.account();
-	var creditTransaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
-	var transaction = lisk.signature.createSignature(account.password, account.secondPassword);
+	var creditTransaction = lisk.transaction.createTransaction(
+		account.address,
+		1000 * normalizer,
+		accountFixtures.genesis.password
+	);
+	var transaction = lisk.signature.createSignature(
+		account.password,
+		account.secondPassword
+	);
 	var dapp = randomUtil.application();
 	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
 	dapp.id = dappTransaction.id;
@@ -60,11 +67,13 @@ describe('system test (type 1) - checking validated second signature registratio
 
 		it('transaction should be included', done => {
 			var filter = {
-				id: transaction.id
+				id: transaction.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {
 				expect(err).to.be.null;
-				expect(res).to.have.property('transactions').which.is.an('Array');
+				expect(res)
+					.to.have.property('transactions')
+					.which.is.an('Array');
 				expect(res.transactions.length).to.equal(1);
 				expect(res.transactions[0].id).to.equal(transaction.id);
 				done();
@@ -82,40 +91,70 @@ describe('system test (type 1) - checking validated second signature registratio
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key != 'SIGNATURE') {
 					it(`type ${index}: ${key} without second signature should fail`, done => {
-						localCommon.loadTransactionType(key, account, dapp, true, transaction => {
-							localCommon.addTransaction(library, transaction, err => {
-								expect(err).to.equal('Missing sender second signature');
-								done();
-							});
-						});
+						localCommon.loadTransactionType(
+							key,
+							account,
+							dapp,
+							true,
+							transaction => {
+								localCommon.addTransaction(library, transaction, err => {
+									expect(err).to.equal('Missing sender second signature');
+									done();
+								});
+							}
+						);
 					});
 
 					it(`type ${index}: ${key} with second signature not matching registered second passphrase should fail`, done => {
-						localCommon.loadTransactionType(key, account, dapp, false, transaction => {
-							localCommon.addTransaction(library, transaction, err => {
-								expect(err).to.equal('Failed to verify second signature');
-								done();
-							});
-						});
+						localCommon.loadTransactionType(
+							key,
+							account,
+							dapp,
+							false,
+							transaction => {
+								localCommon.addTransaction(library, transaction, err => {
+									expect(err).to.equal('Failed to verify second signature');
+									done();
+								});
+							}
+						);
 					});
 
 					if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 						it(`type ${index}: ${key} with correct second signature should be rejected`, done => {
-							localCommon.loadTransactionType(key, account, dapp, null, transaction => {
-								localCommon.addTransaction(library, transaction, err => {
-									expect(err).to.equal(`Transaction type ${transaction.type} is frozen`);
-									done();
-								});
-							});
+							localCommon.loadTransactionType(
+								key,
+								account,
+								dapp,
+								null,
+								transaction => {
+									localCommon.addTransaction(library, transaction, err => {
+										expect(err).to.equal(
+											`Transaction type ${transaction.type} is frozen`
+										);
+										done();
+									});
+								}
+							);
 						});
 					} else {
 						it(`type ${index}: ${key} with correct second signature should be ok`, done => {
-							localCommon.loadTransactionType(key, account, dapp, null, transaction => {
-								localCommon.addTransaction(library, transaction, (err, res) => {
-									expect(res).to.equal(transaction.id);
-									done();
-								});
-							});
+							localCommon.loadTransactionType(
+								key,
+								account,
+								dapp,
+								null,
+								transaction => {
+									localCommon.addTransaction(
+										library,
+										transaction,
+										(err, res) => {
+											expect(res).to.equal(transaction.id);
+											done();
+										}
+									);
+								}
+							);
 						});
 					}
 				}

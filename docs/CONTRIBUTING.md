@@ -15,13 +15,13 @@ propose changes to this document in a pull request.
 
 1. [How Can I Contribute?](#how-can-i-contribute)
 
-	1. [Reporting Bugs](#reporting-bugs)
-	1. [Suggesting Enhancements](#suggesting-enhancements)
-	1. [Pull Requests](#pull-requests)
+   1. [Reporting Bugs](#reporting-bugs)
+   1. [Suggesting Enhancements](#suggesting-enhancements)
+   1. [Pull Requests](#pull-requests)
 
 1. [Styleguides](#styleguides)
-	1. [Git Commit Messages](#git-commit-messages)
-	1. [JavaScript Styleguide](#javascript-styleguide)
+   1. [Git Commit Messages](#git-commit-messages)
+   1. [JavaScript Styleguide](#javascript-styleguide)
 
 ## Code of Conduct
 
@@ -47,7 +47,7 @@ If you prefer to chat with LiskHQ and other developers directly:
 
 * [Join the LiskHQ Gitter](https://gitter.im/LiskHQ/lisk)
 * Even though Gitter is a chat service, sometimes it takes several hours for
-	community members to respond &mdash; please be patient!
+  community members to respond &mdash; please be patient!
 
 ## How Can I Contribute?
 
@@ -76,25 +76,27 @@ _Before_ submitting a pull request, please make sure the following is done:
 
 1. Fork the repo.
 1. If you are creating a pull request that addresses a specific issue, take a
-	look at the projects that issue is a part of (in the right-hand sidebar).
-	Most issues will be a part of a project for a specific version, such as
-	"Version 1.0.0". If this is the case, create your branch from the relevant
-	version branch, e.g. `1.0.0`, and submit your pull request against that
-	branch as a base. Otherwise, create your branch from `master`.
+   look at the projects that issue is a part of (in the right-hand sidebar).
+   Most issues will be a part of a project for a specific version, such as
+   "Version 1.0.0". If this is the case, create your branch from the relevant
+   version branch, e.g. `1.0.0`, and submit your pull request against that
+   branch as a base. Otherwise, create your branch from `master`.
 1. Add tests to the code you have contributed! All new code must come with
-	complete test coverage.
+   complete test coverage.
 1. End all files with a newline. In general, your code should conform to the
-	rules listed in the `.editorconfig` file. There are plugins for most
-	editors/IDEs to do this for you automatically. Update the README for the
-	changes that adhere to your new code.
+   rules listed in the `.editorconfig` file. There are plugins for most
+   editors/IDEs to do this for you automatically. Update the README for the
+   changes that adhere to your new code.
 1. Ensure the test and linting suites pass. Follow the
-	[JavaScript](https://github.com/airbnb/javascript) styleguide from Airbnb
-	with the [lisk extension](https://github.com/LiskHQ/eslint-config-lisk-base).
+   [JavaScript](https://github.com/airbnb/javascript) styleguide from Airbnb
+   with the [lisk extension](https://github.com/LiskHQ/eslint-config-lisk-base).
+1. Format your code using [Prettier](https://prettier.io/). This can be performed manually
+   with `npm run format`.
 1. Submit a pull request via GitHub. Include issue numbers in the PR title, at
-	the end with: `Description - Closes #IssueNumber`.
+   the end with: `Description - Closes #IssueNumber`.
 1. Check that Jenkins CI tests pass (pull request turns green). First time
-	contributors will need to wait for a trusted team member to start Jenkins CI
-	on a Pull Request.
+   contributors will need to wait for a trusted team member to start Jenkins CI
+   on a Pull Request.
 
 ### Reporting Bugs
 
@@ -111,20 +113,21 @@ out [the required template](ISSUE_TEMPLATE.md), the information it asks for
 helps us resolve issues faster.
 
 > **Note:** If you find a **Closed** issue that seems like it is the same thing
-	that you’re experiencing, open a new issue and include a link to the original
-	issue in the body of your new one.
+
+    that you’re experiencing, open a new issue and include a link to the original
+    issue in the body of your new one.
 
 #### Before Submitting A Bug Report
 
 * **Check the [FAQs](https://docs.lisk.io/docs/faq)** for a list of common
-	questions and problems.
+  questions and problems.
 * **Determine
-	[which repository the problem should be reported in](https://github.com/LiskHQ)**.
+  [which repository the problem should be reported in](https://github.com/LiskHQ)**.
 * **Perform a
-	[cursory search](https://github.com/search?utf8=%E2%9C%93&q=+is%3Aissue+org%3ALiskHQ&type=)**
-	to see if the problem has already been reported. If it has **and the issue is
-	still open**, add a comment to the existing issue instead of opening a new
-	one.
+  [cursory search](https://github.com/search?utf8=%E2%9C%93&q=+is%3Aissue+org%3ALiskHQ&type=)**
+  to see if the problem has already been reported. If it has **and the issue is
+  still open**, add a comment to the existing issue instead of opening a new
+  one.
 
 #### How Do I Submit A (Good) Bug Report?
 
@@ -138,37 +141,37 @@ the problem:
 
 * **Use a clear and descriptive title** for the issue to identify the problem.
 * **Describe the exact steps which reproduce the problem** in as many details as
-	possible. When listing steps, **don’t just say what you did, but explain how
-	you did it**. **Make sure to erase sensitive information from the
-	configuration or details you are passing - NEVER SHARE YOUR SECRET PASSPHRASES
-	OR PRIVATE KEYS**.
+  possible. When listing steps, **don’t just say what you did, but explain how
+  you did it**. **Make sure to erase sensitive information from the
+  configuration or details you are passing - NEVER SHARE YOUR SECRET PASSPHRASES
+  OR PRIVATE KEYS**.
 * **Provide specific examples to demonstrate the steps**. Include links to files
-	or GitHub projects, or copy/pasteable snippets, which you use in those
-	examples. If you’re providing snippets in the issue, use
-	[Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
+  or GitHub projects, or copy/pasteable snippets, which you use in those
+  examples. If you’re providing snippets in the issue, use
+  [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the behavior you observed after following the steps** and point out
-	what exactly is the problem with that behavior.
+  what exactly is the problem with that behavior.
 * **Explain which behavior you expected to see instead and why.**
 * **Include screenshots and animated GIFs** which show you following the
-	described steps and clearly demonstrate the problem. You can use
-	[this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and
-	Windows, and [this tool](https://github.com/colinkeenan/silentcast) or
-	[this tool](https://github.com/GNOME/byzanz) on Linux.
+  described steps and clearly demonstrate the problem. You can use
+  [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and
+  Windows, and [this tool](https://github.com/colinkeenan/silentcast) or
+  [this tool](https://github.com/GNOME/byzanz) on Linux.
 * **If the problem wasn’t triggered by a specific action**, describe what you
-	were doing before the problem happened and share more information using the
-	guidelines below.
+  were doing before the problem happened and share more information using the
+  guidelines below.
 
 Provide more context by answering these questions:
 
 * **Did the problem start happening recently** (e.g. after updating to a new
-	version of Lisk Core, Lisk or any other repository) or was this always a
-	problem?
+  version of Lisk Core, Lisk or any other repository) or was this always a
+  problem?
 * If the problem started happening recently, **can you reproduce the problem in
-	an older version of Lisk Core?** What’s the most recent version in which
-	the problem doesn’t happen? You can download older versions of Lisk Core
-	from [the releases page](https://github.com/LiskHQ/Lisk Core/releases).
+  an older version of Lisk Core?** What’s the most recent version in which
+  the problem doesn’t happen? You can download older versions of Lisk Core
+  from [the releases page](https://github.com/LiskHQ/Lisk Core/releases).
 * **Can you reliably reproduce the issue?** If not, provide details about how
-	often the problem happens and under which conditions it normally happens.
+  often the problem happens and under which conditions it normally happens.
 
 ### Suggesting Enhancements
 
@@ -191,21 +194,21 @@ suggestion is related to, create an issue on that repository and provide the
 following information:
 
 * **Use a clear and descriptive title** for the issue to identify the
-	suggestion.
+  suggestion.
 * **Provide a step-by-step description of the suggested enhancement** in as many
-	details as possible.
+  details as possible.
 * **Provide specific examples to demonstrate the steps**. Include copy/pasteable
-	snippets which you use in those examples, as
-	[Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
+  snippets which you use in those examples, as
+  [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the current behavior** and **explain which behavior you expected to
-	see instead** and why.
+  see instead** and why.
 * **Include screenshots and animated GIFs** which help you demonstrate the steps
-	or point out the part of Lisk Core which the suggestion is related to. You
-	can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS
-	and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or
-	[this tool](https://github.com/GNOME/byzanz) on Linux.
+  or point out the part of Lisk Core which the suggestion is related to. You
+  can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS
+  and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or
+  [this tool](https://github.com/GNOME/byzanz) on Linux.
 * **Explain why this enhancement would be useful** to most Lisk and
-	Lisk Core users.
+  Lisk Core users.
 * **Specify which version of Lisk and Lisk Core you’re using.**
 * **Specify the name and version of the OS you’re using.**
 
@@ -218,27 +221,28 @@ following information:
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally after the first line
 * Consider starting the commit message with an applicable emoji:
-	* :seedling: `:seedling:` when adding a new feature
-	* :bug: `:bug:` when fixing a bug
-	* :books: `:books:` when adding or updating documentation
-	* :nail_care: `:nail_care:` when making changes to code style (e.g. lint settings)
-	* :recycle: `:recycle:` when refactoring code
-	* :fire: `:fire:` when removing code or files (including dependencies)
-	* :racehorse: `:racehorse:` when improving performance
-	* :white_check_mark: `:white_check_mark:` when adding or updating tests
-	* :construction_worker: `:construction_worker:` when updating the build process
-	* :bowtie: `:bowtie:` when updating CI
-	* :house: `:house:` when performing chores
-	* :new: `:new:` when adding a new dependency
-	* :arrow_up: `:arrow_up:` when upgrading a dependency
-	* :arrow_down: `:arrow_down:` when downgrading a dependency
-	* :back: `:back:` when reverting changes
+  * :seedling: `:seedling:` when adding a new feature
+  * :bug: `:bug:` when fixing a bug
+  * :books: `:books:` when adding or updating documentation
+  * :nail_care: `:nail_care:` when making changes to code style (e.g. lint settings)
+  * :recycle: `:recycle:` when refactoring code
+  * :fire: `:fire:` when removing code or files (including dependencies)
+  * :racehorse: `:racehorse:` when improving performance
+  * :white_check_mark: `:white_check_mark:` when adding or updating tests
+  * :construction_worker: `:construction_worker:` when updating the build process
+  * :bowtie: `:bowtie:` when updating CI
+  * :house: `:house:` when performing chores
+  * :new: `:new:` when adding a new dependency
+  * :arrow_up: `:arrow_up:` when upgrading a dependency
+  * :arrow_down: `:arrow_down:` when downgrading a dependency
+  * :back: `:back:` when reverting changes
 
 ### JavaScript Styleguide
 
-On Lisk Core we are using
+On Lisk we are using [Prettier](https://prettier.io/) and
 [ESLint](https://eslint.org/). Our ESLint style expands
-[Airbnb’s](https://github.com/airbnb/javascript) style settings. You can get more
+[Airbnb’s](https://github.com/airbnb/javascript) style settings and expresses
+some opinions not covered by Prettier’s formatting concerns. You can get more
 details here: https://github.com/LiskHQ/eslint-config-lisk-base
 
 These contribution guidelines were inspired by and are based on Atom’s

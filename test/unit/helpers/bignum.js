@@ -36,7 +36,7 @@ describe('BigNumber', () => {
 				before(() => {
 					validOpts = {
 						size: 3,
-						endian: 'big'
+						endian: 'big',
 					};
 					validBuf = validBufferSeed;
 				});
@@ -70,7 +70,7 @@ describe('BigNumber', () => {
 					before(() => {
 						validOpts = {
 							size: 2,
-							endian: 'little'
+							endian: 'little',
 						};
 						validBuf = validBufferSeedSize2;
 					});
@@ -84,7 +84,7 @@ describe('BigNumber', () => {
 					before(() => {
 						validOpts = {
 							size: 2,
-							endian: 'big'
+							endian: 'big',
 						};
 						validBuf = validBufferSeed;
 					});
@@ -97,7 +97,7 @@ describe('BigNumber', () => {
 				describe('when endian = big', () => {
 					before(() => {
 						validOpts = {
-							endian: 'big'
+							endian: 'big',
 						};
 						validBuf = validBufferSeed;
 					});
@@ -129,8 +129,9 @@ describe('BigNumber', () => {
 				});
 
 				it('should throw RangeError', () => {
-					expect(bignumResult.toBuffer(validOpts)
-					).to.eq('Unsupported Buffer representation');
+					expect(bignumResult.toBuffer(validOpts)).to.eq(
+						'Unsupported Buffer representation'
+					);
 				});
 			});
 
@@ -145,7 +146,9 @@ describe('BigNumber', () => {
 				});
 
 				it('should throw Error: "Converting negative numbers to Buffers not supported yet', () => {
-					expect(() => { bignumResult.toBuffer(validOpts); }).throws('Converting negative numbers to Buffers not supported yet');
+					expect(() => {
+						bignumResult.toBuffer(validOpts);
+					}).throws('Converting negative numbers to Buffers not supported yet');
 				});
 			});
 		});

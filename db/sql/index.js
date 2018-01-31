@@ -13,7 +13,7 @@
  */
 'use strict';
 
-const {link} = require('./config');
+const { link } = require('./config');
 
 module.exports = {
 	accounts: {
@@ -29,7 +29,7 @@ module.exports = {
 		columnUDelegates: link('accounts/column_u_delegates.sql'),
 		columnMultisignatures: link('accounts/column_multisignatures.sql'),
 		columnUMultisignatures: link('accounts/column_u_multisignatures.sql'),
-		columnRank: link('accounts/column_rank.sql')
+		columnRank: link('accounts/column_rank.sql'),
 	},
 	blocks: {
 		aggregateBlocksReward: link('blocks/aggregate_blocks_reward.sql'),
@@ -45,33 +45,36 @@ module.exports = {
 		deleteAfterBlock: link('blocks/delete_after_block.sql'),
 		getBlocksForTransport: link('blocks/get_blocks_for_transport.sql'),
 		getHeightByLastId: link('blocks/get_height_by_last_id.sql'),
-		getCommonBlock: link('blocks/get_common_block.sql')
+		getCommonBlock: link('blocks/get_common_block.sql'),
 	},
 	dapps: {
 		countByOutTransactionId: link('dapps/count_by_out_transaction_id.sql'),
 		countByTransactionId: link('dapps/count_by_transaction_id.sql'),
 		getExisting: link('dapps/get_existing.sql'),
 		getGenesis: link('dapps/get_genesis.sql'),
-		list: link('dapps/list.sql')
+		list: link('dapps/list.sql'),
 	},
 	delegates: {
 		countDuplicatedDelegates: link('delegates/count_duplicated_delegates.sql'),
-		getDelegatesByPublicKeys: link('delegates/get_delegates_by_public_keys.sql'),
-		insertFork: link('delegates/insert_fork.sql')
+		getDelegatesByPublicKeys: link(
+			'delegates/get_delegates_by_public_keys.sql'
+		),
+		insertFork: link('delegates/insert_fork.sql'),
 	},
 	multisignatures: {
 		getMemberPublicKeys: link('multisignatures/get_member_public_keys.sql'),
-		getGroupIds: link('multisignatures/get_group_ids.sql')
+		getGroupIds: link('multisignatures/get_group_ids.sql'),
 	},
 	migrations: {
 		getLastId: link('migrations/get_last_id.sql'),
 		add: link('migrations/add.sql'),
 		memoryTables: link('migrations/memory_tables.sql'),
-		runtime: link('migrations/runtime.sql')
+		runtime: link('migrations/runtime.sql'),
+		underscorePatch: link('migrations/underscore_patch.sql'),
 	},
 	peers: {
 		list: link('peers/list.sql'),
-		clear: link('peers/clear.sql')
+		clear: link('peers/clear.sql'),
 	},
 	rounds: {
 		getVotes: link('rounds/get_votes.sql'),
@@ -89,15 +92,19 @@ module.exports = {
 		flush: link('rounds/flush.sql'),
 		truncateBlocks: link('rounds/truncate_blocks.sql'),
 		getDelegatesSnapshot: link('rounds/get_delegates_snapshot.sql'),
-		insertRoundInformationWithAmount: link('rounds/insert_round_information_with_amount.sql'),
-		insertRoundInformationWithDelegate: link('rounds/insert_round_information_with_delegate.sql')
+		insertRoundInformationWithAmount: link(
+			'rounds/insert_round_information_with_amount.sql'
+		),
+		insertRoundInformationWithDelegate: link(
+			'rounds/insert_round_information_with_delegate.sql'
+		),
 	},
 	votes: {
 		getVotes: link('votes/get_votes.sql'),
-		getVotesCount: link('votes/get_votes_count.sql')
+		getVotesCount: link('votes/get_votes_count.sql'),
 	},
 	voters: {
 		getVoters: link('voters/get_voters.sql'),
-		getVotersCount: link('voters/get_voters_count.sql')
-	}
+		getVotersCount: link('voters/get_voters_count.sql'),
+	},
 };

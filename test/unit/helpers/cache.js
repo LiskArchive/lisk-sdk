@@ -34,13 +34,13 @@ describe('cache', () => {
 
 		before(() => {
 			validLogger = {
-				info: function (info) {
+				info: function(info) {
 					expect(info).to.eq('App connected with redis server');
 				},
-				error: function (message, errorObject) {
+				error: function(message, errorObject) {
 					expect(message).to.eq('Redis:');
 					expect(errorObject).to.be.an('error');
-				}
+				},
 			};
 			validConfig = {};
 			validCacheEnabled = true;
@@ -49,11 +49,18 @@ describe('cache', () => {
 		beforeEach(() => {
 			redisCreateClientOnStub = sinonSandbox.stub();
 			redisCreateClientResult = { on: redisCreateClientOnStub };
-			redisCreateClientStub = sinonSandbox.stub(redis, 'createClient').returns(redisCreateClientResult);
-			cache.connect(validCacheEnabled, validConfig, validLogger, (connectError, connectResult) => {
-				err = connectError;
-				result = connectResult;
-			});
+			redisCreateClientStub = sinonSandbox
+				.stub(redis, 'createClient')
+				.returns(redisCreateClientResult);
+			cache.connect(
+				validCacheEnabled,
+				validConfig,
+				validLogger,
+				(connectError, connectResult) => {
+					err = connectError;
+					result = connectResult;
+				}
+			);
 		});
 
 		afterEach(() => {
@@ -71,7 +78,9 @@ describe('cache', () => {
 			});
 
 			it('should call callback with result containing cacheEnabled = false', () => {
-				expect(result).to.have.property('cacheEnabled').equal(false);
+				expect(result)
+					.to.have.property('cacheEnabled')
+					.equal(false);
 			});
 
 			it('should call callback with result containing client = null', () => {

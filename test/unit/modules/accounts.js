@@ -46,7 +46,7 @@ var validAccount = {
 	missedblocks: 1,
 	fees: '231386135',
 	rewards: '0',
-	virgin: 1
+	virgin: 1,
 };
 
 describe('accounts', () => {
@@ -54,13 +54,16 @@ describe('accounts', () => {
 	var accountLogic;
 
 	before(done => {
-		application.init({ sandbox: { name: 'lisk_test_accounts' } }, (err, scope) => {
-			// For correctly initializing setting blocks module
-			scope.modules.blocks.lastBlock.set({ height: 10 });
-			accounts = scope.modules.accounts;
-			accountLogic = scope.logic.account;
-			done(err);
-		});
+		application.init(
+			{ sandbox: { name: 'lisk_test_accounts' } },
+			(err, scope) => {
+				// For correctly initializing setting blocks module
+				scope.modules.blocks.lastBlock.set({ height: 10 });
+				accounts = scope.modules.accounts;
+				accountLogic = scope.logic.account;
+				done(err);
+			}
+		);
 	});
 
 	after(done => {
@@ -77,7 +80,9 @@ describe('accounts', () => {
 
 	describe('generateAddressByPublicKey', () => {
 		it('should generate correct address for the publicKey provided', () => {
-			expect(accounts.generateAddressByPublicKey(validAccount.publicKey)).to.equal(validAccount.address);
+			expect(
+				accounts.generateAddressByPublicKey(validAccount.publicKey)
+			).to.equal(validAccount.address);
 		});
 
 		// TODO: Design a throwable test
@@ -96,7 +101,8 @@ describe('accounts', () => {
 
 			accounts.getAccount({ publicKey: validAccount.publicKey });
 			expect(getAccountStub.calledOnce).to.be.ok;
-			expect(getAccountStub.calledWith({ address: validAccount.address })).to.be.ok;
+			expect(getAccountStub.calledWith({ address: validAccount.address })).to.be
+				.ok;
 			getAccountStub.restore();
 			done();
 		});
@@ -117,7 +123,11 @@ describe('accounts', () => {
 			accounts.getAccounts({ secondSignature: 0 }, (err, res) => {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array');
-				expect(res.filter(a => { return a.secondSignature != 0; }).length).to.equal(0);
+				expect(
+					res.filter(a => {
+						return a.secondSignature != 0;
+					}).length
+				).to.equal(0);
 				done();
 			});
 		});
@@ -127,7 +137,9 @@ describe('accounts', () => {
 
 			accounts.getAccounts({ address: validAccount.address }, (err, res) => {
 				expect(err).to.not.exist;
-				expect(res).to.be.an('Array').to.have.length(1);
+				expect(res)
+					.to.be.an('Array')
+					.to.have.length(1);
 				expect(getAllSpy.withArgs({ address: validAccount.address })).to.be.ok;
 				getAllSpy.restore();
 				done();
@@ -150,50 +162,66 @@ describe('accounts', () => {
 	describe('shared', () => {
 		describe('getAccounts', () => {
 			it('should return empty accounts array when account does not exist', done => {
-				accounts.shared.getAccounts({
-					address: randomUtil.account().address
-				}, (err, res) => {
-					expect(err).to.not.exist;
-					expect(res).be.an('array').which.has.length(0);
-					done();
-				});
+				accounts.shared.getAccounts(
+					{
+						address: randomUtil.account().address,
+					},
+					(err, res) => {
+						expect(err).to.not.exist;
+						expect(res)
+							.be.an('array')
+							.which.has.length(0);
+						done();
+					}
+				);
 			});
 
 			it('should return account using publicKey', done => {
-				accounts.shared.getAccounts({
-					publicKey: validAccount.publicKey
-				}, (err, res) => {
-					expect(err).to.not.exist;
-					expect(res).to.be.an('array');
-					done();
-				});
+				accounts.shared.getAccounts(
+					{
+						publicKey: validAccount.publicKey,
+					},
+					(err, res) => {
+						expect(err).to.not.exist;
+						expect(res).to.be.an('array');
+						done();
+					}
+				);
 			});
 
 			it('should return account using address', done => {
-				accounts.shared.getAccounts({
-					address: validAccount.address
-				}, (err, res) => {
-					expect(err).to.not.exist;
-					expect(res).to.be.an('array');
-					done();
-				});
+				accounts.shared.getAccounts(
+					{
+						address: validAccount.address,
+					},
+					(err, res) => {
+						expect(err).to.not.exist;
+						expect(res).to.be.an('array');
+						done();
+					}
+				);
 			});
 
 			it('should return top 10 accounts ordered by descending balance', done => {
 				var limit = 10;
 				var sort = 'balance:desc';
 
-				accounts.shared.getAccounts({
-					limit: limit,
-					sort: sort
-				}, (err, res) => {
-					expect(err).to.not.exist;
-					expect(res).to.have.length(10);
-					for (var i = 0; i < limit - 1; i++) {
-						expect(new bignum(res[i].balance).gte(new bignum(res[i + 1].balance))).to.equal(true);
+				accounts.shared.getAccounts(
+					{
+						limit: limit,
+						sort: sort,
+					},
+					(err, res) => {
+						expect(err).to.not.exist;
+						expect(res).to.have.length(10);
+						for (var i = 0; i < limit - 1; i++) {
+							expect(
+								new bignum(res[i].balance).gte(new bignum(res[i + 1].balance))
+							).to.equal(true);
+						}
+						done();
 					}
-					done();
-				});
+				);
 			});
 
 			it('should return accounts in the range 10 to 20 ordered by descending balance', done => {
@@ -201,18 +229,23 @@ describe('accounts', () => {
 				var offset = 10;
 				var sort = 'balance:desc';
 
-				accounts.shared.getAccounts({
-					limit: limit,
-					offset: offset,
-					sort: sort
-				}, (err, res) => {
-					expect(err).to.not.exist;
-					expect(res).to.have.length(10);
-					for (var i = 0; i < limit - 1; i++) {
-						expect(new bignum(res[i].balance).gte(new bignum(res[i + 1].balance))).to.equal(true);
+				accounts.shared.getAccounts(
+					{
+						limit: limit,
+						offset: offset,
+						sort: sort,
+					},
+					(err, res) => {
+						expect(err).to.not.exist;
+						expect(res).to.have.length(10);
+						for (var i = 0; i < limit - 1; i++) {
+							expect(
+								new bignum(res[i].balance).gte(new bignum(res[i + 1].balance))
+							).to.equal(true);
+						}
+						done();
 					}
-					done();
-				});
+				);
 			});
 		});
 	});

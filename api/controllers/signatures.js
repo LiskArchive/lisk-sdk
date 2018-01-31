@@ -39,7 +39,7 @@ function SignaturesController(scope) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-SignaturesController.postSignatures = function (context, next) {
+SignaturesController.postSignatures = function(context, next) {
 	var signatures = context.request.swagger.params.signatures.value;
 
 	modules.signatures.shared.postSignatures(signatures, (err, data) => {
@@ -54,7 +54,7 @@ SignaturesController.postSignatures = function (context, next) {
 
 		next(null, {
 			data: { message: data.status },
-			meta: { status: true }
+			meta: { status: true },
 		});
 	});
 };
