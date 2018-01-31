@@ -79,18 +79,18 @@ const setUpReadlineStubs = () => {
 };
 
 function setUpLiskJSAPIStubs() {
-	const broadcastSignedTransactionResponse = {
+	const broadcastTransactionResponse = {
 		message: 'Transaction accepted by the node for processing',
 	};
 	const broadcastSignaturesResponse = {
 		message: 'Signature is accepted by the node for processing',
 	};
-	this.test.ctx.broadcastSignedTransactionResponse = broadcastSignedTransactionResponse;
+	this.test.ctx.broadcastTransactionResponse = broadcastTransactionResponse;
 	this.test.ctx.broadcastSignaturesResponse = broadcastSignaturesResponse;
 
 	sandbox
-		.stub(liskAPIInstance, 'broadcastSignedTransaction')
-		.returns(broadcastSignedTransactionResponse);
+		.stub(liskAPIInstance, 'broadcastTransaction')
+		.returns(broadcastTransactionResponse);
 	sandbox
 		.stub(liskAPIInstance, 'broadcastSignatures')
 		.returns(broadcastSignaturesResponse);
@@ -194,7 +194,7 @@ export function setUpCommandBroadcastSignature() {
 
 export function setUpCommandBroadcastTransaction() {
 	setUpLiskJSAPIStubs.call(this);
-	this.test.ctx.apiResponse = this.test.ctx.broadcastSignedTransactionResponse;
+	this.test.ctx.apiResponse = this.test.ctx.broadcastTransactionResponse;
 }
 
 export function setUpCommandCreateAccount() {

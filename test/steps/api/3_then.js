@@ -54,12 +54,12 @@ export function itShouldBroadcastTheSignature() {
 
 export function itShouldNotBroadcastTheTransaction() {
 	const { liskAPIInstance } = this.test.ctx;
-	return liskAPIInstance.broadcastSignedTransaction.should.not.be.called();
+	return liskAPIInstance.broadcastTransaction.should.not.be.called();
 }
 
 export function itShouldBroadcastTheTransaction() {
 	const { liskAPIInstance, transaction } = this.test.ctx;
-	return liskAPIInstance.broadcastSignedTransaction.should.be.calledWithExactly(
+	return liskAPIInstance.broadcastTransaction.should.be.calledWithExactly(
 		JSON.parse(transaction),
 	);
 }

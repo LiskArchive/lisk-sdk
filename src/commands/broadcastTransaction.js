@@ -58,7 +58,7 @@ export const actionCreator = () => async ({ transaction, stdin }) => {
 
 	return shouldUseStdIn && transactionObject.error
 		? transactionObject
-		: liskAPIInstance.broadcastSignedTransaction(transactionObject);
+		: liskAPIInstance.broadcastTransaction(transactionObject);
 };
 
 const broadcastTransaction = createCommand({
