@@ -90,6 +90,8 @@ _Before_ submitting a pull request, please make sure the following is done:
 1. Ensure the test and linting suites pass. Follow the
 	[JavaScript](https://github.com/airbnb/javascript) styleguide from Airbnb
 	with the [lisk extension](https://github.com/LiskHQ/eslint-config-lisk-base).
+1. Format your code using [Prettier](https://prettier.io/). This can be performed manually
+	with `npm run format`.
 1. Submit a pull request via GitHub. Include issue numbers in the PR title, at
 	the end with: `Description - Closes #IssueNumber`.
 1. Check that Jenkins CI tests pass (pull request turns green). First time
@@ -236,9 +238,10 @@ following information:
 
 ### JavaScript Styleguide
 
-On Lisk Core we are using
+On Lisk we are using [Prettier](https://prettier.io/) and
 [ESLint](https://eslint.org/). Our ESLint style expands
-[Airbnb’s](https://github.com/airbnb/javascript) style settings. You can get more
+[Airbnb’s](https://github.com/airbnb/javascript) style settings and expresses
+some opinions not covered by Prettier’s formatting concerns. You can get more
 details here: https://github.com/LiskHQ/eslint-config-lisk-base
 
 These contribution guidelines were inspired by and are based on Atom’s
