@@ -397,4 +397,37 @@ describe('blocks/utils', function () {
 			done();
 		});
 	});
+
+	describe('aggregateBlocksReward', function () {
+
+		it('should return error when aggregateBlocksReward sql fails', function (done) {
+			loggerStub.error.reset();
+
+			blocksUtilsModule.aggregateBlocksReward({generatorPublicKey: '123abc', activeDelegates: 101}, function (err, cb) {
+				expect(loggerStub.error.args[0][0]).to.contains('TypeError: Cannot read property \'0\' of undefined');
+				expect(err).to.equal('Blocks#aggregateBlocksReward error');
+				done();
+			});
+		});
+
+		it('should return error when delegate is null', function (done) {
+			library.db.blocks.aggregateBlocksReward = sinonSandbox.stub().resolves([{delegate: null}]);
+
+			blocksUtilsModule.aggregateBlocksReward({generatorPublicKey: '123abc', activeDelegates: 101}, function (err, cb) {
+				expect(err).to.equal('Account not found or is not a delegate');
+				done();
+			});
+		});
+
+		it('should return block object', function (done) {
+			library.db.blocks.aggregateBlocksReward = sinonSandbox.stub().resolves([{delegate: '123abc', fees: 1, count: 100}]);
+
+			blocksUtilsModule.aggregateBlocksReward({generatorPublicKey: '123abc', activeDelegates: 101}, function (err, cb) {
+				expect(cb.fees).to.equal(1);
+				expect(cb.count).to.equal(100);
+				expect(cb.rewards).to.equal('0');
+				done();
+			});
+		});
+	});
 });
