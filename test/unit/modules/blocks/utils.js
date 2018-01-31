@@ -44,10 +44,12 @@ describe('blocks/utils', function () {
 					getIdSequence: sinonSandbox.stub().resolves(),
 					getHeightByLastId: sinonSandbox.stub().resolves(['1']),
 					loadLastBlock: sinonSandbox.stub().resolves(viewRow_full_blocks_list),
-					loadBlocksData: sinonSandbox.stub().resolves(viewRow_full_blocks_list),
+					loadBlocksData: sinonSandbox.stub(),
 					aggregateBlocksReward: sinonSandbox.stub().resolves()
 				}
 			};
+
+			dbStub.blocks.loadBlocksData.withArgs(sinonSandbox.match({id:'13068833527549895884'})).resolves(viewRow_full_blocks_list).withArgs(sinonSandbox.match({id:'1'})).resolves([]);
 
 			blockMock = {
 				dbRead: function (input) {
@@ -325,81 +327,37 @@ describe('blocks/utils', function () {
 
 	describe('loadBlocksData', function () {
 
-		describe('when 3 parameters are passed to loadBlocksData', function () {
+		it('should return error when loadBlocksData fails', function (done) {
+			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves();
+			loggerStub.error.reset();
 
-			it('should call third parameter');
-		});
-
-		describe('when 2 parameters are passed to loadBlocksData', function () {
-
-			it('should call second parameter');
-		});
-
-		describe('when filter.id and filter.lastId are defined',function () {
-
-			it('should call callback with Invalid Filter error');
-		});
-
-		describe('when filter.lastId is undefined and filter.id is defined', function () {
-
-			it('should set params.id to filter.id');
-		});
-
-		describe('when filter.id is undefined and filter.lastId is defined', function () {
-
-			it('should set params.lastId to filter.lastId');
-		});
-
-		it('should call library.dbSequence.add');
-
-		it('should call library.db.query');
-
-		it('should call library.db.blocks.getHeightByLastId');
-
-		describe('when filter.lastId exists', function () {
-
-		   it('should call library.db.query with {lastId: filter.lastId}');
-		});
-
-		describe('when filter.lastId does not exist', function () {
-
-		   it('should call library.db.query with {lastId: null}');
-		});
-
-		describe('when db query fails', function () {
-
-			it('should call logger.error with error stack');
-
-			it('should call callback with the Blocks#loadBlockData error');
-		});
-
-		describe('when db query succeeds', function () {
-
-			describe('and does not return results', function () {
-
-				it('should set height to 0');
+			blocksUtilsModule.loadBlocksData({id: '1'}, function (err, cb) {
+				expect(loggerStub.error.args[0][0]).to.contains('TypeError: Cannot read property \'length\' of undefined');
+				expect(err).to.equal('Blocks#loadBlockData error');
+				done();
 			});
+		});
 
-			describe('and returns results', function () {
+		it('should return error when called with both id and lastId', function (done) {
+			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(['1']);
 
-				it('should set height to rows[0].height');
+			blocksUtilsModule.loadBlocksData({id: '1', lastId: '5'}, function (err, cb) {
+				expect(err).to.equal('Invalid filter: Received both id and lastId');
+				done();
 			});
+		});
 
-			it('should set params.limit to realLimit');
+		it('should return empty row when called with invalid id', function (done) {
+			blocksUtilsModule.loadBlocksData({id: '1'}, function (err, cb) {
+				expect(cb.length).to.equal(0);
+				done();
+			});
+		});
 
-			it('should set params.height to height');
-
-			it('should call library.db.query');
-
-			it('should call library.db.query with sql.loadBlocksData with filter');
-
-			it('should call library.db.query with params)');
-
-			describe('when db query succeeds', function () {
-
-				it('should call callback with error = null');
-
-				it('should call callback with result containing the rows');
+		it('should return one row when called with valid id', function (done) {
+			blocksUtilsModule.loadBlocksData({id: '13068833527549895884'}, function (err, cb) {
+				expect(cb[0]).to.deep.equal(viewRow_full_blocks_list[0]);
+				done();
 			});
 		});
 	});
