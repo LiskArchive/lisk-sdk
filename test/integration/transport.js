@@ -36,7 +36,11 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 	describe('when every peers contains the others on the peers list', () => {
 		before(() => {
 			configurations.forEach(configuration => {
-				configuration.peers.list = setup.sync.generatePeers(configurations, setup.sync.SYNC_MODES.ALL_TO_GROUP, { indices: _.range(10) });
+				configuration.peers.list = setup.sync.generatePeers(
+					configurations,
+					setup.sync.SYNC_MODES.ALL_TO_GROUP,
+					{ indices: _.range(10) }
+				);
 			});
 		});
 
@@ -44,12 +48,17 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 			var testFailedError;
 
 			before(() => {
-				var secretsMaxLength = Math.ceil(devConfig.forging.secret.length / configurations.length);
+				var secretsMaxLength = Math.ceil(
+					devConfig.forging.secret.length / configurations.length
+				);
 				var secrets = _.clone(devConfig.forging.secret);
 
 				configurations.forEach((configuration, index) => {
 					configuration.forging.force = false;
-					configuration.forging.secret = secrets.slice(index * secretsMaxLength, (index + 1) * secretsMaxLength);
+					configuration.forging.secret = secrets.slice(
+						index * secretsMaxLength,
+						(index + 1) * secretsMaxLength
+					);
 				});
 			});
 
@@ -58,7 +67,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					setup.setupNetwork(configurations, done);
 				});
 
-				afterEach(function () {
+				afterEach(function() {
 					if (this.currentTest.state === 'failed') {
 						console.warn(`Test failed: ${this.currentTest.title}`);
 						testFailedError = this.currentTest.err;
@@ -75,21 +84,30 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					var params = {};
 
 					before(done => {
-						utils.ws.establishWSConnectionsToNodes(configurations, (err, socketsResult) => {
-							if (err) {
-								return done(err);
+						utils.ws.establishWSConnectionsToNodes(
+							configurations,
+							(err, socketsResult) => {
+								if (err) {
+									return done(err);
+								}
+								params.sockets = socketsResult;
+								params.configurations = configurations;
+								done();
 							}
-							params.sockets = socketsResult;
-							params.configurations = configurations;
-							done();
-						});
+						);
 					});
 
 					scenarios.network.peers(params);
 
 					describe('when functional tests are successfully executed against 127.0.0.1:5000', () => {
 						before(done => {
-							setup.shell.runMochaTests(['test/functional/http/get/blocks.js', 'test/functional/http/get/transactions.js'], done);
+							setup.shell.runMochaTests(
+								[
+									'test/functional/http/get/blocks.js',
+									'test/functional/http/get/transactions.js',
+								],
+								done
+							);
 						});
 
 						scenarios.propagation.blocks(params);

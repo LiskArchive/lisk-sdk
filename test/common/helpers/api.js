@@ -20,12 +20,16 @@ var accountFixtures = require('../../fixtures/accounts');
 var swaggerSpec = require('../swagger_spec');
 
 var http = {
-	abstractRequest: function (options, done) {
+	abstractRequest: function(options, done) {
 		var request = __testContext.api[options.verb.toLowerCase()](options.path);
 
 		request.set('Accept', 'application/json');
 		request.expect(response => {
-			if (response.statusCode !== 204 && (!response.headers['content-type'] || response.headers['content-type'].indexOf('json') === -1)) {
+			if (
+				response.statusCode !== 204 &&
+				(!response.headers['content-type'] ||
+					response.headers['content-type'].indexOf('json') === -1)
+			) {
 				return new Error('Unexpected content-type!');
 			}
 		});
@@ -37,13 +41,21 @@ var http = {
 		var verb = options.verb.toUpperCase();
 		__testContext.debug(['> Path:'.grey, verb, options.path].join(' '));
 		if (verb === 'POST' || verb === 'PUT') {
-			__testContext.debug(['> Data:'.grey, JSON.stringify(options.params)].join(' '));
+			__testContext.debug(
+				['> Data:'.grey, JSON.stringify(options.params)].join(' ')
+			);
 		}
 
 		if (done) {
 			request.end((err, res) => {
-				__testContext.debug('> Status:'.grey, JSON.stringify(res ? res.statusCode : ''));
-				__testContext.debug('> Response:'.grey, JSON.stringify(res ? res.body : err));
+				__testContext.debug(
+					'> Status:'.grey,
+					JSON.stringify(res ? res.statusCode : '')
+				);
+				__testContext.debug(
+					'> Response:'.grey,
+					JSON.stringify(res ? res.body : err)
+				);
 				done(err, res);
 			});
 		} else {
@@ -52,23 +64,37 @@ var http = {
 	},
 
 	// Get the given path
-	get: function (path, done) {
-		return this.abstractRequest({ verb: 'GET', path: path, params: null }, done);
+	get: function(path, done) {
+		return this.abstractRequest(
+			{ verb: 'GET', path: path, params: null },
+			done
+		);
 	},
 
 	// Post to the given path
-	post: function (path, params, done) {
-		return this.abstractRequest({ verb: 'POST', path: path, params: params }, done);
+	post: function(path, params, done) {
+		return this.abstractRequest(
+			{ verb: 'POST', path: path, params: params },
+			done
+		);
 	},
 
 	// Put to the given path
-	put: function (path, params, done) {
-		return this.abstractRequest({ verb: 'PUT', path: path, params: params }, done);
-	}
+	put: function(path, params, done) {
+		return this.abstractRequest(
+			{ verb: 'PUT', path: path, params: params },
+			done
+		);
+	},
 };
 
 function paramsHelper(url, params) {
-	if (typeof params !== 'undefined' && params != null && Array.isArray(params) && params.length > 0) {
+	if (
+		typeof params !== 'undefined' &&
+		params != null &&
+		Array.isArray(params) &&
+		params.length > 0
+	) {
 		// It is an defined array with at least one element
 		var queryString = params.join('&');
 		url += `?${queryString}`;
@@ -82,7 +108,7 @@ function httpCallbackHelperWithStatus(cb, err, res) {
 	}
 	cb(null, {
 		status: res.status,
-		body: res.body
+		body: res.body,
 	});
 }
 
@@ -102,7 +128,10 @@ function httpResponseCallbackHelper(cb, err, res) {
 
 function getTransactionById(transactionId, cb) {
 	// Get transactionById uses the same /api/transactions endpoint, this is just a helper function
-	http.get(`/api/transactions?id=${transactionId}`, httpResponseCallbackHelper.bind(null, cb));
+	http.get(
+		`/api/transactions?id=${transactionId}`,
+		httpResponseCallbackHelper.bind(null, cb)
+	);
 }
 
 function getTransactions(params, cb) {
@@ -113,27 +142,45 @@ function getTransactions(params, cb) {
 }
 
 function getUnconfirmedTransaction(transaction, cb) {
-	http.get(`/api/node/transactions/unconfirmed?id=${transaction}`, httpResponseCallbackHelper.bind(null, cb));
+	http.get(
+		`/api/node/transactions/unconfirmed?id=${transaction}`,
+		httpResponseCallbackHelper.bind(null, cb)
+	);
 }
 
 function getUnconfirmedTransactions(cb) {
-	http.get('/api/node/transactions/unconfirmed', httpResponseCallbackHelper.bind(null, cb));
+	http.get(
+		'/api/node/transactions/unconfirmed',
+		httpResponseCallbackHelper.bind(null, cb)
+	);
 }
 
 function getQueuedTransaction(transaction, cb) {
-	http.get(`/api/node/transactions/unprocessed?id=${transaction}`, httpResponseCallbackHelper.bind(null, cb));
+	http.get(
+		`/api/node/transactions/unprocessed?id=${transaction}`,
+		httpResponseCallbackHelper.bind(null, cb)
+	);
 }
 
 function getQueuedTransactions(cb) {
-	http.get('/api/node/transactions/unprocessed', httpResponseCallbackHelper.bind(null, cb));
+	http.get(
+		'/api/node/transactions/unprocessed',
+		httpResponseCallbackHelper.bind(null, cb)
+	);
 }
 
 function getMultisignaturesTransaction(transaction, cb) {
-	http.get(`/api/node/transactions/unsigned?id=${transaction}`, httpResponseCallbackHelper.bind(null, cb));
+	http.get(
+		`/api/node/transactions/unsigned?id=${transaction}`,
+		httpResponseCallbackHelper.bind(null, cb)
+	);
 }
 
 function getMultisignaturesTransactions(cb) {
-	http.get('/api/node/transactions/unsigned', httpResponseCallbackHelper.bind(null, cb));
+	http.get(
+		'/api/node/transactions/unsigned',
+		httpResponseCallbackHelper.bind(null, cb)
+	);
 }
 
 function getPendingMultisignatures(params, cb) {
@@ -168,21 +215,34 @@ function sendTransactionPromise(transaction, expectedStatusCode) {
 
 	transaction = normalizeTransactionObject(transaction);
 
-	return postTransactionsEndpoint.makeRequest({ transactions: [transaction] }, expectedStatusCode);
+	return postTransactionsEndpoint.makeRequest(
+		{ transactions: [transaction] },
+		expectedStatusCode
+	);
 }
 
 function sendTransactionsPromise(transactions, expectedStatusCode) {
 	expectedStatusCode = expectedStatusCode || 200;
 
-	return Promise.map(transactions, transaction => { return sendTransactionPromise(transaction, expectedStatusCode); });
+	return Promise.map(transactions, transaction => {
+		return sendTransactionPromise(transaction, expectedStatusCode);
+	});
 }
 
 function sendSignature(signature, transaction, cb) {
-	http.post('/api/signatures', { signature: { signature: signature, transaction: transaction.id } }, httpResponseCallbackHelper.bind(null, cb));
+	http.post(
+		'/api/signatures',
+		{ signature: { signature: signature, transaction: transaction.id } },
+		httpResponseCallbackHelper.bind(null, cb)
+	);
 }
 
 function creditAccount(address, amount, cb) {
-	var transaction = lisk.transaction.createTransaction(address, amount, accountFixtures.genesis.password);
+	var transaction = lisk.transaction.createTransaction(
+		address,
+		amount,
+		accountFixtures.genesis.password
+	);
 	sendTransactionPromise(transaction).then(cb);
 }
 
@@ -191,7 +251,10 @@ function getCount(param, cb) {
 }
 
 function registerDelegate(account, cb) {
-	var transaction = lisk.delegate.createDelegate(account.password, account.username);
+	var transaction = lisk.delegate.createDelegate(
+		account.password,
+		account.username
+	);
 	sendTransactionPromise(transaction).then(cb);
 }
 
@@ -249,7 +312,10 @@ function getForgers(params, cb) {
 }
 
 function getAccounts(params, cb) {
-	http.get(`/api/accounts?${params}`, httpCallbackHelperWithStatus.bind(null, cb));
+	http.get(
+		`/api/accounts?${params}`,
+		httpCallbackHelperWithStatus.bind(null, cb)
+	);
 }
 
 function getBlocks(params, cb) {
@@ -267,7 +333,11 @@ function getBlocks(params, cb) {
  */
 function expectSwaggerParamError(res, param) {
 	expect(res.body.message).to.be.eql('Validation errors');
-	expect(res.body.errors.map(p => { return p.name; })).to.contain(param);
+	expect(
+		res.body.errors.map(p => {
+			return p.name;
+		})
+	).to.contain(param);
 }
 
 /**
@@ -281,7 +351,10 @@ function createSignatureObject(transaction, signer) {
 	return {
 		transactionId: transaction.id,
 		publicKey: signer.publicKey,
-		signature: lisk.multisignature.signTransaction(transaction, signer.password)
+		signature: lisk.multisignature.signTransaction(
+			transaction,
+			signer.password
+		),
 	};
 }
 
@@ -289,11 +362,21 @@ var getTransactionByIdPromise = Promise.promisify(getTransactionById);
 var getTransactionsPromise = Promise.promisify(getTransactions);
 var getQueuedTransactionPromise = Promise.promisify(getQueuedTransaction);
 var getQueuedTransactionsPromise = Promise.promisify(getQueuedTransactions);
-var getUnconfirmedTransactionPromise = Promise.promisify(getUnconfirmedTransaction);
-var getUnconfirmedTransactionsPromise = Promise.promisify(getUnconfirmedTransactions);
-var getMultisignaturesTransactionPromise = Promise.promisify(getMultisignaturesTransaction);
-var getMultisignaturesTransactionsPromise = Promise.promisify(getMultisignaturesTransactions);
-var getPendingMultisignaturesPromise = Promise.promisify(getPendingMultisignatures);
+var getUnconfirmedTransactionPromise = Promise.promisify(
+	getUnconfirmedTransaction
+);
+var getUnconfirmedTransactionsPromise = Promise.promisify(
+	getUnconfirmedTransactions
+);
+var getMultisignaturesTransactionPromise = Promise.promisify(
+	getMultisignaturesTransaction
+);
+var getMultisignaturesTransactionsPromise = Promise.promisify(
+	getMultisignaturesTransactions
+);
+var getPendingMultisignaturesPromise = Promise.promisify(
+	getPendingMultisignatures
+);
 var creditAccountPromise = Promise.promisify(creditAccount);
 var sendSignaturePromise = Promise.promisify(sendSignature);
 var getCountPromise = Promise.promisify(getCount);
@@ -343,5 +426,5 @@ module.exports = {
 	getBlocksPromise: getBlocksPromise,
 	expectSwaggerParamError: expectSwaggerParamError,
 	createSignatureObject: createSignatureObject,
-	normalizeTransactionObject: normalizeTransactionObject
+	normalizeTransactionObject: normalizeTransactionObject,
 };

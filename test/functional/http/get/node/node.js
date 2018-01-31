@@ -25,16 +25,16 @@ describe('GET /node', () => {
 		var constantsResponse;
 
 		before(() => {
- return endPoint.makeRequest()
-				.then(response => {
-					constantsResponse = response.body.data;
-				});
-});
-
-		it('should return a result containing nethash = "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"', () => {
-			expect(constantsResponse.nethash).to.be.equal('198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d');
+			return endPoint.makeRequest().then(response => {
+				constantsResponse = response.body.data;
+			});
 		});
 
+		it('should return a result containing nethash = "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"', () => {
+			expect(constantsResponse.nethash).to.be.equal(
+				'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d'
+			);
+		});
 
 		it('should return a result containing milestone that is a number <= 500000000', () => {
 			expect(parseInt(constantsResponse.milestone)).to.at.most(500000000);
@@ -49,7 +49,9 @@ describe('GET /node', () => {
 		});
 
 		it('should return a result containing version = "0.0.1"', () => {
-			expect(constantsResponse).to.have.property('version').equal('0.0.1');
+			expect(constantsResponse)
+				.to.have.property('version')
+				.equal('0.0.1');
 		});
 
 		it('should return a result containing fees.send = 10000000', () => {
@@ -92,7 +94,9 @@ describe('GET /node', () => {
 	describe('/status', () => {
 		var ndoeStatusEndpoint = swaggerEndpoint('GET /node/status 200');
 
-		it('should return node status', () => { return ndoeStatusEndpoint.makeRequest(); });
+		it('should return node status', () => {
+			return ndoeStatusEndpoint.makeRequest();
+		});
 
 		describe('GET /forging', () => {
 			var forgingEndpoint = new swaggerEndpoint('GET /node/status/forging');
@@ -101,39 +105,49 @@ describe('GET /node', () => {
 			it('called from unauthorized IP should fail');
 
 			it('using no params should return full list of internal forgers', () => {
- return forgingEndpoint.makeRequest({}, 200).then(res => {
-					expect(res.body.data.length).to.be.eql(__testContext.config.forging.secret.length);
+				return forgingEndpoint.makeRequest({}, 200).then(res => {
+					expect(res.body.data.length).to.be.eql(
+						__testContext.config.forging.secret.length
+					);
 				});
-});
+			});
 
 			it('using invalid publicKey should fail', () => {
- return forgingEndpoint.makeRequest({ publicKey: 'invalidPublicKey' }, 400).then(res => {
-					expectSwaggerParamError(res, 'publicKey');
-				});
-});
+				return forgingEndpoint
+					.makeRequest({ publicKey: 'invalidPublicKey' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'publicKey');
+					});
+			});
 
 			it('using empty publicKey should should fail', () => {
- return forgingEndpoint.makeRequest({ publicKey: 'invalidPublicKey' }, 400).then(res => {
-					expectSwaggerParamError(res, 'publicKey');
-				});
-});
+				return forgingEndpoint
+					.makeRequest({ publicKey: 'invalidPublicKey' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'publicKey');
+					});
+			});
 
 			it('using existing publicKey should be ok', () => {
 				var publicKey = __testContext.config.forging.secret[0].publicKey;
 
-				return forgingEndpoint.makeRequest({ publicKey: publicKey }, 200).then(res => {
-					expect(res.body.data).to.have.length(1);
-					expect(res.body.data[0].publicKey).to.be.eql(publicKey);
-				});
+				return forgingEndpoint
+					.makeRequest({ publicKey: publicKey }, 200)
+					.then(res => {
+						expect(res.body.data).to.have.length(1);
+						expect(res.body.data[0].publicKey).to.be.eql(publicKey);
+					});
 			});
 
 			it('using enabled publicKey should be ok', () => {
 				var publicKey = __testContext.config.forging.secret[0].publicKey;
 
-				return forgingEndpoint.makeRequest({ publicKey: publicKey }, 200).then(res => {
-					expect(res.body.data[0].publicKey).to.be.eql(publicKey);
-					expect(res.body.data[0].forging).to.be.true;
-				});
+				return forgingEndpoint
+					.makeRequest({ publicKey: publicKey }, 200)
+					.then(res => {
+						expect(res.body.data[0].publicKey).to.be.eql(publicKey);
+						expect(res.body.data[0].forging).to.be.true;
+					});
 			});
 		});
 	});

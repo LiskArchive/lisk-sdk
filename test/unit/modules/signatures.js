@@ -39,7 +39,9 @@ describe('signatures', () => {
 			describe('when modules not are loaded', () => {
 				it('should call callback with ApiError');
 
-				it('should call callback with ApiError containing message = "Blockchain is loading"');
+				it(
+					'should call callback with ApiError containing message = "Blockchain is loading"'
+				);
 
 				it('should call callback with ApiError containing code = 500');
 			});
@@ -50,7 +52,9 @@ describe('signatures', () => {
 				describe('when modules.transport.shared.postSignatures fails with result', () => {
 					it('should call callback with ApiError');
 
-					it('should call callback with ApiError containing message = "Blockchain is loading"');
+					it(
+						'should call callback with ApiError containing message = "Blockchain is loading"'
+					);
 
 					describe('when result.message = "Invalid signatures body"', () => {
 						it('should call callback with ApiError containing code = 400');
@@ -64,7 +68,9 @@ describe('signatures', () => {
 				describe('when modules.transport.shared.postSignatures succeeds with result', () => {
 					it('should call callback with error = null');
 
-					it('should call callback with result containing status = "Signature Accepted"');
+					it(
+						'should call callback with result containing status = "Signature Accepted"'
+					);
 				});
 			});
 		});

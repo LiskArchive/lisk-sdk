@@ -32,12 +32,15 @@ var testDatabaseNames = [];
  * @param {function} cb
  */
 function clearDatabaseTable(db, logger, table, cb) {
-	db.query(`DELETE FROM ${table}`).then(result => {
-		cb(null, result);
-	}).catch(err => {
-		console.error(`Failed to clear database table: ${table}`);
-		throw err;
-	});
+	db
+		.query(`DELETE FROM ${table}`)
+		.then(result => {
+			cb(null, result);
+		})
+		.catch(err => {
+			console.error(`Failed to clear database table: ${table}`);
+			throw err;
+		});
 }
 
 function DBSandbox(dbConfig, testDatabaseName) {
@@ -47,7 +50,7 @@ function DBSandbox(dbConfig, testDatabaseName) {
 	this.dbConfig.database = this.testDatabaseName;
 	testDatabaseNames.push(this.testDatabaseName);
 
-	var dropCreatedDatabases = function () {
+	var dropCreatedDatabases = function() {
 		testDatabaseNames.forEach(testDatabaseName => {
 			child_process.exec(`dropdb ${testDatabaseName}`);
 		});
@@ -58,17 +61,22 @@ function DBSandbox(dbConfig, testDatabaseName) {
 	});
 }
 
-DBSandbox.prototype.create = function (cb) {
+DBSandbox.prototype.create = function(cb) {
 	child_process.exec(`dropdb ${this.dbConfig.database}`, () => {
 		child_process.exec(`createdb ${this.dbConfig.database}`, () => {
-			database.connect(this.dbConfig, console)
-				.then(db => { return cb(null, db); })
-				.catch(err => { return cb(err); });
+			database
+				.connect(this.dbConfig, console)
+				.then(db => {
+					return cb(null, db);
+				})
+				.catch(err => {
+					return cb(err);
+				});
 		});
 	});
 };
 
-DBSandbox.prototype.destroy = function (logger) {
+DBSandbox.prototype.destroy = function(logger) {
 	database.disconnect(logger);
 	this.dbConfig.database = this.originalDatabaseName;
 };

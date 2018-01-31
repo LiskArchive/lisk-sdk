@@ -28,7 +28,10 @@ var WSServerMaster = require('../../../common/ws/server_master');
 
 describe('handshake', () => {
 	var wsServerPort = 9999;
-	var frozenHeaders = WSServerMaster.generatePeerHeaders({ wsPort: wsServerPort, nonce: wsServer.validNonce });
+	var frozenHeaders = WSServerMaster.generatePeerHeaders({
+		wsPort: wsServerPort,
+		nonce: wsServer.validNonce,
+	});
 	var validClientSocketOptions;
 	var clientSocket;
 	var currentConnectedSocket;
@@ -51,7 +54,7 @@ describe('handshake', () => {
 	}
 
 	function expectDisconnect(test, cb) {
-		var disconnectHandler = function (code, description) {
+		var disconnectHandler = function(code, description) {
 			// Prevent from calling done() multiple times
 			clientSocket.off('disconnect', disconnectHandler);
 			return cb(code, description);
@@ -61,19 +64,21 @@ describe('handshake', () => {
 	}
 
 	function expectConnect(test, cb) {
-		var disconnectHandler = function (code, description) {
+		var disconnectHandler = function(code, description) {
 			currentConnectedSocket = null;
 			clientSocket.off('disconnect', disconnectHandler);
-			expect(`socket had been disconnected with error code: ${code} - ${description || failureCodes.errorMessages[code]}`)
-				.equal('socket should stay connected');
+			expect(
+				`socket had been disconnected with error code: ${code} - ${description ||
+					failureCodes.errorMessages[code]}`
+			).equal('socket should stay connected');
 			return cb(code);
 		};
-		var acceptedHandler = function () {
+		var acceptedHandler = function() {
 			clientSocket.off('accepted', acceptedHandler);
 			clientSocket.off('disconnect', disconnectHandler);
 			return cb(null, currentConnectedSocket);
 		};
-		var connectedHandler = function (socket) {
+		var connectedHandler = function(socket) {
 			currentConnectedSocket = socket;
 			clientSocket.off('connect', connectedHandler);
 		};
@@ -88,7 +93,7 @@ describe('handshake', () => {
 			protocol: 'http',
 			hostname: '127.0.0.1',
 			port: testConfig.wsPort,
-			query: _.clone(frozenHeaders)
+			query: _.clone(frozenHeaders),
 		};
 		connectAbortStub = sinonSandbox.spy();
 		disconnectStub = sinonSandbox.spy();
@@ -101,7 +106,7 @@ describe('handshake', () => {
 
 	describe('with invalid headers', () => {
 		describe('should fail with INVALID_HEADERS code and description', () => {
-			it('without headers', function (done) {
+			it('without headers', function(done) {
 				delete validClientSocketOptions.query;
 				connect();
 				expectDisconnect(this, code => {
@@ -110,7 +115,7 @@ describe('handshake', () => {
 				});
 			});
 
-			it('with empty headers', function (done) {
+			it('with empty headers', function(done) {
 				validClientSocketOptions.query = {};
 				connect();
 				expectDisconnect(this, (code, description) => {
@@ -120,27 +125,31 @@ describe('handshake', () => {
 				});
 			});
 
-			it('without port', function (done) {
+			it('without port', function(done) {
 				delete validClientSocketOptions.query.wsPort;
 				connect();
 				expectDisconnect(this, (code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('Expected type integer but found type not-a-number');
+					expect(description).contain(
+						'Expected type integer but found type not-a-number'
+					);
 					done();
 				});
 			});
 
-			it('without height', function (done) {
+			it('without height', function(done) {
 				delete validClientSocketOptions.query.height;
 				connect();
 				expectDisconnect(this, (code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain('height: Expected type integer but found type not-a-number');
+					expect(description).contain(
+						'height: Expected type integer but found type not-a-number'
+					);
 					done();
 				});
 			});
 
-			it('without version', function (done) {
+			it('without version', function(done) {
 				delete validClientSocketOptions.query.version;
 				connect();
 				expectDisconnect(this, (code, description) => {
@@ -150,7 +159,7 @@ describe('handshake', () => {
 				});
 			});
 
-			it('without nethash', function (done) {
+			it('without nethash', function(done) {
 				delete validClientSocketOptions.query.nethash;
 				connect();
 				expectDisconnect(this, (code, description) => {
@@ -191,12 +200,12 @@ describe('handshake', () => {
 					validClientSocketOptions.query.nonce = randomstring.generate(16);
 				});
 
-				it('should succeed when connectionId is present', function (done) {
+				it('should succeed when connectionId is present', function(done) {
 					connect();
 					expectConnect(this, done);
 				});
 
-				it('should succeed when connectionId is not present', function (done) {
+				it('should succeed when connectionId is not present', function(done) {
 					// Change query to obtain new id assignment during next connection
 					validClientSocketOptions.query.height += 1;
 					connect();
@@ -209,7 +218,7 @@ describe('handshake', () => {
 					// Impossible to recreate
 				});
 
-				it('should succeed when connectionId is not present', function (done) {
+				it('should succeed when connectionId is not present', function(done) {
 					// Change query to obtain new id assignment during next connection
 					validClientSocketOptions.query.height += 1;
 					connect();
@@ -221,12 +230,13 @@ describe('handshake', () => {
 		describe('when not present on master @unstable', () => {
 			var wampClient = new WAMPClient();
 
-			beforeEach(function (done) {
+			beforeEach(function(done) {
 				connect();
 				wampClient.upgradeToWAMP(clientSocket);
 				setTimeout(() => {
 					validClientSocketOptions.query.state = 1;
-					clientSocket.wampSend('updateMyself', validClientSocketOptions.query)
+					clientSocket
+						.wampSend('updateMyself', validClientSocketOptions.query)
 						.then(() => {
 							done();
 						})
@@ -247,12 +257,12 @@ describe('handshake', () => {
 					disconnect();
 				});
 
-				it('should succeed when connectionId is present', function (done) {
+				it('should succeed when connectionId is present', function(done) {
 					connect();
 					expectConnect(this, done);
 				});
 
-				it('should succeed when connectionId is not present', function (done) {
+				it('should succeed when connectionId is not present', function(done) {
 					validClientSocketOptions.query.height += 1;
 					connect();
 					expectConnect(this, done);
@@ -264,12 +274,12 @@ describe('handshake', () => {
 					disconnect();
 				});
 
-				it('should succeed when connectionId is present', function (done) {
+				it('should succeed when connectionId is present', function(done) {
 					connect();
 					expectConnect(this, done);
 				});
 
-				it('should succeed when connectionId is not present', function (done) {
+				it('should succeed when connectionId is not present', function(done) {
 					// Change query to obtain new id assignment during next connection
 					validClientSocketOptions.query.height += 1;
 					connect();

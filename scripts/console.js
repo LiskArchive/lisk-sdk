@@ -27,40 +27,43 @@ if (typeof before !== 'function') {
 require('../test/setup');
 var application = require('../test/common/application.js');
 
-application.init({}, (err, scope) => {
-	var replServer = repl.start({
-		prompt: `lisk-core [${scope.config.db.database}] > `,
-	});
+application.init(
+	{},
+	(err, scope) => {
+		var replServer = repl.start({
+			prompt: `lisk-core [${scope.config.db.database}] > `,
+		});
 
-	replServer.context.config = scope.config;
-	replServer.context.modules = scope.modules;
-	replServer.context.logic = scope.logic;
-	replServer.context.db = scope.db;
+		replServer.context.config = scope.config;
+		replServer.context.modules = scope.modules;
+		replServer.context.logic = scope.logic;
+		replServer.context.db = scope.db;
 
-	var helpers = {};
+		var helpers = {};
 
-	var helpersFolder = './helpers/';
-	fs.readdirSync(helpersFolder).forEach(file => {
-		var filePath = path.resolve(helpersFolder, file);
-		var fileName = path.basename(filePath, '.js');
-		helpers[fileName] = require(filePath);
-	});
+		var helpersFolder = './helpers/';
+		fs.readdirSync(helpersFolder).forEach(file => {
+			var filePath = path.resolve(helpersFolder, file);
+			var fileName = path.basename(filePath, '.js');
+			helpers[fileName] = require(filePath);
+		});
 
-	replServer.context.helpers = helpers;
+		replServer.context.helpers = helpers;
 
-	// A dummy callback method to be utilized in repl
-	// e.g. modules.accounts.shared.getAccount({body: {}}, cb)
-	replServer.context.cb = function (err, data) {
-		// Make sure cab response showed in terminal
-		console.log(data);
-	};
+		// A dummy callback method to be utilized in repl
+		// e.g. modules.accounts.shared.getAccount({body: {}}, cb)
+		replServer.context.cb = function(err, data) {
+			// Make sure cab response showed in terminal
+			console.log(data);
+		};
 
-	replServer.on('exit', () => {
-		console.log('Goodbye! See you later.');
-		process.exit();
-	});
-}, {});
-
+		replServer.on('exit', () => {
+			console.log('Goodbye! See you later.');
+			process.exit();
+		});
+	},
+	{}
+);
 
 /**
  * Event reporting an uncaughtException.
@@ -81,9 +84,9 @@ process.on('uncaughtException', err => {
 });
 
 /**
-* Event reporting an unhandledRejection.
-* @event unhandledRejection
-*/
+ * Event reporting an unhandledRejection.
+ * @event unhandledRejection
+ */
 /**
  * Receives a 'unhandledRejection' signal and emits a cleanup.
  * @listens unhandledRejection

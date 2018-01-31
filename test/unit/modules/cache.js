@@ -96,42 +96,52 @@ describe('cache', () => {
 			var key1 = 'test_key1';
 			var key2 = 'test_key2';
 			var dummyValue = { a: 'dummyValue' };
-			async.series([
-				// save new entries in cache
-				function (callback) {
-					async.map([key1, key2], (key, cb) => {
-						cache.setJsonForKey(key, dummyValue, cb);
-					}, (err, result) => {
-						expect(err).to.not.exist;
-						expect(result).to.be.an('array');
-						return callback(err, result);
-					});
-				},
-				// flush cache database
-				function (callback) {
-					cache.flushDb((err, status) => {
-						expect(err).to.not.exist;
-						expect(status).to.equal('OK');
-						return callback(err, status);
-					});
-				},
-				// check if entries exist
-				function (callback) {
-					async.map([key1, key2], (key, cb) => {
-						cache.getJsonForKey(key, cb);
-					}, (err, result) => {
-						expect(err).to.not.exist;
-						expect(result).to.be.an('array');
-						expect(result).to.have.length(2);
-						result.forEach(value => {
-							expect(value).to.eql(null);
+			async.series(
+				[
+					// save new entries in cache
+					function(callback) {
+						async.map(
+							[key1, key2],
+							(key, cb) => {
+								cache.setJsonForKey(key, dummyValue, cb);
+							},
+							(err, result) => {
+								expect(err).to.not.exist;
+								expect(result).to.be.an('array');
+								return callback(err, result);
+							}
+						);
+					},
+					// flush cache database
+					function(callback) {
+						cache.flushDb((err, status) => {
+							expect(err).to.not.exist;
+							expect(status).to.equal('OK');
+							return callback(err, status);
 						});
-						return callback(err, result);
-					});
-				}],
-			err => {
-				done(err);
-			}
+					},
+					// check if entries exist
+					function(callback) {
+						async.map(
+							[key1, key2],
+							(key, cb) => {
+								cache.getJsonForKey(key, cb);
+							},
+							(err, result) => {
+								expect(err).to.not.exist;
+								expect(result).to.be.an('array');
+								expect(result).to.have.length(2);
+								result.forEach(value => {
+									expect(value).to.eql(null);
+								});
+								return callback(err, result);
+							}
+						);
+					},
+				],
+				err => {
+					done(err);
+				}
 			);
 		});
 	});
@@ -324,7 +334,12 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.transaction.createTransaction('1L', 1, accountFixtures.genesis.password, accountFixtures.genesis.secondPassword);
+				var transaction = lisk.transaction.createTransaction(
+					'1L',
+					1,
+					accountFixtures.genesis.password,
+					accountFixtures.genesis.secondPassword
+				);
 
 				cache.onTransactionsSaved([transaction], () => {
 					cache.getJsonForKey(key, (err, res) => {
@@ -343,7 +358,10 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
+				var transaction = lisk.delegate.createDelegate(
+					randomUtil.password(),
+					randomUtil.delegateName().toLowerCase()
+				);
 
 				cache.onTransactionsSaved([transaction], () => {
 					cache.getJsonForKey(key, (err, res) => {
@@ -362,7 +380,10 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.delegate.createDelegate(randomUtil.password(), randomUtil.delegateName().toLowerCase());
+				var transaction = lisk.delegate.createDelegate(
+					randomUtil.password(),
+					randomUtil.delegateName().toLowerCase()
+				);
 
 				cache.onSyncStarted();
 				cache.onTransactionsSaved([transaction], err => {

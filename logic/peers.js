@@ -37,7 +37,7 @@ var modules;
 // Constructor
 function Peers(logger, cb) {
 	library = {
-		logger: logger
+		logger: logger,
 	};
 	self = this;
 	__private.me = null;
@@ -47,7 +47,7 @@ function Peers(logger, cb) {
 	return setImmediate(cb, null, this);
 }
 
-Peers.prototype.me = function () {
+Peers.prototype.me = function() {
 	var me = _.extend(System.getHeaders(), { state: Peer.STATE.CONNECTED });
 	delete me.ip;
 	return me;
@@ -58,7 +58,7 @@ Peers.prototype.me = function () {
  * @param {peer} peer
  * @return {peer} peer instance
  */
-Peers.prototype.create = function (peer) {
+Peers.prototype.create = function(peer) {
 	if (!(peer instanceof Peer)) {
 		return new Peer(peer);
 	} else {
@@ -71,7 +71,7 @@ Peers.prototype.create = function (peer) {
  * @param {peer} peer
  * @return {boolean} True if peer is in peers list
  */
-Peers.prototype.exists = function (peer) {
+Peers.prototype.exists = function(peer) {
 	peer = self.create(peer);
 	return !!self.peersManager.getByAddress(peer.string);
 };
@@ -81,7 +81,7 @@ Peers.prototype.exists = function (peer) {
  * @param {peer} peer
  * @return {peer} peer new or peer from peers
  */
-Peers.prototype.get = function (peer) {
+Peers.prototype.get = function(peer) {
 	if (typeof peer === 'string') {
 		return self.peersManager.getByAddress(peer);
 	} else {
@@ -96,20 +96,23 @@ Peers.prototype.get = function (peer) {
  * @param {boolean} insertOnly - true to only insert.
  * @return {boolean|number} True if operation is success, error code in other case
  */
-Peers.prototype.upsert = function (peer, insertOnly) {
+Peers.prototype.upsert = function(peer, insertOnly) {
 	// Insert new peer
-	var insert = function (peer) {
+	var insert = function(peer) {
 		peer.updated = Date.now();
 		return self.peersManager.add(peer);
 	};
 
 	// Update existing peer
-	var update = function (peer) {
+	var update = function(peer) {
 		peer.updated = Date.now();
 
 		var diff = {};
 		_.each(peer, (value, key) => {
-			if (key !== 'updated' && self.peersManager.getByAddress(peer.string)[key] !== value) {
+			if (
+				key !== 'updated' &&
+				self.peersManager.getByAddress(peer.string)[key] !== value
+			) {
 				diff[key] = value;
 			}
 		});
@@ -147,7 +150,10 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 		if (insert(peer)) {
 			library.logger.debug('Inserted new peer', peer.string);
 		} else {
-			library.logger.debug('Cannot insert peer (nonce exists / empty address field)', peer.string);
+			library.logger.debug(
+				'Cannot insert peer (nonce exists / empty address field)',
+				peer.string
+			);
 			return failureCodes.ON_MASTER.INSERT.NONCE_EXISTS;
 		}
 	}
@@ -171,7 +177,12 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 		}
 	});
 
-	library.logger.trace('Peer stats', { total: cnt_total, alive: cnt_active, empty_height: cnt_empty_height, empty_broadhash: cnt_empty_broadhash });
+	library.logger.trace('Peer stats', {
+		total: cnt_total,
+		alive: cnt_active,
+		empty_height: cnt_empty_height,
+		empty_broadhash: cnt_empty_broadhash,
+	});
 
 	return true;
 };
@@ -181,7 +192,7 @@ Peers.prototype.upsert = function (peer, insertOnly) {
  * @param {peer} peer
  * @return {boolean|number} True if peer exists, error code in other case
  */
-Peers.prototype.remove = function (peer) {
+Peers.prototype.remove = function(peer) {
 	peer = self.create(peer);
 	// Remove peer if exists
 	if (self.exists(peer)) {
@@ -190,7 +201,10 @@ Peers.prototype.remove = function (peer) {
 		self.peersManager.remove(peer);
 		return true;
 	} else {
-		library.logger.debug('Failed to remove peer', { err: 'AREMOVED', peer: peer });
+		library.logger.debug('Failed to remove peer', {
+			err: 'AREMOVED',
+			peer: peer,
+		});
 		return failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST;
 	}
 };
@@ -200,11 +214,15 @@ Peers.prototype.remove = function (peer) {
  * @param {boolean} [normalize] - If true transform list to object
  * @return {peer[]} list of peers
  */
-Peers.prototype.list = function (normalize) {
+Peers.prototype.list = function(normalize) {
 	if (normalize) {
-		return Object.keys(self.peersManager.addressToNonceMap).map(key => self.peersManager.getByAddress(key).object());
+		return Object.keys(self.peersManager.addressToNonceMap).map(key =>
+			self.peersManager.getByAddress(key).object()
+		);
 	} else {
-		return Object.keys(self.peersManager.addressToNonceMap).map(key => self.create(self.peersManager.getByAddress(key)));
+		return Object.keys(self.peersManager.addressToNonceMap).map(key =>
+			self.create(self.peersManager.getByAddress(key))
+		);
 	}
 };
 
@@ -213,9 +231,9 @@ Peers.prototype.list = function (normalize) {
  * Modules are not required in this file.
  * @param {Object} __modules - Peers module.
  */
-Peers.prototype.bindModules = function (__modules) {
+Peers.prototype.bindModules = function(__modules) {
 	modules = {
-		peers: __modules.peers
+		peers: __modules.peers,
 	};
 };
 

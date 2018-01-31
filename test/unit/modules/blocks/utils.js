@@ -33,7 +33,9 @@ describe('blocks/utils', () => {
 
 		it('should set self to this');
 
-		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."');
+		it(
+			'should call library.logger.trace with "Blocks->Utils: Submodule initialized."'
+		);
 
 		it('should return self');
 	});
@@ -119,7 +121,9 @@ describe('blocks/utils', () => {
 
 		it('should call library.db.query with sql.getIdSequence');
 
-		it('should call library.db.query with {height: height, limit: 5, delegates: constants.activeDelegates}');
+		it(
+			'should call library.db.query with {height: height, limit: 5, delegates: constants.activeDelegates}'
+		);
 
 		describe('when db query fails', () => {
 			it('should call logger.error with error stack');
@@ -132,9 +136,13 @@ describe('blocks/utils', () => {
 				it('should call callback with an error');
 			});
 
-			it('should add the genesis block to the end of the block array, if it does not contain it already');
+			it(
+				'should add the genesis block to the end of the block array, if it does not contain it already'
+			);
 
-			it('should add the last block to the beginning of the block array, if it does not contain it already');
+			it(
+				'should add the last block to the beginning of the block array, if it does not contain it already'
+			);
 
 			it('should call callback with error = null');
 
@@ -220,7 +228,9 @@ describe('blocks/utils', () => {
 		describe('BlockProgressLogger', () => {
 			it('should set this.target to transactionsCount');
 
-			it('should set this.step to Math.floor(transactionsCount / logsFrequency);');
+			it(
+				'should set this.step to Math.floor(transactionsCount / logsFrequency);'
+			);
 
 			it('should set this.applied to 0');
 
@@ -259,7 +269,9 @@ describe('blocks/utils', () => {
 	});
 
 	describe('onBind', () => {
-		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."');
+		it(
+			'should call library.logger.trace with "Blocks->Utils: Shared modules bind."'
+		);
 
 		it('should create a modules object { blocks: scope.blocks }');
 

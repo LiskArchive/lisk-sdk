@@ -57,10 +57,7 @@ describe('blocks', () => {
 			it('should call callback with error = undefined');
 		});
 
-		describe('callback for this.submodules.chain.saveGenesisBlock', () => {
-
-
-		});
+		describe('callback for this.submodules.chain.saveGenesisBlock', () => {});
 	});
 
 	describe('lastBlock', () => {
@@ -104,11 +101,15 @@ describe('blocks', () => {
 
 		describe('when __private.isActive = true', () => {
 			describe('after 10 seconds', () => {
-				it('should call library.logger.info with "Waiting for block processing to finish..."');
+				it(
+					'should call library.logger.info with "Waiting for block processing to finish..."'
+				);
 			});
 
 			describe('after 100 seconds', () => {
-				it('should call library.logger.info with "Waiting for block processing to finish..." 10 times');
+				it(
+					'should call library.logger.info with "Waiting for block processing to finish..." 10 times'
+				);
 			});
 		});
 	});
@@ -122,10 +123,13 @@ describe('blocks', () => {
 	var blocks;
 
 	before(done => {
-		application.init({ sandbox: { name: 'lisk_test_modules_blocks' } }, (err, scope) => {
-			blocks = scope.modules.blocks;
-			done();
-		});
+		application.init(
+			{ sandbox: { name: 'lisk_test_modules_blocks' } },
+			(err, scope) => {
+				blocks = scope.modules.blocks;
+				done();
+			}
+		);
 	});
 
 	after(done => {
@@ -154,7 +158,9 @@ describe('blocks', () => {
 			expect(tracker.log.calledThrice).to.ok;
 			expect(tracker.applied).to.equals(5);
 
-			expect(tracker.applyNext.bind(tracker)).to.throw('Cannot apply transaction over the limit: 5');
+			expect(tracker.applyNext.bind(tracker)).to.throw(
+				'Cannot apply transaction over the limit: 5'
+			);
 		});
 	});
 });

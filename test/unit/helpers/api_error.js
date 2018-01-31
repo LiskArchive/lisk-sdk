@@ -32,11 +32,15 @@ describe('helpers/apiError', () => {
 		});
 
 		it('should assign field message = "Valid error message"', () => {
-			expect(apiError).to.have.property('message').equal(validErrorMessage);
+			expect(apiError)
+				.to.have.property('message')
+				.equal(validErrorMessage);
 		});
 
 		it('should assign field code = 501', () => {
-			expect(apiError).to.have.property('code').equal(validErrorCode);
+			expect(apiError)
+				.to.have.property('code')
+				.equal(validErrorCode);
 		});
 	});
 
@@ -46,7 +50,9 @@ describe('helpers/apiError', () => {
 		});
 
 		it('should return result containing message = "Valid error message"', () => {
-			expect(apiError.toJson()).to.have.property('message').equal(validErrorMessage);
+			expect(apiError.toJson())
+				.to.have.property('message')
+				.equal(validErrorMessage);
 		});
 	});
 });

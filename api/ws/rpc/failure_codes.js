@@ -27,18 +27,18 @@ module.exports = {
 		UPDATE: {
 			CHECK_PRESENCE: 4200,
 			INVALID_PEER: 4201,
-			TRANSPORT: 4202
+			TRANSPORT: 4202,
 		},
 		REMOVE: {
 			NOT_ON_LIST: 4210,
-			FROZEN_PEER: 4211
+			FROZEN_PEER: 4211,
 		},
 		INSERT: {
 			INSERT_ONLY_FAILURE: 4230,
 			NOT_ACCEPTED: 4231,
-			NONCE_EXISTS: 4232
-		}
-	}
+			NONCE_EXISTS: 4232,
+		},
+	},
 };
 
 module.exports.errorMessages = {
@@ -58,7 +58,7 @@ module.exports.errorMessages = {
 	4211: 'Attempting to remove a frozen peer',
 	4230: 'Insert only update failed - peer is already listed',
 	4231: 'Cannot accept a peer - private ip address or itself',
-	4232: 'Attempting to insert a peer with nonce already listed'
+	4232: 'Attempting to insert a peer with nonce already listed',
 };
 
 /**
@@ -73,8 +73,12 @@ function PeerUpdateError(code, message, description) {
 	this.description = description;
 }
 
-PeerUpdateError.prototype.toString = function () {
-	return JSON.stringify({ code: this.code, message: this.message, description: this.description });
+PeerUpdateError.prototype.toString = function() {
+	return JSON.stringify({
+		code: this.code,
+		message: this.message,
+		description: this.description,
+	});
 };
 
 PeerUpdateError.prototype = new Error();

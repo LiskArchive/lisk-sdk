@@ -28,13 +28,15 @@ describe('z_schema.express', () => {
 	var validValid = true;
 
 	before(() => {
-		validIssues = validErr ? `${validErr[0].message}: ${validErr[0].path}` : null;
+		validIssues = validErr
+			? `${validErr[0].message}: ${validErr[0].path}`
+			: null;
 		validObject = {
 			isValid: validValid,
-			issues: validIssues
+			issues: validIssues,
 		};
 		validZSchema = {
-			validate: sinonSandbox.stub()
+			validate: sinonSandbox.stub(),
 		};
 		validReq = {};
 		validRes = null;
@@ -44,7 +46,11 @@ describe('z_schema.express', () => {
 	beforeEach(() => {
 		zSchemaExpressResultFunction = z_schema_express(validZSchema);
 		zSchemaExpressResultFunction(validReq, validRes, validNextCb);
-		reqSanitizeFunctionResult = validReq.sanitize('value', 'schema', validNextCb);
+		reqSanitizeFunctionResult = validReq.sanitize(
+			'value',
+			'schema',
+			validNextCb
+		);
 	});
 
 	afterEach(() => {
@@ -66,7 +72,7 @@ describe('z_schema.express', () => {
 				validValid = false;
 				validObject = {
 					isValid: false,
-					issues: validErr
+					issues: validErr,
 				};
 				validZSchema.validate.returns(validObject);
 			});
@@ -82,7 +88,7 @@ describe('z_schema.express', () => {
 				validValid = true;
 				validObject = {
 					isValid: validValid,
-					issues: validIssues
+					issues: validIssues,
 				};
 				validZSchema.validate.returns(validObject);
 			});

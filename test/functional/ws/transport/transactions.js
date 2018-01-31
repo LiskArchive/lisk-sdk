@@ -21,14 +21,20 @@ var phases = require('../../common/phases');
 var ws = require('../../../common/ws/communication');
 var randomUtil = require('../../../common/utils/random');
 
-var normalizeTransactionObject = require('../../../common/helpers/api').normalizeTransactionObject;
+var normalizeTransactionObject = require('../../../common/helpers/api')
+	.normalizeTransactionObject;
 
 function postTransaction(transaction, done) {
 	transaction = normalizeTransactionObject(transaction);
 
-	ws.call('postTransactions', {
-		transactions: [transaction]
-	}, done, true);
+	ws.call(
+		'postTransactions',
+		{
+			transactions: [transaction],
+		},
+		done,
+		true
+	);
 }
 
 describe('Posting transaction (type 0)', () => {
@@ -43,11 +49,19 @@ describe('Posting transaction (type 0)', () => {
 
 	describe('transaction processing', () => {
 		it('when sender has no funds should fail', done => {
-			var transaction = lisk.transaction.createTransaction('1L', 1, account.password);
+			var transaction = lisk.transaction.createTransaction(
+				'1L',
+				1,
+				account.password
+			);
 
 			postTransaction(transaction, (err, res) => {
 				expect(res).to.have.property('success').to.be.not.ok;
-				expect(res).to.have.property('message').to.equal(`Account does not have enough LSK: ${account.address} balance: 0`);
+				expect(res)
+					.to.have.property('message')
+					.to.equal(
+						`Account does not have enough LSK: ${account.address} balance: 0`
+					);
 				badTransactions.push(transaction);
 				done();
 			});
@@ -56,7 +70,9 @@ describe('Posting transaction (type 0)', () => {
 		it('when sender has funds should be ok', done => {
 			postTransaction(transaction, (err, res) => {
 				expect(res).to.have.property('success').to.be.ok;
-				expect(res).to.have.property('transactionId').to.equal(transaction.id);
+				expect(res)
+					.to.have.property('transactionId')
+					.to.equal(transaction.id);
 				goodTransactions.push(transaction);
 				done();
 			});

@@ -19,5 +19,5 @@
  */
 module.exports = {
 	DAPP: 0,
-	FILE: 1
+	FILE: 1,
 };

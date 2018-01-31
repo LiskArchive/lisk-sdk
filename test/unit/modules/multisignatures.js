@@ -50,7 +50,9 @@ describe('multisignatures', () => {
 
 			it('should call modules.transactions.getMultisignatureTransaction');
 
-			it('should call modules.transactions.getMultisignatureTransaction with transaction.transaction');
+			it(
+				'should call modules.transactions.getMultisignatureTransaction with transaction.transaction'
+			);
 
 			describe('when multisignature transaction.transaction does not exist', () => {
 				it('should call callback with error = "Transaction not found"');
@@ -59,7 +61,9 @@ describe('multisignatures', () => {
 			describe('when multisignature transaction.transaction exists', () => {
 				it('should call modules.accounts.getAccount');
 
-				it('should call modules.accounts.getAccount with {address: transaction.senderId}');
+				it(
+					'should call modules.accounts.getAccount with {address: transaction.senderId}'
+				);
 
 				describe('when modules.accounts.getAccount fails', () => {
 					it('should call callback with error');
@@ -73,7 +77,9 @@ describe('multisignatures', () => {
 					describe('when sender exists', () => {
 						it('should call Multisignature.prototype.ready');
 
-						it('should call Multisignature.prototype.ready with multisignature with signatures containing transaction.signature');
+						it(
+							'should call Multisignature.prototype.ready with multisignature with signatures containing transaction.signature'
+						);
 
 						it('should call Multisignature.prototype.ready with sender');
 
@@ -81,7 +87,9 @@ describe('multisignatures', () => {
 
 						it('should call library.bus.message with "signature"');
 
-						it('should call library.bus.message with {transaction: transaction.transaction, signature: transaction.signature}');
+						it(
+							'should call library.bus.message with {transaction: transaction.transaction, signature: transaction.signature}'
+						);
 
 						it('should call library.bus.message with true');
 
@@ -94,13 +102,17 @@ describe('multisignatures', () => {
 		}
 
 		describe('when no transaction passed', () => {
-			it('should call callback with error = "Unable to process signature. Signature is undefined."');
+			it(
+				'should call callback with error = "Unable to process signature. Signature is undefined."'
+			);
 		});
 
 		describe('when transaction passed', () => {
 			it('should call modules.transactions.getMultisignatureTransaction');
 
-			it('should call modules.transactions.getMultisignatureTransaction with transaction.transaction');
+			it(
+				'should call modules.transactions.getMultisignatureTransaction with transaction.transaction'
+			);
 
 			describe('when multisignature transaction.transaction does not exist', () => {
 				it('should call callback with error = "Transaction not found"');
@@ -110,41 +122,59 @@ describe('multisignatures', () => {
 				describe('when transaction type != transactionTypes.MULTI', () => {
 					it('should call modules.accounts.getAccount');
 
-					it('should call modules.accounts.getAccount with {address: transaction.senderId}');
+					it(
+						'should call modules.accounts.getAccount with {address: transaction.senderId}'
+					);
 
 					describe('when modules.accounts.getAccount fails', () => {
-						it('should call callback with error = "Multisignature account not found"');
+						it(
+							'should call callback with error = "Multisignature account not found"'
+						);
 					});
 
 					describe('when modules.accounts.getAccount succeeds', () => {
 						describe('when account does not exist', () => {
-							it('should call callback with error = "Account account not found"');
+							it(
+								'should call callback with error = "Account account not found"'
+							);
 						});
 
 						describe('when account exists', () => {
 							describe('when multisignature already contains transaction.signature', () => {
-								it('should call callback with error = "Signature already exists"');
+								it(
+									'should call callback with error = "Signature already exists"'
+								);
 							});
 
 							describe('for every account.multisignatures', () => {
 								it('should call library.logic.transaction.verifySignature');
 
-								it('should call library.logic.transaction.verifySignature with multisignature');
+								it(
+									'should call library.logic.transaction.verifySignature with multisignature'
+								);
 
-								it('should call library.logic.transaction.verifySignature with account.multisignatures');
+								it(
+									'should call library.logic.transaction.verifySignature with account.multisignatures'
+								);
 
-								it('should call library.logic.transaction.verifySignature with transaction.signature');
+								it(
+									'should call library.logic.transaction.verifySignature with transaction.signature'
+								);
 
 								describe('when library.logic.transaction.verifySignature throws', () => {
 									it('should call library.logger.error');
 
 									it('should call library.logger.error with error stack');
 
-									it('should call callback with error = "Failed to verify signature"');
+									it(
+										'should call callback with error = "Failed to verify signature"'
+									);
 								});
 
 								describe('when library.logic.transaction.verifySignature returns false', () => {
-									it('should call callback with error = "Failed to verify signature"');
+									it(
+										'should call callback with error = "Failed to verify signature"'
+									);
 								});
 
 								describe('when library.logic.transaction.verifySignature returns true', () => {
@@ -157,32 +187,46 @@ describe('multisignatures', () => {
 
 				describe('when multisignature transaction type = transactionTypes.MULTI', () => {
 					describe('when multisignature is already signed', () => {
-						it('should call callback with error = "Permission to sign transaction denied"');
+						it(
+							'should call callback with error = "Permission to sign transaction denied"'
+						);
 					});
 
 					describe('when multisignature already contains transaction.signature', () => {
-						it('should call callback with error = "Permission to sign transaction denied"');
+						it(
+							'should call callback with error = "Permission to sign transaction denied"'
+						);
 					});
 
 					describe('for every multisignature keysgroup member', () => {
 						it('should call library.logic.transaction.verifySignature');
 
-						it('should call library.logic.transaction.verifySignature with multisignature');
+						it(
+							'should call library.logic.transaction.verifySignature with multisignature'
+						);
 
-						it('should call library.logic.transaction.verifySignature with keysgroup member');
+						it(
+							'should call library.logic.transaction.verifySignature with keysgroup member'
+						);
 
-						it('should call library.logic.transaction.verifySignature with transaction.signature');
+						it(
+							'should call library.logic.transaction.verifySignature with transaction.signature'
+						);
 
 						describe('when library.logic.transaction.verifySignature throws', () => {
 							it('should call library.logger.error');
 
 							it('should call library.logger.error with error stack');
 
-							it('should call callback with error = "Failed to verify signature"');
+							it(
+								'should call callback with error = "Failed to verify signature"'
+							);
 						});
 
 						describe('when library.logic.transaction.verifySignature returns false', () => {
-							it('should call callback with error = "Failed to verify signature"');
+							it(
+								'should call callback with error = "Failed to verify signature"'
+							);
 						});
 
 						describe('when library.logic.transaction.verifySignature returns true', () => {
@@ -246,9 +290,13 @@ describe('multisignatures', () => {
 				describe('when library.db.one succeeds', () => {
 					it('should call modules.accounts.getAccounts');
 
-					it('should call modules.accounts.getAccounts with {address: {$in: scope.accountIds}, sort: "balance"}');
+					it(
+						'should call modules.accounts.getAccounts with {address: {$in: scope.accountIds}, sort: "balance"}'
+					);
 
-					it('should call modules.accounts.getAccounts with ["address", "balance", "multisignatures", "multilifetime", "multimin"]');
+					it(
+						'should call modules.accounts.getAccounts with ["address", "balance", "multisignatures", "multilifetime", "multimin"]'
+					);
 
 					describe('when modules.accounts.getAccounts fails', () => {
 						it('should call callback with error');
@@ -259,14 +307,20 @@ describe('multisignatures', () => {
 							describe('for every account.multisignature', () => {
 								it('should call modules.accounts.generateAddressByPublicKey');
 
-								it('should call modules.accounts.generateAddressByPublicKey with multisignature');
+								it(
+									'should call modules.accounts.generateAddressByPublicKey with multisignature'
+								);
 							});
 
 							it('should call modules.accounts.getAccounts');
 
-							it('should call modules.accounts.getAccounts with {address: { $in: addresses }');
+							it(
+								'should call modules.accounts.getAccounts with {address: { $in: addresses }'
+							);
 
-							it('should call modules.accounts.getAccounts with ["address", "publicKey", "balance"]');
+							it(
+								'should call modules.accounts.getAccounts with ["address", "publicKey", "balance"]'
+							);
 
 							describe('when modules.accounts.getAccounts fails', () => {
 								it('should call callback with error');
@@ -306,9 +360,13 @@ describe('multisignatures', () => {
 				describe('when library.db.one succeeds', () => {
 					it('should call modules.accounts.getAccounts');
 
-					it('should call modules.accounts.getAccounts with {address: {$in: scope.accountIds}, sort: "balance"}');
+					it(
+						'should call modules.accounts.getAccounts with {address: {$in: scope.accountIds}, sort: "balance"}'
+					);
 
-					it('should call modules.accounts.getAccounts with ["address", "balance", "multisignatures", "multilifetime", "multimin"]');
+					it(
+						'should call modules.accounts.getAccounts with ["address", "balance", "multisignatures", "multilifetime", "multimin"]'
+					);
 
 					describe('when modules.accounts.getAccounts fails', () => {
 						it('should call callback with error');
@@ -319,14 +377,20 @@ describe('multisignatures', () => {
 							describe('for every account.multisignature', () => {
 								it('should call modules.accounts.generateAddressByPublicKey');
 
-								it('should call modules.accounts.generateAddressByPublicKey with multisignature');
+								it(
+									'should call modules.accounts.generateAddressByPublicKey with multisignature'
+								);
 							});
 
 							it('should call modules.accounts.getAccounts');
 
-							it('should call modules.accounts.getAccounts with {address: { $in: addresses }');
+							it(
+								'should call modules.accounts.getAccounts with {address: { $in: addresses }'
+							);
 
-							it('should call modules.accounts.getAccounts with ["address", "publicKey", "balance"]');
+							it(
+								'should call modules.accounts.getAccounts with ["address", "publicKey", "balance"]'
+							);
 
 							describe('when modules.accounts.getAccounts fails', () => {
 								it('should call callback with error');

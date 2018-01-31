@@ -34,9 +34,12 @@ function blockchainReady(cb, retries, timeout, baseUrl) {
 		timeout = 1000;
 	}
 
-	baseUrl = baseUrl || `http://${__testContext.config.address}:${__testContext.config.httpPort}`;
+	baseUrl =
+		baseUrl ||
+		`http://${__testContext.config.address}:${__testContext.config.httpPort}`;
 	(function fetchBlockchainStatus() {
-		popsicle.get(`${baseUrl}/api/node/status`)
+		popsicle
+			.get(`${baseUrl}/api/node/status`)
 			.then(res => {
 				retries -= 1;
 				res = JSON.parse(res.body);
@@ -59,7 +62,7 @@ function blockchainReady(cb, retries, timeout, baseUrl) {
 					return cb('Server is not responding');
 				}
 			});
-	}());
+	})();
 }
 
 // Returns current block height
@@ -70,13 +73,18 @@ function getHeight(cb) {
 
 	request.then(res => {
 		if (res.status !== 200) {
-			return setImmediate(cb, ['Received bad response code', res.status, res.url].join(' '));
+			return setImmediate(
+				cb,
+				['Received bad response code', res.status, res.url].join(' ')
+			);
 		} else {
 			return setImmediate(cb, null, res.body.data.height);
 		}
 	});
 
-	request.catch(err => { return setImmediate(cb, err); });
+	request.catch(err => {
+		return setImmediate(cb, err);
+	});
 }
 
 // Run callback on new round
@@ -123,10 +131,20 @@ function newBlock(height, blocksToWait, cb) {
 
 			request.then(res => {
 				if (res.status !== 200) {
-					return cb(['Received bad response code', res.status, res.url].join(' '));
+					return cb(
+						['Received bad response code', res.status, res.url].join(' ')
+					);
 				}
 
-				__testContext.debug('	Waiting for block:'.grey, 'Height:'.grey, res.body.data.height, 'Target:'.grey, target, 'Second:'.grey, counter++);
+				__testContext.debug(
+					'	Waiting for block:'.grey,
+					'Height:'.grey,
+					res.body.data.height,
+					'Target:'.grey,
+					target,
+					'Second:'.grey,
+					counter++
+				);
 
 				if (target === res.body.data.height) {
 					height = res.body.data.height;
@@ -135,9 +153,13 @@ function newBlock(height, blocksToWait, cb) {
 				setTimeout(cb, 1000);
 			});
 
-			request.catch(err => { return cb(err); });
+			request.catch(err => {
+				return cb(err);
+			});
 		},
-		() => { return actualHeight >= height; },
+		() => {
+			return actualHeight >= height;
+		},
 		err => {
 			if (err) {
 				return setImmediate(cb, err);
@@ -152,7 +174,11 @@ function confirmations(transactions, limitHeight) {
 	limitHeight = limitHeight || 15;
 
 	function checkConfirmations(transactions) {
-		return Promise.all(transactions.map(transactionId => { return apiHelpers.getTransactionByIdPromise(transactionId); })).then(res => {
+		return Promise.all(
+			transactions.map(transactionId => {
+				return apiHelpers.getTransactionByIdPromise(transactionId);
+			})
+		).then(res => {
 			return Promise.each(res, result => {
 				if (result.body.data.length === 0) {
 					throw Error('Transaction not confirmed');
@@ -168,8 +194,12 @@ function confirmations(transactions, limitHeight) {
 		limit -= 1;
 
 		return blocksPromise(1)
-			.then(() => { return checkConfirmations(transactions); })
-			.catch(() => { return waitUntilLimit(limit); });
+			.then(() => {
+				return checkConfirmations(transactions);
+			})
+			.catch(() => {
+				return waitUntilLimit(limit);
+			});
 	}
 
 	// Wait a maximum of limitHeight*25 confirmed transactions
@@ -180,5 +210,5 @@ module.exports = {
 	blockchainReady: blockchainReady,
 	newRound: newRound,
 	blocks: blocks,
-	confirmations: confirmations
+	confirmations: confirmations,
 };

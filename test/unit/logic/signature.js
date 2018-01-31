@@ -24,9 +24,13 @@ var Signature = rewire('../../../logic/signature');
 var constants = require('../../../helpers/constants');
 var ed = require('../../../helpers/ed');
 
-
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
+var validKeypair = ed.makeKeypair(
+	crypto
+		.createHash('sha256')
+		.update(validPassword, 'utf8')
+		.digest()
+);
 
 var validSender = {
 	password: 'yjyhgnu32jmwuii442t9',
@@ -34,7 +38,8 @@ var validSender = {
 	username: 'mix8',
 	publicKey: '5ff3c8f4be105953301e505d23a6e1920da9f72dc8dfd7babe1481b662f2b081',
 	address: '4835566122337813671L',
-	secondPublicKey: 'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7'
+	secondPublicKey:
+		'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7',
 };
 
 var validTransaction = {
@@ -43,21 +48,24 @@ var validTransaction = {
 	blockId: '341020236706783045',
 	type: 1,
 	timestamp: 38871652,
-	senderPublicKey: '5ff3c8f4be105953301e505d23a6e1920da9f72dc8dfd7babe1481b662f2b081',
+	senderPublicKey:
+		'5ff3c8f4be105953301e505d23a6e1920da9f72dc8dfd7babe1481b662f2b081',
 	senderId: '4835566122337813671L',
 	recipientId: null,
 	recipientPublicKey: null,
 	amount: 0,
 	fee: 500000000,
-	signature: '14c49a60016f63d9692821540895e1b126ab27908aefa77f4423ac0e079b6f87c8998db3e0e280aae268366adae9792d9ca279be1a372b6c52cc59b874143c07',
+	signature:
+		'14c49a60016f63d9692821540895e1b126ab27908aefa77f4423ac0e079b6f87c8998db3e0e280aae268366adae9792d9ca279be1a372b6c52cc59b874143c07',
 	signatures: [],
 	confirmations: 16,
 	asset: {
 		signature: {
 			transactionId: '5197781214824378819',
-			publicKey: 'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7'
-		}
-	}
+			publicKey:
+				'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7',
+		},
+	},
 };
 
 var rawValidTransaction = {
@@ -66,17 +74,20 @@ var rawValidTransaction = {
 	t_blockId: '341020236706783045',
 	t_type: 1,
 	t_timestamp: 38871652,
-	t_senderPublicKey: '5ff3c8f4be105953301e505d23a6e1920da9f72dc8dfd7babe1481b662f2b081',
+	t_senderPublicKey:
+		'5ff3c8f4be105953301e505d23a6e1920da9f72dc8dfd7babe1481b662f2b081',
 	m_recipientPublicKey: null,
 	t_senderId: '4835566122337813671L',
 	t_recipientId: null,
 	t_amount: '0',
 	t_fee: '500000000',
-	t_signature: '14c49a60016f63d9692821540895e1b126ab27908aefa77f4423ac0e079b6f87c8998db3e0e280aae268366adae9792d9ca279be1a372b6c52cc59b874143c07',
+	t_signature:
+		'14c49a60016f63d9692821540895e1b126ab27908aefa77f4423ac0e079b6f87c8998db3e0e280aae268366adae9792d9ca279be1a372b6c52cc59b874143c07',
 	t_SignSignature: null,
 	t_signatures: null,
 	confirmations: 4,
-	s_publicKey: 'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7'
+	s_publicKey:
+		'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7',
 };
 
 describe('signature', () => {
@@ -88,13 +99,16 @@ describe('signature', () => {
 	beforeEach(done => {
 		dummyBlock = {
 			id: '9314232245035524467',
-			height: 1
+			height: 1,
 		};
 		transactionMock = sinonSandbox.mock({});
 		accountsMock = {
-			setAccountAndGet: sinonSandbox.mock().callsArg(1)
+			setAccountAndGet: sinonSandbox.mock().callsArg(1),
 		};
-		signature = new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger);
+		signature = new Signature(
+			modulesLoader.scope.schema,
+			modulesLoader.scope.logger
+		);
 		signature.bind(accountsMock);
 
 		done();
@@ -139,7 +153,7 @@ describe('signature', () => {
 					signature.bind(accountsMock);
 					var modules = Signature.__get__('modules');
 					expect(modules).to.eql({
-						accounts: accountsMock
+						accounts: accountsMock,
 					});
 				});
 			});
@@ -269,7 +283,9 @@ describe('signature', () => {
 					});
 
 					it('should return bytes in hex format', () => {
-						expect(signatureBytes).to.eql(Buffer.from(transaction.asset.signature.publicKey, 'hex'));
+						expect(signatureBytes).to.eql(
+							Buffer.from(transaction.asset.signature.publicKey, 'hex')
+						);
 					});
 
 					it('should return bytes of length 32', () => {
@@ -289,19 +305,37 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ address: sender.address }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({ address: sender.address })
+					)
+				).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondSignature = 1', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ secondSignature: 1 }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({ secondSignature: 1 })
+					)
+				).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ u_secondSignature: 0 }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({ u_secondSignature: 0 })
+					)
+				).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondPublicKey = validTransaction.asset.signature.publicKey', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ secondPublicKey: validTransaction.asset.signature.publicKey }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({
+							secondPublicKey: validTransaction.asset.signature.publicKey,
+						})
+					)
+				).to.be.true;
 			});
 		});
 
@@ -315,19 +349,35 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ address: sender.address }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({ address: sender.address })
+					)
+				).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondSignature = 0', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ secondSignature: 0 }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({ secondSignature: 0 })
+					)
+				).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ u_secondSignature: 1 }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({ u_secondSignature: 1 })
+					)
+				).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondPublicKey = null', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ secondPublicKey: null }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({ secondPublicKey: null })
+					)
+				).to.be.true;
 			});
 		});
 
@@ -338,10 +388,15 @@ describe('signature', () => {
 				});
 
 				it('should call callback with error', done => {
-					signature.applyUnconfirmed.call(transactionMock, transaction, sender, err => {
-						expect(err).to.equal('Second signature already enabled');
-						done();
-					});
+					signature.applyUnconfirmed.call(
+						transactionMock,
+						transaction,
+						sender,
+						err => {
+							expect(err).to.equal('Second signature already enabled');
+							done();
+						}
+					);
 				});
 			});
 
@@ -350,12 +405,16 @@ describe('signature', () => {
 					sender.secondSignature = 'some-second-siganture';
 				});
 
-
 				it('should call callback with error', done => {
-					signature.applyUnconfirmed.call(transactionMock, transaction, sender, err => {
-						expect(err).to.equal('Second signature already enabled');
-						done();
-					});
+					signature.applyUnconfirmed.call(
+						transactionMock,
+						transaction,
+						sender,
+						err => {
+							expect(err).to.equal('Second signature already enabled');
+							done();
+						}
+					);
 				});
 			});
 
@@ -368,11 +427,19 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ address: sender.address }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({ address: sender.address })
+					)
+				).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ u_secondSignature: 1 }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({ u_secondSignature: 1 })
+					)
+				).to.be.true;
 			});
 		});
 
@@ -386,11 +453,19 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ address: sender.address }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({ address: sender.address })
+					)
+				).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', () => {
-				expect(accountsMock.setAccountAndGet.calledWith(sinonSandbox.match({ u_secondSignature: 0 }))).to.be.true;
+				expect(
+					accountsMock.setAccountAndGet.calledWith(
+						sinonSandbox.match({ u_secondSignature: 0 })
+					)
+				).to.be.true;
 			});
 		});
 
@@ -414,20 +489,32 @@ describe('signature', () => {
 				});
 
 				it('signature schema', () => {
-					expect(schemaSpy.calledWithExactly(transaction.asset.signature, Signature.prototype.schema)).to.equal(true);
+					expect(
+						schemaSpy.calledWithExactly(
+							transaction.asset.signature,
+							Signature.prototype.schema
+						)
+					).to.equal(true);
 				});
 			});
 
 			describe('when schema.validate fails', () => {
 				describe('for non-string types', () => {
-					var nonStrings = _.difference(typesRepresentatives.allTypes, typesRepresentatives.strings);
+					var nonStrings = _.difference(
+						typesRepresentatives.allTypes,
+						typesRepresentatives.strings
+					);
 
 					nonStrings.forEach(type => {
 						it(`should throw when username type is ${type.description}`, () => {
 							transaction.asset.signature.publicKey = type.input;
 							expect(() => {
 								signature.objectNormalize(transaction);
-							}).to.throw(`Failed to validate signature schema: Expected type string but found type ${type.expectation}`);
+							}).to.throw(
+								`Failed to validate signature schema: Expected type string but found type ${
+									type.expectation
+								}`
+							);
 						});
 					});
 				});
@@ -440,7 +527,11 @@ describe('signature', () => {
 							transaction.asset.signature.publicKey = type.input;
 							expect(() => {
 								signature.objectNormalize(transaction);
-							}).to.throw(`Failed to validate signature schema: Object didn't pass validation for format publicKey: ${type.input}`);
+							}).to.throw(
+								`Failed to validate signature schema: Object didn't pass validation for format publicKey: ${
+									type.input
+								}`
+							);
 						});
 					});
 				});
@@ -465,15 +556,20 @@ describe('signature', () => {
 			});
 
 			describe('with valid signature properties', () => {
-				var publicKey = 'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7';
+				var publicKey =
+					'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7';
 				var transactionId = '5197781214824378819';
 
 				it('should return publicKey property', () => {
-					expect(signature.dbRead(rawTransaction).signature.publicKey).to.equal(publicKey);
+					expect(signature.dbRead(rawTransaction).signature.publicKey).to.equal(
+						publicKey
+					);
 				});
 
 				it('should return transactionId', () => {
-					expect(signature.dbRead(rawTransaction).signature.transactionId).to.eql(transactionId);
+					expect(
+						signature.dbRead(rawTransaction).signature.transactionId
+					).to.eql(transactionId);
 				});
 			});
 		});

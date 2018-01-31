@@ -26,11 +26,13 @@ describe('ConnectionsTable', () => {
 
 	describe('constructor', () => {
 		it('should have empty connectionIdToNonceMap map after initialization', () => {
-			expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be.empty;
+			expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be
+				.empty;
 		});
 
 		it('should have empty nonceToConnectionIdMap map after initialization', () => {
-			expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to.be.empty;
+			expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to.be
+				.empty;
 		});
 	});
 
@@ -79,35 +81,55 @@ describe('ConnectionsTable', () => {
 
 		it('should add entry to connectionIdToNonceMap when invoked with valid arguments', () => {
 			connectionsTable.add(validNonce, validConnectionId);
-			expect(connectionsTable.connectionIdToNonceMap).to.have.property(validConnectionId).equal(validNonce);
+			expect(connectionsTable.connectionIdToNonceMap)
+				.to.have.property(validConnectionId)
+				.equal(validNonce);
 		});
 
 		it('should add entry to nonceToConnectionIdMap when invoked with valid arguments', () => {
 			connectionsTable.add(validNonce, validConnectionId);
-			expect(connectionsTable.nonceToConnectionIdMap).to.have.property(validNonce).equal(validConnectionId);
+			expect(connectionsTable.nonceToConnectionIdMap)
+				.to.have.property(validNonce)
+				.equal(validConnectionId);
 		});
 
 		it('should add multiple entries in nonceToConnectionIdMap after multiple valid entries added', () => {
 			connectionsTable.add(`${validNonce}0`, `${validConnectionId}0`);
 			connectionsTable.add(`${validNonce}1`, `${validConnectionId}1`);
-			expect(Object.keys(connectionsTable.nonceToConnectionIdMap).length).to.equal(2);
-			expect(connectionsTable.nonceToConnectionIdMap).to.have.property(`${validNonce}0`).equal(`${validConnectionId}0`);
-			expect(connectionsTable.nonceToConnectionIdMap).to.have.property(`${validNonce}1`).equal(`${validConnectionId}1`);
+			expect(
+				Object.keys(connectionsTable.nonceToConnectionIdMap).length
+			).to.equal(2);
+			expect(connectionsTable.nonceToConnectionIdMap)
+				.to.have.property(`${validNonce}0`)
+				.equal(`${validConnectionId}0`);
+			expect(connectionsTable.nonceToConnectionIdMap)
+				.to.have.property(`${validNonce}1`)
+				.equal(`${validConnectionId}1`);
 		});
 
 		it('should add multiple entries in connectionIdToNonceMap after multiple valid entries added', () => {
 			connectionsTable.add(`${validNonce}0`, `${validConnectionId}0`);
 			connectionsTable.add(`${validNonce}1`, `${validConnectionId}1`);
-			expect(Object.keys(connectionsTable.connectionIdToNonceMap).length).to.equal(2);
-			expect(connectionsTable.connectionIdToNonceMap).to.have.property(`${validConnectionId}0`).equal(`${validNonce}0`);
-			expect(connectionsTable.connectionIdToNonceMap).to.have.property(`${validConnectionId}1`).equal(`${validNonce}1`);
+			expect(
+				Object.keys(connectionsTable.connectionIdToNonceMap).length
+			).to.equal(2);
+			expect(connectionsTable.connectionIdToNonceMap)
+				.to.have.property(`${validConnectionId}0`)
+				.equal(`${validNonce}0`);
+			expect(connectionsTable.connectionIdToNonceMap)
+				.to.have.property(`${validConnectionId}1`)
+				.equal(`${validNonce}1`);
 		});
 
 		it('should not add multiple entries in nonceToConnectionIdMap and connectionIdToNonceMap after multiple addition of the same entry', () => {
 			connectionsTable.add(validNonce, validConnectionId);
 			connectionsTable.add(validNonce, validConnectionId);
-			expect(Object.keys(connectionsTable.nonceToConnectionIdMap).length).to.equal(1);
-			expect(Object.keys(connectionsTable.connectionIdToNonceMap).length).to.equal(1);
+			expect(
+				Object.keys(connectionsTable.nonceToConnectionIdMap).length
+			).to.equal(1);
+			expect(
+				Object.keys(connectionsTable.connectionIdToNonceMap).length
+			).to.equal(1);
 		});
 	});
 
@@ -132,16 +154,22 @@ describe('ConnectionsTable', () => {
 
 		it('should not change a state of connections table when removing not existing entry', () => {
 			connectionsTable.remove(validNonce);
-			expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be.empty;
-			expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to.be.empty;
+			expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be
+				.empty;
+			expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to.be
+				.empty;
 		});
 
 		it('should remove previously added valid entry', () => {
 			connectionsTable.add(validNonce, validConnectionId);
-			expect(connectionsTable.nonceToConnectionIdMap).to.have.property(validNonce).equal(validConnectionId);
+			expect(connectionsTable.nonceToConnectionIdMap)
+				.to.have.property(validNonce)
+				.equal(validConnectionId);
 			connectionsTable.remove(validNonce);
-			expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be.empty;
-			expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to.be.empty;
+			expect(connectionsTable).to.have.property('connectionIdToNonceMap').to.be
+				.empty;
+			expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to.be
+				.empty;
 		});
 	});
 
@@ -171,7 +199,9 @@ describe('ConnectionsTable', () => {
 
 		it('should return connection id assigned to nonce id when entry exists', () => {
 			connectionsTable.add(validNonce, validConnectionId);
-			expect(connectionsTable.getConnectionId(validNonce)).to.equal(validConnectionId);
+			expect(connectionsTable.getConnectionId(validNonce)).to.equal(
+				validConnectionId
+			);
 		});
 	});
 });

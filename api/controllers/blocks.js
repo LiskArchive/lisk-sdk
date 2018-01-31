@@ -38,7 +38,7 @@ function BlocksController(scope) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-BlocksController.getBlocks = function (context, next) {
+BlocksController.getBlocks = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -47,14 +47,16 @@ BlocksController.getBlocks = function (context, next) {
 		generatorPublicKey: params.generatorPublicKey.value,
 		sort: params.sort.value,
 		limit: params.limit.value,
-		offset: params.offset.value
+		offset: params.offset.value,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	modules.blocks.shared.getBlocks(_.clone(filters), (err, data) => {
-		if (err) { return next(err); }
+		if (err) {
+			return next(err);
+		}
 
 		data = _.cloneDeep(data);
 
@@ -77,7 +79,7 @@ BlocksController.getBlocks = function (context, next) {
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
-			}
+			},
 		});
 	});
 };

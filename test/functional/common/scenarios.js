@@ -31,8 +31,8 @@ function Multisig(options) {
 	if (!options.members) {
 		options.members = 3;
 	}
-	var i,
-auxAccount;
+	var i;
+	var auxAccount;
 	for (i = 0; i < options.members - 1; i++) {
 		auxAccount = randomUtil.account();
 		this.members.push(auxAccount);
@@ -43,11 +43,24 @@ auxAccount;
 	this.lifetime = options.lifetime || 1;
 	this.amount = options.amount || 100000000000;
 
-	this.multiSigTransaction = lisk.multisignature.createMultisignature(this.account.password, null, this.keysgroup, this.lifetime, this.min);
-	this.creditTransaction = lisk.transaction.createTransaction(this.account.address, this.amount, accountFixtures.genesis.password);
-	this.secondSignatureTransaction = lisk.signature.createSignature(this.account.password, this.account.secondPassword);
+	this.multiSigTransaction = lisk.multisignature.createMultisignature(
+		this.account.password,
+		null,
+		this.keysgroup,
+		this.lifetime,
+		this.min
+	);
+	this.creditTransaction = lisk.transaction.createTransaction(
+		this.account.address,
+		this.amount,
+		accountFixtures.genesis.password
+	);
+	this.secondSignatureTransaction = lisk.signature.createSignature(
+		this.account.password,
+		this.account.secondPassword
+	);
 }
 
 module.exports = {
-	Multisig: Multisig
+	Multisig: Multisig,
 };
