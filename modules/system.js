@@ -269,7 +269,6 @@ System.prototype.update = function(cb) {
 		},
 		err => {
 			library.logger.debug('System headers', __private);
-			modules.transport.headers(__private);
 			return setImmediate(cb, err);
 		}
 	);
