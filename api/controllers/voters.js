@@ -45,7 +45,7 @@ function VotersController(scope) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-VotersController.getVoters = function (context, next) {
+VotersController.getVoters = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -55,20 +55,32 @@ VotersController.getVoters = function (context, next) {
 		username: params.username.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
-		sort: params.sort.value
+		sort: params.sort.value,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	if (!(filters.username || filters.address || filters.publicKey || filters.secondPublicKey)) {
+	if (
+		!(
+			filters.username ||
+			filters.address ||
+			filters.publicKey ||
+			filters.secondPublicKey
+		)
+	) {
 		var error = generateParamsErrorObject(
-			[params.address, params.publicKey, params.secondPublicKey, params.username],
+			[
+				params.address,
+				params.publicKey,
+				params.secondPublicKey,
+				params.username,
+			],
 			[
 				'address is required if publicKey, secondPublicKey and username not provided.',
 				'publicKey is required if address, secondPublicKey and username not provided.',
 				'secondPublicKey is required if address, publicKey and username not provided.',
-				'username is required if publicKey, secondPublicKey and address not provided.'
+				'username is required if publicKey, secondPublicKey and address not provided.',
 			]
 		);
 
@@ -95,8 +107,8 @@ VotersController.getVoters = function (context, next) {
 			data: data,
 			meta: {
 				offset: filters.offset,
-				limit: filters.limit
-			}
+				limit: filters.limit,
+			},
 		});
 	});
 };
@@ -108,7 +120,7 @@ VotersController.getVoters = function (context, next) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-VotersController.getVotes = function (context, next) {
+VotersController.getVotes = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -118,20 +130,32 @@ VotersController.getVotes = function (context, next) {
 		username: params.username.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
-		sort: params.sort.value
+		sort: params.sort.value,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	if (!(filters.username || filters.address || filters.publicKey || filters.secondPublicKey)) {
+	if (
+		!(
+			filters.username ||
+			filters.address ||
+			filters.publicKey ||
+			filters.secondPublicKey
+		)
+	) {
 		var error = generateParamsErrorObject(
-			[params.address, params.publicKey, params.secondPublicKey, params.username],
+			[
+				params.address,
+				params.publicKey,
+				params.secondPublicKey,
+				params.username,
+			],
 			[
 				'address is required if publicKey, secondPublicKey and username not provided.',
 				'publicKey is required if address, secondPublicKey and username not provided.',
 				'secondPublicKey is required if address, publicKey and username not provided.',
-				'username is required if publicKey, secondPublicKey and address not provided.'
+				'username is required if publicKey, secondPublicKey and address not provided.',
 			]
 		);
 
@@ -160,8 +184,8 @@ VotersController.getVotes = function (context, next) {
 			data: data,
 			meta: {
 				offset: filters.offset,
-				limit: filters.limit
-			}
+				limit: filters.limit,
+			},
 		});
 	});
 };

@@ -20,7 +20,8 @@ var application = require('../../../common/application');
 var loadTables = require('./process_tables_data.json');
 
 var modulesLoader = require('../../../common/modules_loader');
-var clearDatabaseTable = require('../../../common/db_sandbox').clearDatabaseTable;
+var clearDatabaseTable = require('../../../common/db_sandbox')
+	.clearDatabaseTable;
 
 var constants = require('../../../../helpers/constants');
 
@@ -34,12 +35,15 @@ describe('blocks/process', () => {
 		// Force rewards start at 150-th block
 		originalBlockRewardsOffset = constants.rewards.offset;
 		constants.rewards.offset = 150;
-		application.init({ sandbox: { name: 'lisk_test_blocks_process' } }, (err, scope) => {
-			blocksProcess = scope.modules.blocks.process;
-			blocks = scope.modules.blocks;
-			db = scope.db;
-			done(err);
-		});
+		application.init(
+			{ sandbox: { name: 'lisk_test_blocks_process' } },
+			(err, scope) => {
+				blocksProcess = scope.modules.blocks.process;
+				blocks = scope.modules.blocks;
+				db = scope.db;
+				done(err);
+			}
+		);
 	});
 
 	after(done => {
@@ -48,46 +52,61 @@ describe('blocks/process', () => {
 	});
 
 	beforeEach(done => {
-		async.series({
-			clearTables: function (seriesCb) {
-				async.every([
-					'blocks where height > 1',
-					'trs where "blockId" != \'6524861224470851795\'',
-					'mem_accounts where address in (\'2737453412992791987L\', \'2896019180726908125L\')',
-					'forks_stat',
-					'votes where "transactionId" = \'17502993173215211070\''
-				], (table, seriesCb) => {
-					clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
-				}, err => {
-					if (err) {
-						return setImmediate(err);
-					}
-					return setImmediate(seriesCb);
-				});
-			},
-			loadTables: function (seriesCb) {
-				async.everySeries(loadTables, (table, seriesCb) => {
-					var cs = new db.$config.pgp.helpers.ColumnSet(
-						table.fields, { table: table.name }
+		async.series(
+			{
+				clearTables: function(seriesCb) {
+					async.every(
+						[
+							'blocks where height > 1',
+							'trs where "blockId" != \'6524861224470851795\'',
+							"mem_accounts where address in ('2737453412992791987L', '2896019180726908125L')",
+							'forks_stat',
+							'votes where "transactionId" = \'17502993173215211070\'',
+						],
+						(table, seriesCb) => {
+							clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
+						},
+						err => {
+							if (err) {
+								return setImmediate(err);
+							}
+							return setImmediate(seriesCb);
+						}
 					);
-					var insert = db.$config.pgp.helpers.insert(table.data, cs);
-					db.none(insert)
-						.then(() => {
-							seriesCb(null, true);
-						}).catch(err => { return setImmediate(err); });
-				}, err => {
-					if (err) {
-						return setImmediate(err);
-					}
-					return setImmediate(seriesCb);
-				});
+				},
+				loadTables: function(seriesCb) {
+					async.everySeries(
+						loadTables,
+						(table, seriesCb) => {
+							var cs = new db.$config.pgp.helpers.ColumnSet(table.fields, {
+								table: table.name,
+							});
+							var insert = db.$config.pgp.helpers.insert(table.data, cs);
+							db
+								.none(insert)
+								.then(() => {
+									seriesCb(null, true);
+								})
+								.catch(err => {
+									return setImmediate(err);
+								});
+						},
+						err => {
+							if (err) {
+								return setImmediate(err);
+							}
+							return setImmediate(seriesCb);
+						}
+					);
+				},
+			},
+			err => {
+				if (err) {
+					return done(err);
+				}
+				done();
 			}
-		}, err => {
-			if (err) {
-				return done(err);
-			}
-			done();
-		});
+		);
 	});
 
 	describe('getCommonBlock()', () => {
@@ -164,7 +183,9 @@ describe('blocks/process', () => {
 
 			blocksProcess.loadBlocksOffset(1, 7, true, (err, loadedBlock) => {
 				if (err) {
-					expect(err).equal('Blocks#loadBlocksOffset error: Unknown transaction type 99');
+					expect(err).equal(
+						'Blocks#loadBlocksOffset error: Unknown transaction type 99'
+					);
 					return done();
 				}
 
@@ -190,7 +211,9 @@ describe('blocks/process', () => {
 
 			blocksProcess.loadBlocksOffset(1, 9, true, (err, loadedBlock) => {
 				if (err) {
-					expect(err).equal('Invalid previous block: 15335393038826825161 expected: 13068833527549895884');
+					expect(err).equal(
+						'Invalid previous block: 15335393038826825161 expected: 13068833527549895884'
+					);
 					return done();
 				}
 
@@ -203,7 +226,9 @@ describe('blocks/process', () => {
 
 			blocksProcess.loadBlocksOffset(1, 10, true, (err, loadedBlock) => {
 				if (err) {
-					expect(err).equal('Failed to validate vote schema: Array items are not unique (indexes 0 and 4)');
+					expect(err).equal(
+						'Failed to validate vote schema: Array items are not unique (indexes 0 and 4)'
+					);
 					return done();
 				}
 
@@ -214,16 +239,18 @@ describe('blocks/process', () => {
 
 	describe('loadBlocksOffset({verify: false}) - return block/transaction errors', () => {
 		it('should clear fork_stat db table', done => {
-			async.every([
-				'forks_stat'
-			], (table, seriesCb) => {
-				clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
-			}, err => {
-				if (err) {
-					done(err);
+			async.every(
+				['forks_stat'],
+				(table, seriesCb) => {
+					clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
+				},
+				err => {
+					if (err) {
+						done(err);
+					}
+					done();
 				}
-				done();
-			});
+			);
 		});
 
 		it('should load and process block 4 from db with invalid blockSignature', done => {
@@ -235,7 +262,9 @@ describe('blocks/process', () => {
 				}
 
 				expect(loadedBlock.id).equal(loadTables[0].data[2].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[2].previousBlock);
+				expect(loadedBlock.previousBlock).equal(
+					loadTables[0].data[2].previousBlock
+				);
 				done();
 			});
 		});
@@ -249,7 +278,9 @@ describe('blocks/process', () => {
 				}
 
 				expect(loadedBlock.id).equal(loadTables[0].data[3].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[3].previousBlock);
+				expect(loadedBlock.previousBlock).equal(
+					loadTables[0].data[3].previousBlock
+				);
 				done();
 			});
 		});
@@ -263,7 +294,9 @@ describe('blocks/process', () => {
 				}
 
 				expect(loadedBlock.id).equal(loadTables[0].data[4].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[4].previousBlock);
+				expect(loadedBlock.previousBlock).equal(
+					loadTables[0].data[4].previousBlock
+				);
 				done();
 			});
 		});
@@ -273,7 +306,9 @@ describe('blocks/process', () => {
 
 			blocksProcess.loadBlocksOffset(1, 7, true, (err, loadedBlock) => {
 				if (err) {
-					expect(err).equal('Blocks#loadBlocksOffset error: Unknown transaction type 99');
+					expect(err).equal(
+						'Blocks#loadBlocksOffset error: Unknown transaction type 99'
+					);
 					return done();
 				}
 
@@ -290,7 +325,9 @@ describe('blocks/process', () => {
 				}
 
 				expect(loadedBlock.id).equal(loadTables[0].data[6].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[6].previousBlock);
+				expect(loadedBlock.previousBlock).equal(
+					loadTables[0].data[6].previousBlock
+				);
 				done();
 			});
 		});
@@ -304,7 +341,9 @@ describe('blocks/process', () => {
 				}
 
 				expect(loadedBlock.id).equal(loadTables[0].data[7].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[7].previousBlock);
+				expect(loadedBlock.previousBlock).equal(
+					loadTables[0].data[7].previousBlock
+				);
 				done();
 			});
 		});
@@ -318,7 +357,9 @@ describe('blocks/process', () => {
 				}
 
 				expect(loadedBlock.id).equal(loadTables[0].data[8].id);
-				expect(loadedBlock.previousBlock).equal(loadTables[0].data[8].previousBlock);
+				expect(loadedBlock.previousBlock).equal(
+					loadTables[0].data[8].previousBlock
+				);
 				done();
 			});
 		});

@@ -28,7 +28,7 @@ function TransportWSApi(transportModule) {
 		status: transportModule.shared.status,
 		postBlock: transportModule.shared.postBlock,
 		postSignatures: transportModule.shared.postSignatures,
-		postTransactions: transportModule.shared.postTransactions
+		postTransactions: transportModule.shared.postTransactions,
 	});
 
 	wsRPC.getServer().registerRPCEndpoints(slaveRPCStub);

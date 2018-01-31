@@ -42,7 +42,7 @@ class BlocksRepository {
 			'totalFee',
 			'reward',
 			'numberOfTransactions',
-			'generatorPublicKey'
+			'generatorPublicKey',
 		];
 
 		this.dbFields = [
@@ -58,11 +58,13 @@ class BlocksRepository {
 			'payloadLength',
 			'payloadHash',
 			'generatorPublicKey',
-			'blockSignature'
+			'blockSignature',
 		];
 
 		if (!cs.insert) {
-			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, { table: this.dbTable });
+			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+				table: this.dbTable,
+			});
 		}
 	}
 
@@ -104,7 +106,11 @@ class BlocksRepository {
 	 */
 	aggregateBlocksReward(params) {
 		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.aggregateBlocksReward, [params.generatorPublicKey, params.start, params.end]);
+		return this.db.query(sql.aggregateBlocksReward, [
+			params.generatorPublicKey,
+			params.start,
+			params.end,
+		]);
 	}
 
 	/**
@@ -153,7 +159,9 @@ class BlocksRepository {
 	 */
 	getCommonBlock(params) {
 		// TODO: Must use a result-specific method, not .query
-		params.comparePreviousBlock = params.previousBlock ? this.pgp.as.format('AND "previousBlock" = ${previousBlock}', params) : '';
+		params.comparePreviousBlock = params.previousBlock
+			? this.pgp.as.format('AND "previousBlock" = ${previousBlock}', params)
+			: '';
 		return this.db.query(sql.getCommonBlock, params);
 	}
 
@@ -249,7 +257,10 @@ class BlocksRepository {
 		try {
 			saveBlock = Object.assign({}, block);
 			saveBlock.payloadHash = Buffer.from(block.payloadHash, 'hex');
-			saveBlock.generatorPublicKey = Buffer.from(block.generatorPublicKey, 'hex');
+			saveBlock.generatorPublicKey = Buffer.from(
+				block.generatorPublicKey,
+				'hex'
+			);
 			saveBlock.blockSignature = Buffer.from(block.blockSignature, 'hex');
 			saveBlock.reward = block.reward || 0;
 		} catch (e) {
@@ -263,17 +274,22 @@ class BlocksRepository {
 // TODO: All these queries need to be thrown away, and use proper implementation inside corresponding methods.
 
 const Queries = {
-
-	list: function (params) {
+	list: function(params) {
 		return [
 			'SELECT * FROM blocks_list',
-			((params.where && params.where.length) ? `WHERE ${params.where.join(' AND ')}` : ''),
-			(params.sortField ? `ORDER BY ${[params.sortField, params.sortMethod].join(' ')}` : ''),
-			'LIMIT ${limit} OFFSET ${offset}'
-		].filter(Boolean).join(' ');
+			params.where && params.where.length
+				? `WHERE ${params.where.join(' AND ')}`
+				: '',
+			params.sortField
+				? `ORDER BY ${[params.sortField, params.sortMethod].join(' ')}`
+				: '',
+			'LIMIT ${limit} OFFSET ${offset}',
+		]
+			.filter(Boolean)
+			.join(' ');
 	},
 
-	loadBlocksData: function (params) {
+	loadBlocksData: function(params) {
 		var limitPart;
 
 		if (!params.id && !params.lastId) {
@@ -283,13 +299,15 @@ const Queries = {
 		return [
 			'SELECT * FROM full_blocks_list',
 			limitPart,
-			(params.id || params.lastId ? 'WHERE' : ''),
-			(params.id ? '"b_id" = ${id}' : ''),
-			(params.id && params.lastId ? ' AND ' : ''),
-			(params.lastId ? '"b_height" > ${height} AND "b_height" < ${limit}' : ''),
-			'ORDER BY "b_height", "t_rowId"'
-		].filter(Boolean).join(' ');
-	}
+			params.id || params.lastId ? 'WHERE' : '',
+			params.id ? '"b_id" = ${id}' : '',
+			params.id && params.lastId ? ' AND ' : '',
+			params.lastId ? '"b_height" > ${height} AND "b_height" < ${limit}' : '',
+			'ORDER BY "b_height", "t_rowId"',
+		]
+			.filter(Boolean)
+			.join(' ');
+	},
 };
 
 module.exports = BlocksRepository;

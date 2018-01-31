@@ -32,15 +32,17 @@ function DelegateTransactionsRepo(db, pgp) {
 
 	this.dbTable = 'delegates';
 
-	this.dbFields = [
-		'transactionId',
-		'username'
-	];
+	this.dbFields = ['transactionId', 'username'];
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({ table: this.dbTable, schema: 'public' });
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, { table: table });
+		var table = new pgp.helpers.TableName({
+			table: this.dbTable,
+			schema: 'public',
+		});
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+			table: table,
+		});
 	}
 
 	this.cs = columnSet;
@@ -51,15 +53,15 @@ function DelegateTransactionsRepo(db, pgp) {
  * @param {Array.<{id: string, asset: {delegate: {username: string}}}>} transactions
  * @return {Promise}
  */
-DelegateTransactionsRepo.prototype.save = function (transactions) {
+DelegateTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
 	transactions = transactions.map(transaction => ({
-			transactionId: transaction.id,
-			username: transaction.asset.delegate.username
-		}));
+		transactionId: transaction.id,
+		username: transaction.asset.delegate.username,
+	}));
 
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };

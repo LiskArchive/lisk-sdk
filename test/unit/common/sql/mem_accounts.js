@@ -14,14 +14,16 @@
 'use strict';
 
 var MemAccounts = {
-
 	getAccountByAddress: 'SELECT * FROM mem_accounts WHERE address = ${address}',
 
-	updateUsername: 'UPDATE mem_accounts SET username = ${newUsername} WHERE address = ${address};',
+	updateUsername:
+		'UPDATE mem_accounts SET username = ${newUsername} WHERE address = ${address};',
 
-	updateU_username: 'UPDATE mem_accounts SET u_username = ${newUsername} WHERE address = ${address};',
+	updateU_username:
+		'UPDATE mem_accounts SET u_username = ${newUsername} WHERE address = ${address};',
 
-	insert: 'INSERT INTO mem_accounts (' +
+	insert:
+		'INSERT INTO mem_accounts (' +
 		'"username",' +
 		'"isDelegate",' +
 		'"u_isDelegate",' +
@@ -51,7 +53,7 @@ var MemAccounts = {
 		'"fees",' +
 		'"rewards",' +
 		'"virgin"' +
-	') VALUES (' +
+		') VALUES (' +
 		'${username}, ' +
 		'${isDelegate}, ' +
 		'${u_isDelegate}, ' +
@@ -81,9 +83,9 @@ var MemAccounts = {
 		'${fees}, ' +
 		'${rewards}, ' +
 		'${virgin}' +
-	');',
+		');',
 
-	delete: 'DELETE FROM mem_accounts WHERE address = ${address}'
+	delete: 'DELETE FROM mem_accounts WHERE address = ${address}',
 };
 
 module.exports = MemAccounts;

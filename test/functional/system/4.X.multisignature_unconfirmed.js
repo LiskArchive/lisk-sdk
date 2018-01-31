@@ -24,11 +24,15 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	var library;
 
 	var scenarios = {
-		regular: new Scenarios.Multisig()
+		regular: new Scenarios.Multisig(),
 	};
 
 	scenarios.regular.dapp = randomUtil.application();
-	var dappTransaction = lisk.dapp.createDapp(scenarios.regular.account.password, null, scenarios.regular.dapp);
+	var dappTransaction = lisk.dapp.createDapp(
+		scenarios.regular.account.password,
+		null,
+		scenarios.regular.dapp
+	);
 	scenarios.regular.dapp.id = dappTransaction.id;
 
 	localCommon.beforeBlock('system_4_X_multisig_unconfirmed', lib => {
@@ -36,39 +40,61 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	});
 
 	before(done => {
-		localCommon.addTransactionsAndForge(library, [scenarios.regular.creditTransaction], () => {
-			localCommon.addTransactionsAndForge(library, [dappTransaction], () => {
-				done();
-			});
-		});
+		localCommon.addTransactionsAndForge(
+			library,
+			[scenarios.regular.creditTransaction],
+			() => {
+				localCommon.addTransactionsAndForge(library, [dappTransaction], () => {
+					done();
+				});
+			}
+		);
 	});
 
 	it('adding to pool multisig registration should be ok', done => {
-		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, (err, res) => {
-			expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
-			done();
-		});
+		localCommon.addTransaction(
+			library,
+			scenarios.regular.multiSigTransaction,
+			(err, res) => {
+				expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
+				done();
+			}
+		);
 	});
 
 	describe('adding to pool other transactions from same account', () => {
 		Object.keys(transactionTypes).forEach((key, index) => {
 			if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 				it(`type ${index}: ${key} should be rejected`, done => {
-					localCommon.loadTransactionType(key, scenarios.regular.account, scenarios.regular.dapp, true, transaction => {
-						localCommon.addTransaction(library, transaction, err => {
-							expect(err).to.equal(`Transaction type ${transaction.type} is frozen`);
-							done();
-						});
-					});
+					localCommon.loadTransactionType(
+						key,
+						scenarios.regular.account,
+						scenarios.regular.dapp,
+						true,
+						transaction => {
+							localCommon.addTransaction(library, transaction, err => {
+								expect(err).to.equal(
+									`Transaction type ${transaction.type} is frozen`
+								);
+								done();
+							});
+						}
+					);
 				});
 			} else if (key != 'MULTI') {
 				it(`type ${index}: ${key} should be ok`, done => {
-					localCommon.loadTransactionType(key, scenarios.regular.account, scenarios.regular.dapp, true, transaction => {
-						localCommon.addTransaction(library, transaction, (err, res) => {
-							expect(res).to.equal(transaction.id);
-							done();
-						});
-					});
+					localCommon.loadTransactionType(
+						key,
+						scenarios.regular.account,
+						scenarios.regular.dapp,
+						true,
+						transaction => {
+							localCommon.addTransaction(library, transaction, (err, res) => {
+								expect(res).to.equal(transaction.id);
+								done();
+							});
+						}
+					);
 				});
 			}
 		});

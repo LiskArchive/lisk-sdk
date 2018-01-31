@@ -30,14 +30,18 @@ validator.options.assumeAdditional = true;
 // to facilitate the validation of swagger response body
 // e.g. expect(res.body).to.be.validResponse
 chai.use((chai, utils) => {
-	chai.Assertion.addMethod('validResponse', function (responsePath) {
-		var result = validator.validate(utils.flag(this, 'object'), apiSpec, { schemaPath: responsePath });
+	chai.Assertion.addMethod('validResponse', function(responsePath) {
+		var result = validator.validate(utils.flag(this, 'object'), apiSpec, {
+			schemaPath: responsePath,
+		});
 		var errorDetail = '';
 
 		if (!result) {
 			utils.flag(this, 'message', 'InvalidResponseBody');
 
-			errorDetail = _.map(validator.getLastErrors(), object => { return `${object.code}: ${object.path.join('.')} | ${object.message}`; }).join('\n');
+			errorDetail = _.map(validator.getLastErrors(), object => {
+				return `${object.code}: ${object.path.join('.')} | ${object.message}`;
+			}).join('\n');
 		}
 
 		this.assert(result, errorDetail);
@@ -78,15 +82,22 @@ function SwaggerTestSpec(method, apiPath, responseCode) {
 
 	var self = this;
 
-	this.getResponseSpec = function (statusCode) {
+	this.getResponseSpec = function(statusCode) {
 		return self.spec.responses[statusCode];
 	};
 
-	this.getResponseSpecPath = function (statusCode) {
-		return ['paths', self.path, self.method, 'responses', statusCode, 'schema'].join('.');
+	this.getResponseSpecPath = function(statusCode) {
+		return [
+			'paths',
+			self.path,
+			self.method,
+			'responses',
+			statusCode,
+			'schema',
+		].join('.');
 	};
 
-	this.resolveJSONRefs = function () {
+	this.resolveJSONRefs = function() {
 		if (refsResolved) {
 			return Promise.resolve();
 		}
@@ -104,7 +115,9 @@ function SwaggerTestSpec(method, apiPath, responseCode) {
 	this.responseSpecPath = this.getResponseSpecPath(this.responseCode, 'schema');
 	this.responseSpec = this.getResponseSpec(this.responseCode);
 
-	this.describe = `${this.method.toUpperCase()} ${apiSpec.basePath}${this.path}`;
+	this.describe = `${this.method.toUpperCase()} ${apiSpec.basePath}${
+		this.path
+	}`;
 	this.it = `should respond with status code ${this.responseCode}`;
 	this.defaultParams = {};
 
@@ -116,7 +129,7 @@ function SwaggerTestSpec(method, apiPath, responseCode) {
  *
  * @param {Object} parameters - JSON parameters
  */
-SwaggerTestSpec.prototype.addParameters = function (parameters) {
+SwaggerTestSpec.prototype.addParameters = function(parameters) {
 	_.assignIn(this.defaultParams, parameters);
 	return this;
 };
@@ -128,7 +141,7 @@ SwaggerTestSpec.prototype.addParameters = function (parameters) {
  * @param {int} [responseCode] - Expected Response code. Will override what was used in constructor
  * @return {*|Promise<any>}
  */
-SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode) {
+SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 	var query = {};
 	var post = {};
 	var headers = { Accept: 'application/json' };
@@ -137,75 +150,86 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode) {
 	var callPath = self.getPath();
 	parameters = _.assignIn({}, self.defaultParams, parameters);
 
-	return this.resolveJSONRefs().then(() => {
-		_.each(_.keys(parameters), param => {
-			var p = _.find(self.spec.parameters, { name: param });
+	return this.resolveJSONRefs()
+		.then(() => {
+			_.each(_.keys(parameters), param => {
+				var p = _.find(self.spec.parameters, { name: param });
 
-			// If a swagger defined parameter
-			if (p) {
-				if (p.in === 'query') {
+				// If a swagger defined parameter
+				if (p) {
+					if (p.in === 'query') {
+						query[param] = parameters[param];
+					} else if (p.in === 'body') {
+						post = parameters[param];
+					} else if (p.in === 'path') {
+						callPath = callPath.replace(`{${param}}`, parameters[param]);
+					} else if (p.in === 'formData') {
+						post = parameters[param];
+						formData = true;
+					} else if (p.in === 'header') {
+						headers[param] = parameters[param];
+					}
+				} else {
+					// If not a swagger defined parameter consider as query param
 					query[param] = parameters[param];
-				} else if (p.in === 'body') {
-					post = parameters[param];
-				} else if (p.in === 'path') {
-					callPath = callPath.replace(`{${param}}`, parameters[param]);
-				} else if (p.in === 'formData') {
-					post = parameters[param];
-					formData = true;
-				} else if (p.in === 'header') {
-					headers[param] = parameters[param];
 				}
-			} else {
-				// If not a swagger defined parameter consider as query param
-				query[param] = parameters[param];
+			});
+
+			var req = supertest(__testContext.baseUrl);
+
+			if (self.method === 'post') {
+				req = req.post(callPath);
+			} else if (self.method === 'put') {
+				req = req.put(callPath);
+			} else if (self.method === 'get') {
+				req = req.get(callPath);
 			}
-		});
 
-		var req = supertest(__testContext.baseUrl);
+			_.each(_.keys(headers), header => {
+				req.set(header, headers[header]);
+			});
 
-		if (self.method === 'post') {
-			req = req.post(callPath);
-		} else if (self.method === 'put') {
-			req = req.put(callPath);
-		} else if (self.method === 'get') {
-			req = req.get(callPath);
-		}
+			req = req.query(query);
 
-		_.each(_.keys(headers), header => {
-			req.set(header, headers[header]);
-		});
-
-		req = req.query(query);
-
-		if (self.method === 'post' || self.method === 'put') {
-			if (formData) {
-				req.type('form');
+			if (self.method === 'post' || self.method === 'put') {
+				if (formData) {
+					req.type('form');
+				}
+				req = req.send(post);
 			}
-			req = req.send(post);
-		}
 
-		__testContext.debug(['> URI:'.grey, req.method, req.url].join(' '));
+			__testContext.debug(['> URI:'.grey, req.method, req.url].join(' '));
 
-		if (!_.isEmpty(query)) {
-			__testContext.debug(['> Query:'.grey, JSON.stringify(query)].join(' '));
-		}
-		if (!_.isEmpty(post)) {
-			__testContext.debug(['> Data:'.grey, JSON.stringify(post)].join(' '));
-		}
-		return req;
-	}).then(res => {
-		__testContext.debug('> Response:'.grey, res.statusCode, JSON.stringify(res.body));
+			if (!_.isEmpty(query)) {
+				__testContext.debug(['> Query:'.grey, JSON.stringify(query)].join(' '));
+			}
+			if (!_.isEmpty(post)) {
+				__testContext.debug(['> Data:'.grey, JSON.stringify(post)].join(' '));
+			}
+			return req;
+		})
+		.then(res => {
+			__testContext.debug(
+				'> Response:'.grey,
+				res.statusCode,
+				JSON.stringify(res.body)
+			);
 
-		var expectedResponseCode = responseCode || self.responseCode;
+			var expectedResponseCode = responseCode || self.responseCode;
 
-		expect(res.statusCode).to.be.eql(expectedResponseCode);
-		expect(res.headers['content-type']).to.match(/json/);
-		expect(res.body).to.be.validResponse(self.getResponseSpecPath(expectedResponseCode));
+			expect(res.statusCode).to.be.eql(expectedResponseCode);
+			expect(res.headers['content-type']).to.match(/json/);
+			expect(res.body).to.be.validResponse(
+				self.getResponseSpecPath(expectedResponseCode)
+			);
 
-		return res;
-	})
+			return res;
+		})
 		.catch(eror => {
-			__testContext.debug('> Response Error:'.grey, JSON.stringify((validator.getLastErrors())));
+			__testContext.debug(
+				'> Response Error:'.grey,
+				JSON.stringify(validator.getLastErrors())
+			);
 			throw eror;
 		});
 };
@@ -217,10 +241,12 @@ SwaggerTestSpec.prototype.makeRequest = function (parameters, responseCode) {
  * @param {int} [responseCode] - Expected response code. Will override what was used in constructor
  * @return {*|Promise<any>}
  */
-SwaggerTestSpec.prototype.makeRequests = function (parameters, responseCode) {
+SwaggerTestSpec.prototype.makeRequests = function(parameters, responseCode) {
 	var self = this;
 	var requests = [];
-	parameters.forEach(paramSet => { requests.push(self.makeRequest(paramSet, responseCode)); });
+	parameters.forEach(paramSet => {
+		requests.push(self.makeRequest(paramSet, responseCode));
+	});
 	return Promise.all(requests);
 };
 
@@ -229,7 +255,7 @@ SwaggerTestSpec.prototype.makeRequests = function (parameters, responseCode) {
  *
  * @return {string}
  */
-SwaggerTestSpec.prototype.getPath = function () {
+SwaggerTestSpec.prototype.getPath = function() {
 	return apiSpec.basePath + this.path;
 };
 
@@ -245,6 +271,6 @@ SwaggerTestSpec.prototype.getPath = function () {
  * @param {number} [responseCode] - Expected status code from endpoint
  * @return {SwaggerTestSpec}
  */
-module.exports = function (method, path, responseCode) {
+module.exports = function(method, path, responseCode) {
 	return new SwaggerTestSpec(method, method, responseCode);
 };

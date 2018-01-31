@@ -22,7 +22,7 @@ var defaults = {
 	max: 0, // Disabled
 	delayMs: 0, // Disabled
 	delayAfter: 0, // Disabled
-	windowMs: 60000 // 1 minute window
+	windowMs: 60000, // 1 minute window
 };
 
 /**

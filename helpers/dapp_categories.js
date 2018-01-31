@@ -34,5 +34,5 @@ module.exports = {
 	Networking: 5,
 	Science: 6,
 	Social: 7,
-	Utilities: 8
+	Utilities: 8,
 };

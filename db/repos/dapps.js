@@ -78,10 +78,16 @@ class DappsRepository {
 		// TODO: Use cases need to be reviewed, and new methods added before it can be made into a proper external SQL
 		const query = [
 			'SELECT "name" COLLATE "C", "description", "tags", "link", "type", "category", "icon", "transactionId" FROM dapps',
-			((params.where && params.where.length) ? `WHERE ${params.where.join(' OR ')}` : ''),
-			(params.sortField ? `ORDER BY ${[params.sortField, params.sortMethod].join(' ')}` : ''),
-			'LIMIT ${limit} OFFSET ${offset}'
-		].filter(Boolean).join(' ');
+			params.where && params.where.length
+				? `WHERE ${params.where.join(' OR ')}`
+				: '',
+			params.sortField
+				? `ORDER BY ${[params.sortField, params.sortMethod].join(' ')}`
+				: '',
+			'LIMIT ${limit} OFFSET ${offset}',
+		]
+			.filter(Boolean)
+			.join(' ');
 
 		// TODO: Should use a result-specific method, not .query
 		return this.db.query(query, params);

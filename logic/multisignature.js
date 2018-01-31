@@ -21,9 +21,9 @@ var exceptions = require('../helpers/exceptions.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var modules,
-library,
-__private = {};
+var modules;
+var library;
+var __private = {};
 
 __private.unconfirmedSignatures = {};
 
@@ -45,8 +45,8 @@ function Multisignature(schema, network, transaction, account, logger) {
 		logger: logger,
 		logic: {
 			transaction: transaction,
-			account: account
-		}
+			account: account,
+		},
 	};
 }
 
@@ -55,9 +55,9 @@ function Multisignature(schema, network, transaction, account, logger) {
  * Binds input parameters to private variable modules
  * @param {Accounts} accounts
  */
-Multisignature.prototype.bind = function (accounts) {
+Multisignature.prototype.bind = function(accounts) {
 	modules = {
-		accounts: accounts
+		accounts: accounts,
 	};
 };
 
@@ -67,8 +67,11 @@ Multisignature.prototype.bind = function (accounts) {
  * @param {transaction} transaction
  * @returns {number} Quantity of multisignature keysgroup * multisignature fees.
  */
-Multisignature.prototype.calculateFee = function (transaction) {
-	return (transaction.asset.multisignature.keysgroup.length + 1) * constants.fees.multisignature;
+Multisignature.prototype.calculateFee = function(transaction) {
+	return (
+		(transaction.asset.multisignature.keysgroup.length + 1) *
+		constants.fees.multisignature
+	);
 };
 
 /**
@@ -80,26 +83,48 @@ Multisignature.prototype.calculateFee = function (transaction) {
  * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
  * transaction validated.
  */
-Multisignature.prototype.verify = function (transaction, sender, cb) {
+Multisignature.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.asset || !transaction.asset.multisignature) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
 	if (!Array.isArray(transaction.asset.multisignature.keysgroup)) {
-		return setImmediate(cb, 'Invalid multisignature keysgroup. Must be an array');
+		return setImmediate(
+			cb,
+			'Invalid multisignature keysgroup. Must be an array'
+		);
 	}
 
 	if (transaction.asset.multisignature.keysgroup.length === 0) {
-		return setImmediate(cb, 'Invalid multisignature keysgroup. Must not be empty');
+		return setImmediate(
+			cb,
+			'Invalid multisignature keysgroup. Must not be empty'
+		);
 	}
 
-	if (transaction.asset.multisignature.min < constants.multisigConstraints.min.minimum || transaction.asset.multisignature.min > constants.multisigConstraints.min.maximum) {
-		return setImmediate(cb, ['Invalid multisignature min. Must be between', constants.multisigConstraints.min.minimum,
-			'and', constants.multisigConstraints.min.maximum].join(' '));
+	if (
+		transaction.asset.multisignature.min <
+			constants.multisigConstraints.min.minimum ||
+		transaction.asset.multisignature.min >
+			constants.multisigConstraints.min.maximum
+	) {
+		return setImmediate(
+			cb,
+			[
+				'Invalid multisignature min. Must be between',
+				constants.multisigConstraints.min.minimum,
+				'and',
+				constants.multisigConstraints.min.maximum,
+			].join(' ')
+		);
 	}
 
-	if (transaction.asset.multisignature.min > transaction.asset.multisignature.keysgroup.length) {
-		var err = 'Invalid multisignature min. Must be less than or equal to keysgroup size';
+	if (
+		transaction.asset.multisignature.min >
+		transaction.asset.multisignature.keysgroup.length
+	) {
+		var err =
+			'Invalid multisignature min. Must be less than or equal to keysgroup size';
 
 		if (exceptions.multisignatures.indexOf(transaction.id) > -1) {
 			library.logger.debug(err);
@@ -109,10 +134,21 @@ Multisignature.prototype.verify = function (transaction, sender, cb) {
 		}
 	}
 
-	if (transaction.asset.multisignature.lifetime < constants.multisigConstraints.lifetime.minimum ||
-		transaction.asset.multisignature.lifetime > constants.multisigConstraints.lifetime.maximum) {
-		return setImmediate(cb, ['Invalid multisignature lifetime. Must be between', constants.multisigConstraints.lifetime.minimum, 'and',
-			constants.multisigConstraints.lifetime.maximum].join(' '));
+	if (
+		transaction.asset.multisignature.lifetime <
+			constants.multisigConstraints.lifetime.minimum ||
+		transaction.asset.multisignature.lifetime >
+			constants.multisigConstraints.lifetime.maximum
+	) {
+		return setImmediate(
+			cb,
+			[
+				'Invalid multisignature lifetime. Must be between',
+				constants.multisigConstraints.lifetime.minimum,
+				'and',
+				constants.multisigConstraints.lifetime.maximum,
+			].join(' ')
+		);
 	}
 
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
@@ -121,72 +157,119 @@ Multisignature.prototype.verify = function (transaction, sender, cb) {
 
 	if (this.ready(transaction, sender)) {
 		try {
-			for (var s = 0; s < transaction.asset.multisignature.keysgroup.length; s++) {
+			for (
+				var s = 0;
+				s < transaction.asset.multisignature.keysgroup.length;
+				s++
+			) {
 				var valid = false;
 
 				if (transaction.signatures) {
 					for (var d = 0; d < transaction.signatures.length && !valid; d++) {
-						if (transaction.asset.multisignature.keysgroup[s][0] !== '-' && transaction.asset.multisignature.keysgroup[s][0] !== '+') {
+						if (
+							transaction.asset.multisignature.keysgroup[s][0] !== '-' &&
+							transaction.asset.multisignature.keysgroup[s][0] !== '+'
+						) {
 							valid = false;
 						} else {
-							valid = library.logic.transaction.verifySignature(transaction, transaction.asset.multisignature.keysgroup[s].substring(1), transaction.signatures[d]);
+							valid = library.logic.transaction.verifySignature(
+								transaction,
+								transaction.asset.multisignature.keysgroup[s].substring(1),
+								transaction.signatures[d]
+							);
 						}
 					}
 				}
 
 				if (!valid) {
-					return setImmediate(cb, 'Failed to verify signature in multisignature keysgroup');
+					return setImmediate(
+						cb,
+						'Failed to verify signature in multisignature keysgroup'
+					);
 				}
 			}
 		} catch (e) {
 			library.logger.error(e.stack);
-			return setImmediate(cb, 'Failed to verify signature in multisignature keysgroup');
+			return setImmediate(
+				cb,
+				'Failed to verify signature in multisignature keysgroup'
+			);
 		}
 	}
 
-	if (transaction.asset.multisignature.keysgroup.indexOf(`+${sender.publicKey}`) !== -1) {
-		return setImmediate(cb, 'Invalid multisignature keysgroup. Can not contain sender');
+	if (
+		transaction.asset.multisignature.keysgroup.indexOf(
+			`+${sender.publicKey}`
+		) !== -1
+	) {
+		return setImmediate(
+			cb,
+			'Invalid multisignature keysgroup. Can not contain sender'
+		);
 	}
 
-	async.eachSeries(transaction.asset.multisignature.keysgroup, (key, cb) => {
-		if (!key || typeof key !== 'string') {
-			return setImmediate(cb, 'Invalid member in keysgroup');
-		}
-
-		var math = key[0];
-		var publicKey = key.slice(1);
-
-		if (math !== '+') {
-			return setImmediate(cb, 'Invalid math operator in multisignature keysgroup');
-		}
-
-		try {
-			var b = Buffer.from(publicKey, 'hex');
-			if (b.length !== 32) {
-				return setImmediate(cb, 'Invalid public key in multisignature keysgroup');
+	async.eachSeries(
+		transaction.asset.multisignature.keysgroup,
+		(key, cb) => {
+			if (!key || typeof key !== 'string') {
+				return setImmediate(cb, 'Invalid member in keysgroup');
 			}
-		} catch (e) {
-			library.logger.trace(e.stack);
-			return setImmediate(cb, 'Invalid public key in multisignature keysgroup');
+
+			var math = key[0];
+			var publicKey = key.slice(1);
+
+			if (math !== '+') {
+				return setImmediate(
+					cb,
+					'Invalid math operator in multisignature keysgroup'
+				);
+			}
+
+			try {
+				var b = Buffer.from(publicKey, 'hex');
+				if (b.length !== 32) {
+					return setImmediate(
+						cb,
+						'Invalid public key in multisignature keysgroup'
+					);
+				}
+			} catch (e) {
+				library.logger.trace(e.stack);
+				return setImmediate(
+					cb,
+					'Invalid public key in multisignature keysgroup'
+				);
+			}
+
+			return setImmediate(cb);
+		},
+		err => {
+			if (err) {
+				return setImmediate(cb, err);
+			}
+
+			var keysgroup = transaction.asset.multisignature.keysgroup.reduce(
+				(p, c) => {
+					if (p.indexOf(c) < 0) {
+						p.push(c);
+					}
+					return p;
+				},
+				[]
+			);
+
+			if (
+				keysgroup.length !== transaction.asset.multisignature.keysgroup.length
+			) {
+				return setImmediate(
+					cb,
+					'Encountered duplicate public key in multisignature keysgroup'
+				);
+			}
+
+			return setImmediate(cb, null, transaction);
 		}
-
-		return setImmediate(cb);
-	}, err => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		var keysgroup = transaction.asset.multisignature.keysgroup.reduce((p, c) => {
-			if (p.indexOf(c) < 0) { p.push(c); }
-			return p;
-		}, []);
-
-		if (keysgroup.length !== transaction.asset.multisignature.keysgroup.length) {
-			return setImmediate(cb, 'Encountered duplicate public key in multisignature keysgroup');
-		}
-
-		return setImmediate(cb, null, transaction);
-	});
+	);
 };
 
 /**
@@ -197,7 +280,7 @@ Multisignature.prototype.verify = function (transaction, sender, cb) {
  * @returns {setImmediateCallback} Null error
  * @todo check extra parameter sender.
  */
-Multisignature.prototype.process = function (transaction, sender, cb) {
+Multisignature.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
 };
 
@@ -208,8 +291,11 @@ Multisignature.prototype.process = function (transaction, sender, cb) {
  * @param {transaction} transaction - Uses multisignature from asset.
  * @returns {!Array} Contents as an ArrayBuffer.
  */
-Multisignature.prototype.getBytes = function (transaction) {
-	var keysgroupBuffer = Buffer.from(transaction.asset.multisignature.keysgroup.join(''), 'utf8');
+Multisignature.prototype.getBytes = function(transaction) {
+	var keysgroupBuffer = Buffer.from(
+		transaction.asset.multisignature.keysgroup.join(''),
+		'utf8'
+	);
 
 	var bb = new ByteBuffer(1 + 1 + keysgroupBuffer.length, true);
 	bb.writeByte(transaction.asset.multisignature.min);
@@ -232,32 +318,45 @@ Multisignature.prototype.getBytes = function (transaction) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} for errors
  */
-Multisignature.prototype.apply = function (transaction, block, sender, cb, tx) {
+Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
 	__private.unconfirmedSignatures[sender.address] = false;
 
-	library.logic.account.merge(sender.address, {
-		multisignatures: transaction.asset.multisignature.keysgroup,
-		multimin: transaction.asset.multisignature.min,
-		multilifetime: transaction.asset.multisignature.lifetime,
-		blockId: block.id,
-		round: slots.calcRound(block.height)
-	}, err => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
+	library.logic.account.merge(
+		sender.address,
+		{
+			multisignatures: transaction.asset.multisignature.keysgroup,
+			multimin: transaction.asset.multisignature.min,
+			multilifetime: transaction.asset.multisignature.lifetime,
+			blockId: block.id,
+			round: slots.calcRound(block.height),
+		},
+		err => {
+			if (err) {
+				return setImmediate(cb, err);
+			}
 
-		// Get public keys
-		async.eachSeries(transaction.asset.multisignature.keysgroup, (transaction, cb) => {
-			var key = transaction.substring(1);
-			var address = modules.accounts.generateAddressByPublicKey(key);
+			// Get public keys
+			async.eachSeries(
+				transaction.asset.multisignature.keysgroup,
+				(transaction, cb) => {
+					var key = transaction.substring(1);
+					var address = modules.accounts.generateAddressByPublicKey(key);
 
-			// Create accounts
-			modules.accounts.setAccountAndGet({
-				address: address,
-				publicKey: key
-			}, err => setImmediate(cb, err), tx);
-		}, cb);
-	}, tx);
+					// Create accounts
+					modules.accounts.setAccountAndGet(
+						{
+							address: address,
+							publicKey: key,
+						},
+						err => setImmediate(cb, err),
+						tx
+					);
+				},
+				cb
+			);
+		},
+		tx
+	);
 };
 
 /**
@@ -269,18 +368,22 @@ Multisignature.prototype.apply = function (transaction, block, sender, cb, tx) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} For error.
  */
-Multisignature.prototype.undo = function (transaction, block, sender, cb) {
+Multisignature.prototype.undo = function(transaction, block, sender, cb) {
 	var multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	library.logic.account.merge(sender.address, {
-		multisignatures: multiInvert,
-		multimin: -transaction.asset.multisignature.min,
-		multilifetime: -transaction.asset.multisignature.lifetime,
-		blockId: block.id,
-		round: slots.calcRound(block.height)
-	}, err => setImmediate(cb, err));
+	library.logic.account.merge(
+		sender.address,
+		{
+			multisignatures: multiInvert,
+			multimin: -transaction.asset.multisignature.min,
+			multilifetime: -transaction.asset.multisignature.lifetime,
+			blockId: block.id,
+			round: slots.calcRound(block.height),
+		},
+		err => setImmediate(cb, err)
+	);
 };
 
 /**
@@ -291,18 +394,31 @@ Multisignature.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} For error.
  */
-Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
+Multisignature.prototype.applyUnconfirmed = function(
+	transaction,
+	sender,
+	cb,
+	tx
+) {
 	if (__private.unconfirmedSignatures[sender.address]) {
-		return setImmediate(cb, 'Signature on this account is pending confirmation');
+		return setImmediate(
+			cb,
+			'Signature on this account is pending confirmation'
+		);
 	}
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	library.logic.account.merge(sender.address, {
-		u_multisignatures: transaction.asset.multisignature.keysgroup,
-		u_multimin: transaction.asset.multisignature.min,
-		u_multilifetime: transaction.asset.multisignature.lifetime
-	}, err => setImmediate(cb, err), tx);
+	library.logic.account.merge(
+		sender.address,
+		{
+			u_multisignatures: transaction.asset.multisignature.keysgroup,
+			u_multimin: transaction.asset.multisignature.min,
+			u_multilifetime: transaction.asset.multisignature.lifetime,
+		},
+		err => setImmediate(cb, err),
+		tx
+	);
 };
 
 /**
@@ -315,16 +431,26 @@ Multisignature.prototype.applyUnconfirmed = function (transaction, sender, cb, t
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} For error.
  */
-Multisignature.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
+Multisignature.prototype.undoUnconfirmed = function(
+	transaction,
+	sender,
+	cb,
+	tx
+) {
 	var multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
 	__private.unconfirmedSignatures[sender.address] = false;
 
-	library.logic.account.merge(sender.address, {
-		u_multisignatures: multiInvert,
-		u_multimin: -transaction.asset.multisignature.min,
-		u_multilifetime: -transaction.asset.multisignature.lifetime
-	}, err => setImmediate(cb, err), tx);
+	library.logic.account.merge(
+		sender.address,
+		{
+			u_multisignatures: multiInvert,
+			u_multimin: -transaction.asset.multisignature.min,
+			u_multilifetime: -transaction.asset.multisignature.lifetime,
+		},
+		err => setImmediate(cb, err),
+		tx
+	);
 };
 
 /**
@@ -340,20 +466,20 @@ Multisignature.prototype.schema = {
 		min: {
 			type: 'integer',
 			minimum: constants.multisigConstraints.min.minimum,
-			maximum: constants.multisigConstraints.min.maximum
+			maximum: constants.multisigConstraints.min.maximum,
 		},
 		keysgroup: {
 			type: 'array',
 			minItems: constants.multisigConstraints.keysgroup.minItems,
-			maxItems: constants.multisigConstraints.keysgroup.maxItems
+			maxItems: constants.multisigConstraints.keysgroup.maxItems,
 		},
 		lifetime: {
 			type: 'integer',
 			minimum: constants.multisigConstraints.lifetime.minimum,
-			maximum: constants.multisigConstraints.lifetime.maximum
-		}
+			maximum: constants.multisigConstraints.lifetime.maximum,
+		},
 	},
-	required: ['min', 'keysgroup', 'lifetime']
+	required: ['min', 'keysgroup', 'lifetime'],
 };
 
 /**
@@ -362,11 +488,17 @@ Multisignature.prototype.schema = {
  * @return {transaction} Transaction validated.
  * @throws {string} Error message.
  */
-Multisignature.prototype.objectNormalize = function (transaction) {
-	var report = library.schema.validate(transaction.asset.multisignature, Multisignature.prototype.schema);
+Multisignature.prototype.objectNormalize = function(transaction) {
+	var report = library.schema.validate(
+		transaction.asset.multisignature,
+		Multisignature.prototype.schema
+	);
 
 	if (!report) {
-		throw `Failed to validate multisignature schema: ${library.schema.getLastErrors().map(err => err.message).join(', ')}`;
+		throw `Failed to validate multisignature schema: ${library.schema
+			.getLastErrors()
+			.map(err => err.message)
+			.join(', ')}`;
 	}
 
 	return transaction;
@@ -378,7 +510,7 @@ Multisignature.prototype.objectNormalize = function (transaction) {
  * @return {multisignature} multisignature Object.
  * @todo check if this function is called.
  */
-Multisignature.prototype.dbRead = function (raw) {
+Multisignature.prototype.dbRead = function(raw) {
 	if (!raw.m_keysgroup) {
 		return null;
 	} else {
@@ -403,7 +535,7 @@ Multisignature.prototype.dbRead = function (raw) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-Multisignature.prototype.afterSave = function (transaction, cb) {
+Multisignature.prototype.afterSave = function(transaction, cb) {
 	library.network.io.sockets.emit('multisignatures/change', transaction);
 	return setImmediate(cb);
 };
@@ -414,13 +546,19 @@ Multisignature.prototype.afterSave = function (transaction, cb) {
  * @param {account} sender
  * @return {boolean} logic based on transaction signatures and sender multisignatures.
  */
-Multisignature.prototype.ready = function (transaction, sender) {
+Multisignature.prototype.ready = function(transaction, sender) {
 	if (!Array.isArray(transaction.signatures)) {
 		return false;
 	}
 
-	if (!Array.isArray(sender.multisignatures) || !sender.multisignatures.length) {
-		return transaction.signatures.length === transaction.asset.multisignature.keysgroup.length;
+	if (
+		!Array.isArray(sender.multisignatures) ||
+		!sender.multisignatures.length
+	) {
+		return (
+			transaction.signatures.length ===
+			transaction.asset.multisignature.keysgroup.length
+		);
 	} else {
 		return transaction.signatures.length >= sender.multimin;
 	}

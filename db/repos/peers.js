@@ -32,12 +32,22 @@ class PeersRepository {
 		this.pgp = pgp;
 
 		if (!cs.insert) {
-			cs.insert = new pgp.helpers.ColumnSet([
-				'ip', 'wsPort', 'state', 'height', 'os', 'version', 'clock',
-				{
-					name: 'broadhash', init: c => c.value ? Buffer.from(c.value, 'hex') : null
-				}
-			], { table: 'peers' });
+			cs.insert = new pgp.helpers.ColumnSet(
+				[
+					'ip',
+					'wsPort',
+					'state',
+					'height',
+					'os',
+					'version',
+					'clock',
+					{
+						name: 'broadhash',
+						init: c => (c.value ? Buffer.from(c.value, 'hex') : null),
+					},
+				],
+				{ table: 'peers' }
+			);
 		}
 	}
 

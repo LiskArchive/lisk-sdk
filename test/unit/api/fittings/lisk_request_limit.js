@@ -18,14 +18,14 @@ var httpMocks = require('node-mocks-http');
 var fitting = require('../../../../api/fittings/lisk_request_limit');
 
 describe('lisk_request_limit', () => {
-	var context,
-limit_fititng,
-next;
+	var context;
+	var limit_fititng;
+	var next;
 
 	beforeEach(() => {
 		context = {
 			request: httpMocks.createRequest(),
-			response: null
+			response: null,
 		};
 		context.response = httpMocks.createResponse({ req: context.request });
 		limit_fititng = fitting();
@@ -51,7 +51,7 @@ next;
 			max: 10,
 			delayMs: 0,
 			delayAfter: 0,
-			windowMs: 60000
+			windowMs: 60000,
 		};
 		limit_fititng = fitting({ limits: limits });
 		expect(limit_fititng.limits).to.be.eql(limits);
@@ -62,7 +62,7 @@ next;
 			max: 5,
 			delayMs: 0,
 			delayAfter: 0,
-			windowMs: 60000
+			windowMs: 60000,
 		};
 
 		context.response = httpMocks.createResponse({ req: context.request });
@@ -91,7 +91,8 @@ next;
 		function cb() {
 			success += 1;
 			var lmitiHeader = context.response.getHeader('X-RateLimit-Limit');
-			var remainingLimitHeader = context.response.getHeader('X-RateLimit-Remaining') || 0;
+			var remainingLimitHeader =
+				context.response.getHeader('X-RateLimit-Remaining') || 0;
 			expect(lmitiHeader).to.be.equal(limits.max);
 			expect(remainingLimitHeader).to.be.equal(limits.max - success);
 		}
@@ -116,7 +117,7 @@ next;
 	it('should respect limit for different IPs explicitly', () => {
 		var context2 = {
 			request: httpMocks.createRequest(),
-			response: null
+			response: null,
 		};
 		context2.response = httpMocks.createResponse({ req: context2.request });
 		var next2 = sinonSandbox.spy();
@@ -124,7 +125,7 @@ next;
 			max: 5,
 			delayMs: 0,
 			delayAfter: 0,
-			windowMs: 2000
+			windowMs: 2000,
 		};
 
 		context.request.ip = '192.168.99.10';

@@ -20,10 +20,10 @@ var transactionTypes = require('../helpers/transaction_types.js');
 var Vote = require('../logic/vote.js');
 
 // Private fields
-var modules,
-library,
-self,
-__private = {};
+var modules;
+var library;
+var self;
+var __private = {};
 
 __private.assetTypes = {};
 
@@ -50,12 +50,11 @@ function Accounts(cb, scope) {
 	};
 	self = this;
 	__private.blockReward = new BlockReward();
-	__private.assetTypes[transactionTypes.VOTE] = library.logic.transaction.attachAssetType(
+	__private.assetTypes[
+		transactionTypes.VOTE
+	] = library.logic.transaction.attachAssetType(
 		transactionTypes.VOTE,
-		new Vote(
-			scope.logger,
-			scope.schema
-		)
+		new Vote(scope.logger, scope.schema)
 	);
 
 	setImmediate(cb, null, self);
@@ -67,8 +66,11 @@ function Accounts(cb, scope) {
  * @returns {address} Address generated.
  * @throws {string} If address is invalid throws `Invalid public key`.
  */
-Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
-	var publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest();
+Accounts.prototype.generateAddressByPublicKey = function(publicKey) {
+	var publicKeyHash = crypto
+		.createHash('sha256')
+		.update(publicKey, 'hex')
+		.digest();
 	var temp = Buffer.alloc(8);
 
 	for (var i = 0; i < 8; i++) {
@@ -91,7 +93,7 @@ Accounts.prototype.generateAddressByPublicKey = function (publicKey) {
  * @param {function} fields - Fields to get.
  * @param {function} cb - Callback function.
  */
-Accounts.prototype.getAccount = function (filter, fields, cb, tx) {
+Accounts.prototype.getAccount = function(filter, fields, cb, tx) {
 	if (filter.publicKey) {
 		filter.address = self.generateAddressByPublicKey(filter.publicKey);
 		delete filter.publicKey;
@@ -107,7 +109,7 @@ Accounts.prototype.getAccount = function (filter, fields, cb, tx) {
  * @param {Object} fields
  * @param {function} cb - Callback function.
  */
-Accounts.prototype.getAccounts = function (filter, fields, cb) {
+Accounts.prototype.getAccounts = function(filter, fields, cb) {
 	library.logic.account.getAll(filter, fields, cb);
 };
 
@@ -120,7 +122,7 @@ Accounts.prototype.getAccounts = function (filter, fields, cb) {
  * @returns {setImmediateCallback} Errors.
  * @returns {function()} Call to logic.account.get().
  */
-Accounts.prototype.setAccountAndGet = function (data, cb, tx) {
+Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 	var address = data.address || null;
 	var err;
 
@@ -144,12 +146,17 @@ Accounts.prototype.setAccountAndGet = function (data, cb, tx) {
 		}
 	}
 
-	library.logic.account.set(address, data, err => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		return library.logic.account.get({ address: address }, cb, tx);
-	}, tx);
+	library.logic.account.set(
+		address,
+		data,
+		err => {
+			if (err) {
+				return setImmediate(cb, err);
+			}
+			return library.logic.account.get({ address: address }, cb, tx);
+		},
+		tx
+	);
 };
 
 /**
@@ -161,7 +168,7 @@ Accounts.prototype.setAccountAndGet = function (data, cb, tx) {
  * @returns {function} calls to logic.account.merge().
  * @todo improve publicKey validation try/catch
  */
-Accounts.prototype.mergeAccountAndGet = function (data, cb, tx) {
+Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
 	var address = data.address || null;
 	var err;
 
@@ -194,15 +201,13 @@ Accounts.prototype.mergeAccountAndGet = function (data, cb, tx) {
  * @implements module:accounts#Vote~bind
  * @param {modules} scope - Loaded modules.
  */
-Accounts.prototype.onBind = function (scope) {
+Accounts.prototype.onBind = function(scope) {
 	modules = {
 		transactions: scope.transactions,
-		blocks: scope.blocks
+		blocks: scope.blocks,
 	};
 
-	__private.assetTypes[transactionTypes.VOTE].bind(
-		scope.delegates
-	);
+	__private.assetTypes[transactionTypes.VOTE].bind(scope.delegates);
 
 	library.logic.account.bind(modules.blocks);
 };
@@ -210,7 +215,7 @@ Accounts.prototype.onBind = function (scope) {
  * Checks if modules is loaded.
  * @return {boolean} true if modules is loaded
  */
-Accounts.prototype.isLoaded = function () {
+Accounts.prototype.isLoaded = function() {
 	return !!modules;
 };
 
@@ -232,7 +237,7 @@ Accounts.prototype.shared = {
 	 * @param {function} cb - Callback function
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getAccounts: function (filters, cb) {
+	getAccounts: function(filters, cb) {
 		library.logic.account.getAll(filters, (err, accounts) => {
 			if (err) {
 				return setImmediate(cb, err);
@@ -251,7 +256,7 @@ Accounts.prototype.shared = {
 						missedBlocks: account.missedBlocks,
 						rank: account.rank,
 						approval: account.approval,
-						productivity: account.productivity
+						productivity: account.productivity,
 					};
 				}
 
@@ -263,13 +268,13 @@ Accounts.prototype.shared = {
 					unconfirmedSignature: account.u_secondSignature,
 					secondSignature: account.secondSignature,
 					secondPublicKey: account.secondPublicKey,
-					delegate: delegate
+					delegate: delegate,
 				};
 			});
 
 			return setImmediate(cb, null, accounts);
 		});
-	}
+	},
 };
 
 // Export

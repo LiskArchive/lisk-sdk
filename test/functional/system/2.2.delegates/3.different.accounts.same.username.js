@@ -32,10 +32,14 @@ describe('system test (type 2) - double delegate registrations', () => {
 		describe('executing 30 times', () => {
 			var account = randomUtil.account();
 			var account2 = randomUtil.account();
-			var transaction,
-transaction1,
-transaction2;
-			transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
+			var transaction;
+			var transaction1;
+			var transaction2;
+			transaction = lisk.transaction.createTransaction(
+				account.address,
+				1000 * normalizer,
+				accountFixtures.genesis.password
+			);
 
 			before(done => {
 				console.log(++t);
@@ -46,12 +50,19 @@ transaction2;
 
 			describe('with two different accounts using same username', () => {
 				before(done => {
-					transaction = lisk.transaction.createTransaction(account2.address, 1000 * normalizer, accountFixtures.genesis.password);
+					transaction = lisk.transaction.createTransaction(
+						account2.address,
+						1000 * normalizer,
+						accountFixtures.genesis.password
+					);
 					localCommon.addTransactionsAndForge(library, [transaction], done);
 				});
 
 				it('adding to pool delegate registration should be ok', done => {
-					transaction1 = lisk.delegate.createDelegate(account.password, account.username);
+					transaction1 = lisk.delegate.createDelegate(
+						account.password,
+						account.username
+					);
 					localCommon.addTransaction(library, transaction1, (err, res) => {
 						expect(res).to.equal(transaction1.id);
 						done();
@@ -59,7 +70,10 @@ transaction2;
 				});
 
 				it('adding to pool delegate registration from different account and same username should be ok', done => {
-					transaction2 = lisk.delegate.createDelegate(account2.password, account.username);
+					transaction2 = lisk.delegate.createDelegate(
+						account2.password,
+						account.username
+					);
 					localCommon.addTransaction(library, transaction2, (err, res) => {
 						expect(res).to.equal(transaction2.id);
 						done();
@@ -75,32 +89,46 @@ transaction2;
 
 					it('first delegate registration to arrive should not be included', done => {
 						var filter = {
-							id: transaction1.id
+							id: transaction1.id,
 						};
-						localCommon.getTransactionFromModule(library, filter, (err, res) => {
-							expect(err).to.be.null;
-							expect(res).to.have.property('transactions').which.is.an('Array');
-							expect(res.transactions.length).to.equal(0);
-							done();
-						});
+						localCommon.getTransactionFromModule(
+							library,
+							filter,
+							(err, res) => {
+								expect(err).to.be.null;
+								expect(res)
+									.to.have.property('transactions')
+									.which.is.an('Array');
+								expect(res.transactions.length).to.equal(0);
+								done();
+							}
+						);
 					});
 
 					it('last delegate registration to arrive should be included', done => {
 						var filter = {
-							id: transaction2.id
+							id: transaction2.id,
 						};
-						localCommon.getTransactionFromModule(library, filter, (err, res) => {
-							expect(err).to.be.null;
-							expect(res).to.have.property('transactions').which.is.an('Array');
-							expect(res.transactions.length).to.equal(1);
-							expect(res.transactions[0].id).to.equal(transaction2.id);
-							done();
-						});
+						localCommon.getTransactionFromModule(
+							library,
+							filter,
+							(err, res) => {
+								expect(err).to.be.null;
+								expect(res)
+									.to.have.property('transactions')
+									.which.is.an('Array');
+								expect(res.transactions.length).to.equal(1);
+								expect(res.transactions[0].id).to.equal(transaction2.id);
+								done();
+							}
+						);
 					});
 
 					it('adding to pool delegate registration with already registered username should fail', done => {
 						localCommon.addTransaction(library, transaction1, err => {
-							expect(err).to.equal(`Username ${account.username} already exists`);
+							expect(err).to.equal(
+								`Username ${account.username} already exists`
+							);
 							done();
 						});
 					});

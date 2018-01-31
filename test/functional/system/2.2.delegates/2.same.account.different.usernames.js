@@ -31,11 +31,15 @@ describe('system test (type 2) - double delegate registrations', () => {
 	while (i < 30) {
 		describe('executing 30 times', () => {
 			var account = randomUtil.account();
-			var transaction,
-			transaction1,
-			transaction2;
+			var transaction;
+			var transaction1;
+			var transaction2;
 			var differentDelegateName = randomUtil.delegateName();
-			transaction = lisk.transaction.createTransaction(account.address, 1000 * normalizer, accountFixtures.genesis.password);
+			transaction = lisk.transaction.createTransaction(
+				account.address,
+				1000 * normalizer,
+				accountFixtures.genesis.password
+			);
 
 			before(done => {
 				console.log(++t);
@@ -46,7 +50,10 @@ describe('system test (type 2) - double delegate registrations', () => {
 
 			describe('with same account using different usernames', () => {
 				it('adding to pool delegate registration should be ok', done => {
-					transaction1 = lisk.delegate.createDelegate(account.password, differentDelegateName);
+					transaction1 = lisk.delegate.createDelegate(
+						account.password,
+						differentDelegateName
+					);
 					localCommon.addTransaction(library, transaction1, (err, res) => {
 						expect(res).to.equal(transaction1.id);
 						done();
@@ -54,7 +61,10 @@ describe('system test (type 2) - double delegate registrations', () => {
 				});
 
 				it('adding to pool delegate registration from same account and different name should be ok', done => {
-					transaction2 = lisk.delegate.createDelegate(account.password, account.username);
+					transaction2 = lisk.delegate.createDelegate(
+						account.password,
+						account.username
+					);
 					localCommon.addTransaction(library, transaction2, (err, res) => {
 						expect(res).to.equal(transaction2.id);
 						done();
@@ -70,31 +80,46 @@ describe('system test (type 2) - double delegate registrations', () => {
 
 					it('first delegate registration to arrive should not be included', done => {
 						var filter = {
-							id: transaction1.id
+							id: transaction1.id,
 						};
-						localCommon.getTransactionFromModule(library, filter, (err, res) => {
-							expect(err).to.be.null;
-							expect(res).to.have.property('transactions').which.is.an('Array');
-							expect(res.transactions.length).to.equal(0);
-							done();
-						});
+						localCommon.getTransactionFromModule(
+							library,
+							filter,
+							(err, res) => {
+								expect(err).to.be.null;
+								expect(res)
+									.to.have.property('transactions')
+									.which.is.an('Array');
+								expect(res.transactions.length).to.equal(0);
+								done();
+							}
+						);
 					});
 
 					it('last delegate registration to arrive should be included', done => {
 						var filter = {
-							id: transaction2.id
+							id: transaction2.id,
 						};
-						localCommon.getTransactionFromModule(library, filter, (err, res) => {
-							expect(err).to.be.null;
-							expect(res).to.have.property('transactions').which.is.an('Array');
-							expect(res.transactions.length).to.equal(1);
-							expect(res.transactions[0].id).to.equal(transaction2.id);
-							done();
-						});
+						localCommon.getTransactionFromModule(
+							library,
+							filter,
+							(err, res) => {
+								expect(err).to.be.null;
+								expect(res)
+									.to.have.property('transactions')
+									.which.is.an('Array');
+								expect(res.transactions.length).to.equal(1);
+								expect(res.transactions[0].id).to.equal(transaction2.id);
+								done();
+							}
+						);
 					});
 
 					it('adding to pool delegate registration from same account should fail', done => {
-						transaction2 = lisk.delegate.createDelegate(account.password, randomUtil.delegateName());
+						transaction2 = lisk.delegate.createDelegate(
+							account.password,
+							randomUtil.delegateName()
+						);
 						localCommon.addTransaction(library, transaction2, err => {
 							expect(err).to.equal('Account is already a delegate');
 							done();
