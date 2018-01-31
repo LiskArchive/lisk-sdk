@@ -14,11 +14,6 @@
 'use strict';
 
 /**
- * @namespace failureCodes
- * @memberof api.ws.rpc
- */
-
-/**
  * Description of the object.
  *
  * @name failureCodes

@@ -24,18 +24,12 @@ var PromiseDefer = require('../../../helpers/promiseDefer');
 var System = require('../../../modules/system');
 
 var wsServer = null;
-/**
- * @namespace wsRPC
- * @memberof api.ws.rpc
- * @see Parent: {@link api.ws.rpc}
- * @property {module:api/ws/rpc/wsRPC} wsRPC
- */
-
 
 /**
  * Description of the module.
  *
  * @module
+ * @see Parent: {@link api.ws.rpc}
  * @requires lodash
  * @requires socketcluster-client
  * @requires wamp-socket-cluster/WAMPClient
@@ -47,7 +41,7 @@ var wsServer = null;
  */
 
 /**
- * @exports api/ws/rpc/wsRPC
+ * @alias module:api/ws/rpc/wsRPC
  */
 var wsRPC = {
 
