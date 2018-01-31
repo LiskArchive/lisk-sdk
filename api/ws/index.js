@@ -1,3 +1,5 @@
 /**
- * @namespace api/ws
+ * @namespace ws
+ * @memberof api
+ * @see Parent: {@link api}
  */
