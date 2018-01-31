@@ -21,7 +21,6 @@ var constants = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failure_codes');
 var PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 var Rules = require('../api/ws/workers/rules');
-var System = require('../modules/system');
 var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 // Private fields
@@ -312,7 +311,6 @@ Transport.prototype.getPeers = function(params, cb) {
 // Events
 /**
  * Bounds scope to private broadcaster amd initialize headers.
- * @implements {System.getHeaders}
  * @implements {broadcaster.bind}
  * @param {modules} scope - Loaded modules.
  */

@@ -73,7 +73,7 @@ describe('transport', () => {
 		peersStub = {};
 
 		restoreRewiredTopDeps = TransportModule.__set__({
-			Broadcaster: function () {
+			Broadcaster: function() {
 				this.bind = () => {};
 				broadcasterStubRef = this;
 			},
