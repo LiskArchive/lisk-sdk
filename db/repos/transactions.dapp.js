@@ -25,7 +25,7 @@ var columnSet;
  * @constructor
  * @return {DappsTransactionsRepo}
  */
-function DappsTransactionsRepo (db, pgp) {
+function DappsTransactionsRepo(db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
@@ -39,13 +39,18 @@ function DappsTransactionsRepo (db, pgp) {
 		'link',
 		'category',
 		'icon',
-		'transactionId'
+		'transactionId',
 	];
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
+		var table = new pgp.helpers.TableName({
+			table: this.dbTable,
+			schema: 'public',
+		});
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+			table: table,
+		});
 	}
 
 	this.cs = columnSet;
@@ -56,23 +61,21 @@ function DappsTransactionsRepo (db, pgp) {
  * @param {Array.<{id: string, asset: {dapp: {type: int, name: string, description: string, tags: string, link: string, icon: string, category: string}}}>} transactions
  * @return {Promise}
  */
-DappsTransactionsRepo.prototype.save = function (transactions) {
+DappsTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
-	transactions = transactions.map(function (transaction) {
-		return {
-			type: transaction.asset.dapp.type,
-			name: transaction.asset.dapp.name,
-			description: transaction.asset.dapp.description || null,
-			tags: transaction.asset.dapp.tags || null,
-			link: transaction.asset.dapp.link || null,
-			icon: transaction.asset.dapp.icon || null,
-			category: transaction.asset.dapp.category,
-			transactionId: transaction.id
-		};
-	});
+	transactions = transactions.map(transaction => ({
+		type: transaction.asset.dapp.type,
+		name: transaction.asset.dapp.name,
+		description: transaction.asset.dapp.description || null,
+		tags: transaction.asset.dapp.tags || null,
+		link: transaction.asset.dapp.link || null,
+		icon: transaction.asset.dapp.icon || null,
+		category: transaction.asset.dapp.category,
+		transactionId: transaction.id,
+	}));
 
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };

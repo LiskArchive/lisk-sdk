@@ -19,6 +19,7 @@
  * @property {number} activeDelegates - The default number of delegates.
  * @property {number} maxVotesPerTransaction - The maximum number of votes in vote type transaction.
  * @property {number} addressLength - The default address length.
+ * @property {number} blockSlotWindow - The default no. of previous blocks to keep in memory.
  * @property {number} blockHeaderLength - The default block header length.
  * @property {number} blockReceiptTimeOut
  * @property {number} confirmationLength
@@ -57,9 +58,10 @@
 var constants = {
 	activeDelegates: 101,
 	addressLength: 208,
+	blockSlotWindow: 5,
 	additionalData: {
 		minLength: 1,
-		maxLength: 64
+		maxLength: 64,
 	},
 	blockHeaderLength: 248,
 	blockReceiptTimeOut: 20, // 2 blocks
@@ -74,7 +76,7 @@ var constants = {
 		dappRegistration: 2500000000,
 		dappWithdrawal: 10000000,
 		dappDeposit: 10000000,
-		data: 10000000
+		data: 10000000,
 	},
 	feeStart: 1,
 	feeStartVolume: 10000 * 100000000,
@@ -94,22 +96,22 @@ var constants = {
 	multisigConstraints: {
 		min: {
 			minimum: 1,
-			maximum: 15
+			maximum: 15,
 		},
 		lifetime: {
 			minimum: 1,
-			maximum: 72
+			maximum: 72,
 		},
 		keysgroup: {
 			minItems: 1,
-			maxItems: 15
-		}
+			maxItems: 15,
+		},
 	},
 	nethashes: [
 		// Mainnet
 		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
 		// Testnet
-		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
+		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	],
 	numberLength: 100000000,
 	requestLength: 104,
@@ -120,15 +122,15 @@ var constants = {
 			400000000, // Milestone 1
 			300000000, // Milestone 2
 			200000000, // Milestone 3
-			100000000  // Milestone 4
+			100000000, // Milestone 4
 		],
-		offset: 1451520,   // Start rewards at block (n)
+		offset: 1451520, // Start rewards at block (n)
 		distance: 3000000, // Distance between each milestone
 	},
 	signatureLength: 196,
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: 10000000000000000,
-	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
+	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
 };
 
 module.exports = constants;

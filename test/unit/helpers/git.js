@@ -16,42 +16,42 @@
 var git = require('../../../helpers/git');
 var childProcess = require('child_process');
 
-describe('git', function () {
-
-	describe('getLastCommit', function () {
-
-		describe('when "git rev-parse HEAD" command fails', function () {
-
+describe('git', () => {
+	describe('getLastCommit', () => {
+		describe('when "git rev-parse HEAD" command fails', () => {
 			var validErrorMessage = 'Not a git repository';
 			var spawnSyncStub;
 
-			beforeEach(function () {
-				spawnSyncStub = sinonSandbox.stub(childProcess, 'spawnSync').returns({stderr: validErrorMessage});
+			beforeEach(() => {
+				spawnSyncStub = sinonSandbox
+					.stub(childProcess, 'spawnSync')
+					.returns({ stderr: validErrorMessage });
 			});
 
-			afterEach(function () {
+			afterEach(() => {
 				spawnSyncStub.restore();
 			});
 
-			it('should throw an error', function () {
+			it('should throw an error', () => {
 				expect(git.getLastCommit).throws(Error, validErrorMessage);
 			});
 		});
 
-		describe('when "git rev-parse HEAD" command succeeds', function () {
-
+		describe('when "git rev-parse HEAD" command succeeds', () => {
 			var validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
 			var spawnSyncStub;
 
-			beforeEach(function () {
-				spawnSyncStub = sinonSandbox.stub(childProcess, 'spawnSync').returns({stderr: '', stdout: validCommitHash});
+			beforeEach(() => {
+				spawnSyncStub = sinonSandbox
+					.stub(childProcess, 'spawnSync')
+					.returns({ stderr: '', stdout: validCommitHash });
 			});
 
-			afterEach(function () {
+			afterEach(() => {
 				spawnSyncStub.restore();
 			});
 
-			it('should return a commit hash', function () {
+			it('should return a commit hash', () => {
 				expect(git.getLastCommit()).equal(validCommitHash);
 			});
 		});

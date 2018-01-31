@@ -1,5 +1,4 @@
-database layer
---------------
+## database layer
 
 Everything related to the use of the database, to be included only as:
 

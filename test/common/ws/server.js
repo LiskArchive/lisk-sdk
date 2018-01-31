@@ -13,8 +13,9 @@
  */
 'use strict';
 
+require('../../setup'); // Ensure availability of global variables
+
 var randomstring = require('randomstring');
-var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');
 var SocketCluster = require('socketcluster');
 
@@ -25,14 +26,14 @@ var wsServer = {
 	testSocketCluster: null,
 	testWampServer: null,
 
-	start: function () {
+	start: function() {
 		if (this.socketCluster) {
 			throw new Error('SocketCluster instance is already running');
 		}
 		this.socketCluster = new SocketCluster(this.options);
 	},
 
-	stop: function () {
+	stop: function() {
 		if (!this.socketCluster) {
 			throw new Error('No SocketCluster instance running');
 		}
@@ -42,28 +43,37 @@ var wsServer = {
 	},
 
 	// Invoked by each worker
-	run: function (worker) {
+	run: function(worker) {
 		console.log('run invoked');
 		var scServer = worker.scServer;
 		this.rpcServer = new WAMPServer();
 		this.rpcServer.registerRPCEndpoints(this.necessaryRPCEndpoints);
-		scServer.on('connection', function (socket) {
+		scServer.on('connection', socket => {
 			this.rpcServer.upgradeToWAMP(socket);
 			socket.emit('accepted');
-		}.bind(this));
+		});
 	},
 
 	necessaryRPCEndpoints: {
-		status: sinonSandbox.stub().callsArgWith(1, {success: true, height: 1, broadhash: testConfig.nethash, nonce: testConfig.nethash}),
-		list: sinonSandbox.stub().callsArgWith(1, {peers: []}),
-		blocks:  sinonSandbox.stub().callsArgWith(1, {blocks: []}),
-		getSignatures:  sinonSandbox.stub().callsArgWith(1, {signatures: []}),
-		getTransactions:  sinonSandbox.stub().callsArgWith(1, {transactions: []}),
-		updateMyself:  sinonSandbox.stub().callsArgWith(1, null),
+		status: sinonSandbox.stub().callsArgWith(1, {
+			success: true,
+			height: 1,
+			broadhash: testConfig.nethash,
+			nonce: testConfig.nethash,
+		}),
+		list: sinonSandbox.stub().callsArgWith(1, { peers: [] }),
+		blocks: sinonSandbox.stub().callsArgWith(1, { blocks: [] }),
+		getSignatures: sinonSandbox.stub().callsArgWith(1, { signatures: [] }),
+		getTransactions: sinonSandbox.stub().callsArgWith(1, { transactions: [] }),
+		updateMyself: sinonSandbox.stub().callsArgWith(1, null),
 		postTransactions: sinonSandbox.stub().callsArgWith(1, null),
 		postSignatures: sinonSandbox.stub().callsArgWith(1, null),
-		postBlock: sinonSandbox.stub().callsArgWith(1, sinonSandbox.stub().callsArg(1)),
-		blocksCommon: sinonSandbox.stub().callsArgWith(1, {success: true, common: null})
+		postBlock: sinonSandbox
+			.stub()
+			.callsArgWith(1, sinonSandbox.stub().callsArg(1)),
+		blocksCommon: sinonSandbox
+			.stub()
+			.callsArgWith(1, { success: true, common: null }),
 	},
 
 	options: {
@@ -72,8 +82,8 @@ var wsServer = {
 		wsEngine: 'uws',
 		appName: 'testWSServer',
 		secretKey: 'liskSecretKey',
-		workerController: __dirname + '/server.js'
-	}
+		workerController: `${__dirname}/server.js`,
+	},
 };
 
 module.exports = wsServer;

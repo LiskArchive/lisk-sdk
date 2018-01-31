@@ -13,10 +13,8 @@
  */
 'use strict';
 
-var parallelTests = require('../../../common/parallelTests').parallelTests;
+var parallelTests = require('../../../common/parallel_tests').parallelTests;
 
-var pathFiles = [
-	'./node'
-];
+var pathFiles = ['./node'];
 
 parallelTests(pathFiles, 'test/functional/http/put/');

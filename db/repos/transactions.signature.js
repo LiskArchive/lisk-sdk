@@ -25,21 +25,23 @@ var columnSet;
  * @constructor
  * @return {SignatureTransactionsRepo}
  */
-function SignatureTransactionsRepo (db, pgp) {
+function SignatureTransactionsRepo(db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
 	this.dbTable = 'signatures';
 
-	this.dbFields = [
-		'transactionId',
-		'publicKey'
-	];
+	this.dbFields = ['transactionId', 'publicKey'];
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
+		var table = new pgp.helpers.TableName({
+			table: this.dbTable,
+			schema: 'public',
+		});
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+			table: table,
+		});
 	}
 
 	this.cs = columnSet;
@@ -50,18 +52,16 @@ function SignatureTransactionsRepo (db, pgp) {
  * @param {Array.<{id: string, asset: {signature: {publicKey: string}}}>} transactions
  * @return {Promise}
  */
-SignatureTransactionsRepo.prototype.save = function (transactions) {
+SignatureTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
 	try {
-		transactions = transactions.map(function (transaction) {
-			return {
-				transactionId: transaction.id,
-				publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex')
-			};
-		});
+		transactions = transactions.map(transaction => ({
+			transactionId: transaction.id,
+			publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex'),
+		}));
 	} catch (e) {
 		throw e;
 	}

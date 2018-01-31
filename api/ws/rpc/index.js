@@ -15,4 +15,3 @@
  * @namespace failureCodes
  * @memberof api.ws.rpc
  */
-

@@ -13,17 +13,21 @@
  */
 'use strict';
 
-var apiCodes = require('../helpers/apiCodes.js');
-var ApiError = require('../helpers/apiError.js');
+var apiCodes = require('../helpers/api_codes.js');
+var ApiError = require('../helpers/api_error.js');
 var DApp = require('../logic/dapp.js');
-var dappCategories = require('../helpers/dappCategories.js');
-var InTransfer = require('../logic/inTransfer.js');
+var dappCategories = require('../helpers/dapp_categories.js');
+var InTransfer = require('../logic/in_transfer.js');
 var sortBy = require('../helpers/sort_by.js').sortBy;
-var OutTransfer = require('../logic/outTransfer.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
+var OutTransfer = require('../logic/out_transfer.js');
+var transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+var modules;
+var library;
+var self;
+var __private = {};
+var shared = {};
 
 __private.assetTypes = {};
 
@@ -46,7 +50,7 @@ __private.assetTypes = {};
  * @todo Add 'use strict';
  */
 // Constructor
-function DApps (cb, scope) {
+function DApps(cb, scope) {
 	library = {
 		logger: scope.logger,
 		db: scope.db,
@@ -55,47 +59,40 @@ function DApps (cb, scope) {
 		ed: scope.ed,
 		balancesSequence: scope.balancesSequence,
 		logic: {
-			transaction: scope.logic.transaction
+			transaction: scope.logic.transaction,
 		},
 		config: {
-			dapp: scope.config.dapp
-		}
+			dapp: scope.config.dapp,
+		},
 	};
 	self = this;
 
-	__private.assetTypes[transactionTypes.DAPP] = library.logic.transaction.attachAssetType(
+	__private.assetTypes[
+		transactionTypes.DAPP
+	] = library.logic.transaction.attachAssetType(
 		transactionTypes.DAPP,
-		new DApp(
-			scope.db,
-			scope.logger,
-			scope.schema,
-			scope.network
-		)
+		new DApp(scope.db, scope.logger, scope.schema, scope.network)
 	);
 
-	__private.assetTypes[transactionTypes.IN_TRANSFER] = library.logic.transaction.attachAssetType(
+	__private.assetTypes[
+		transactionTypes.IN_TRANSFER
+	] = library.logic.transaction.attachAssetType(
 		transactionTypes.IN_TRANSFER,
-		new InTransfer(
-			scope.db,
-			scope.schema
-		)
+		new InTransfer(scope.db, scope.schema)
 	);
 
-	__private.assetTypes[transactionTypes.OUT_TRANSFER] = library.logic.transaction.attachAssetType(
+	__private.assetTypes[
+		transactionTypes.OUT_TRANSFER
+	] = library.logic.transaction.attachAssetType(
 		transactionTypes.OUT_TRANSFER,
-		new OutTransfer(
-			scope.db,
-			scope.schema,
-			scope.logger
-		)
+		new OutTransfer(scope.db, scope.schema, scope.logger)
 	);
 
 	/**
 	 * Receives an 'exit' signal and calls stopDApp for each launched application.
 	 * @listens exit
 	 */
-	process.on('exit', function () {
-	});
+	process.on('exit', () => {});
 
 	setImmediate(cb, null, self);
 }
@@ -109,8 +106,9 @@ function DApps (cb, scope) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} cb, error | cb, null, application
  */
-__private.list = function (filter, cb) {
-	var params = {}, where = [];
+__private.list = function(filter, cb) {
+	var params = {};
+	var where = [];
 
 	if (filter.transactionId) {
 		where.push('"transactionId" = ${transactionId}');
@@ -159,26 +157,31 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
-	var sort = sortBy(
-		filter.sort, {
-			sortFields: library.db.dapps.sortFields
-		}
-	);
+	var sort = sortBy(filter.sort, {
+		sortFields: library.db.dapps.sortFields,
+	});
 
 	if (sort.error) {
 		return setImmediate(cb, sort.error);
 	}
 
-	library.db.dapps.list(Object.assign({}, {
-		where: where,
-		sortField: sort.sortField,
-		sortMethod: sort.sortMethod
-	}, params)).then(function (rows) {
-		return setImmediate(cb, null, rows);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, err);
-	});
+	library.db.dapps
+		.list(
+			Object.assign(
+				{},
+				{
+					where: where,
+					sortField: sort.sortField,
+					sortMethod: sort.sortMethod,
+				},
+				params
+			)
+		)
+		.then(rows => setImmediate(cb, null, rows))
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, err);
+		});
 };
 
 // Events
@@ -188,21 +191,23 @@ __private.list = function (filter, cb) {
  * @implements module:transactions#Transfer~bind
  * @param {modules} scope - Loaded modules.
  */
-DApps.prototype.onBind = function (scope) {
+DApps.prototype.onBind = function(scope) {
 	modules = {
 		transactions: scope.transactions,
 		accounts: scope.accounts,
 		peers: scope.peers,
-		sql: scope.sql
+		sql: scope.sql,
 	};
 
 	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
 		scope.accounts,
+		scope.blocks,
 		shared
 	);
 
 	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind(
 		scope.accounts,
+		scope.blocks,
 		scope.dapps
 	);
 };
@@ -211,7 +216,7 @@ DApps.prototype.onBind = function (scope) {
  * Checks if `modules` is loaded.
  * @return {boolean} True if `modules` is loaded.
  */
-DApps.prototype.isLoaded = function () {
+DApps.prototype.isLoaded = function() {
 	return !!modules;
 };
 
@@ -223,7 +228,6 @@ DApps.prototype.isLoaded = function () {
  * @see {@link http://apidocjs.com/}
  */
 DApps.prototype.shared = {
-
 	/**
 	 * Utility method to get dapps.
 	 *
@@ -236,36 +240,42 @@ DApps.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @return {Array.<Object>}
 	 */
-	getDapps: function (parameters, cb) {
-		__private.list(parameters, function (err, dapps) {
+	getDapps: function(parameters, cb) {
+		__private.list(parameters, (err, dapps) => {
 			if (err) {
-				return setImmediate(cb, new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR));
+				return setImmediate(
+					cb,
+					new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR)
+				);
 			} else {
 				return setImmediate(cb, null, dapps);
 			}
 		});
-	}
+	},
 };
 
 // Shared API
-shared.getGenesis = function (req, cb, tx) {
-	(tx || library.db).dapps.getGenesis(req.dappid).then(function (rows) {
-		if (rows.length === 0) {
-			return setImmediate(cb, 'Application genesis block not found');
-		} else {
-			var row = rows[0];
+shared.getGenesis = function(req, cb, tx) {
+	(tx || library.db).dapps
+		.getGenesis(req.dappid)
+		.then(rows => {
+			if (rows.length === 0) {
+				return setImmediate(cb, 'Application genesis block not found');
+			} else {
+				var row = rows[0];
 
-			return setImmediate(cb, null, {
-				pointId: row.id,
-				pointHeight: row.height,
-				authorId: row.authorId,
-				dappid: req.dappid
-			});
-		}
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'DApp#getGenesis error');
-	});
+				return setImmediate(cb, null, {
+					pointId: row.id,
+					pointHeight: row.height,
+					authorId: row.authorId,
+					dappid: req.dappid,
+				});
+			}
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'DApp#getGenesis error');
+		});
 };
 
 // Export

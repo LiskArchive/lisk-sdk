@@ -20,81 +20,97 @@ var randomUtil = require('../../common/utils/random');
 var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
 
-describe('system test (type 0) - double transfers', function () {
-
+describe('system test (type 0) - double transfers', () => {
 	var library;
-	localCommon.beforeBlock('system_0_0_transfer', function (lib) {
+	localCommon.beforeBlock('system_0_0_transfer', lib => {
 		library = lib;
 	});
 
 	var i = 0;
 	var t = 0;
 	while (i < 1) {
-		
-		describe('executing 30 times', function () {
-			
+		describe('executing 30 times', function() {
 			var account = randomUtil.account();
-			var transaction = lisk.transaction.createTransaction(account.address, 1100 * normalizer, accountFixtures.genesis.password);
-			var transaction1, transaction2;
+			var transaction = lisk.transaction.createTransaction(
+				account.address,
+				1100 * normalizer,
+				accountFixtures.genesis.password
+			);
+			var transaction1;
+			var transaction2;
 
-			before(function (done) {
+			before(done => {
 				console.log(++t);
-				localCommon.addTransactionsAndForge(library, [transaction], function (err, res) {
+				localCommon.addTransactionsAndForge(library, [transaction], () => {
 					done();
 				});
 			});
 
-			it('adding to pool transfer should be ok', function (done) {
-				transaction1 = lisk.transaction.createTransaction(accountFixtures.genesis.address, 1000 * normalizer, account.password, null, null, -1);
-				localCommon.addTransaction(library, transaction1, function (err, res) {
+			it('adding to pool transfer should be ok', done => {
+				transaction1 = lisk.transaction.createTransaction(
+					accountFixtures.genesis.address,
+					1000 * normalizer,
+					account.password,
+					null,
+					null,
+					-10000
+				);
+				localCommon.addTransaction(library, transaction1, (err, res) => {
 					expect(res).to.equal(transaction1.id);
 					done();
 				});
 			});
 
-			it('adding to pool same transfer with different timestamp should be ok', function (done) {
-				transaction2 = lisk.transaction.createTransaction(accountFixtures.genesis.address, 1000 * normalizer, account.password);
-				localCommon.addTransaction(library, transaction2, function (err, res) {
+			it('adding to pool same transfer with different timestamp should be ok', done => {
+				transaction2 = lisk.transaction.createTransaction(
+					accountFixtures.genesis.address,
+					1000 * normalizer,
+					account.password
+				);
+				localCommon.addTransaction(library, transaction2, (err, res) => {
 					expect(res).to.equal(transaction2.id);
 					done();
 				});
 			});
 
-			describe('after forging one block', function () {
-
-				before(function (done) {
-					localCommon.forge(library, function (err, res) {
+			describe('after forging one block', () => {
+				before(done => {
+					localCommon.forge(library, () => {
 						done();
 					});
 				});
 
-				it('first transaction to arrive should not be included', function (done) {
+				it('first transaction to arrive should not be included', done => {
 					var filter = {
-						id: transaction1.id
+						id: transaction1.id,
 					};
-					localCommon.getTransactionFromModule(library, filter, function (err, res) {
+					localCommon.getTransactionFromModule(library, filter, (err, res) => {
 						expect(err).to.be.null;
-						expect(res).to.have.property('transactions').which.is.an('Array');
+						expect(res)
+							.to.have.property('transactions')
+							.which.is.an('Array');
 						expect(res.transactions.length).to.equal(0);
 						done();
 					});
 				});
 
-				it('last transaction to arrive should be included', function (done) {
+				it('last transaction to arrive should be included', done => {
 					var filter = {
-						id: transaction2.id
+						id: transaction2.id,
 					};
-					localCommon.getTransactionFromModule(library, filter, function (err, res) {
+					localCommon.getTransactionFromModule(library, filter, (err, res) => {
 						expect(err).to.be.null;
-						expect(res).to.have.property('transactions').which.is.an('Array');
+						expect(res)
+							.to.have.property('transactions')
+							.which.is.an('Array');
 						expect(res.transactions.length).to.equal(1);
 						expect(res.transactions[0].id).to.equal(transaction2.id);
 						done();
 					});
 				});
 
-				it('adding to pool transfer for same account should fail', function (done) {
-					localCommon.addTransaction(library, transaction1, function (err, res) {
+				it('adding to pool transfer for same account should fail', done => {
+					localCommon.addTransaction(library, transaction1, err => {
 						expect(err).to.match(/^Account does not have enough LSK: /);
 						done();
 					});
@@ -102,5 +118,5 @@ describe('system test (type 0) - double transfers', function () {
 			});
 		});
 		i++;
-	};
+	}
 });

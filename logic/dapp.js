@@ -15,11 +15,12 @@
 
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
-var dappCategories = require('../helpers/dappCategories.js');
+var dappCategories = require('../helpers/dapp_categories.js');
 var valid_url = require('valid-url');
 
 // Private fields
-var library, __private = {};
+var library;
+var __private = {};
 
 __private.unconfirmedNames = {};
 __private.unconfirmedLinks = {};
@@ -36,7 +37,7 @@ __private.unconfirmedAscii = {};
  * @param {Object} network
  */
 // Constructor
-function DApp (db, logger, schema, network) {
+function DApp(db, logger, schema, network) {
 	library = {
 		db: db,
 		logger: logger,
@@ -49,15 +50,13 @@ function DApp (db, logger, schema, network) {
 /**
  * Binds scope.modules to private variable modules.
  */
-DApp.prototype.bind = function () {};
+DApp.prototype.bind = function() {};
 
 /**
  * Returns dapp fee from constants.
- * @param {transaction} transaction
- * @param {account} sender
  * @return {number} fee
  */
-DApp.prototype.calculateFee = function (transaction, sender) {
+DApp.prototype.calculateFee = function() {
 	return constants.fees.dappRegistration;
 };
 
@@ -70,7 +69,7 @@ DApp.prototype.calculateFee = function (transaction, sender) {
  * @param {function} cb
  * @return {setImmediateCallback} errors | transaction
  */
-DApp.prototype.verify = function (transaction, sender, cb, tx) {
+DApp.prototype.verify = function(transaction, sender, cb, tx) {
 	var i;
 
 	if (transaction.recipientId) {
@@ -85,7 +84,10 @@ DApp.prototype.verify = function (transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	if (transaction.asset.dapp.category !== 0 && !transaction.asset.dapp.category) {
+	if (
+		transaction.asset.dapp.category !== 0 &&
+		!transaction.asset.dapp.category
+	) {
 		return setImmediate(cb, 'Invalid application category');
 	}
 
@@ -125,62 +127,91 @@ DApp.prototype.verify = function (transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid application link');
 	}
 
-	if (transaction.asset.dapp.link.indexOf('.zip') !== transaction.asset.dapp.link.length - 4) {
+	if (
+		transaction.asset.dapp.link.indexOf('.zip') !==
+		transaction.asset.dapp.link.length - 4
+	) {
 		return setImmediate(cb, 'Invalid application file type');
 	}
 
-	if (!transaction.asset.dapp.name || transaction.asset.dapp.name.trim().length === 0 || transaction.asset.dapp.name.trim() !== transaction.asset.dapp.name) {
+	if (
+		!transaction.asset.dapp.name ||
+		transaction.asset.dapp.name.trim().length === 0 ||
+		transaction.asset.dapp.name.trim() !== transaction.asset.dapp.name
+	) {
 		return setImmediate(cb, 'Application name must not be blank');
 	}
 
 	if (transaction.asset.dapp.name.length > 32) {
-		return setImmediate(cb, 'Application name is too long. Maximum is 32 characters');
+		return setImmediate(
+			cb,
+			'Application name is too long. Maximum is 32 characters'
+		);
 	}
 
-	if (transaction.asset.dapp.description && transaction.asset.dapp.description.length > 160) {
-		return setImmediate(cb, 'Application description is too long. Maximum is 160 characters');
+	if (
+		transaction.asset.dapp.description &&
+		transaction.asset.dapp.description.length > 160
+	) {
+		return setImmediate(
+			cb,
+			'Application description is too long. Maximum is 160 characters'
+		);
 	}
 
 	if (transaction.asset.dapp.tags && transaction.asset.dapp.tags.length > 160) {
-		return setImmediate(cb, 'Application tags is too long. Maximum is 160 characters');
+		return setImmediate(
+			cb,
+			'Application tags is too long. Maximum is 160 characters'
+		);
 	}
 
 	if (transaction.asset.dapp.tags) {
 		var tags = transaction.asset.dapp.tags.split(',');
 
-		tags = tags.map(function (tag) {
-			return tag.trim();
-		}).sort();
+		tags = tags.map(tag => tag.trim()).sort();
 
 		for (i = 0; i < tags.length - 1; i++) {
 			if (tags[i + 1] === tags[i]) {
-				return setImmediate(cb, 'Encountered duplicate tag: ' + tags[i] + ' in application');
+				return setImmediate(
+					cb,
+					`Encountered duplicate tag: ${tags[i]} in application`
+				);
 			}
 		}
 	}
 
-	(tx || library.db).dapps.getExisting({
-		name: transaction.asset.dapp.name,
-		link: transaction.asset.dapp.link || null,
-		transactionId: transaction.id
-	}).then(function (rows) {
-		var dapp = rows[0];
+	(tx || library.db).dapps
+		.getExisting({
+			name: transaction.asset.dapp.name,
+			link: transaction.asset.dapp.link || null,
+			transactionId: transaction.id,
+		})
+		.then(rows => {
+			var dapp = rows[0];
 
-		if (dapp) {
-			if (dapp.name === transaction.asset.dapp.name) {
-				return setImmediate(cb, 'Application name already exists: ' + dapp.name);
-			} else if (dapp.link === transaction.asset.dapp.link) {
-				return setImmediate(cb, 'Application link already exists: ' + dapp.link);
+			if (dapp) {
+				if (dapp.name === transaction.asset.dapp.name) {
+					return setImmediate(
+						cb,
+						`Application name already exists: ${dapp.name}`
+					);
+				} else if (dapp.link === transaction.asset.dapp.link) {
+					return setImmediate(
+						cb,
+						`Application link already exists: ${dapp.link}`
+					);
+				} else {
+					return setImmediate(cb, 'Application already exists');
+				}
 			} else {
-				return setImmediate(cb, 'Application already exists');
+				return setImmediate(cb, null, transaction);
 			}
-		} else {
-			return setImmediate(cb, null, transaction);
-		}
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'DApp#verify error');
-	});
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'DApp#verify error');
+		});
 };
 
 /**
@@ -189,7 +220,7 @@ DApp.prototype.verify = function (transaction, sender, cb, tx) {
  * @param {function} cb
  * @return {setImmediateCallback} cb, null, transaction
  */
-DApp.prototype.process = function (transaction, sender, cb) {
+DApp.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
 };
 
@@ -206,7 +237,7 @@ DApp.prototype.process = function (transaction, sender, cb) {
  * @return {Array} Buffer
  * @throws {e} error
  */
-DApp.prototype.getBytes = function (transaction) {
+DApp.prototype.getBytes = function(transaction) {
 	var buf;
 
 	try {
@@ -215,7 +246,10 @@ DApp.prototype.getBytes = function (transaction) {
 		buf = Buffer.concat([buf, nameBuf]);
 
 		if (transaction.asset.dapp.description) {
-			var descriptionBuf = Buffer.from(transaction.asset.dapp.description, 'utf8');
+			var descriptionBuf = Buffer.from(
+				transaction.asset.dapp.description,
+				'utf8'
+			);
 			buf = Buffer.concat([buf, descriptionBuf]);
 		}
 
@@ -225,11 +259,17 @@ DApp.prototype.getBytes = function (transaction) {
 		}
 
 		if (transaction.asset.dapp.link) {
-			buf = Buffer.concat([buf, Buffer.from(transaction.asset.dapp.link, 'utf8')]);
+			buf = Buffer.concat([
+				buf,
+				Buffer.from(transaction.asset.dapp.link, 'utf8'),
+			]);
 		}
 
 		if (transaction.asset.dapp.icon) {
-			buf = Buffer.concat([buf, Buffer.from(transaction.asset.dapp.icon, 'utf8')]);
+			buf = Buffer.concat([
+				buf,
+				Buffer.from(transaction.asset.dapp.icon, 'utf8'),
+			]);
 		}
 
 		var bb = new ByteBuffer(4 + 4, true);
@@ -252,7 +292,7 @@ DApp.prototype.getBytes = function (transaction) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.apply = function (transaction, block, sender, cb, tx) {
+DApp.prototype.apply = function(transaction, block, sender, cb) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 
@@ -266,7 +306,7 @@ DApp.prototype.apply = function (transaction, block, sender, cb, tx) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.undo = function (transaction, block, sender, cb) {
+DApp.prototype.undo = function(transaction, block, sender, cb) {
 	return setImmediate(cb);
 };
 
@@ -278,12 +318,15 @@ DApp.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb|errors
  */
-DApp.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
+DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
 		return setImmediate(cb, 'Application name already exists');
 	}
 
-	if (transaction.asset.dapp.link && __private.unconfirmedLinks[transaction.asset.dapp.link]) {
+	if (
+		transaction.asset.dapp.link &&
+		__private.unconfirmedLinks[transaction.asset.dapp.link]
+	) {
 		return setImmediate(cb, 'Application link already exists');
 	}
 
@@ -300,7 +343,7 @@ DApp.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
+DApp.prototype.undoUnconfirmed = function(transaction, sender, cb) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 
@@ -325,39 +368,39 @@ DApp.prototype.schema = {
 		category: {
 			type: 'integer',
 			minimum: 0,
-			maximum: 8
+			maximum: 8,
 		},
 		name: {
 			type: 'string',
 			minLength: 1,
-			maxLength: 32
+			maxLength: 32,
 		},
 		description: {
 			type: 'string',
 			minLength: 0,
-			maxLength: 160
+			maxLength: 160,
 		},
 		tags: {
 			type: 'string',
 			minLength: 0,
-			maxLength: 160
+			maxLength: 160,
 		},
 		type: {
 			type: 'integer',
-			minimum: 0
+			minimum: 0,
 		},
 		link: {
 			type: 'string',
 			minLength: 0,
-			maxLength: 2000
+			maxLength: 2000,
 		},
 		icon: {
 			type: 'string',
 			minLength: 0,
-			maxLength: 2000
-		}
+			maxLength: 2000,
+		},
 	},
-	required: ['type', 'name', 'category']
+	required: ['type', 'name', 'category'],
 };
 
 /**
@@ -367,19 +410,26 @@ DApp.prototype.schema = {
  * @return {transaction}
  * @throws {string} Failed to validate dapp schema.
  */
-DApp.prototype.objectNormalize = function (transaction) {
+DApp.prototype.objectNormalize = function(transaction) {
 	for (var i in transaction.asset.dapp) {
-		if (transaction.asset.dapp[i] === null || typeof transaction.asset.dapp[i] === 'undefined') {
+		if (
+			transaction.asset.dapp[i] === null ||
+			typeof transaction.asset.dapp[i] === 'undefined'
+		) {
 			delete transaction.asset.dapp[i];
 		}
 	}
 
-	var report = library.schema.validate(transaction.asset.dapp, DApp.prototype.schema);
+	var report = library.schema.validate(
+		transaction.asset.dapp,
+		DApp.prototype.schema
+	);
 
 	if (!report) {
-		throw 'Failed to validate dapp schema: ' + library.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate dapp schema: ${library.schema
+			.getLastErrors()
+			.map(err => err.message)
+			.join(', ')}`;
 	}
 
 	return transaction;
@@ -390,7 +440,7 @@ DApp.prototype.objectNormalize = function (transaction) {
  * @param {Object} raw
  * @return {null|dapp} dapp object
  */
-DApp.prototype.dbRead = function (raw) {
+DApp.prototype.dbRead = function(raw) {
 	if (!raw.dapp_name) {
 		return null;
 	} else {
@@ -401,10 +451,10 @@ DApp.prototype.dbRead = function (raw) {
 			type: raw.dapp_type,
 			link: raw.dapp_link,
 			category: raw.dapp_category,
-			icon: raw.dapp_icon
+			icon: raw.dapp_icon,
 		};
 
-		return {dapp: dapp};
+		return { dapp: dapp };
 	}
 };
 
@@ -415,7 +465,7 @@ DApp.prototype.dbRead = function (raw) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-DApp.prototype.afterSave = function (transaction, cb) {
+DApp.prototype.afterSave = function(transaction, cb) {
 	if (library) {
 		library.network.io.sockets.emit('dapps/change', {});
 	}
@@ -428,7 +478,7 @@ DApp.prototype.afterSave = function (transaction, cb) {
  * @param {account} sender
  * @return {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
  */
-DApp.prototype.ready = function (transaction, sender) {
+DApp.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
 		if (!Array.isArray(transaction.signatures)) {
 			return false;

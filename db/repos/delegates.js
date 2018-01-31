@@ -25,7 +25,7 @@ const sql = require('../sql').delegates;
  * @return {DelegatesRepository}
  */
 class DelegatesRepository {
-	constructor (db, pgp) {
+	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 	}
@@ -35,28 +35,26 @@ class DelegatesRepository {
 	 * @param {Object} fork
 	 * @return {Promise}
 	 */
-	insertFork (fork) {
+	insertFork(fork) {
 		return this.db.none(sql.insertFork, fork);
-	};
+	}
 
 	/**
 	 * Gets delegates for a list of public keys
 	 * @param {string} publicKeys - Comma Separated list of public keys
 	 * @return {Promise}
 	 */
-	getDelegatesByPublicKeys (publicKeys) {
-		return this.db.any(sql.getDelegatesByPublicKeys, {publicKeys});
-	};
+	getDelegatesByPublicKeys(publicKeys) {
+		return this.db.any(sql.getDelegatesByPublicKeys, { publicKeys });
+	}
 
 	/**
-	 * Count duplicate delegates by transactionId
-	 * @return {Promise}
+	 * Counts duplicate delegates by transactionId.
+	 * @return {Promise<number>}
 	 */
-	countDuplicatedDelegates () {
-		// TODO: This should use method .one, with inline conversion
-		return this.db.query(sql.countDuplicatedDelegates);
-	};
-
+	countDuplicatedDelegates() {
+		return this.db.one(sql.countDuplicatedDelegates, [], a => +a.count);
+	}
 }
 
 // TODO: Move DelegatesRepository#insertFork into a separate db repo
