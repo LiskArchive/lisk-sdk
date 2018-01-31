@@ -147,12 +147,11 @@ __private.syncTimer = function() {
 		) {
 			library.sequence.add(
 				function(sequenceCb) {
-					async.retry(__private.retries, __private.sync, sequenceCb);
+					__private.sync(sequenceCb);
 				},
 				function(err) {
 					if (err) {
 						library.logger.error('Sync timer', err);
-						__private.initialize();
 					}
 					return setImmediate(cb);
 				}
@@ -837,14 +836,6 @@ Loader.prototype.findGoodPeers = function(peers) {
  * @return {setImmediateCallback} err | __private.network (good peers)
  */
 Loader.prototype.getNetwork = function(cb) {
-	if (
-		__private.network.height > 0 &&
-		Math.abs(
-			__private.network.height - modules.blocks.lastBlock.get().height
-		) === 1
-	) {
-		return setImmediate(cb, null, __private.network);
-	}
 	modules.peers.list({ normalized: false }, function(err, peers) {
 		if (err) {
 			return setImmediate(cb, err);
@@ -935,11 +926,7 @@ Loader.prototype.onPeersReady = function() {
 				},
 			},
 			function(err) {
-				library.logger.trace('Transactions and signatures pulled');
-
-				if (err) {
-					__private.initialize();
-				}
+				library.logger.trace('Transactions and signatures pulled', err);
 			}
 		);
 	});
