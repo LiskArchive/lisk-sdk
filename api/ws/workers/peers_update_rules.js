@@ -38,7 +38,7 @@ var self;
  * @requires helpers/swagger
  * @requires helpers/z_schema
  * @requires logic/peer
- * @param {Object} slaveWAMPServer - used to send verified update requests to master process
+ * @param {Object} slaveWAMPServer - Used to send verified update requests to master process
  */
 function PeersUpdateRules(slaveWAMPServer) {
 	this.slaveToMasterSender = new SlaveToMasterSender(slaveWAMPServer);
@@ -135,7 +135,7 @@ PeersUpdateRules.prototype.block = function(code, peer, connectionId, cb) {
 };
 
 /**
- * Description
+ * Description of the object.
  */
 PeersUpdateRules.prototype.internal = {
 	/**
@@ -176,7 +176,7 @@ PeersUpdateRules.prototype.internal = {
 };
 
 /**
- * Description
+ * Description of the object.
  */
 PeersUpdateRules.prototype.external = {
 	/**
@@ -187,7 +187,7 @@ PeersUpdateRules.prototype.external = {
 	 * @param {Object} request.data - peer's data
 	 * @param {string} request.socketId - connection id
 	 * @param {string} request.workerId - worker id
-	 * @param {function} cb - Description
+	 * @param {function} cb - Description of the param
 	 * @todo: Add description of the functions and its parameters
 	 * @todo: Add returns-tag
 	 */

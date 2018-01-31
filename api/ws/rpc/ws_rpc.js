@@ -36,7 +36,7 @@ var wsServer = null;
  * @requires api/ws/rpc/failureCodes
  * @requires helpers/promiseDefer
  * @requires modules/system
- * @todo: add description of the module
+ * @todo: Add description of the module
  */
 
 /**
@@ -51,7 +51,7 @@ var wsRPC = {
 	 * Description of the function.
 	 *
 	 * @param {Object} __wsServer - Description of the param
-	 * @todo: add description of the function and its parameters
+	 * @todo: Add description of the function and its parameters
 	 */
 	setServer: function(__wsServer) {
 		wsServer = __wsServer;
@@ -62,7 +62,7 @@ var wsRPC = {
 	 *
 	 * @throws {Error} if WS server has not been initialized yet
 	 * @returns {MasterWAMPServer} wsServer
-	 * @todo: add description
+	 * @todo: Add description of the function
 	 */
 	getServer: function() {
 		if (!wsServer) {
@@ -75,8 +75,8 @@ var wsRPC = {
 	 *
 	 * @param {string} ip - Description of the param
 	 * @param {number} port - Description of the param
-	 * @returns {Object} map where keys are all procedures registered
-	 * @todo: add description of the function and its parameters
+	 * @returns {Object} Map where keys are all procedures registered
+	 * @todo: Add description of the function and its parameters
 	 */
 	getClientRPCStub: function(ip, port) {
 		if (!ip || !port) {
@@ -104,7 +104,7 @@ var wsRPC = {
 	 *
 	 * @throws {Error} if WS server has not been initialized yet
 	 * @returns {Object} wsServer
-	 * @todo: add description
+	 * @todo: Add description of the function
 	 */
 	getServerAuthKey: function() {
 		if (!wsServer) {
@@ -128,7 +128,7 @@ ConnectionState.STATUS = {
  * @memberof module:api/ws/rpc/wsRPC
  * @param {string} ip - Description of the param
  * @param {number} port - Description of the param
- * @todo: add description of the function and its parameters
+ * @todo: Add description of the function and its parameters
  */
 function ConnectionState(ip, port) {
 	this.ip = ip;
@@ -144,7 +144,7 @@ function ConnectionState(ip, port) {
  * @memberof module:api/ws/rpc/wsRPC.ConnectionState
  * @param {string} ip - Description of the param
  * @param {number} port - Description of the param
- * @todo: add description of the function and its parameters
+ * @todo: Add description of the function and its parameters
  */
 ConnectionState.prototype.reconnect = function() {
 	this.status = ConnectionState.STATUS.PENDING;
@@ -157,7 +157,7 @@ ConnectionState.prototype.reconnect = function() {
  * @memberof module:api/ws/rpc/wsRPC.ConnectionState
  * @param {string} ip - Description of the param
  * @param {number} port - Description of the param
- * @todo: add description of the function and its parameters
+ * @todo: Add description of the function and its parameters
  */
 ConnectionState.prototype.reject = function(reason) {
 	this.status = ConnectionState.STATUS.DISCONNECTED;
@@ -170,7 +170,7 @@ ConnectionState.prototype.reject = function(reason) {
  * @memberof module:api/ws/rpc/wsRPC.ConnectionState
  * @param {string} ip - Description of the param
  * @param {number} port - Description of the param
- * @todo: add description of the function and its parameters
+ * @todo: Add description of the function and its parameters
  */
 ConnectionState.prototype.resolve = function(socket) {
 	this.status = ConnectionState.STATUS.ESTABLISHED;
@@ -187,7 +187,7 @@ ConnectionState.prototype.resolve = function(socket) {
  * // methodA registered on WS server can be called by a client by simply:
  * sampleClientStub.methodA(exampleArg, cb);
  * @returns {Object} clientStub
- * @todo: add descriptions of its parameters
+ * @todo: Add descriptions of its parameters
  */
 var ClientRPCStub = function(connectionState) {
 	var wsServer;
@@ -214,8 +214,8 @@ var ClientRPCStub = function(connectionState) {
  *
  * @memberof module:api/ws/rpc/wsRPC.ClientRPCStub
  * @param {Object} connectionState - Description of the param
- * @todo: add description of the function and its parameters
- * @todo: document this as an instance method ( not static)
+ * @todo: Add description of the function and its parameters
+ * @todo: Document this as an instance method (not static)
  */
 ClientRPCStub.prototype.initializeNewConnection = function(connectionState) {
 	var options = {
@@ -257,8 +257,8 @@ ClientRPCStub.prototype.initializeNewConnection = function(connectionState) {
  * @memberof module:api/ws/rpc/wsRPC.ClientRPCStub
  * @param {Object} connectionState
  * @returns {function} function to be called with procedure, to be then called with optional argument and/or callback
- * @todo: add description of the function and its parameters
- * @todo: document this as an instance method ( not static)
+ * @todo: Add description of the function and its parameters
+ * @todo: Document this as an instance method (not static)
  */
 ClientRPCStub.prototype.sendAfterSocketReadyCb = function(connectionState) {
 	return function(procedureName) {

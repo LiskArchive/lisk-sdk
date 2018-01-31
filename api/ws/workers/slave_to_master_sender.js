@@ -19,7 +19,7 @@
  * @class
  * @memberof api.ws.workers
  * @see Parent: {@link api.ws.workers}
- * @param {Object} slaveWAMPServer - used to send verified update requests to master process.
+ * @param {Object} slaveWAMPServer - Used to send verified update requests to master process
  */
 function SlaveToMasterSender(slaveWAMPServer) {
 	this.slaveWAMPServer = slaveWAMPServer;

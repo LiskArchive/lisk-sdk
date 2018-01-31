@@ -19,7 +19,7 @@
  * @name failureCodes
  * @memberof api.ws.rpc.failureCodes
  * @see Parent: {@link api.ws.rpc}
- * @todo: Add description
+ * @todo: Add description of the object
  */
 module.exports = {
 	INVALID_HEADERS: 4100,
@@ -54,7 +54,7 @@ module.exports = {
  *
  * @name errorMessages
  * @memberof api.ws.rpc.failureCodes
- * @todo: Add description
+ * @todo: Add description of the object
  */
 module.exports.errorMessages = {
 	4100: 'Invalid headers',
@@ -84,7 +84,7 @@ module.exports.errorMessages = {
  * @param {number} code - Description of the param
  * @param {string} message - Description of the param
  * @param {string} description - Description of the param
- * @todo: Add descriptions
+ * @todo: Add description of the function and its parameters
  */
 function PeerUpdateError(code, message, description) {
 	this.code = code;
