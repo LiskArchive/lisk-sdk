@@ -65,6 +65,16 @@ class MigrationsRepository {
 	 * @method
 	 * @return {Promise<null>}
 	 */
+	underscorePatch() {
+		return this.db.none(sql.underscorePatch);
+	}
+
+	/**
+	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
+	 *
+	 * @method
+	 * @return {Promise<null>}
+	 */
 	applyRuntime() {
 		// Must use a transaction here when not in one:
 		const job = t => t.none(sql.runtime);
@@ -132,7 +142,11 @@ class MigrationsRepository {
 	applyAll() {
 		return this.db.tx('applyAll', function*(t1) {
 			const hasMigrations = yield t1.migrations.hasMigrations();
-			const lastId = hasMigrations ? yield t1.migrations.getLastId() : 0;
+			let lastId = 0;
+			if (hasMigrations) {
+				lastId = yield t1.migrations.getLastId();
+				yield t1.migrations.underscorePatch();
+			}
 			const updates = yield t1.migrations.readPending(lastId);
 			for (let i = 0; i < updates.length; i++) {
 				const u = updates[i];

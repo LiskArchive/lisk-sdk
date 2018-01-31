@@ -1,4 +1,4 @@
-## sql files
+## SQL Files
 
 This folder contains all SQL files used in the project:
 
@@ -6,7 +6,7 @@ This folder contains all SQL files used in the project:
 * File [./config.js](./config.js) provides the tools for loading external SQL files.
 * File [./index.js](./index.js) individually references and loads each SQL file in the project.
 
-## standards
+## Standards
 
 Each SQL file follows the following guidelines at the moment:
 
@@ -29,7 +29,7 @@ The details must be provided when creating a new SQL file.
 * Avoid as much as possible use of [Index Variables], and use [Named Parameters] instead, with `${name}` syntax.
 * Comments in the file can use both `/* multiline */` and `-- single-line` syntax.
 
-## adding files
+## Adding Files
 
 When adding a new SQL file, it must be correctly referenced within [./index.js](./index.js)
 
@@ -41,7 +41,7 @@ to the file must use the corresponding camel case within [./index.js](./index.js
 
 Try to avoid needlessly repeating in the file name the name of the repository that uses the file.
 
-## development notes
+## Development Notes
 
 When editing an SQL file on the development machine, you do not need to restart the application in order
 to see the immediate change. The development environment is configured to detect any change, and reload
