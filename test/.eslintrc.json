@@ -11,15 +11,15 @@
 	},
   	"rules": {
 		// To Keep
-		"arrow-body-style": 0,
+		"arrow-body-style": "off",
 		// To Remove
-		"mocha/handle-done-callback": 0,
-		"mocha/no-exclusive-tests": 0,
-		"mocha/no-identical-title": 0,
-		"mocha/no-nested-tests": 0,
-		"mocha/no-pending-tests": 0,
-		"mocha/no-skipped-tests": 0,
-		"mocha/no-synchronous-tests": 0,
-		"mocha/no-top-level-hooks": 0
+		"mocha/handle-done-callback": "off",
+		"mocha/no-exclusive-tests": "off",
+		"mocha/no-identical-title": "off",
+		"mocha/no-nested-tests": "off",
+		"mocha/no-pending-tests": "off",
+		"mocha/no-skipped-tests": "off",
+		"mocha/no-synchronous-tests": "off",
+		"mocha/no-top-level-hooks": "off"
 	}
 }
