@@ -64,12 +64,10 @@ function Utils(
 
 /**
  * Normalize blocks and their transactions
- * // FIXME: Looks like that function can accepts both blocks and transactions as param, processing here is not clear
  *
- * @private
  * @method readDbRows
- * @param  {Object} rows List of blocks/transactions?
- * @return {Object} blocks Normalized list of blocks with transactions
+ * @param  {[Object]} rows Data from full_blocks_list view
+ * @return {[Object]} blocks Normalized list of blocks with transactions
  */
 Utils.prototype.readDbRows = function(rows) {
 	var blocks = {};
@@ -282,15 +280,7 @@ Utils.prototype.getIdSequence = function(height, cb) {
  * @return {Object}   cb.err Error if occurred
  * @return {Object}   cb.rows List of blocks
  */
-Utils.prototype.loadBlocksData = function(filter, options, cb) {
-	// FIXME: options is not used
-	if (arguments.length < 3) {
-		cb = options;
-		options = {};
-	}
-
-	options = options || {};
-
+Utils.prototype.loadBlocksData = function(filter, cb) {
 	var params = { limit: filter.limit || 1 };
 
 	// FIXME: filter.id is not used

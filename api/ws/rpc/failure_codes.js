@@ -13,6 +13,14 @@
  */
 'use strict';
 
+/**
+ * Description of the object.
+ *
+ * @name failureCodes
+ * @memberof api.ws.rpc.failureCodes
+ * @see Parent: {@link api.ws.rpc}
+ * @todo: Add description of the object
+ */
 module.exports = {
 	INVALID_HEADERS: 4100,
 	INCOMPATIBLE_NONCE: 4101,
@@ -41,6 +49,13 @@ module.exports = {
 	},
 };
 
+/**
+ * Description of the object.
+ *
+ * @name errorMessages
+ * @memberof api.ws.rpc.failureCodes
+ * @todo: Add description of the object
+ */
 module.exports.errorMessages = {
 	4100: 'Invalid headers',
 	4101: 'Request is made by itself',
@@ -62,10 +77,14 @@ module.exports.errorMessages = {
 };
 
 /**
- * @param {number} code
- * @param {string} message
- * @param {string}[description=undefined] description
- * @constructor
+ * Description of the function.
+ *
+ * @class
+ * @memberof api.ws.rpc.failureCodes
+ * @param {number} code - Description of the param
+ * @param {string} message - Description of the param
+ * @param {string} description - Description of the param
+ * @todo: Add description of the function and its parameters
  */
 function PeerUpdateError(code, message, description) {
 	this.code = code;
