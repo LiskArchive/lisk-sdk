@@ -24,11 +24,11 @@ describe('api utils module', () => {
 	let sendRequestResult;
 
 	beforeEach(() => {
+		sendRequestResult = { success: true, sendRequest: true };
 		LSK = {
 			port: defaultPort,
-			sendRequest: () => {},
+			sendRequest: sandbox.stub().resolves(sendRequestResult),
 		};
-		sendRequestResult = { success: true, sendRequest: true };
 	});
 
 	describe('#netHashOptions', () => {
@@ -178,9 +178,6 @@ describe('api utils module', () => {
 		let options;
 		let getDataFnResult;
 		let getDataFnStub;
-		let constructRequestDataResult;
-		let constructRequestDataStub;
-		let restoreConstructRequestDataStub;
 		let returnedFunction;
 
 		beforeEach(() => {
@@ -192,30 +189,15 @@ describe('api utils module', () => {
 				key3: 'value3',
 				key4: 4,
 			};
-			constructRequestDataResult = {
-				key5: 'value 5',
-				key6: 6,
-			};
 			getDataFnStub = sandbox
 				.stub()
 				.returns(Object.assign({}, getDataFnResult));
-			constructRequestDataStub = sandbox
-				.stub()
-				.returns(Object.assign({}, constructRequestDataResult));
-			// eslint-disable-next-line no-underscore-dangle
-			restoreConstructRequestDataStub = utils.__set__(
-				'constructRequestData',
-				constructRequestDataStub,
-			);
+
 			returnedFunction = wrapSendRequest(
 				defaultMethod,
 				defaultEndpoint,
 				getDataFnStub,
 			);
-		});
-
-		afterEach(() => {
-			restoreConstructRequestDataStub();
 		});
 
 		it('should return a function', () => {
