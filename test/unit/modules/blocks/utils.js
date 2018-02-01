@@ -36,6 +36,7 @@ describe('blocks/utils', () => {
 	var loggerStub;
 	var blockMock;
 	var transactionMock;
+	var accountMock;
 
 	describe('constructor', () => {
 		before(done => {
@@ -65,6 +66,16 @@ describe('blocks/utils', () => {
 					return { id: input.t_id, type: input.t_type };
 				},
 			};
+			accountMock = {
+				get: sinonSandbox.stub(),
+			};
+			accountMock.get
+				.withArgs(sinonSandbox.match({ address: 'ERRL' }))
+				.callsArgWith(1, 'Address Error Stub', null)
+				.withArgs(sinonSandbox.match({ address: '0L' }))
+				.callsArgWith(1, null, undefined)
+				.withArgs(sinonSandbox.match({ address: '1L' }))
+				.callsArgWith(1, null, { publicKey: '123abc' });
 
 			loggerStub = {
 				trace: sinonSandbox.spy(),
@@ -74,6 +85,7 @@ describe('blocks/utils', () => {
 
 			blocksUtilsModule = new BlocksUtils(
 				loggerStub,
+				accountMock,
 				blockMock,
 				transactionMock,
 				dbStub,
@@ -268,7 +280,7 @@ describe('blocks/utils', () => {
 					.stub()
 					.resolves(genesisBlock_votes);
 
-				blocksUtilsModule.loadLastBlock(cb => {
+				blocksUtilsModule.loadLastBlock((err, cb) => {
 					expect(cb).to.be.an('object');
 					expect(cb.id).to.equal('6524861224470851795');
 					expect(cb.transactions[0].id).to.equal('3634383815892709956');
@@ -312,7 +324,7 @@ describe('blocks/utils', () => {
 					.stub()
 					.resolves(genesisBlock_votes);
 
-				blocksUtilsModule.loadLastBlock(cb => {
+				blocksUtilsModule.loadLastBlock((err, cb) => {
 					expect(cb).to.be.an('object');
 					expect(cb.id).to.equal('6524861224470851000');
 					expect(cb.transactions[0].id).to.equal('1465651642158264047');
@@ -361,7 +373,7 @@ describe('blocks/utils', () => {
 					{ id: 4, height: 5 },
 				]);
 
-			blocksUtilsModule.getIdSequence(10, cb => {
+			blocksUtilsModule.getIdSequence(10, (err, cb) => {
 				expect(cb.firstHeight).to.equal(1);
 				expect(cb.ids).to.equal(
 					'9314232245035524467,1,2,3,4,6524861224470851795'
@@ -456,11 +468,31 @@ describe('blocks/utils', () => {
 	});
 
 	describe('aggregateBlocksReward', () => {
+		it('should return error when account.get fails', done => {
+			blocksUtilsModule.aggregateBlocksReward(
+				{ address: 'ERRL' },
+				err => {
+					expect(err).to.equal('Address Error Stub');
+					done();
+				}
+			);
+		});
+
+		it('should return error when account not found', done => {
+			blocksUtilsModule.aggregateBlocksReward(
+				{ address: '0L' },
+				err => {
+					expect(err).to.equal('Account not found');
+					done();
+				}
+			);
+		});
+
 		it('should return error when aggregateBlocksReward sql fails', done => {
 			loggerStub.error.reset();
 
 			blocksUtilsModule.aggregateBlocksReward(
-				{ generatorPublicKey: '123abc', activeDelegates: 101 },
+				{ address: '1L' },
 				err => {
 					expect(loggerStub.error.args[0][0]).to.contains(
 						"TypeError: Cannot read property '0' of undefined"
@@ -471,15 +503,15 @@ describe('blocks/utils', () => {
 			);
 		});
 
-		it('should return error when delegate is null', done => {
+		it('should return error when account is not a delegate', done => {
 			library.db.blocks.aggregateBlocksReward = sinonSandbox
 				.stub()
 				.resolves([{ delegate: null }]);
 
 			blocksUtilsModule.aggregateBlocksReward(
-				{ generatorPublicKey: '123abc', activeDelegates: 101 },
+				{ address: '1L' },
 				err => {
-					expect(err).to.equal('Account not found or is not a delegate');
+					expect(err).to.equal('Account is not a delegate');
 					done();
 				}
 			);
@@ -491,7 +523,7 @@ describe('blocks/utils', () => {
 				.resolves([{ delegate: '123abc', fees: 1, count: 100 }]);
 
 			blocksUtilsModule.aggregateBlocksReward(
-				{ generatorPublicKey: '123abc', activeDelegates: 101 },
+				{ address: '1L' },
 				(err, cb) => {
 					expect(cb.fees).to.equal(1);
 					expect(cb.count).to.equal(100);
