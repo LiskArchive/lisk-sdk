@@ -91,24 +91,24 @@ class TransactionsRepository {
 	}
 
 	/**
-	 * Count total transactions
-	 * @return {Promise}
+	 * Counts total transactions.
+	 * @return {Promise<number>}
 	 */
 	count() {
 		return this.db.one(sql.count, [], a => +a.count);
 	}
 
 	/**
-	 * Count transactions by Id
+	 * Counts transactions by Id.
 	 * @param {string} id
-	 * @return {Promise}
+	 * @return {Promise<number>}
 	 */
 	countById(id) {
-		return this.db.one(sql.countById, id, a => +a.count);
+		return this.db.one(sql.countById, { id }, a => +a.count);
 	}
 
 	/**
-	 * Count transactions with extended params
+	 * Counts transactions with extended params.
 	 * @param {Object} params
 	 * @param {Array} params.where
 	 * @param {string} params.owner
@@ -120,7 +120,7 @@ class TransactionsRepository {
 	}
 
 	/**
-	 * Search transactions
+	 * Searches for transactions.
 	 * @param {Object} params
 	 * @param {Array} params.where
 	 * @param {string} params.owner
@@ -136,87 +136,79 @@ class TransactionsRepository {
 	}
 
 	/**
-	 * Get transfer transactions by Ids
+	 * Gets transfer transactions from a list of id-s.
 	 * @param {Array.<string>} ids
 	 * @return {Promise}
 	 */
 	getTransferByIds(ids) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getTransferByIds, [ids]);
+		return this.db.any(sql.getTransferByIds, { ids });
 	}
 
 	/**
-	 * Get vote transactions by Ids
+	 * Gets vote transactions from a list of id-s.
 	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @return {Promise<[]>}
 	 */
 	getVotesByIds(ids) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getVotesByIds, [ids]);
+		return this.db.any(sql.getVotesByIds, { ids });
 	}
 
 	/**
-	 * Get delegate transactions by Ids
+	 * Gets delegate transactions from a list of id-s.
 	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @return {Promise<[]>}
 	 */
 	getDelegateByIds(ids) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getDelegateByIds, [ids]);
+		return this.db.any(sql.getDelegateByIds, { ids });
 	}
 
 	/**
-	 * Get signature transactions by Ids
+	 * Gets signature transactions from a list of id-s.
 	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @return {Promise<[]>}
 	 */
 	getSignatureByIds(ids) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getSignatureByIds, [ids]);
+		return this.db.any(sql.getSignatureByIds, { ids });
 	}
 
 	/**
-	 * Get multisignature transactions by Ids
+	 * Gets multisignature transactions from a list of id-s.
 	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @return {Promise<[]>}
 	 */
 	getMultiByIds(ids) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getMultiByIds, [ids]);
+		return this.db.any(sql.getMultiByIds, { ids });
 	}
 
 	/**
-	 * Get dapp transactions by Ids
+	 * Gets dapp transactions from a list of id-s.
 	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @return {Promise<[]>}
 	 */
 	getDappByIds(ids) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getDappByIds, [ids]);
+		return this.db.any(sql.getDappByIds, { ids });
 	}
 
 	/**
-	 * Get intransfer transactions by Ids
+	 * Gets in-transfer transactions from a list of id-s.
 	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @return {Promise<[]>}
 	 */
 	getInTransferByIds(ids) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getInTransferByIds, [ids]);
+		return this.db.any(sql.getInTransferByIds, { ids });
 	}
 
 	/**
-	 * Get outtransfer transactions by Ids
+	 * Gets out-transfer transactions from a list of id-s.
 	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @return {Promise<[]>}
 	 */
 	getOutTransferByIds(ids) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getOutTransferByIds, [ids]);
+		return this.db.any(sql.getOutTransferByIds, { ids });
 	}
 
 	/**
-	 * Save transactions to database
+	 * Saves transactions to the database.
 	 * @param {Array.<Object>} transactions - Each object should justify *logic/transaction.prototype.schema*
 	 * @return {Promise}
 	 */
@@ -261,7 +253,7 @@ class TransactionsRepository {
 		if (this.db.ctx && this.db.ctx.inTransaction) {
 			return this.db.batch(batch);
 		} else {
-			return this.db.tx(t => t.batch(batch));
+			return this.db.tx(tx => tx.batch(batch));
 		}
 	}
 }
