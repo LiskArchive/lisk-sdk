@@ -334,18 +334,7 @@ describe('transport', () => {
 
 			describe('when signatures array contains multiple signatures', () => {
 				beforeEach(done => {
-					definitions.Signature = {
-						id: 'transport.signatures',
-						type: 'object',
-						properties: {
-							signatures: {
-								type: 'array',
-								minItems: 1,
-								maxItems: 40,
-							},
-						},
-						required: ['signatures'],
-					};
+					definitions.Signature = defaultScope.swagger.definitions.Signature;
 					__private.receiveSignature = sinonSandbox.stub().callsArg(1);
 					__private.receiveSignatures(
 						{
