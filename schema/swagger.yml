@@ -612,7 +612,7 @@ paths:
       x-lisk-cache-enabled: true
       description:
         By passing an existing delegate address, you can read
-        its forging statistics within a window of time which 
+        its forging statistics within a window of time which
         by default is from the Lisk epoch to the date.
       produces:
       - application/json
@@ -2610,7 +2610,7 @@ definitions:
       signatures:
         type: array
         items:
-          $ref: '#/definitions/Signature'
+          type: object
         minItems: 1
         maxItems: 25
 
