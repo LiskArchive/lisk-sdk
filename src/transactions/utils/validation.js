@@ -47,3 +47,19 @@ export const validateKeysgroup = keysgroup => {
 	}
 	return validatePublicKeys(keysgroup);
 };
+
+// Specification: https://github.com/LiskHQ/lisk/blob/development/logic/account.js#L373
+export const validateAddress = address => {
+	if (address.length < 2 || address.length > 22) {
+		throw new Error(
+			'Address length does not match requirements. Expected between 2 and 22 characters.',
+		);
+	}
+
+	if (address[address.length - 1] !== 'L') {
+		throw new Error(
+			'Address format does not match requirements. Expected "L" at the end.',
+		);
+	}
+	return true;
+};

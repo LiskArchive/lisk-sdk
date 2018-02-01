@@ -18,6 +18,7 @@ import {
 	validatePublicKey,
 	validatePublicKeys,
 	validateKeysgroup,
+	validateAddress,
 } from '../../../src/transactions/utils/validation';
 
 describe('public key validation', () => {
@@ -183,6 +184,46 @@ describe('public key validation', () => {
 					.should.throw(
 						'Duplicated public key: 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa.',
 					);
+			});
+		});
+	});
+
+	describe('#validateAddress', () => {
+		describe('Given a valid address', () => {
+			const address = '13133549779353512613L';
+
+			it('should return true if valid', () => {
+				return validateAddress(address).should.be.equal(true);
+			});
+		});
+
+		describe('Given a too short address', () => {
+			const address = 'L';
+			const error =
+				'Address length does not match requirements. Expected between 2 and 22 characters.';
+
+			it('should throw if invalid', () => {
+				return validateAddress.bind(null, address).should.throw(error);
+			});
+		});
+
+		describe('Given a too long address', () => {
+			const address = '12345678901234567890123L';
+			const error =
+				'Address length does not match requirements. Expected between 2 and 22 characters.';
+
+			it('should throw if invalid', () => {
+				return validateAddress.bind(null, address).should.throw(error);
+			});
+		});
+
+		describe('Given an address without L at the end', () => {
+			const address = '1234567890';
+			const error =
+				'Address format does not match requirements. Expected "L" at the end.';
+
+			it('should throw if invalid', () => {
+				return validateAddress.bind(null, address).should.throw(error);
 			});
 		});
 	});

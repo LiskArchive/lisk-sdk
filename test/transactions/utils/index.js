@@ -13,19 +13,35 @@
  *
  */
 import {
+	checkPublicKeysForDuplicates,
+	getAddressAndPublicKeyFromRecipientData,
 	getTimeFromBlockchainEpoch,
 	getTimeWithOffset,
 	getTransactionBytes,
 	getTransactionHash,
 	getTransactionId,
 	prepareTransaction,
+	prependMinusToPublicKeys,
+	prependPlusToPublicKeys,
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
+	validateAddress,
+	validateKeysgroup,
+	validatePublicKey,
+	validatePublicKeys,
 } from '../../../src/transactions/utils';
 
 describe('transaction utils', () => {
 	describe('exports', () => {
+		it('should have checkPublicKeysForDuplicates', () => {
+			return checkPublicKeysForDuplicates.should.be.type('function');
+		});
+
+		it('should have getAddressAndPublicKeyFromRecipientData', () => {
+			return getAddressAndPublicKeyFromRecipientData.should.be.type('function');
+		});
+
 		it('should have getTimeFromBlockchainEpoch', () => {
 			return getTimeFromBlockchainEpoch.should.be.type('function');
 		});
@@ -50,6 +66,14 @@ describe('transaction utils', () => {
 			return prepareTransaction.should.be.type('function');
 		});
 
+		it('should have prependMinusToPublicKeys', () => {
+			return prependMinusToPublicKeys.should.be.type('function');
+		});
+
+		it('should have prependPlusToPublicKeys', () => {
+			return prependPlusToPublicKeys.should.be.type('function');
+		});
+
 		it('should have signTransaction', () => {
 			return signTransaction.should.be.type('function');
 		});
@@ -60,6 +84,22 @@ describe('transaction utils', () => {
 
 		it('should have verifyTransaction', () => {
 			return verifyTransaction.should.be.type('function');
+		});
+
+		it('should have validateAddress', () => {
+			return validateAddress.should.be.type('function');
+		});
+
+		it('should have validateKeysgroup', () => {
+			return validateKeysgroup.should.be.type('function');
+		});
+
+		it('should have validatePublicKey', () => {
+			return validatePublicKey.should.be.type('function');
+		});
+
+		it('should have validatePublicKeys', () => {
+			return validatePublicKeys.should.be.type('function');
 		});
 	});
 });
