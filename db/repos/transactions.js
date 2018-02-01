@@ -25,6 +25,9 @@ const cs = {}; // Reusable ColumnSet objects
  *
  * @class
  * @memberof db.repos
+ * @requires lodash
+ * @requires pg-promise
+ * @requires helpers/transaction_types
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers

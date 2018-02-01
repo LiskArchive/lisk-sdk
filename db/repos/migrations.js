@@ -24,6 +24,10 @@ const { sqlRoot } = require('../sql/config');
  *
  * @class
  * @memberof db.repos
+ * @requires fs-extra
+ * @requires path
+ * @requires db/sql/config
+ * @requires db/sql/index.migrations
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers

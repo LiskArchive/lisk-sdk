@@ -23,6 +23,7 @@ const cs = {}; // Reusable ColumnSet objects
  *
  * @class
  * @memberof db.repos.blocks
+ * @requires db/sql
  * @see Parent: {@link db.repos.blocks}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
