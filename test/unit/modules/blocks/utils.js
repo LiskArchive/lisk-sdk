@@ -17,17 +17,18 @@
 
 var rewire = require('rewire');
 var modulesLoader = require('../../../common/modulesLoader');
-var BlocksUtils= rewire('../../../../modules/blocks/utils.js');
+var BlocksUtils = rewire('../../../../modules/blocks/utils.js');
 
-var viewRow_full_blocks_list = [{
-	b_id: '13068833527549895884',
-	b_height: 3,
-	t_id: '6950874693022090568',
-	t_type: 0
-}];
+var viewRow_full_blocks_list = [
+	{
+		b_id: '13068833527549895884',
+		b_height: 3,
+		t_id: '6950874693022090568',
+		t_type: 0,
+	},
+];
 
-describe('blocks/utils', function () {
-
+describe('blocks/utils', function() {
 	var __private;
 	var library;
 	var blocksUtilsModule;
@@ -36,91 +37,104 @@ describe('blocks/utils', function () {
 	var blockMock;
 	var transactionMock;
 
-	describe('Utils', function () {
-
-		before(function (done) {
+	describe('Utils', function() {
+		before(function(done) {
 			dbStub = {
 				blocks: {
 					getIdSequence: sinonSandbox.stub().resolves(),
 					getHeightByLastId: sinonSandbox.stub().resolves(['1']),
 					loadLastBlock: sinonSandbox.stub().resolves(viewRow_full_blocks_list),
 					loadBlocksData: sinonSandbox.stub(),
-					aggregateBlocksReward: sinonSandbox.stub().resolves()
-				}
+					aggregateBlocksReward: sinonSandbox.stub().resolves(),
+				},
 			};
 
-			dbStub.blocks.loadBlocksData.withArgs(sinonSandbox.match({id:'13068833527549895884'})).resolves(viewRow_full_blocks_list).withArgs(sinonSandbox.match({id:'1'})).resolves([]);
+			dbStub.blocks.loadBlocksData
+				.withArgs(sinonSandbox.match({ id: '13068833527549895884' }))
+				.resolves(viewRow_full_blocks_list)
+				.withArgs(sinonSandbox.match({ id: '1' }))
+				.resolves([]);
 
 			blockMock = {
-				dbRead: function (input) {
-					return({id: input.b_id, height: input.b_height});
-				}
+				dbRead: function(input) {
+					return { id: input.b_id, height: input.b_height };
+				},
 			};
 			transactionMock = {
-				dbRead: function (input) {
-					return({id: input.t_id, type: input.t_type});
-				}
+				dbRead: function(input) {
+					return { id: input.t_id, type: input.t_type };
+				},
 			};
 
 			loggerStub = {
 				trace: sinonSandbox.spy(),
-				info:  sinonSandbox.spy(),
-				error: sinonSandbox.spy()
+				info: sinonSandbox.spy(),
+				error: sinonSandbox.spy(),
 			};
 
-			blocksUtilsModule =  new BlocksUtils(loggerStub, blockMock, transactionMock, dbStub, modulesLoader.scope.dbSequence, modulesLoader.scope.genesisblock);
+			blocksUtilsModule = new BlocksUtils(
+				loggerStub,
+				blockMock,
+				transactionMock,
+				dbStub,
+				modulesLoader.scope.dbSequence,
+				modulesLoader.scope.genesisblock
+			);
 			library = BlocksUtils.__get__('library');
 			__private = BlocksUtils.__get__('__private');
 			done();
 		});
 
-		describe('library', function () {
-
-			it('should assign logger', function () {
+		describe('library', function() {
+			it('should assign logger', function() {
 				expect(library.logger).to.eql(loggerStub);
 			});
 
-			it('should assign db', function () {
+			it('should assign db', function() {
 				expect(library.db).to.eql(dbStub);
 			});
 
-			it('should assign dbSequence', function () {
+			it('should assign dbSequence', function() {
 				expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
 			});
 
-			describe('should assign logic', function () {
-
-				it('should assign block', function () {
+			describe('should assign logic', function() {
+				it('should assign block', function() {
 					expect(library.logic.block).to.eql(blockMock);
 				});
 
-				it('should assign transaction', function () {
+				it('should assign transaction', function() {
 					expect(library.logic.transaction).to.eql(transactionMock);
 				});
 			});
 		});
 
-		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."', function () {
-			expect(loggerStub.trace.args[0][0]).to.equal('Blocks->Utils: Submodule initialized.');
+		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."', function() {
+			expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Utils: Submodule initialized.'
+			);
 		});
 	});
 
-	describe('onBind', function () {
-
+	describe('onBind', function() {
 		var modulesStub;
 		var modules;
 
-		before(function () {
+		before(function() {
 			modulesStub = {
 				blocks: {
 					lastBlock: {
-						get: sinonSandbox.stub().returns({id: '9314232245035524467', height: 1}),
-						set: sinonSandbox.stub().returns({id: '9314232245035524467', height: 1})
+						get: sinonSandbox
+							.stub()
+							.returns({ id: '9314232245035524467', height: 1 }),
+						set: sinonSandbox
+							.stub()
+							.returns({ id: '9314232245035524467', height: 1 }),
 					},
 					utils: {
-						readDbRows: blocksUtilsModule.readDbRows
-					}
-				}
+						readDbRows: blocksUtilsModule.readDbRows,
+					},
+				},
 			};
 			loggerStub.trace.reset();
 			__private.loaded = false;
@@ -129,69 +143,82 @@ describe('blocks/utils', function () {
 			modules = BlocksUtils.__get__('modules');
 		});
 
-		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', function () {
-			expect(loggerStub.trace.args[0][0]).to.equal('Blocks->Utils: Shared modules bind.');
+		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', function() {
+			expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Utils: Shared modules bind.'
+			);
 		});
 
-		it('should create a modules object { blocks: scope.blocks }', function () {
+		it('should create a modules object { blocks: scope.blocks }', function() {
 			expect(modules.blocks).to.equal(modulesStub.blocks);
 		});
 
-		it('should set __private.loaded to true', function () {
+		it('should set __private.loaded to true', function() {
 			expect(__private.loaded).to.be.true;
 		});
 	});
 
-	describe('readDbRows', function () {
-
-		it('should transform a full_blocks_list view row into a block object', function (done) {
+	describe('readDbRows', function() {
+		it('should transform a full_blocks_list view row into a block object', function(done) {
 			var blockObject = blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
 
 			expect(blockObject[0].id).to.equal(viewRow_full_blocks_list[0].b_id);
-			expect(blockObject[0].height).to.equal(viewRow_full_blocks_list[0].b_height);
-			expect(blockObject[0].transactions[0].id).to.equal(viewRow_full_blocks_list[0].t_id);
-			expect(blockObject[0].transactions[0].type).to.equal(viewRow_full_blocks_list[0].t_type);
+			expect(blockObject[0].height).to.equal(
+				viewRow_full_blocks_list[0].b_height
+			);
+			expect(blockObject[0].transactions[0].id).to.equal(
+				viewRow_full_blocks_list[0].t_id
+			);
+			expect(blockObject[0].transactions[0].type).to.equal(
+				viewRow_full_blocks_list[0].t_type
+			);
 			done();
 		});
 
-		it('should generate fake signature for genesis block', function (done) {
+		it('should generate fake signature for genesis block', function(done) {
 			var genesisBlock_view_full_blocks_list = [
 				{
 					b_id: '6524861224470851795',
 					b_height: 1,
 					t_id: '1465651642158264047',
-					t_type: 0
-				},{
+					t_type: 0,
+				},
+				{
 					b_id: '6524861224470851795',
 					b_height: 1,
 					t_id: '3634383815892709956',
-					t_type: 2
-				}
+					t_type: 2,
+				},
 			];
 
-			var blockObject = blocksUtilsModule.readDbRows(genesisBlock_view_full_blocks_list);
+			var blockObject = blocksUtilsModule.readDbRows(
+				genesisBlock_view_full_blocks_list
+			);
 
 			expect(blockObject[0].id).to.equal('6524861224470851795');
-			expect(blockObject[0].generationSignature).to.equal('0000000000000000000000000000000000000000000000000000000000000000');
+			expect(blockObject[0].generationSignature).to.equal(
+				'0000000000000000000000000000000000000000000000000000000000000000'
+			);
 			done();
 		});
 	});
 
-	describe('loadBlocksPart', function () {
-
-		it('should return error when loadLastBlock sql fails', function (done) {
+	describe('loadBlocksPart', function() {
+		it('should return error when loadLastBlock sql fails', function(done) {
 			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves();
 
-			blocksUtilsModule.loadLastBlock(function (err, cb) {
+			blocksUtilsModule.loadLastBlock(function(err, cb) {
 				expect(err).to.equal('Blocks#loadLastBlock error');
 				done();
 			});
 		});
 
-		it('should return block object', function (done) {
-			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves(viewRow_full_blocks_list);
+		it('should return block object', function(done) {
+			library.db.blocks.loadLastBlock = sinonSandbox
+				.stub()
+				.resolves(viewRow_full_blocks_list);
 
-			blocksUtilsModule.loadLastBlock(function (err, cb) {
+			blocksUtilsModule.loadLastBlock(function(err, cb) {
 				expect(err).to.be.null;
 				expect(cb).to.be.an('object');
 				expect(cb.id).to.equal('13068833527549895884');
@@ -201,43 +228,47 @@ describe('blocks/utils', function () {
 		});
 	});
 
-	describe('loadLastBlock', function () {
-
-		it('should return error when loadLastBlock sql fails', function (done) {
+	describe('loadLastBlock', function() {
+		it('should return error when loadLastBlock sql fails', function(done) {
 			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves();
 			loggerStub.error.reset();
 
-			blocksUtilsModule.loadLastBlock(function (err, cb) {
-				expect(loggerStub.error.args[0][0]).to.contains('TypeError: Cannot read property \'length\' of undefined');
+			blocksUtilsModule.loadLastBlock(function(err, cb) {
+				expect(loggerStub.error.args[0][0]).to.contains(
+					"TypeError: Cannot read property 'length' of undefined"
+				);
 				expect(err).to.equal('Blocks#loadLastBlock error');
 				done();
 			});
 		});
 
-		describe('sorting the block.transactions array', function () {
-
-			it('should move votes to the end when block is genesis block', function (done) {
+		describe('sorting the block.transactions array', function() {
+			it('should move votes to the end when block is genesis block', function(done) {
 				var genesisBlock_votes = [
 					{
 						b_id: '6524861224470851795',
 						b_height: 1,
 						t_id: '1465651642158264047',
-						t_type: 3
-					},{
+						t_type: 3,
+					},
+					{
 						b_id: '6524861224470851795',
 						b_height: 1,
 						t_id: '3634383815892709956',
-						t_type: 2
-					},{
+						t_type: 2,
+					},
+					{
 						b_id: '6524861224470851795',
 						b_height: 1,
 						t_id: '3634383815892709957',
-						t_type: 0
-					}
+						t_type: 0,
+					},
 				];
-				library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves(genesisBlock_votes);
+				library.db.blocks.loadLastBlock = sinonSandbox
+					.stub()
+					.resolves(genesisBlock_votes);
 
-				blocksUtilsModule.loadLastBlock(function (err, cb) {
+				blocksUtilsModule.loadLastBlock(function(err, cb) {
 					expect(cb).to.be.an('object');
 					expect(cb.id).to.equal('6524861224470851795');
 					expect(cb.transactions[0].id).to.equal('3634383815892709956');
@@ -250,33 +281,38 @@ describe('blocks/utils', function () {
 				});
 			});
 
-			it('should move signatures to the end', function (done) {
+			it('should move signatures to the end', function(done) {
 				var genesisBlock_votes = [
 					{
 						b_id: '6524861224470851000',
 						b_height: 1,
 						t_id: '1465651642158264047',
-						t_type: 3
-					},{
+						t_type: 3,
+					},
+					{
 						b_id: '6524861224470851000',
 						b_height: 1,
 						t_id: '3634383815892709955',
-						t_type: 2
-					},{
+						t_type: 2,
+					},
+					{
 						b_id: '6524861224470851000',
 						b_height: 1,
 						t_id: '3634383815892709956',
-						t_type: 1
-					},{
+						t_type: 1,
+					},
+					{
 						b_id: '6524861224470851000',
 						b_height: 1,
 						t_id: '3634383815892709957',
-						t_type: 0
-					}
+						t_type: 0,
+					},
 				];
-				library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves(genesisBlock_votes);
+				library.db.blocks.loadLastBlock = sinonSandbox
+					.stub()
+					.resolves(genesisBlock_votes);
 
-				blocksUtilsModule.loadLastBlock(function (err, cb) {
+				blocksUtilsModule.loadLastBlock(function(err, cb) {
 					expect(cb).to.be.an('object');
 					expect(cb.id).to.equal('6524861224470851000');
 					expect(cb.transactions[0].id).to.equal('1465651642158264047');
@@ -293,141 +329,179 @@ describe('blocks/utils', function () {
 		});
 	});
 
-	describe('getIdSequence', function () {
-
-		it('should return error when library.db.blocks.getIdSequence fails', function (done) {
+	describe('getIdSequence', function() {
+		it('should return error when library.db.blocks.getIdSequence fails', function(done) {
 			loggerStub.error.reset();
 
-			blocksUtilsModule.getIdSequence(10, function (err, cb) {
-				expect(loggerStub.error.args[0][0]).to.contains('TypeError: Cannot read property \'length\' of undefined');
+			blocksUtilsModule.getIdSequence(10, function(err, cb) {
+				expect(loggerStub.error.args[0][0]).to.contains(
+					"TypeError: Cannot read property 'length' of undefined"
+				);
 				expect(err).to.equal('Blocks#getIdSequence error');
 				done();
 			});
 		});
 
-		it('should return error when no row is found', function (done) {
+		it('should return error when no row is found', function(done) {
 			library.db.blocks.getIdSequence = sinonSandbox.stub().resolves([]);
 
-			blocksUtilsModule.getIdSequence(10, function (err, cb) {
+			blocksUtilsModule.getIdSequence(10, function(err, cb) {
 				expect(err).to.equal('Failed to get id sequence for height: 10');
 				done();
 			});
 		});
 
-		it('should return valid block id list', function (done) {
-			library.db.blocks.getIdSequence = sinonSandbox.stub().resolves([{id: 1, height:2}, {id: 2, height:3}, {id: 3, height:4}, {id: 4, height:5}]);
+		it('should return valid block id list', function(done) {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([
+					{ id: 1, height: 2 },
+					{ id: 2, height: 3 },
+					{ id: 3, height: 4 },
+					{ id: 4, height: 5 },
+				]);
 
-			blocksUtilsModule.getIdSequence(10, function (err, cb) {
+			blocksUtilsModule.getIdSequence(10, function(err, cb) {
 				expect(cb.firstHeight).to.equal(1);
-				expect(cb.ids).to.equal('9314232245035524467,1,2,3,4,6524861224470851795');
+				expect(cb.ids).to.equal(
+					'9314232245035524467,1,2,3,4,6524861224470851795'
+				);
 				done();
 			});
 		});
 	});
 
-	describe('loadBlocksData', function () {
-
-		it('should return error when loadBlocksData fails', function (done) {
+	describe('loadBlocksData', function() {
+		it('should return error when loadBlocksData fails', function(done) {
 			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves();
 			loggerStub.error.reset();
 
-			blocksUtilsModule.loadBlocksData({id: '1'}, function (err, cb) {
-				expect(loggerStub.error.args[0][0]).to.contains('TypeError: Cannot read property \'length\' of undefined');
+			blocksUtilsModule.loadBlocksData({ id: '1' }, function(err, cb) {
+				expect(loggerStub.error.args[0][0]).to.contains(
+					"TypeError: Cannot read property 'length' of undefined"
+				);
 				expect(err).to.equal('Blocks#loadBlockData error');
 				done();
 			});
 		});
 
-		it('should return error when called with both id and lastId', function (done) {
+		it('should return error when called with both id and lastId', function(done) {
 			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(['1']);
 
-			blocksUtilsModule.loadBlocksData({id: '1', lastId: '5'}, function (err, cb) {
+			blocksUtilsModule.loadBlocksData({ id: '1', lastId: '5' }, function(
+				err,
+				cb
+			) {
 				expect(err).to.equal('Invalid filter: Received both id and lastId');
 				done();
 			});
 		});
 
-		it('should return empty row when called with invalid id', function (done) {
-			blocksUtilsModule.loadBlocksData({id: '1'}, function (err, cb) {
+		it('should return empty row when called with invalid id', function(done) {
+			blocksUtilsModule.loadBlocksData({ id: '1' }, function(err, cb) {
 				expect(cb.length).to.equal(0);
 				done();
 			});
 		});
 
-		it('should return one row when called with valid id', function (done) {
-			blocksUtilsModule.loadBlocksData({id: '13068833527549895884'}, function (err, cb) {
+		it('should return one row when called with valid id', function(done) {
+			blocksUtilsModule.loadBlocksData({ id: '13068833527549895884' }, function(
+				err,
+				cb
+			) {
 				expect(cb[0]).to.deep.equal(viewRow_full_blocks_list[0]);
 				done();
 			});
 		});
 	});
 
-	describe('getBlockProgressLogger', function () {
-
+	describe('getBlockProgressLogger', function() {
 		var testTracker;
 
-		beforeEach(function () {
+		beforeEach(function() {
 			loggerStub.info.reset();
 		});
 
-		it('should initialize BlockProgressLogger', function (done) {
-			testTracker = blocksUtilsModule.getBlockProgressLogger(1, 1, 'Test tracker');
+		it('should initialize BlockProgressLogger', function(done) {
+			testTracker = blocksUtilsModule.getBlockProgressLogger(
+				1,
+				1,
+				'Test tracker'
+			);
 			done();
 		});
 
-		it('should return valid log information when call applyNext()', function (done) {
+		it('should return valid log information when call applyNext()', function(done) {
 			testTracker.applyNext();
 			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
-			expect(loggerStub.info.args[0][1]).to.equal('100.0 %: applied 1 of 1 transactions');
+			expect(loggerStub.info.args[0][1]).to.equal(
+				'100.0 %: applied 1 of 1 transactions'
+			);
 			done();
 		});
 
-		it('should throw error when times applied >= transactionsCount', function (done) {
-			expect(function () {
+		it('should throw error when times applied >= transactionsCount', function(done) {
+			expect(function() {
 				testTracker.applyNext();
 			}).to.throw('Cannot apply transaction over the limit: 1');
 			done();
 		});
 
-		it('should return valid log information when reset tracker and call applyNext()', function (done) {
+		it('should return valid log information when reset tracker and call applyNext()', function(done) {
 			testTracker.reset();
 			testTracker.applyNext();
 			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
-			expect(loggerStub.info.args[0][1]).to.equal('100.0 %: applied 1 of 1 transactions');
+			expect(loggerStub.info.args[0][1]).to.equal(
+				'100.0 %: applied 1 of 1 transactions'
+			);
 			done();
 		});
 	});
 
-	describe('aggregateBlocksReward', function () {
-
-		it('should return error when aggregateBlocksReward sql fails', function (done) {
+	describe('aggregateBlocksReward', function() {
+		it('should return error when aggregateBlocksReward sql fails', function(done) {
 			loggerStub.error.reset();
 
-			blocksUtilsModule.aggregateBlocksReward({generatorPublicKey: '123abc', activeDelegates: 101}, function (err, cb) {
-				expect(loggerStub.error.args[0][0]).to.contains('TypeError: Cannot read property \'0\' of undefined');
-				expect(err).to.equal('Blocks#aggregateBlocksReward error');
-				done();
-			});
+			blocksUtilsModule.aggregateBlocksReward(
+				{ generatorPublicKey: '123abc', activeDelegates: 101 },
+				function(err, cb) {
+					expect(loggerStub.error.args[0][0]).to.contains(
+						"TypeError: Cannot read property '0' of undefined"
+					);
+					expect(err).to.equal('Blocks#aggregateBlocksReward error');
+					done();
+				}
+			);
 		});
 
-		it('should return error when delegate is null', function (done) {
-			library.db.blocks.aggregateBlocksReward = sinonSandbox.stub().resolves([{delegate: null}]);
+		it('should return error when delegate is null', function(done) {
+			library.db.blocks.aggregateBlocksReward = sinonSandbox
+				.stub()
+				.resolves([{ delegate: null }]);
 
-			blocksUtilsModule.aggregateBlocksReward({generatorPublicKey: '123abc', activeDelegates: 101}, function (err, cb) {
-				expect(err).to.equal('Account not found or is not a delegate');
-				done();
-			});
+			blocksUtilsModule.aggregateBlocksReward(
+				{ generatorPublicKey: '123abc', activeDelegates: 101 },
+				function(err, cb) {
+					expect(err).to.equal('Account not found or is not a delegate');
+					done();
+				}
+			);
 		});
 
-		it('should return block object', function (done) {
-			library.db.blocks.aggregateBlocksReward = sinonSandbox.stub().resolves([{delegate: '123abc', fees: 1, count: 100}]);
+		it('should return block object', function(done) {
+			library.db.blocks.aggregateBlocksReward = sinonSandbox
+				.stub()
+				.resolves([{ delegate: '123abc', fees: 1, count: 100 }]);
 
-			blocksUtilsModule.aggregateBlocksReward({generatorPublicKey: '123abc', activeDelegates: 101}, function (err, cb) {
-				expect(cb.fees).to.equal(1);
-				expect(cb.count).to.equal(100);
-				expect(cb.rewards).to.equal('0');
-				done();
-			});
+			blocksUtilsModule.aggregateBlocksReward(
+				{ generatorPublicKey: '123abc', activeDelegates: 101 },
+				function(err, cb) {
+					expect(cb.fees).to.equal(1);
+					expect(cb.count).to.equal(100);
+					expect(cb.rewards).to.equal('0');
+					done();
+				}
+			);
 		});
 	});
 });
