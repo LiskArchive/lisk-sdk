@@ -41,7 +41,10 @@ function Config(packageJson) {
 		.parse(process.argv);
 
 	var configPath = program.config;
-	var appConfig = fs.readFileSync(path.resolve(process.cwd(), (configPath || 'config.json')), 'utf8');
+	var appConfig = fs.readFileSync(
+		path.resolve(process.cwd(), configPath || 'config.json'),
+		'utf8'
+	);
 
 	if (!appConfig.length) {
 		console.log('Failed to read config file');
@@ -78,7 +81,7 @@ function Config(packageJson) {
 				peer = peer.split(':');
 				return {
 					ip: peer.shift(),
-					wsPort: peer.shift() || appConfig.wsPort
+					wsPort: peer.shift() || appConfig.wsPort,
 				};
 			});
 		} else {
@@ -91,9 +94,7 @@ function Config(packageJson) {
 	}
 
 	if (program.snapshot) {
-		appConfig.loading.snapshot = Math.abs(
-			Math.floor(program.snapshot)
-		);
+		appConfig.loading.snapshot = Math.abs(Math.floor(program.snapshot));
 	}
 
 	if (process.env.NODE_ENV === 'test') {

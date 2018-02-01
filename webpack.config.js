@@ -20,8 +20,8 @@ module.exports = {
 	output: {
 		path: `${__dirname}/release`,
 		filename: 'workers_controller.js',
-		libraryTarget: 'commonjs2'
+		libraryTarget: 'commonjs2',
 	},
 	target: 'node',
-	externals: [nodeExternals()]
+	externals: [nodeExternals()],
 };

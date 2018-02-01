@@ -31,134 +31,192 @@ describe('GET /api/accounts', () => {
 
 	before(() => {
 		// Crediting accounts
-		return apiHelpers.sendTransactionPromise(scenario.creditTransaction)
+		return apiHelpers
+			.sendTransactionPromise(scenario.creditTransaction)
 			.then(res => {
-				expect(res).to.have.property('status').to.equal(200);
+				expect(res)
+					.to.have.property('status')
+					.to.equal(200);
 				return waitFor.confirmations([scenario.creditTransaction.id]);
 			})
-			.then(() => { return apiHelpers.sendTransactionPromise(scenario.multiSigTransaction); })
+			.then(() => {
+				return apiHelpers.sendTransactionPromise(scenario.multiSigTransaction);
+			})
 			.then(res => {
-				expect(res).to.have.property('status').to.equal(200);
+				expect(res)
+					.to.have.property('status')
+					.to.equal(200);
 
 				var signatures = [];
-				scenario.members.map(function (member) {
-					return signatures.push(apiHelpers.createSignatureObject(scenario.multiSigTransaction, member));
+				scenario.members.map(function(member) {
+					return signatures.push(
+						apiHelpers.createSignatureObject(
+							scenario.multiSigTransaction,
+							member
+						)
+					);
 				});
 
 				return signatureEndpoint.makeRequest({ signatures: signatures }, 200);
-			}).then(res => {
+			})
+			.then(res => {
 				expect(res.body.meta.status).to.be.true;
 				return waitFor.confirmations([scenario.multiSigTransaction.id]);
 			});
-}
-	);
+	});
 
 	describe('/{address}/multisignature_groups', () => {
-		var multisigGroupsEndpoint = new swaggerEndpoint('GET /accounts/{address}/multisignature_groups');
+		var multisigGroupsEndpoint = new swaggerEndpoint(
+			'GET /accounts/{address}/multisignature_groups'
+		);
 
 		describe('address', () => {
 			it('using known address should respond with its multisignature_group', () => {
- return multisigGroupsEndpoint.makeRequest({ address: account.address }, 200).then(res => {
-					expect(res.body.data).to.have.length(1);
-					var group = res.body.data[0];
-					expect(group.address).to.be.equal(account.address);
-					expect(group.publicKey).to.be.equal(account.publicKey);
-					expect(group.members).to.have.length(scenario.members.length);
-					expect(_.map(group.members, 'address').sort()).to.be.eql(_.map(scenario.members, 'address').sort());
-				});
-});
+				return multisigGroupsEndpoint
+					.makeRequest({ address: account.address }, 200)
+					.then(res => {
+						expect(res.body.data).to.have.length(1);
+						var group = res.body.data[0];
+						expect(group.address).to.be.equal(account.address);
+						expect(group.publicKey).to.be.equal(account.publicKey);
+						expect(group.members).to.have.length(scenario.members.length);
+						expect(_.map(group.members, 'address').sort()).to.be.eql(
+							_.map(scenario.members, 'address').sort()
+						);
+					});
+			});
 
 			it('using known lowercase address should respond with its multisignature_group', () => {
- return multisigGroupsEndpoint.makeRequest({ address: account.address.toLowerCase() }, 200).then(res => {
-					expect(res.body.data).to.have.length(1);
-					var group = res.body.data[0];
-					expect(group.address).to.be.equal(account.address);
-					expect(group.publicKey).to.be.equal(account.publicKey);
-					expect(group.members).to.have.length(scenario.members.length);
-					expect(_.map(group.members, 'address').sort()).to.be.eql(_.map(scenario.members, 'address').sort());
-				});
-});
+				return multisigGroupsEndpoint
+					.makeRequest({ address: account.address.toLowerCase() }, 200)
+					.then(res => {
+						expect(res.body.data).to.have.length(1);
+						var group = res.body.data[0];
+						expect(group.address).to.be.equal(account.address);
+						expect(group.publicKey).to.be.equal(account.publicKey);
+						expect(group.members).to.have.length(scenario.members.length);
+						expect(_.map(group.members, 'address').sort()).to.be.eql(
+							_.map(scenario.members, 'address').sort()
+						);
+					});
+			});
 
 			it('using unknown address should return empty result', () => {
-return multisigGroupsEndpoint.makeRequest({ address: accountFixtures.existingDelegate.address }, 404).then(res => {
-					expect(res.body.message).to.be.equal('Multisignature account not found');
-				});
-});
+				return multisigGroupsEndpoint
+					.makeRequest(
+						{ address: accountFixtures.existingDelegate.address },
+						404
+					)
+					.then(res => {
+						expect(res.body.message).to.be.equal(
+							'Multisignature account not found'
+						);
+					});
+			});
 
 			it('using invalid address should fail', () => {
-return multisigGroupsEndpoint.makeRequest({ address: 'InvalidAddress' }, 400).then(res => {
-					expectSwaggerParamError(res, 'address');
-				});
-});
+				return multisigGroupsEndpoint
+					.makeRequest({ address: 'InvalidAddress' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'address');
+					});
+			});
 
 			it('using empty address should fail', () => {
- return multisigGroupsEndpoint.makeRequest({ address: ' ' }, 400).then(res => {
-					expectSwaggerParamError(res, 'address');
-				});
-});
+				return multisigGroupsEndpoint
+					.makeRequest({ address: ' ' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'address');
+					});
+			});
 		});
 	});
 
 	describe('/{address}/multisignature_memberships', () => {
-		var multisigMembersEndpoint = new swaggerEndpoint('GET /accounts/{address}/multisignature_memberships');
+		var multisigMembersEndpoint = new swaggerEndpoint(
+			'GET /accounts/{address}/multisignature_memberships'
+		);
 
 		describe('address', () => {
 			it('using master group account address should respond with empty multisignature memberships', () => {
- return multisigMembersEndpoint.makeRequest({ address: account.address }, 200).then(res => {
-					expect(res.body.data).to.have.length(0);
-				});
-});
+				return multisigMembersEndpoint
+					.makeRequest({ address: account.address }, 200)
+					.then(res => {
+						expect(res.body.data).to.have.length(0);
+					});
+			});
 
 			it('using known member address should respond with its multisignature memberships', () => {
- return multisigMembersEndpoint.makeRequest({ address: scenario.members[0].address }, 200).then(res => {
-					expect(res.body.data).to.have.length(1);
-					var group = res.body.data[0];
-					expect(group.address).to.be.equal(account.address);
-					expect(group.publicKey).to.be.equal(account.publicKey);
-					expect(group.members).to.have.length(scenario.members.length);
-					expect(_.map(group.members, 'address')).to.include(scenario.members[0].address);
-				});
-});
+				return multisigMembersEndpoint
+					.makeRequest({ address: scenario.members[0].address }, 200)
+					.then(res => {
+						expect(res.body.data).to.have.length(1);
+						var group = res.body.data[0];
+						expect(group.address).to.be.equal(account.address);
+						expect(group.publicKey).to.be.equal(account.publicKey);
+						expect(group.members).to.have.length(scenario.members.length);
+						expect(_.map(group.members, 'address')).to.include(
+							scenario.members[0].address
+						);
+					});
+			});
 
 			it('using known other member address should respond with its multisignature memberships', () => {
-return multisigMembersEndpoint.makeRequest({ address: scenario.members[1].address }, 200).then(res => {
-					expect(res.body.data).to.have.length(1);
-					var group = res.body.data[0];
-					expect(group.address).to.be.equal(account.address);
-					expect(group.publicKey).to.be.equal(account.publicKey);
-					expect(group.members).to.have.length(scenario.members.length);
-					expect(_.map(group.members, 'address')).to.include(scenario.members[1].address);
-				});
-});
+				return multisigMembersEndpoint
+					.makeRequest({ address: scenario.members[1].address }, 200)
+					.then(res => {
+						expect(res.body.data).to.have.length(1);
+						var group = res.body.data[0];
+						expect(group.address).to.be.equal(account.address);
+						expect(group.publicKey).to.be.equal(account.publicKey);
+						expect(group.members).to.have.length(scenario.members.length);
+						expect(_.map(group.members, 'address')).to.include(
+							scenario.members[1].address
+						);
+					});
+			});
 
 			it('using known lowercase address should respond with its multisignature_group', () => {
- return multisigMembersEndpoint.makeRequest({ address: scenario.members[0].address }, 200).then(res => {
-					expect(res.body.data).to.have.length(1);
-					var group = res.body.data[0];
-					expect(group.address).to.be.equal(account.address);
-					expect(group.publicKey).to.be.equal(account.publicKey);
-					expect(group.members).to.have.length(scenario.members.length);
-					expect(_.map(group.members, 'address')).to.include(scenario.members[0].address);
-				});
-});
+				return multisigMembersEndpoint
+					.makeRequest({ address: scenario.members[0].address }, 200)
+					.then(res => {
+						expect(res.body.data).to.have.length(1);
+						var group = res.body.data[0];
+						expect(group.address).to.be.equal(account.address);
+						expect(group.publicKey).to.be.equal(account.publicKey);
+						expect(group.members).to.have.length(scenario.members.length);
+						expect(_.map(group.members, 'address')).to.include(
+							scenario.members[0].address
+						);
+					});
+			});
 
 			it('using unknown address should return empty result', () => {
- return multisigMembersEndpoint.makeRequest({ address: accountFixtures.existingDelegate.address }, 200).then(res => {
-					expect(res.body.data).to.have.length(0);
-				});
-});
+				return multisigMembersEndpoint
+					.makeRequest(
+						{ address: accountFixtures.existingDelegate.address },
+						200
+					)
+					.then(res => {
+						expect(res.body.data).to.have.length(0);
+					});
+			});
 
 			it('using invalid address should fail', () => {
- return multisigMembersEndpoint.makeRequest({ address: 'InvalidAddress' }, 400).then(res => {
-					expectSwaggerParamError(res, 'address');
-				});
-});
+				return multisigMembersEndpoint
+					.makeRequest({ address: 'InvalidAddress' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'address');
+					});
+			});
 
 			it('using empty address should fail', () => {
- return multisigMembersEndpoint.makeRequest({ address: ' ' }, 400).then(res => {
-					expectSwaggerParamError(res, 'address');
-				});
-});
+				return multisigMembersEndpoint
+					.makeRequest({ address: ' ' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'address');
+					});
+			});
 		});
 	});
 });

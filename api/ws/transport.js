@@ -16,6 +16,15 @@
 var wsRPC = require('./rpc/ws_rpc').wsRPC;
 var slaveRPCStub = require('./rpc/ws_rpc').slaveRPCStub;
 
+/**
+ * Description of the function.
+ *
+ * @class
+ * @memberof api.ws
+ * @see Parent: {@link api.ws}
+ * @param {Object} transportModule - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
 function TransportWSApi(transportModule) {
 	wsRPC.getServer().registerRPCEndpoints({
 		updatePeer: transportModule.internal.updatePeer,
@@ -28,7 +37,7 @@ function TransportWSApi(transportModule) {
 		status: transportModule.shared.status,
 		postBlock: transportModule.shared.postBlock,
 		postSignatures: transportModule.shared.postSignatures,
-		postTransactions: transportModule.shared.postTransactions
+		postTransactions: transportModule.shared.postTransactions,
 	});
 
 	wsRPC.getServer().registerRPCEndpoints(slaveRPCStub);

@@ -32,15 +32,17 @@ function TransferTransactionsRepo(db, pgp) {
 
 	this.dbTable = 'transfer';
 
-	this.dbFields = [
-		'data',
-		'transactionId'
-	];
+	this.dbFields = ['data', 'transactionId'];
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({ table: this.dbTable, schema: 'public' });
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, { table: table });
+		var table = new pgp.helpers.TableName({
+			table: this.dbTable,
+			schema: 'public',
+		});
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+			table: table,
+		});
 	}
 
 	this.cs = columnSet;
@@ -51,7 +53,7 @@ function TransferTransactionsRepo(db, pgp) {
  * @param {Array.<{id: string, asset: {data: string}}>} transactions
  * @return {Promise}
  */
-TransferTransactionsRepo.prototype.save = function (transactions) {
+TransferTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
@@ -61,7 +63,7 @@ TransferTransactionsRepo.prototype.save = function (transactions) {
 			try {
 				return {
 					transactionId: transaction.id,
-					data: Buffer.from(transaction.asset.data, 'utf8')
+					data: Buffer.from(transaction.asset.data, 'utf8'),
 				};
 			} catch (ex) {
 				throw ex;

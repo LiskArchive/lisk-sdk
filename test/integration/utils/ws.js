@@ -18,8 +18,7 @@ var WSServerMaster = require('../../common/ws/server_master');
 var scClient = require('socketcluster-client');
 
 module.exports = {
-
-	establishWSConnectionsToNodes: function (configurations, cb) {
+	establishWSConnectionsToNodes: function(configurations, cb) {
 		var wampClient = new WAMPClient();
 		var sockets = [];
 		var monitorWSClient = {
@@ -27,7 +26,7 @@ module.exports = {
 			hostname: '127.0.0.1',
 			wsPort: null,
 			autoReconnect: true,
-			query: WSServerMaster.generatePeerHeaders()
+			query: WSServerMaster.generatePeerHeaders(),
 		};
 		var connectedTo = 0;
 		configurations.forEach(configuration => {
@@ -43,8 +42,12 @@ module.exports = {
 			});
 			socket.on('error', () => {});
 			socket.on('connectAbort', () => {
-				cb(`Unable to establish WS connection with ${configuration.ip}:${configuration.wsPort}`);
+				cb(
+					`Unable to establish WS connection with ${configuration.ip}:${
+						configuration.wsPort
+					}`
+				);
 			});
 		});
-	}
+	},
 };

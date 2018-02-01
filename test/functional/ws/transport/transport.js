@@ -29,14 +29,17 @@ describe('RPC', () => {
 	var clientSocket;
 	var validClientSocketOptions;
 	var wampClient = new WAMPClient();
-	var frozenHeaders = WSServerMaster.generatePeerHeaders({ wsPort: wsServer.options.port, nonce: wsServer.validNonce });
+	var frozenHeaders = WSServerMaster.generatePeerHeaders({
+		wsPort: wsServer.options.port,
+		nonce: wsServer.validNonce,
+	});
 
 	before(done => {
 		validClientSocketOptions = {
 			protocol: 'http',
 			hostname: '127.0.0.1',
 			port: __testContext.config.wsPort,
-			query: _.clone(frozenHeaders)
+			query: _.clone(frozenHeaders),
 		};
 		clientSocket = scClient.connect(validClientSocketOptions);
 		wampClient.upgradeToWAMP(clientSocket);
@@ -54,25 +57,29 @@ describe('RPC', () => {
 				validAcceptRequest = {
 					authKey: 'authentication key',
 					peer: prefixedPeer,
-					updateType: Rules.UPDATES.INSERT
+					updateType: Rules.UPDATES.INSERT,
 				};
 			});
 
 			describe('schema', () => {
 				it('should reject empty request', done => {
-					clientSocket.wampSend('updatePeer', undefined)
+					clientSocket
+						.wampSend('updatePeer', undefined)
 						.then(() => {
 							done('should not be here');
 						})
 						.catch(err => {
-							expect(err).to.equal('Expected type object but found type undefined');
+							expect(err).to.equal(
+								'Expected type object but found type undefined'
+							);
 							done();
 						});
 				});
 
 				it('should reject requests without peer field defined', done => {
 					delete validAcceptRequest.peer;
-					clientSocket.wampSend('updatePeer', validAcceptRequest)
+					clientSocket
+						.wampSend('updatePeer', validAcceptRequest)
 						.then(() => {
 							done('should not be here');
 						})
@@ -84,7 +91,8 @@ describe('RPC', () => {
 
 				it('should reject requests without authKey field defined', done => {
 					delete validAcceptRequest.authKey;
-					clientSocket.wampSend('updatePeer', validAcceptRequest)
+					clientSocket
+						.wampSend('updatePeer', validAcceptRequest)
 						.then(() => {
 							done('should not be here');
 						})
@@ -96,19 +104,23 @@ describe('RPC', () => {
 
 				it('should reject requests with incorrect authKey', done => {
 					validAcceptRequest.authKey = 'incorrect authKey';
-					clientSocket.wampSend('updatePeer', validAcceptRequest)
+					clientSocket
+						.wampSend('updatePeer', validAcceptRequest)
 						.then(() => {
 							done('should not be here');
 						})
 						.catch(err => {
-							expect(err).to.equal('Unable to access internal function - Incorrect authKey');
+							expect(err).to.equal(
+								'Unable to access internal function - Incorrect authKey'
+							);
 							done();
 						});
 				});
 
 				it('should reject requests without updateType', done => {
 					delete validAcceptRequest.updateType;
-					clientSocket.wampSend('updatePeer', validAcceptRequest)
+					clientSocket
+						.wampSend('updatePeer', validAcceptRequest)
 						.then(() => {
 							done('should not be here');
 						})
@@ -120,27 +132,39 @@ describe('RPC', () => {
 
 				it('should reject requests when updateType is not a number', done => {
 					var nonNumbers = [{}, [], 'A', '1', NaN, true];
-					async.forEachOf(nonNumbers, (nonNumber, index, eachCb) => {
-						validAcceptRequest.updateType = nonNumber;
-						clientSocket.wampSend('updatePeer', validAcceptRequest)
-							.then(() => {
-								eachCb('should not be here');
-							})
-							.catch(err => {
-								expect(err).to.contain('Expected type integer but found type');
-								eachCb();
-							});
-					}, done);
+					async.forEachOf(
+						nonNumbers,
+						(nonNumber, index, eachCb) => {
+							validAcceptRequest.updateType = nonNumber;
+							clientSocket
+								.wampSend('updatePeer', validAcceptRequest)
+								.then(() => {
+									eachCb('should not be here');
+								})
+								.catch(err => {
+									expect(err).to.contain(
+										'Expected type integer but found type'
+									);
+									eachCb();
+								});
+						},
+						done
+					);
 				});
 
 				it('should reject requests when updateType is greater than 1', done => {
 					validAcceptRequest.updateType = 2;
-					clientSocket.wampSend('updatePeer', validAcceptRequest)
+					clientSocket
+						.wampSend('updatePeer', validAcceptRequest)
 						.then(() => {
 							done('should not be here');
 						})
 						.catch(err => {
-							expect(err).to.contain(`Value ${validAcceptRequest.updateType} is greater than maximum 1`);
+							expect(err).to.contain(
+								`Value ${
+									validAcceptRequest.updateType
+								} is greater than maximum 1`
+							);
 							done();
 						});
 				});
@@ -150,12 +174,17 @@ describe('RPC', () => {
 
 	describe('height', () => {
 		it('should return height', done => {
-			clientSocket.wampSend('height')
+			clientSocket
+				.wampSend('height')
 				.then(result => {
 					expect(result).to.have.property('success').to.be.ok;
-					expect(result).to.have.property('height').that.is.a('number').at.least(1);
+					expect(result)
+						.to.have.property('height')
+						.that.is.a('number')
+						.at.least(1);
 					done();
-				}).catch(err => {
+				})
+				.catch(err => {
 					done(err);
 				});
 		});
@@ -163,17 +192,32 @@ describe('RPC', () => {
 
 	describe('status', () => {
 		it('should return height, broadhash, nonce, os, version and httpPort', done => {
-			clientSocket.wampSend('status')
+			clientSocket
+				.wampSend('status')
 				.then(result => {
 					expect(result).to.have.property('success').to.be.ok;
-					expect(result).to.have.property('broadhash').that.is.a('string');
-					expect(result).to.have.property('nonce').that.is.a('string');
-					expect(result).to.have.property('os').that.is.a('string');
-					expect(result).to.have.property('version').that.is.a('string');
-					expect(result).to.have.property('httpPort').that.is.a('number');
-					expect(result).to.have.property('height').that.is.a('number').at.least(1);
+					expect(result)
+						.to.have.property('broadhash')
+						.that.is.a('string');
+					expect(result)
+						.to.have.property('nonce')
+						.that.is.a('string');
+					expect(result)
+						.to.have.property('os')
+						.that.is.a('string');
+					expect(result)
+						.to.have.property('version')
+						.that.is.a('string');
+					expect(result)
+						.to.have.property('httpPort')
+						.that.is.a('number');
+					expect(result)
+						.to.have.property('height')
+						.that.is.a('number')
+						.at.least(1);
 					done();
-				}).catch(err => {
+				})
+				.catch(err => {
 					done(err);
 				});
 		});
@@ -181,12 +225,16 @@ describe('RPC', () => {
 
 	describe('list', () => {
 		it('should return list of peers', done => {
-			clientSocket.wampSend('list')
+			clientSocket
+				.wampSend('list')
 				.then(result => {
 					expect(result).to.have.property('success').to.be.ok;
-					expect(result).to.have.property('peers').to.be.an('array');
+					expect(result)
+						.to.have.property('peers')
+						.to.be.an('array');
 					done();
-				}).catch(err => {
+				})
+				.catch(err => {
 					done(err);
 				});
 		});
@@ -194,15 +242,19 @@ describe('RPC', () => {
 		it('asking for a list multiple times should be ok', done => {
 			var successfulAsks = 0;
 			for (var i = 0; i < 100; i += 1) {
-				clientSocket.wampSend('list')
+				clientSocket
+					.wampSend('list')
 					.then(result => {
 						expect(result).to.have.property('success').to.be.ok;
-						expect(result).to.have.property('peers').to.be.an('array');
+						expect(result)
+							.to.have.property('peers')
+							.to.be.an('array');
 						successfulAsks += 1;
 						if (successfulAsks === 100) {
 							done();
 						}
-					}).catch(err => {
+					})
+					.catch(err => {
 						done(err);
 					});
 			}
@@ -211,11 +263,15 @@ describe('RPC', () => {
 
 	describe('blocks', () => {
 		it('should return height and broadhash', done => {
-			clientSocket.wampSend('blocks')
+			clientSocket
+				.wampSend('blocks')
 				.then(result => {
-					expect(result).to.have.property('blocks').to.be.an('array');
+					expect(result)
+						.to.have.property('blocks')
+						.to.be.an('array');
 					done();
-				}).catch(err => {
+				})
+				.catch(err => {
 					done(err);
 				});
 		});

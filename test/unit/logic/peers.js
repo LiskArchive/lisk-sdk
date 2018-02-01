@@ -27,7 +27,7 @@ describe('peers', () => {
 
 	before(done => {
 		peersModuleMock = {
-			acceptable: sinonSandbox.stub().returnsArg(0)
+			acceptable: sinonSandbox.stub().returnsArg(0),
 		};
 
 		modulesLoader.initLogic(Peers, modulesLoader.scope, (err, __peers) => {
@@ -51,8 +51,14 @@ describe('peers', () => {
 	}
 
 	function arePeersEqual(peerA, peerB) {
-		var allPeersProperties = function (peer) {
-			return 	_.keys(peer).every(property => { return Peer.prototype.properties.concat(['string', 'rpc']).indexOf(property) !== -1; });
+		var allPeersProperties = function(peer) {
+			return _.keys(peer).every(property => {
+				return (
+					Peer.prototype.properties
+						.concat(['string', 'rpc'])
+						.indexOf(property) !== -1
+				);
+			});
 		};
 
 		if (!allPeersProperties(peerA)) {
@@ -65,11 +71,18 @@ describe('peers', () => {
 
 		var commonProperties = _.intersection(_.keys(peerA), _.keys(peerB));
 
-		if (commonProperties.indexOf('ip') === -1 || commonProperties.indexOf('wsPort') === -1) {
-			throw new Error('Insufficient data to compare the peers (no port or ip provided)');
+		if (
+			commonProperties.indexOf('ip') === -1 ||
+			commonProperties.indexOf('wsPort') === -1
+		) {
+			throw new Error(
+				'Insufficient data to compare the peers (no port or ip provided)'
+			);
 		}
 
-		return commonProperties.every(property => { return peerA[property] === peerB[property]; });
+		return commonProperties.every(property => {
+			return peerA[property] === peerB[property];
+		});
 	}
 
 	describe('create', () => {
@@ -199,17 +212,23 @@ describe('peers', () => {
 		describe('should fail with valid error code', () => {
 			it('INSERT_ONLY_FAILURE when insertOnly flag is present and peer already exists', () => {
 				peers.upsert(validPeer);
-				expect(peers.upsert(validPeer, true)).to.equal(failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE);
+				expect(peers.upsert(validPeer, true)).to.equal(
+					failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE
+				);
 			});
 
 			it('INVALID_PEER when called with invalid peer', () => {
-				expect(peers.upsert({})).to.equal(failureCodes.ON_MASTER.UPDATE.INVALID_PEER);
+				expect(peers.upsert({})).to.equal(
+					failureCodes.ON_MASTER.UPDATE.INVALID_PEER
+				);
 			});
 
 			it('NOT_ACCEPTED when called with the same as node nonce', () => {
 				peersModuleMock.acceptable = sinonSandbox.stub().returns([]);
 				validPeer.nonce = validNodeNonce;
-				expect(peers.upsert(validPeer)).to.equal(failureCodes.ON_MASTER.INSERT.NOT_ACCEPTED);
+				expect(peers.upsert(validPeer)).to.equal(
+					failureCodes.ON_MASTER.INSERT.NOT_ACCEPTED
+				);
 			});
 		});
 	});
@@ -220,11 +239,13 @@ describe('peers', () => {
 		});
 
 		it('should return false if peer is not on the list', () => {
-			expect(peers.exists({
-				ip: '41.41.41.41',
-				wsPort: '4444',
-				nonce: 'another_nonce'
-			})).not.to.be.ok;
+			expect(
+				peers.exists({
+					ip: '41.41.41.41',
+					wsPort: '4444',
+					nonce: 'another_nonce',
+				})
+			).not.to.be.ok;
 		});
 
 		it('should return true if peer is on the list', () => {
@@ -237,14 +258,21 @@ describe('peers', () => {
 		it.skip('should return true if peer with same nonce is on the list', () => {
 			var list = peers.list(true);
 			expect(list.length).equal(1);
-			expect(peers.exists({ ip: validPeer.ip, wsPort: validPeer.wsPort, nonce: validPeer.nonce })).to.be.ok;
+			expect(
+				peers.exists({
+					ip: validPeer.ip,
+					wsPort: validPeer.wsPort,
+					nonce: validPeer.nonce,
+				})
+			).to.be.ok;
 		});
 
 		it('should return true if peer with same address is on the list', () => {
 			peers.upsert(validPeer);
 			var list = peers.list(true);
 			expect(list.length).equal(1);
-			expect(peers.exists({ ip: validPeer.ip, wsPort: validPeer.wsPort })).to.be.ok;
+			expect(peers.exists({ ip: validPeer.ip, wsPort: validPeer.wsPort })).to.be
+				.ok;
 		});
 	});
 
@@ -285,7 +313,9 @@ describe('peers', () => {
 
 		it('should return an error when trying to remove a non-existent peer', () => {
 			var result = peers.remove(validPeer);
-			expect(result).to.be.a('number').equal(failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST);
+			expect(result)
+				.to.be.a('number')
+				.equal(failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST);
 			expect(peers.list().length).equal(0);
 		});
 	});

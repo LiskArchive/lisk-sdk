@@ -1,5 +1,5 @@
 {
-  "name": "validator",
-  "version": "0.0.1",
-  "main":"validator.js"
+	"name": "validator",
+	"version": "0.0.1",
+	"main": "validator.js"
 }

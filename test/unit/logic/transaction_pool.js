@@ -42,10 +42,10 @@ describe('transactionPool', () => {
 		info: sinon.spy(),
 		log: sinon.spy(),
 		warn: sinon.spy(),
-		error: sinon.spy()
+		error: sinon.spy(),
 	};
 
-	var resetStates = function () {
+	var resetStates = function() {
 		transactionPool.unconfirmed = _.cloneDeep(freshListState);
 		transactionPool.bundled = _.cloneDeep(freshListState);
 		transactionPool.queued = _.cloneDeep(freshListState);
@@ -57,14 +57,28 @@ describe('transactionPool', () => {
 		logger.warn.reset();
 		logger.error.reset();
 
-		dummyProcessVerifyTransaction = sinon.spy((transaction, broadcast, cb) => { return cb(); });
-		TransactionPool.__set__('__private.processVerifyTransaction', dummyProcessVerifyTransaction);
-		dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => { return cb(); });
-		TransactionPool.__set__('modules.transactions.applyUnconfirmed', dummyApplyUnconfirmed);
-		dummyUndoUnconfirmed = sinon.spy((transaction, cb) => { return cb(); });
-		TransactionPool.__set__('modules.transactions.undoUnconfirmed', dummyUndoUnconfirmed);
+		dummyProcessVerifyTransaction = sinon.spy((transaction, broadcast, cb) => {
+			return cb();
+		});
+		TransactionPool.__set__(
+			'__private.processVerifyTransaction',
+			dummyProcessVerifyTransaction
+		);
+		dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => {
+			return cb();
+		});
+		TransactionPool.__set__(
+			'modules.transactions.applyUnconfirmed',
+			dummyApplyUnconfirmed
+		);
+		dummyUndoUnconfirmed = sinon.spy((transaction, cb) => {
+			return cb();
+		});
+		TransactionPool.__set__(
+			'modules.transactions.undoUnconfirmed',
+			dummyUndoUnconfirmed
+		);
 	};
-
 
 	before(done => {
 		// Use fresh instance of jobsQueue inside transaction pool
@@ -115,7 +129,9 @@ describe('transactionPool', () => {
 			var lastError;
 
 			before(() => {
-				applyUnconfirmed = TransactionPool.__get__('__private.applyUnconfirmedList');
+				applyUnconfirmed = TransactionPool.__get__(
+					'__private.applyUnconfirmedList'
+				);
 			});
 
 			describe('called with array', () => {
@@ -175,7 +191,9 @@ describe('transactionPool', () => {
 							});
 
 							it('should be called with transaction as parameter', () => {
-								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(validTransaction);
+								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(
+									validTransaction
+								);
 							});
 						});
 
@@ -185,7 +203,9 @@ describe('transactionPool', () => {
 							});
 
 							it('should be called with transaction as parameter', () => {
-								expect(dummyApplyUnconfirmed.args[0][0]).to.deep.equal(validTransaction);
+								expect(dummyApplyUnconfirmed.args[0][0]).to.deep.equal(
+									validTransaction
+								);
 							});
 						});
 
@@ -194,12 +214,15 @@ describe('transactionPool', () => {
 
 							describe('unconfirmed', () => {
 								it('index should be set', () => {
-									index = transactionPool.unconfirmed.index[validTransaction.id];
+									index =
+										transactionPool.unconfirmed.index[validTransaction.id];
 									expect(index).to.be.a('number');
 								});
 
 								it('transaction at index should match', () => {
-									expect(transactionPool.unconfirmed.transactions[index]).to.deep.equal(validTransaction);
+									expect(
+										transactionPool.unconfirmed.transactions[index]
+									).to.deep.equal(validTransaction);
 								});
 							});
 
@@ -212,7 +235,8 @@ describe('transactionPool', () => {
 
 							describe('multisignature', () => {
 								it('index should be undefined', () => {
-									index = transactionPool.multisignature.index[validTransaction.id];
+									index =
+										transactionPool.multisignature.index[validTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
@@ -226,8 +250,15 @@ describe('transactionPool', () => {
 						var error = 'verify error';
 
 						before(done => {
-							dummyProcessVerifyTransaction = sinon.spy((transaction, broadcast, cb) => { return cb(error); });
-							TransactionPool.__set__('__private.processVerifyTransaction', dummyProcessVerifyTransaction);
+							dummyProcessVerifyTransaction = sinon.spy(
+								(transaction, broadcast, cb) => {
+									return cb(error);
+								}
+							);
+							TransactionPool.__set__(
+								'__private.processVerifyTransaction',
+								dummyProcessVerifyTransaction
+							);
 
 							applyUnconfirmed([badTransaction], err => {
 								lastError = err;
@@ -241,7 +272,11 @@ describe('transactionPool', () => {
 
 						it('should log an proper error', () => {
 							expect(logger.error.calledOnce).to.be.true;
-							expect(logger.error.args[0][0]).to.equal(`Failed to process / verify unconfirmed transaction: ${badTransaction.id}`);
+							expect(logger.error.args[0][0]).to.equal(
+								`Failed to process / verify unconfirmed transaction: ${
+									badTransaction.id
+								}`
+							);
 							expect(logger.error.args[0][1]).to.equal(error);
 						});
 
@@ -251,7 +286,9 @@ describe('transactionPool', () => {
 							});
 
 							it('should be called with transaction as parameter', () => {
-								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(badTransaction);
+								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(
+									badTransaction
+								);
 							});
 						});
 
@@ -280,7 +317,8 @@ describe('transactionPool', () => {
 
 							describe('multisignature', () => {
 								it('index should be undefined', () => {
-									index = transactionPool.multisignature.index[badTransaction.id];
+									index =
+										transactionPool.multisignature.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
@@ -294,8 +332,13 @@ describe('transactionPool', () => {
 						var error = 'apply error';
 
 						before(done => {
-							dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => { return cb(error); });
-							TransactionPool.__set__('modules.transactions.applyUnconfirmed', dummyApplyUnconfirmed);
+							dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => {
+								return cb(error);
+							});
+							TransactionPool.__set__(
+								'modules.transactions.applyUnconfirmed',
+								dummyApplyUnconfirmed
+							);
 
 							applyUnconfirmed([badTransaction], err => {
 								lastError = err;
@@ -309,7 +352,9 @@ describe('transactionPool', () => {
 
 						it('should log an proper error', () => {
 							expect(logger.error.calledOnce).to.be.true;
-							expect(logger.error.args[0][0]).to.equal(`Failed to apply unconfirmed transaction: ${badTransaction.id}`);
+							expect(logger.error.args[0][0]).to.equal(
+								`Failed to apply unconfirmed transaction: ${badTransaction.id}`
+							);
 							expect(logger.error.args[0][1]).to.equal(error);
 						});
 
@@ -319,7 +364,9 @@ describe('transactionPool', () => {
 							});
 
 							it('should be called with transaction as parameter', () => {
-								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(badTransaction);
+								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(
+									badTransaction
+								);
 							});
 						});
 
@@ -329,7 +376,9 @@ describe('transactionPool', () => {
 							});
 
 							it('should be called with transaction as parameter', () => {
-								expect(dummyApplyUnconfirmed.args[0][0]).to.deep.equal(badTransaction);
+								expect(dummyApplyUnconfirmed.args[0][0]).to.deep.equal(
+									badTransaction
+								);
 							});
 						});
 
@@ -352,7 +401,8 @@ describe('transactionPool', () => {
 
 							describe('multisignature', () => {
 								it('index should be undefined', () => {
-									index = transactionPool.multisignature.index[badTransaction.id];
+									index =
+										transactionPool.multisignature.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
@@ -378,7 +428,7 @@ describe('transactionPool', () => {
 					var transactions = [];
 
 					before(done => {
-						transactionPool.getUnconfirmedTransactionList = function () {
+						transactionPool.getUnconfirmedTransactionList = function() {
 							return transactions;
 						};
 
@@ -418,7 +468,7 @@ describe('transactionPool', () => {
 
 						before(done => {
 							transactionPool.addUnconfirmedTransaction(validTransaction);
-							transactionPool.getUnconfirmedTransactionList = function () {
+							transactionPool.getUnconfirmedTransactionList = function() {
 								return transactions;
 							};
 
@@ -439,7 +489,11 @@ describe('transactionPool', () => {
 
 						it('should return valid ids array', () => {
 							expect(lastIds).to.be.an('array');
-							expect(lastIds).to.deep.equal(_.map(transactions, tx => { return tx.id; }));
+							expect(lastIds).to.deep.equal(
+								_.map(transactions, tx => {
+									return tx.id;
+								})
+							);
 						});
 
 						describe('modules.transactions.undoUnconfirmed', () => {
@@ -448,7 +502,9 @@ describe('transactionPool', () => {
 							});
 
 							it('should be called with transaction as parameter', () => {
-								expect(dummyUndoUnconfirmed.args[0][0]).to.deep.equal(validTransaction);
+								expect(dummyUndoUnconfirmed.args[0][0]).to.deep.equal(
+									validTransaction
+								);
 							});
 						});
 
@@ -457,7 +513,8 @@ describe('transactionPool', () => {
 
 							describe('unconfirmed', () => {
 								it('index should be undefined', () => {
-									index = transactionPool.unconfirmed.index[validTransaction.id];
+									index =
+										transactionPool.unconfirmed.index[validTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
@@ -469,13 +526,16 @@ describe('transactionPool', () => {
 								});
 
 								it('transaction at index should match', () => {
-									expect(transactionPool.queued.transactions[index]).to.deep.equal(validTransaction);
+									expect(
+										transactionPool.queued.transactions[index]
+									).to.deep.equal(validTransaction);
 								});
 							});
 
 							describe('multisignature', () => {
 								it('index should be undefined', () => {
-									index = transactionPool.multisignature.index[validTransaction.id];
+									index =
+										transactionPool.multisignature.index[validTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
@@ -490,11 +550,16 @@ describe('transactionPool', () => {
 						var error = 'undo error';
 
 						before(done => {
-							dummyUndoUnconfirmed = sinon.spy((transaction, cb) => { return cb(error); });
-							TransactionPool.__set__('modules.transactions.undoUnconfirmed', dummyUndoUnconfirmed);
+							dummyUndoUnconfirmed = sinon.spy((transaction, cb) => {
+								return cb(error);
+							});
+							TransactionPool.__set__(
+								'modules.transactions.undoUnconfirmed',
+								dummyUndoUnconfirmed
+							);
 
 							transactionPool.addUnconfirmedTransaction(badTransaction);
-							transactionPool.getUnconfirmedTransactionList = function () {
+							transactionPool.getUnconfirmedTransactionList = function() {
 								return transactions;
 							};
 
@@ -511,12 +576,18 @@ describe('transactionPool', () => {
 
 						it('should return valid ids array', () => {
 							expect(lastIds).to.be.an('array');
-							expect(lastIds).to.deep.equal(_.map(transactions, tx => { return tx.id; }));
+							expect(lastIds).to.deep.equal(
+								_.map(transactions, tx => {
+									return tx.id;
+								})
+							);
 						});
 
 						it('should log an proper error', () => {
 							expect(logger.error.calledOnce).to.be.true;
-							expect(logger.error.args[0][0]).to.equal(`Failed to undo unconfirmed transaction: ${badTransaction.id}`);
+							expect(logger.error.args[0][0]).to.equal(
+								`Failed to undo unconfirmed transaction: ${badTransaction.id}`
+							);
 							expect(logger.error.args[0][1]).to.equal(error);
 						});
 
@@ -526,7 +597,9 @@ describe('transactionPool', () => {
 							});
 
 							it('should be called with transaction as parameter', () => {
-								expect(dummyUndoUnconfirmed.args[0][0]).to.deep.equal(badTransaction);
+								expect(dummyUndoUnconfirmed.args[0][0]).to.deep.equal(
+									badTransaction
+								);
 							});
 						});
 
@@ -549,7 +622,8 @@ describe('transactionPool', () => {
 
 							describe('multisignature', () => {
 								it('index should be undefined', () => {
-									index = transactionPool.multisignature.index[badTransaction.id];
+									index =
+										transactionPool.multisignature.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});

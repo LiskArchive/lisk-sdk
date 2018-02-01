@@ -15,68 +15,70 @@ This sections provides details on what you need install on your system in order 
 
 ### System Install
 
-- Tool chain components -- Used for compiling dependencies
+* Tool chain components -- Used for compiling dependencies
 
-    - Ubuntu/Debian:
+  * Ubuntu/Debian:
 
-        ```
-        sudo apt-get update
-        sudo apt-get install -y python build-essential curl automake autoconf libtool
-        ```
+    ```
+    sudo apt-get update
+    sudo apt-get install -y python build-essential curl automake autoconf libtool
+    ```
 
-    - MacOS 10.12-10.13 (Sierra/High Sierra):
+  * MacOS 10.12-10.13 (Sierra/High Sierra):
 
-        Make sure that you have both [XCode](https://developer.apple.com/xcode/) and [Homebrew](https://brew.sh/) installed on your machine.
+    Make sure that you have both [XCode](https://developer.apple.com/xcode/) and [Homebrew](https://brew.sh/) installed on your machine.
 
-        Update homebrew and install dependencies:
+    Update homebrew and install dependencies:
 
-        ```
-        brew update
-        brew doctor
-        brew install curl automake autoconf libtool
-        ```
+    ```
+    brew update
+    brew doctor
+    brew install curl automake autoconf libtool
+    ```
 
-- Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
+* Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
 
-    - Ubuntu/Debian:
+  * Ubuntu/Debian:
 
-        ```
-        sudo apt-get install -y git
-        ```
+    ```
+    sudo apt-get install -y git
+    ```
 
-    - MacOS 10.12-10.13 (Sierra/High Sierra):
+  * MacOS 10.12-10.13 (Sierra/High Sierra):
 
-        ```
-        brew install git
-        ```
+    ```
+    brew install git
+    ```
 
 ### Node.js (<https://nodejs.org/>)
 
-- Node.js serves as the underlying engine for code execution.
+* Node.js serves as the underlying engine for code execution.
 
-    Install System wide via package manager:
+  Install System wide via package manager:
 
-    - Ubuntu/Debian:
+  * Ubuntu/Debian:
 
-        ```
-        curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-        sudo apt-get install -y nodejs
-        ```
-
-    - MacOS 10.12-10.13 (Sierra/High Sierra):
-
-        ```
-        brew install node@6.12.3
-        ```
-
-- _(Recommended)_ Install using a version manager such as nvm.
-    1. Install nvm following their instructions (https://github.com/creationix/nvm#installation)
-    2. Install the correct version of Node.js using nvm:
     ```
-    nvm install 6.12.3
+    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+    sudo apt-get install -y nodejs
     ```
 
-- _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
+  * MacOS 10.12-10.13 (Sierra/High Sierra):
+
+    ```
+    brew install node@6.12.3
+    ```
+
+* _(Recommended)_ Install using a version manager such as nvm.
+
+  1. Install nvm following their instructions (https://github.com/creationix/nvm#installation)
+  2. Install the correct version of Node.js using nvm:
+
+  ```
+  nvm install 6.12.3
+  ```
+
+* _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
 
   ```
   npm install -g pm2
@@ -84,89 +86,89 @@ This sections provides details on what you need install on your system in order 
 
 ### PostgreSQL (version 9.6):
 
-   - Ubuntu/Debian:
+* Ubuntu/Debian:
 
-        ```
-        curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
-        sudo -u postgres createuser --createdb $USER
-        createdb lisk_test
-        createdb lisk_main
-        sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
-        sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
-        ```
+  ```
+  curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
+  sudo -u postgres createuser --createdb $USER
+  createdb lisk_test
+  createdb lisk_main
+  sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
+  sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
+  ```
 
-   - MacOS 10.12-10.13 (Sierra/High Sierra):
+* MacOS 10.12-10.13 (Sierra/High Sierra):
 
-        ```
-        brew install postgresql@9.6
-        initdb /usr/local/var/postgres -E utf8
-        brew services start postgresql@9.6
-        createdb lisk_test
-        createdb lisk_main
-        ```
+  ```
+  brew install postgresql@9.6
+  initdb /usr/local/var/postgres -E utf8
+  brew services start postgresql@9.6
+  createdb lisk_test
+  createdb lisk_main
+  ```
 
 ### Installing Redis
 
-   - Ubuntu/Debian:
+* Ubuntu/Debian:
 
-        ```
-        sudo apt-get install redis-server
-        ```
+  ```
+  sudo apt-get install redis-server
+  ```
 
-        Start redis:
+  Start redis:
 
-        ```
-        service redis start
-        ```
+  ```
+  service redis start
+  ```
 
-        Stop redis:
+  Stop redis:
 
-        ```
-        service redis stop
-        ```
+  ```
+  service redis stop
+  ```
 
-   - MacOS 10.12-10.13 (Sierra/High Sierra):
+* MacOS 10.12-10.13 (Sierra/High Sierra):
 
-        ```
-        brew install redis
-        ```
+  ```
+  brew install redis
+  ```
 
-        Start redis:
+  Start redis:
 
-        ```
-        brew services start redis
-        ```
+  ```
+  brew services start redis
+  ```
 
-        Stop redis:
+  Stop redis:
 
-        ```
-        brew services stop redis
-        ```
+  ```
+  brew services stop redis
+  ```
 
 **NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
 1. **Change the Lisk configuration**
 
-  Update the redis port configuration in both `config.json` and `test/data/config.json`. Note that this is the easiest option, however, be mindful of reverting the changes should you make a pull request.
+Update the redis port configuration in both `config.json` and `test/data/config.json`. Note that this is the easiest option, however, be mindful of reverting the changes should you make a pull request.
 
 2. **Change the Redis launch configuration**
 
-  Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
+Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
 
-  1. Stop redis-server
-  2. Edit the file `redis.conf` and change: `port 6379` to `port 6380`
-    - Ubuntu/Debian: `/etc/redis/redis.conf`
-    - MacOS: `/usr/local/etc/redis.conf`
-  3. Start redis-server
+1. Stop redis-server
+2. Edit the file `redis.conf` and change: `port 6379` to `port 6380`
+   * Ubuntu/Debian: `/etc/redis/redis.conf`
+   * MacOS: `/usr/local/etc/redis.conf`
+3. Start redis-server
 
-  Now confirm that redis is running on `port 6380`:
+Now confirm that redis is running on `port 6380`:
 
-  ```
-  redis-cli -p 6380
-  ping
-  ```
+```
+redis-cli -p 6380
+ping
+```
 
-  And you should get the result `PONG`.
+And you should get the result `PONG`.
 
 ## Installation Steps
 
@@ -217,22 +219,22 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
 
 1. Recreate the database in order to run the tests against a new blockchain:
 
-  ```
-  dropdb lisk_test
-  createdb lisk_test
-  ```
+```
+dropdb lisk_test
+createdb lisk_test
+```
 
 2. Ensure Lisk is configured to run on the same local network used by the tests. Replace the files **config.json** and **genesis_block.json** with those located under the **test/data** directory:
 
-  ```
-  cp test/data/config.json test/data/genesis_block.json .
-  ```
+```
+cp test/data/config.json test/data/genesis_block.json .
+```
 
 3. Launch Lisk (runs on port 4000):
 
-  ```
-  NODE_ENV=test node app.js
-  ```
+```
+NODE_ENV=test node app.js
+```
 
 ### Running Tests
 
@@ -242,10 +244,10 @@ Tests are run using the following command:
 npm test -- mocha:<tag>:<suite>:[section]
 ```
 
-- Where **tag** can be one of `slow | unstable | untagged | extensive` (required)
-- Where **suite** can be one of `unit | functional | integration`  (required)
-- Where **section** depending of the chosen suite can be:
-    - when `functional` --> `get | post | ws | system` (optional)
+* Where **tag** can be one of `slow | unstable | untagged | extensive` (required)
+* Where **suite** can be one of `unit | functional | integration` (required)
+* Where **section** depending of the chosen suite can be:
+  * when `functional` --> `get | post | ws | system` (optional)
 
 Individual test files can be run using the following command:
 
@@ -273,9 +275,9 @@ This program is free software: you can redistribute it and/or modify it under th
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the [GNU General Public License](https://github.com/LiskHQ/lisk/tree/master/LICENSE) along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the [GNU General Public License](https://github.com/LiskHQ/lisk/tree/master/LICENSE) along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-***
+---
 
 This program also incorporates work previously released with lisk `0.9.11` (and earlier) versions under the [MIT License](https://opensource.org/licenses/MIT). To comply with the requirements of that license, the following permission notice, applicable to those parts of the code only, is included below:
 

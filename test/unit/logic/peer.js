@@ -28,10 +28,18 @@ describe('peer', () => {
 	describe('constructor', () => {
 		it('should create Peer with all properties implemented', () => {
 			var __peer = new Peer({ ip: '127.0.0.1', wsPort: 4000 });
-			expect(__peer).to.have.property('ip').equal('127.0.0.1');
-			expect(__peer).to.have.property('wsPort').equal(4000);
-			expect(__peer).to.have.property('state').equal(1);
-			expect(__peer).to.have.property('string').equal('127.0.0.1:4000');
+			expect(__peer)
+				.to.have.property('ip')
+				.equal('127.0.0.1');
+			expect(__peer)
+				.to.have.property('wsPort')
+				.equal(4000);
+			expect(__peer)
+				.to.have.property('state')
+				.equal(1);
+			expect(__peer)
+				.to.have.property('string')
+				.equal('127.0.0.1:4000');
 		});
 	});
 
@@ -94,7 +102,10 @@ describe('peer', () => {
 		it('should not apply nulls or undefined values as headers', () => {
 			peer.headers.forEach(header => {
 				delete peer[header];
-				if (prefixedPeer[header] === null || prefixedPeer[header] === undefined) {
+				if (
+					prefixedPeer[header] === null ||
+					prefixedPeer[header] === undefined
+				) {
 					var headers = {};
 					headers[header] = prefixedPeer[header];
 					peer.applyHeaders(headers);
@@ -153,9 +164,11 @@ describe('peer', () => {
 				version: '0.0.0',
 				broadhash: 'test broadhash',
 				height: 3,
-				nonce: 'ABCD123'
+				nonce: 'ABCD123',
 			};
-			expect(_.difference(_.keys(updateData), peer.headers)).to.have.lengthOf(0);
+			expect(_.difference(_.keys(updateData), peer.headers)).to.have.lengthOf(
+				0
+			);
 			peer.update(updateData);
 			peer.headers.forEach(header => {
 				expect(peer[header]).to.exist.and.equals(updateData[header]);
@@ -168,13 +181,15 @@ describe('peer', () => {
 				ip: prefixedPeer.ip,
 				wsPort: prefixedPeer.wsPort,
 				httpPort: prefixedPeer.httpPort,
-				string: `${prefixedPeer.ip}:${prefixedPeer.wsPort}`
+				string: `${prefixedPeer.ip}:${prefixedPeer.wsPort}`,
 			};
 
 			expect(_.isEqual(_.keys(updateImmutableData), peer.immutable)).to.be.ok;
 			peer.update(updateImmutableData);
 			peer.headers.forEach(header => {
-				expect(peer[header]).equals(peerBeforeUpdate[header]).and.not.equal(updateImmutableData);
+				expect(peer[header])
+					.equals(peerBeforeUpdate[header])
+					.and.not.equal(updateImmutableData);
 			});
 		});
 
@@ -185,11 +200,11 @@ describe('peer', () => {
 				dappid: ['test dappid'],
 				broadhash: 'test broadhash',
 				height: 3,
-				nonce: 'ABCD123'
+				nonce: 'ABCD123',
 			};
 			peer.update(updateData);
 			var peerBeforeUpdate = _.clone(peer);
-			peer.update({ height: peer.height += 1 });
+			peer.update({ height: (peer.height += 1) });
 			peer.height -= 1;
 			expect(_.isEqual(peer, peerBeforeUpdate)).to.be.ok;
 		});

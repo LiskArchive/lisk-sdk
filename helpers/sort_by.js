@@ -26,10 +26,12 @@
  * @return {Object} error | {sortField, sortMethod}.
  */
 function sortBy(sort, options) {
-	options = (typeof options === 'object') ? options : {};
+	options = typeof options === 'object' ? options : {};
 	options.sortField = options.sortField || null;
 	options.sortMethod = options.sortMethod || null;
-	options.sortFields = Array.isArray(options.sortFields) ? options.sortFields : [];
+	options.sortFields = Array.isArray(options.sortFields)
+		? options.sortFields
+		: [];
 	var self = this;
 
 	if (typeof options.quoteField === 'undefined') {
@@ -38,10 +40,10 @@ function sortBy(sort, options) {
 		options.quoteField = Boolean(options.quoteField);
 	}
 
-	var sortField,
-sortMethod;
+	var sortField;
+	var sortMethod;
 
-	if (typeof (sort) === 'string') {
+	if (typeof sort === 'string') {
 		var sortBy = String(sort).split(':');
 		sortField = sortBy[0].replace(/[^\w\s]/gi, '');
 
@@ -50,18 +52,24 @@ sortMethod;
 		} else {
 			sortMethod = 'ASC';
 		}
-	} else if (typeof (sort) === 'object') {
+	} else if (typeof sort === 'object') {
 		var keys = Object.keys(sort);
 
 		if (keys.length === 0) {
 			return self.sortBy('');
 		} else if (keys.length === 1) {
-			return self.sortBy(`${keys[0]}:${sort[keys[0]] === -1 ? 'desc' : 'asc'}`, options);
+			return self.sortBy(
+				`${keys[0]}:${sort[keys[0]] === -1 ? 'desc' : 'asc'}`,
+				options
+			);
 		} else {
 			var sortFields = [];
 			var sortMethods = [];
-			keys.forEach(function (key) {
-				var sortResult = self.sortBy(`${key}:${sort[key] === -1 ? 'desc' : 'asc'}`, options);
+			keys.forEach(function(key) {
+				var sortResult = self.sortBy(
+					`${key}:${sort[key] === -1 ? 'desc' : 'asc'}`,
+					options
+				);
 				sortFields.push(sortResult.sortField);
 				sortMethods.push(sortResult.sortMethod);
 			});
@@ -83,7 +91,7 @@ sortMethod;
 
 	function quoteField(sortField) {
 		if (sortField && options.quoteField) {
-			return (`"${sortField}"`);
+			return `"${sortField}"`;
 		} else {
 			return sortField;
 		}
@@ -91,14 +99,16 @@ sortMethod;
 
 	var emptyWhiteList = options.sortFields.length === 0;
 
-	var inWhiteList = options.sortFields.length >= 1 && options.sortFields.indexOf(sortField) > -1;
+	var inWhiteList =
+		options.sortFields.length >= 1 &&
+		options.sortFields.indexOf(sortField) > -1;
 
 	if (sortField) {
 		if (emptyWhiteList || inWhiteList) {
 			sortField = prefixField(sortField);
 		} else {
 			return {
-				error: 'Invalid sort field'
+				error: 'Invalid sort field',
 			};
 		}
 	} else {
@@ -111,7 +121,7 @@ sortMethod;
 
 	return {
 		sortField: quoteField(sortField) || '',
-		sortMethod: sortField ? sortMethod : ''
+		sortMethod: sortField ? sortMethod : '',
 	};
 }
 
@@ -129,14 +139,17 @@ function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {
 	if (sortableFields.indexOf(sortQuery) !== -1) {
 		sortQuery += ':asc';
 	}
-	var sortQueryMatched = typeof sortQuery !== 'string' ? null : sortQuery.match(/^([a-zA-Z0-9]+):(asc|desc)$/);
+	var sortQueryMatched =
+		typeof sortQuery !== 'string'
+			? null
+			: sortQuery.match(/^([a-zA-Z0-9]+):(asc|desc)$/);
 	if (!sortQueryMatched || sortableFields.indexOf(sortQueryMatched[1]) === -1) {
 		return {};
 	}
 	var sortField = sortQueryMatched[1];
 	var sortMethodsToNumbersMap = {
 		asc: 1,
-		desc: -1
+		desc: -1,
 	};
 	var result = {};
 	var sortMethod = sortQueryMatched[2];
@@ -146,5 +159,5 @@ function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {
 
 module.exports = {
 	sortQueryToJsonSqlFormat: sortQueryToJsonSqlFormat,
-	sortBy: sortBy
+	sortBy: sortBy,
 };

@@ -61,19 +61,27 @@ describe('cached endpoints', () => {
 			};
 
 			return transactionsEndpoint.makeRequest(params, 200).then(res => {
- return Promise.all([0, 10, 100].map(delay => { return Promise.delay(delay).then(() => { return getJsonForKeyPromise(res.req.path); }); })).then(responses => {
+				return Promise.all(
+					[0, 10, 100].map(delay => {
+						return Promise.delay(delay).then(() => {
+							return getJsonForKeyPromise(res.req.path);
+						});
+					})
+				).then(responses => {
 					expect(responses).to.deep.include(res.body);
 				});
-});
+			});
 		});
 
 		it('should not cache if response is not a success', () => {
 			var params = {
-				whateversenderId: accountFixtures.genesis.address
+				whateversenderId: accountFixtures.genesis.address,
 			};
 
 			return transactionsEndpoint.makeRequest(params, 400).then(res => {
-				expect(res).to.have.property('status').to.equal(400);
+				expect(res)
+					.to.have.property('status')
+					.to.equal(400);
 				expect(res).to.have.nested.property('body.message');
 
 				return getJsonForKeyPromise(res.req.path).then(response => {
@@ -88,42 +96,67 @@ describe('cached endpoints', () => {
 
 		it('cache blocks by the url and parameters when response is a success', () => {
 			var params = {
-				height: '1'
+				height: '1',
 			};
 			var initialResponse = null;
 
-			return blocksEndpoint.makeRequest(params, 200).then(res => {
-				initialResponse = res;
-				return Promise.all([0, 10, 100].map(delay => { return Promise.delay(delay).then(() => { return getJsonForKeyPromise(res.req.path); }); }));
-			}).then(responses => {
-				expect(responses).to.deep.include(initialResponse.body);
-			});
+			return blocksEndpoint
+				.makeRequest(params, 200)
+				.then(res => {
+					initialResponse = res;
+					return Promise.all(
+						[0, 10, 100].map(delay => {
+							return Promise.delay(delay).then(() => {
+								return getJsonForKeyPromise(res.req.path);
+							});
+						})
+					);
+				})
+				.then(responses => {
+					expect(responses).to.deep.include(initialResponse.body);
+				});
 		});
 
 		it('should not cache if response is not a success', () => {
-			return blocksEndpoint.makeRequest({ height: -100 }, 400).then(res => {
-				expectSwaggerParamError(res, 'height');
-				return getJsonForKeyPromise(res.req.path);
-			}).then(response => {
-				expect(response).to.eql(null);
-			});
+			return blocksEndpoint
+				.makeRequest({ height: -100 }, 400)
+				.then(res => {
+					expectSwaggerParamError(res, 'height');
+					return getJsonForKeyPromise(res.req.path);
+				})
+				.then(response => {
+					expect(response).to.eql(null);
+				});
 		});
 
 		it('should remove entry from cache on new block', () => {
 			var params = {
-				height: 1
+				height: 1,
 			};
 
 			var initialResponse = null;
 
-			return blocksEndpoint.makeRequest(params, 200)
+			return blocksEndpoint
+				.makeRequest(params, 200)
 				.then(res => {
 					initialResponse = res;
-					return Promise.all([0, 10, 100].map(delay => { return Promise.delay(delay).then(() => { return getJsonForKeyPromise(res.req.path); }); }));
-				}).then(responses => {
+					return Promise.all(
+						[0, 10, 100].map(delay => {
+							return Promise.delay(delay).then(() => {
+								return getJsonForKeyPromise(res.req.path);
+							});
+						})
+					);
+				})
+				.then(responses => {
 					expect(responses).to.deep.include(initialResponse.body);
-				}).then(() => { return waitForBlocksPromise(1); })
-				.then(() => { return getJsonForKeyPromise(initialResponse.req.path); })
+				})
+				.then(() => {
+					return waitForBlocksPromise(1);
+				})
+				.then(() => {
+					return getJsonForKeyPromise(initialResponse.req.path);
+				})
 				.then(result => {
 					expect(result).to.eql(null);
 				});
@@ -134,42 +167,53 @@ describe('cached endpoints', () => {
 		var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
 
 		it('should cache delegates when response is successful', () => {
- return delegatesEndpoint.makeRequest({}, 200).then(res => {
- return Promise.all([0, 10, 100].map(delay => { return Promise.delay(delay).then(() => { return getJsonForKeyPromise(res.req.path); }); })).then(responses => {
+			return delegatesEndpoint.makeRequest({}, 200).then(res => {
+				return Promise.all(
+					[0, 10, 100].map(delay => {
+						return Promise.delay(delay).then(() => {
+							return getJsonForKeyPromise(res.req.path);
+						});
+					})
+				).then(responses => {
 					expect(responses).to.deep.include(res.body);
 				});
-});
-});
+			});
+		});
 
 		it('should not cache delegates when response is unsuccessful', () => {
 			var params = {
-				sort: 'invalidValue'
+				sort: 'invalidValue',
 			};
 
 			return delegatesEndpoint.makeRequest(params, 400).then(res => {
- return getJsonForKeyPromise(res.req.path).then(response => {
+				return getJsonForKeyPromise(res.req.path).then(response => {
 					expect(response).to.not.exist;
 				});
-});
+			});
 		});
 
 		it('should flush cache on the next round @slow', () => {
 			var params = {
-				username: 'genesis_90'
+				username: 'genesis_90',
 			};
 			var urlPath;
 
 			return delegatesEndpoint.makeRequest(params, 200).then(res => {
 				urlPath = res.req.path;
 				// Check key in cache after, 0, 10, 100 ms, and if value exists in any of this time period we respond with success
-				return Promise.all([0, 10, 100].map(delay => { return Promise.delay(delay).then(() => { return getJsonForKeyPromise(res.req.path); }); })).then(responses => {
+				return Promise.all(
+					[0, 10, 100].map(delay => {
+						return Promise.delay(delay).then(() => {
+							return getJsonForKeyPromise(res.req.path);
+						});
+					})
+				).then(responses => {
 					expect(responses).to.deep.include(res.body);
-					return onNewRoundPromise()
-						.then(() => {
- return getJsonForKeyPromise(urlPath).then(result => {
+					return onNewRoundPromise().then(() => {
+						return getJsonForKeyPromise(urlPath).then(result => {
 							expect(result).to.not.exist;
 						});
-});
+					});
 				});
 			});
 		});

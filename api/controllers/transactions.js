@@ -43,7 +43,7 @@ function TransactionsController(scope) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-TransactionsController.getTransactions = function (context, next) {
+TransactionsController.getTransactions = function(context, next) {
 	var invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
@@ -68,14 +68,16 @@ TransactionsController.getTransactions = function (context, next) {
 		maxAmount: params.maxAmount.value,
 		sort: params.sort.value,
 		limit: params.limit.value,
-		offset: params.offset.value
+		offset: params.offset.value,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	modules.transactions.shared.getTransactions(_.clone(filters), (err, data) => {
-		if (err) { return next(err); }
+		if (err) {
+			return next(err);
+		}
 
 		var transactions = _.map(_.cloneDeep(data.transactions), transaction => {
 			transaction.senderId = transaction.senderId || '';
@@ -95,8 +97,8 @@ TransactionsController.getTransactions = function (context, next) {
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
-				count: parseInt(data.count)
-			}
+				count: parseInt(data.count),
+			},
 		});
 	});
 };
@@ -108,7 +110,7 @@ TransactionsController.getTransactions = function (context, next) {
  * @param {function} next - Description of the param
  * @todo: Add description of the function and its parameters
  */
-TransactionsController.postTransactions = function (context, next) {
+TransactionsController.postTransactions = function(context, next) {
 	var transactions = context.request.swagger.params.transactions.value;
 
 	modules.transactions.shared.postTransactions(transactions, (err, data) => {
@@ -120,11 +122,13 @@ TransactionsController.postTransactions = function (context, next) {
 
 			return next(err);
 		}
-		if (err) { return next(err); }
+		if (err) {
+			return next(err);
+		}
 
 		next(null, {
 			data: { message: data },
-			meta: { status: true }
+			meta: { status: true },
 		});
 	});
 };

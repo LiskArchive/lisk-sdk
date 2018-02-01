@@ -52,12 +52,18 @@ module.exports = function create(fittingDef) {
 
 		// If not a swagger operation don't serve from pipeline
 		if (!context.request.swagger.operation) {
-			return new Error('Invalid swagger operation, unable to process cache for response');
+			return new Error(
+				'Invalid swagger operation, unable to process cache for response'
+			);
 		}
 
 		// Check if cache is enabled for the endpoint in swagger.yml
 		if (!!context.request.swagger.operation[cacheSpecKey] === false) {
-			debug(`Cache not enabled for endpoint: ${context.request.swagger.operation.pathToDefinition.join('.')}`);
+			debug(
+				`Cache not enabled for endpoint: ${context.request.swagger.operation.pathToDefinition.join(
+					'.'
+				)}`
+			);
 			return next(null, context.input);
 		}
 
@@ -73,7 +79,10 @@ module.exports = function create(fittingDef) {
 		if (mode === 'pre_response') {
 			cache.getJsonForKey(cacheKey, (err, cachedValue) => {
 				if (!err && cachedValue) {
-					logger.debug('Cache - Sending cached response for url:', context.request.url);
+					logger.debug(
+						'Cache - Sending cached response for url:',
+						context.request.url
+					);
 					context.response.json(cachedValue);
 				} else {
 					return next(null, context.input);
@@ -84,8 +93,13 @@ module.exports = function create(fittingDef) {
 		// If cache fitting is called after response processing
 		if (mode === 'post_response') {
 			if (context.statusCode === 200 || context.response.statusCode === 200) {
-				logger.debug('Cache - Setting response cache for url:', context.request.url);
-				cache.setJsonForKey(cacheKey, context.input, () => next(null, context.input));
+				logger.debug(
+					'Cache - Setting response cache for url:',
+					context.request.url
+				);
+				cache.setJsonForKey(cacheKey, context.input, () =>
+					next(null, context.input)
+				);
 			} else {
 				return next(null, context.input);
 			}

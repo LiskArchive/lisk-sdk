@@ -72,7 +72,7 @@ class RoundsRepository {
 	updateMissedBlocks(backwards, outsiders) {
 		return this.db.none(sql.updateMissedBlocks, {
 			change: backwards ? '- 1' : '+ 1',
-			outsiders
+			outsiders,
 		});
 	}
 
@@ -200,7 +200,7 @@ class RoundsRepository {
 			address: address,
 			amount: amount,
 			blockId: blockId,
-			round: round
+			round: round,
 		});
 	}
 
@@ -214,13 +214,19 @@ class RoundsRepository {
 	 * @param {string} mode - Possible values of '+' or '-' represents behaviour of adding or removing delegate
 	 * @return {Promise}
 	 */
-	insertRoundInformationWithDelegate(address, blockId, round, delegateId, mode) {
+	insertRoundInformationWithDelegate(
+		address,
+		blockId,
+		round,
+		delegateId,
+		mode
+	) {
 		return this.db.none(sql.insertRoundInformationWithDelegate, {
 			address: address,
 			blockId: blockId,
 			round: round,
 			delegate: delegateId,
-			balanceMode: (mode === '-' ? '-' : '')
+			balanceMode: mode === '-' ? '-' : '',
 		});
 	}
 }

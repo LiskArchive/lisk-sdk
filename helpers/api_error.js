@@ -26,9 +26,9 @@ function ApiError(message, code) {
 
 ApiError.prototype = new Error();
 
-ApiError.prototype.toJson = function () {
+ApiError.prototype.toJson = function() {
 	return {
-		message: this.message
+		message: this.message,
 	};
 };
 

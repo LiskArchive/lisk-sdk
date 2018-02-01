@@ -19,5 +19,5 @@
  * @property {integer} disableDappTransfers
  */
 module.exports = {
-	disableDappTransfers: 0
+	disableDappTransfers: 0,
 };

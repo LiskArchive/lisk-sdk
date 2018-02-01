@@ -26,12 +26,15 @@ describe('blocks/api', () => {
 	var blocksApiModule;
 
 	before(done => {
-		application.init({ sandbox: { name: 'lisk_test_blocks_api' }, waitForGenesisBlock: true }, (err, scope) => {
-			blocksApi = scope.modules.blocks.shared;
-			blocksApi.onBind(scope.modules);
+		application.init(
+			{ sandbox: { name: 'lisk_test_blocks_api' }, waitForGenesisBlock: true },
+			(err, scope) => {
+				blocksApi = scope.modules.blocks.shared;
+				blocksApi.onBind(scope.modules);
 
-			done();
-		});
+				done();
+			}
+		);
 	});
 
 	describe('constructor', () => {
@@ -51,14 +54,20 @@ describe('blocks/api', () => {
 						'totalFee',
 						'reward',
 						'numberOfTransactions',
-						'generatorPublicKey'
-					]
-				}
+						'generatorPublicKey',
+					],
+				},
 			};
 
 			blockStub = sinonSandbox.stub();
 
-			blocksApiModule = new BlocksApi(modulesLoader.scope.logger, dbStub, blockStub, modulesLoader.scope.schema, modulesLoader.scope.dbSequence);
+			blocksApiModule = new BlocksApi(
+				modulesLoader.scope.logger,
+				dbStub,
+				blockStub,
+				modulesLoader.scope.schema,
+				modulesLoader.scope.dbSequence
+			);
 			library = BlocksApi.__get__('library');
 			__private = BlocksApi.__get__('__private');
 
@@ -96,23 +105,39 @@ describe('blocks/api', () => {
 				it('should query db with id param and "b_id" = ${id} where clause when filter.id exists', done => {
 					__private.list({ id: 1 }, () => {
 						expect(dbStub.blocks.list.args[0][0].id).to.equal(1);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql('"b_id" = ${id}');
+						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
+							'"b_id" = ${id}'
+						);
 						done();
 					});
 				});
 
 				it('should query db with generatorPublicKey param and "b_generatorPublicKey"::bytea = ${generatorPublicKey} where clause when filter.generatorPublicKey exists', done => {
-					__private.list({ generatorPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f' }, () => {
-						expect(dbStub.blocks.list.args[0][0].generatorPublicKey).to.equal('c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f');
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql('"b_generatorPublicKey"::bytea = ${generatorPublicKey}');
-						done();
-					});
+					__private.list(
+						{
+							generatorPublicKey:
+								'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+						},
+						() => {
+							expect(dbStub.blocks.list.args[0][0].generatorPublicKey).to.equal(
+								'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f'
+							);
+							expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
+								'"b_generatorPublicKey"::bytea = ${generatorPublicKey}'
+							);
+							done();
+						}
+					);
 				});
 
 				it('should query db with numberOfTransactions param and "b_numberOfTransactions" = ${numberOfTransactions} where clause when filter.numberOfTransactions exists', done => {
 					__private.list({ numberOfTransactions: 2 }, () => {
-						expect(dbStub.blocks.list.args[0][0].numberOfTransactions).to.equal(2);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql('"b_numberOfTransactions" = ${numberOfTransactions}');
+						expect(dbStub.blocks.list.args[0][0].numberOfTransactions).to.equal(
+							2
+						);
+						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
+							'"b_numberOfTransactions" = ${numberOfTransactions}'
+						);
 						done();
 					});
 				});
@@ -120,7 +145,9 @@ describe('blocks/api', () => {
 				it('should query db with previousBlock param and "b_previousBlock" = ${previousBlock} where clause when filter.previousBlock exists', done => {
 					__private.list({ previousBlock: 12345 }, () => {
 						expect(dbStub.blocks.list.args[0][0].previousBlock).to.equal(12345);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql('"b_previousBlock" = ${previousBlock}');
+						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
+							'"b_previousBlock" = ${previousBlock}'
+						);
 						done();
 					});
 				});
@@ -128,7 +155,9 @@ describe('blocks/api', () => {
 				it('should query db with height param and "b_height" = ${height} where clause when filter.height >= 0', done => {
 					__private.list({ height: 3 }, () => {
 						expect(dbStub.blocks.list.args[0][0].height).to.equal(3);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql('"b_height" = ${height}');
+						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
+							'"b_height" = ${height}'
+						);
 						done();
 					});
 				});
@@ -136,7 +165,9 @@ describe('blocks/api', () => {
 				it('should query db with totalAmount param and "b_totalAmount" = ${totalAmount} where clause when filter.totalAmount >= 0', done => {
 					__private.list({ totalAmount: 4 }, () => {
 						expect(dbStub.blocks.list.args[0][0].totalAmount).to.equal(4);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql('"b_totalAmount" = ${totalAmount}');
+						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
+							'"b_totalAmount" = ${totalAmount}'
+						);
 						done();
 					});
 				});
@@ -144,7 +175,9 @@ describe('blocks/api', () => {
 				it('should query db with totalFee param and "b_totalFee" = ${totalFee} where clause when filter.totalFee >= 0', done => {
 					__private.list({ totalFee: 5 }, () => {
 						expect(dbStub.blocks.list.args[0][0].totalFee).to.equal(5);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql('"b_totalFee" = ${totalFee}');
+						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
+							'"b_totalFee" = ${totalFee}'
+						);
 						done();
 					});
 				});
@@ -152,7 +185,9 @@ describe('blocks/api', () => {
 				it('should query db with reward param and "b_reward" = ${reward} where clause when filter.reward >= 0', done => {
 					__private.list({ reward: 6 }, () => {
 						expect(dbStub.blocks.list.args[0][0].reward).to.equal(6);
-						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql('"b_reward" = ${reward}');
+						expect(dbStub.blocks.list.args[0][0].where[0]).to.eql(
+							'"b_reward" = ${reward}'
+						);
 						done();
 					});
 				});
@@ -215,7 +250,9 @@ describe('blocks/api', () => {
 				describe('sort', () => {
 					it('should query db with sort param when filter.sort exists', done => {
 						__private.list({ sort: 'numberOfTransactions:desc' }, () => {
-							expect(dbStub.blocks.list.args[0][0].sortField).to.equal('"b_numberOfTransactions"');
+							expect(dbStub.blocks.list.args[0][0].sortField).to.equal(
+								'"b_numberOfTransactions"'
+							);
 							expect(dbStub.blocks.list.args[0][0].sortMethod).to.equal('DESC');
 							done();
 						});
@@ -223,7 +260,9 @@ describe('blocks/api', () => {
 
 					it('should query db with sort height:desc when filter.sort does not exist', done => {
 						__private.list({}, () => {
-							expect(dbStub.blocks.list.args[0][0].sortField).to.equal('"b_height"');
+							expect(dbStub.blocks.list.args[0][0].sortField).to.equal(
+								'"b_height"'
+							);
 							expect(dbStub.blocks.list.args[0][0].sortMethod).to.equal('DESC');
 							done();
 						});

@@ -36,7 +36,7 @@ describe('rounds', () => {
 		info: sinon.spy(),
 		log: sinon.spy(),
 		warn: sinon.spy(),
-		error: sinon.spy()
+		error: sinon.spy(),
 	};
 
 	function get(variable) {
@@ -57,7 +57,7 @@ describe('rounds', () => {
 				db: db,
 				bus: { message: sinon.spy() },
 				network: { io: { sockets: { emit: sinon.spy() } } },
-				config: { loading: { snapshot: false } }
+				config: { loading: { snapshot: false } },
 			};
 			done();
 		});
@@ -68,13 +68,13 @@ describe('rounds', () => {
 
 		before(done => {
 			scope = _.cloneDeep(validScope);
-			new Rounds(((err, __instance) => {
+			new Rounds((err, __instance) => {
 				rounds = __instance;
 				// Overwrite database with reference from rounds module,
 				// needed for redefine properties without getting that every time
 				db = get('library.db');
 				done();
-			}), _.cloneDeep(scope));
+			}, _.cloneDeep(scope));
 		});
 
 		it('should return Rounds instance', () => {
@@ -188,7 +188,7 @@ describe('rounds', () => {
 			var value = {
 				blocks: 'blocks',
 				accounts: 'accounts',
-				delegates: 'delegates'
+				delegates: 'delegates',
 			};
 			rounds.onBind(value);
 			expect(get(variable)).to.deep.equal(value);
@@ -214,7 +214,11 @@ describe('rounds', () => {
 			rounds.onFinishRound(round);
 
 			expect(validScope.network.io.sockets.emit.calledOnce).to.be.true;
-			expect(validScope.network.io.sockets.emit.calledWith('rounds/change', { number: round })).to.be.true;
+			expect(
+				validScope.network.io.sockets.emit.calledWith('rounds/change', {
+					number: round,
+				})
+			).to.be.true;
 			validScope.network.io.sockets.emit.reset();
 		});
 	});
@@ -260,8 +264,16 @@ describe('rounds', () => {
 				before(() => {
 					// Bind fake modules
 					modules = {
-						delegates: { generateDelegateList: function (a, b, cb) { return cb(null, ['delegate1', 'delegate2', 'delegate3']); } },
-						accounts: { generateAddressByPublicKey: function () { return 'delegate'; } }
+						delegates: {
+							generateDelegateList: function(a, b, cb) {
+								return cb(null, ['delegate1', 'delegate2', 'delegate3']);
+							},
+						},
+						accounts: {
+							generateAddressByPublicKey: function() {
+								return 'delegate';
+							},
+						},
 					};
 					rounds.onBind(modules);
 				});
@@ -283,7 +295,9 @@ describe('rounds', () => {
 					});
 
 					it('should not modify scope.roundOutsiders', () => {
-						expect(scope.roundOutsiders).to.deep.equal(initialScope.roundOutsiders);
+						expect(scope.roundOutsiders).to.deep.equal(
+							initialScope.roundOutsiders
+						);
 					});
 				});
 
@@ -305,7 +319,9 @@ describe('rounds', () => {
 
 					it('should add 1 outsider scope.roundOutsiders', () => {
 						initialScope.roundOutsiders.push('delegate');
-						expect(scope.roundOutsiders).to.deep.equal(initialScope.roundOutsiders);
+						expect(scope.roundOutsiders).to.deep.equal(
+							initialScope.roundOutsiders
+						);
 					});
 				});
 
@@ -328,7 +344,9 @@ describe('rounds', () => {
 					it('should add 2 outsiders to scope.roundOutsiders', () => {
 						initialScope.roundOutsiders.push('delegate');
 						initialScope.roundOutsiders.push('delegate');
-						expect(scope.roundOutsiders).to.deep.equal(initialScope.roundOutsiders);
+						expect(scope.roundOutsiders).to.deep.equal(
+							initialScope.roundOutsiders
+						);
 					});
 				});
 			});
@@ -338,10 +356,10 @@ describe('rounds', () => {
 					// Bind fake modules
 					var modules = {
 						delegates: {
-							generateDelegateList: function (a, b, cb) {
+							generateDelegateList: function(a, b, cb) {
 								cb('error');
-							}
-						}
+							},
+						},
 					};
 					rounds.onBind(modules);
 				});
@@ -367,11 +385,13 @@ describe('rounds', () => {
 
 		describe('when summedRound query is successful', () => {
 			before(() => {
-				var rows = [{
-					rewards: [1.001, 2, 3],
-					fees: 100.001,
-					delegates: ['delegate1', 'delegate2', 'delegate3']
-				}];
+				var rows = [
+					{
+						rewards: [1.001, 2, 3],
+						fees: 100.001,
+						delegates: ['delegate1', 'delegate2', 'delegate3'],
+					},
+				];
 				stub = sinon.stub(db.rounds, 'summedRound').resolves(rows);
 			});
 
@@ -396,7 +416,11 @@ describe('rounds', () => {
 			});
 
 			it('should set scope.roundDelegates', () => {
-				expect(scope.roundDelegates).to.deep.equal(['delegate1', 'delegate2', 'delegate3']);
+				expect(scope.roundDelegates).to.deep.equal([
+					'delegate1',
+					'delegate2',
+					'delegate3',
+				]);
 			});
 		});
 
@@ -736,10 +760,18 @@ describe('rounds', () => {
 						function Round(__scope, __t) {
 							roundScope = __scope;
 
-							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
-							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
-							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
-							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+							clearRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearRoundSnapshot')
+								.resolves();
+							performRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'performRoundSnapshot')
+								.resolves();
+							clearVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearVotesSnapshot')
+								.resolves();
+							performVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'performVotesSnapshot')
+								.resolves();
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
@@ -786,10 +818,18 @@ describe('rounds', () => {
 						function Round(__scope, __t) {
 							roundScope = __scope;
 
-							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').rejects('clearRoundSnapshot');
-							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
-							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
-							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+							clearRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearRoundSnapshot')
+								.rejects('clearRoundSnapshot');
+							performRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'performRoundSnapshot')
+								.resolves();
+							clearVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearVotesSnapshot')
+								.resolves();
+							performVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'performVotesSnapshot')
+								.resolves();
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
@@ -837,10 +877,18 @@ describe('rounds', () => {
 						function Round(__scope, __t) {
 							roundScope = __scope;
 
-							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
-							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').rejects('performRoundSnapshot');
-							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
-							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+							clearRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearRoundSnapshot')
+								.resolves();
+							performRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'performRoundSnapshot')
+								.rejects('performRoundSnapshot');
+							clearVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearVotesSnapshot')
+								.resolves();
+							performVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'performVotesSnapshot')
+								.resolves();
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
@@ -888,10 +936,18 @@ describe('rounds', () => {
 						function Round(__scope, __t) {
 							roundScope = __scope;
 
-							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
-							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
-							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').rejects('clearVotesSnapshot');
-							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+							clearRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearRoundSnapshot')
+								.resolves();
+							performRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'performRoundSnapshot')
+								.resolves();
+							clearVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearVotesSnapshot')
+								.rejects('clearVotesSnapshot');
+							performVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'performVotesSnapshot')
+								.resolves();
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
@@ -939,10 +995,18 @@ describe('rounds', () => {
 						function Round(__scope, __t) {
 							roundScope = __scope;
 
-							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
-							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
-							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
-							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').rejects('performVotesSnapshot');
+							clearRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearRoundSnapshot')
+								.resolves();
+							performRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'performRoundSnapshot')
+								.resolves();
+							clearVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearVotesSnapshot')
+								.resolves();
+							performVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'performVotesSnapshot')
+								.rejects('performVotesSnapshot');
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;

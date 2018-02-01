@@ -22,11 +22,17 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	var library;
 
 	var scenarios = {
-		regular: new Scenarios.Multisig()
-
+		regular: new Scenarios.Multisig(),
 	};
 
-	var transactionToBeNotConfirmed = lisk.multisignature.createMultisignature(scenarios.regular.account.password, null, scenarios.regular.keysgroup, scenarios.regular.lifetime, scenarios.regular.min, -10000);
+	var transactionToBeNotConfirmed = lisk.multisignature.createMultisignature(
+		scenarios.regular.account.password,
+		null,
+		scenarios.regular.keysgroup,
+		scenarios.regular.lifetime,
+		scenarios.regular.min,
+		-10000
+	);
 
 	scenarios.regular.multiSigTransaction.ready = true;
 	scenarios.regular.multiSigTransaction.signatures = [];
@@ -34,9 +40,15 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	transactionToBeNotConfirmed.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		var signatureToBeNotconfirmed = lisk.multisignature.signTransaction(transactionToBeNotConfirmed, member.password);
+		var signatureToBeNotconfirmed = lisk.multisignature.signTransaction(
+			transactionToBeNotConfirmed,
+			member.password
+		);
 		transactionToBeNotConfirmed.signatures.push(signatureToBeNotconfirmed);
-		var signature = lisk.multisignature.signTransaction(scenarios.regular.multiSigTransaction, member.password);
+		var signature = lisk.multisignature.signTransaction(
+			scenarios.regular.multiSigTransaction,
+			member.password
+		);
 		scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
@@ -45,23 +57,35 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	});
 
 	before(done => {
-		localCommon.addTransactionsAndForge(library, [scenarios.regular.creditTransaction], () => {
-			done();
-		});
+		localCommon.addTransactionsAndForge(
+			library,
+			[scenarios.regular.creditTransaction],
+			() => {
+				done();
+			}
+		);
 	});
 
 	it('adding to pool multisig registration should be ok', done => {
-		localCommon.addTransaction(library, transactionToBeNotConfirmed, (err, res) => {
-			expect(res).to.equal(transactionToBeNotConfirmed.id);
-			done();
-		});
+		localCommon.addTransaction(
+			library,
+			transactionToBeNotConfirmed,
+			(err, res) => {
+				expect(res).to.equal(transactionToBeNotConfirmed.id);
+				done();
+			}
+		);
 	});
 
 	it('adding to pool same transaction with different timestamp should be ok', done => {
-		localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, (err, res) => {
-			expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
-			done();
-		});
+		localCommon.addTransaction(
+			library,
+			scenarios.regular.multiSigTransaction,
+			(err, res) => {
+				expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
+				done();
+			}
+		);
 	});
 
 	describe('after forging one block', () => {
@@ -73,11 +97,13 @@ describe('system test (type 4) - double multisignature registrations', () => {
 
 		it('first transaction to arrive should not be included', done => {
 			var filter = {
-				id: transactionToBeNotConfirmed.id
+				id: transactionToBeNotConfirmed.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {
 				expect(err).to.be.null;
-				expect(res).to.have.property('transactions').which.is.an('Array');
+				expect(res)
+					.to.have.property('transactions')
+					.which.is.an('Array');
 				expect(res.transactions.length).to.equal(0);
 				done();
 			});
@@ -85,22 +111,30 @@ describe('system test (type 4) - double multisignature registrations', () => {
 
 		it('last transaction to arrive should be included', done => {
 			var filter = {
-				id: scenarios.regular.multiSigTransaction.id
+				id: scenarios.regular.multiSigTransaction.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {
 				expect(err).to.be.null;
-				expect(res).to.have.property('transactions').which.is.an('Array');
+				expect(res)
+					.to.have.property('transactions')
+					.which.is.an('Array');
 				expect(res.transactions.length).to.equal(1);
-				expect(res.transactions[0].id).to.equal(scenarios.regular.multiSigTransaction.id);
+				expect(res.transactions[0].id).to.equal(
+					scenarios.regular.multiSigTransaction.id
+				);
 				done();
 			});
 		});
 
 		it('adding to pool multisignature registration for same account should fail', done => {
-			localCommon.addTransaction(library, scenarios.regular.multiSigTransaction, err => {
-				expect(err).to.equal('Account already has multisignatures enabled');
-				done();
-			});
+			localCommon.addTransaction(
+				library,
+				scenarios.regular.multiSigTransaction,
+				err => {
+					expect(err).to.equal('Account already has multisignatures enabled');
+					done();
+				}
+			);
 		});
 	});
 });
