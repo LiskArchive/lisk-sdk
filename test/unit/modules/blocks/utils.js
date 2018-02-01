@@ -16,7 +16,7 @@
 'use strict';
 
 var rewire = require('rewire');
-var modulesLoader = require('../../../common/modulesLoader');
+var modulesLoader = require('../../../common/modules_loader');
 var BlocksUtils = rewire('../../../../modules/blocks/utils.js');
 
 var viewRow_full_blocks_list = [
@@ -207,7 +207,7 @@ describe('blocks/utils', function() {
 		it('should return error when loadLastBlock sql fails', function(done) {
 			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves();
 
-			blocksUtilsModule.loadLastBlock(function(err, cb) {
+			blocksUtilsModule.loadLastBlock(function(err) {
 				expect(err).to.equal('Blocks#loadLastBlock error');
 				done();
 			});
@@ -233,7 +233,7 @@ describe('blocks/utils', function() {
 			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves();
 			loggerStub.error.reset();
 
-			blocksUtilsModule.loadLastBlock(function(err, cb) {
+			blocksUtilsModule.loadLastBlock(function(err) {
 				expect(loggerStub.error.args[0][0]).to.contains(
 					"TypeError: Cannot read property 'length' of undefined"
 				);
@@ -333,7 +333,7 @@ describe('blocks/utils', function() {
 		it('should return error when library.db.blocks.getIdSequence fails', function(done) {
 			loggerStub.error.reset();
 
-			blocksUtilsModule.getIdSequence(10, function(err, cb) {
+			blocksUtilsModule.getIdSequence(10, function(err) {
 				expect(loggerStub.error.args[0][0]).to.contains(
 					"TypeError: Cannot read property 'length' of undefined"
 				);
@@ -345,7 +345,7 @@ describe('blocks/utils', function() {
 		it('should return error when no row is found', function(done) {
 			library.db.blocks.getIdSequence = sinonSandbox.stub().resolves([]);
 
-			blocksUtilsModule.getIdSequence(10, function(err, cb) {
+			blocksUtilsModule.getIdSequence(10, function(err) {
 				expect(err).to.equal('Failed to get id sequence for height: 10');
 				done();
 			});
@@ -376,7 +376,7 @@ describe('blocks/utils', function() {
 			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves();
 			loggerStub.error.reset();
 
-			blocksUtilsModule.loadBlocksData({ id: '1' }, function(err, cb) {
+			blocksUtilsModule.loadBlocksData({ id: '1' }, function(err) {
 				expect(loggerStub.error.args[0][0]).to.contains(
 					"TypeError: Cannot read property 'length' of undefined"
 				);
@@ -388,10 +388,7 @@ describe('blocks/utils', function() {
 		it('should return error when called with both id and lastId', function(done) {
 			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(['1']);
 
-			blocksUtilsModule.loadBlocksData({ id: '1', lastId: '5' }, function(
-				err,
-				cb
-			) {
+			blocksUtilsModule.loadBlocksData({ id: '1', lastId: '5' }, function(err) {
 				expect(err).to.equal('Invalid filter: Received both id and lastId');
 				done();
 			});
@@ -464,7 +461,7 @@ describe('blocks/utils', function() {
 
 			blocksUtilsModule.aggregateBlocksReward(
 				{ generatorPublicKey: '123abc', activeDelegates: 101 },
-				function(err, cb) {
+				function(err) {
 					expect(loggerStub.error.args[0][0]).to.contains(
 						"TypeError: Cannot read property '0' of undefined"
 					);
@@ -481,7 +478,7 @@ describe('blocks/utils', function() {
 
 			blocksUtilsModule.aggregateBlocksReward(
 				{ generatorPublicKey: '123abc', activeDelegates: 101 },
-				function(err, cb) {
+				function(err) {
 					expect(err).to.equal('Account not found or is not a delegate');
 					done();
 				}
