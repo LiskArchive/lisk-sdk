@@ -110,12 +110,23 @@ function invalidAssets(option, badTransactions) {
 					badTransactions.push(transaction);
 				});
 		});
-	});
 
-	describe(`using invalid asset.${option} values`, () => {
-		typesRepresentatives.allTypes.forEach(test => {
-			it(`using ${test.description} should fail`, () => {
-				transaction.asset[option] = test.input;
+		describe(`using invalid asset.${option} values`, () => {
+			typesRepresentatives.allTypes.forEach(test => {
+				it(`using ${test.description} should fail`, () => {
+					transaction.asset[option] = test.input;
+
+					return apiHelpers
+						.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
+						.then(res => {
+							expect(res.body.message).to.not.be.empty;
+							badTransactions.push(transaction);
+						});
+				});
+			});
+
+			it('deleting object should fail', () => {
+				delete transaction.asset[option];
 
 				return apiHelpers
 					.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
@@ -124,17 +135,6 @@ function invalidAssets(option, badTransactions) {
 						badTransactions.push(transaction);
 					});
 			});
-		});
-
-		it('deleting object should fail', () => {
-			delete transaction.asset[option];
-
-			return apiHelpers
-				.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
-				.then(res => {
-					expect(res.body.message).to.not.be.empty;
-					badTransactions.push(transaction);
-				});
 		});
 	});
 }
