@@ -15,7 +15,7 @@
 
 var PQ = require('pg-promise').ParameterizedQuery;
 var _ = require('lodash');
-var transactionTypes = require('../../helpers/transactionTypes');
+var transactionTypes = require('../../helpers/transaction_types');
 var columnSet;
 
 /**
@@ -28,8 +28,7 @@ var columnSet;
  * @return {TransactionsRepository}
  */
 class TransactionsRepository {
-
-	constructor (db, pgp) {
+	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 
@@ -44,7 +43,7 @@ class TransactionsRepository {
 			'senderId',
 			'recipientId',
 			'confirmations',
-			'height'
+			'height',
 		];
 
 		this.dbTable = 'trs';
@@ -62,14 +61,21 @@ class TransactionsRepository {
 			'fee',
 			'signature',
 			'signSignature',
-			'signatures'
+			'signatures',
 		];
 
 		if (!columnSet) {
 			columnSet = {};
-			var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-			columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
-			columnSet.insert = columnSet.insert.merge([{name: 'recipientId', def: null}]);
+			var table = new pgp.helpers.TableName({
+				table: this.dbTable,
+				schema: 'public',
+			});
+			columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+				table: table,
+			});
+			columnSet.insert = columnSet.insert.merge([
+				{ name: 'recipientId', def: null },
+			]);
 		}
 
 		this.cs = columnSet;
@@ -77,11 +83,16 @@ class TransactionsRepository {
 		this.transactionsRepoMap = {};
 		this.transactionsRepoMap[transactionTypes.SEND] = 'transactions.transfer';
 		this.transactionsRepoMap[transactionTypes.DAPP] = 'transactions.dapp';
-		this.transactionsRepoMap[transactionTypes.DELEGATE] = 'transactions.delegate';
-		this.transactionsRepoMap[transactionTypes.IN_TRANSFER] = 'transactions.inTransfer';
-		this.transactionsRepoMap[transactionTypes.OUT_TRANSFER] = 'transactions.outTransfer';
-		this.transactionsRepoMap[transactionTypes.MULTI] = 'transactions.multisignature';
-		this.transactionsRepoMap[transactionTypes.SIGNATURE] = 'transactions.signature';
+		this.transactionsRepoMap[transactionTypes.DELEGATE] =
+			'transactions.delegate';
+		this.transactionsRepoMap[transactionTypes.IN_TRANSFER] =
+			'transactions.inTransfer';
+		this.transactionsRepoMap[transactionTypes.OUT_TRANSFER] =
+			'transactions.outTransfer';
+		this.transactionsRepoMap[transactionTypes.MULTI] =
+			'transactions.multisignature';
+		this.transactionsRepoMap[transactionTypes.SIGNATURE] =
+			'transactions.signature';
 		this.transactionsRepoMap[transactionTypes.VOTE] = 'transactions.vote';
 	}
 
@@ -89,7 +100,7 @@ class TransactionsRepository {
 	 * Count total transactions
 	 * @return {Promise}
 	 */
-	count () {
+	count() {
 		return this.db.one(Queries.count, [], a => +a.count);
 	}
 
@@ -98,7 +109,7 @@ class TransactionsRepository {
 	 * @param {string} id
 	 * @return {Promise}
 	 */
-	countById (id) {
+	countById(id) {
 		return this.db.one(Queries.countById, id, a => +a.count);
 	}
 
@@ -109,7 +120,7 @@ class TransactionsRepository {
 	 * @param {string} params.owner
 	 * @return {Promise}
 	 */
-	countList (params) {
+	countList(params) {
 		return this.db.query(Queries.countList(params), params);
 	}
 
@@ -124,7 +135,7 @@ class TransactionsRepository {
 	 * @param {int} params.offset
 	 * @return {Promise}
 	 */
-	list (params) {
+	list(params) {
 		return this.db.query(Queries.list(params), params);
 	}
 
@@ -133,7 +144,7 @@ class TransactionsRepository {
 	 * @param {Array.<string>} ids
 	 * @return {Promise}
 	 */
-	getTransferByIds (ids) {
+	getTransferByIds(ids) {
 		return this.db.query(Queries.getTransferByIds, [ids]);
 	}
 
@@ -142,7 +153,7 @@ class TransactionsRepository {
 	 * @param {Array.<string>} ids
 	 * @return {Promise}
 	 */
-	getVotesByIds (ids) {
+	getVotesByIds(ids) {
 		return this.db.query(Queries.getVotesByIds, [ids]);
 	}
 
@@ -151,7 +162,7 @@ class TransactionsRepository {
 	 * @param {Array.<string>} ids
 	 * @return {Promise}
 	 */
-	getDelegateByIds (ids) {
+	getDelegateByIds(ids) {
 		return this.db.query(Queries.getDelegateByIds, [ids]);
 	}
 
@@ -160,7 +171,7 @@ class TransactionsRepository {
 	 * @param {Array.<string>} ids
 	 * @return {Promise}
 	 */
-	getSignatureByIds (ids) {
+	getSignatureByIds(ids) {
 		return this.db.query(Queries.getSignatureByIds, [ids]);
 	}
 
@@ -169,7 +180,7 @@ class TransactionsRepository {
 	 * @param {Array.<string>} ids
 	 * @return {Promise}
 	 */
-	getMultiByIds (ids) {
+	getMultiByIds(ids) {
 		return this.db.query(Queries.getMultiByIds, [ids]);
 	}
 
@@ -178,7 +189,7 @@ class TransactionsRepository {
 	 * @param {Array.<string>} ids
 	 * @return {Promise}
 	 */
-	getDappByIds (ids) {
+	getDappByIds(ids) {
 		return this.db.query(Queries.getDappByIds, [ids]);
 	}
 
@@ -187,7 +198,7 @@ class TransactionsRepository {
 	 * @param {Array.<string>} ids
 	 * @return {Promise}
 	 */
-	getInTransferByIds (ids) {
+	getInTransferByIds(ids) {
 		return this.db.query(Queries.getInTransferByIds, [ids]);
 	}
 
@@ -196,7 +207,7 @@ class TransactionsRepository {
 	 * @param {Array.<string>} ids
 	 * @return {Promise}
 	 */
-	getOutTransferByIds (ids) {
+	getOutTransferByIds(ids) {
 		return this.db.query(Queries.getOutTransferByIds, [ids]);
 	}
 
@@ -205,7 +216,7 @@ class TransactionsRepository {
 	 * @param {Array.<Object>} transactions - Each object should justify *logic/transaction.prototype.schema*
 	 * @return {Promise}
 	 */
-	save (transactions) {
+	save(transactions) {
 		var self = this;
 		var saveTransactions = _.cloneDeep(transactions);
 
@@ -213,25 +224,38 @@ class TransactionsRepository {
 			saveTransactions = [saveTransactions];
 		}
 
-		saveTransactions.forEach(function (transaction) {
+		saveTransactions.forEach(function(transaction) {
 			try {
-				transaction.senderPublicKey = Buffer.from(transaction.senderPublicKey, 'hex');
+				transaction.senderPublicKey = Buffer.from(
+					transaction.senderPublicKey,
+					'hex'
+				);
 				transaction.signature = Buffer.from(transaction.signature, 'hex');
-				transaction.signSignature = transaction.signSignature ? Buffer.from(transaction.signSignature, 'hex') : null;
-				transaction.requesterPublicKey = transaction.requesterPublicKey ? Buffer.from(transaction.requesterPublicKey, 'hex') : null;
-				transaction.signatures = transaction.signatures ? transaction.signatures.join(',') : null;
+				transaction.signSignature = transaction.signSignature
+					? Buffer.from(transaction.signSignature, 'hex')
+					: null;
+				transaction.requesterPublicKey = transaction.requesterPublicKey
+					? Buffer.from(transaction.requesterPublicKey, 'hex')
+					: null;
+				transaction.signatures = transaction.signatures
+					? transaction.signatures.join(',')
+					: null;
 			} catch (e) {
 				throw e;
 			}
 		});
 
 		var batch = [];
-		batch.push(self.db.none(self.pgp.helpers.insert(saveTransactions, self.cs.insert)));
+		batch.push(
+			self.db.none(self.pgp.helpers.insert(saveTransactions, self.cs.insert))
+		);
 
 		var groupedTransactions = _.groupBy(saveTransactions, 'type');
 
-		Object.keys(groupedTransactions).forEach(function (type) {
-			batch.push(self.db[self.transactionsRepoMap[type]].save(groupedTransactions[type]));
+		Object.keys(groupedTransactions).forEach(function(type) {
+			batch.push(
+				self.db[self.transactionsRepoMap[type]].save(groupedTransactions[type])
+			);
 		});
 
 		// In order to avoid nested transactions, and thus SAVEPOINT-s,
@@ -239,60 +263,76 @@ class TransactionsRepository {
 		if (this.db.ctx && this.db.ctx.inTransaction) {
 			return this.db.batch(batch);
 		} else {
-			return this.db.tx(function (t) {
+			return this.db.tx(function(t) {
 				return t.batch(batch);
 			});
 		}
 	}
-
 }
 
 var Queries = {
-	count: 'SELECT count(id) FROM trs',
+	count: 'SELECT COUNT(*)::int AS "count" FROM trs',
 
-	countById: new PQ('SELECT count(id) FROM trs WHERE id = $1'),
+	countById: new PQ('SELECT COUNT(*)::int AS "count" FROM trs WHERE "id" = $1'),
 
-	countList: function (params) {
+	countList: function(params) {
 		return [
-			'SELECT COUNT(1) FROM trs_list',
-			(params.where.length || params.owner ? 'WHERE' : ''),
-			(params.where.length ? '(' + params.where.join(' ') + ')' : ''),
+			'SELECT COUNT(*) FROM trs_list',
+			params.where.length || params.owner ? 'WHERE' : '',
+			params.where.length ? `(${params.where.join(' ')})` : '',
 			// FIXME: Backward compatibility, should be removed after transitional period
-			(params.where.length && params.owner ? ' AND ' + params.owner : params.owner)
-		].filter(Boolean).join(' ');
+			params.where.length && params.owner
+				? ` AND ${params.owner}`
+				: params.owner,
+		]
+			.filter(Boolean)
+			.join(' ');
 	},
 
-	list: function (params) {
+	list: function(params) {
 		return [
 			'SELECT "t_id", "b_height", "t_blockId", "t_type", "t_timestamp", "t_senderId", "t_recipientId",',
 			'"t_amount", "t_fee", "t_signature", "t_SignSignature", "t_signatures", "confirmations",',
 			'ENCODE ("t_senderPublicKey", \'hex\') AS "t_senderPublicKey", ENCODE ("m_recipientPublicKey", \'hex\') AS "m_recipientPublicKey"',
 			'FROM trs_list',
-			(params.where.length || params.owner ? 'WHERE' : ''),
-			(params.where.length ? '(' + params.where.join(' ') + ')' : ''),
+			params.where.length || params.owner ? 'WHERE' : '',
+			params.where.length ? `(${params.where.join(' ')})` : '',
 			// FIXME: Backward compatibility, should be removed after transitional period
-			(params.where.length && params.owner ? ' AND ' + params.owner : params.owner),
-			(params.sortField ? 'ORDER BY ' + [params.sortField, params.sortMethod].join(' ') : ''),
-			'LIMIT ${limit} OFFSET ${offset}'
-		].filter(Boolean).join(' ');
+			params.where.length && params.owner
+				? ` AND ${params.owner}`
+				: params.owner,
+			params.sortField
+				? `ORDER BY ${[params.sortField, params.sortMethod].join(' ')}`
+				: '',
+			'LIMIT ${limit} OFFSET ${offset}',
+		]
+			.filter(Boolean)
+			.join(' ');
 	},
 
-	getTransferByIds: 'SELECT "transactionId" AS "transaction_id", CONVERT_FROM(data, \'utf8\') AS "tf_data" FROM transfer WHERE "transactionId" IN ($1:csv)',
+	getTransferByIds:
+		'SELECT "transactionId" AS "transaction_id", CONVERT_FROM(data, \'utf8\') AS "tf_data" FROM transfer WHERE "transactionId" IN ($1:csv)',
 
-	getVotesByIds: 'SELECT "transactionId" AS "transaction_id", votes AS "v_votes" FROM votes WHERE "transactionId" IN ($1:csv)',
+	getVotesByIds:
+		'SELECT "transactionId" AS "transaction_id", votes AS "v_votes" FROM votes WHERE "transactionId" IN ($1:csv)',
 
-	getDelegateByIds: 'SELECT "transactionId" AS "transaction_id", username AS "d_username" FROM delegates WHERE "transactionId" IN ($1:csv)',
+	getDelegateByIds:
+		'SELECT "transactionId" AS "transaction_id", username AS "d_username" FROM delegates WHERE "transactionId" IN ($1:csv)',
 
-	getSignatureByIds: 'SELECT "transactionId" AS "transaction_id", ENCODE ("publicKey", \'hex\') AS "s_publicKey" FROM signatures WHERE "transactionId" IN ($1:csv)',
+	getSignatureByIds:
+		'SELECT "transactionId" AS "transaction_id", ENCODE ("publicKey", \'hex\') AS "s_publicKey" FROM signatures WHERE "transactionId" IN ($1:csv)',
 
-	getMultiByIds: 'SELECT "transactionId" AS "transaction_id", min AS "m_min", lifetime AS "m_lifetime", keysgroup AS "m_keysgroup" FROM multisignatures WHERE "transactionId" IN ($1:csv)',
+	getMultiByIds:
+		'SELECT "transactionId" AS "transaction_id", min AS "m_min", lifetime AS "m_lifetime", keysgroup AS "m_keysgroup" FROM multisignatures WHERE "transactionId" IN ($1:csv)',
 
-	getDappByIds: 'SELECT "transactionId" AS "transaction_id", name AS "dapp_name", description AS "dapp_description", tags AS "dapp_tags", link AS "dapp_link", type AS "dapp_type", category AS "dapp_category", icon AS "dapp_icon" FROM dapps WHERE "transactionId" IN ($1:csv)',
+	getDappByIds:
+		'SELECT "transactionId" AS "transaction_id", name AS "dapp_name", description AS "dapp_description", tags AS "dapp_tags", link AS "dapp_link", type AS "dapp_type", category AS "dapp_category", icon AS "dapp_icon" FROM dapps WHERE "transactionId" IN ($1:csv)',
 
-	getInTransferByIds: 'SELECT "transactionId" AS "transaction_id", "dappId" AS "in_dappId" FROM intransfer WHERE "transactionId" IN ($1:csv)',
+	getInTransferByIds:
+		'SELECT "transactionId" AS "transaction_id", "dappId" AS "in_dappId" FROM intransfer WHERE "transactionId" IN ($1:csv)',
 
-	getOutTransferByIds: 'SELECT "transactionId" AS "transaction_id", "dappId" AS "ot_dappId", "outTransactionId" AS "ot_outTransactionId" FROM outtransfer WHERE "transactionId" IN ($1:csv)'
+	getOutTransferByIds:
+		'SELECT "transactionId" AS "transaction_id", "dappId" AS "ot_dappId", "outTransactionId" AS "ot_outTransactionId" FROM outtransfer WHERE "transactionId" IN ($1:csv)',
 };
-
 
 module.exports = TransactionsRepository;

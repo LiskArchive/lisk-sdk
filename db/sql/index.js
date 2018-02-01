@@ -80,7 +80,7 @@ module.exports = {
 		getVotes: link('rounds/get_votes.sql'),
 		updateVotes: link('rounds/update_votes.sql'),
 		updateMissedBlocks: link('rounds/update_missed_blocks.sql'),
-		updateBlockId: link('rounds/update_blockId.sql'),
+		updateBlockId: link('rounds/update_block_id.sql'),
 		summedRound: link('rounds/summed_round.sql'),
 		clearRoundSnapshot: link('rounds/clear_round_snapshot.sql'),
 		performRoundSnapshot: link('rounds/perform_round_snapshot.sql'),
