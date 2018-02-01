@@ -17,13 +17,14 @@
 const sql = require('../sql').voters;
 
 /**
- * Voters database interaction module
- * @memberof module:accounts
+ * Voters database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {VotersRepository}
+ * @returns {Object} - An instance of a VotersRepository
  */
 class VotersRepository {
 	constructor(db, pgp) {
@@ -35,12 +36,14 @@ class VotersRepository {
 	}
 
 	/**
-	 * Searches the voters for a delegate with a public Key
+	 * Searches the voters for a delegate with a public Key.
+	 *
 	 * @param {Object} params
 	 * @param {string} params.publicKey
 	 * @param {int} params.limit
 	 * @param {int} params.offset
 	 * @return {Promise}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	list(params) {
 		// TODO: Should use a result-specific method, not .query
@@ -48,9 +51,11 @@ class VotersRepository {
 	}
 
 	/**
-	 * Counts voters for a delegate with a public key
+	 * Counts voters for a delegate with a public key.
+	 *
 	 * @param {string} publicKey
 	 * @return {Promise<number>}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	count(publicKey) {
 		return this.db.one(sql.getVotersCount, publicKey, a => +a.count);

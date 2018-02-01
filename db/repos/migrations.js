@@ -20,14 +20,14 @@ const sql = require('../sql').migrations;
 const { sqlRoot } = require('../sql/config');
 
 /**
- * Database migrations interaction module.
+ * Database migrations interaction class.
  *
- * @memberof module:migrations
  * @class
+ * @memberof db.repos
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {MigrationsRepository}
+ * @returns {Object} - An instance of a MigrationsRepository
  */
 class MigrationsRepository {
 	constructor(db, pgp) {
@@ -39,8 +39,8 @@ class MigrationsRepository {
 	/**
 	 * Verifies presence of the 'migrations' OID named relation.
 	 *
-	 * @method
 	 * @return {Promise<boolean>}
+	 * @todo Add description for the return value
 	 */
 	hasMigrations() {
 		return this.db.proc(
@@ -53,8 +53,8 @@ class MigrationsRepository {
 	/**
 	 * Gets id of the last migration record, or 0, if none exist.
 	 *
-	 * @method
 	 * @return {Promise<number>}
+	 * @todo Add description for the return value
 	 */
 	getLastId() {
 		return this.db.oneOrNone(sql.getLastId, [], a => (a ? +a.id : 0));
@@ -63,8 +63,8 @@ class MigrationsRepository {
 	/**
 	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
 	 *
-	 * @method
 	 * @return {Promise<null>}
+	 * @todo Add description for the return value
 	 */
 	applyRuntime() {
 		// Must use a transaction here when not in one:
@@ -75,8 +75,8 @@ class MigrationsRepository {
 	/**
 	 * Executes 'migrations/memoryTables.sql' file, to create and configure all memory tables.
 	 *
-	 * @method
 	 * @return {Promise<null>}
+	 * @todo Add description for the return value
 	 */
 	createMemoryTables() {
 		// Must use a transaction here when not in one:
@@ -89,9 +89,9 @@ class MigrationsRepository {
 	/**
 	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
 	 *
-	 * @method
 	 * @param {number} lastMigrationId
 	 * @return {Promise<Array<{id, name, path, file}>>}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	readPending(lastMigrationId) {
 		const updatesPath = path.join(sqlRoot, 'migrations/updates');
@@ -128,8 +128,8 @@ class MigrationsRepository {
 	 * Applies a cumulative update: all pending migrations + runtime.
 	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
 	 *
-	 * @method
 	 * @return {Promise}
+	 * @todo Add description for the return value
 	 */
 	applyAll() {
 		return this.db.tx('applyAll', function*(t1) {

@@ -19,13 +19,14 @@ const sql = require('../sql').peers;
 const cs = {}; // Reusable ColumnSet objects
 
 /**
- * Peers database interaction module
- * @memberof module:peers
+ * Peers database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {PeersRepository}
+ * @returns {Object} - An instance of a PeersRepository
  */
 class PeersRepository {
 	constructor(db, pgp) {
@@ -53,26 +54,31 @@ class PeersRepository {
 	}
 
 	/**
-	 * Gets all peers from database
-	 * @return {Promise<[]>}
+	 * Gets all peers from database.
+	 *
+	 * @return {Promise}
+	 * @todo Add description for the return value
 	 */
 	list() {
 		return this.db.any(sql.list);
 	}
 
 	/**
-	 * Clears all peers from database
-	 * @return {Promise<null>}
+	 * Clears all peers from database.
+	 *
+	 * @return {Promise}
+	 * @todo Add description for the return value
 	 */
 	clear() {
 		return this.db.none(sql.clear);
 	}
 
 	/**
-	 * Inserts a new peer into database
+	 * Inserts a new peer into database.
 	 *
-	 * @param {Array<Object>} peers - Array of peer objects to be inserted.
-	 * @return {Promise<null>}
+	 * @param {Array} peers - Array of peer objects to be inserted
+	 * @return {Promise}
+	 * @todo Add description for the return value
 	 */
 	insert(peers) {
 		return this.db.none(this.pgp.helpers.insert(peers, cs.insert));

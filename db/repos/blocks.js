@@ -19,13 +19,14 @@ const sql = require('../sql').blocks;
 const cs = {}; // Reusable ColumnSet objects
 
 /**
- * Blocks database interaction module
- * @memberof module:blocks
+ * Blocks database interaction class.
+ *
  * @class
+ * @memberof db.repos.blocks
+ * @see Parent: {@link db.repos.blocks}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {BlocksRepository}
+ * @returns {Object} - An instance of a BlocksRepository
  */
 class BlocksRepository {
 	constructor(db, pgp) {
@@ -71,17 +72,21 @@ class BlocksRepository {
 
 	// TODO: Merge BlocksRepository#getGenesisBlock with BlocksRepository#getGenesisBlockId
 	/**
-	 * Get the genesis block
-	 * @return {Promise}
+	 * Get the genesis block.
+	 *
+	 * @returns {Promise}
+	 * @todo Add description of the return value
 	 */
 	getGenesisBlock() {
 		return this.db.any(sql.getGenesisBlock);
 	}
 
 	/**
-	 * Get genesis block by id
+	 * Get genesis block by id.
+	 *
 	 * @param {string} id
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	getGenesisBlockId(id) {
 		// TODO: Must use a result-specific method, not .query
@@ -89,21 +94,25 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Delete a block from database
+	 * Delete a block from database.
+	 *
 	 * @param {string} id
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add descriptions for the param and the return value
 	 */
 	deleteBlock(id) {
 		return this.db.none(sql.deleteBlock, [id]);
 	}
 
 	/**
-	 * Aggregate rewards for a block
+	 * Aggregate rewards for a block.
+	 *
 	 * @param {Object} params
 	 * @param {string} params.generatorPublicKey
 	 * @param {int} params.start - Start time of aggregation period
 	 * @param {int} params.end - End time for aggregation period
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	aggregateBlocksReward(params) {
 		// TODO: Must use a result-specific method, not .query
@@ -115,22 +124,26 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Counts all blocks
-	 * @return {Promise<number>}
+	 * Counts all blocks.
+	 *
+	 * @returns {Promise<number>}
+	 * @todo Add description for the return value
 	 */
 	count() {
 		return this.db.one(sql.count, [], a => +a.count);
 	}
 
 	/**
-	 * Search blocks in database
+	 * Search blocks in database.
+	 *
 	 * @param {Object} params
 	 * @param {array} params.where
 	 * @param {string} params.sortField
 	 * @param {string} params.sortMethod
 	 * @param {int} params.limit
 	 * @param {int} params.offset
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	list(params) {
 		// TODO: Must use a result-specific method, not .query
@@ -138,12 +151,14 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Get sequence of blocks ids for delegates
+	 * Get sequence of blocks ids for delegates.
+	 *
 	 * @param {Object} params
 	 * @param {int} params.delegates - Number of delegates
 	 * @param {int} params.height
 	 * @param {int} params.limit
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	getIdSequence(params) {
 		// TODO: Must use a result-specific method, not .query
@@ -151,12 +166,14 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Get common block among peers
+	 * Get common block among peers.
+	 *
 	 * @param {Object} params
 	 * @param {string} params.id
 	 * @param {string} params.previousBlock
 	 * @param {int} params.height
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	getCommonBlock(params) {
 		// TODO: Must use a result-specific method, not .query
@@ -168,9 +185,11 @@ class BlocksRepository {
 
 	// TODO: Merge BlocksRepository#getHeightByLastId with BlocksRepository#list
 	/**
-	 * Get height of the block with id
+	 * Get height of the block with id.
+	 *
 	 * @param {string} lastId - Id of the block to search
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	getHeightByLastId(lastId) {
 		// TODO: Must use a result-specific method, not .query
@@ -178,13 +197,15 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Load block including transactions
+	 * Load block including transactions.
+	 *
 	 * @param {Object} params
 	 * @param {string} params.id
 	 * @param {string} params.lastId
 	 * @param {int} params.height
 	 * @param {int} params.limit
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	loadBlocksData(params) {
 		// TODO: Must use a result-specific method, not .query
@@ -192,10 +213,12 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Load blocks including transactions with an offset and limit
+	 * Load blocks including transactions with an offset and limit.
+	 *
 	 * @param {int} offset
 	 * @param {int} limit
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	loadBlocksOffset(offset, limit) {
 		// TODO: Must use a result-specific method, not .query
@@ -203,8 +226,10 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Load the last block including transactions
-	 * @return {Promise}
+	 * Load the last block including transactions.
+	 *
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	loadLastBlock() {
 		// TODO: Must use a result-specific method, not .query
@@ -212,36 +237,44 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Load last N block ids from the database
+	 * Load last N block ids from the database.
+	 *
 	 * @param {limit} - Number of blocks to load
+	 * @todo Add a returns-tag
 	 */
 	loadLastNBlockIds(limit) {
 		return this.db.query(sql.loadLastNBlockIds, [limit]);
 	}
 
 	/**
-	 * Check if a block exits with a particular ID
+	 * Check if a block exits with a particular ID.
+	 *
 	 * @param {string} id
-	 * @return {Promise}
+	 * @returns {Promise}
 	 * @throws {QueryResultError} - Multiple rows were not expected - in the case of multiple blocks found with same id
+	 * @todo Add descriptions for the params and the return value
 	 */
 	blockExists(id) {
 		return this.db.oneOrNone(sql.blockExists, [id]);
 	}
 
 	/**
-	 * Delete all blocks after a particular height
+	 * Delete all blocks after a particular height.
+	 *
 	 * @param {string} id
-	 * @return {Promise}
+	 * @returns {Promise}
 	 */
 	deleteAfterBlock(id) {
 		return this.db.none(sql.deleteAfterBlock, [id]);
 	}
 
 	/**
-	 * Get multiple blocks to be transported to peers
+	 * Get multiple blocks to be transported to peers.
+	 *
 	 * @param {string} ids - Comma separated string of ids
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
+	 *
 	 */
 	getBlocksForTransport(ids) {
 		// TODO: Must use a result-specific method, not .query
@@ -249,9 +282,12 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Insert a block to database
+	 * Insert a block to database.
+	 *
 	 * @param {Object} block - Attributes to be inserted, can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
-	 * @return {Promise}
+	 * @param {Object} block - Attributes to be inserted, can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	save(block) {
 		var saveBlock;
@@ -273,8 +309,22 @@ class BlocksRepository {
 }
 
 // TODO: All these queries need to be thrown away, and use proper implementation inside corresponding methods.
-
+/**
+ * Description of the Object.
+ *
+ * @namespace Queries
+ * @memberof db.repos.blocks
+ */
 const Queries = {
+	/**
+	 * Description of the function.
+	 *
+	 * @func list
+	 * @memberof db.repos.blocks.Queries
+	 * @param {Object} params - Description of the param
+	 * @todo Add description of the function and its param
+	 * @todo Add returns-tag
+	 */
 	list(params) {
 		return [
 			'SELECT * FROM blocks_list',
@@ -290,6 +340,15 @@ const Queries = {
 			.join(' ');
 	},
 
+	/**
+	 * Description of the function.
+	 *
+	 * @func loadBlocksData
+	 * @memberof db.repos.blocks.Queries
+	 * @param {Object} params - Description of the param
+	 * @todo Add description of the function and its param
+	 * @todo Add returns-tag
+	 */
 	loadBlocksData(params) {
 		var limitPart;
 

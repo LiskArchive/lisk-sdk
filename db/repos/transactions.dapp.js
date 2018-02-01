@@ -19,13 +19,14 @@ var _ = require('lodash');
 var columnSet;
 
 /**
- * Dapps Transactions database interaction module
- * @memberof module:dapps
+ * Dapps Transactions database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {DappsTransactionsRepo}
+ * @returns {Object} - An instance of a DappsTransactionsRepo
  */
 function DappsTransactionsRepo(db, pgp) {
 	this.db = db;
@@ -59,9 +60,11 @@ function DappsTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save Dapp transactions
+ * Save Dapp transactions.
+ *
  * @param {Array.<{id: string, asset: {dapp: {type: int, name: string, description: string, tags: string, link: string, icon: string, category: string}}}>} transactions
  * @return {Promise}
+ * @todo Add descriptions for the params and the return value
  */
 DappsTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {

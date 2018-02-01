@@ -17,13 +17,14 @@
 const sql = require('../sql').dapps;
 
 /**
- * Dapps database interaction module
- * @memberof module:dapps
+ * Dapps database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {DappsRepository}
+ * @returns {Object} - An instance of a DappsRepository
  */
 class DappsRepository {
 	constructor(db, pgp) {
@@ -35,30 +36,36 @@ class DappsRepository {
 	}
 
 	/**
-	 * Counts dapps by transaction id
+	 * Counts dapps by transaction id.
+	 *
 	 * @param {string} id
-	 * @return {Promise<number>}
+	 * @returns {Promise<number>}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	countByTransactionId(id) {
 		return this.db.one(sql.countByTransactionId, id, a => +a.count);
 	}
 
 	/**
-	 * Counts dapps by out transfer transaction id
+	 * Counts dapps by out transfer transaction id.
+	 *
 	 * @param {string} id
-	 * @return {Promise<number>}
+	 * @returns {Promise<number>}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	countByOutTransactionId(id) {
 		return this.db.one(sql.countByOutTransactionId, id, a => +a.count);
 	}
 
 	/**
-	 * Checks if a dapp exists
+	 * Checks if a dapp exists.
+	 *
 	 * @param {Object} params
 	 * @param {string} params.transactionId
 	 * @param {string} params.name
 	 * @param {string} params.link
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	getExisting(params) {
 		// TODO: Should use a result-specific method, not .query
@@ -66,14 +73,16 @@ class DappsRepository {
 	}
 
 	/**
-	 * Searches existing dapps in database
+	 * Searches existing dapps in database.
+	 *
 	 * @param {Object} params
 	 * @param {Array} params.where
 	 * @param {string} params.sortField
 	 * @param {string} params.sortMethod
 	 * @param {int} params.limit
 	 * @param {int} params.offset
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add descriptions for the params and the return value
 	 */
 	list(params) {
 		// TODO: Use cases need to be reviewed, and new methods added before it can be made into a proper external SQL
@@ -96,9 +105,11 @@ class DappsRepository {
 
 	// TODO: Remove DappsRepository#getGenesis and use relevant function from db/blocks
 	/**
-	 * Gets Genesis block
+	 * Gets Genesis block.
+	 *
 	 * @param {string} id
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add descriptions for the param and the return value
 	 */
 	getGenesis(id) {
 		// TODO: Should use a result-specific method, not .query

@@ -19,13 +19,14 @@ var _ = require('lodash');
 var columnSet;
 
 /**
- * Votes Transactions database interaction module
- * @memberof module:accounts
+ * Votes Transactions database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {VoteTransactionsRepo}
+ * @returns {Object} - An instance of a VoteTransactionsRepo
  */
 function VoteTransactionsRepo(db, pgp) {
 	this.db = db;
@@ -50,9 +51,11 @@ function VoteTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save vote transactions
+ * Save vote transactions.
+ *
  * @param {Array.<{id: string, asset:{votes: Array.<string>}}>} transactions
  * @return {Promise}
+ * @todo Add descriptions for the params and the return value
  */
 VoteTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {

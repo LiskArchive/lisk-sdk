@@ -20,13 +20,14 @@ require('../../helpers/transaction_types');
 var columnSet;
 
 /**
- * Multisignature Transactions database interaction module
- * @memberof module:multisignatures
+ * Multisignature Transactions database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {MultiSigTransactionsRepo}
+ * @returns {Object} - An instance of a MultiSigTransactionsRepo
  */
 function MultiSigTransactionsRepo(db, pgp) {
 	this.db = db;
@@ -51,9 +52,11 @@ function MultiSigTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save Multisignature transactions
+ * Save Multisignature transactions.
+ *
  * @param {Array.<{id: string, {asset: {multisignature: {min: int, lifetime: int, keysgroup: Array.<string>}}}>} transactions
  * @return {Promise}
+ * @todo Add descriptions for the params and the return value
  */
 MultiSigTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {
