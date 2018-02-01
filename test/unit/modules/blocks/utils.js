@@ -28,7 +28,7 @@ var viewRow_full_blocks_list = [
 	},
 ];
 
-describe('blocks/utils', function() {
+describe('blocks/utils', () => {
 	var __private;
 	var library;
 	var blocksUtilsModule;
@@ -37,8 +37,8 @@ describe('blocks/utils', function() {
 	var blockMock;
 	var transactionMock;
 
-	describe('Utils', function() {
-		before(function(done) {
+	describe('constructor', () => {
+		before(done => {
 			dbStub = {
 				blocks: {
 					getIdSequence: sinonSandbox.stub().resolves(),
@@ -85,42 +85,42 @@ describe('blocks/utils', function() {
 			done();
 		});
 
-		describe('library', function() {
-			it('should assign logger', function() {
+		describe('library', () => {
+			it('should assign logger', () => {
 				expect(library.logger).to.eql(loggerStub);
 			});
 
-			it('should assign db', function() {
+			it('should assign db', () => {
 				expect(library.db).to.eql(dbStub);
 			});
 
-			it('should assign dbSequence', function() {
+			it('should assign dbSequence', () => {
 				expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
 			});
 
-			describe('should assign logic', function() {
-				it('should assign block', function() {
+			describe('should assign logic', () => {
+				it('should assign block', () => {
 					expect(library.logic.block).to.eql(blockMock);
 				});
 
-				it('should assign transaction', function() {
+				it('should assign transaction', () => {
 					expect(library.logic.transaction).to.eql(transactionMock);
 				});
 			});
 		});
 
-		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."', function() {
+		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."', () => {
 			expect(loggerStub.trace.args[0][0]).to.equal(
 				'Blocks->Utils: Submodule initialized.'
 			);
 		});
 	});
 
-	describe('onBind', function() {
+	describe('onBind', () => {
 		var modulesStub;
 		var modules;
 
-		before(function() {
+		before(() => {
 			modulesStub = {
 				blocks: {
 					lastBlock: {
@@ -143,23 +143,23 @@ describe('blocks/utils', function() {
 			modules = BlocksUtils.__get__('modules');
 		});
 
-		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', function() {
+		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', () => {
 			expect(loggerStub.trace.args[0][0]).to.equal(
 				'Blocks->Utils: Shared modules bind.'
 			);
 		});
 
-		it('should create a modules object { blocks: scope.blocks }', function() {
+		it('should create a modules object { blocks: scope.blocks }', () => {
 			expect(modules.blocks).to.equal(modulesStub.blocks);
 		});
 
-		it('should set __private.loaded to true', function() {
+		it('should set __private.loaded to true', () => {
 			expect(__private.loaded).to.be.true;
 		});
 	});
 
-	describe('readDbRows', function() {
-		it('should transform a full_blocks_list view row into a block object', function(done) {
+	describe('readDbRows', () => {
+		it('should transform a full_blocks_list view row into a block object', done => {
 			var blockObject = blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
 
 			expect(blockObject[0].id).to.equal(viewRow_full_blocks_list[0].b_id);
@@ -175,7 +175,7 @@ describe('blocks/utils', function() {
 			done();
 		});
 
-		it('should generate fake signature for genesis block', function(done) {
+		it('should generate fake signature for genesis block', done => {
 			var genesisBlock_view_full_blocks_list = [
 				{
 					b_id: '6524861224470851795',
@@ -203,22 +203,22 @@ describe('blocks/utils', function() {
 		});
 	});
 
-	describe('loadBlocksPart', function() {
-		it('should return error when loadLastBlock sql fails', function(done) {
+	describe('loadBlocksPart', () => {
+		it('should return error when loadLastBlock sql fails', done => {
 			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves();
 
-			blocksUtilsModule.loadLastBlock(function(err) {
+			blocksUtilsModule.loadLastBlock(err => {
 				expect(err).to.equal('Blocks#loadLastBlock error');
 				done();
 			});
 		});
 
-		it('should return block object', function(done) {
+		it('should return block object', done => {
 			library.db.blocks.loadLastBlock = sinonSandbox
 				.stub()
 				.resolves(viewRow_full_blocks_list);
 
-			blocksUtilsModule.loadLastBlock(function(err, cb) {
+			blocksUtilsModule.loadLastBlock((err, cb) => {
 				expect(err).to.be.null;
 				expect(cb).to.be.an('object');
 				expect(cb.id).to.equal('13068833527549895884');
@@ -228,12 +228,12 @@ describe('blocks/utils', function() {
 		});
 	});
 
-	describe('loadLastBlock', function() {
-		it('should return error when loadLastBlock sql fails', function(done) {
+	describe('loadLastBlock', () => {
+		it('should return error when loadLastBlock sql fails', done => {
 			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves();
 			loggerStub.error.reset();
 
-			blocksUtilsModule.loadLastBlock(function(err) {
+			blocksUtilsModule.loadLastBlock(err => {
 				expect(loggerStub.error.args[0][0]).to.contains(
 					"TypeError: Cannot read property 'length' of undefined"
 				);
@@ -242,8 +242,8 @@ describe('blocks/utils', function() {
 			});
 		});
 
-		describe('sorting the block.transactions array', function() {
-			it('should move votes to the end when block is genesis block', function(done) {
+		describe('sorting the block.transactions array', () => {
+			it('should move votes to the end when block is genesis block', done => {
 				var genesisBlock_votes = [
 					{
 						b_id: '6524861224470851795',
@@ -268,7 +268,7 @@ describe('blocks/utils', function() {
 					.stub()
 					.resolves(genesisBlock_votes);
 
-				blocksUtilsModule.loadLastBlock(function(err, cb) {
+				blocksUtilsModule.loadLastBlock(cb => {
 					expect(cb).to.be.an('object');
 					expect(cb.id).to.equal('6524861224470851795');
 					expect(cb.transactions[0].id).to.equal('3634383815892709956');
@@ -281,7 +281,7 @@ describe('blocks/utils', function() {
 				});
 			});
 
-			it('should move signatures to the end', function(done) {
+			it('should move signatures to the end', done => {
 				var genesisBlock_votes = [
 					{
 						b_id: '6524861224470851000',
@@ -312,7 +312,7 @@ describe('blocks/utils', function() {
 					.stub()
 					.resolves(genesisBlock_votes);
 
-				blocksUtilsModule.loadLastBlock(function(err, cb) {
+				blocksUtilsModule.loadLastBlock(cb => {
 					expect(cb).to.be.an('object');
 					expect(cb.id).to.equal('6524861224470851000');
 					expect(cb.transactions[0].id).to.equal('1465651642158264047');
@@ -329,11 +329,11 @@ describe('blocks/utils', function() {
 		});
 	});
 
-	describe('getIdSequence', function() {
-		it('should return error when library.db.blocks.getIdSequence fails', function(done) {
+	describe('getIdSequence', () => {
+		it('should return error when library.db.blocks.getIdSequence fails', done => {
 			loggerStub.error.reset();
 
-			blocksUtilsModule.getIdSequence(10, function(err) {
+			blocksUtilsModule.getIdSequence(10, err => {
 				expect(loggerStub.error.args[0][0]).to.contains(
 					"TypeError: Cannot read property 'length' of undefined"
 				);
@@ -342,16 +342,16 @@ describe('blocks/utils', function() {
 			});
 		});
 
-		it('should return error when no row is found', function(done) {
+		it('should return error when no row is found', done => {
 			library.db.blocks.getIdSequence = sinonSandbox.stub().resolves([]);
 
-			blocksUtilsModule.getIdSequence(10, function(err) {
+			blocksUtilsModule.getIdSequence(10, err => {
 				expect(err).to.equal('Failed to get id sequence for height: 10');
 				done();
 			});
 		});
 
-		it('should return valid block id list', function(done) {
+		it('should return valid block id list', done => {
 			library.db.blocks.getIdSequence = sinonSandbox
 				.stub()
 				.resolves([
@@ -361,7 +361,7 @@ describe('blocks/utils', function() {
 					{ id: 4, height: 5 },
 				]);
 
-			blocksUtilsModule.getIdSequence(10, function(err, cb) {
+			blocksUtilsModule.getIdSequence(10, cb => {
 				expect(cb.firstHeight).to.equal(1);
 				expect(cb.ids).to.equal(
 					'9314232245035524467,1,2,3,4,6524861224470851795'
@@ -371,12 +371,12 @@ describe('blocks/utils', function() {
 		});
 	});
 
-	describe('loadBlocksData', function() {
-		it('should return error when loadBlocksData fails', function(done) {
+	describe('loadBlocksData', () => {
+		it('should return error when loadBlocksData fails', done => {
 			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves();
 			loggerStub.error.reset();
 
-			blocksUtilsModule.loadBlocksData({ id: '1' }, function(err) {
+			blocksUtilsModule.loadBlocksData({ id: '1' }, err => {
 				expect(loggerStub.error.args[0][0]).to.contains(
 					"TypeError: Cannot read property 'length' of undefined"
 				);
@@ -385,23 +385,23 @@ describe('blocks/utils', function() {
 			});
 		});
 
-		it('should return error when called with both id and lastId', function(done) {
+		it('should return error when called with both id and lastId', done => {
 			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(['1']);
 
-			blocksUtilsModule.loadBlocksData({ id: '1', lastId: '5' }, function(err) {
+			blocksUtilsModule.loadBlocksData({ id: '1', lastId: '5' }, err => {
 				expect(err).to.equal('Invalid filter: Received both id and lastId');
 				done();
 			});
 		});
 
-		it('should return empty row when called with invalid id', function(done) {
-			blocksUtilsModule.loadBlocksData({ id: '1' }, function(err, cb) {
+		it('should return empty row when called with invalid id', done => {
+			blocksUtilsModule.loadBlocksData({ id: '1' }, (err, cb) => {
 				expect(cb.length).to.equal(0);
 				done();
 			});
 		});
 
-		it('should return one row when called with valid id', function(done) {
+		it('should return one row when called with valid id', done => {
 			blocksUtilsModule.loadBlocksData({ id: '13068833527549895884' }, function(
 				err,
 				cb
@@ -412,14 +412,14 @@ describe('blocks/utils', function() {
 		});
 	});
 
-	describe('getBlockProgressLogger', function() {
+	describe('getBlockProgressLogger', () => {
 		var testTracker;
 
-		beforeEach(function() {
+		beforeEach(() => {
 			loggerStub.info.reset();
 		});
 
-		it('should initialize BlockProgressLogger', function(done) {
+		it('should initialize BlockProgressLogger', done => {
 			testTracker = blocksUtilsModule.getBlockProgressLogger(
 				1,
 				1,
@@ -428,7 +428,7 @@ describe('blocks/utils', function() {
 			done();
 		});
 
-		it('should return valid log information when call applyNext()', function(done) {
+		it('should return valid log information when call applyNext()', done => {
 			testTracker.applyNext();
 			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
 			expect(loggerStub.info.args[0][1]).to.equal(
@@ -437,14 +437,14 @@ describe('blocks/utils', function() {
 			done();
 		});
 
-		it('should throw error when times applied >= transactionsCount', function(done) {
-			expect(function() {
+		it('should throw error when times applied >= transactionsCount', done => {
+			expect(() => {
 				testTracker.applyNext();
 			}).to.throw('Cannot apply transaction over the limit: 1');
 			done();
 		});
 
-		it('should return valid log information when reset tracker and call applyNext()', function(done) {
+		it('should return valid log information when reset tracker and call applyNext()', done => {
 			testTracker.reset();
 			testTracker.applyNext();
 			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
@@ -455,13 +455,13 @@ describe('blocks/utils', function() {
 		});
 	});
 
-	describe('aggregateBlocksReward', function() {
-		it('should return error when aggregateBlocksReward sql fails', function(done) {
+	describe('aggregateBlocksReward', () => {
+		it('should return error when aggregateBlocksReward sql fails', done => {
 			loggerStub.error.reset();
 
 			blocksUtilsModule.aggregateBlocksReward(
 				{ generatorPublicKey: '123abc', activeDelegates: 101 },
-				function(err) {
+				err => {
 					expect(loggerStub.error.args[0][0]).to.contains(
 						"TypeError: Cannot read property '0' of undefined"
 					);
@@ -471,28 +471,28 @@ describe('blocks/utils', function() {
 			);
 		});
 
-		it('should return error when delegate is null', function(done) {
+		it('should return error when delegate is null', done => {
 			library.db.blocks.aggregateBlocksReward = sinonSandbox
 				.stub()
 				.resolves([{ delegate: null }]);
 
 			blocksUtilsModule.aggregateBlocksReward(
 				{ generatorPublicKey: '123abc', activeDelegates: 101 },
-				function(err) {
+				err => {
 					expect(err).to.equal('Account not found or is not a delegate');
 					done();
 				}
 			);
 		});
 
-		it('should return block object', function(done) {
+		it('should return block object', done => {
 			library.db.blocks.aggregateBlocksReward = sinonSandbox
 				.stub()
 				.resolves([{ delegate: '123abc', fees: 1, count: 100 }]);
 
 			blocksUtilsModule.aggregateBlocksReward(
 				{ generatorPublicKey: '123abc', activeDelegates: 101 },
-				function(err, cb) {
+				(err, cb) => {
 					expect(cb.fees).to.equal(1);
 					expect(cb.count).to.equal(100);
 					expect(cb.rewards).to.equal('0');
