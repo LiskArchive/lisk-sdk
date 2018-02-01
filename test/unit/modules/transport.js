@@ -601,9 +601,9 @@ describe('transport', () => {
 				done();
 			});
 
-			// TODO: It doesn't seem that library.schema.validate currently gets called by the __private.receiveTransaction logic.
-			describe.skip('when library.schema.validate fails', () => {
+			describe('when library.schema.validate fails', () => {
 				var validateErr;
+				var error;
 
 				beforeEach(done => {
 					validateErr = new Error('Transaction did not match schema');
@@ -612,35 +612,37 @@ describe('transport', () => {
 						.stub()
 						.callsArgWith(2, [validateErr]);
 
-					__private.receiveTransactions(query, peerStub, '', () => {
+					__private.receiveTransactions(query, peerStub, '', err => {
+						error = err;
 						done();
 					});
 				});
 
 				it('should call callback with error = "Invalid transactions body"', () => {
-					// TODO: Check that error is what we expect it to be.
-					return expect(library.schema.validate.called).to.be.true;
+					expect(error).to.equal('Invalid transactions body');
+					expect(library.schema.validate.called).to.be.true;
 				});
 			});
 
 			describe('when library.schema.validate succeeds', () => {
-				describe.skip('when called', () => {
+				describe('when called', () => {
 					var error;
 
 					beforeEach(done => {
+						definitions.WSTransactionsRequest = defaultScope.swagger.definitions.WSTransactionsRequest;
+
 						__private.receiveTransactions(query, peerStub, '', err => {
 							error = err;
 							done();
 						});
 					});
 
-					// TODO: It doesn't seem that library.schema.validate currently gets called by the __private.receiveTransaction logic.
-					it.skip('should call library.schema.validate with query and definitions.Transaction', () => {
+					it('should call library.schema.validate with query and definitions.WSTransactionsRequest', () => {
 						expect(error).to.equal(null);
 						return expect(
 							library.schema.validate.calledWith(
 								query,
-								defaultScope.swagger.definitions.Transaction
+								defaultScope.swagger.definitions.WSTransactionsRequest
 							)
 						).to.be.true;
 					});
@@ -658,10 +660,10 @@ describe('transport', () => {
 							});
 						});
 
-						it('should call callback with error = "Unable to process transaction. Transaction is undefined."', () => {
-							return expect(error).to.equal(
-								'Unable to process transaction. Transaction is undefined.'
-							);
+						// If a single transaction within the batch fails, it is not going to
+						// send back an error.
+						it('should call callback with null error', () => {
+							expect(error).to.equal(null);
 						});
 					});
 
@@ -732,8 +734,10 @@ describe('transport', () => {
 								).to.be.true;
 							});
 
-							it('should call callback with error', () => {
-								return expect(error).to.equal(receiveTransactionError);
+							// If a single transaction within the batch fails, it is not going to
+							// send back an error.
+							it('should call callback with null error', () => {
+								expect(error).to.equal(null);
 							});
 						});
 					});

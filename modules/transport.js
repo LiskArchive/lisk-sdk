@@ -188,27 +188,38 @@ __private.receiveSignature = function(query, cb) {
 __private.receiveTransactions = function(query, peer, extraLogMessage, cb) {
 	var transactions;
 
-	transactions = query.transactions;
+	async.series(
+		{
+			validateSchema: function(seriesCb) {
+				library.schema.validate(query, definitions.WSTransactionsRequest, err => {
+					if (err) {
+						return setImmediate(seriesCb, 'Invalid transactions body');
+					} else {
+						return setImmediate(seriesCb);
+					}
+				});
+			},
+			receiveTransactions: function(seriesCb) {
+				transactions = query.transactions;
 
-	async.eachSeries(
-		transactions,
-		(transaction, eachSeriesCb) => {
-			if (!transaction) {
-				return setImmediate(
-					eachSeriesCb,
-					'Unable to process transaction. Transaction is undefined.'
+				async.eachSeries(
+					transactions,
+					(transaction, eachSeriesCb) => {
+						if (transaction) {
+							transaction.bundled = true;
+						}
+						__private.receiveTransaction(transaction, peer, extraLogMessage, err => {
+							if (err) {
+								library.logger.debug(err, transaction);
+							}
+							return setImmediate(eachSeriesCb);
+						});
+					},
+					seriesCb
 				);
-			}
-			transaction.bundled = true;
-
-			__private.receiveTransaction(transaction, peer, extraLogMessage, err => {
-				if (err) {
-					library.logger.debug(err, transaction);
-				}
-				return setImmediate(eachSeriesCb, err);
-			});
+			},
 		},
-		cb
+		err => setImmediate(cb, err)
 	);
 };
 
@@ -236,6 +247,8 @@ __private.receiveTransaction = function(
 	var id = transaction ? transaction.id : 'null';
 
 	try {
+		// This sanitizes the transaction object and then validates it.
+		// Throws an error if validation fails.
 		transaction = library.logic.transaction.objectNormalize(transaction);
 	} catch (e) {
 		library.logger.debug('Transaction normalization failed', {
@@ -638,41 +651,36 @@ Transport.prototype.shared = {
 		});
 	},
 
-	postTransactions(query, cb) {
-		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
-			if (err) {
-				return setImmediate(cb, null, { success: false, message: err });
-			}
-
-			if (query.transactions.length == 1) {
-				__private.receiveTransaction(
-					query.transactions[0],
-					query.peer,
-					query.extraLogMessage,
-					(err, id) => {
-						if (err) {
-							return setImmediate(cb, null, { success: false, message: err });
-						}
+	postTransactions: function(query, cb) {
+		if (query.transactions && query.transactions.length == 1) {
+			__private.receiveTransaction(
+				query.transactions[0],
+				query.peer,
+				query.extraLogMessage,
+				(err, id) => {
+					if (err) {
+						return setImmediate(cb, null, { success: false, message: err });
+					} else {
 						return setImmediate(cb, null, {
 							success: true,
 							transactionId: id,
 						});
 					}
-				);
-			} else {
-				__private.receiveTransactions(
-					query,
-					query.peer,
-					query.extraLogMessage,
-					err => {
-						if (err) {
-							return setImmediate(cb, null, { success: false, message: err });
-						}
-						return setImmediate(cb, null, { success: true });
+				}
+			);
+		} else {
+			__private.receiveTransactions(
+				query,
+				query.peer,
+				query.extraLogMessage,
+				err => {
+					if (err) {
+						return setImmediate(cb, null, { success: false, message: err });
 					}
-				);
-			}
-		});
+					return setImmediate(cb, null, { success: true });
+				}
+			);
+		}
 	},
 };
 
