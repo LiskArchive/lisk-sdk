@@ -35,7 +35,7 @@
 		"build": "webpack",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
 		"docs:serve": "./node_modules/.bin/http-server docs/jsdoc/",
-		"precommit": "npm run lint",
+		"precommit": "lint-staged && npm run lint",
 		"prepush": "npm run lint"
 	},
 	"dependencies": {
@@ -110,6 +110,7 @@
 		"istanbul-middleware": "=0.2.2",
 		"jsdoc": "=3.4.3",
 		"jsdox": "=0.4.10",
+		"lint-staged": "=6.1.0",
 		"lisk-js": "LiskHQ/lisk-js#4cab930",
 		"mocha": "=4.0.1",
 		"moment": "=2.18.1",
