@@ -256,7 +256,7 @@ Utils.prototype.getIdSequence = function(height, cb) {
 
 			return setImmediate(cb, null, {
 				firstHeight: rows[0].height,
-				ids: ids.join(','),
+				ids: ids.join(),
 			});
 		})
 		.catch(err => {
