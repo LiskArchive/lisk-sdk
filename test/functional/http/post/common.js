@@ -81,7 +81,7 @@ function invalidAssets(option, badTransactions) {
 		}
 	});
 
-	describe('Using invalid asset values', () => {
+	describe('using invalid asset values', () => {
 		describe('without option', () => {
 			typesRepresentatives.allTypes.forEach(test => {
 				it(`using ${test.description} should fail`, () => {
@@ -112,7 +112,7 @@ function invalidAssets(option, badTransactions) {
 					});
 			});
 		});
-		describe('with option', () => {
+		describe(`with option:${option}`, () => {
 			typesRepresentatives.allTypes.forEach(test => {
 				it(`using ${test.description} should fail`, () => {
 					transaction.asset[option] = test.input;
