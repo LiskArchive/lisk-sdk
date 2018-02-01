@@ -14,8 +14,8 @@
 'use strict';
 
 var _ = require('lodash');
-var apiCodes = require('../../helpers/apiCodes');
-var ApiError = require('../../helpers/apiError');
+var apiCodes = require('../../helpers/api_codes');
+var ApiError = require('../../helpers/api_error');
 var swaggerHelper = require('../../helpers/swagger');
 var generateParamsErrorObject = swaggerHelper.generateParamsErrorObject;
 
@@ -23,17 +23,29 @@ var generateParamsErrorObject = swaggerHelper.generateParamsErrorObject;
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class VotersController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * Description of the function.
+ *
+ * @class
+ * @memberof api/controllers
+ * @requires lodash
+ * @requires helpers/apiCodes.NOT_FOUND
+ * @requires helpers/apiError
+ * @requires helpers/swagger.generateParamsErrorObject
+ * @param {Object} scope - App instance
+ * @todo: Add description of VotersController
  */
-function VotersController (scope) {
+function VotersController(scope) {
 	modules = scope.modules;
 }
 
-VotersController.getVoters = function (context, next) {
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
+VotersController.getVoters = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -43,27 +55,39 @@ VotersController.getVoters = function (context, next) {
 		username: params.username.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
-		sort: params.sort.value
+		sort: params.sort.value,
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	if (!(filters.username || filters.address || filters.publicKey || filters.secondPublicKey)) {
+	if (
+		!(
+			filters.username ||
+			filters.address ||
+			filters.publicKey ||
+			filters.secondPublicKey
+		)
+	) {
 		var error = generateParamsErrorObject(
-			[params.address, params.publicKey, params.secondPublicKey, params.username],
-			['address is required if publicKey, secondPublicKey and username not provided.',
-			 'publicKey is required if address, secondPublicKey and username not provided.',
-			 'secondPublicKey is required if address, publicKey and username not provided.',
-			 'username is required if publicKey, secondPublicKey and address not provided.']
+			[
+				params.address,
+				params.publicKey,
+				params.secondPublicKey,
+				params.username,
+			],
+			[
+				'address is required if publicKey, secondPublicKey and username not provided.',
+				'publicKey is required if address, secondPublicKey and username not provided.',
+				'secondPublicKey is required if address, publicKey and username not provided.',
+				'username is required if publicKey, secondPublicKey and address not provided.',
+			]
 		);
 
 		return next(error);
 	}
 
-	modules.voters.shared.getVoters(_.clone(filters), function (err, data) {
+	modules.voters.shared.getVoters(_.clone(filters), (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
@@ -83,13 +107,20 @@ VotersController.getVoters = function (context, next) {
 			data: data,
 			meta: {
 				offset: filters.offset,
-				limit: filters.limit
-			}
+				limit: filters.limit,
+			},
 		});
 	});
 };
 
-VotersController.getVotes = function (context, next) {
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
+VotersController.getVotes = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -99,27 +130,39 @@ VotersController.getVotes = function (context, next) {
 		username: params.username.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
-		sort: params.sort.value
+		sort: params.sort.value,
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	if (!(filters.username || filters.address || filters.publicKey || filters.secondPublicKey)) {
+	if (
+		!(
+			filters.username ||
+			filters.address ||
+			filters.publicKey ||
+			filters.secondPublicKey
+		)
+	) {
 		var error = generateParamsErrorObject(
-			[params.address, params.publicKey, params.secondPublicKey, params.username],
-			['address is required if publicKey, secondPublicKey and username not provided.',
-			 'publicKey is required if address, secondPublicKey and username not provided.',
-			 'secondPublicKey is required if address, publicKey and username not provided.',
-			 'username is required if publicKey, secondPublicKey and address not provided.']
+			[
+				params.address,
+				params.publicKey,
+				params.secondPublicKey,
+				params.username,
+			],
+			[
+				'address is required if publicKey, secondPublicKey and username not provided.',
+				'publicKey is required if address, secondPublicKey and username not provided.',
+				'secondPublicKey is required if address, publicKey and username not provided.',
+				'username is required if publicKey, secondPublicKey and address not provided.',
+			]
 		);
 
 		return next(error);
 	}
 
-	modules.voters.shared.getVotes(_.clone(filters), function (err, data) {
+	modules.voters.shared.getVotes(_.clone(filters), (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
@@ -131,7 +174,7 @@ VotersController.getVotes = function (context, next) {
 
 		data = _.cloneDeep(data);
 
-		data.votes.concat(data).forEach(function (entity) {
+		data.votes.concat(data).forEach(entity => {
 			if (_.isNull(entity.username)) {
 				entity.username = '';
 			}
@@ -141,8 +184,8 @@ VotersController.getVotes = function (context, next) {
 			data: data,
 			meta: {
 				offset: filters.offset,
-				limit: filters.limit
-			}
+				limit: filters.limit,
+			},
 		});
 	});
 };

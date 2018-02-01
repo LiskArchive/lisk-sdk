@@ -16,7 +16,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 const sql = require('../sql').migrations;
-const {sqlRoot} = require('../sql/config');
+const { sqlRoot } = require('../sql/config');
 
 /**
  * Database migrations interaction module.
@@ -29,8 +29,7 @@ const {sqlRoot} = require('../sql/config');
  * @return {MigrationsRepository}
  */
 class MigrationsRepository {
-
-	constructor (db, pgp) {
+	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 		this.inTransaction = db.ctx && db.ctx.inTransaction;
@@ -42,8 +41,12 @@ class MigrationsRepository {
 	 * @method
 	 * @return {Promise<boolean>}
 	 */
-	hasMigrations () {
-		return this.db.proc('to_regclass', 'migrations', a => a ? !!a.to_regclass: false);
+	hasMigrations() {
+		return this.db.proc(
+			'to_regclass',
+			'migrations',
+			a => (a ? !!a.to_regclass : false)
+		);
 	}
 
 	/**
@@ -52,8 +55,8 @@ class MigrationsRepository {
 	 * @method
 	 * @return {Promise<number>}
 	 */
-	getLastId () {
-		return this.db.oneOrNone(sql.getLastId, [], a => a ? +a.id : 0);
+	getLastId() {
+		return this.db.oneOrNone(sql.getLastId, [], a => (a ? +a.id : 0));
 	}
 
 	/**
@@ -62,7 +65,17 @@ class MigrationsRepository {
 	 * @method
 	 * @return {Promise<null>}
 	 */
-	applyRuntime () {
+	underscorePatch() {
+		return this.db.none(sql.underscorePatch);
+	}
+
+	/**
+	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
+	 *
+	 * @method
+	 * @return {Promise<null>}
+	 */
+	applyRuntime() {
 		// Must use a transaction here when not in one:
 		const job = t => t.none(sql.runtime);
 		return this.inTransaction ? job(this.db) : this.db.tx('applyRuntime', job);
@@ -74,10 +87,12 @@ class MigrationsRepository {
 	 * @method
 	 * @return {Promise<null>}
 	 */
-	createMemoryTables () {
+	createMemoryTables() {
 		// Must use a transaction here when not in one:
 		const job = t => t.none(sql.memoryTables);
-		return this.inTransaction ? job(this.db) : this.db.tx('createMemoryTables', job);
+		return this.inTransaction
+			? job(this.db)
+			: this.db.tx('createMemoryTables', job);
 	}
 
 	/**
@@ -87,24 +102,34 @@ class MigrationsRepository {
 	 * @param {number} lastMigrationId
 	 * @return {Promise<Array<{id, name, path, file}>>}
 	 */
-	readPending (lastMigrationId) {
+	readPending(lastMigrationId) {
 		const updatesPath = path.join(sqlRoot, 'migrations/updates');
-		return fs.readdir(updatesPath)
-			.then(files => files
+		return fs.readdir(updatesPath).then(files =>
+			files
 				.map(f => {
-					const m = f.match(/(\d+)_(\S+).sql/);
-					return m && {
-						id: m[1],
-						name: m[2],
-						path: path.join(updatesPath, f)
-					};
+					const m = f.match(/(\d+)_(.+).sql/);
+					return (
+						m && {
+							id: m[1],
+							name: m[2],
+							path: path.join(updatesPath, f),
+						}
+					);
 				})
-				.filter(f => f && fs.statSync(f.path).isFile() && (!lastMigrationId || +f.id > lastMigrationId))
+				.filter(
+					f =>
+						f &&
+						fs.statSync(f.path).isFile() &&
+						(!lastMigrationId || +f.id > lastMigrationId)
+				)
 				.map(f => {
-					f.file = new this.pgp.QueryFile(f.path, {minify: true, noWarnings: true});
+					f.file = new this.pgp.QueryFile(f.path, {
+						minify: true,
+						noWarnings: true,
+					});
 					return f;
 				})
-			);
+		);
 	}
 
 	/**
@@ -114,14 +139,19 @@ class MigrationsRepository {
 	 * @method
 	 * @return {Promise}
 	 */
-	applyAll () {
-		return this.db.tx('applyAll', function * (t1) {
+	applyAll() {
+		return this.db.tx('applyAll', function*(t1) {
 			const hasMigrations = yield t1.migrations.hasMigrations();
-			const lastId = hasMigrations ? yield t1.migrations.getLastId() : 0;
+			let lastId = 0;
+			if (hasMigrations) {
+				lastId = yield t1.migrations.getLastId();
+				yield t1.migrations.underscorePatch();
+			}
 			const updates = yield t1.migrations.readPending(lastId);
-			for (let i = 0;i < updates.length;i ++) {
-				const u = updates[i], tag = 'update:' + u.name;
-				yield t1.tx(tag, function * (t2) {
+			for (let i = 0; i < updates.length; i++) {
+				const u = updates[i];
+				const tag = `update:${u.name}`;
+				yield t1.tx(tag, function*(t2) {
 					yield t2.none(u.file);
 					yield t2.none(sql.add, u);
 				});
@@ -129,7 +159,6 @@ class MigrationsRepository {
 			yield t1.migrations.applyRuntime();
 		});
 	}
-
 }
 
 module.exports = MigrationsRepository;

@@ -19,18 +19,26 @@ var _ = require('lodash');
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class PeersController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * Description of the function.
+ *
+ * @class
+ * @memberof api/controllers
+ * @requires lodash
+ * @param {Object} scope - App instance
+ * @todo: Add description of PeersController
  */
-function PeersController (scope) {
+function PeersController(scope) {
 	modules = scope.modules;
 }
 
-PeersController.getPeers = function (context, next) {
-
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
+PeersController.getPeers = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -44,21 +52,20 @@ PeersController.getPeers = function (context, next) {
 		height: params.height.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
-		sort: params.sort.value
+		sort: params.sort.value,
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.peers.shared.getPeers(filters, function (err, data) {
-
-		if (err) { return next(err); }
+	modules.peers.shared.getPeers(filters, (err, data) => {
+		if (err) {
+			return next(err);
+		}
 
 		data = _.cloneDeep(data);
 
-		data = _.map(data, function (peer) {
+		data = _.map(data, peer => {
 			delete peer.updated;
 			delete peer.clock;
 			return peer;
@@ -69,8 +76,8 @@ PeersController.getPeers = function (context, next) {
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
-				total: modules.peers.shared.getPeersCount()
-			}
+				total: modules.peers.shared.getPeersCount(),
+			},
 		});
 	});
 };

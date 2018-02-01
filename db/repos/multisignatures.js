@@ -25,8 +25,7 @@ const sql = require('../sql').multisignatures;
  * @return {MultisignaturesRepository}
  */
 class MultisignaturesRepository {
-
-	constructor (db, pgp) {
+	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 	}
@@ -36,8 +35,12 @@ class MultisignaturesRepository {
 	 * @param {string} address - Address of a member
 	 * @return {Promise}
 	 */
-	getMemberPublicKeys (address) {
-		return this.db.one(sql.getMemberPublicKeys, {address}, a => a.memberAccountKeys);
+	getMemberPublicKeys(address) {
+		return this.db.one(
+			sql.getMemberPublicKeys,
+			{ address },
+			a => a.memberAccountKeys
+		);
 	}
 
 	/**
@@ -45,10 +48,9 @@ class MultisignaturesRepository {
 	 * @param {string} publicKey - Public key of a group
 	 * @return {Promise}
 	 */
-	getGroupIds (publicKey) {
-		return this.db.one(sql.getGroupIds, {publicKey}, a => a.groupAccountIds);
+	getGroupIds(publicKey) {
+		return this.db.one(sql.getGroupIds, { publicKey }, a => a.groupAccountIds);
 	}
-
 }
 
 module.exports = MultisignaturesRepository;

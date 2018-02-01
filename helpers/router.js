@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var httpApi = require('./httpApi');
+var httpApi = require('./http_api');
 var extend = require('extend');
 
 /**
@@ -23,29 +23,39 @@ var extend = require('extend');
  * @returns {Object} router express
  * @throws {Error} If config is invalid
  */
-var Router = function () {
+var Router = function() {
 	var router = require('express').Router();
 
 	router.use(httpApi.middleware.cors);
 
-	router.map = function (root, config, options) {
+	router.map = function(root, config, options) {
 		var router = this;
 		options = options || {};
 
-		Object.keys(config).forEach(function (params) {
+		Object.keys(config).forEach(params => {
 			var route = params.split(' ');
-			if (route.length !== 2 || ['post', 'get', 'put'].indexOf(route[0]) === -1) {
+			if (
+				route.length !== 2 ||
+				['post', 'get', 'put'].indexOf(route[0]) === -1
+			) {
 				throw Error('Invalid map config');
 			}
-			router[route[0]](route[1], function (req, res, next) {
+			router[route[0]](route[1], (req, res) => {
 				var reqRelevantInfo = {
 					ip: req.ip,
 					method: req.method,
-					path: req.path
+					path: req.path,
 				};
-				//ToDo: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
-				var responseHandler = options.responseWithCode ? httpApi.respondWithCode.bind(null, res) : httpApi.respond.bind(null, res);
-				root[config[params]](extend({}, reqRelevantInfo, {'body': route[0] === 'get' ? req.query : req.body}), responseHandler);
+				// ToDo: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
+				var responseHandler = options.responseWithCode
+					? httpApi.respondWithCode.bind(null, res)
+					: httpApi.respond.bind(null, res);
+				root[config[params]](
+					extend({}, reqRelevantInfo, {
+						body: route[0] === 'get' ? req.query : req.body,
+					}),
+					responseHandler
+				);
 			});
 		});
 	};
@@ -54,11 +64,14 @@ var Router = function () {
 	 * @param {function} middleware
 	 * @param {string} routes
 	 */
-	router.attachMiddlwareForUrls = function (middleware, routes) {
-		routes.forEach(function (entry) {
+	router.attachMiddlwareForUrls = function(middleware, routes) {
+		routes.forEach(entry => {
 			var route = entry.split(' ');
 
-			if (route.length !== 2 || ['post', 'get', 'put'].indexOf(route[0]) === -1) {
+			if (
+				route.length !== 2 ||
+				['post', 'get', 'put'].indexOf(route[0]) === -1
+			) {
 				throw Error('Invalid map config');
 			}
 			router[route[0]](route[1], middleware);
@@ -66,7 +79,6 @@ var Router = function () {
 	};
 
 	return router;
-
 };
 
 module.exports = Router;

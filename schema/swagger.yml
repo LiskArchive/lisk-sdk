@@ -16,7 +16,7 @@ swagger: '2.0'
 info:
   description: Lisk API Documentation
   title: Lisk API Documentation
-  version: '1.0.21'
+  version: '1.0.22'
   contact:
     email: admin@lisk.io
   license:
@@ -582,6 +582,47 @@ paths:
           description: Search results matching criteria
           schema:
             $ref: '#/definitions/ForgersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /delegates/{address}/forging_stats:
+    x-swagger-router-controller: delegates
+    get:
+      tags:
+      - Delegates
+      summary: Requests forging stats by delegate
+      operationId: getForgingStatistics
+      x-lisk-cache-enabled: true
+      description:
+        By passing an existing delegate address, you can read
+        its forging statistics within a window of time which 
+        by default is from the Lisk epoch to the date.
+      produces:
+      - application/json
+      parameters:
+        - in: path
+          name: address
+          description: Address to query
+          required: true
+          type: string
+          format: address
+        - $ref: '#/parameters/fromTimestamp'
+        - $ref: '#/parameters/toTimestamp'
+      responses:
+        200:
+          description: Results matching specified delegate address
+          schema:
+            $ref: '#/definitions/ForgingStatsResponse'
         400:
           description: Malformed query or parameters
           schema:
@@ -1305,6 +1346,32 @@ definitions:
       links:
         type: object
 
+  ForgingStatsResponse:
+    type: object
+    required:
+      - data
+      - meta
+      - links
+    properties:
+      data:
+        $ref: '#/definitions/ForgingStats'
+      meta:
+       type: object
+       required:
+         - fromTimestamp
+         - toTimestamp
+       properties:
+         fromTimestamp:
+           description: Starting timestamp of records to query
+           type: integer
+           example: 0
+         toTimestamp:
+           description: Ending timestamp of records to query
+           type: integer
+           example: 100
+      links:
+        type: object
+
   BlocksResponse:
     description: Blocks response
     type: object
@@ -1723,6 +1790,27 @@ definitions:
         type: number
         example: 4368793
 
+  ForgingStats:
+    type: object
+    required:
+      - fees
+      - rewards
+      - forged
+      - count
+    properties:
+      fees:
+        type: string
+        example: "15000000"
+      rewards:
+        type: string
+        example: "50000000"
+      forged:
+        type: string
+        example: "65000000"
+      count:
+        type: string
+        example: "100"
+
   Dapp:
     type: object
     required:
@@ -2082,6 +2170,12 @@ definitions:
       description:
         type: string
         description: Param description specified in schema
+      path:
+        type: array
+        description: The array/object paths which identify the param associated with the error
+        items:
+          type: string
+          example: publicKey
 
   Account:
     type: object

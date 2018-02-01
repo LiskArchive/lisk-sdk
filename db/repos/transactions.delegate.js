@@ -14,7 +14,7 @@
 'use strict';
 
 var _ = require('lodash');
-var transactionTypes = require('../../helpers/transactionTypes');
+require('../../helpers/transaction_types');
 var columnSet;
 
 /**
@@ -26,21 +26,23 @@ var columnSet;
  * @constructor
  * @return {DelegateTransactionsRepo}
  */
-function DelegateTransactionsRepo (db, pgp) {
+function DelegateTransactionsRepo(db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
 	this.dbTable = 'delegates';
 
-	this.dbFields = [
-		'transactionId',
-		'username'
-	];
+	this.dbFields = ['transactionId', 'username'];
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
+		var table = new pgp.helpers.TableName({
+			table: this.dbTable,
+			schema: 'public',
+		});
+		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+			table: table,
+		});
 	}
 
 	this.cs = columnSet;
@@ -51,17 +53,15 @@ function DelegateTransactionsRepo (db, pgp) {
  * @param {Array.<{id: string, asset: {delegate: {username: string}}}>} transactions
  * @return {Promise}
  */
-DelegateTransactionsRepo.prototype.save = function (transactions) {
+DelegateTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
-	transactions = transactions.map(function (transaction) {
-		return {
-			transactionId: transaction.id,
-			username: transaction.asset.delegate.username
-		};
-	});
+	transactions = transactions.map(transaction => ({
+		transactionId: transaction.id,
+		username: transaction.asset.delegate.username,
+	}));
 
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };

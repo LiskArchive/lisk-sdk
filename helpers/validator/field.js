@@ -24,14 +24,14 @@ module.exports = Field;
  * @param {*} thisArg Value used as this reference within rule callback calls.
  * @constructor
  */
-function Field (validator, path, value, rules, thisArg) {
+function Field(validator, path, value, rules, thisArg) {
 	this.isAsync = false;
 	this.hasError = false;
 	this.rules = rules;
 	this.value = value;
 	this.report = [];
-	this.path = path||[];
-	this.thisArg = thisArg||null;
+	this.path = path || [];
+	this.thisArg = thisArg || null;
 	this._stack = Object.keys(rules);
 	this.validator = validator;
 	this.inProgress = false;
@@ -45,8 +45,13 @@ function Field (validator, path, value, rules, thisArg) {
  * @param {*} thisArg Value used as this reference within rule callback calls.
  * @returns {Validator.Field}
  */
-Field.prototype.child = function (path, value, rules, thisArg) {
-	var field = this.validator.createField(this.path.concat(path), value, rules, thisArg);
+Field.prototype.child = function(path, value, rules, thisArg) {
+	var field = this.validator.createField(
+		this.path.concat(path),
+		value,
+		rules,
+		thisArg
+	);
 	field.report = this.report;
 	return field;
 };
@@ -55,7 +60,7 @@ Field.prototype.child = function (path, value, rules, thisArg) {
  * Validate field value and trigger callback on result
  * @param callback
  */
-Field.prototype.validate = function (callback) {
+Field.prototype.validate = function(callback) {
 	var stack = this._stack;
 	// TODO copy value
 	var report = this.report;
@@ -70,7 +75,10 @@ Field.prototype.validate = function (callback) {
 		this.hasCallback = false;
 	}
 
-	var descriptor, result, accept, value;
+	var descriptor;
+	var result;
+	var accept;
+	var value;
 	while (stack.length) {
 		var rule = stack.shift();
 		value = this.value;
@@ -78,7 +86,9 @@ Field.prototype.validate = function (callback) {
 
 		try {
 			if (!this.validator.hasRule(rule) && !this.validator.skipMissed) {
-				throw new Error('Rule "' + rule + '" not found for "' + this.path.join('.') + '".');
+				throw new Error(
+					`Rule "${rule}" not found for "${this.path.join('.')}".`
+				);
 			}
 
 			descriptor = this.validator.getRule(rule);
@@ -92,20 +102,27 @@ Field.prototype.validate = function (callback) {
 			}
 
 			if (descriptor.filter) {
-				value = this.value = descriptor.filter.call(thisArg, accept, value, this);
+				value = this.value = descriptor.filter.call(
+					thisArg,
+					accept,
+					value,
+					this
+				);
 			}
 
 			if (descriptor.validate) {
 				result = descriptor.validate.call(thisArg, accept, value, this);
 			}
 
-			if (this.isAsync) { return; }
+			if (this.isAsync) {
+				return;
+			}
 
 			if (result === false) {
 				report.push({
-					path : this.path,
-					rule : rule,
-					accept : accept
+					path: this.path,
+					rule: rule,
+					accept: accept,
 				});
 
 				this.hasError = true;
@@ -114,8 +131,8 @@ Field.prototype.validate = function (callback) {
 		} catch (err) {
 			if (!err.field) {
 				Object.defineProperty(err, 'field', {
-					enumerable : false,
-					value : this
+					enumerable: false,
+					value: this,
 				});
 			}
 			this.validator.onError(this, err);
@@ -135,7 +152,7 @@ Field.prototype.validate = function (callback) {
  * End validation. Drop validation stack.
  * @param {Error} err Report and error if passed. Optional
  */
-Field.prototype.end = function (err) {
+Field.prototype.end = function(err) {
 	this._stack = [];
 
 	if (this.hasError) {
@@ -154,10 +171,10 @@ Field.prototype.end = function (err) {
  * Create validation async. Callback get done function to emit validation end.
  * @param {function(done:function)} callback
  */
-Field.prototype.async = function (callback) {
+Field.prototype.async = function(callback) {
 	this.isAsync = true;
 	var self = this;
-	callback(function (err){
+	callback(function(err) {
 		if (arguments.length > 1) {
 			self.value = arguments[1];
 		}
@@ -167,8 +184,8 @@ Field.prototype.async = function (callback) {
 		if (err) {
 			if (!err.hasOwnProperty('field')) {
 				Object.defineProperty(err, 'field', {
-					enumerable : false,
-					value : self
+					enumerable: false,
+					value: self,
 				});
 				self.validator.onError(self, err);
 			}
@@ -183,7 +200,7 @@ Field.prototype.async = function (callback) {
  * Report an invalid validation result
  * @param {{}} report Validation report object
  */
-Field.prototype.issue = function (report){
+Field.prototype.issue = function(report) {
 	this.hasError = true;
 	report.path = this.path.concat(report.path);
 	this.report.push(report);

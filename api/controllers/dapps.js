@@ -19,17 +19,26 @@ var _ = require('lodash');
 var modules;
 
 /**
- * Initializes with scope content and private variables:
- * - modules
- * @class DappsController
- * @classdesc Main System methods.
- * @param {scope} scope - App instance.
+ * Description of the function.
+ *
+ * @class
+ * @memberof api/controllers
+ * @requires lodash
+ * @param {Object} scope - App instance
+ * @todo: Add description of DappsController
  */
-function DappsController (scope) {
+function DappsController(scope) {
 	modules = scope.modules;
 }
 
-DappsController.getDapps = function (context, next) {
+/**
+ * Description of the function.
+ *
+ * @param {Object} context - Description of the param
+ * @param {function} next - Description of the param
+ * @todo: Add description of the function and its parameters
+ */
+DappsController.getDapps = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
@@ -37,21 +46,21 @@ DappsController.getDapps = function (context, next) {
 		name: params.name.value,
 		sort: params.sort.value,
 		limit: params.limit.value,
-		offset: params.offset.value
+		offset: params.offset.value,
 	};
 
 	// Remove filters with null values
-	filters = _.pickBy(filters, function (v) {
-		return !(v === undefined || v === null);
-	});
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.dapps.shared.getDapps(_.clone(filters), function (err, data) {
+	modules.dapps.shared.getDapps(_.clone(filters), (err, data) => {
 		try {
-			if (err) { return next(err); }
+			if (err) {
+				return next(err);
+			}
 
 			data = _.cloneDeep(data);
 
-			data = _.map(data, function (dapp) {
+			data = _.map(data, dapp => {
 				if (_.isNull(dapp.description)) {
 					dapp.description = '';
 				}
@@ -68,10 +77,9 @@ DappsController.getDapps = function (context, next) {
 				data: data,
 				meta: {
 					offset: filters.offset,
-					limit: filters.limit
-				}
+					limit: filters.limit,
+				},
 			});
-
 		} catch (error) {
 			next(error);
 		}

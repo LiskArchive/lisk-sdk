@@ -27,7 +27,7 @@ var childProcess = require('child_process');
  * @return {string} Hash of last git commit
  * @throws {Error} Throws error if cannot get last git commit
  */
-function getLastCommit () {
+function getLastCommit() {
 	var spawn = childProcess.spawnSync('git', ['rev-parse', 'HEAD']);
 	var err = spawn.stderr.toString().trim();
 
@@ -39,5 +39,5 @@ function getLastCommit () {
 }
 
 module.exports = {
-	getLastCommit: getLastCommit
+	getLastCommit: getLastCommit,
 };

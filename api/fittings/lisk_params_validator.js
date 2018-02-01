@@ -16,10 +16,29 @@
 var _ = require('lodash');
 var debug = require('debug')('swagger:lisk:params_validator');
 
-module.exports = function create (fittingDef, bagpipes) {
-
-	return function lisk_params_validator (context, cb) {
-
+/**
+ * Description of the function.
+ *
+ * @func create_params_validator
+ * @memberof api/fittings
+ * @requires debug
+ * @requires lodash
+ * @param {Object} fittingDef - Description of the param
+ * @param {Object} bagpipes - Description of the param
+ * @returns {function} {@link api/fittings.lisk_params_validator}
+ * @todo: Add description of the function and its parameters
+ */
+module.exports = function create() {
+	/**
+	 * Description of the function.
+	 *
+	 * @func lisk_params_validator
+	 * @memberof api/fittings
+	 * @param {Object} context - Description of the param
+	 * @param {function} cb - Description of the param
+	 * @todo: Add description of the function and its parameters
+	 */
+	return function lisk_params_validator(context, cb) {
 		var error = null;
 
 		// TODO: Add support for validating accept header against produces declarations
@@ -29,22 +48,30 @@ module.exports = function create (fittingDef, bagpipes) {
 		// var produces = _.union(operation.api.definition.produces, operation.definition.produces);
 
 		if (context.request.swagger.operation) {
-			var validateResult = context.request.swagger.operation.validateRequest(context.request);
+			var validateResult = context.request.swagger.operation.validateRequest(
+				context.request
+			);
 
 			if (validateResult.errors.length) {
 				error = new Error('Validation errors');
 				error.statusCode = 400;
 
-				validateResult.errors.forEach(function (error) { debug('param error: %j', error); });
+				validateResult.errors.forEach(error => {
+					debug('param error: %j', error);
+				});
 
-				error.errors = _.map(validateResult.errors, function (e) {
+				error.errors = _.map(validateResult.errors, e => {
 					var errors = _.pick(e, ['code', 'message', 'in', 'name', 'errors']);
-					errors.errors = _.map(e.errors, function (e) { return _.pick(e, ['code', 'message'] ); });
+					errors.errors = _.map(e.errors, e =>
+						_.pick(e, ['code', 'message', 'path'])
+					);
 					return errors;
 				});
 			}
 		} else {
-			error = new Error('Invalid swagger operation, unable to validate response');
+			error = new Error(
+				'Invalid swagger operation, unable to validate response'
+			);
 		}
 
 		cb(error);

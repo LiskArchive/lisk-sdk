@@ -27,12 +27,11 @@ const sqlRoot = isDev ? __dirname : path.join(__dirname, './sql');
 /////////////////////////////////////////
 // Provides dynamic link to an SQL file:
 function link(file) {
-
 	const fullPath = path.join(sqlRoot, file); // Generating full path;
 
 	const options = {
 		minify: true, // Minifies the SQL
-		debug: isDev // Debug SQL when in Dev environment
+		debug: isDev, // Debug SQL when in Dev environment
 	};
 
 	const qf = new QueryFile(fullPath, options);
@@ -43,6 +42,6 @@ function link(file) {
 	}
 
 	return qf;
-};
+}
 
-module.exports = {link, sqlRoot};
+module.exports = { link, sqlRoot };
