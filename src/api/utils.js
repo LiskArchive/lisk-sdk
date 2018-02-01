@@ -54,30 +54,12 @@ export const getFullURL = ({ node, port, ssl }) => {
 	return `${getURLPrefix({ ssl })}://${nodeUrl}`;
 };
 
-export const optionallyCallCallback = (callback, result) => {
-	if (typeof callback === 'function') {
-		callback(result);
-	}
-	return result;
-};
-
-export const constructRequestData = (providedObject, optionsOrCallback) => {
-	const providedOptions =
-		typeof optionsOrCallback !== 'function' &&
-		typeof optionsOrCallback !== 'undefined'
-			? optionsOrCallback
-			: {};
-	return Object.assign({}, providedOptions, providedObject);
-};
-
 export const wrapSendRequest = (method, endpoint, getDataFn) =>
-	function wrappedSendRequest(value, optionsOrCallback, callbackIfOptions) {
-		const callback = callbackIfOptions || optionsOrCallback;
-		const data = constructRequestData(
-			getDataFn(value, optionsOrCallback),
-			optionsOrCallback,
-		);
-		return this.sendRequest(method, endpoint, data, callback);
+	function wrappedSendRequest(value, options) {
+		const providedOptions = options || {};
+		const providedData = getDataFn(value, providedOptions);
+		const data = Object.assign({}, providedData, providedOptions);
+		return this.sendRequest(method, endpoint, data);
 	};
 
 export const checkOptions = options => {

@@ -22,7 +22,6 @@ describe('api utils module', () => {
 
 	let LSK;
 	let sendRequestResult;
-	let sendRequestStub;
 
 	beforeEach(() => {
 		LSK = {
@@ -30,9 +29,6 @@ describe('api utils module', () => {
 			sendRequest: () => {},
 		};
 		sendRequestResult = { success: true, sendRequest: true };
-		sendRequestStub = sandbox
-			.stub(LSK, 'sendRequest')
-			.resolves(Object.assign({}, sendRequestResult));
 	});
 
 	describe('#netHashOptions', () => {
@@ -185,7 +181,6 @@ describe('api utils module', () => {
 		let constructRequestDataResult;
 		let constructRequestDataStub;
 		let restoreConstructRequestDataStub;
-		let callback;
 		let returnedFunction;
 
 		beforeEach(() => {
@@ -217,7 +212,6 @@ describe('api utils module', () => {
 				defaultEndpoint,
 				getDataFnStub,
 			);
-			callback = () => {};
 		});
 
 		afterEach(() => {
@@ -235,123 +229,11 @@ describe('api utils module', () => {
 				});
 			});
 
-			it('should construct request data using the provided data and options', () => {
-				return returnedFunction.call(LSK, value, options).then(() => {
-					constructRequestDataStub.should.be.calledWithExactly(
-						getDataFnResult,
-						options,
-					);
-				});
-			});
-
-			it('should send a request with the constructed data and a callback if options are provided', () => {
-				return returnedFunction.call(LSK, value, options, callback).then(() => {
-					sendRequestStub.should.be.calledWithExactly(
-						defaultMethod,
-						defaultEndpoint,
-						constructRequestDataResult,
-						callback,
-					);
-				});
-			});
-
-			it('should send a request with the constructed data and a callback if options are not provided', () => {
-				return returnedFunction.call(LSK, value, callback).then(() => {
-					sendRequestStub.should.be.calledWithExactly(
-						defaultMethod,
-						defaultEndpoint,
-						constructRequestDataResult,
-						callback,
-					);
-				});
-			});
-
 			it('should return the result of the sent request', () => {
-				return returnedFunction.call(LSK, value, callback).then(result => {
+				return returnedFunction.call(LSK, value).then(result => {
 					result.should.be.eql(sendRequestResult);
 				});
 			});
-		});
-	});
-
-	describe('#constructRequestData', () => {
-		const address = '18160565574430594874L';
-		const customAddress = '123l';
-		const defaultRequestLimit = 10;
-		const defaultRequestOffset = 101;
-		const optionsObject = {
-			limit: defaultRequestLimit,
-			offset: defaultRequestOffset,
-		};
-		const expectedObject = {
-			address,
-			limit: defaultRequestLimit,
-			offset: defaultRequestOffset,
-		};
-		const optionsWithConflictObject = {
-			address: customAddress,
-			limit: 4,
-			offset: 5,
-		};
-		const resolvedConflictObject = {
-			address: customAddress,
-			limit: defaultRequestLimit,
-			offset: defaultRequestOffset,
-		};
-
-		it('should merge a data object with an options object', () => {
-			const requestData = utils.constructRequestData(
-				{ address },
-				optionsObject,
-			);
-			return requestData.should.be.eql(expectedObject);
-		});
-
-		it('should recognise when a callback function is passed instead of an options object', () => {
-			const providedObj = { address };
-			const requestData = utils.constructRequestData(providedObj, () => true);
-			return requestData.should.be.eql(providedObj);
-		});
-
-		it('should prioritise values from the data object when the data object and options object conflict', () => {
-			const requestData = utils.constructRequestData(
-				{ limit: defaultRequestLimit, offset: defaultRequestOffset },
-				optionsWithConflictObject,
-			);
-			return requestData.should.be.eql(resolvedConflictObject);
-		});
-	});
-
-	describe('#optionallyCallCallback', () => {
-		const { optionallyCallCallback } = utils;
-		const result = 'result';
-		const spy = sandbox.spy();
-
-		it('should return the result with a callback', () => {
-			const returnValue = optionallyCallCallback(spy, result);
-			return returnValue.should.equal(result);
-		});
-
-		it('should return the result without a callback', () => {
-			const returnValue = optionallyCallCallback(undefined, result);
-			return returnValue.should.equal(result);
-		});
-
-		it('should not call the callback if it is not a function', () => {
-			return optionallyCallCallback
-				.bind(null, { foo: 'bar' }, result)
-				.should.not.throw();
-		});
-
-		it('should not call the callback if it is undefined', () => {
-			return optionallyCallCallback
-				.bind(null, undefined, result)
-				.should.not.throw();
-		});
-
-		it('should call the callback with the result if callback is a function', () => {
-			optionallyCallCallback(spy, result);
-			return spy.should.be.calledWithExactly(result);
 		});
 	});
 });
