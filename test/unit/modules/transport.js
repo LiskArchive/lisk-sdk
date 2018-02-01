@@ -41,8 +41,10 @@ describe('transport', () => {
 	var peerStub;
 	var definitions;
 
-	const SAMPLE_SIGNATURE_1 = '32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739';
-	const SAMPLE_SIGNATURE_2 = '61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595';
+	const SAMPLE_SIGNATURE_1 =
+		'32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739';
+	const SAMPLE_SIGNATURE_2 =
+		'61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595';
 
 	beforeEach(done => {
 		// Recreate all the stubs and default structures before each test case to make
@@ -62,7 +64,7 @@ describe('transport', () => {
 		schemaStub = {};
 		networkStub = {};
 		balancesSequenceStub = {
-			add: () => {}
+			add: () => {},
 		};
 
 		transactionStub = {
@@ -106,7 +108,7 @@ describe('transport', () => {
 		};
 
 		peerStub = {
-			nonce: 'sYHEDBKcScaAAAYg'
+			nonce: 'sYHEDBKcScaAAAYg',
 		};
 
 		swaggerHelper.getResolvedSwaggerSpec().then(resolvedSpec => {
@@ -135,25 +137,47 @@ describe('transport', () => {
 					library = TransportModule.__get__('library');
 					__private = TransportModule.__get__('__private');
 
-						transportSelf.onBind(defaultScope);
+					transportSelf.onBind(defaultScope);
 
 					done();
 				}, defaultScope);
 			});
 
 			it('should assign scope variables when instantiating', () => {
-				expect(library).to.have.property('db').which.is.equal(dbStub);
-				expect(library).to.have.property('logger').which.is.equal(loggerStub);
-				expect(library).to.have.property('bus').which.is.equal(busStub);
-				expect(library).to.have.property('schema').which.is.equal(schemaStub);
-				expect(library).to.have.property('network').which.is.equal(networkStub);
-				expect(library).to.have.property('balancesSequence').which.is.equal(balancesSequenceStub);
-				expect(library).to.have.nested.property('logic.block').which.is.equal(blockStub);
-				expect(library).to.have.nested.property('logic.transaction').which.is.equal(transactionStub);
-				expect(library).to.have.nested.property('logic.peers').which.is.equal(peersStub);
-				expect(library).to.have.nested.property('config.peers.options.timeout').which.is.equal(1234);
+				expect(library)
+					.to.have.property('db')
+					.which.is.equal(dbStub);
+				expect(library)
+					.to.have.property('logger')
+					.which.is.equal(loggerStub);
+				expect(library)
+					.to.have.property('bus')
+					.which.is.equal(busStub);
+				expect(library)
+					.to.have.property('schema')
+					.which.is.equal(schemaStub);
+				expect(library)
+					.to.have.property('network')
+					.which.is.equal(networkStub);
+				expect(library)
+					.to.have.property('balancesSequence')
+					.which.is.equal(balancesSequenceStub);
+				expect(library)
+					.to.have.nested.property('logic.block')
+					.which.is.equal(blockStub);
+				expect(library)
+					.to.have.nested.property('logic.transaction')
+					.which.is.equal(transactionStub);
+				expect(library)
+					.to.have.nested.property('logic.peers')
+					.which.is.equal(peersStub);
+				expect(library)
+					.to.have.nested.property('config.peers.options.timeout')
+					.which.is.equal(1234);
 
-				expect(__private).to.have.property('broadcaster').which.is.equal(broadcasterStubRef);
+				expect(__private)
+					.to.have.property('broadcaster')
+					.which.is.equal(broadcasterStubRef);
 
 				expect(error).to.equal(null);
 				expect(transportSelf).to.equal(localTransportInstance);
@@ -192,11 +216,11 @@ describe('transport', () => {
 
 				modules = {
 					peers: {
-						remove: sinonSandbox.stub().returns(true)
+						remove: sinonSandbox.stub().returns(true),
 					},
 					transactions: {
-						processUnconfirmedTransaction: sinonSandbox.stub().callsArg(2)
-					}
+						processUnconfirmedTransaction: sinonSandbox.stub().callsArg(2),
+					},
 				};
 
 				definitions = {};
@@ -204,7 +228,7 @@ describe('transport', () => {
 				restoreRewiredDeps = TransportModule.__set__({
 					library: library,
 					modules: modules,
-					definitions: definitions
+					definitions: definitions,
 				});
 
 				done();
@@ -233,7 +257,8 @@ describe('transport', () => {
 
 				it('should call library.logger.debug with "Cannot remove empty peer"', () => {
 					expect(library.logger.debug.called).to.be.true;
-					expect(library.logger.debug.calledWith('Cannot remove empty peer')).to.be.true;
+					expect(library.logger.debug.calledWith('Cannot remove empty peer')).to
+						.be.true;
 				});
 
 				it('should return false', () => {
@@ -249,7 +274,7 @@ describe('transport', () => {
 					removeSpy = sinonSandbox.spy();
 
 					modules.peers = {
-						remove: removeSpy
+						remove: removeSpy,
 					};
 
 					peerData = {
@@ -257,9 +282,12 @@ describe('transport', () => {
 						wsPort: 8000,
 					};
 
-					__private.removePeer({
-						peer: peerData
-					}, 'Custom peer remove message');
+					__private.removePeer(
+						{
+							peer: peerData,
+						},
+						'Custom peer remove message'
+					);
 					done();
 				});
 
@@ -277,11 +305,14 @@ describe('transport', () => {
 			describe('when signatures array is empty', () => {
 				beforeEach(done => {
 					__private.receiveSignature = sinonSandbox.stub().callsArg(1);
-					__private.receiveSignatures({
-						signatures: []
-					}, () => {
-						done();
-					});
+					__private.receiveSignatures(
+						{
+							signatures: [],
+						},
+						() => {
+							done();
+						}
+					);
 				});
 
 				it('should call library.schema.validate with empty query.signatures', () => {
@@ -298,17 +329,20 @@ describe('transport', () => {
 							signatures: {
 								type: 'array',
 								minItems: 1,
-								maxItems: 40
-							}
+								maxItems: 40,
+							},
 						},
-						required: ['signatures']
+						required: ['signatures'],
 					};
 					__private.receiveSignature = sinonSandbox.stub().callsArg(1);
-					__private.receiveSignatures({
-						signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
-					}, () => {
-						done();
-					});
+					__private.receiveSignatures(
+						{
+							signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
+						},
+						() => {
+							done();
+						}
+					);
 				});
 
 				it('should call library.schema.validate with custom schema.signatures', () => {
@@ -327,12 +361,15 @@ describe('transport', () => {
 						.stub()
 						.callsArgWith(2, [validateErr]);
 
-					__private.receiveSignatures({
-						signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
-					}, err => {
-						error = err;
-						done();
-					});
+					__private.receiveSignatures(
+						{
+							signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
+						},
+						err => {
+							error = err;
+							done();
+						}
+					);
 				});
 
 				it('should call series callback with error = "Invalid signatures body"', () => {
@@ -348,19 +385,24 @@ describe('transport', () => {
 
 						beforeEach(done => {
 							__private.receiveSignature = sinonSandbox.stub().callsArg(1);
-							__private.receiveSignatures({
-								signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
-							}, err => {
-								error = err;
-								done();
-							});
+							__private.receiveSignatures(
+								{
+									signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
+								},
+								err => {
+									error = err;
+									done();
+								}
+							);
 						});
 
 						it('should call __private.receiveSignature with signature', () => {
 							expect(library.schema.validate.called).to.be.true;
 							expect(__private.receiveSignature.calledTwice).to.be.true;
-							expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_1)).to.be.true;
-							expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2)).to.be.true;
+							expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_1))
+								.to.be.true;
+							expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2))
+								.to.be.true;
 						});
 
 						it('should call callback with error null', () => {
@@ -373,14 +415,20 @@ describe('transport', () => {
 						var receiveSignatureError;
 
 						beforeEach(done => {
-							receiveSignatureError = 'Error processing signature: Error message';
-							__private.receiveSignature = sinonSandbox.stub().callsArgWith(1, receiveSignatureError);
-							__private.receiveSignatures({
-								signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2]
-							}, err => {
-								error = err;
-								done();
-							});
+							receiveSignatureError =
+								'Error processing signature: Error message';
+							__private.receiveSignature = sinonSandbox
+								.stub()
+								.callsArgWith(1, receiveSignatureError);
+							__private.receiveSignatures(
+								{
+									signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
+								},
+								err => {
+									error = err;
+									done();
+								}
+							);
 						});
 
 						it('should call library.logger.debug with err and signature', () => {
@@ -388,7 +436,8 @@ describe('transport', () => {
 							// If any of the __private.receiveSignature calls fail, the whole
 							// receiveSignatures operation should fail immediately.
 							expect(__private.receiveSignature.calledOnce).to.be.true;
-							expect(library.logger.debug.calledWith(error, SAMPLE_SIGNATURE_1)).to.be.true;
+							expect(library.logger.debug.calledWith(error, SAMPLE_SIGNATURE_1))
+								.to.be.true;
 						});
 
 						it('should call callback with error', () => {
@@ -402,11 +451,11 @@ describe('transport', () => {
 		describe('receiveSignature', () => {
 			beforeEach(done => {
 				library.schema = {
-					validate: sinonSandbox.stub().callsArg(2)
+					validate: sinonSandbox.stub().callsArg(2),
 				};
 
 				modules.multisignatures = {
-					processSignature: sinonSandbox.stub().callsArg(1)
+					processSignature: sinonSandbox.stub().callsArg(1),
 				};
 
 				done();
@@ -417,7 +466,9 @@ describe('transport', () => {
 					var error;
 
 					beforeEach(done => {
-						modules.multisignatures.processSignature = sinonSandbox.stub().callsArg(1);
+						modules.multisignatures.processSignature = sinonSandbox
+							.stub()
+							.callsArg(1);
 
 						__private.receiveSignature(SAMPLE_SIGNATURE_1, err => {
 							error = err;
@@ -428,12 +479,17 @@ describe('transport', () => {
 					it('should call library.schema.validate with signature', () => {
 						expect(error).to.equal(undefined);
 						expect(library.schema.validate.calledOnce).to.be.true;
-						expect(library.schema.validate.calledWith(SAMPLE_SIGNATURE_1)).to.be.true;
+						expect(library.schema.validate.calledWith(SAMPLE_SIGNATURE_1)).to.be
+							.true;
 					});
 
 					it('should call modules.multisignatures.processSignature with signature', () => {
 						expect(error).to.equal(undefined);
-						expect(modules.multisignatures.processSignature.calledWith(SAMPLE_SIGNATURE_1)).to.be.true;
+						expect(
+							modules.multisignatures.processSignature.calledWith(
+								SAMPLE_SIGNATURE_1
+							)
+						).to.be.true;
 					});
 
 					it('should call callback with error = undefined', () => {
@@ -447,7 +503,9 @@ describe('transport', () => {
 
 					beforeEach(done => {
 						processSignatureError = 'Transaction not found';
-						modules.multisignatures.processSignature = sinonSandbox.stub().callsArgWith(1, processSignatureError);
+						modules.multisignatures.processSignature = sinonSandbox
+							.stub()
+							.callsArgWith(1, processSignatureError);
 
 						__private.receiveSignature(SAMPLE_SIGNATURE_1, err => {
 							error = err;
@@ -456,7 +514,9 @@ describe('transport', () => {
 					});
 
 					it('should call callback with error', () => {
-						expect(error).to.equal(`Error processing signature: ${processSignatureError}`);
+						expect(error).to.equal(
+							`Error processing signature: ${processSignatureError}`
+						);
 					});
 				});
 			});
@@ -468,7 +528,9 @@ describe('transport', () => {
 				beforeEach(done => {
 					validateErr = new Error('Transaction did not match schema');
 					validateErr.code = 'INVALID_FORMAT';
-					library.schema.validate = sinonSandbox.stub().callsArgWith(2, [validateErr]);
+					library.schema.validate = sinonSandbox
+						.stub()
+						.callsArgWith(2, [validateErr]);
 
 					__private.receiveSignature(SAMPLE_SIGNATURE_1, err => {
 						error = err;
@@ -477,7 +539,9 @@ describe('transport', () => {
 				});
 
 				it('should call callback with error = "Invalid signature body"', () => {
-					expect(error).to.equal(`Invalid signature body ${validateErr.message}`);
+					expect(error).to.equal(
+						`Invalid signature body ${validateErr.message}`
+					);
 				});
 			});
 		});
@@ -487,13 +551,13 @@ describe('transport', () => {
 
 			beforeEach(done => {
 				library.schema = {
-					validate: sinonSandbox.stub().callsArg(2)
+					validate: sinonSandbox.stub().callsArg(2),
 				};
 				library.logger = {
-					debug: sinonSandbox.spy()
+					debug: sinonSandbox.spy(),
 				};
 				modules.peers = {
-					remove: sinonSandbox.stub().returns(true)
+					remove: sinonSandbox.stub().returns(true),
 				};
 
 				query = {
@@ -555,7 +619,12 @@ describe('transport', () => {
 					// TODO: It doesn't seem that library.schema.validate currently gets called by the __private.receiveTransaction logic.
 					it.skip('should call library.schema.validate with query and definitions.Transaction', () => {
 						expect(error).to.equal(null);
-						expect(library.schema.validate.calledWith(query, defaultScope.swagger.definitions.Transaction)).to.be.true;
+						expect(
+							library.schema.validate.calledWith(
+								query,
+								defaultScope.swagger.definitions.Transaction
+							)
+						).to.be.true;
 					});
 				});
 
@@ -572,7 +641,9 @@ describe('transport', () => {
 						});
 
 						it('should call callback with error = "Unable to process transaction. Transaction is undefined."', () => {
-							expect(error).to.equal('Unable to process transaction. Transaction is undefined.');
+							expect(error).to.equal(
+								'Unable to process transaction. Transaction is undefined.'
+							);
 						});
 					});
 
@@ -581,18 +652,31 @@ describe('transport', () => {
 							var error;
 
 							beforeEach(done => {
-								__private.receiveTransactions(query, peerStub, 'This is a log message', err => {
-									error = err;
-									done();
-								});
+								__private.receiveTransactions(
+									query,
+									peerStub,
+									'This is a log message',
+									err => {
+										error = err;
+										done();
+									}
+								);
 							});
 
 							it('should set transaction.bundled = true', () => {
-								expect(query.transactions[0]).to.have.property('bundled').which.equals(true);
+								expect(query.transactions[0])
+									.to.have.property('bundled')
+									.which.equals(true);
 							});
 
 							it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', () => {
-								expect(__private.receiveTransaction.calledWith(query.transactions[0], peerStub, 'This is a log message')).to.be.true;
+								expect(
+									__private.receiveTransaction.calledWith(
+										query.transactions[0],
+										peerStub,
+										'This is a log message'
+									)
+								).to.be.true;
 							});
 
 							it('should call callback with error = null', () => {
@@ -606,16 +690,28 @@ describe('transport', () => {
 
 							beforeEach(done => {
 								receiveTransactionError = 'Invalid transaction body - ...';
-								__private.receiveTransaction = sinonSandbox.stub().callsArgWith(3, receiveTransactionError);
+								__private.receiveTransaction = sinonSandbox
+									.stub()
+									.callsArgWith(3, receiveTransactionError);
 
-								__private.receiveTransactions(query, peerStub, 'This is a log message', err => {
-									error = err;
-									done();
-								});
+								__private.receiveTransactions(
+									query,
+									peerStub,
+									'This is a log message',
+									err => {
+										error = err;
+										done();
+									}
+								);
 							});
 
 							it('should call library.logger.debug with error and transaction', () => {
-								expect(library.logger.debug.calledWith(receiveTransactionError, query.transactions[0])).to.be.true;
+								expect(
+									library.logger.debug.calledWith(
+										receiveTransactionError,
+										query.transactions[0]
+									)
+								).to.be.true;
 							});
 
 							it('should call callback with error', () => {
@@ -656,35 +752,44 @@ describe('transport', () => {
 
 				library.logic = {
 					transaction: {
-						objectNormalize: sinonSandbox.stub().returns(transaction)
+						objectNormalize: sinonSandbox.stub().returns(transaction),
 					},
 					peers: {
 						peersManager: {
-							getAddress: sinonSandbox.stub().returns(peerAddressString)
-						}
-					}
+							getAddress: sinonSandbox.stub().returns(peerAddressString),
+						},
+					},
 				};
 				library.schema = {
-					validate: sinonSandbox.stub().callsArg(2)
+					validate: sinonSandbox.stub().callsArg(2),
 				};
 				library.logger = {
-					debug: sinonSandbox.spy()
+					debug: sinonSandbox.spy(),
 				};
 				library.balancesSequence = balancesSequenceStub;
 
 				modules.peers.remove = sinonSandbox.stub().returns(true);
-				modules.transactions.processUnconfirmedTransaction = sinonSandbox.stub().callsArg(2);
+				modules.transactions.processUnconfirmedTransaction = sinonSandbox
+					.stub()
+					.callsArg(2);
 			});
 
 			describe('when transaction and peer are defined', () => {
 				beforeEach(done => {
-					__private.receiveTransaction(transaction, peerStub, 'This is a log message', () => {
-						done();
-					});
+					__private.receiveTransaction(
+						transaction,
+						peerStub,
+						'This is a log message',
+						() => {
+							done();
+						}
+					);
 				});
 
 				it('should call library.logic.transaction.objectNormalize with transaction', () => {
-					expect(library.logic.transaction.objectNormalize.calledWith(transaction)).to.be.true;
+					expect(
+						library.logic.transaction.objectNormalize.calledWith(transaction)
+					).to.be.true;
 				});
 
 				it('should call library.balancesSequence.add', () => {
@@ -692,7 +797,12 @@ describe('transport', () => {
 				});
 
 				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', () => {
-					expect(modules.transactions.processUnconfirmedTransaction.calledWith(transaction, true)).to.be.true;
+					expect(
+						modules.transactions.processUnconfirmedTransaction.calledWith(
+							transaction,
+							true
+						)
+					).to.be.true;
 				});
 			});
 
@@ -705,55 +815,99 @@ describe('transport', () => {
 					extraLogMessage = 'This is a log message';
 					objectNormalizeError = 'Unknown transaction type 0';
 
-					library.logic.transaction.objectNormalize = sinonSandbox.stub().throws(objectNormalizeError);
+					library.logic.transaction.objectNormalize = sinonSandbox
+						.stub()
+						.throws(objectNormalizeError);
 					__private.removePeer = sinonSandbox.spy();
 
-					__private.receiveTransaction(transaction, peerStub, extraLogMessage, err => {
-						error = err;
-						done();
-					});
+					__private.receiveTransaction(
+						transaction,
+						peerStub,
+						extraLogMessage,
+						err => {
+							error = err;
+							done();
+						}
+					);
 				});
 
 				it('should call library.logger.debug with "Transaction normalization failed" error message and error details object', () => {
-					var errorDetails = { id: transaction.id, err: 'Unknown transaction type 0', module: 'transport', transaction: transaction };
-					expect(library.logger.debug.calledWith('Transaction normalization failed', errorDetails)).to.be.true;
+					var errorDetails = {
+						id: transaction.id,
+						err: 'Unknown transaction type 0',
+						module: 'transport',
+						transaction: transaction,
+					};
+					expect(
+						library.logger.debug.calledWith(
+							'Transaction normalization failed',
+							errorDetails
+						)
+					).to.be.true;
 				});
 
 				it('should call __private.removePeer with peer details object', () => {
 					var peerDetails = { peer: peerStub, code: 'ETRANSACTION' };
-					expect(__private.removePeer.calledWith(peerDetails, extraLogMessage)).to.be.true;
+					expect(__private.removePeer.calledWith(peerDetails, extraLogMessage))
+						.to.be.true;
 				});
 
 				it('should call callback with error = "Invalid transaction body"', () => {
-					expect(error).to.equal(`Invalid transaction body - ${objectNormalizeError}`);
+					expect(error).to.equal(
+						`Invalid transaction body - ${objectNormalizeError}`
+					);
 				});
 			});
 
 			describe('when peer is undefined', () => {
 				beforeEach(done => {
-					__private.receiveTransaction(transaction, undefined, 'This is a log message', () => {
-						done();
-					});
+					__private.receiveTransaction(
+						transaction,
+						undefined,
+						'This is a log message',
+						() => {
+							done();
+						}
+					);
 				});
 
 				it('should call library.logger.debug with "Received transaction " + transaction.id + " from public client"', () => {
-					expect(library.logger.debug.calledWith(`Received transaction ${transaction.id} from public client`)).to.be.true;
+					expect(
+						library.logger.debug.calledWith(
+							`Received transaction ${transaction.id} from public client`
+						)
+					).to.be.true;
 				});
 			});
 
 			describe('when peer is defined', () => {
 				beforeEach(done => {
-					__private.receiveTransaction(transaction, peerStub, 'This is a log message', () => {
-						done();
-					});
+					__private.receiveTransaction(
+						transaction,
+						peerStub,
+						'This is a log message',
+						() => {
+							done();
+						}
+					);
 				});
 
 				it('should call library.logger.debug with "Received transaction " + transaction.id + " from peer ..."', () => {
-					expect(library.logger.debug.calledWith(`Received transaction ${transaction.id} from peer ${peerAddressString}`)).to.be.true;
+					expect(
+						library.logger.debug.calledWith(
+							`Received transaction ${
+								transaction.id
+							} from peer ${peerAddressString}`
+						)
+					).to.be.true;
 				});
 
 				it('should call library.logic.peers.peersManager.getAddress with peer.nonce', () => {
-					expect(library.logic.peers.peersManager.getAddress.calledWith(peerStub.nonce)).to.be.true;
+					expect(
+						library.logic.peers.peersManager.getAddress.calledWith(
+							peerStub.nonce
+						)
+					).to.be.true;
 				});
 			});
 
@@ -762,22 +916,37 @@ describe('transport', () => {
 				var processUnconfirmedTransactionError;
 
 				beforeEach(done => {
-					processUnconfirmedTransactionError = `Transaction is already processed: ${transaction.id}`;
-					modules.transactions.processUnconfirmedTransaction = sinonSandbox.stub().callsArgWith(2, processUnconfirmedTransactionError);
+					processUnconfirmedTransactionError = `Transaction is already processed: ${
+						transaction.id
+					}`;
+					modules.transactions.processUnconfirmedTransaction = sinonSandbox
+						.stub()
+						.callsArgWith(2, processUnconfirmedTransactionError);
 
-					__private.receiveTransaction(transaction, peerStub, 'This is a log message', err => {
-						error = err;
-						done();
-					});
+					__private.receiveTransaction(
+						transaction,
+						peerStub,
+						'This is a log message',
+						err => {
+							error = err;
+							done();
+						}
+					);
 				});
 
 				it('should call library.logger.debug with "Transaction ${transaction.id}" and error string', () => {
-					expect(library.logger.debug.calledWith(`Transaction ${transaction.id}`, processUnconfirmedTransactionError)).to.be.true;
+					expect(
+						library.logger.debug.calledWith(
+							`Transaction ${transaction.id}`,
+							processUnconfirmedTransactionError
+						)
+					).to.be.true;
 				});
 
 				describe('when transaction is defined', () => {
 					it('should call library.logger.debug with "Transaction" and transaction as arguments', () => {
-						expect(library.logger.debug.calledWith('Transaction', transaction)).to.be.true;
+						expect(library.logger.debug.calledWith('Transaction', transaction))
+							.to.be.true;
 					});
 				});
 
@@ -791,11 +960,16 @@ describe('transport', () => {
 				var result;
 
 				beforeEach(done => {
-					__private.receiveTransaction(transaction, peerStub, 'This is a log message', (err, res) => {
-						error = err;
-						result = res;
-						done();
-					});
+					__private.receiveTransaction(
+						transaction,
+						peerStub,
+						'This is a log message',
+						(err, res) => {
+							error = err;
+							result = res;
+							done();
+						}
+					);
 				});
 
 				it('should call callback with error = null', () => {
@@ -818,27 +992,27 @@ describe('transport', () => {
 
 				library = {
 					schema: {
-						validate: sinonSandbox.stub().callsArg(2)
+						validate: sinonSandbox.stub().callsArg(2),
 					},
 					logger: {
-						debug: sinonSandbox.spy()
+						debug: sinonSandbox.spy(),
 					},
 					config: {
 						forging: {
-							force: false
-						}
-					}
+							force: false,
+						},
+					},
 				};
 
 				modules = {
 					peers: {
-						calculateConsensus: sinonSandbox.stub().returns(100)
-					}
+						calculateConsensus: sinonSandbox.stub().returns(100),
+					},
 				};
 
 				restoreRewiredTransportDeps = TransportModule.__set__({
 					library: library,
-					modules: modules
+					modules: modules,
 				});
 
 				done();
@@ -849,7 +1023,6 @@ describe('transport', () => {
 			restoreRewiredTransportDeps();
 			done();
 		});
-
 
 		describe('poorConsensus', () => {
 			var isPoorConsensusResult;
@@ -904,7 +1077,7 @@ describe('transport', () => {
 
 			beforeEach(done => {
 				__private.broadcaster = {
-					getPeers: sinonSandbox.stub().callsArgWith(1, null, [])
+					getPeers: sinonSandbox.stub().callsArgWith(1, null, []),
 				};
 
 				paramsArg = {};
@@ -915,7 +1088,9 @@ describe('transport', () => {
 			});
 
 			it('should call __private.broadcaster.getPeers with paramsArg and callbackArg as arguments', () => {
-				expect(__private.broadcaster.getPeers.calledWith(paramsArg, callbackArg)).to.be.true;
+				expect(
+					__private.broadcaster.getPeers.calledWith(paramsArg, callbackArg)
+				).to.be.true;
 			});
 		});
 
@@ -1009,11 +1184,15 @@ describe('transport', () => {
 					it('should call __private.broadcaster.maxRelays with blocks');
 
 					describe('when __private.broadcaster.maxRelays with blocks = true', () => {
-						it('should call library.logger.debug with "Broadcasting block aborted - max block relays exceeded"');
+						it(
+							'should call library.logger.debug with "Broadcasting block aborted - max block relays exceeded"'
+						);
 					});
 
 					describe('when modules.loader.syncing = true', () => {
-						it('should call library.logger.debug with "Broadcasting block aborted - blockchain synchronization in progress"');
+						it(
+							'should call library.logger.debug with "Broadcasting block aborted - blockchain synchronization in progress"'
+						);
 					});
 
 					it('should call modules.peers.list');
@@ -1021,11 +1200,15 @@ describe('transport', () => {
 					it('should call modules.peers.list with {normalized: false}');
 
 					describe('when peers = undefined', () => {
-						it('should call library.logger.debug with "Broadcasting block aborted - active peer list empty"');
+						it(
+							'should call library.logger.debug with "Broadcasting block aborted - active peer list empty"'
+						);
 					});
 
 					describe('when peers.length = 0', () => {
-						it('should call library.logger.debug with "Broadcasting block aborted - active peer list empty"');
+						it(
+							'should call library.logger.debug with "Broadcasting block aborted - active peer list empty"'
+						);
 					});
 
 					it('should call peers.filter');
@@ -1447,7 +1630,9 @@ describe('transport', () => {
 
 		describe('when library.schema.validate succeeds', () => {
 			describe('when query.authKey != wsRPC.getServerAuthKey()', () => {
-				it('should call callback with error = "Unable to access internal function - Incorrect authKey"');
+				it(
+					'should call callback with error = "Unable to access internal function - Incorrect authKey"'
+				);
 			});
 
 			it('should call callback with error = null');
@@ -1482,7 +1667,9 @@ describe('transport', () => {
 				});
 
 				describe('when updateResult = false', () => {
-					it('should call callback with error = new PeerUpdateError(updateResult, failureCodes.errorMessages[updateResult])');
+					it(
+						'should call callback with error = new PeerUpdateError(updateResult, failureCodes.errorMessages[updateResult])'
+					);
 				});
 
 				describe('when updateResult = true', () => {
