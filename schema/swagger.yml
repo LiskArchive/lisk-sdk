@@ -2639,7 +2639,7 @@ definitions:
       transactions:
         type: array
         items:
-          $ref: '#/definitions/Transaction'
+          type: object
         minItems: 1
         maxItems: 25
 
