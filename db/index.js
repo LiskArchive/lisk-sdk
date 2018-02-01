@@ -23,6 +23,13 @@
  */
 
 /**
+ * @namespace sql
+ * @memberof db
+ * @see Parent: {@link db}
+ * @property {module:db/sql/index} SQL
+ */
+
+/**
  * @namespace accounts
  * @memberof db.repos
  * @see Parent: {@link db.repos}

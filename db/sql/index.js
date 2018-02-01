@@ -15,6 +15,11 @@
 
 const { link } = require('./config');
 
+/**
+ * Description of the module.
+ *
+ * @module
+ */
 module.exports = {
 	accounts: {
 		resetMemoryTables: link('accounts/reset_memory_tables.sql'),
