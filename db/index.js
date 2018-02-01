@@ -11,6 +11,28 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/**
+ * @namespace db
+ * @property {module:db/index} db
+ */
+
+/**
+ * @namespace repos
+ * @memberof db
+ * @see Parent: {@link db}
+ */
+
+/**
+ * @namespace accounts
+ * @memberof db.repos
+ * @see Parent: {@link db.repos}
+ */
+
+/**
+ * @namespace blocks
+ * @memberof db.repos
+ * @see Parent: {@link db.repos}
+ */
 
 'use strict';
 
@@ -38,13 +60,20 @@ let initOptions = {
 pgp = pgp(initOptions);
 
 /**
- * Connects to the database
- * @requires pg-promise
+ * @module
+ * @requires bluebird
  * @requires pg-monitor
+ * @requires pg-promise
+ * @requires db/repos/*
+ */
+
+/**
+ * Connects to the database.
+ *
  * @function connect
- * @param {Object} config
- * @param {function} logger
- * @return {Promise<pg-promise.Database>}
+ * @param {Object} config - Description of the param
+ * @param {function} logger - Description of the param
+ * @return {Promise}
  */
 module.exports.connect = (config, logger) => {
 	try {
@@ -72,7 +101,9 @@ module.exports.connect = (config, logger) => {
 
 /**
  * Detaches pg-monitor. Should be invoked after connect.
- * @param {Object} logger
+ *
+ * @function disconnect
+ * @param {Object} logger - Description of the param
  */
 module.exports.disconnect = logger => {
 	logger = logger || console;
