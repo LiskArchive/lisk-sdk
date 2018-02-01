@@ -439,16 +439,19 @@ describe('transport', () => {
 
 						it('should call library.logger.debug with err and signature', () => {
 							expect(library.schema.validate.called).to.be.true;
-							// If any of the __private.receiveSignature calls fail, the whole
-							// receiveSignatures operation should fail immediately.
-							expect(__private.receiveSignature.calledOnce).to.be.true;
-							return expect(
-								library.logger.debug.calledWith(error, SAMPLE_SIGNATURE_1)
+							// If any of the __private.receiveSignature calls fail, the rest of
+							// the batch should still be processed.
+							expect(__private.receiveSignature.calledTwice).to.be.true;
+							expect(
+								library.logger.debug.calledWith(receiveSignatureError, SAMPLE_SIGNATURE_1)
+							).to.be.true;
+							expect(
+								library.logger.debug.calledWith(receiveSignatureError, SAMPLE_SIGNATURE_2)
 							).to.be.true;
 						});
 
-						it('should call callback with error', () => {
-							return expect(error).to.equal(receiveSignatureError);
+						it('should call callback with error set to null', () => {
+							expect(error).to.equal(null);
 						});
 					});
 				});
