@@ -23,6 +23,7 @@ describe('blocks/process', () => {
 	var blocksProcessModule;
 	var dbStub;
 	var loggerStub;
+	var dummyBlock;
 
 	describe('constructor', () => {
 		var blockStub;
@@ -52,7 +53,7 @@ describe('blocks/process', () => {
 			};
 
 			peersStub = {
-				create: function(input) {
+				create: function() {
 					return {
 						rpc: {
 							blocksCommon: sinonSandbox
@@ -129,6 +130,12 @@ describe('blocks/process', () => {
 				expect(library.genesisblock).to.eql(modulesLoader.scope.genesisblock);
 			});
 
+			it('should call library.logger.trace with "Blocks->Process: Submodule initialized."', () => {
+				expect(loggerStub.trace.args[0][0]).to.equal(
+					'Blocks->Process: Submodule initialized.'
+				);
+			});
+
 			describe('should assign logic', () => {
 				it('should assign block', () => {
 					expect(library.logic.block).to.eql(blockStub);
@@ -143,12 +150,6 @@ describe('blocks/process', () => {
 				});
 			});
 		});
-
-		it('should call library.logger.trace with "Blocks->Process: Submodule initialized."', () => {
-			expect(loggerStub.trace.args[0][0]).to.equal(
-				'Blocks->Process: Submodule initialized.'
-			);
-		});
 	});
 
 	describe('onBind', () => {
@@ -156,7 +157,7 @@ describe('blocks/process', () => {
 		var modules;
 
 		before(() => {
-			var dummyBlock = {
+			dummyBlock = {
 				id: '1',
 				height: 1,
 				timestamp: 41287231,
@@ -164,7 +165,23 @@ describe('blocks/process', () => {
 			};
 
 			var modulesAccountsStub = sinonSandbox.stub();
-			var modulesBlocksStub = sinonSandbox.stub();
+			var modulesBlocksStub = {
+				lastReceipt: {
+					update: function() {
+						sinonSandbox.spy();
+					},
+				},
+				verify: {
+					processBlock: sinonSandbox.stub(),
+				},
+			};
+
+			modulesBlocksStub.verify.processBlock
+				.withArgs(sinonSandbox.match({ id: 'ERR' }, true, true))
+				.callsArgWith(3, 'processBlock block Error Stub', null)
+				.withArgs(sinonSandbox.match(dummyBlock, true, true))
+				.callsArgWith(3, null, true);
+
 			var modulesDelegatesStub = sinonSandbox.stub();
 			var modulesLoaderStub = sinonSandbox.stub();
 			var modulesRoundsStub = sinonSandbox.stub();
@@ -233,6 +250,34 @@ describe('blocks/process', () => {
 
 			it('should assign transport', () => {
 				expect(modules.transport).to.equal(modulesStub.transport);
+			});
+		});
+	});
+
+	describe('__private.receiveBlock', () => {
+		beforeEach(done => {
+			loggerStub.info.reset();
+			done();
+		});
+
+		it('should return error when block is not valid', done => {
+			__private.receiveBlock({ id: 'ERR' }, (err, cb) => {
+				expect(err).to.equal('processBlock block Error Stub');
+				expect(cb).to.be.null;
+				done();
+			});
+		});
+
+		it('should return cb when block is valid', done => {
+			loggerStub.info.reset();
+
+			__private.receiveBlock(dummyBlock, (err, cb) => {
+				expect(err).to.be.null;
+				expect(cb).to.be.true;
+				expect(loggerStub.info.args[0]).to.contains(
+					'Received new block id: 1 height: 1 round: 1 slot: 4128723 reward: 100'
+				);
+				done();
 			});
 		});
 	});
