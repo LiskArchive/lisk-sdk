@@ -249,7 +249,7 @@ describe('crypto/index.js', function () {
 			(curveRepresentation).should.be.equal('a05621ba2d3f69f054abb1f3c155338bb44ec8b718928cf9d5b206bafd364356');
 		});
 	});
-	
+
 	describe('encrypt and decrypt in sign.js', function () {
 		var secretPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 		var defaultPassword = 'myTotal53cr3t%&';
@@ -260,7 +260,7 @@ describe('crypto/index.js', function () {
 				(cipher).should.be.type('object').and.have.property('iv').and.be.type('string').and.have.length(32);
 			});
 		});
-		
+
 		describe('#decryptPassphraseWithPassword  sign.js', function () {
 			it('should decrypt a text with a password', function () {
 				var cipherAndNonce = {
@@ -271,7 +271,7 @@ describe('crypto/index.js', function () {
 				(decrypted).should.be.eql(secretPassphrase);
 			});
 		});
-		
+
 		describe('encrypting passphrase integration test  sign.js', function () {
 			it('should encrypt a given secret with a password and decrypt it back to the original passphrase', function () {
 				var encryptedString = newcrypto.encryptPassphraseWithPassword(secretPassphrase, defaultPassword);

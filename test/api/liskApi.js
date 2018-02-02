@@ -7,7 +7,14 @@ if (typeof module !== 'undefined' && module.exports) {
 
 describe('Lisk.api()', function () {
 
-	var LSK = lisk.api();
+	var LSK;
+
+	beforeEach(() => {
+		var options = {
+			ssl: true,
+		};
+		LSK = lisk.api(options);
+	});
 
 	describe('lisk.api()', function () {
 
@@ -56,7 +63,7 @@ describe('Lisk.api()', function () {
 				'minVersion': '>=0.5.0',
 				'port': 8000
 			};
-			(LSK.getNethash()).should.eql(NetHash);
+			(lisk.api().getNethash()).should.eql(NetHash);
 		});
 
 		it('should give corret Nethash for testnet', function () {
@@ -353,7 +360,7 @@ describe('Lisk.api()', function () {
 
 		it('should not accept falsy options like undefined', function (done) {
 			try {
-				lisk.api().sendRequest('delegates/', {limit:undefined}, function () {});
+				LSK.sendRequest('delegates/', {limit:undefined}, function () {});
 			} catch (e) {
 				(e.message).should.be.equal('parameter value "limit" should not be undefined');
 				done();
@@ -362,7 +369,7 @@ describe('Lisk.api()', function () {
 
 		it('should not accept falsy options like NaN', function (done) {
 			try {
-				lisk.api().sendRequest('delegates/', {limit:NaN}, function () {});
+				LSK.sendRequest('delegates/', {limit:NaN}, function () {});
 			} catch (e) {
 				(e.message).should.be.equal('parameter value "limit" should not be NaN');
 				done();
@@ -899,14 +906,7 @@ describe('Lisk.api()', function () {
 		var amount = 100000000;
 
 		it('should check if all the peers are already banned', function () {
-			(lisk.api().checkReDial()).should.be.equal(true);
-		});
-
-		it('should be able to get a new node when current one is not reachable', function (done) {
-			lisk.api({ node: '123', randomPeer: true }).sendRequest('blocks/getHeight', {}, function (result) {
-				(result).should.be.type('object');
-				done();
-			});
+			(LSK.checkReDial()).should.be.equal(true);
 		});
 
 		it('should recognize that now all the peers are banned for mainnet', function () {
@@ -924,18 +924,17 @@ describe('Lisk.api()', function () {
 		});
 
 		it('should recognize that now all the peers are banned for ssl', function () {
-			var thisLSK = lisk.api({ssl: true});
+			var thisLSK = lisk.api({ ssl: true });
 			thisLSK.bannedPeers = lisk.api().defaultSSLPeers;
 
 			(thisLSK.checkReDial()).should.be.equal(false);
 		});
 
 		it('should stop redial when all the peers are banned already', function (done) {
-			var thisLSK = lisk.api();
-			thisLSK.bannedPeers = lisk.api().defaultPeers;
-			thisLSK.currentPeer = '';
+			LSK.bannedPeers = LSK.defaultPeers;
+			LSK.currentPeer = '';
 
-			thisLSK.sendRequest('blocks/getHeight').then(function (e) {
+			LSK.sendRequest('blocks/getHeight').then(function (e) {
 				(e.message).should.be.equal('Could not create HTTP request to any of the given peers.');
 				done();
 			});
@@ -968,12 +967,12 @@ describe('Lisk.api()', function () {
 			});
 		});
 
-		it('should redial to new node when randomPeer is set true', function (done) {
+		it('should call checkReDial when randomPeer is set true', function (done) {
 			var thisLSK = lisk.api({ randomPeer: true, node: '123' });
+			var checkReDialStub = sinon.stub(thisLSK, 'checkReDial').returns(false);
 
-			thisLSK.getAccount('12731041415715717263L', function (data) {
-				(data).should.be.ok;
-				(data.success).should.be.equal(true);
+			thisLSK.getAccount('12731041415715717263L', function () {
+				(checkReDialStub.calledOnce).should.be.equal(true);
 				done();
 			});
 		});
@@ -1008,7 +1007,7 @@ describe('Lisk.api()', function () {
 	describe('#sendRequest with promise', function () {
 
 		it('should be able to use sendRequest as a promise for GET', function (done) {
-			lisk.api().sendRequest('blocks/getHeight', {}).then(function (result) {
+			LSK.sendRequest('blocks/getHeight', {}).then(function (result) {
 				(result).should.be.type('object');
 				(result.success).should.be.equal(true);
 				(result.height).should.be.type('number');
@@ -1017,7 +1016,7 @@ describe('Lisk.api()', function () {
 		});
 
 		it('should route the request accordingly when request method is POST but GET can be used', function (done) {
-			lisk.api().sendRequest('accounts/open', { secret: '123' }).then(function (result) {
+			LSK.sendRequest('accounts/open', { secret: '123' }).then(function (result) {
 				(result).should.be.type('object');
 				(result.account).should.be.ok;
 				done();
@@ -1025,7 +1024,7 @@ describe('Lisk.api()', function () {
 		});
 
 		it('should respond with error when API call is disabled', function (done) {
-			lisk.api().sendRequest('delegates/forging/enable', { secret: '123' }).then(function (result) {
+			LSK.sendRequest('delegates/forging/enable', { secret: '123' }).then(function (result) {
 				(result.error).should.be.equal('Forging not available via offlineRequest');
 				done();
 			});
@@ -1033,7 +1032,7 @@ describe('Lisk.api()', function () {
 
 		it('should be able to use sendRequest as a promise for POST', function (done) {
 			var options = {
-				ssl: false,
+				ssl: true,
 				node: '',
 				randomPeer: true,
 				testnet: true,

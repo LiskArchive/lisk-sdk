@@ -2158,7 +2158,7 @@ function encryptAES256CBCWithPassword(plainText, password) {
 	var cipher = crypto.createCipheriv('aes-256-cbc', passwordHash, iv);
 	var firstBlock = cipher.update(plainText, 'utf8');
 	var encrypted = Buffer.concat([firstBlock, cipher.final()]);
-	
+
 	return {
 		cipher: encrypted.toString('hex'),
 		iv: iv.toString('hex'),
@@ -2182,7 +2182,7 @@ function decryptAES256CBCWithPassword(cipherAndIv, password) {
 	var decipherInit = crypto.createDecipheriv('aes-256-cbc', passwordHash, convert.hexToBuffer(iv));
 	var firstBlock = decipherInit.update(convert.hexToBuffer(cipher));
 	var decrypted = Buffer.concat([firstBlock, decipherInit.final()]);
-	
+
 	return decrypted.toString();
 }
 
@@ -2207,7 +2207,7 @@ function encryptPassphraseWithPassword(passphrase, password) {
  *
  * @return {String}
  */
- 
+
 function decryptPassphraseWithPassword(cipherAndIv, password) {
 	return decryptAES256CBCWithPassword(cipherAndIv, password);
 }
