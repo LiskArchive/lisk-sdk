@@ -13,13 +13,13 @@
  */
 'use strict';
 
-var _ = require('lodash');
 var url = require('url');
+var _ = require('lodash');
 var failureCodes = require('../api/ws/rpc/failure_codes.js');
 var swaggerHelper = require('../helpers/swagger');
+var Peer = require('../logic/peer.js');
 
 var definitions = swaggerHelper.getSwaggerSpec().definitions;
-var Peer = require('../logic/peer.js');
 
 var z_schema = swaggerHelper.getValidator();
 

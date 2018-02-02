@@ -14,9 +14,8 @@
 'use strict';
 
 require('../../functional.js');
-var swaggerEndpoint = require('../../../common/swagger_spec');
 var Promise = require('bluebird');
-
+var swaggerEndpoint = require('../../../common/swagger_spec');
 var accountFixtures = require('../../../fixtures/accounts');
 var modulesLoader = require('../../../common/modules_loader');
 var apiHelpers = require('../../../common/helpers/api');

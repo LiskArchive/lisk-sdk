@@ -15,7 +15,6 @@
 
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
-
 var accountFixtures = require('../../fixtures/accounts');
 var swaggerSpec = require('../swagger_spec');
 

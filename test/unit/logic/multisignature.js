@@ -13,23 +13,18 @@
  */
 'use strict';
 
-var lisk = require('lisk-js');
 var crypto = require('crypto');
 var rewire = require('rewire');
-
-var testData = require('./test_data/multisignature');
+var lisk = require('lisk-js');
+var modulesLoader = require('../../common/modules_loader');
+var randomUtil = require('../../common/utils/random');
+var constants = require('../../../helpers/constants');
 var accountFixtures = require('../../fixtures/accounts');
-
 var slots = require('../../../helpers/slots');
 var Diff = require('../../../helpers/diff');
-
-var constants = require('../../../helpers/constants');
+var testData = require('./test_data/multisignature');
 
 var Multisignature = rewire('../../../logic/multisignature');
-
-var randomUtil = require('../../common/utils/random');
-var modulesLoader = require('../../common/modules_loader');
-
 var validKeypair = testData.validKeypair;
 var validSender = testData.validSender;
 var validTransaction = testData.validTransaction;

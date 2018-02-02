@@ -16,13 +16,11 @@
 var express = require('express');
 var randomstring = require('randomstring');
 var async = require('async');
-
 var config = require('../../test/data/config.json');
 var Sequence = require('../../helpers/sequence.js');
 var database = require('../../db');
 var genesisblock = require('../../test/data/genesis_block.json');
 var Logger = require('../../logger.js');
-
 var z_schema = require('../../helpers/z_schema.js');
 var cacheHelper = require('../../helpers/cache.js');
 var Cache = require('../../modules/cache.js');

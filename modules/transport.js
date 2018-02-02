@@ -14,7 +14,6 @@
 'use strict';
 
 var async = require('async');
-
 var Broadcaster = require('../logic/broadcaster.js');
 var bson = require('../helpers/bson.js');
 var constants = require('../helpers/constants.js');

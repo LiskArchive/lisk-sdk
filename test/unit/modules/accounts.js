@@ -14,7 +14,6 @@
 'use strict';
 
 var bignum = require('../../../helpers/bignum.js');
-
 var AccountModule = require('../../../modules/accounts.js');
 var randomUtil = require('../../common/utils/random');
 var application = require('../../common/application');

@@ -13,10 +13,10 @@
  */
 'use strict';
 
-var SwaggerRunner = require('swagger-node-runner');
 var path = require('path');
 var fs = require('fs');
 var _ = require('lodash');
+var SwaggerRunner = require('swagger-node-runner');
 var swaggerHelper = require('../helpers/swagger');
 
 // Its necessary to require this file to extend swagger validator with our custom formats

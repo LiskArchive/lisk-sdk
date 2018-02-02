@@ -18,7 +18,6 @@ require('../../setup'); // Ensure availability of global variables
 var randomstring = require('randomstring');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');
 var SocketCluster = require('socketcluster');
-
 var testConfig = require('../../data/config.json');
 
 var wsServer = {

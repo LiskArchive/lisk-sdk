@@ -13,11 +13,11 @@
  */
 'use strict';
 
-var strftime = require('strftime').utc();
 var fs = require('fs');
 var util = require('util');
 var child_process = require('child_process');
 var path = require('path');
+var strftime = require('strftime').utc();
 
 require('colors');
 

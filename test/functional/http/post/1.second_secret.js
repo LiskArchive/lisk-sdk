@@ -16,18 +16,15 @@
 require('../../functional.js');
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
-
-var common = require('./common');
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
-
 var constants = require('../../../../helpers/constants');
-
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var normalizer = require('../../../common/utils/normalizer');
 var errorCodes = require('../../../../helpers/api_codes');
+var common = require('./common');
 
 describe('POST /api/transactions (type 1) register second secret', () => {
 	var transaction;

@@ -14,22 +14,19 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
 var Promise = require('bluebird');
-
-var common = require('./common');
+var lisk = require('lisk-js');
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
-
 var constants = require('../../../../helpers/constants');
-
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
+var errorCodes = require('../../../../helpers/api_codes');
+var common = require('./common');
 
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
-var errorCodes = require('../../../../helpers/api_codes');
 
 describe('POST /api/transactions (type 3) votes', () => {
 	var transaction;

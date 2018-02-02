@@ -14,23 +14,19 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
 var Promise = require('bluebird');
-
+var lisk = require('lisk-js');
 var accountFixtures = require('../../../fixtures/accounts');
 var genesisblock = require('../../../data/genesis_block.json');
-
 var transactionTypes = require('../../../../helpers/transaction_types');
-
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
-
 var swaggerEndpoint = require('../../../common/swagger_spec');
+var slots = require('../../../../helpers/slots');
 
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-var slots = require('../../../../helpers/slots');
 
 describe('GET /api/transactions', () => {
 	var transactionsEndpoint = new swaggerEndpoint('GET /transactions');

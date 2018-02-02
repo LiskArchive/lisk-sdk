@@ -18,6 +18,7 @@ var chai = require('chai');
 var sinon = require('sinon');
 var sinonChai = require('sinon-chai');
 var supertest = require('supertest');
+var _ = require('lodash');
 
 process.env.NODE_ENV = 'test';
 
@@ -39,8 +40,6 @@ testContext.baseUrl = `http://${testContext.config.address}:${
 	testContext.config.httpPort
 }`;
 testContext.api = supertest(testContext.baseUrl);
-
-var _ = require('lodash');
 
 _.mixin(
 	{

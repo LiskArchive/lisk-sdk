@@ -15,13 +15,11 @@
 
 var rewire = require('rewire');
 var randomstring = require('randomstring');
-
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var Peer = require('../../../logic/peer');
 var generateRandomActivePeer = require('../../fixtures/peers')
 	.generateRandomActivePeer;
 var constants = require('../../../helpers/constants');
-
 var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers')
 	.generateMatchedAndUnmatchedBroadhashes;
 var modulesLoader = require('../../common/modules_loader');

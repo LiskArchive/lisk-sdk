@@ -15,7 +15,6 @@
 
 require('../../functional.js');
 var ws = require('../../../common/ws/communication');
-
 var genesisblock = require('../../../data/genesis_block.json');
 var verify = require('../../../../modules/blocks/verify');
 var bson = require('../../../../helpers/bson');

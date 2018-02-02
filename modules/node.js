@@ -14,7 +14,6 @@
 'use strict';
 
 var _ = require('lodash');
-
 var BlockReward = require('../logic/block_reward.js');
 var constants = require('../helpers/constants.js');
 

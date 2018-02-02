@@ -36,24 +36,24 @@
  * @module app
  */
 
-var async = require('async');
-var extend = require('extend');
-var fs = require('fs');
 var path = require('path');
+var fs = require('fs');
+var d = require('domain').create();
+var extend = require('extend');
 var SocketCluster = require('socketcluster');
-
+var async = require('async');
 var genesisblock = require('./genesis_block.json');
 var Logger = require('./logger.js');
-
-var workersControllerPath = path.join(__dirname, 'workers_controller');
 var wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
-
 var AppConfig = require('./helpers/config.js');
 var git = require('./helpers/git.js');
 var httpApi = require('./helpers/http_api.js');
 var Sequence = require('./helpers/sequence.js');
 var swagger = require('./config/swagger');
+// eslint-disable-next-line import/order
 var swaggerHelper = require('./helpers/swagger');
+
+var workersControllerPath = path.join(__dirname, 'workers_controller');
 
 process.stdin.resume();
 
@@ -151,7 +151,6 @@ try {
  * Creates the express server and loads all the Modules and logic.
  * @property {Object} - Domain instance.
  */
-var d = require('domain').create();
 
 d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });

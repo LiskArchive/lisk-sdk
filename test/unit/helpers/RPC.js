@@ -13,11 +13,10 @@
  */
 'use strict';
 
+var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 var wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 var ClientRPCStub = require('../../../api/ws/rpc/ws_rpc').ClientRPCStub;
 var ConnectionState = require('../../../api/ws/rpc/ws_rpc').ConnectionState;
-
-var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var socketClusterMock = {
 	on: sinonSandbox.spy(),

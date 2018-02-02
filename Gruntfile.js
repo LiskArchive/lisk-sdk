@@ -13,9 +13,9 @@
  */
 'use strict';
 
-var moment = require('moment');
 var util = require('util');
 const path = require('path');
+var moment = require('moment');
 
 var appFile = 'app.js'; // Application file name
 

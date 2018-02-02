@@ -13,8 +13,8 @@
  */
 'use strict';
 
-var git = require('../../../helpers/git');
 var childProcess = require('child_process');
+var git = require('../../../helpers/git');
 
 describe('git', () => {
 	describe('getLastCommit', () => {

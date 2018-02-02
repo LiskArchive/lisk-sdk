@@ -15,18 +15,13 @@
 
 var async = require('async');
 var rewire = require('rewire');
-
 var transactionTypes = require('../../../helpers/transaction_types.js');
 var modulesLoader = require('../../common/modules_loader');
-
 var AccountLogic = require('../../../logic/account.js');
 var TransactionLogic = require('../../../logic/transaction.js');
 var DelegateModule = require('../../../modules/delegates.js');
 var AccountModule = require('../../../modules/accounts.js');
 var LoaderModule = require('../../../modules/loader.js');
-
-var TransactionModule = rewire('../../../modules/transactions.js');
-
 var VoteLogic = require('../../../logic/vote.js');
 var TransferLogic = require('../../../logic/transfer.js');
 var DelegateLogic = require('../../../logic/delegate.js');
@@ -35,6 +30,8 @@ var MultisignatureLogic = require('../../../logic/multisignature.js');
 var DappLogic = require('../../../logic/dapp.js');
 var InTransferLogic = require('../../../logic/in_transfer.js');
 var OutTransferLogic = require('../../../logic/out_transfer.js');
+
+var TransactionModule = rewire('../../../modules/transactions.js');
 
 describe('transactions', () => {
 	var transactionsModule;

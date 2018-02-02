@@ -15,7 +15,6 @@
 
 var scClient = require('socketcluster-client');
 var Promise = require('bluebird');
-
 var testConfig = require('../../data/config.json');
 
 /**

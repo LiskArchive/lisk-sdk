@@ -14,11 +14,9 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
 var Promise = require('bluebird');
-
+var lisk = require('lisk-js');
 var accountFixtures = require('../../../fixtures/accounts');
-
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/wait_for');

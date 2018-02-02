@@ -17,7 +17,6 @@ var _ = require('lodash');
 var rewire = require('rewire');
 var expect = require('chai').expect;
 var sinon = require('sinon');
-
 // Load config file - global (one from test directory)
 var config = require('../../../config.json');
 

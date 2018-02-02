@@ -16,7 +16,6 @@
 var popsicle = require('popsicle');
 var async = require('async');
 var Promise = require('bluebird');
-
 var slots = require('../../../helpers/slots');
 var apiHelpers = require('../helpers/api');
 
