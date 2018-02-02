@@ -61,7 +61,7 @@ MultiSigTransactionsRepo.prototype.save = function(transactions) {
 	transactions = transactions.map(transaction => ({
 		min: transaction.asset.multisignature.min,
 		lifetime: transaction.asset.multisignature.lifetime,
-		keysgroup: transaction.asset.multisignature.keysgroup.join(','),
+		keysgroup: transaction.asset.multisignature.keysgroup.join(),
 		transactionId: transaction.id,
 	}));
 

@@ -60,7 +60,7 @@ class MigrationsRepository {
 	}
 
 	/**
-	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
+	 * Executes 'migrations/underscore_patch.sql' file, to update names to underscore.
 	 *
 	 * @method
 	 * @return {Promise<null>}
