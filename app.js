@@ -670,6 +670,7 @@ d.run(() => {
 
 							d.run(() => {
 								logger.debug('Loading module', name);
+								// eslint-disable-next-line import/no-dynamic-require
 								var Klass = require(config.modules[name]);
 								var obj = new Klass(cb, scope);
 								modules.push(obj);
@@ -701,6 +702,7 @@ d.run(() => {
 						Object.keys(config.api[moduleName]).forEach(protocol => {
 							var apiEndpointPath = config.api[moduleName][protocol];
 							try {
+								// eslint-disable-next-line import/no-dynamic-require
 								var ApiEndpoint = require(apiEndpointPath);
 								new ApiEndpoint(
 									scope.modules[moduleName],

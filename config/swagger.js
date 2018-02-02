@@ -47,6 +47,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 	var controllerFolder = '/api/controllers/';
 	fs.readdirSync(config.root + controllerFolder).forEach(file => {
 		if (path.basename(file) !== 'index.js') {
+			// eslint-disable-next-line import/no-dynamic-require
 			require(config.root + controllerFolder + file)(scope);
 		}
 	});

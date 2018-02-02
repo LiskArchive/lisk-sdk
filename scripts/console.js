@@ -45,6 +45,7 @@ application.init(
 		fs.readdirSync(helpersFolder).forEach(file => {
 			var filePath = path.resolve(helpersFolder, file);
 			var fileName = path.basename(filePath, '.js');
+			// eslint-disable-next-line import/no-dynamic-require
 			helpers[fileName] = require(filePath);
 		});
 
