@@ -150,4 +150,90 @@ describe('blocks/process', () => {
 			);
 		});
 	});
+
+	describe('onBind', () => {
+		var modulesStub;
+		var modules;
+
+		before(() => {
+			var dummyBlock = {
+				id: '1',
+				height: 1,
+				timestamp: 41287231,
+				reward: 100,
+			};
+
+			var modulesAccountsStub = sinonSandbox.stub();
+			var modulesBlocksStub = sinonSandbox.stub();
+			var modulesDelegatesStub = sinonSandbox.stub();
+			var modulesLoaderStub = sinonSandbox.stub();
+			var modulesRoundsStub = sinonSandbox.stub();
+			var modulesTransactionsStub = sinonSandbox.stub();
+			var modulesTransportStub = sinonSandbox.stub();
+			var swaggerDefinitionsStub = sinonSandbox.stub();
+
+			modulesStub = {
+				accounts: modulesAccountsStub,
+				blocks: modulesBlocksStub,
+				delegates: modulesDelegatesStub,
+				loader: modulesLoaderStub,
+				rounds: modulesRoundsStub,
+				transactions: modulesTransactionsStub,
+				transport: modulesTransportStub,
+				swagger: {
+					definitions: swaggerDefinitionsStub,
+				},
+			};
+
+			loggerStub.trace.reset();
+			__private.loaded = false;
+
+			blocksProcessModule.onBind(modulesStub);
+			modules = BlocksProcess.__get__('modules');
+		});
+
+		it('should call library.logger.trace with "Blocks->Process: Shared modules bind."', () => {
+			expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Process: Shared modules bind.'
+			);
+		});
+
+		it('should create a modules object { blocks: scope.blocks }', () => {
+			expect(modules.blocks).to.equal(modulesStub.blocks);
+		});
+
+		it('should set __private.loaded to true', () => {
+			expect(__private.loaded).to.be.true;
+		});
+
+		describe('modules', () => {
+			it('should assign accounts', () => {
+				expect(modules.accounts).to.equal(modulesStub.accounts);
+			});
+
+			it('should assign blocks', () => {
+				expect(modules.blocks).to.equal(modulesStub.blocks);
+			});
+
+			it('should assign delegates', () => {
+				expect(modules.delegates).to.equal(modulesStub.delegates);
+			});
+
+			it('should assign loader', () => {
+				expect(modules.loader).to.equal(modulesStub.loader);
+			});
+
+			it('should assign rounds', () => {
+				expect(modules.rounds).to.equal(modulesStub.rounds);
+			});
+
+			it('should assign transactions', () => {
+				expect(modules.transactions).to.equal(modulesStub.transactions);
+			});
+
+			it('should assign transport', () => {
+				expect(modules.transport).to.equal(modulesStub.transport);
+			});
+		});
+	});
 });
