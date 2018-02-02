@@ -26,6 +26,7 @@ chai.use(sinonChai);
 var testContext = {};
 
 testContext.config = require('./data/config.json');
+
 testContext.config.root = process.cwd();
 
 if (process.env.SILENT === 'true') {

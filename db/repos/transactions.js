@@ -16,6 +16,7 @@
 var PQ = require('pg-promise').ParameterizedQuery;
 var _ = require('lodash');
 var transactionTypes = require('../../helpers/transaction_types');
+
 var columnSet;
 
 /**

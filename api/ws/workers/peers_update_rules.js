@@ -19,6 +19,7 @@ var Rules = require('./rules');
 var failureCodes = require('../rpc/failure_codes');
 var PeerUpdateError = require('../rpc/failure_codes').PeerUpdateError;
 var swaggerHelper = require('../../../helpers/swagger');
+
 var definitions = swaggerHelper.getSwaggerSpec().definitions;
 var z_schema = swaggerHelper.getValidator();
 var Peer = require('../../../logic/peer');

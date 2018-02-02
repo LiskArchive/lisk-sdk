@@ -20,6 +20,7 @@ var constants = require('../../../helpers/constants.js');
 var application = require('../../common/application.js');
 
 var modulesLoader = require('../../common/modules_loader');
+
 var Account = rewire('../../../logic/account.js');
 
 var validAccount = {

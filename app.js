@@ -44,6 +44,7 @@ var SocketCluster = require('socketcluster');
 
 var genesisblock = require('./genesis_block.json');
 var Logger = require('./logger.js');
+
 var workersControllerPath = path.join(__dirname, 'workers_controller');
 var wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 

@@ -21,6 +21,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 var modulesLoader = require('../../../common/modules_loader');
 var apiHelpers = require('../../../common/helpers/api');
 var waitFor = require('../../../common/utils/wait_for');
+
 var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
 var onNewRoundPromise = Promise.promisify(waitFor.newRound);
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;

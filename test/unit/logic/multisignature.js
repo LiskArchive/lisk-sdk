@@ -24,6 +24,7 @@ var slots = require('../../../helpers/slots');
 var Diff = require('../../../helpers/diff');
 
 var constants = require('../../../helpers/constants');
+
 var Multisignature = rewire('../../../logic/multisignature');
 
 var randomUtil = require('../../common/utils/random');

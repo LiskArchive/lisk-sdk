@@ -24,6 +24,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 var constants = require('../../../../helpers/constants');
 
 var apiHelpers = require('../../../common/helpers/api');
+
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 var randomUtil = require('../../../common/utils/random');

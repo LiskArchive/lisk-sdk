@@ -28,6 +28,7 @@ var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
 
 var swaggerEndpoint = require('../../../common/swagger_spec');
+
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 var slots = require('../../../../helpers/slots');
 

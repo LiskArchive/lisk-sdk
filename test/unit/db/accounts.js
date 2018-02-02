@@ -16,6 +16,7 @@
 var application = require('../../common/application');
 var Promise = require('bluebird');
 var randomstring = require('randomstring');
+
 var db;
 var validAccount;
 

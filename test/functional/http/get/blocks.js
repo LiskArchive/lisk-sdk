@@ -18,10 +18,12 @@ require('../../functional.js');
 var Promise = require('bluebird');
 
 var waitFor = require('../../../common/utils/wait_for');
+
 Promise.promisify(waitFor.blocks);
 
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
+
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /blocks', () => {

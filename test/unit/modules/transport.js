@@ -15,9 +15,11 @@
 
 var rewire = require('rewire');
 var chai = require('chai');
+
 var expect = chai.expect;
 
 var swaggerHelper = require('../../../helpers/swagger');
+
 var TransportModule = rewire('../../../modules/transport.js');
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.

@@ -27,6 +27,7 @@ var blockchainReady = require('../common/utils/wait_for').blockchainReady;
 var WSServerMaster = require('../common/ws/server_master');
 
 var Logger = require('../../logger');
+
 var logger = new Logger({
 	filename: 'integrationTestsLogger.logs',
 	echo: 'log',

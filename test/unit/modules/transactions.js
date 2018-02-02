@@ -24,6 +24,7 @@ var TransactionLogic = require('../../../logic/transaction.js');
 var DelegateModule = require('../../../modules/delegates.js');
 var AccountModule = require('../../../modules/accounts.js');
 var LoaderModule = require('../../../modules/loader.js');
+
 var TransactionModule = rewire('../../../modules/transactions.js');
 
 var VoteLogic = require('../../../logic/vote.js');
