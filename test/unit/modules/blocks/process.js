@@ -30,6 +30,7 @@ describe('blocks/process', () => {
 	var blocks;
 	var db;
 	var originalBlockRewardsOffset;
+	var scope;
 
 	before(done => {
 		// Force rewards start at 150-th block
@@ -37,10 +38,11 @@ describe('blocks/process', () => {
 		constants.rewards.offset = 150;
 		application.init(
 			{ sandbox: { name: 'lisk_test_blocks_process' } },
-			(err, scope) => {
-				blocksProcess = scope.modules.blocks.process;
-				blocks = scope.modules.blocks;
-				db = scope.db;
+			(err, internalScope) => {
+				blocksProcess = internalScope.modules.blocks.process;
+				blocks = internalScope.modules.blocks;
+				db = internalScope.db;
+				scope = internalScope;
 				done(err);
 			}
 		);
@@ -110,7 +112,89 @@ describe('blocks/process', () => {
 	});
 
 	describe('getCommonBlock()', () => {
-		it('should be ok');
+		describe('validation with definitions.CommonBlock', function() {
+			var validCommonBlock;
+			var blockHeightTwo = {
+				id: '3082931137036442832',
+				previousBlock: '6524861224470851795',
+				timestamp: '52684260',
+				height: 2,
+			};
+
+			var commonBlockValidationError;
+
+			beforeEach(function() {
+				scope.schema.validate(
+					validCommonBlock,
+					scope.swagger.definitions.CommonBlock,
+					err => {
+						commonBlockValidationError = err;
+					}
+				);
+			});
+
+			describe('when rpc.commonBlock call returns valid result', function() {
+				before(function() {
+					validCommonBlock = Object.assign({}, blockHeightTwo);
+				});
+
+				it('should return error = null', function() {
+					expect(commonBlockValidationError).to.be.undefined;
+				});
+			});
+
+			describe('when rpc.commonBlock call returns invalid result', function() {
+				describe('when id = null', function() {
+					before(function() {
+						validCommonBlock = Object.assign({}, blockHeightTwo);
+						validCommonBlock.id = null;
+					});
+
+					it('should return array of errors', function() {
+						expect(commonBlockValidationError)
+							.to.be.an('array')
+							.of.length(1);
+					});
+
+					it('should return error containing message', function() {
+						expect(commonBlockValidationError)
+							.to.have.nested.property('0.message')
+							.equal('Expected type string but found type null');
+					});
+
+					it('should return error containing path', function() {
+						expect(commonBlockValidationError)
+							.to.have.nested.property('0.path')
+							.equal('#/id');
+					});
+				});
+
+				describe('when previousBlock = null', function() {
+					before(function() {
+						validCommonBlock = Object.assign({}, blockHeightTwo);
+						validCommonBlock.previousBlock = null;
+					});
+
+					it('should return array of errors', function() {
+						expect(commonBlockValidationError)
+							.to.be.an('array')
+							.of.length(1);
+					});
+
+					it('should return error containing message', function() {
+						expect(commonBlockValidationError)
+							.to.have.nested.property('0.message')
+							.equal('Expected type string but found type null');
+					});
+
+					it('should return error containing path', function() {
+						expect(commonBlockValidationError)
+							.to.have.nested.property('0.path')
+							.equal('#/previousBlock');
+					});
+				});
+			});
+		});
 	});
 
 	describe('loadBlocksOffset({verify: true}) - no errors', () => {
