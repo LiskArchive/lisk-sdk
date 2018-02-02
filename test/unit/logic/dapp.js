@@ -301,7 +301,7 @@ describe('dapp', () => {
 							.map(() => {
 								return 'a';
 							})
-							.join(',');
+							.join();
 
 						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal(
@@ -842,14 +842,14 @@ describe('dapp', () => {
 
 					var invalidTags = [
 						_.fill(new Array(161), 'a'),
-						_.fill(new Array(81), 'b').join(','),
+						_.fill(new Array(81), 'b').join(),
 					];
 
 					var validTags = [
 						_.fill(
 							new Array(_.toInteger(Math.random() * 80)),
 							randomstring.generate(1)
-						).join(','),
+						).join(),
 						'adventure, fantasy',
 					];
 

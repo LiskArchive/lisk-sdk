@@ -233,7 +233,7 @@ describe('WS transport blocks', () => {
 		it('using ids which include genesisblock.id should be ok', done => {
 			ws.call(
 				'blocksCommon',
-				{ ids: [genesisblock.id.toString(), '2', '3'].join(',') },
+				{ ids: [genesisblock.id.toString(), '2', '3'].join() },
 				(err, res) => {
 					__testContext.debug(
 						'> Error / Response:'.grey,

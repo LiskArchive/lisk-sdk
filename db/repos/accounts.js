@@ -603,7 +603,7 @@ function Selects(columnSet, fields, pgp) {
 			}
 		});
 
-		return pgp.as.format(selectSQL, [selectFields.join(','), table]);
+		return pgp.as.format(selectSQL, [selectFields.join(), table]);
 	};
 }
 
