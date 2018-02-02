@@ -50,7 +50,6 @@
 		"vars-on-top": "off",
 		"wrap-iife": "off",
 		// plug-in rules
-		"import/no-dynamic-require": "off",
 		"import/no-extraneous-dependencies": "off",
 		"import/order": "off"
 	}
