@@ -112,7 +112,7 @@ function invalidAssets(option, badTransactions) {
 					});
 			});
 		});
-		describe(`with option:${option}`, () => {
+		describe(`with option: ${option}`, () => {
 			typesRepresentatives.allTypes.forEach(test => {
 				it(`using ${test.description} should fail`, () => {
 					transaction.asset[option] = test.input;
