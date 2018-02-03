@@ -14,7 +14,6 @@
 'use strict';
 
 var randomstring = require('randomstring');
-
 var typeRepresentatives = require('../../fixtures/types_representatives.js');
 var wsApi = require('../../../helpers/ws_api');
 var failureCodes = require('../../../api/ws/rpc/failure_codes');

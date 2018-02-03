@@ -13,15 +13,16 @@
  */
 'use strict';
 
-var connectionsTable = require('./connections_table');
-var SlaveToMasterSender = require('./slave_to_master_sender');
-var Rules = require('./rules');
+var Peer = require('../../../logic/peer');
 var failureCodes = require('../rpc/failure_codes');
 var PeerUpdateError = require('../rpc/failure_codes').PeerUpdateError;
 var swaggerHelper = require('../../../helpers/swagger');
+var connectionsTable = require('./connections_table');
+var SlaveToMasterSender = require('./slave_to_master_sender');
+var Rules = require('./rules');
+
 var definitions = swaggerHelper.getSwaggerSpec().definitions;
 var z_schema = swaggerHelper.getValidator();
-var Peer = require('../../../logic/peer');
 
 var self;
 

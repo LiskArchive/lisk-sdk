@@ -15,13 +15,12 @@
 
 // Init tests dependencies
 var rewire = require('rewire');
-
 // Instantiate test subject
 var Rounds = rewire('../../../modules/rounds.js');
-
-var sinon = sinonSandbox;
 var Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
 var DBSandbox = require('../../common/db_sandbox').DBSandbox;
+
+var sinon = sinonSandbox;
 
 describe('rounds', () => {
 	var db;

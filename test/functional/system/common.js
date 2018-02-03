@@ -16,12 +16,9 @@
 var async = require('async');
 var Promise = require('bluebird');
 var lisk = require('lisk-js');
-
 var slots = require('../../../helpers/slots');
-
 var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
-
 var accountFixtures = require('../../fixtures/accounts');
 
 function forge(library, cb) {

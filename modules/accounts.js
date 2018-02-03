@@ -13,9 +13,9 @@
  */
 'use strict';
 
+var crypto = require('crypto');
 var bignum = require('../helpers/bignum.js');
 var BlockReward = require('../logic/block_reward.js');
-var crypto = require('crypto');
 var transactionTypes = require('../helpers/transaction_types.js');
 var Vote = require('../logic/vote.js');
 

@@ -13,9 +13,11 @@
  */
 'use strict';
 
+var path = require('path');
 var repl = require('repl');
 var fs = require('fs');
-var path = require('path');
+require('../test/setup');
+var application = require('../test/common/application.js');
 
 // Created this before in global scope as its dependency of test/node.js
 if (typeof before !== 'function') {
@@ -24,8 +26,6 @@ if (typeof before !== 'function') {
 		cb();
 	};
 }
-require('../test/setup');
-var application = require('../test/common/application.js');
 
 application.init(
 	{},
@@ -45,6 +45,7 @@ application.init(
 		fs.readdirSync(helpersFolder).forEach(file => {
 			var filePath = path.resolve(helpersFolder, file);
 			var fileName = path.basename(filePath, '.js');
+			// eslint-disable-next-line import/no-dynamic-require
 			helpers[fileName] = require(filePath);
 		});
 

@@ -16,20 +16,18 @@
 require('../../functional.js');
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
-
 var accountFixtures = require('../../../fixtures/accounts');
-var common = require('./common');
 var phases = require('../../common/phases');
-
 var constants = require('../../../../helpers/constants');
 var bignum = require('../../../../helpers/bignum.js');
-
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 var errorCodes = require('../../../../helpers/api_codes');
+var common = require('./common');
+
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	var transaction;

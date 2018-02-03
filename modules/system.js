@@ -13,9 +13,9 @@
  */
 'use strict';
 
-var async = require('async');
-var crypto = require('crypto');
 var os = require('os');
+var crypto = require('crypto');
+var async = require('async');
 var semver = require('semver');
 
 // Private fields

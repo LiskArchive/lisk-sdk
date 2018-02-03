@@ -13,9 +13,9 @@
  */
 'use strict';
 
+var Promise = require('bluebird');
 var async = require('async');
 var transactionTypes = require('../../helpers/transaction_types.js');
-var Promise = require('bluebird');
 
 var modules;
 var library;

@@ -16,6 +16,7 @@
 require('../../../functional.js');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
 var apiHelpers = require('../../../../common/helpers/api');
+
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /node', () => {

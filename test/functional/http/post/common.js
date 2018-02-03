@@ -15,10 +15,8 @@
 
 require('../../functional.js');
 var lisk = require('lisk-js');
-
 var typesRepresentatives = require('../../../fixtures/types_representatives');
 var accountFixtures = require('../../../fixtures/accounts');
-
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
 var errorCodes = require('../../../../helpers/api_codes');

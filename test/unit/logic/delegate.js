@@ -15,7 +15,6 @@
 
 var crypto = require('crypto');
 var rewire = require('rewire');
-
 var accounts = require('../../fixtures/accounts');
 var constants = require('../../../helpers/constants');
 var ed = require('../../../helpers/ed');

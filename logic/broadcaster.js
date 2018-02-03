@@ -14,10 +14,10 @@
 'use strict';
 
 var async = require('async');
-var constants = require('../helpers/constants.js');
-var jobsQueue = require('../helpers/jobs_queue.js');
 var extend = require('extend');
 var _ = require('lodash');
+var constants = require('../helpers/constants.js');
+var jobsQueue = require('../helpers/jobs_queue.js');
 var bson = require('../helpers/bson.js');
 
 // Private fields

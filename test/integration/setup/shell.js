@@ -13,8 +13,8 @@
  */
 'use strict';
 
-var async = require('async');
 var child_process = require('child_process');
+var async = require('async');
 
 module.exports = {
 	recreateDatabases: function(configurations, cb) {

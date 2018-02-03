@@ -14,7 +14,6 @@
 'use strict';
 
 var crypto = require('crypto');
-
 var ed = require('../../../helpers/ed');
 
 describe('ed', () => {

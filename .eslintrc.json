@@ -49,10 +49,18 @@
 		"space-before-function-paren": ["error", "never"],
 		"vars-on-top": "off",
 		"wrap-iife": "off",
-		// plug-in rules
-		"import/newline-after-import": "off",
-		"import/no-dynamic-require": "off",
-		"import/no-extraneous-dependencies": "off",
-		"import/order": "off"
+		// To keep
+		"import/no-extraneous-dependencies": [
+			"error",
+			{
+				"devDependencies": [
+					"test/**",
+					"tasks/**",
+					"scripts/**",
+					"webpack.config.js",
+					"Gruntfile.js"
+				]
+			}
+		]
 	}
 }

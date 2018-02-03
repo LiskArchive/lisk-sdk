@@ -14,11 +14,10 @@
 'use strict';
 
 var utils = require('../validator/utils');
-
-module.exports = JsonSchema;
-
 var Validator = require('../validator');
 var Field = require('./field');
+
+module.exports = JsonSchema;
 
 function JsonSchema(options) {
 	Validator.call(this, options);

@@ -13,13 +13,12 @@
  */
 'use strict';
 
+var crypto = require('crypto');
 var expect = require('chai').expect;
 var async = require('async');
-var crypto = require('crypto');
 var _ = require('lodash');
 var Promise = require('bluebird');
 var PQ = require('pg-promise').ParameterizedQuery;
-
 var accountFixtures = require('../../../../fixtures/accounts');
 var slots = require('../../../../../helpers/slots');
 var constants = require('../../../../../helpers/constants');

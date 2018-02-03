@@ -16,9 +16,9 @@
 var fs = require('fs');
 var path = require('path');
 var program = require('commander');
-var z_schema = require('./z_schema.js');
-var configSchema = require('../schema/config.js');
 var constants = require('../helpers/constants.js');
+var configSchema = require('../schema/config.js');
+var z_schema = require('./z_schema.js');
 
 /**
  * Loads config.json file

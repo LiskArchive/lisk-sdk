@@ -13,11 +13,11 @@
  */
 'use strict';
 
+var crypto = require('crypto');
+var _ = require('lodash');
 var async = require('async');
 var BlockReward = require('../../logic/block_reward.js');
-var _ = require('lodash');
 var constants = require('../../helpers/constants.js');
-var crypto = require('crypto');
 var slots = require('../../helpers/slots.js');
 var exceptions = require('../../helpers/exceptions.js');
 

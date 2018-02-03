@@ -15,16 +15,13 @@
 
 var crypto = require('crypto');
 var rewire = require('rewire');
-
 var modulesLoader = require('../../common/modules_loader');
 var typesRepresentatives = require('../../fixtures/types_representatives'); // eslint-disable-line no-unused-vars
-
-var OutTransfer = rewire('../../../logic/out_transfer');
 var constants = require('../../../helpers/constants');
 var slots = require('../../../helpers/slots');
-
 var testData = require('./test_data/out_transfer');
 
+var OutTransfer = rewire('../../../logic/out_transfer');
 var validKeypair = testData.validKeypair;
 var validSender = testData.validSender;
 var validTransaction = testData.validTransaction;

@@ -16,14 +16,13 @@
 require('../../functional.js');
 var randomstring = require('randomstring');
 var lisk = require('lisk-js');
-
 var accountFixtures = require('../../../fixtures/accounts');
-
 var randomUtil = require('../../../common/utils/random');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
 var constants = require('../../../../helpers/constants');
+
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/votes', () => {

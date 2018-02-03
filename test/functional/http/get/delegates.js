@@ -14,20 +14,18 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
 var Promise = require('bluebird');
-
+var lisk = require('lisk-js');
 var genesisDelegates = require('../../../data/genesis_delegates.json');
 var accountFixtures = require('../../../fixtures/accounts');
-
 var constants = require('../../../../helpers/constants');
 var slots = require('../../../../helpers/slots');
-
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
-Promise.promisify(waitFor.newRound);
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
+
+Promise.promisify(waitFor.newRound);
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', () => {

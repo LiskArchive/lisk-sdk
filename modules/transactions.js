@@ -13,6 +13,7 @@
  */
 'use strict';
 
+var Promise = require('bluebird');
 var _ = require('lodash');
 var constants = require('../helpers/constants.js');
 var apiCodes = require('../helpers/api_codes.js');
@@ -21,7 +22,6 @@ var sortBy = require('../helpers/sort_by.js').sortBy;
 var TransactionPool = require('../logic/transaction_pool.js');
 var transactionTypes = require('../helpers/transaction_types.js');
 var Transfer = require('../logic/transfer.js');
-var Promise = require('bluebird');
 
 // Private fields
 var __private = {};

@@ -13,12 +13,12 @@
  */
 'use strict';
 
+var util = require('util');
+var typesRepresentatives = require('../../fixtures/types_representatives');
+
 var assign = _.assign;
 var difference = _.difference;
 var set = _.set;
-var util = require('util');
-
-var typesRepresentatives = require('../../fixtures/types_representatives');
 
 var allTypes = typesRepresentatives.allTypes;
 var arrays = typesRepresentatives.arrays;

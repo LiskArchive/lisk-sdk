@@ -13,12 +13,12 @@
  */
 'use strict';
 
-var rewire = require('rewire');
 var crypto = require('crypto');
-
+var rewire = require('rewire');
 var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/modules_loader');
 var transactionTypes = require('../../../helpers/transaction_types.js');
+
 var Block = rewire('../../../logic/block.js');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';

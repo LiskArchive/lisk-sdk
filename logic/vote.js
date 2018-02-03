@@ -13,11 +13,11 @@
  */
 'use strict';
 
+var _ = require('lodash');
 var async = require('async');
 var constants = require('../helpers/constants.js');
 var exceptions = require('../helpers/exceptions.js');
 var Diff = require('../helpers/diff.js');
-var _ = require('lodash');
 var slots = require('../helpers/slots.js');
 
 // Private fields

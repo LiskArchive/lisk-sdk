@@ -17,11 +17,8 @@ require('../../functional.js');
 var async = require('async');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var scClient = require('socketcluster-client');
-
 var prefixedPeer = require('../../../fixtures/peers').randomNormalizedPeer;
-
 var Rules = require('../../../../api/ws/workers/rules');
-
 var wsServer = require('../../../common/ws/server');
 var WSServerMaster = require('../../../common/ws/server_master');
 

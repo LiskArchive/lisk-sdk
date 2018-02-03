@@ -15,6 +15,7 @@
 
 var async = require('async');
 var transactionTypes = require('../helpers/transaction_types.js');
+
 var cacheReady = true;
 var errorCacheDisabled = 'Cache Unavailable';
 var client;
