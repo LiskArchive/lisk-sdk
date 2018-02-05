@@ -23,6 +23,7 @@ import {
 	prepareTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
+	signRawTransaction,
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
@@ -30,6 +31,7 @@ import {
 	validateKeysgroup,
 	validatePublicKey,
 	validatePublicKeys,
+	wrapTransactionCreator,
 } from '../../../src/transactions/utils';
 
 describe('transaction utils', () => {
@@ -74,6 +76,10 @@ describe('transaction utils', () => {
 			return prependPlusToPublicKeys.should.be.type('function');
 		});
 
+		it('should have signRawTransaction', () => {
+			return signRawTransaction.should.be.type('function');
+		});
+
 		it('should have signTransaction', () => {
 			return signTransaction.should.be.type('function');
 		});
@@ -100,6 +106,10 @@ describe('transaction utils', () => {
 
 		it('should have validatePublicKeys', () => {
 			return validatePublicKeys.should.be.type('function');
+		});
+
+		it('should have wrapTransactionCreator', () => {
+			return wrapTransactionCreator.should.be.type('function');
 		});
 	});
 });
