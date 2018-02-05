@@ -39,8 +39,10 @@ export const actionCreator = vorpal => async ({ username, options }) => {
 		signature,
 	} = options;
 
+	const processFunction = processInputs(username);
+
 	return signature === false
-		? processInputs(username)({ passphrase: null, secondPassphrase: null })
+		? processFunction({ passphrase: null, secondPassphrase: null })
 		: getInputsFromSources(vorpal, {
 				passphrase: {
 					source: passphraseSource,
@@ -52,7 +54,7 @@ export const actionCreator = vorpal => async ({ username, options }) => {
 							source: secondPassphraseSource,
 							repeatPrompt: true,
 						},
-			}).then(processInputs(username));
+			}).then(processFunction);
 };
 
 const createTransactionRegisterDelegate = createCommand({
@@ -61,6 +63,7 @@ const createTransactionRegisterDelegate = createCommand({
 	description,
 	actionCreator,
 	options: [
+		commonOptions.noSignature,
 		commonOptions.passphrase,
 		commonOptions.secondPassphrase,
 		commonOptions.noSignature,

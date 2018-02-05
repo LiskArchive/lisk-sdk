@@ -47,8 +47,10 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 	validateAmount(amount);
 	validateAddress(address);
 
+	const processFunction = processInputs(amount, address);
+
 	return signature === false
-		? processInputs(amount, address)({
+		? processFunction({
 				passphrase: null,
 				secondPassphrase: null,
 			})
@@ -63,7 +65,7 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 							source: secondPassphraseSource,
 							repeatPrompt: true,
 						},
-			}).then(processInputs(amount, address));
+			}).then(processFunction);
 };
 
 const createTransactionTransfer = createCommand({
@@ -71,7 +73,11 @@ const createTransactionTransfer = createCommand({
 	alias: 'create transaction 0',
 	description,
 	actionCreator,
-	options: [commonOptions.passphrase, commonOptions.secondPassphrase],
+	options: [
+		commonOptions.noSignature,
+		commonOptions.passphrase,
+		commonOptions.secondPassphrase,
+	],
 	errorPrefix: 'Could not create "transfer" transaction',
 });
 
