@@ -169,6 +169,12 @@ describe('api utils module', () => {
 			const result = checkOptions(Object.assign({}, goodOptions));
 			return result.should.be.eql(goodOptions);
 		});
+
+		it('should have a default empty object when passed undefined', () => {
+			const options = {};
+			const result = checkOptions(undefined);
+			return result.should.be.eql(options);
+		});
 	});
 
 	describe('#wrapSendRequest', () => {

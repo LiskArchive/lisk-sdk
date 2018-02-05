@@ -62,7 +62,7 @@ export const wrapSendRequest = (method, endpoint, getDataFn) =>
 		return this.sendRequest(method, endpoint, data);
 	};
 
-export const checkOptions = options => {
+export const checkOptions = (options = {}) => {
 	Object.entries(options).forEach(([key, value]) => {
 		if (value === undefined || Number.isNaN(value)) {
 			throw new Error(`"${key}" option should not be ${value}`);
