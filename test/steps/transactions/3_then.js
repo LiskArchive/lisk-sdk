@@ -139,11 +139,6 @@ export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassph
 	});
 }
 
-export function itShouldResolveToTheCreatedTransactionWithoutSignature() {
-	const { returnValue, createdTransaction } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(createdTransaction);
-}
-
 export function itShouldResolveToTheCreatedTransaction() {
 	const { returnValue, createdTransaction } = this.test.ctx;
 	return expect(returnValue).to.eventually.equal(createdTransaction);

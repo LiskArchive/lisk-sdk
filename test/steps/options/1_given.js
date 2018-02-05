@@ -77,10 +77,10 @@ export function anOptionsObjectWithVotesSetTo() {
 	this.test.ctx.options = { votes };
 }
 
-export function anOptionsObjectWithVotesSetToAndSignatureSetTo() {
-	const [votes, signature] = getQuotedStrings(this.test.parent.title);
-	const signatureBoolean = signature === 'true';
-	this.test.ctx.options = { votes, signature: signatureBoolean };
+export function anOptionsObjectWithSignatureSetToAndVotesSetTo() {
+	const votes = getFirstQuotedString(this.test.parent.title);
+	const signature = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { votes, signature };
 }
 
 export function anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo() {

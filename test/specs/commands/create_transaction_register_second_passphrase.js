@@ -211,7 +211,7 @@ describe('create transaction register second passphrase command', () => {
 								given.aSecondPassphrase,
 								() => {
 									Given(
-										'an options object with signature set to "false"',
+										'an options object with signature set to false',
 										given.anOptionsObjectWithSignatureSetTo,
 										() => {
 											Given(

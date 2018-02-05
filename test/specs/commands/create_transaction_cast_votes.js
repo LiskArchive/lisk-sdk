@@ -816,8 +816,8 @@ describe('create transaction cast votes', () => {
 					given.aPublicKeyThatShouldBeVotedFor,
 					() => {
 						Given(
-							'an options object with votes set to "1234567812345678123456781234567812345678123456781234567812345678" and signature set to "false"',
-							given.anOptionsObjectWithVotesSetToAndSignatureSetTo,
+							'an options object with signature set to false and votes set to "1234567812345678123456781234567812345678123456781234567812345678" ',
+							given.anOptionsObjectWithSignatureSetToAndVotesSetTo,
 							() => {
 								When(
 									'the action is called with the options',
