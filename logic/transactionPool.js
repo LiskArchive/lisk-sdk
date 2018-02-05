@@ -21,7 +21,7 @@ var modules, library, self, __private = {};
  * @param {Transaction} transaction - Transaction logic instance.
  * @param {bus} bus - Bus instance.
  * @param {Object} logger - Logger instance.
- * @param {Sequence} balancesSequence - balances sequence.
+ * @param {Sequence} balancesSequence - Balances sequence.
  */
 // Constructor
 function TransactionPool (broadcastInterval, releaseLimit, transaction, bus, logger, balancesSequence) {
