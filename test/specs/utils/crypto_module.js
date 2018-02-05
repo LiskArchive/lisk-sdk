@@ -148,7 +148,7 @@ describe('Crypto class', () => {
 				});
 				Given('a message "Hello Lisker"', given.aMessage, () => {
 					describe('#signMessage', () => {
-						describe('Given the message under the passphrase has signature "H+9koLx4AZoEupc1z5TBQDaDkI9KQu1QDPXWXxzVvhaXGDi/2BD0qypVJu596CrZ+XHuUAdx2wLZgyN/ZfqfAQ=="', () => {
+						describe('Given the message under the passphrase has signature "1fef64a0bc78019a04ba9735cf94c1403683908f4a42ed500cf5d65f1cd5be16971838bfd810f4ab2a5526ee7de82ad9f971ee500771db02d983237f65fa9f01"', () => {
 							beforeEach(given.theMessageUnderThePassphraseHasSignature);
 							describe('When no error occurs attempting to sign the message using the passphrase', () => {
 								beforeEach(
@@ -176,7 +176,7 @@ describe('Crypto class', () => {
 					});
 					describe('#verifyMessage', () => {
 						Given(
-							'a message "Hello World" with a public key "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and a signature "KjyhJ+/Peyv2KsjDsfWs9pl8q2K6n941Z9GI7cusvF3IF3+4jQOoaRzgM0j1abEhvKnno8Q79cBWOC81/4Q8CQ=="',
+							'a message "Hello World" with a public key "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and a signature "2a3ca127efcf7b2bf62ac8c3b1f5acf6997cab62ba9fde3567d188edcbacbc5dc8177fb88d03a8691ce03348f569b121bca9e7a3c43bf5c056382f35ff843c09"',
 							given.aMessageWithAPublicKeyAndASignature,
 							() => {
 								When(

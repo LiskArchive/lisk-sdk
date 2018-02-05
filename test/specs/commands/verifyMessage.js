@@ -34,7 +34,7 @@ describe('verify message command', () => {
 							given.aPublicKey,
 							() => {
 								Given(
-									'a signature "KjyhJ+/Peyv2KsjDsfWs9pl8q2K6n941Z9GI7cusvF3IF3+4jQOoaRzgM0j1abEhvKnno8Q79cBWOC81/4Q8CQ=="',
+									'a signature "2a3ca127efcf7b2bf62ac8c3b1f5acf6997cab62ba9fde3567d188edcbacbc5dc8177fb88d03a8691ce03348f569b121bca9e7a3c43bf5c056382f35ff843c09"',
 									given.aSignature,
 									() => {
 										Given(
