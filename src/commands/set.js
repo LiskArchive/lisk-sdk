@@ -74,7 +74,7 @@ const attemptWriteToFile = (value, dotNotationArray) => {
 	return result;
 };
 
-const setBoolean = dotNotation => value => {
+const setBoolean = (dotNotation, value) => {
 	if (!checkBoolean(value)) {
 		throw new ValidationError('Value must be a boolean.');
 	}
@@ -85,7 +85,7 @@ const setBoolean = dotNotation => value => {
 	return attemptWriteToFile(value, dotNotationArray);
 };
 
-const setString = dotNotation => value => {
+const setString = (dotNotation, value) => {
 	const dotNotationArray = dotNotation.split('.');
 	dotNotationArray.reduce(setNestedConfigProperty(value), config);
 	return attemptWriteToFile(value, dotNotationArray);
@@ -106,7 +106,7 @@ export const actionCreator = () => async ({ variable, value }) => {
 		throw new ValidationError('Unsupported variable name.');
 	}
 
-	return handlers[variable](variable)(value);
+	return handlers[variable](variable, value);
 };
 
 const set = createCommand({
