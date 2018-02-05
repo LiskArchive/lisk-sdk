@@ -14,6 +14,7 @@
 'use strict';
 
 var _ = require('lodash');
+
 var columnSet;
 
 /**
@@ -59,7 +60,7 @@ VoteTransactionsRepo.prototype.save = function(transactions) {
 
 	transactions = transactions.map(transaction => ({
 		votes: Array.isArray(transaction.asset.votes)
-			? transaction.asset.votes.join(',')
+			? transaction.asset.votes.join()
 			: null,
 		transactionId: transaction.id,
 	}));

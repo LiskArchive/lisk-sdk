@@ -16,11 +16,10 @@
 var _ = require('lodash');
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-
-var failureCodes = require('./failure_codes');
-var PeerUpdateError = require('./failure_codes').PeerUpdateError;
 var PromiseDefer = require('../../../helpers/promise_defer');
 var System = require('../../../modules/system');
+var failureCodes = require('./failure_codes');
+var PeerUpdateError = require('./failure_codes').PeerUpdateError;
 
 var wsServer = null;
 

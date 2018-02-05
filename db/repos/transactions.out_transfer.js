@@ -15,6 +15,7 @@
 
 var _ = require('lodash');
 require('../../helpers/transaction_types');
+
 var columnSet;
 
 /**

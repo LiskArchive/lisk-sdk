@@ -15,9 +15,7 @@
 
 var SCWorker = require('socketcluster/scworker');
 var async = require('async');
-
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
-
 var Peer = require('./logic/peer');
 var System = require('./modules/system');
 var Handshake = require('./helpers/ws_api').middleware.Handshake;

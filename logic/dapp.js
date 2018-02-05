@@ -13,10 +13,10 @@
  */
 'use strict';
 
+var valid_url = require('valid-url');
 var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 var dappCategories = require('../helpers/dapp_categories.js');
-var valid_url = require('valid-url');
 
 // Private fields
 var library;

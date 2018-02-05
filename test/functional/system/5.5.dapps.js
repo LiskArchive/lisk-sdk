@@ -15,11 +15,10 @@
 
 var lisk = require('lisk-js');
 var async = require('async');
-
 var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
-var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
+var localCommon = require('./common');
 
 describe('system test (type 5) - dapp registrations with repeated values', () => {
 	var library;

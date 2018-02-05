@@ -14,13 +14,11 @@
 'use strict';
 
 var lisk = require('lisk-js');
-
 var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
-var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
-
 var transactionTypes = require('../../../helpers/transaction_types.js');
+var localCommon = require('./common');
 
 describe('system test (type 1) - sending transactions on top of unconfirmed second signature', () => {
 	var library;

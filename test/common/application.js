@@ -17,13 +17,11 @@
 var Promise = require('bluebird');
 var rewire = require('rewire');
 var async = require('async');
-
-var DBSandbox = require('./db_sandbox').DBSandbox;
-
+var dbRepos = require('require-all')(`${__dirname}/../../db/repos`);
 var swagger = require('../../config/swagger');
 var jobsQueue = require('../../helpers/jobs_queue');
 var Sequence = require('../../helpers/sequence');
-var dbRepos = require('require-all')(`${__dirname}/../../db/repos`);
+var DBSandbox = require('./db_sandbox').DBSandbox;
 
 var dbSandbox;
 var currentAppScope;

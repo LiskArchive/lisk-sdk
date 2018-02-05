@@ -13,9 +13,10 @@
  */
 'use strict';
 
-var application = require('../../common/application');
 var Promise = require('bluebird');
 var randomstring = require('randomstring');
+var application = require('../../common/application');
+
 var db;
 var validAccount;
 

@@ -15,7 +15,6 @@
 
 var _ = require('lodash');
 var async = require('async');
-
 var apiCodes = require('../helpers/api_codes');
 var ApiError = require('../helpers/api_error');
 var constants = require('../helpers/constants');

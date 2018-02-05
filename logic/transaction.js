@@ -13,13 +13,13 @@
  */
 'use strict';
 
+var crypto = require('crypto');
+var extend = require('extend');
+var ByteBuffer = require('bytebuffer');
 var _ = require('lodash');
 var bignum = require('../helpers/bignum.js');
-var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
-var crypto = require('crypto');
 var exceptions = require('../helpers/exceptions.js');
-var extend = require('extend');
 var slots = require('../helpers/slots.js');
 
 // Private fields

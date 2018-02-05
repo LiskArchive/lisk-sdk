@@ -16,7 +16,6 @@
 var chai = require('chai');
 var supertest = require('supertest');
 var Promise = require('bluebird');
-
 var swaggerHelper = require('../../helpers/swagger');
 
 var apiSpec = swaggerHelper.getSwaggerSpec();

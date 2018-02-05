@@ -13,9 +13,10 @@
  */
 'use strict';
 
-const monitor = require('pg-monitor');
-const repos = require('require-all')(`${__dirname}/repos`);
 const Promise = require('bluebird');
+const monitor = require('pg-monitor');
+let pgp = require('pg-promise');
+const repos = require('require-all')(`${__dirname}/repos`);
 
 // TODO: Had to change it from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
 // eslint-disable-next-line prefer-const
@@ -33,7 +34,7 @@ let initOptions = {
 	},
 };
 
-const pgp = require('pg-promise')(initOptions);
+pgp = pgp(initOptions);
 
 /**
  * Connects to the database

@@ -13,8 +13,8 @@
  */
 'use strict';
 
-var extend = require('extend');
 var util = require('util');
+var extend = require('extend');
 
 /**
  * Creates a FIFO sequence array and default settings with config values.

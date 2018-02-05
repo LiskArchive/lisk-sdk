@@ -13,8 +13,8 @@
  */
 'use strict';
 
-var debug = require('debug')('swagger:lisk:error_handler');
 var util = require('util');
+var debug = require('debug')('swagger:lisk:error_handler');
 
 /**
  * Description of the function.

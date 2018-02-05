@@ -15,10 +15,8 @@
 
 require('../../functional.js');
 var lisk = require('lisk-js');
-
 var typesRepresentatives = require('../../../fixtures/types_representatives');
 var accountFixtures = require('../../../fixtures/accounts');
-
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
 var errorCodes = require('../../../../helpers/api_codes');
@@ -82,40 +80,52 @@ function invalidAssets(option, badTransactions) {
 	});
 
 	describe('using invalid asset values', () => {
-		typesRepresentatives.allTypes.forEach(test => {
-			it(`using ${test.description} should fail`, () => {
-				transaction.asset = test.input;
+		describe('without option', () => {
+			typesRepresentatives.allTypes.forEach(test => {
+				it(`using ${test.description} should fail`, () => {
+					transaction.asset = test.input;
 
-				var expectedResponse =
-					test.expectation === 'object' && test.description !== 'date'
-						? errorCodes.PROCESSING_ERROR
-						: errorCodes.BAD_REQUEST;
+					var expectedResponse =
+						test.expectation === 'object' && test.description !== 'date'
+							? errorCodes.PROCESSING_ERROR
+							: errorCodes.BAD_REQUEST;
+
+					return apiHelpers
+						.sendTransactionPromise(transaction, expectedResponse)
+						.then(res => {
+							expect(res.body.message).to.not.be.empty;
+							badTransactions.push(transaction);
+						});
+				});
+			});
+
+			it('deleting object should fail', () => {
+				delete transaction.asset;
 
 				return apiHelpers
-					.sendTransactionPromise(transaction, expectedResponse)
+					.sendTransactionPromise(transaction, errorCodes.BAD_REQUEST)
 					.then(res => {
 						expect(res.body.message).to.not.be.empty;
 						badTransactions.push(transaction);
 					});
 			});
 		});
+		describe(`with option: ${option}`, () => {
+			typesRepresentatives.allTypes.forEach(test => {
+				it(`using ${test.description} should fail`, () => {
+					transaction.asset[option] = test.input;
 
-		it('deleting object should fail', () => {
-			delete transaction.asset;
-
-			return apiHelpers
-				.sendTransactionPromise(transaction, errorCodes.BAD_REQUEST)
-				.then(res => {
-					expect(res.body.message).to.not.be.empty;
-					badTransactions.push(transaction);
+					return apiHelpers
+						.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
+						.then(res => {
+							expect(res.body.message).to.not.be.empty;
+							badTransactions.push(transaction);
+						});
 				});
-		});
-	});
+			});
 
-	describe(`using invalid asset.${option} values`, () => {
-		typesRepresentatives.allTypes.forEach(test => {
-			it(`using ${test.description} should fail`, () => {
-				transaction.asset[option] = test.input;
+			it('deleting object should fail', () => {
+				delete transaction.asset[option];
 
 				return apiHelpers
 					.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
@@ -124,17 +134,6 @@ function invalidAssets(option, badTransactions) {
 						badTransactions.push(transaction);
 					});
 			});
-		});
-
-		it('deleting object should fail', () => {
-			delete transaction.asset[option];
-
-			return apiHelpers
-				.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
-				.then(res => {
-					expect(res.body.message).to.not.be.empty;
-					badTransactions.push(transaction);
-				});
 		});
 	});
 }

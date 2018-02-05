@@ -13,8 +13,9 @@
  */
 'use strict';
 
-var httpApi = require('./http_api');
+var router = require('express').Router();
 var extend = require('extend');
+var httpApi = require('./http_api');
 
 /**
  * Express.js router wrapper.
@@ -24,8 +25,6 @@ var extend = require('extend');
  * @throws {Error} If config is invalid
  */
 var Router = function() {
-	var router = require('express').Router();
-
 	router.use(httpApi.middleware.cors);
 
 	router.map = function(root, config, options) {

@@ -14,14 +14,12 @@
 'use strict';
 
 var async = require('async');
-
 var Broadcaster = require('../logic/broadcaster.js');
 var bson = require('../helpers/bson.js');
 var constants = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failure_codes');
 var PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 var Rules = require('../api/ws/workers/rules');
-var System = require('../modules/system');
 var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 // Private fields
@@ -31,7 +29,6 @@ var library;
 var self;
 var __private = {};
 
-__private.headers = {};
 __private.loaded = false;
 __private.messages = {};
 
@@ -286,22 +283,10 @@ __private.receiveTransaction = function(
 };
 
 // Public methods
-/**
- * Sets or gets headers
- * @param {Object} [headers]
- * @return {Object} private variable with headers
- */
-Transport.prototype.headers = function(headers) {
-	if (headers) {
-		__private.headers = headers;
-	}
-
-	return __private.headers;
-};
 
 /**
  * Returns true if broadcaster consensus is less than minBroadhashConsensus.
- * Returns false if consensus is undefined.
+ * Returns false if library.config.forging.force is true.
  * @return {boolean}
  */
 Transport.prototype.poorConsensus = function() {
@@ -325,7 +310,6 @@ Transport.prototype.getPeers = function(params, cb) {
 // Events
 /**
  * Bounds scope to private broadcaster amd initialize headers.
- * @implements {System.getHeaders}
  * @implements {broadcaster.bind}
  * @param {modules} scope - Loaded modules.
  */
@@ -342,7 +326,6 @@ Transport.prototype.onBind = function(scope) {
 
 	definitions = scope.swagger.definitions;
 
-	__private.headers = System.getHeaders();
 	__private.broadcaster.bind(scope.peers, scope.transport, scope.transactions);
 };
 

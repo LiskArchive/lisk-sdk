@@ -14,7 +14,6 @@
 'use strict';
 
 var rewire = require('rewire');
-
 var modulesLoader = require('../../common/modules_loader');
 var swaggerHelper = require('../../../helpers/swagger');
 

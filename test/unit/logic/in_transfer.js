@@ -15,16 +15,13 @@
 
 var crypto = require('crypto');
 var rewire = require('rewire');
-
 var ed = require('../../../helpers/ed');
 var constants = require('../../../helpers/constants');
 var slots = require('../../../helpers/slots');
 var typesRepresentatives = require('../../fixtures/types_representatives');
-
-var InTransfer = rewire('../../../logic/in_transfer.js');
-
 var modulesLoader = require('../../common/modules_loader');
 
+var InTransfer = rewire('../../../logic/in_transfer.js');
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto

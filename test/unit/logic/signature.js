@@ -15,15 +15,12 @@
 
 var crypto = require('crypto');
 var rewire = require('rewire');
-
 var modulesLoader = require('../../common/modules_loader');
-
 var typesRepresentatives = require('../../fixtures/types_representatives');
-
-var Signature = rewire('../../../logic/signature');
 var constants = require('../../../helpers/constants');
 var ed = require('../../../helpers/ed');
 
+var Signature = rewire('../../../logic/signature');
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto

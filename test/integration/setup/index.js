@@ -14,11 +14,12 @@
 'use strict';
 
 var async = require('async');
+var utils = require('../utils');
 var network = require('./network');
 var pm2 = require('./pm2');
 var shell = require('./shell');
 var sync = require('./sync');
-var utils = require('../utils');
+
 var WAIT_BEFORE_CONNECT_MS = 20000;
 
 module.exports = {

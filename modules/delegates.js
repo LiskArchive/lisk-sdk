@@ -13,6 +13,7 @@
  */
 'use strict';
 
+var crypto = require('crypto');
 var _ = require('lodash');
 var async = require('async');
 var apiCodes = require('../helpers/api_codes.js');
@@ -20,7 +21,6 @@ var ApiError = require('../helpers/api_error.js');
 var BlockReward = require('../logic/block_reward.js');
 var constants = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobs_queue.js');
-var crypto = require('crypto');
 var Delegate = require('../logic/delegate.js');
 var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transaction_types.js');

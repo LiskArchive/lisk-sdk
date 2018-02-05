@@ -13,17 +13,14 @@
  */
 'use strict';
 
-// Init tests dependencies
 var rewire = require('rewire');
 var Promise = require('bluebird');
-
-// Instantiate test subject
-var Round = rewire('../../../logic/round.js');
-
 var slots = require('../../../helpers/slots.js');
 var bignum = require('../../../helpers/bignum.js');
 var genesisBlock = require('../../data/genesis_block.json');
 var DBSandbox = require('../../common/db_sandbox').DBSandbox;
+
+var Round = rewire('../../../logic/round.js');
 
 describe('rounds', function() {
 	var db;

@@ -14,7 +14,6 @@
 'use strict';
 
 var redis = require('redis');
-
 var cache = require('../../../helpers/cache');
 
 describe('cache', () => {

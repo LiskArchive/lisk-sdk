@@ -14,14 +14,15 @@
 'use strict';
 
 require('../../../functional.js');
+var Promise = require('bluebird');
 var lisk = require('lisk-js');
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
+var accountFixtures = require('../../../../fixtures/accounts');
+
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
-var accountFixtures = require('../../../../fixtures/accounts');
-var Promise = require('bluebird');
 
 describe('GET /api/node', () => {
 	describe('/transactions', () => {

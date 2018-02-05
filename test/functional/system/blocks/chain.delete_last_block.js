@@ -2,11 +2,8 @@
 
 var expect = require('chai').expect;
 var lisk = require('lisk-js');
-
 var accountFixtures = require('../../../fixtures/accounts');
-
 var randomUtil = require('../../../common/utils/random');
-
 var localCommon = require('../common');
 
 describe('system test (blocks) - chain/deleteLastBlock', function() {

@@ -14,11 +14,10 @@
 'use strict';
 
 var lisk = require('lisk-js');
-
 var randomUtil = require('../../common/utils/random');
 var Scenarios = require('../common/scenarios');
-var localCommon = require('./common');
 var transactionTypes = require('../../../helpers/transaction_types.js');
+var localCommon = require('./common');
 
 describe('system test (type 4) - sending transactions on top of unconfirmed multisignature registration', () => {
 	var library;

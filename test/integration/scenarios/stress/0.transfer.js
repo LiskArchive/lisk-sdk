@@ -16,12 +16,10 @@
 var async = require('async');
 var Promise = require('bluebird');
 var lisk = require('lisk-js');
-
 var accountFixtures = require('../../../fixtures/accounts');
 var constants = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
-
 var sendTransactionsPromise = require('../../../common/helpers/api')
 	.sendTransactionsPromise;
 var getTransaction = require('../../utils/http').getTransaction;

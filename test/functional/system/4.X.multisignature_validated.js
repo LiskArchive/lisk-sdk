@@ -14,11 +14,10 @@
 'use strict';
 
 var lisk = require('lisk-js');
-
 var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
-var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
+var localCommon = require('./common');
 
 describe('system test (type 4) - effect of multisignature registration on memory tables', () => {
 	var library;

@@ -14,9 +14,7 @@
 'use strict';
 
 var lisk = require('lisk-js');
-
 var accountFixtures = require('../../fixtures/accounts');
-
 var randomUtil = require('../../common/utils/random');
 
 function Multisig(options) {
