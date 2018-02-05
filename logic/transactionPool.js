@@ -416,26 +416,27 @@ TransactionPool.prototype.processBundled = function (cb) {
 		if (!transaction) {
 			return setImmediate(eachSeriesCb);
 		}
+		library.balancesSequence.add(function (balancesSequenceCb) {
+			__private.processVerifyTransaction(transaction, true, function (err, sender) {
+				// Remove bundled transaction after asynchronous processVerifyTransaction to avoid race conditions
+				self.removeBundledTransaction(transaction.id);
+				// Delete bundled flag from transaction
+				// so it is qualified as "queued" in queueTransaction
+				delete transaction.bundled;
 
-		__private.processVerifyTransaction(transaction, true, function (err, sender) {
-			// Remove bundled transaction after asynchronous processVerifyTransaction to avoid race conditions
-			self.removeBundledTransaction(transaction.id);
-			// Delete bundled flag from transaction
-			// so it is qualified as "queued" in queueTransaction
-			delete transaction.bundled;
-
-			if (err) {
-				library.logger.debug('Failed to process / verify bundled transaction: ' + transaction.id, err);
-				return setImmediate(eachSeriesCb);
-			} else {
-				self.queueTransaction(transaction, function (err) {
-					if (err) {
-						library.logger.debug('Failed to queue bundled transaction: ' + transaction.id, err);
-					}
-					return setImmediate(eachSeriesCb);
-				});
-			}
-		});
+				if (err) {
+					library.logger.debug('Failed to process / verify bundled transaction: ' + transaction.id, err);
+					return setImmediate(balancesSequenceCb);
+				} else {
+					self.queueTransaction(transaction, function (err) {
+						if (err) {
+							library.logger.debug('Failed to queue bundled transaction: ' + transaction.id, err);
+						}
+						return setImmediate(balancesSequenceCb);
+					});
+				}
+			});
+		}, eachSeriesCb);
 	}, function (err) {
 		return setImmediate(cb, err);
 	});
