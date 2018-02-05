@@ -15,37 +15,33 @@
 
 var genesisDelegates = require('../../data/genesis_delegates.json');
 var accountFixtures = require('../../fixtures/accounts');
-
 var application = require('../../common/application');
 
-describe('node', function () {
-
+describe('node', () => {
 	var testDelegate = genesisDelegates.delegates[0];
 
 	var library;
-	var __private;
 
-	var db;
-
-	before(function (done) {
-		application.init({sandbox: {name: 'lisk_test_modules_node'}}, function (err, scope) {
-			library = scope;
-			// Set delegates module as loaded to allow manual forging
-			library.rewiredModules.delegates.__set__('__private.loaded', true);
-			// Load forging delegates
-			__private = library.rewiredModules.delegates.__get__('__private');
-			done(err);
-		});
+	before(done => {
+		application.init(
+			{ sandbox: { name: 'lisk_test_modules_node' } },
+			(err, scope) => {
+				library = scope;
+				// Set delegates module as loaded to allow manual forging
+				library.rewiredModules.delegates.__set__('__private.loaded', true);
+				// Load forging delegates
+				library.rewiredModules.delegates.__get__('__private');
+				done(err);
+			}
+		);
 	});
 
-	after(function (done) {
+	after(done => {
 		application.cleanup(done);
 	});
 
-	describe('constructor', function () {
-
-		describe('library', function () {
-
+	describe('constructor', () => {
+		describe('library', () => {
 			it('should assign build');
 
 			it('should assign lastCommit');
@@ -66,165 +62,215 @@ describe('node', function () {
 		it('should call callback with result as a Node instance');
 	});
 
-	describe('internal', function () {
-
+	describe('internal', () => {
 		var node_module;
 
-		before(function () {
+		before(() => {
 			node_module = library.modules.node;
 		});
 
-		function updateForgingStatus (testDelegate, action, cb) {
-			node_module.internal.getForgingStatus(testDelegate.publicKey, function (err, res) {
-				if ((res[0].forging && action === 'disable') || (!res[0].forging && action === 'enable')) {
-					node_module.internal.toggleForgingStatus(testDelegate.publicKey, testDelegate.key, cb);
-				} else {
-					cb(err, {
-						publicKey: testDelegate.publicKey,
-						key: testDelegate.key
-					});
+		function updateForgingStatus(testDelegate, action, cb) {
+			node_module.internal.getForgingStatus(
+				testDelegate.publicKey,
+				(err, res) => {
+					if (
+						(res[0].forging && action === 'disable') ||
+						(!res[0].forging && action === 'enable')
+					) {
+						node_module.internal.toggleForgingStatus(
+							testDelegate.publicKey,
+							testDelegate.key,
+							cb
+						);
+					} else {
+						cb(err, {
+							publicKey: testDelegate.publicKey,
+							key: testDelegate.key,
+						});
+					}
 				}
-			});
+			);
 		}
 
-		describe('toggleForgingStatus', function () {
-
+		describe('toggleForgingStatus', () => {
 			var defaultKey;
 
-			before(function () {
+			before(() => {
 				defaultKey = library.config.forging.defaultKey;
 			});
 
-			it('should return error with invalid key', function (done) {
-				node_module.internal.toggleForgingStatus(testDelegate.publicKey, 'Invalid key', function (err) {
-					expect(err).to.equal('Invalid key and public key combination');
-					done();
-				});
+			it('should return error with invalid key', done => {
+				node_module.internal.toggleForgingStatus(
+					testDelegate.publicKey,
+					'Invalid key',
+					err => {
+						expect(err).to.equal('Invalid key and public key combination');
+						done();
+					}
+				);
 			});
 
-			it('should return error with invalid publicKey', function (done) {
-				var invalidPublicKey = '9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
+			it('should return error with invalid publicKey', done => {
+				var invalidPublicKey =
+					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
 
-				node_module.internal.toggleForgingStatus(invalidPublicKey, defaultKey, function (err) {
-					expect(err).equal('Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found');
-					done();
-				});
+				node_module.internal.toggleForgingStatus(
+					invalidPublicKey,
+					defaultKey,
+					err => {
+						expect(err).equal(
+							'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found'
+						);
+						done();
+					}
+				);
 			});
 
-			it('should return error with non delegate account', function (done) {
-				node_module.internal.toggleForgingStatus(accountFixtures.genesis.publicKey, accountFixtures.genesis.password, function (err) {
-					expect(err).equal('Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found');
-					done();
-				});
+			it('should return error with non delegate account', done => {
+				node_module.internal.toggleForgingStatus(
+					accountFixtures.genesis.publicKey,
+					accountFixtures.genesis.password,
+					err => {
+						expect(err).equal(
+							'Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found'
+						);
+						done();
+					}
+				);
 			});
 
-			it('should toggle forging from enabled to disabled', function (done) {
-				updateForgingStatus(testDelegate, 'enable', function (err) {
+			it('should toggle forging from enabled to disabled', done => {
+				updateForgingStatus(testDelegate, 'enable', err => {
 					expect(err).to.not.exist;
 
-					node_module.internal.toggleForgingStatus(testDelegate.publicKey, defaultKey, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql({
-							publicKey: testDelegate.publicKey,
-							forging: false
-						});
-						done();
-					});
+					node_module.internal.toggleForgingStatus(
+						testDelegate.publicKey,
+						defaultKey,
+						(err, res) => {
+							expect(err).to.not.exist;
+							expect(res).to.eql({
+								publicKey: testDelegate.publicKey,
+								forging: false,
+							});
+							done();
+						}
+					);
 				});
 			});
 
-			it('should toggle forging from disabled to enabled', function (done) {
-				updateForgingStatus(testDelegate, 'disable', function (err) {
+			it('should toggle forging from disabled to enabled', done => {
+				updateForgingStatus(testDelegate, 'disable', err => {
 					expect(err).to.not.exist;
 
-					node_module.internal.toggleForgingStatus(testDelegate.publicKey, defaultKey, function (err, res) {
-						expect(err).to.not.exist;
-						expect(res).to.eql({
-							publicKey: testDelegate.publicKey,
-							forging: true
-						});
-						done();
-					});
+					node_module.internal.toggleForgingStatus(
+						testDelegate.publicKey,
+						defaultKey,
+						(err, res) => {
+							expect(err).to.not.exist;
+							expect(res).to.eql({
+								publicKey: testDelegate.publicKey,
+								forging: true,
+							});
+							done();
+						}
+					);
 				});
 			});
 		});
 	});
 
-	describe('shared', function () {
-
-		describe('getConstants', function () {
-
-			describe('when loaded = false', function () {
-
+	describe('shared', () => {
+		describe('getConstants', () => {
+			describe('when loaded = false', () => {
 				it('should call callback with error = "Blockchain is loading"');
 			});
 
-			describe('when loaded = true', function () {
-
+			describe('when loaded = true', () => {
 				it('should call modules.blocks.lastBlock.get');
 
 				it('should call callback with error = null');
 
 				it('should call callback with result containing build = library.build');
 
-				it('should call callback with result containing commit = library.commit');
+				it(
+					'should call callback with result containing commit = library.commit'
+				);
 
-				it('should call callback with result containing epoch = constants.epochTime');
+				it(
+					'should call callback with result containing epoch = constants.epochTime'
+				);
 
 				it('should call callback with result containing fees = constants.fees');
 
-				it('should call callback with result containing nethash = library.config.nethash');
+				it(
+					'should call callback with result containing nethash = library.config.nethash'
+				);
 
-				it('should call callback with result containing nonce = library.config.nonce');
+				it(
+					'should call callback with result containing nonce = library.config.nonce'
+				);
 
-				it('should call callback with result containing milestone = blockReward.calcMilestone result');
+				it(
+					'should call callback with result containing milestone = blockReward.calcMilestone result'
+				);
 
-				it('should call callback with result containing reward = blockReward.calcReward result');
+				it(
+					'should call callback with result containing reward = blockReward.calcReward result'
+				);
 
-				it('should call callback with result containing supply = blockReward.calcSupply result');
+				it(
+					'should call callback with result containing supply = blockReward.calcSupply result'
+				);
 
-				it('should call callback with result containing version = library.config.version');
+				it(
+					'should call callback with result containing version = library.config.version'
+				);
 			});
 		});
 
-		describe('getStatus', function () {
-
-			describe('when loaded = false', function () {
-
+		describe('getStatus', () => {
+			describe('when loaded = false', () => {
 				it('should call callback with error = "Blockchain is loading"');
 			});
 
-			describe('when loaded = true', function () {
-
+			describe('when loaded = true', () => {
 				it('should call callback with error = null');
 
-				it('should call callback with result containing broadhash = modules.system.getBroadhash result');
+				it(
+					'should call callback with result containing broadhash = modules.system.getBroadhash result'
+				);
 
-				it('should call callback with result containing consensus = modules.peers.calculateConsensus result');
+				it(
+					'should call callback with result containing consensus = modules.peers.calculateConsensus result'
+				);
 
-				it('should call callback with result containing height = modules.blocks.lastBlock.get result');
+				it(
+					'should call callback with result containing height = modules.blocks.lastBlock.get result'
+				);
 
-				it('should call callback with result containing syncing = modules.loader.syncing result');
+				it(
+					'should call callback with result containing syncing = modules.loader.syncing result'
+				);
 
 				it('should call modules.loader.getNetwork');
 
-				describe('when modules.loader.getNetwork fails', function () {
-
-					it('should call callback with result containing networkHeight = null');
+				describe('when modules.loader.getNetwork fails', () => {
+					it(
+						'should call callback with result containing networkHeight = null'
+					);
 				});
 
-				describe('when modules.loader.getNetwork succeeds and returns network', function () {
-
-					it('should call callback with result containing networkHeight = network.height');
+				describe('when modules.loader.getNetwork succeeds and returns network', () => {
+					it(
+						'should call callback with result containing networkHeight = network.height'
+					);
 				});
 			});
 		});
 	});
 
-	describe('onBind', function () {
-
-		describe('modules', function () {
-
+	describe('onBind', () => {
+		describe('modules', () => {
 			it('should assign blocks');
 
 			it('should assign loader');

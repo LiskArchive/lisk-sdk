@@ -17,7 +17,8 @@ var ByteBuffer = require('bytebuffer');
 var constants = require('../helpers/constants.js');
 
 // Private fields
-var modules, library;
+var modules;
+var library;
 
 /**
  * Initializes library.
@@ -28,8 +29,8 @@ var modules, library;
  * @param {Object} logger
  */
 // Constructor
-function Signature (schema, logger) {
-	library ={
+function Signature(schema, logger) {
+	library = {
 		schema: schema,
 		logger: logger,
 	};
@@ -39,7 +40,7 @@ function Signature (schema, logger) {
  * Binds input parameters to private variable modules
  * @param {Accounts} accounts
  */
-Signature.prototype.bind = function (accounts) {
+Signature.prototype.bind = function(accounts) {
 	modules = {
 		accounts: accounts,
 	};
@@ -48,11 +49,9 @@ Signature.prototype.bind = function (accounts) {
 /**
  * Obtains constant fee secondSignature.
  * @see {@link module:helpers~constants}
- * @param {transaction} transaction - Unnecessary parameter.
- * @param {account} sender - Unnecessary parameter.
  * @returns {number} Secondsignature fee.
  */
-Signature.prototype.calculateFee = function (transaction, sender) {
+Signature.prototype.calculateFee = function() {
 	return constants.fees.secondSignature;
 };
 
@@ -65,7 +64,7 @@ Signature.prototype.calculateFee = function (transaction, sender) {
  * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
  * transaction validated.
  */
-Signature.prototype.verify = function (transaction, sender, cb) {
+Signature.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.asset || !transaction.asset.signature) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
@@ -75,7 +74,10 @@ Signature.prototype.verify = function (transaction, sender, cb) {
 	}
 
 	try {
-		if (!transaction.asset.signature.publicKey || Buffer.from(transaction.asset.signature.publicKey, 'hex').length !== 32) {
+		if (
+			!transaction.asset.signature.publicKey ||
+			Buffer.from(transaction.asset.signature.publicKey, 'hex').length !== 32
+		) {
 			return setImmediate(cb, 'Invalid public key');
 		}
 	} catch (e) {
@@ -94,7 +96,7 @@ Signature.prototype.verify = function (transaction, sender, cb) {
  * @returns {setImmediateCallback} Null error
  * @todo check extra parameter sender.
  */
-Signature.prototype.process = function (transaction, sender, cb) {
+Signature.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
 };
 
@@ -107,12 +109,15 @@ Signature.prototype.process = function (transaction, sender, cb) {
  * @throws {error} If buffer fails.
  * @todo check if this function is called.
  */
-Signature.prototype.getBytes = function (transaction) {
+Signature.prototype.getBytes = function(transaction) {
 	var bb;
 
 	try {
 		bb = new ByteBuffer(32, true);
-		var publicKeyBuffer = Buffer.from(transaction.asset.signature.publicKey, 'hex');
+		var publicKeyBuffer = Buffer.from(
+			transaction.asset.signature.publicKey,
+			'hex'
+		);
 
 		for (var i = 0; i < publicKeyBuffer.length; i++) {
 			bb.writeByte(publicKeyBuffer[i]);
@@ -134,13 +139,17 @@ Signature.prototype.getBytes = function (transaction) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} for errors
  */
-Signature.prototype.apply = function (transaction, block, sender, cb, tx) {
-	modules.accounts.setAccountAndGet({
-		address: sender.address,
-		secondSignature: 1,
-		u_secondSignature: 0,
-		secondPublicKey: transaction.asset.signature.publicKey
-	}, cb, tx);
+Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
+	modules.accounts.setAccountAndGet(
+		{
+			address: sender.address,
+			secondSignature: 1,
+			u_secondSignature: 0,
+			secondPublicKey: transaction.asset.signature.publicKey,
+		},
+		cb,
+		tx
+	);
 };
 
 /**
@@ -151,13 +160,16 @@ Signature.prototype.apply = function (transaction, block, sender, cb, tx) {
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
-Signature.prototype.undo = function (transaction, block, sender, cb) {
-	modules.accounts.setAccountAndGet({
-		address: sender.address,
-		secondSignature: 0,
-		u_secondSignature: 1,
-		secondPublicKey: null
-	}, cb);
+Signature.prototype.undo = function(transaction, block, sender, cb) {
+	modules.accounts.setAccountAndGet(
+		{
+			address: sender.address,
+			secondSignature: 0,
+			u_secondSignature: 1,
+			secondPublicKey: null,
+		},
+		cb
+	);
 };
 
 /**
@@ -169,12 +181,16 @@ Signature.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} Error if second signature is already enabled.
  */
-Signature.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
+Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 	if (sender.u_secondSignature || sender.secondSignature) {
 		return setImmediate(cb, 'Second signature already enabled');
 	}
 
-	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 1}, cb, tx);
+	modules.accounts.setAccountAndGet(
+		{ address: sender.address, u_secondSignature: 1 },
+		cb,
+		tx
+	);
 };
 
 /**
@@ -185,8 +201,12 @@ Signature.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
  * @param {account} sender
  * @param {function} cb - Callback function.
  */
-Signature.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
-	modules.accounts.setAccountAndGet({address: sender.address, u_secondSignature: 0}, cb, tx);
+Signature.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
+	modules.accounts.setAccountAndGet(
+		{ address: sender.address, u_secondSignature: 0 },
+		cb,
+		tx
+	);
 };
 /**
  * @typedef signature
@@ -198,10 +218,10 @@ Signature.prototype.schema = {
 	properties: {
 		publicKey: {
 			type: 'string',
-			format: 'publicKey'
-		}
+			format: 'publicKey',
+		},
 	},
-	required: ['publicKey']
+	required: ['publicKey'],
 };
 
 /**
@@ -210,13 +230,17 @@ Signature.prototype.schema = {
  * @return {transaction} Transaction validated.
  * @throws {string} Error message.
  */
-Signature.prototype.objectNormalize = function (transaction) {
-	var report = library.schema.validate(transaction.asset.signature, Signature.prototype.schema);
+Signature.prototype.objectNormalize = function(transaction) {
+	var report = library.schema.validate(
+		transaction.asset.signature,
+		Signature.prototype.schema
+	);
 
 	if (!report) {
-		throw 'Failed to validate signature schema: ' + library.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate signature schema: ${library.schema
+			.getLastErrors()
+			.map(err => err.message)
+			.join(', ')}`;
 	}
 
 	return transaction;
@@ -228,16 +252,16 @@ Signature.prototype.objectNormalize = function (transaction) {
  * @return {multisignature} signature Object with transaction id.
  * @todo check if this function is called.
  */
-Signature.prototype.dbRead = function (raw) {
+Signature.prototype.dbRead = function(raw) {
 	if (!raw.s_publicKey) {
 		return null;
 	} else {
 		var signature = {
 			transactionId: raw.t_id,
-			publicKey: raw.s_publicKey
+			publicKey: raw.s_publicKey,
 		};
 
-		return {signature: signature};
+		return { signature: signature };
 	}
 };
 
@@ -247,7 +271,7 @@ Signature.prototype.dbRead = function (raw) {
  * @param {account} sender
  * @return {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
  */
-Signature.prototype.ready = function (transaction, sender) {
+Signature.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
 		if (!Array.isArray(transaction.signatures)) {
 			return false;

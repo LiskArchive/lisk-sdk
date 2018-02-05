@@ -25,8 +25,9 @@ var ip = require('ip');
  * @param {boolean} returnListIsEmpty - The return value, if list is empty.
  * @return {boolean} True if ip is in the list, false otherwise.
  */
-function CheckIpInList (list, addr, returnListIsEmpty) {
-	var i, n;
+function CheckIpInList(list, addr, returnListIsEmpty) {
+	var i;
+	var n;
 
 	if (!_.isBoolean(returnListIsEmpty)) {
 		returnListIsEmpty = true;
@@ -36,14 +37,17 @@ function CheckIpInList (list, addr, returnListIsEmpty) {
 		return returnListIsEmpty;
 	}
 
-	if (!list._subNets) { // First call, create subnet list
+	if (!list._subNets) {
+		// First call, create subnet list
 		list._subNets = [];
 		for (i = list.length - 1; i >= 0; i--) {
 			var entry = list[i];
-			if (ip.isV4Format(entry)) { // IPv4 host entry
-				entry = entry + '/32';
-			} else if (ip.isV6Format(entry)) { // IPv6 host entry
-				entry = entry + '/128';
+			if (ip.isV4Format(entry)) {
+				// IPv4 host entry
+				entry += '/32';
+			} else if (ip.isV6Format(entry)) {
+				// IPv6 host entry
+				entry += '/128';
 			}
 			try {
 				var subnet = ip.cidrSubnet(entry);

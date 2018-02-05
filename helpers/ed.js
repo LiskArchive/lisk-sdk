@@ -28,12 +28,12 @@ var ed = {};
  * @param {hash} hash
  * @return {Object} publicKey, privateKey
  */
-ed.makeKeypair = function (hash) {
+ed.makeKeypair = function(hash) {
 	var keypair = sodium.crypto_sign_seed_keypair(hash);
 
 	return {
 		publicKey: keypair.publicKey,
-		privateKey: keypair.secretKey
+		privateKey: keypair.secretKey,
 	};
 };
 
@@ -44,7 +44,7 @@ ed.makeKeypair = function (hash) {
  * @param {Buffer} privateKey
  * @return {Buffer} signature
  */
-ed.sign = function (hash, privateKey) {
+ed.sign = function(hash, privateKey) {
 	return sodium.crypto_sign_detached(hash, privateKey);
 };
 
@@ -56,7 +56,7 @@ ed.sign = function (hash, privateKey) {
  * @param {Buffer} publicKey
  * @return {boolean} true id verified
  */
-ed.verify = function (hash, signature, publicKey) {
+ed.verify = function(hash, signature, publicKey) {
 	return sodium.crypto_sign_verify_detached(signature, hash, publicKey);
 };
 

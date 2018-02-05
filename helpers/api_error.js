@@ -19,16 +19,16 @@
  * @param {number} code
  * @constructor
  */
-function ApiError (message, code) {
+function ApiError(message, code) {
 	this.message = message;
 	this.code = code;
 }
 
 ApiError.prototype = new Error();
 
-ApiError.prototype.toJson = function () {
+ApiError.prototype.toJson = function() {
 	return {
-		message: this.message
+		message: this.message,
 	};
 };
 

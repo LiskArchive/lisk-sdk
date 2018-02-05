@@ -17,7 +17,6 @@ var _ = require('lodash');
 var rewire = require('rewire');
 var expect = require('chai').expect;
 var sinon = require('sinon');
-
 // Load config file - global (one from test directory)
 var config = require('../../../config.json');
 
@@ -27,26 +26,25 @@ var TransactionPool = rewire('../../../logic/transaction_pool.js');
 // Create fresh instance of jobsQueue
 var jobsQueue = rewire('../../../helpers/jobs_queue.js');
 
-describe('transactionPool', function () {
-
+describe('transactionPool', () => {
 	var transactionPool;
 	var applyUnconfirmed;
 	var dummyProcessVerifyTransaction;
 	var dummyApplyUnconfirmed;
 	var dummyUndoUnconfirmed;
-	var freshListState = {transactions: [], index: {}};
+	var freshListState = { transactions: [], index: {} };
 
 	// Init fake logger
 	var logger = {
 		trace: sinon.spy(),
 		debug: sinon.spy(),
-		info:  sinon.spy(),
-		log:   sinon.spy(),
-		warn:  sinon.spy(),
-		error: sinon.spy()
+		info: sinon.spy(),
+		log: sinon.spy(),
+		warn: sinon.spy(),
+		error: sinon.spy(),
 	};
 
-	var resetStates = function () {
+	var resetStates = function() {
 		transactionPool.unconfirmed = _.cloneDeep(freshListState);
 		transactionPool.bundled = _.cloneDeep(freshListState);
 		transactionPool.queued = _.cloneDeep(freshListState);
@@ -58,16 +56,30 @@ describe('transactionPool', function () {
 		logger.warn.reset();
 		logger.error.reset();
 
-		dummyProcessVerifyTransaction = sinon.spy(function (transaction, broadcast, cb) { return cb(); });
-		TransactionPool.__set__('__private.processVerifyTransaction', dummyProcessVerifyTransaction);
-		dummyApplyUnconfirmed = sinon.spy(function (transaction, sender, cb) { return cb(); });
-		TransactionPool.__set__('modules.transactions.applyUnconfirmed', dummyApplyUnconfirmed);
-		dummyUndoUnconfirmed = sinon.spy(function (transaction, cb) { return cb(); });
-		TransactionPool.__set__('modules.transactions.undoUnconfirmed', dummyUndoUnconfirmed);
+		dummyProcessVerifyTransaction = sinon.spy((transaction, broadcast, cb) => {
+			return cb();
+		});
+		TransactionPool.__set__(
+			'__private.processVerifyTransaction',
+			dummyProcessVerifyTransaction
+		);
+		dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => {
+			return cb();
+		});
+		TransactionPool.__set__(
+			'modules.transactions.applyUnconfirmed',
+			dummyApplyUnconfirmed
+		);
+		dummyUndoUnconfirmed = sinon.spy((transaction, cb) => {
+			return cb();
+		});
+		TransactionPool.__set__(
+			'modules.transactions.undoUnconfirmed',
+			dummyUndoUnconfirmed
+		);
 	};
 
-
-	before(function (done) {
+	before(done => {
 		// Use fresh instance of jobsQueue inside transaction pool
 		TransactionPool.__set__('jobsQueue', jobsQueue);
 
@@ -89,23 +101,21 @@ describe('transactionPool', function () {
 		done();
 	});
 
-	describe('initialize', function () {
-
-		describe('lists', function () {
-
-			it('unconfirmed should be initialized', function () {
+	describe('initialize', () => {
+		describe('lists', () => {
+			it('unconfirmed should be initialized', () => {
 				expect(transactionPool.unconfirmed).to.deep.equal(freshListState);
 			});
 
-			it('bundled should be initialized', function () {
+			it('bundled should be initialized', () => {
 				expect(transactionPool.bundled).to.deep.equal(freshListState);
 			});
 
-			it('queued should be initialized', function () {
+			it('queued should be initialized', () => {
 				expect(transactionPool.queued).to.deep.equal(freshListState);
 			});
 
-			it('multisignature should be initialized', function () {
+			it('multisignature should be initialized', () => {
 				expect(transactionPool.multisignature).to.deep.equal(freshListState);
 			});
 		});
@@ -113,45 +123,41 @@ describe('transactionPool', function () {
 		after(resetStates);
 	});
 
-	describe('__private', function () {
-
-		describe('applyUnconfirmedList', function () {
-
+	describe('__private', () => {
+		describe('applyUnconfirmedList', () => {
 			var lastError;
 
-			before(function () {
-				applyUnconfirmed = TransactionPool.__get__('__private.applyUnconfirmedList');
+			before(() => {
+				applyUnconfirmed = TransactionPool.__get__(
+					'__private.applyUnconfirmedList'
+				);
 			});
 
-			describe('called with array', function () {
-
-				describe('that is empty', function () {
-
-					before(function (done) {
-						applyUnconfirmed([], function (err) {
+			describe('called with array', () => {
+				describe('that is empty', () => {
+					before(done => {
+						applyUnconfirmed([], err => {
 							lastError = err;
 							done();
 						});
 					});
 
-					it('should not return an error', function () {
+					it('should not return an error', () => {
 						expect(lastError).to.not.exist;
 					});
 
-					it('should not log an error', function () {
+					it('should not log an error', () => {
 						expect(logger.error.called).to.be.false;
 					});
 
-					describe('__private.processVerifyTransaction', function () {
-
-						it('should not be called', function () {
+					describe('__private.processVerifyTransaction', () => {
+						it('should not be called', () => {
 							expect(dummyProcessVerifyTransaction.called).to.be.false;
 						});
 					});
 
-					describe('modules.transactions.applyUnconfirmed', function () {
-
-						it('should not be called', function () {
+					describe('modules.transactions.applyUnconfirmed', () => {
+						it('should not be called', () => {
 							expect(dummyApplyUnconfirmed.called).to.be.false;
 						});
 					});
@@ -159,77 +165,77 @@ describe('transactionPool', function () {
 					after(resetStates);
 				});
 
-				describe('that contains 1 transaction', function () {
+				describe('that contains 1 transaction', () => {
+					describe('that is valid', () => {
+						var validTransaction = { id: 'validTx' };
 
-					describe('that is valid', function () {
-
-						var validTransaction = {id: 'validTx'};
-
-						before(function (done) {
-							applyUnconfirmed([validTransaction], function (err) {
+						before(done => {
+							applyUnconfirmed([validTransaction], err => {
 								lastError = err;
 								done();
 							});
 						});
 
-						it('should not return an error', function () {
+						it('should not return an error', () => {
 							expect(lastError).to.not.exist;
 						});
 
-						it('should not log an error', function () {
+						it('should not log an error', () => {
 							expect(logger.error.called).to.be.false;
 						});
 
-						describe('__private.processVerifyTransaction', function () {
-
-							it('should be called once', function () {
+						describe('__private.processVerifyTransaction', () => {
+							it('should be called once', () => {
 								expect(dummyProcessVerifyTransaction.calledOnce).to.be.true;
 							});
 
-							it('should be called with transaction as parameter', function () {
-								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(validTransaction);
+							it('should be called with transaction as parameter', () => {
+								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(
+									validTransaction
+								);
 							});
 						});
 
-						describe('modules.transactions.applyUnconfirmed', function () {
-
-							it('should be called once', function () {
+						describe('modules.transactions.applyUnconfirmed', () => {
+							it('should be called once', () => {
 								expect(dummyApplyUnconfirmed.calledOnce).to.be.true;
 							});
 
-							it('should be called with transaction as parameter', function () {
-								expect(dummyApplyUnconfirmed.args[0][0]).to.deep.equal(validTransaction);
+							it('should be called with transaction as parameter', () => {
+								expect(dummyApplyUnconfirmed.args[0][0]).to.deep.equal(
+									validTransaction
+								);
 							});
 						});
 
-						describe('lists', function () {
-
+						describe('lists', () => {
 							var index;
 
-							describe('unconfirmed', function () {
-
-								it('index should be set', function () {
-									index = transactionPool.unconfirmed.index[validTransaction.id];
+							describe('unconfirmed', () => {
+								it('index should be set', () => {
+									index =
+										transactionPool.unconfirmed.index[validTransaction.id];
 									expect(index).to.be.a('number');
 								});
 
-								it('transaction at index should match', function () {
-									expect(transactionPool.unconfirmed.transactions[index]).to.deep.equal(validTransaction);
+								it('transaction at index should match', () => {
+									expect(
+										transactionPool.unconfirmed.transactions[index]
+									).to.deep.equal(validTransaction);
 								});
 							});
 
-							describe('queued', function () {
-
-								it('index should be undefined', function () {
+							describe('queued', () => {
+								it('index should be undefined', () => {
 									index = transactionPool.queued.index[validTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('multisignature', function () {
-
-								it('index should be undefined', function () {
-									index = transactionPool.multisignature.index[validTransaction.id];
+							describe('multisignature', () => {
+								it('index should be undefined', () => {
+									index =
+										transactionPool.multisignature.index[validTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
@@ -238,73 +244,80 @@ describe('transactionPool', function () {
 						after(resetStates);
 					});
 
-					describe('that results with error on processVerifyTransaction', function () {
-
-						var badTransaction = {id: 'badTx'};
+					describe('that results with error on processVerifyTransaction', () => {
+						var badTransaction = { id: 'badTx' };
 						var error = 'verify error';
 
-						before(function (done) {
-							dummyProcessVerifyTransaction = sinon.spy(function (transaction, broadcast, cb) { return cb(error); });
-							TransactionPool.__set__('__private.processVerifyTransaction', dummyProcessVerifyTransaction);
+						before(done => {
+							dummyProcessVerifyTransaction = sinon.spy(
+								(transaction, broadcast, cb) => {
+									return cb(error);
+								}
+							);
+							TransactionPool.__set__(
+								'__private.processVerifyTransaction',
+								dummyProcessVerifyTransaction
+							);
 
-							applyUnconfirmed([badTransaction], function (err) {
+							applyUnconfirmed([badTransaction], err => {
 								lastError = err;
 								done();
 							});
 						});
 
-						it('should not return an error', function () {
+						it('should not return an error', () => {
 							expect(lastError).to.not.exist;
 						});
 
-						it('should log an proper error', function () {
+						it('should log an proper error', () => {
 							expect(logger.error.calledOnce).to.be.true;
-							expect(logger.error.args[0][0]).to.equal('Failed to process / verify unconfirmed transaction: ' + badTransaction.id);
+							expect(logger.error.args[0][0]).to.equal(
+								`Failed to process / verify unconfirmed transaction: ${
+									badTransaction.id
+								}`
+							);
 							expect(logger.error.args[0][1]).to.equal(error);
 						});
 
-						describe('__private.processVerifyTransaction', function () {
-
-							it('should be called onece', function () {
+						describe('__private.processVerifyTransaction', () => {
+							it('should be called onece', () => {
 								expect(dummyProcessVerifyTransaction.calledOnce).to.be.true;
 							});
 
-							it('should be called with transaction as parameter', function () {
-								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(badTransaction);
+							it('should be called with transaction as parameter', () => {
+								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(
+									badTransaction
+								);
 							});
 						});
 
-						describe('modules.transactions.applyUnconfirmed', function () {
-
-							it('should not be called', function () {
+						describe('modules.transactions.applyUnconfirmed', () => {
+							it('should not be called', () => {
 								expect(dummyApplyUnconfirmed.called).to.be.false;
 							});
 						});
 
-						describe('lists', function () {
-
+						describe('lists', () => {
 							var index;
 
-							describe('unconfirmed', function () {
-
-								it('index should be undefined', function () {
+							describe('unconfirmed', () => {
+								it('index should be undefined', () => {
 									index = transactionPool.unconfirmed.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('queued', function () {
-
-								it('index should be undefined', function () {
+							describe('queued', () => {
+								it('index should be undefined', () => {
 									index = transactionPool.queued.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('multisignature', function () {
-
-								it('index should be undefined', function () {
-									index = transactionPool.multisignature.index[badTransaction.id];
+							describe('multisignature', () => {
+								it('index should be undefined', () => {
+									index =
+										transactionPool.multisignature.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
@@ -313,77 +326,82 @@ describe('transactionPool', function () {
 						after(resetStates);
 					});
 
-					describe('that results with error on applyUnconfirmed', function () {
-
-						var badTransaction = {id: 'badTx'};
+					describe('that results with error on applyUnconfirmed', () => {
+						var badTransaction = { id: 'badTx' };
 						var error = 'apply error';
 
-						before(function (done) {
-							dummyApplyUnconfirmed = sinon.spy(function (transaction, sender, cb) { return cb(error); });
-							TransactionPool.__set__('modules.transactions.applyUnconfirmed', dummyApplyUnconfirmed);
+						before(done => {
+							dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => {
+								return cb(error);
+							});
+							TransactionPool.__set__(
+								'modules.transactions.applyUnconfirmed',
+								dummyApplyUnconfirmed
+							);
 
-							applyUnconfirmed([badTransaction], function (err) {
+							applyUnconfirmed([badTransaction], err => {
 								lastError = err;
 								done();
 							});
 						});
 
-						it('should not return an error', function () {
+						it('should not return an error', () => {
 							expect(lastError).to.not.exist;
 						});
 
-						it('should log an proper error', function () {
+						it('should log an proper error', () => {
 							expect(logger.error.calledOnce).to.be.true;
-							expect(logger.error.args[0][0]).to.equal('Failed to apply unconfirmed transaction: ' + badTransaction.id);
+							expect(logger.error.args[0][0]).to.equal(
+								`Failed to apply unconfirmed transaction: ${badTransaction.id}`
+							);
 							expect(logger.error.args[0][1]).to.equal(error);
 						});
 
-						describe('__private.processVerifyTransaction', function () {
-
-							it('should be called onece', function () {
+						describe('__private.processVerifyTransaction', () => {
+							it('should be called onece', () => {
 								expect(dummyProcessVerifyTransaction.calledOnce).to.be.true;
 							});
 
-							it('should be called with transaction as parameter', function () {
-								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(badTransaction);
+							it('should be called with transaction as parameter', () => {
+								expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(
+									badTransaction
+								);
 							});
 						});
 
-						describe('modules.transactions.applyUnconfirmed', function () {
-
-							it('should be called once', function () {
+						describe('modules.transactions.applyUnconfirmed', () => {
+							it('should be called once', () => {
 								expect(dummyApplyUnconfirmed.calledOnce).to.be.true;
 							});
 
-							it('should be called with transaction as parameter', function () {
-								expect(dummyApplyUnconfirmed.args[0][0]).to.deep.equal(badTransaction);
+							it('should be called with transaction as parameter', () => {
+								expect(dummyApplyUnconfirmed.args[0][0]).to.deep.equal(
+									badTransaction
+								);
 							});
 						});
 
-						describe('lists', function () {
-
+						describe('lists', () => {
 							var index;
 
-							describe('unconfirmed', function () {
-
-								it('index should be undefined', function () {
+							describe('unconfirmed', () => {
+								it('index should be undefined', () => {
 									index = transactionPool.unconfirmed.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('queued', function () {
-
-								it('index should be undefined', function () {
+							describe('queued', () => {
+								it('index should be undefined', () => {
 									index = transactionPool.queued.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('multisignature', function () {
-
-								it('index should be undefined', function () {
-									index = transactionPool.multisignature.index[badTransaction.id];
+							describe('multisignature', () => {
+								it('index should be undefined', () => {
+									index =
+										transactionPool.multisignature.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
@@ -395,50 +413,46 @@ describe('transactionPool', function () {
 			});
 		});
 
-		describe('undoUnconfirmedList', function () {
-
+		describe('undoUnconfirmedList', () => {
 			var undoUnconfirmedList;
 			var lastError;
 			var lastIds;
 
-			before(function () {
+			before(() => {
 				undoUnconfirmedList = transactionPool.undoUnconfirmedList;
 			});
 
-			describe('when unconfirmed lists', function () {
-
-				describe('is empty', function () {
-
+			describe('when unconfirmed lists', () => {
+				describe('is empty', () => {
 					var transactions = [];
 
-					before(function (done) {
-						transactionPool.getUnconfirmedTransactionList = function () {
+					before(done => {
+						transactionPool.getUnconfirmedTransactionList = function() {
 							return transactions;
 						};
 
-						undoUnconfirmedList(function (err, ids) {
+						undoUnconfirmedList((err, ids) => {
 							lastError = err;
 							lastIds = ids;
 							done();
 						});
 					});
 
-					it('should not return an error', function () {
+					it('should not return an error', () => {
 						expect(lastError).to.not.exist;
 					});
 
-					it('should not log an error', function () {
+					it('should not log an error', () => {
 						expect(logger.error.called).to.be.false;
 					});
 
-					it('should return empty ids array', function () {
+					it('should return empty ids array', () => {
 						expect(lastIds).to.be.an('array');
 						expect(lastIds.length).to.equal(0);
 					});
 
-					describe('modules.transactions.undoUnconfirmed', function () {
-
-						it('should not be called', function () {
+					describe('modules.transactions.undoUnconfirmed', () => {
+						it('should not be called', () => {
 							expect(dummyUndoUnconfirmed.called).to.be.false;
 						});
 					});
@@ -446,78 +460,81 @@ describe('transactionPool', function () {
 					after(resetStates);
 				});
 
-				describe('contains 1 transaction', function () {
+				describe('contains 1 transaction', () => {
+					describe('that is valid', () => {
+						var validTransaction = { id: 'validTx' };
+						var transactions = [validTransaction];
 
-					describe('that is valid', function () {
-
-						var validTransaction = {id: 'validTx'};
-						var transactions = [ validTransaction ];
-
-						before(function (done) {
+						before(done => {
 							transactionPool.addUnconfirmedTransaction(validTransaction);
-							transactionPool.getUnconfirmedTransactionList = function () {
+							transactionPool.getUnconfirmedTransactionList = function() {
 								return transactions;
 							};
 
-							undoUnconfirmedList(function (err, ids) {
+							undoUnconfirmedList((err, ids) => {
 								lastError = err;
 								lastIds = ids;
 								done();
 							});
 						});
 
-						it('should not return an error', function () {
+						it('should not return an error', () => {
 							expect(lastError).to.not.exist;
 						});
 
-						it('should not log an error', function () {
+						it('should not log an error', () => {
 							expect(logger.error.called).to.be.false;
 						});
 
-						it('should return valid ids array', function () {
+						it('should return valid ids array', () => {
 							expect(lastIds).to.be.an('array');
-							expect(lastIds).to.deep.equal(_.map(transactions, function (tx) { return tx.id; }));
+							expect(lastIds).to.deep.equal(
+								_.map(transactions, tx => {
+									return tx.id;
+								})
+							);
 						});
 
-						describe('modules.transactions.undoUnconfirmed', function () {
-
-							it('should be called onece', function () {
+						describe('modules.transactions.undoUnconfirmed', () => {
+							it('should be called onece', () => {
 								expect(dummyUndoUnconfirmed.calledOnce).to.be.true;
 							});
 
-							it('should be called with transaction as parameter', function () {
-								expect(dummyUndoUnconfirmed.args[0][0]).to.deep.equal(validTransaction);
+							it('should be called with transaction as parameter', () => {
+								expect(dummyUndoUnconfirmed.args[0][0]).to.deep.equal(
+									validTransaction
+								);
 							});
 						});
 
-						describe('lists', function () {
-
+						describe('lists', () => {
 							var index;
 
-							describe('unconfirmed', function () {
-
-								it('index should be undefined', function () {
-									index = transactionPool.unconfirmed.index[validTransaction.id];
+							describe('unconfirmed', () => {
+								it('index should be undefined', () => {
+									index =
+										transactionPool.unconfirmed.index[validTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('queued', function () {
-
-								it('index should be set', function () {
+							describe('queued', () => {
+								it('index should be set', () => {
 									index = transactionPool.queued.index[validTransaction.id];
 									expect(index).to.be.a('number');
 								});
 
-								it('transaction at index should match', function () {
-									expect(transactionPool.queued.transactions[index]).to.deep.equal(validTransaction);
+								it('transaction at index should match', () => {
+									expect(
+										transactionPool.queued.transactions[index]
+									).to.deep.equal(validTransaction);
 								});
 							});
 
-							describe('multisignature', function () {
-
-								it('index should be undefined', function () {
-									index = transactionPool.multisignature.index[validTransaction.id];
+							describe('multisignature', () => {
+								it('index should be undefined', () => {
+									index =
+										transactionPool.multisignature.index[validTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
@@ -526,78 +543,86 @@ describe('transactionPool', function () {
 						after(resetStates);
 					});
 
-					describe('that results with error on modules.transactions.undoUnconfirme', function () {
-
-						var badTransaction = {id: 'badTx'};
-						var transactions = [ badTransaction ];
+					describe('that results with error on modules.transactions.undoUnconfirme', () => {
+						var badTransaction = { id: 'badTx' };
+						var transactions = [badTransaction];
 						var error = 'undo error';
 
-						before(function (done) {
-							dummyUndoUnconfirmed = sinon.spy(function (transaction, cb) { return cb(error); });
-							TransactionPool.__set__('modules.transactions.undoUnconfirmed', dummyUndoUnconfirmed);
+						before(done => {
+							dummyUndoUnconfirmed = sinon.spy((transaction, cb) => {
+								return cb(error);
+							});
+							TransactionPool.__set__(
+								'modules.transactions.undoUnconfirmed',
+								dummyUndoUnconfirmed
+							);
 
 							transactionPool.addUnconfirmedTransaction(badTransaction);
-							transactionPool.getUnconfirmedTransactionList = function () {
+							transactionPool.getUnconfirmedTransactionList = function() {
 								return transactions;
 							};
 
-							undoUnconfirmedList(function (err, ids) {
+							undoUnconfirmedList((err, ids) => {
 								lastError = err;
 								lastIds = ids;
 								done();
 							});
 						});
 
-						it('should not return an error', function () {
+						it('should not return an error', () => {
 							expect(lastError).to.not.exist;
 						});
 
-						it('should return valid ids array', function () {
+						it('should return valid ids array', () => {
 							expect(lastIds).to.be.an('array');
-							expect(lastIds).to.deep.equal(_.map(transactions, function (tx) { return tx.id; }));
+							expect(lastIds).to.deep.equal(
+								_.map(transactions, tx => {
+									return tx.id;
+								})
+							);
 						});
 
-						it('should log an proper error', function () {
+						it('should log an proper error', () => {
 							expect(logger.error.calledOnce).to.be.true;
-							expect(logger.error.args[0][0]).to.equal('Failed to undo unconfirmed transaction: ' + badTransaction.id);
+							expect(logger.error.args[0][0]).to.equal(
+								`Failed to undo unconfirmed transaction: ${badTransaction.id}`
+							);
 							expect(logger.error.args[0][1]).to.equal(error);
 						});
 
-						describe('modules.transactions.undoUnconfirmed', function () {
-
-							it('should be called onece', function () {
+						describe('modules.transactions.undoUnconfirmed', () => {
+							it('should be called onece', () => {
 								expect(dummyUndoUnconfirmed.calledOnce).to.be.true;
 							});
 
-							it('should be called with transaction as parameter', function () {
-								expect(dummyUndoUnconfirmed.args[0][0]).to.deep.equal(badTransaction);
+							it('should be called with transaction as parameter', () => {
+								expect(dummyUndoUnconfirmed.args[0][0]).to.deep.equal(
+									badTransaction
+								);
 							});
 						});
 
-						describe('lists', function () {
-
+						describe('lists', () => {
 							var index;
 
-							describe('unconfirmed', function () {
-
-								it('index should be undefined', function () {
+							describe('unconfirmed', () => {
+								it('index should be undefined', () => {
 									index = transactionPool.unconfirmed.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('queued', function () {
-
-								it('index should be undefined', function () {
+							describe('queued', () => {
+								it('index should be undefined', () => {
 									index = transactionPool.queued.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});
 
-							describe('multisignature', function () {
-
-								it('index should be undefined', function () {
-									index = transactionPool.multisignature.index[badTransaction.id];
+							describe('multisignature', () => {
+								it('index should be undefined', () => {
+									index =
+										transactionPool.multisignature.index[badTransaction.id];
 									expect(index).to.be.an('undefined');
 								});
 							});

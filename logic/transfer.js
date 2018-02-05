@@ -18,7 +18,8 @@ var bignum = require('../helpers/bignum.js');
 var slots = require('../helpers/slots.js');
 
 // Private fields
-var modules, library;
+var modules;
+var library;
 
 /**
  * Main transfer logic.
@@ -27,7 +28,7 @@ var modules, library;
  * @classdesc Main transfer logic.
  */
 // Constructor
-function Transfer (logger, schema) {
+function Transfer(logger, schema) {
 	library = {
 		logger: logger,
 		schema: schema,
@@ -39,9 +40,9 @@ function Transfer (logger, schema) {
  * Binds input parameters to private variable modules.
  * @param {Accounts} accounts
  */
-Transfer.prototype.bind = function (accounts) {
+Transfer.prototype.bind = function(accounts) {
 	modules = {
-		accounts: accounts
+		accounts: accounts,
 	};
 };
 
@@ -51,7 +52,7 @@ Transfer.prototype.bind = function (accounts) {
  * @param {account} sender
  * @return {number} fee
  */
-Transfer.prototype.calculateFee = function (transaction, sender) {
+Transfer.prototype.calculateFee = function(transaction) {
 	var fee = new bignum(constants.fees.send);
 	if (transaction.asset && transaction.asset.data) {
 		fee = fee.plus(constants.fees.data);
@@ -67,7 +68,7 @@ Transfer.prototype.calculateFee = function (transaction, sender) {
  * @param {function} cb
  * @return {setImmediateCallback} errors | transaction
  */
-Transfer.prototype.verify = function (transaction, sender, cb, tx) {
+Transfer.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.recipientId) {
 		return setImmediate(cb, 'Missing recipient');
 	}
@@ -85,7 +86,7 @@ Transfer.prototype.verify = function (transaction, sender, cb, tx) {
  * @param {function} cb
  * @return {setImmediateCallback} cb, null, transaction
  */
-Transfer.prototype.process = function (transaction, sender, cb) {
+Transfer.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
 };
 
@@ -95,11 +96,14 @@ Transfer.prototype.process = function (transaction, sender, cb) {
  * @return {buffer} buf
  * @throws {error} error
  */
-Transfer.prototype.getBytes = function (transaction) {
+Transfer.prototype.getBytes = function(transaction) {
 	var buf;
 
 	try {
-		buf = (transaction.asset && transaction.asset.data) ? Buffer.from(transaction.asset.data, 'utf8') : null;
+		buf =
+			transaction.asset && transaction.asset.data
+				? Buffer.from(transaction.asset.data, 'utf8')
+				: null;
 	} catch (ex) {
 		throw ex;
 	}
@@ -119,22 +123,28 @@ Transfer.prototype.getBytes = function (transaction) {
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} error, cb
  */
-Transfer.prototype.apply = function (transaction, block, sender, cb, tx) {
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
+Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
+	modules.accounts.setAccountAndGet(
+		{ address: transaction.recipientId },
+		err => {
+			if (err) {
+				return setImmediate(cb, err);
+			}
 
-		modules.accounts.mergeAccountAndGet({
-			address: transaction.recipientId,
-			balance: transaction.amount,
-			u_balance: transaction.amount,
-			blockId: block.id,
-			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		}, tx);
-	}, tx);
+			modules.accounts.mergeAccountAndGet(
+				{
+					address: transaction.recipientId,
+					balance: transaction.amount,
+					u_balance: transaction.amount,
+					blockId: block.id,
+					round: slots.calcRound(block.height),
+				},
+				err => setImmediate(cb, err),
+				tx
+			);
+		},
+		tx
+	);
 };
 
 /**
@@ -149,22 +159,26 @@ Transfer.prototype.apply = function (transaction, block, sender, cb, tx) {
  * @param {function} cb - Callback function
  * @return {setImmediateCallback} error, cb
  */
-Transfer.prototype.undo = function (transaction, block, sender, cb) {
-	modules.accounts.setAccountAndGet({address: transaction.recipientId}, function (err, recipient) {
-		if (err) {
-			return setImmediate(cb, err);
+Transfer.prototype.undo = function(transaction, block, sender, cb) {
+	modules.accounts.setAccountAndGet(
+		{ address: transaction.recipientId },
+		err => {
+			if (err) {
+				return setImmediate(cb, err);
+			}
+
+			modules.accounts.mergeAccountAndGet(
+				{
+					address: transaction.recipientId,
+					balance: -transaction.amount,
+					u_balance: -transaction.amount,
+					blockId: block.id,
+					round: slots.calcRound(block.height),
+				},
+				err => setImmediate(cb, err)
+			);
 		}
-
-		modules.accounts.mergeAccountAndGet({
-			address: transaction.recipientId,
-			balance: -transaction.amount,
-			u_balance: -transaction.amount,
-			blockId: block.id,
-			round: slots.calcRound(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
-		});
-	});
+	);
 };
 
 /**
@@ -173,7 +187,7 @@ Transfer.prototype.undo = function (transaction, block, sender, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-Transfer.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
+Transfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 	return setImmediate(cb);
 };
 
@@ -183,10 +197,9 @@ Transfer.prototype.applyUnconfirmed = function (transaction, sender, cb, tx) {
  * @param {function} cb
  * @return {setImmediateCallback} cb
  */
-Transfer.prototype.undoUnconfirmed = function (transaction, sender, cb, tx) {
+Transfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
 	return setImmediate(cb);
 };
-
 
 /**
  * @typedef {Object} transfer
@@ -200,9 +213,9 @@ Transfer.prototype.schema = {
 			type: 'string',
 			format: 'additionalData',
 			minLength: constants.additionalData.minLength,
-			maxLength: constants.additionalData.maxLength
-		}
-	}
+			maxLength: constants.additionalData.maxLength,
+		},
+	},
 };
 
 /**
@@ -210,19 +223,23 @@ Transfer.prototype.schema = {
  * @param {transaction} transaction
  * @return {transaction}
  */
-Transfer.prototype.objectNormalize = function (transaction) {
+Transfer.prototype.objectNormalize = function(transaction) {
 	delete transaction.blockId;
 
 	if (!transaction.asset) {
 		return transaction;
 	}
 
-	var report = library.schema.validate(transaction.asset, Transfer.prototype.schema);
+	var report = library.schema.validate(
+		transaction.asset,
+		Transfer.prototype.schema
+	);
 
 	if (!report) {
-		throw 'Failed to validate transfer schema: ' + library.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate transfer schema: ${library.schema
+			.getLastErrors()
+			.map(err => err.message)
+			.join(', ')}`;
 	}
 
 	return transaction;
@@ -233,14 +250,13 @@ Transfer.prototype.objectNormalize = function (transaction) {
  * @param {Object} raw
  * @return {transferAsset|null}
  */
-Transfer.prototype.dbRead = function (raw) {
+Transfer.prototype.dbRead = function(raw) {
 	if (raw.tf_data) {
-		return {data: raw.tf_data};
+		return { data: raw.tf_data };
 	}
 
 	return null;
 };
-
 
 /**
  * Checks if transaction has enough signatures to be confirmed.
@@ -248,7 +264,7 @@ Transfer.prototype.dbRead = function (raw) {
  * @param {account} sender
  * @return {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
  */
-Transfer.prototype.ready = function (transaction, sender) {
+Transfer.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
 		if (!Array.isArray(transaction.signatures)) {
 			return false;

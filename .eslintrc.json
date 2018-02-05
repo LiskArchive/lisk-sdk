@@ -1,39 +1,66 @@
 {
-	"parserOptions": {
-		"ecmaVersion": 5,
-		"sourceType": "module"
-	},
+	"extends": ["lisk-base"],
+	"plugins": ["mocha"],
 	"rules": {
-		"semi": "error",
-		"no-eq-null": "off",
-		"indent": ["error", "tab", { "flatTernaryExpressions": true, "SwitchCase": 1 }],
+		"array-callback-return": "off",
+		"block-scoped-var": "off",
+		"camelcase": "off",
+		"comma-dangle": "off",
+		"consistent-return": "off",
+		"default-case": "off",
+		"dot-notation": "off",
 		"eqeqeq": "off",
-		"curly": "error",
-		"no-undef": "error",
-		"quotes": ["error", "single"],
-		"space-before-function-paren": ["error", {
-			"anonymous": "always",
-			"named": "always",
-			"asyncArrow": "ignore"
-		}],
-		"callback-return": "off",
+		"func-names": "off",
 		"global-require": "off",
-		"handle-callback-err": "off",
-		"no-mixed-requires": "off",
-		"no-new-require": "off",
-		"multiline-ternary": ["off", "never"]
-	},
-	"env": {
-		"browser": true,
-		"node": true,
-		"mocha": true
-	},
-	"globals": {
-		"_": true,
-		"__testContext": true,
-		"expect": true,
-		"gc": true,
-		"sinonSandbox": true
-	},
-	"plugins": []
+		"guard-for-in": "off",
+		"generator-star-spacing": ["error", { "before": false, "after": false }],
+		"lines-around-directive": "off",
+		"max-len": "off",
+		"new-cap": "off",
+		"newline-per-chained-call": "off",
+		"no-bitwise": "off",
+		"no-console": "off",
+		"no-else-return": "off",
+		"no-loop-func": "off",
+		"no-multi-assign": "off",
+		"no-nested-ternary": "off",
+		"no-new": "off",
+		"no-param-reassign": "off",
+		"no-plusplus": "off",
+		"no-prototype-builtins": "off",
+		"no-restricted-globals": "off",
+		"no-restricted-properties": "off",
+		"no-restricted-syntax": "off",
+		"no-shadow": "off",
+		"no-template-curly-in-string": "off",
+		"no-throw-literal": "off",
+		"no-underscore-dangle": "off",
+		"no-unused-expressions": "off",
+		"no-use-before-define": "off",
+		"no-useless-escape": "off",
+		"no-var": "off",
+		"object-shorthand": "off",
+		"prefer-arrow-callback": "off",
+		"prefer-destructuring": "off",
+		"prefer-rest-params": "off",
+		"radix": "off",
+		"require-jsdoc": "off",
+		"strict": "off",
+		"space-before-function-paren": ["error", "never"],
+		"vars-on-top": "off",
+		"wrap-iife": "off",
+		// To keep
+		"import/no-extraneous-dependencies": [
+			"error",
+			{
+				"devDependencies": [
+					"test/**",
+					"tasks/**",
+					"scripts/**",
+					"webpack.config.js",
+					"Gruntfile.js"
+				]
+			}
+		]
+	}
 }

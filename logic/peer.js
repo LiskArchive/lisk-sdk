@@ -27,14 +27,13 @@ var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
  * @return calls accept method
  */
 // Constructor
-function Peer (peer) {
-
+function Peer(peer) {
 	Object.defineProperties(this, {
 		rpc: {
-			get: function () {
+			get: function() {
 				return wsRPC.getClientRPCStub(this.ip, this.wsPort);
-			}.bind(this)
-		}
+			}.bind(this),
+		},
 	});
 
 	return this.accept(peer || {});
@@ -67,28 +66,17 @@ Peer.prototype.properties = [
 	'clock',
 	'updated',
 	'nonce',
-	'httpPort'
-];
-
-Peer.prototype.immutable = [
-	'ip',
-	'wsPort',
 	'httpPort',
-	'string'
 ];
 
-Peer.prototype.headers = [
-	'os',
-	'version',
-	'broadhash',
-	'height',
-	'nonce'
-];
+Peer.prototype.immutable = ['ip', 'wsPort', 'httpPort', 'string'];
+
+Peer.prototype.headers = ['os', 'version', 'broadhash', 'height', 'nonce'];
 
 Peer.STATE = {
 	BANNED: 0,
 	DISCONNECTED: 1,
-	CONNECTED: 2
+	CONNECTED: 2,
 };
 
 // Public methods
@@ -97,16 +85,16 @@ Peer.STATE = {
  * @param {peer} peer
  * @return {Object} this
  */
-Peer.prototype.accept = function (peer) {
+Peer.prototype.accept = function(peer) {
 	// Normalize peer data
 	peer = this.normalize(peer);
 
 	// Accept only supported and defined properties
-	_.each(this.properties, function (key) {
+	_.each(this.properties, key => {
 		if (peer[key] !== null && peer[key] !== undefined) {
 			this[key] = peer[key];
 		}
-	}.bind(this));
+	});
 
 	// Adjust properties according to rules
 	if (/^[0-9]+$/.test(this.ip)) {
@@ -114,7 +102,7 @@ Peer.prototype.accept = function (peer) {
 	}
 
 	if (this.ip && this.wsPort) {
-		this.string = this.ip + ':' + this.wsPort;
+		this.string = `${this.ip}:${this.wsPort}`;
 	}
 
 	return this;
@@ -125,7 +113,7 @@ Peer.prototype.accept = function (peer) {
  * @param {peer} peer
  * @return {peer}
  */
-Peer.prototype.normalize = function (peer) {
+Peer.prototype.normalize = function(peer) {
 	if (peer.height) {
 		peer.height = this.parseInt(peer.height, 1);
 	}
@@ -146,7 +134,7 @@ Peer.prototype.normalize = function (peer) {
  * @param {number} [fallback]
  * @return {number} if not integer returns fallback
  */
-Peer.prototype.parseInt = function (integer, fallback) {
+Peer.prototype.parseInt = function(integer, fallback) {
 	integer = parseInt(integer);
 	integer = isNaN(integer) ? fallback : integer;
 
@@ -158,7 +146,7 @@ Peer.prototype.parseInt = function (integer, fallback) {
  * @param {Object} headers
  * @return {Object} headers normalized
  */
-Peer.prototype.applyHeaders = function (headers) {
+Peer.prototype.applyHeaders = function(headers) {
 	headers = headers || {};
 	headers = this.normalize(headers);
 	this.update(headers);
@@ -170,16 +158,20 @@ Peer.prototype.applyHeaders = function (headers) {
  * @param {peer} peer
  * @return {Object} this
  */
-Peer.prototype.update = function (peer) {
+Peer.prototype.update = function(peer) {
 	peer = this.normalize(peer);
 
 	// Accept only supported properties
-	_.each(this.properties, function (key) {
+	_.each(this.properties, key => {
 		// Change value only when is defined
-		if (peer[key] !== null && peer[key] !== undefined && !_.includes(this.immutable, key)) {
+		if (
+			peer[key] !== null &&
+			peer[key] !== undefined &&
+			!_.includes(this.immutable, key)
+		) {
 			this[key] = peer[key];
 		}
-	}.bind(this));
+	});
 
 	return this;
 };
@@ -187,12 +179,12 @@ Peer.prototype.update = function (peer) {
 /**
  * @return {peer} clones current peer
  */
-Peer.prototype.object = function () {
+Peer.prototype.object = function() {
 	var copy = {};
 
-	_.each(this.properties, function (key) {
+	_.each(this.properties, key => {
 		copy[key] = this[key];
-	}.bind(this));
+	});
 
 	delete copy.rpc;
 	return copy;

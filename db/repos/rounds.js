@@ -26,8 +26,7 @@ const sql = require('../sql').rounds;
  * @return {RoundsRepository}
  */
 class RoundsRepository {
-
-	constructor (db, pgp) {
+	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 	}
@@ -37,7 +36,7 @@ class RoundsRepository {
 	 *
 	 * @return {Promise}
 	 */
-	getMemRounds  () {
+	getMemRounds() {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.getMemRounds);
 	}
@@ -48,7 +47,7 @@ class RoundsRepository {
 	 * @param {string} round - Id of the round
 	 * @return {Promise}
 	 */
-	flush (round) {
+	flush(round) {
 		return this.db.none(sql.flush, [round]);
 	}
 
@@ -58,7 +57,7 @@ class RoundsRepository {
 	 * @param {int} height
 	 * @return {Promise}
 	 */
-	truncateBlocks (height) {
+	truncateBlocks(height) {
 		// TODO: This method must be in BlocksRepository, not here!
 		return this.db.none(sql.truncateBlocks, [height]);
 	}
@@ -70,10 +69,10 @@ class RoundsRepository {
 	 * @param {string} outsiders - Comma separated string of ids
 	 * @return {*}
 	 */
-	updateMissedBlocks (backwards, outsiders) {
+	updateMissedBlocks(backwards, outsiders) {
 		return this.db.none(sql.updateMissedBlocks, {
 			change: backwards ? '- 1' : '+ 1',
-			outsiders
+			outsiders,
 		});
 	}
 
@@ -84,7 +83,7 @@ class RoundsRepository {
 	 * @param {string} round - Id of the round
 	 * @return {Promise}
 	 */
-	getVotes (round) {
+	getVotes(round) {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.getVotes, [round]);
 	}
@@ -96,7 +95,7 @@ class RoundsRepository {
 	 * @param {string} address - Address of the account
 	 * @param {int} amount - Votes to update
 	 */
-	updateVotes (address, amount) {
+	updateVotes(address, amount) {
 		return this.db.none(sql.updateVotes, [amount, address]);
 	}
 
@@ -108,7 +107,7 @@ class RoundsRepository {
 	 * @param {string} oldId
 	 * @return {Promise}
 	 */
-	updateBlockId (newId, oldId) {
+	updateBlockId(newId, oldId) {
 		return this.db.none(sql.updateBlockId, [newId, oldId]);
 	}
 
@@ -119,7 +118,7 @@ class RoundsRepository {
 	 * @param {int} activeDelegates - Number of active delegates
 	 * @return {Promise}
 	 */
-	summedRound (round, activeDelegates) {
+	summedRound(round, activeDelegates) {
 		// TODO: Must use a result-specific method, not .query
 		return this.db.query(sql.summedRound, [activeDelegates, round]);
 	}
@@ -129,7 +128,7 @@ class RoundsRepository {
 	 *
 	 * @return {Promise}
 	 */
-	clearRoundSnapshot () {
+	clearRoundSnapshot() {
 		return this.db.none(sql.clearRoundSnapshot);
 	}
 
@@ -138,7 +137,7 @@ class RoundsRepository {
 	 *
 	 * @return {Promise}
 	 */
-	performRoundSnapshot () {
+	performRoundSnapshot() {
 		return this.db.none(sql.performRoundSnapshot);
 	}
 
@@ -147,7 +146,7 @@ class RoundsRepository {
 	 *
 	 * @return {Promise}
 	 */
-	getDelegatesSnapshot (limit) {
+	getDelegatesSnapshot(limit) {
 		return this.db.query(sql.getDelegatesSnapshot, [limit]);
 	}
 
@@ -156,7 +155,7 @@ class RoundsRepository {
 	 *
 	 * @return {Promise}
 	 */
-	clearVotesSnapshot () {
+	clearVotesSnapshot() {
 		return this.db.none(sql.clearVotesSnapshot);
 	}
 
@@ -165,7 +164,7 @@ class RoundsRepository {
 	 *
 	 * @return {Promise}
 	 */
-	performVotesSnapshot () {
+	performVotesSnapshot() {
 		return this.db.none(sql.performVotesSnapshot);
 	}
 
@@ -174,7 +173,7 @@ class RoundsRepository {
 	 *
 	 * @return {Promise}
 	 */
-	restoreRoundSnapshot () {
+	restoreRoundSnapshot() {
 		return this.db.none(sql.restoreRoundSnapshot);
 	}
 
@@ -183,7 +182,7 @@ class RoundsRepository {
 	 *
 	 * @return {Promise}
 	 */
-	restoreVotesSnapshot () {
+	restoreVotesSnapshot() {
 		return this.db.none(sql.restoreVotesSnapshot);
 	}
 
@@ -196,12 +195,12 @@ class RoundsRepository {
 	 * @param {Number} amount - Amount updated on account
 	 * @return {Promise}
 	 */
-	insertRoundInformationWithAmount (address, blockId, round, amount) {
+	insertRoundInformationWithAmount(address, blockId, round, amount) {
 		return this.db.none(sql.insertRoundInformationWithAmount, {
 			address: address,
 			amount: amount,
 			blockId: blockId,
-			round: round
+			round: round,
 		});
 	}
 
@@ -215,16 +214,21 @@ class RoundsRepository {
 	 * @param {string} mode - Possible values of '+' or '-' represents behaviour of adding or removing delegate
 	 * @return {Promise}
 	 */
-	insertRoundInformationWithDelegate (address, blockId, round, delegateId, mode) {
+	insertRoundInformationWithDelegate(
+		address,
+		blockId,
+		round,
+		delegateId,
+		mode
+	) {
 		return this.db.none(sql.insertRoundInformationWithDelegate, {
 			address: address,
 			blockId: blockId,
 			round: round,
 			delegate: delegateId,
-			balanceMode: ( mode === '-' ? '-' : '')
+			balanceMode: mode === '-' ? '-' : '',
 		});
 	}
-
 }
 
 module.exports = RoundsRepository;

@@ -13,125 +13,207 @@
  */
 'use strict';
 
-var connectionsTable = require('./connections_table');
-var SlaveToMasterSender = require('./slave_to_master_sender');
-var Rules = require('./rules');
+var Peer = require('../../../logic/peer');
 var failureCodes = require('../rpc/failure_codes');
 var PeerUpdateError = require('../rpc/failure_codes').PeerUpdateError;
 var swaggerHelper = require('../../../helpers/swagger');
+var connectionsTable = require('./connections_table');
+var SlaveToMasterSender = require('./slave_to_master_sender');
+var Rules = require('./rules');
+
 var definitions = swaggerHelper.getSwaggerSpec().definitions;
-var z_schema =  swaggerHelper.getValidator();
-var Peer = require('../../../logic/peer');
-var Z_schema = require('../../../helpers/z_schema');
+var z_schema = swaggerHelper.getValidator();
 
 var self;
 
 /**
  * Secures peers updates. Used only by workers.
- * @param {SlaveWAMPServer} slaveWAMPServer - used to send verified update requests to master process.
- * @constructor
+ *
+ * @class
+ * @memberof api.ws.workers
+ * @see Parent: {@link api.ws.workers}
+ * @requires api/ws/rpc/failureCodes
+ * @requires api/ws/workers/connectionsTable
+ * @requires api/ws/workers/rules
+ * @requires api/ws/workers/slaveToMaster
+ * @requires helpers/swagger
+ * @requires helpers/z_schema
+ * @requires logic/peer
+ * @param {Object} slaveWAMPServer - Used to send verified update requests to master process
  */
-function PeersUpdateRules (slaveWAMPServer) {
+function PeersUpdateRules(slaveWAMPServer) {
 	this.slaveToMasterSender = new SlaveToMasterSender(slaveWAMPServer);
 	this.rules = new Rules(this.insert, this.remove, this.block);
 	self = this;
 }
 
 /**
- * @param {Object} peer
- * @param {string} connectionId
- * @param {function} cb
+ * Description of the function.
+ *
+ * @param {Object} peer - Description of the param
+ * @param {string} connectionId - Description of the param
+ * @param {function} cb - Description of the param
+ * @todo: Add description of the functions and its parameters
+ * @todo: Add returns-tag
  */
-PeersUpdateRules.prototype.insert = function (peer, connectionId, cb) {
+PeersUpdateRules.prototype.insert = function(peer, connectionId, cb) {
 	try {
 		connectionsTable.add(peer.nonce, connectionId);
 		peer.state = Peer.STATE.CONNECTED;
-		self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.INSERT, peer, function (err) {
-			if (err) {
-				connectionsTable.remove(peer.nonce);
-				if (!err.code) {
-					err = new PeerUpdateError(failureCodes.ON_MASTER.UPDATE.TRANSPORT, failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.TRANSPORT], err);
+		self.slaveToMasterSender.send(
+			'updatePeer',
+			Rules.UPDATES.INSERT,
+			peer,
+			err => {
+				if (err) {
+					connectionsTable.remove(peer.nonce);
+					if (!err.code) {
+						err = new PeerUpdateError(
+							failureCodes.ON_MASTER.UPDATE.TRANSPORT,
+							failureCodes.errorMessages[
+								failureCodes.ON_MASTER.UPDATE.TRANSPORT
+							],
+							err
+						);
+					}
 				}
+				return setImmediate(cb, err);
 			}
-			return setImmediate(cb, err);
-		});
+		);
 	} catch (ex) {
 		return setImmediate(cb, ex);
 	}
 };
 
 /**
- * @param {Object} peer
- * @param {string} connectionId
- * @param {function} cb
+ * Description of the function.
+ *
+ * @param {Object} peer - Description of the param
+ * @param {string} connectionId - Description of the param
+ * @param {function} cb - Description of the param
+ * @todo: Add description of the functions and its parameters
+ * @todo: Add returns-tag
  */
-PeersUpdateRules.prototype.remove = function (peer, connectionId, cb) {
+PeersUpdateRules.prototype.remove = function(peer, connectionId, cb) {
 	try {
 		connectionsTable.remove(peer.nonce);
-		self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.REMOVE, peer, function (err) {
-			if (err && !err.code) {
-				connectionsTable.add(peer.nonce, connectionId);
-				err = new PeerUpdateError(failureCodes.ON_MASTER.UPDATE.TRANSPORT, failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.TRANSPORT], err);
+		self.slaveToMasterSender.send(
+			'updatePeer',
+			Rules.UPDATES.REMOVE,
+			peer,
+			err => {
+				if (err && !err.code) {
+					connectionsTable.add(peer.nonce, connectionId);
+					err = new PeerUpdateError(
+						failureCodes.ON_MASTER.UPDATE.TRANSPORT,
+						failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.TRANSPORT],
+						err
+					);
+				}
+				return setImmediate(cb, err);
 			}
-			return setImmediate(cb, err);
-		});
+		);
 	} catch (ex) {
 		return setImmediate(cb, ex);
 	}
 };
 
 /**
- * @param {number} code
- * @param {Object} peer
- * @param {string} connectionId
- * @param {function} cb
+ * Description of the function.
+ *
+ * @param {number} code - Description of the param
+ * @param {Object} peer - Description of the param
+ * @param {string} connectionId - Description of the param
+ * @param {function} cb - Description of the param
+ * @todo: Add description of the functions and its parameters
+ * @todo: Add returns-tag
  */
-PeersUpdateRules.prototype.block = function (code, peer, connectionId, cb) {
-	return setImmediate(cb, new PeerUpdateError(code, failureCodes.errorMessages[code]));
+PeersUpdateRules.prototype.block = function(code, peer, connectionId, cb) {
+	return setImmediate(
+		cb,
+		new PeerUpdateError(code, failureCodes.errorMessages[code])
+	);
 };
 
+/**
+ * Description of the object.
+ */
 PeersUpdateRules.prototype.internal = {
 	/**
-	 * @param {number} updateType
-	 * @param {Object} peer
-	 * @param {string} connectionId
-	 * @param {function} cb
+	 * Description of the function.
+	 *
+	 * @memberof api.ws.workers.PeersUpdateRules
+	 * @param {number} updateType - Description of the param
+	 * @param {Object} peer - Description of the param
+	 * @param {string} connectionId - Description of the param
+	 * @param {function} cb - Description of the param
+	 * @todo: Add description of the functions and its parameters
+	 * @todo: Add returns-tag
 	 */
-	update: function (updateType, peer, connectionId, cb) {
-		self.slaveToMasterSender.getPeer(peer.nonce, function (err, onMasterPresence) {
+	update: function(updateType, peer, connectionId, cb) {
+		self.slaveToMasterSender.getPeer(peer.nonce, (err, onMasterPresence) => {
 			if (err) {
-				return setImmediate(cb, new PeerUpdateError(
-					failureCodes.ON_MASTER.UPDATE.CHECK_PRESENCE,
-					failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.CHECK_PRESENCE],
-					err));
+				return setImmediate(
+					cb,
+					new PeerUpdateError(
+						failureCodes.ON_MASTER.UPDATE.CHECK_PRESENCE,
+						failureCodes.errorMessages[
+							failureCodes.ON_MASTER.UPDATE.CHECK_PRESENCE
+						],
+						err
+					)
+				);
 			}
 			var isNoncePresent = !!connectionsTable.getNonce(connectionId);
-			var isConnectionIdPresent = !!connectionsTable.getConnectionId(peer.nonce);
+			var isConnectionIdPresent = !!connectionsTable.getConnectionId(
+				peer.nonce
+			);
 
-			self.rules.rules[updateType][isNoncePresent][isConnectionIdPresent][onMasterPresence](peer, connectionId, cb);
+			self.rules.rules[updateType][isNoncePresent][isConnectionIdPresent][
+				onMasterPresence
+			](peer, connectionId, cb);
 		});
-	}
+	},
 };
 
+/**
+ * Description of the object.
+ */
 PeersUpdateRules.prototype.external = {
 	/**
+	 * Description of the function.
+	 *
+	 * @memberof api.ws.workers.PeersUpdateRules
 	 * @param {Object} request - peer object with extra requests fields added by SlaveWAMPServer
 	 * @param {Object} request.data - peer's data
 	 * @param {string} request.socketId - connection id
 	 * @param {string} request.workerId - worker id
-	 * @param {function} cb
+	 * @param {function} cb - Description of the param
+	 * @todo: Add description of the functions and its parameters
+	 * @todo: Add returns-tag
 	 */
-	update: function (request, cb) {
-		z_schema.validate(request, definitions.WSPeerUpdateRequest, function (err) {
+	update: function(request, cb) {
+		z_schema.validate(request, definitions.WSPeerUpdateRequest, err => {
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
-			if (request.socketId !== connectionsTable.getConnectionId(request.data.nonce)) {
-				return setImmediate(cb, new Error('Connection id does not match with corresponding peer'));
+			if (
+				request.socketId !==
+				connectionsTable.getConnectionId(request.data.nonce)
+			) {
+				return setImmediate(
+					cb,
+					new Error('Connection id does not match with corresponding peer')
+				);
 			}
-			self.slaveToMasterSender.send('updatePeer', Rules.UPDATES.INSERT, request.data, cb);
+			self.slaveToMasterSender.send(
+				'updatePeer',
+				Rules.UPDATES.INSERT,
+				request.data,
+				cb
+			);
 		});
-	}
+	},
 };
 
 module.exports = PeersUpdateRules;

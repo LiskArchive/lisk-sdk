@@ -16,11 +16,15 @@
 var _ = require('lodash');
 var constants = require('../helpers/constants.js');
 var sortBy = require('../helpers/sort_by.js');
-var BlockReward = require('./block_reward.js');
 var Bignum = require('../helpers/bignum.js');
+var BlockReward = require('./block_reward.js');
 
 // Private fields
-var self, library, modules, __private = {};
+var self; // eslint-disable-line no-unused-vars
+var library;
+var modules;
+
+var __private = {};
 
 /**
  * Main account logic.
@@ -33,7 +37,7 @@ var self, library, modules, __private = {};
  * @param {function} cb - Callback function.
  * @return {setImmediateCallback} With `this` as data.
  */
-function Account (db, schema, logger, cb) {
+function Account(db, schema, logger, cb) {
 	this.scope = {
 		db: db,
 		schema: schema,
@@ -84,200 +88,203 @@ function Account (db, schema, logger, cb) {
 			name: 'username',
 			type: 'String',
 			conv: String,
-			immutable: true
+			immutable: true,
 		},
 		{
 			name: 'isDelegate',
 			type: 'SmallInt',
-			conv: Boolean
+			conv: Boolean,
 		},
 		{
 			name: 'u_isDelegate',
 			type: 'SmallInt',
-			conv: Boolean
+			conv: Boolean,
 		},
 		{
 			name: 'secondSignature',
 			type: 'SmallInt',
-			conv: Boolean
+			conv: Boolean,
 		},
 		{
 			name: 'u_secondSignature',
 			type: 'SmallInt',
-			conv: Boolean
+			conv: Boolean,
 		},
 		{
 			name: 'u_username',
 			type: 'String',
 			conv: String,
-			immutable: true
+			immutable: true,
 		},
 		{
 			name: 'address',
 			type: 'String',
 			conv: String,
 			immutable: true,
-			expression: 'UPPER(a.address)'
+			expression: 'UPPER(a.address)',
 		},
 		{
 			name: 'publicKey',
 			type: 'Binary',
 			conv: String,
 			immutable: true,
-			expression: 'ENCODE("publicKey", \'hex\')'
+			expression: 'ENCODE("publicKey", \'hex\')',
 		},
 		{
 			name: 'secondPublicKey',
 			type: 'Binary',
 			conv: String,
 			immutable: true,
-			expression: 'ENCODE("secondPublicKey", \'hex\')'
+			expression: 'ENCODE("secondPublicKey", \'hex\')',
 		},
 		{
 			name: 'balance',
 			type: 'BigInt',
 			conv: Number,
-			expression: '("balance")::bigint'
+			expression: '("balance")::bigint',
 		},
 		{
 			name: 'u_balance',
 			type: 'BigInt',
 			conv: Number,
-			expression: '("u_balance")::bigint'
+			expression: '("u_balance")::bigint',
 		},
 		{
 			name: 'rate',
 			type: 'BigInt',
 			conv: Number,
-			expression: '("rate")::bigint'
+			expression: '("rate")::bigint',
 		},
 		{
 			name: 'delegates',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2delegates WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${
+				this.table
+			}2delegates WHERE "accountId" = a."address")`,
 		},
 		{
 			name: 'u_delegates',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_delegates WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${
+				this.table
+			}2u_delegates WHERE "accountId" = a."address")`,
 		},
 		{
 			name: 'multisignatures',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2multisignatures WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${
+				this.table
+			}2multisignatures WHERE "accountId" = a."address")`,
 		},
 		{
 			name: 'u_multisignatures',
 			type: 'Text',
 			conv: Array,
-			expression: '(SELECT ARRAY_AGG("dependentId") FROM ' + this.table + '2u_multisignatures WHERE "accountId" = a."address")'
+			expression: `(SELECT ARRAY_AGG("dependentId") FROM ${
+				this.table
+			}2u_multisignatures WHERE "accountId" = a."address")`,
 		},
 		{
 			name: 'multimin',
 			type: 'SmallInt',
-			conv: Number
+			conv: Number,
 		},
 		{
 			name: 'u_multimin',
 			type: 'SmallInt',
-			conv: Number
+			conv: Number,
 		},
 		{
 			name: 'multilifetime',
 			type: 'SmallInt',
-			conv: Number
+			conv: Number,
 		},
 		{
 			name: 'u_multilifetime',
 			type: 'SmallInt',
-			conv: Number
+			conv: Number,
 		},
 		{
 			name: 'blockId',
 			type: 'String',
-			conv: String
+			conv: String,
 		},
 		{
 			name: 'nameexist',
 			type: 'SmallInt',
-			conv: Boolean
+			conv: Boolean,
 		},
 		{
 			name: 'u_nameexist',
 			type: 'SmallInt',
-			conv: Boolean
+			conv: Boolean,
 		},
 		{
 			name: 'fees',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(a."fees")::bigint'
+			expression: '(a."fees")::bigint',
 		},
 		{
 			name: 'rank',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = a."address")::int'
+			expression:
+				'(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = a."address")::int',
 		},
 		{
 			name: 'rewards',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(a."rewards")::bigint'
+			expression: '(a."rewards")::bigint',
 		},
 		{
 			name: 'vote',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(a."vote")::bigint'
+			expression: '(a."vote")::bigint',
 		},
 		{
 			name: 'producedBlocks',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(a."producedblocks")::bigint'
+			expression: '(a."producedblocks")::bigint',
 		},
 		{
 			name: 'missedBlocks',
 			type: 'BigInt',
 			conv: Number,
-			expression: '(a."missedblocks")::bigint'
+			expression: '(a."missedblocks")::bigint',
 		},
 		{
 			name: 'virgin',
 			type: 'SmallInt',
 			conv: Boolean,
-			immutable: true
+			immutable: true,
 		},
 		{
 			name: 'approval',
 			type: 'integer',
-			dependentFields: [
-				'vote'
-			],
-			computedField: true
+			dependentFields: ['vote'],
+			computedField: true,
 		},
 		{
 			name: 'productivity',
 			type: 'integer',
-			dependentFields: [
-				'producedBlocks',
-				'missedBlocks',
-				'rank'
-			],
-			computedField: true
-		}
+			dependentFields: ['producedBlocks', 'missedBlocks', 'rank'],
+			computedField: true,
+		},
 	];
 
-	this.computedFields = this.model.filter(function (field) {
+	this.computedFields = this.model.filter(function(field) {
 		return field.computedField;
 	});
 
 	// Obtains fields from model
-	this.fields = this.model.map(function (field) {
+	this.fields = this.model.map(function(field) {
 		var _tmp = {};
 
 		if (field.expression) {
@@ -299,25 +306,31 @@ function Account (db, schema, logger, cb) {
 
 	// Obtains bynary fields from model
 	this.binary = [];
-	this.model.forEach(function (field) {
-		if (field.type === 'Binary') {
-			this.binary.push(field.name);
-		}
-	}.bind(this));
+	this.model.forEach(
+		function(field) {
+			if (field.type === 'Binary') {
+				this.binary.push(field.name);
+			}
+		}.bind(this)
+	);
 
 	// Obtains conv from model
 	this.conv = {};
-	this.model.forEach(function (field) {
-		this.conv[field.name] = field.conv;
-	}.bind(this));
+	this.model.forEach(
+		function(field) {
+			this.conv[field.name] = field.conv;
+		}.bind(this)
+	);
 
 	// Obtains editable fields from model
 	this.editable = [];
-	this.model.forEach(function (field) {
-		if (!field.immutable) {
-			this.editable.push(field.name);
-		}
-	}.bind(this));
+	this.model.forEach(
+		function(field) {
+			if (!field.immutable) {
+				this.editable.push(field.name);
+			}
+		}.bind(this)
+	);
 
 	return setImmediate(cb, null, this);
 }
@@ -328,181 +341,181 @@ Account.prototype.schema = {
 	properties: {
 		username: {
 			type: 'string',
-			format: 'username'
+			format: 'username',
 		},
 		isDelegate: {
 			type: 'integer',
-			maximum: 32767
+			maximum: 32767,
 		},
 		u_isDelegate: {
 			type: 'integer',
-			maximum: 32767
+			maximum: 32767,
 		},
 		secondSignature: {
 			type: 'integer',
-			maximum: 32767
+			maximum: 32767,
 		},
 		u_secondSignature: {
 			type: 'integer',
-			maximum: 32767
+			maximum: 32767,
 		},
 		u_username: {
 			anyOf: [
 				{
 					type: 'string',
-					format: 'username'
+					format: 'username',
 				},
 				{
-					type: 'null'
-				}
-			]
+					type: 'null',
+				},
+			],
 		},
 		address: {
 			type: 'string',
 			format: 'address',
 			minLength: 1,
-			maxLength: 22
+			maxLength: 22,
 		},
 		publicKey: {
 			type: 'string',
-			format: 'publicKey'
+			format: 'publicKey',
 		},
 		secondPublicKey: {
 			anyOf: [
 				{
 					type: 'string',
-					format: 'publicKey'
+					format: 'publicKey',
 				},
 				{
-					type: 'null'
-				}
-			]
+					type: 'null',
+				},
+			],
 		},
 		balance: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.totalAmount
+			maximum: constants.totalAmount,
 		},
 		u_balance: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.totalAmount
+			maximum: constants.totalAmount,
 		},
 		rate: {
-			type: 'integer'
+			type: 'integer',
 		},
 		delegates: {
 			anyOf: [
 				{
 					type: 'array',
-					uniqueItems: true
+					uniqueItems: true,
 				},
 				{
-					type: 'null'
-				}
-			]
+					type: 'null',
+				},
+			],
 		},
 		u_delegates: {
 			anyOf: [
 				{
 					type: 'array',
-					uniqueItems: true
+					uniqueItems: true,
 				},
 				{
-					type: 'null'
-				}
-			]
+					type: 'null',
+				},
+			],
 		},
 		multisignatures: {
 			anyOf: [
 				{
 					type: 'array',
 					minItems: constants.multisigConstraints.keysgroup.minItems,
-					maxItems: constants.multisigConstraints.keysgroup.maxItems
+					maxItems: constants.multisigConstraints.keysgroup.maxItems,
 				},
 				{
-					type: 'null'
-				}
-			]
+					type: 'null',
+				},
+			],
 		},
 		u_multisignatures: {
 			anyOf: [
 				{
 					type: 'array',
 					minItems: constants.multisigConstraints.keysgroup.minItems,
-					maxItems: constants.multisigConstraints.keysgroup.maxItems
+					maxItems: constants.multisigConstraints.keysgroup.maxItems,
 				},
 				{
-					type: 'null'
-				}
-			]
+					type: 'null',
+				},
+			],
 		},
 		multimin: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.multisigConstraints.min.maximum
+			maximum: constants.multisigConstraints.min.maximum,
 		},
 		u_multimin: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.multisigConstraints.min.maximum
+			maximum: constants.multisigConstraints.min.maximum,
 		},
 		multilifetime: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.multisigConstraints.lifetime.maximum
+			maximum: constants.multisigConstraints.lifetime.maximum,
 		},
 		u_multilifetime: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.multisigConstraints.lifetime.maximum
+			maximum: constants.multisigConstraints.lifetime.maximum,
 		},
 		blockId: {
 			type: 'string',
 			format: 'id',
 			minLength: 1,
-			maxLength: 20
+			maxLength: 20,
 		},
 		nameexist: {
 			type: 'integer',
-			maximum: 32767
+			maximum: 32767,
 		},
 		u_nameexist: {
 			type: 'integer',
-			maximum: 32767
+			maximum: 32767,
 		},
 		fees: {
 			type: 'integer',
-			minimum: 0
+			minimum: 0,
 		},
 		rank: {
-			type: 'integer'
+			type: 'integer',
 		},
 		rewards: {
 			type: 'integer',
-			minimum: 0
+			minimum: 0,
 		},
 		vote: {
-			type: 'integer'
+			type: 'integer',
 		},
 		producedBlocks: {
-			type: 'integer'
+			type: 'integer',
 		},
 		missedBlocks: {
-			type: 'integer'
+			type: 'integer',
 		},
 		virgin: {
 			type: 'integer',
-			maximum: 32767
+			maximum: 32767,
 		},
 		approval: {
-			type: 'integer'
+			type: 'integer',
 		},
 		productivity: {
-			type: 'integer'
-		}
+			type: 'integer',
+		},
 	},
-	required: ['address', 'balance', 'u_balance']
+	required: ['address', 'balance', 'u_balance'],
 };
 
 // Public methods
@@ -510,7 +523,7 @@ Account.prototype.schema = {
  * Binds input parameters to private variables modules.
  * @param {Blocks} blocks
  */
-Account.prototype.bind = function (blocks) {
+Account.prototype.bind = function(blocks) {
 	modules = {
 		blocks: blocks,
 	};
@@ -526,13 +539,16 @@ Account.prototype.bind = function (blocks) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} cb|error.
  */
-Account.prototype.resetMemTables = function (cb) {
-	this.scope.db.accounts.resetMemTables().then(function () {
-		return setImmediate(cb);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Account#resetMemTables error');
-	});
+Account.prototype.resetMemTables = function(cb) {
+	this.scope.db.accounts
+		.resetMemTables()
+		.then(function() {
+			return setImmediate(cb);
+		})
+		.catch(function(err) {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Account#resetMemTables error');
+		});
 };
 
 /**
@@ -541,14 +557,17 @@ Account.prototype.resetMemTables = function (cb) {
  * @returns {err|account} Error message or input parameter account.
  * @throws {string} If schema.validate fails, throws 'Failed to validate account schema'.
  */
-Account.prototype.objectNormalize = function (account) {
+Account.prototype.objectNormalize = function(account) {
 	var report = this.scope.schema.validate(account, Account.prototype.schema);
 
 	if (!report) {
-		throw 'Failed to validate account schema: ' + this.scope.schema.getLastErrors().map(function (err) {
-			var path = err.path.replace('#/', '').trim();
-			return [path, ': ', err.message, ' (', account[path], ')'].join('');
-		}).join(', ');
+		throw `Failed to validate account schema: ${this.scope.schema
+			.getLastErrors()
+			.map(function(err) {
+				var path = err.path.replace('#/', '').trim();
+				return [path, ': ', err.message, ' (', account[path], ')'].join('');
+			})
+			.join(', ')}`;
 	}
 
 	return account;
@@ -559,7 +578,7 @@ Account.prototype.objectNormalize = function (account) {
  * @param {publicKey} publicKey
  * @throws {string} throws one error for every check.
  */
-Account.prototype.verifyPublicKey = function (publicKey) {
+Account.prototype.verifyPublicKey = function(publicKey) {
 	if (publicKey !== undefined) {
 		// Check type
 		if (typeof publicKey !== 'string') {
@@ -581,8 +600,8 @@ Account.prototype.verifyPublicKey = function (publicKey) {
  * @param {Object} raw - with address and public key.
  * @returns {Object} Normalized address.
  */
-Account.prototype.toDB = function (raw) {
-	this.binary.forEach(function (field) {
+Account.prototype.toDB = function(raw) {
+	this.binary.forEach(function(field) {
 		if (raw[field]) {
 			raw[field] = Buffer.from(raw[field], 'hex');
 		}
@@ -601,8 +620,8 @@ Account.prototype.toDB = function (raw) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Returns null or Object with database data.
  */
-Account.prototype.getMultiSignature = function (filter, fields, cb, tx) {
-	if (typeof(fields) === 'function') {
+Account.prototype.getMultiSignature = function(filter, fields, cb, tx) {
+	if (typeof fields === 'function') {
 		tx = cb;
 		cb = fields;
 		fields = null;
@@ -620,16 +639,21 @@ Account.prototype.getMultiSignature = function (filter, fields, cb, tx) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Returns null or Object with database data.
  */
-Account.prototype.get = function (filter, fields, cb, tx) {
-	if (typeof(fields) === 'function') {
+Account.prototype.get = function(filter, fields, cb, tx) {
+	if (typeof fields === 'function') {
 		tx = cb;
 		cb = fields;
 		fields = null;
 	}
 
-	this.getAll(filter, fields, function (err, data) {
-		return setImmediate(cb, err, data && data.length ? data[0] : null);
-	}, tx);
+	this.getAll(
+		filter,
+		fields,
+		function(err, data) {
+			return setImmediate(cb, err, data && data.length ? data[0] : null);
+		},
+		tx
+	);
 };
 
 /**
@@ -639,7 +663,7 @@ Account.prototype.get = function (filter, fields, cb, tx) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
  */
-Account.prototype.getAll = function (filter, fields, cb, tx) {
+Account.prototype.getAll = function(filter, fields, cb, tx) {
 	if (typeof fields === 'function') {
 		cb = fields;
 		fields = null;
@@ -647,7 +671,7 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 
 	var computedFields = {
 		approval: ['vote'],
-		productivity: ['producedBlocks', 'missedBlocks', 'rank']
+		productivity: ['producedBlocks', 'missedBlocks', 'rank'],
 	};
 
 	// If fields are not provided append computed fields
@@ -659,7 +683,7 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 	var fieldsAddedForComputation = [];
 	var performComputationFor = [];
 
-	Object.keys(computedFields).forEach(function (computedField) {
+	Object.keys(computedFields).forEach(function(computedField) {
 		if (fields.indexOf(computedField) !== -1) {
 			// Add computed field to list to process later
 			performComputationFor.push(computedField);
@@ -668,7 +692,9 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 			fields.splice(fields.indexOf(computedField), 1);
 
 			// Marks fields which are explicitly added due to computation
-			fieldsAddedForComputation = fieldsAddedForComputation.concat(_.difference(computedFields[computedField], fields));
+			fieldsAddedForComputation = fieldsAddedForComputation.concat(
+				_.difference(computedFields[computedField], fields)
+			);
 
 			// Add computation dependant fields to db fields list
 			fields = fields.concat(computedFields[computedField]);
@@ -676,7 +702,9 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 	});
 
 	var DEFAULT_LIMIT = constants.activeDelegates;
-	var limit = DEFAULT_LIMIT, offset = 0, sort = {sortField: '', sortMethod: ''};
+	var limit = DEFAULT_LIMIT;
+	var offset = 0;
+	var sort = { sortField: '', sortMethod: '' };
 
 	if (filter.offset > 0) {
 		offset = filter.offset;
@@ -689,45 +717,71 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
 	delete filter.limit;
 
 	if (filter.sort) {
-		var allowedSortFields = ['username', 'balance', 'rank', 'missedBlocks', 'vote', 'publicKey'];
-		sort = sortBy.sortBy(filter.sort, {sortFields: allowedSortFields, quoteField: false});
+		var allowedSortFields = [
+			'username',
+			'balance',
+			'rank',
+			'missedBlocks',
+			'vote',
+			'publicKey',
+		];
+		sort = sortBy.sortBy(filter.sort, {
+			sortFields: allowedSortFields,
+			quoteField: false,
+		});
 	}
 	delete filter.sort;
 
 	var self = this;
 
-	(tx || this.scope.db).accounts.list(filter, fields, {limit: limit, offset: offset, sortField: sort.sortField, sortMethod: sort.sortMethod}).then(function (rows) {
-		var lastBlock = modules.blocks.lastBlock.get();
-		// If the last block height is undefined, it means it's a genesis block with height = 1
-		// look for a constant for total supply
-		var totalSupply = lastBlock.height ? __private.blockReward.calcSupply(lastBlock.height) : 0;
+	(tx || this.scope.db).accounts
+		.list(filter, fields, {
+			limit: limit,
+			offset: offset,
+			sortField: sort.sortField,
+			sortMethod: sort.sortMethod,
+		})
+		.then(function(rows) {
+			var lastBlock = modules.blocks.lastBlock.get();
+			// If the last block height is undefined, it means it's a genesis block with height = 1
+			// look for a constant for total supply
+			var totalSupply = lastBlock.height
+				? __private.blockReward.calcSupply(lastBlock.height)
+				: 0;
 
-		if (performComputationFor.indexOf('approval') !== -1) {
-			rows.forEach(function (accountRow) {
-				accountRow.approval = self.calculateApproval(accountRow.vote, totalSupply);
-			});
-		}
-
-		if (performComputationFor.indexOf('productivity') !== -1) {
-			rows.forEach(function (accountRow) {
-				accountRow.productivity = self.calculateProductivity(accountRow.producedBlocks, accountRow.missedBlocks);
-			});
-		}
-
-		if (fieldsAddedForComputation.length > 0) {
-			// Remove the fields which were only added for computation
-			rows.forEach(function (accountRow) {
-				fieldsAddedForComputation.forEach(function (field) {
-					delete accountRow[field];
+			if (performComputationFor.indexOf('approval') !== -1) {
+				rows.forEach(function(accountRow) {
+					accountRow.approval = self.calculateApproval(
+						accountRow.vote,
+						totalSupply
+					);
 				});
-			});
-		}
+			}
 
-		return setImmediate(cb, null, rows);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Account#getAll error');
-	});
+			if (performComputationFor.indexOf('productivity') !== -1) {
+				rows.forEach(function(accountRow) {
+					accountRow.productivity = self.calculateProductivity(
+						accountRow.producedBlocks,
+						accountRow.missedBlocks
+					);
+				});
+			}
+
+			if (fieldsAddedForComputation.length > 0) {
+				// Remove the fields which were only added for computation
+				rows.forEach(function(accountRow) {
+					fieldsAddedForComputation.forEach(function(field) {
+						delete accountRow[field];
+					});
+				});
+			}
+
+			return setImmediate(cb, null, rows);
+		})
+		.catch(function(err) {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Account#getAll error');
+		});
 };
 
 /**
@@ -736,12 +790,15 @@ Account.prototype.getAll = function (filter, fields, cb, tx) {
  * @param {String} totalSupply
  * @returns {Number}
  */
-Account.prototype.calculateApproval = function (votersBalance, totalSupply) {
+Account.prototype.calculateApproval = function(votersBalance, totalSupply) {
 	// votersBalance and totalSupply are sent as strings, we convert them into bignum and send the response as number as well.
 	var votersBalanceBignum = new Bignum(votersBalance || 0);
-	var totalSupplyBignum =  new Bignum(totalSupply);
-	var approvalBignum = (votersBalanceBignum.dividedBy(totalSupplyBignum)).times(100).round(2);
-	return !(approvalBignum.isNaN()) ? approvalBignum.toNumber() : 0;
+	var totalSupplyBignum = new Bignum(totalSupply);
+	var approvalBignum = votersBalanceBignum
+		.dividedBy(totalSupplyBignum)
+		.times(100)
+		.round(2);
+	return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
 };
 
 /**
@@ -750,11 +807,17 @@ Account.prototype.calculateApproval = function (votersBalance, totalSupply) {
  * @param {String} missedBlocks
  * @returns {Number}
  */
-Account.prototype.calculateProductivity = function (producedBlocks, missedBlocks) {
+Account.prototype.calculateProductivity = function(
+	producedBlocks,
+	missedBlocks
+) {
 	var producedBlocksBignum = new Bignum(producedBlocks || 0);
 	var missedBlocksBignum = new Bignum(missedBlocks || 0);
-	var percent = producedBlocksBignum.dividedBy(producedBlocksBignum.plus(missedBlocksBignum)).times(100).round(2);
-	return !(percent.isNaN()) ? percent.toNumber() : 0;
+	var percent = producedBlocksBignum
+		.dividedBy(producedBlocksBignum.plus(missedBlocksBignum))
+		.times(100)
+		.round(2);
+	return !percent.isNaN() ? percent.toNumber() : 0;
 };
 
 /**
@@ -764,19 +827,22 @@ Account.prototype.calculateProductivity = function (producedBlocks, missedBlocks
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} cb | 'Account#set error'.
  */
-Account.prototype.set = function (address, fields, cb, tx) {
+Account.prototype.set = function(address, fields, cb, tx) {
 	// Verify public key
 	this.verifyPublicKey(fields.publicKey);
 
 	// Normalize address
 	fields.address = address;
 
-	(tx || this.scope.db).accounts.upsert(fields, ['address']).then(function () {
-		return setImmediate(cb);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Account#set error');
-	});
+	(tx || this.scope.db).accounts
+		.upsert(fields, ['address'])
+		.then(function() {
+			return setImmediate(cb);
+		})
+		.catch(function(err) {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Account#set error');
+		});
 };
 
 /**
@@ -787,7 +853,7 @@ Account.prototype.set = function (address, fields, cb, tx) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
  */
-Account.prototype.merge = function (address, diff, cb, tx) {
+Account.prototype.merge = function(address, diff, cb, tx) {
 	// Verify public key
 	this.verifyPublicKey(diff.publicKey);
 
@@ -798,98 +864,141 @@ Account.prototype.merge = function (address, diff, cb, tx) {
 
 	// If merge was called without any diff object
 	if (Object.keys(diff).length === 0) {
-		return self.get({address: address}, cb, tx);
+		return self.get({ address: address }, cb, tx);
 	}
 
 	// Loop through each of updated attribute
-	(tx || self.scope.db).tx('logic:account:merge', function (dbTx) {
-		var promises = [];
+	(tx || self.scope.db)
+		.tx('logic:account:merge', function(dbTx) {
+			var promises = [];
 
-		Object.keys(diff).forEach(function (updatedField) {
-			// Return if updated field is not editable
-			if (self.editable.indexOf(updatedField) === -1) {
-				return;
-			}
+			Object.keys(diff).forEach(function(updatedField) {
+				// Return if updated field is not editable
+				if (self.editable.indexOf(updatedField) === -1) {
+					return;
+				}
 
-			// Get field data type
-			var fieldType = self.conv[updatedField];
-			var updatedValue = diff[updatedField];
+				// Get field data type
+				var fieldType = self.conv[updatedField];
+				var updatedValue = diff[updatedField];
 
-			// Make execution selection based on field type
-			switch (fieldType) {
-				// blockId
-				case String:
-					promises.push(dbTx.accounts.update(address, _.pick(diff, [updatedField])));
-					break;
+				// Make execution selection based on field type
+				switch (fieldType) {
+					// blockId
+					case String:
+						promises.push(
+							dbTx.accounts.update(address, _.pick(diff, [updatedField]))
+						);
+						break;
 
-				// [u_]balance, [u_]multimin, [u_]multilifetime, rate, fees, rank, rewards, votes, producedBlocks, missedBlocks
-				case Number:
-					if (isNaN(updatedValue) || updatedValue === Infinity) {
-						throw 'Encountered insane number: ' + updatedValue;
-					}
-
-					// If updated value is positive number
-					if (Math.abs(updatedValue) === updatedValue && updatedValue !== 0) {
-						promises.push(dbTx.accounts.increment(address, updatedField, Math.floor(updatedValue)));
-
-					// If updated value is negative number
-					} else if (updatedValue < 0 ) {
-						promises.push(dbTx.accounts.decrement(address, updatedField, Math.floor(Math.abs(updatedValue))));
-
-						// If money is taken out from an account so its an active account now.
-						if (updatedField === 'u_balance') {
-							promises.push(dbTx.accounts.update(address, {virgin: 0}));
+					// [u_]balance, [u_]multimin, [u_]multilifetime, rate, fees, rank, rewards, votes, producedBlocks, missedBlocks
+					case Number:
+						if (isNaN(updatedValue) || updatedValue === Infinity) {
+							throw `Encountered insane number: ${updatedValue}`;
 						}
-					}
 
-					if (updatedField === 'balance') {
-						promises.push(dbTx.rounds.insertRoundInformationWithAmount(address, diff.blockId, diff.round, updatedValue));
-					}
-					break;
+						// If updated value is positive number
+						if (Math.abs(updatedValue) === updatedValue && updatedValue !== 0) {
+							promises.push(
+								dbTx.accounts.increment(
+									address,
+									updatedField,
+									Math.floor(updatedValue)
+								)
+							);
 
-				// [u_]delegates, [u_]multisignatures
-				case Array:
-					// If we received update as array of strings
-					if (_.isString(updatedValue[0])) {
-						updatedValue.forEach(function (updatedValueItem) {
+							// If updated value is negative number
+						} else if (updatedValue < 0) {
+							promises.push(
+								dbTx.accounts.decrement(
+									address,
+									updatedField,
+									Math.floor(Math.abs(updatedValue))
+								)
+							);
 
-							// Fetch first character
-							var mode = updatedValueItem[0];
-							var dependentId = '';
-
-							if (mode === '-' || mode === '+') {
-								dependentId = updatedValueItem.slice(1);
-							} else {
-								dependentId = updatedValueItem;
-								mode = '+';
+							// If money is taken out from an account so its an active account now.
+							if (updatedField === 'u_balance') {
+								promises.push(dbTx.accounts.update(address, { virgin: 0 }));
 							}
+						}
 
-							if (mode === '-') {
-								promises.push(dbTx.accounts.removeDependencies(address, dependentId, updatedField));
-							} else {
-								promises.push(dbTx.accounts.insertDependencies(address, dependentId, updatedField));
-							}
+						if (updatedField === 'balance') {
+							promises.push(
+								dbTx.rounds.insertRoundInformationWithAmount(
+									address,
+									diff.blockId,
+									diff.round,
+									updatedValue
+								)
+							);
+						}
+						break;
 
-							if (updatedField === 'delegates') {
-								promises.push(dbTx.rounds.insertRoundInformationWithDelegate(address, diff.blockId, diff.round, dependentId, mode));
-							}
-						});
-					// If we received update as array of objects
-					} else if (_.isObject(updatedValue[0])) {
-						// TODO: Need to look the usage of object based diff param
-					}
-					break;
-			}
+					// [u_]delegates, [u_]multisignatures
+					case Array:
+						// If we received update as array of strings
+						if (_.isString(updatedValue[0])) {
+							updatedValue.forEach(function(updatedValueItem) {
+								// Fetch first character
+								var mode = updatedValueItem[0];
+								var dependentId = '';
+
+								if (mode === '-' || mode === '+') {
+									dependentId = updatedValueItem.slice(1);
+								} else {
+									dependentId = updatedValueItem;
+									mode = '+';
+								}
+
+								if (mode === '-') {
+									promises.push(
+										dbTx.accounts.removeDependencies(
+											address,
+											dependentId,
+											updatedField
+										)
+									);
+								} else {
+									promises.push(
+										dbTx.accounts.insertDependencies(
+											address,
+											dependentId,
+											updatedField
+										)
+									);
+								}
+
+								if (updatedField === 'delegates') {
+									promises.push(
+										dbTx.rounds.insertRoundInformationWithDelegate(
+											address,
+											diff.blockId,
+											diff.round,
+											dependentId,
+											mode
+										)
+									);
+								}
+							});
+							// If we received update as array of objects
+						} else if (_.isObject(updatedValue[0])) {
+							// TODO: Need to look the usage of object based diff param
+						}
+						break;
+				}
+			});
+
+			// Run all db operations in a batch
+			return dbTx.batch(promises);
+		})
+		.then(function() {
+			return self.get({ address: address }, cb, tx);
+		})
+		.catch(function(err) {
+			library.logger.error(err.stack);
+			return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');
 		});
-
-		// Run all db operations in a batch
-		return dbTx.batch(promises);
-	}).then(function () {
-		return self.get({address: address}, cb, tx);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');
-	});
 };
 
 /**
@@ -898,13 +1007,16 @@ Account.prototype.merge = function (address, diff, cb, tx) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Data with address | Account#remove error.
  */
-Account.prototype.remove = function (address, cb) {
-	this.scope.db.accounts.remove(address).then(function () {
-		return setImmediate(cb, null, address);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Account#remove error');
-	});
+Account.prototype.remove = function(address, cb) {
+	this.scope.db.accounts
+		.remove(address)
+		.then(function() {
+			return setImmediate(cb, null, address);
+		})
+		.catch(function(err) {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Account#remove error');
+		});
 };
 
 // Export

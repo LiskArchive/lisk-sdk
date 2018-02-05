@@ -13,16 +13,21 @@
  */
 'use strict';
 
-var rewire = require('rewire');
 var crypto = require('crypto');
-
+var rewire = require('rewire');
 var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/modules_loader');
 var transactionTypes = require('../../../helpers/transaction_types.js');
+
 var Block = rewire('../../../logic/block.js');
 
 var validPassword = 'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(crypto.createHash('sha256').update(validPassword, 'utf8').digest());
+var validKeypair = ed.makeKeypair(
+	crypto
+		.createHash('sha256')
+		.update(validPassword, 'utf8')
+		.digest()
+);
 
 var validDataForBlock = {
 	keypair: validKeypair,
@@ -32,25 +37,30 @@ var validDataForBlock = {
 		totalAmount: 0,
 		totalFee: 0,
 		reward: 0,
-		payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+		payloadHash:
+			'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
 		timestamp: 41898490,
 		numberOfTransactions: 0,
 		payloadLength: 0,
 		previousBlock: '1087874036928524397',
-		generatorPublicKey: '1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
+		generatorPublicKey:
+			'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
 		transactions: [],
-		blockSignature: '8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
+		blockSignature:
+			'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
 		height: 69,
 		id: '3920300554926889269',
-		relays: 1 },
-	transactions: []
+		relays: 1,
+	},
+	transactions: [],
 };
 
 var transactionsByTypes = {};
 transactionsByTypes[transactionTypes.MULTI] = {
 	type: 4,
 	amount: 0,
-	senderPublicKey: '7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
+	senderPublicKey:
+		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
 	asset: {
 		multisignature: {
@@ -70,12 +80,13 @@ transactionsByTypes[transactionTypes.MULTI] = {
 				'+b19ae6459ea5307a7ffada806a2b0fb3d69aaf8017479148847edf4518b59584',
 				'+b2a2045281d9db97ab130afa35aa402d208481f4d15bce804053502fe0e5f742',
 				'+e0e7be96e5ddd6f89026d59183bdf7fc40dcf7f524c4092d778330913eebc82f',
-				'+6d834168362e11d409b9e326ceea89f41d05d2742ee24066205ab1f87bbcf9c4'
+				'+6d834168362e11d409b9e326ceea89f41d05d2742ee24066205ab1f87bbcf9c4',
 			],
-			lifetime: 9
-		}
+			lifetime: 9,
+		},
 	},
-	signature: '3b064ec3b4d21311c5ab3b6621eecf91b9c9398fafdd743e05d53b75a2a37aedb8c0f81e3f32981f7bc42b1a5d4f8aa697e1684e55d853dc2c4964538fedf101',
+	signature:
+		'3b064ec3b4d21311c5ab3b6621eecf91b9c9398fafdd743e05d53b75a2a37aedb8c0f81e3f32981f7bc42b1a5d4f8aa697e1684e55d853dc2c4964538fedf101',
 	id: '4505208715241906348',
 	fee: 8000000000,
 	senderId: '8885132815244884080L',
@@ -96,163 +107,187 @@ transactionsByTypes[transactionTypes.MULTI] = {
 		'bab8ef2384253ea26d6e2b9c22301d2cb7fdabdfce7ffbdf63e0f8e6001a12e5a749cacf5ea01fbb4335a9163654ba1a41154696bb2344384298af79910c9904',
 		'874ff0769edb4c1078b81099b18414e66c898c6d32e507d98fe0aaa9f7d9fa2e7069745591aa7d73373ab639282b8b3c63e64d82d601ebaf73e2f02701fd4005',
 		'8b7ceafb67380ae4811a9db63487091c69712eea211be2ebbdaeb5fbfd99bdc9ef82db15553de172b28fc14abbbf1005cc81ba5f3740101eb63d4d65a408000b',
-		'430cc8ed8008d3270cc15a59b3d11143e70ac606ab4de67edb3e6ba984787bf80a1692c24bd5bbb15d1ec9d4c27dd863deda093d6ab882083b68949c4a51fa0b'
+		'430cc8ed8008d3270cc15a59b3d11143e70ac606ab4de67edb3e6ba984787bf80a1692c24bd5bbb15d1ec9d4c27dd863deda093d6ab882083b68949c4a51fa0b',
 	],
-	ready: true
+	ready: true,
 };
 
 transactionsByTypes[transactionTypes.DAPP] = {
 	type: 5,
 	amount: 0,
-	senderPublicKey: '7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
+	senderPublicKey:
+		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
 	asset: {
 		dapp: {
 			category: 4,
 			name: 'AjFJheh3RFKiFTecCylXhW',
 			description: 'A dapp added via API autotest',
-			tags: 'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
+			tags:
+				'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
 			type: 0,
 			link: 'https://github.com/AjFJheh3RFKiFTecCylXhW/master.zip',
-			icon: 'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png'
-		}
+			icon:
+				'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
+		},
 	},
-	signature: '655fd2c24c490f9a540dfe833561e4b8f85c4dafce6fe7f696f52c5a3535ba562e11ffeb1479b01967d8f20ed87fe8c9ac58522ea28948e52ec1eba57f675104',
+	signature:
+		'655fd2c24c490f9a540dfe833561e4b8f85c4dafce6fe7f696f52c5a3535ba562e11ffeb1479b01967d8f20ed87fe8c9ac58522ea28948e52ec1eba57f675104',
 	id: '16047960743788123485',
 	fee: 2500000000,
 	senderId: '8885132815244884080L',
 	relays: 1,
-	receivedAt: '2017-09-21T15:34:31.801Z'
+	receivedAt: '2017-09-21T15:34:31.801Z',
 };
 
 transactionsByTypes[transactionTypes.VOTE] = {
 	type: 3,
 	amount: 0,
-	senderPublicKey: '7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
+	senderPublicKey:
+		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
 	asset: {
 		votes: [
-			'+addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9'
-		]
+			'+addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+		],
 	},
 	recipientId: '8885132815244884080L',
-	signature: 'e8fb21b923ed5b5d2ad0eced31b0a966d9dfb71f710ec6e745c96c9e806ac42225a81e8140614541b0b9055c5511ea8f2d82008f9ccb1bb432772960614d9602',
+	signature:
+		'e8fb21b923ed5b5d2ad0eced31b0a966d9dfb71f710ec6e745c96c9e806ac42225a81e8140614541b0b9055c5511ea8f2d82008f9ccb1bb432772960614d9602',
 	id: '17417762698516786715',
 	fee: 100000000,
 	senderId: '8885132815244884080L',
 	relays: 1,
-	receivedAt: '2017-09-21T15:34:31.780Z'
+	receivedAt: '2017-09-21T15:34:31.780Z',
 };
 
 transactionsByTypes[transactionTypes.DELEGATE] = {
 	type: 2,
 	amount: 0,
-	senderPublicKey: '7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
+	senderPublicKey:
+		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
 	asset: {
 		delegate: {
 			username: 'gximrm9vf2omzarpsw',
-			publicKey: '7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc'
-		}
+			publicKey:
+				'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
+		},
 	},
-	signature: '77b0fcb420450e2d02e98d05af50d3577438ba19f38249ac301e9da07ec65a0889309b242642d3b4df7570d70be09adc80e56e68a0ecb9eb72b3ab5070248c0d',
+	signature:
+		'77b0fcb420450e2d02e98d05af50d3577438ba19f38249ac301e9da07ec65a0889309b242642d3b4df7570d70be09adc80e56e68a0ecb9eb72b3ab5070248c0d',
 	id: '14164546323350881168',
 	fee: 2500000000,
 	senderId: '8885132815244884080L',
 	relays: 1,
-	receivedAt: '2017-09-21T15:34:31.752Z'
+	receivedAt: '2017-09-21T15:34:31.752Z',
 };
 
 transactionsByTypes[transactionTypes.SIGNATURE] = {
 	type: 1,
 	amount: 0,
-	senderPublicKey: '7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
+	senderPublicKey:
+		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
 	asset: {
 		signature: {
-			publicKey: '6052f504732ffffa30311f4975d2da8f83e3089fa91aab33dc79f76da78b7c8f'
-		}
+			publicKey:
+				'6052f504732ffffa30311f4975d2da8f83e3089fa91aab33dc79f76da78b7c8f',
+		},
 	},
-	signature: 'a54c6adf96879163ac0b36563f2ff701a9f033bedf7746cef79e8f4de503fbb461322b8b8ebe07c40d5dd484f073e69256fac284af5b507952e7666b693c9b07',
+	signature:
+		'a54c6adf96879163ac0b36563f2ff701a9f033bedf7746cef79e8f4de503fbb461322b8b8ebe07c40d5dd484f073e69256fac284af5b507952e7666b693c9b07',
 	id: '17912996692061248739',
 	fee: 500000000,
 	senderId: '8885132815244884080L',
 	relays: 1,
-	receivedAt: '2017-09-21T15:34:31.718Z'
+	receivedAt: '2017-09-21T15:34:31.718Z',
 };
 
 transactionsByTypes[transactionTypes.SEND] = {
 	type: 0,
 	amount: 1,
-	senderPublicKey: '7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
+	senderPublicKey:
+		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
 	asset: {},
 	recipientId: '10881167371402274308L',
-	signature: 'ec703b28601a0aaf4141a85493dda1b00a3604fc4903513cc311dbf995b39b41b30241b17d6be2ac281c0b8b2ff5b7031b86ce9a5e0c3a545b76e935f372da06',
+	signature:
+		'ec703b28601a0aaf4141a85493dda1b00a3604fc4903513cc311dbf995b39b41b30241b17d6be2ac281c0b8b2ff5b7031b86ce9a5e0c3a545b76e935f372da06',
 	id: '18141417978934746512',
 	fee: 10000000,
 	senderId: '8885132815244884080L',
 	relays: 1,
-	receivedAt: '2017-09-21T15:34:31.689Z'
+	receivedAt: '2017-09-21T15:34:31.689Z',
 };
 
 transactionsByTypes[transactionTypes.IN_TRANSFER] = {
 	id: '2273003018673898961',
 	type: 6,
 	timestamp: 40420761,
-	senderPublicKey: '6dc3f3f8bcf9fb689a1ec6703ed08c649cdc98619ac4689794bf72b579d6cf25',
+	senderPublicKey:
+		'6dc3f3f8bcf9fb689a1ec6703ed08c649cdc98619ac4689794bf72b579d6cf25',
 	senderId: '2623857243537009424L',
 	recipientId: null,
 	recipientPublicKey: null,
 	amount: 999,
 	fee: 10000000,
-	signature: '46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
+	signature:
+		'46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
 	asset: {
-		inTransfer:{
-			dappId: '7400202127695414450'
-		}
-	}
+		inTransfer: {
+			dappId: '7400202127695414450',
+		},
+	},
 };
 
 transactionsByTypes[transactionTypes.OUT_TRANSFER] = {
 	id: '12010334009048463571',
 	type: 7,
 	timestamp: 41287231,
-	senderPublicKey: '8d556dca10bb8294895df5477117ca2ceaae7795e7ffc4f7c7d51398a65e4911',
+	senderPublicKey:
+		'8d556dca10bb8294895df5477117ca2ceaae7795e7ffc4f7c7d51398a65e4911',
 	senderId: '12566082625150495618L',
 	recipientId: '477547807936790449L',
 	amount: 100,
 	fee: 10000000,
-	signature: '126de9603da232b0ada5158c43640849a62736351be1f39cd98606f6d81bedff895183f12c517c96dcc71368af111e7ddde04f62c54ecd1ea47d557af69f330d',
+	signature:
+		'126de9603da232b0ada5158c43640849a62736351be1f39cd98606f6d81bedff895183f12c517c96dcc71368af111e7ddde04f62c54ecd1ea47d557af69f330d',
 	asset: {
 		outTransfer: {
 			dappId: '4163713078266524209',
-			transactionId: '14144353162277138821'
-		}
-	}
+			transactionId: '14144353162277138821',
+		},
+	},
 };
 
-function expectedOrderOfTransactions (sortedTransactions) {
+function expectedOrderOfTransactions(sortedTransactions) {
 	var sorted = true;
 
 	for (var i = 0; i < sortedTransactions.length - 1; i++) {
 		// Transactions should always be in ascending order of types unless next transaction is MULTI
-		if (sortedTransactions[i].type > sortedTransactions[i+1].type
-			&& sortedTransactions[i+1].type !== transactionTypes.MULTI) {
+		if (
+			sortedTransactions[i].type > sortedTransactions[i + 1].type &&
+			sortedTransactions[i + 1].type !== transactionTypes.MULTI
+		) {
 			sorted = false;
 			return sorted;
 		}
 
 		// MULTI transaction should always come after all transaction types
-		if (sortedTransactions[i].type < sortedTransactions[i+1].type
-			&& sortedTransactions[i].type === transactionTypes.MULTI) {
+		if (
+			sortedTransactions[i].type < sortedTransactions[i + 1].type &&
+			sortedTransactions[i].type === transactionTypes.MULTI
+		) {
 			sorted = false;
 			return sorted;
 		}
 
 		// Within transaction types, the transactions should be ordered in descending order of amount
-		if (sortedTransactions[i].type === sortedTransactions[i+1].type &&
-			sortedTransactions[i].amount < sortedTransactions[i+1].amount) {
+		if (
+			sortedTransactions[i].type === sortedTransactions[i + 1].type &&
+			sortedTransactions[i].amount < sortedTransactions[i + 1].amount
+		) {
 			sorted = false;
 			return sorted;
 		}
@@ -261,156 +296,197 @@ function expectedOrderOfTransactions (sortedTransactions) {
 	return sorted;
 }
 
-describe('block', function () {
-
+describe('block', () => {
 	var block;
 	var data;
 	var transactionStub;
 	var transactions = [];
 
-	before(function () {
+	before(() => {
 		transactionStub = {
 			getBytes: sinonSandbox.stub(),
-			objectNormalize: sinonSandbox.stub()
+			objectNormalize: sinonSandbox.stub(),
 		};
 
-		block = new Block(modulesLoader.scope.ed, modulesLoader.scope.schema, transactionStub);
+		block = new Block(
+			modulesLoader.scope.ed,
+			modulesLoader.scope.schema,
+			transactionStub
+		);
 	});
 
-	describe('with valid block and data', function () {
-
-		beforeEach(function () {
+	describe('with valid block and data', () => {
+		beforeEach(() => {
 			data = _.cloneDeep(validDataForBlock);
 			transactions = _.values(transactionsByTypes);
 		});
 
-		describe('create', function () {
-
+		describe('create', () => {
 			var blockNormalizeStub;
 
-			before(function () {
-				blockNormalizeStub = sinonSandbox.stub(block, 'objectNormalize').returnsArg(0);
+			before(() => {
+				blockNormalizeStub = sinonSandbox
+					.stub(block, 'objectNormalize')
+					.returnsArg(0);
 
-				transactionStub.getBytes.returns(Buffer.from('dummy transaction bytes'));
+				transactionStub.getBytes.returns(
+					Buffer.from('dummy transaction bytes')
+				);
 				transactionStub.objectNormalize.returnsArg(0);
 			});
 
-			after(function () {
+			after(() => {
 				blockNormalizeStub.reset();
 				transactionStub.getBytes.reset();
 				transactionStub.objectNormalize.reset();
 			});
 
-			describe('when one of all transaction types are present', function () {
-
+			describe('when one of all transaction types are present', () => {
 				var generatedBlock;
 				var transactionsOrder;
 				var correctOrder = [0, 1, 2, 3, 5, 6, 7, 4];
 
-				beforeEach(function () {
+				beforeEach(() => {
 					data.transactions = transactions;
 					generatedBlock = block.create(data);
-					transactionsOrder = generatedBlock.transactions.map(function (trs) {
+					transactionsOrder = generatedBlock.transactions.map(trs => {
 						return trs.type;
 					});
 				});
 
-				it('should sort transactions in the correct order', function () {
-					expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
+				it('should sort transactions in the correct order', () => {
+					expect(generatedBlock.transactions.length).to.equal(
+						data.transactions.length
+					);
 					expect(transactionsOrder).to.eql(correctOrder);
 				});
 			});
 
-			describe('when there are multiple multisignature transactions', function () {
+			describe('when there are multiple multisignature transactions', () => {
+				var correctOrderOfTransactions = [
+					0,
+					1,
+					2,
+					3,
+					5,
+					6,
+					7,
+					4,
+					4,
+					4,
+					4,
+					4,
+					4,
+				];
 
-				var correctOrderOfTransactions = [0, 1, 2, 3, 5, 6, 7, 4, 4, 4, 4, 4, 4];
-
-				describe('in the beginning', function () {
-
+				describe('in the beginning', () => {
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(function () {
-						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
+					beforeEach(() => {
+						multipleMultisigTx = Array(...Array(5)).map(() => {
+							return transactionsByTypes[transactionTypes.MULTI];
+						});
 						data.transactions = multipleMultisigTx.concat(transactions);
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(function (trs) {
+						transactionsOrder = generatedBlock.transactions.map(trs => {
 							return trs.type;
 						});
 					});
 
-					it('should sort transactions in the correct order', function () {
-						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
-						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
+					it('should sort transactions in the correct order', () => {
+						expect(generatedBlock.transactions.length).to.equal(
+							data.transactions.length
+						);
+						expect(
+							expectedOrderOfTransactions(generatedBlock.transactions)
+						).to.equal(true);
 						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 					});
 				});
 
-				describe('at the middle', function () {
-
+				describe('at the middle', () => {
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(function () {
-						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
+					beforeEach(() => {
+						multipleMultisigTx = Array(...Array(5)).map(() => {
+							return transactionsByTypes[transactionTypes.MULTI];
+						});
 						// Add multisig transactions after the 3rd transaction in array
-						transactions.splice.apply(transactions, [3, 0].concat(multipleMultisigTx));
+						transactions.splice(...[3, 0].concat(multipleMultisigTx));
 						data.transactions = transactions;
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(function (trs) {
+						transactionsOrder = generatedBlock.transactions.map(trs => {
 							return trs.type;
 						});
 					});
 
-					it('should sort transactions in the correct order', function () {
-						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
-						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
+					it('should sort transactions in the correct order', () => {
+						expect(generatedBlock.transactions.length).to.equal(
+							data.transactions.length
+						);
+						expect(
+							expectedOrderOfTransactions(generatedBlock.transactions)
+						).to.equal(true);
 						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 					});
 				});
 
-				describe('at the end', function () {
-
+				describe('at the end', () => {
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(function () {
-						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
+					beforeEach(() => {
+						multipleMultisigTx = Array(...Array(5)).map(() => {
+							return transactionsByTypes[transactionTypes.MULTI];
+						});
 						data.transactions = transactions.concat(multipleMultisigTx);
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(function (trs) {
+						transactionsOrder = generatedBlock.transactions.map(trs => {
 							return trs.type;
 						});
 					});
 
-					it('should sort transactions in the correct order', function () {
-						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
-						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
+					it('should sort transactions in the correct order', () => {
+						expect(generatedBlock.transactions.length).to.equal(
+							data.transactions.length
+						);
+						expect(
+							expectedOrderOfTransactions(generatedBlock.transactions)
+						).to.equal(true);
 						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 					});
 				});
 
-				describe('shuffled', function () {
-
+				describe('shuffled', () => {
 					var multipleMultisigTx;
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(function () {
-						multipleMultisigTx = Array.apply(null, Array(5)).map(function () { return transactionsByTypes[transactionTypes.MULTI]; });
-						data.transactions = _.shuffle(transactions.concat(multipleMultisigTx));
+					beforeEach(() => {
+						multipleMultisigTx = Array(...Array(5)).map(() => {
+							return transactionsByTypes[transactionTypes.MULTI];
+						});
+						data.transactions = _.shuffle(
+							transactions.concat(multipleMultisigTx)
+						);
 						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(function (trs) {
+						transactionsOrder = generatedBlock.transactions.map(trs => {
 							return trs.type;
 						});
 					});
 
-					it('should sort transactions in the correct order', function () {
-						expect(generatedBlock.transactions.length).to.equal(data.transactions.length);
-						expect(expectedOrderOfTransactions(generatedBlock.transactions)).to.equal(true);
+					it('should sort transactions in the correct order', () => {
+						expect(generatedBlock.transactions.length).to.equal(
+							data.transactions.length
+						);
+						expect(
+							expectedOrderOfTransactions(generatedBlock.transactions)
+						).to.equal(true);
 						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 					});
 				});

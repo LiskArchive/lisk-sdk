@@ -18,8 +18,7 @@ var find = require('find');
 
 var maxParallelism = 20;
 
-function parallelTests (tag, suite, section) {
-
+function parallelTests(tag, suite, section) {
 	var suiteFolder = null;
 
 	switch (suite) {
@@ -44,17 +43,19 @@ function parallelTests (tag, suite, section) {
 					suiteFolder = 'test/functional/';
 					break;
 				default:
-					console.warn('Invalid section argument. Options are: get, post, ws or system');
+					console.warn(
+						'Invalid section argument. Options are: get, post, ws or system'
+					);
 					process.exit();
 					break;
-			};
+			}
 			break;
 
 		default:
 			console.warn('Invalid suite argument. Options are: unit or functional');
 			process.exit();
 			break;
-	};
+	}
 
 	var mochaArguments = [];
 
@@ -74,7 +75,7 @@ function parallelTests (tag, suite, section) {
 		default:
 			mochaArguments.push('--', '--grep', '@slow|@unstable', '--invert');
 			break;
-	};
+	}
 
 	// Looking recursevely for javascript files not containing the word "common"
 	var pathfiles = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
@@ -82,26 +83,42 @@ function parallelTests (tag, suite, section) {
 
 	var parallelTestsRunning = {};
 
-	var spawnTest = function (test) {
-		var coverageArguments = ['cover', '--dir', 'test/.coverage-unit', '--include-pid', 'node_modules/.bin/_mocha', test];
+	var spawnTest = function(test) {
+		var coverageArguments = [
+			'cover',
+			'--dir',
+			'test/.coverage-unit',
+			'--include-pid',
+			'node_modules/.bin/_mocha',
+			test,
+		];
 		var istanbulArguments = coverageArguments.concat(mochaArguments);
 
-		var child = child_process.spawn('node_modules/.bin/istanbul', istanbulArguments, {
-			cwd: __dirname + '/../..',
-			detached: true,
-			stdio: 'inherit'
-		});
+		var child = child_process.spawn(
+			'node_modules/.bin/istanbul',
+			istanbulArguments,
+			{
+				cwd: `${__dirname}/../..`,
+				detached: true,
+				stdio: 'inherit',
+			}
+		);
 
-		console.log('Running the test:', test, 'as a separate process - pid', child.pid);
+		console.log(
+			'Running the test:',
+			test,
+			'as a separate process - pid',
+			child.pid
+		);
 		parallelTestsRunning[child.pid] = child;
 
-		var cleanupRunningTests = function () {
-			Object.keys(parallelTestsRunning).forEach(function (k) {
+		var cleanupRunningTests = function() {
+			Object.keys(parallelTestsRunning).forEach(k => {
 				parallelTestsRunning[k].kill('SIGTERM');
 			});
 		};
 
-		child.on('close', function (code) {
+		child.on('close', code => {
 			if (code === 0) {
 				console.log('Test finished successfully:', test);
 				delete parallelTestsRunning[child.pid];
@@ -120,7 +137,7 @@ function parallelTests (tag, suite, section) {
 			process.exit(code);
 		});
 
-		child.on('error', function (err) {
+		child.on('error', err => {
 			console.error(err);
 			cleanupRunningTests();
 			process.exit();
@@ -133,5 +150,5 @@ function parallelTests (tag, suite, section) {
 parallelTests(process.argv[2], process.argv[3], process.argv[4]);
 
 module.exports = {
-	parallelTests: parallelTests
+	parallelTests: parallelTests,
 };

@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+
 /*
- * Runtime queries - executed at node start (right after migrations)
- */
+  DESCRIPTION: Runtime queries - executed at node start (right after migrations).
+
+  PARAMETERS: None
+*/
 
 UPDATE "peers" SET "state" = 1, "clock" = NULL WHERE "state" != 0;
 

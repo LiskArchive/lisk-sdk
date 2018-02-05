@@ -15,17 +15,14 @@
 
 // Init tests dependencies
 var rewire = require('rewire');
-var Promise = require('bluebird');
-
 // Instantiate test subject
 var Rounds = rewire('../../../modules/rounds.js');
-
-var sinon = sinonSandbox;
-var Round = rewire('../../../logic/round.js');
+var Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
 var DBSandbox = require('../../common/db_sandbox').DBSandbox;
 
-describe('rounds', function () {
+var sinon = sinonSandbox;
 
+describe('rounds', () => {
 	var db;
 	var dbSandbox;
 	var rounds;
@@ -38,40 +35,39 @@ describe('rounds', function () {
 		info: sinon.spy(),
 		log: sinon.spy(),
 		warn: sinon.spy(),
-		error: sinon.spy()
+		error: sinon.spy(),
 	};
 
-	function get (variable) {
+	function get(variable) {
 		return Rounds.__get__(variable);
-	};
+	}
 
-	function set (variable, value) {
+	function set(variable, value) {
 		return Rounds.__set__(variable, value);
-	};
+	}
 
-	before(function (done) {
+	before(done => {
 		dbSandbox = new DBSandbox(__testContext.config.db, 'rounds_module');
-		dbSandbox.create(function (err, __db) {
+		dbSandbox.create((err, __db) => {
 			db = __db;
 
 			validScope = {
 				logger: logger,
 				db: db,
-				bus: {message: sinon.spy()},
-				network: {io: {sockets: {emit: sinon.spy()}}},
-				config: {loading: {snapshot: false}}
+				bus: { message: sinon.spy() },
+				network: { io: { sockets: { emit: sinon.spy() } } },
+				config: { loading: { snapshot: false } },
 			};
 			done();
 		});
 	});
 
-	describe('constructor', function () {
-
+	describe('constructor', () => {
 		var scope;
 
-		before(function (done) {
+		before(done => {
 			scope = _.cloneDeep(validScope);
-			new Rounds(function (err, __instance) {
+			new Rounds((err, __instance) => {
 				rounds = __instance;
 				// Overwrite database with reference from rounds module,
 				// needed for redefine properties without getting that every time
@@ -80,23 +76,22 @@ describe('rounds', function () {
 			}, _.cloneDeep(scope));
 		});
 
-		it('should return Rounds instance', function () {
+		it('should return Rounds instance', () => {
 			expect(rounds).to.be.instanceof(Rounds);
 		});
 
-		it('should set library to scope', function () {
+		it('should set library to scope', () => {
 			expect(get('library')).to.deep.equal(validScope);
 		});
 
-		it('should set self object', function () {
+		it('should set self object', () => {
 			var self = Rounds.__get__('self');
 			expect(self).to.deep.equal(rounds);
 		});
 	});
 
-	describe('loaded', function () {
-
-		it('should return __private.loaded', function () {
+	describe('loaded', () => {
+		it('should return __private.loaded', () => {
 			var variable = '__private.loaded';
 			var backup = get(variable);
 			var value = 'abc';
@@ -106,9 +101,8 @@ describe('rounds', function () {
 		});
 	});
 
-	describe('ticking', function () {
-
-		it('should return __private.ticking', function () {
+	describe('ticking', () => {
+		it('should return __private.ticking', () => {
 			var variable = '__private.ticking';
 			var backup = get(variable);
 			var value = 'abc';
@@ -118,69 +112,65 @@ describe('rounds', function () {
 		});
 	});
 
-	describe('flush', function () {
-
+	describe('flush', () => {
 		var stub;
 		var error;
 
-		before(function () {
+		before(() => {
 			stub = sinon.stub(db.rounds, 'flush');
 			stub.withArgs(true).resolves('success');
 			stub.withArgs(false).rejects('fail');
 		});
 
-		after(function () {
+		after(() => {
 			stub.restore();
 		});
 
-		describe('when flush query is successful', function () {
-
-			before(function (done) {
-				rounds.flush(true, function (err) {
+		describe('when flush query is successful', () => {
+			before(done => {
+				rounds.flush(true, err => {
 					error = err;
 					done();
 				});
 			});
 
-			after(function () {
+			after(() => {
 				stub.resetHistory();
 			});
 
-			it('should call a callback when no error', function () {
+			it('should call a callback when no error', () => {
 				expect(error).to.not.exist;
 			});
 
-			it('flush query should be called once', function () {
+			it('flush query should be called once', () => {
 				expect(stub.calledOnce).to.be.true;
 			});
 		});
 
-		describe('when flush query fails', function () {
-
-			before(function (done) {
-				rounds.flush(false, function (err) {
+		describe('when flush query fails', () => {
+			before(done => {
+				rounds.flush(false, err => {
 					error = err;
 					done();
 				});
 			});
 
-			after(function () {
+			after(() => {
 				stub.resetHistory();
 			});
 
-			it('should call a callback with error = Rounds#flush error', function () {
+			it('should call a callback with error = Rounds#flush error', () => {
 				expect(error).to.equal('Rounds#flush error');
 			});
 
-			it('flush query should be called once', function () {
+			it('flush query should be called once', () => {
 				expect(stub.calledOnce).to.be.true;
 			});
 		});
 	});
 
-	describe('setSnapshotRound', function () {
-
-		it('should set library.config.loading.snapshot', function () {
+	describe('setSnapshotRound', () => {
+		it('should set library.config.loading.snapshot', () => {
 			var variable = 'library.config.loading.snapshot';
 			var backup = get(variable);
 			var value = 'abc';
@@ -190,15 +180,14 @@ describe('rounds', function () {
 		});
 	});
 
-	describe('onBind', function () {
-
-		it('should set modules', function () {
+	describe('onBind', () => {
+		it('should set modules', () => {
 			var variable = 'modules';
 			var backup = get(variable);
 			var value = {
 				blocks: 'blocks',
 				accounts: 'accounts',
-				delegates: 'delegates'
+				delegates: 'delegates',
 			};
 			rounds.onBind(value);
 			expect(get(variable)).to.deep.equal(value);
@@ -206,9 +195,8 @@ describe('rounds', function () {
 		});
 	});
 
-	describe('onBlockchainReady', function () {
-
-		it('should set __private.loaded = true', function () {
+	describe('onBlockchainReady', () => {
+		it('should set __private.loaded = true', () => {
 			var variable = '__private.loaded ';
 			var backup = get(variable);
 			var value = false;
@@ -219,26 +207,28 @@ describe('rounds', function () {
 		});
 	});
 
-	describe('onFinishRound', function () {
-
-		it('should call library.network.io.sockets.emit once, with proper params', function () {
+	describe('onFinishRound', () => {
+		it('should call library.network.io.sockets.emit once, with proper params', () => {
 			var round = 123;
 			rounds.onFinishRound(round);
 
 			expect(validScope.network.io.sockets.emit.calledOnce).to.be.true;
-			expect(validScope.network.io.sockets.emit.calledWith('rounds/change', {number: round})).to.be.true;
+			expect(
+				validScope.network.io.sockets.emit.calledWith('rounds/change', {
+					number: round,
+				})
+			).to.be.true;
 			validScope.network.io.sockets.emit.reset();
 		});
 	});
 
-	describe('cleanup', function () {
-
-		it('should set __private.loaded = false and call a callback', function (done) {
+	describe('cleanup', () => {
+		it('should set __private.loaded = false and call a callback', done => {
 			var variable = '__private.loaded ';
 			var backup = get(variable);
 			var value = true;
 			set(variable, value);
-			rounds.cleanup(function () {
+			rounds.cleanup(() => {
 				expect(get(variable)).to.equal(false);
 				set(variable, backup);
 				done();
@@ -246,129 +236,135 @@ describe('rounds', function () {
 		});
 	});
 
-	describe('__private.getOutsiders', function () {
-
+	describe('__private.getOutsiders', () => {
 		var getOutsiders;
 
-		before(function () {
+		before(() => {
 			getOutsiders = get('__private.getOutsiders');
 		});
 
-		describe('when scope.block.height = 1', function () {
+		describe('when scope.block.height = 1', () => {
+			var scope = { block: { height: 1 } };
 
-			var scope = {block: {height: 1}};
-
-			it('should call a callback', function (done) {
-				getOutsiders(scope, function (err) {
+			it('should call a callback', done => {
+				getOutsiders(scope, err => {
 					expect(err).to.not.exist;
 					done();
 				});
 			});
 		});
 
-		describe('when scope.block.height != 1', function () {
+		describe('when scope.block.height != 1', () => {
+			var scope = { block: { height: 2 } };
 
-			var scope = {block: {height: 2}};
-
-			describe('when generateDelegateList is successful', function () {
-
+			describe('when generateDelegateList is successful', () => {
 				var modules;
 
-				before(function () {
+				before(() => {
 					// Bind fake modules
 					modules = {
-						delegates: {generateDelegateList: function (a, b, cb) { return cb(null, ['delegate1', 'delegate2', 'delegate3']); }},
-						accounts: {generateAddressByPublicKey: function () { return 'delegate'; }}
+						delegates: {
+							generateDelegateList: function(a, b, cb) {
+								return cb(null, ['delegate1', 'delegate2', 'delegate3']);
+							},
+						},
+						accounts: {
+							generateAddressByPublicKey: function() {
+								return 'delegate';
+							},
+						},
 					};
 					rounds.onBind(modules);
 				});
 
-				describe('when all delegates are on list (no outsiders)', function () {
-
+				describe('when all delegates are on list (no outsiders)', () => {
 					var initialScope;
 
-					before(function () {
+					before(() => {
 						scope.roundDelegates = ['delegate1', 'delegate2', 'delegate3'];
 						scope.roundOutsiders = [];
 						initialScope = _.cloneDeep(scope);
 					});
 
-					it('should call a callback', function (done) {
-						getOutsiders(scope, function (err) {
+					it('should call a callback', done => {
+						getOutsiders(scope, err => {
 							expect(err).to.not.exist;
 							done();
 						});
 					});
 
-					it('should not modify scope.roundOutsiders', function () {
-						expect(scope.roundOutsiders).to.deep.equal(initialScope.roundOutsiders);
+					it('should not modify scope.roundOutsiders', () => {
+						expect(scope.roundOutsiders).to.deep.equal(
+							initialScope.roundOutsiders
+						);
 					});
 				});
 
-				describe('when 1 delegates is not on list (outsider)', function () {
-
+				describe('when 1 delegates is not on list (outsider)', () => {
 					var initialScope;
 
-					before(function () {
+					before(() => {
 						scope.roundDelegates = ['delegate2', 'delegate3'];
 						scope.roundOutsiders = [];
 						initialScope = _.cloneDeep(scope);
 					});
 
-					it('should call a callback', function (done) {
-						getOutsiders(scope, function (err) {
+					it('should call a callback', done => {
+						getOutsiders(scope, err => {
 							expect(err).to.not.exist;
 							done();
 						});
 					});
 
-					it('should add 1 outsider scope.roundOutsiders', function () {
+					it('should add 1 outsider scope.roundOutsiders', () => {
 						initialScope.roundOutsiders.push('delegate');
-						expect(scope.roundOutsiders).to.deep.equal(initialScope.roundOutsiders);
+						expect(scope.roundOutsiders).to.deep.equal(
+							initialScope.roundOutsiders
+						);
 					});
 				});
 
-				describe('when 2 delegates are not on list (outsiders)', function () {
-
+				describe('when 2 delegates are not on list (outsiders)', () => {
 					var initialScope;
 
-					before(function () {
+					before(() => {
 						scope.roundDelegates = ['delegate3'];
 						scope.roundOutsiders = [];
 						initialScope = _.cloneDeep(scope);
 					});
 
-					it('should call a callback', function (done) {
-						getOutsiders(scope, function (err) {
+					it('should call a callback', done => {
+						getOutsiders(scope, err => {
 							expect(err).to.not.exist;
 							done();
 						});
 					});
 
-					it('should add 2 outsiders to scope.roundOutsiders', function () {
+					it('should add 2 outsiders to scope.roundOutsiders', () => {
 						initialScope.roundOutsiders.push('delegate');
 						initialScope.roundOutsiders.push('delegate');
-						expect(scope.roundOutsiders).to.deep.equal(initialScope.roundOutsiders);
+						expect(scope.roundOutsiders).to.deep.equal(
+							initialScope.roundOutsiders
+						);
 					});
 				});
 			});
 
-			describe('when generateDelegateList fails', function () {
-
-				before(function () {
+			describe('when generateDelegateList fails', () => {
+				before(() => {
 					// Bind fake modules
 					var modules = {
 						delegates: {
-							generateDelegateList: function (a, b, cb) {
+							generateDelegateList: function(a, b, cb) {
 								cb('error');
-							}
-						}
+							},
+						},
 					};
 					rounds.onBind(modules);
 				});
 
-				it('should call a callback with error', function (done) {
-					getOutsiders(scope, function (err) {
+				it('should call a callback with error', done => {
+					getOutsiders(scope, err => {
 						expect(err).to.equal('error');
 						done();
 					});
@@ -377,66 +373,67 @@ describe('rounds', function () {
 		});
 	});
 
-	describe('__private.sumRound', function () {
-
+	describe('__private.sumRound', () => {
 		var sumRound;
 		var stub;
-		var scope = {round: 1};
+		var scope = { round: 1 };
 
-		before(function () {
+		before(() => {
 			sumRound = get('__private.sumRound');
 		});
 
-		describe('when summedRound query is successful', function () {
-
-			var initialScope;
-
-			before(function () {
-				var rows = [{
-					rewards: [1.001, 2, 3],
-					fees: 100.001,
-					delegates: ['delegate1', 'delegate2', 'delegate3']
-				}];
+		describe('when summedRound query is successful', () => {
+			before(() => {
+				var rows = [
+					{
+						rewards: [1.001, 2, 3],
+						fees: 100.001,
+						delegates: ['delegate1', 'delegate2', 'delegate3'],
+					},
+				];
 				stub = sinon.stub(db.rounds, 'summedRound').resolves(rows);
 			});
 
-			after(function () {
+			after(() => {
 				stub.restore();
 			});
 
-			it('should call a callback', function (done) {
-				sumRound(scope, function (err) {
-					initialScope = _.cloneDeep(scope);
+			it('should call a callback', done => {
+				sumRound(scope, err => {
+					_.cloneDeep(scope);
 					expect(err).to.not.exist;
 					done();
 				});
 			});
 
-			it('should set scope.roundFees correctly', function () {
+			it('should set scope.roundFees correctly', () => {
 				expect(scope.roundFees).to.equal(100);
 			});
 
-			it('should set scope.roundRewards correctly', function () {
+			it('should set scope.roundRewards correctly', () => {
 				expect(scope.roundRewards).to.deep.equal([1, 2, 3]);
 			});
 
-			it('should set scope.roundDelegates', function () {
-				expect(scope.roundDelegates).to.deep.equal(['delegate1', 'delegate2', 'delegate3']);
+			it('should set scope.roundDelegates', () => {
+				expect(scope.roundDelegates).to.deep.equal([
+					'delegate1',
+					'delegate2',
+					'delegate3',
+				]);
 			});
 		});
 
-		describe('when summedRound query fails', function () {
-
-			before(function () {
+		describe('when summedRound query fails', () => {
+			before(() => {
 				stub = sinon.stub(db.rounds, 'summedRound').rejects('fail');
 			});
 
-			after(function () {
+			after(() => {
 				stub.restore();
 			});
 
-			it('should call a callback with error = fail', function (done) {
-				sumRound(scope, function (err) {
+			it('should call a callback with error = fail', done => {
+				sumRound(scope, err => {
 					expect(err.name).to.equal('fail');
 					done();
 				});
@@ -444,8 +441,7 @@ describe('rounds', function () {
 		});
 	});
 
-	describe('tick', function () {
-
+	describe('tick', () => {
 		var block;
 		var roundScope;
 
@@ -460,17 +456,17 @@ describe('rounds', function () {
 		var clearVotesSnapshot_stub;
 		var performVotesSnapshot_stub;
 
-		function resetStubsHistory () {
+		function resetStubsHistory() {
 			mergeBlockGenerator_stub.resetHistory();
 			land_stub.resetHistory();
 			truncateBlocks_stub.resetHistory();
 			sumRound_stub.resetHistory();
 			getOutsiders_stub.resetHistory();
-		};
+		}
 
-		before(function () {
+		before(() => {
 			// Init fake round logic
-			function Round (__scope, __t) {
+			function Round(__scope) {
 				roundScope = __scope;
 			}
 			Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
@@ -483,21 +479,17 @@ describe('rounds', function () {
 			set('__private.getOutsiders', getOutsiders_stub);
 		});
 
-		describe('testing branches', function () {
-
-			describe('scope properties', function () {
-
-				after(function () {
+		describe('testing branches', () => {
+			describe('scope properties', () => {
+				after(() => {
 					resetStubsHistory();
 				});
 
-				describe('finishRound', function () {
-
-					describe('when block height = 1', function () {
-
-						it('should be set to true', function (done) {
-							block = {height: 1};
-							rounds.tick(block, function (err) {
+				describe('finishRound', () => {
+					describe('when block height = 1', () => {
+						it('should be set to true', done => {
+							block = { height: 1 };
+							rounds.tick(block, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.true;
 								done();
@@ -505,11 +497,10 @@ describe('rounds', function () {
 						});
 					});
 
-					describe('when block height = 101', function () {
-
-						it('should be set to true', function (done) {
-							block = {height: 101};
-							rounds.tick(block, function (err) {
+					describe('when block height = 101', () => {
+						it('should be set to true', done => {
+							block = { height: 101 };
+							rounds.tick(block, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.true;
 								done();
@@ -517,11 +508,10 @@ describe('rounds', function () {
 						});
 					});
 
-					describe('when round !== nextRound', function () {
-
-						it('should be set to true', function (done) {
-							block = {height: 202};
-							rounds.tick(block, function (err) {
+					describe('when round !== nextRound', () => {
+						it('should be set to true', done => {
+							block = { height: 202 };
+							rounds.tick(block, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.true;
 								done();
@@ -529,11 +519,10 @@ describe('rounds', function () {
 						});
 					});
 
-					describe('when other height supplied (middle-round)', function () {
-
-						it('should be set to false', function (done) {
-							block = {height: 203};
-							rounds.tick(block, function (err) {
+					describe('when other height supplied (middle-round)', () => {
+						it('should be set to false', done => {
+							block = { height: 203 };
+							rounds.tick(block, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.false;
 								done();
@@ -542,18 +531,16 @@ describe('rounds', function () {
 					});
 				});
 
-				describe('snapshotRound', function () {
-
-					describe('when library.config.loading.snapshot = 0', function () {
-
-						it('should be set to true', function (done) {
+				describe('snapshotRound', () => {
+					describe('when library.config.loading.snapshot = 0', () => {
+						it('should be set to true', done => {
 							var variable = 'library.config.loading.snapshot';
 							var backup = get(variable);
 							var value = 0;
 							set(variable, value);
-							block = {height: 1};
+							block = { height: 1 };
 
-							rounds.tick(block, function (err) {
+							rounds.tick(block, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.snapshotRound).to.be.false;
 								set(variable, backup);
@@ -562,18 +549,16 @@ describe('rounds', function () {
 						});
 					});
 
-					describe('when library.config.loading.snapshot > 0', function () {
-
-						describe('when library.config.loading.snapshot === round', function () {
-
-							it('should be set to true', function (done) {
+					describe('when library.config.loading.snapshot > 0', () => {
+						describe('when library.config.loading.snapshot === round', () => {
+							it('should be set to true', done => {
 								var variable = 'library.config.loading.snapshot';
 								var backup = get(variable);
 								var value = 1;
 								set(variable, value);
-								block = {height: 1};
+								block = { height: 1 };
 
-								rounds.tick(block, function (err) {
+								rounds.tick(block, err => {
 									expect(err).to.equal('Snapshot finished');
 									expect(roundScope.snapshotRound).to.be.true;
 									set(variable, backup);
@@ -582,16 +567,15 @@ describe('rounds', function () {
 							});
 						});
 
-						describe('when library.config.loading.snapshot !== round', function () {
-
-							it('should be set to false', function (done) {
+						describe('when library.config.loading.snapshot !== round', () => {
+							it('should be set to false', done => {
 								var variable = 'library.config.loading.snapshot';
 								var backup = get(variable);
 								var value = 1;
 								set(variable, value);
-								block = {height: 202};
+								block = { height: 202 };
 
-								rounds.tick(block, function (err) {
+								rounds.tick(block, err => {
 									expect(err).to.not.exist;
 									expect(roundScope.snapshotRound).to.be.false;
 									set(variable, backup);
@@ -604,472 +588,497 @@ describe('rounds', function () {
 			});
 		});
 
-		describe('scope.finishRound', function () {
-
+		describe('scope.finishRound', () => {
 			var bus;
 
-			before(function () {
+			before(() => {
 				bus = get('library.bus.message');
 				bus.reset();
 			});
 
-			describe('when true', function () {
-
-				before(function (done) {
-					block = {height: 1};
-					rounds.tick(block, function (err) {
+			describe('when true', () => {
+				before(done => {
+					block = { height: 1 };
+					rounds.tick(block, err => {
 						expect(err).to.not.exist;
 						expect(roundScope.finishRound).to.be.true;
 						done();
 					});
 				});
 
-				after(function () {
+				after(() => {
 					resetStubsHistory();
 					bus.reset();
 				});
 
-				it('scope.mergeBlockGenerator should be called once', function () {
+				it('scope.mergeBlockGenerator should be called once', () => {
 					expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
 				});
 
-				it('scope.land should be called once', function () {
+				it('scope.land should be called once', () => {
 					expect(land_stub.calledOnce).to.be.true;
 				});
 
-				it('scope.sumRound should be called once', function () {
+				it('scope.sumRound should be called once', () => {
 					expect(sumRound_stub.calledOnce).to.be.true;
 				});
 
-				it('scope.getOutsiders should be called once', function () {
+				it('scope.getOutsiders should be called once', () => {
 					expect(getOutsiders_stub.calledOnce).to.be.true;
 				});
 
-				it('library.bus.message should be called once with proper params', function () {
+				it('library.bus.message should be called once with proper params', () => {
 					var bus = get('library.bus.message');
 					expect(bus.calledOnce).to.be.true;
 					expect(bus.calledWith('finishRound', roundScope.round)).to.be.true;
 				});
 			});
 
-			describe('when false', function () {
-
-				before(function (done) {
-					block = {height: 203};
-					rounds.tick(block, function (err) {
+			describe('when false', () => {
+				before(done => {
+					block = { height: 203 };
+					rounds.tick(block, err => {
 						expect(err).to.not.exist;
 						expect(roundScope.finishRound).to.be.false;
 						done();
 					});
 				});
 
-				after(function () {
+				after(() => {
 					resetStubsHistory();
 					bus.reset();
 				});
 
-				it('scope.mergeBlockGenerator should be called once', function () {
+				it('scope.mergeBlockGenerator should be called once', () => {
 					expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
 				});
 
-				it('scope.land should be not called', function () {
+				it('scope.land should be not called', () => {
 					expect(land_stub.called).to.be.false;
 				});
 
-				it('scope.sumRound should be not called', function () {
+				it('scope.sumRound should be not called', () => {
 					expect(sumRound_stub.called).to.be.false;
 				});
 
-				it('scope.getOutsiders should be not called', function () {
+				it('scope.getOutsiders should be not called', () => {
 					expect(getOutsiders_stub.called).to.be.false;
 				});
 
-				it('library.bus.message should be not called', function () {
+				it('library.bus.message should be not called', () => {
 					var bus = get('library.bus.message');
 					expect(bus.called).to.be.false;
 				});
 			});
 		});
 
-		describe('scope.snapshotRound', function () {
-
-			describe('when true', function () {
-
+		describe('scope.snapshotRound', () => {
+			describe('when true', () => {
 				var res;
 
-				before(function (done) {
+				before(done => {
 					var variable = 'library.config.loading.snapshot';
 					var backup = get(variable);
 					var value = 1;
 					set(variable, value);
-					block = {height: 1};
+					block = { height: 1 };
 
-					rounds.tick(block, function (err) {
+					rounds.tick(block, err => {
 						res = err;
 						set(variable, backup);
 						done();
 					});
 				});
 
-				after(function () {
+				after(() => {
 					resetStubsHistory();
 				});
 
-				it('should return with error = Snapshot finished', function () {
+				it('should return with error = Snapshot finished', () => {
 					expect(res).to.equal('Snapshot finished');
 				});
 
-				it('should set scope.finishSnapshot to true', function () {
+				it('should set scope.finishSnapshot to true', () => {
 					expect(roundScope.finishSnapshot).to.be.true;
 				});
 
-				it('scope.truncateBlocks should be called once', function () {
+				it('scope.truncateBlocks should be called once', () => {
 					expect(truncateBlocks_stub.calledOnce).to.be.true;
 				});
 			});
 
-			describe('when false', function () {
-
+			describe('when false', () => {
 				var res;
 
-				before(function (done) {
+				before(done => {
 					var variable = 'library.config.loading.snapshot';
 					var backup = get(variable);
 					var value = 0;
 					set(variable, value);
-					block = {height: 1};
+					block = { height: 1 };
 
-					rounds.tick(block, function (err) {
+					rounds.tick(block, err => {
 						res = err;
 						set(variable, backup);
 						done();
 					});
 				});
 
-				after(function () {
+				after(() => {
 					resetStubsHistory();
 				});
 
-				it('should return with no error', function () {
+				it('should return with no error', () => {
 					expect(res).to.not.exist;
 				});
 
-				it('should not set scope.finishSnapshot', function () {
+				it('should not set scope.finishSnapshot', () => {
 					expect(roundScope.finishSnapshot).to.equal(undefined);
 				});
 
-				it('scope.truncateBlocks should not be called', function () {
+				it('scope.truncateBlocks should not be called', () => {
 					expect(truncateBlocks_stub.called).to.be.false;
 				});
 			});
 		});
 
-		describe('performing round snapshot (queries)', function () {
-
-			function clearStubs () {
+		describe('performing round snapshot (queries)', () => {
+			function clearStubs() {
 				clearRoundSnapshot_stub.restore();
 				performRoundSnapshot_stub.restore();
 				clearVotesSnapshot_stub.restore();
 				performVotesSnapshot_stub.restore();
 			}
 
-			describe('when (block.height+1) % slots.delegates === 0', function () {
-
-				describe('when queries are successful', function () {
-
+			describe('when (block.height+1) % slots.delegates === 0', () => {
+				describe('when queries are successful', () => {
 					var res;
 
-					before(function (done) {
+					before(done => {
 						// Init fake round logic
-						function Round (__scope, __t) {
+						function Round(__scope, __t) {
 							roundScope = __scope;
 
-							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
-							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
-							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
-							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+							clearRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearRoundSnapshot')
+								.resolves();
+							performRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'performRoundSnapshot')
+								.resolves();
+							clearVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearVotesSnapshot')
+								.resolves();
+							performVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'performVotesSnapshot')
+								.resolves();
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
 						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
-						block = {height: 100};
-						rounds.tick(block, function (err) {
+						block = { height: 100 };
+						rounds.tick(block, err => {
 							res = err;
 							done();
 						});
 					});
 
-					after(function () {
+					after(() => {
 						clearStubs();
 					});
 
-					it('should result with no error', function () {
+					it('should result with no error', () => {
 						expect(res).to.not.exist;
 					});
 
-					it('clearRoundSnapshot query should be called once', function () {
+					it('clearRoundSnapshot query should be called once', () => {
 						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performRoundSnapshot query should be called once', function () {
+					it('performRoundSnapshot query should be called once', () => {
 						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('clearVotesSnapshot query should be called once', function () {
+					it('clearVotesSnapshot query should be called once', () => {
 						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performVotesSnapshot query should be called once', function () {
+					it('performVotesSnapshot query should be called once', () => {
 						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 				});
 
-				describe('when clearRoundSnapshot query fails', function () {
-
+				describe('when clearRoundSnapshot query fails', () => {
 					var res;
 
-					before(function (done) {
+					before(done => {
 						// Init fake round logic
-						function Round (__scope, __t) {
+						function Round(__scope, __t) {
 							roundScope = __scope;
 
-							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').rejects('clearRoundSnapshot');
-							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
-							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
-							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+							clearRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearRoundSnapshot')
+								.rejects('clearRoundSnapshot');
+							performRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'performRoundSnapshot')
+								.resolves();
+							clearVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearVotesSnapshot')
+								.resolves();
+							performVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'performVotesSnapshot')
+								.resolves();
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
 						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
-						block = {height: 100};
-						rounds.tick(block, function (err) {
+						block = { height: 100 };
+						rounds.tick(block, err => {
 							res = err;
 							done();
 						});
 					});
 
-					after(function () {
+					after(() => {
 						clearStubs();
 					});
 
-					it('should result with BatchError and first error = fail', function () {
+					it('should result with BatchError and first error = fail', () => {
 						expect(res.name).to.equal('BatchError');
 						expect(res.first.name).to.equal('clearRoundSnapshot');
 					});
 
-					it('clearRoundSnapshot query should be called once', function () {
+					it('clearRoundSnapshot query should be called once', () => {
 						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performRoundSnapshot query should be called once', function () {
+					it('performRoundSnapshot query should be called once', () => {
 						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('clearVotesSnapshot query should be called once', function () {
+					it('clearVotesSnapshot query should be called once', () => {
 						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performVotesSnapshot query should be called once', function () {
+					it('performVotesSnapshot query should be called once', () => {
 						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 				});
 
-				describe('when performRoundSnapshot query fails', function () {
-
+				describe('when performRoundSnapshot query fails', () => {
 					var res;
 
-					before(function (done) {
+					before(done => {
 						// Init fake round logic
-						function Round (__scope, __t) {
+						function Round(__scope, __t) {
 							roundScope = __scope;
 
-							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
-							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').rejects('performRoundSnapshot');
-							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
-							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+							clearRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearRoundSnapshot')
+								.resolves();
+							performRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'performRoundSnapshot')
+								.rejects('performRoundSnapshot');
+							clearVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearVotesSnapshot')
+								.resolves();
+							performVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'performVotesSnapshot')
+								.resolves();
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
 						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
-						block = {height: 100};
-						rounds.tick(block, function (err) {
+						block = { height: 100 };
+						rounds.tick(block, err => {
 							res = err;
 							done();
 						});
 					});
 
-					after(function () {
+					after(() => {
 						clearStubs();
 					});
 
-					it('should result with BatchError and first error = fail', function () {
+					it('should result with BatchError and first error = fail', () => {
 						expect(res.name).to.equal('BatchError');
 						expect(res.first.name).to.equal('performRoundSnapshot');
 					});
 
-					it('clearRoundSnapshot query should be called once', function () {
+					it('clearRoundSnapshot query should be called once', () => {
 						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performRoundSnapshot query should be called once', function () {
+					it('performRoundSnapshot query should be called once', () => {
 						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('clearVotesSnapshot query should be called once', function () {
+					it('clearVotesSnapshot query should be called once', () => {
 						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performVotesSnapshot query should be called once', function () {
+					it('performVotesSnapshot query should be called once', () => {
 						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 				});
 
-				describe('when clearVotesSnapshot query fails', function () {
-
+				describe('when clearVotesSnapshot query fails', () => {
 					var res;
 
-					before(function (done) {
+					before(done => {
 						// Init fake round logic
-						function Round (__scope, __t) {
+						function Round(__scope, __t) {
 							roundScope = __scope;
 
-							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
-							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
-							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').rejects('clearVotesSnapshot');
-							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').resolves();
+							clearRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearRoundSnapshot')
+								.resolves();
+							performRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'performRoundSnapshot')
+								.resolves();
+							clearVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearVotesSnapshot')
+								.rejects('clearVotesSnapshot');
+							performVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'performVotesSnapshot')
+								.resolves();
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
 						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
-						block = {height: 100};
-						rounds.tick(block, function (err) {
+						block = { height: 100 };
+						rounds.tick(block, err => {
 							res = err;
 							done();
 						});
 					});
 
-					after(function () {
+					after(() => {
 						clearStubs();
 					});
 
-					it('should result with BatchError and first error = fail', function () {
+					it('should result with BatchError and first error = fail', () => {
 						expect(res.name).to.equal('BatchError');
 						expect(res.first.name).to.equal('clearVotesSnapshot');
 					});
 
-					it('clearRoundSnapshot query should be called once', function () {
+					it('clearRoundSnapshot query should be called once', () => {
 						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performRoundSnapshot query should be called once', function () {
+					it('performRoundSnapshot query should be called once', () => {
 						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('clearVotesSnapshot query should be called once', function () {
+					it('clearVotesSnapshot query should be called once', () => {
 						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performVotesSnapshot query should be called once', function () {
+					it('performVotesSnapshot query should be called once', () => {
 						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 				});
 
-				describe('when performVotesSnapshot query fails', function () {
-
+				describe('when performVotesSnapshot query fails', () => {
 					var res;
 
-					before(function (done) {
+					before(done => {
 						// Init fake round logic
-						function Round (__scope, __t) {
+						function Round(__scope, __t) {
 							roundScope = __scope;
 
-							clearRoundSnapshot_stub = sinon.stub(__t.rounds, 'clearRoundSnapshot').resolves();
-							performRoundSnapshot_stub = sinon.stub(__t.rounds, 'performRoundSnapshot').resolves();
-							clearVotesSnapshot_stub = sinon.stub(__t.rounds, 'clearVotesSnapshot').resolves();
-							performVotesSnapshot_stub = sinon.stub(__t.rounds, 'performVotesSnapshot').rejects('performVotesSnapshot');
+							clearRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearRoundSnapshot')
+								.resolves();
+							performRoundSnapshot_stub = sinon
+								.stub(__t.rounds, 'performRoundSnapshot')
+								.resolves();
+							clearVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'clearVotesSnapshot')
+								.resolves();
+							performVotesSnapshot_stub = sinon
+								.stub(__t.rounds, 'performVotesSnapshot')
+								.rejects('performVotesSnapshot');
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
 						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
-						block = {height: 100};
-						rounds.tick(block, function (err) {
+						block = { height: 100 };
+						rounds.tick(block, err => {
 							res = err;
 							done();
 						});
 					});
 
-					after(function () {
+					after(() => {
 						clearStubs();
 					});
 
-					it('should result with BatchError and first error = fail', function () {
+					it('should result with BatchError and first error = fail', () => {
 						expect(res.name).to.equal('BatchError');
 						expect(res.first.name).to.equal('performVotesSnapshot');
 					});
 
-					it('clearRoundSnapshot query should be called once', function () {
+					it('clearRoundSnapshot query should be called once', () => {
 						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performRoundSnapshot query should be called once', function () {
+					it('performRoundSnapshot query should be called once', () => {
 						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('clearVotesSnapshot query should be called once', function () {
+					it('clearVotesSnapshot query should be called once', () => {
 						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performVotesSnapshot query should be called once', function () {
+					it('performVotesSnapshot query should be called once', () => {
 						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 				});
 			});
 
-			describe('when (block.height+1) % slots.delegates !== 0', function () {
-
-				before(function (done) {
-					block = {height: 101};
-					rounds.tick(block, function (err) {
+			describe('when (block.height+1) % slots.delegates !== 0', () => {
+				before(done => {
+					block = { height: 101 };
+					rounds.tick(block, err => {
 						expect(err).to.not.exist;
 						done();
 					});
 				});
 
-				after(function () {
+				after(() => {
 					resetStubsHistory();
 				});
 
-				it('clearRoundSnapshot query should be not called', function () {
+				it('clearRoundSnapshot query should be not called', () => {
 					expect(clearRoundSnapshot_stub.calledOnce).to.be.false;
 				});
 
-				it('performRoundSnapshot query should be not called', function () {
+				it('performRoundSnapshot query should be not called', () => {
 					expect(performRoundSnapshot_stub.calledOnce).to.be.false;
 				});
 
-				it('clearVotesSnapshot query should be not called', function () {
+				it('clearVotesSnapshot query should be not called', () => {
 					expect(clearVotesSnapshot_stub.calledOnce).to.be.false;
 				});
 
-				it('performVotesSnapshot query should be not called', function () {
+				it('performVotesSnapshot query should be not called', () => {
 					expect(performVotesSnapshot_stub.calledOnce).to.be.false;
 				});
 			});
 		});
 	});
 
-	describe('backwardTick', function () {
-
+	describe('backwardTick', () => {
 		var block;
 		var previousBlock;
 		var roundScope;
@@ -1081,17 +1090,17 @@ describe('rounds', function () {
 		var sumRound_stub = sinon.stub().callsArg(1);
 		var getOutsiders_stub = sinon.stub().callsArg(1);
 
-		function resetStubsHistory () {
+		function resetStubsHistory() {
 			mergeBlockGenerator_stub.resetHistory();
 			backwardLand_stub.resetHistory();
 			markBlockId_stub.resetHistory();
 			sumRound_stub.resetHistory();
 			getOutsiders_stub.resetHistory();
-		};
+		}
 
-		before(function () {
+		before(() => {
 			// Init fake round logic
-			function Round (__scope, __t) {
+			function Round(__scope) {
 				roundScope = __scope;
 			}
 			Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
@@ -1104,22 +1113,18 @@ describe('rounds', function () {
 			set('__private.getOutsiders', getOutsiders_stub);
 		});
 
-		describe('testing branches', function () {
-
-			describe('scope properties', function () {
-
-				after(function () {
+		describe('testing branches', () => {
+			describe('scope properties', () => {
+				after(() => {
 					resetStubsHistory();
 				});
 
-				describe('finishRound', function () {
-
-					describe('when block height = 1', function () {
-
-						it('should be set to true', function (done) {
-							block = {height: 1};
-							previousBlock = {height: 1};
-							rounds.backwardTick(block, previousBlock, function (err) {
+				describe('finishRound', () => {
+					describe('when block height = 1', () => {
+						it('should be set to true', done => {
+							block = { height: 1 };
+							previousBlock = { height: 1 };
+							rounds.backwardTick(block, previousBlock, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.true;
 								done();
@@ -1127,12 +1132,11 @@ describe('rounds', function () {
 						});
 					});
 
-					describe('when block height = 101', function () {
-
-						it('should be set to true', function (done) {
-							block = {height: 101};
-							previousBlock = {height: 1};
-							rounds.backwardTick(block, previousBlock, function (err) {
+					describe('when block height = 101', () => {
+						it('should be set to true', done => {
+							block = { height: 101 };
+							previousBlock = { height: 1 };
+							rounds.backwardTick(block, previousBlock, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.true;
 								done();
@@ -1140,12 +1144,11 @@ describe('rounds', function () {
 						});
 					});
 
-					describe('prevRound === round && nextRound !== round', function () {
-
-						it('should be set to true', function (done) {
-							block = {height: 202};
-							previousBlock = {height: 202};
-							rounds.backwardTick(block, previousBlock, function (err) {
+					describe('prevRound === round && nextRound !== round', () => {
+						it('should be set to true', done => {
+							block = { height: 202 };
+							previousBlock = { height: 202 };
+							rounds.backwardTick(block, previousBlock, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.true;
 								done();
@@ -1153,12 +1156,11 @@ describe('rounds', function () {
 						});
 					});
 
-					describe('when other height supplied (middle-round)', function () {
-
-						it('should be set to false', function (done) {
-							block = {height: 203};
-							previousBlock = {height: 203};
-							rounds.backwardTick(block, previousBlock, function (err) {
+					describe('when other height supplied (middle-round)', () => {
+						it('should be set to false', done => {
+							block = { height: 203 };
+							previousBlock = { height: 203 };
+							rounds.backwardTick(block, previousBlock, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.false;
 								done();
@@ -1169,78 +1171,75 @@ describe('rounds', function () {
 			});
 		});
 
-		describe('scope.finishRound', function () {
-
-			describe('when true', function () {
-
-				before(function (done) {
-					block = {height: 1};
-					previousBlock = {height: 1};
-					rounds.backwardTick(block, previousBlock, function (err) {
+		describe('scope.finishRound', () => {
+			describe('when true', () => {
+				before(done => {
+					block = { height: 1 };
+					previousBlock = { height: 1 };
+					rounds.backwardTick(block, previousBlock, err => {
 						expect(err).to.not.exist;
 						expect(roundScope.finishRound).to.be.true;
 						done();
 					});
 				});
 
-				after(function () {
+				after(() => {
 					resetStubsHistory();
 				});
 
-				it('scope.mergeBlockGenerator should be called once', function () {
+				it('scope.mergeBlockGenerator should be called once', () => {
 					expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
 				});
 
-				it('scope.backwardLand should be called once', function () {
+				it('scope.backwardLand should be called once', () => {
 					expect(backwardLand_stub.calledOnce).to.be.true;
 				});
 
-				it('scope.markBlockId should be called once', function () {
+				it('scope.markBlockId should be called once', () => {
 					expect(markBlockId_stub.calledOnce).to.be.true;
 				});
 
-				it('scope.sumRound should be called once', function () {
+				it('scope.sumRound should be called once', () => {
 					expect(sumRound_stub.calledOnce).to.be.true;
 				});
 
-				it('scope.getOutsiders should be called once', function () {
+				it('scope.getOutsiders should be called once', () => {
 					expect(getOutsiders_stub.calledOnce).to.be.true;
 				});
 			});
 
-			describe('when false', function () {
-
-				before(function (done) {
-					block = {height: 5};
-					previousBlock = {height: 5};
-					rounds.backwardTick(block, previousBlock, function (err) {
+			describe('when false', () => {
+				before(done => {
+					block = { height: 5 };
+					previousBlock = { height: 5 };
+					rounds.backwardTick(block, previousBlock, err => {
 						expect(err).to.not.exist;
 						expect(roundScope.finishRound).to.be.false;
 						done();
 					});
 				});
 
-				after(function () {
+				after(() => {
 					resetStubsHistory();
 				});
 
-				it('scope.mergeBlockGenerator should be called once', function () {
+				it('scope.mergeBlockGenerator should be called once', () => {
 					expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
 				});
 
-				it('scope.backwardLand should be not called', function () {
+				it('scope.backwardLand should be not called', () => {
 					expect(backwardLand_stub.called).to.be.false;
 				});
 
-				it('scope.markBlockId should be called once', function () {
+				it('scope.markBlockId should be called once', () => {
 					expect(markBlockId_stub.calledOnce).to.be.true;
 				});
 
-				it('scope.sumRound should be not called', function () {
+				it('scope.sumRound should be not called', () => {
 					expect(sumRound_stub.called).to.be.false;
 				});
 
-				it('scope.getOutsiders should be not called', function () {
+				it('scope.getOutsiders should be not called', () => {
 					expect(getOutsiders_stub.called).to.be.false;
 				});
 			});

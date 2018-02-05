@@ -13,16 +13,21 @@
  */
 'use strict';
 
-function PeersManager () {
+function PeersManager() {
 	this.peers = {};
 	this.addressToNonceMap = {};
 	this.nonceToAddressMap = {};
 }
 
-PeersManager.prototype.add = function (peer) {
+PeersManager.prototype.add = function(peer) {
 	// 1. do not add peers without address
 	// 2. prevent changing address by the peer with same nonce
-	if (!peer || !peer.string || this.nonceToAddressMap[peer.nonce] && peer.string !== this.nonceToAddressMap[peer.nonce]) {
+	if (
+		!peer ||
+		!peer.string ||
+		(this.nonceToAddressMap[peer.nonce] &&
+			peer.string !== this.nonceToAddressMap[peer.nonce])
+	) {
 		return false;
 	}
 	if (this.peers[peer.string]) {
@@ -36,7 +41,7 @@ PeersManager.prototype.add = function (peer) {
 	return true;
 };
 
-PeersManager.prototype.remove = function (peer) {
+PeersManager.prototype.remove = function(peer) {
 	if (!peer || !this.peers[peer.string]) {
 		return false;
 	}
@@ -52,7 +57,7 @@ PeersManager.prototype.remove = function (peer) {
 	return true;
 };
 
-PeersManager.prototype.update = function (peer) {
+PeersManager.prototype.update = function(peer) {
 	var oldNonce = this.addressToNonceMap[peer.string];
 	var oldAddress = this.nonceToAddressMap[oldNonce];
 	if (oldNonce) {
@@ -70,23 +75,23 @@ PeersManager.prototype.update = function (peer) {
 	return true;
 };
 
-PeersManager.prototype.getAll = function () {
+PeersManager.prototype.getAll = function() {
 	return this.peers;
 };
 
-PeersManager.prototype.getByAddress = function (address) {
+PeersManager.prototype.getByAddress = function(address) {
 	return this.peers[address];
 };
 
-PeersManager.prototype.getByNonce = function (nonce) {
+PeersManager.prototype.getByNonce = function(nonce) {
 	return this.peers[this.nonceToAddressMap[nonce]];
 };
 
-PeersManager.prototype.getNonce = function (address) {
+PeersManager.prototype.getNonce = function(address) {
 	return this.addressToNonceMap[address];
 };
 
-PeersManager.prototype.getAddress = function (nonce) {
+PeersManager.prototype.getAddress = function(nonce) {
 	return this.nonceToAddressMap[nonce];
 };
 

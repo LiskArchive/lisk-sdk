@@ -28,7 +28,7 @@ var __private = {};
  * @classdesc Main BlockReward logic.
  */
 // Constructor
-function BlockReward () {
+function BlockReward() {
 	// Array of milestones
 	this.milestones = constants.rewards.milestones;
 
@@ -47,7 +47,7 @@ function BlockReward () {
  * @return {number}
  * @throws Invalid block height
  */
-__private.parseHeight = function (height) {
+__private.parseHeight = function(height) {
 	if (isNaN(height)) {
 		throw 'Invalid block height';
 	} else {
@@ -61,13 +61,13 @@ __private.parseHeight = function (height) {
  * @param {number} height
  * @return {number}
  */
-BlockReward.prototype.calcMilestone = function (height) {
+BlockReward.prototype.calcMilestone = function(height) {
 	height = __private.parseHeight(height);
 
 	var location = Math.trunc((height - this.rewardOffset) / this.distance);
 	var lastMile = this.milestones[this.milestones.length - 1];
 
-	if (location > (this.milestones.length - 1)) {
+	if (location > this.milestones.length - 1) {
 		return this.milestones.lastIndexOf(lastMile);
 	} else {
 		return location;
@@ -80,7 +80,7 @@ BlockReward.prototype.calcMilestone = function (height) {
  * @param {number} height
  * @return {number}
  */
-BlockReward.prototype.calcReward = function (height) {
+BlockReward.prototype.calcReward = function(height) {
 	height = __private.parseHeight(height);
 
 	if (height < this.rewardOffset) {
@@ -96,7 +96,7 @@ BlockReward.prototype.calcReward = function (height) {
  * @param {number} height
  * @return {number}
  */
-BlockReward.prototype.calcSupply = function (height) {
+BlockReward.prototype.calcSupply = function(height) {
 	height = __private.parseHeight(height);
 
 	if (height < this.rewardOffset) {
@@ -105,10 +105,11 @@ BlockReward.prototype.calcSupply = function (height) {
 	}
 
 	var milestone = this.calcMilestone(height);
-	var supply    = constants.totalAmount;
-	var rewards   = [];
+	var supply = constants.totalAmount;
+	var rewards = [];
 
-	var amount = 0, multiplier = 0;
+	var amount = 0;
+	var multiplier = 0;
 
 	// Remove offset from height
 	height -= this.rewardOffset - 1;
@@ -136,7 +137,7 @@ BlockReward.prototype.calcSupply = function (height) {
 		}
 	}
 
-	for (i = 0; i < rewards.length; i++) {
+	for (let i = 0; i < rewards.length; i++) {
 		var reward = rewards[i];
 		supply += reward[0] * reward[1];
 	}

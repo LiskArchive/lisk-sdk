@@ -15,19 +15,18 @@
 
 var rewire = require('rewire');
 var randomstring = require('randomstring');
-
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var Peer = require('../../../logic/peer');
-var generateRandomActivePeer = require('../../fixtures/peers').generateRandomActivePeer;
+var generateRandomActivePeer = require('../../fixtures/peers')
+	.generateRandomActivePeer;
 var constants = require('../../../helpers/constants');
-
-var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers').generateMatchedAndUnmatchedBroadhashes;
+var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers')
+	.generateMatchedAndUnmatchedBroadhashes;
 var modulesLoader = require('../../common/modules_loader');
 var random = require('../../common/utils/random');
 var swagerHelper = require('../../../helpers/swagger');
 
-describe('peers', function () {
-
+describe('peers', () => {
 	var dbMock;
 	var peers;
 	var PeersRewired;
@@ -39,12 +38,12 @@ describe('peers', function () {
 
 	var NONCE = randomstring.generate(16);
 
-	before(function (done) {
+	before(done => {
 		dbMock = {
 			any: sinonSandbox.stub().resolves(),
 			peers: {
-				list: sinonSandbox.stub().resolves()
-			}
+				list: sinonSandbox.stub().resolves(),
+			},
 		};
 		PeersRewired = rewire('../../../modules/peers');
 		peersLogicMock = {
@@ -53,209 +52,214 @@ describe('peers', function () {
 			get: sinonSandbox.stub(),
 			list: sinonSandbox.stub(),
 			upsert: sinonSandbox.stub(),
-			remove: sinonSandbox.stub()
+			remove: sinonSandbox.stub(),
 		};
 		systemModuleMock = {};
 		transportModuleMock = {};
 		modules = {
 			system: systemModuleMock,
-			transport: transportModuleMock
+			transport: transportModuleMock,
 		};
 
-		swagerHelper.getResolvedSwaggerSpec().then(function (resolvedSpec) {
+		swagerHelper.getResolvedSwaggerSpec().then(resolvedSpec => {
 			modules.swagger = {
-				definitions: resolvedSpec.definitions
+				definitions: resolvedSpec.definitions,
 			};
-			done();
 		});
-	});
 
-	before(function (done) {
 		modulesLoader.scope.nonce = NONCE;
-		new PeersRewired(function (err, peersModule) {
+		new PeersRewired((err, peersModule) => {
 			peers = peersModule;
 			peers.onBind(modules);
 			done();
-		}, _.assign({}, modulesLoader.scope, {logic: {peers: peersLogicMock}, db: dbMock}));
+		}, _.assign({}, modulesLoader.scope, { logic: { peers: peersLogicMock }, db: dbMock }));
 	});
 
-	describe('list', function () {
-
-		var listError;
+	describe('list', () => {
 		var listResult;
 		var validOptions;
 		var randomPeers;
 
-		before(function () {
+		before(() => {
 			validOptions = {};
 			// Set TEST variable in case public ip address gets generated
 			process.env['NODE_ENV'] = 'TEST';
 		});
 
-		after(function () {
+		after(() => {
 			process.env['NODE_ENV'] = '';
 		});
 
-		beforeEach(function (done) {
-			peers.list(validOptions, function (err, peersResult) {
-				listError = err;
+		beforeEach(done => {
+			peers.list(validOptions, (err, peersResult) => {
 				listResult = peersResult;
 				done();
 			});
 		});
 
-		describe('when logic.peers.list returns no records', function () {
-
-			before(function () {
+		describe('when logic.peers.list returns no records', () => {
+			before(() => {
 				systemModuleMock.getBroadhash = sinonSandbox.stub().returns();
 				peersLogicMock.list = sinonSandbox.stub().returns([]);
 			});
 
-			it('should return an empty array', function () {
+			it('should return an empty array', () => {
 				expect(listResult).to.be.an('array').and.to.be.empty;
 			});
 		});
 
-		describe('when logic.peers.list returns 1000 random connected peers', function () {
-
-			before(function () {
-				randomPeers = _.range(1000).map(function () {
+		describe('when logic.peers.list returns 1000 random connected peers', () => {
+			before(() => {
+				randomPeers = _.range(1000).map(() => {
 					return generateRandomActivePeer();
 				});
 				peersLogicMock.list = sinonSandbox.stub().returns(randomPeers);
 			});
 
-			it('should return all 1000 peers', function () {
-				expect(listResult).be.an('array').and.have.lengthOf(100);
+			it('should return all 1000 peers', () => {
+				expect(listResult)
+					.be.an('array')
+					.and.have.lengthOf(100);
 			});
 
-			describe('options.limit', function () {
-
-				describe('when options.limit < 1000', function () {
-
+			describe('options.limit', () => {
+				describe('when options.limit < 1000', () => {
 					var validLimit;
 
-					before(function () {
+					before(() => {
 						validLimit = random.number(1, 1000);
 						validOptions.limit = validLimit;
 					});
 
-					after(function () {
+					after(() => {
 						delete validOptions.limit;
 					});
 
-					it('should return up to [options.limit] results', function () {
-						expect(listResult).be.an('array').and.have.lengthOf(validLimit);
+					it('should return up to [options.limit] results', () => {
+						expect(listResult)
+							.be.an('array')
+							.and.have.lengthOf(validLimit);
 					});
 				});
 
-				describe('when no options.limit passed', function () {
-
-					it('should return [constants.maxPeers] results', function () {
-						expect(listResult).be.an('array').and.have.lengthOf(constants.maxPeers);
+				describe('when no options.limit passed', () => {
+					it('should return [constants.maxPeers] results', () => {
+						expect(listResult)
+							.be.an('array')
+							.and.have.lengthOf(constants.maxPeers);
 					});
 				});
 			});
 
-			describe('options.broadhash', function () {
-
-				describe('when 250 peers matching and 750 not matching broadhash', function () {
-
+			describe('options.broadhash', () => {
+				describe('when 250 peers matching and 750 not matching broadhash', () => {
 					var validBroadhash;
 					var validLimit;
 
-					before(function () {
+					before(() => {
 						// Ensure that different than checking broadhashes will be generated
 						var broadhashes = generateMatchedAndUnmatchedBroadhashes(750);
 						validBroadhash = broadhashes.matchedBroadhash;
 						validOptions.broadhash = validBroadhash;
 						// 250 peers matching broadhash, next 750 with different one
-						_.range(1000).forEach(function (i) {
-							randomPeers[i].broadhash = i < 250 ? validBroadhash : broadhashes.unmatchedBroadhashes[i];
+						_.range(1000).forEach(i => {
+							randomPeers[i].broadhash =
+								i < 250 ? validBroadhash : broadhashes.unmatchedBroadhashes[i];
 						});
 					});
 
-					after(function () {
+					after(() => {
 						delete validOptions.broadhash;
 						delete validOptions.limit;
 					});
 
-					describe('when options.limit = 100', function () {
-
-						before(function () {
+					describe('when options.limit = 100', () => {
+						before(() => {
 							validLimit = 100;
 							validOptions.limit = validLimit;
 						});
 
-						it('should return 100 results', function () {
-							expect(listResult).be.an('array').and.have.lengthOf(100);
+						it('should return 100 results', () => {
+							expect(listResult)
+								.be.an('array')
+								.and.have.lengthOf(100);
 						});
 
-						it('should return 100 results with the same broadhash', function () {
-							expect(listResult.filter(function (peer) {
-								return peer.broadhash === validBroadhash;
-							})).be.an('array').and.have.lengthOf(100);
+						it('should return 100 results with the same broadhash', () => {
+							expect(
+								listResult.filter(peer => {
+									return peer.broadhash === validBroadhash;
+								})
+							)
+								.be.an('array')
+								.and.have.lengthOf(100);
 						});
 					});
 
-					describe('when options.limit = 500', function () {
-
-						before(function () {
+					describe('when options.limit = 500', () => {
+						before(() => {
 							validLimit = 500;
 							validOptions.limit = validLimit;
 						});
 
-						it('should return 500 results', function () {
-							expect(listResult).be.an('array').and.have.lengthOf(500);
+						it('should return 500 results', () => {
+							expect(listResult)
+								.be.an('array')
+								.and.have.lengthOf(500);
 						});
 
-						it('should return 250 results with the same broadhash', function () {
-							expect(listResult.filter(function (peer) {
-								return peer.broadhash === validBroadhash;
-							})).be.an('array').and.have.lengthOf(250);
+						it('should return 250 results with the same broadhash', () => {
+							expect(
+								listResult.filter(peer => {
+									return peer.broadhash === validBroadhash;
+								})
+							)
+								.be.an('array')
+								.and.have.lengthOf(250);
 						});
 
-						it('should return 250 results with different broadhash', function () {
-							expect(listResult.filter(function (peer) {
-								return peer.broadhash !== validBroadhash;
-							})).be.an('array').and.have.lengthOf(250);
+						it('should return 250 results with different broadhash', () => {
+							expect(
+								listResult.filter(peer => {
+									return peer.broadhash !== validBroadhash;
+								})
+							)
+								.be.an('array')
+								.and.have.lengthOf(250);
 						});
 
-						describe('options.attempt', function () {
-
-							after(function () {
+						describe('options.attempt', () => {
+							after(() => {
 								delete validOptions.attempt;
 							});
 
-							describe('when options.attempt = 0', function () {
-
-								before(function () {
+							describe('when options.attempt = 0', () => {
+								before(() => {
 									validOptions.attempt = 0;
 								});
 
-								it('should return 250 results', function () {
+								it('should return 250 results', () => {
 									expect(listResult).to.have.lengthOf(250);
 								});
 
-								it('should return only peers matching broadhash', function () {
-									listResult.forEach(function (peer) {
+								it('should return only peers matching broadhash', () => {
+									listResult.forEach(peer => {
 										expect(peer.broadhash).eql(validBroadhash);
 									});
 								});
 							});
 
-							describe('when options.attempt = 1', function () {
-
-								before(function () {
+							describe('when options.attempt = 1', () => {
+								before(() => {
 									validOptions.attempt = 1;
 								});
 
-								it('should return 500 results', function () {
+								it('should return 500 results', () => {
 									expect(listResult).to.have.lengthOf(500);
 								});
 
-								it('should return only peers not matching broadhash', function () {
-									listResult.forEach(function (peer) {
+								it('should return only peers not matching broadhash', () => {
+									listResult.forEach(peer => {
 										expect(peer.broadhash).not.eql(validBroadhash);
 									});
 								});
@@ -264,26 +268,25 @@ describe('peers', function () {
 					});
 				});
 
-				describe('when no options.limit passed', function () {
-
-					it('should return [constants.maxPeers] results', function () {
-						expect(listResult).be.an('array').and.have.lengthOf(constants.maxPeers);
+				describe('when no options.limit passed', () => {
+					it('should return [constants.maxPeers] results', () => {
+						expect(listResult)
+							.be.an('array')
+							.and.have.lengthOf(constants.maxPeers);
 					});
 				});
 			});
 		});
 
-		describe('when logic.peers.list returns 1000 random state peers and limit = 1000', function () {
-
-			describe('options.allowedStates', function () {
-
+		describe('when logic.peers.list returns 1000 random state peers and limit = 1000', () => {
+			describe('options.allowedStates', () => {
 				var CONNECTED_STATE = 2;
 				var BANNED_STATE = 1;
 				var DISCONNECTED_STATE = 0;
 
-				before(function () {
+				before(() => {
 					validOptions.limit = 1000;
-					randomPeers = _.range(1000).map(function () {
+					randomPeers = _.range(1000).map(() => {
 						var peer = generateRandomActivePeer();
 						peer.state = random.number(DISCONNECTED_STATE, CONNECTED_STATE + 1);
 						return peer;
@@ -291,60 +294,65 @@ describe('peers', function () {
 					peersLogicMock.list = sinonSandbox.stub().returns(randomPeers);
 				});
 
-				after(function () {
+				after(() => {
 					delete validOptions.limit;
 				});
 
-				it('should return only connected peers', function () {
-					expect(_.uniqBy(listResult, 'state')).be.an('array').and.have.lengthOf(1);
+				it('should return only connected peers', () => {
+					expect(_.uniqBy(listResult, 'state'))
+						.be.an('array')
+						.and.have.lengthOf(1);
 					expect(listResult[0].state).equal(CONNECTED_STATE);
 				});
 
-				describe('when options.allowedStates = [1]', function () {
-
-					before(function () {
+				describe('when options.allowedStates = [1]', () => {
+					before(() => {
 						validOptions.allowedStates = [1];
 					});
 
-					after(function () {
+					after(() => {
 						delete validOptions.allowedStates;
 					});
 
-					it('should return only banned peers', function () {
-						expect(_.uniqBy(listResult, 'state')).be.an('array').and.have.lengthOf(1);
+					it('should return only banned peers', () => {
+						expect(_.uniqBy(listResult, 'state'))
+							.be.an('array')
+							.and.have.lengthOf(1);
 						expect(listResult[0].state).equal(BANNED_STATE);
 					});
 				});
 
-				describe('when options.allowedStates = [0]', function () {
-
-					before(function () {
+				describe('when options.allowedStates = [0]', () => {
+					before(() => {
 						validOptions.allowedStates = [0];
 					});
 
-					after(function () {
+					after(() => {
 						delete validOptions.allowedStates;
 					});
 
-					it('should return only disconnected peers', function () {
-						expect(_.uniqBy(listResult, 'state')).be.an('array').and.have.lengthOf(1);
+					it('should return only disconnected peers', () => {
+						expect(_.uniqBy(listResult, 'state'))
+							.be.an('array')
+							.and.have.lengthOf(1);
 						expect(listResult[0].state).equal(DISCONNECTED_STATE);
 					});
 				});
 
-				describe('when options.allowedStates = [0, 1]', function () {
-
-					before(function () {
+				describe('when options.allowedStates = [0, 1]', () => {
+					before(() => {
 						validOptions.allowedStates = [0, 1];
 					});
 
-					after(function () {
+					after(() => {
 						delete validOptions.allowedStates;
 					});
 
-					it('should return disconnected and banned peers', function () {
-						expect(_.uniqBy(listResult, 'state')).be.an('array').and.have.length.at.least(1);
-						listResult.forEach(function (state) {
+					it('should return disconnected and banned peers', () => {
+						expect(_.uniqBy(listResult, 'state'))
+							.be.an('array')
+							.and.have.length.at.least(1);
+						listResult.forEach(state => {
 							expect(state).not.to.equal(CONNECTED_STATE);
 						});
 					});
@@ -353,117 +361,131 @@ describe('peers', function () {
 		});
 	});
 
-	describe('update', function () {
-
+	describe('update', () => {
 		var validPeer;
 		var updateResult;
 		var validUpsertResult;
 
-		before(function () {
+		before(() => {
 			validUpsertResult = true;
 			validPeer = generateRandomActivePeer();
 		});
 
-		beforeEach(function () {
+		beforeEach(() => {
 			peersLogicMock.upsert = sinonSandbox.stub().returns(validUpsertResult);
 			updateResult = peers.update(validPeer);
 		});
 
-		it('should call logic.peers.upsert', function () {
+		it('should call logic.peers.upsert', () => {
 			expect(peersLogicMock.upsert.calledOnce).to.be.true;
 		});
 
-		it('should call logic.peers.upsert with peer', function () {
+		it('should call logic.peers.upsert with peer', () => {
 			expect(peersLogicMock.upsert.calledWith(validPeer)).to.be.true;
 		});
 
-		it('should return library.logic.peers.upsert result', function () {
+		it('should return library.logic.peers.upsert result', () => {
 			expect(updateResult).equal(validUpsertResult);
 		});
 	});
 
-	describe('remove', function () {
-
+	describe('remove', () => {
 		var validPeer;
 		var removeResult;
 		var validLogicRemoveResult;
 
-		before(function () {
+		before(() => {
 			validLogicRemoveResult = true;
 			validPeer = generateRandomActivePeer();
 		});
 
-		beforeEach(function () {
-			peersLogicMock.remove = sinonSandbox.stub().returns(validLogicRemoveResult);
+		beforeEach(() => {
+			peersLogicMock.remove = sinonSandbox
+				.stub()
+				.returns(validLogicRemoveResult);
 			removeResult = peers.remove(validPeer);
 		});
 
-		describe('when removable peer is frozen', function () {
-
+		describe('when removable peer is frozen', () => {
 			var originalFrozenPeersList;
 			var loggerDebugSpy;
 
-			before(function () {
-				originalFrozenPeersList = _.assign({}, modulesLoader.scope.config.peers.list);
-				modulesLoader.scope.config.peers.list = [{
-					ip: validPeer.ip,
-					wsPort: validPeer.wsPort
-				}];
+			before(() => {
+				originalFrozenPeersList = _.assign(
+					{},
+					modulesLoader.scope.config.peers.list
+				);
+				modulesLoader.scope.config.peers.list = [
+					{
+						ip: validPeer.ip,
+						wsPort: validPeer.wsPort,
+					},
+				];
 				loggerDebugSpy = sinonSandbox.spy(modulesLoader.scope.logger, 'debug');
 			});
 
-			after(function () {
+			after(() => {
 				modulesLoader.scope.config.peers.list = originalFrozenPeersList;
 				loggerDebugSpy.restore();
 			});
 
-			it('should not call logic.peers.remove', function () {
+			it('should not call logic.peers.remove', () => {
 				expect(peersLogicMock.remove.called).to.be.false;
 			});
 
-			it('should call logger.debug with message = "Cannot remove frozen peer"', function () {
-				expect(loggerDebugSpy.calledWith('Cannot remove frozen peer')).to.be.true;
+			it('should call logger.debug with message = "Cannot remove frozen peer"', () => {
+				expect(loggerDebugSpy.calledWith('Cannot remove frozen peer')).to.be
+					.true;
 			});
 
-			it('should call logger.debug with message = [ip:port]', function () {
-				expect(loggerDebugSpy.args[0][1]).eql(validPeer.ip + ':' + validPeer.wsPort);
+			it('should call logger.debug with message = [ip:port]', () => {
+				expect(loggerDebugSpy.args[0][1]).eql(
+					`${validPeer.ip}:${validPeer.wsPort}`
+				);
 			});
 		});
 
-		describe('when removable peer is not frozen', function () {
-
-			it('should call logic.peers.remove', function () {
+		describe('when removable peer is not frozen', () => {
+			it('should call logic.peers.remove', () => {
 				expect(peersLogicMock.remove.calledOnce).to.be.true;
 			});
 
-			it('should call logic.peers.remove with object containing expected ip', function () {
-				expect(peersLogicMock.remove.calledWith(sinonSandbox.match({ip: validPeer.ip}))).to.be.true;
+			it('should call logic.peers.remove with object containing expected ip', () => {
+				expect(
+					peersLogicMock.remove.calledWith(
+						sinonSandbox.match({ ip: validPeer.ip })
+					)
+				).to.be.true;
 			});
 
-			it('should call logic.peers.remove with object containing expected port', function () {
-				expect(peersLogicMock.remove.calledWith(sinonSandbox.match({wsPort: validPeer.wsPort}))).to.be.true;
+			it('should call logic.peers.remove with object containing expected port', () => {
+				expect(
+					peersLogicMock.remove.calledWith(
+						sinonSandbox.match({ wsPort: validPeer.wsPort })
+					)
+				).to.be.true;
 			});
 
-			it('should return library.logic.peers.remove result', function () {
+			it('should return library.logic.peers.remove result', () => {
 				expect(removeResult).equal(validLogicRemoveResult);
 			});
 		});
 	});
 
-	describe('getLastConsensus', function () {
-
-		it('should return self.consensus value', function () {
-			expect(peers.getLastConsensus()).equal(PeersRewired.__get__('self.consensus'));
+	describe('getLastConsensus', () => {
+		it('should return self.consensus value', () => {
+			expect(peers.getLastConsensus()).equal(
+				PeersRewired.__get__('self.consensus')
+			);
 		});
 	});
 
-	describe('calculateConsensus', function () {
-
+	describe('calculateConsensus', () => {
 		var validActive;
 		var validMatched;
 		var calculateConsensusResult;
 
-		before(function () {
+		before(() => {
 			validActive = null;
 			validMatched = null;
 			calculateConsensusResult = null;
@@ -471,348 +493,356 @@ describe('peers', function () {
 			peersLogicMock.list = sinonSandbox.stub().returns([]);
 		});
 
-		beforeEach(function () {
-			calculateConsensusResult = peers.calculateConsensus(validActive, validMatched);
+		beforeEach(() => {
+			calculateConsensusResult = peers.calculateConsensus(
+				validActive,
+				validMatched
+			);
 		});
 
-		afterEach(function () {
+		afterEach(() => {
 			peersLogicMock.list.resetHistory();
 		});
 
-		before(function () {
-			peersLogicMock.list = sinonSandbox.stub().returns([]);
+		it('should set self.consensus value', () => {
+			expect(PeersRewired.__get__('self.consensus')).to.equal(
+				calculateConsensusResult
+			);
 		});
 
-		afterEach(function () {
-			peersLogicMock.list.resetHistory();
-		});
-
-		it('should set self.consensus value', function () {
-			expect(PeersRewired.__get__('self.consensus')).to.equal(calculateConsensusResult);
-		});
-
-		describe('when active peers not passed', function () {
-
-			it('should call logic.peers.list', function () {
+		describe('when active peers not passed', () => {
+			it('should call logic.peers.list', () => {
 				expect(peersLogicMock.list.called).to.be.true;
 			});
 
-			it('should call logic.peers.list with true', function () {
+			it('should call logic.peers.list with true', () => {
 				expect(peersLogicMock.list.calledWith(true)).to.be.true;
 			});
 
-			it('should return consensus as a number', function () {
+			it('should return consensus as a number', () => {
 				expect(calculateConsensusResult).to.be.a('number');
 			});
 
-			describe('when CONNECTED peers exists with matching broadhash', function () {
-
-				before(function () {
+			describe('when CONNECTED peers exists with matching broadhash', () => {
+				before(() => {
 					var connectedPeer = _.assign({}, prefixedPeer);
 					connectedPeer.state = Peer.STATE.CONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([connectedPeer]);
-					systemModuleMock.getBroadhash = sinonSandbox.stub().returns(connectedPeer.broadhash);
+					systemModuleMock.getBroadhash = sinonSandbox
+						.stub()
+						.returns(connectedPeer.broadhash);
 				});
 
-				it('should return consensus = 100', function () {
+				it('should return consensus = 100', () => {
 					expect(calculateConsensusResult).to.equal(100);
 				});
 			});
 
-			describe('when BANNED peers exists with matching broadhash', function () {
-
-				before(function () {
+			describe('when BANNED peers exists with matching broadhash', () => {
+				before(() => {
 					var bannedPeer = _.assign({}, prefixedPeer);
 					bannedPeer.state = Peer.STATE.BANNED;
 					peersLogicMock.list = sinonSandbox.stub().returns([bannedPeer]);
-					systemModuleMock.getBroadhash = sinonSandbox.stub().returns(bannedPeer.broadhash);
+					systemModuleMock.getBroadhash = sinonSandbox
+						.stub()
+						.returns(bannedPeer.broadhash);
 				});
 
-				it('should return consensus = 0', function () {
+				it('should return consensus = 0', () => {
 					expect(calculateConsensusResult).to.equal(0);
 				});
 			});
 
-			describe('when DISCONNECTED peers exists with matching broadhash', function () {
-
-				before(function () {
+			describe('when DISCONNECTED peers exists with matching broadhash', () => {
+				before(() => {
 					var disconnectedPeer = _.assign({}, prefixedPeer);
 					disconnectedPeer.state = Peer.STATE.DISCONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
-					systemModuleMock.getBroadhash = sinonSandbox.stub().returns(disconnectedPeer.broadhash);
+					systemModuleMock.getBroadhash = sinonSandbox
+						.stub()
+						.returns(disconnectedPeer.broadhash);
 				});
 
-				it('should return consensus = 0', function () {
+				it('should return consensus = 0', () => {
 					expect(calculateConsensusResult).to.equal(0);
 				});
 			});
 		});
 
-		describe('when matched peers not passed and there are 100 active peers', function () {
-
+		describe('when matched peers not passed and there are 100 active peers', () => {
 			var oneHundredActivePeers;
 			var broadhashes;
 
-			before(function () {
-				oneHundredActivePeers = _.range(100).map(function () {
+			before(() => {
+				oneHundredActivePeers = _.range(100).map(() => {
 					return generateRandomActivePeer();
 				});
 				broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
-				systemModuleMock.getBroadhash = sinonSandbox.stub().returns(broadhashes.matchedBroadhash);
+				systemModuleMock.getBroadhash = sinonSandbox
+					.stub()
+					.returns(broadhashes.matchedBroadhash);
 				validActive = oneHundredActivePeers;
 			});
 
-			afterEach(function () {
+			afterEach(() => {
 				peersLogicMock.list.resetHistory();
 			});
 
-			after(function () {
+			after(() => {
 				validActive = null;
 			});
 
-			describe('when non of active peers matches broadhash', function () {
-
-				before(function () {
-					oneHundredActivePeers.forEach(function (peer, index) {
+			describe('when non of active peers matches broadhash', () => {
+				before(() => {
+					oneHundredActivePeers.forEach((peer, index) => {
 						peer.broadhash = broadhashes.unmatchedBroadhashes[index];
 					});
 				});
 
-				it('should return consensus = 0', function () {
+				it('should return consensus = 0', () => {
 					expect(calculateConsensusResult).to.equal(0);
 				});
 			});
 
-			describe('when all of active peers matches broadhash', function () {
-
-				before(function () {
-					oneHundredActivePeers.forEach(function (peer) {
+			describe('when all of active peers matches broadhash', () => {
+				before(() => {
+					oneHundredActivePeers.forEach(peer => {
 						peer.broadhash = broadhashes.matchedBroadhash;
 					});
 				});
 
-				it('should return consensus = 100', function () {
+				it('should return consensus = 100', () => {
 					expect(calculateConsensusResult).equal(100);
 				});
 			});
 
-			describe('when half of active peers matches broadhash', function () {
-
-				before(function () {
-					oneHundredActivePeers.forEach(function (peer, i) {
-						peer.broadhash = i < 50 ? broadhashes.matchedBroadhash : broadhashes.unmatchedBroadhashes[i];
+			describe('when half of active peers matches broadhash', () => {
+				before(() => {
+					oneHundredActivePeers.forEach((peer, i) => {
+						peer.broadhash =
+							i < 50
+								? broadhashes.matchedBroadhash
+								: broadhashes.unmatchedBroadhashes[i];
 					});
 				});
 
-				it('should return consensus = 50', function () {
+				it('should return consensus = 50', () => {
 					expect(calculateConsensusResult).equal(50);
 				});
 			});
 		});
 
-		describe('when called with active and matched arguments', function () {
-
-			describe('when there are 10 active and 10 matched peers', function () {
-
-				before(function () {
+		describe('when called with active and matched arguments', () => {
+			describe('when there are 10 active and 10 matched peers', () => {
+				before(() => {
 					validActive = _.range(10).map(generateRandomActivePeer);
 					validMatched = _.range(10).map(generateRandomActivePeer);
 				});
 
-				it('should return consensus = 100', function () {
+				it('should return consensus = 100', () => {
 					expect(calculateConsensusResult).equal(100);
 				});
 			});
 
-			describe('when there are [constants.maxPeers] active and [constants.maxPeers] matched peers', function () {
-
-				before(function () {
-					validActive = _.range(constants.maxPeers).map(generateRandomActivePeer);
-					validMatched = _.range(constants.maxPeers).map(generateRandomActivePeer);
+			describe('when there are [constants.maxPeers] active and [constants.maxPeers] matched peers', () => {
+				before(() => {
+					validActive = _.range(constants.maxPeers).map(
+						generateRandomActivePeer
+					);
+					validMatched = _.range(constants.maxPeers).map(
+						generateRandomActivePeer
+					);
 				});
 
-				it('should return consensus = 100', function () {
+				it('should return consensus = 100', () => {
 					expect(calculateConsensusResult).equal(100);
 				});
 			});
 
-			describe('when there are [constants.maxPeers] x 10 active and [constants.maxPeers] matched peers', function () {
-
-				before(function () {
-					validActive = _.range(10 * constants.maxPeers).map(generateRandomActivePeer);
-					validMatched = _.range(constants.maxPeers).map(generateRandomActivePeer);
+			describe('when there are [constants.maxPeers] x 10 active and [constants.maxPeers] matched peers', () => {
+				before(() => {
+					validActive = _.range(10 * constants.maxPeers).map(
+						generateRandomActivePeer
+					);
+					validMatched = _.range(constants.maxPeers).map(
+						generateRandomActivePeer
+					);
 				});
 
-				it('should return consensus = 100', function () {
+				it('should return consensus = 100', () => {
 					expect(calculateConsensusResult).equal(100);
 				});
 			});
 
-			describe('when there are [constants.maxPeers] active and [constants.maxPeers] x 10 matched peers', function () {
-
-				before(function () {
-					validActive = _.range(constants.maxPeers).map(generateRandomActivePeer);
-					validMatched = _.range(10 * constants.maxPeers).map(generateRandomActivePeer);
+			describe('when there are [constants.maxPeers] active and [constants.maxPeers] x 10 matched peers', () => {
+				before(() => {
+					validActive = _.range(constants.maxPeers).map(
+						generateRandomActivePeer
+					);
+					validMatched = _.range(10 * constants.maxPeers).map(
+						generateRandomActivePeer
+					);
 				});
 
-				it('should return consensus = 100', function () {
+				it('should return consensus = 100', () => {
 					expect(calculateConsensusResult).equal(100);
 				});
 			});
 
-			describe('when there are 50 active and 100 matched peers', function () {
-
-				before(function () {
+			describe('when there are 50 active and 100 matched peers', () => {
+				before(() => {
 					validActive = _.range(50).map(generateRandomActivePeer);
 					validMatched = _.range(100).map(generateRandomActivePeer);
 				});
 
-				it('should return consensus = 100', function () {
+				it('should return consensus = 100', () => {
 					expect(calculateConsensusResult).equal(100);
 				});
 			});
 
-			describe('when there are 100 active and 50 matched peers', function () {
-
-				before(function () {
+			describe('when there are 100 active and 50 matched peers', () => {
+				before(() => {
 					validActive = _.range(100).map(generateRandomActivePeer);
 					validMatched = _.range(50).map(generateRandomActivePeer);
 				});
 
-				it('should return consensus = 50', function () {
+				it('should return consensus = 50', () => {
 					expect(calculateConsensusResult).equal(50);
 				});
 			});
 		});
 	});
 
-	describe('acceptable', function () {
-
-		before(function () {
+	describe('acceptable', () => {
+		before(() => {
 			systemModuleMock.getNonce = sinonSandbox.stub().returns(NONCE);
 			process.env['NODE_ENV'] = 'DEV';
 		});
 
-		it('should accept peer with public ip', function () {
-			expect(peers.acceptable([prefixedPeer])).that.is.an('array').and.to.deep.equal([prefixedPeer]);
+		it('should accept peer with public ip', () => {
+			expect(peers.acceptable([prefixedPeer]))
+				.that.is.an('array')
+				.and.to.deep.equal([prefixedPeer]);
 		});
 
-		it('should not accept peer with private ip', function () {
+		it('should not accept peer with private ip', () => {
 			var privatePeer = _.clone(prefixedPeer);
 			privatePeer.ip = '127.0.0.1';
-			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be.empty;
+			expect(peers.acceptable([privatePeer])).that.is.an('array').and.to.be
+				.empty;
 		});
 
-		it('should not accept peer with host\'s nonce', function () {
+		it("should not accept peer with host's nonce", () => {
 			var peer = _.clone(prefixedPeer);
 			peer.nonce = NONCE;
 			expect(peers.acceptable([peer])).that.is.an('array').and.to.be.empty;
 		});
 
-		it('should not accept peer with different ip but the same nonce', function () {
+		it('should not accept peer with different ip but the same nonce', () => {
 			process.env['NODE_ENV'] = 'TEST';
 			var meAsPeer = {
 				ip: '40.00.40.40',
 				wsPort: 4001,
-				nonce: NONCE
+				nonce: NONCE,
 			};
 			expect(peers.acceptable([meAsPeer])).that.is.an('array').and.to.be.empty;
 		});
 
-		after(function () {
+		after(() => {
 			process.env['NODE_ENV'] = 'TEST';
 		});
 	});
 
-	describe('onBlockchainReady', function () {
-
+	describe('onBlockchainReady', () => {
 		var originalPeersList;
 
-		beforeEach(function () {
+		beforeEach(() => {
 			originalPeersList = PeersRewired.__get__('library.config.peers.list');
 			PeersRewired.__set__('library.config.peers.list', []);
 			peersLogicMock.create = sinonSandbox.stub().returnsArg(0);
 			sinonSandbox.stub(peers, 'discover');
 		});
 
-		afterEach(function () {
+		afterEach(() => {
 			PeersRewired.__set__('library.config.peers.list', originalPeersList);
 			peers.discover.restore();
 		});
 
-		it('should update peers during onBlockchainReady', function (done) {
+		it('should update peers during onBlockchainReady', done => {
 			peers.onBlockchainReady();
-			setTimeout(function () {
+			setTimeout(() => {
 				expect(peers.discover.calledOnce).to.be.ok;
 				done();
 			}, 100);
 		});
 
-		it('should update peers list onBlockchainReady even if rpc.status call fails', function (done) {
+		it('should update peers list onBlockchainReady even if rpc.status call fails', done => {
 			var peerStub = {
 				rpc: {
-					status: sinonSandbox.stub().callsArgWith(0, 'Failed to get peer status')
+					status: sinonSandbox
+						.stub()
+						.callsArgWith(0, 'Failed to get peer status'),
 				},
-				applyHeaders: sinonSandbox.stub()
+				applyHeaders: sinonSandbox.stub(),
 			};
 
 			PeersRewired.__set__('library.config.peers.list', [peerStub]);
 			peersLogicMock.upsert = sinonSandbox.spy();
 
 			peers.onBlockchainReady();
-			setTimeout(function () {
+			setTimeout(() => {
 				expect(peersLogicMock.upsert.calledWith(peerStub, false)).to.be.true;
 				done();
 			}, 100);
 		});
 	});
 
-	describe('onPeersReady', function () {
-
-		before(function () {
+	describe('onPeersReady', () => {
+		before(() => {
 			peersLogicMock.list = sinonSandbox.stub().returns([]);
 			sinonSandbox.stub(peers, 'discover').callsArgWith(0, null);
 		});
 
-		after(function () {
+		after(() => {
 			peers.discover.restore();
 		});
 
-		it('should update peers during onBlockchainReady', function (done) {
+		it('should update peers during onBlockchainReady', done => {
 			peers.onPeersReady();
-			setTimeout(function () {
+			setTimeout(() => {
 				expect(peers.discover.calledOnce).to.be.ok;
 				done();
 			}, 100);
 		});
 	});
 
-	describe('discover', function () {
-
+	describe('discover', () => {
 		var randomPeerStub;
 		var revertPrivateStubs;
 
-		beforeEach(function () {
+		beforeEach(() => {
 			revertPrivateStubs = PeersRewired.__set__({
 				__private: {
-					updatePeerStatus: sinonSandbox.spy()
-				}
+					updatePeerStatus: sinonSandbox.spy(),
+				},
 			});
 			randomPeerStub = {
 				rpc: {
-					status: sinonSandbox.stub().callsArgWith(0, 'Failed to get peer status'),
-					list: sinonSandbox.spy()
-				}
+					status: sinonSandbox
+						.stub()
+						.callsArgWith(0, 'Failed to get peer status'),
+					list: sinonSandbox.spy(),
+				},
 			};
 			peers.list = sinonSandbox.stub().callsArgWith(1, null, [randomPeerStub]);
 		});
 
-		afterEach(function () {
+		afterEach(() => {
 			revertPrivateStubs();
 		});
 
-		it('should not call randomPeer.rpc.list if randomPeer.rpc.status operation has failed', function (done) {
-			peers.discover(function (err) {
+		it('should not call randomPeer.rpc.list if randomPeer.rpc.status operation has failed', done => {
+			peers.discover(err => {
 				expect(err).to.equal('Failed to get peer status');
 				expect(randomPeerStub.rpc.list.called).to.be.false;
 				done();

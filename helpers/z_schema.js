@@ -43,41 +43,41 @@ var FormatValidators = require('z-schema/src/FormatValidators');
 var constants = require('./constants');
 
 var liskFormats = {
-	id: function (str) {
+	id: function(str) {
 		return str === '' || /^[0-9]+$/g.test(str);
 	},
 
-	additionalData: function (str) {
-		if (typeof(str) !== 'string') {
+	additionalData: function(str) {
+		if (typeof str !== 'string') {
 			return false;
 		}
 
 		return Buffer.from(str).length <= constants.additionalData.maxLength;
 	},
 
-	address: function (str) {
-		return str === '' || /^[0-9]+L$/ig.test(str);
+	address: function(str) {
+		return str === '' || /^[0-9]+L$/gi.test(str);
 	},
 
-	username: function (str) {
-		if (typeof(str) !== 'string') {
+	username: function(str) {
+		if (typeof str !== 'string') {
 			return false;
 		}
 
-		return /^[a-z0-9!@$&_.]*$/ig.test(str);
+		return /^[a-z0-9!@$&_.]*$/gi.test(str);
 	},
 
-	hex: function (str) {
+	hex: function(str) {
 		return str === '' || /^[a-f0-9]+$/i.test(str);
 	},
 
-	publicKey: function (str) {
+	publicKey: function(str) {
 		return str === '' || /^[a-f0-9]{64}$/i.test(str);
 	},
 
 	// Currently this allow empty values e.g. ',,,' or '' - is this correct?
-	csv: function (str) {
-		if (typeof(str) !== 'string') {
+	csv: function(str) {
+		if (typeof str !== 'string') {
 			return false;
 		}
 
@@ -90,12 +90,12 @@ var liskFormats = {
 		}
 	},
 
-	signature: function (str) {
+	signature: function(str) {
 		return str === '' || /^[a-f0-9]{128}$/i.test(str);
 	},
 
-	queryList: function (obj) {
-		if (obj == null || typeof(obj) !== 'object' || _.isArray(obj)) {
+	queryList: function(obj) {
+		if (obj == null || typeof obj !== 'object' || _.isArray(obj)) {
 			return false;
 		}
 
@@ -103,8 +103,8 @@ var liskFormats = {
 		return true;
 	},
 
-	delegatesList: function (obj) {
-		if (obj == null || typeof(obj) !== 'object' || _.isArray(obj)) {
+	delegatesList: function(obj) {
+		if (obj == null || typeof obj !== 'object' || _.isArray(obj)) {
 			return false;
 		}
 
@@ -112,34 +112,39 @@ var liskFormats = {
 		return true;
 	},
 
-	parsedInt: function (value) {
-		/*eslint-disable eqeqeq */
-		if (isNaN(value) || parseInt(value) != value || isNaN(parseInt(value, 10))) {
+	parsedInt: function(value) {
+		if (
+			isNaN(value) ||
+			parseInt(value) != value ||
+			isNaN(parseInt(value, 10))
+		) {
 			return false;
 		}
-		/*eslint-enable eqeqeq */
 		value = parseInt(value);
 		return true;
 	},
 
-	ip: function (str) {
+	ip: function(str) {
 		return ip.isV4Format(str);
 	},
 
-	os: function (str) {
-		if (typeof(str) !== 'string') {
+	os: function(str) {
+		if (typeof str !== 'string') {
 			return false;
 		}
 
-		return /^[a-z0-9-_.+]*$/ig.test(str);
+		return /^[a-z0-9-_.+]*$/gi.test(str);
 	},
 
-	version: function (str) {
-		return str === '' || /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str);
+	version: function(str) {
+		return (
+			str === '' ||
+			/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str)
+		);
 	},
 
-	ipOrFQDN: function (str) {
-		if (typeof(str) !== 'string') {
+	ipOrFQDN: function(str) {
+		if (typeof str !== 'string') {
 			return false;
 		}
 
@@ -148,7 +153,7 @@ var liskFormats = {
 };
 
 // Register the formats
-Object.keys(liskFormats).forEach(function (formatName) {
+Object.keys(liskFormats).forEach(formatName => {
 	z_schema.registerFormat(formatName, liskFormats[formatName]);
 });
 

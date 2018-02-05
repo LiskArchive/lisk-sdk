@@ -13,12 +13,9 @@
  */
 'use strict';
 
-describe('voters', function () {
-
-	describe('constructor', function () {
-
-		describe('library', function () {
-
+describe('voters', () => {
+	describe('constructor', () => {
+		describe('library', () => {
 			it('should assign db');
 
 			it('should assign logger');
@@ -31,61 +28,61 @@ describe('voters', function () {
 		it('should call callback with result as a Voters instance');
 	});
 
-	describe('private', function () {
-
-		describe('getDelegate', function () {
-
+	describe('private', () => {
+		describe('getDelegate', () => {
 			it('should call modules.accounts.getAccount');
 
 			it('should call modules.accounts.getAccount with query');
 
-			it('should call modules.accounts.getAccount with ["publicKey", "address", "balance"]');
+			it(
+				'should call modules.accounts.getAccount with ["publicKey", "address", "balance"]'
+			);
 		});
 
-		describe('populateVoters', function () {
-
+		describe('populateVoters', () => {
 			it('should call modules.accounts.getAccounts');
 
-			it('should call modules.accounts.getAccounts with {address: {$in: addresses}}');
+			it(
+				'should call modules.accounts.getAccounts with {address: {$in: addresses}}'
+			);
 
-			it('should call modules.accounts.getAccounts with ["address", "balance", "username", "publicKey"]');
+			it(
+				'should call modules.accounts.getAccounts with ["address", "balance", "username", "publicKey"]'
+			);
 		});
 
-		describe('getVotersForDelegates', function () {
-
-			describe('when delegate is not defined', function () {
-
-				it('should call callback with error containing message = "No data returned"');
+		describe('getVotersForDelegates', () => {
+			describe('when delegate is not defined', () => {
+				it(
+					'should call callback with error containing message = "No data returned"'
+				);
 			});
 
-			describe('when delegate is defined', function () {
-
+			describe('when delegate is defined', () => {
 				it('should call library.db.one');
 
 				it('should call library.db.one with sql.getVoters');
 
 				it('should call library.db.one with {publicKey: delegate.publicKey}');
 
-				describe('when library.db.one fails', function () {
-
+				describe('when library.db.one fails', () => {
 					it('should call library.logger.error');
 
 					it('should call library.logger.error with err.stack');
 
-					it('should call callback with error = "Failed to get voters for delegate: ${delegate.publicKey}"');
+					it(
+						'should call callback with error = "Failed to get voters for delegate: ${delegate.publicKey}"'
+					);
 				});
 
-				describe('when library.db.one succeeds with row', function () {
-
+				describe('when library.db.one succeeds with row', () => {
 					it('should call callback with error = null');
 
-					describe('when row.accountIds exists', function () {
-
+					describe('when row.accountIds exists', () => {
 						it('should call callback with result = row.accountIds');
 					});
 
-					describe('when row.accountIds does not exist', function () {
-
+					describe('when row.accountIds does not exist', () => {
 						it('should call callback with result = []');
 					});
 				});
@@ -93,15 +90,14 @@ describe('voters', function () {
 		});
 	});
 
-	describe('shared', function () {
-
-		describe('getVoters', function () {
-
-			describe('when loaded = false', function () {
-
+	describe('shared', () => {
+		describe('getVoters', () => {
+			describe('when loaded = false', () => {
 				it('should call callback with ApiError');
 
-				it('should call callback with ApiError containing message = "Blockchain is loading"');
+				it(
+					'should call callback with ApiError containing message = "Blockchain is loading"'
+				);
 
 				it('should call callback with ApiError instance containing code = 500');
 			});
@@ -112,8 +108,7 @@ describe('voters', function () {
 
 			it('should call library.schema.validate with schema.getVoters');
 
-			describe('when library.schema.validate fails', function () {
-
+			describe('when library.schema.validate fails', () => {
 				it('should call callback with ApiError');
 
 				it('should call callback with ApiError error message');
@@ -121,22 +116,20 @@ describe('voters', function () {
 				it('should call callback with ApiError containing code = 400');
 			});
 
-			describe('when library.schema.validate succeeds', function () {
-
-				var expectErrorResponse = function (error) {
-
-					describe('when err.message = "No data returned"', function () {
-
+			describe('when library.schema.validate succeeds', () => {
+				var expectErrorResponse = function(error) {
+					describe('when err.message = "No data returned"', () => {
 						it('should call callback with error = null');
 
-						it('should call callback with result containing message = "No data returned"');
+						it(
+							'should call callback with result containing message = "No data returned"'
+						);
 					});
 
-					describe('when err.message != "No data returned"', function () {
-
+					describe('when err.message != "No data returned"', () => {
 						it('should call callback with ApiError');
 
-						it('should call callback with ApiError error = ' + error);
+						it(`should call callback with ApiError error = ${error}`);
 
 						it('should call callback with ApiError containing code = 500');
 					});
@@ -146,46 +139,38 @@ describe('voters', function () {
 
 				it('should call getDelegate with req.body');
 
-				describe('when getDelegate fails', function () {
-
+				describe('when getDelegate fails', () => {
 					expectErrorResponse('getDelegate error');
 				});
 
-				describe('when getDelegate succeeds with delegate', function () {
-
+				describe('when getDelegate succeeds with delegate', () => {
 					it('should call getVotersForDelegates');
 
 					it('should call getVotersForDelegates with delegate');
 
-					describe('when getVotersForDelegates fails', function () {
-
+					describe('when getVotersForDelegates fails', () => {
 						expectErrorResponse('getVotersForDelegates error');
 					});
 
-					describe('when getVotersForDelegates succeeds with addresses', function () {
-
+					describe('when getVotersForDelegates succeeds with addresses', () => {
 						it('should call populateVoters');
 
 						it('should call populateVoters with addresses');
 
-						describe('when populateVoters fails', function () {
-
+						describe('when populateVoters fails', () => {
 							expectErrorResponse('getVotersForDelegates error');
 						});
 
-						describe('when populateVoters succeeds with addresses', function () {
-
+						describe('when populateVoters succeeds with addresses', () => {
 							it('should call populateVoters');
 
 							it('should call populateVoters with addresses');
 
-							describe('when populateVoters fails', function () {
-
+							describe('when populateVoters fails', () => {
 								expectErrorResponse('populateVoters error');
 							});
 
-							describe('when populateVoters succeeds with voters', function () {
-
+							describe('when populateVoters succeeds with voters', () => {
 								it('should call callback with error = null');
 
 								it('should call callback with result containing publicKey');
@@ -194,22 +179,28 @@ describe('voters', function () {
 
 								it('should call callback with result containing balance');
 
-								describe('when voters = []', function () {
-
+								describe('when voters = []', () => {
 									it('should call callback with result containing voters = []');
 
 									it('should call callback with result containing votes = 0');
 								});
 
-								describe('when voters is an array with result', function () {
+								describe('when voters is an array with result', () => {
+									it(
+										'should call callback with result containing voters.0.address'
+									);
 
-									it('should call callback with result containing voters.0.address');
+									it(
+										'should call callback with result containing voters.0.balance'
+									);
 
-									it('should call callback with result containing voters.0.balance');
+									it(
+										'should call callback with result containing voters.0.username'
+									);
 
-									it('should call callback with result containing voters.0.username');
-
-									it('should call callback with result containing voters.0.publicKey');
+									it(
+										'should call callback with result containing voters.0.publicKey'
+									);
 
 									it('should call callback with result containing votes = 1');
 								});
@@ -221,10 +212,8 @@ describe('voters', function () {
 		});
 	});
 
-	describe('onBind', function () {
-
-		describe('modules', function () {
-
+	describe('onBind', () => {
+		describe('modules', () => {
 			it('should assign accounts');
 		});
 

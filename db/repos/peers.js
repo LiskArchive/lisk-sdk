@@ -27,18 +27,27 @@ const cs = {}; // Reusable ColumnSet objects
  * @return {PeersRepository}
  */
 class PeersRepository {
-
-	constructor (db, pgp) {
+	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 
 		if (!cs.insert) {
-			cs.insert = new pgp.helpers.ColumnSet([
-				'ip', 'wsPort', 'state', 'height', 'os', 'version', 'clock',
-				{
-					name: 'broadhash', init: c => c.value ? Buffer.from(c.value, 'hex') : null
-				}
-			], {table: 'peers'});
+			cs.insert = new pgp.helpers.ColumnSet(
+				[
+					'ip',
+					'wsPort',
+					'state',
+					'height',
+					'os',
+					'version',
+					'clock',
+					{
+						name: 'broadhash',
+						init: c => (c.value ? Buffer.from(c.value, 'hex') : null),
+					},
+				],
+				{ table: 'peers' }
+			);
 		}
 	}
 
@@ -46,7 +55,7 @@ class PeersRepository {
 	 * Gets all peers from database
 	 * @return {Promise<[]>}
 	 */
-	list () {
+	list() {
 		return this.db.any(sql.list);
 	}
 
@@ -54,7 +63,7 @@ class PeersRepository {
 	 * Clears all peers from database
 	 * @return {Promise<null>}
 	 */
-	clear () {
+	clear() {
 		return this.db.none(sql.clear);
 	}
 
@@ -64,10 +73,9 @@ class PeersRepository {
 	 * @param {Array<Object>} peers - Array of peer objects to be inserted.
 	 * @return {Promise<null>}
 	 */
-	insert (peers) {
+	insert(peers) {
 		return this.db.none(this.pgp.helpers.insert(peers, cs.insert));
 	}
-
 }
 
 module.exports = PeersRepository;

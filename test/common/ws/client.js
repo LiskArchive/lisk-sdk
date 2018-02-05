@@ -15,8 +15,6 @@
 
 var scClient = require('socketcluster-client');
 var Promise = require('bluebird');
-var randomstring = require('randomstring');
-
 var testConfig = require('../../data/config.json');
 
 /**
@@ -27,9 +25,8 @@ var testConfig = require('../../data/config.json');
  * @param {object} handlers - object containing callback handlers for native socket client
  * @constructor
  */
-function WSClient (headers, handlers) {
-
-	var handlers = handlers || {};
+function WSClient(headers, handlers) {
+	handlers = handlers || {};
 
 	this.id = null;
 	this.headers = headers;
@@ -44,11 +41,13 @@ function WSClient (headers, handlers) {
 		ackTimeout: 1000,
 		pingTimeout: 1000,
 		connectAttempts: 1,
-		autoReconnect: false
+		autoReconnect: false,
 	};
 	this.client = null;
 
-	this.getHandlers = function () { return handlers; };
+	this.getHandlers = function() {
+		return handlers;
+	};
 }
 
 /**
@@ -56,54 +55,54 @@ function WSClient (headers, handlers) {
  *
  * @return {Promise}
  */
-WSClient.prototype.start = function () {
+WSClient.prototype.start = function() {
 	var self = this;
 
-	return new Promise(function (resolve, reject) {
+	return new Promise(function(resolve, reject) {
 		self.client = scClient.connect(self.socketOptions);
 
-		self.client.on('connecting', function () {
+		self.client.on('connecting', function() {
 			console.log('Client Socket: Connecting...');
 		});
 
-		self.client.on('connect', function (data) {
+		self.client.on('connect', function(data) {
 			self.id = data.id;
 			console.log('Client Socket: Connected... id: ', self.id);
 			resolve(data);
 		});
 
-		self.client.on('close', function (err) {
+		self.client.on('close', function() {
 			reject();
 		});
 
-		self.client.on('error', function (err) {
+		self.client.on('error', function() {
 			reject();
 		});
 
-		self.client.on('disconnect', function (err) {
+		self.client.on('disconnect', function() {
 			self.stop();
 		});
 
-		self.client.on('connectAbort', function (err) {
+		self.client.on('connectAbort', function() {
 			self.stop();
 		});
 
-		self.client.on('fail', function (err) {
+		self.client.on('fail', function() {
 			self.stop();
 		});
 
-		Object.keys(self.getHandlers()).forEach(function (k) {
+		Object.keys(self.getHandlers()).forEach(function(k) {
 			self.client.on(k, self.getHandlers()[k]);
 		});
 
 		self.client.connect();
-	}).timeout(2000, 'Timeout: Can\'t connect.');
+	}).timeout(2000, "Timeout: Can't connect.");
 };
 
 /**
  * Stop the web socket client
  */
-WSClient.prototype.stop = function () {
+WSClient.prototype.stop = function() {
 	this.client.disconnect();
 };
 

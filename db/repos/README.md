@@ -1,5 +1,4 @@
-database repositories
----------------------
+## Database Repositories
 
 This folder contains one JavaScript file for each database repository.
 

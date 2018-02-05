@@ -13,37 +13,59 @@
  */
 'use strict';
 
-var async = require('async');
 var child_process = require('child_process');
+var async = require('async');
 
 module.exports = {
-
-	recreateDatabases: function (configurations, cb) {
-		async.forEachOf(configurations, function (configuration, index, eachCb) {
-			child_process.exec('dropdb ' + configuration.db.database + '; createdb ' + configuration.db.database, eachCb);
-		}, cb);
+	recreateDatabases: function(configurations, cb) {
+		async.forEachOf(
+			configurations,
+			(configuration, index, eachCb) => {
+				child_process.exec(
+					`dropdb ${configuration.db.database}; createdb ${
+						configuration.db.database
+					}`,
+					eachCb
+				);
+			},
+			cb
+		);
 	},
 
-	launchTestNodes: function (cb) {
-		child_process.exec('node_modules/.bin/pm2 start test/integration/pm2.integration.json', function (err) {
+	launchTestNodes: function(cb) {
+		child_process.exec(
+			'node_modules/.bin/pm2 start test/integration/pm2.integration.json',
+			err => {
+				return cb(err);
+			}
+		);
+	},
+
+	clearLogs: function(cb) {
+		child_process.exec('rm -rf test/integration/logs/*', err => {
 			return cb(err);
 		});
 	},
 
-	clearLogs: function (cb) {
-		child_process.exec('rm -rf test/integration/logs/*', function (err) {
-			return cb(err);
-		});
-	},
-
-	runMochaTests: function (testsPaths, cb) {
-		var child = child_process.spawn('node_modules/.bin/_mocha', ['--timeout', (8 * 60 * 1000).toString(), '--exit'].concat(testsPaths), {
-			cwd: __dirname + '/../../..'
-		});
+	runMochaTests: function(testsPaths, cb) {
+		var child = child_process.spawn(
+			'node_modules/.bin/_mocha',
+			[
+				'--timeout',
+				(8 * 60 * 1000).toString(),
+				'--exit',
+				'--require',
+				'./test/setup.js',
+			].concat(testsPaths),
+			{
+				cwd: `${__dirname}/../../..`,
+			}
+		);
 
 		child.stdout.pipe(process.stdout);
+		child.stderr.pipe(process.stderr);
 
-		child.on('close', function (code) {
+		child.on('close', code => {
 			if (code === 0) {
 				return cb();
 			} else {
@@ -51,19 +73,21 @@ module.exports = {
 			}
 		});
 
-		child.on('error', function (err) {
+		child.on('error', err => {
 			return cb(err);
 		});
 	},
 
-	killTestNodes: function (cb) {
-		child_process.exec('node_modules/.bin/pm2 kill', function (err) {
+	killTestNodes: function(cb) {
+		child_process.exec('node_modules/.bin/pm2 kill', err => {
 			if (err) {
-				console.warn('Failed to killed PM2 process. Please execute command "pm2 kill" manually');
+				console.warn(
+					'Failed to killed PM2 process. Please execute command "pm2 kill" manually'
+				);
 			} else {
 				console.info('PM2 process killed gracefully');
 			}
 			return cb();
 		});
-	}
+	},
 };

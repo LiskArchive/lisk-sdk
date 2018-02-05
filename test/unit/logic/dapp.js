@@ -11,36 +11,24 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-'use strict';/*eslint*/
+'use strict';
 
 var crypto = require('crypto');
-
 var rewire = require('rewire');
 var randomstring = require('randomstring');
-
-
-var ed = require('../../../helpers/ed');
 var modulesLoader = require('../../common/modules_loader.js');
-
 var randomUtil = require('../../common/utils/random');
-
-var Dapp = rewire('../../../logic/dapp.js');
 var constants = require('../../../helpers/constants');
-
 var typeRepresentatives = require('../../fixtures/types_representatives.js');
-
 var testData = require('./test_data/dapp.js');
 
-var validPassword = testData.validPassword;
+var Dapp = rewire('../../../logic/dapp.js');
 var validKeypair = testData.validKeypair;
-var senderHash = testData.senderHash;
-var senderKeypair = testData.senderKeypair;
 var validSender = testData.validSender;
 var validTransaction = testData.validTransaction;
 var rawValidTransaction = testData.rawValidTransaction;
 
-describe('dapp', function () {
-
+describe('dapp', () => {
 	var dapp;
 	var dbStub;
 
@@ -48,321 +36,351 @@ describe('dapp', function () {
 	var rawTransaction;
 	var sender;
 
-	beforeEach(function () {
+	beforeEach(() => {
 		dbStub = {
 			dapps: {
 				countByTransactionId: sinonSandbox.stub(),
 				countByOutTransactionId: sinonSandbox.stub(),
 				getExisting: sinonSandbox.stub(),
 				list: sinonSandbox.stub(),
-				getGenesis: sinonSandbox.stub()
-			}
+				getGenesis: sinonSandbox.stub(),
+			},
 		};
-		dapp = new Dapp(dbStub, modulesLoader.scope.logger, modulesLoader.scope.schema, modulesLoader.scope.network);
+		dapp = new Dapp(
+			dbStub,
+			modulesLoader.scope.logger,
+			modulesLoader.scope.schema,
+			modulesLoader.scope.network
+		);
 	});
 
-	afterEach(function () {
-		Object.keys(dbStub.dapps).forEach(function (key) {
+	afterEach(() => {
+		Object.keys(dbStub.dapps).forEach(key => {
 			dbStub.dapps[key].reset();
 		});
 	});
 
-	describe('with dummy data', function () {
-
-		beforeEach(function () {
+	describe('with dummy data', () => {
+		beforeEach(() => {
 			transaction = _.cloneDeep(validTransaction);
 			rawTransaction = _.cloneDeep(rawValidTransaction);
 			sender = _.cloneDeep(validSender);
 		});
 
-		describe('constructor', function () {
-
-			describe('private library object should be updated', function () {
-
+		describe('constructor', () => {
+			describe('private library object should be updated', () => {
 				var library;
 
-				beforeEach(function () {
-					new Dapp(dbStub, modulesLoader.scope.logger, modulesLoader.scope.schema, modulesLoader.scope.network);
-					library =Dapp.__get__('library');
+				beforeEach(() => {
+					new Dapp(
+						dbStub,
+						modulesLoader.scope.logger,
+						modulesLoader.scope.schema,
+						modulesLoader.scope.network
+					);
+					library = Dapp.__get__('library');
 				});
 
-				it('should attach dbStub', function () {
+				it('should attach dbStub', () => {
 					expect(library.db).to.eql(dbStub);
 				});
 
-				it('should attach dbStub', function () {
+				it('should attach dbStub', () => {
 					expect(library.schema).to.eql(modulesLoader.scope.schema);
 				});
 
-				it('should attach logger', function () {
+				it('should attach logger', () => {
 					expect(library.logger).to.eql(modulesLoader.scope.logger);
 				});
 
-				it('should attach logger', function () {
+				it('should attach logger', () => {
 					expect(library.network).to.eql(modulesLoader.scope.network);
 				});
 			});
 		});
 
-		describe('bind', function () {
-
-			it('should be okay with empty params', function () {
+		describe('bind', () => {
+			it('should be okay with empty params', () => {
 				dapp.bind();
 			});
 		});
 
-		describe('calculateFee', function () {
-
-			it('should return constants.fees.dappRegistration', function () {
-				expect(dapp.calculateFee(transaction)).to.equal(constants.fees.dappRegistration);
+		describe('calculateFee', () => {
+			it('should return constants.fees.dappRegistration', () => {
+				expect(dapp.calculateFee(transaction)).to.equal(
+					constants.fees.dappRegistration
+				);
 			});
 		});
 
-		describe('verify', function () {
-
-			describe('with invalid transaction', function () {
-
-				describe('when receipientId exists', function () {
-
-					it('should call callback with error = "Invalid recipient"', function (done) {
+		describe('verify', () => {
+			describe('with invalid transaction', () => {
+				describe('when receipientId exists', () => {
+					it('should call callback with error = "Invalid recipient"', done => {
 						transaction.recipientId = '4835566122337813671L';
 
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid recipient');
 							done();
 						});
 					});
 				});
 
-				describe('when amount is not equal to 0', function () {
-
-					it('should call callback with error = "Invalid transaction amount"', function (done) {
+				describe('when amount is not equal to 0', () => {
+					it('should call callback with error = "Invalid transaction amount"', done => {
 						transaction.amount = 1;
 
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid transaction amount');
 							done();
 						});
 					});
 				});
 
-				describe('when dapp cateogry is undefined', function () {
-
-					it('should call callback with error "Invalid application category"', function (done) {
+				describe('when dapp cateogry is undefined', () => {
+					it('should call callback with error "Invalid application category"', done => {
 						transaction.asset.dapp.category = undefined;
 
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid application category');
 							done();
 						});
 					});
 				});
 
-				describe('when dapp cateogry not found', function () {
-
-					it('should call callback with error "Application category not found"', function (done) {
+				describe('when dapp cateogry not found', () => {
+					it('should call callback with error "Application category not found"', done => {
 						transaction.asset.dapp.category = 9;
 
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Application category not found');
 							done();
 						});
 					});
 				});
 
-				describe('when dapp icon is not link', function () {
-
-					it('should call callback with error = "Invalid application icon link"', function (done) {
+				describe('when dapp icon is not link', () => {
+					it('should call callback with error = "Invalid application icon link"', done => {
 						transaction.asset.dapp.icon = 'random string';
 
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid application icon link');
 							done();
 						});
 					});
 				});
 
-				describe('when dapp icon link is invalid', function () {
+				describe('when dapp icon link is invalid', () => {
+					it('should call callback with error = "Invalid application icon file type"', done => {
+						transaction.asset.dapp.icon =
+							'https://www.youtube.com/watch?v=de1-igivvda';
 
-					it('should call callback with error = "Invalid application icon file type"', function (done) {
-						transaction.asset.dapp.icon = 'https://www.youtube.com/watch?v=de1-igivvda';
-
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid application icon file type');
 							done();
 						});
 					});
 				});
 
-				describe('when dapp type is invalid', function () {
-
-					it('should call callback with error = "Invalid application type"', function (done) {
+				describe('when dapp type is invalid', () => {
+					it('should call callback with error = "Invalid application type"', done => {
 						transaction.asset.dapp.type = -1;
 
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid application type');
 							done();
 						});
 					});
 				});
 
-				describe('when dapp link is not in a valid url format', function () {
-
-					it('should call callback with error = "Invalid application link"', function (done) {
+				describe('when dapp link is not in a valid url format', () => {
+					it('should call callback with error = "Invalid application link"', done => {
 						transaction.asset.dapp.link = 'random string';
 
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid application link');
 							done();
 						});
 					});
 				});
 
-				describe('when dapp link is invalid', function () {
+				describe('when dapp link is invalid', () => {
+					it('should call callback with error = "Invalid application file type"', done => {
+						transaction.asset.dapp.link =
+							'https://www.youtube.com/watch?v=de1-igivvda';
 
-					it('should call callback with error = "Invalid application file type"', function (done) {
-						transaction.asset.dapp.link = 'https://www.youtube.com/watch?v=de1-igivvda';
-
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Invalid application file type');
 							done();
 						});
 					});
 				});
 
-				describe('when dapp name is blank', function () {
-					it('should call callback with error = "Application name must not be blank"', function (done) {
+				describe('when dapp name is blank', () => {
+					it('should call callback with error = "Application name must not be blank"', done => {
 						transaction.asset.dapp.name = '  ';
 
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Application name must not be blank');
 							done();
 						});
 					});
 				});
 
-				describe('when dapp name starts and ends with space', function () {
-
-					it('should call callback with error = "Application name must not be blank"', function (done) {
+				describe('when dapp name starts and ends with space', () => {
+					it('should call callback with error = "Application name must not be blank"', done => {
 						transaction.asset.dapp.name = ' randomname ';
 
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Application name must not be blank');
 							done();
 						});
 					});
 				});
 
-				describe('when dapp name is longer than 32 characters', function () {
+				describe('when dapp name is longer than 32 characters', () => {
+					it('should call callback with error = "Application name is too long. Maximum is 32 characters"', done => {
+						transaction.asset.dapp.name = Array(...Array(33))
+							.map(() => {
+								return 'a';
+							})
+							.join('');
 
-					it('should call callback with error = "Application name is too long. Maximum is 32 characters"', function (done) {
-						transaction.asset.dapp.name = Array.apply(null, Array(33)).map(function () { return 'a';}).join('');
-
-						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application name is too long. Maximum is 32 characters');
+						dapp.verify(transaction, sender, err => {
+							expect(err).to.equal(
+								'Application name is too long. Maximum is 32 characters'
+							);
 							done();
 						});
 					});
 				});
 
-				describe('when dapp description is longer than 160 characters', function () {
+				describe('when dapp description is longer than 160 characters', () => {
+					it('should call callback with error = "Application description is too long. Maximum is 160 characters"', done => {
+						transaction.asset.dapp.description = Array(...Array(161))
+							.map(() => {
+								return 'a';
+							})
+							.join('');
 
-					it('should call callback with error = "Application description is too long. Maximum is 160 characters"', function (done) {
-						transaction.asset.dapp.description = Array.apply(null, Array(161)).map(function () { return 'a';}).join('');
-
-						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application description is too long. Maximum is 160 characters');
+						dapp.verify(transaction, sender, err => {
+							expect(err).to.equal(
+								'Application description is too long. Maximum is 160 characters'
+							);
 							done();
 						});
 					});
 				});
 
-				describe('when dapp tags are longer than 160 characters', function () {
+				describe('when dapp tags are longer than 160 characters', () => {
+					it('should call callback with error = "Application tags is too long. Maximum is 160 characters"', done => {
+						transaction.asset.dapp.tags = Array(...Array(161))
+							.map(() => {
+								return 'a';
+							})
+							.join('');
 
-					it('should call callback with error = "Application tags is too long. Maximum is 160 characters"', function (done) {
-						transaction.asset.dapp.tags = Array.apply(null, Array(161)).map(function () { return 'a';}).join('');
-
-						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application tags is too long. Maximum is 160 characters');
+						dapp.verify(transaction, sender, err => {
+							expect(err).to.equal(
+								'Application tags is too long. Maximum is 160 characters'
+							);
 							done();
 						});
 					});
 				});
 
-				describe('when dapp tags duplicate', function () {
+				describe('when dapp tags duplicate', () => {
+					it('should call callback with error = "Encountered duplicate tag: a in application"', done => {
+						transaction.asset.dapp.tags = Array(...Array(3))
+							.map(() => {
+								return 'a';
+							})
+							.join();
 
-					it('should call callback with error = "Encountered duplicate tag: a in application"', function (done) {
-						transaction.asset.dapp.tags = Array.apply(null, Array(3)).map(function () { return 'a';}).join(',');
-
-						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Encountered duplicate tag: a in application');
+						dapp.verify(transaction, sender, err => {
+							expect(err).to.equal(
+								'Encountered duplicate tag: a in application'
+							);
 							done();
 						});
 					});
 				});
 
-				describe('when dbStub rejects proimse', function () {
-
+				describe('when dbStub rejects proimse', () => {
 					var dbError = new Error();
 
-					it('should call callback with error = "DApp#verify error"', function (done) {
-						dbStub.dapps.getExisting.withArgs({
-							name: transaction.asset.dapp.name,
-							link: transaction.asset.dapp.link || null,
-							transactionId: transaction.id
-						}).rejects(dbError);
+					it('should call callback with error = "DApp#verify error"', done => {
+						dbStub.dapps.getExisting
+							.withArgs({
+								name: transaction.asset.dapp.name,
+								link: transaction.asset.dapp.link || null,
+								transactionId: transaction.id,
+							})
+							.rejects(dbError);
 
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('DApp#verify error');
 							done();
 						});
 					});
 				});
 
-				describe('when dbStub resolves with application', function () {
-
+				describe('when dbStub resolves with application', () => {
 					var dappParams;
 
-					beforeEach(function () {
+					beforeEach(() => {
 						dappParams = {
 							name: transaction.asset.dapp.name,
 							link: transaction.asset.dapp.link || null,
-							transactionId: transaction.id
+							transactionId: transaction.id,
 						};
 					});
 
 					// TODO: Some of the code these tests are testing is redundant. We should review and refactor it.
-					it('should call callback with error', function (done) {
-						dbStub.dapps.getExisting.withArgs(dappParams).resolves([{
-							name: transaction.asset.dapp.name
-						}]);
+					it('should call callback with error', done => {
+						dbStub.dapps.getExisting.withArgs(dappParams).resolves([
+							{
+								name: transaction.asset.dapp.name,
+							},
+						]);
 
-						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application name already exists: ' + transaction.asset.dapp.name);
+						dapp.verify(transaction, sender, err => {
+							expect(err).to.equal(
+								`Application name already exists: ${
+									transaction.asset.dapp.name
+								}`
+							);
 							done();
 						});
 					});
 
-					it('should call callback with error if application link already exists', function (done) {
+					it('should call callback with error if application link already exists', done => {
+						dbStub.dapps.getExisting.withArgs(dappParams).resolves([
+							{
+								link: transaction.asset.dapp.link,
+							},
+						]);
 
-						dbStub.dapps.getExisting.withArgs(dappParams).resolves([{
-							link: transaction.asset.dapp.link
-						}]);
-
-						dapp.verify(transaction, sender, function (err) {
-							expect(err).to.equal('Application link already exists: ' + transaction.asset.dapp.link);
+						dapp.verify(transaction, sender, err => {
+							expect(err).to.equal(
+								`Application link already exists: ${
+									transaction.asset.dapp.link
+								}`
+							);
 							done();
 						});
 					});
 
-					it('should call callback with error if application already exists', function (done) {
-						dbStub.dapps.getExisting.withArgs({
-							name: transaction.asset.dapp.name,
-							link: transaction.asset.dapp.link || null,
-							transactionId: transaction.id
-						}).resolves([{tags: 'a,b,c'}]);
+					it('should call callback with error if application already exists', done => {
+						dbStub.dapps.getExisting
+							.withArgs({
+								name: transaction.asset.dapp.name,
+								link: transaction.asset.dapp.link || null,
+								transactionId: transaction.id,
+							})
+							.resolves([{ tags: 'a,b,c' }]);
 
-						dapp.verify(transaction, sender, function (err) {
+						dapp.verify(transaction, sender, err => {
 							expect(err).to.equal('Application already exists');
 							done();
 						});
@@ -370,39 +388,42 @@ describe('dapp', function () {
 				});
 			});
 
-			describe('when transaction is valid', function (done) {
-
-				beforeEach(function () {
-					dbStub.dapps.getExisting.withArgs({
-						name: transaction.asset.dapp.name,
-						link: transaction.asset.dapp.link || null,
-						transactionId: transaction.id
-					}).resolves([]);
+			describe('when transaction is valid', () => {
+				beforeEach(() => {
+					dbStub.dapps.getExisting
+						.withArgs({
+							name: transaction.asset.dapp.name,
+							link: transaction.asset.dapp.link || null,
+							transactionId: transaction.id,
+						})
+						.resolves([]);
 				});
 
-				it('should call callback with error = null and transaction for valid transaction type', function (done) {
+				it('should call callback with error = null and transaction for valid transaction type', done => {
 					transaction.asset.dapp.type = 2;
 
-					dapp.verify(transaction, sender, function (err) {
+					dapp.verify(transaction, sender, err => {
 						expect(err).to.equal('Invalid application type');
 						done();
 					});
 				});
 
-				it('should call dbStub.query with correct params', function (done) {
-					dapp.verify(transaction, sender, function (err, res) {
+				it('should call dbStub.query with correct params', done => {
+					dapp.verify(transaction, sender, () => {
 						expect(dbStub.dapps.getExisting.calledOnce).to.equal(true);
-						expect(dbStub.dapps.getExisting.calledWithExactly({
-							name: transaction.asset.dapp.name,
-							link: transaction.asset.dapp.link || null,
-							transactionId: transaction.id
-						})).to.equal(true);
+						expect(
+							dbStub.dapps.getExisting.calledWithExactly({
+								name: transaction.asset.dapp.name,
+								link: transaction.asset.dapp.link || null,
+								transactionId: transaction.id,
+							})
+						).to.equal(true);
 						done();
 					});
 				});
 
-				it('should call callback with error = null and transaction', function (done) {
-					dapp.verify(transaction, sender, function (err, res) {
+				it('should call callback with error = null and transaction', done => {
+					dapp.verify(transaction, sender, (err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.eql(transaction);
 						done();
@@ -411,153 +432,142 @@ describe('dapp', function () {
 			});
 		});
 
-		describe('process', function () {
-
-			describe('with valid transaction', function () {
-
-				it('should call the callback with error = null', function (done) {
+		describe('process', () => {
+			describe('with valid transaction', () => {
+				it('should call the callback with error = null', done => {
 					dapp.process(transaction, sender, done);
 				});
 			});
 		});
 
-		describe('getBytes', function () {
-
-			describe('when transaction.asset.dapp = undefined', function () {
-
-				beforeEach(function () {
+		describe('getBytes', () => {
+			describe('when transaction.asset.dapp = undefined', () => {
+				beforeEach(() => {
 					transaction.asset.dapp = undefined;
 				});
 
-				it('should throw', function () {
+				it('should throw', () => {
 					expect(dapp.getBytes.bind(null, transaction)).to.throw();
 				});
 			});
 
-			describe('when transaction.asset.dapp.category = undefined', function () {
-
-				beforeEach(function () {
+			describe('when transaction.asset.dapp.category = undefined', () => {
+				beforeEach(() => {
 					transaction.asset.dapp.category = undefined;
 				});
 
-				it('should throw', function () {
+				it('should throw', () => {
 					expect(dapp.getBytes.bind(null, transaction)).to.throw();
 				});
 			});
 
-			describe('when transaction.asset.dapp.type = undefined', function () {
-
-				beforeEach(function () {
+			describe('when transaction.asset.dapp.type = undefined', () => {
+				beforeEach(() => {
 					transaction.asset.dapp.type = undefined;
 				});
 
-				it('should throw', function () {
+				it('should throw', () => {
 					expect(dapp.getBytes.bind(null, transaction)).to.throw();
 				});
 			});
 
-			describe('when transaction.asset.dapp is a valid asset', function () {
-
-				it('should not throw', function () {
+			describe('when transaction.asset.dapp is a valid asset', () => {
+				it('should not throw', () => {
 					expect(dapp.getBytes.bind(null, transaction)).not.to.throw();
 				});
 
-				it('should get bytes of valid transaction', function () {
-					expect(dapp.getBytes(transaction).toString('hex')).to.equal('414f37657a42313143674364555a69356f38597a784341746f524c41364669687474703a2f2f7777772e6c69736b2e696f2f414f37657a42313143674364555a69356f38597a784341746f524c413646692e7a69700100000002000000');
+				it('should get bytes of valid transaction', () => {
+					expect(dapp.getBytes(transaction).toString('hex')).to.equal(
+						'414f37657a42313143674364555a69356f38597a784341746f524c41364669687474703a2f2f7777772e6c69736b2e696f2f414f37657a42313143674364555a69356f38597a784341746f524c413646692e7a69700100000002000000'
+					);
 				});
 
-				it('should return result as a Buffer type', function () {
+				it('should return result as a Buffer type', () => {
 					expect(dapp.getBytes(transaction)).to.be.instanceOf(Buffer);
 				});
 			});
 		});
 
-		describe('apply', function () {
-
+		describe('apply', () => {
 			var dummyBlock = {
 				id: '9314232245035524467',
-				height: 1
+				height: 1,
 			};
 
 			var unconfirmedNames;
 			var unconfirmedLinks;
 
-			beforeEach(function () {
+			beforeEach(() => {
 				unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
 				unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
 			});
 
-			it('should update private unconfirmed name variable', function (done) {
-				dapp.apply(transaction, dummyBlock, sender, function (err, cb) {
+			it('should update private unconfirmed name variable', done => {
+				dapp.apply(transaction, dummyBlock, sender, () => {
 					expect(unconfirmedNames[transaction.asset.dapp.name]).to.not.exist;
 					done();
 				});
 			});
 
-			it('should update private unconfirmed links variable', function (done) {
-				dapp.apply(transaction, dummyBlock, sender, function (err, cb) {
+			it('should update private unconfirmed links variable', done => {
+				dapp.apply(transaction, dummyBlock, sender, () => {
 					expect(unconfirmedLinks[transaction.asset.dapp.link]).to.not.exist;
 					done();
 				});
 			});
 		});
 
-		describe('undo', function () {
-
-			describe('with vaid parameters', function () {
+		describe('undo', () => {
+			describe('with vaid parameters', () => {
 				var dummyBlock = {
 					id: '9314232245035524467',
-					height: 1
+					height: 1,
 				};
 
-				it('should call the callback function', function (done) {
+				it('should call the callback function', done => {
 					dapp.undo(transaction, dummyBlock, sender, done);
 				});
 			});
 		});
 
-		describe('applyUnconfirmed', function () {
-
-			describe('when unconfirmed names already exists', function () {
-
-				beforeEach(function () {
+		describe('applyUnconfirmed', () => {
+			describe('when unconfirmed names already exists', () => {
+				beforeEach(() => {
 					var dappNames = {};
 					dappNames[transaction.asset.dapp.name] = true;
 					Dapp.__set__('__private.unconfirmedNames', dappNames);
 					Dapp.__set__('__private.unconfirmedLinks', {});
 				});
 
-				it('should call callback with error', function (done) {
-					dapp.applyUnconfirmed(transaction, sender, function (err)  {
+				it('should call callback with error', done => {
+					dapp.applyUnconfirmed(transaction, sender, err => {
 						expect(err).to.equal('Application name already exists');
 						done();
 					});
 				});
 			});
 
-			describe('when unconfirmed link already exists', function () {
-
-				beforeEach(function () {
+			describe('when unconfirmed link already exists', () => {
+				beforeEach(() => {
 					var dappLinks = {};
 					dappLinks[transaction.asset.dapp.link] = true;
 					Dapp.__set__('__private.unconfirmedLinks', dappLinks);
 					Dapp.__set__('__private.unconfirmedNames', {});
 				});
 
-				it('should call callback with error', function (done) {
-					dapp.applyUnconfirmed(transaction, sender, function (err)  {
+				it('should call callback with error', done => {
+					dapp.applyUnconfirmed(transaction, sender, err => {
 						expect(err).to.equal('Application link already exists');
 						done();
 					});
 				});
 			});
 
-			describe('when unconfirmed dapp does not exist', function () {
-
+			describe('when unconfirmed dapp does not exist', () => {
 				var unconfirmedNames;
 				var unconfirmedLinks;
 
-				beforeEach(function () {
+				beforeEach(() => {
 					var dappNames = {};
 					var dappLinks = {};
 					Dapp.__set__('__private.unconfirmedLinks', dappLinks);
@@ -566,34 +576,37 @@ describe('dapp', function () {
 					unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
 				});
 
-				it('should update unconfirmed name private variable', function (done) {
-					dapp.applyUnconfirmed(transaction, sender, function () {
-						expect(unconfirmedNames[transaction.asset.dapp.name]).to.equal(true);
+				it('should update unconfirmed name private variable', done => {
+					dapp.applyUnconfirmed(transaction, sender, () => {
+						expect(unconfirmedNames[transaction.asset.dapp.name]).to.equal(
+							true
+						);
 						done();
 					});
 				});
 
-				it('should update unconfirmed link private variable', function (done) {
-					dapp.applyUnconfirmed(transaction, sender, function () {
-						expect(unconfirmedLinks[transaction.asset.dapp.link]).to.equal(true);
+				it('should update unconfirmed link private variable', done => {
+					dapp.applyUnconfirmed(transaction, sender, () => {
+						expect(unconfirmedLinks[transaction.asset.dapp.link]).to.equal(
+							true
+						);
 						done();
 					});
 				});
 
-				it('should call callback with error = undefined', function (done) {
-					dapp.applyUnconfirmed(transaction, sender, function () {
+				it('should call callback with error = undefined', done => {
+					dapp.applyUnconfirmed(transaction, sender, () => {
 						done();
 					});
 				});
 			});
 		});
 
-		describe('undoUnconfirmed', function () {
-
+		describe('undoUnconfirmed', () => {
 			var unconfirmedNames;
 			var unconfirmedLinks;
 
-			beforeEach(function () {
+			beforeEach(() => {
 				var dappNames = {};
 				var dappLinks = {};
 				Dapp.__set__('__private.unconfirmedLinks', dappLinks);
@@ -602,77 +615,81 @@ describe('dapp', function () {
 				unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
 			});
 
-			it('should delete unconfirmed name private variable', function (done) {
-				dapp.undoUnconfirmed(transaction, sender, function () {
+			it('should delete unconfirmed name private variable', done => {
+				dapp.undoUnconfirmed(transaction, sender, () => {
 					expect(unconfirmedNames[transaction.asset.dapp.name]).not.exist;
 					done();
 				});
 			});
 
-			it('should delete unconfirmed link private variable', function (done) {
-				dapp.undoUnconfirmed(transaction, sender, function () {
+			it('should delete unconfirmed link private variable', done => {
+				dapp.undoUnconfirmed(transaction, sender, () => {
 					expect(unconfirmedLinks[transaction.asset.dapp.link]).not.exist;
 					done();
 				});
 			});
 
-			it('should call callback with error = undefined', function (done) {
-				dapp.undoUnconfirmed(transaction, sender, function () {
+			it('should call callback with error = undefined', done => {
+				dapp.undoUnconfirmed(transaction, sender, () => {
 					done();
 				});
 			});
 		});
 
-		describe('objectNormalize', function () {
-
-			describe('using undefined properties in the dapp asset', function () {
-
+		describe('objectNormalize', () => {
+			describe('using undefined properties in the dapp asset', () => {
 				var invalidProperties = {
 					dummyUndefinedProperty: undefined,
-					dummpyNullProperty: null
+					dummpyNullProperty: null,
 				};
 
-				beforeEach(function () {
-					transaction.asset.dapp = _.assign(transaction.asset.dapp, invalidProperties);
+				beforeEach(() => {
+					transaction.asset.dapp = _.assign(
+						transaction.asset.dapp,
+						invalidProperties
+					);
 				});
 
-				it('should remove undefined properties', function () {
+				it('should remove undefined properties', () => {
 					transaction = dapp.objectNormalize(transaction);
 					expect(transaction).to.not.have.property('dummyUndefinedProperty');
 				});
 
-				it('should remove null properties', function () {
+				it('should remove null properties', () => {
 					transaction = dapp.objectNormalize(transaction);
 					expect(transaction).to.not.have.property('dummpyNullProperty');
 				});
 			});
 
-			describe('schema properties', function () {
-
+			describe('schema properties', () => {
 				var library;
 				var schemaSpy;
 
-				beforeEach(function () {
+				beforeEach(() => {
 					library = Dapp.__get__('library');
 					schemaSpy = sinonSandbox.spy(library.schema, 'validate');
 				});
 
-				afterEach(function () {
+				afterEach(() => {
 					schemaSpy.restore();
 				});
 
-				it('should use the correct format to validate against', function () {
+				it('should use the correct format to validate against', () => {
 					dapp.objectNormalize(transaction);
 					expect(schemaSpy.calledOnce).to.equal(true);
-					expect(schemaSpy.calledWithExactly(transaction.asset.dapp, Dapp.prototype.schema)).to.equal(true);
+					expect(
+						schemaSpy.calledWithExactly(
+							transaction.asset.dapp,
+							Dapp.prototype.schema
+						)
+					).to.equal(true);
 				});
 			});
 
-			describe('dynamic schema tests', function () {
-
-				describe('category', function () {
-
-					var invalidTypes = _.difference(typeRepresentatives.allTypes,
+			describe('dynamic schema tests', () => {
+				describe('category', () => {
+					var invalidTypes = _.difference(
+						typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
 						typeRepresentatives.negativeIntegers,
 						typeRepresentatives.others
@@ -683,357 +700,405 @@ describe('dapp', function () {
 					var invalidCategoriesNumber = [-1, -2, 0.1, 9, 10];
 					var validCategories = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
-					invalidTypes.forEach(function (type) {
-
-						it('should throw error for: ' + type.description, function () {
+					invalidTypes.forEach(type => {
+						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.category = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type integer but found type ' + type.expectation);
+							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+								`Failed to validate dapp schema: Expected type integer but found type ${
+									type.expectation
+								}`
+							);
 						});
 					});
 
-					otherTypes.forEach(function (type) {
-						it('should throw error for: ' + type.description, function () {
+					otherTypes.forEach(type => {
+						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.category = type.input;
 							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
 						});
 					});
 
-					invalidCategoriesNumber.forEach(function (input) {
-
-						it('should throw error for value: ' + input, function () {
+					invalidCategoriesNumber.forEach(input => {
+						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.category = input;
 							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
 						});
 					});
 
-					validCategories.forEach(function (input) {
-
-						it('should not throw error for valid value: ' + input, function () {
+					validCategories.forEach(input => {
+						it(`should not throw error for valid value: ${input}`, () => {
 							transaction.asset.dapp.category = input;
 							dapp.objectNormalize(transaction);
 						});
 					});
 				});
 
-				describe('name', function () {
-
-					var invalidTypes = _.difference(typeRepresentatives.allTypes,
+				describe('name', () => {
+					var invalidTypes = _.difference(
+						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
 
 					var otherTypes = typeRepresentatives.others;
 
-					var invalidNames = ['', _.fill(new Array(33), 'a'), _.fill(new Array(34), 'b')];
-					var validNames = _.fill(new Array(5), 'a').map(function () {
+					var invalidNames = [
+						'',
+						_.fill(new Array(33), 'a'),
+						_.fill(new Array(34), 'b'),
+					];
+					var validNames = _.fill(new Array(5), 'a').map(() => {
 						return randomUtil.applicationName();
 					});
 
-					invalidTypes.forEach(function (type) {
-
-						it('should throw error for: ' + type.description, function () {
+					invalidTypes.forEach(type => {
+						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.name = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
+							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+								`Failed to validate dapp schema: Expected type string but found type ${
+									type.expectation
+								}`
+							);
 						});
 					});
 
-					otherTypes.forEach(function (type) {
-						it('should throw error for: ' + type.description, function () {
+					otherTypes.forEach(type => {
+						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.name = type.input;
 							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
 						});
 					});
 
-					invalidNames.forEach(function (input) {
-
-						it('should throw error for value: ' + input, function () {
+					invalidNames.forEach(input => {
+						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.name = input;
 							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
 						});
 					});
 
-					validNames.forEach(function (input) {
-
-						it('should not throw error for value: ' + input, function () {
+					validNames.forEach(input => {
+						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.name = input;
 							expect(dapp.objectNormalize.bind(null, transaction)).not.throw();
 						});
 					});
 				});
 
-				describe('description', function () {
-
-					var invalidTypes = _.difference(typeRepresentatives.allTypes,
+				describe('description', () => {
+					var invalidTypes = _.difference(
+						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
 
-					var invalidDescriptions = [_.fill(new Array(161), 'a'), _.fill(new Array(162), 'b')];
-					var validDescriptions = _.fill(new Array(33), 'a').map(function () {
+					var invalidDescriptions = [
+						_.fill(new Array(161), 'a'),
+						_.fill(new Array(162), 'b'),
+					];
+					var validDescriptions = _.fill(new Array(33), 'a').map(() => {
 						return randomstring.generate(Math.random() * 160);
 					});
 
-					invalidTypes.forEach(function (type) {
-
-						it('should throw error for: ' + type.description, function () {
+					invalidTypes.forEach(type => {
+						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.description = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
+							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+								`Failed to validate dapp schema: Expected type string but found type ${
+									type.expectation
+								}`
+							);
 						});
 					});
 
-					invalidDescriptions.forEach(function (input) {
-
-						it('should throw error for value: ' + input, function () {
+					invalidDescriptions.forEach(input => {
+						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.description = input;
 							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
 						});
 					});
 
-					validDescriptions.forEach(function (input) {
-
-						it('should not throw error for value: ' + input, function () {
+					validDescriptions.forEach(input => {
+						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.description = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.not.throw();
+							expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.not.throw();
 						});
 					});
 				});
 
-				describe('tags', function () {
-
-					var invalidTypes = _.difference(typeRepresentatives.allTypes,
+				describe('tags', () => {
+					var invalidTypes = _.difference(
+						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
 
-					var invalidTags = [_.fill(new Array(161), 'a'), _.fill(new Array(81), 'b').join(',')];
+					var invalidTags = [
+						_.fill(new Array(161), 'a'),
+						_.fill(new Array(81), 'b').join(),
+					];
 
-					var validTags = [_.fill(new Array(_.toInteger(Math.random() * 80)), randomstring.generate(1)).join(','), 'adventure, fantasy'];
+					var validTags = [
+						_.fill(
+							new Array(_.toInteger(Math.random() * 80)),
+							randomstring.generate(1)
+						).join(),
+						'adventure, fantasy',
+					];
 
-					invalidTypes.forEach(function (type) {
-
-						it('should throw error for: ' + type.description, function () {
+					invalidTypes.forEach(type => {
+						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.tags = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
+							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+								`Failed to validate dapp schema: Expected type string but found type ${
+									type.expectation
+								}`
+							);
 						});
 					});
 
-					invalidTags.forEach(function (input) {
-
-						it('should throw error for value: ' + input, function () {
+					invalidTags.forEach(input => {
+						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.tags = input;
 							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
 						});
 					});
 
-					validTags.forEach(function (input) {
-
-						it('should not throw error for value: ' + input, function () {
+					validTags.forEach(input => {
+						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.tags = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.not.throw();
+							expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.not.throw();
 						});
 					});
 				});
 
-				describe('type', function () {
-
-					var invalidTypes = _.difference(typeRepresentatives.allTypes,
+				describe('type', () => {
+					var invalidTypes = _.difference(
+						typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
 						typeRepresentatives.negativeIntegers,
 						typeRepresentatives.others
 					);
 
 					var otherTypes = typeRepresentatives.others;
-
-					var invalidTypesValues = [-0, -1, -2].concat(typeRepresentatives.negativeIntegers);
-
 					// No max limit set on type. Type verification is partially handled here
 					// and the rest is handled in verify function.
 					// TODO: Do stronger schema checks
-					var validTypes = [1, 2, 4, 11].concat(_.map(typeRepresentatives.positiveIntegers, 'input'));
-					invalidTypes.forEach(function (type) {
-
-						it('should throw error for: ' + type.description, function () {
+					var validTypes = [1, 2, 4, 11].concat(
+						_.map(typeRepresentatives.positiveIntegers, 'input')
+					);
+					invalidTypes.forEach(type => {
+						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.type = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type integer but found type ' + type.expectation);
+							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+								`Failed to validate dapp schema: Expected type integer but found type ${
+									type.expectation
+								}`
+							);
 						});
 					});
 
-					otherTypes.forEach(function (type) {
-						it('should throw error for: ' + type.description, function () {
+					otherTypes.forEach(type => {
+						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.type = type.input;
 							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
 						});
 					});
 
-					invalidTypes.forEach(function (input) {
-
-						it('should throw error for value: ' + input, function () {
+					invalidTypes.forEach(input => {
+						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.type = input;
 							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
 						});
 					});
 
-					validTypes.forEach(function (input) {
-
-						it('should not throw error for value: ' + input, function () {
+					validTypes.forEach(input => {
+						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.type = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.not.throw();
+							expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.not.throw();
 						});
 					});
 				});
 
-				describe('link', function () {
-
-					var invalidTypes = _.difference(typeRepresentatives.allTypes,
+				describe('link', () => {
+					var invalidTypes = _.difference(
+						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
 
 					// TODO: Schema checks only check whether property is a string or not,
 					// and not whether value is actually a link. We need to handle it here.
-					var invalidLinks = [_.fill(new Array(2002), 'a'), _.fill(new Array(2001), 'a')];
-					var validLinks = _.fill(new Array(5), '').map(function () {
+					var invalidLinks = [
+						_.fill(new Array(2002), 'a'),
+						_.fill(new Array(2001), 'a'),
+					];
+					var validLinks = _.fill(new Array(5), '').map(() => {
 						return randomUtil.applicationName();
 					});
 
-					invalidTypes.forEach(function (type) {
-
-						it('should throw error for: ' + type.description, function () {
+					invalidTypes.forEach(type => {
+						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.link = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
+							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+								`Failed to validate dapp schema: Expected type string but found type ${
+									type.expectation
+								}`
+							);
 						});
 					});
 
-					invalidLinks.forEach(function (input) {
-
-						it('should throw error for value: ' + input, function () {
+					invalidLinks.forEach(input => {
+						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.link = input;
 							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
 						});
 					});
 
-					validLinks.forEach(function (input) {
-
-						it('should not throw error for value: ' + input, function () {
+					validLinks.forEach(input => {
+						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.link = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.not.throw();
+							expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.not.throw();
 						});
 					});
 				});
 
-				describe('icon', function () {
-
-					var invalidTypes = _.difference(typeRepresentatives.allTypes,
+				describe('icon', () => {
+					var invalidTypes = _.difference(
+						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
 
 					// TODO: Schema checks only check whether property is a string or not,
 					// and not whether value is actually a link. We need to handle it here.
-					var invalidIcons = [_.fill(new Array(2002), 'a'), _.fill(new Array(2001), 'a')];
-					var validIcons = _.fill(new Array(5), '').map(function () {
+					var invalidIcons = [
+						_.fill(new Array(2002), 'a'),
+						_.fill(new Array(2001), 'a'),
+					];
+					var validIcons = _.fill(new Array(5), '').map(() => {
 						return randomUtil.applicationName();
 					});
 
-					invalidTypes.forEach(function (type) {
-
-						it('should throw error for: ' + type.description, function () {
+					invalidTypes.forEach(type => {
+						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.icon = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw('Failed to validate dapp schema: Expected type string but found type ' + type.expectation);
+							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+								`Failed to validate dapp schema: Expected type string but found type ${
+									type.expectation
+								}`
+							);
 						});
 					});
 
-					invalidIcons.forEach(function (input) {
-
-						it('should throw error for value: ' + input, function () {
+					invalidIcons.forEach(input => {
+						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.icon = input;
 							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
 						});
 					});
 
-					validIcons.forEach(function (input) {
-
-						it('should not throw error for value: ' + input, function () {
+					validIcons.forEach(input => {
+						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.icon = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.not.throw();
+							expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.not.throw();
 						});
 					});
 				});
 			});
 
-			it('should return transaction when asset is valid', function () {
+			it('should return transaction when asset is valid', () => {
 				expect(dapp.objectNormalize(transaction)).to.eql(transaction);
 			});
 		});
 
-		describe('dbRead', function () {
-
-			describe('when rawTransaction.dapp_name does not exist', function () {
-
-				beforeEach(function () {
+		describe('dbRead', () => {
+			describe('when rawTransaction.dapp_name does not exist', () => {
+				beforeEach(() => {
 					delete rawTransaction.dapp_name;
 				});
 
-				it('should return null', function () {
+				it('should return null', () => {
 					expect(dapp.dbRead(rawTransaction)).to.eql(null);
 				});
 			});
 
-			describe('when rawTransaction.dapp_name exists', function () {
-
-				it('should return result containing dapp property', function () {
+			describe('when rawTransaction.dapp_name exists', () => {
+				it('should return result containing dapp property', () => {
 					expect(dapp.dbRead(rawTransaction)).to.have.property('dapp');
 				});
 
-				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.category').to.equal(rawTransaction.dapp_category);
+				it('should return result containing dapp property', () => {
+					expect(dapp.dbRead(rawTransaction))
+						.to.have.nested.property('dapp.category')
+						.to.equal(rawTransaction.dapp_category);
 				});
 
-				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.description').to.eql(rawTransaction.dapp_description);
+				it('should return result containing dapp property', () => {
+					expect(dapp.dbRead(rawTransaction))
+						.to.have.nested.property('dapp.description')
+						.to.eql(rawTransaction.dapp_description);
 				});
 
-				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.icon').to.eql(rawTransaction.dapp_icon);
+				it('should return result containing dapp property', () => {
+					expect(dapp.dbRead(rawTransaction))
+						.to.have.nested.property('dapp.icon')
+						.to.eql(rawTransaction.dapp_icon);
 				});
 
-				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.link').to.eql(rawTransaction.dapp_link);
+				it('should return result containing dapp property', () => {
+					expect(dapp.dbRead(rawTransaction))
+						.to.have.nested.property('dapp.link')
+						.to.eql(rawTransaction.dapp_link);
 				});
 
-				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.name').to.eql(rawTransaction.dapp_name);
+				it('should return result containing dapp property', () => {
+					expect(dapp.dbRead(rawTransaction))
+						.to.have.nested.property('dapp.name')
+						.to.eql(rawTransaction.dapp_name);
 				});
 
-				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.tags').to.eql(rawTransaction.dapp_tags);
+				it('should return result containing dapp property', () => {
+					expect(dapp.dbRead(rawTransaction))
+						.to.have.nested.property('dapp.tags')
+						.to.eql(rawTransaction.dapp_tags);
 				});
 
-				it('should return result containing dapp property', function () {
-					expect(dapp.dbRead(rawTransaction)).to.have.nested.property('dapp.type').to.eql(rawTransaction.dapp_type);
+				it('should return result containing dapp property', () => {
+					expect(dapp.dbRead(rawTransaction))
+						.to.have.nested.property('dapp.type')
+						.to.eql(rawTransaction.dapp_type);
 				});
 			});
 		});
 
-		describe('ready', function () {
-
-			it('should return true for single signature transaction', function () {
+		describe('ready', () => {
+			it('should return true for single signature transaction', () => {
 				expect(dapp.ready(transaction, sender)).to.equal(true);
 			});
 
-			it('should return false for multi signature transaction with less signatures', function () {
+			it('should return false for multi signature transaction with less signatures', () => {
 				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
 				expect(dapp.ready(transaction, sender)).to.equal(false);
 			});
 
-			it('should return true for multi signature transaction with alteast min signatures', function () {
+			it('should return true for multi signature transaction with alteast min signatures', () => {
 				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 				sender.multimin = 1;
 
 				delete transaction.signature;
 				// Not really correct signature, but we are not testing that over here
-				transaction.signature = crypto.randomBytes(64).toString('hex');;
+				transaction.signature = crypto.randomBytes(64).toString('hex');
 				transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
 				expect(dapp.ready(transaction, sender)).to.equal(true);

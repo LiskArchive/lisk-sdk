@@ -13,21 +13,15 @@
  */
 'use strict';
 
-var express = require('express');
-
 var application = require('../../common/application');
 
-describe('blocks', function () {
-
-	describe('Blocks constructor', function () {
-
-		describe('library', function () {
-
+describe('blocks', () => {
+	describe('Blocks constructor', () => {
+		describe('library', () => {
 			it('should assign logger');
 		});
 
-		describe('this.submodules', function () {
-
+		describe('this.submodules', () => {
 			it('should assign api');
 
 			it('should assign verify');
@@ -55,24 +49,18 @@ describe('blocks', function () {
 
 		it('should call callback with result = self');
 
-		describe('when this.submodules.chain.saveGenesisBlock fails', function () {
-
+		describe('when this.submodules.chain.saveGenesisBlock fails', () => {
 			it('should call callback with error');
 		});
 
-		describe('when this.submodules.chain.saveGenesisBlock succeeds', function () {
-
+		describe('when this.submodules.chain.saveGenesisBlock succeeds', () => {
 			it('should call callback with error = undefined');
 		});
 
-		describe('callback for this.submodules.chain.saveGenesisBlock', function () {
-
-
-		});
+		describe('callback for this.submodules.chain.saveGenesisBlock', () => {});
 	});
 
-	describe('lastBlock', function () {
-
+	describe('lastBlock', () => {
 		it('should assign get');
 
 		it('should assign set');
@@ -80,8 +68,7 @@ describe('blocks', function () {
 		it('should assign isFresh');
 	});
 
-	describe('lastReciept', function () {
-
+	describe('lastReciept', () => {
 		it('should assign get');
 
 		it('should assign update');
@@ -89,71 +76,68 @@ describe('blocks', function () {
 		it('should assign isStale');
 	});
 
-	describe('isActive', function () {
-
+	describe('isActive', () => {
 		it('should assign get');
 
 		it('should assign set');
 	});
 
-	describe('isCleaning', function () {
-
+	describe('isCleaning', () => {
 		it('should assign get');
 	});
 
-	describe('onBind', function () {
-
+	describe('onBind', () => {
 		it('should set __private.loaded = true');
 	});
 
-	describe('cleanup', function () {
-
+	describe('cleanup', () => {
 		it('should set __private.loaded = false');
 
 		it('should set __private.cleanup = true');
 
-		describe('when __private.isActive = false', function () {
-
+		describe('when __private.isActive = false', () => {
 			it('should call callback');
 		});
 
-		describe('when __private.isActive = true', function () {
-
-			describe('after 10 seconds', function () {
-
-				it('should call library.logger.info with "Waiting for block processing to finish..."');
+		describe('when __private.isActive = true', () => {
+			describe('after 10 seconds', () => {
+				it(
+					'should call library.logger.info with "Waiting for block processing to finish..."'
+				);
 			});
 
-			describe('after 100 seconds', function () {
-
-				it('should call library.logger.info with "Waiting for block processing to finish..." 10 times');
+			describe('after 100 seconds', () => {
+				it(
+					'should call library.logger.info with "Waiting for block processing to finish..." 10 times'
+				);
 			});
 		});
 	});
 
-	describe('isLoaded', function () {
-
+	describe('isLoaded', () => {
 		it('should return __private.loaded');
 	});
 
-	//============ old code begins ============================
+	//= =========== old code begins ============================
 
 	var blocks;
 
-	before(function (done) {
-		application.init({sandbox: {name: 'lisk_test_modules_blocks'}}, function (err, scope) {
-			blocks = scope.modules.blocks;
-			done();
-		});
+	before(done => {
+		application.init(
+			{ sandbox: { name: 'lisk_test_modules_blocks' } },
+			(err, scope) => {
+				blocks = scope.modules.blocks;
+				done();
+			}
+		);
 	});
 
-	after(function (done) {
+	after(done => {
 		application.cleanup(done);
 	});
 
-	describe('getBlockProgressLogger', function () {
-
-		it('should logs correctly', function () {
+	describe('getBlockProgressLogger', () => {
+		it('should logs correctly', () => {
 			var tracker = blocks.utils.getBlockProgressLogger(5, 2, '');
 			tracker.log = sinonSandbox.spy();
 			expect(tracker.applied).to.equals(0);
@@ -174,7 +158,9 @@ describe('blocks', function () {
 			expect(tracker.log.calledThrice).to.ok;
 			expect(tracker.applied).to.equals(5);
 
-			expect(tracker.applyNext.bind(tracker)).to.throw('Cannot apply transaction over the limit: 5');
+			expect(tracker.applyNext.bind(tracker)).to.throw(
+				'Cannot apply transaction over the limit: 5'
+			);
 		});
 	});
 });

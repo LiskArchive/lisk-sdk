@@ -13,15 +13,79 @@
  */
 'use strict';
 
-const PQ = require('pg-promise').ParameterizedQuery;
-const QF = require('pg-promise').QueryFile;
 const _ = require('lodash');
-const path = require('path');
 const Promise = require('bluebird');
 const sql = require('../sql').accounts;
-const constants = require('../../helpers/constants');
 
-let columnSet;
+const cs = {}; // Reusable ColumnSet objects
+
+const ifNotExists = c => !c.exists;
+
+// Used in SELECT, UPDATE, INSERT queries
+const normalFields = [
+	{ name: 'isDelegate', cast: 'int::boolean', skip: ifNotExists },
+	{ name: 'u_isDelegate', cast: 'int::boolean', skip: ifNotExists },
+	{ name: 'secondSignature', cast: 'int::boolean', skip: ifNotExists },
+	{ name: 'u_secondSignature', cast: 'int::boolean', skip: ifNotExists },
+	{ name: 'balance', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'u_balance', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'rate', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'multimin', def: 0, skip: ifNotExists },
+	{ name: 'u_multimin', def: 0, skip: ifNotExists },
+	{ name: 'multilifetime', def: 0, skip: ifNotExists },
+	{ name: 'u_multilifetime', def: 0, skip: ifNotExists },
+	{ name: 'blockId', def: null, skip: ifNotExists },
+	{ name: 'nameexist', def: 0, skip: ifNotExists },
+	{ name: 'u_nameexist', def: 0, skip: ifNotExists },
+	{ name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists },
+	{
+		name: 'producedblocks',
+		cast: 'bigint',
+		def: '0',
+		prop: 'producedBlocks',
+		skip: ifNotExists,
+	},
+	{
+		name: 'missedblocks',
+		cast: 'bigint',
+		def: '0',
+		prop: 'missedBlocks',
+		skip: ifNotExists,
+	},
+	{ name: 'username', def: null, skip: ifNotExists },
+	{ name: 'u_username', def: null, skip: ifNotExists },
+	{
+		name: 'publicKey',
+		mod: ':raw',
+		init: () => 'encode("publicKey", \'hex\')',
+		skip: ifNotExists,
+	},
+	{
+		name: 'secondPublicKey',
+		mod: ':raw',
+		init: () => 'encode("secondPublicKey", \'hex\')',
+		skip: ifNotExists,
+	},
+	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
+];
+
+// Only used in SELECT and INSERT queries
+const immutableFields = [
+	{ name: 'address', mod: ':raw', init: () => 'upper(address)' },
+];
+
+// Only used in SELECT queries
+const dynamicFields = [
+	{ name: 'rank', init: () => sql.columnRank },
+	{ name: 'delegates', init: () => sql.columnDelegates },
+	{ name: 'u_delegates', init: () => sql.columnUDelegates },
+	{ name: 'multisignatures', init: () => sql.columnMultisignatures },
+	{ name: 'u_multisignatures', init: () => sql.columnUMultisignatures },
+];
+
+const allFields = _.union(normalFields, immutableFields, dynamicFields);
 
 /**
  * Accounts database interaction module.
@@ -31,86 +95,48 @@ let columnSet;
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @constructor
- * @return {AccountsRepo}
+ * @return {AccountsRepository}
  */
-class AccountsRepo {
-
-	constructor (db, pgp) {
+class AccountsRepository {
+	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
 
 		this.dbTable = 'mem_accounts';
+		this.dbFields = allFields;
+		this.cs = cs;
 
-		const ifNotExists = c => !c.exists;
-
-		// Used in SELECT, UPDATE, INSERT queries
-		const normalFields = [
-			{name: 'isDelegate', cast: 'int::boolean', skip: ifNotExists},
-			{name: 'u_isDelegate', cast: 'int::boolean', skip: ifNotExists},
-			{name: 'secondSignature', cast: 'int::boolean', skip: ifNotExists},
-			{name: 'u_secondSignature', cast: 'int::boolean', skip: ifNotExists},
-			{name: 'balance', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'u_balance', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'rate', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'multimin', def: 0, skip: ifNotExists},
-			{name: 'u_multimin', def: 0, skip: ifNotExists},
-			{name: 'multilifetime', def: 0, skip: ifNotExists},
-			{name: 'u_multilifetime', def: 0, skip: ifNotExists},
-			{name: 'blockId', def: null, skip: ifNotExists},
-			{name: 'nameexist', def: 0, skip: ifNotExists},
-			{name: 'u_nameexist', def: 0, skip: ifNotExists},
-			{name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists},
-			{name: 'producedblocks', cast: 'bigint', def: '0', prop: 'producedBlocks', skip: ifNotExists},
-			{name: 'missedblocks', cast: 'bigint', def: '0', prop: 'missedBlocks', skip: ifNotExists},
-			{name: 'username', def: null, skip: ifNotExists},
-			{name: 'u_username', def: null, skip: ifNotExists},
-			{name: 'publicKey', mod: ':raw', init: () => 'ENCODE("publicKey", \'hex\')', skip: ifNotExists},
-			{name: 'secondPublicKey', mod: ':raw', init: () => 'ENCODE("secondPublicKey", \'hex\')', skip: ifNotExists},
-			{name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists}
-		];
-
-		// Only used in SELECT and INSERT queries
-		const immutableFields = [
-			{ name: 'address', mod: ':raw', init: () => 'UPPER("address")'}
-		];
-
-		// Only used in SELECT queries
-		const dynamicFields = [
-			{name: 'rank', cast: 'bigint', mod: ':raw', init: () => '(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::int'},
-			{name: 'delegates', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")'},
-			{name: 'u_delegates', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")'},
-			{name: 'multisignatures', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2multisignatures WHERE "accountId" = "mem_accounts"."address")'},
-			{name: 'u_multisignatures', mod: ':raw', init: () => '(SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_multisignatures WHERE "accountId" = "mem_accounts"."address")'}
-		];
-
-		this.dbFields = _.union(normalFields, immutableFields, dynamicFields);
-
-		if (!columnSet) {
-			columnSet = {};
-
-			const table = new pgp.helpers.TableName({table: this.dbTable, schema: 'public'});
-
-			columnSet.select = new pgp.helpers.ColumnSet(this.dbFields, {table: table});
-
-			columnSet.update = new pgp.helpers.ColumnSet(normalFields, {table: table});
-			columnSet.update = columnSet.update.merge([
-				{name: 'publicKey', mod: ':raw', init: (object) => (object.value === undefined || object.value === null) ? 'NULL' : `DECODE('${object.value}', 'hex')`, skip: ifNotExists},
-				{name: 'secondPublicKey', mod: ':raw', init: (object) => (object.value === undefined || object.value === null) ? 'NULL' : `DECODE('${object.value}', 'hex')`, skip: ifNotExists},
-				{name: 'isDelegate', cast: 'int', def: 0, skip: ifNotExists},
-				{name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists},
-				{name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists},
-				{name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists},
-				{name: 'virgin', cast: 'int', def: 1},
+		if (!cs.select) {
+			cs.select = new pgp.helpers.ColumnSet(allFields, { table: this.dbTable });
+			cs.update = new pgp.helpers.ColumnSet(normalFields, {
+				table: this.dbTable,
+			});
+			cs.update = cs.update.merge([
+				{
+					name: 'publicKey',
+					mod: ':raw',
+					init: c =>
+						_.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`,
+					skip: ifNotExists,
+				},
+				{
+					name: 'secondPublicKey',
+					mod: ':raw',
+					init: c =>
+						_.isNil(c.value) ? 'null' : `decode('${c.value}', 'hex')`,
+					skip: ifNotExists,
+				},
+				{ name: 'isDelegate', cast: 'int', def: 0, skip: ifNotExists },
+				{ name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists },
+				{ name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists },
+				{ name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists },
+				{ name: 'virgin', cast: 'int', def: 1 },
 			]);
 
-			columnSet.insert = columnSet.update.merge([
-				{name: 'address', mod: ':raw', init: (object) => `UPPER('${object.value}')`}
+			cs.insert = cs.update.merge([
+				{ name: 'address', mod: ':raw', init: c => `upper('${c.value}')` },
 			]);
 		}
-
-		this.cs = columnSet;
 	}
 
 	/**
@@ -118,8 +144,8 @@ class AccountsRepo {
 	 *
 	 * @return {array}
 	 */
-	getDBFields () {
-		return _.map(this.dbFields, (field) => (field.prop || field.name));
+	getDBFields() {
+		return _.map(this.dbFields, field => field.prop || field.name);
 	}
 
 	/**
@@ -127,19 +153,20 @@ class AccountsRepo {
 	 *
 	 * @return {array}
 	 */
-	getImmutableFields () {
+	getImmutableFields() {
 		return _.difference(
-			_.map(this.cs.insert.columns, (field) => (field.prop || field.name)),
-			_.map(this.cs.update.columns, (field) => (field.prop || field.name)));
-	};
+			_.map(this.cs.insert.columns, field => field.prop || field.name),
+			_.map(this.cs.update.columns, field => field.prop || field.name)
+		);
+	}
 
 	/**
-	 * Count accounts in mem_accounts.
+	 * Counts memory accounts by blocks.
 	 *
-	 * @return {Promise}
+	 * @return {Promise<number>}
 	 */
-	countMemAccounts () {
-		return this.db.one(sql.countMemAccounts);
+	countMemAccounts() {
+		return this.db.one(sql.countMemAccounts, [], a => +a.count);
 	}
 
 	/**
@@ -147,7 +174,7 @@ class AccountsRepo {
 	 *
 	 * @return {Promise}
 	 */
-	updateMemAccounts () {
+	updateMemAccounts() {
 		return this.db.none(sql.updateMemAccounts);
 	}
 
@@ -156,8 +183,8 @@ class AccountsRepo {
 	 *
 	 * @return {Promise}
 	 */
-	getOrphanedMemAccounts () {
-		return this.db.query(sql.getOrphanedMemAccounts);
+	getOrphanedMemAccounts() {
+		return this.db.any(sql.getOrphanedMemAccounts);
 	}
 
 	/**
@@ -165,58 +192,72 @@ class AccountsRepo {
 	 *
 	 * @return {Promise}
 	 */
-	getDelegates () {
-		return this.db.query(sql.getDelegates);
+	getDelegates() {
+		return this.db.any(sql.getDelegates);
 	}
 
 	/**
 	 * Update or insert into mem_accounts.
 	 *
-	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
-	 * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#dbFields}
-	 * @param {Object} updateData - Attributes to be updated, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.update}
+	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
+	 * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#dbFields}
+	 * @param {Object} updateData - Attributes to be updated, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.update}
 	 * @return {Promise}
 	 */
-	upsert (data, conflictingFields, updateData) {
+	upsert(data, conflictingFields, updateData) {
 		// If single field is specified as conflict field
-		if (typeof(conflictingFields) === 'string') {
+		if (typeof conflictingFields === 'string') {
 			conflictingFields = [conflictingFields];
 		}
 
 		if (!Array.isArray(conflictingFields) || !conflictingFields.length) {
-			return Promise.reject('Error: db.accounts.upsert - invalid conflictingFields argument');
+			return Promise.reject(
+				new TypeError(
+					'Error: db.accounts.upsert - invalid conflictingFields argument'
+				)
+			);
 		}
 
 		if (!updateData) {
 			updateData = Object.assign({}, data);
 		}
 
-		if (_.difference(_.union(Object.keys(data), Object.keys(updateData)), this.getDBFields()).length) {
-			return Promise.reject('Unknown field provided to db.accounts.upsert');
+		if (
+			_.difference(
+				_.union(Object.keys(data), Object.keys(updateData)),
+				this.getDBFields()
+			).length
+		) {
+			return Promise.reject(
+				new Error('Unknown field provided to db.accounts.upsert')
+			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
 		if (conflictingFields.length === 1 && conflictingFields[0] === 'address') {
-			const sql = '${insertSQL:raw} ON CONFLICT(${conflictFields:name}) DO UPDATE SET ${setsSQL:raw}';
+			const sql =
+				'${insertSQL:raw} ON CONFLICT(${conflictFields:name}) DO UPDATE SET ${setsSQL:raw}';
 
 			return this.db.none(sql, {
 				insertSQL: this.pgp.helpers.insert(data, this.cs.insert),
 				conflictFields: conflictingFields,
-				setsSQL: this.pgp.helpers.sets(updateData, this.cs.update)
+				setsSQL: this.pgp.helpers.sets(updateData, this.cs.update),
 			});
 		} else {
-			let conditionObject = {};
-			conflictingFields.forEach(function (field) {
+			const conditionObject = {};
+			conflictingFields.forEach(function(field) {
 				conditionObject[field] = data[field];
 			});
 
-			return this.db.tx('db:accounts:upsert', function (t) {
-				return t.accounts.list(conditionObject, ['address']).then(function (result) {
-					if (result.length) {
-						return t.accounts.update(result[0].address, updateData);
-					} else {
-						return t.accounts.insert(data);
-					}
-				});
+			return this.db.tx('db:accounts:upsert', function(t) {
+				return t.accounts
+					.list(conditionObject, ['address'])
+					.then(function(result) {
+						if (result.length) {
+							return t.accounts.update(result[0].address, updateData);
+						} else {
+							return t.accounts.insert(data);
+						}
+					});
 			});
 		}
 	}
@@ -224,26 +265,31 @@ class AccountsRepo {
 	/**
 	 * Create the record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
 	 *
-	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
+	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
 	 * @return {Promise}
 	 */
-	insert (data) {
+	insert(data) {
 		return this.db.none(this.pgp.helpers.insert(data, this.cs.insert));
 	}
 
 	/**
 	 * Update record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
 	 *
-	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepo's dbFields property]{@link AccountsRepo#cs.insert}
+	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
 	 * @param {string} address - Address of the account to be updated
 	 * @return {Promise}
 	 */
-	update (address, data) {
+	update(address, data) {
 		if (!address) {
-			return Promise.reject('Error: db.accounts.update - invalid address argument');
+			return Promise.reject(
+				new TypeError('Error: db.accounts.update - invalid address argument')
+			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
-		return this.db.none(this.pgp.helpers.update(data, this.cs.update) + this.pgp.as.format(' WHERE $1:name=$2', ['address', address]));
+		return this.db.none(
+			this.pgp.helpers.update(data, this.cs.update) +
+				this.pgp.as.format(' WHERE $1:name=$2', ['address', address])
+		);
 	}
 
 	/**
@@ -254,12 +300,12 @@ class AccountsRepo {
 	 * @param {Number} value - Value to be incremented
 	 * @return {Promise}
 	 */
-	increment (address, field, value) {
-		return this.db.none(sql.incrementAccount,{
+	increment(address, field, value) {
+		return this.db.none(sql.incrementAccount, {
 			table: this.dbTable,
 			field: field,
 			value: value,
-			address: address
+			address: address,
 		});
 	}
 
@@ -271,12 +317,12 @@ class AccountsRepo {
 	 * @param {Number} value - Value to be decremented
 	 * @return {Promise}
 	 */
-	decrement (address, field, value) {
-		return this.db.none(sql.decrementAccount,{
+	decrement(address, field, value) {
+		return this.db.none(sql.decrementAccount, {
 			table: this.dbTable,
 			field: field,
 			value: value,
-			address: address
+			address: address,
 		});
 	}
 
@@ -286,7 +332,7 @@ class AccountsRepo {
 	 * @param {string} address - Address of the account to be updated
 	 * @return {Promise}
 	 */
-	remove (address) {
+	remove(address) {
 		const sql = 'DELETE FROM $1:name WHERE $2:name = $3';
 		return this.db.none(sql, [this.dbTable, 'address', address]);
 	}
@@ -301,7 +347,7 @@ class AccountsRepo {
 	 *
 	 * @return {Promise}
 	 */
-	resetMemTables () {
+	resetMemTables() {
 		return this.db.none(sql.resetMemoryTables);
 	}
 
@@ -321,26 +367,46 @@ class AccountsRepo {
 	 * @param {string} options.extraCondition - Extra conditions to be appended to fetch objects. It must be properly formatted
 	 * @return {Promise}
 	 */
-	list (filters, fields, options) {
+	list(filters, fields, options) {
 		const pgp = this.pgp;
 
-		let dynamicConditions = [];
+		const dynamicConditions = [];
 		if (filters && filters.multisig) {
-			dynamicConditions.push(pgp.as.format('"multimin" > 0'));
+			dynamicConditions.push(pgp.as.format('multimin > 0'));
 			delete filters.multisig;
 		}
 
 		if (filters && Array.isArray(filters.address) && filters.address.length) {
-			dynamicConditions.push(pgp.as.format('"address" IN ($1:csv)', [filters.address]));
+			dynamicConditions.push(
+				pgp.as.format('address IN ($1:csv)', [filters.address])
+			);
 			delete filters.address;
 		}
 
-		if (filters && _.difference(Object.keys(filters), this.getDBFields()).length) {
-			return Promise.reject('Unknown filter field provided to list');
+		if (
+			filters &&
+			typeof filters.username === 'object' &&
+			filters.username['$like']
+		) {
+			dynamicConditions.push(
+				pgp.as.format('username LIKE $1', [filters.username['$like']])
+			);
+			delete filters.username;
+		}
+
+		if (
+			filters &&
+			_.difference(Object.keys(filters), this.getDBFields()).length
+		) {
+			return Promise.reject('Unknown filter field provided to list'); // eslint-disable-line prefer-promise-reject-errors
 		}
 
 		let sql = '${fields:raw} ${conditions:raw} ';
-		let limit, offset, sortField='', sortMethod='', conditions='';
+		let limit;
+		let offset;
+		let sortField = '';
+		let sortMethod = '';
+		let conditions = '';
 
 		if (!options) {
 			options = {};
@@ -351,15 +417,20 @@ class AccountsRepo {
 			if (typeof options.sortField === 'string') {
 				sortField = options.sortField;
 				sortMethod = options.sortMethod || 'DESC';
-				sql = sql + ' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
-			// As per implementation of sort sortBy helper helpers/sort_by
+				sql += ' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
+				// As per implementation of sort sortBy helper helpers/sort_by
 			} else if (Array.isArray(options.sortField) && options.sortField.length) {
-				let sortSQL = [];
+				const sortSQL = [];
 
 				options.sortField.map((field, index) => {
-					sortSQL.push(this.pgp.as.format('$1:name $2:raw', [field, options.sortMethod[index]]));
+					sortSQL.push(
+						this.pgp.as.format('$1:name $2:raw', [
+							field,
+							options.sortMethod[index],
+						])
+					);
 				});
-				sql = sql + `ORDER BY ${sortSQL.join(', ')}`;
+				sql += `ORDER BY ${sortSQL.join()}`;
 			}
 		}
 
@@ -368,22 +439,28 @@ class AccountsRepo {
 			limit = options.limit;
 			offset = options.offset || 0;
 
-			sql = sql + ' LIMIT ${limit} OFFSET ${offset}';
+			sql += ' LIMIT ${limit} OFFSET ${offset}';
 		}
 
 		const selectClause = Selects(this.cs.select, fields, pgp);
 
 		if (filters) {
 			const filterKeys = Object.keys(filters);
-			let filteredColumns = this.cs.insert.columns.filter(function (column) {
+			const filteredColumns = this.cs.insert.columns.filter(function(column) {
 				return filterKeys.indexOf(column.name) >= 0;
 			});
 
 			// TODO: Improve this logic to convert set statement to composite logic
-			conditions = pgp.helpers.sets(filters, filteredColumns).replace(/(,")/,' AND "');
+			conditions = pgp.helpers
+				.sets(filters, filteredColumns)
+				.replace(/(,")/, ' AND "');
 		}
 
-		if (conditions.length || options.extraCondition || dynamicConditions.length) {
+		if (
+			conditions.length ||
+			options.extraCondition ||
+			dynamicConditions.length
+		) {
 			conditions = conditions.length ? [conditions] : [];
 
 			if (options.extraCondition) {
@@ -394,7 +471,7 @@ class AccountsRepo {
 				conditions.push(dynamicConditions.join(' AND '));
 			}
 
-			conditions = ' WHERE ' + conditions.join(' AND ');
+			conditions = ` WHERE ${conditions.join(' AND ')}`;
 		}
 
 		const query = this.pgp.as.format(sql, {
@@ -403,7 +480,7 @@ class AccountsRepo {
 			sortField: sortField,
 			sortMethod: sortMethod,
 			limit: limit,
-			offset: offset
+			offset: offset,
 		});
 
 		return this.db.query(query);
@@ -417,15 +494,26 @@ class AccountsRepo {
 	 * @param {string} dependency - Any of [u_]delegates, [u_]multisignatures
 	 * @return {Promise}
 	 */
-	removeDependencies (address, dependentId, dependency) {
-		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
-			return Promise.reject(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`);
+	removeDependencies(address, dependentId, dependency) {
+		if (
+			[
+				'delegates',
+				'u_delegates',
+				'multisignatures',
+				'u_multisignatures',
+			].indexOf(dependency) === -1
+		) {
+			return Promise.reject(
+				new TypeError(
+					`Error: db.accounts.removeDependencies called with invalid argument dependency=${dependency}`
+				)
+			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
 		return this.db.none(sql.removeAccountDependencies, {
 			table: `${this.dbTable}2${dependency}`,
 			address: address,
-			dependentId: dependentId
+			dependentId: dependentId,
 		});
 	}
 
@@ -437,22 +525,42 @@ class AccountsRepo {
 	 * @param {string} dependency - Any of [u_]delegates, [u_]multisignatures
 	 * @return {Promise}
 	 */
-	insertDependencies (address, dependentId, dependency) {
-		if (['delegates', 'u_delegates', 'multisignatures', 'u_multisignatures'].indexOf(dependency) === -1) {
-			return Promise.reject(`Error: db.account.removeDependencies called with invalid argument dependency=${dependency}`);
+	insertDependencies(address, dependentId, dependency) {
+		if (
+			[
+				'delegates',
+				'u_delegates',
+				'multisignatures',
+				'u_multisignatures',
+			].indexOf(dependency) === -1
+		) {
+			return Promise.reject(
+				new TypeError(
+					`Error: db.accounts.insertDependencies called with invalid argument dependency=${dependency}`
+				)
+			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
-		const dependentTable = new this.pgp.helpers.TableName({table: `${this.dbTable}2${dependency}`, schema: 'public'});
+		const dependentTable = new this.pgp.helpers.TableName({
+			table: `${this.dbTable}2${dependency}`,
+			schema: 'public',
+		});
 
-		return this.db.none(this.pgp.helpers.insert({
-			accountId: address,
-			dependentId: dependentId
-		}, null, dependentTable));
+		return this.db.none(
+			this.pgp.helpers.insert(
+				{
+					accountId: address,
+					dependentId: dependentId,
+				},
+				null,
+				dependentTable
+			)
+		);
 	}
 }
 
 // Generate select SQL based on column set definition and conditions
-function Selects (columnSet, fields, pgp) {
+function Selects(columnSet, fields, pgp) {
 	if (!(this instanceof Selects)) {
 		return new Selects(columnSet, fields, pgp);
 	}
@@ -465,7 +573,7 @@ function Selects (columnSet, fields, pgp) {
 
 		// Select all fields if none is provided
 		if (!fields || !fields.length) {
-			fields =  _.map(columnSet.columns, column => column.prop || column.name);
+			fields = _.map(columnSet.columns, column => column.prop || column.name);
 		}
 
 		const table = columnSet.table;
@@ -476,16 +584,27 @@ function Selects (columnSet, fields, pgp) {
 				const propName = column.prop ? column.prop : column.name;
 
 				if (column.init) {
-					selectFields.push(pgp.as.format(selectClauseWithSQL, [column.init(column), column.castText, propName]));
+					selectFields.push(
+						pgp.as.format(selectClauseWithSQL, [
+							column.init(column),
+							column.castText,
+							propName,
+						])
+					);
 				} else {
-					selectFields.push(pgp.as.format(selectClauseWithName, [column.name, column.castText, propName]));
+					selectFields.push(
+						pgp.as.format(selectClauseWithName, [
+							column.name,
+							column.castText,
+							propName,
+						])
+					);
 				}
 			}
 		});
 
-		return pgp.as.format(selectSQL, [selectFields.join(','), table]);
+		return pgp.as.format(selectSQL, [selectFields.join(), table]);
 	};
-
 }
 
-module.exports = AccountsRepo;
+module.exports = AccountsRepository;

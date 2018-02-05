@@ -14,227 +14,260 @@
 'use strict';
 
 require('../../functional.js');
-var express = require('express');
-var randomstring = require('randomstring');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-
-var config = require('../../../data/config.json');
 var failureCodes = require('../../../../api/ws/rpc/failure_codes');
 var wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
 var transport = require('../../../../api/ws/transport');
 var System = require('../../../../modules/system');
-
 var WSServer = require('../../../common/ws/server_master');
-var WSClient = require('../../../common/ws/client');
 
-describe('ClientRPCStub', function () {
-
+describe('ClientRPCStub', () => {
 	var validWSServerIp = '127.0.0.1';
 	var validWSServerPort = 5000;
 	var validClientRPCStub;
 	var socketClusterMock;
 
-	before(function () {
+	before(() => {
 		socketClusterMock = {
-			on: sinonSandbox.spy()
+			on: sinonSandbox.spy(),
 		};
 		wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
 		// Register RPC
-		var transportModuleMock = {internal: {}, shared: {}};
+		var transportModuleMock = { internal: {}, shared: {} };
 		transport(transportModuleMock);
 		// Now ClientRPCStub should contain all methods names
-		validClientRPCStub = wsRPC.getClientRPCStub(validWSServerIp, validWSServerPort);
+		validClientRPCStub = wsRPC.getClientRPCStub(
+			validWSServerIp,
+			validWSServerPort
+		);
 	});
 
-	describe('should contain remote procedure', function () {
-
-		it('updatePeer', function () {
+	describe('should contain remote procedure', () => {
+		it('updatePeer', () => {
 			expect(validClientRPCStub).to.have.property('updatePeer');
 		});
 
-		it('blocksCommon', function () {
+		it('blocksCommon', () => {
 			expect(validClientRPCStub).to.have.property('blocksCommon');
 		});
 
-		it('height', function () {
+		it('height', () => {
 			expect(validClientRPCStub).to.have.property('height');
 		});
 
-		it('getTransactions', function () {
+		it('getTransactions', () => {
 			expect(validClientRPCStub).to.have.property('getTransactions');
 		});
 
-		it('getSignatures', function () {
+		it('getSignatures', () => {
 			expect(validClientRPCStub).to.have.property('getSignatures');
 		});
 
-		it('status', function () {
+		it('status', () => {
 			expect(validClientRPCStub).to.have.property('list');
 		});
 
-		it('postBlock', function () {
+		it('postBlock', () => {
 			expect(validClientRPCStub).to.have.property('postBlock');
 		});
 
-		it('postSignatures', function () {
+		it('postSignatures', () => {
 			expect(validClientRPCStub).to.have.property('postSignatures');
 		});
 
-		it('postTransactions', function () {
+		it('postTransactions', () => {
 			expect(validClientRPCStub).to.have.property('postTransactions');
 		});
 	});
 
-	it('should not contain randomProcedure', function () {
+	it('should not contain randomProcedure', () => {
 		expect(validClientRPCStub).not.to.have.property('randomProcedure');
 	});
 
-	describe('RPC call', function () {
-
-		var minVersion = '0.0.0';
+	describe('RPC call', () => {
 		var validHeaders;
 
-		beforeEach(function () {
+		beforeEach(() => {
 			validHeaders = WSServer.generatePeerHeaders();
 			System.setHeaders(validHeaders);
 		});
 
-		describe('with valid headers', function () {
-
-			it('should call a RPC callback with response', function (done) {
-				validClientRPCStub.status(function (err, response) {
+		describe('with valid headers', () => {
+			it('should call a RPC callback with response', done => {
+				validClientRPCStub.status((err, response) => {
 					expect(response).not.to.be.empty;
 					done();
 				});
 			});
 
-			it('should call a RPC callback without an error as null', function (done) {
-				validClientRPCStub.status(function (err) {
+			it('should call a RPC callback without an error as null', done => {
+				validClientRPCStub.status(err => {
 					expect(err).to.be.null;
 					done();
 				});
 			});
 		});
 
-		describe('with invalid headers', function () {
-
-			beforeEach(function () {
+		describe('with invalid headers', () => {
+			beforeEach(() => {
 				wsRPC.clientsConnectionsMap = {};
-				validClientRPCStub = wsRPC.getClientRPCStub(validWSServerIp, validWSServerPort);
+				validClientRPCStub = wsRPC.getClientRPCStub(
+					validWSServerIp,
+					validWSServerPort
+				);
 			});
 
-			it('without port should call RPC callback with INVALID_HEADERS error', function (done) {
+			it('without port should call RPC callback with INVALID_HEADERS error', done => {
 				delete validHeaders.wsPort;
 				System.setHeaders(validHeaders);
-				validClientRPCStub.status(function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('wsPort: Expected type integer but found type not-a-number');
+				validClientRPCStub.status(err => {
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal('wsPort: Expected type integer but found type not-a-number');
 					done();
 				});
 			});
 
-			it('with valid port as string should call RPC callback without an error', function (done) {
+			it('with valid port as string should call RPC callback without an error', done => {
 				validHeaders.wsPort = validHeaders.wsPort.toString();
 				System.setHeaders(validHeaders);
-				validClientRPCStub.status(function (err) {
+				validClientRPCStub.status(err => {
 					expect(err).to.be.null;
 					done();
 				});
 			});
 
-			it('with too short nonce should call RPC callback with INVALID_HEADERS error', function (done) {
+			it('with too short nonce should call RPC callback with INVALID_HEADERS error', done => {
 				validHeaders.nonce = 'TOO_SHORT';
 				System.setHeaders(validHeaders);
-				validClientRPCStub.status(function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('nonce: String is too short (9 chars), minimum 16');
+				validClientRPCStub.status(err => {
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal('nonce: String is too short (9 chars), minimum 16');
 					done();
 				});
 			});
 
-			it('with too long nonce should call RPC callback with INVALID_HEADERS error', function (done) {
+			it('with too long nonce should call RPC callback with INVALID_HEADERS error', done => {
 				validHeaders.nonce = 'NONCE_LONGER_THAN_16_CHARS';
 				System.setHeaders(validHeaders);
-				validClientRPCStub.status(function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('nonce: String is too long (26 chars), maximum 16');
+				validClientRPCStub.status(err => {
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal('nonce: String is too long (26 chars), maximum 16');
 					done();
 				});
 			});
 
-			it('without nonce should call RPC callback with INVALID_HEADERS error', function (done) {
+			it('without nonce should call RPC callback with INVALID_HEADERS error', done => {
 				delete validHeaders.nonce;
 				System.setHeaders(validHeaders);
-				validClientRPCStub.status(function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal(': Missing required property: nonce');
+				validClientRPCStub.status(err => {
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal(': Missing required property: nonce');
 					done();
 				});
 			});
 
-			it('without nethash should call RPC callback with INVALID_HEADERS error', function (done) {
+			it('without nethash should call RPC callback with INVALID_HEADERS error', done => {
 				delete validHeaders.nethash;
 				System.setHeaders(validHeaders);
-				validClientRPCStub.status(function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal(': Missing required property: nethash');
+				validClientRPCStub.status(err => {
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal(': Missing required property: nethash');
 					done();
 				});
 			});
 
-			it('without height should call RPC callback with INVALID_HEADERS error', function (done) {
+			it('without height should call RPC callback with INVALID_HEADERS error', done => {
 				delete validHeaders.height;
 				System.setHeaders(validHeaders);
-				validClientRPCStub.status(function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal('height: Expected type integer but found type not-a-number');
+				validClientRPCStub.status(err => {
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal('height: Expected type integer but found type not-a-number');
 					done();
 				});
 			});
 
-			it('without version should call RPC callback with INVALID_HEADERS error', function (done) {
+			it('without version should call RPC callback with INVALID_HEADERS error', done => {
 				delete validHeaders.version;
 				System.setHeaders(validHeaders);
-				validClientRPCStub.status(function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.INVALID_HEADERS);
-					expect(err).to.have.property('description').equal(': Missing required property: version');
+				validClientRPCStub.status(err => {
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.INVALID_HEADERS);
+					expect(err)
+						.to.have.property('description')
+						.equal(': Missing required property: version');
 					done();
 				});
 			});
 		});
 	});
 
-	describe('when reaching', function () {
-
-		describe('not reachable server', function () {
-
-			before(function () {
+	describe('when reaching', () => {
+		describe('not reachable server', () => {
+			before(() => {
 				var invalisServerIp = '1.1.1.1';
 				var invalisServerPort = 1111;
-				validClientRPCStub = wsRPC.getClientRPCStub(invalisServerIp, invalisServerPort);
+				validClientRPCStub = wsRPC.getClientRPCStub(
+					invalisServerIp,
+					invalisServerPort
+				);
 			});
 
-			it('should call RPC callback with CONNECTION_TIMEOUT error', function (done) {
-				validClientRPCStub.status(function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.CONNECTION_TIMEOUT);
-					expect(err).to.have.property('message').equal(failureCodes.errorMessages[failureCodes.CONNECTION_TIMEOUT]);
+			it('should call RPC callback with CONNECTION_TIMEOUT error', done => {
+				validClientRPCStub.status(err => {
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.CONNECTION_TIMEOUT);
+					expect(err)
+						.to.have.property('message')
+						.equal(failureCodes.errorMessages[failureCodes.CONNECTION_TIMEOUT]);
 					done();
 				});
 			});
 		});
 
-		describe('not existing server', function () {
-
-			before(function () {
+		describe('not existing server', () => {
+			before(() => {
 				var validServerIp = '127.0.0.1';
 				var invalisServerPort = 1111;
-				validClientRPCStub = wsRPC.getClientRPCStub(validServerIp, invalisServerPort);
+				validClientRPCStub = wsRPC.getClientRPCStub(
+					validServerIp,
+					invalisServerPort
+				);
 			});
 
-			it('should call RPC callback with HANDSHAKE_ERROR error', function (done) {
-				validClientRPCStub.status(function (err) {
-					expect(err).to.have.property('code').equal(failureCodes.HANDSHAKE_ERROR);
-					expect(err).to.have.property('message').equal(failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]);
+			it('should call RPC callback with HANDSHAKE_ERROR error', done => {
+				validClientRPCStub.status(err => {
+					expect(err)
+						.to.have.property('code')
+						.equal(failureCodes.HANDSHAKE_ERROR);
+					expect(err)
+						.to.have.property('message')
+						.equal(failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]);
 					done();
 				});
 			});

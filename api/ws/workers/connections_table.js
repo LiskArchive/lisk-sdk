@@ -14,37 +14,47 @@
 'use strict';
 
 /**
- * ConnectionsTable - stores connection (socket) ids and matches them with peer's nonces
- * @constructor
+ * ConnectionsTable - Stores connection (socket) ids and matches them with peer's nonces.
+ *
+ * @class
+ * @memberof api.ws.workers
+ * @see Parent: {@link api.ws.workers}
  */
-function ConnectionsTable () {
+function ConnectionsTable() {
 	this.connectionIdToNonceMap = {};
 	this.nonceToConnectionIdMap = {};
 }
 
 /**
- * @param {string} connectionId
- * @returns {string|undefined} returns matching nonce if an entry was added previously
+ * Description of the function.
+ *
+ * @param {string} connectionId - Description of the param
+ * @returns {string|undefined} Matching nonce if an entry was added previously
+ * @todo: Add description of the function and its parameters
  */
-ConnectionsTable.prototype.getNonce = function (connectionId) {
+ConnectionsTable.prototype.getNonce = function(connectionId) {
 	return this.connectionIdToNonceMap[connectionId];
 };
 
 /**
- * @param {string} nonce
- * @returns {string|undefined} returns matching connectionId if an entry was added previously
+ * Description of the function.
+ *
+ * @param {string} nonce - Description of the param
+ * @returns {string|undefined} Matching connectionId if an entry was added previously
+ * @todo: Add description of the function and its parameters
  */
-ConnectionsTable.prototype.getConnectionId = function (nonce) {
+ConnectionsTable.prototype.getConnectionId = function(nonce) {
 	return this.nonceToConnectionIdMap[nonce];
 };
 
 /**
- * Links peer via nonce with given connectionId
- * @param {string} nonce
- * @param {string} connectionId
+ * Links peer via nonce with given connectionId.
+ *
+ * @param {string} nonce - Description of the param
+ * @param {string} connectionId - Description of the param
+ * @todo: Add descriptions of the parameters
  */
-ConnectionsTable.prototype.add = function (nonce, connectionId) {
-
+ConnectionsTable.prototype.add = function(nonce, connectionId) {
 	if (!nonce) {
 		throw new Error('Cannot add connection table entry without nonce');
 	}
@@ -57,10 +67,12 @@ ConnectionsTable.prototype.add = function (nonce, connectionId) {
 };
 
 /**
- * Removes a peer with assigned connectionId
- * @param {string} nonce
+ * Removes a peer with assigned connectionId.
+ *
+ * @param {string} nonce - Description of the param
+ * @todo: Add description of the parameters
  */
-ConnectionsTable.prototype.remove = function (nonce) {
+ConnectionsTable.prototype.remove = function(nonce) {
 	if (!nonce) {
 		throw new Error('Cannot remove connection table entry without nonce');
 	}

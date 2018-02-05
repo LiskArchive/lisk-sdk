@@ -15,37 +15,36 @@
 
 var PromiseDefer = require('../../../helpers/promise_defer');
 
-describe('PromiseDefer', function () {
-
+describe('PromiseDefer', () => {
 	var promiseDefer;
 	var RESOLVED = 'resolved';
 	var REJECTED = 'rejected';
 
-	beforeEach(function () {
+	beforeEach(() => {
 		promiseDefer = PromiseDefer();
-		promiseDefer.promise.then(function (input) {
-			expect(input.message).to.equal(RESOLVED);
-			input.done();
-		}).catch(function (input) {
-			expect(input.message).to.equal(REJECTED);
-			input.done();
-		});
+		promiseDefer.promise
+			.then(input => {
+				expect(input.message).to.equal(RESOLVED);
+				input.done();
+			})
+			.catch(input => {
+				expect(input.message).to.equal(REJECTED);
+				input.done();
+			});
 	});
 
-	describe('when it fails', function () {
-
-		it('should reject', function (done) {
+	describe('when it fails', () => {
+		it('should reject', done => {
 			expect(promiseDefer.promise.isRejected()).to.be.false;
-			promiseDefer.reject({message: REJECTED, done: done});
+			promiseDefer.reject({ message: REJECTED, done: done });
 			expect(promiseDefer.promise.isRejected()).to.be.true;
 		});
 	});
 
-	describe('when it succeeds', function () {
-
-		it('should resolve', function (done) {
+	describe('when it succeeds', () => {
+		it('should resolve', done => {
 			expect(promiseDefer.promise.isFulfilled()).to.be.false;
-			promiseDefer.resolve({message: RESOLVED, done: done});
+			promiseDefer.resolve({ message: RESOLVED, done: done });
 			expect(promiseDefer.promise.isFulfilled()).to.be.true;
 		});
 	});

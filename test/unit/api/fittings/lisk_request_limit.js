@@ -14,59 +14,59 @@
 'use strict';
 
 var httpMocks = require('node-mocks-http');
-
 var fitting = require('../../../../api/fittings/lisk_request_limit');
 
-describe('lisk_request_limit', function () {
+describe('lisk_request_limit', () => {
+	var context;
+	var limit_fititng;
+	var next;
 
-	var context, limit_fititng, next;
-
-	beforeEach(function () {
+	beforeEach(() => {
 		context = {
 			request: httpMocks.createRequest(),
-			response: null
+			response: null,
 		};
-		context.response = httpMocks.createResponse({req: context.request});
+		context.response = httpMocks.createResponse({ req: context.request });
 		limit_fititng = fitting();
 		next = sinonSandbox.spy();
 	});
 
-	it('should be a factory function that names 2 arguments', function () {
+	it('should be a factory function that names 2 arguments', () => {
 		expect(fitting).to.be.a('function');
-		expect(fitting).to.have.length(2);
+		expect(fitting).to.have.length(1);
 	});
 
-	it('should create a middleware accepting 2 arguments', function () {
+	it('should create a middleware accepting 2 arguments', () => {
 		expect(limit_fititng).to.be.a('function');
 		expect(limit_fititng).to.have.length(2);
 	});
 
-	it('should set limits to default if not provided config', function () {
+	it('should set limits to default if not provided config', () => {
 		expect(limit_fititng.limits).to.be.eql(limit_fititng.defaults);
 	});
 
-	it('should set limits to override if provided by config', function () {
+	it('should set limits to override if provided by config', () => {
 		var limits = {
 			max: 10,
 			delayMs: 0,
 			delayAfter: 0,
-			windowMs: 60000
+			windowMs: 60000,
 		};
-		limit_fititng = fitting({limits: limits});
+		limit_fititng = fitting({ limits: limits });
 		expect(limit_fititng.limits).to.be.eql(limits);
 	});
 
-	it('should limit the number of request to 5 if limits.max = 5', function () {
+	it('should limit the number of request to 5 if limits.max = 5', () => {
 		var limits = {
 			max: 5,
 			delayMs: 0,
 			delayAfter: 0,
-			windowMs: 60000
+			windowMs: 60000,
 		};
 
-		context.response = httpMocks.createResponse({req: context.request});
+		context.response = httpMocks.createResponse({ req: context.request });
 
-		limit_fititng = fitting({limits: limits});
+		limit_fititng = fitting({ limits: limits });
 
 		for (var i = 0; i < limits.max + 5; i++) {
 			limit_fititng(context, next);
@@ -75,7 +75,7 @@ describe('lisk_request_limit', function () {
 		expect(next).to.have.callCount(limits.max);
 	});
 
-	it('should limit the number of request to 5 every 2 seconds if limits.max = 5 and limits.windowMs = 2000', function (done) {
+	it('should limit the number of request to 5 every 2 seconds if limits.max = 5 and limits.windowMs = 2000', done => {
 		var limits = {
 			max: 5,
 			delayMs: 0,
@@ -83,14 +83,15 @@ describe('lisk_request_limit', function () {
 			windowMs: 2000,
 		};
 
-		limit_fititng = fitting({limits: limits});
+		limit_fititng = fitting({ limits: limits });
 
 		var success = 0;
 
-		function cb (err, data) {
-			success = success + 1;
+		function cb() {
+			success += 1;
 			var lmitiHeader = context.response.getHeader('X-RateLimit-Limit');
-			var remainingLimitHeader = context.response.getHeader('X-RateLimit-Remaining') || 0;
+			var remainingLimitHeader =
+				context.response.getHeader('X-RateLimit-Remaining') || 0;
 			expect(lmitiHeader).to.be.equal(limits.max);
 			expect(remainingLimitHeader).to.be.equal(limits.max - success);
 		}
@@ -102,7 +103,7 @@ describe('lisk_request_limit', function () {
 
 		success = 0;
 
-		setTimeout(function () {
+		setTimeout(() => {
 			next = sinonSandbox.spy();
 			for (var i = 0; i < limits.max + 5; i++) {
 				limit_fititng(context, cb);
@@ -112,24 +113,24 @@ describe('lisk_request_limit', function () {
 		}, 2000);
 	});
 
-	it('should respect limit for different IPs explicitly', function () {
+	it('should respect limit for different IPs explicitly', () => {
 		var context2 = {
 			request: httpMocks.createRequest(),
-			response: null
+			response: null,
 		};
-		context2.response = httpMocks.createResponse({req: context2.request});
+		context2.response = httpMocks.createResponse({ req: context2.request });
 		var next2 = sinonSandbox.spy();
 		var limits = {
 			max: 5,
 			delayMs: 0,
 			delayAfter: 0,
-			windowMs: 2000
+			windowMs: 2000,
 		};
 
 		context.request.ip = '192.168.99.10';
 		context2.request.ip = '192.168.99.11';
 
-		limit_fititng = fitting({limits: limits});
+		limit_fititng = fitting({ limits: limits });
 
 		for (var i = 0; i < limits.max + 5; i++) {
 			limit_fititng(context, next);
