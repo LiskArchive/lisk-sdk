@@ -13,12 +13,13 @@
  */
 'use strict';
 
-var Promise = require('bluebird');
-var randomstring = require('randomstring');
-var application = require('../../common/application');
+const Promise = require('bluebird');
+const randomstring = require('randomstring');
+const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 
-var db;
-var validAccount;
+let db;
+let dbSandbox;
+let validAccount;
 
 function generateAccount() {
 	return {
@@ -68,17 +69,13 @@ function createAccount() {
 
 describe('db', function() {
 	before(function(done) {
-		application.init({ sandbox: { name: 'lisk_test_db_accounts' } }, function(
-			err,
-			scope
-		) {
-			db = scope.db;
+		dbSandbox = new DBSandbox(__testContext.config.db, 'lisk_test_db_accounts');
+
+		dbSandbox.create((err, __db) => {
+			db = __db;
+
 			done(err);
 		});
-	});
-
-	after(function(done) {
-		application.cleanup(done);
 	});
 
 	describe('accounts', function() {
