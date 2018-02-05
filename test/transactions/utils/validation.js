@@ -192,27 +192,27 @@ describe('public key validation', () => {
 		describe('Given a valid address', () => {
 			const address = '13133549779353512613L';
 
-			it('should return true if valid', () => {
+			it('should return true', () => {
 				return validateAddress(address).should.be.equal(true);
 			});
 		});
 
-		describe('Given a too short address', () => {
+		describe('Given an address that is too short', () => {
 			const address = 'L';
 			const error =
 				'Address length does not match requirements. Expected between 2 and 22 characters.';
 
-			it('should throw if invalid', () => {
+			it('should throw', () => {
 				return validateAddress.bind(null, address).should.throw(error);
 			});
 		});
 
-		describe('Given a too long address', () => {
+		describe('Given an address that is too long', () => {
 			const address = '12345678901234567890123L';
 			const error =
 				'Address length does not match requirements. Expected between 2 and 22 characters.';
 
-			it('should throw if invalid', () => {
+			it('should throw', () => {
 				return validateAddress.bind(null, address).should.throw(error);
 			});
 		});
@@ -222,7 +222,7 @@ describe('public key validation', () => {
 			const error =
 				'Address format does not match requirements. Expected "L" at the end.';
 
-			it('should throw if invalid', () => {
+			it('should throw', () => {
 				return validateAddress.bind(null, address).should.throw(error);
 			});
 		});
