@@ -407,7 +407,7 @@ describe('db', () => {
 					});
 
 					describe('functions', () => {
-						it('should always return "address" as "UPPER(address)"', () => {
+						it('should always return "address" as "upper(address)"', () => {
 							return db.accounts.list({}, ['address']).then(data => {
 								data.forEach(account => {
 									expect(account.address).to.eql(account.address.toUpperCase());
@@ -415,7 +415,7 @@ describe('db', () => {
 							});
 						});
 
-						it('should always return "publicKey" as "ENCODE(publicKey, \'hex\')"', () => {
+						it('should always return "publicKey" as "encode(publicKey, \'hex\')"', () => {
 							return db.accounts.list({}, ['publicKey']).then(data => {
 								data.forEach(account => {
 									expect(account.publicKey).to.be.a('string');
@@ -423,7 +423,7 @@ describe('db', () => {
 							});
 						});
 
-						it('should always return "secondPublicKey" as "ENCODE(secondPublicKey, \'hex\')"', () => {
+						it('should always return "secondPublicKey" as "encode(secondPublicKey, \'hex\')"', () => {
 							return db.accounts.list({}, ['secondPublicKey']).then(data => {
 								data.forEach(account => {
 									if (account.secondPublicKey) {
