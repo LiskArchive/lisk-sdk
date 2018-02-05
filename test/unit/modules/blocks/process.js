@@ -196,7 +196,7 @@ describe('blocks/process', () => {
 				.callsArgWith(3, null, true);
 
 			var modulesDelegatesStub = {
-				fork: dummyFunction,
+				fork: sinonSandbox.stub(),
 				validateBlockSlotAgainstPreviousRound: sinonSandbox.stub(),
 				validateBlockSlot: sinonSandbox.stub(),
 			};
@@ -307,6 +307,9 @@ describe('blocks/process', () => {
 
 			afterEach(done => {
 				expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
+				expect(
+					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 1)
+				);
 				done();
 			});
 
@@ -345,6 +348,9 @@ describe('blocks/process', () => {
 			afterEach(done => {
 				expect(loggerStub.info.args[0][0]).to.equal(
 					'Last block and parent loses'
+				);
+				expect(
+					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 1)
 				);
 				done();
 			});
