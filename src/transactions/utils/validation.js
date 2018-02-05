@@ -48,7 +48,7 @@ export const validateKeysgroup = keysgroup => {
 	return validatePublicKeys(keysgroup);
 };
 
-// Specification: https://github.com/LiskHQ/lisk/blob/development/logic/account.js#L373
+// Specification: https://github.com/LiskHQ/lisk/blob/1.0.0/logic/account.js#L373
 export const validateAddress = address => {
 	if (address.length < 2 || address.length > 22) {
 		throw new Error(
