@@ -756,23 +756,25 @@ __private.applyUnconfirmedList = function (transactions, cb) {
 		if (!transaction) {
 			return setImmediate(eachSeriesCb);
 		}
-		__private.processVerifyTransaction(transaction, false, function (err, sender) {
-			if (err) {
-				library.logger.error('Failed to process / verify unconfirmed transaction: ' + transaction.id, err);
-				self.removeQueuedTransaction(transaction.id);
-				return setImmediate(eachSeriesCb);
-			}
-			modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
+		library.balancesSequence.add(function (balancesSequenceCb) {
+			__private.processVerifyTransaction(transaction, false, function (err, sender) {
 				if (err) {
-					library.logger.error('Failed to apply unconfirmed transaction: ' + transaction.id, err);
+					library.logger.error('Failed to process / verify unconfirmed transaction: ' + transaction.id, err);
 					self.removeQueuedTransaction(transaction.id);
-				} else {
-					// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
-					self.addUnconfirmedTransaction(transaction);
+					return setImmediate(balancesSequenceCb);
 				}
-				return setImmediate(eachSeriesCb);
+				modules.transactions.applyUnconfirmed(transaction, sender, function (err) {
+					if (err) {
+						library.logger.error('Failed to apply unconfirmed transaction: ' + transaction.id, err);
+						self.removeQueuedTransaction(transaction.id);
+					} else {
+						// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
+						self.addUnconfirmedTransaction(transaction);
+					}
+					return setImmediate(balancesSequenceCb);
+				});
 			});
-		});
+		}, eachSeriesCb);
 	}, cb);
 };
 
