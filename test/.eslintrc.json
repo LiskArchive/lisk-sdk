@@ -13,7 +13,6 @@
 		// To Keep
 		"arrow-body-style": "off",
 		// To Remove
-		"mocha/no-exclusive-tests": "off",
 		"mocha/no-identical-title": "off",
 		"mocha/no-nested-tests": "off",
 		"mocha/no-pending-tests": "off",
