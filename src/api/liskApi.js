@@ -88,46 +88,34 @@ export default class LiskAPI {
 		}
 	}
 
-	broadcastTransactions(transactions, callback) {
+	broadcastTransactions(transactions) {
 		return privateApi.sendRequestPromise
 			.call(this, POST, 'transactions', transactions)
-			.then(result => result.body)
-			.then(utils.optionallyCallCallback.bind(null, callback));
+			.then(result => result.body);
 	}
 
-	broadcastTransaction(transaction, callback) {
-		return this.broadcastTransactions([transaction], callback);
+	broadcastTransaction(transaction) {
+		return this.broadcastTransactions([transaction]);
 	}
 
-	broadcastSignatures(signatures, callback) {
+	broadcastSignatures(signatures) {
 		return privateApi.sendRequestPromise
 			.call(this, POST, 'signatures', { signatures })
-			.then(result => result.body)
-			.then(utils.optionallyCallCallback.bind(null, callback));
+			.then(result => result.body);
 	}
 
-	sendRequest(
-		requestMethod,
-		requestType,
-		optionsOrCallback,
-		callbackIfOptions,
-	) {
-		const callback = callbackIfOptions || optionsOrCallback;
-		const options =
-			typeof optionsOrCallback !== 'function' &&
-			typeof optionsOrCallback !== 'undefined'
-				? utils.checkOptions(optionsOrCallback)
-				: {};
+	sendRequest(requestMethod, requestType, options) {
+		const checkedOptions = utils.checkOptions(options);
 
 		return privateApi.sendRequestPromise
-			.call(this, requestMethod, requestType, options)
+			.call(this, requestMethod, requestType, checkedOptions)
 			.then(result => result.body)
 			.then(
 				privateApi.handleTimestampIsInFutureFailures.bind(
 					this,
 					requestMethod,
 					requestType,
-					options,
+					checkedOptions,
 				),
 			)
 			.catch(
@@ -135,19 +123,18 @@ export default class LiskAPI {
 					this,
 					requestMethod,
 					requestType,
-					options,
+					checkedOptions,
 				),
-			)
-			.then(utils.optionallyCallCallback.bind(null, callback));
+			);
 	}
 
-	transferLSK(recipientId, amount, passphrase, secondPassphrase, callback) {
-		return this.sendRequest(
-			POST,
-			'transactions',
-			{ recipientId, amount, passphrase, secondPassphrase },
-			callback,
-		);
+	transferLSK(recipientId, amount, passphrase, secondPassphrase) {
+		return this.sendRequest(POST, 'transactions', {
+			recipientId,
+			amount,
+			passphrase,
+			secondPassphrase,
+		});
 	}
 }
 
