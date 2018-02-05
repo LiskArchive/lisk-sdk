@@ -74,7 +74,7 @@ const unvotesDescription = `Specifies the public keys for the delegate candidate
 `;
 
 const noSignatureDescription =
-	'Specifies that you do not want a signature for your transaction. Your passphrase will not be needed.';
+	'Creates the transaction without a signature. Your passphrase will therefore not be required.';
 
 const options = {
 	json: ['-j, --json', jsonDescription],
