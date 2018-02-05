@@ -33,7 +33,7 @@ const defaultSenderPublicKey =
 const defaultSenderId = '18160565574430594874L';
 const defaultSenderSecondPublicKey =
 	'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
-const defaultAmount = 1000;
+const defaultAmount = (3 + 2 ** 62).toString();
 const defaultNoAmount = 0;
 const defaultTimestamp = 141738;
 const defaultTransactionId = '13987348420913138422';
@@ -101,7 +101,6 @@ describe('#getTransactionBytes', () => {
 				'hex',
 			);
 			const transactionBytes = getTransactionBytes(defaultTransaction);
-
 			return transactionBytes.should.be.eql(expectedBuffer);
 		});
 
