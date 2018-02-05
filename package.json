@@ -124,6 +124,7 @@
 		"rewire": "=2.5.2",
 		"sinon": "=3.2.1",
 		"sinon-chai": "=2.14.0",
+		"stampit": "=4.0.2",
 		"supertest": "=3.0.0",
 		"webpack": "=2.6.1",
 		"webpack-node-externals": "=1.6.0"

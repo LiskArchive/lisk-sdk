@@ -16,59 +16,24 @@
 const Promise = require('bluebird');
 const randomstring = require('randomstring');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
+const accountFixtures = require('../../../fixtures/accounts');
 
 let db;
 let dbSandbox;
 let validAccount;
 
-function generateAccount() {
-	return {
-		username: randomstring.generate(10).toLowerCase(),
-		isDelegate: true,
-		u_isDelegate: false,
-		secondSignature: false,
-		u_secondSignature: false,
-		u_username: randomstring.generate(10).toLowerCase(),
-		address: `${randomstring.generate({ charset: 'numeric', length: 20 })}L`,
-		publicKey: randomstring
-			.generate({ charset: '0123456789ABCDE', length: 32 })
-			.toLowerCase(),
-		secondPublicKey: null,
-		balance: '0',
-		u_balance: '0',
-		vote: '10000000000000000',
-		rate: '0',
-		delegates: null,
-		u_delegates: null,
-		multisignatures: null,
-		u_multisignatures: null,
-		multimin: 0,
-		u_multimin: 0,
-		multilifetime: 0,
-		u_multilifetime: 0,
-		blockId: randomstring.generate({ charset: 'numeric', length: 20 }),
-		nameexist: 0,
-		u_nameexist: 0,
-		producedBlocks: '9',
-		missedBlocks: '0',
-		fees: '0',
-		rewards: '0',
-		virgin: true,
-	};
-}
-
 function createAccount() {
-	validAccount = generateAccount();
+	validAccount = accountFixtures.Account();
 
 	return db
 		.query(db.$config.pgp.helpers.insert(validAccount, db.accounts.cs.insert))
-		.then(function() {
+		.then(() => {
 			return validAccount;
 		});
 }
 
-describe('db', function() {
-	before(function(done) {
+describe('db', () => {
+	before(done => {
 		dbSandbox = new DBSandbox(__testContext.config.db, 'lisk_test_db_accounts');
 
 		dbSandbox.create((err, __db) => {
@@ -78,97 +43,101 @@ describe('db', function() {
 		});
 	});
 
-	describe('accounts', function() {
-		describe('initialization', function() {
-			it('should initialize properly', function() {
+	after(() => {
+		dbSandbox.destroy();
+	});
+
+	describe('accounts', () => {
+		describe('initialization', () => {
+			it('should initialize properly', () => {
 				expect(db.accounts).to.not.null;
 			});
 		});
 
-		describe('methods', function() {
-			describe('resetMemTables', function() {
-				it('should process without any error', function() {
+		describe('methods', () => {
+			describe('resetMemTables', () => {
+				it('should process without any error', () => {
 					return db.accounts.resetMemTables();
 				});
 
-				it('should empty the table "mem_round"', function() {
+				it('should empty the table "mem_round"', () => {
 					return db.accounts
 						.resetMemTables()
-						.then(function() {
+						.then(() => {
 							return db.one('SELECT COUNT(*)::int AS count FROM mem_round');
 						})
-						.then(function(row) {
+						.then(row => {
 							expect(row.count).to.equal(0);
 						});
 				});
 
-				it('should empty the table "mem_accounts2delegates"', function() {
+				it('should empty the table "mem_accounts2delegates"', () => {
 					return db.accounts
 						.resetMemTables()
-						.then(function() {
+						.then(() => {
 							return db.one(
 								'SELECT COUNT(*)::int AS count FROM mem_accounts2delegates'
 							);
 						})
-						.then(function(row) {
+						.then(row => {
 							expect(row.count).to.equal(0);
 						});
 				});
 
-				it('should empty the table "mem_accounts2u_delegates"', function() {
+				it('should empty the table "mem_accounts2u_delegates"', () => {
 					return db.accounts
 						.resetMemTables()
-						.then(function() {
+						.then(() => {
 							return db.one(
 								'SELECT COUNT(*)::int AS count FROM mem_accounts2u_delegates'
 							);
 						})
-						.then(function(row) {
+						.then(row => {
 							expect(row.count).to.equal(0);
 						});
 				});
 
-				it('should empty the table "mem_accounts2multisignatures"', function() {
+				it('should empty the table "mem_accounts2multisignatures"', () => {
 					return db.accounts
 						.resetMemTables()
-						.then(function() {
+						.then(() => {
 							return db.one(
 								'SELECT COUNT(*)::int AS count FROM mem_accounts2multisignatures'
 							);
 						})
-						.then(function(row) {
+						.then(row => {
 							expect(row.count).to.equal(0);
 						});
 				});
 
-				it('should empty the table "mem_accounts2u_multisignatures"', function() {
+				it('should empty the table "mem_accounts2u_multisignatures"', () => {
 					return db.accounts
 						.resetMemTables()
-						.then(function() {
+						.then(() => {
 							return db.one(
 								'SELECT COUNT(*)::int AS count FROM mem_accounts2u_multisignatures'
 							);
 						})
-						.then(function(row) {
+						.then(row => {
 							expect(row.count).to.equal(0);
 						});
 				});
 			});
 
-			describe('list', function() {
-				before(function() {
-					return createAccount().then(function(account) {
+			describe('list', () => {
+				before(() => {
+					return createAccount().then(account => {
 						validAccount = account;
 					});
 				});
 
-				it('should return data without any error', function() {
+				it('should return data without any error', () => {
 					return db.accounts.list();
 				});
 
-				describe('fields', function() {
-					it('should return all table fields if no field is specified', function() {
-						return db.accounts.list().then(function(data) {
+				describe('fields', () => {
+					it('should return all table fields if no field is specified', () => {
+						return db.accounts.list().then(data => {
 							var columnNames = _.map(db.accounts.cs.select.columns, function(
 								column
 							) {
@@ -179,119 +148,115 @@ describe('db', function() {
 						});
 					});
 
-					it('should return only "address" if fields specify ["address"]', function() {
-						return db.accounts.list({}, ['address']).then(function(data) {
-							data.forEach(function(account) {
+					it('should return only "address" if fields specify ["address"]', () => {
+						return db.accounts.list({}, ['address']).then(data => {
+							data.forEach(account => {
 								expect(account).to.have.all.keys(['address']);
 							});
 						});
 					});
 
-					it('should return only "address" and "isDelegate" if fields specify ["address", "isDelegate"]', function() {
+					it('should return only "address" and "isDelegate" if fields specify ["address", "isDelegate"]', () => {
 						return db.accounts
 							.list({}, ['address', 'isDelegate'])
-							.then(function(data) {
-								data.forEach(function(account) {
+							.then(data => {
+								data.forEach(account => {
 									expect(account).to.have.all.keys(['isDelegate', 'address']);
 								});
 							});
 					});
 
-					it('should skip any unknown field specified ["address", "unKnownField"]', function() {
+					it('should skip any unknown field specified ["address", "unKnownField"]', () => {
 						return db.accounts
 							.list({}, ['address', 'unKnownField'])
-							.then(function(data) {
-								data.forEach(function(account) {
+							.then(data => {
+								data.forEach(account => {
 									expect(account).to.have.all.keys(['address']);
 								});
 							});
 					});
 
-					describe('property names', function() {
-						it('should return "producedBlocks" column if "producedBlocks" is asked', function() {
+					describe('property names', () => {
+						it('should return "producedBlocks" column if "producedBlocks" is asked', () => {
 							var actualResult;
 
-							return db.accounts
-								.list({}, ['producedBlocks'])
-								.then(function(data) {
-									actualResult = data;
+							return db.accounts.list({}, ['producedBlocks']).then(data => {
+								actualResult = data;
 
-									return db
-										.query(
-											'SELECT producedblocks::bigint AS "producedBlocks" FROM mem_accounts'
-										)
-										.then(function(result) {
-											expect(actualResult).to.eql(result);
-										});
-								});
+								return db
+									.query(
+										'SELECT producedblocks::bigint AS "producedBlocks" FROM mem_accounts'
+									)
+									.then(result => {
+										expect(actualResult).to.eql(result);
+									});
+							});
 						});
 
-						it('should return "missedBlocks" column if "missedBlocks" is asked', function() {
+						it('should return "missedBlocks" column if "missedBlocks" is asked', () => {
 							var actualResult;
 
-							return db.accounts
-								.list({}, ['missedBlocks'])
-								.then(function(data) {
-									actualResult = data;
+							return db.accounts.list({}, ['missedBlocks']).then(data => {
+								actualResult = data;
 
-									return db
-										.query(
-											'SELECT missedblocks::bigint AS "missedBlocks" FROM mem_accounts'
-										)
-										.then(function(result) {
-											expect(actualResult).to.eql(result);
-										});
-								});
+								return db
+									.query(
+										'SELECT missedblocks::bigint AS "missedBlocks" FROM mem_accounts'
+									)
+									.then(result => {
+										expect(actualResult).to.eql(result);
+									});
+							});
 						});
 					});
 
-					describe('dynamic fields', function() {
-						it('should fetch "rank" based on query \'(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::int\'', function() {
+					describe('dynamic fields', () => {
+						it('should fetch "rank" based on query \'(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::int\'', () => {
 							var actualResult;
 
-							return db.accounts.list({}, ['rank']).then(function(data) {
+							return db.accounts.list({}, ['rank']).then(data => {
 								actualResult = data;
 
 								return db
 									.query(
 										'SELECT (SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::bigint AS rank FROM mem_accounts'
 									)
-									.then(function(result) {
+									.then(result => {
 										expect(actualResult).to.eql(result);
 									});
 							});
 						});
 
-						it('should fetch "delegates" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")', function() {
+						it('should fetch "delegates" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")', () => {
 							return db.accounts
 								.list({}, ['address', 'delegates'])
-								.then(function(data) {
-									return Promise.map(data, function(account) {
+								.then(data => {
+									return Promise.map(data, account => {
 										return db
 											.one(
 												`SELECT (ARRAY_AGG("dependentId")) AS "delegates" FROM mem_accounts2delegates WHERE "accountId" = '${
 													account.address
 												}'`
 											)
-											.then(function(result) {
+											.then(result => {
 												expect(account.delegates).to.be.eql(result.delegates);
 											});
 									});
 								});
 						});
 
-						it('should fetch "u_delegates" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")', function() {
+						it('should fetch "u_delegates" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")', () => {
 							return db.accounts
 								.list({}, ['address', 'u_delegates'])
-								.then(function(data) {
-									return Promise.map(data, function(account) {
+								.then(data => {
+									return Promise.map(data, account => {
 										return db
 											.one(
 												`SELECT (ARRAY_AGG("dependentId")) AS "u_delegates" FROM mem_accounts2u_delegates WHERE "accountId" = '${
 													account.address
 												}'`
 											)
-											.then(function(result) {
+											.then(result => {
 												expect(account.u_delegates).to.be.eql(
 													result.u_delegates
 												);
@@ -300,18 +265,18 @@ describe('db', function() {
 								});
 						});
 
-						it('should fetch "multisignatures" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2multisignatures WHERE "accountId" = "mem_accounts"."address")', function() {
+						it('should fetch "multisignatures" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2multisignatures WHERE "accountId" = "mem_accounts"."address")', () => {
 							return db.accounts
 								.list({}, ['address', 'multisignatures'])
-								.then(function(data) {
-									return Promise.map(data, function(account) {
+								.then(data => {
+									return Promise.map(data, account => {
 										return db
 											.one(
 												`SELECT (ARRAY_AGG("dependentId")) AS "multisignatures" FROM mem_accounts2multisignatures WHERE "accountId" = '${
 													account.address
 												}'`
 											)
-											.then(function(result) {
+											.then(result => {
 												expect(account.multisignatures).to.be.eql(
 													result.multisignatures
 												);
@@ -320,18 +285,18 @@ describe('db', function() {
 								});
 						});
 
-						it('should fetch "u_multisignatures" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_multisignatures WHERE "accountId" = "mem_accounts"."address")', function() {
+						it('should fetch "u_multisignatures" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_multisignatures WHERE "accountId" = "mem_accounts"."address")', () => {
 							return db.accounts
 								.list({}, ['address', 'u_multisignatures'])
-								.then(function(data) {
-									return Promise.map(data, function(account) {
+								.then(data => {
+									return Promise.map(data, account => {
 										return db
 											.one(
 												`SELECT (ARRAY_AGG("dependentId")) AS "u_multisignatures" FROM mem_accounts2u_multisignatures WHERE "accountId" = '${
 													account.address
 												}'`
 											)
-											.then(function(result) {
+											.then(result => {
 												expect(account.u_multisignatures).to.be.eql(
 													result.u_multisignatures
 												);
@@ -341,228 +306,220 @@ describe('db', function() {
 						});
 					});
 
-					describe('data casting', function() {
-						it('should return "isDelegate" as "boolean"', function() {
+					describe('data casting', () => {
+						it('should return "isDelegate" as "boolean"', () => {
 							return db.accounts
 								.list({}, ['isDelegate'], { limit: 1 })
-								.then(function(data) {
+								.then(data => {
 									expect(data[0].isDelegate).to.be.a('boolean');
 								});
 						});
 
-						it('should return "u_isDelegate" as "boolean"', function() {
+						it('should return "u_isDelegate" as "boolean"', () => {
 							return db.accounts
 								.list({}, ['u_isDelegate'], { limit: 1 })
-								.then(function(data) {
+								.then(data => {
 									expect(data[0].u_isDelegate).to.be.a('boolean');
 								});
 						});
 
-						it('should return "secondSignature" as "boolean"', function() {
+						it('should return "secondSignature" as "boolean"', () => {
 							return db.accounts
 								.list({}, ['secondSignature'], { limit: 1 })
-								.then(function(data) {
+								.then(data => {
 									expect(data[0].secondSignature).to.be.a('boolean');
 								});
 						});
 
-						it('should return "u_secondSignature" as "boolean"', function() {
+						it('should return "u_secondSignature" as "boolean"', () => {
 							return db.accounts
 								.list({}, ['u_secondSignature'], { limit: 1 })
-								.then(function(data) {
+								.then(data => {
 									expect(data[0].u_secondSignature).to.be.a('boolean');
 								});
 						});
 
-						it('should return "balance" as "bigint"', function() {
+						it('should return "balance" as "bigint"', () => {
 							return db.accounts
 								.list({}, ['balance'], { limit: 1 })
-								.then(function(data) {
+								.then(data => {
 									expect(data[0].balance).to.be.a('string');
 								});
 						});
 
-						it('should return "u_balance" as "bigint"', function() {
+						it('should return "u_balance" as "bigint"', () => {
 							return db.accounts
 								.list({}, ['u_balance'], { limit: 1 })
-								.then(function(data) {
+								.then(data => {
 									expect(data[0].u_balance).to.be.a('string');
 								});
 						});
 
-						it('should return "rate" as "bigint"', function() {
-							return db.accounts
-								.list({}, ['rate'], { limit: 1 })
-								.then(function(data) {
-									expect(data[0].rate).to.be.a('string');
-								});
+						it('should return "rate" as "bigint"', () => {
+							return db.accounts.list({}, ['rate'], { limit: 1 }).then(data => {
+								expect(data[0].rate).to.be.a('string');
+							});
 						});
 
-						it('should return "fees" as "bigint"', function() {
-							return db.accounts
-								.list({}, ['fees'], { limit: 1 })
-								.then(function(data) {
-									expect(data[0].fees).to.be.a('string');
-								});
+						it('should return "fees" as "bigint"', () => {
+							return db.accounts.list({}, ['fees'], { limit: 1 }).then(data => {
+								expect(data[0].fees).to.be.a('string');
+							});
 						});
 
-						it('should return "rewards" as "bigint"', function() {
+						it('should return "rewards" as "bigint"', () => {
 							return db.accounts
 								.list({}, ['rewards'], { limit: 1 })
-								.then(function(data) {
+								.then(data => {
 									expect(data[0].rewards).to.be.a('string');
 								});
 						});
 
-						it('should return "vote" as "bigint"', function() {
-							return db.accounts
-								.list({}, ['vote'], { limit: 1 })
-								.then(function(data) {
-									expect(data[0].vote).to.be.a('string');
-								});
+						it('should return "vote" as "bigint"', () => {
+							return db.accounts.list({}, ['vote'], { limit: 1 }).then(data => {
+								expect(data[0].vote).to.be.a('string');
+							});
 						});
 
-						it('should return "producedBlocks" as "bigint"', function() {
+						it('should return "producedBlocks" as "bigint"', () => {
 							return db.accounts
 								.list({}, ['producedBlocks'], { limit: 1 })
-								.then(function(data) {
+								.then(data => {
 									expect(data[0].producedBlocks).to.be.a('string');
 								});
 						});
 
-						it('should return "missedBlocks" as "bigint"', function() {
+						it('should return "missedBlocks" as "bigint"', () => {
 							return db.accounts
 								.list({}, ['missedBlocks'], { limit: 1 })
-								.then(function(data) {
+								.then(data => {
 									expect(data[0].missedBlocks).to.be.a('string');
 								});
 						});
 
-						it('should return "virgin" as "boolean"', function() {
+						it('should return "virgin" as "boolean"', () => {
 							return db.accounts
 								.list({}, ['virgin'], { limit: 1 })
-								.then(function(data) {
+								.then(data => {
 									expect(data[0].virgin).to.be.a('boolean');
 								});
 						});
 					});
 
-					describe('functions', function() {
-						it('should always return "address" as "UPPER(address)"', function() {
-							return db.accounts.list({}, ['address']).then(function(data) {
-								data.forEach(function(account) {
+					describe('functions', () => {
+						it('should always return "address" as "UPPER(address)"', () => {
+							return db.accounts.list({}, ['address']).then(data => {
+								data.forEach(account => {
 									expect(account.address).to.eql(account.address.toUpperCase());
 								});
 							});
 						});
 
-						it('should always return "publicKey" as "ENCODE(publicKey, \'hex\')"', function() {
-							return db.accounts.list({}, ['publicKey']).then(function(data) {
-								data.forEach(function(account) {
+						it('should always return "publicKey" as "ENCODE(publicKey, \'hex\')"', () => {
+							return db.accounts.list({}, ['publicKey']).then(data => {
+								data.forEach(account => {
 									expect(account.publicKey).to.be.a('string');
 								});
 							});
 						});
 
-						it('should always return "secondPublicKey" as "ENCODE(secondPublicKey, \'hex\')"', function() {
-							return db.accounts
-								.list({}, ['secondPublicKey'])
-								.then(function(data) {
-									data.forEach(function(account) {
-										if (account.secondPublicKey) {
-											expect(account.secondPublicKey).to.be.a('string');
-										}
-									});
+						it('should always return "secondPublicKey" as "ENCODE(secondPublicKey, \'hex\')"', () => {
+							return db.accounts.list({}, ['secondPublicKey']).then(data => {
+								data.forEach(account => {
+									if (account.secondPublicKey) {
+										expect(account.secondPublicKey).to.be.a('string');
+									}
 								});
+							});
 						});
 					});
 				});
 
-				describe('filters', function() {
-					it('should return valid result if filter.username is provided', function() {
+				describe('filters', () => {
+					it('should return valid result if filter.username is provided', () => {
 						return db.accounts
 							.list({ username: validAccount.username })
-							.then(function(data) {
-								data.forEach(function(account) {
+							.then(data => {
+								data.forEach(account => {
 									expect(account.username).to.be.eql(validAccount.username);
 								});
 							});
 					});
 
-					it('should return valid result with composite conditions if filter.username AND filter.address is provided', function() {
+					it('should return valid result with composite conditions if filter.username AND filter.address is provided', () => {
 						return db.accounts
 							.list({
 								username: validAccount.username,
 								address: validAccount.address,
 							})
-							.then(function(data) {
-								data.forEach(function(account) {
+							.then(data => {
+								data.forEach(account => {
 									expect(account.username).to.be.eql(validAccount.username);
 									expect(account.address).to.be.eql(validAccount.address);
 								});
 							});
 					});
 
-					it('should throw error if unknown field is provided as filter', function(done) {
+					it('should throw error if unknown field is provided as filter', done => {
 						db.accounts
 							.list({ username: validAccount.username, unknownField: 'Alpha' })
-							.then(function() {
+							.then(() => {
 								done('Error was expected');
 							})
-							.catch(function(reason) {
+							.catch(reason => {
 								expect(reason).to.eql('Unknown filter field provided to list');
 								done();
 							});
 					});
 				});
 
-				describe('options', function() {
-					describe('sort', function() {
-						it('should sort by address in descending if options.sortField="address"', function() {
+				describe('options', () => {
+					describe('sort', () => {
+						it('should sort by address in descending if options.sortField="address"', () => {
 							return db.accounts
 								.list({}, ['address'], { sortField: 'address', limit: 10 })
-								.then(function(data) {
+								.then(data => {
 									var actualData = _.map(data, 'address');
 
 									expect(actualData).to.be.eql(_(actualData).dbSort('desc'));
 								});
 						});
 
-						it('should sort by address in ascending if options.sortField="address" and options.sortMethod="ASC"', function() {
+						it('should sort by address in ascending if options.sortField="address" and options.sortMethod="ASC"', () => {
 							return db.accounts
 								.list({}, ['address'], {
 									sortField: 'address',
 									sortMethod: 'ASC',
 									limit: 10,
 								})
-								.then(function(data) {
+								.then(data => {
 									var actualData = _.map(data, 'address');
 
 									expect(actualData).to.be.eql(_(actualData).dbSort('asc'));
 								});
 						});
 
-						it('should sort by username in ascending if options.sortField="username" and options.sortMethod="ASC"', function() {
+						it('should sort by username in ascending if options.sortField="username" and options.sortMethod="ASC"', () => {
 							return db.accounts
 								.list({}, ['address'], {
 									sortField: 'username',
 									sortMethod: 'ASC',
 									limit: 10,
 								})
-								.then(function(data) {
+								.then(data => {
 									var actualData = _.map(data, 'username');
 
 									expect(actualData).to.be.eql(_(actualData).dbSort('asc'));
 								});
 						});
 
-						it('should fail if unknown sort field is specified', function(done) {
+						it('should fail if unknown sort field is specified', done => {
 							db.accounts
 								.list({}, ['address'], { sortField: 'unknownField', limit: 10 })
-								.then(function() {
+								.then(() => {
 									done('Error was expected');
 								})
-								.catch(function(reason) {
+								.catch(reason => {
 									expect(reason.message).to.eql(
 										'column "unknownField" does not exist'
 									);
@@ -571,42 +528,42 @@ describe('db', function() {
 						});
 					});
 
-					describe('limit & offset', function() {
-						beforeEach(function() {
+					describe('limit & offset', () => {
+						beforeEach(() => {
 							// Create 15 random accounts
-							return Promise.map(new Array(15), function() {
+							return Promise.map(new Array(15), () => {
 								return createAccount();
 							});
 						});
 
-						it('should return all results if no limit is specified', function() {
+						it('should return all results if no limit is specified', () => {
 							var count;
 
-							return db.accounts.list({}, ['address']).then(function(data) {
+							return db.accounts.list({}, ['address']).then(data => {
 								count = data.length;
 
 								return db
 									.one('SELECT COUNT(*)::int as count from mem_accounts')
-									.then(function(result) {
+									.then(result => {
 										expect(result.count).to.be.equal(count);
 									});
 							});
 						});
 
-						it('should return 10 results if options.limit=10', function() {
+						it('should return 10 results if options.limit=10', () => {
 							return db.accounts
 								.list({}, ['address'], { limit: 10 })
-								.then(function(data) {
+								.then(data => {
 									expect(data.length).to.be.equal(10);
 								});
 						});
 
-						it('should skip first 10 results if options.offset=10', function() {
+						it('should skip first 10 results if options.offset=10', () => {
 							var previousData;
 
 							return db.accounts
 								.list({}, ['address'], { limit: 11 })
-								.then(function(data) {
+								.then(data => {
 									previousData = data;
 
 									expect(data.length).to.be.equal(11);
@@ -615,7 +572,7 @@ describe('db', function() {
 										offset: 10,
 									});
 								})
-								.then(function(data) {
+								.then(data => {
 									expect(data.length).to.be.equal(1);
 									expect(data[0]).to.be.eql(previousData[10]);
 								});
@@ -624,16 +581,16 @@ describe('db', function() {
 				});
 			});
 
-			describe('upsert', function() {
-				it('should throw error if no conflict field is specified', function(done) {
-					var account = generateAccount();
+			describe('upsert', () => {
+				it('should throw error if no conflict field is specified', done => {
+					var account = accountFixtures.Account();
 
 					db.accounts
 						.upsert(account)
-						.then(function(value) {
+						.then(value => {
 							done(value);
 						})
-						.catch(function(error) {
+						.catch(error => {
 							expect(error.message).to.be.eql(
 								'Error: db.accounts.upsert - invalid conflictingFields argument'
 							);
@@ -641,30 +598,30 @@ describe('db', function() {
 						});
 				});
 
-				it('should succeed with null', function() {
-					var account = generateAccount();
+				it('should succeed with null', () => {
+					var account = accountFixtures.Account();
 
-					return db.accounts.upsert(account, 'address').then(function(result) {
+					return db.accounts.upsert(account, 'address').then(result => {
 						expect(result).to.be.null;
 					});
 				});
 
-				it('should insert account if conflictField="address" not found', function() {
-					var account = generateAccount();
+				it('should insert account if conflictField="address" not found', () => {
+					var account = accountFixtures.Account();
 
-					return db.accounts.upsert(account, 'address').then(function() {
+					return db.accounts.upsert(account, 'address').then(() => {
 						return db.accounts
 							.list({ address: account.address })
-							.then(function(result) {
+							.then(result => {
 								expect(result.length).to.be.eql(1);
 								expect(account).to.be.eql(_.omit(result[0], 'rank'));
 							});
 					});
 				});
 
-				it('should update account if conflictField="address" found', function() {
-					var account1 = generateAccount();
-					var account2 = generateAccount();
+				it('should update account if conflictField="address" found', () => {
+					var account1 = accountFixtures.Account();
+					var account2 = accountFixtures.Account();
 
 					// Since DB trigger protects from updating username only if it was null before
 					delete account1.username;
@@ -672,11 +629,11 @@ describe('db', function() {
 
 					account2.address = account1.address;
 
-					return db.accounts.upsert(account1, 'address').then(function() {
-						return db.accounts.upsert(account2, 'address').then(function() {
+					return db.accounts.upsert(account1, 'address').then(() => {
+						return db.accounts.upsert(account2, 'address').then(() => {
 							return db.accounts
 								.list({ address: account2.address })
-								.then(function(result) {
+								.then(result => {
 									expect(result.length).to.be.eql(1);
 
 									expect(result[0]).to.not.be.eql(account1);
@@ -692,66 +649,63 @@ describe('db', function() {
 					});
 				});
 
-				it('should insert only the columns specified in columnSet.insert', function() {
-					var account = generateAccount();
+				it('should insert only the columns specified in columnSet.insert', () => {
+					var account = accountFixtures.Account({
+						delegates: [randomstring.generate(10).toLowerCase()],
+					});
 
-					// Delegates is not mentioned in cs.insert so it should be skipped
-					account.delegates = [randomstring.generate(10).toLowerCase()];
-
-					return db.accounts.upsert(account, 'address').then(function() {
+					return db.accounts.upsert(account, 'address').then(() => {
 						return db.accounts
 							.list({ address: account.address })
-							.then(function(result) {
+							.then(result => {
 								expect(result.length).to.eql(1);
 								expect(result[0].delegates).to.be.null;
 							});
 					});
 				});
 
-				it('should update only the columns specified in columnSet.update', function() {
-					var originalAccount = generateAccount();
-					var updatedAccount = generateAccount();
+				it('should update only the columns specified in columnSet.update', () => {
+					var originalAccount = accountFixtures.Account();
+					var updatedAccount = accountFixtures.Account();
 
 					// Since DB trigger protects from updating username only if it was null before
 					delete originalAccount.username;
 					delete originalAccount.u_username;
 
-					return db.accounts
-						.upsert(originalAccount, 'address')
-						.then(function() {
-							return db.accounts
-								.upsert(originalAccount, 'address', updatedAccount)
-								.then(function() {
-									return db.accounts
-										.list({ address: originalAccount.address })
-										.then(function(result) {
-											expect(result.length).to.eql(1);
+					return db.accounts.upsert(originalAccount, 'address').then(() => {
+						return db.accounts
+							.upsert(originalAccount, 'address', updatedAccount)
+							.then(() => {
+								return db.accounts
+									.list({ address: originalAccount.address })
+									.then(result => {
+										expect(result.length).to.eql(1);
 
-											var immutableFields = db.accounts.getImmutableFields();
+										var immutableFields = db.accounts.getImmutableFields();
 
-											Object.keys(_.omit(result[0], 'rank')).forEach(function(
-												field
-											) {
-												if (immutableFields.indexOf(field) !== -1) {
-													// If it's an immutable field
-													expect(result[0][field], field).to.eql(
-														originalAccount[field]
-													);
-												} else {
-													// If it's not an immutable field
-													expect(result[0][field], field).to.eql(
-														updatedAccount[field]
-													);
-												}
-											});
+										Object.keys(_.omit(result[0], 'rank')).forEach(function(
+											field
+										) {
+											if (immutableFields.indexOf(field) !== -1) {
+												// If it's an immutable field
+												expect(result[0][field], field).to.eql(
+													originalAccount[field]
+												);
+											} else {
+												// If it's not an immutable field
+												expect(result[0][field], field).to.eql(
+													updatedAccount[field]
+												);
+											}
 										});
-								});
-						});
+									});
+							});
+					});
 				});
 
-				it('should update data attributes specified as "data" if argument "updateData" is missing', function() {
-					var originalAccount = generateAccount();
-					var updatedAccount = generateAccount();
+				it('should update data attributes specified as "data" if argument "updateData" is missing', () => {
+					var originalAccount = accountFixtures.Account();
+					var updatedAccount = accountFixtures.Account();
 
 					// Since DB trigger protects from updating username only if it was null before
 					delete originalAccount.username;
@@ -759,110 +713,100 @@ describe('db', function() {
 
 					updatedAccount.address = originalAccount.address;
 
-					return db.accounts
-						.upsert(originalAccount, 'address')
-						.then(function() {
+					return db.accounts.upsert(originalAccount, 'address').then(() => {
+						return db.accounts.upsert(updatedAccount, 'address').then(() => {
 							return db.accounts
-								.upsert(updatedAccount, 'address')
-								.then(function() {
-									return db.accounts
-										.list({ address: originalAccount.address })
-										.then(function(result) {
-											expect(result.length).to.eql(1);
+								.list({ address: originalAccount.address })
+								.then(result => {
+									expect(result.length).to.eql(1);
 
-											var immutableFields = db.accounts.getImmutableFields();
+									var immutableFields = db.accounts.getImmutableFields();
 
-											Object.keys(_.omit(result[0], 'rank')).forEach(function(
-												field
-											) {
-												if (immutableFields.indexOf(field) !== -1) {
-													// If it's an immutable field
-													expect(result[0][field], field).to.eql(
-														originalAccount[field]
-													);
-												} else {
-													// If it's not an immutable field
-													expect(result[0][field], field).to.eql(
-														updatedAccount[field]
-													);
-												}
-											});
-										});
+									Object.keys(_.omit(result[0], 'rank')).forEach(function(
+										field
+									) {
+										if (immutableFields.indexOf(field) !== -1) {
+											// If it's an immutable field
+											expect(result[0][field], field).to.eql(
+												originalAccount[field]
+											);
+										} else {
+											// If it's not an immutable field
+											expect(result[0][field], field).to.eql(
+												updatedAccount[field]
+											);
+										}
+									});
 								});
 						});
+					});
 				});
 
-				it('should match the values for conflict keys case sensitively', function() {
-					var originalAccount = generateAccount();
-					var updatedAccount = generateAccount();
+				it('should match the values for conflict keys case sensitively', () => {
+					var originalAccount = accountFixtures.Account();
+					var updatedAccount = accountFixtures.Account({
+						username: originalAccount.username.toUpperCase(),
+					});
 
-					updatedAccount.username = originalAccount.username.toUpperCase();
-
-					return db.accounts
-						.upsert(originalAccount, 'username')
-						.then(function() {
+					return db.accounts.upsert(originalAccount, 'username').then(() => {
+						return db.accounts.upsert(updatedAccount, 'username').then(() => {
 							return db.accounts
-								.upsert(updatedAccount, 'username')
-								.then(function() {
-									return db.accounts
-										.list({ username: updatedAccount.username })
-										.then(function(result) {
-											expect(result.length).to.eql(1);
+								.list({ username: updatedAccount.username })
+								.then(result => {
+									expect(result.length).to.eql(1);
 
-											expect(_.omit(result[0], 'rank')).to.eql(updatedAccount);
-										});
+									expect(_.omit(result[0], 'rank')).to.eql(updatedAccount);
 								});
 						});
+					});
 				});
 
-				it('should match the multiple conflict keys with AND composite', function() {
-					var originalAccount = generateAccount();
-					var updatedAccount = generateAccount();
+				it('should match the multiple conflict keys with AND composite', () => {
+					var originalAccount = accountFixtures.Account();
+					var updatedAccount = accountFixtures.Account({
+						username: originalAccount.username,
+						u_username: originalAccount.u_username,
+					});
 
-					updatedAccount.username = originalAccount.username;
-					updatedAccount.u_username = originalAccount.u_username;
+					return db.accounts.upsert(originalAccount, 'address').then(() => {
+						return db.accounts
+							.upsert(updatedAccount, ['username', 'u_username'])
+							.then(() => {
+								return db.accounts
+									.list({ username: updatedAccount.username })
+									.then(result => {
+										expect(result.length).to.eql(1);
 
-					return db.accounts
-						.upsert(originalAccount, 'address')
-						.then(function() {
-							return db.accounts
-								.upsert(updatedAccount, ['username', 'u_username'])
-								.then(function() {
-									return db.accounts
-										.list({ username: updatedAccount.username })
-										.then(function(result) {
-											expect(result.length).to.eql(1);
-
-											expect(result[0].address).to.eql(originalAccount.address);
-										});
-								});
-						});
+										expect(result[0].address).to.eql(originalAccount.address);
+									});
+							});
+					});
 				});
 			});
 
-			describe('insert', function() {
-				it('should insert account without any error', function() {
-					var account = generateAccount();
+			describe('insert', () => {
+				it('should insert account without any error', () => {
+					var account = accountFixtures.Account();
 
 					return db.accounts.insert(account);
 				});
 
-				it('should succeed with null', function() {
-					var account = generateAccount();
+				it('should succeed with null', () => {
+					var account = accountFixtures.Account();
 
-					return db.accounts.insert(account).then(function(result) {
+					return db.accounts.insert(account).then(result => {
 						expect(result).to.be.null;
 					});
 				});
 
-				it('should insert all columns specified in db.accounts.cs.insert', function() {
-					var account = generateAccount();
+				it('should insert all columns specified in db.accounts.cs.insert', () => {
+					var account = accountFixtures.Account();
 
-					return db.accounts.insert(account).then(function() {
+					return db.accounts.insert(account).then(() => {
 						return db.accounts
 							.list({ address: account.address })
-							.then(function(result) {
-								db.accounts.cs.insert.columns.forEach(function(column) {
+							.then(result => {
+								db.accounts.cs.insert.columns.forEach(column => {
 									expect(result.length).to.eql(1);
 
 									expect(result[0][column.prop || column.name]).to.eql(
@@ -873,45 +817,45 @@ describe('db', function() {
 					});
 				});
 
-				it('should not throw error when any unknown attribute is passed', function() {
-					var account = generateAccount();
+				it('should not throw error when any unknown attribute is passed', () => {
+					var account = accountFixtures.Account();
 					account.unknownColumn = 'unnownValue';
 
 					return db.accounts.insert(account);
 				});
 			});
 
-			describe('update', function() {
-				it('should update account without any error', function() {
-					var account = generateAccount();
+			describe('update', () => {
+				it('should update account without any error', () => {
+					var account = accountFixtures.Account();
 
-					return db.accounts.insert(account).then(function() {
+					return db.accounts.insert(account).then(() => {
 						return db.accounts.update(account.address, account);
 					});
 				});
 
-				it('should succeed with null', function() {
-					var account = generateAccount();
-					var updateAccount = generateAccount();
+				it('should succeed with null', () => {
+					var account = accountFixtures.Account();
+					var updateAccount = accountFixtures.Account();
 
-					return db.accounts.insert(account).then(function() {
+					return db.accounts.insert(account).then(() => {
 						return db.accounts
 							.update(account.address, updateAccount)
-							.then(function(result) {
+							.then(result => {
 								expect(result).to.be.null;
 							});
 					});
 				});
 
-				it('should throw error if called without an address', function(done) {
-					var account = generateAccount();
+				it('should throw error if called without an address', done => {
+					var account = accountFixtures.Account();
 
 					db.accounts
 						.update(null, account)
-						.then(function() {
+						.then(() => {
 							done('should raise error if no address specified');
 						})
-						.catch(function(reason) {
+						.catch(reason => {
 							expect(reason.message).to.eql(
 								'Error: db.accounts.update - invalid address argument'
 							);
@@ -919,22 +863,22 @@ describe('db', function() {
 						});
 				});
 
-				it('should update all columns specified in db.accounts.cs.update', function() {
-					var account = generateAccount();
-					var updateAccount = generateAccount();
+				it('should update all columns specified in db.accounts.cs.update', () => {
+					var account = accountFixtures.Account();
+					var updateAccount = accountFixtures.Account();
 
 					// Since DB trigger protects from updating username only if it was null before
 					delete account.username;
 					delete account.u_username;
 
-					return db.accounts.insert(account).then(function() {
+					return db.accounts.insert(account).then(() => {
 						return db.accounts
 							.update(account.address, updateAccount)
-							.then(function() {
+							.then(() => {
 								return db.accounts
 									.list({ address: account.address })
-									.then(function(result) {
-										db.accounts.cs.update.columns.forEach(function(column) {
+									.then(result => {
+										db.accounts.cs.update.columns.forEach(column => {
 											expect(result.length).to.eql(1);
 
 											expect(result[0][column.prop || column.name]).to.eql(
@@ -946,13 +890,13 @@ describe('db', function() {
 					});
 				});
 
-				it('should not throw error when any unknown attribute is passed', function() {
-					var account = generateAccount();
-					var updateAccount = generateAccount();
+				it('should not throw error when any unknown attribute is passed', () => {
+					var account = accountFixtures.Account();
+					var updateAccount = accountFixtures.Account();
 
 					updateAccount.unkownAttr = 'unknownAttr';
 
-					return db.accounts.insert(account).then(function() {
+					return db.accounts.insert(account).then(() => {
 						return db.accounts.update(account.address, updateAccount);
 					});
 				});
