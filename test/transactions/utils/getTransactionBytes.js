@@ -65,8 +65,8 @@ describe('#getTransactionBytes', () => {
 
 		it('should return Buffer of type 0 (transfer LSK) transaction', () => {
 			const expectedBuffer = Buffer.from(
-				'AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAABhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK',
-				'base64',
+				'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153de803000000000000618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(defaultTransaction);
 
@@ -76,8 +76,8 @@ describe('#getTransactionBytes', () => {
 		it('should return Buffer of type 0 (transfer LSK) with data', () => {
 			defaultTransaction.asset.data = 'Hello Lisk! Some data in here!...';
 			const expectedBuffer = Buffer.from(
-				'AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAABIZWxsbyBMaXNrISBTb21lIGRhdGEgaW4gaGVyZSEuLi5hilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK',
-				'base64',
+				'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153de80300000000000048656c6c6f204c69736b2120536f6d65206461746120696e2068657265212e2e2e618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(defaultTransaction);
 
@@ -97,8 +97,8 @@ describe('#getTransactionBytes', () => {
 		it('should return Buffer of transaction with second signature', () => {
 			defaultTransaction.signSignature = defaultSecondSignature;
 			const expectedBuffer = Buffer.from(
-				'AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAABhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsKsAxK0ZiLyiRddENWYKJ4v+a/L176i9qW2Sf6v4tPb8/cspU/arrKoRnWiAmHpV3qDmNUvINmBStF+iMUVSICDw==',
-				'base64',
+				'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153de803000000000000618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0ab00c4ad1988bca245d74435660a278bfe6bf2f5efa8bda96d927fabf8b4f6fcfdcb2953f6abacaa119d6880987a55dea0e6354bc8366052b45fa23145522020f',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(defaultTransaction);
 
@@ -121,8 +121,8 @@ describe('#getTransactionBytes', () => {
 				id: defaultTransactionId,
 			};
 			const expectedBuffer = Buffer.from(
-				'AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCV0DaoWM6J+ERJF2LrieK/vVCkoKDaZY5LJiiyWxF64JAM68qo00FT3oAwAAAAAAAGGKVJdSEurZPfjIgWVcYlVEvOjtfM3+bwikLuz7Gt69BRMHvlAUuwUWF7r3gV1Q9iEp5wkYGQNh5dTdR5ZUGwo=',
-				'base64',
+				'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae095d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153de803000000000000618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(multiSignatureTransaction);
 
@@ -132,8 +132,8 @@ describe('#getTransactionBytes', () => {
 		it('should return Buffer of type 0 (transfer LSK) with additional properties', () => {
 			defaultTransaction.skip = false;
 			const expectedBuffer = Buffer.from(
-				'AKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAABhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK',
-				'base64',
+				'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153de803000000000000618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(defaultTransaction);
 
@@ -190,8 +190,8 @@ describe('#getTransactionBytes', () => {
 
 		it('should return Buffer of type 1 (register second signature) transaction', () => {
 			const expectedBuffer = Buffer.from(
-				'AaopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQAAAAAAAAAAAAAAAAAAAAAEAcisnyne2eHk1ba0MFHLJbIvJ8e3s1CSFh6FGUb4L2GKVJdSEurZPfjIgWVcYlVEvOjtfM3+bwikLuz7Gt69BRMHvlAUuwUWF7r3gV1Q9iEp5wkYGQNh5dTdR5ZUGwo=',
-				'base64',
+				'01aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09000000000000000000000000000000000401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(signatureTransaction);
 
@@ -214,8 +214,8 @@ describe('#getTransactionBytes', () => {
 
 		it('should return Buffer of type 2 (register delegate) transaction', () => {
 			const expectedBuffer = Buffer.from(
-				'AqopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQAAAAAAAAAAAAAAAAAAAABNeURlbGVnYXRlVXNlcm5hbWVhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK',
-				'base64',
+				'02aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09000000000000000000000000000000004d7944656c6567617465557365726e616d65618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(
 				delegateRegistrationTransaction,
@@ -245,8 +245,8 @@ describe('#getTransactionBytes', () => {
 
 		it('should return Buffer of type 3 (vote) transaction', () => {
 			const expectedBuffer = Buffer.from(
-				'A6opAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU9AAAAAAAAAAArNWQwMzZhODU4Y2U4OWY4NDQ0OTE3NjJlYjg5ZTJiZmJkNTBhNGEwYTBkYTY1OGU0YjI2MjhiMjViMTE3YWUwOSswNDAxYzhhYzlmMjlkZWQ5ZTFlNGQ1YjZiNDMwNTFjYjI1YjIyZjI3YzdiN2IzNTA5MjE2MWU4NTE5NDZmODJmYYpUl1IS6tk9+MiBZVxiVUS86O18zf5vCKQu7Psa3r0FEwe+UBS7BRYXuveBXVD2ISnnCRgZA2Hl1N1HllQbCg==',
-				'base64',
+				'03aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d00000000000000002b356430333661383538636538396638343434393137363265623839653262666264353061346130613064613635386534623236323862323562313137616530392b30343031633861633966323964656439653165346435623662343330353163623235623232663237633762376233353039323136316538353139343666383266618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(voteTransaction);
 
@@ -278,8 +278,8 @@ describe('#getTransactionBytes', () => {
 
 		it('should return Buffer from type 4 (register multisignature) transaction', () => {
 			const expectedBuffer = Buffer.from(
-				'BKopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQAAAAAAAAAAAAAAAAAAAAACBSs1ZDAzNmE4NThjZTg5Zjg0NDQ5MTc2MmViODllMmJmYmQ1MGE0YTBhMGRhNjU4ZTRiMjYyOGIyNWIxMTdhZTA5KzA0MDFjOGFjOWYyOWRlZDllMWU0ZDViNmI0MzA1MWNiMjViMjJmMjdjN2I3YjM1MDkyMTYxZTg1MTk0NmY4MmZhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK',
-				'base64',
+				'04aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae090000000000000000000000000000000002052b356430333661383538636538396638343434393137363265623839653262666264353061346130613064613635386534623236323862323562313137616530392b30343031633861633966323964656439653165346435623662343330353163623235623232663237633762376233353039323136316538353139343666383266618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(
 				createMultiSignatureTransaction,
@@ -315,8 +315,8 @@ describe('#getTransactionBytes', () => {
 
 		it('should return Buffer of type 5 (register dapp) transaction', () => {
 			const expectedBuffer = Buffer.from(
-				'BaopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQAAAAAAAAAAAAAAAAAAAABMaXNrIEd1ZXN0Ym9va1RoZSBvZmZpY2lhbCBMaXNrIGd1ZXN0Ym9va2d1ZXN0Ym9vayBtZXNzYWdlIHNpZGVjaGFpbmh0dHBzOi8vZ2l0aHViLmNvbS9NYXhLSy9ndWVzdGJvb2tEYXBwL2FyY2hpdmUvbWFzdGVyLnppcGh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9NYXhLSy9ndWVzdGJvb2tEYXBwL21hc3Rlci9pY29uLnBuZwAAAAAAAAAAYYpUl1IS6tk9+MiBZVxiVUS86O18zf5vCKQu7Psa3r0FEwe+UBS7BRYXuveBXVD2ISnnCRgZA2Hl1N1HllQbCg==',
-				'base64',
+				'05aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09000000000000000000000000000000004c69736b204775657374626f6f6b546865206f6666696369616c204c69736b206775657374626f6f6b6775657374626f6f6b206d6573736167652073696465636861696e68747470733a2f2f6769746875622e636f6d2f4d61784b4b2f6775657374626f6f6b446170702f617263686976652f6d61737465722e7a697068747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f4d61784b4b2f6775657374626f6f6b446170702f6d61737465722f69636f6e2e706e670000000000000000618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(dappTransaction);
 
@@ -339,8 +339,8 @@ describe('#getTransactionBytes', () => {
 
 		it('should return Buffer of type 6 (dapp inTransfer) transaction', () => {
 			const expectedBuffer = Buffer.from(
-				'BqopAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQAAAAAAAAAA6AMAAAAAAAAxMjM0MjEzYYpUl1IS6tk9+MiBZVxiVUS86O18zf5vCKQu7Psa3r0FEwe+UBS7BRYXuveBXVD2ISnnCRgZA2Hl1N1HllQbCg==',
-				'base64',
+				'06aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae090000000000000000e80300000000000031323334323133618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(inTransferTransction);
 
@@ -368,8 +368,8 @@ describe('#getTransactionBytes', () => {
 
 		it('should return Buffer of type 7 (dapp outTransfer) transaction', () => {
 			const expectedBuffer = Buffer.from(
-				'B6opAgBdA2qFjOifhESRdi64niv71QpKCg2mWOSyYoslsReuCQDOvKqNNBU96AMAAAAAAAAxMjM0MjEzMTM5ODczNDg0MjA5MTMxMzg0MjJhilSXUhLq2T34yIFlXGJVRLzo7XzN/m8IpC7s+xrevQUTB75QFLsFFhe694FdUPYhKecJGBkDYeXU3UeWVBsK',
-				'base64',
+				'07aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153de803000000000000313233343231333133393837333438343230393133313338343232618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+				'hex',
 			);
 			const transactionBytes = getTransactionBytes(outTransferTransaction);
 
@@ -550,22 +550,22 @@ describe('getTransactionBytes functions', () => {
 			'https://github.com/MaxKK/guestbookDapp/archive/master.zip';
 		const defaultIcon =
 			'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png';
-		const dappNameBuffer = Buffer.from('TGlzayBHdWVzdGJvb2s=', 'base64');
+		const dappNameBuffer = Buffer.from('4c69736b204775657374626f6f6b', 'hex');
 		const dappDescriptionBuffer = Buffer.from(
-			'VGhlIG9mZmljaWFsIExpc2sgZ3Vlc3Rib29r',
-			'base64',
+			'546865206f6666696369616c204c69736b206775657374626f6f6b',
+			'hex',
 		);
 		const dappTagsBuffer = Buffer.from(
-			'Z3Vlc3Rib29rIG1lc3NhZ2Ugc2lkZWNoYWlu',
-			'base64',
+			'6775657374626f6f6b206d6573736167652073696465636861696e',
+			'hex',
 		);
 		const dappLinkBuffer = Buffer.from(
-			'aHR0cHM6Ly9naXRodWIuY29tL01heEtLL2d1ZXN0Ym9va0RhcHAvYXJjaGl2ZS9tYXN0ZXIuemlw',
-			'base64',
+			'68747470733a2f2f6769746875622e636f6d2f4d61784b4b2f6775657374626f6f6b446170702f617263686976652f6d61737465722e7a6970',
+			'hex',
 		);
 		const dappIconBuffer = Buffer.from(
-			'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL01heEtLL2d1ZXN0Ym9va0RhcHAvbWFzdGVyL2ljb24ucG5n',
-			'base64',
+			'68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f4d61784b4b2f6775657374626f6f6b446170702f6d61737465722f69636f6e2e706e67',
+			'hex',
 		);
 		const dappTypeBuffer = Buffer.alloc(4, defaultType);
 		const dappCategoryBuffer = Buffer.alloc(4, defaultCategory);
