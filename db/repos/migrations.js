@@ -60,16 +60,6 @@ class MigrationsRepository {
 	}
 
 	/**
-	 * Executes 'migrations/underscore_patch.sql' file, to update names to underscore.
-	 *
-	 * @method
-	 * @return {Promise<null>}
-	 */
-	underscorePatch() {
-		return this.db.none(sql.underscorePatch);
-	}
-
-	/**
 	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
 	 *
 	 * @method
@@ -142,11 +132,7 @@ class MigrationsRepository {
 	applyAll() {
 		return this.db.tx('applyAll', function*(t1) {
 			const hasMigrations = yield t1.migrations.hasMigrations();
-			let lastId = 0;
-			if (hasMigrations) {
-				lastId = yield t1.migrations.getLastId();
-				yield t1.migrations.underscorePatch();
-			}
+			const lastId = hasMigrations ? yield t1.migrations.getLastId() : 0;
 			const updates = yield t1.migrations.readPending(lastId);
 			for (let i = 0; i < updates.length; i++) {
 				const u = updates[i];
