@@ -572,8 +572,7 @@ __private.loadBlockChain = function() {
 				return t.batch(promises);
 			}
 
-			// TODO: Missing .catch handler, see #1446
-			library.db
+			return library.db
 				.task(updateMemAccounts)
 				.spread(function(
 					updateMemAccounts,
