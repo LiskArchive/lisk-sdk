@@ -14,11 +14,15 @@
 'use strict';
 
 require('colors');
+var mocha = require('mocha');
+var coMocha = require('co-mocha');
 var chai = require('chai');
 var sinon = require('sinon');
 var sinonChai = require('sinon-chai');
 var supertest = require('supertest');
 var _ = require('lodash');
+
+coMocha(mocha);
 
 process.env.NODE_ENV = 'test';
 
