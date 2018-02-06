@@ -107,6 +107,10 @@ describe('blocks/utils', () => {
 			});
 
 			describe('should assign logic', () => {
+				it('should assign account', () => {
+					expect(library.logic.account).to.eql(accountMock);
+				});
+
 				it('should assign block', () => {
 					expect(library.logic.block).to.eql(blockMock);
 				});
