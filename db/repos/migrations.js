@@ -106,6 +106,7 @@ class MigrationsRepository {
 						}
 					);
 				})
+				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
 				.filter(
 					f =>
 						f &&
