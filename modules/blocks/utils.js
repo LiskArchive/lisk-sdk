@@ -134,9 +134,9 @@ Utils.prototype.readDbRows = function(rows) {
  */
 Utils.prototype.loadBlocksPart = function(filter, cb) {
 	self.loadBlocksData(filter, (err, rows) => {
-		var blocks = [];
+		var blocks;
 
-		if (!err) {
+		if (!err && Array.isArray(rows)) {
 			// Normalize list of blocks
 			blocks = self.readDbRows(rows);
 		}
