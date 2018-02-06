@@ -372,13 +372,12 @@ describe('blocks/utils', () => {
 
 	describe('getIdSequence', () => {
 		it('should return error when library.db.blocks.getIdSequence fails', done => {
-			loggerStub.error.reset();
-
-			blocksUtilsModule.getIdSequence(10, err => {
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
 				expect(loggerStub.error.args[0][0]).to.contains(
 					"TypeError: Cannot read property 'length' of undefined"
 				);
 				expect(err).to.equal('Blocks#getIdSequence error');
+				expect(sequence).to.be.undefined;
 				done();
 			});
 		});
@@ -386,8 +385,9 @@ describe('blocks/utils', () => {
 		it('should return error when no row is found', done => {
 			library.db.blocks.getIdSequence = sinonSandbox.stub().resolves([]);
 
-			blocksUtilsModule.getIdSequence(10, err => {
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
 				expect(err).to.equal('Failed to get id sequence for height: 10');
+				expect(sequence).to.be.undefined;
 				done();
 			});
 		});
@@ -402,9 +402,10 @@ describe('blocks/utils', () => {
 					{ id: 4, height: 5 },
 				]);
 
-			blocksUtilsModule.getIdSequence(10, (err, cb) => {
-				expect(cb.firstHeight).to.equal(1);
-				expect(cb.ids).to.equal(
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
 					'9314232245035524467,1,2,3,4,6524861224470851795'
 				);
 				done();
