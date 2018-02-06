@@ -160,7 +160,7 @@ Utils.prototype.loadBlocksPart = function(filter, cb) {
 Utils.prototype.loadLastBlock = function(cb) {
 	library.dbSequence.add(cb => {
 		// Get full last block from database
-		// FIXME: Ordering in that SQL - to rewrite
+		// FIXME: Review SQL order by clause
 		library.db.blocks
 			.loadLastBlock()
 			.then(rows => {
