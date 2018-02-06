@@ -233,33 +233,22 @@ class AccountsRepository {
 			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
-		if (conflictingFields.length === 1 && conflictingFields[0] === 'address') {
-			const sql =
-				'${insertSQL:raw} ON CONFLICT(${conflictFields:name}) DO UPDATE SET ${setsSQL:raw}';
+		const conditionObject = {};
+		conflictingFields.forEach(function(field) {
+			conditionObject[field] = data[field];
+		});
 
-			return this.db.none(sql, {
-				insertSQL: this.pgp.helpers.insert(data, this.cs.insert),
-				conflictFields: conflictingFields,
-				setsSQL: this.pgp.helpers.sets(updateData, this.cs.update),
-			});
-		} else {
-			const conditionObject = {};
-			conflictingFields.forEach(function(field) {
-				conditionObject[field] = data[field];
-			});
-
-			return this.db.tx('db:accounts:upsert', function(t) {
-				return t.accounts
-					.list(conditionObject, ['address'])
-					.then(function(result) {
-						if (result.length) {
-							return t.accounts.update(result[0].address, updateData);
-						} else {
-							return t.accounts.insert(data);
-						}
-					});
-			});
-		}
+		return this.db.tx('db:accounts:upsert', function(t) {
+			return t.accounts
+				.list(conditionObject, ['address'])
+				.then(function(result) {
+					if (result.length) {
+						return t.accounts.update(result[0].address, updateData);
+					} else {
+						return t.accounts.insert(data);
+					}
+				});
+		});
 	}
 
 	/**
