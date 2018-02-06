@@ -17,7 +17,6 @@
 		],
 		"consistent-return": "off",
 		"default-case": "off",
-		"dot-notation": "off",
 		"eqeqeq": "off",
 		"func-names": "off",
 		"global-require": "off",

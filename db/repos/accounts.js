@@ -385,10 +385,10 @@ class AccountsRepository {
 		if (
 			filters &&
 			typeof filters.username === 'object' &&
-			filters.username['$like']
+			filters.username.$like
 		) {
 			dynamicConditions.push(
-				pgp.as.format('username LIKE $1', [filters.username['$like']])
+				pgp.as.format('username LIKE $1', [filters.username.$like])
 			);
 			delete filters.username;
 		}
