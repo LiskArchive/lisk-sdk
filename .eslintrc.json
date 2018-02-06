@@ -5,7 +5,16 @@
 		"array-callback-return": "off",
 		"block-scoped-var": "off",
 		"camelcase": "off",
-		"comma-dangle": "off",
+		"comma-dangle": [
+			"error",
+			{
+				"arrays": "always-multiline",
+				"objects": "always-multiline",
+				"imports": "always-multiline",
+				"exports": "always-multiline",
+				"functions": "never"
+			}
+		],
 		"consistent-return": "off",
 		"default-case": "off",
 		"dot-notation": "off",
