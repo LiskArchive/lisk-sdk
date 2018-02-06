@@ -79,7 +79,7 @@ Sequence.prototype.add = function(worker, args, done) {
 		args = undefined;
 	}
 	if (worker && typeof worker === 'function') {
-		var task = { worker: worker, done: done };
+		var task = { worker, done };
 		if (util.isArray(args)) {
 			task.args = args;
 		}

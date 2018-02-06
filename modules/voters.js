@@ -84,7 +84,7 @@ var getVotersForDelegates = function(filters, delegate, cb) {
 
 var populateVoters = function(sort, addresses, cb) {
 	modules.accounts.getAccounts(
-		{ address: addresses, sort: sort },
+		{ address: addresses, sort },
 		['address', 'balance', 'publicKey'],
 		cb
 	);
@@ -154,7 +154,7 @@ var getVotesForDelegates = function(filters, delegate, cb) {
 
 var populateVotes = function(sort, addresses, cb) {
 	modules.accounts.getAccounts(
-		{ address: addresses, sort: sort },
+		{ address: addresses, sort },
 		['address', 'balance', 'publicKey', 'username'],
 		cb
 	);
@@ -181,7 +181,7 @@ Voters.prototype.shared = {
 	 * @param {int} filters.offset - Offset value for results.
 	 * @param {function} cb - Callback function.
 	 */
-	getVoters: function(filters, cb) {
+	getVoters(filters, cb) {
 		async.autoInject(
 			{
 				delegate: getDelegate.bind(null, filters),
@@ -220,7 +220,7 @@ Voters.prototype.shared = {
 	 * @param {int} filters.offset - Offset value for results.
 	 * @param {function} cb - Callback function.
 	 */
-	getVotes: function(filters, cb) {
+	getVotes(filters, cb) {
 		async.autoInject(
 			{
 				delegate: getDelegate.bind(null, filters),

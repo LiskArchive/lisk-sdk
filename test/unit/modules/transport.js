@@ -228,9 +228,9 @@ describe('transport', () => {
 				definitions = {};
 
 				restoreRewiredDeps = TransportModule.__set__({
-					library: library,
-					modules: modules,
-					definitions: definitions,
+					library,
+					modules,
+					definitions,
 				});
 
 				done();
@@ -838,7 +838,7 @@ describe('transport', () => {
 						id: transaction.id,
 						err: 'Unknown transaction type 0',
 						module: 'transport',
-						transaction: transaction,
+						transaction,
 					};
 					expect(
 						library.logger.debug.calledWith(
@@ -1013,8 +1013,8 @@ describe('transport', () => {
 				};
 
 				restoreRewiredTransportDeps = TransportModule.__set__({
-					library: library,
-					modules: modules,
+					library,
+					modules,
 				});
 
 				done();

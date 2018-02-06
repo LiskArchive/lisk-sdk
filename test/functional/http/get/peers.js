@@ -184,12 +184,12 @@ describe('GET /peers', function() {
 			var firstObject = null;
 
 			return peersEndpoint
-				.makeRequest({ limit: limit }, 200)
+				.makeRequest({ limit }, 200)
 				.then(function(res) {
 					expect(res.body.data.length).to.be.at.most(limit);
 					firstObject = res.body.data[0];
 
-					return peersEndpoint.makeRequest({ limit: limit, offset: 1 }, 200);
+					return peersEndpoint.makeRequest({ limit, offset: 1 }, 200);
 				})
 				.then(function(res) {
 					expect(res.body.data.length).to.be.at.most(limit);

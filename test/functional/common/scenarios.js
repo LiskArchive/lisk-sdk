@@ -61,5 +61,5 @@ function Multisig(options) {
 }
 
 module.exports = {
-	Multisig: Multisig,
+	Multisig,
 };

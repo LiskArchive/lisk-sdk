@@ -100,7 +100,7 @@ WSServerMaster.generatePeerHeaders = function(headers) {
 		state: 2,
 		height: 1,
 		wsPort: httpPort - 1,
-		httpPort: httpPort,
+		httpPort,
 		nonce: randomstring.generate(16),
 		os: operatingSystems[random.number(0, operatingSystems.length)],
 		version: testConfig.version,

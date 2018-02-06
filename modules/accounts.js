@@ -153,7 +153,7 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			return library.logic.account.get({ address: address }, cb, tx);
+			return library.logic.account.get({ address }, cb, tx);
 		},
 		tx
 	);
@@ -236,7 +236,7 @@ Accounts.prototype.shared = {
 	 * @param {function} cb - Callback function
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getAccounts: function(filters, cb) {
+	getAccounts(filters, cb) {
 		library.logic.account.getAll(filters, (err, accounts) => {
 			if (err) {
 				return setImmediate(cb, err);
@@ -267,7 +267,7 @@ Accounts.prototype.shared = {
 					unconfirmedSignature: account.u_secondSignature,
 					secondSignature: account.secondSignature,
 					secondPublicKey: account.secondPublicKey,
-					delegate: delegate,
+					delegate,
 				};
 			});
 

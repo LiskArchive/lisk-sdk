@@ -44,11 +44,11 @@ var FormatValidators = require('z-schema/src/FormatValidators');
 var constants = require('./constants');
 
 var liskFormats = {
-	id: function(str) {
+	id(str) {
 		return str === '' || /^[0-9]+$/g.test(str);
 	},
 
-	additionalData: function(str) {
+	additionalData(str) {
 		if (typeof str !== 'string') {
 			return false;
 		}
@@ -56,11 +56,11 @@ var liskFormats = {
 		return Buffer.from(str).length <= constants.additionalData.maxLength;
 	},
 
-	address: function(str) {
+	address(str) {
 		return str === '' || /^[0-9]+L$/gi.test(str);
 	},
 
-	username: function(str) {
+	username(str) {
 		if (typeof str !== 'string') {
 			return false;
 		}
@@ -68,16 +68,16 @@ var liskFormats = {
 		return /^[a-z0-9!@$&_.]*$/gi.test(str);
 	},
 
-	hex: function(str) {
+	hex(str) {
 		return str === '' || /^[a-f0-9]+$/i.test(str);
 	},
 
-	publicKey: function(str) {
+	publicKey(str) {
 		return str === '' || /^[a-f0-9]{64}$/i.test(str);
 	},
 
 	// Currently this allow empty values e.g. ',,,' or '' - is this correct?
-	csv: function(str) {
+	csv(str) {
 		if (typeof str !== 'string') {
 			return false;
 		}
@@ -90,11 +90,11 @@ var liskFormats = {
 		return false;
 	},
 
-	signature: function(str) {
+	signature(str) {
 		return str === '' || /^[a-f0-9]{128}$/i.test(str);
 	},
 
-	queryList: function(obj) {
+	queryList(obj) {
 		if (obj == null || typeof obj !== 'object' || _.isArray(obj)) {
 			return false;
 		}
@@ -103,7 +103,7 @@ var liskFormats = {
 		return true;
 	},
 
-	delegatesList: function(obj) {
+	delegatesList(obj) {
 		if (obj == null || typeof obj !== 'object' || _.isArray(obj)) {
 			return false;
 		}
@@ -112,7 +112,7 @@ var liskFormats = {
 		return true;
 	},
 
-	parsedInt: function(value) {
+	parsedInt(value) {
 		if (
 			isNaN(value) ||
 			parseInt(value) != value ||
@@ -124,11 +124,11 @@ var liskFormats = {
 		return true;
 	},
 
-	ip: function(str) {
+	ip(str) {
 		return ip.isV4Format(str);
 	},
 
-	os: function(str) {
+	os(str) {
 		if (typeof str !== 'string') {
 			return false;
 		}
@@ -136,14 +136,14 @@ var liskFormats = {
 		return /^[a-z0-9-_.+]*$/gi.test(str);
 	},
 
-	version: function(str) {
+	version(str) {
 		return (
 			str === '' ||
 			/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str)
 		);
 	},
 
-	ipOrFQDN: function(str) {
+	ipOrFQDN(str) {
 		if (typeof str !== 'string') {
 			return false;
 		}

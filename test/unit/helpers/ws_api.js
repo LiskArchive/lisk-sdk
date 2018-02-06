@@ -32,7 +32,7 @@ describe('handshake', () => {
 	var validConfig = {
 		config: {
 			version: config.version,
-			minVersion: minVersion,
+			minVersion,
 			nethash: config.nethash,
 			nonce: validNodeNonce,
 		},

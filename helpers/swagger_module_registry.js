@@ -54,8 +54,8 @@ function getConfig() {
 }
 
 module.exports = {
-	bind: bind,
-	getCache: getCache,
-	getLogger: getLogger,
-	getConfig: getConfig,
+	bind,
+	getCache,
+	getLogger,
+	getConfig,
 };

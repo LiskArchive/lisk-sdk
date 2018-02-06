@@ -439,13 +439,11 @@ describe('GET /api/transactions', () => {
 			it('using one blockId should return transactions', () => {
 				var blockId = '6524861224470851795';
 
-				return transactionsEndpoint
-					.makeRequest({ blockId: blockId }, 200)
-					.then(res => {
-						res.body.data.map(transaction => {
-							expect(transaction.blockId).to.be.equal(blockId);
-						});
+				return transactionsEndpoint.makeRequest({ blockId }, 200).then(res => {
+					res.body.data.map(transaction => {
+						expect(transaction.blockId).to.be.equal(blockId);
 					});
+				});
 			});
 		});
 
@@ -472,7 +470,7 @@ describe('GET /api/transactions', () => {
 		describe('minAmount', () => {
 			it('should get transactions with amount more than minAmount', () => {
 				return transactionsEndpoint
-					.makeRequest({ minAmount: minAmount }, 200)
+					.makeRequest({ minAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
 							expect(parseInt(transaction.amount)).to.be.at.least(minAmount);
@@ -484,7 +482,7 @@ describe('GET /api/transactions', () => {
 		describe('maxAmount', () => {
 			it('should get transactions with amount less than maxAmount', () => {
 				return transactionsEndpoint
-					.makeRequest({ maxAmount: maxAmount }, 200)
+					.makeRequest({ maxAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
 							expect(parseInt(transaction.amount)).to.be.at.most(maxAmount);
@@ -757,8 +755,8 @@ describe('GET /api/transactions', () => {
 				return transactionsEndpoint
 					.makeRequest(
 						{
-							minAmount: minAmount,
-							maxAmount: maxAmount,
+							minAmount,
+							maxAmount,
 							sort: 'amount:asc',
 						},
 						200

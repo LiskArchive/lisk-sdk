@@ -50,7 +50,7 @@ _.mixin(
 		 * @param {string} [sortOrder=asc] - Sorting order asc|desc
 		 * @return {*}
 		 */
-		dbSort: function(arr, sortOrder) {
+		dbSort(arr, sortOrder) {
 			var sortFactor = sortOrder === 'desc' ? -1 : 1;
 
 			return _.clone(arr).sort((a, b) => {
@@ -83,7 +83,7 @@ _.mixin(
 		 * @param {*} valueCheck - Value to check for.
 		 * @return {boolean}
 		 */
-		appearsInLast: function(arr, valueCheck) {
+		appearsInLast(arr, valueCheck) {
 			// Get list of indexes of desired value
 			var indices = _.compact(
 				arr.map((data, index) => {
@@ -110,7 +110,7 @@ _.mixin(
 		 * @param {string} [sortOrder=asc] - Sorting order asc|desc
 		 * @return {*}
 		 */
-		sortNumbers: function(arr, sortOrder) {
+		sortNumbers(arr, sortOrder) {
 			var sortFactor = sortOrder === 'desc' ? -1 : 1;
 
 			return arr.sort((a, b) => {

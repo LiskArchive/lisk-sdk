@@ -32,8 +32,8 @@ var library;
 // Constructor
 function Signature(schema, logger) {
 	library = {
-		schema: schema,
-		logger: logger,
+		schema,
+		logger,
 	};
 }
 
@@ -43,7 +43,7 @@ function Signature(schema, logger) {
  */
 Signature.prototype.bind = function(accounts) {
 	modules = {
-		accounts: accounts,
+		accounts,
 	};
 };
 
@@ -262,7 +262,7 @@ Signature.prototype.dbRead = function(raw) {
 		publicKey: raw.s_publicKey,
 	};
 
-	return { signature: signature };
+	return { signature };
 };
 
 /**

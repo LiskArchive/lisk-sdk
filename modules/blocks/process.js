@@ -54,16 +54,16 @@ function Process(
 	genesisblock
 ) {
 	library = {
-		logger: logger,
-		schema: schema,
-		db: db,
-		dbSequence: dbSequence,
-		sequence: sequence,
-		genesisblock: genesisblock,
+		logger,
+		schema,
+		db,
+		dbSequence,
+		sequence,
+		genesisblock,
 		logic: {
-			block: block,
-			peers: peers,
-			transaction: transaction,
+			block,
+			peers,
+			transaction,
 		},
 	};
 	self = this;
@@ -275,7 +275,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 				var ids = res.ids;
 				// Perform request to supplied remote peer
 				peer = library.logic.peers.create(peer);
-				peer.rpc.blocksCommon({ ids: ids }, (err, res) => {
+				peer.rpc.blocksCommon({ ids }, (err, res) => {
 					if (err) {
 						peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
 						return setImmediate(waterCb, err);
@@ -367,9 +367,9 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 	var params = { limit: newLimit, offset: offset || 0 };
 
 	library.logger.debug('Loading blocks offset', {
-		limit: limit,
-		offset: offset,
-		verify: verify,
+		limit,
+		offset,
+		verify,
 	});
 	// Execute in sequence via dbSequence
 	library.dbSequence.add(cb => {
@@ -394,7 +394,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 						if (verify && block.id !== library.genesisblock.block.id) {
 							async.series(
 								{
-									normalizeBlock: function(seriesCb) {
+									normalizeBlock(seriesCb) {
 										try {
 											block = library.logic.block.objectNormalize(block);
 										} catch (err) {
@@ -403,7 +403,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 
 										return setImmediate(seriesCb);
 									},
-									verifyBlock: function(seriesCb) {
+									verifyBlock(seriesCb) {
 										// Sanity check of the block, if values are coherent.
 										// No access to database
 										var result = modules.blocks.verify.verifyBlock(block);
@@ -532,10 +532,10 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 				var id = block ? block.id : 'null';
 
 				library.logger.debug('Block processing failed', {
-					id: id,
+					id,
 					err: err.toString(),
 					module: 'blocks',
-					block: block,
+					block,
 				});
 			}
 			return seriesCb(err);
@@ -604,8 +604,8 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 			try {
 				// Create a block
 				block = library.logic.block.create({
-					keypair: keypair,
-					timestamp: timestamp,
+					keypair,
+					timestamp,
 					previousBlock: modules.blocks.lastBlock.get(),
 					transactions: ready,
 				});

@@ -31,8 +31,8 @@ var library;
 // Constructor
 function Transfer(logger, schema) {
 	library = {
-		logger: logger,
-		schema: schema,
+		logger,
+		schema,
 	};
 }
 
@@ -43,7 +43,7 @@ function Transfer(logger, schema) {
  */
 Transfer.prototype.bind = function(accounts) {
 	modules = {
-		accounts: accounts,
+		accounts,
 	};
 };
 

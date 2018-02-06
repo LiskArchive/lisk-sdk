@@ -25,36 +25,36 @@ var headers = {
 var endpoints = {
 	versions: {
 		'0.9.*': {
-			getBlocks: function(ip, port) {
+			getBlocks(ip, port) {
 				return `http://${ip}:${port}/api/blocks`;
 			},
-			getHeight: function(ip, port) {
+			getHeight(ip, port) {
 				return `http://${ip}:${port}/api/blocks/getHeight`;
 			},
-			getTransactions: function(ip, port) {
+			getTransactions(ip, port) {
 				return `http://${ip}:${port}/peer/blocks`;
 			},
-			postTransaction: function(ip, port) {
+			postTransaction(ip, port) {
 				return `http://${ip}:${port}/peer/transactions`;
 			},
-			enableForging: function(ip, port) {
+			enableForging(ip, port) {
 				return `http://${ip}:${port}/api/delegates/forging/enable`;
 			},
 		},
 		'1.0.0': {
-			getBlocks: function(ip, port) {
+			getBlocks(ip, port) {
 				return `http://${ip}:${port}/api/blocks`;
 			},
-			getHeight: function(ip, port) {
+			getHeight(ip, port) {
 				return `http://${ip}:${port}/api/node/status`;
 			},
-			postTransaction: function(ip, port) {
+			postTransaction(ip, port) {
 				return `http://${ip}:${port}/api/transactions`;
 			},
-			enableForging: function(ip, port) {
+			enableForging(ip, port) {
 				return `http://${ip}:${port}/api/node/status/forging`;
 			},
-			getTransactions: function(ip, port) {
+			getTransactions(ip, port) {
 				return `http://${ip}:${port}/api/transactions`;
 			},
 		},
@@ -64,22 +64,22 @@ var endpoints = {
 var currentVersion = '1.0.0';
 
 module.exports = {
-	getVersion: function() {
+	getVersion() {
 		return currentVersion;
 	},
 
-	setVersion: function(version) {
+	setVersion(version) {
 		currentVersion = version;
 	},
 
-	getBlocks: function(port, ip) {
+	getBlocks(port, ip) {
 		return popsicle
 			.get({
 				url: endpoints.versions[currentVersion].getBlocks(
 					ip || '127.0.0.1',
 					port || 4000
 				),
-				headers: headers,
+				headers,
 			})
 			.then(res => {
 				if (res.status !== apiCodes.OK) {
@@ -89,28 +89,28 @@ module.exports = {
 			});
 	},
 
-	getHeight: function(port, ip) {
+	getHeight(port, ip) {
 		return popsicle
 			.get({
 				url: endpoints.versions[currentVersion].getHeight(
 					ip || '127.0.0.1',
 					port || 4000
 				),
-				headers: headers,
+				headers,
 			})
 			.then(res => {
 				return res.body.height;
 			});
 	},
 
-	getTransaction: function(transactionId, port, ip) {
+	getTransaction(transactionId, port, ip) {
 		return popsicle
 			.get({
 				url: `${endpoints.versions[currentVersion].getTransactions(
 					ip || '127.0.0.1',
 					port || 4000
 				)}?id=${transactionId}`,
-				headers: headers,
+				headers,
 			})
 			.then(res => {
 				if (currentVersion === '1.0.0') {
@@ -120,14 +120,14 @@ module.exports = {
 			});
 	},
 
-	enableForging: function(keys, port, ip) {
+	enableForging(keys, port, ip) {
 		return popsicle
 			.put({
 				url: endpoints.versions[currentVersion].enableForging(
 					ip || '127.0.0.1',
 					port || 4000
 				),
-				headers: headers,
+				headers,
 				body: {
 					decryptionKey: 'elephant tree paris dragon chair galaxy',
 					publicKey: keys.publicKey,

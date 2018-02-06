@@ -208,8 +208,8 @@ describe('accounts', () => {
 
 				accounts.shared.getAccounts(
 					{
-						limit: limit,
-						sort: sort,
+						limit,
+						sort,
 					},
 					(err, res) => {
 						expect(err).to.not.exist;
@@ -231,9 +231,9 @@ describe('accounts', () => {
 
 				accounts.shared.getAccounts(
 					{
-						limit: limit,
-						offset: offset,
-						sort: sort,
+						limit,
+						offset,
+						sort,
 					},
 					(err, res) => {
 						expect(err).to.not.exist;

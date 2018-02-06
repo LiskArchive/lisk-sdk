@@ -43,15 +43,15 @@ var __private = {};
 // Constructor
 function Broadcaster(broadcasts, force, peers, transaction, logger) {
 	library = {
-		logger: logger,
+		logger,
 		logic: {
-			peers: peers,
-			transaction: transaction,
+			peers,
+			transaction,
 		},
 		config: {
-			broadcasts: broadcasts,
+			broadcasts,
 			forging: {
-				force: force,
+				force,
 			},
 		},
 	};
@@ -101,9 +101,9 @@ function Broadcaster(broadcasts, force, peers, transaction, logger) {
  */
 Broadcaster.prototype.bind = function(peers, transport, transactions) {
 	modules = {
-		peers: peers,
-		transport: transport,
-		transactions: transactions,
+		peers,
+		transport,
+		transactions,
 	};
 };
 
@@ -146,7 +146,7 @@ Broadcaster.prototype.getPeers = function(params, cb) {
  */
 Broadcaster.prototype.enqueue = function(params, options) {
 	options.immediate = false;
-	return self.queue.push({ params: params, options: options });
+	return self.queue.push({ params, options });
 };
 
 /**
@@ -307,7 +307,7 @@ __private.squashQueue = function(broadcasts) {
 				.filter(Boolean);
 
 			squashed.push({
-				options: { api: route.path, data: data },
+				options: { api: route.path, data },
 				immediate: false,
 			});
 		}
@@ -356,7 +356,7 @@ __private.releaseQueue = function(cb) {
 					broadcasts,
 					(broadcast, eachSeriesCb) => {
 						self.broadcast(
-							extend({ peers: peers }, broadcast.params),
+							extend({ peers }, broadcast.params),
 							broadcast.options,
 							eachSeriesCb
 						);

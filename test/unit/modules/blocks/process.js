@@ -54,7 +54,7 @@ describe('blocks/process', () => {
 	beforeEach(done => {
 		async.series(
 			{
-				clearTables: function(seriesCb) {
+				clearTables(seriesCb) {
 					async.every(
 						[
 							'blocks where height > 1',
@@ -74,7 +74,7 @@ describe('blocks/process', () => {
 						}
 					);
 				},
-				loadTables: function(seriesCb) {
+				loadTables(seriesCb) {
 					async.everySeries(
 						loadTables,
 						(table, seriesCb) => {

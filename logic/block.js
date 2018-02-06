@@ -38,9 +38,9 @@ var __private = {};
 // Constructor
 function Block(ed, schema, transaction, cb) {
 	this.scope = {
-		ed: ed,
-		schema: schema,
-		transaction: transaction,
+		ed,
+		schema,
+		transaction,
 	};
 	__private.blockReward = new BlockReward();
 	if (cb) {
@@ -152,9 +152,9 @@ Block.prototype.create = function(data) {
 
 	var block = {
 		version: 0,
-		totalAmount: totalAmount,
-		totalFee: totalFee,
-		reward: reward,
+		totalAmount,
+		totalFee,
+		reward,
 		payloadHash: payloadHash.digest().toString('hex'),
 		timestamp: data.timestamp,
 		numberOfTransactions: blockTransactions.length,

@@ -27,7 +27,7 @@ describe('loader', () => {
 		var loaderModuleRewired = rewire('../../../modules/loader');
 		blocksModuleMock = {
 			lastBlock: {
-				get: function() {},
+				get() {},
 			},
 		};
 

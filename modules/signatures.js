@@ -95,9 +95,9 @@ Signatures.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @return {setImmediateCallback}
 	 */
-	postSignatures: function(signatures, cb) {
+	postSignatures(signatures, cb) {
 		return modules.transport.shared.postSignatures(
-			{ signatures: signatures },
+			{ signatures },
 			(err, res) => {
 				var processingError = /(error|processing)/gi;
 				var badRequestBodyError = /(invalid|signature)/gi;

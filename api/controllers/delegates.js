@@ -86,7 +86,7 @@ DelegatesController.getDelegates = function(context, next) {
 		});
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
@@ -150,7 +150,7 @@ DelegatesController.getForgingStatistics = function(context, next) {
 			data: {
 				fees: reward.fees,
 				rewards: reward.rewards,
-				forged: forged,
+				forged,
 				count: reward.count,
 			},
 			meta: {

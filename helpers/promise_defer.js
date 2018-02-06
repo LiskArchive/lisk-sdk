@@ -25,9 +25,9 @@ function PromiseDefer() {
 	});
 
 	return {
-		resolve: resolve,
-		reject: reject,
-		promise: promise,
+		resolve,
+		reject,
+		promise,
 	};
 }
 

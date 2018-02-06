@@ -67,7 +67,7 @@ function getResolvedSwaggerSpec() {
 	var options = {
 		includeInvalid: true,
 		loaderOptions: {
-			processContent: function(content, callback) {
+			processContent(content, callback) {
 				callback(null, YAML.safeLoad(content.text));
 			},
 		},
@@ -139,9 +139,9 @@ function invalidParams(request) {
 }
 
 module.exports = {
-	getValidator: getValidator,
-	getResolvedSwaggerSpec: getResolvedSwaggerSpec,
-	getSwaggerSpec: getSwaggerSpec,
-	generateParamsErrorObject: generateParamsErrorObject,
-	invalidParams: invalidParams,
+	getValidator,
+	getResolvedSwaggerSpec,
+	getSwaggerSpec,
+	generateParamsErrorObject,
+	invalidParams,
 };

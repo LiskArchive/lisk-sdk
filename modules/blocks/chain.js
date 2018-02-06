@@ -47,14 +47,14 @@ function Chain(
 	balancesSequence
 ) {
 	library = {
-		logger: logger,
-		db: db,
-		genesisblock: genesisblock,
-		bus: bus,
-		balancesSequence: balancesSequence,
+		logger,
+		db,
+		genesisblock,
+		bus,
+		balancesSequence,
 		logic: {
-			block: block,
-			transaction: transaction,
+			block,
+			transaction,
 		},
 	};
 	self = this;
@@ -243,8 +243,8 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 					if (err) {
 						return setImmediate(cb, {
 							message: err,
-							transaction: transaction,
-							block: block,
+							transaction,
+							block,
 						});
 					}
 					// Apply transaction to confirmed & unconfirmed balances
@@ -288,8 +288,8 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 		if (err) {
 			return setImmediate(cb, {
 				message: err,
-				transaction: transaction,
-				block: block,
+				transaction,
+				block,
 			});
 		}
 
@@ -297,8 +297,8 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 			if (err) {
 				return setImmediate(cb, {
 					message: `Failed to apply transaction: ${transaction.id}`,
-					transaction: transaction,
-					block: block,
+					transaction,
+					block,
 				});
 			}
 			return setImmediate(cb);

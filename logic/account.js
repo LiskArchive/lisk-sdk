@@ -40,15 +40,15 @@ var __private = {};
  */
 function Account(db, schema, logger, cb) {
 	this.scope = {
-		db: db,
-		schema: schema,
+		db,
+		schema,
 	};
 
 	__private.blockReward = new BlockReward();
 
 	self = this;
 	library = {
-		logger: logger,
+		logger,
 	};
 
 	this.table = 'mem_accounts';
@@ -526,7 +526,7 @@ Account.prototype.schema = {
  */
 Account.prototype.bind = function(blocks) {
 	modules = {
-		blocks: blocks,
+		blocks,
 	};
 };
 
@@ -737,8 +737,8 @@ Account.prototype.getAll = function(filter, fields, cb, tx) {
 
 	(tx || this.scope.db).accounts
 		.list(filter, fields, {
-			limit: limit,
-			offset: offset,
+			limit,
+			offset,
 			sortField: sort.sortField,
 			sortMethod: sort.sortMethod,
 		})
@@ -865,7 +865,7 @@ Account.prototype.merge = function(address, diff, cb, tx) {
 
 	// If merge was called without any diff object
 	if (Object.keys(diff).length === 0) {
-		return self.get({ address: address }, cb, tx);
+		return self.get({ address }, cb, tx);
 	}
 
 	// Loop through each of updated attribute
@@ -994,7 +994,7 @@ Account.prototype.merge = function(address, diff, cb, tx) {
 			return dbTx.batch(promises);
 		})
 		.then(function() {
-			return self.get({ address: address }, cb, tx);
+			return self.get({ address }, cb, tx);
 		})
 		.catch(function(err) {
 			library.logger.error(err.stack);

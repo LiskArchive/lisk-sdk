@@ -83,6 +83,6 @@ DBSandbox.prototype.destroy = function(logger) {
 };
 
 module.exports = {
-	clearDatabaseTable: clearDatabaseTable,
-	DBSandbox: DBSandbox,
+	clearDatabaseTable,
+	DBSandbox,
 };

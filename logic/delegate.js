@@ -34,8 +34,8 @@ var self;
 function Delegate(logger, schema) {
 	self = this;
 	library = {
-		schema: schema,
-		logger: logger,
+		schema,
+		logger,
 	};
 }
 
@@ -46,7 +46,7 @@ function Delegate(logger, schema) {
  */
 Delegate.prototype.bind = function(accounts) {
 	modules = {
-		accounts: accounts,
+		accounts,
 	};
 };
 
@@ -179,13 +179,13 @@ Delegate.prototype.checkDuplicates = function(
 ) {
 	async.parallel(
 		{
-			duplicatedDelegate: function(eachCb) {
+			duplicatedDelegate(eachCb) {
 				var query = {};
 				query[isDelegate] = 1;
 				query.publicKey = transaction.senderPublicKey;
 				return modules.accounts.getAccount(query, [username], eachCb, tx);
 			},
-			duplicatedUsername: function(eachCb) {
+			duplicatedUsername(eachCb) {
 				var query = {};
 				query[username] = transaction.asset.delegate.username;
 				return modules.accounts.getAccount(query, [username], eachCb, tx);
@@ -399,7 +399,7 @@ Delegate.prototype.dbRead = function(raw) {
 		address: raw.t_senderId,
 	};
 
-	return { delegate: delegate };
+	return { delegate };
 };
 
 /**

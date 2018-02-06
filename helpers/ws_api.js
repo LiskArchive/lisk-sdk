@@ -94,6 +94,6 @@ var extractHeaders = function(request) {
 };
 
 module.exports = {
-	middleware: middleware,
-	extractHeaders: extractHeaders,
+	middleware,
+	extractHeaders,
 };

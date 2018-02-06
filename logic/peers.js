@@ -38,7 +38,7 @@ var modules;
 // Constructor
 function Peers(logger, cb) {
 	library = {
-		logger: logger,
+		logger,
 	};
 	self = this;
 	__private.me = null;
@@ -129,7 +129,7 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	peer.string = peer.string || self.peersManager.getAddress(peer.nonce);
 
 	if (!peer.string) {
-		library.logger.trace('Upsert invalid peer rejected', { peer: peer });
+		library.logger.trace('Upsert invalid peer rejected', { peer });
 		return failureCodes.ON_MASTER.UPDATE.INVALID_PEER;
 	}
 
@@ -196,13 +196,13 @@ Peers.prototype.remove = function(peer) {
 	// Remove peer if exists
 	if (self.exists(peer)) {
 		library.logger.info('Removed peer', peer.string);
-		library.logger.debug('Removed peer', { peer: peer });
+		library.logger.debug('Removed peer', { peer });
 		self.peersManager.remove(peer);
 		return true;
 	}
 	library.logger.debug('Failed to remove peer', {
 		err: 'AREMOVED',
-		peer: peer,
+		peer,
 	});
 	return failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST;
 };

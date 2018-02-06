@@ -156,6 +156,6 @@ function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {
 }
 
 module.exports = {
-	sortQueryToJsonSqlFormat: sortQueryToJsonSqlFormat,
-	sortBy: sortBy,
+	sortQueryToJsonSqlFormat,
+	sortBy,
 };

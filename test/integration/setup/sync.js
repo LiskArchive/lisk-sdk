@@ -30,9 +30,9 @@ var SYNC_MODE_DEFAULT_ARGS = {
 };
 
 module.exports = {
-	SYNC_MODES: SYNC_MODES,
+	SYNC_MODES,
 
-	generatePeers: function(configurations, syncMode, syncModeArgs) {
+	generatePeers(configurations, syncMode, syncModeArgs) {
 		syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS[syncMode];
 
 		var peersList = [];

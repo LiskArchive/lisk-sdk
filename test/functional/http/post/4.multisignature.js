@@ -479,14 +479,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				return signatureEndpoint
-					.makeRequest({ signatures: signatures }, 200)
-					.then(res => {
-						expect(res.body.meta.status).to.be.true;
-						expect(res.body.data.message).to.be.equal('Signature Accepted');
+				return signatureEndpoint.makeRequest({ signatures }, 200).then(res => {
+					expect(res.body.meta.status).to.be.true;
+					expect(res.body.data.message).to.be.equal('Signature Accepted');
 
-						goodTransactions.push(scenario.multiSigTransaction);
-					});
+					goodTransactions.push(scenario.multiSigTransaction);
+				});
 			});
 		});
 
@@ -522,7 +520,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					});
 
 					return signatureEndpoint
-						.makeRequest({ signatures: signatures }, 200)
+						.makeRequest({ signatures }, 200)
 						.then(res => {
 							expect(res.body.meta.status).to.be.true;
 							expect(res.body.data.message).to.be.equal('Signature Accepted');
@@ -555,14 +553,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				return signatureEndpoint
-					.makeRequest({ signatures: signatures }, 200)
-					.then(res => {
-						expect(res.body.meta.status).to.be.true;
-						expect(res.body.data.message).to.be.equal('Signature Accepted');
+				return signatureEndpoint.makeRequest({ signatures }, 200).then(res => {
+					expect(res.body.meta.status).to.be.true;
+					expect(res.body.data.message).to.be.equal('Signature Accepted');
 
-						goodTransactions.push(scenario.multiSigTransaction);
-					});
+					goodTransactions.push(scenario.multiSigTransaction);
+				});
 			});
 		});
 
@@ -579,14 +575,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				return signatureEndpoint
-					.makeRequest({ signatures: signatures }, 200)
-					.then(res => {
-						expect(res.body.meta.status).to.be.true;
-						expect(res.body.data.message).to.be.equal('Signature Accepted');
+				return signatureEndpoint.makeRequest({ signatures }, 200).then(res => {
+					expect(res.body.meta.status).to.be.true;
+					expect(res.body.data.message).to.be.equal('Signature Accepted');
 
-						goodTransactions.push(scenario.multiSigTransaction);
-					});
+					goodTransactions.push(scenario.multiSigTransaction);
+				});
 			});
 		});
 

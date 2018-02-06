@@ -105,7 +105,7 @@ VotersController.getVoters = function(context, next) {
 		}
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
@@ -181,7 +181,7 @@ VotersController.getVotes = function(context, next) {
 		});
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,

@@ -19,7 +19,7 @@ var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var WSServerMaster = require('../../common/ws/server_master');
 
 module.exports = {
-	establishWSConnectionsToNodes: function(configurations, cb) {
+	establishWSConnectionsToNodes(configurations, cb) {
 		var wampClient = new WAMPClient();
 		var sockets = [];
 		var monitorWSClient = {

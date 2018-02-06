@@ -171,7 +171,7 @@ __private.list = function(filter, cb) {
 			Object.assign(
 				{},
 				{
-					where: where,
+					where,
 					sortField: sort.sortField,
 					sortMethod: sort.sortMethod,
 				},
@@ -241,7 +241,7 @@ DApps.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @return {Array.<Object>}
 	 */
-	getDapps: function(parameters, cb) {
+	getDapps(parameters, cb) {
 		__private.list(parameters, (err, dapps) => {
 			if (err) {
 				return setImmediate(

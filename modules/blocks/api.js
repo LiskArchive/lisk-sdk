@@ -36,12 +36,12 @@ var modules; // eslint-disable-line no-unused-vars
  */
 function API(logger, db, block, schema, dbSequence) {
 	library = {
-		logger: logger,
-		db: db,
-		schema: schema,
-		dbSequence: dbSequence,
+		logger,
+		db,
+		schema,
+		dbSequence,
 		logic: {
-			block: block,
+			block,
 		},
 	};
 	self = this;
@@ -150,7 +150,7 @@ __private.list = function(filter, cb) {
 			Object.assign(
 				{},
 				{
-					where: where,
+					where,
 					sortField: sort.sortField,
 					sortMethod: sort.sortMethod,
 				},

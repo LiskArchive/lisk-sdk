@@ -37,9 +37,9 @@ __private.unconfirmedOutTansfers = {};
 // Constructor
 function OutTransfer(db, schema, logger) {
 	library = {
-		db: db,
-		schema: schema,
-		logger: logger,
+		db,
+		schema,
+		logger,
 	};
 }
 
@@ -50,8 +50,8 @@ function OutTransfer(db, schema, logger) {
  */
 OutTransfer.prototype.bind = function(accounts, blocks) {
 	modules = {
-		accounts: accounts,
-		blocks: blocks,
+		accounts,
+		blocks,
 	};
 };
 
@@ -340,7 +340,7 @@ OutTransfer.prototype.dbRead = function(raw) {
 		transactionId: raw.ot_outTransactionId,
 	};
 
-	return { outTransfer: outTransfer };
+	return { outTransfer };
 };
 
 /**

@@ -328,7 +328,7 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 	}
 
 	modules.accounts.getAccount(
-		{ publicKey: publicKey },
+		{ publicKey },
 		(err, account) => {
 			if (err) {
 				return setImmediate(cb, err);
@@ -367,7 +367,7 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 					}
 
 					modules.accounts.getAccount(
-						{ publicKey: publicKey, isDelegate: 1 },
+						{ publicKey, isDelegate: 1 },
 						(err, account) => {
 							if (err) {
 								return setImmediate(cb, err);
@@ -608,7 +608,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 				}
 
 				return setImmediate(cb, null, {
-					publicKey: publicKey,
+					publicKey,
 					forging: forgingStatus,
 				});
 			}
@@ -816,7 +816,7 @@ Delegates.prototype.fork = function(block, cause) {
 			height: block.height,
 			previousBlock: block.previousBlock,
 		},
-		cause: cause,
+		cause,
 	});
 
 	var fork = {
@@ -825,7 +825,7 @@ Delegates.prototype.fork = function(block, cause) {
 		blockId: block.id,
 		blockHeight: block.height,
 		previousBlock: block.previousBlock,
-		cause: cause,
+		cause,
 	};
 
 	library.db.delegates.insertFork(fork).then(() => {
@@ -916,7 +916,7 @@ Delegates.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getForgers: function(filters, cb) {
+	getForgers(filters, cb) {
 		var lastBlock = modules.blocks.lastBlock.get();
 		var lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
 		var currentSlot = slots.getSlotNumber();
@@ -933,8 +933,8 @@ Delegates.prototype.shared = {
 				data: forgers,
 				meta: {
 					lastBlock: lastBlock.height,
-					lastBlockSlot: lastBlockSlot,
-					currentSlot: currentSlot,
+					lastBlockSlot,
+					currentSlot,
 				},
 			});
 		});
@@ -955,7 +955,7 @@ Delegates.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getDelegates: function(filters, cb) {
+	getDelegates(filters, cb) {
 		modules.delegates.getDelegates(filters, (err, delegates) => {
 			if (err) {
 				return setImmediate(

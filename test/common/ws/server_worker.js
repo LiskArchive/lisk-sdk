@@ -18,14 +18,14 @@ var SCWorker = require('socketcluster/scworker');
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 
 var worker = SCWorker.create({
-	run: function() {
+	run() {
 		var worker = this;
 		var scServer = this.getSCServer();
 
 		var slaveWAMPServer = new SlaveWAMPServer(worker, 20e3);
 
 		slaveWAMPServer.reassignRPCSlaveEndpoints({
-			updateMyself: function(data, callback) {
+			updateMyself(data, callback) {
 				callback(null);
 			},
 		});

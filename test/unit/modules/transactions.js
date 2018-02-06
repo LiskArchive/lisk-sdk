@@ -154,7 +154,7 @@ describe('transactions', () => {
 
 		async.auto(
 			{
-				accountLogic: function(cb) {
+				accountLogic(cb) {
 					modulesLoader.initLogic(AccountLogic, { db: dbStub }, cb);
 				},
 				transactionLogic: [
@@ -277,7 +277,7 @@ describe('transactions', () => {
 	describe('Transaction#shared', () => {
 		describe('getTransaction', () => {
 			function getTransactionsById(id, done) {
-				transactionsModule.shared.getTransactions({ id: id }, done);
+				transactionsModule.shared.getTransactions({ id }, done);
 			}
 
 			var transactionsByType = {

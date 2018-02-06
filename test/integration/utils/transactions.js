@@ -17,7 +17,7 @@
 var lisk = require('lisk-js');
 
 module.exports = {
-	generateValidTransaction: function() {
+	generateValidTransaction() {
 		var gAccountPassphrase =
 			'wagon stock borrow episode laundry kitten salute link globe zero feed marble';
 		var randomAddress = lisk.crypto.getAddress(

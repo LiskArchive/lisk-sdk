@@ -73,7 +73,7 @@ var sender = {
 var transactionData = {
 	type: 0,
 	amount: 8067474861277,
-	sender: sender,
+	sender,
 	senderId: '16313739661670634666L',
 	recipientId: '5649948960790668770L',
 	fee: 10000000,

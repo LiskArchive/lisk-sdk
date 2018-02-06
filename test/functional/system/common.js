@@ -252,11 +252,11 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 }
 
 module.exports = {
-	forge: forge,
-	addTransaction: addTransaction,
-	addTransactionsAndForge: addTransactionsAndForge,
-	getAccountFromDb: getAccountFromDb,
-	getTransactionFromModule: getTransactionFromModule,
-	beforeBlock: beforeBlock,
-	loadTransactionType: loadTransactionType,
+	forge,
+	addTransaction,
+	addTransactionsAndForge,
+	getAccountFromDb,
+	getTransactionFromModule,
+	beforeBlock,
+	loadTransactionType,
 };

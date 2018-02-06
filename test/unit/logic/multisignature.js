@@ -561,7 +561,7 @@ describe('multisignature', () => {
 						it('should call library.logic.account.setAccountAndGet with {address: address}', () => {
 							expect(
 								accountsMock.setAccountAndGet.calledWith(
-									sinonSandbox.match({ address: address })
+									sinonSandbox.match({ address })
 								)
 							).to.be.true;
 						});

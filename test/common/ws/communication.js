@@ -27,7 +27,7 @@ var wsCommunication = {
 	defaultSocketPeerHeaders: null,
 
 	// Get the given path
-	call: function(procedure, data, done, includePeer) {
+	call(procedure, data, done, includePeer) {
 		if (!this.defaultConnectionState) {
 			this.defaultConnectionState = new ConnectionState('127.0.0.1', 5000);
 			this.defaultSocketPeerHeaders = WSServer.generatePeerHeaders({

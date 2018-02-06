@@ -118,7 +118,7 @@ __private.receiveSignatures = function(query, cb) {
 
 	async.series(
 		{
-			validateSchema: function(seriesCb) {
+			validateSchema(seriesCb) {
 				library.schema.validate(query, definitions.WSSignaturesList, err => {
 					if (err) {
 						return setImmediate(seriesCb, 'Invalid signatures body');
@@ -126,7 +126,7 @@ __private.receiveSignatures = function(query, cb) {
 					return setImmediate(seriesCb);
 				});
 			},
-			receiveSignatures: function(seriesCb) {
+			receiveSignatures(seriesCb) {
 				signatures = query.signatures;
 
 				async.eachSeries(
@@ -239,13 +239,13 @@ __private.receiveTransaction = function(
 		transaction = library.logic.transaction.objectNormalize(transaction);
 	} catch (e) {
 		library.logger.debug('Transaction normalization failed', {
-			id: id,
+			id,
 			err: e.toString(),
 			module: 'transport',
-			transaction: transaction,
+			transaction,
 		});
 
-		__private.removePeer({ peer: peer, code: 'ETRANSACTION' }, extraLogMessage);
+		__private.removePeer({ peer, code: 'ETRANSACTION' }, extraLogMessage);
 
 		return setImmediate(cb, `Invalid transaction body - ${e.toString()}`);
 	}
@@ -347,7 +347,7 @@ Transport.prototype.onSignature = function(signature, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(signature)) {
 		__private.broadcaster.enqueue(
 			{},
-			{ api: 'postSignatures', data: { signature: signature } }
+			{ api: 'postSignatures', data: { signature } }
 		);
 		library.network.io.sockets.emit('signature/change', signature);
 	}
@@ -369,7 +369,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
 	if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
 		__private.broadcaster.enqueue(
 			{},
-			{ api: 'postTransactions', data: { transaction: transaction } }
+			{ api: 'postTransactions', data: { transaction } }
 		);
 		library.network.io.sockets.emit('transactions/change', transaction);
 	}
@@ -409,7 +409,7 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 						peer.rpc.updateMyself(library.logic.peers.me(), err => {
 							if (err) {
 								library.logger.debug('Failed to notify peer about self', err);
-								__private.removePeer({ peer: peer, code: 'ECOMMUNICATION' });
+								__private.removePeer({ peer, code: 'ECOMMUNICATION' });
 							} else {
 								library.logger.debug(
 									'Successfully notified peer about self',
@@ -425,7 +425,7 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 								limit: constants.maxPeers,
 								broadhash: modules.system.getBroadhash(),
 							},
-							{ api: 'postBlock', data: { block: block }, immediate: true }
+							{ api: 'postBlock', data: { block }, immediate: true }
 						);
 					}
 				);
@@ -459,7 +459,7 @@ Transport.prototype.isLoaded = function() {
  * @see {@link http://apidocjs.com/}
  */
 Transport.prototype.shared = {
-	blocksCommon: function(query, cb) {
+	blocksCommon(query, cb) {
 		query = query || {};
 		return library.schema.validate(
 			query,
@@ -506,7 +506,7 @@ Transport.prototype.shared = {
 		);
 	},
 
-	blocks: function(query, cb) {
+	blocks(query, cb) {
 		// Get 34 blocks with all data (joins) from provided block id
 		// According to maxium payload of 58150 bytes per block with every transaction being a vote
 		// Discounting maxium compression setting used in middleware
@@ -527,7 +527,7 @@ Transport.prototype.shared = {
 		);
 	},
 
-	postBlock: function(query, cb) {
+	postBlock(query, cb) {
 		query = query || {};
 		var block;
 		try {
@@ -553,7 +553,7 @@ Transport.prototype.shared = {
 		return setImmediate(cb, null, { success: true, blockId: block.id });
 	},
 
-	list: function(req, cb) {
+	list(req, cb) {
 		req = req || {};
 		var peersFinder = !req.query
 			? modules.peers.list
@@ -562,19 +562,19 @@ Transport.prototype.shared = {
 			Object.assign({}, { limit: constants.maxPeers }, req.query),
 			(err, peers) => {
 				peers = !err ? peers : [];
-				return setImmediate(cb, null, { success: !err, peers: peers });
+				return setImmediate(cb, null, { success: !err, peers });
 			}
 		);
 	},
 
-	height: function(req, cb) {
+	height(req, cb) {
 		return setImmediate(cb, null, {
 			success: true,
 			height: modules.system.getHeight(),
 		});
 	},
 
-	status: function(req, cb) {
+	status(req, cb) {
 		var headers = modules.system.headers();
 		return setImmediate(cb, null, {
 			success: true,
@@ -587,7 +587,7 @@ Transport.prototype.shared = {
 		});
 	},
 
-	postSignatures: function(query, cb) {
+	postSignatures(query, cb) {
 		if (query.signatures) {
 			__private.receiveSignatures(query, err => {
 				if (err) {
@@ -605,7 +605,7 @@ Transport.prototype.shared = {
 		}
 	},
 
-	getSignatures: function(req, cb) {
+	getSignatures(req, cb) {
 		var transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
 			constants.maxSharedTxs
@@ -623,22 +623,22 @@ Transport.prototype.shared = {
 				}
 				return setImmediate(__cb);
 			},
-			() => setImmediate(cb, null, { success: true, signatures: signatures })
+			() => setImmediate(cb, null, { success: true, signatures })
 		);
 	},
 
-	getTransactions: function(query, cb) {
+	getTransactions(query, cb) {
 		var transactions = modules.transactions.getMergedTransactionList(
 			true,
 			constants.maxSharedTxs
 		);
 		return setImmediate(cb, null, {
 			success: true,
-			transactions: transactions,
+			transactions,
 		});
 	},
 
-	postTransactions: function(query, cb) {
+	postTransactions(query, cb) {
 		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {
 				return setImmediate(cb, null, { success: false, message: err });
@@ -708,7 +708,7 @@ Transport.prototype.internal = {
 	 * @param {number} query.updateType - 0 (insert) or 1 (remove)
 	 * @param {function} cb
 	 */
-	updatePeer: function(query, cb) {
+	updatePeer(query, cb) {
 		__private.checkInternalAccess(query, err => {
 			if (err) {
 				return setImmediate(cb, err);

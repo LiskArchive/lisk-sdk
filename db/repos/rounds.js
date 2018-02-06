@@ -198,10 +198,10 @@ class RoundsRepository {
 	 */
 	insertRoundInformationWithAmount(address, blockId, round, amount) {
 		return this.db.none(sql.insertRoundInformationWithAmount, {
-			address: address,
-			amount: amount,
-			blockId: blockId,
-			round: round,
+			address,
+			amount,
+			blockId,
+			round,
 		});
 	}
 
@@ -223,9 +223,9 @@ class RoundsRepository {
 		mode
 	) {
 		return this.db.none(sql.insertRoundInformationWithDelegate, {
-			address: address,
-			blockId: blockId,
-			round: round,
+			address,
+			blockId,
+			round,
 			delegate: delegateId,
 			balanceMode: mode === '-' ? '-' : '',
 		});

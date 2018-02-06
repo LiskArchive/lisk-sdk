@@ -63,7 +63,7 @@ module.exports = {
 	 * @param {number} time
 	 * @return {number} lisk epoch time constant.
 	 */
-	getTime: function(time) {
+	getTime(time) {
 		return getEpochTime(time);
 	},
 
@@ -72,7 +72,7 @@ module.exports = {
 	 * @param {number} [epochTime]
 	 * @return {number} constant time from Lisk epoch + input time.
 	 */
-	getRealTime: function(epochTime) {
+	getRealTime(epochTime) {
 		if (epochTime === undefined) {
 			epochTime = this.getTime();
 		}
@@ -88,7 +88,7 @@ module.exports = {
 	 * @param {number} [epochTime] - time or
 	 * @return {number} input time / slot interval.
 	 */
-	getSlotNumber: function(epochTime) {
+	getSlotNumber(epochTime) {
 		if (epochTime === undefined) {
 			epochTime = this.getTime();
 		}
@@ -101,7 +101,7 @@ module.exports = {
 	 * @param {number} slot - slot number
 	 * @return {number} input slot * slot interval.
 	 */
-	getSlotTime: function(slot) {
+	getSlotTime(slot) {
 		return slot * this.interval;
 	},
 
@@ -109,7 +109,7 @@ module.exports = {
 	 * @method
 	 * @return {number} current slot number + 1.
 	 */
-	getNextSlot: function() {
+	getNextSlot() {
 		var slot = this.getSlotNumber();
 
 		return slot + 1;
@@ -120,11 +120,11 @@ module.exports = {
 	 * @param {number} nextSlot
 	 * @return {number} input next slot + delegates.
 	 */
-	getLastSlot: function(nextSlot) {
+	getLastSlot(nextSlot) {
 		return nextSlot + this.delegates;
 	},
 
-	roundTime: function(date) {
+	roundTime(date) {
 		return Math.floor(date.getTime() / 1000) * 1000;
 	},
 
@@ -133,7 +133,7 @@ module.exports = {
 	 * @param {number} height Height from which round is calculated
 	 * @return {number} Round
 	 */
-	calcRound: function(height) {
+	calcRound(height) {
 		return Math.ceil(height / this.delegates);
 	},
 };

@@ -21,7 +21,7 @@ var waitUntilBlockchainReady = require('../../common/utils/wait_for')
 var utils = require('../utils');
 
 module.exports = {
-	waitForAllNodesToBeReady: function(configurations, cb) {
+	waitForAllNodesToBeReady(configurations, cb) {
 		async.forEachOf(
 			configurations,
 			(configuration, index, eachCb) => {
@@ -36,7 +36,7 @@ module.exports = {
 		);
 	},
 
-	enableForgingOnDelegates: function(configurations, cb) {
+	enableForgingOnDelegates(configurations, cb) {
 		var enableForgingPromises = [];
 		configurations.forEach(configuration => {
 			configuration.forging.secret.map(keys => {

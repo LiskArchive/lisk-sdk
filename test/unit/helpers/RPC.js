@@ -173,14 +173,14 @@ describe('wsRPC', () => {
 
 		describe('stub', () => {
 			var validRPCEndpoint = {
-				rpcProcedure: function(param) {
+				rpcProcedure(param) {
 					return param;
 				},
 			};
 			var masterWAMPServer;
 			var masterWAMPServerConfig;
 			var validEventEndpoint = {
-				eventProcedure: function(param) {
+				eventProcedure(param) {
 					return param;
 				},
 			};

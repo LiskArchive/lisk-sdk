@@ -64,7 +64,7 @@ function __init(initScope, done) {
 
 		// Extending the database protocol with our custom repositories;
 		// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
-		extend: function(object) {
+		extend(object) {
 			Object.keys(dbRepos).forEach(repoName => {
 				object[repoName] = new dbRepos[repoName](object, pgp);
 			});
@@ -121,22 +121,22 @@ function __init(initScope, done) {
 			// Init limited application layer
 			async.auto(
 				{
-					config: function(cb) {
+					config(cb) {
 						cb(null, __testContext.config);
 					},
-					genesisblock: function(cb) {
+					genesisblock(cb) {
 						var genesisblock = require('../data/genesis_block.json');
 						cb(null, { block: genesisblock });
 					},
 
-					schema: function(cb) {
+					schema(cb) {
 						var z_schema = require('../../helpers/z_schema.js');
 						cb(null, new z_schema());
 					},
-					network: function(cb) {
+					network(cb) {
 						// Init with empty function
 						cb(null, {
-							io: { sockets: { emit: function() {} } },
+							io: { sockets: { emit() {} } },
 							app: require('express')(),
 						});
 					},
@@ -148,7 +148,7 @@ function __init(initScope, done) {
 							// Init with empty functions
 							var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
-							var dummySocketCluster = { on: function() {} };
+							var dummySocketCluster = { on() {} };
 							var dummyWAMPServer = new MasterWAMPServer(
 								dummySocketCluster,
 								{}
@@ -160,14 +160,14 @@ function __init(initScope, done) {
 							cb();
 						},
 					],
-					logger: function(cb) {
+					logger(cb) {
 						cb(null, logger);
 					},
 					dbSequence: [
 						'logger',
 						function(scope, cb) {
 							var sequence = new Sequence({
-								onWarning: function(current) {
+								onWarning(current) {
 									scope.logger.warn('DB queue', current);
 								},
 							});
@@ -178,7 +178,7 @@ function __init(initScope, done) {
 						'logger',
 						function(scope, cb) {
 							var sequence = new Sequence({
-								onWarning: function(current) {
+								onWarning(current) {
 									scope.logger.warn('Main queue', current);
 								},
 							});
@@ -189,7 +189,7 @@ function __init(initScope, done) {
 						'logger',
 						function(scope, cb) {
 							var sequence = new Sequence({
-								onWarning: function(current) {
+								onWarning(current) {
 									scope.logger.warn('Balance queue', current);
 								},
 							});
@@ -206,7 +206,7 @@ function __init(initScope, done) {
 						},
 					],
 
-					ed: function(cb) {
+					ed(cb) {
 						cb(null, require('../../helpers/ed.js'));
 					},
 
@@ -249,7 +249,7 @@ function __init(initScope, done) {
 							cb(null, bus);
 						},
 					],
-					db: function(cb) {
+					db(cb) {
 						cb(null, db);
 					},
 					rpc: [
@@ -287,22 +287,22 @@ function __init(initScope, done) {
 
 							async.auto(
 								{
-									bus: function(cb) {
+									bus(cb) {
 										cb(null, scope.bus);
 									},
-									db: function(cb) {
+									db(cb) {
 										cb(null, scope.db);
 									},
-									ed: function(cb) {
+									ed(cb) {
 										cb(null, scope.ed);
 									},
-									logger: function(cb) {
+									logger(cb) {
 										cb(null, scope.logger);
 									},
-									schema: function(cb) {
+									schema(cb) {
 										cb(null, scope.schema);
 									},
-									genesisblock: function(cb) {
+									genesisblock(cb) {
 										cb(null, {
 											block: scope.genesisblock.block,
 										});
@@ -497,6 +497,6 @@ function cleanup(done) {
 }
 
 module.exports = {
-	init: init,
-	cleanup: cleanup,
+	init,
+	cleanup,
 };

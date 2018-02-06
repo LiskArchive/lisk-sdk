@@ -17,7 +17,7 @@
 var randomstring = require('randomstring');
 
 module.exports = {
-	generateMatchedAndUnmatchedBroadhashes: function(unmatchedAmount) {
+	generateMatchedAndUnmatchedBroadhashes(unmatchedAmount) {
 		var characterNotPresentInValidBroadhash = '@';
 		var validBroadhash = randomstring.generate({
 			length: 64,

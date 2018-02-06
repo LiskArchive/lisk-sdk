@@ -40,10 +40,10 @@ __private.unconfirmedAscii = {};
 // Constructor
 function DApp(db, logger, schema, network) {
 	library = {
-		db: db,
-		logger: logger,
-		schema: schema,
-		network: network,
+		db,
+		logger,
+		schema,
+		network,
 	};
 }
 
@@ -453,7 +453,7 @@ DApp.prototype.dbRead = function(raw) {
 		icon: raw.dapp_icon,
 	};
 
-	return { dapp: dapp };
+	return { dapp };
 };
 
 /**

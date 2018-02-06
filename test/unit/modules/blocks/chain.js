@@ -37,10 +37,10 @@ function createBlock(
 	);
 	blocksModule.lastBlock.set(previousBlock);
 	var newBlock = blockLogic.create({
-		keypair: keypair,
-		timestamp: timestamp,
+		keypair,
+		timestamp,
 		previousBlock: blocksModule.lastBlock.get(),
-		transactions: transactions,
+		transactions,
 	});
 	newBlock.id = blockLogic.getId(newBlock);
 	newBlock.height = previousBlock ? previousBlock.height + 1 : 1;

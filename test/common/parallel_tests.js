@@ -151,5 +151,5 @@ function parallelTests(tag, suite, section) {
 parallelTests(process.argv[2], process.argv[3], process.argv[4]);
 
 module.exports = {
-	parallelTests: parallelTests,
+	parallelTests,
 };

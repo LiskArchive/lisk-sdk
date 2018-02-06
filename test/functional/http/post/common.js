@@ -140,5 +140,5 @@ function invalidAssets(option, badTransactions) {
 }
 
 module.exports = {
-	invalidAssets: invalidAssets,
+	invalidAssets,
 };

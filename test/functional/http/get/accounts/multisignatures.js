@@ -58,7 +58,7 @@ describe('GET /api/accounts', () => {
 					);
 				});
 
-				return signatureEndpoint.makeRequest({ signatures: signatures }, 200);
+				return signatureEndpoint.makeRequest({ signatures }, 200);
 			})
 			.then(res => {
 				expect(res.body.meta.status).to.be.true;

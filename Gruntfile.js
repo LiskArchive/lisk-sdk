@@ -43,7 +43,7 @@ module.exports = function(grunt) {
 			},
 
 			mocha: {
-				cmd: function(tag, suite, section) {
+				cmd(tag, suite, section) {
 					if (suite === 'integration') {
 						var slowTag = '';
 						if (tag !== 'slow') {

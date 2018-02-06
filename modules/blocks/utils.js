@@ -47,14 +47,14 @@ function Utils(
 	genesisblock
 ) {
 	library = {
-		logger: logger,
-		db: db,
-		dbSequence: dbSequence,
-		genesisblock: genesisblock,
+		logger,
+		db,
+		dbSequence,
+		genesisblock,
 		logic: {
-			account: account,
-			block: block,
-			transaction: transaction,
+			account,
+			block,
+			transaction,
 		},
 	};
 	self = this;
@@ -213,7 +213,7 @@ Utils.prototype.getIdSequence = function(height, cb) {
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
 	library.db.blocks
 		.getIdSequence({
-			height: height,
+			height,
 			limit: 5,
 			delegates: constants.activeDelegates,
 		})

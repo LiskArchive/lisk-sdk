@@ -34,8 +34,8 @@ var shared;
 // Constructor
 function InTransfer(db, schema) {
 	library = {
-		db: db,
-		schema: schema,
+		db,
+		schema,
 	};
 }
 
@@ -47,8 +47,8 @@ function InTransfer(db, schema) {
  */
 InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
 	modules = {
-		accounts: accounts,
-		blocks: blocks,
+		accounts,
+		blocks,
 	};
 	shared = sharedApi;
 };
@@ -275,7 +275,7 @@ InTransfer.prototype.dbRead = function(raw) {
 		dappId: raw.in_dappId,
 	};
 
-	return { inTransfer: inTransfer };
+	return { inTransfer };
 };
 
 /**

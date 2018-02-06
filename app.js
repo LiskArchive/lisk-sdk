@@ -171,7 +171,7 @@ d.run(() => {
 			 * @param {nodeStyleCallback} cb - Callback function with the mutated `appConfig`.
 			 * @throws {Error} If failed to assign nethash from genesis block.
 			 */
-			config: function(cb) {
+			config(cb) {
 				try {
 					appConfig.nethash = Buffer.from(
 						genesisblock.payloadHash,
@@ -184,11 +184,11 @@ d.run(() => {
 				cb(null, appConfig);
 			},
 
-			logger: function(cb) {
+			logger(cb) {
 				cb(null, logger);
 			},
 
-			build: function(cb) {
+			build(cb) {
 				cb(null, versionBuild);
 			},
 
@@ -197,17 +197,17 @@ d.run(() => {
 			 * @method lastCommit
 			 * @param {nodeStyleCallback} cb - Callback function with Hash of last git commit.
 			 */
-			lastCommit: function(cb) {
+			lastCommit(cb) {
 				cb(null, lastCommit);
 			},
 
-			genesisblock: function(cb) {
+			genesisblock(cb) {
 				cb(null, {
 					block: genesisblock,
 				});
 			},
 
-			schema: function(cb) {
+			schema(cb) {
 				cb(null, swaggerHelper.getValidator());
 			},
 
@@ -264,12 +264,12 @@ d.run(() => {
 					}
 
 					cb(null, {
-						express: express,
-						app: app,
-						server: server,
-						io: io,
-						https: https,
-						https_io: https_io,
+						express,
+						app,
+						server,
+						io,
+						https,
+						https_io,
 					});
 				},
 			],
@@ -336,7 +336,7 @@ d.run(() => {
 				'logger',
 				function(scope, cb) {
 					var sequence = new Sequence({
-						onWarning: function(current) {
+						onWarning(current) {
 							scope.logger.warn('DB queue', current);
 						},
 					});
@@ -348,7 +348,7 @@ d.run(() => {
 				'logger',
 				function(scope, cb) {
 					var sequence = new Sequence({
-						onWarning: function(current) {
+						onWarning(current) {
 							scope.logger.warn('Main queue', current);
 						},
 					});
@@ -360,7 +360,7 @@ d.run(() => {
 				'logger',
 				function(scope, cb) {
 					var sequence = new Sequence({
-						onWarning: function(current) {
+						onWarning(current) {
 							scope.logger.warn('Balance queue', current);
 						},
 					});
@@ -414,7 +414,7 @@ d.run(() => {
 
 					scope.network.app.use(
 						queryParser({
-							parser: function(value, radix, name) {
+							parser(value, radix, name) {
 								if (ignore.indexOf(name) >= 0) {
 									return value;
 								}
@@ -487,7 +487,7 @@ d.run(() => {
 				},
 			],
 
-			ed: function(cb) {
+			ed(cb) {
 				cb(null, require('./helpers/ed.js'));
 			},
 
@@ -523,7 +523,7 @@ d.run(() => {
 					cb(null, new bus());
 				},
 			],
-			db: function(cb) {
+			db(cb) {
 				var db = require('./db');
 				db
 					.connect(config.db, dbLogger)
@@ -534,7 +534,7 @@ d.run(() => {
 			 * It tries to connect with redis server based on config. provided in config.json file
 			 * @param {function} cb
 			 */
-			cache: function(cb) {
+			cache(cb) {
 				var cache = require('./helpers/cache.js');
 				cache.connect(config.cacheEnabled, config.cache, logger, cb);
 			},
@@ -559,22 +559,22 @@ d.run(() => {
 
 					async.auto(
 						{
-							bus: function(cb) {
+							bus(cb) {
 								cb(null, scope.bus);
 							},
-							db: function(cb) {
+							db(cb) {
 								cb(null, scope.db);
 							},
-							ed: function(cb) {
+							ed(cb) {
 								cb(null, scope.ed);
 							},
-							logger: function(cb) {
+							logger(cb) {
 								cb(null, logger);
 							},
-							schema: function(cb) {
+							schema(cb) {
 								cb(null, scope.schema);
 							},
-							genesisblock: function(cb) {
+							genesisblock(cb) {
 								cb(null, {
 									block: genesisblock,
 								});

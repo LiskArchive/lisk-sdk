@@ -302,9 +302,9 @@ class AccountsRepository {
 	increment(address, field, value) {
 		return this.db.none(sql.incrementAccount, {
 			table: this.dbTable,
-			field: field,
-			value: value,
-			address: address,
+			field,
+			value,
+			address,
 		});
 	}
 
@@ -319,9 +319,9 @@ class AccountsRepository {
 	decrement(address, field, value) {
 		return this.db.none(sql.decrementAccount, {
 			table: this.dbTable,
-			field: field,
-			value: value,
-			address: address,
+			field,
+			value,
+			address,
 		});
 	}
 
@@ -475,11 +475,11 @@ class AccountsRepository {
 
 		const query = this.pgp.as.format(sql, {
 			fields: selectClause,
-			conditions: conditions,
-			sortField: sortField,
-			sortMethod: sortMethod,
-			limit: limit,
-			offset: offset,
+			conditions,
+			sortField,
+			sortMethod,
+			limit,
+			offset,
 		});
 
 		return this.db.query(query);
@@ -511,8 +511,8 @@ class AccountsRepository {
 
 		return this.db.none(sql.removeAccountDependencies, {
 			table: `${this.dbTable}2${dependency}`,
-			address: address,
-			dependentId: dependentId,
+			address,
+			dependentId,
 		});
 	}
 
@@ -549,7 +549,7 @@ class AccountsRepository {
 			this.pgp.helpers.insert(
 				{
 					accountId: address,
-					dependentId: dependentId,
+					dependentId,
 				},
 				null,
 				dependentTable

@@ -241,8 +241,8 @@ Round.prototype.applyRound = function() {
 		changes = roundChanges.at(i);
 
 		this.scope.library.logger.trace('Delegate changes', {
-			delegate: delegate,
-			changes: changes,
+			delegate,
+			changes,
 		});
 
 		p = new Promise(function(resolve, reject) {

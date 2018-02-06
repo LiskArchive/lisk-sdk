@@ -36,7 +36,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	cors: function(req, res, next) {
+	cors(req, res, next) {
 		res.header('Access-Control-Allow-Origin', '*');
 		res.header(
 			'Access-Control-Allow-Headers',
@@ -53,7 +53,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	errorLogger: function(logger, err, req, res, next) {
+	errorLogger(logger, err, req, res, next) {
 		if (!err) {
 			return next();
 		}
@@ -71,7 +71,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	logClientConnections: function(logger, req, res, next) {
+	logClientConnections(logger, req, res, next) {
 		// Log client connections
 		logger.log(`${req.method} ${req.url} from ${req.ip}`);
 
@@ -85,7 +85,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	blockchainReady: function(isLoaded, req, res, next) {
+	blockchainReady(isLoaded, req, res, next) {
 		if (isLoaded()) {
 			return next();
 		}
@@ -98,7 +98,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	notFound: function(req, res) {
+	notFound(req, res) {
 		return res
 			.status(500)
 			.send({ success: false, error: 'API endpoint not found' });
@@ -111,7 +111,7 @@ var middleware = {
 	 * @param {function} cb
 	 * @return {function} Sanitize middleware.
 	 */
-	sanitize: function(property, schema, cb) {
+	sanitize(property, schema, cb) {
 		// TODO: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
 		return function(req, res) {
 			req.sanitize(req[property], schema, (err, report, sanitized) => {
@@ -131,7 +131,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	attachResponseHeader: function(headerKey, headerValue, req, res, next) {
+	attachResponseHeader(headerKey, headerValue, req, res, next) {
 		res.setHeader(headerKey, headerValue);
 		return next();
 	},
@@ -143,7 +143,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	applyAPIAccessRules: function(config, req, res, next) {
+	applyAPIAccessRules(config, req, res, next) {
 		if (req.url.match(/^\/peer[\/]?.*/)) {
 			var internalApiAllowed =
 				config.peers.enabled &&
@@ -175,7 +175,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	attachResponseHeaders: function(getHeaders, req, res, next) {
+	attachResponseHeaders(getHeaders, req, res, next) {
 		res.set(getHeaders());
 		return next();
 	},
@@ -187,7 +187,7 @@ var middleware = {
 	 * @param {Object} res
 	 * @param {function} next
 	 */
-	useCache: function(logger, cache, req, res, next) {
+	useCache(logger, cache, req, res, next) {
 		if (!cache.isReady()) {
 			return next();
 		}
@@ -274,8 +274,8 @@ function registerEndpoint(route, app, router, isLoaded) {
 }
 
 module.exports = {
-	middleware: middleware,
-	registerEndpoint: registerEndpoint,
-	respond: respond,
-	respondWithCode: respondWithCode,
+	middleware,
+	registerEndpoint,
+	respond,
+	respondWithCode,
 };

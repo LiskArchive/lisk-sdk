@@ -44,7 +44,7 @@ var wsServer = null;
  */
 var wsRPC = {
 	clientsConnectionsMap: {},
-	scClient: scClient,
+	scClient,
 	wampClient: new WAMPClient(),
 
 	/**
@@ -53,7 +53,7 @@ var wsRPC = {
 	 * @param {Object} __wsServer - Description of the param
 	 * @todo: Add description of the function and its parameters
 	 */
-	setServer: function(__wsServer) {
+	setServer(__wsServer) {
 		wsServer = __wsServer;
 	},
 
@@ -64,7 +64,7 @@ var wsRPC = {
 	 * @returns {MasterWAMPServer} wsServer
 	 * @todo: Add description of the function
 	 */
-	getServer: function() {
+	getServer() {
 		if (!wsServer) {
 			throw new Error('WS server has not been initialized!');
 		}
@@ -78,7 +78,7 @@ var wsRPC = {
 	 * @returns {Object} Map where keys are all procedures registered
 	 * @todo: Add description of the function and its parameters
 	 */
-	getClientRPCStub: function(ip, port) {
+	getClientRPCStub(ip, port) {
 		if (!ip || !port) {
 			throw new Error(
 				`RPC client needs ip and port to establish WS connection with: ${ip}:${port}`
@@ -106,7 +106,7 @@ var wsRPC = {
 	 * @returns {Object} wsServer
 	 * @todo: Add description of the function
 	 */
-	getServerAuthKey: function() {
+	getServerAuthKey() {
 		if (!wsServer) {
 			throw new Error('WS server has not been initialized!');
 		}
@@ -307,8 +307,8 @@ var slaveRPCStub = {
 };
 
 module.exports = {
-	wsRPC: wsRPC,
-	ConnectionState: ConnectionState,
-	ClientRPCStub: ClientRPCStub,
-	slaveRPCStub: slaveRPCStub,
+	wsRPC,
+	ConnectionState,
+	ClientRPCStub,
+	slaveRPCStub,
 };

@@ -27,7 +27,7 @@ module.exports.connect = function(cacheEnabled, config, logger, cb) {
 	var isRedisLoaded = false;
 
 	if (!cacheEnabled) {
-		return cb(null, { cacheEnabled: cacheEnabled, client: null });
+		return cb(null, { cacheEnabled, client: null });
 	}
 
 	// delete password key if it's value is null
@@ -41,7 +41,7 @@ module.exports.connect = function(cacheEnabled, config, logger, cb) {
 
 		if (!isRedisLoaded) {
 			isRedisLoaded = true;
-			return cb(null, { cacheEnabled: cacheEnabled, client: client });
+			return cb(null, { cacheEnabled, client });
 		}
 	});
 
@@ -51,7 +51,7 @@ module.exports.connect = function(cacheEnabled, config, logger, cb) {
 		// and modules/cache can have client reference once it's connected
 		if (!isRedisLoaded) {
 			isRedisLoaded = true;
-			return cb(null, { cacheEnabled: cacheEnabled, client: client });
+			return cb(null, { cacheEnabled, client });
 		}
 	});
 };

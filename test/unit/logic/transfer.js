@@ -205,7 +205,7 @@ describe('transfer', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			var data = "1'";
 			transaction.asset = {
-				data: data,
+				data,
 			};
 
 			expect(transfer.getBytes(transaction)).to.eql(Buffer.from(data, 'utf8'));
@@ -215,7 +215,7 @@ describe('transfer', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			var data = 'Zażółć gęślą jaźń';
 			transaction.asset = {
-				data: data,
+				data,
 			};
 
 			expect(transfer.getBytes(transaction)).to.eql(Buffer.from(data, 'utf8'));
@@ -478,7 +478,7 @@ describe('transfer', () => {
 			rawTransaction.tf_data = data;
 
 			expect(transfer.dbRead(rawTransaction)).to.eql({
-				data: data,
+				data,
 			});
 		});
 	});

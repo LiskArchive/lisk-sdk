@@ -84,5 +84,5 @@ function confirmation(
 }
 
 module.exports = {
-	confirmation: confirmation,
+	confirmation,
 };

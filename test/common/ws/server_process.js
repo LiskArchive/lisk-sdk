@@ -37,7 +37,7 @@ function WSServer(headers) {
 		wsEngine: 'uws',
 		appName: `LiskTestServer-${randomstring.generate(8)}`,
 		secretKey: 'liskSecretKey',
-		headers: headers,
+		headers,
 		perMessageDeflate: false,
 		pingInterval: 5000,
 		pingTimeout: 60000,

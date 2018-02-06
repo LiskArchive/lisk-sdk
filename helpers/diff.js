@@ -24,7 +24,7 @@ module.exports = {
 	 * @param {Array} diff
 	 * @return {Array} reverse sign.
 	 */
-	reverse: function(diff) {
+	reverse(diff) {
 		var copyDiff = diff.slice();
 		for (var i = 0; i < copyDiff.length; i++) {
 			var math = copyDiff[i][0] === '-' ? '+' : '-';
@@ -39,7 +39,7 @@ module.exports = {
 	 * @param {Array} diff
 	 * @return {Array} Source data without -publicKeys and with +publicKeys from diff.
 	 */
-	merge: function(source, diff) {
+	merge(source, diff) {
 		var res = source ? source.slice() : [];
 		var index;
 

@@ -40,8 +40,8 @@ var self;
 function Vote(logger, schema) {
 	self = this;
 	library = {
-		logger: logger,
-		schema: schema,
+		logger,
+		schema,
 	};
 }
 
@@ -52,7 +52,7 @@ function Vote(logger, schema) {
  */
 Vote.prototype.bind = function(delegates) {
 	modules = {
-		delegates: delegates,
+		delegates,
 	};
 };
 
@@ -429,7 +429,7 @@ Vote.prototype.dbRead = function(raw) {
 	}
 	var votes = raw.v_votes.split(',');
 
-	return { votes: votes };
+	return { votes };
 };
 
 /**

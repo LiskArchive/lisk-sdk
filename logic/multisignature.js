@@ -41,12 +41,12 @@ __private.unconfirmedSignatures = {};
 // Constructor
 function Multisignature(schema, network, transaction, account, logger) {
 	library = {
-		schema: schema,
-		network: network,
-		logger: logger,
+		schema,
+		network,
+		logger,
 		logic: {
-			transaction: transaction,
-			account: account,
+			transaction,
+			account,
 		},
 	};
 }
@@ -58,7 +58,7 @@ function Multisignature(schema, network, transaction, account, logger) {
  */
 Multisignature.prototype.bind = function(accounts) {
 	modules = {
-		accounts: accounts,
+		accounts,
 	};
 };
 
@@ -346,7 +346,7 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
 					// Create accounts
 					modules.accounts.setAccountAndGet(
 						{
-							address: address,
+							address,
 							publicKey: key,
 						},
 						err => setImmediate(cb, err),
@@ -526,7 +526,7 @@ Multisignature.prototype.dbRead = function(raw) {
 		multisignature.keysgroup = [];
 	}
 
-	return { multisignature: multisignature };
+	return { multisignature };
 };
 
 /**

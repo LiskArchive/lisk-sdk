@@ -39,7 +39,7 @@ var modulesLoader = new function() {
 	});
 	config.nonce = randomstring.generate(16);
 	this.scope = {
-		config: config,
+		config,
 		genesisblock: { block: genesisblock },
 		logger: this.logger,
 		network: {
@@ -49,32 +49,32 @@ var modulesLoader = new function() {
 			},
 		},
 		schema: new z_schema(),
-		ed: ed,
+		ed,
 		bus: {
 			argsMessages: [],
-			message: function() {
+			message() {
 				Array.prototype.push.apply(this.argsMessages, arguments);
 			},
-			getMessages: function() {
+			getMessages() {
 				return this.argsMessages;
 			},
-			clearMessages: function() {
+			clearMessages() {
 				this.argsMessages = [];
 			},
 		},
 		nonce: randomstring.generate(16),
 		dbSequence: new Sequence({
-			onWarning: function(current) {
+			onWarning(current) {
 				this.logger.warn('DB queue', current);
 			},
 		}),
 		sequence: new Sequence({
-			onWarning: function(current) {
+			onWarning(current) {
 				this.logger.warn('Main queue', current);
 			},
 		}),
 		balancesSequence: new Sequence({
-			onWarning: function(current) {
+			onWarning(current) {
 				this.logger.warn('Balance queue', current);
 			},
 		}),
@@ -97,7 +97,7 @@ var modulesLoader = new function() {
 			case 'Transaction':
 				async.series(
 					{
-						account: function(cb) {
+						account(cb) {
 							new Account(scope.db, scope.schema, scope.logger, cb);
 						},
 					},
@@ -189,7 +189,7 @@ var modulesLoader = new function() {
 					);
 				}.bind(this),
 				function(logic, waterCb) {
-					scope = _.merge({}, this.scope, scope, { logic: logic });
+					scope = _.merge({}, this.scope, scope, { logic });
 					async.reduce(
 						modules,
 						{},
@@ -207,7 +207,7 @@ var modulesLoader = new function() {
 				function(modules, waterCb) {
 					_.each(scope.logic, logic => {
 						if (typeof logic.bind === 'function') {
-							logic.bind({ modules: modules });
+							logic.bind({ modules });
 						}
 						if (typeof logic.bindModules === 'function') {
 							logic.bindModules(modules);
@@ -266,7 +266,7 @@ var modulesLoader = new function() {
 				return cb(err);
 			}
 
-			moduleConstructor(Klass, _.merge(this.scope, { db: db }, scope), cb);
+			moduleConstructor(Klass, _.merge(this.scope, { db }, scope), cb);
 		});
 	};
 

@@ -20,7 +20,7 @@ var accountFixtures = require('../../fixtures/accounts');
 var swaggerSpec = require('../swagger_spec');
 
 var http = {
-	abstractRequest: function(options, done) {
+	abstractRequest(options, done) {
 		var request = __testContext.api[options.verb.toLowerCase()](options.path);
 
 		request.set('Accept', 'application/json');
@@ -64,27 +64,18 @@ var http = {
 	},
 
 	// Get the given path
-	get: function(path, done) {
-		return this.abstractRequest(
-			{ verb: 'GET', path: path, params: null },
-			done
-		);
+	get(path, done) {
+		return this.abstractRequest({ verb: 'GET', path, params: null }, done);
 	},
 
 	// Post to the given path
-	post: function(path, params, done) {
-		return this.abstractRequest(
-			{ verb: 'POST', path: path, params: params },
-			done
-		);
+	post(path, params, done) {
+		return this.abstractRequest({ verb: 'POST', path, params }, done);
 	},
 
 	// Put to the given path
-	put: function(path, params, done) {
-		return this.abstractRequest(
-			{ verb: 'PUT', path: path, params: params },
-			done
-		);
+	put(path, params, done) {
+		return this.abstractRequest({ verb: 'PUT', path, params }, done);
 	},
 };
 
@@ -232,7 +223,7 @@ function sendTransactionsPromise(transactions, expectedStatusCode) {
 function sendSignature(signature, transaction, cb) {
 	http.post(
 		'/api/signatures',
-		{ signature: { signature: signature, transaction: transaction.id } },
+		{ signature: { signature, transaction: transaction.id } },
 		httpResponseCallbackHelper.bind(null, cb)
 	);
 }
@@ -393,38 +384,38 @@ var getAccountsPromise = Promise.promisify(getAccounts);
 var getBlocksPromise = Promise.promisify(getBlocks);
 
 module.exports = {
-	getTransactionByIdPromise: getTransactionByIdPromise,
-	getTransactionsPromise: getTransactionsPromise,
-	getUnconfirmedTransactionPromise: getUnconfirmedTransactionPromise,
-	getUnconfirmedTransactionsPromise: getUnconfirmedTransactionsPromise,
-	getQueuedTransactionPromise: getQueuedTransactionPromise,
-	getQueuedTransactionsPromise: getQueuedTransactionsPromise,
-	getMultisignaturesTransactionPromise: getMultisignaturesTransactionPromise,
-	getMultisignaturesTransactionsPromise: getMultisignaturesTransactionsPromise,
-	getPendingMultisignaturesPromise: getPendingMultisignaturesPromise,
-	sendSignaturePromise: sendSignaturePromise,
-	sendTransactionPromise: sendTransactionPromise,
-	sendTransactionsPromise: sendTransactionsPromise,
-	creditAccount: creditAccount,
-	creditAccountPromise: creditAccountPromise,
-	getCount: getCount,
-	getCountPromise: getCountPromise,
-	registerDelegatePromise: registerDelegatePromise,
-	getForgingStatus: getForgingStatus,
-	getForgingStatusPromise: getForgingStatusPromise,
-	getDelegates: getDelegates,
-	getDelegatesPromise: getDelegatesPromise,
-	getVoters: getVoters,
-	getDelegateVotersPromise: getDelegateVotersPromise,
-	getVotersPromise: getVotersPromise,
-	searchDelegatesPromise: searchDelegatesPromise,
-	putForgingDelegatePromise: putForgingDelegatePromise,
-	getForgedByAccountPromise: getForgedByAccountPromise,
-	getForgersPromise: getForgersPromise,
-	getAccounts: getAccounts,
-	getAccountsPromise: getAccountsPromise,
-	getBlocksPromise: getBlocksPromise,
-	expectSwaggerParamError: expectSwaggerParamError,
-	createSignatureObject: createSignatureObject,
-	normalizeTransactionObject: normalizeTransactionObject,
+	getTransactionByIdPromise,
+	getTransactionsPromise,
+	getUnconfirmedTransactionPromise,
+	getUnconfirmedTransactionsPromise,
+	getQueuedTransactionPromise,
+	getQueuedTransactionsPromise,
+	getMultisignaturesTransactionPromise,
+	getMultisignaturesTransactionsPromise,
+	getPendingMultisignaturesPromise,
+	sendSignaturePromise,
+	sendTransactionPromise,
+	sendTransactionsPromise,
+	creditAccount,
+	creditAccountPromise,
+	getCount,
+	getCountPromise,
+	registerDelegatePromise,
+	getForgingStatus,
+	getForgingStatusPromise,
+	getDelegates,
+	getDelegatesPromise,
+	getVoters,
+	getDelegateVotersPromise,
+	getVotersPromise,
+	searchDelegatesPromise,
+	putForgingDelegatePromise,
+	getForgedByAccountPromise,
+	getForgersPromise,
+	getAccounts,
+	getAccountsPromise,
+	getBlocksPromise,
+	expectSwaggerParamError,
+	createSignatureObject,
+	normalizeTransactionObject,
 };

@@ -233,8 +233,8 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 
 	async.series(
 		{
-			getAccount: function(seriesCb) {
-				library.logic.account.getMultiSignature({ address: address }, function(
+			getAccount(seriesCb) {
+				library.logic.account.getMultiSignature({ address }, function(
 					err,
 					account
 				) {
@@ -266,7 +266,7 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 					return setImmediate(seriesCb);
 				});
 			},
-			getMembers: function(seriesCb) {
+			getMembers(seriesCb) {
 				library.db.multisignatures
 					.getMemberPublicKeys(scope.group.address)
 					.then(memberAccountKeys => {
@@ -340,7 +340,7 @@ Multisignatures.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getGroups: function(filters, cb) {
+	getGroups(filters, cb) {
 		modules.multisignatures.getGroup(filters.address, (err, group) => {
 			if (err) {
 				return setImmediate(cb, err);
@@ -356,12 +356,12 @@ Multisignatures.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getMemberships: function(filters, cb) {
+	getMemberships(filters, cb) {
 		var scope = {};
 
 		async.series(
 			{
-				getAccount: function(seriesCb) {
+				getAccount(seriesCb) {
 					library.logic.account.get(
 						{ address: filters.address },
 						(err, account) => {
@@ -385,7 +385,7 @@ Multisignatures.prototype.shared = {
 						}
 					);
 				},
-				getGroupAccountIds: function(seriesCb) {
+				getGroupAccountIds(seriesCb) {
 					library.db.multisignatures
 						.getGroupIds(scope.targetAccount.publicKey)
 						.then(groupAccountIds => {

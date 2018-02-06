@@ -49,15 +49,15 @@ function TransactionPool(
 	logger
 ) {
 	library = {
-		logger: logger,
-		bus: bus,
+		logger,
+		bus,
 		logic: {
-			transaction: transaction,
+			transaction,
 		},
 		config: {
 			broadcasts: {
-				broadcastInterval: broadcastInterval,
-				releaseLimit: releaseLimit,
+				broadcastInterval,
+				releaseLimit,
 			},
 		},
 	};
@@ -114,9 +114,9 @@ function TransactionPool(
  */
 TransactionPool.prototype.bind = function(accounts, transactions, loader) {
 	modules = {
-		accounts: accounts,
-		transactions: transactions,
-		loader: loader,
+		accounts,
+		transactions,
+		loader,
 	};
 };
 

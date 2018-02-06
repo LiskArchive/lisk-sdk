@@ -57,12 +57,12 @@ __private.types = {};
 // Constructor
 function Transaction(db, ed, schema, genesisblock, account, logger, cb) {
 	this.scope = {
-		db: db,
-		ed: ed,
-		schema: schema,
-		genesisblock: genesisblock,
-		account: account,
-		logger: logger,
+		db,
+		ed,
+		schema,
+		genesisblock,
+		account,
+		logger,
 	};
 	self = this;
 	if (cb) {
@@ -334,7 +334,7 @@ Transaction.prototype.checkBalance = function(
 		transaction.blockId !== this.scope.genesisblock.block.id && exceededBalance;
 
 	return {
-		exceeded: exceeded,
+		exceeded,
 		error: exceeded
 			? [
 					'Account does not have enough LSK:',

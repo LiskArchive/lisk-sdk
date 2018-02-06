@@ -298,10 +298,10 @@ __private.loadTransactions = function(cb) {
 							);
 						} catch (e) {
 							library.logger.debug('Transaction normalization failed', {
-								id: id,
+								id,
 								err: e.toString(),
 								module: 'loader',
-								transaction: transaction,
+								transaction,
 							});
 
 							library.logger.warn(
@@ -388,7 +388,7 @@ __private.loadBlockChain = function() {
 		__private.total = count;
 		async.series(
 			{
-				resetMemTables: function(seriesCb) {
+				resetMemTables(seriesCb) {
 					library.logic.account.resetMemTables(function(err) {
 						if (err) {
 							throw err;
@@ -397,7 +397,7 @@ __private.loadBlockChain = function() {
 						}
 					});
 				},
-				loadBlocksOffset: function(seriesCb) {
+				loadBlocksOffset(seriesCb) {
 					async.until(
 						function() {
 							return count < offset;
@@ -720,20 +720,20 @@ __private.sync = function(cb) {
 
 	async.series(
 		{
-			getPeersBefore: function(seriesCb) {
+			getPeersBefore(seriesCb) {
 				library.logger.debug('Establishing broadhash consensus before sync');
 				return modules.transport.getPeers(
 					{ limit: constants.maxPeers },
 					seriesCb
 				);
 			},
-			loadBlocksFromNetwork: function(seriesCb) {
+			loadBlocksFromNetwork(seriesCb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
 			},
-			updateSystem: function(seriesCb) {
+			updateSystem(seriesCb) {
 				return modules.system.update(seriesCb);
 			},
-			getPeersAfter: function(seriesCb) {
+			getPeersAfter(seriesCb) {
 				library.logger.debug('Establishing broadhash consensus after sync');
 				return modules.transport.getPeers(
 					{ limit: constants.maxPeers },
@@ -811,7 +811,7 @@ Loader.prototype.findGoodPeers = function(peers) {
 	library.logger.trace('Good peers - accepted', { count: peers.length });
 	library.logger.debug('Good peers', peers);
 
-	return { height: height, peers: peers };
+	return { height, peers };
 };
 
 // Public methods
@@ -881,7 +881,7 @@ Loader.prototype.onPeersReady = function() {
 	setImmediate(function load() {
 		async.series(
 			{
-				loadTransactions: function(seriesCb) {
+				loadTransactions(seriesCb) {
 					if (__private.loaded) {
 						async.retry(__private.retries, __private.loadTransactions, function(
 							err
@@ -896,7 +896,7 @@ Loader.prototype.onPeersReady = function() {
 						return setImmediate(seriesCb);
 					}
 				},
-				loadSignatures: function(seriesCb) {
+				loadSignatures(seriesCb) {
 					if (__private.loaded) {
 						async.retry(__private.retries, __private.loadSignatures, function(
 							err
