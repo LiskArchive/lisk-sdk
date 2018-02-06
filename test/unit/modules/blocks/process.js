@@ -25,6 +25,7 @@ describe('blocks/process', () => {
 	var dbStub;
 	var loggerStub;
 	var dummyBlock;
+	var dummyCommonBlock;
 
 	describe('constructor', () => {
 		var blockStub;
@@ -39,41 +40,37 @@ describe('blocks/process', () => {
 				},
 			};
 
-			dbStub.blocks.getCommonBlock
-				.withArgs(
-					sinonSandbox.match({ id: '3', previousBlock: '1', height: '3' })
-				)
-				.resolves([])
-				.withArgs(
-					sinonSandbox.match({ id: '3', previousBlock: '2', height: '3' })
-				)
-				.resolves([{ id: '3', previousBlock: '2', height: '3' }]);
-
 			blockStub = {
 				objectNormalize: sinonSandbox.stub(),
 			};
 
+			var peerStub = {
+				rpc: {
+					blocksCommon: sinonSandbox.stub(),
+					blocks: sinonSandbox.stub(),
+				},
+				applyHeaders: sinonSandbox.stub(),
+				string: 'ip:wsPort',
+			};
+			dummyCommonBlock = { id: '3', previousBlock: '2', height: '3' };
+			peerStub.rpc.blocksCommon
+				.withArgs(sinonSandbox.match({ ids: 'ERRL' }))
+				.callsArgWith(1, 'rpc.blocksCommon-ERR', null)
+				.withArgs(sinonSandbox.match({ ids: 'rpc.blocksCommon-Empty' }))
+				.callsArgWith(1, null, { common: undefined })
+				.withArgs(sinonSandbox.match({ ids: 'OK' }))
+				.callsArgWith(1, null, {
+					common: dummyCommonBlock,
+				});
+
 			peersStub = {
 				create: function() {
-					return {
-						rpc: {
-							blocksCommon: sinonSandbox
-								.stub()
-								.withArgs(sinonSandbox.match({ ids: 'ERRL' }))
-								.callsArgWith(1, 'Ids Error Stub', null)
-								.withArgs(sinonSandbox.match({ ids: 'No-common' }))
-								.callsArgWith(1, null, undefined)
-								.withArgs(sinonSandbox.match({ ids: 'OK' }))
-								.callsArgWith(1, null, {
-									common: { id: '3', previousBlock: '2', height: '3' },
-								}),
-							blocks: sinonSandbox.stub(),
-						},
-					};
+					return peerStub;
 				},
 				me: function() {
 					return '1.0.0.0';
 				},
+				applyHeaders: peerStub.applyHeaders,
 			};
 			transactionStub = {
 				ready: sinonSandbox.stub(),
@@ -88,7 +85,7 @@ describe('blocks/process', () => {
 			};
 
 			schemaStub = {
-				validate: sinonSandbox.spy(),
+				validate: sinonSandbox.stub(),
 			};
 
 			blocksProcessModule = new BlocksProcess(
@@ -166,12 +163,10 @@ describe('blocks/process', () => {
 				reward: 100,
 			};
 
-			var dummyFunction = function() {};
-
 			var modulesAccountsStub = sinonSandbox.stub();
 			var modulesBlocksStub = {
 				lastReceipt: {
-					update: dummyFunction,
+					update: sinonSandbox.stub(),
 				},
 				verify: {
 					processBlock: sinonSandbox.stub(),
@@ -179,14 +174,12 @@ describe('blocks/process', () => {
 				},
 				chain: {
 					deleteLastBlock: sinonSandbox.stub(),
+					recoverChain: sinonSandbox.stub(),
+				},
+				utils: {
+					getIdSequence: sinonSandbox.stub(),
 				},
 			};
-
-			modulesBlocksStub.verify.processBlock
-				.withArgs(sinonSandbox.match({ id: 'ERR' }, true, true))
-				.callsArgWith(3, 'processBlock block Error Stub', null)
-				.withArgs(sinonSandbox.match(dummyBlock, true, true))
-				.callsArgWith(3, null, true);
 
 			var modulesDelegatesStub = {
 				fork: sinonSandbox.stub(),
@@ -195,7 +188,9 @@ describe('blocks/process', () => {
 			var modulesLoaderStub = sinonSandbox.stub();
 			var modulesRoundsStub = sinonSandbox.stub();
 			var modulesTransactionsStub = sinonSandbox.stub();
-			var modulesTransportStub = sinonSandbox.stub();
+			var modulesTransportStub = {
+				poorConsensus: sinonSandbox.stub(),
+			};
 			var swaggerDefinitionsStub = sinonSandbox.stub();
 
 			modulesStub = {
@@ -271,24 +266,35 @@ describe('blocks/process', () => {
 	describe('__private.receiveBlock', () => {
 		beforeEach(done => {
 			loggerStub.info.reset();
+			modules.blocks.lastReceipt.update.reset();
 			done();
 		});
 
 		it('should return error when block is not valid', done => {
+			modules.blocks.verify.processBlock.callsArgWith(
+				3,
+				'verify.processBlock-ERR',
+				null
+			);
+
 			__private.receiveBlock({ id: 'ERR' }, (err, cb) => {
-				expect(err).to.equal('processBlock block Error Stub');
+				expect(err).to.equal('verify.processBlock-ERR');
 				expect(cb).to.be.null;
+				expect(modules.blocks.lastReceipt.update.called).to.be.true;
 				done();
 			});
 		});
 
 		it('should return cb when block is valid', done => {
+			modules.blocks.verify.processBlock.callsArgWith(3, null, true);
+
 			__private.receiveBlock(dummyBlock, (err, cb) => {
 				expect(err).to.be.null;
 				expect(cb).to.be.true;
 				expect(loggerStub.info.args[0]).to.contains(
 					'Received new block id: 1 height: 1 round: 1 slot: 4128723 reward: 100'
 				);
+				expect(modules.blocks.lastReceipt.update.called).to.be.true;
 				done();
 			});
 		});
@@ -728,6 +734,241 @@ describe('blocks/process', () => {
 						done();
 					}
 				);
+			});
+		});
+	});
+
+	describe('getCommonBlock', () => {
+		describe('consensus high', () => {
+			before(() => {
+				modules.transport.poorConsensus.returns(false);
+			});
+
+			it('should return error when modules.blocks.utils.getIdSequence fails', done => {
+				modules.blocks.utils.getIdSequence.callsArgWith(
+					1,
+					'getIdSequence-ERR',
+					undefined
+				);
+
+				blocksProcessModule.getCommonBlock(
+					{ ip: 1, wsPort: 2 },
+					10,
+					(err, cb) => {
+						expect(err).to.equal('getIdSequence-ERR');
+						expect(cb).to.be.undefined;
+						done();
+					}
+				);
+			});
+
+			it('should return error when peer.rpc.blocksCommon fails', done => {
+				modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
+					ids: 'ERRL',
+				});
+
+				blocksProcessModule.getCommonBlock(
+					{ ip: 1, wsPort: 2 },
+					10,
+					(err, cb) => {
+						expect(
+							library.logic.peers.applyHeaders.calledWithExactly({ state: 1 })
+						).to.be.true;
+						expect(err).to.equal('rpc.blocksCommon-ERR');
+						expect(cb).to.be.undefined;
+						done();
+					}
+				);
+			});
+
+			it('should return error when peer.rpc.blocksCommon chain comparison fails', done => {
+				library.logic.peers.applyHeaders.reset();
+				modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
+					ids: 'rpc.blocksCommon-Empty',
+				});
+
+				blocksProcessModule.getCommonBlock(
+					{ ip: 1, wsPort: 2 },
+					10,
+					(err, cb) => {
+						expect(library.logic.peers.applyHeaders.called).to.be.false;
+						expect(err).to.equal(
+							'Chain comparison failed with peer: ip:wsPort using ids: rpc.blocksCommon-Empty'
+						);
+						expect(cb).to.be.undefined;
+						done();
+					}
+				);
+			});
+
+			it('should return error when library.schema.validate fails', done => {
+				modules.blocks.utils.getIdSequence.callsArgWith(1, null, { ids: 'OK' });
+				library.schema.validate.callsArgWith(
+					2,
+					[{ message: 'schema.validate-ERR' }],
+					undefined
+				);
+
+				blocksProcessModule.getCommonBlock(
+					{ ip: 1, wsPort: 2 },
+					10,
+					(err, cb) => {
+						expect(err).to.equal('schema.validate-ERR');
+						expect(cb).to.be.undefined;
+						done();
+					}
+				);
+			});
+
+			it('should throw error when library.db.blocks.getCommonBlock fails', done => {
+				loggerStub.error.reset();
+				library.schema.validate.callsArgWith(
+					2,
+					null,
+					library.schema.validate.getCall(0).args[0]
+				);
+				library.db.blocks.getCommonBlock.rejects(
+					new Error('blocks.getCommonBlock-REJECTS')
+				);
+
+				blocksProcessModule.getCommonBlock(
+					{ ip: 1, wsPort: 2 },
+					10,
+					(err, cb) => {
+						expect(err).to.equal('Blocks#getCommonBlock error');
+						expect(cb).to.be.undefined;
+						expect(loggerStub.error.args[0][0]).to.contains(
+							'Error: blocks.getCommonBlock-REJECTS'
+						);
+						done();
+					}
+				);
+			});
+
+			it('should return error when library.db.blocks.getCommonBlock returns empty', done => {
+				library.db.blocks.getCommonBlock.resolves([]);
+
+				blocksProcessModule.getCommonBlock(
+					{ ip: 1, wsPort: 2 },
+					10,
+					(err, cb) => {
+						expect(err).to.equal(
+							`Chain comparison failed with peer: ip:wsPort using block: ${JSON.stringify(
+								dummyCommonBlock
+							)}`
+						);
+						expect(cb).to.be.undefined;
+						done();
+					}
+				);
+			});
+
+			it('should return common block', done => {
+				library.db.blocks.getCommonBlock.resolves([{ count: 1 }]);
+
+				blocksProcessModule.getCommonBlock(
+					{ ip: 1, wsPort: 2 },
+					10,
+					(err, cb) => {
+						expect(err).to.be.null;
+						expect(cb).to.deep.equal(dummyCommonBlock);
+						done();
+					}
+				);
+			});
+		});
+
+		describe('consensus low', () => {
+			before(() => {
+				modules.transport.poorConsensus.returns(true);
+			});
+
+			describe('perform chain recovery', () => {
+				describe('when peer.rpc.blocksCommon chain comparison fails', () => {
+					before(() => {
+						modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
+							ids: 'rpc.blocksCommon-Empty',
+						});
+					});
+
+					it('should return error when chain.recoverChain fails', done => {
+						modules.blocks.chain.recoverChain.callsArgWith(
+							0,
+							'chain.recoverChain-ERR',
+							undefined
+						);
+
+						blocksProcessModule.getCommonBlock(
+							{ ip: 1, wsPort: 2 },
+							10,
+							(err, cb) => {
+								expect(err).to.equal('chain.recoverChain-ERR');
+								expect(cb).to.be.undefined;
+								done();
+							}
+						);
+					});
+
+					it('should return no error when chain.recoverChain success', done => {
+						modules.blocks.chain.recoverChain.callsArgWith(
+							0,
+							null,
+							'chain.recoverChain-OK'
+						);
+
+						blocksProcessModule.getCommonBlock(
+							{ ip: 1, wsPort: 2 },
+							10,
+							(err, cb) => {
+								expect(err).to.be.null;
+								expect(cb).to.equal('chain.recoverChain-OK');
+								done();
+							}
+						);
+					});
+				});
+
+				describe('when db.blocks.getCommonBlock block comparison fails', () => {
+					before(() => {
+						library.db.blocks.getCommonBlock.resolves([]);
+					});
+
+					it('should return error when chain.recoverChain fails', done => {
+						modules.blocks.chain.recoverChain.callsArgWith(
+							0,
+							'chain.recoverChain-ERR',
+							undefined
+						);
+
+						blocksProcessModule.getCommonBlock(
+							{ ip: 1, wsPort: 2 },
+							10,
+							(err, cb) => {
+								expect(err).to.equal('chain.recoverChain-ERR');
+								expect(cb).to.be.undefined;
+								done();
+							}
+						);
+					});
+
+					it('should return no error when chain.recoverChain success', done => {
+						modules.blocks.chain.recoverChain.callsArgWith(
+							0,
+							null,
+							'chain.recoverChain-OK'
+						);
+
+						blocksProcessModule.getCommonBlock(
+							{ ip: 1, wsPort: 2 },
+							10,
+							(err, cb) => {
+								expect(err).to.be.null;
+								expect(cb).to.equal('chain.recoverChain-OK');
+								done();
+							}
+						);
+					});
+				});
 			});
 		});
 	});
