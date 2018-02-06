@@ -17,7 +17,6 @@
 		"lines-around-directive": "off",
 		"max-len": "off",
 		"new-cap": "off",
-		"newline-per-chained-call": "off",
 		"no-bitwise": "off",
 		"no-console": "off",
 		"no-else-return": "off",
@@ -44,7 +43,18 @@
 		"prefer-destructuring": "off",
 		"prefer-rest-params": "off",
 		"radix": "off",
-		"require-jsdoc": "off",
+		"require-jsdoc": [
+			"error",
+			{
+				"require": {
+					"FunctionDeclaration": false,
+					"MethodDefinition": false,
+					"ClassDeclaration": false,
+					"ArrowFunctionExpression": false,
+					"FunctionExpression": false
+				}
+			}
+		],
 		"strict": "off",
 		"space-before-function-paren": ["error", "never"],
 		"vars-on-top": "off",
