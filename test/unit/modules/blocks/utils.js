@@ -29,78 +29,104 @@ var viewRow_full_blocks_list = [
 ];
 
 describe('blocks/utils', () => {
-	var __private;
-	var library;
-	var blocksUtilsModule;
 	var dbStub;
 	var loggerStub;
 	var blockMock;
 	var transactionMock;
 	var accountMock;
+	var blocksUtilsModule;
+	var modulesStub;
+	var __private;
+	var library;
+	var modules;
+
+	beforeEach(() => {
+		dbStub = {
+			blocks: {
+				getIdSequence: sinonSandbox.stub().resolves(),
+				getHeightByLastId: sinonSandbox.stub().resolves(['1']),
+				loadLastBlock: sinonSandbox.stub().resolves(viewRow_full_blocks_list),
+				loadBlocksData: sinonSandbox.stub(),
+				aggregateBlocksReward: sinonSandbox.stub().resolves(),
+			},
+		};
+
+		dbStub.blocks.loadBlocksData
+			.withArgs(sinonSandbox.match({ id: '13068833527549895884' }))
+			.resolves(viewRow_full_blocks_list)
+			.withArgs(sinonSandbox.match({ id: '1' }))
+			.resolves([]);
+
+		loggerStub = {
+			trace: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+		};
+
+		blockMock = {
+			dbRead: function(input) {
+				return { id: input.b_id, height: input.b_height };
+			},
+		};
+
+		transactionMock = {
+			dbRead: function(input) {
+				return { id: input.t_id, type: input.t_type };
+			},
+		};
+
+		accountMock = {
+			get: sinonSandbox.stub(),
+		};
+
+		accountMock.get
+			.withArgs(sinonSandbox.match({ address: 'ERRL' }))
+			.callsArgWith(1, 'Address error stub', null)
+			.withArgs(sinonSandbox.match({ address: '0L' }))
+			.callsArgWith(1, null, undefined)
+			.withArgs(sinonSandbox.match({ address: '1L' }))
+			.callsArgWith(1, null, { publicKey: '123abc' });
+
+		blocksUtilsModule = new BlocksUtils(
+			loggerStub,
+			accountMock,
+			blockMock,
+			transactionMock,
+			dbStub,
+			modulesLoader.scope.dbSequence,
+			modulesLoader.scope.genesisblock
+		);
+
+		modulesStub = {
+			blocks: {
+				lastBlock: {
+					get: sinonSandbox
+						.stub()
+						.returns({ id: '9314232245035524467', height: 1 }),
+					set: sinonSandbox
+						.stub()
+						.returns({ id: '9314232245035524467', height: 1 }),
+				},
+				utils: {
+					readDbRows: blocksUtilsModule.readDbRows,
+				},
+			},
+		};
+
+		blocksUtilsModule.onBind(modulesStub);
+
+		__private = BlocksUtils.__get__('__private');
+		__private.loaded = false;
+
+		library = BlocksUtils.__get__('library');
+		modules = BlocksUtils.__get__('modules');
+	});
+
+	afterEach(() => {
+		sinonSandbox.reset();
+	});
 
 	describe('constructor', () => {
-		before(done => {
-			dbStub = {
-				blocks: {
-					getIdSequence: sinonSandbox.stub().resolves(),
-					getHeightByLastId: sinonSandbox.stub().resolves(['1']),
-					loadLastBlock: sinonSandbox.stub().resolves(viewRow_full_blocks_list),
-					loadBlocksData: sinonSandbox.stub(),
-					aggregateBlocksReward: sinonSandbox.stub().resolves(),
-				},
-			};
-
-			dbStub.blocks.loadBlocksData
-				.withArgs(sinonSandbox.match({ id: '13068833527549895884' }))
-				.resolves(viewRow_full_blocks_list)
-				.withArgs(sinonSandbox.match({ id: '1' }))
-				.resolves([]);
-
-			blockMock = {
-				dbRead: function(input) {
-					return { id: input.b_id, height: input.b_height };
-				},
-			};
-
-			transactionMock = {
-				dbRead: function(input) {
-					return { id: input.t_id, type: input.t_type };
-				},
-			};
-
-			accountMock = {
-				get: sinonSandbox.stub(),
-			};
-
-			accountMock.get
-				.withArgs(sinonSandbox.match({ address: 'ERRL' }))
-				.callsArgWith(1, 'Address Error Stub', null)
-				.withArgs(sinonSandbox.match({ address: '0L' }))
-				.callsArgWith(1, null, undefined)
-				.withArgs(sinonSandbox.match({ address: '1L' }))
-				.callsArgWith(1, null, { publicKey: '123abc' });
-
-			loggerStub = {
-				trace: sinonSandbox.spy(),
-				info: sinonSandbox.spy(),
-				error: sinonSandbox.spy(),
-			};
-
-			blocksUtilsModule = new BlocksUtils(
-				loggerStub,
-				accountMock,
-				blockMock,
-				transactionMock,
-				dbStub,
-				modulesLoader.scope.dbSequence,
-				modulesLoader.scope.genesisblock
-			);
-
-			library = BlocksUtils.__get__('library');
-			__private = BlocksUtils.__get__('__private');
-			done();
-		});
-
 		describe('library', () => {
 			it('should assign logger', () => {
 				expect(library.logger).to.eql(loggerStub);
@@ -138,48 +164,6 @@ describe('blocks/utils', () => {
 		it('should return self', () => {
 			expect(blocksUtilsModule).to.be.an('object');
 			expect(blocksUtilsModule.readDbRows).to.be.a('function');
-		});
-	});
-
-	describe('onBind', () => {
-		var modulesStub;
-		var modules;
-
-		before(() => {
-			modulesStub = {
-				blocks: {
-					lastBlock: {
-						get: sinonSandbox
-							.stub()
-							.returns({ id: '9314232245035524467', height: 1 }),
-						set: sinonSandbox
-							.stub()
-							.returns({ id: '9314232245035524467', height: 1 }),
-					},
-					utils: {
-						readDbRows: blocksUtilsModule.readDbRows,
-					},
-				},
-			};
-			loggerStub.trace.reset();
-			__private.loaded = false;
-
-			blocksUtilsModule.onBind(modulesStub);
-			modules = BlocksUtils.__get__('modules');
-		});
-
-		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', () => {
-			expect(loggerStub.trace.args[0][0]).to.equal(
-				'Blocks->Utils: Shared modules bind.'
-			);
-		});
-
-		it('should create a modules object { blocks: scope.blocks }', () => {
-			expect(modules.blocks).to.equal(modulesStub.blocks);
-		});
-
-		it('should set __private.loaded to true', () => {
-			expect(__private.loaded).to.be.true;
 		});
 	});
 
@@ -544,6 +528,27 @@ describe('blocks/utils', () => {
 					done();
 				}
 			);
+		});
+	});
+
+	describe('onBind', () => {
+		beforeEach(() => {
+			loggerStub.trace.reset();
+			blocksUtilsModule.onBind(modulesStub);
+		});
+
+		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', () => {
+			expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Utils: Shared modules bind.'
+			);
+		});
+
+		it('should create a modules object { blocks: scope.blocks }', () => {
+			expect(modules.blocks).to.equal(modulesStub.blocks);
+		});
+
+		it('should set __private.loaded to true', () => {
+			expect(__private.loaded).to.be.true;
 		});
 	});
 });
