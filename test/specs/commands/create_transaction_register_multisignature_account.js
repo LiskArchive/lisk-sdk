@@ -416,42 +416,46 @@ describe('create transaction register multisignature account command', () => {
 									);
 								},
 							);
+							Given(
+								'a minimum of 2 signatures',
+								given.aMinimumOfSignatures,
+								() => {
+									Given(
+										'a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"',
+										given.aKeysgroupWithKeys,
+										() => {
+											Given(
+												'an options object with signature set to "false"',
+												given.anOptionsObjectWithSignatureSetTo,
+												() => {
+													Given(
+														'a lifetime of "12" hours',
+														given.aLifetimeOfHours,
+														() => {
+															When(
+																'the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options',
+																when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions,
+																() => {
+																	Then(
+																		'it should create a register multisignature account transaction using the keysgroup, the lifetime and the minimum number of signatures',
+																		then.itShouldCreateARegisterMultisignatureAccountTransactionUsingTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures,
+																	);
+																	Then(
+																		'it should resolve to the created transaction',
+																		then.itShouldResolveToTheCreatedTransaction,
+																	);
+																},
+															);
+														},
+													);
+												},
+											);
+										},
+									);
+								},
+							);
 						},
 					);
-					Given('a minimum of 2 signatures', given.aMinimumOfSignatures, () => {
-						Given(
-							'a keysgroup with keys "215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca" and "922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa"',
-							given.aKeysgroupWithKeys,
-							() => {
-								Given(
-									'an options object with signature set to "false"',
-									given.anOptionsObjectWithSignatureSetTo,
-									() => {
-										Given(
-											'a lifetime of "12" hours',
-											given.aLifetimeOfHours,
-											() => {
-												When(
-													'the action is called with the keysgroup, the lifetime, the minimum number of signatures and the options',
-													when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions,
-													() => {
-														Then(
-															'it should create a register multisignature account transaction using the keysgroup, the lifetime and the minimum number of signatures',
-															then.itShouldCreateARegisterMultisignatureAccountTransactionUsingTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures,
-														);
-														Then(
-															'it should resolve to the created transaction',
-															then.itShouldResolveToTheCreatedTransaction,
-														);
-													},
-												);
-											},
-										);
-									},
-								);
-							},
-						);
-					});
 				},
 			);
 		},

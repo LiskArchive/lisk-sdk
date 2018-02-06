@@ -66,7 +66,6 @@ const createTransactionRegisterDelegate = createCommand({
 		commonOptions.noSignature,
 		commonOptions.passphrase,
 		commonOptions.secondPassphrase,
-		commonOptions.noSignature,
 	],
 	errorPrefix: 'Could not create "register delegate" transaction',
 });

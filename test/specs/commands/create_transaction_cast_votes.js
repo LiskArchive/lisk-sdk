@@ -809,27 +809,27 @@ describe('create transaction cast votes', () => {
 								);
 							},
 						);
-					},
-				);
-				Given(
-					'a public key that should be voted for "1234567812345678123456781234567812345678123456781234567812345678"',
-					given.aPublicKeyThatShouldBeVotedFor,
-					() => {
 						Given(
-							'an options object with signature set to false and votes set to "1234567812345678123456781234567812345678123456781234567812345678" ',
-							given.anOptionsObjectWithSignatureSetToAndVotesSetTo,
+							'a public key that should be voted for "1234567812345678123456781234567812345678123456781234567812345678"',
+							given.aPublicKeyThatShouldBeVotedFor,
 							() => {
-								When(
-									'the action is called with the options',
-									when.theActionIsCalledWithTheOptions,
+								Given(
+									'an options object with signature set to false and votes set to "1234567812345678123456781234567812345678123456781234567812345678" ',
+									given.anOptionsObjectWithSignatureSetToAndVotesSetTo,
 									() => {
-										Then(
-											'it should create a cast votes transaction with the passphrase and the public keys prepended with a plus',
-											then.itShouldCreateACastVotesTransactionWithThePublicKeysPrependedWithAPlus,
-										);
-										Then(
-											'it should resolve to the created transaction',
-											then.itShouldResolveToTheCreatedTransaction,
+										When(
+											'the action is called with the options',
+											when.theActionIsCalledWithTheOptions,
+											() => {
+												Then(
+													'it should create a cast votes transaction with the passphrase and the public keys prepended with a plus',
+													then.itShouldCreateACastVotesTransactionWithThePublicKeysPrependedWithAPlus,
+												);
+												Then(
+													'it should resolve to the created transaction',
+													then.itShouldResolveToTheCreatedTransaction,
+												);
+											},
 										);
 									},
 								);
