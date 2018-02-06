@@ -11,7 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
+
 /**
  * A node-style callback as used by {@link logic} and {@link modules}.
  * @see {@link https://nodejs.org/api/errors.html#errors_node_js_style_callbacks}
