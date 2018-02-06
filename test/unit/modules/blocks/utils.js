@@ -106,14 +106,6 @@ describe('blocks/utils', () => {
 				expect(library.logger).to.eql(loggerStub);
 			});
 
-			it('should assign db', () => {
-				expect(library.db).to.eql(dbStub);
-			});
-
-			it('should assign dbSequence', () => {
-				expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
-			});
-
 			describe('should assign logic', () => {
 				it('should assign block', () => {
 					expect(library.logic.block).to.eql(blockMock);
@@ -122,6 +114,14 @@ describe('blocks/utils', () => {
 				it('should assign transaction', () => {
 					expect(library.logic.transaction).to.eql(transactionMock);
 				});
+			});
+
+			it('should assign dbSequence', () => {
+				expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
+			});
+
+			it('should assign db', () => {
+				expect(library.db).to.eql(dbStub);
 			});
 		});
 
