@@ -28,7 +28,6 @@
 		"new-cap": "off",
 		"no-bitwise": "off",
 		"no-console": "off",
-		"no-else-return": "off",
 		"no-loop-func": "off",
 		"no-multi-assign": "off",
 		"no-nested-ternary": "off",
