@@ -464,16 +464,14 @@ describe('blocks/utils', () => {
 	describe('getBlockProgressLogger', () => {
 		var testTracker;
 
-		beforeEach(() => {
-			loggerStub.info.reset();
-		});
-
 		it('should initialize BlockProgressLogger', done => {
 			testTracker = blocksUtilsModule.getBlockProgressLogger(
 				1,
 				1,
 				'Test tracker'
 			);
+			expect(testTracker.target).to.eql(1);
+			expect(testTracker.step).to.eql(1);
 			done();
 		});
 
