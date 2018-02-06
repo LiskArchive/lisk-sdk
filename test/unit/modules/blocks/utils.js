@@ -247,15 +247,15 @@ describe('blocks/utils', () => {
 	});
 
 	describe('loadLastBlock', () => {
-		it('should return error when loadLastBlock sql fails', done => {
-			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves();
-			loggerStub.error.reset();
+		it('should return error when library.db.blocks.loadLastBlock fails', done => {
+			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves(null);
 
-			blocksUtilsModule.loadLastBlock(err => {
+			blocksUtilsModule.loadLastBlock((err, block) => {
 				expect(loggerStub.error.args[0][0]).to.contains(
-					"TypeError: Cannot read property 'length' of undefined"
+					"TypeError: Cannot read property 'length' of null"
 				);
 				expect(err).to.equal('Blocks#loadLastBlock error');
+				expect(block).to.be.undefined;
 				done();
 			});
 		});
@@ -282,19 +282,22 @@ describe('blocks/utils', () => {
 						t_type: 0,
 					},
 				];
+
 				library.db.blocks.loadLastBlock = sinonSandbox
 					.stub()
 					.resolves(genesisBlock_votes);
 
-				blocksUtilsModule.loadLastBlock((err, cb) => {
-					expect(cb).to.be.an('object');
-					expect(cb.id).to.equal('6524861224470851795');
-					expect(cb.transactions[0].id).to.equal('3634383815892709956');
-					expect(cb.transactions[0].type).to.equal(2);
-					expect(cb.transactions[1].id).to.equal('3634383815892709957');
-					expect(cb.transactions[1].type).to.equal(0);
-					expect(cb.transactions[2].id).to.equal('1465651642158264047');
-					expect(cb.transactions[2].type).to.equal(3);
+				blocksUtilsModule.loadLastBlock((err, block) => {
+					expect(block).to.be.an('object');
+					expect(block.id).to.equal('6524861224470851795');
+					expect(block.transactions).to.be.an('array');
+					expect(block.transactions[0]).to.be.an('object');
+					expect(block.transactions[0].id).to.equal('3634383815892709956');
+					expect(block.transactions[0].type).to.equal(2);
+					expect(block.transactions[1].id).to.equal('3634383815892709957');
+					expect(block.transactions[1].type).to.equal(0);
+					expect(block.transactions[2].id).to.equal('1465651642158264047');
+					expect(block.transactions[2].type).to.equal(3);
 					done();
 				});
 			});
@@ -326,21 +329,41 @@ describe('blocks/utils', () => {
 						t_type: 0,
 					},
 				];
+
 				library.db.blocks.loadLastBlock = sinonSandbox
 					.stub()
 					.resolves(genesisBlock_votes);
 
-				blocksUtilsModule.loadLastBlock((err, cb) => {
-					expect(cb).to.be.an('object');
-					expect(cb.id).to.equal('6524861224470851000');
-					expect(cb.transactions[0].id).to.equal('1465651642158264047');
-					expect(cb.transactions[0].type).to.equal(3);
-					expect(cb.transactions[1].id).to.equal('3634383815892709955');
-					expect(cb.transactions[1].type).to.equal(2);
-					expect(cb.transactions[2].id).to.equal('3634383815892709957');
-					expect(cb.transactions[2].type).to.equal(0);
-					expect(cb.transactions[3].id).to.equal('3634383815892709956');
-					expect(cb.transactions[3].type).to.equal(1);
+				blocksUtilsModule.loadLastBlock((err, block) => {
+					expect(block).to.be.an('object');
+					expect(block.id).to.equal('6524861224470851000');
+					expect(block.transactions).to.be.an('array');
+					expect(block.transactions[0]).to.be.an('object');
+					expect(block.transactions[0].id).to.equal('1465651642158264047');
+					expect(block.transactions[0].type).to.equal(3);
+					expect(block.transactions[1]).to.be.an('object');
+					expect(block.transactions[1].id).to.equal('3634383815892709955');
+					expect(block.transactions[1].type).to.equal(2);
+					expect(block.transactions[2]).to.be.an('object');
+					expect(block.transactions[2].id).to.equal('3634383815892709957');
+					expect(block.transactions[2].type).to.equal(0);
+					expect(block.transactions[3]).to.be.an('object');
+					expect(block.transactions[3].id).to.equal('3634383815892709956');
+					expect(block.transactions[3].type).to.equal(1);
+					done();
+				});
+			});
+
+			it('should set the last block', done => {
+				library.db.blocks.loadLastBlock = sinonSandbox
+					.stub()
+					.resolves(viewRow_full_blocks_list);
+
+				modules.blocks.lastBlock.set = sinonSandbox.spy();
+
+				blocksUtilsModule.loadLastBlock((err, block) => {
+					expect(modules.blocks.lastBlock.set.withArgs(block).calledOnce).to.be
+						.true;
 					done();
 				});
 			});
