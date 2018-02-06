@@ -247,9 +247,8 @@ DApps.prototype.shared = {
 					cb,
 					new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR)
 				);
-			} else {
-				return setImmediate(cb, null, dapps);
 			}
+			return setImmediate(cb, null, dapps);
 		});
 	},
 };
@@ -261,16 +260,15 @@ shared.getGenesis = function(req, cb, tx) {
 		.then(rows => {
 			if (rows.length === 0) {
 				return setImmediate(cb, 'Application genesis block not found');
-			} else {
-				var row = rows[0];
-
-				return setImmediate(cb, null, {
-					pointId: row.id,
-					pointHeight: row.height,
-					authorId: row.authorId,
-					dappid: req.dappid,
-				});
 			}
+			var row = rows[0];
+
+			return setImmediate(cb, null, {
+				pointId: row.id,
+				pointHeight: row.height,
+				authorId: row.authorId,
+				dappid: req.dappid,
+			});
 		})
 		.catch(err => {
 			library.logger.error(err.stack);

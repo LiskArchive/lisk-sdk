@@ -242,24 +242,22 @@ class AccountsRepository {
 				conflictFields: conflictingFields,
 				setsSQL: this.pgp.helpers.sets(updateData, this.cs.update),
 			});
-		} else {
-			const conditionObject = {};
-			conflictingFields.forEach(function(field) {
-				conditionObject[field] = data[field];
-			});
-
-			return this.db.tx('db:accounts:upsert', function(t) {
-				return t.accounts
-					.list(conditionObject, ['address'])
-					.then(function(result) {
-						if (result.length) {
-							return t.accounts.update(result[0].address, updateData);
-						} else {
-							return t.accounts.insert(data);
-						}
-					});
-			});
 		}
+		const conditionObject = {};
+		conflictingFields.forEach(function(field) {
+			conditionObject[field] = data[field];
+		});
+
+		return this.db.tx('db:accounts:upsert', function(t) {
+			return t.accounts
+				.list(conditionObject, ['address'])
+				.then(function(result) {
+					if (result.length) {
+						return t.accounts.update(result[0].address, updateData);
+					}
+					return t.accounts.insert(data);
+				});
+		});
 	}
 
 	/**

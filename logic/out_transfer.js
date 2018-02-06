@@ -141,9 +141,8 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 								transaction.asset.outTransfer.transactionId
 							}`
 						);
-					} else {
-						return setImmediate(cb, null, transaction);
 					}
+					return setImmediate(cb, null, transaction);
 				})
 				.catch(err => setImmediate(cb, err));
 		})
@@ -334,14 +333,13 @@ OutTransfer.prototype.objectNormalize = function(transaction) {
 OutTransfer.prototype.dbRead = function(raw) {
 	if (!raw.ot_dappId) {
 		return null;
-	} else {
-		var outTransfer = {
-			dappId: raw.ot_dappId,
-			transactionId: raw.ot_outTransactionId,
-		};
-
-		return { outTransfer: outTransfer };
 	}
+	var outTransfer = {
+		dappId: raw.ot_dappId,
+		transactionId: raw.ot_outTransactionId,
+	};
+
+	return { outTransfer: outTransfer };
 };
 
 /**
@@ -356,9 +354,8 @@ OutTransfer.prototype.ready = function(transaction, sender) {
 			return false;
 		}
 		return transaction.signatures.length >= sender.multimin;
-	} else {
-		return true;
 	}
+	return true;
 };
 
 // Export

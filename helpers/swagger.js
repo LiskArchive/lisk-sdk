@@ -60,23 +60,22 @@ function getValidator() {
 function getResolvedSwaggerSpec() {
 	if (resolvedSwaggerSpec) {
 		return Promise.resolve(resolvedSwaggerSpec);
-	} else {
-		var content = getSwaggerSpec();
-
-		var options = {
-			includeInvalid: true,
-			loaderOptions: {
-				processContent: function(content, callback) {
-					callback(null, YAML.safeLoad(content.text));
-				},
-			},
-		};
-
-		return jsonRefs.resolveRefs(content, options).then(results => {
-			resolvedSwaggerSpec = results.resolved;
-			return resolvedSwaggerSpec;
-		});
 	}
+	var content = getSwaggerSpec();
+
+	var options = {
+		includeInvalid: true,
+		loaderOptions: {
+			processContent: function(content, callback) {
+				callback(null, YAML.safeLoad(content.text));
+			},
+		},
+	};
+
+	return jsonRefs.resolveRefs(content, options).then(results => {
+		resolvedSwaggerSpec = results.resolved;
+		return resolvedSwaggerSpec;
+	});
 }
 
 /**
@@ -114,14 +113,13 @@ function generateParamsErrorObject(params, messages, codes) {
 				in: def.in,
 				code: codes[i] || 'INVALID_PARAM',
 			};
-		} else {
-			return {
-				name: p,
-				message: 'Unknown request parameter',
-				in: 'query',
-				code: codes[i] || 'UNKNOWN_PARAM',
-			};
 		}
+		return {
+			name: p,
+			message: 'Unknown request parameter',
+			in: 'query',
+			code: codes[i] || 'UNKNOWN_PARAM',
+		};
 	});
 
 	return error;

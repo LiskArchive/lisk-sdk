@@ -183,11 +183,10 @@ __private.loadSignatures = function(cb) {
 				self.getNetwork(function(err, network) {
 					if (err) {
 						return setImmediate(waterCb, err);
-					} else {
-						var peer =
-							network.peers[Math.floor(Math.random() * network.peers.length)];
-						return setImmediate(waterCb, null, peer);
 					}
+					var peer =
+						network.peers[Math.floor(Math.random() * network.peers.length)];
+					return setImmediate(waterCb, null, peer);
 				});
 			},
 			function(peer, waterCb) {
@@ -196,15 +195,14 @@ __private.loadSignatures = function(cb) {
 					if (err) {
 						peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
 						return setImmediate(waterCb, err);
-					} else {
-						library.schema.validate(
-							res,
-							definitions.WSSignaturesResponse,
-							function(err) {
-								return setImmediate(waterCb, err, res.signatures);
-							}
-						);
 					}
+					library.schema.validate(
+						res,
+						definitions.WSSignaturesResponse,
+						function(err) {
+							return setImmediate(waterCb, err, res.signatures);
+						}
+					);
 				});
 			},
 			function(signatures, waterCb) {
@@ -262,11 +260,10 @@ __private.loadTransactions = function(cb) {
 				self.getNetwork(function(err, network) {
 					if (err) {
 						return setImmediate(waterCb, err);
-					} else {
-						var peer =
-							network.peers[Math.floor(Math.random() * network.peers.length)];
-						return setImmediate(waterCb, null, peer);
 					}
+					var peer =
+						network.peers[Math.floor(Math.random() * network.peers.length)];
+					return setImmediate(waterCb, null, peer);
 				});
 			},
 			function(peer, waterCb) {
@@ -282,9 +279,8 @@ __private.loadTransactions = function(cb) {
 						function(err) {
 							if (err) {
 								return setImmediate(waterCb, err[0].message);
-							} else {
-								return setImmediate(waterCb, null, peer, res.transactions);
 							}
+							return setImmediate(waterCb, null, peer, res.transactions);
 						}
 					);
 				});
@@ -512,9 +508,8 @@ __private.loadBlockChain = function() {
 				`Snapshotting to end of round: ${library.config.loading.snapshot}`
 			);
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	library.db
@@ -593,11 +588,10 @@ __private.loadBlockChain = function() {
 					modules.blocks.utils.loadLastBlock(function(err, block) {
 						if (err) {
 							return reload(blocksCount, err || 'Failed to load last block');
-						} else {
-							__private.lastBlock = block;
-							library.logger.info('Blockchain ready');
-							library.bus.message('blockchainReady');
 						}
+						__private.lastBlock = block;
+						library.logger.info('Blockchain ready');
+						library.bus.message('blockchainReady');
 					});
 				});
 		})
@@ -625,84 +619,79 @@ __private.loadBlocksFromNetwork = function(cb) {
 	self.getNetwork(function(err, network) {
 		if (err) {
 			return setImmediate(cb, err);
-		} else {
-			async.whilst(
-				function() {
-					return !loaded && errorCount < 5;
-				},
-				function(next) {
-					var peer =
-						network.peers[Math.floor(Math.random() * network.peers.length)];
-					var lastBlock = modules.blocks.lastBlock.get();
+		}
+		async.whilst(
+			function() {
+				return !loaded && errorCount < 5;
+			},
+			function(next) {
+				var peer =
+					network.peers[Math.floor(Math.random() * network.peers.length)];
+				var lastBlock = modules.blocks.lastBlock.get();
 
-					function loadBlocks() {
-						__private.blocksToSync = peer.height;
+				function loadBlocks() {
+					__private.blocksToSync = peer.height;
 
-						modules.blocks.process.loadBlocksFromPeer(peer, function(
-							err,
-							lastValidBlock
-						) {
-							if (err) {
-								library.logger.error(err.toString());
+					modules.blocks.process.loadBlocksFromPeer(peer, function(
+						err,
+						lastValidBlock
+					) {
+						if (err) {
+							library.logger.error(err.toString());
+							library.logger.error(
+								`Failed to load blocks from: ${peer.string}`
+							);
+							errorCount += 1;
+						}
+						loaded = lastValidBlock.id === lastBlock.id;
+						lastValidBlock = lastBlock = null;
+						next();
+					});
+				}
+
+				function getCommonBlock(cb) {
+					library.logger.info(`Looking for common block with: ${peer.string}`);
+					modules.blocks.process.getCommonBlock(
+						peer,
+						lastBlock.height,
+						function(err, commonBlock) {
+							if (!commonBlock) {
+								if (err) {
+									library.logger.error(err.toString());
+								}
 								library.logger.error(
-									`Failed to load blocks from: ${peer.string}`
+									`Failed to find common block with: ${peer.string}`
 								);
 								errorCount += 1;
+								return next();
 							}
-							loaded = lastValidBlock.id === lastBlock.id;
-							lastValidBlock = lastBlock = null;
-							next();
-						});
-					}
-
-					function getCommonBlock(cb) {
-						library.logger.info(
-							`Looking for common block with: ${peer.string}`
-						);
-						modules.blocks.process.getCommonBlock(
-							peer,
-							lastBlock.height,
-							function(err, commonBlock) {
-								if (!commonBlock) {
-									if (err) {
-										library.logger.error(err.toString());
-									}
-									library.logger.error(
-										`Failed to find common block with: ${peer.string}`
-									);
-									errorCount += 1;
-									return next();
-								} else {
-									library.logger.info(
-										[
-											'Found common block:',
-											commonBlock.id,
-											'with:',
-											peer.string,
-										].join(' ')
-									);
-									return setImmediate(cb);
-								}
-							}
-						);
-					}
-
-					if (lastBlock.height === 1) {
-						loadBlocks();
-					} else {
-						getCommonBlock(loadBlocks);
-					}
-				},
-				function(err) {
-					if (err) {
-						library.logger.error('Failed to load blocks from network', err);
-						return setImmediate(cb, err);
-					} else {
-						return setImmediate(cb);
-					}
+							library.logger.info(
+								[
+									'Found common block:',
+									commonBlock.id,
+									'with:',
+									peer.string,
+								].join(' ')
+							);
+							return setImmediate(cb);
+						}
+					);
 				}
-			);
-		}
+
+				if (lastBlock.height === 1) {
+					loadBlocks();
+				} else {
+					getCommonBlock(loadBlocks);
+				}
+			},
+			function(err) {
+				if (err) {
+					library.logger.error('Failed to load blocks from network', err);
+					return setImmediate(cb, err);
+				}
+				return setImmediate(cb);
+			}
+		);
 	});
 };
 
@@ -785,44 +774,43 @@ Loader.prototype.findGoodPeers = function(peers) {
 	// No peers found
 	if (peers.length === 0) {
 		return { height: 0, peers: [] };
-	} else {
-		// Order peers by descending height
-		peers = peers.sort(function(a, b) {
-			return b.height - a.height;
+	}
+	// Order peers by descending height
+	peers = peers.sort(function(a, b) {
+		return b.height - a.height;
+	});
+
+	var histogram = {};
+	var max = 0;
+	var height;
+
+	// Aggregate height by 2. TODO: To be changed if node latency increases?
+	var aggregation = 2;
+
+	// Perform histogram calculation, together with histogram maximum
+	for (var i in peers) {
+		var val = parseInt(peers[i].height / aggregation) * aggregation;
+		histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
+
+		if (histogram[val] > max) {
+			max = histogram[val];
+			height = val;
+		}
+	}
+
+	// Perform histogram cut of peers too far from histogram maximum
+	peers = peers
+		.filter(function(item) {
+			return item && Math.abs(height - item.height) < aggregation + 1;
+		})
+		.map(function(item) {
+			return library.logic.peers.create(item);
 		});
 
-		var histogram = {};
-		var max = 0;
-		var height;
+	library.logger.trace('Good peers - accepted', { count: peers.length });
+	library.logger.debug('Good peers', peers);
 
-		// Aggregate height by 2. TODO: To be changed if node latency increases?
-		var aggregation = 2;
-
-		// Perform histogram calculation, together with histogram maximum
-		for (var i in peers) {
-			var val = parseInt(peers[i].height / aggregation) * aggregation;
-			histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
-
-			if (histogram[val] > max) {
-				max = histogram[val];
-				height = val;
-			}
-		}
-
-		// Perform histogram cut of peers too far from histogram maximum
-		peers = peers
-			.filter(function(item) {
-				return item && Math.abs(height - item.height) < aggregation + 1;
-			})
-			.map(function(item) {
-				return library.logic.peers.create(item);
-			});
-
-		library.logger.trace('Good peers - accepted', { count: peers.length });
-		library.logger.debug('Good peers', peers);
-
-		return { height: height, peers: peers };
-	}
+	return { height: height, peers: peers };
 };
 
 // Public methods
@@ -844,9 +832,8 @@ Loader.prototype.getNetwork = function(cb) {
 
 		if (!__private.network.peers.length) {
 			return setImmediate(cb, 'Failed to find enough good peers');
-		} else {
-			return setImmediate(cb, null, __private.network);
 		}
+		return setImmediate(cb, null, __private.network);
 	});
 };
 

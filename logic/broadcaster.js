@@ -167,9 +167,8 @@ Broadcaster.prototype.broadcast = function(params, options, cb) {
 			function getPeers(waterCb) {
 				if (!params.peers) {
 					return self.getPeers(params, waterCb);
-				} else {
-					return setImmediate(waterCb, null, params.peers);
 				}
+				return setImmediate(waterCb, null, params.peers);
 			},
 			function sendToPeer(peers, waterCb) {
 				library.logger.debug('Begin broadcast', options);
@@ -228,10 +227,9 @@ Broadcaster.prototype.maxRelays = function(object) {
 	if (Math.abs(object.relays) >= self.config.relayLimit) {
 		library.logger.debug('Broadcast relays exhausted', object);
 		return true;
-	} else {
-		object.relays++; // Next broadcast
-		return false;
 	}
+	object.relays++; // Next broadcast
+	return false;
 };
 
 // Private
@@ -255,9 +253,8 @@ __private.filterQueue = function(cb) {
 					broadcast.options.data.transaction ||
 					broadcast.options.data.signature;
 				return __private.filterTransaction(transaction, filterCb);
-			} else {
-				return setImmediate(filterCb, null, true);
 			}
+			return setImmediate(filterCb, null, true);
 		},
 		(err, broadcasts) => {
 			self.queue = broadcasts;
@@ -281,14 +278,12 @@ __private.filterTransaction = function(transaction, cb) {
 	if (transaction !== undefined) {
 		if (modules.transactions.transactionInPool(transaction.id)) {
 			return setImmediate(cb, null, true);
-		} else {
-			return library.logic.transaction.checkConfirmed(transaction, err =>
-				setImmediate(cb, null, !err)
-			);
 		}
-	} else {
-		return setImmediate(cb, null, false);
+		return library.logic.transaction.checkConfirmed(transaction, err =>
+			setImmediate(cb, null, !err)
+		);
 	}
+	return setImmediate(cb, null, false);
 };
 
 /**

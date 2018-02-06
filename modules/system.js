@@ -172,15 +172,14 @@ System.prototype.getBroadhash = function(cb) {
 		.then(rows => {
 			if (rows.length <= 1) {
 				return setImmediate(cb, null, __private.nethash);
-			} else {
-				var seed = rows.map(row => row.id).join('');
-				var hash = crypto
-					.createHash('sha256')
-					.update(seed, 'utf8')
-					.digest();
-
-				return setImmediate(cb, null, hash.toString('hex'));
 			}
+			var seed = rows.map(row => row.id).join('');
+			var hash = crypto
+				.createHash('sha256')
+				.update(seed, 'utf8')
+				.digest();
+
+			return setImmediate(cb, null, hash.toString('hex'));
 		})
 		.catch(err => {
 			library.logger.error(err.stack);

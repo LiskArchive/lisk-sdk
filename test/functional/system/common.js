@@ -99,9 +99,8 @@ function addTransaction(library, transaction, cb) {
 			err => {
 				if (err) {
 					return setImmediate(sequenceCb, err.toString());
-				} else {
-					return setImmediate(sequenceCb, null, transaction.id);
 				}
+				return setImmediate(sequenceCb, null, transaction.id);
 			}
 		);
 	}, cb);

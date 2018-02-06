@@ -559,10 +559,9 @@ Peers.prototype.list = function(options, cb) {
 								: // Unmatched broadhash when attempt 1
 									attempt === 1 ? peer.broadhash !== broadhash : false)
 						);
-					} else {
-						// Skip banned and disconnected peers by default
-						return allowedStates.indexOf(peer.state) !== -1;
 					}
+					// Skip banned and disconnected peers by default
+					return allowedStates.indexOf(peer.state) !== -1;
 				});
 				matched = peersList.length;
 				// Apply limit
@@ -592,9 +591,8 @@ Peers.prototype.list = function(options, cb) {
 				if (attempts.length && limit > 0) {
 					// Unmatched broadhash
 					return randomList(peers, waterCb);
-				} else {
-					return setImmediate(waterCb, null, peers);
 				}
+				return setImmediate(waterCb, null, peers);
 			},
 		],
 		cb

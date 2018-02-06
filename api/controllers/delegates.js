@@ -138,9 +138,8 @@ DelegatesController.getForgingStatistics = function(context, next) {
 				return next(
 					swaggerHelper.generateParamsErrorObject([params.address], [err])
 				);
-			} else {
-				return next(err);
 			}
+			return next(err);
 		}
 
 		var forged = new bignum(reward.fees)

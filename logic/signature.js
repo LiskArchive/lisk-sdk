@@ -255,14 +255,13 @@ Signature.prototype.objectNormalize = function(transaction) {
 Signature.prototype.dbRead = function(raw) {
 	if (!raw.s_publicKey) {
 		return null;
-	} else {
-		var signature = {
-			transactionId: raw.t_id,
-			publicKey: raw.s_publicKey,
-		};
-
-		return { signature: signature };
 	}
+	var signature = {
+		transactionId: raw.t_id,
+		publicKey: raw.s_publicKey,
+	};
+
+	return { signature: signature };
 };
 
 /**
@@ -277,9 +276,8 @@ Signature.prototype.ready = function(transaction, sender) {
 			return false;
 		}
 		return transaction.signatures.length >= sender.multimin;
-	} else {
-		return true;
 	}
+	return true;
 };
 
 // Export

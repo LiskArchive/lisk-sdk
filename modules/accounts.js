@@ -141,9 +141,8 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 	if (err) {
 		if (typeof cb === 'function') {
 			return setImmediate(cb, err);
-		} else {
-			throw err;
 		}
+		throw err;
 	}
 
 	library.logic.account.set(
@@ -187,9 +186,8 @@ Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
 	if (err) {
 		if (typeof cb === 'function') {
 			return setImmediate(cb, err);
-		} else {
-			throw err;
 		}
+		throw err;
 	}
 
 	return library.logic.account.merge(address, data, cb, tx);

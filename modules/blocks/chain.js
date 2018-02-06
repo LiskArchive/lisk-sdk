@@ -221,9 +221,8 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 	block.transactions = block.transactions.sort(a => {
 		if (a.type === transactionTypes.VOTE) {
 			return 1;
-		} else {
-			return 0;
 		}
+		return 0;
 	});
 	// Initialize block progress tracker
 	var tracker = modules.blocks.utils.getBlockProgressLogger(
@@ -259,13 +258,12 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 			if (err) {
 				// If genesis block is invalid, kill the node...
 				return process.exit(0);
-			} else {
-				// Set genesis block as last block
-				modules.blocks.lastBlock.set(block);
-				// Tick round
-				// WARNING: DB_WRITE
-				modules.rounds.tick(block, cb);
 			}
+			// Set genesis block as last block
+			modules.blocks.lastBlock.set(block);
+			// Tick round
+			// WARNING: DB_WRITE
+			modules.rounds.tick(block, cb);
 		}
 	);
 };
@@ -384,9 +382,8 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 										error => {
 											if (error) {
 												return setImmediate(reject, error);
-											} else {
-												return setImmediate(resolve);
 											}
+											return setImmediate(resolve);
 										},
 										tx
 									);

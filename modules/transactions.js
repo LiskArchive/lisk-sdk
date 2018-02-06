@@ -185,9 +185,8 @@ __private.list = function(filter, cb) {
 				return `b_${sortField}`;
 			} else if (['confirmations'].indexOf(sortField) > -1) {
 				return sortField;
-			} else {
-				return `t_${sortField}`;
 			}
+			return `t_${sortField}`;
 		},
 	});
 
@@ -668,12 +667,11 @@ Transactions.prototype.shared = {
 		__private.list(filters, (err, data) => {
 			if (err) {
 				return setImmediate(cb, `Failed to get transactions: ${err}`);
-			} else {
-				return setImmediate(cb, null, {
-					transactions: data.transactions,
-					count: data.count,
-				});
 			}
+			return setImmediate(cb, null, {
+				transactions: data.transactions,
+				count: data.count,
+			});
 		});
 	},
 

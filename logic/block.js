@@ -473,29 +473,28 @@ Block.prototype.calculateFee = function() {
 Block.prototype.dbRead = function(raw) {
 	if (!raw.b_id) {
 		return null;
-	} else {
-		var block = {
-			id: raw.b_id,
-			version: parseInt(raw.b_version),
-			timestamp: parseInt(raw.b_timestamp),
-			height: parseInt(raw.b_height),
-			previousBlock: raw.b_previousBlock,
-			numberOfTransactions: parseInt(raw.b_numberOfTransactions),
-			totalAmount: parseInt(raw.b_totalAmount),
-			totalFee: parseInt(raw.b_totalFee),
-			reward: parseInt(raw.b_reward),
-			payloadLength: parseInt(raw.b_payloadLength),
-			payloadHash: raw.b_payloadHash,
-			generatorPublicKey: raw.b_generatorPublicKey,
-			generatorId: __private.getAddressByPublicKey(raw.b_generatorPublicKey),
-			blockSignature: raw.b_blockSignature,
-			confirmations: parseInt(raw.b_confirmations),
-		};
-		block.totalForged = new bignum(block.totalFee)
-			.plus(new bignum(block.reward))
-			.toString();
-		return block;
 	}
+	var block = {
+		id: raw.b_id,
+		version: parseInt(raw.b_version),
+		timestamp: parseInt(raw.b_timestamp),
+		height: parseInt(raw.b_height),
+		previousBlock: raw.b_previousBlock,
+		numberOfTransactions: parseInt(raw.b_numberOfTransactions),
+		totalAmount: parseInt(raw.b_totalAmount),
+		totalFee: parseInt(raw.b_totalFee),
+		reward: parseInt(raw.b_reward),
+		payloadLength: parseInt(raw.b_payloadLength),
+		payloadHash: raw.b_payloadHash,
+		generatorPublicKey: raw.b_generatorPublicKey,
+		generatorId: __private.getAddressByPublicKey(raw.b_generatorPublicKey),
+		blockSignature: raw.b_blockSignature,
+		confirmations: parseInt(raw.b_confirmations),
+	};
+	block.totalForged = new bignum(block.totalFee)
+		.plus(new bignum(block.reward))
+		.toString();
+	return block;
 };
 
 // Export

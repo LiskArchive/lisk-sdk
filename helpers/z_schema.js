@@ -85,9 +85,8 @@ var liskFormats = {
 
 		if (a.length > 0 && a.length <= 1000) {
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	},
 
 	signature: function(str) {

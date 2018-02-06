@@ -245,19 +245,18 @@ function respondWithCode(res, err, response) {
 		return res
 			.status(err.code || apiCodes.INTERNAL_SERVER_ERROR)
 			.json(err.toJson());
-	} else {
-		var isResponseEmpty = function(response) {
-			var firstValue = _(response)
-				.values()
-				.first();
-			return _.isArray(firstValue) && _.isEmpty(firstValue);
-		};
-		return res
-			.status(
-				isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK
-			)
-			.json(response);
 	}
+	var isResponseEmpty = function(response) {
+		var firstValue = _(response)
+			.values()
+			.first();
+		return _.isArray(firstValue) && _.isEmpty(firstValue);
+	};
+	return res
+		.status(
+			isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK
+		)
+		.json(response);
 }
 
 /**

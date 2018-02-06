@@ -99,9 +99,8 @@ _.mixin(
 				indices.length === indices[indices.length - 1] - indices[0] + 1
 			) {
 				return true;
-			} else {
-				return false;
 			}
+			return false;
 		},
 
 		/**

@@ -145,14 +145,13 @@ __private.validateBlockSlot = function(block, source, cb) {
 
 		if (delegateId && block.generatorPublicKey === delegateId) {
 			return setImmediate(cb);
-		} else {
-			library.logger.error(
-				`Expected generator: ${delegateId} Received generator: ${
-					block.generatorPublicKey
-				}`
-			);
-			return setImmediate(cb, `Failed to verify slot: ${currentSlot}`);
 		}
+		library.logger.error(
+			`Expected generator: ${delegateId} Received generator: ${
+				block.generatorPublicKey
+			}`
+		);
+		return setImmediate(cb, `Failed to verify slot: ${currentSlot}`);
 	});
 };
 
@@ -422,9 +421,8 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 								constants.activeDelegates
 							} votes exceeded (${exceeded} too many)`
 						);
-					} else {
-						return setImmediate(cb);
 					}
+					return setImmediate(cb);
 				}
 			);
 		},
@@ -448,15 +446,14 @@ __private.loadDelegates = function(cb) {
 		!library.config.forging.defaultKey
 	) {
 		return setImmediate(cb);
-	} else {
-		library.logger.info(
-			[
-				'Loading',
-				secretsList.length,
-				'delegates using encrypted secrets from config',
-			].join(' ')
-		);
 	}
+	library.logger.info(
+		[
+			'Loading',
+			secretsList.length,
+			'delegates using encrypted secrets from config',
+		].join(' ')
+	);
 
 	async.eachSeries(
 		secretsList,
@@ -613,9 +610,8 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 					publicKey: publicKey,
 					forging: forgingStatus,
 				});
-			} else {
-				return setImmediate(cb, 'Delegate not found');
 			}
+			return setImmediate(cb, 'Delegate not found');
 		}
 	);
 };

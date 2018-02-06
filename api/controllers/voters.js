@@ -93,9 +93,8 @@ VotersController.getVoters = function(context, next) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
 				return next('Delegate not found');
-			} else {
-				return next(err);
 			}
+			return next(err);
 		}
 
 		data = _.cloneDeep(data);
@@ -168,9 +167,8 @@ VotersController.getVotes = function(context, next) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
 				return next('Delegate not found');
-			} else {
-				return next(err);
 			}
+			return next(err);
 		}
 
 		data = _.cloneDeep(data);

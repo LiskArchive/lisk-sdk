@@ -148,9 +148,8 @@ Round.prototype.updateVotes = function() {
 
 		if (queries.length > 0) {
 			return self.t.batch(queries);
-		} else {
-			return self.t;
 		}
+		return self.t;
 	});
 };
 
@@ -164,9 +163,8 @@ Round.prototype.markBlockId = function() {
 			this.scope.block.id,
 			'0'
 		);
-	} else {
-		return this.t;
 	}
+	return this.t;
 };
 
 /**
@@ -316,9 +314,8 @@ Round.prototype.applyRound = function() {
 
 	if (queries.length > 0) {
 		return this.t.batch(queries);
-	} else {
-		return this.t;
 	}
+	return this.t;
 };
 
 /**

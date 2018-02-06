@@ -49,14 +49,13 @@ module.exports = function(grunt) {
 							slowTag = '--grep @slow --invert';
 						}
 						return `./node_modules/.bin/_mocha --bail test/integration/index.js ${slowTag}`;
-					} else {
-						var toExecute = [tag, suite, section]
-							.filter(function(val) {
-								return val;
-							})
-							.join(' ');
-						return `node test/common/parallel_tests.js ${toExecute}`;
 					}
+					var toExecute = [tag, suite, section]
+						.filter(function(val) {
+							return val;
+						})
+						.join(' ');
+					return `node test/common/parallel_tests.js ${toExecute}`;
 				},
 				maxBuffer: maxBufferSize,
 			},

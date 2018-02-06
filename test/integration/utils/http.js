@@ -114,9 +114,8 @@ module.exports = {
 			.then(res => {
 				if (currentVersion === '1.0.0') {
 					return JSON.parse(res.body).data[0];
-				} else {
-					return JSON.parse(res.body).transactions[0];
 				}
+				return JSON.parse(res.body).transactions[0];
 			});
 	},
 

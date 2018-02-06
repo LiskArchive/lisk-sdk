@@ -633,9 +633,8 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 						result.errors[0]
 					);
 					return setImmediate(seriesCb, result.errors[0]);
-				} else {
-					return setImmediate(seriesCb);
 				}
+				return setImmediate(seriesCb);
 			},
 			broadcastBlock: function(seriesCb) {
 				if (broadcast) {
@@ -660,9 +659,8 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 							seriesCb,
 							['Block', block.id, 'already exists'].join(' ')
 						);
-					} else {
-						return setImmediate(seriesCb);
 					}
+					return setImmediate(seriesCb);
 				});
 			},
 			validateBlockSlot: function(seriesCb) {
@@ -673,9 +671,8 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 						// Fork: Delegate does not match calculated slot
 						modules.delegates.fork(block, 3);
 						return setImmediate(seriesCb, err);
-					} else {
-						return setImmediate(seriesCb);
 					}
+					return setImmediate(seriesCb);
 				});
 			},
 			checkTransactions: function(seriesCb) {
@@ -694,13 +691,12 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 		function(err) {
 			if (err) {
 				return setImmediate(cb, err);
-			} else {
-				// The block and the transactions are OK i.e:
-				// * Block and transactions have valid values (signatures, block slots, etc...)
-				// * The check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
-				// We thus update the database with the transactions values, save the block and tick it.
-				modules.blocks.chain.applyBlock(block, saveBlock, cb);
 			}
+			// The block and the transactions are OK i.e:
+			// * Block and transactions have valid values (signatures, block slots, etc...)
+			// * The check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
+			// We thus update the database with the transactions values, save the block and tick it.
+			modules.blocks.chain.applyBlock(block, saveBlock, cb);
 		}
 	);
 };

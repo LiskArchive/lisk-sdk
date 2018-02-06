@@ -252,9 +252,8 @@ class TransactionsRepository {
 		// we check when there is a transaction on this level or above:
 		if (this.db.ctx && this.db.ctx.inTransaction) {
 			return this.db.batch(batch);
-		} else {
-			return this.db.tx(tx => tx.batch(batch));
 		}
+		return this.db.tx(tx => tx.batch(batch));
 	}
 }
 

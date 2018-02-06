@@ -121,9 +121,8 @@ __private.receiveSignatures = function(query, cb) {
 				library.schema.validate(query, definitions.WSSignaturesList, err => {
 					if (err) {
 						return setImmediate(seriesCb, 'Invalid signatures body');
-					} else {
-						return setImmediate(seriesCb);
 					}
+					return setImmediate(seriesCb);
 				});
 			},
 			receiveSignatures: function(seriesCb) {
@@ -167,9 +166,8 @@ __private.receiveSignature = function(query, cb) {
 		modules.multisignatures.processSignature(query, err => {
 			if (err) {
 				return setImmediate(cb, `Error processing signature: ${err}`);
-			} else {
-				return setImmediate(cb);
 			}
+			return setImmediate(cb);
 		});
 	});
 };
@@ -274,9 +272,8 @@ __private.receiveTransaction = function(
 					}
 
 					return setImmediate(cb, err.toString());
-				} else {
-					return setImmediate(cb, null, transaction.id);
 				}
+				return setImmediate(cb, null, transaction.id);
 			}
 		);
 	}, cb);
@@ -594,17 +591,15 @@ Transport.prototype.shared = {
 			__private.receiveSignatures(query, err => {
 				if (err) {
 					return setImmediate(cb, null, { success: false, message: err });
-				} else {
-					return setImmediate(cb, null, { success: true });
 				}
+				return setImmediate(cb, null, { success: true });
 			});
 		} else {
 			__private.receiveSignature(query.signature, err => {
 				if (err) {
 					return setImmediate(cb, null, { success: false, message: err });
-				} else {
-					return setImmediate(cb, null, { success: true });
 				}
+				return setImmediate(cb, null, { success: true });
 			});
 		}
 	},
@@ -656,12 +651,11 @@ Transport.prototype.shared = {
 					(err, id) => {
 						if (err) {
 							return setImmediate(cb, null, { success: false, message: err });
-						} else {
-							return setImmediate(cb, null, {
-								success: true,
-								transactionId: id,
-							});
 						}
+						return setImmediate(cb, null, {
+							success: true,
+							transactionId: id,
+						});
 					}
 				);
 			} else {

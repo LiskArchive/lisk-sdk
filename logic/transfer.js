@@ -270,9 +270,8 @@ Transfer.prototype.ready = function(transaction, sender) {
 			return false;
 		}
 		return transaction.signatures.length >= sender.multimin;
-	} else {
-		return true;
 	}
+	return true;
 };
 
 // Export

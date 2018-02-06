@@ -48,7 +48,6 @@ function copy(target) {
 			result[name] = copy(target[name]);
 		});
 		return result;
-	} else {
-		return target;
 	}
+	return target;
 }

@@ -112,15 +112,13 @@ Signatures.prototype.shared = {
 							cb,
 							new ApiError(res.message, apiCodes.BAD_REQUEST)
 						);
-					} else {
-						return setImmediate(
-							cb,
-							new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR)
-						);
 					}
-				} else {
-					return setImmediate(cb, null, { status: 'Signature Accepted' });
+					return setImmediate(
+						cb,
+						new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR)
+					);
 				}
+				return setImmediate(cb, null, { status: 'Signature Accepted' });
 			}
 		);
 	},

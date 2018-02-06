@@ -69,9 +69,8 @@ BlockReward.prototype.calcMilestone = function(height) {
 
 	if (location > this.milestones.length - 1) {
 		return this.milestones.lastIndexOf(lastMile);
-	} else {
-		return location;
 	}
+	return location;
 };
 
 /**
@@ -85,9 +84,8 @@ BlockReward.prototype.calcReward = function(height) {
 
 	if (height < this.rewardOffset) {
 		return 0;
-	} else {
-		return this.milestones[this.calcMilestone(height)];
 	}
+	return this.milestones[this.calcMilestone(height)];
 };
 
 /**

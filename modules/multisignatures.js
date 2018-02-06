@@ -111,18 +111,17 @@ Multisignatures.prototype.processSignature = function(transaction, cb) {
 						return setImmediate(cb, err);
 					} else if (!sender) {
 						return setImmediate(cb, 'Sender not found');
-					} else {
-						multisignatureTransaction.signatures =
-							multisignatureTransaction.signatures || [];
-						multisignatureTransaction.signatures.push(transaction.signature);
-						multisignatureTransaction.ready = Multisignature.prototype.ready(
-							multisignatureTransaction,
-							sender
-						);
-
-						library.bus.message('signature', transaction, true);
-						return setImmediate(cb);
 					}
+					multisignatureTransaction.signatures =
+						multisignatureTransaction.signatures || [];
+					multisignatureTransaction.signatures.push(transaction.signature);
+					multisignatureTransaction.ready = Multisignature.prototype.ready(
+						multisignatureTransaction,
+						sender
+					);
+
+					library.bus.message('signature', transaction, true);
+					return setImmediate(cb);
 				}
 			);
 		}, cb);
@@ -172,62 +171,60 @@ Multisignatures.prototype.processSignature = function(transaction, cb) {
 		}
 
 		return done(cb);
-	} else {
-		modules.accounts.getAccount(
-			{
-				address: multisignatureTransaction.senderId,
-			},
-			(err, account) => {
-				if (err) {
-					return setImmediate(cb, 'Multisignature account not found');
-				}
-
-				var verify = false;
-				var multisignatures = account.multisignatures;
-
-				if (multisignatureTransaction.requesterPublicKey) {
-					multisignatures.push(multisignatureTransaction.senderPublicKey);
-				}
-
-				if (!account) {
-					return setImmediate(cb, 'Account not found');
-				}
-
-				multisignatureTransaction.signatures =
-					multisignatureTransaction.signatures || [];
-
-				if (
-					multisignatureTransaction.signatures.indexOf(transaction.signature) >=
-					0
-				) {
-					return setImmediate(cb, 'Signature already exists');
-				}
-
-				try {
-					for (var i = 0; i < multisignatures.length && !verify; i++) {
-						verify = library.logic.transaction.verifySignature(
-							multisignatureTransaction,
-							multisignatures[i],
-							transaction.signature
-						);
-					}
-				} catch (e) {
-					library.logger.error(e.stack);
-					return setImmediate(cb, 'Failed to verify signature');
-				}
-
-				if (!verify) {
-					return setImmediate(cb, 'Failed to verify signature');
-				}
-
-				library.network.io.sockets.emit(
-					'multisignatures/signature/change',
-					multisignatureTransaction
-				);
-				return done(cb);
-			}
-		);
 	}
+	modules.accounts.getAccount(
+		{
+			address: multisignatureTransaction.senderId,
+		},
+		(err, account) => {
+			if (err) {
+				return setImmediate(cb, 'Multisignature account not found');
+			}
+
+			var verify = false;
+			var multisignatures = account.multisignatures;
+
+			if (multisignatureTransaction.requesterPublicKey) {
+				multisignatures.push(multisignatureTransaction.senderPublicKey);
+			}
+
+			if (!account) {
+				return setImmediate(cb, 'Account not found');
+			}
+
+			multisignatureTransaction.signatures =
+				multisignatureTransaction.signatures || [];
+
+			if (
+				multisignatureTransaction.signatures.indexOf(transaction.signature) >= 0
+			) {
+				return setImmediate(cb, 'Signature already exists');
+			}
+
+			try {
+				for (var i = 0; i < multisignatures.length && !verify; i++) {
+					verify = library.logic.transaction.verifySignature(
+						multisignatureTransaction,
+						multisignatures[i],
+						transaction.signature
+					);
+				}
+			} catch (e) {
+				library.logger.error(e.stack);
+				return setImmediate(cb, 'Failed to verify signature');
+			}
+
+			if (!verify) {
+				return setImmediate(cb, 'Failed to verify signature');
+			}
+
+			library.network.io.sockets.emit(
+				'multisignatures/signature/change',
+				multisignatureTransaction
+			);
+			return done(cb);
+		}
+	);
 };
 
 Multisignatures.prototype.getGroup = function(address, cb) {
@@ -299,9 +296,8 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 		err => {
 			if (err) {
 				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null, scope.group);
 			}
+			return setImmediate(cb, null, scope.group);
 		}
 	);
 };
@@ -347,9 +343,8 @@ Multisignatures.prototype.shared = {
 		modules.multisignatures.getGroup(filters.address, (err, group) => {
 			if (err) {
 				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null, [group]);
 			}
+			return setImmediate(cb, null, [group]);
 		});
 	},
 
@@ -412,9 +407,8 @@ Multisignatures.prototype.shared = {
 			err => {
 				if (err) {
 					return setImmediate(cb, err);
-				} else {
-					return setImmediate(cb, null, scope.groups);
 				}
+				return setImmediate(cb, null, scope.groups);
 			}
 		);
 	},

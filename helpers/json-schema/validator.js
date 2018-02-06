@@ -57,9 +57,8 @@ JsonSchema.addRule('default', {
 	filter: function(accept, value) {
 		if (typeof value === 'undefined') {
 			return accept;
-		} else {
-			return value;
 		}
+		return value;
 	},
 });
 
@@ -77,9 +76,8 @@ JsonSchema.addRule('case', {
 			return String(value).toLowerCase() === String(value);
 		} else if (accept === 'upper') {
 			return String(value).toUpperCase() === String(value);
-		} else {
-			return true;
 		}
+		return true;
 	},
 });
 
@@ -110,9 +108,8 @@ JsonSchema.addRule('minimum', {
 	validate: function(accept, value, field) {
 		if (field.rules.exclusiveMinimum) {
 			return value > accept;
-		} else {
-			return value >= accept;
 		}
+		return value >= accept;
 	},
 });
 
@@ -122,9 +119,8 @@ JsonSchema.addRule('maximum', {
 	validate: function(accept, value, field) {
 		if (field.rules.exclusiveMaximum) {
 			return value < accept;
-		} else {
-			return value <= accept;
 		}
+		return value <= accept;
 	},
 });
 

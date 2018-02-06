@@ -124,49 +124,47 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 	) {
 		library.logger.info('Last block stands');
 		return setImmediate(cb); // Discard received block
-	} else {
-		library.logger.info('Last block and parent loses');
-		async.series(
-			[
-				function(seriesCb) {
-					try {
-						tmp_block = library.logic.block.objectNormalize(tmp_block);
-					} catch (err) {
-						return setImmediate(seriesCb, err);
-					}
-					return setImmediate(seriesCb);
-				},
-				// Check valid slot
-				function(seriesCb) {
-					__private.validateBlockSlot(tmp_block, lastBlock, seriesCb);
-				},
-				// Check received block before any deletion
-				function(seriesCb) {
-					var check = modules.blocks.verify.verifyReceipt(tmp_block);
-
-					if (!check.verified) {
-						library.logger.error(
-							['Block', tmp_block.id, 'verification failed'].join(' '),
-							check.errors.join(', ')
-						);
-						// Return first error from checks
-						return setImmediate(seriesCb, check.errors[0]);
-					} else {
-						return setImmediate(seriesCb);
-					}
-				},
-				// Delete last 2 blocks
-				modules.blocks.chain.deleteLastBlock,
-				modules.blocks.chain.deleteLastBlock,
-			],
-			err => {
-				if (err) {
-					library.logger.error('Fork recovery failed', err);
-				}
-				return setImmediate(cb, err);
-			}
-		);
 	}
+	library.logger.info('Last block and parent loses');
+	async.series(
+		[
+			function(seriesCb) {
+				try {
+					tmp_block = library.logic.block.objectNormalize(tmp_block);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
+				return setImmediate(seriesCb);
+			},
+			// Check valid slot
+			function(seriesCb) {
+				__private.validateBlockSlot(tmp_block, lastBlock, seriesCb);
+			},
+			// Check received block before any deletion
+			function(seriesCb) {
+				var check = modules.blocks.verify.verifyReceipt(tmp_block);
+
+				if (!check.verified) {
+					library.logger.error(
+						['Block', tmp_block.id, 'verification failed'].join(' '),
+						check.errors.join(', ')
+					);
+					// Return first error from checks
+					return setImmediate(seriesCb, check.errors[0]);
+				}
+				return setImmediate(seriesCb);
+			},
+			// Delete last 2 blocks
+			modules.blocks.chain.deleteLastBlock,
+			modules.blocks.chain.deleteLastBlock,
+		],
+		err => {
+			if (err) {
+				library.logger.error('Fork recovery failed', err);
+			}
+			return setImmediate(cb, err);
+		}
+	);
 };
 
 /**
@@ -199,54 +197,52 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 	) {
 		library.logger.info('Last block stands');
 		return setImmediate(cb); // Discard received block
-	} else {
-		library.logger.info('Last block loses');
-		async.series(
-			[
-				function(seriesCb) {
-					try {
-						tmp_block = library.logic.block.objectNormalize(tmp_block);
-					} catch (err) {
-						return setImmediate(seriesCb, err);
-					}
-					return setImmediate(seriesCb);
-				},
-				// Check valid slot
-				function(seriesCb) {
-					__private.validateBlockSlot(tmp_block, lastBlock, seriesCb);
-				},
-				// Check received block before any deletion
-				function(seriesCb) {
-					var check = modules.blocks.verify.verifyReceipt(tmp_block);
-
-					if (!check.verified) {
-						library.logger.error(
-							['Block', tmp_block.id, 'verification failed'].join(' '),
-							check.errors.join(', ')
-						);
-						// Return first error from checks
-						return setImmediate(seriesCb, check.errors[0]);
-					} else {
-						return setImmediate(seriesCb);
-					}
-				},
-				// Delete last block
-				function(seriesCb) {
-					modules.blocks.chain.deleteLastBlock(seriesCb);
-				},
-				// Process received block
-				function(seriesCb) {
-					return __private.receiveBlock(block, seriesCb);
-				},
-			],
-			err => {
-				if (err) {
-					library.logger.error('Fork recovery failed', err);
-				}
-				return setImmediate(cb, err);
-			}
-		);
 	}
+	library.logger.info('Last block loses');
+	async.series(
+		[
+			function(seriesCb) {
+				try {
+					tmp_block = library.logic.block.objectNormalize(tmp_block);
+				} catch (err) {
+					return setImmediate(seriesCb, err);
+				}
+				return setImmediate(seriesCb);
+			},
+			// Check valid slot
+			function(seriesCb) {
+				__private.validateBlockSlot(tmp_block, lastBlock, seriesCb);
+			},
+			// Check received block before any deletion
+			function(seriesCb) {
+				var check = modules.blocks.verify.verifyReceipt(tmp_block);
+
+				if (!check.verified) {
+					library.logger.error(
+						['Block', tmp_block.id, 'verification failed'].join(' '),
+						check.errors.join(', ')
+					);
+					// Return first error from checks
+					return setImmediate(seriesCb, check.errors[0]);
+				}
+				return setImmediate(seriesCb);
+			},
+			// Delete last block
+			function(seriesCb) {
+				modules.blocks.chain.deleteLastBlock(seriesCb);
+			},
+			// Process received block
+			function(seriesCb) {
+				return __private.receiveBlock(block, seriesCb);
+			},
+		],
+		err => {
+			if (err) {
+				library.logger.error('Fork recovery failed', err);
+			}
+			return setImmediate(cb, err);
+		}
+	);
 };
 
 /**
@@ -294,9 +290,8 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 								ids,
 							].join(' ')
 						);
-					} else {
-						return setImmediate(waterCb, null, res.common);
 					}
+					return setImmediate(waterCb, null, res.common);
 				});
 			},
 			function(common, waterCb) {
@@ -304,9 +299,8 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 				library.schema.validate(common, definitions.CommonBlock, err => {
 					if (err) {
 						return setImmediate(waterCb, err[0].message);
-					} else {
-						return setImmediate(waterCb, null, common);
 					}
+					return setImmediate(waterCb, null, common);
 				});
 			},
 			function(common, waterCb) {
@@ -330,10 +324,9 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 									JSON.stringify(common),
 								].join(' ')
 							);
-						} else {
-							// Block exists - it's common between our node and remote peer
-							return setImmediate(waterCb, null, common);
 						}
+						// Block exists - it's common between our node and remote peer
+						return setImmediate(waterCb, null, common);
 					})
 					.catch(err => {
 						// SQL error occurred
@@ -346,9 +339,8 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 			// If comparison failed and current consensus is low - perform chain recovery
 			if (comparisionFailed && modules.transport.poorConsensus()) {
 				return modules.blocks.chain.recoverChain(cb);
-			} else {
-				return setImmediate(cb, err, res);
 			}
+			return setImmediate(cb, err, res);
 		}
 	);
 };
@@ -421,20 +413,18 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 												result.errors[0]
 											);
 											return setImmediate(seriesCb, result.errors[0]);
-										} else {
-											return setImmediate(seriesCb);
 										}
+										return setImmediate(seriesCb);
 									},
 								},
 								err => {
 									if (err) {
 										return setImmediate(cb, err);
-									} else {
-										// Apply block - broadcast: false, saveBlock: false
-										modules.blocks.chain.applyBlock(block, false, err => {
-											setImmediate(cb, err);
-										});
 									}
+									// Apply block - broadcast: false, saveBlock: false
+									modules.blocks.chain.applyBlock(block, false, err => {
+										setImmediate(cb, err);
+									});
 								}
 							);
 						} else if (block.id === library.genesisblock.block.id) {
@@ -492,9 +482,8 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 				if (err) {
 					peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
 					return setImmediate(seriesCb, err);
-				} else {
-					return setImmediate(seriesCb, null, res.blocks);
 				}
+				return setImmediate(seriesCb, null, res.blocks);
 			}
 		);
 	}
@@ -504,9 +493,8 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 
 		if (!report) {
 			return setImmediate(seriesCb, 'Received invalid blocks data');
-		} else {
-			return setImmediate(seriesCb, null, blocks);
 		}
+		return setImmediate(seriesCb, null, blocks);
 	}
 	// Process all received blocks
 	function processBlocks(blocks, seriesCb) {
@@ -521,10 +509,9 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 				if (modules.blocks.isCleaning.get()) {
 					// Cancel processing if node shutdown was requested
 					return setImmediate(eachSeriesCb);
-				} else {
-					// ...then process block
-					return processBlock(block, eachSeriesCb);
 				}
+				// ...then process block
+				return processBlock(block, eachSeriesCb);
 			},
 			err => setImmediate(seriesCb, err)
 		);
@@ -561,9 +548,8 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 				`Error loading blocks: ${err.message || err}`,
 				lastValidBlock
 			);
-		} else {
-			return setImmediate(cb, null, lastValidBlock);
 		}
+		return setImmediate(cb, null, lastValidBlock);
 	});
 };
 
@@ -711,29 +697,28 @@ Process.prototype.onReceiveBlock = function(block) {
 		) {
 			// Process received fork cause 5
 			return __private.receiveForkFive(block, lastBlock, cb);
-		} else {
-			if (block.id === lastBlock.id) {
-				library.logger.debug('Block already processed', block.id);
-			} else {
-				library.logger.warn(
-					[
-						'Discarded block that does not match with current chain:',
-						block.id,
-						'height:',
-						block.height,
-						'round:',
-						slots.calcRound(block.height),
-						'slot:',
-						slots.getSlotNumber(block.timestamp),
-						'generator:',
-						block.generatorPublicKey,
-					].join(' ')
-				);
-			}
-
-			// Discard received block
-			return setImmediate(cb);
 		}
+		if (block.id === lastBlock.id) {
+			library.logger.debug('Block already processed', block.id);
+		} else {
+			library.logger.warn(
+				[
+					'Discarded block that does not match with current chain:',
+					block.id,
+					'height:',
+					block.height,
+					'round:',
+					slots.calcRound(block.height),
+					'slot:',
+					slots.getSlotNumber(block.timestamp),
+					'generator:',
+					block.generatorPublicKey,
+				].join(' ')
+			);
+		}
+
+		// Discard received block
+		return setImmediate(cb);
 	});
 };
 

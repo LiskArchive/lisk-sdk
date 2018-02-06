@@ -276,9 +276,8 @@ Validator.addRule('defaults', {
 	filter: function(accept, value) {
 		if (typeof value === 'undefined') {
 			return accept;
-		} else {
-			return value;
 		}
+		return value;
 	},
 });
 

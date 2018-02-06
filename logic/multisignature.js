@@ -513,20 +513,19 @@ Multisignature.prototype.objectNormalize = function(transaction) {
 Multisignature.prototype.dbRead = function(raw) {
 	if (!raw.m_keysgroup) {
 		return null;
-	} else {
-		var multisignature = {
-			min: raw.m_min,
-			lifetime: raw.m_lifetime,
-		};
-
-		if (typeof raw.m_keysgroup === 'string') {
-			multisignature.keysgroup = raw.m_keysgroup.split(',');
-		} else {
-			multisignature.keysgroup = [];
-		}
-
-		return { multisignature: multisignature };
 	}
+	var multisignature = {
+		min: raw.m_min,
+		lifetime: raw.m_lifetime,
+	};
+
+	if (typeof raw.m_keysgroup === 'string') {
+		multisignature.keysgroup = raw.m_keysgroup.split(',');
+	} else {
+		multisignature.keysgroup = [];
+	}
+
+	return { multisignature: multisignature };
 };
 
 /**
@@ -559,9 +558,8 @@ Multisignature.prototype.ready = function(transaction, sender) {
 			transaction.signatures.length ===
 			transaction.asset.multisignature.keysgroup.length
 		);
-	} else {
-		return transaction.signatures.length >= sender.multimin;
 	}
+	return transaction.signatures.length >= sender.multimin;
 };
 
 // Export

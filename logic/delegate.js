@@ -391,15 +391,14 @@ Delegate.prototype.objectNormalize = function(transaction) {
 Delegate.prototype.dbRead = function(raw) {
 	if (!raw.d_username) {
 		return null;
-	} else {
-		var delegate = {
-			username: raw.d_username,
-			publicKey: raw.t_senderPublicKey,
-			address: raw.t_senderId,
-		};
-
-		return { delegate: delegate };
 	}
+	var delegate = {
+		username: raw.d_username,
+		publicKey: raw.t_senderPublicKey,
+		address: raw.t_senderId,
+	};
+
+	return { delegate: delegate };
 };
 
 /**
@@ -414,9 +413,8 @@ Delegate.prototype.ready = function(transaction, sender) {
 			return false;
 		}
 		return transaction.signatures.length >= sender.multimin;
-	} else {
-		return true;
 	}
+	return true;
 };
 
 // Export
