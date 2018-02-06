@@ -213,25 +213,34 @@ describe('blocks/utils', () => {
 	});
 
 	describe('loadBlocksPart', () => {
-		it('should return error when loadLastBlock sql fails', done => {
-			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves();
+		it('should return error when library.db.blocks.loadBlocksData fails', done => {
+			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves([]);
+			library.db.blocks.loadBlocksData = sinonSandbox
+				.stub()
+				.throws(new Error('An error'));
 
-			blocksUtilsModule.loadLastBlock(err => {
-				expect(err).to.equal('Blocks#loadLastBlock error');
+			blocksUtilsModule.loadBlocksPart({}, (err, blocks) => {
+				expect(loggerStub.error.args[0][0]).to.contains('An error');
+				expect(err).to.equal('Blocks#loadBlockData error');
+				expect(blocks).to.be.undefined;
 				done();
 			});
 		});
 
 		it('should return block object', done => {
-			library.db.blocks.loadLastBlock = sinonSandbox
+			library.db.blocks.loadBlocksData = sinonSandbox
 				.stub()
 				.resolves(viewRow_full_blocks_list);
 
-			blocksUtilsModule.loadLastBlock((err, cb) => {
+			library.db.blocks.getHeightByLastId = sinonSandbox
+				.stub()
+				.resolves(library.db.blocks.loadBlocksData);
+
+			blocksUtilsModule.loadBlocksPart({}, (err, blocks) => {
 				expect(err).to.be.null;
-				expect(cb).to.be.an('object');
-				expect(cb.id).to.equal('13068833527549895884');
-				expect(cb.transactions[0].id).to.equal('6950874693022090568');
+				expect(blocks).to.be.an('array');
+				expect(blocks[0]).to.be.an('object');
+				expect(blocks[0].id).to.equal('13068833527549895884');
 				done();
 			});
 		});
