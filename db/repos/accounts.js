@@ -68,12 +68,12 @@ const normalFields = [
 		init: () => 'encode("secondPublicKey", \'hex\')',
 		skip: ifNotExists,
 	},
-	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
 ];
 
 // Only used in SELECT and INSERT queries
 const immutableFields = [
 	{ name: 'address', mod: ':raw', init: () => 'upper(address)' },
+	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
 ];
 
 // Only used in SELECT queries
@@ -130,11 +130,11 @@ class AccountsRepository {
 				{ name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists },
 				{ name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists },
 				{ name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists },
-				{ name: 'virgin', cast: 'int', def: 1 },
 			]);
 
 			cs.insert = cs.update.merge([
 				{ name: 'address', mod: ':raw', init: c => `upper('${c.value}')` },
+				{ name: 'virgin', cast: 'int', def: 1, skip: ifNotExists },
 			]);
 		}
 	}
@@ -556,6 +556,15 @@ class AccountsRepository {
 				dependentTable
 			)
 		);
+	}
+
+	/**
+	 * Convert an account to be non-virgin account
+	 * @param {string} address - Account address
+	 * @return {Promise}
+	 */
+	convertToNonVirgin(address) {
+		return this.db.none(sql.convertToNonVirgin, { address: address });
 	}
 }
 

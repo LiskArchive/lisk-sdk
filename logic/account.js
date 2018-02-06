@@ -505,7 +505,7 @@ class Account {
 
 								// If money is taken out from an account so its an active account now.
 								if (updatedField === 'u_balance') {
-									promises.push(dbTx.accounts.update(address, { virgin: 0 }));
+									promises.push(dbTx.accounts.convertToNonVirgin(address));
 								}
 							}
 
