@@ -187,16 +187,14 @@ describe('blocks/utils', () => {
 		it('should transform a full_blocks_list view row into a block object', done => {
 			var blockObject = blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
 
-			expect(blockObject[0].id).to.equal(viewRow_full_blocks_list[0].b_id);
-			expect(blockObject[0].height).to.equal(
-				viewRow_full_blocks_list[0].b_height
-			);
-			expect(blockObject[0].transactions[0].id).to.equal(
-				viewRow_full_blocks_list[0].t_id
-			);
-			expect(blockObject[0].transactions[0].type).to.equal(
-				viewRow_full_blocks_list[0].t_type
-			);
+			expect(blockObject).to.be.an('array');
+			expect(blockObject[0]).to.be.an('object');
+			expect(blockObject[0].id).to.equal('13068833527549895884');
+			expect(blockObject[0].height).to.equal(3);
+			expect(blockObject[0].transactions).to.be.an('array');
+			expect(blockObject[0].transactions[0]).to.be.an('object');
+			expect(blockObject[0].transactions[0].id).to.equal('6950874693022090568');
+			expect(blockObject[0].transactions[0].type).to.equal(0);
 			done();
 		});
 
@@ -220,6 +218,8 @@ describe('blocks/utils', () => {
 				genesisBlock_view_full_blocks_list
 			);
 
+			expect(blockObject).to.be.an('array');
+			expect(blockObject[0]).to.be.an('object');
 			expect(blockObject[0].id).to.equal('6524861224470851795');
 			expect(blockObject[0].generationSignature).to.equal(
 				'0000000000000000000000000000000000000000000000000000000000000000'
