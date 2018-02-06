@@ -36,16 +36,26 @@ describe('PromiseDefer', () => {
 	describe('when it fails', () => {
 		it('should reject', done => {
 			expect(promiseDefer.promise.isRejected()).to.be.false;
-			promiseDefer.reject({ message: REJECTED, done: done() });
-			expect(promiseDefer.promise.isRejected()).to.be.true;
+			promiseDefer.reject({
+				message: REJECTED,
+				done: () => {
+					expect(promiseDefer.promise.isRejected()).to.be.true;
+					done();
+				},
+			});
 		});
 	});
 
 	describe('when it succeeds', () => {
 		it('should resolve', done => {
 			expect(promiseDefer.promise.isFulfilled()).to.be.false;
-			promiseDefer.resolve({ message: RESOLVED, done: done() });
-			expect(promiseDefer.promise.isFulfilled()).to.be.true;
+			promiseDefer.resolve({
+				message: RESOLVED,
+				done: () => {
+					expect(promiseDefer.promise.isFulfilled()).to.be.true;
+					done();
+				},
+			});
 		});
 	});
 });
