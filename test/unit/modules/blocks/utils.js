@@ -414,15 +414,15 @@ describe('blocks/utils', () => {
 	});
 
 	describe('loadBlocksData', () => {
-		it('should return error when loadBlocksData fails', done => {
-			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves();
-			loggerStub.error.reset();
+		it('should return error when library.db.blocks.loadBlocksData fails', done => {
+			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(null);
 
-			blocksUtilsModule.loadBlocksData({ id: '1' }, err => {
+			blocksUtilsModule.loadBlocksData({ id: '1' }, (err, blocks) => {
 				expect(loggerStub.error.args[0][0]).to.contains(
-					"TypeError: Cannot read property 'length' of undefined"
+					"TypeError: Cannot read property 'length' of null"
 				);
 				expect(err).to.equal('Blocks#loadBlockData error');
+				expect(blocks).to.be.undefined;
 				done();
 			});
 		});
@@ -430,15 +430,20 @@ describe('blocks/utils', () => {
 		it('should return error when called with both id and lastId', done => {
 			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(['1']);
 
-			blocksUtilsModule.loadBlocksData({ id: '1', lastId: '5' }, err => {
-				expect(err).to.equal('Invalid filter: Received both id and lastId');
-				done();
-			});
+			blocksUtilsModule.loadBlocksData(
+				{ id: '1', lastId: '5' },
+				(err, blocks) => {
+					expect(err).to.equal('Invalid filter: Received both id and lastId');
+					expect(blocks).to.be.undefined;
+					done();
+				}
+			);
 		});
 
 		it('should return empty row when called with invalid id', done => {
-			blocksUtilsModule.loadBlocksData({ id: '1' }, (err, cb) => {
-				expect(cb.length).to.equal(0);
+			blocksUtilsModule.loadBlocksData({ id: '1' }, (err, blocks) => {
+				expect(err).to.be.null;
+				expect(blocks).to.an('array').that.is.empty;
 				done();
 			});
 		});
@@ -446,9 +451,11 @@ describe('blocks/utils', () => {
 		it('should return one row when called with valid id', done => {
 			blocksUtilsModule.loadBlocksData({ id: '13068833527549895884' }, function(
 				err,
-				cb
+				blocks
 			) {
-				expect(cb[0]).to.deep.equal(viewRow_full_blocks_list[0]);
+				expect(err).to.be.null;
+				expect(blocks).to.be.an('array');
+				expect(blocks[0].b_id).to.eql('13068833527549895884');
 				done();
 			});
 		});
