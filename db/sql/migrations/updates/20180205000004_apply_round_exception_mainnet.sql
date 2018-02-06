@@ -44,8 +44,6 @@ DO $$
 			UPDATE rounds_rewards r SET fees = fix.fees, reward = fix.reward
 			FROM (
 				SELECT
-					-- Block height
-					round.height,
 					-- Timestamp of last round's block
 					last.timestamp,
 					-- Calculating real fee reward for delegate:

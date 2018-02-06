@@ -30,7 +30,6 @@ DROP FUNCTION IF EXISTS round_fees_insert();
 
 -- Create table 'rounds_rewards' for storing rewards
 CREATE TABLE IF NOT EXISTS "rounds_rewards"(
-	"height"    INT    NOT NULL,
 	"timestamp" INT    NOT NULL,
 	"fees"      BIGINT NOT NULL,
 	"reward"    BIGINT NOT NULL,
@@ -71,8 +70,6 @@ DO $$
 				last AS (SELECT pk, timestamp FROM round ORDER BY height DESC LIMIT 1)
 			INSERT INTO rounds_rewards
 				SELECT
-					-- Block height
-					round.height,
 					-- Timestamp of last round's block
 					last.timestamp,
 					-- Calculating real fee reward for delegate:
