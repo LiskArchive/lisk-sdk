@@ -286,7 +286,6 @@ class BlocksRepository {
 	 * Insert a block to database.
 	 *
 	 * @param {Object} block - Attributes to be inserted, can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
-	 * @param {Object} block - Attributes to be inserted, can be any of [BlocksRepo's dbFields property]{@link BlocksRepo#dbFields}
 	 * @returns {Promise}
 	 * @todo Add description for the return value
 	 */

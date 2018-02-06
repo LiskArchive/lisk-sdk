@@ -594,7 +594,7 @@ class AccountsRepository {
  * @param {Object} columnSet - Description of the param
  * @param {Array} fields - Description of the param
  * @param {Object} pgp - Description of the param
- * @todo Add a return-tag
+ * @todo Add a returns-tag
  */
 // Generate select SQL based on column set definition and conditions
 function Selects(columnSet, fields, pgp) {
@@ -603,6 +603,11 @@ function Selects(columnSet, fields, pgp) {
 	}
 
 	this.rawType = true;
+	/**
+	 * Description of the function.
+	 *
+	 * @todo Add description of the function and a returns-tag
+	 */
 	this.toPostgres = () => {
 		const selectSQL = 'SELECT $1:raw FROM $2^';
 		const selectClauseWithName = '$1:name$2:raw AS $3:name';

@@ -77,7 +77,6 @@ class TransactionsRepository {
 			cs.insert = cs.insert.merge([{ name: 'recipientId', def: null }]);
 		}
 
-<<<<<<< HEAD
 		this.cs = cs;
 
 		this.transactionsRepoMap = {};

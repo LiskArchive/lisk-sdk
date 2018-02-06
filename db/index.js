@@ -11,34 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 /**
  * @namespace db
- * @property {module:db/index} db
- */
-
-/**
- * @namespace repos
- * @memberof db
- * @see Parent: {@link db}
- */
-
-/**
- * @namespace sql
- * @memberof db
- * @see Parent: {@link db}
- * @property {module:db/sql/index} SQL
- */
-
-/**
- * @namespace accounts
- * @memberof db.repos
- * @see Parent: {@link db.repos}
- */
-
-/**
- * @namespace blocks
- * @memberof db.repos
- * @see Parent: {@link db.repos}
+ * @property {module:db} db
  */
 
 'use strict';
@@ -67,11 +43,12 @@ let initOptions = {
 pgp = pgp(initOptions);
 
 /**
- * @module
+ * @module db
  * @requires bluebird
  * @requires pg-monitor
  * @requires pg-promise
  * @requires db/repos/*
+ * @see Parent: {@link db}
  */
 
 /**

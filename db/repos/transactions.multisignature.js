@@ -56,7 +56,7 @@ function MultiSigTransactionsRepo(db, pgp) {
 /**
  * Save Multisignature transactions.
  *
- * @param {Array.<{id: string, {asset: {multisignature: {min: int, lifetime: int, keysgroup: Array.<string>}}}>} transactions
+ * @param {Array} transactions
  * @return {Promise}
  * @todo Add descriptions for the params and the return value
  */

@@ -16,9 +16,17 @@
 const { link } = require('./config');
 
 /**
+ * @namespace sql
+ * @memberof db
+ * @see Parent: {@link db}
+ * @property {module:db/sql} SQL
+ */
+
+/**
  * Description of the module.
  *
- * @module
+ * @module db/sql
+ * @see Parent: {@link db.sql}
  */
 module.exports = {
 	accounts: {
