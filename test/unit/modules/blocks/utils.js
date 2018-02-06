@@ -61,14 +61,17 @@ describe('blocks/utils', () => {
 					return { id: input.b_id, height: input.b_height };
 				},
 			};
+
 			transactionMock = {
 				dbRead: function(input) {
 					return { id: input.t_id, type: input.t_type };
 				},
 			};
+
 			accountMock = {
 				get: sinonSandbox.stub(),
 			};
+
 			accountMock.get
 				.withArgs(sinonSandbox.match({ address: 'ERRL' }))
 				.callsArgWith(1, 'Address Error Stub', null)
@@ -92,6 +95,7 @@ describe('blocks/utils', () => {
 				modulesLoader.scope.dbSequence,
 				modulesLoader.scope.genesisblock
 			);
+
 			library = BlocksUtils.__get__('library');
 			__private = BlocksUtils.__get__('__private');
 			done();
