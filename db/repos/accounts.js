@@ -238,16 +238,13 @@ class AccountsRepository {
 			conditionObject[field] = data[field];
 		});
 
-		return this.db.tx('db:accounts:upsert', function(t) {
-			return t.accounts
-				.list(conditionObject, ['address'])
-				.then(function(result) {
-					if (result.length) {
-						return t.accounts.update(result[0].address, updateData);
-					} else {
-						return t.accounts.insert(data);
-					}
-				});
+		return this.db.tx('db:accounts:upsert', function*(t) {
+			const result = yield t.accounts.list(conditionObject, ['address']);
+			if (result.length) {
+				yield t.accounts.update(result[0].address, updateData);
+			} else {
+				yield t.accounts.insert(data);
+			}
 		});
 	}
 
@@ -560,7 +557,7 @@ class AccountsRepository {
 	/**
 	 * Convert an account to be non-virgin account
 	 * @param {string} address - Account address
-	 * @return {Promise}
+	 * @return {Promise<null>}
 	 */
 	convertToNonVirgin(address) {
 		return this.db.none(sql.convertToNonVirgin, { address: address });

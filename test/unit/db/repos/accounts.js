@@ -602,7 +602,7 @@ describe('db', () => {
 					var account = accountFixtures.Account();
 
 					return db.accounts.upsert(account, 'address').then(result => {
-						expect(result).to.be.null;
+						expect(result).to.be.undefined;
 					});
 				});
 

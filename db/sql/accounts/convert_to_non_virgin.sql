@@ -14,9 +14,10 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Convert a virgin account to non-virgin state
 
-  PARAMETERS: ?
+  PARAMETERS:
+  	address - Address of the particular account
 */
 
 UPDATE mem_accounts
