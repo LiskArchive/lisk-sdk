@@ -16,10 +16,10 @@
 
 var SortBy = require('../../../helpers/sort_by');
 
-describe('SortBy', function() {
+describe('SortBy', () => {
 	var validSortFieldsArray = ['address', 'balance', 'username', 'publicKey'];
 
-	describe('sortQueryToJsonSqlFormat', function() {
+	describe('sortQueryToJsonSqlFormat', () => {
 		describe('when sortQuery is not a string', () => {
 			it('should return an empty object', () => {
 				expect(
@@ -70,48 +70,48 @@ describe('SortBy', function() {
 		});
 	});
 
-	describe('sortBy', function() {
-		describe('sort', function() {
-			describe('when given as string', function() {
-				it('should return empty object when sort is empty string', function() {
+	describe('sortBy', () => {
+		describe('sort', () => {
+			describe('when given as string', () => {
+				it('should return empty object when sort is empty string', () => {
 					expect(SortBy.sortBy('')).to.eql({ sortField: '', sortMethod: '' });
 				});
 
-				it('should return ASC as default sort type if only key is provided', function() {
+				it('should return ASC as default sort type if only key is provided', () => {
 					expect(SortBy.sortBy('address')).to.eql({
 						sortField: '"address"',
 						sortMethod: 'ASC',
 					});
 				});
 
-				it('should return ASC as default sort type if sort type is missing', function() {
+				it('should return ASC as default sort type if sort type is missing', () => {
 					expect(SortBy.sortBy('address:')).to.eql({
 						sortField: '"address"',
 						sortMethod: 'ASC',
 					});
 				});
 
-				it('should return error if sort key not present in options.sortFields', function() {
+				it('should return error if sort key not present in options.sortFields', () => {
 					expect(
 						SortBy.sortBy('unknownField', { sortFields: validSortFieldsArray })
 					).to.eql({ error: 'Invalid sort field' });
 				});
 
-				it('should return valid sort object if provided with sort:asc', function() {
+				it('should return valid sort object if provided with sort:asc', () => {
 					expect(SortBy.sortBy('address:asc')).to.eql({
 						sortField: '"address"',
 						sortMethod: 'ASC',
 					});
 				});
 
-				it('should return valid sort object if provided with sort:desc', function() {
+				it('should return valid sort object if provided with sort:desc', () => {
 					expect(SortBy.sortBy('address:desc')).to.eql({
 						sortField: '"address"',
 						sortMethod: 'DESC',
 					});
 				});
 
-				it('should return valid sort object with default sort type provided with sort:unknown', function() {
+				it('should return valid sort object with default sort type provided with sort:unknown', () => {
 					expect(SortBy.sortBy('address:unknown')).to.eql({
 						sortField: '"address"',
 						sortMethod: 'ASC',
@@ -119,25 +119,25 @@ describe('SortBy', function() {
 				});
 			});
 
-			describe('when given as object', function() {
-				it('should return object with empty values when sort is empty object', function() {
+			describe('when given as object', () => {
+				it('should return object with empty values when sort is empty object', () => {
 					expect(SortBy.sortBy({})).to.eql({ sortField: '', sortMethod: '' });
 				});
 
-				it('should return valid sort object if a valid object given', function() {
+				it('should return valid sort object if a valid object given', () => {
 					expect(SortBy.sortBy({ address: 1 })).to.eql({
 						sortField: '"address"',
 						sortMethod: 'ASC',
 					});
 				});
 
-				it('should return error when keys are not present in options.sortFields', function() {
+				it('should return error when keys are not present in options.sortFields', () => {
 					expect(
 						SortBy.sortBy({ unkown: 1 }, { sortFields: validSortFieldsArray })
 					).to.eql({ error: 'Invalid sort field' });
 				});
 
-				it('should return object with string values if single key object is given', function() {
+				it('should return object with string values if single key object is given', () => {
 					var result = SortBy.sortBy({ address: 1 });
 
 					expect(result).to.eql({ sortField: '"address"', sortMethod: 'ASC' });
@@ -146,7 +146,7 @@ describe('SortBy', function() {
 					expect(result.sortMethod).to.a('String');
 				});
 
-				it('should return object with array values if multiple keys object is given', function() {
+				it('should return object with array values if multiple keys object is given', () => {
 					var result = SortBy.sortBy({ address: 1, publicKey: -1 });
 
 					expect(result).to.eql({

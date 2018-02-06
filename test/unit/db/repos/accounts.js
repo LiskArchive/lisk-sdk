@@ -139,9 +139,7 @@ describe('db', () => {
 				describe('fields', () => {
 					it('should return all table fields if no field is specified', () => {
 						return db.accounts.list().then(data => {
-							var columnNames = _.map(db.accounts.cs.select.columns, function(
-								column
-							) {
+							var columnNames = _.map(db.accounts.cs.select.columns, column => {
 								return column.prop || column.name;
 							});
 
@@ -684,9 +682,7 @@ describe('db', () => {
 
 										var immutableFields = db.accounts.getImmutableFields();
 
-										Object.keys(_.omit(result[0], 'rank')).forEach(function(
-											field
-										) {
+										Object.keys(_.omit(result[0], 'rank')).forEach(field => {
 											if (immutableFields.indexOf(field) !== -1) {
 												// If it's an immutable field
 												expect(result[0][field], field).to.eql(
@@ -723,9 +719,7 @@ describe('db', () => {
 
 									var immutableFields = db.accounts.getImmutableFields();
 
-									Object.keys(_.omit(result[0], 'rank')).forEach(function(
-										field
-									) {
+									Object.keys(_.omit(result[0], 'rank')).forEach(field => {
 										if (immutableFields.indexOf(field) !== -1) {
 											// If it's an immutable field
 											expect(result[0][field], field).to.eql(

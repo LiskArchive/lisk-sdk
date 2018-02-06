@@ -53,10 +53,10 @@ describe('GET /api/node', () => {
 				}
 
 				// TODO: Fix transaction posting logic, so multiple transactions posted by API should not bundled
-				return Promise.map(transactionList, function(transaction) {
+				return Promise.map(transactionList, transaction => {
 					return sendTransactionPromise(transaction);
-				}).then(function(responses) {
-					responses.map(function(res) {
+				}).then(responses => {
+					responses.map(res => {
 						expect(res.body.data.message).to.be.equal(
 							'Transaction(s) accepted'
 						);
@@ -179,7 +179,7 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(function(transaction) {
+						res.body.data.map(transaction => {
 							expect(transaction.type).to.be.equal(transactionInCheck.type);
 						});
 					});
@@ -203,7 +203,7 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(function(transaction) {
+						res.body.data.map(transaction => {
 							expect(transaction.senderId).to.be.equal(
 								accountFixtures.genesis.address
 							);
@@ -238,7 +238,7 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(function(transaction) {
+						res.body.data.map(transaction => {
 							expect(transaction.senderPublicKey).to.be.equal(
 								accountFixtures.genesis.publicKey
 							);
@@ -276,7 +276,7 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(function(transaction) {
+						res.body.data.map(transaction => {
 							expect(transaction.recipientId).to.be.equal(account.address);
 						});
 					});
@@ -309,7 +309,7 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(function(transaction) {
+						res.body.data.map(transaction => {
 							// TODO: Unprocessed transactions don't have recipientPublicKey attribute, so matched address
 							expect(transaction.recipientId).to.be.equal(account.address);
 						});

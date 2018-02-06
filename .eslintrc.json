@@ -45,7 +45,6 @@
 		"no-useless-escape": "off",
 		"no-var": "off",
 		"object-shorthand": ["error", "always", { "ignoreConstructors": true }],
-		"prefer-arrow-callback": "off",
 		"prefer-destructuring": "off",
 		"prefer-rest-params": "off",
 		"radix": "off",

@@ -59,40 +59,40 @@ function WSClient(headers, handlers) {
 WSClient.prototype.start = function() {
 	var self = this;
 
-	return new Promise(function(resolve, reject) {
+	return new Promise((resolve, reject) => {
 		self.client = scClient.connect(self.socketOptions);
 
-		self.client.on('connecting', function() {
+		self.client.on('connecting', () => {
 			console.log('Client Socket: Connecting...');
 		});
 
-		self.client.on('connect', function(data) {
+		self.client.on('connect', data => {
 			self.id = data.id;
 			console.log('Client Socket: Connected... id: ', self.id);
 			resolve(data);
 		});
 
-		self.client.on('close', function() {
+		self.client.on('close', () => {
 			reject();
 		});
 
-		self.client.on('error', function() {
+		self.client.on('error', () => {
 			reject();
 		});
 
-		self.client.on('disconnect', function() {
+		self.client.on('disconnect', () => {
 			self.stop();
 		});
 
-		self.client.on('connectAbort', function() {
+		self.client.on('connectAbort', () => {
 			self.stop();
 		});
 
-		self.client.on('fail', function() {
+		self.client.on('fail', () => {
 			self.stop();
 		});
 
-		Object.keys(self.getHandlers()).forEach(function(k) {
+		Object.keys(self.getHandlers()).forEach(k => {
 			self.client.on(k, self.getHandlers()[k]);
 		});
 

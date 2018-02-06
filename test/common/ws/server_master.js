@@ -48,7 +48,7 @@ function WSServerMaster() {
 WSServerMaster.prototype.start = function() {
 	var self = this;
 
-	return new Promise(function(resolve, reject) {
+	return new Promise((resolve, reject) => {
 		self.masterProcess = ChildProcess.fork(
 			path.join(__dirname, 'server_process.js'),
 			[JSON.stringify(self.headers)],

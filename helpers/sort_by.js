@@ -66,7 +66,7 @@ function sortBy(sort, options) {
 		}
 		var sortFields = [];
 		var sortMethods = [];
-		keys.forEach(function(key) {
+		keys.forEach(key => {
 			var sortResult = self.sortBy(
 				`${key}:${sort[key] === -1 ? 'desc' : 'asc'}`,
 				options

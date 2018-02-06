@@ -403,10 +403,7 @@ Utils.prototype.getBlockProgressLogger = function(
 Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 	var params = {};
 
-	library.logic.account.get({ address: filter.address }, function(
-		err,
-		account
-	) {
+	library.logic.account.get({ address: filter.address }, (err, account) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -431,7 +428,7 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		// Get calculated rewards
 		library.db.blocks
 			.aggregateBlocksReward(params)
-			.then(function(rows) {
+			.then(rows => {
 				var data = rows[0];
 				if (data.delegate === null) {
 					return setImmediate(cb, 'Account is not a delegate');
@@ -443,7 +440,7 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 				};
 				return setImmediate(cb, null, data);
 			})
-			.catch(function(err) {
+			.catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
 			});

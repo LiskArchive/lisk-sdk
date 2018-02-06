@@ -14,6 +14,6 @@
 
 'use strict';
 
-before(function(done) {
+before(done => {
 	require('../common/utils/wait_for').blockchainReady(done);
 });

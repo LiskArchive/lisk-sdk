@@ -245,20 +245,18 @@ class AccountsRepository {
 			});
 		}
 		const conditionObject = {};
-		conflictingFields.forEach(function(field) {
+		conflictingFields.forEach(field => {
 			conditionObject[field] = data[field];
 		});
 
-		return this.db.tx('db:accounts:upsert', function(t) {
-			return t.accounts
-				.list(conditionObject, ['address'])
-				.then(function(result) {
-					if (result.length) {
-						return t.accounts.update(result[0].address, updateData);
-					}
-					return t.accounts.insert(data);
-				});
-		});
+		return this.db.tx('db:accounts:upsert', t =>
+			t.accounts.list(conditionObject, ['address']).then(result => {
+				if (result.length) {
+					return t.accounts.update(result[0].address, updateData);
+				}
+				return t.accounts.insert(data);
+			})
+		);
 	}
 
 	/**
@@ -445,9 +443,9 @@ class AccountsRepository {
 
 		if (filters) {
 			const filterKeys = Object.keys(filters);
-			const filteredColumns = this.cs.insert.columns.filter(function(column) {
-				return filterKeys.indexOf(column.name) >= 0;
-			});
+			const filteredColumns = this.cs.insert.columns.filter(
+				column => filterKeys.indexOf(column.name) >= 0
+			);
 
 			// TODO: Improve this logic to convert set statement to composite logic
 			conditions = pgp.helpers

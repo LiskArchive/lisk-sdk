@@ -234,10 +234,7 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 	async.series(
 		{
 			getAccount(seriesCb) {
-				library.logic.account.getMultiSignature({ address }, function(
-					err,
-					account
-				) {
+				library.logic.account.getMultiSignature({ address }, (err, account) => {
 					if (err) {
 						return setImmediate(seriesCb, err);
 					}
@@ -279,8 +276,8 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 						modules.accounts.getAccounts(
 							{ address: addresses },
 							['address', 'publicKey', 'secondPublicKey'],
-							function(err, accounts) {
-								accounts.forEach(function(account) {
+							(err, accounts) => {
+								accounts.forEach(account => {
 									scope.group.members.push({
 										address: account.address,
 										publicKey: account.publicKey,

@@ -49,7 +49,7 @@ describe('GET /api/accounts', () => {
 					.to.equal(200);
 
 				var signatures = [];
-				scenario.members.map(function(member) {
+				scenario.members.map(member => {
 					return signatures.push(
 						apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,

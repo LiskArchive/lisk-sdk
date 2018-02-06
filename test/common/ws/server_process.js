@@ -56,14 +56,14 @@ WSServer.prototype.start = function() {
 		nonce: self.headers.nonce,
 	};
 
-	return new Promise(function(resolve, reject) {
+	return new Promise((resolve, reject) => {
 		if (self.socketCluster) {
 			reject(new Error('SocketCluster instance is already running'));
 		}
 
 		self.socketCluster = new SocketCluster(self.options);
 
-		self.socketCluster.on('ready', function() {
+		self.socketCluster.on('ready', () => {
 			self.socketClient = new WSClient(self.options.headers);
 			self.rpcServer = new MasterWAMPServer(
 				self.socketCluster,
@@ -96,12 +96,12 @@ WSServer.prototype.start = function() {
 			self.socketClient.start().then(resolve);
 		});
 
-		self.socketCluster.on('fail', function() {
+		self.socketCluster.on('fail', () => {
 			self.stop();
 			reject();
 		});
 
-		self.socketCluster.on('error', function() {
+		self.socketCluster.on('error', () => {
 			self.stop();
 		});
 	});
@@ -120,20 +120,20 @@ var server = new WSServer(JSON.parse(process.argv[2]));
 
 server
 	.start()
-	.then(function() {
+	.then(() => {
 		if (process.send) {
 			process.send('ready');
 		}
 	})
-	.catch(function(err) {
+	.catch(err => {
 		console.log('Error starting WS server', err);
 		server.stop();
 	});
 
-process.on('close', function() {
+process.on('close', () => {
 	server.stop();
 });
 
-process.on('exit', function() {
+process.on('exit', () => {
 	server.stop();
 });

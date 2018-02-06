@@ -29,7 +29,7 @@ describe('system test (type 0) - double transfers', () => {
 	var i = 0;
 	var t = 0;
 	while (i < 1) {
-		describe('executing 30 times', function() {
+		describe('executing 30 times', () => {
 			var account = randomUtil.account();
 			var transaction = lisk.transaction.createTransaction(
 				account.address,

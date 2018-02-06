@@ -133,7 +133,7 @@ DelegatesController.getForgingStatistics = function(context, next) {
 		end: params.toTimestamp.value || Date.now(),
 	};
 
-	modules.blocks.utils.aggregateBlocksReward(filters, function(err, reward) {
+	modules.blocks.utils.aggregateBlocksReward(filters, (err, reward) => {
 		if (err) {
 			if (err === 'Account not found' || err === 'Account is not a delegate') {
 				return next(

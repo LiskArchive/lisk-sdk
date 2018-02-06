@@ -280,12 +280,10 @@ function Account(db, schema, logger, cb) {
 		},
 	];
 
-	this.computedFields = this.model.filter(function(field) {
-		return field.computedField;
-	});
+	this.computedFields = this.model.filter(field => field.computedField);
 
 	// Obtains fields from model
-	this.fields = this.model.map(function(field) {
+	this.fields = this.model.map(field => {
 		var _tmp = {};
 
 		if (field.expression) {
@@ -307,31 +305,25 @@ function Account(db, schema, logger, cb) {
 
 	// Obtains bynary fields from model
 	this.binary = [];
-	this.model.forEach(
-		function(field) {
-			if (field.type === 'Binary') {
-				this.binary.push(field.name);
-			}
-		}.bind(this)
-	);
+	this.model.forEach(field => {
+		if (field.type === 'Binary') {
+			this.binary.push(field.name);
+		}
+	});
 
 	// Obtains conv from model
 	this.conv = {};
-	this.model.forEach(
-		function(field) {
-			this.conv[field.name] = field.conv;
-		}.bind(this)
-	);
+	this.model.forEach(field => {
+		this.conv[field.name] = field.conv;
+	});
 
 	// Obtains editable fields from model
 	this.editable = [];
-	this.model.forEach(
-		function(field) {
-			if (!field.immutable) {
-				this.editable.push(field.name);
-			}
-		}.bind(this)
-	);
+	this.model.forEach(field => {
+		if (!field.immutable) {
+			this.editable.push(field.name);
+		}
+	});
 
 	return setImmediate(cb, null, this);
 }
@@ -543,10 +535,8 @@ Account.prototype.bind = function(blocks) {
 Account.prototype.resetMemTables = function(cb) {
 	this.scope.db.accounts
 		.resetMemTables()
-		.then(function() {
-			return setImmediate(cb);
-		})
-		.catch(function(err) {
+		.then(() => setImmediate(cb))
+		.catch(err => {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Account#resetMemTables error');
 		});
@@ -564,7 +554,7 @@ Account.prototype.objectNormalize = function(account) {
 	if (!report) {
 		throw `Failed to validate account schema: ${this.scope.schema
 			.getLastErrors()
-			.map(function(err) {
+			.map(err => {
 				var path = err.path.replace('#/', '').trim();
 				return [path, ': ', err.message, ' (', account[path], ')'].join('');
 			})
@@ -602,7 +592,7 @@ Account.prototype.verifyPublicKey = function(publicKey) {
  * @returns {Object} Normalized address.
  */
 Account.prototype.toDB = function(raw) {
-	this.binary.forEach(function(field) {
+	this.binary.forEach(field => {
 		if (raw[field]) {
 			raw[field] = Buffer.from(raw[field], 'hex');
 		}
@@ -650,9 +640,7 @@ Account.prototype.get = function(filter, fields, cb, tx) {
 	this.getAll(
 		filter,
 		fields,
-		function(err, data) {
-			return setImmediate(cb, err, data && data.length ? data[0] : null);
-		},
+		(err, data) => setImmediate(cb, err, data && data.length ? data[0] : null),
 		tx
 	);
 };
@@ -684,7 +672,7 @@ Account.prototype.getAll = function(filter, fields, cb, tx) {
 	var fieldsAddedForComputation = [];
 	var performComputationFor = [];
 
-	Object.keys(computedFields).forEach(function(computedField) {
+	Object.keys(computedFields).forEach(computedField => {
 		if (fields.indexOf(computedField) !== -1) {
 			// Add computed field to list to process later
 			performComputationFor.push(computedField);
@@ -742,7 +730,7 @@ Account.prototype.getAll = function(filter, fields, cb, tx) {
 			sortField: sort.sortField,
 			sortMethod: sort.sortMethod,
 		})
-		.then(function(rows) {
+		.then(rows => {
 			var lastBlock = modules.blocks.lastBlock.get();
 			// If the last block height is undefined, it means it's a genesis block with height = 1
 			// look for a constant for total supply
@@ -751,7 +739,7 @@ Account.prototype.getAll = function(filter, fields, cb, tx) {
 				: 0;
 
 			if (performComputationFor.indexOf('approval') !== -1) {
-				rows.forEach(function(accountRow) {
+				rows.forEach(accountRow => {
 					accountRow.approval = self.calculateApproval(
 						accountRow.vote,
 						totalSupply
@@ -760,7 +748,7 @@ Account.prototype.getAll = function(filter, fields, cb, tx) {
 			}
 
 			if (performComputationFor.indexOf('productivity') !== -1) {
-				rows.forEach(function(accountRow) {
+				rows.forEach(accountRow => {
 					accountRow.productivity = self.calculateProductivity(
 						accountRow.producedBlocks,
 						accountRow.missedBlocks
@@ -770,8 +758,8 @@ Account.prototype.getAll = function(filter, fields, cb, tx) {
 
 			if (fieldsAddedForComputation.length > 0) {
 				// Remove the fields which were only added for computation
-				rows.forEach(function(accountRow) {
-					fieldsAddedForComputation.forEach(function(field) {
+				rows.forEach(accountRow => {
+					fieldsAddedForComputation.forEach(field => {
 						delete accountRow[field];
 					});
 				});
@@ -779,7 +767,7 @@ Account.prototype.getAll = function(filter, fields, cb, tx) {
 
 			return setImmediate(cb, null, rows);
 		})
-		.catch(function(err) {
+		.catch(err => {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Account#getAll error');
 		});
@@ -837,10 +825,8 @@ Account.prototype.set = function(address, fields, cb, tx) {
 
 	(tx || this.scope.db).accounts
 		.upsert(fields, ['address'])
-		.then(function() {
-			return setImmediate(cb);
-		})
-		.catch(function(err) {
+		.then(() => setImmediate(cb))
+		.catch(err => {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Account#set error');
 		});
@@ -870,10 +856,10 @@ Account.prototype.merge = function(address, diff, cb, tx) {
 
 	// Loop through each of updated attribute
 	(tx || self.scope.db)
-		.tx('logic:account:merge', function(dbTx) {
+		.tx('logic:account:merge', dbTx => {
 			var promises = [];
 
-			Object.keys(diff).forEach(function(updatedField) {
+			Object.keys(diff).forEach(updatedField => {
 				// Return if updated field is not editable
 				if (self.editable.indexOf(updatedField) === -1) {
 					return;
@@ -940,7 +926,7 @@ Account.prototype.merge = function(address, diff, cb, tx) {
 					case Array:
 						// If we received update as array of strings
 						if (_.isString(updatedValue[0])) {
-							updatedValue.forEach(function(updatedValueItem) {
+							updatedValue.forEach(updatedValueItem => {
 								// Fetch first character
 								var mode = updatedValueItem[0];
 								var dependentId = '';
@@ -993,10 +979,8 @@ Account.prototype.merge = function(address, diff, cb, tx) {
 			// Run all db operations in a batch
 			return dbTx.batch(promises);
 		})
-		.then(function() {
-			return self.get({ address }, cb, tx);
-		})
-		.catch(function(err) {
+		.then(() => self.get({ address }, cb, tx))
+		.catch(err => {
 			library.logger.error(err.stack);
 			return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');
 		});
@@ -1011,10 +995,8 @@ Account.prototype.merge = function(address, diff, cb, tx) {
 Account.prototype.remove = function(address, cb) {
 	this.scope.db.accounts
 		.remove(address)
-		.then(function() {
-			return setImmediate(cb, null, address);
-		})
-		.catch(function(err) {
+		.then(() => setImmediate(cb, null, address))
+		.catch(err => {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Account#remove error');
 		});

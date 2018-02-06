@@ -60,8 +60,8 @@ var shouldReturnTrueForEmptyStringValues = function() {
 	});
 };
 
-describe('schema - custom formats', function() {
-	describe('id', function() {
+describe('schema - custom formats', () => {
+	describe('id', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'id',
@@ -92,7 +92,7 @@ describe('schema - custom formats', function() {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('additionalData', function() {
+	describe('additionalData', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'additionalData',
@@ -127,7 +127,7 @@ describe('schema - custom formats', function() {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('address', function() {
+	describe('address', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'address',
@@ -162,7 +162,7 @@ describe('schema - custom formats', function() {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('username', function() {
+	describe('username', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'username',
@@ -183,7 +183,7 @@ describe('schema - custom formats', function() {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('hex', function() {
+	describe('hex', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'hex',
@@ -204,7 +204,7 @@ describe('schema - custom formats', function() {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('publicKey', function() {
+	describe('publicKey', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'publicKey',
@@ -243,7 +243,7 @@ describe('schema - custom formats', function() {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('csv', function() {
+	describe('csv', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'csv',
@@ -268,7 +268,7 @@ describe('schema - custom formats', function() {
 		shouldReturnFalseForEmptyNonStringValues();
 	});
 
-	describe('signature', function() {
+	describe('signature', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'signature',
@@ -307,7 +307,7 @@ describe('schema - custom formats', function() {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('queryList', function() {
+	describe('queryList', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'queryList',
@@ -328,7 +328,7 @@ describe('schema - custom formats', function() {
 		});
 	});
 
-	describe('delegatesList', function() {
+	describe('delegatesList', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'delegatesList',
@@ -349,7 +349,7 @@ describe('schema - custom formats', function() {
 		});
 	});
 
-	describe('parsedInt', function() {
+	describe('parsedInt', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'parsedInt',
@@ -375,7 +375,7 @@ describe('schema - custom formats', function() {
 		shouldReturnFalseForEmptyNonStringValues();
 	});
 
-	describe('os', function() {
+	describe('os', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'os',
@@ -396,7 +396,7 @@ describe('schema - custom formats', function() {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('version', function() {
+	describe('version', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'version',
@@ -423,7 +423,7 @@ describe('schema - custom formats', function() {
 		shouldReturnTrueForEmptyStringValues();
 	});
 
-	describe('ipOrFQDN', function() {
+	describe('ipOrFQDN', () => {
 		beforeEach(function() {
 			this.schema = {
 				format: 'ipOrFQDN',
