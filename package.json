@@ -32,7 +32,6 @@
 		"test": "./node_modules/.bin/grunt",
 		"grunt": "./node_modules/.bin/grunt",
 		"mocha": "./node_modules/.bin/mocha",
-		"build": "webpack",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
 		"docs:serve": "./node_modules/.bin/http-server docs/jsdoc/",
 		"precommit": "lint-staged && npm run lint",
@@ -105,10 +104,7 @@
 		"eslint-plugin-mocha": "=4.11.0",
 		"faker": "=4.1.0",
 		"grunt": "=1.0.1",
-		"grunt-cli": "=1.2.0",
-		"grunt-contrib-compress": "=1.4.3",
 		"grunt-exec": "=2.0.0",
-		"grunt-obfuscator": "=0.1.0",
 		"http-server": "=0.11.1",
 		"husky": "=0.14.3",
 		"istanbul": "=0.4.5",
@@ -124,8 +120,7 @@
 		"rewire": "=2.5.2",
 		"sinon": "=3.2.1",
 		"sinon-chai": "=2.14.0",
-		"supertest": "=3.0.0",
-		"webpack": "=2.6.1",
-		"webpack-node-externals": "=1.6.0"
+		"stampit": "=4.0.2",
+		"supertest": "=3.0.0"
 	}
 }
