@@ -96,7 +96,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			});
 	});
 
-	describe('schema validations', () => {
+	describe.skip('schema validations', () => {
 		common.invalidAssets('inTransfer', badTransactions);
 
 		describe('dappId', () => {
@@ -283,7 +283,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 		});
 	});
 
-	describe('transactions processing', () => {
+	describe.skip('transactions processing', () => {
 		it('using unknown dapp id should fail', () => {
 			var unknownDappId = '1';
 			transaction = lisk.transfer.createInTransfer(
@@ -387,11 +387,11 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 		});
 	});
 
-	describe('confirmation', () => {
+	describe.skip('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 
-	describe.only('check frozen type', () => {
+	describe('check frozen type', () => {
 		it('transaction should be rejected', () => {
 			transaction = lisk.transfer.createInTransfer(
 				randomUtil.guestbookDapp.id,

@@ -56,6 +56,9 @@ module.exports = {
 				'--exit',
 				'--require',
 				'./test/setup.js',
+				'--grep',
+				'@slow|@unstable',
+				'--invert',
 			].concat(testsPaths),
 			{
 				cwd: `${__dirname}/../../..`,

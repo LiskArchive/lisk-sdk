@@ -115,7 +115,6 @@ var constants = {
 	],
 	numberLength: 100000000,
 	requestLength: 104,
-	// WARNING: When changing rewards you also need to change getBlockRewards(int) SQL function!
 	rewards: {
 		milestones: [
 			500000000, // Initial Reward
