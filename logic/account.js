@@ -674,71 +674,53 @@ Account.prototype.model = [
 		type: 'String',
 		conv: String,
 		immutable: true,
-		expression: 'UPPER(a.address)',
 	},
 	{
 		name: 'publicKey',
 		type: 'Binary',
 		conv: String,
 		immutable: true,
-		expression: 'ENCODE("publicKey", \'hex\')',
 	},
 	{
 		name: 'secondPublicKey',
 		type: 'Binary',
 		conv: String,
 		immutable: true,
-		expression: 'ENCODE("secondPublicKey", \'hex\')',
 	},
 	{
 		name: 'balance',
 		type: 'BigInt',
 		conv: Number,
-		expression: '("balance")::bigint',
 	},
 	{
 		name: 'u_balance',
 		type: 'BigInt',
 		conv: Number,
-		expression: '("u_balance")::bigint',
 	},
 	{
 		name: 'rate',
 		type: 'BigInt',
 		conv: Number,
-		expression: '("rate")::bigint',
 	},
 	{
 		name: 'delegates',
 		type: 'Text',
 		conv: Array,
-		expression: `(SELECT ARRAY_AGG("dependentId") FROM ${
-			this.table
-		}2delegates WHERE "accountId" = a."address")`,
 	},
 	{
 		name: 'u_delegates',
 		type: 'Text',
 		conv: Array,
-		expression: `(SELECT ARRAY_AGG("dependentId") FROM ${
-			this.table
-		}2u_delegates WHERE "accountId" = a."address")`,
 	},
 	{
 		name: 'multisignatures',
 		type: 'Text',
 		conv: Array,
-		expression: `(SELECT ARRAY_AGG("dependentId") FROM ${
-			this.table
-		}2multisignatures WHERE "accountId" = a."address")`,
 	},
 	{
 		name: 'u_multisignatures',
 		type: 'Text',
 		conv: Array,
-		expression: `(SELECT ARRAY_AGG("dependentId") FROM ${
-			this.table
-		}2u_multisignatures WHERE "accountId" = a."address")`,
 	},
 	{
 		name: 'multimin',
@@ -779,38 +761,31 @@ Account.prototype.model = [
 		name: 'fees',
 		type: 'BigInt',
 		conv: Number,
-		expression: '(a."fees")::bigint',
 	},
 	{
 		name: 'rank',
 		type: 'BigInt',
 		conv: Number,
-		expression:
-			'(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = a."address")::int',
 	},
 	{
 		name: 'rewards',
 		type: 'BigInt',
 		conv: Number,
-		expression: '(a."rewards")::bigint',
 	},
 	{
 		name: 'vote',
 		type: 'BigInt',
 		conv: Number,
-		expression: '(a."vote")::bigint',
 	},
 	{
 		name: 'producedBlocks',
 		type: 'BigInt',
 		conv: Number,
-		expression: '(a."producedblocks")::bigint',
 	},
 	{
 		name: 'missedBlocks',
 		type: 'BigInt',
 		conv: Number,
-		expression: '(a."missedblocks")::bigint',
 	},
 	{
 		name: 'virgin',
