@@ -28,14 +28,17 @@ var __private = {};
 
 /**
  * Main account logic.
- * @memberof module:accounts
+ *
  * @class
- * @classdesc Main account logic.
+ * @memberof logic
  * @param {Database} db
  * @param {ZSchema} schema
  * @param {Object} logger
  * @param {function} cb - Callback function.
- * @return {setImmediateCallback} With `this` as data.
+ * @property {account_model} model
+ * @property {account_schema} schema
+ * @returns {setImmediateCallback} With `this` as data.
+ * @todo Add description of the params
  */
 function Account(db, schema, logger, cb) {
 	this.scope = {
@@ -52,7 +55,7 @@ function Account(db, schema, logger, cb) {
 
 	this.table = 'mem_accounts';
 	/**
-	 * @typedef {Object} account
+	 * @typedef {Object} account_model
 	 * @property {string} username - Lowercase, between 1 and 20 chars.
 	 * @property {boolean} isDelegate
 	 * @property {boolean} u_isDelegate
@@ -335,6 +338,107 @@ function Account(db, schema, logger, cb) {
 	return setImmediate(cb, null, this);
 }
 
+/**
+ * @typedef {Object} account_schema
+ * @property {string} id - Description of the value
+ * @property {string} type - Description of the value
+ * @property {Object} properties - Description of the value
+ * @property {Object} properties.username - Description of the value
+ * @property {string} properties.username.type - Description of the value
+ * @property {string} properties.username.format - Description of the value
+ * @property {Object} properties.isDelegate - Description of the value
+ * @property {string} properties.isDelegate.type - Description of the value
+ * @property {number} properties.isDelegate.maximum - Description of the value
+ * @property {Object} properties.u_isDelegate - Description of the value
+ * @property {string} properties.u_isDelegate.type - Description of the value
+ * @property {number} properties.u_isDelegate.maximum - Description of the value
+ * @property {Object} properties.secondSignature - Description of the value
+ * @property {string} properties.secondSignature.type - Description of the value
+ * @property {number} properties.secondSignature.maximum - Description of the value
+ * @property {Object} properties.u_secondSignature - Description of the value
+ * @property {string} properties.u_secondSignature.type - Description of the value
+ * @property {number} properties.u_secondSignature.maximum - Description of the value
+ * @property {Object} properties.u_username - Description of the value
+ * @property {Array} properties.u_username.anyOf - Description of the value
+ * @property {Object} properties.u_username.anyOf[0] - Description of the value
+ * @property {string} properties.u_username.anyOf[0].type - Description of the value
+ * @property {string} properties.u_username.anyOf[0].format - Description of the value
+ * @property {Object} properties.u_username.anyOf[1] - Description of the value
+ * @property {string} properties.u_username.anyOf[1].type - Description of the value
+ * @property {Object} properties.secondPublicKey - Description of the value
+ * @property {Array} properties.secondPublicKey.anyOf - Description of the value
+ * @property {Object} properties.secondPublicKey.anyOf[0] - Description of the value
+ * @property {string} properties.secondPublicKey.anyOf[0].type - Description of the value
+ * @property {string} properties.secondPublicKey.anyOf[0].format - Description of the value
+ * @property {Object} properties.secondPublicKey.anyOf[1] - Description of the value
+ * @property {string} properties.secondPublicKey.anyOf[1].type - Description of the value
+ * @property {Object} properties.address - Description of the value
+ * @property {string} properties.address.type - Description of the value
+ * @property {string} properties.address.format - Description of the value
+ * @property {number} properties.address.minLength - Description of the value
+ * @property {number} properties.address.maxLength - Description of the value
+ * @property {Object} properties.publicKey - Description of the value
+ * @property {string} properties.publicKey.type - Description of the value
+ * @property {string} properties.publicKey.format - Description of the value
+ * @property {Object} properties.balance - Description of the value
+ * @property {string} properties.balance.type - Description of the value
+ * @property {number} properties.balance.minimum - Description of the value
+ * @property {number} properties.balance.maximum - Description of the value
+ * @property {Object} properties.u_balance - Description of the value
+ * @property {string} properties.u_balance.type - Description of the value
+ * @property {number} properties.u_balance.minimum - Description of the value
+ * @property {number} properties.u_balance.maximum - Description of the value
+ * @property {Object} properties.rate - Description of the value
+ * @property {string} properties.rate.type - Description of the value
+ * @property {Object} properties.multimin - Description of the value
+ * @property {string} properties.multimin.type - Description of the value
+ * @property {number} properties.multimin.minimum - Description of the value
+ * @property {number} properties.multimin.maximum - Description of the value
+ * @property {Object} properties.u_multimin - Description of the value
+ * @property {string} properties.u_multimin.type - Description of the value
+ * @property {number} properties.u_multimin.minimum - Description of the value
+ * @property {number} properties.u_multimin.maximum - Description of the value
+ * @property {Object} properties.multilifetime - Description of the value
+ * @property {string} properties.multilifetime.type - Description of the value
+ * @property {number} properties.multilifetime.minimum - Description of the value
+ * @property {number} properties.multilifetime.maximum - Description of the value
+ * @property {Object} properties.u_multilifetime - Description of the value
+ * @property {string} properties.u_multilifetime.type - Description of the value
+ * @property {number} properties.u_multilifetime.minimum - Description of the value
+ * @property {number} properties.u_multilifetime.maximum - Description of the value
+ * @property {Object} properties.blockId - Description of the value
+ * @property {string} properties.blockId.type - Description of the value
+ * @property {string} properties.blockId.format - Description of the value
+ * @property {number} properties.blockId.minLength - Description of the value
+ * @property {number} properties.blockId.maxLength - Description of the value
+ * @property {Object} properties.nameexist - Description of the value
+ * @property {string} properties.nameexist.type - Description of the value
+ * @property {number} properties.nameexist.maximum - Description of the value
+ * @property {Object} properties.u_nameexist - Description of the value
+ * @property {string} properties.u_nameexist.type - Description of the value
+ * @property {number} properties.u_nameexist.maximum - Description of the value
+ * @property {Object} properties.fees - Description of the value
+ * @property {string} properties.fees.type - Description of the value
+ * @property {number} properties.fees.minimum - Description of the value
+ * @property {Object} properties.rank - Description of the value
+ * @property {number} properties.rank.type - Description of the value
+ * @property {Object} properties.rewards - Description of the value
+ * @property {string} properties.rewards.type - Description of the value
+ * @property {number} properties.rewards.minimum - Description of the value
+ * @property {Object} properties.vote - Description of the value
+ * @property {number} properties.vote.type - Description of the value
+ * @property {Object} properties.producedBlocks - Description of the value
+ * @property {number} properties.producedBlocks.type - Description of the value
+ * @property {Object} properties.missedBlocks - Description of the value
+ * @property {number} properties.missedBlocks.type - Description of the value
+ * @property {Object} properties.virgin - Description of the value
+ * @property {string} properties.virgin.type - Description of the value
+ * @property {number} properties.virgin.maximum - Description of the value
+ * @property {Object} properties.approval - Description of the value
+ * @property {number} properties.approval.type - Description of the value
+ * @property {Object} properties.productivity - Description of the value
+ * @property {number} properties.productivity.type - Description of the value
+ */
 Account.prototype.schema = {
 	id: 'Account',
 	type: 'object',
@@ -521,7 +625,9 @@ Account.prototype.schema = {
 // Public methods
 /**
  * Binds input parameters to private variables modules.
+ *
  * @param {Blocks} blocks
+ * @todo Add description of the param
  */
 Account.prototype.bind = function(blocks) {
 	modules = {
@@ -536,8 +642,9 @@ Account.prototype.bind = function(blocks) {
  * - mem_accounts2u_delegates
  * - mem_accounts2multisignatures
  * - mem_accounts2u_multisignatures
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb|error.
+ *
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb|error
  */
 Account.prototype.resetMemTables = function(cb) {
 	this.scope.db.accounts
@@ -553,9 +660,11 @@ Account.prototype.resetMemTables = function(cb) {
 
 /**
  * Validates account schema.
+ *
  * @param {account} account
  * @returns {err|account} Error message or input parameter account.
  * @throws {string} If schema.validate fails, throws 'Failed to validate account schema'.
+ * @todo Add description of the param
  */
 Account.prototype.objectNormalize = function(account) {
 	var report = this.scope.schema.validate(account, Account.prototype.schema);
@@ -575,8 +684,10 @@ Account.prototype.objectNormalize = function(account) {
 
 /**
  * Checks type, lenght and format from publicKey.
+ *
  * @param {publicKey} publicKey
- * @throws {string} throws one error for every check.
+ * @throws {string} throws one error for every check
+ * @todo Add description of the param
  */
 Account.prototype.verifyPublicKey = function(publicKey) {
 	if (publicKey !== undefined) {
@@ -597,8 +708,9 @@ Account.prototype.verifyPublicKey = function(publicKey) {
 
 /**
  * Normalizes address and creates binary buffers to insert.
- * @param {Object} raw - with address and public key.
- * @returns {Object} Normalized address.
+ *
+ * @param {Object} raw - with address and public key
+ * @returns {Object} Normalized address
  */
 Account.prototype.toDB = function(raw) {
 	this.binary.forEach(function(field) {
@@ -615,10 +727,11 @@ Account.prototype.toDB = function(raw) {
 
 /**
  * Gets Multisignature account information for specified fields and filter criteria.
- * @param {Object} filter - Contains address.
- * @param {Object|function} fields - Table fields.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} Returns null or Object with database data.
+ *
+ * @param {Object} filter - Contains address
+ * @param {Object|function} fields - Table fields
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} Returns null or Object with database data
  */
 Account.prototype.getMultiSignature = function(filter, fields, cb, tx) {
 	if (typeof fields === 'function') {
@@ -634,10 +747,11 @@ Account.prototype.getMultiSignature = function(filter, fields, cb, tx) {
 
 /**
  * Gets account information for specified fields and filter criteria.
- * @param {Object} filter - Contains address.
- * @param {Object|function} fields - Table fields.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} Returns null or Object with database data.
+ *
+ * @param {Object} filter - Contains address
+ * @param {Object|function} fields - Table fields
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} Returns null or Object with database data
  */
 Account.prototype.get = function(filter, fields, cb, tx) {
 	if (typeof fields === 'function') {
@@ -658,10 +772,11 @@ Account.prototype.get = function(filter, fields, cb, tx) {
 
 /**
  * Gets accounts information from mem_accounts.
- * @param {Object} filter - Contains address.
- * @param {Object|function} fields - Table fields.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
+ *
+ * @param {Object} filter - Contains address
+ * @param {Object|function} fields - Table fields
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} data with rows | 'Account#getAll error'
  */
 Account.prototype.getAll = function(filter, fields, cb, tx) {
 	if (typeof fields === 'function') {
@@ -786,9 +901,11 @@ Account.prototype.getAll = function(filter, fields, cb, tx) {
 
 /**
  * Calculates productivity of a delegate account.
+ *
  * @param {String} votersBalance
  * @param {String} totalSupply
  * @returns {Number}
+ * @todo Add descriptions of the params and returns-value
  */
 Account.prototype.calculateApproval = function(votersBalance, totalSupply) {
 	// votersBalance and totalSupply are sent as strings, we convert them into bignum and send the response as number as well.
@@ -803,9 +920,11 @@ Account.prototype.calculateApproval = function(votersBalance, totalSupply) {
 
 /**
  * Calculates productivity of a delegate account.
+ *
  * @param {String} producedBlocks
  * @param {String} missedBlocks
  * @returns {Number}
+ * @todo Add descriptions of the params and returns-value
  */
 Account.prototype.calculateProductivity = function(
 	producedBlocks,
@@ -822,10 +941,12 @@ Account.prototype.calculateProductivity = function(
 
 /**
  * Sets fields for specific address in mem_accounts table.
+ *
  * @param {address} address
  * @param {Object} fields
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb | 'Account#set error'.
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb | 'Account#set error'
+ * @todo Add descriptions of the params and returns-value
  */
 Account.prototype.set = function(address, fields, cb, tx) {
 	// Verify public key
@@ -848,10 +969,12 @@ Account.prototype.set = function(address, fields, cb, tx) {
 /**
  * Updates account from mem_account with diff data belonging to an editable field.
  * Inserts into mem_round "address", "amount", "delegate", "blockId", "round" based on balance or delegates fields.
+ *
  * @param {address} address
- * @param {Object} diff - Must contains only mem_account editable fields.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
+ * @param {Object} diff - Must contains only mem_account editable fields
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error
+ * @todo Add descriptions of the params
  */
 Account.prototype.merge = function(address, diff, cb, tx) {
 	// Verify public key
@@ -1003,9 +1126,11 @@ Account.prototype.merge = function(address, diff, cb, tx) {
 
 /**
  * Removes an account from mem_account table based on address.
+ *
  * @param {address} address
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} Data with address | Account#remove error.
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} Data with address | Account#remove error
+ * @todo Add descriptions of the params
  */
 Account.prototype.remove = function(address, cb) {
 	this.scope.db.accounts
