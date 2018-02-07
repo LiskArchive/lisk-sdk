@@ -14,6 +14,23 @@
 
 'use strict';
 
+/**
+ * Description of the namespace.
+ *
+ * @namespace api_codes
+ * @memberof helpers
+ * @see Parent: {@link helpers}
+ * @property {number} OK - Description of the value
+ * @property {number} EMPTY_RESOURCES_OK - Description of the value
+ * @property {number} NO_CONTENT - Description of the value
+ * @property {number} INTERNAL_SERVER_ERROR - Description of the value
+ * @property {number} BAD_REQUEST - Description of the value
+ * @property {number} FORBIDDEN - Description of the value
+ * @property {number} NOT_FOUND - Description of the value
+ * @property {number} PROCESSING_ERROR - Description of the value
+ * @property {number} TOO_MANY_REQUESTS - Description of the value
+ * @todo Add description of the namespace and its values
+ */
 module.exports = {
 	OK: 200,
 	EMPTY_RESOURCES_OK: 200,
