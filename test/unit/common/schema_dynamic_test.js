@@ -34,9 +34,11 @@ var strings = typesRepresentatives.strings;
 var self;
 
 SchemaDynamicTest.TEST_STYLE = {
+	// eslint-disable-next-line object-shorthand
 	ASYNC: function(testFunction, argument, cb) {
 		testFunction(argument, cb);
 	},
+	// eslint-disable-next-line object-shorthand
 	THROWABLE: function(testFunction, argument, cb) {
 		try {
 			testFunction(argument);

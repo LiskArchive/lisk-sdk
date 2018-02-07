@@ -77,6 +77,7 @@ describe('transport', () => {
 		peersStub = {};
 
 		restoreRewiredTopDeps = TransportModule.__set__({
+			// eslint-disable-next-line object-shorthand
 			Broadcaster: function() {
 				this.bind = () => {};
 				broadcasterStubRef = this;

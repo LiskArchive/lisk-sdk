@@ -25,6 +25,7 @@ var definitions = swaggerHelper.getSwaggerSpec().definitions;
 var z_schema = swaggerHelper.getValidator();
 
 var middleware = {
+	// eslint-disable-next-line object-shorthand
 	Handshake: function(system) {
 		return function(headers, cb) {
 			z_schema.validate(headers, definitions.WSPeerHeaders, error => {
