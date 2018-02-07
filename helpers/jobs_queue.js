@@ -14,9 +14,34 @@
 
 'use strict';
 
+/**
+ * Helper module for parsing git commit information.
+ *
+ * @module
+ * @see Parent: {@link helpers}
+ * @requires child_process
+ */
+
+/**
+ * Description of the namespace.
+ *
+ * @namespace jobsQueue
+ * @memeberof module:helpers/jobs_queue
+ * @see Parent: {@link helpers~jobsQueue}
+ */
 var jobsQueue = {
 	jobs: {},
 
+	/**
+	 * Returns hash of the last git commit if available.
+	 *
+	 * @param {string} name - Description of the param
+	 * @param { } job - Description of the param
+	 * @param {number} time - Description of the param
+	 * @returns {string} Hash of last git commit
+	 * @throws {Error} Throws error if cannot get last git commit
+	 * @todo Add descriptions and types of the parameters
+	 */
 	register(name, job, time) {
 		// Check if job is already registered - we check only if property exists, because value can be undefined
 		if (hasOwnProperty.call(this.jobs, name)) {
