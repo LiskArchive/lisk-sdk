@@ -136,7 +136,7 @@ Utils.prototype.loadBlocksPart = function(filter, cb) {
 	self.loadBlocksData(filter, (err, rows) => {
 		var blocks;
 
-		if (!err && Array.isArray(rows)) {
+		if (!err) {
 			// Normalize list of blocks
 			blocks = self.readDbRows(rows);
 		}
