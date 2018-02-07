@@ -20,13 +20,19 @@ var program = require('commander');
 var constants = require('../helpers/constants.js');
 var configSchema = require('../schema/config.js');
 var z_schema = require('./z_schema.js');
+/**
+ * Description of the module.
+ *
+ * @module
+ * @see Parent: {@link helpers}
+ */
 
 /**
- * Loads config.json file
- * @memberof module:helpers
- * @implements {validateForce}
+ * Loads config.json file.
+ *
  * @param {Object} packageJson
  * @returns {Object} configData
+ * @todo Add description of the parameter
  */
 function Config(packageJson) {
 	program
@@ -116,8 +122,10 @@ function Config(packageJson) {
 
 /**
  * Validates nethash value from constants and sets forging force to false if any.
+ *
  * @private
  * @param {Object} configData
+ * @todo Add description of the parameter
  */
 function validateForce(configData) {
 	if (configData.forging.force) {
