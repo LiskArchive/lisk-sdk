@@ -28,15 +28,23 @@ var resolvedSwaggerSpec = null;
 
 /**
  * Uses default swagger validator and extend with custom formats.
- * @name swagger
- * @memberof module:helpers
- * @requires module:helpers:z_schema
- * @requires sway
+ *
+ * @module
+ * @requires bluebird
+ * @requires fs
+ * @requires json-refs
+ * @requires js-yaml
+ * @requires lodash
+ * @requires path
+ * @requires sway/lib/helpers
+ * @requires helpers/z_schema
+ * @see Parent: {@link helpers}
  */
 
 /**
  * Get extended version of swagger validator.
- * @return {Object} - Instance of z-schema validator.
+ *
+ * @returns {Object} - Instance of z-schema validator.
  */
 function getValidator() {
 	// Get validator instace attached to Swagger
@@ -56,7 +64,8 @@ function getValidator() {
 
 /**
  * Get resolved swagger spec in JSON format.
- * @return {Promise} - Resolved promise with content of resolved json spec.
+ *
+ * @returns {Promise} - Resolved promise with content of resolved json spec.
  */
 function getResolvedSwaggerSpec() {
 	if (resolvedSwaggerSpec) {
@@ -81,7 +90,8 @@ function getResolvedSwaggerSpec() {
 
 /**
  * Get swagger spec in JSON format.
- * @return {Object} - JSON object with swagger spec.
+ *
+ * @returns {Object} - JSON object with swagger spec.
  */
 function getSwaggerSpec() {
 	return YAML.safeLoad(
@@ -91,10 +101,12 @@ function getSwaggerSpec() {
 
 /**
  * Generate swagger based param error object to handle custom errors.
+ *
  * @param {Array} params - List of param objects.
  * @param {Array} [messages] - List of error messages.
  * @param {Array} [codes] - List of error codes.
- * @return {object}
+ * @returns {Object}
+ * @todo Add description for the returns-tag
  */
 function generateParamsErrorObject(params, messages, codes) {
 	if (!codes) {
@@ -128,8 +140,10 @@ function generateParamsErrorObject(params, messages, codes) {
 
 /**
  * Get list of undocumented params.
+ *
  * @param {object} request - Request object.
  * @return {boolean}
+ * @todo Add description for the returns-tag
  */
 function invalidParams(request) {
 	var swaggerParams = Object.keys(request.swagger.params);
