@@ -602,7 +602,7 @@ describe('db', () => {
 					var account = accountFixtures.Account();
 
 					return db.accounts.upsert(account, 'address').then(result => {
-						expect(result).to.be.null;
+						expect(result).to.be.undefined;
 					});
 				});
 
@@ -899,6 +899,24 @@ describe('db', () => {
 					return db.accounts.insert(account).then(() => {
 						return db.accounts.update(account.address, updateAccount);
 					});
+				});
+			});
+
+			describe('convertToNonVirgin', () => {
+				it('should convert a virgin account to non virgin', function*() {
+					const account = accountFixtures.Account();
+					let result = null;
+
+					yield db.accounts.insert(account);
+					result = yield db.accounts.list({ address: account.address });
+
+					expect(result[0].address).to.eql(account.address);
+					expect(result[0].virgin).to.eql(true);
+
+					yield db.accounts.convertToNonVirgin(account.address);
+					result = yield db.accounts.list({ address: account.address });
+					expect(result[0].address).to.eql(account.address);
+					expect(result[0].virgin).to.eql(false);
 				});
 			});
 		});

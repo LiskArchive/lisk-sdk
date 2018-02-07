@@ -68,12 +68,12 @@ const normalFields = [
 		init: () => 'encode("secondPublicKey", \'hex\')',
 		skip: ifNotExists,
 	},
-	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
 ];
 
 // Only used in SELECT and INSERT queries
 const immutableFields = [
 	{ name: 'address', mod: ':raw', init: () => 'upper(address)' },
+	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
 ];
 
 // Only used in SELECT queries
@@ -130,11 +130,11 @@ class AccountsRepository {
 				{ name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists },
 				{ name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists },
 				{ name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists },
-				{ name: 'virgin', cast: 'int', def: 1 },
 			]);
 
 			cs.insert = cs.update.merge([
 				{ name: 'address', mod: ':raw', init: c => `upper('${c.value}')` },
+				{ name: 'virgin', cast: 'int', def: 1, skip: ifNotExists },
 			]);
 		}
 	}
@@ -233,33 +233,19 @@ class AccountsRepository {
 			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
-		if (conflictingFields.length === 1 && conflictingFields[0] === 'address') {
-			const sql =
-				'${insertSQL:raw} ON CONFLICT(${conflictFields:name}) DO UPDATE SET ${setsSQL:raw}';
+		const conditionObject = {};
+		conflictingFields.forEach(function(field) {
+			conditionObject[field] = data[field];
+		});
 
-			return this.db.none(sql, {
-				insertSQL: this.pgp.helpers.insert(data, this.cs.insert),
-				conflictFields: conflictingFields,
-				setsSQL: this.pgp.helpers.sets(updateData, this.cs.update),
-			});
-		} else {
-			const conditionObject = {};
-			conflictingFields.forEach(function(field) {
-				conditionObject[field] = data[field];
-			});
-
-			return this.db.tx('db:accounts:upsert', function(t) {
-				return t.accounts
-					.list(conditionObject, ['address'])
-					.then(function(result) {
-						if (result.length) {
-							return t.accounts.update(result[0].address, updateData);
-						} else {
-							return t.accounts.insert(data);
-						}
-					});
-			});
-		}
+		return this.db.tx('db:accounts:upsert', function*(t) {
+			const result = yield t.accounts.list(conditionObject, ['address']);
+			if (result.length) {
+				yield t.accounts.update(result[0].address, updateData);
+			} else {
+				yield t.accounts.insert(data);
+			}
+		});
 	}
 
 	/**
@@ -284,6 +270,16 @@ class AccountsRepository {
 			return Promise.reject(
 				new TypeError('Error: db.accounts.update - invalid address argument')
 			); // eslint-disable-line prefer-promise-reject-errors
+		}
+
+		this.getImmutableFields().map(function(field) {
+			delete data[field];
+		});
+
+		// To avoid Error: Cannot generate an UPDATE without any columns.
+		// If there is nothing to update, return else pg-promise will fail
+		if (Object.keys(data).length === 0) {
+			return Promise.resolve();
 		}
 
 		return this.db.none(
@@ -556,6 +552,16 @@ class AccountsRepository {
 				dependentTable
 			)
 		);
+	}
+
+	/**
+	 * Convert an account to be non-virgin account.
+	 *
+	 * @param {string} address - Account address
+	 * @return {Promise<null>}
+	 */
+	convertToNonVirgin(address) {
+		return this.db.none(sql.convertToNonVirgin, { address: address });
 	}
 }
 
