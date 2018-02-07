@@ -37,6 +37,7 @@ describe('blocks/process', () => {
 			dbStub = {
 				blocks: {
 					getCommonBlock: sinonSandbox.stub(),
+					loadBlocksOffset: sinonSandbox.stub(),
 				},
 			};
 
@@ -82,6 +83,7 @@ describe('blocks/process', () => {
 				info: sinonSandbox.spy(),
 				error: sinonSandbox.spy(),
 				warn: sinonSandbox.spy(),
+				debug: sinonSandbox.spy(),
 			};
 
 			schemaStub = {
@@ -171,6 +173,7 @@ describe('blocks/process', () => {
 				verify: {
 					processBlock: sinonSandbox.stub(),
 					verifyReceipt: sinonSandbox.stub(),
+					verifyBlock: sinonSandbox.stub(),
 				},
 				chain: {
 					deleteLastBlock: sinonSandbox.stub(),
@@ -178,6 +181,13 @@ describe('blocks/process', () => {
 				},
 				utils: {
 					getIdSequence: sinonSandbox.stub(),
+					readDbRows: sinonSandbox.stub(),
+				},
+				isCleaning: {
+					get: sinonSandbox.stub(),
+				},
+				lastBlock: {
+					get: sinonSandbox.stub(),
 				},
 			};
 
@@ -869,9 +879,9 @@ describe('blocks/process', () => {
 				blocksProcessModule.getCommonBlock(
 					{ ip: 1, wsPort: 2 },
 					10,
-					(err, cb) => {
+					(err, block) => {
 						expect(err).to.be.null;
-						expect(cb).to.deep.equal(dummyCommonBlock);
+						expect(block).to.deep.equal(dummyCommonBlock);
 						done();
 					}
 				);
@@ -968,6 +978,144 @@ describe('blocks/process', () => {
 							}
 						);
 					});
+				});
+			});
+		});
+	});
+
+	describe('loadBlocksOffset', () => {
+		beforeEach(done => {
+			loggerStub.debug.reset();
+			done();
+		});
+
+		afterEach(done => {
+			expect(loggerStub.debug.args[0][0]).to.equal('Loading blocks offset');
+			expect(loggerStub.debug.args[0][1]).to.deep.equal({
+				limit: 100,
+				offset: 0,
+				verify: true,
+			});
+			done();
+		});
+
+		it('should throw error when library.db.blocks.loadBlocksOffset fails', done => {
+			loggerStub.error.reset();
+			library.db.blocks.loadBlocksOffset.rejects(
+				'blocks.loadBlocksOffset-REJECTS'
+			);
+
+			blocksProcessModule.loadBlocksOffset(100, 0, true, (err, lastBlock) => {
+				expect(err).to.equal(
+					'Blocks#loadBlocksOffset error: blocks.loadBlocksOffset-REJECTS'
+				);
+				expect(lastBlock).to.be.undefined;
+				expect(loggerStub.error.args[0][0].stack).to.contains(
+					'blocks.loadBlocksOffset-REJECTS'
+				);
+				done();
+			});
+		});
+
+		describe('when library.db.blocks.loadBlocksOffset returns rows', () => {
+			before(() => {
+				library.db.blocks.loadBlocksOffset.resolves([]);
+			});
+
+			beforeEach(() => {
+				modules.blocks.utils.readDbRows.returns([dummyBlock]);
+				loggerStub.error.reset();
+			});
+
+			afterEach(() => {
+				expect(modules.blocks.utils.readDbRows.called).to.be.true;
+			});
+
+			it('should return immediate when node shutdown is requested', done => {
+				modules.blocks.isCleaning.get.returns(true);
+
+				blocksProcessModule.loadBlocksOffset(100, 0, true, (err, lastBlock) => {
+					expect(err).to.be.null;
+					expect(lastBlock).to.be.undefined;
+					expect(loggerStub.debug.args.length).to.equal(1);
+					done();
+				});
+			});
+
+			describe('when verify is true and block id is not genesis block', () => {
+				before(() => {
+					modules.blocks.isCleaning.get.returns(false);
+				});
+
+				afterEach(done => {
+					expect(loggerStub.debug.args[1][0]).to.equal('Processing block');
+					expect(loggerStub.debug.args[1][1]).to.equal('1');
+					done();
+				});
+
+				it('should return error when library.logic.block.objectNormalize fails', done => {
+					library.logic.block.objectNormalize.throws('objectNormalize-ERR');
+
+					blocksProcessModule.loadBlocksOffset(
+						100,
+						0,
+						true,
+						(err, lastBlock) => {
+							expect(err.name).to.equal('objectNormalize-ERR');
+							expect(lastBlock).to.be.undefined;
+							done();
+						}
+					);
+				});
+
+				it('should return error when library.logic.block.objectNormalize fails', done => {
+					library.logic.block.objectNormalize.returns(
+						library.logic.block.objectNormalize.getCall(0).args[0]
+					);
+					modules.blocks.verify.verifyBlock.returns({
+						verified: false,
+						errors: ['verifyBlock-ERR'],
+					});
+
+					blocksProcessModule.loadBlocksOffset(
+						100,
+						0,
+						true,
+						(err, lastBlock) => {
+							expect(err).to.equal('verifyBlock-ERR');
+							expect(lastBlock).to.be.undefined;
+							expect(loggerStub.error.args[0][0]).to.equal(
+								'Block 2 verification failed'
+							);
+							expect(loggerStub.error.args[0][1]).to.equal('verifyBlock-ERR');
+							done();
+						}
+					);
+				});
+
+				it('should return error when library.logic.block.objectNormalize fails', done => {
+					library.logic.block.objectNormalize.returns(
+						library.logic.block.objectNormalize.getCall(0).args[0]
+					);
+					modules.blocks.verify.verifyBlock.returns({
+						verified: false,
+						errors: ['verifyBlock-ERR'],
+					});
+
+					blocksProcessModule.loadBlocksOffset(
+						100,
+						0,
+						true,
+						(err, lastBlock) => {
+							expect(err).to.equal('verifyBlock-ERR');
+							expect(lastBlock).to.be.undefined;
+							expect(loggerStub.error.args[0][0]).to.equal(
+								'Block 2 verification failed'
+							);
+							expect(loggerStub.error.args[0][1]).to.equal('verifyBlock-ERR');
+							done();
+						}
+					);
 				});
 			});
 		});
