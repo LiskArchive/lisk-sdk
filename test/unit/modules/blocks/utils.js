@@ -150,7 +150,7 @@ describe('blocks/utils', () => {
 	});
 
 	describe('readDbRows', () => {
-		it('should transform a full_blocks_list view row into a block object', done => {
+		it('should transform a full_blocks_list view row into a block object', () => {
 			var blockObject = blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
 
 			expect(blockObject).to.be.an('array');
@@ -161,10 +161,9 @@ describe('blocks/utils', () => {
 			expect(blockObject[0].transactions[0]).to.be.an('object');
 			expect(blockObject[0].transactions[0].id).to.equal('6950874693022090568');
 			expect(blockObject[0].transactions[0].type).to.equal(0);
-			done();
 		});
 
-		it('should generate fake signature for genesis block', done => {
+		it('should generate fake signature for genesis block', () => {
 			var genesisBlock_view_full_blocks_list = [
 				{
 					b_id: '6524861224470851795',
@@ -190,7 +189,6 @@ describe('blocks/utils', () => {
 			expect(blockObject[0].generationSignature).to.equal(
 				'0000000000000000000000000000000000000000000000000000000000000000'
 			);
-			done();
 		});
 	});
 
@@ -446,7 +444,7 @@ describe('blocks/utils', () => {
 	describe('getBlockProgressLogger', () => {
 		var testTracker;
 
-		it('should initialize BlockProgressLogger', done => {
+		it('should initialize BlockProgressLogger', () => {
 			testTracker = blocksUtilsModule.getBlockProgressLogger(
 				1,
 				1,
@@ -454,33 +452,29 @@ describe('blocks/utils', () => {
 			);
 			expect(testTracker.target).to.eql(1);
 			expect(testTracker.step).to.eql(1);
-			done();
 		});
 
-		it('should return valid log information when call applyNext()', done => {
+		it('should return valid log information when call applyNext()', () => {
 			testTracker.applyNext();
 			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
 			expect(loggerStub.info.args[0][1]).to.equal(
 				'100.0 %: applied 1 of 1 transactions'
 			);
-			done();
 		});
 
-		it('should throw error when times applied >= transactionsCount', done => {
+		it('should throw error when times applied >= transactionsCount', () => {
 			expect(() => {
 				testTracker.applyNext();
 			}).to.throw('Cannot apply transaction over the limit: 1');
-			done();
 		});
 
-		it('should return valid log information when reset tracker and call applyNext()', done => {
+		it('should return valid log information when reset tracker and call applyNext()', () => {
 			testTracker.reset();
 			testTracker.applyNext();
 			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
 			expect(loggerStub.info.args[0][1]).to.equal(
 				'100.0 %: applied 1 of 1 transactions'
 			);
-			done();
 		});
 	});
 
