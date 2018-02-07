@@ -31,6 +31,9 @@ const description = `Sets configuration <variable> to <value>. Variables availab
 const WRITE_FAIL_WARNING =
 	'Config file could not be written: your changes will not be persisted.';
 
+const writePropertyWarning = property =>
+	`Config file could not be written: property ${property} does not exist.`;
+
 const writeConfigToFile = newConfig => {
 	try {
 		writeJSONSync(configFilePath, newConfig);
@@ -49,6 +52,9 @@ const setNestedConfigProperty = newValue => (
 	dotNotationArray,
 ) => {
 	if (i === dotNotationArray.length - 1) {
+		if (obj[pathComponent] === undefined) {
+			throw new ValidationError(writePropertyWarning(pathComponent));
+		}
 		// eslint-disable-next-line no-param-reassign
 		obj[pathComponent] = newValue;
 		return config;

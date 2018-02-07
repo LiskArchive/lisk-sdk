@@ -21,6 +21,35 @@ import * as then from '../../steps/3_then';
 describe('set command', () => {
 	beforeEach(setUpCommandSet);
 	afterEach(tearDownCommandSet);
+	Given(
+		'a config with unknown properties',
+		given.aConfigWithUnknownProperties,
+		() => {
+			describe(`Given a directory path "${
+				process.env.LISKY_CONFIG_DIR
+			}"`, () => {
+				beforeEach(given.aDirectoryPath);
+				Given('a config file name "config.json"', given.aConfigFileName, () => {
+					Given('an action "set"', given.anAction, () => {
+						Given('a variable "pretty"', given.aVariable, () => {
+							Given('a value "true"', given.aValue, () => {
+								When(
+									'the action is called with the variable and the value',
+									when.theActionIsCalledWithTheVariableAndTheValue,
+									() => {
+										Then(
+											'it should reject with validation error and message "Config file could not be written: property pretty does not exist."',
+											then.itShouldRejectWithValidationErrorAndMessage,
+										);
+									},
+								);
+							});
+						});
+					});
+				});
+			});
+		},
+	);
 	Given('a config', given.aConfig, () => {
 		describe(`Given a directory path "${process.env.LISKY_CONFIG_DIR}"`, () => {
 			beforeEach(given.aDirectoryPath);
