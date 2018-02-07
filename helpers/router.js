@@ -20,10 +20,15 @@ var httpApi = require('./http_api');
 
 /**
  * Express.js router wrapper.
- * @memberof module:helpers
- * @function
- * @returns {Object} router express
+ *
+ * @class
+ * @memberof helpers
+ * @param {string} message - Description of the param
+ * @param {number} code - Description of the param
  * @throws {Error} If config is invalid
+ * @returns {Object} router express
+ * @see Parent: {@link helpers}
+ * @todo Add descriptions of the params
  */
 var Router = function() {
 	router.use(httpApi.middleware.cors);
@@ -61,8 +66,11 @@ var Router = function() {
 	};
 	/**
 	 * Adds one middleware to an array of routes.
-	 * @param {function} middleware
-	 * @param {string} routes
+	 *
+	 * @param {function} middleware - Description of the param
+	 * @param {string} routes - Description of the param
+	 * @todo Add descriptions of the params
+	 * @todo Add returns-tag
 	 */
 	router.attachMiddlwareForUrls = function(middleware, routes) {
 		routes.forEach(entry => {
