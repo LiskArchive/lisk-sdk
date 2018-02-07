@@ -15,9 +15,14 @@
 'use strict';
 
 /**
- * @typedef {Object} dappType
- * - 0: DAPP
- * - 1: FILE
+ * Description of the namespace.
+ *
+ * @namespace dapp_types
+ * @memberof helpers
+ * @see Parent: {@link helpers}
+ * @property {number} DAPP - Description of the value
+ * @property {number} FILE - Description of the value
+ * @todo Add description of the namespace and its values
  */
 module.exports = {
 	DAPP: 0,
