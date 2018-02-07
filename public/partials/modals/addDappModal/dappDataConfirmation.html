@@ -1,0 +1,47 @@
+<div class="field-padding" ng-show="errorMessage && (rememberedPassphrase)">
+    <span style="margin-top: 10px; margin-bottom: 0;" class="pass-error">{{errorMessage}}</span>
+</div>
+<ul class="collection dapp-collection">
+    <li class="collection-item">
+        <h4>{{'Name'|translate}}</h4>
+        <p>{{newDapp.name}}</p>
+    </li>
+    <li class="collection-item">
+        <h4>{{'Description'|translate}}</h4>
+        <p>
+          <span ng-if="newDapp.description" class="cut-text">{{newDapp.description}}</span>
+          <span ng-if="!newDapp.description" class="grey-text"><translate>None</translate></span>
+        </p>
+    </li>
+    <li class="collection-item">
+        <h4>{{'Tags'|translate}}</h4>
+        <p>
+          <span ng-if="newDapp.tags" class="cut-text">{{newDapp.tags}}</span>
+          <span ng-if="!newDapp.tags" class="grey-text"><translate>None</translate></span>
+        </p>
+    </li>
+    <li class="collection-item">
+        <h4>{{'Category'|translate}}</h4>
+        <p>{{getCategoryName(newDapp.category)}}</p>
+    </li>
+    <li class="collection-item">
+        <h4>{{'Application Source Code'|translate}}</h4>
+        <p>
+          <span ng-if="newDapp.link" class="cut-text">{{newDapp.link}}</span>
+          <span ng-if="!newDapp.link" class="grey-text"><translate>None</translate></span>
+        </p>
+    </li>
+    <li class="collection-item">
+        <h4>{{'Application Icon'|translate}}</h4>
+        <p>
+          <span ng-if="newDapp.icon" class="cut-text">{{newDapp.icon}}</span>
+          <span ng-if="!newDapp.icon" class="grey-text"><translate>None</translate></span>
+        </p>
+    </li>
+    <li class="collection-item">
+        <h4>{{'Fee'|translate}}</h4>
+        <p>
+          <span class="cut-text">{{fee | liskFilter}} LSK</span>
+        </p>
+    </li>
+</ul>

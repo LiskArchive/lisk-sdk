@@ -1,0 +1,67 @@
+<div class="row clearfix" ng-if="!dapps.length && !inLoading">
+    <div class="col-xs-12">
+        <div class="panel  panel-default no-margin-bottom">
+            <div class="panel-body empty-body ng-scope">
+                <div class="logo-grey"></div>
+                <p ng-if="!searchedTextString.length" class="empty-state-text">{{'No applications matching your search criteria were found.'|translate}}</translate></p>
+                <p ng-if="!!searchedTextString.length" class="empty-state-text">{{'No applications matching your search criteria were found.'|translate}}</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row clearfix" ng-repeat-start="cat in dapps | groupBy: 'category'">
+    <div class="col-xs-12">
+        <div class="panel  panel-default no-margin-bottom">
+            <div class="panel-heading">
+                <h2>{{getCategoryName(cat[0].category)}} {{searchedText}}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row clearfix">
+    <div ng-repeat="dapp in cat" class="col-lg-2 col-md-4 col-sm-4 col-xs-6">
+        <div class="dapp-content small-dapp clearfix cursor">
+            <div class="cover">
+                <div class="cover-image-container">
+                    <div class="cover-outer-align">
+                        <div class="cover-inner-align"><img ng-if="!dapp.icon" class="cover-image" src="images/dappIcon.png">
+                            <img ng-if="dapp.icon" class="cover-image" ng-src="{{dapp.icon}}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="details">
+                <h2>
+                    <span class="title" href="#">{{dapp.name}}</span>
+                </h2>
+                <!-- <div class="subtitle-container">
+                    <span class="subtitle">{{dapp.nikname}}</span>
+                </div> -->
+            </div>
+            <!-- <div class="reason-set">
+                <span class="stars-container">
+                    <div class="reason-set-star-rating">
+                        <div class="small-star star-rating-non-editable-container" aria-label="Average Rating: 4.3 out of 5">
+                            <div class="current-rating" style="width: 68.29926300048828%;"></div>
+                        </div>
+                    </div>
+                    <span class="price-container">
+                        <span class="paragraph-end"></span>
+                        <span class="apps is-price-tag buy-button-container" data-doc-fetch-skip-cache="0" data-doc-fetch-vouchers="0" data-docid="com.halfbrick.fruitninja">
+                            <div class="pon" style="display:none">1</div>
+                            <button style="display:none" class="price buy id-track-click" data-server-cookie="CAIaIgogEh4KGGNvbS5oYWxmYnJpY2suZnJ1aXRuaW5qYRABGAM=" data-uitype="200">
+                                <span class="display-price">0.91&nbsp;€</span>
+                            </button>
+                            <span class="acquired-label">
+                                <span class="acquired-icon"></span>
+                            </span>
+                        </span>
+                    </span>
+                </span>
+            </div> -->
+            <a ng-if="dapp.type==1" class="target-link" target-blank ng-href="{{dapp.link}}"></a>
+            <a ng-if="dapp.type!=1" class="target-link" href="#" ui-sref='main.dappentry({"dappId":"{{dapp.transactionId}}"})'></a>
+        </div>
+    </div>
+</div>
+<div class="row clearfix margin" ng-repeat-end></div>

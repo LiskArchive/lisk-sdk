@@ -1,0 +1,12 @@
+bower_components
+build
+dapps/
+.idea
+node_modules
+npm-debug.log
+.project
+static/css
+static/js
+tmp
+webkitbuilds
+sftp-config.json

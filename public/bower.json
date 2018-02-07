@@ -1,0 +1,14 @@
+{
+  "name": "lisk-ui",
+  "version": "0.8.0",
+  "dependencies": {
+    "jquery": "=2.2.4",
+    "bootstrap": "=3.3.6",
+    "materialize": "=0.97.5",
+    "file-saver": "*",
+    "blob": "*",
+    "underscore": "=1.8.3",
+    "clipboard": "=1.5.12",
+    "moment": "^2.17.1"
+  }
+}

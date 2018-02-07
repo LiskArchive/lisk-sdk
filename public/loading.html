@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html ng-app="liskApp">
+    <head>
+        <base href="/">
+        <title>Lisk - Loading...</title>
+
+        <link rel="apple-touch-icon-precomposed" sizes="57x57" href="/images/apple-touch-icon-57x57.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="60x60" href="/images/apple-touch-icon-60x60.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="120x120" href="/images/apple-touch-icon-120x120.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="76x76" href="/images/apple-touch-icon-76x76.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/images/apple-touch-icon-152x152.png" />
+        <link rel="icon" type="image/png" href="/images/favicon-196x196.png" sizes="196x196" />
+        <link rel="icon" type="image/png" href="/images/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/png" href="/images/favicon-32x32.png" sizes="32x32" />
+        <link rel="icon" type="image/png" href="/images/favicon-16x16.png" sizes="16x16" />
+        <link rel="icon" type="image/png" href="/images/favicon-128.png" sizes="128x128" />
+
+        <meta charset="UTF-8">
+        <meta name="application-name" content="Lisk.io - Blockchain Application Platform"/>
+        <meta name="msapplication-TileColor" content="#F3F3E1" />
+        <meta name="msapplication-TileImage" content="/images/mstile-144x144.png" />
+        <meta name="msapplication-square70x70logo" content="/images/mstile-70x70.png" />
+        <meta name="msapplication-square150x150logo" content="/images/mstile-150x150.png" />
+        <meta name="msapplication-wide310x150logo" content="/images/mstile-310x150.png" />
+        <meta name="msapplication-square310x310logo" content="/images/mstile-310x310.png" />
+
+        <link rel="stylesheet" href="/static/css/app.css">
+        <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,500,500italic,700,700italic,900,300italic,300,900italic,100italic,100&subset=latin,greek,greek-ext,vietnamese,cyrillic-ext,latin-ext,cyrillic' rel='stylesheet' type='text/css'>
+
+        <script src="/static/js/vendor_app.js"></script>
+    </head>
+<body>
+    <div id="pass" ng-controller="loadingController" ng-class="lang.id">
+        <div class="pass-banner"></div>
+        <div class="pass-bottom">
+            <div class="pass-window">
+                <div class="pass-window-icon"></div>
+                <div class="loading clearfix" class="clearfix" ng-controller="loadingController">
+                    <div class="progress" ng-show="loadingState">
+                        <div class="determinate" style="width: {{loadingState}}%"></div>
+                    </div>
+                    <h3 class="heading" ng-show="loadingState">{{loadingState}}%</h3>
+                    <h3 class="heading">Blockchain is loading...</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<div class="app-modal valign-wrapper">
+    <div class="container height100">
+        <div class="row height100">
+            <div class="col-md-6 col-md-offset-4 height100 valign-wrapper">
+                <div class="modal-content">
+                    <div class="modal-header modal-iconed">
+                        <div class="close-modal" ng-click="close()">
+                            <span class="sr-only"><translate>Close modal</translate></span>
+                        </div>
+                    </div>
+                    <div class="modal-header clearfix">
+                        <div>
+                            <h2>{{'Account Verification'|translate}}</h2>
+                        </div>
+                        <div><translate>Please enter your passphrase.</translate></div>
+                    </div>
+                    <div class="modal-body">
+                        <form ng-submit="passcheck()">
+                            <div class="field-padding">
+                                <div class="input-field">
+                                    <input id="secondPhrase" type="password" ng-model="secondPhrase" ng-trim="false" autofocus ng-focus="focus == 'secondPhrase'" ng-class="{'invalid': errorMessage}">
+                                    <label for="secondPhrase"><translate>Your Second Passphrase</translate></label>
+                                </div>
+                            </div>
+                            <span class="pass-error" ng-show="errorMessage">{{errorMessage}}</span>
+                            <input type="submit" ng-show="false">
+                        </form>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="nav modal-buttons pull-right">
+                            <li>
+                                <a href="#" ng-click="close()"><translate>Cancel</translate></a>
+                            </li>
+                            <li>
+                                <a href="#" class="blue-link" ng-click="passcheck()"><translate>Sign</translate></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

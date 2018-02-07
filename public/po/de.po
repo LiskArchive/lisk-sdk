@@ -1,0 +1,1311 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.6\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: partials/votes.html:25
+msgid "{{count}} in Total"
+msgstr "Insgesamt {{count}}"
+
+#: partials/delegates.html:93
+msgid "{{countStandby}} in Total"
+msgstr "Insgesamt {{countStandby}}"
+
+#: partials/delegates.html:24
+msgid "{{countTop}} in Total"
+msgstr "Insgesamt {{countTop}}"
+
+#: partials/votes.html:4
+msgid "{{voteList.length}} out of {{count}} Delegates selected"
+msgstr "{{voteList.length}} von {{count}} Delegates ausgewählt"
+
+#: partials/delegates.html:4
+msgid ""
+"{{voteList.length}} out of {{countStandby + countTop}} Delegates selected"
+msgstr ""
+"{{voteList.length}} von {{countStandby + countTop}} Delegates ausgewählt"
+
+#: partials/template.html:162
+msgid "2nd Passphrase"
+msgstr "2. Passphrase"
+
+#: partials/modals/addDappModal.html:31
+msgid "Accept / Next Step"
+msgstr "Akzeptieren / Nächster Schritt"
+
+#: partials/modals/userInfo.html:14
+msgid "Account"
+msgstr "Account"
+
+#: partials/modals/addDappModal.html:140 partials/modals/addDappModal.html:182
+#: partials/modals/masterPassphraseModal.html:13
+#: partials/modals/multisignatureModal.html:154
+#: partials/modals/passphraseCheck.html:13
+#: partials/modals/registrationDelegateModal.html:51
+#: partials/modals/registrationDelegateModal.html:86
+#: partials/modals/secondPassphraseModal.html:104
+#: partials/modals/sendTransaction.html:62
+#: partials/modals/sendTransaction.html:97 partials/modals/vote.html:54
+#: partials/modals/vote.html:89
+msgid "Account Verification"
+msgstr "Account Verifizierung"
+
+#: partials/dapps.html:152
+msgid "Add a new application"
+msgstr "Neue App hinzufügen"
+
+#: partials/modals/multisignatureModal.html:46
+msgid "Add group members by typing in their Lisk address and pressing enter."
+msgstr ""
+"Füge Gruppenmitglieder hinzu, indem du ihre Lisk Adresse eingibst und Enter "
+"drückst."
+
+#: partials/modals/secondPassphraseModal.html:126
+msgid "ADD SECOND PASSPHRASE"
+msgstr "ZWEITE PASSPHRASE HINZUFÜGEN"
+
+#: js/controllers/blockchainController.js:45
+#: js/controllers/transactionsController.js:66
+#: js/controllers/walletPendingsController.js:47
+#: js/controllers/walletsController.js:148
+#: js/controllers/walletTransactionsController.js:70
+#: partials/modals/transactionInfo.html:16 partials/modals/userInfo.html:60
+msgid "Amount"
+msgstr "Summe"
+
+#: partials/account.html:79
+msgid "Amount (Fee)"
+msgstr "Summe (Gebühren)"
+
+#: js/controllers/dappsController.js:8 partials/template.html:90
+msgid "Applications"
+msgstr "Applikationen"
+
+#: js/controllers/delegatesController.js:160
+#: js/controllers/forgingController.js:64
+#: js/controllers/votedDelegatesController.js:119 partials/forging.html:45
+msgid "Approval"
+msgstr "Zustimmung"
+
+#: partials/modals/confirmDeletionModal.html:16
+msgid "Are you sure you want to delete this item?"
+msgstr "Bist du dir sicher, dass du es löschen möchtest?"
+
+#: partials/account.html:8
+msgid "Balance"
+msgstr "Guthaben"
+
+#: partials/modals/registrationDelegateModal.html:30
+msgid ""
+"Becoming a delegate requires registration. You may choose your own delegate "
+"name, which can be used to promote your delegate. Only the top 101 delegates "
+"are eligible to forge. All fees are shared equally between the top 101 "
+"delegates."
+msgstr ""
+"Um Delegate zu werden musst du dich registrieren. Wähle dazu einen Delegate "
+"Namen, welchen du benutzen kannst um deinen Delegate bekannt zu machen. "
+"Lediglich die Top 101 Delegates können die Lisk Blockchain sichern. Alle "
+"Netzwerkgebühren werden gleichermaßen zwischen den Top 101 Delegates "
+"aufgeteilt."
+
+#: js/controllers/blockchainController.js:41
+#: js/controllers/forgingController.js:115 partials/modals/blockInfo.html:7
+#: partials/modals/transactionInfo.html:32
+#: partials/modals/transactionInfo.html:4
+msgid "Block ID"
+msgstr "Block ID"
+
+#: js/controllers/blockchainController.js:8 partials/template.html:117
+msgid "Blockchain"
+msgstr "Blockchain"
+
+#: partials/modals/forgingModal.html:32
+#: partials/modals/masterPassphraseModal.html:35
+#: partials/modals/multisignatureModal.html:89
+#: partials/modals/openDappModal.html:27
+#: partials/modals/passphraseCheck.html:32
+#: partials/modals/registrationDelegateModal.html:35
+#: partials/modals/registrationDelegateModal.html:67
+#: partials/modals/sendTransaction.html:46 partials/modals/vote.html:73
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: partials/modals/addDappModal.html:28
+#: partials/modals/multisignatureModal.html:28 partials/modals/vote.html:38
+msgid "CANCEL"
+msgstr "ABBRECHEN"
+
+#: partials/template.html:260
+msgid "CATEGORIES"
+msgstr "KATEGORIEN"
+
+#: partials/dapp-entry.html:61
+msgid "Category:"
+msgstr "Kategorie:"
+
+#: partials/modals/addDappModal.html:101 partials/modals/addDappModal.html:106
+#: partials/modals/addDappModal.html:13 partials/modals/addDappModal.html:132
+#: partials/modals/addDappModal.html:137 partials/modals/addDappModal.html:174
+#: partials/modals/addDappModal.html:179 partials/modals/addDappModal.html:39
+#: partials/modals/addDappModal.html:44 partials/modals/addDappModal.html:70
+#: partials/modals/addDappModal.html:75 partials/modals/addDappModal.html:8
+#: partials/modals/blockInfo.html:10 partials/modals/blockModal.html:9
+#: partials/modals/confirmDeletionModal.html:8
+#: partials/modals/errorModal.html:9 partials/modals/forgingModal.html:9
+#: partials/modals/masterPassphraseModal.html:8
+#: partials/modals/multiMembersModal.html:8
+#: partials/modals/multisignatureModal.html:100
+#: partials/modals/multisignatureModal.html:149
+#: partials/modals/multisignatureModal.html:39
+#: partials/modals/multisignatureModal.html:8 partials/modals/newUser.html:10
+#: partials/modals/newUser.html:53 partials/modals/openDappModal.html:8
+#: partials/modals/passphraseCheck.html:8
+#: partials/modals/registrationDelegateModal.html:46
+#: partials/modals/registrationDelegateModal.html:8
+#: partials/modals/registrationDelegateModal.html:81
+#: partials/modals/secondPassphraseModal.html:10
+#: partials/modals/secondPassphraseModal.html:57
+#: partials/modals/secondPassphraseModal.html:99
+#: partials/modals/sendTransaction.html:57
+#: partials/modals/sendTransaction.html:8
+#: partials/modals/sendTransaction.html:92
+#: partials/modals/transactionInfo.html:7 partials/modals/userInfo.html:22
+#: partials/modals/vote.html:49 partials/modals/vote.html:8
+#: partials/modals/vote.html:84
+msgid "Close modal"
+msgstr "Modal schließen"
+
+#: js/controllers/modals/multisignatureModalController.js:6
+msgid "Configuring multi-signature group"
+msgstr "Konfiguriere Multi-Signature Gruppe"
+
+#: partials/modals/multisignatureModal.html:141
+#: partials/modals/multisignatureModal.html:180
+msgid "confirm"
+msgstr "bestätigen"
+
+#: partials/modals/addDappModal.html:124 partials/modals/addDappModal.html:166
+#: partials/modals/addDappModal.html:208
+msgid "Confirm"
+msgstr "Bestätigen"
+
+#: partials/modals/masterPassphraseModal.html:38
+#: partials/modals/newUser.html:80 partials/multi.html:31
+#: partials/wallet-pendings.html:28
+msgid "CONFIRM"
+msgstr "BESTÄTIGEN"
+
+#: partials/modals/secondPassphraseModal.html:85
+msgid "CONFIRM SECOND PASSPHRASE"
+msgstr "ZWEITE PASSPHRASE BESTÄTIGEN"
+
+#: js/directives/voteActionDirective.js:14
+msgid "CONFIRM VOTE"
+msgstr "VOTE BESTÄTIGEN"
+
+#: partials/modals/confirmDeletionModal.html:13
+msgid "Confirmation"
+msgstr "Bestätigung"
+
+#: js/controllers/walletsController.js:115
+#: js/controllers/walletTransactionsController.js:72
+#: partials/modals/blockInfo.html:20 partials/modals/transactionInfo.html:13
+#: partials/modals/userInfo.html:57
+msgid "Confirmations"
+msgstr "Bestätigungen"
+
+#: partials/modals/blockInfo.html:74 partials/modals/blockModal.html:34
+#: partials/modals/transactionInfo.html:50 partials/modals/userInfo.html:94
+msgid "CONFIRMATIONS"
+msgstr "BESTÄTIGUNGEN"
+
+#: partials/modals/multisignatureModal.html:125
+#: partials/modals/multisignatureModal.html:74
+msgid "Confirmations needed"
+msgstr "Bestätigungen nötig"
+
+#: js/controllers/walletPendingsController.js:49
+#: js/controllers/walletsController.js:150
+msgid "Confirmations Needed"
+msgstr "Benötigte Bestätigungen"
+
+#: js/controllers/modals/multiMembersModalController.js:5
+msgid "Confirmed by"
+msgstr "Bestätigt durch"
+
+#: partials/multi.html:59
+msgid "CONFIRMED TRANSACTIONS"
+msgstr "BESTÄTIGTE TRANSAKTIONEN"
+
+#: partials/template.html:84
+msgid "Conversations"
+msgstr "Konversationen"
+
+#: partials/delegates.html:127 partials/delegates.html:58
+#: partials/votes.html:56
+msgid "Copy Address"
+msgstr "Adresse kopieren"
+
+#: partials/delegates.html:130 partials/delegates.html:61
+#: partials/votes.html:59
+msgid "Copy Name"
+msgstr "Namen kopieren"
+
+#: js/controllers/accountController.js:8 partials/template.html:72
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: partials/modals/registrationDelegateModal.html:21
+msgid "Delegate Name"
+msgstr "Delegate Name"
+
+#: partials/template.html:240
+msgid "delegate registration"
+msgstr "delegate registrieren"
+
+#: partials/template.html:104 partials/template.html:232
+msgid "Delegates"
+msgstr "Delegates"
+
+#: partials/dapp-entry.html:85
+msgid "Description"
+msgstr "Beschreibung"
+
+#: js/controllers/modals/errorModalController.js:10
+#: js/controllers/modals/forgingModalController.js:11
+msgid "Disable Forging"
+msgstr "Forging deaktivieren"
+
+#: js/controllers/appController.js:315
+msgid "Disabled"
+msgstr "Deaktiviert"
+
+#: partials/dapp-entry.html:21 partials/dapp-entry.html:31
+#: partials/dapp-entry.html:40
+msgid "DOWNLOAD"
+msgstr "DOWNLOAD"
+
+#: partials/modals/masterPassphraseModal.html:24
+msgid "Empty passphrase"
+msgstr "Passphrase leer"
+
+#: js/controllers/modals/errorModalController.js:12
+#: js/controllers/modals/forgingModalController.js:13
+msgid "Enable Forging"
+msgstr "Forging aktivieren"
+
+#: js/controllers/appController.js:315
+msgid "Enabled"
+msgstr "Aktiviert"
+
+#: js/controllers/dappController.js:143
+msgid "Failed to install application"
+msgstr "Installation der Applikation fehlgeschlagen"
+
+#: js/controllers/dappController.js:183
+msgid "Failed to launch application"
+msgstr "Starten der Applikation fehlgeschlagen"
+
+#: js/controllers/dappController.js:94
+msgid "Failed to uninstall application"
+msgstr "Deinstallation der Applikation fehlgeschlagen"
+
+#: js/controllers/blockchainController.js:46
+#: js/controllers/forgingController.js:117
+#: js/controllers/transactionsController.js:67
+#: js/controllers/walletPendingsController.js:48
+#: js/controllers/walletsController.js:149
+#: js/controllers/walletTransactionsController.js:71
+#: partials/modals/multisignatureModal.html:128
+#: partials/modals/transactionInfo.html:19 partials/modals/userInfo.html:63
+msgid "Fee"
+msgstr "Gebühren"
+
+#: partials/modals/blockInfo.html:72 partials/modals/blockModal.html:32
+#: partials/modals/transactionInfo.html:47 partials/modals/userInfo.html:92
+msgid "FEE"
+msgstr "GEBÜHREN"
+
+#: partials/modals/registrationDelegateModal.html:23
+#: partials/modals/secondPassphraseModal.html:28
+#: partials/modals/sendTransaction.html:31 partials/modals/vote.html:25
+msgid "Fee: {{fee | liskFilter}} LSK"
+msgstr "Gebühr: {{fee | liskFilter}} LSK"
+
+#: partials/forging.html:74
+msgid "Forged Blocks"
+msgstr "Generierte Blöcke"
+
+#: js/controllers/delegatesController.js:9
+#: js/controllers/forgingController.js:83
+#: js/controllers/votedDelegatesController.js:8 partials/template.html:229
+#: partials/template.html:96
+msgid "Forging"
+msgstr "Forging"
+
+#: partials/template.html:245
+msgid "FORGING"
+msgstr "FORGING"
+
+#: partials/modals/secondPassphraseModal.html:18
+msgid ""
+"Further protect your account with an optional second passphrase! It may take "
+"a few moments for the changes to take effect."
+msgstr ""
+"Sichere deinen Account weiter ab mithilfe der optionalen zweiten Passphrase! "
+"Es kann ein paar Minuten dauern bis die Änderung eintritt."
+
+#: partials/settings.html:6
+msgid "General"
+msgstr "Allgemein"
+
+#: partials/modals/newUser.html:26
+#: partials/modals/secondPassphraseModal.html:30
+msgid "Generate New"
+msgstr "Neu generieren"
+
+#: js/controllers/blockchainController.js:42 partials/modals/blockInfo.html:46
+msgid "Generator"
+msgstr "Forger"
+
+#: partials/modals/addDappModal.html:121 partials/modals/addDappModal.html:163
+#: partials/modals/addDappModal.html:205 partials/modals/addDappModal.html:59
+#: partials/modals/addDappModal.html:90
+#: partials/modals/multisignatureModal.html:138
+#: partials/modals/multisignatureModal.html:177 partials/modals/newUser.html:77
+#: partials/modals/registrationDelegateModal.html:105
+#: partials/modals/secondPassphraseModal.html:123
+#: partials/modals/secondPassphraseModal.html:82
+#: partials/modals/sendTransaction.html:116
+#: partials/modals/sendTransaction.html:81 partials/modals/vote.html:108
+msgid "GO BACK"
+msgstr "ZURÜCKGEHEN"
+
+#: partials/template.html:137
+msgid "Go to previous page"
+msgstr "Zur vorherigen Seite"
+
+#: js/controllers/walletsController.js:113
+msgid "Group Name"
+msgstr "Gruppen Name"
+
+#: js/controllers/blockchainController.js:40
+#: js/controllers/forgingController.js:114
+#: js/controllers/transactionsController.js:61
+#: js/controllers/walletTransactionsController.js:66
+#: partials/modals/blockInfo.html:23
+msgid "Height"
+msgstr "Höhe"
+
+#: partials/template.html:276
+msgid "HOME"
+msgstr "HOME"
+
+#: partials/modals/openDappModal.html:21
+msgid ""
+"If you are confident the application can be deemed trustworthy, click "
+"<strong>Open Anyway</strong>, otherwise click <strong>Cancel</strong> now."
+msgstr ""
+"Wenn du dir sicher bist, dass die Applikation sicher und vertrauenswürdig "
+"ist, klicke auf <strong>Trotzdem Öffnen</strong>, ansonsten klicke auf "
+"<strong>Abbrechen</strong>."
+
+#: partials/dapp-entry.html:20
+msgid "INSTALL"
+msgstr "INSTALLIEREN"
+
+#: partials/template.html:282
+msgid "INSTALLED"
+msgstr "INSTALLIERT"
+
+#: partials/dapps.html:235
+msgid "Installed Applications"
+msgstr "Installierte Applikationen"
+
+#: partials/settings.html:9
+msgid "Language"
+msgstr "Sprache"
+
+#: partials/blockchain.html:7
+msgid "Latest Blocks"
+msgstr "Letzten Blöcke"
+
+#: partials/multi.html:6
+msgid "Latest Multi-Signature Transactions"
+msgstr "Neueste Multi-Signature Transaktionen"
+
+#: partials/account.html:57 partials/transactions.html:7
+msgid "Latest Transactions"
+msgstr "Neuesten Transaktionen"
+
+#: partials/account.html:36
+msgid "Latest version"
+msgstr "Neueste Version"
+
+#: partials/dapp-entry.html:30
+msgid "LAUNCH"
+msgstr "STARTEN"
+
+#: wallet.html:20
+msgid "Lisk - Blockchain Application Platform"
+msgstr "Lisk - Blockchain Applikations Plattform"
+
+#: js/controllers/delegatesController.js:158
+#: js/controllers/votedDelegatesController.js:117
+#: js/controllers/walletPendingsController.js:43
+#: partials/modals/multisignatureModal.html:52
+msgid "Lisk Address"
+msgstr "Lisk Adresse"
+
+#: partials/account.html:33
+msgid "Lisk Client"
+msgstr "Lisk Client"
+
+#: partials/account.html:43
+msgid "Lisk Client Outdated"
+msgstr "Lisk Client Veraltet"
+
+#: js/controllers/dappController.js:7
+#: js/controllers/dappsCategoryController.js:7
+#: js/controllers/dappsController.js:7
+msgid "Loading applications"
+msgstr "Lade die Applikationen"
+
+#: js/controllers/blockchainController.js:7
+msgid "Loading blockchain"
+msgstr "Lade die Blockchain"
+
+#: js/controllers/accountController.js:7
+msgid "Loading dashboard"
+msgstr "Lade das Dashboard"
+
+#: js/controllers/delegatesController.js:7
+#: js/controllers/votedDelegatesController.js:7
+msgid "Loading delegates"
+msgstr "Lade die Delegates"
+
+#: js/controllers/forgingController.js:82
+msgid "Loading forging status"
+msgstr "Lade den Forging Status"
+
+#: js/controllers/walletsController.js:7
+msgid "Loading Multi-Signature Groups"
+msgstr "Lade Multi-Signature Gruppen"
+
+#: js/controllers/transactionsController.js:7
+#: js/controllers/walletPendingsController.js:7
+msgid "Loading transactions"
+msgstr "Lade Transaktionen"
+
+#: partials/blockchain.html:40 partials/delegates.html:150
+#: partials/delegates.html:81
+msgid "Loading..."
+msgstr "Laden..."
+
+#: partials/template.html:168
+msgid "Logout"
+msgstr "Ausloggen"
+
+#: partials/modals/sendTransaction.html:29
+msgid "LSK Amount"
+msgstr "LSK Betrag"
+
+#: partials/forging.html:11
+msgid "LSK Earned"
+msgstr "LSK Verdienst"
+
+#: partials/modals/newUser.html:72
+msgid ""
+"Make sure that you keep the passphrase safe. If you lose your passphrase "
+"later on, your account can't be restored and all your funds will be lost."
+msgstr ""
+"Stelle sicher, dass du deine Passphrase sicher aufbewahrst. Falls du deine "
+"Passphrase später verlierst, kann dein Account nicht wiederhergestellt "
+"werden und du verlierst dein gesamtes Guthaben."
+
+#: partials/modals/newUser.html:31
+msgid ""
+"Make sure that you keep the passphrase safe. You will be asked to re-type it "
+"for confirmation."
+msgstr ""
+"Stelle sicher, dass du deine Passphrase sicher aufbewahrst. Im nächsten "
+"Schritt musst du sie nochmals bestätigen."
+
+#: partials/modals/secondPassphraseModal.html:77
+msgid ""
+"Make sure that you keep the second passphrase safe. If you lose your second "
+"passphrase later on, your account can't be restored and all your funds will "
+"be lost."
+msgstr ""
+"Stelle sicher, dass du deine zweite Passphrase sicher aufbewahrst. Falls du "
+"deine zweite Passphrase später verlierst, kann dein Account nicht "
+"wiederhergestellt werden und du verlierst dein gesamtes Guthaben."
+
+#: partials/modals/secondPassphraseModal.html:35
+msgid ""
+"Make sure that you keep the second passphrase safe. You will be asked to re-"
+"type it for confirmation."
+msgstr ""
+"Stelle sicher, dass du deine zweite Passphrase sicher aufbewahrst. Im "
+"nächsten Schritt musst du sie nochmals bestätigen."
+
+#: partials/modals/sendTransaction.html:41
+msgid ""
+"Make sure you're sending LSK to the right address. This action can't be "
+"undone later."
+msgstr ""
+"Stelle sicher, dass du die LSK zu der richtigen Adresse schickst. Diese "
+"Aktion kann nicht rückgängig gemacht werden."
+
+#: js/controllers/modals/masterPassphraseModalController.js:9
+msgid "Master Passphrase"
+msgstr "Master Passphrase"
+
+#: js/controllers/walletsController.js:114
+msgid "Members"
+msgstr "Mitglieder"
+
+#: partials/account.html:60 partials/dapps.html:177 partials/dapps.html:237
+msgid "More"
+msgstr "Mehr"
+
+#: js/controllers/walletsController.js:8 partials/settings.html:12
+#: partials/template.html:78
+msgid "Multi-Signature"
+msgstr "Multi-Signature"
+
+#: js/controllers/modals/multiMembersModalController.js:5
+msgid "Multi-Signature Group Members"
+msgstr "Multi-Signature Gruppen Mitglieder"
+
+#: partials/settings.html:23
+msgid "Multi-Signature is Disabled"
+msgstr "Multi-Signature ist deaktiviert"
+
+#: partials/settings.html:24
+msgid "Multi-Signature is Enabled"
+msgstr "Multi-Signature is aktiviert"
+
+#: partials/multi.html:42
+msgid "My Multi-Signature Groups"
+msgstr "Meine Multi-Signature Gruppen"
+
+#: partials/template.html:159
+msgid "My Profile"
+msgstr "Mein Profil"
+
+#: partials/template.html:110 partials/votes.html:24
+msgid "My Votes"
+msgstr "Meine Votes"
+
+#: partials/template.html:235
+msgid "My votes ({{myVotesCount||'0'}})"
+msgstr "Meine Votes ({{myVotesCount||'0'}})"
+
+#: js/controllers/delegatesController.js:157
+#: js/controllers/votedDelegatesController.js:116
+msgid "Name"
+msgstr "Name"
+
+#: partials/passphrase.html:26
+msgid "NEW ACCOUNT"
+msgstr "NEUER ACCOUNT"
+
+#: partials/modals/multisignatureModal.html:92
+msgid "next"
+msgstr "Weiter"
+
+#: partials/modals/multisignatureModal.html:31
+msgid "NEXT"
+msgstr "WEITER"
+
+#: partials/modals/addDappModal.html:62 partials/modals/addDappModal.html:93
+msgid "Next Step"
+msgstr "Nächster Schritt"
+
+#: partials/modals/newUser.html:39
+#: partials/modals/secondPassphraseModal.html:43
+msgid "NEXT STEP"
+msgstr "NÄCHSTER SCHRITT"
+
+#: partials/modals/confirmDeletionModal.html:22
+msgid "NO"
+msgstr "NEIN"
+
+#: partials/dapps-category.html:6 partials/dapps-category.html:7
+msgid "No applications matching your search criteria were found."
+msgstr "Es wurden keine Applikationen mit deinen Suchkriterien gefunden."
+
+#: partials/blockchain.html:35
+msgid "No blockchain"
+msgstr "Keine Blockchain"
+
+#: partials/delegates.html:145 partials/delegates.html:76
+msgid "No delegates"
+msgstr "Keine Delegates"
+
+#: partials/blockchain.html:47 partials/transactions.html:70
+msgid "No results for this search."
+msgstr "Nichts gefunden."
+
+#: partials/modals/multisignatureModal.html:122
+msgid "Number of members"
+msgstr "Anzahl an Mitgliedern"
+
+#: partials/template.html:248
+msgid "Off"
+msgstr "Aus"
+
+#: partials/modals/errorModal.html:28
+msgid "OK"
+msgstr "OK"
+
+#: partials/template.html:251
+msgid "On"
+msgstr "An"
+
+#: partials/dapp-entry.html:39
+msgid "OPEN"
+msgstr "ÖFFNEN"
+
+#: partials/modals/openDappModal.html:30
+msgid "OPEN ANYWAY"
+msgstr "TROTZDEM ÖFFNEN"
+
+#: js/controllers/forgingController.js:41
+#: js/controllers/forgingController.js:53
+#: js/controllers/forgingController.js:64
+msgid "Others"
+msgstr "Andere"
+
+#: partials/modals/newUser.html:66
+msgid "Passphrase"
+msgstr "Passphrase"
+
+#: js/controllers/walletPendingsController.js:8
+msgid "Pending transactions"
+msgstr "Wartende Transaktionen"
+
+#: partials/modals/multisignatureModal.html:107
+msgid ""
+"Please check your input below and go back if necessary. Double-check the "
+"group members, else you risk losing your LSK balance!"
+msgstr ""
+"Bitte kontrolliere deine Eingaben und gehe zurück falls nötig. Kontrolliere "
+"auf jeden Fall deine Gruppen Mitglieder, ansonsten riskierst du es dein LSK "
+"Guthaben zu verlieren!"
+
+#: partials/modals/registrationDelegateModal.html:15
+msgid "Please choose a delegate name."
+msgstr "Bitte wähle einen Delegate Namen."
+
+#: partials/modals/vote.html:15
+msgid "Please confirm your selection and confirm your vote."
+msgstr "Bitte bestätige deine Auswahl und deine Votes."
+
+#: partials/modals/addDappModal.html:111
+msgid ""
+"Please ensure all details are correct before confirming your blockchain "
+"application."
+msgstr ""
+"Bitte stelle sicher, dass alle Angaben korrekt sind bevor du die Blockchain "
+"Applikation hinzufügst."
+
+#: js/controllers/modals/masterPassphraseModalController.js:8
+msgid "Please enter the master passphrase for this node."
+msgstr "Bitte gib die Master Passphrase von diesem Node ein. "
+
+#: partials/modals/sendTransaction.html:15
+msgid ""
+"Please enter the Recipient Address and LSK Amount that you would like send "
+"below."
+msgstr ""
+"Bitte gib die Empfängeradresse und die LSK Menge ein, die du verschicken "
+"möchtest. "
+
+#: partials/modals/addDappModal.html:142 partials/modals/forgingModal.html:16
+#: partials/modals/registrationDelegateModal.html:53
+#: partials/modals/sendTransaction.html:64 partials/modals/vote.html:56
+msgid "Please enter your passphrase below."
+msgstr "Bitte gib unten deine Passphrase ein."
+
+#: partials/modals/multisignatureModal.html:156
+#: partials/modals/passphraseCheck.html:15
+msgid "Please enter your passphrase."
+msgstr "Bitte gib deine Passphrase ein."
+
+#: partials/modals/secondPassphraseModal.html:106
+msgid "Please enter your primary passphrase below."
+msgstr "Bitte gib deine erste Passphrase ein."
+
+#: partials/modals/addDappModal.html:184
+#: partials/modals/registrationDelegateModal.html:88
+#: partials/modals/sendTransaction.html:99 partials/modals/vote.html:91
+msgid "Please enter your second passphrase below."
+msgstr "Bitte gib deine zweite Passphrase ein."
+
+#: partials/modals/secondPassphraseModal.html:19
+msgid "Please find your second passphrase below."
+msgstr "Unten steht du deine zweite Passphrase."
+
+#: partials/modals/addDappModal.html:49
+msgid "Please provide a specification for your blockchain application below."
+msgstr "Bitte füge alle Details zu deiner Blockchain Applikation hinzu."
+
+#: partials/modals/addDappModal.html:80
+msgid "Please provide storage a link for your block application below."
+msgstr "Bitte füge einen Link zu deiner Blockchain Applikation hinzu."
+
+#: partials/modals/newUser.html:60
+msgid "Please re-enter your passphrase below."
+msgstr "Bitte gib deine Passphrase erneut ein."
+
+#: partials/modals/secondPassphraseModal.html:64
+msgid "Please re-enter your second passphrase below."
+msgstr "Bitte gib deine zweite Passphrase erneut ein."
+
+#: partials/modals/addDappModal.html:18
+#: partials/modals/multisignatureModal.html:15
+#: partials/modals/openDappModal.html:15
+msgid "Please read carefully."
+msgstr "Bitte aufmerksam lesen."
+
+#: partials/modals/multisignatureModal.html:84
+msgid "Pressing enter confirms each member."
+msgstr "Drücke Enter um das jeweilige Mitglied zu bestätigen."
+
+#: partials/modals/blockInfo.html:41
+msgid "Previous Block"
+msgstr "Vorheriger Block"
+
+#: partials/modals/secondPassphraseModal.html:113
+msgid "Primary Passphrase"
+msgstr "Erste Passphrase"
+
+#: partials/forging.html:35
+msgid "Productivity"
+msgstr "Produktivität"
+
+#: partials/modals/userInfo.html:18
+msgid "Public key"
+msgstr "Public Key"
+
+#: js/controllers/delegatesController.js:156
+#: js/controllers/forgingController.js:41
+#: js/controllers/votedDelegatesController.js:115 partials/forging.html:26
+msgid "Rank"
+msgstr "Rang"
+
+#: partials/dapp-entry.html:90
+msgid "READ MORE"
+msgstr "MEHR LESEN"
+
+#: js/controllers/transactionsController.js:64
+#: js/controllers/walletPendingsController.js:45
+#: js/controllers/walletsController.js:146
+#: js/controllers/walletTransactionsController.js:68 partials/account.html:73
+msgid "Recipient"
+msgstr "Empfänger"
+
+#: partials/modals/sendTransaction.html:20
+msgid "Recipient Address"
+msgstr "Empfänger Adresse"
+
+#: partials/modals/registrationDelegateModal.html:108
+#: partials/modals/registrationDelegateModal.html:38
+#: partials/modals/registrationDelegateModal.html:70
+msgid "register"
+msgstr "registrieren"
+
+#: partials/modals/registrationDelegateModal.html:13
+msgid "Register as a Delegate"
+msgstr "Als Delegate registrieren"
+
+#: partials/forging.html:6
+msgid "Registered on"
+msgstr "Registriert am"
+
+#: js/controllers/modals/newUserController.js:8
+msgid "Registering user"
+msgstr "Registriere User"
+
+#: partials/passphrase.html:18
+msgid "Remember during this session"
+msgstr "Passphrase für diese Sitzung merken"
+
+#: partials/votes.html:14
+msgid "remove vote"
+msgstr "Vote entfernen"
+
+#: js/directives/voteActionDirective.js:16
+msgid "REMOVE VOTE"
+msgstr "VOTE ENTFERNEN"
+
+#: js/directives/voteTitleDirective.js:16
+msgid "Removing vote from delegates"
+msgstr "Abstimmung entfernen von delegates"
+
+#: js/controllers/blockchainController.js:47
+#: js/controllers/forgingController.js:118 partials/modals/blockInfo.html:26
+msgid "Reward"
+msgstr "Verdienst"
+
+#: partials/modals/newUser.html:36
+#: partials/modals/secondPassphraseModal.html:40
+msgid "SAVE PASSPHRASE"
+msgstr "SPEICHERE PASSPHRASE"
+
+#: js/controllers/modals/addDappModalController.js:6
+msgid "Saving new application"
+msgstr "Speicher neue Applikation"
+
+#: partials/template.html:308 partials/template.html:333
+msgid "Search for applications"
+msgstr "Suche nach Applikationen"
+
+#: partials/template.html:208
+msgid "Search for blocks"
+msgstr "Blockchain durchsuchen"
+
+#: partials/template.html:182
+msgid ""
+"Search for transactions (Transaction ID, Sender address, Recipient address)"
+msgstr ""
+"Transaktionen durchsuchen (Transaktions ID, Absender Adresse, Empfänger "
+"Adresse)"
+
+#: partials/modals/secondPassphraseModal.html:70
+msgid "Second Passphrase"
+msgstr "Zweite Passphrase"
+
+#: partials/modals/openDappModal.html:13
+msgid "Security Warning"
+msgstr "Sicherheitswarnung"
+
+#: partials/template.html:149
+msgid "SEND"
+msgstr "SENDEN"
+
+#: partials/modals/sendTransaction.html:119
+#: partials/modals/sendTransaction.html:49
+#: partials/modals/sendTransaction.html:84
+msgid "send lisk"
+msgstr "versende lisk"
+
+#: partials/delegates.html:120 partials/delegates.html:51
+#: partials/modals/sendTransaction.html:13 partials/modals/userInfo.html:28
+#: partials/votes.html:49
+msgid "Send LSK"
+msgstr "Versende LSK"
+
+#: js/controllers/transactionsController.js:63 partials/account.html:70
+msgid "Sender"
+msgstr "Absender"
+
+#: js/controllers/settingsController.js:6 partials/template.html:165
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: partials/blockchain.html:17 partials/forging.html:82
+#: partials/transactions.html:16
+msgid "Show All Columns"
+msgstr "Alle Spalten zeigen"
+
+#: partials/blockchain.html:18 partials/forging.html:85
+#: partials/transactions.html:19
+msgid "Show Full Time"
+msgstr "Genaue Zeit zeigen"
+
+#: partials/modals/passphraseCheck.html:35
+msgid "Sign"
+msgstr "Einloggen"
+
+#: partials/passphrase.html:27
+msgid "SIGN IN"
+msgstr "EINLOGGEN"
+
+#: partials/dapp-entry.html:25 partials/dapp-entry.html:34
+#: partials/dapp-entry.html:43 partials/dapp-entry.html:50
+msgid "SOURCE CODE"
+msgstr "QUELLTEXT"
+
+#: partials/delegates.html:92
+msgid "Standby Delegates"
+msgstr "Reserve Delegates"
+
+#: partials/modals/newUser.html:15
+msgid "Step 1/2 - Generate a Passphrase"
+msgstr "Schritt 1/2 - Generiere eine Passphrase"
+
+#: partials/modals/secondPassphraseModal.html:15
+msgid "Step 1/2 - Generate a Second Passphrase"
+msgstr "Schritt 1/2 - Generiere eine zweite Passphrase"
+
+#: partials/modals/multisignatureModal.html:13
+msgid "Step 1/3 - Preamble"
+msgstr "Schritt 1/3 - Präambel"
+
+#: partials/modals/addDappModal.html:16
+msgid "Step 1/4 - Preamble"
+msgstr "Schritt 1/4 - Präambel"
+
+#: partials/modals/newUser.html:58
+msgid "Step 2/2 - Confirm your Passphrase"
+msgstr "Schritt 2/2 - Bestätige deine Passphrase"
+
+#: partials/modals/secondPassphraseModal.html:62
+msgid "Step 2/2 - Confirm your Second Passphrase"
+msgstr "Schritt 2/2 - Bestätige deine zweite Passphrase"
+
+#: partials/modals/multisignatureModal.html:44
+msgid "Step 2/3 - Specify Group Members"
+msgstr "Schritt 2/3 - Spezifiziere Gruppenmitglieder"
+
+#: partials/modals/addDappModal.html:47
+msgid "Step 2/4 - Specifications"
+msgstr "Schritt 2/4 - Details"
+
+#: partials/modals/multisignatureModal.html:105
+msgid "Step 3/3 - Confirmation"
+msgstr "Schritt 3/3 - Bestätigung"
+
+#: partials/modals/addDappModal.html:78
+msgid "Step 3/4 - Storage Links"
+msgstr "Schritt 3/4 - Link zur Blockchain Applikation"
+
+#: partials/modals/addDappModal.html:109
+msgid "Step 4/4 - Confirmation"
+msgstr "Schritt 4/4 - Bestätigung"
+
+#: partials/modals/blockInfo.html:16 partials/modals/transactionInfo.html:12
+#: partials/modals/userInfo.html:35
+msgid "Summary"
+msgstr "Zusammenfassung"
+
+#: partials/modals/openDappModal.html:19
+msgid ""
+"The Lisk apps platform currently does not provide any protection against any "
+"unauthorized system calls made from the running application. Therefore "
+"opening any untrusted applications is not yet advisable, and could "
+"potentially lead to loss of funds."
+msgstr ""
+"Die Lisk app Plattform bietet aktuell keine Sicherungsmaßnahmen gegen "
+"unauthorisierte Systemaufrufe ausgehend von der laufenden Applikation an."
+
+#: partials/modals/masterPassphraseModal.html:30
+msgid ""
+"The master passphrase is auto-generated upon first launching the Lisk "
+"client. It can be found at the end of the config.json file. Therefore only "
+"node operators can install, launch or uninstall applications. Once "
+"applications are in a launched state, anyone is free to open and use them."
+msgstr ""
+"Die Master Passphrase wurde beim ersten Start von Lisk automatisch "
+"generiert. Du findest sie am Ende der config.json Datei. Sie verhindert das "
+"jeder Nutzer Apps installieren, starten und deinstallieren kann. Sobald eine "
+"App einmal gestartet wurde, kann sie jeder öffnen und benutzen."
+
+#: partials/modals/newUser.html:68
+msgid ""
+"The passphrase entered doesn't match with the one generated before. Please "
+"go back and generate a new one."
+msgstr ""
+"Die Passphrase stimmt nicht mit der vorher generierten überein. Bitte gehe "
+"zurück und generiere eine neue Passphrase."
+
+#: partials/modals/secondPassphraseModal.html:72
+msgid ""
+"The second passphrase entered doesn't match with the one generated before. "
+"Please go back and generate a new one."
+msgstr ""
+"Die zweite Passphrase stimmt nicht mit der vorher generierten überein. Bitte "
+"gehe zurück und generiere eine neue zweite Passphrase."
+
+#: partials/modals/multisignatureModal.html:21
+msgid ""
+"This walkthrough will guide you through the necessary steps to create a "
+"multi-signature group. It's very important that you know what multi-"
+"signatures are, else you risk loosing your LSK balance.<br><br>A multi-"
+"signature group consists of N accounts, the one who created the group is the "
+"group owner. When the owner wants to make a transaction, M of N accounts "
+"within the group need to confirm it, otherwise the transaction will not be "
+"processed. The values M and N are specified in this walkthrough."
+"<br><br><b>Things you need to know for the multi-signature group setup:</"
+"b><br><br>• The number of group members (N).<br>• The number of needed "
+"confirmations (M).<br>• The addresses of the Lisk accounts you want to add "
+"to the group."
+msgstr ""
+"Diese Schritt für Schritt Anleitung führt dich durch die benötigten Schritte "
+"eine Multi-Signature Gruppe zu erstellen. Es ist sehr wichtig, dass du weißt "
+"was eine Multi-Signature Gruppe ist, ansonsten riskierst du es dein LSK "
+"Guthaben zu verlieren.<br><br>Eine Multi-Signature Gruppe besteht aus N "
+"Accounts, derjenige der die Gruppe erzeugt hat ist der Gruppen Besitzer. "
+"Wenn der Gruppen Besitzer eine Transaktion initiiert müssen M von N Accounts "
+"innerhalb der Gruppe diese bestätigen. Ansonsten wird die Transaktion nicht "
+"verschickt. Die Werte für M und N werden in den nächsten Schritten bestimmt."
+"<br><br><b>Sachen die du über Multi-Signature Gruppen wissen musst:</"
+"b><br><br>• The Anzahl an Gruppen Mitgliedern (N).<br>• Die Anzahl der "
+"benötigten Bestätigungen (M).<br>• Die Adressen der Lisk Accounts, die du zu "
+"deiner Multi-Signature Gruppe hinzufügen möchtest."
+
+#: js/controllers/blockchainController.js:43
+#: js/controllers/forgingController.js:116
+#: js/controllers/transactionsController.js:65
+#: js/controllers/walletPendingsController.js:46
+#: js/controllers/walletsController.js:147
+#: js/controllers/walletTransactionsController.js:69 partials/account.html:76
+#: partials/modals/blockInfo.html:38 partials/modals/transactionInfo.html:25
+#: partials/modals/userInfo.html:69
+msgid "Time"
+msgstr "Zeit"
+
+#: partials/forging.html:5
+msgid "To become a delegate, click on the \"Delegate Registration\" button."
+msgstr "Klicke auf \"Delegate Registrieren\" um Delegate zu werden."
+
+#: partials/template.html:130
+msgid "Toggle navigation"
+msgstr "Navigation umschalten"
+
+#: partials/delegates.html:23
+msgid "Top Delegates"
+msgstr "Aktive Delegates"
+
+#: partials/modals/blockInfo.html:32
+msgid "Total Amount"
+msgstr "Gesamte Summe"
+
+#: partials/modals/userInfo.html:36
+msgid "Total Balance"
+msgstr "Gesamtes Guthaben"
+
+#: partials/modals/blockInfo.html:29
+msgid "Total Fee"
+msgstr "Gesamte Gebühren"
+
+#: js/controllers/forgingController.js:26
+msgid "Total Forged"
+msgstr "Gesamt Geforged"
+
+#: js/controllers/transactionsController.js:62
+#: js/controllers/walletPendingsController.js:44
+#: js/controllers/walletsController.js:145
+#: js/controllers/walletTransactionsController.js:67 partials/account.html:67
+#: partials/modals/blockModal.html:17 partials/modals/userInfo.html:52
+#: partials/modals/userInfo.html:76
+msgid "Transaction ID"
+msgstr "Transaktions ID"
+
+#: js/controllers/blockchainController.js:44
+#: js/controllers/transactionsController.js:8
+#: js/controllers/walletTransactionsController.js:6
+#: partials/modals/blockInfo.html:17 partials/modals/blockModal.html:7
+#: partials/modals/userInfo.html:46 partials/modals/userInfo.html:47
+msgid "Transactions"
+msgstr "Transaktionen"
+
+#: partials/dapp-entry.html:56
+msgid "UNINSTALL"
+msgstr "DEINSTALLIEREN"
+
+#: partials/account.html:46
+msgid "UPDATE"
+msgstr "UPDATEN"
+
+#: js/controllers/delegatesController.js:159
+#: js/controllers/forgingController.js:53
+#: js/controllers/votedDelegatesController.js:118
+msgid "Uptime"
+msgstr "Verfügbarkeit"
+
+#: partials/modals/blockInfo.html:35 partials/modals/transactionInfo.html:22
+#: partials/modals/userInfo.html:39 partials/modals/userInfo.html:66
+msgid "USD Equivalent"
+msgstr "USD Äquivalent"
+
+#: partials/delegates.html:7 partials/votes.html:8
+msgid "View selection"
+msgstr "Zeige Auswahl"
+
+#: partials/delegates.html:13
+msgid "vote"
+msgstr "vote"
+
+#: js/directives/voteTitleDirective.js:14
+msgid "Voting for delegates"
+msgstr "Vote für Delegates"
+
+#: partials/template.html:64
+msgid "Welcome back, {{username}}"
+msgstr "Willkommen zurück, {{username}}"
+
+#: partials/modals/confirmDeletionModal.html:25
+msgid "YES"
+msgstr "JA"
+
+#: partials/multi.html:46
+msgid "You are not a member of any one Multi-Signature group."
+msgstr "Du bist bisher kein Mitglied einer Multi-Signature Gruppe."
+
+#: partials/modals/newUser.html:17
+msgid "You can find your passphrase below."
+msgstr "Unten findest du deine Passphrase."
+
+#: partials/modals/vote.html:33
+msgid ""
+"You can select up to 33 delegates in one voting turn. Up to 101 delegates in "
+"total."
+msgstr ""
+"Du kannst bis zu 33 Delegates in einem Zug auswählen. Insgesamt kannst du "
+"für maximal 101 Delegates wählen."
+
+#: partials/dapps.html:165 partials/dapps.html:242
+msgid "You do not have any applications installed yet."
+msgstr "Du hast bisher keine Applikationen installiert."
+
+#: partials/forging.html:106
+msgid "You have not forged any blocks yet."
+msgstr "Du hast bisher keine Blocks geforged."
+
+#: partials/account.html:109
+msgid "You have not made any transactions yet."
+msgstr "Du hast bisher keine Transaktionen getätigt."
+
+#: partials/votes.html:75
+msgid "You have not voted for any delegates yet."
+msgstr "Du hast aktuell für keinen Delegate gevoted."
+
+#: partials/modals/multisignatureModal.html:113
+#: partials/modals/multisignatureModal.html:63
+msgid "Your Account"
+msgstr "Dein Account"
+
+#: partials/multi.html:10
+msgid "Your Multi-Signature group(s) have not made any transactions yet."
+msgstr ""
+"Deine Multi-Signature Gruppen haben bisher keine Transaktionen getätigt."
+
+#: partials/modals/addDappModal.html:151 partials/modals/forgingModal.html:23
+#: partials/modals/multisignatureModal.html:163
+#: partials/modals/registrationDelegateModal.html:60
+#: partials/modals/sendTransaction.html:71 partials/modals/vote.html:63
+#: partials/passphrase.html:10
+msgid "Your Passphrase"
+msgstr "Deine Passphrase"
+
+#: partials/modals/addDappModal.html:193
+#: partials/modals/multisignatureModal.html:167
+#: partials/modals/passphraseCheck.html:22
+#: partials/modals/registrationDelegateModal.html:95
+#: partials/modals/sendTransaction.html:106 partials/modals/vote.html:98
+msgid "Your Second Passphrase"
+msgstr "Deine 2. Passphrase"
+
+#~ msgid "(1449)"
+#~ msgstr "(1449)"
+
+#~ msgid "Add as Contact"
+#~ msgstr "Zu Kontakten hinzufügen"
+
+#~ msgid "ADD NEW DAPP"
+#~ msgstr "NEUE DAPP HINZUFÜGEN"
+
+#~ msgid "add second passphrase"
+#~ msgstr "2. Passphrase hinzufügen"
+
+#~ msgid ""
+#~ "Becoming a delegate requires registration. You may choose your own "
+#~ "delegate name, which can be used to promote your delegate. Only the top "
+#~ "101 delegates are eligible to forge. All fees are shared equally between "
+#~ "the top 101 delegates. Registration costs: {{fee | liskFilter}} LISK."
+#~ msgstr ""
+#~ "Um Delegate zu werden musst du dich registrieren. Dazu kannst du dir "
+#~ "deinen eigenen Delegate Namen aussuchen, mit dem du für deinen Delegate "
+#~ "dann werben kannst. Nur die obersten 101 Delegates können aktiv forgen. "
+#~ "Alle eingenommenen Netzwerkgebühren werden gleichmäßig zwischen den "
+#~ "obersten 101 Delegates verteilt. Gebühren: {{fee | liskFilter}} LISK."
+
+#~ msgid "Dapp Store"
+#~ msgstr "Dapp Store"
+
+#~ msgid ""
+#~ "Further protect your account with an optional second passphrase! Please "
+#~ "allow some time for the changes to take effect. Service cost: <b>{{fee | "
+#~ "liskFilter}} LISK</b>. Your balance: <b>{{totalBalance | liskFilter}} "
+#~ "LISK</b>."
+#~ msgstr ""
+#~ "Mache deinen Account mit einer optionalen zweiten Passphrase sicherer! "
+#~ "Bitte warte einen Augenblick bis das Netzwerk die Änderung bemerkt. "
+#~ "Gebühren: <b>{{fee | liskFilter}} LISK</b>. Dein Guthaben: "
+#~ "<b>{{totalBalance | liskFilter}} LISK</b>."
+
+#~ msgid "GET STARTED"
+#~ msgstr "LOS GEHTS"
+
+#~ msgid "Go back"
+#~ msgstr "Zurückgehen"
+
+#~ msgid "Installed Dapps"
+#~ msgstr "Installierte Dapps"
+
+#~ msgid "Lisk - Decentralized Application Platform"
+#~ msgstr "Lisk - Die Dezentrale Applikations Plattform"
+
+#~ msgid "LISK Amount"
+#~ msgstr "LISK Summe"
+
+#~ msgid "LISK Earned"
+#~ msgstr "LISK verdient"
+
+#~ msgid "Loading dapp"
+#~ msgstr "Lade die Dapp"
+
+#~ msgid "Loading dapps"
+#~ msgstr "Lade Dapps"
+
+#~ msgid "No dapps matching your search criteria were found."
+#~ msgstr "Keine passenden Dapps zu ihren Suchkriterien gefunden."
+
+#~ msgid "No results for search '{{searchDapp.searchForDappGlobal}}' in dapps."
+#~ msgstr ""
+#~ "Keine Resultate für die Suche nach '{{searchDapp.searchForDappGlobal}}'."
+
+#~ msgid "Passphrase doesn't match."
+#~ msgstr "Passphrase stimmt nicht überein."
+
+#~ msgid ""
+#~ "Please check your input below and go back if necessary. Double-check the "
+#~ "group members, else you risk losing your LISK balance!"
+#~ msgstr ""
+#~ "Bitte überprüfe deine unteren Eingaben und gehe, falls Notwendig, zurück. "
+#~ "Bitte kontrolliere außerdem noch einmal deine Gruppenmitglieder, "
+#~ "ansonsten riskierst du es deine LISK zu verlieren."
+
+#~ msgid "Saving new dapp"
+#~ msgstr "Speichere neue Dapp"
+
+#~ msgid "Search for Dapps"
+#~ msgstr "Dapp Store durchsuchen"
+
+#~ msgid "Send LISK"
+#~ msgstr "Versende LISK"
+
+#~ msgid "SEND LISK"
+#~ msgstr "VERSENDE LISK"
+
+#~ msgid "This action will cost"
+#~ msgstr "Diese Aktion kostet"
+
+#~ msgid "You do not have any dapps installed yet."
+#~ msgstr "Du hast bisher keine Dapps installiert."
+
+#~ msgid "You have not installed dapps yet."
+#~ msgstr "Du hast aktuell keine Dapps installiert."

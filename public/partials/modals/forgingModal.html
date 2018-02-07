@@ -1,0 +1,45 @@
+<div class="app-modal valign-wrapper">
+    <div class="container height100">
+        <div class="row height100">
+            <div class="col-md-6 col-md-offset-4 height100 valign-wrapper">
+                <div class="modal-content">
+                    <div class="modal-content">
+                        <div class="modal-header modal-iconed">
+                            <div class="close-modal" ng-click="close()">
+                                <span class="sr-only"><translate>Close modal</translate></span>
+                            </div>
+                        </div>
+                        <div class="modal-header clearfix">
+                            <div>
+                                <h2>{{label}}</h2>
+                            </div>
+                            <div><translate>Please enter your passphrase below.</translate></div>
+                        </div>
+                        <div class="modal-body">
+                            <form ng-submit="forgingState()">
+                                <div class="field-padding">
+                                    <div class="input-field">
+                                        <input ng-focus="focus=='secretPhrase'" id="passPhrase" type="password" ng-model="secretPhrase" ng-trim="false" autofocus ng-class="{'invalid': error}">
+                                        <label for="passPhrase"><translate>Your Passphrase</translate></label>
+                                    </div>
+                                    <span class="pass-error" ng-show="error">{{error}}</span>
+                                </div>
+                                <input type="submit" ng-show="false">
+                            </form>
+                            <div class="modal-body bordered">
+                                <ul class="nav modal-buttons pull-right">
+                                    <li>
+                                        <input type="submit" value="{{'Cancel' | translate}}" ng-click="close()" class="btn-flat" />
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="{{label}}" ng-click="forgingState()" class="btn-flat blue-link" ng-class="{'disabled': sending}" ng-disabled="sending" />
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,51 @@
+<div class="top-margin"></div>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-default" ng-class="{'paginated': countForgingBlocks || !searchBlocks.searchForBlock}">
+            <div class="panel-heading">
+                <h2>
+                  {{'Latest Blocks'|translate}}
+                </h2>
+            </div>
+            <table ng-show="countForgingBlocks  || !searchBlocks.searchForBlock" ng-table="tableBlocks" border="0" width="100%" cellpadding="0" cellspacing="0"
+                   template-pagination="custom/pager">
+                <div class="table-menu" ng-show="countForgingBlocks || !searchBlocks.searchForBlock">
+                    <div class="more-down-table" dropdown on-toggle="toggled(open)" is-open="moreDownTable.isopen">
+                        <i class="mdi-navigation-more-vert" dropdown-toggle aria-haspopup="true" aria-expanded="false"></i>
+
+                        <div class="dropdown-menu" role="menu">
+                            <p ng-click="check($event)"><input type="checkbox" class="filled-in violet" id="advanced" ng-model="showAllColumns"><label for="advanced"><translate>Show All Columns</translate></label></p>
+                            <p ng-click="check($event)"><input type="checkbox" class="filled-in violet" id="fulltime" ng-model="showFullTime"><label for="fulltime"><translate>Show Full Time</translate></label></p>
+                        </div>
+                    </div>
+                </div>
+                <tr ng-repeat="block in $data" ng-class="{'voted': address == block.generatorId}">
+                    <td data-title="tableBlocks.cols.height" sortable="'height'" ng-click="blockInfo(block)" class="pointer"><a href="#">{{block.height}}</a></td>
+                    <td data-title="tableBlocks.cols.blockId" ng-click="blockInfo(block)" class="pointer" ng-show="showAllColumns"><a href="#">{{block.id}}</a></td>
+                    <td data-title="tableBlocks.cols.generator" ng-show="showAllColumns"><a href="#" ng-click="userInfo(block.generatorId)">{{block.generatorId}}</a></td>
+                    <td data-title="tableBlocks.cols.timestamp" sortable="'timestamp'"><span ng-show="block.timestamp > 0">{{block.timestamp | timeAgoFilter : showFullTime}}</span> <span ng-show="block.timestamp == 0">-</span></td>
+                    <td data-title="tableBlocks.cols.numberOfTransactions" ng-click="showBlock(block)" class="pointer"><a href="#">{{block.numberOfTransactions}}</a></td>
+                    <td data-title="tableBlocks.cols.totalAmount" sortable="'totalAmount'">{{block.totalAmount  | liskFilter}}</td>
+                    <td data-title="tableBlocks.cols.totalFee" sortable="'totalFee'">{{block.totalFee  | liskFilter}}</td>
+                    <td data-title="tableBlocks.cols.reward" sortable="'reward'">{{block.reward | liskFilter}}</td>
+                    <td data-title="''" class="width-80"></td>
+                </tr>
+                <tr ng-show="!loading && (!$data || $data.length == 0) && !searchBlocks.searchForBlock">
+                    <td colspan="8">
+                        <translate>No blockchain</translate>
+                    </td>
+                </tr>
+                <tr ng-show="loading">
+                    <td class="blue white-text" colspan="8">
+                        <translate>Loading...</translate>
+                    </td>
+                </tr>
+            </table>
+            <div class="panel-body empty-body empty-table"
+                 ng-if="!countForgingBlocks && searchBlocks.searchForBlock">
+                <div class="logo-grey"></div>
+                <p class="empty-state-text"><translate>No results for this search.</translate></p>
+            </div>
+        </div>
+    </div>
+</div>

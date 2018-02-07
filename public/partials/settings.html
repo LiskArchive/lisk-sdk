@@ -1,0 +1,31 @@
+<div class="top-margin"></div>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-default settings-panel">
+            <div class="panel-heading">
+                <h2>{{'General'|translate}}</h2>
+            </div>
+            <div class="panel-body">
+                <h4>{{'Language'|translate}}</h4>
+                <div ng-include="'partials/shared/language-selector.html'"></div>
+                <div class="top-margin-40" ng-show="multisignaturesEnabled">
+                    <h4>{{'Multi-Signature'|translate}}</h4>
+                    <div class="row">
+                        <div class="col s2">
+                            <div class="switch blue-switch">
+                                <label>
+                                    <input type="checkbox" ng-disabled="settings.enabledMultisign" ng-model="settings.enabledMultisign" ng-click="setMultisignature()">
+                                    <span class="lever"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col s10">
+                            <p ng-if="!settings.enabledMultisign" translate>Multi-Signature is Disabled</p>
+                            <p ng-if="settings.enabledMultisign" translate>Multi-Signature is Enabled</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

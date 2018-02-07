@@ -1,0 +1,262 @@
+<div class="top-margin"></div>
+<div class="row">
+  <div class="col-md-6 col-sm-12 col-xs-12">
+    <div class="panel widget widget-brown">
+      <div class="lisk-icon"></div>
+      <div class="panel-body">
+        <div class="wg-label">
+          {{'Balance'|translate}}
+        </div>
+        <div class="wg-data">
+          <span class="strong">{{balanceToShow[0] || 0}}<span class="small">{{balanceToShow[1]}}</span></span>&nbsp;LSK
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+    <div class="panel  widget widget-violet">
+      <div class="dapp-icon"></div>
+      <div class="panel-body">
+        <div class="wg-label">
+          Dapps Installed
+        </div>
+        <div class="wg-data">
+          <span class="strong">13</span><span class="wg-legend">5 Updates Available</span>
+        </div>
+      </div>
+    </div>
+  </div> -->
+  <div class="col-md-6 col-sm-12 col-xs-12">
+    <div class="panel  widget widget-brown" ng-show="diffVersion!=-1">
+      <div class="panel-body">
+        <div class="wg-label">
+          {{'Lisk Client'|translate}}
+        </div>
+        <div class="wg-data version">
+          <span class="strong">v{{version}}</span><span class="wg-legend"><translate>Latest version</translate></span>
+        </div>
+      </div>
+    </div>
+    <div class="panel  widget widget-red" ng-show="diffVersion==-1">
+      <div class="panel-body">
+        <div class="wg-label">
+          <translate>Lisk Client Outdated</translate>
+        </div>
+        <div class="wg-data version">
+          <span class="strong">v{{version}}</span> <a href="https://lisk.io/download" target="_blank" class="btn btn-white waves-effect pull-right"><translate>UPDATE</translate></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+    <div class="panel panel-default">
+      <div class="panel-heading" ng-class="{'cursor': transactions.length}" eat-click-if="!transactions.length" ui-sref="main.transactions">
+        <h2>
+          {{'Latest Transactions'|translate}}
+        </h2>
+        <div class="more" ng-show="transactions.length">
+          <span class="sr-only"><translate>More</translate></span>
+        </div>
+      </div>
+      <table id="transactions" ng-if="transactions.length">
+        <thead>
+          <tr class="head">
+            <th class="hide-in-1400">
+              <translate>Transaction ID</translate>
+            </th>
+            <th class="padding-in-1400">
+              <translate>Sender</translate>
+            </th>
+            <th>
+              <translate>Recipient</translate>
+            </th>
+            <th>
+              <translate>Time</translate>
+            </th>
+            <th>
+              <translate>Amount (Fee)</translate>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="transaction in transactions">
+            <td class="hide-in-1400">
+              <a href="#" ng-click="transactionInfo(transaction)" class="word-break-xs">{{transaction.id}}</a>
+            </td>
+            <td class="padding-in-1400">
+              <a href="#" ng-click="userInfo(transaction.senderId)" class="word-break-xs">{{transaction.senderId}}</a>
+            </td>
+            <td ng-show="transaction.type &lt;= 1">
+              <a href="#" ng-click="userInfo(transaction.recipientId)" class="word-break-xs">{{transaction.recipientId}}</a>
+            </td>
+            <td ng-show="transaction.type &gt; 1"></td>
+            <td>
+              {{transaction.timestamp | timeAgoFilter: false}}
+            </td>
+            <td>
+              <i ng-if="transaction.recipientId==transaction.senderId" class="vertical-text mdi-image-brightness-1 cloud-font"></i>
+              <i ng-if="transaction.recipientId!=transaction.senderId" class="vertical-text" ng-class="{'mdi-content-add-circle dark-meent-font': transaction.recipientId==address, 'mdi-content-remove-circle dark-red-font': transaction.senderId==address}"></i>
+              {{transaction.amount | liskFilter}} ({{transaction.fee | liskFilter}})
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="panel-body empty-body" ng-if="!transactions.length">
+        <div class="logo-grey"></div>
+        <p class="empty-state-text">
+          {{'You have not made any transactions yet.'|translate}}
+        </p>
+      </div>
+    </div>
+  </div>
+  <!-- <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+    <div class="light-graph line-graph">
+      <div class="light-graph-heading">
+        No Data Available
+      </div>
+      <div class="light-graph-sub-heading">
+        Return when you have forged at least 100 LSK
+      </div>
+      <div class="light-graph-body">
+        <canvas id="line" class="chart chart-line" chart-data="graphs.liskPrice.data" chart-colours="graphs.liskPrice.colours" chart-labels="graphs.liskPrice.labels" chart-legend="false" chart-series="graphs.liskPrice.series" chart-options="graphs.liskPrice.options"></canvas>
+      </div>
+      <div class="light-graph-footer">
+        <div class="row">
+          <div class="col-xs-6 col-md-6 col-lg-3 description">
+            Amount Forged
+            <br>
+            in last year
+          </div>
+          <div class="col-xs-6 forged-amount">
+            <span class="value">0.00 <span class="legend">LSK</span></span>
+          </div>
+          <div class="clearfix visible-lg visible-md visible-sm visible-xs"></div>
+        </div>
+      </div>
+    </div>
+  </div> -->
+  <!-- <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+    <div class="panel panel-default panel-list">
+      <div class="panel-heading cursor">
+        <h2>
+          News
+        </h2>
+        <div class="more">
+          <span class="sr-only">More</span>
+        </div>
+      </div>
+      <div class="panel-body" ng-if="true">
+        <ul class="media-list">
+          <li class="media">
+            <div class="media-left media-middle">
+              <a href="#"><img class="media-object" src="/images/roller_coaster.png" alt="RollerCoaster Tycoon"></a>
+            </div>
+            <div class="media-body">
+              <h4 class="media-heading">
+                RollerCoaster Tycoon
+              </h4>
+              <div class="pull-right icon">
+                <h4 class="media-heading"></h4>
+              </div><span class="text-opacity">I'm a one-line description of this Dapp</span>
+            </div>
+          </li>
+          <li class="media">
+            <div class="media-left media-middle">
+              <a href="#"><img class="media-object" src="/images/roller_coaster.png" alt="RollerCoaster Tycoon"></a>
+            </div>
+            <div class="media-body">
+              <h4 class="media-heading">
+                RollerCoaster Tycoon
+              </h4>
+              <div class="pull-right icon">
+                <h4 class="media-heading"></h4>
+              </div><span class="text-opacity">I'm a one-line description of this Dapp</span>
+            </div>
+          </li>
+          <li class="media">
+            <div class="media-left media-middle">
+              <a href="#"><img class="media-object" src="/images/roller_coaster.png" alt="RollerCoaster Tycoon"></a>
+            </div>
+            <div class="media-body">
+              <h4 class="media-heading">
+                RollerCoaster Tycoon
+              </h4>
+              <div class="pull-right icon">
+                <h4 class="media-heading"></h4>
+              </div><span class="text-opacity">I'm a one-line description of this Dapp</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="panel-body empty-body" ng-if="false">
+        <p class="empty-state-icon"></p>
+        <p class="empty-state-text">
+          There are no news right now.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4 col-md-12 col-sm-6  col-xs-12">
+    <div class="panel  panel-default panel-list">
+      <div class="panel-heading cursor">
+        <h2>
+          Latest Messages
+        </h2>
+        <div class="more">
+          <span class="sr-only">More</span>
+        </div>
+      </div>
+      <div class="panel-body" ng-if="false">
+        <ul class="media-list">
+          <li class="media">
+            <div class="media-left media-middle">
+              <a href="#"><img class="media-object" src="/images/account.png" alt="RollerCoaster Tycoon"></a>
+            </div>
+            <div class="media-body">
+              <h4 class="media-heading">
+                Patrick Collins
+              </h4>
+              <div class="pull-right icon new-message padding-top-6">
+                <h4 class="media-heading"></h4>
+              </div>Yes I think it´s the best way to go
+            </div>
+          </li>
+          <li class="media">
+            <div class="media-left media-middle">
+              <a href="#"><img class="media-object" src="/images/account.png" alt="RollerCoaster Tycoon"></a>
+            </div>
+            <div class="media-body">
+              <h4 class="media-heading">
+                Patrick Collins
+              </h4>
+              <div class="pull-right icon padding-top-6">
+                <h4 class="media-heading"></h4>
+              </div>Yes I think it´s the best way to go
+            </div>
+          </li>
+          <li class="media">
+            <div class="media-left media-middle">
+              <a href="#"><img class="media-object" src="/images/account.png" alt="RollerCoaster Tycoon"></a>
+            </div>
+            <div class="media-body">
+              <h4 class="media-heading">
+                Patrick Collins
+              </h4>
+              <div class="pull-right icon padding-top-6">
+                <h4 class="media-heading"></h4>
+              </div>Yes I think it´s the best way to go
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="panel-body empty-body" ng-if="true">
+        <p class="empty-state-icon"></p>
+        <p class="empty-state-text">
+          You haven't started any conversation yet.
+        </p>
+      </div>
+    </div>
+  </div> -->
+</div>

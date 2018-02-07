@@ -1,0 +1,79 @@
+<div class="row">
+    <div class="col-xs-12">
+        <div class="info-panel row has-devider-xs">
+            <span class="plain-text col-xs-12 col-sm-6 text-left"><translate>{{voteList.length}} out of {{count}} Delegates selected</translate></span>
+            <ul class="nav nav-info col-xs-12 col-sm-6 text-right">
+                <li class="list-delegate" dropdown is-open="moreDropdownSeelction.isopen">
+                    <a href="#" dropdown-toggle ng-disabled="voteList.length==0">
+                        <i class="mdi-action-visibility left"></i><translate>View selection</translate></a>
+                    <ul class="list-group dropdown-menu" ng-class="{'empty': voteList.length < 1}">
+                        <li class="list-group-item" ng-repeat="(key,item) in voteList.list" ng-click="voteList.vote(key, item, $event, true)">{{item}}</li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#" class="red-link" ng-click="vote()" ng-disabled="voteList.length==0"><i class="mdi-content-clear left"></i><translate>remove vote</translate></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-default" ng-class="{'paginated': count}">
+            <div class="panel-heading">
+                <h2>{{'My Votes'|translate}}</h2>
+                <div class="plain-text"><translate>{{count}} in Total</translate></div>
+            </div>
+            <table ng-show="count" ng-table="tableMyDelegates" border="0" width="100%" cellpadding="0" cellspacing="0" template-pagination="custom/pager">
+                <tr ng-repeat="delegate in $data" ng-class="{'checked': voteList.inList(delegate.publicKey), 'pending': checkPendingStatus(delegate)}">
+                    <td data-title="''" class="no-select checkbox-col">
+                        <input ng-click="voteList.vote(delegate.publicKey, delegate.username)" type="checkbox" class="filled-in violet" id="filled-in-box-{{delegate.publicKey}}" ng-checked="voteList.inList(delegate.publicKey)">
+                        <label for="filled-in-box-{{delegate.publicKey}}"></label>
+                        <!-- <span class="app-chekbox" ng-show="delegates.voted(delegate.publicKey) || unconfirmedTransactions.inList(delegate.publicKey)"></span>
+                        <span class="app-chekbox" ng-click="voteList.vote(delegate.publicKey, delegate.username)" ng-hide="delegates.voted(delegate.publicKey) || unconfirmedTransactions.inList(delegate.publicKey)" ng-class="{'unchecked':!voteList.inList(delegate.publicKey), 'checked':voteList.inList(delegate.publicKey)}"></span> -->
+                    </td>
+                    <td data-title="tableMyDelegates.cols.rate" sortable="'rate'">{{delegate.rate}}</td>
+                    <td data-title="tableMyDelegates.cols.username" sortable="'username'" class="username">{{delegate.username}}</td>
+                    <td data-title="tableMyDelegates.cols.address">
+                        <a href="#" ng-click="userInfo(delegate.address)">{{delegate.address}}</a>
+                    </td>
+                    <td data-title="tableMyDelegates.cols.productivity" sortable="'productivity'">{{(delegate.productivity) || '0.00'}}%</td>
+                    <td data-title="tableMyDelegates.cols.vote" sortable="'vote'">{{delegate.approval | number: 2}}%</td>
+                    <td data-title="''">
+                        <div class="dropdown-more-group" dropdown>
+                            <span class="table-more-actions" dropdown-toggle>
+                                <span class="dots"></span>
+                            </span>
+                            <ul class="list-group" role="menu">
+                                <li class="list-group-item">
+                                    <a href="#" class="send-lisk" ng-click="sendTransaction(delegate.address)"><translate>Send LSK</translate></a>
+                                </li>
+                                <!-- <li class="list-group-item"><a href="#">Send Message</a></li> -->
+                                <div class="divider-wrap">
+                                    <li class="divider"></li>
+                                </div>
+                                <li class="list-group-item">
+                                    <a href="#" clipboard data-clipboard-text="{{delegate.address}}" clipboard-success="clipboardSuccess(e);" clipboard-error="clipboardError(e);"><translate>Copy Address</translate></a>
+                                </li>
+                                <li class="list-group-item">
+                                    <a href="#" clipboard data-clipboard-text="{{delegate.username}}" clipboard-success="clipboardSuccess(e);" clipboard-error="clipboardError(e);"><translate>Copy Name</translate></a>
+                                </li>
+                                <!-- <div class="divider-wrap">
+                                    <li class="divider"></li>
+                                </div>
+                                <li class="list-group-item">
+                                    <a href="#" ng-click="addContact(delegate.address)"><translate>Add as Contact</translate></a>
+                                </li>
+                                <li class="list-group-item"><a href="#">See Voters</a></li> -->
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div class="panel-body empty-body empty-table" ng-if="!count">
+                <div class="logo-grey"></div>
+                <p class="empty-state-text">{{'You have not voted for any delegates yet.'|translate}}</p>
+            </div>
+        </div>
+    </div>
+</div>

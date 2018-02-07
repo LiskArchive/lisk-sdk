@@ -1,0 +1,187 @@
+<div class="app-modal valign-wrapper">
+    <div class="container height100">
+        <div class="row height100">
+            <div class="col-md-6 col-md-offset-4 height100 valign-wrapper">
+                <div class="modal-content" ng-show="step==1">
+                    <div class="modal-header modal-iconed">
+                        <div class="close-modal" ng-click="close()">
+                            <span class="sr-only"><translate>Close modal</translate></span>
+                        </div>
+                    </div>
+                    <div class="modal-header clearfix">
+                        <div>
+                            <h2>{{'Step 1/3 - Preamble'|translate}}</h2>
+                        </div>
+                        <div><translate>Please read carefully.</translate></div>
+                    </div>
+                    <div class="modal-body"></div>
+                    <div class="scrolling" style="margin-left: 10px">
+                        <div class="modal-body">
+                            <div class="multi-info-text flat-text">
+                                <p translate>This walkthrough will guide you through the necessary steps to create a multi-signature group. It's very important that you know what multi-signatures are, else you risk loosing your LSK balance.<br><br>A multi-signature group consists of N accounts, the one who created the group is the group owner. When the owner wants to make a transaction, M of N accounts within the group need to confirm it, otherwise the transaction will not be processed. The values M and N are specified in this walkthrough.<br><br><b>Things you need to know for the multi-signature group setup:</b><br><br>• The number of group members (N).<br>• The number of needed confirmations (M).<br>• The addresses of the Lisk accounts you want to add to the group.</p>
+                            </div>
+                        </div>
+                    </div>
+                <div class="modal-body bordered">
+                    <ul class="nav modal-buttons pull-right">
+                        <li>
+                            <input type="submit" value="{{'CANCEL' | translate}}" ng-click="close()" class="btn-flat" />
+                        </li>
+                        <li>
+                            <input type="submit" value="{{'NEXT' | translate}}" ng-click="step = 2;" class="btn-flat blue-link" />
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-content" ng-show="step==2">
+                <div class="modal-header modal-iconed">
+                    <div class="close-modal" ng-click="close()">
+                        <span class="sr-only"><translate>Close modal</translate></span>
+                    </div>
+                </div>
+                <div class="modal-header clearfix">
+                    <div>
+                        <h2>{{'Step 2/3 - Specify Group Members'|translate}}</h2>
+                    </div>
+                    <div><translate>Add group members by typing in their Lisk address and pressing enter.</translate></div>
+                </div>
+                <div class="modal-body">
+                    <form ng-submit="addMember(member)">
+                        <div class="input-group app-addon">
+                            <span class="input-group-addon search"></span>
+                            <input ng-focus="focus == 'member'" id="member" type="text" class="form-control" placeholder="{{'Lisk Address'|translate}}" ng-model="member">
+                            <span class="input-group-addon clear" ng-click="member='';"></span>
+                        </div>
+                        <span class="app-addon-error" style="margin-top: 3px;" ng-show="addingError">{{addingError}}</span>
+                        <input type="submit" ng-show="false">
+                    </form>
+                </div>
+                <div class="modal-body">
+                    <ul class="owners-list" ng-class="{'add-border': totalCount}">
+                        <li>
+                            <span>{{currentAddress}}</span>
+                            <span class="pull-right">{{'Your Account'|translate}}</span>
+                        </li>
+                        <li ng-repeat="(key, member) in members">
+                            <span class="address-linen tooltipped" data-position="right" data-tooltip="{{key}}">{{member.address}}</span>
+                            <span class="delete" ng-click="deleteMember(member.publicKey)"></span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-body" id="multi-range" ng-show="totalCount">
+                    <div class="range-wrapper" style="padding: 20px 40px; display: table; width: 100%;">
+                        <div style="display: table-row;">
+                            <label style="display: table-cell; font-size: 16px;"><translate>Confirmations needed</translate>:
+                                <strong>{{sign}}</strong>
+                            </label>
+                            <p class="range-field">
+                                <input style="display: table-cell;" class="blue" type="range" ng-model="sign" min="2" max="{{totalCount+1}}">
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <span class="send-info-text flat-text"><translate>Pressing enter confirms each member.</translate></span>
+                </div>
+                <div class="modal-body bordered">
+                    <ul class="nav modal-buttons pull-right">
+                        <li>
+                            <input type="submit" value="{{'CANCEL' | translate}}" ng-click="close()" class="btn-flat" />
+                        </li>
+                        <li>
+                            <input type="submit" value="{{'next' | translate}}" ng-click="goToStep3()" class="btn-flat blue-link" />
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-content" ng-show="step==3">
+                <div class="modal-header modal-iconed">
+                    <div class="close-modal" ng-click="close()">
+                        <span class="sr-only"><translate>Close modal</translate></span>
+                    </div>
+                </div>
+                <div class="modal-header clearfix">
+                    <div>
+                        <h2>{{'Step 3/3 - Confirmation'|translate}}</h2>
+                    </div>
+                    <div><translate>Please check your input below and go back if necessary. Double-check the group members, else you risk losing your LSK balance!</translate></div>
+                </div>
+                <div class="modal-body">
+                    <ul class="owners-list" ng-class="{'add-border': totalCount}">
+                        <li>
+                            <span>{{currentAddress}}</span>
+                            <span class="pull-right">{{'Your Account'|translate}}</span>
+                        </li>
+                        <li ng-repeat="(key, member) in members">
+                            <span>{{member.address}}</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-body">
+                    <ul class="multi-total">
+                        <li>{{'Number of members'|translate}}:
+                            <span>{{totalCount+1}}</span>
+                        </li>
+                        <li>{{'Confirmations needed'|translate}}:
+                            <span>{{sign}}</span>
+                        </li>
+                        <li>{{'Fee'|translate}}:
+                            <span>{{fee * (totalCount + 1) | liskFilter}} LSK</span>
+                    </ul>
+                </div>
+                <div class="modal-body" ng-show="errorMessage">
+                    <span class="app-addon-error" style="margin-top: 3px;">{{errorMessage}}</span>
+                </div>
+                <div class="modal-body bordered">
+                    <ul class="nav modal-buttons pull-right">
+                        <li>
+                            <input type="submit" value="{{'GO BACK' | translate}}" ng-click="step = 2;" class="btn-flat" />
+                        </li>
+                        <li>
+                            <input type="submit" value="{{'confirm' | translate}}" ng-click="putMembers()" class="btn-flat blue-link" />
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-content" ng-show="step==4">
+                <div class="modal-header modal-iconed">
+                    <div class="close-modal" ng-click="close()">
+                        <span class="sr-only"><translate>Close modal</translate></span>
+                    </div>
+                </div>
+                <div class="modal-header clearfix">
+                    <div>
+                        <h2>{{'Account Verification'|translate}}</h2>
+                    </div>
+                    <div><translate>Please enter your passphrase.</translate></div>
+                </div>
+                <div class="modal-body">
+                    <form ng-submit="putMembers(true)">
+                        <div class="field-padding">
+                            <div class="input-field" ng-hide="rememberedPassphrase">
+                                <input id="password" type="password" ng-model="authData.password" ng-trim="false" autofocus ng-focus="focus == 'password'">
+                                <label for="password"><translate>Your Passphrase</translate></label>
+                            </div>
+                            <div class="input-field" ng-if="secondPassphrase">
+                                <input id="secondPhrase" type="password" ng-model="authData.secondPassphrase" ng-trim="false" autofocus ng-focus="focus == 'secondPhrase'">
+                                <label for="secondPhrase"><translate>Your Second Passphrase</translate></label>
+                            </div>
+                            <span class="pass-error" ng-show="errorMessage">{{errorMessage}}</span>
+                            <input type="submit" ng-show="false">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav modal-buttons pull-right">
+                        <li>
+                            <input type="submit" value="{{'GO BACK' | translate}}" ng-click="step = 4;" class="btn-flat" />
+                        </li>
+                        <li>
+                            <input type="submit" value="{{'confirm' | translate}}" ng-click="putMembers(true)" class="btn-flat blue-link" ng-class="{'disabled': sending}" ng-disabled="sending" />
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

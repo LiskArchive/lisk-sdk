@@ -1,0 +1,512 @@
+#left-nav {
+  min-height: 486px;
+  width: 224px;
+  height: 100%;
+  position: relative;
+  background-color: #35393b;
+  float: left;
+}
+
+#logo {
+  margin: 10px auto 7px;
+  background-image: url('@{images}/nav_logo.png');
+  background-repeat: no-repeat;
+  height: 48px;
+  width: 95px;
+}
+
+.white-glow {
+  width: 100%;
+  box-shadow: 0 -2px 4px rgba(225, 225, 225, 0.07) inset;
+  -webkit-box-shadow: 0 -2px 4px rgba(225, 225, 225, 0.07) inset;
+  height: 2px;
+}
+
+#menu {
+  padding-top: 6px;
+
+  li {
+    position: relative;
+    list-style: none;
+    color: #fff;
+    height: inherit;
+    &:hover {
+    }
+    &.active {
+      opacity: 1;
+      background-color: @gray3;
+    }
+    > a {
+      display: block;
+      padding: 14px 0 14px 16px;
+      color: #fff;
+    }
+  }
+  #submenu {
+    li {
+      a {
+        padding: 14px 0 14px 66px;
+        .menu-text {
+          padding-left: 16px;
+        }
+      }
+    }
+  }
+}
+
+span.menu-text {
+  display: inline-block;
+  padding-top: 6px;
+  padding-left: 40px;
+  color: @grey-white;
+  font-size: @content-text;
+  font-weight: 400;
+}
+
+.nav-icon {
+  background-image: url('@{images}/sprites/navicons.png');
+  height: 22px;
+  width: 22px;
+  float: left;
+  margin-top: 2px;
+  margin-bottom: -2px;
+}
+
+#dashboard-icon {
+  background-position: -88px 0;
+  .active & {
+    background-position: -88px -22px;
+  }
+}
+
+#multi-icon {
+  background-position: -110px 0;
+  .active & {
+    background-position: -110px -22px;
+  }
+}
+
+#conversations-icon {
+  background-position: 0 -44px;
+  .active & {
+    background-position: 0 -66px;
+  }
+}
+
+#dappstore-icon {
+  background-position: -44px 0;
+  .active & {
+    background-position: -44px -22px;
+  }
+}
+
+#forging-icon {
+  background-position: -66px 0;
+  .active & {
+    background-position: -66px -22px;
+  }
+}
+
+#delegates-icon {
+  background-position: -44px -44px;
+  .active & {
+    background-position: -44px -66px;
+  }
+}
+
+#myvotes-icon {
+  background-position: -66px -44px;
+  .active & {
+    background-position: -66px -66px;
+  }
+}
+
+#blockchain-icon {
+  background-position: 0 0;
+  .active & {
+    background-position: 0 -22px;
+  }
+}
+
+#network-icon {
+  background-position: -22px 0;
+  .active & {
+    background-position: -22px -22px;
+  }
+}
+
+#logout-item {
+  width: 198px;
+  position: absolute;
+  @media (max-height: 560px) {
+    position: relative;
+    bottom: 0;
+  }
+  bottom: 102px;
+  left: 0px;
+  height: 30px;
+  list-style: none;
+  padding-left: 26px;
+  color: #fff;
+  opacity: .2;
+
+  &:hover {
+    color: #fff;
+    opacity: 1;
+  }
+
+  a {
+    color: #fff;
+  }
+}
+
+.header-wrapper {
+  -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.26);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.26);
+}
+
+.search-bar {
+  background-color: white;
+  padding: 10px 80px 10px 30px;
+  position: relative;
+  .search-toggle {
+    position: absolute;
+    right: 30px;
+    top: 13px;
+    cursor: pointer;
+  }
+  .preloader-wrapper {
+    width: 22px;
+    height: 22px;
+    .spinner-blue, .spinner-blue-only {
+      border-color: @blue;
+    }
+  }
+  input, input:focus {
+    border: none !important;
+  }
+  input.form-control {
+    height: 2.6rem;
+  }
+  .input-group-addon {
+    border: none;
+    background-color: transparent;
+    padding: 6px 12px 6px 0;
+    &.spinner-addon {
+      min-width: 35px;
+      padding: 6px 0 6px 12px;
+    }
+    i {
+      font-size: 24px;
+      opacity: 0.37;
+    }
+  }
+}
+
+#header {
+  background-color: @brown;
+  min-height: 65px;
+  .logo {
+    display: inline-block;
+    float: left;
+    padding: 19px 30px;
+    margin-right: 30px;
+  }
+  .more-down {
+    display: inline-block;
+    vertical-align: middle;
+    color: @white;
+    @media (max-width: @screen-xs-max) {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+    }
+  }
+  .forging-state {
+    display: block;
+    float: left;
+    margin-left: 10px;
+    margin-top: 1px;
+    padding: 6px 10px;
+    background-color: @green;
+    &.disabled {
+      background-color: @red;
+    }
+    color: @white;
+    border-radius: 16px;
+    font-size: @content-text;
+  }
+  .mini-chart {
+    display: inline-block;
+    vertical-align: middle;
+    height: 36px;
+    width: 80px;
+    position: relative;
+    opacity: 0.8;
+    margin-top: -4px;
+    .mini-chart-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      color: @white;
+      text-align: center;
+      font-size: @small-text;
+      line-height: 40px;
+    }
+  }
+  .send-button {
+    padding: 8px 14px;
+    margin: 0 0 0 20px;
+    background-color: @blue;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: normal;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    span:before {
+      content: "";
+      display: block;
+      float: left;
+      margin-top: 4px;
+      width: 14px;
+      height: 12px;
+      background-image: url('@{images}/sprites/iconset.png');
+      background-position: -56px 0;
+      margin-right: 14px;
+    }
+    &:active {
+      top: 0;
+      background-image: none;
+      outline: 0;
+      /*-webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, .3);
+      box-shadow: inset 0 3px 5px rgba(0, 0, 0, .3);*/
+    }
+
+  }
+  #title {
+    display: block;
+    float: left;
+    font-weight: 400;
+    color: @brown-white;
+    margin-top: 3px;
+  }
+  .title-icon {
+    background-image: url('@{images}/sprites/iconset.png');
+    background-position: -8px 0;
+    background-repeat: no-repeat;
+    height: 20px;
+    width: 20px;
+    float: left;
+    margin-right: 20px;
+    cursor: pointer;
+  }
+  #top-menu {
+    float: right;
+    padding: 14px 30px;
+    display: inline-block;
+    @media (max-width: @screen-xs-max) {
+      float: left;
+      min-height: 65px;
+      display: block;
+      width: 100%;
+    }
+
+  }
+  #balance {
+    position: relative;
+    top: 1px;
+    line-height: 36px;
+    padding: 0px 16px;
+    border-radius: @border-radius;
+    color: @white;
+    font-size: 1rem;
+    background-color: @brown1;
+    min-width: 60px;
+    text-align: right;
+    display: inline-block;
+  }
+}
+
+/*[ui-view].child-slider.ng-enter, [ui-view].child-slider.ng-leave, [ui-view].ng-enter, [ui-view].ng-leave {
+  -webkit-animation-duration: 1s;
+  animation-duration: 1s;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both
+}*/
+
+@-webkit-keyframes fadeInRight {
+  0% {
+    opacity: 0;
+    -webkit-transform: translate3d(100%, 0, 0);
+    transform: translate3d(100%, 0, 0)
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: none;
+    transform: none
+  }
+}
+
+@keyframes fadeInRight {
+  0% {
+    opacity: 0;
+    -webkit-transform: translate3d(100%, 0, 0);
+    -ms-transform: translate3d(100%, 0, 0);
+    transform: translate3d(100%, 0, 0)
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: none;
+    -ms-transform: none;
+    transform: none
+  }
+}
+
+@-webkit-keyframes fadeOutRight {
+  0% {
+    opacity: 1
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-transform: translate3d(100%, 0, 0);
+    transform: translate3d(100%, 0, 0)
+  }
+}
+
+@keyframes fadeOutRight {
+  0% {
+    opacity: 1
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-transform: translate3d(100%, 0, 0);
+    -ms-transform: translate3d(100%, 0, 0);
+    transform: translate3d(100%, 0, 0)
+  }
+}
+
+@-webkit-keyframes fadeOutLeft {
+  0% {
+    opacity: 1
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-transform: translate3d(-100%, 0, 0);
+    transform: translate3d(-100%, 0, 0)
+  }
+}
+
+@keyframes fadeOutLeft {
+  0% {
+    opacity: 1
+  }
+
+  100% {
+    opacity: 0;
+    -webkit-transform: translate3d(-100%, 0, 0);
+    -ms-transform: translate3d(-100%, 0, 0);
+    transform: translate3d(-100%, 0, 0)
+  }
+}
+
+@-webkit-keyframes fadeInLeft {
+  0% {
+    opacity: 0;
+    -webkit-transform: translate3d(-100%, 0, 0);
+    transform: translate3d(-100%, 0, 0)
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: none;
+    transform: none
+  }
+}
+
+@keyframes fadeInLeft {
+  0% {
+    opacity: 0;
+    -webkit-transform: translate3d(-100%, 0, 0);
+    -ms-transform: translate3d(-100%, 0, 0);
+    transform: translate3d(-100%, 0, 0)
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: none;
+    -ms-transform: none;
+    transform: none
+  }
+}
+
+/*[ui-view].ng-enter {
+  -webkit-animation-name: fadeInLeft;
+  animation-name: fadeInLeft
+}
+
+[ui-view].child-slider.ng-enter-active{
+  -webkit-animation-name: fadeInRight;
+  animation-name: fadeInRight
+}
+
+[ui-view].ng-leave {
+  -webkit-animation-name: fadeOutLeft;
+  animation-name: fadeOutLeft
+}
+
+[ui-view].child-slider.ng-leave-active {
+  -webkit-animation-name: fadeOutRight;
+  animation-name: fadeOutRight
+}*/
+
+#inc {
+  font-size: 14px;
+  width: 198px;
+  position: absolute;
+  bottom: 30px;
+  left: 0px;
+  padding-left: 26px;
+  color: #606365;
+}
+
+#right-part {
+  background-color: #ebeced;
+  height: 100%;
+}
+
+.lisk-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 84px;
+  background: url('@{images}/sprites/widgets.png');
+  background-color: white;
+  background-size: 240px 84px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+}
+
+.dapp-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 84px;
+  background: url('@{images}/sprites/widgets.png');
+  background-color: white;
+  background-size: 240px 84px;
+  background-repeat: no-repeat;
+  background-position: -160px 0;
+}

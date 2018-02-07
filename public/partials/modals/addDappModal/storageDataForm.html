@@ -1,0 +1,28 @@
+<form name="form.storage_data" style="padding: 0 40px;">
+    <input type="submit" ng-show="false">
+    <div class="row clearfix" style="height: inherit;">
+        <div class="file-field input-field">
+            <input required valid-link=".zip" ng-class="{'invalid': form.storage_data.submitted && form.storage_data.link.$invalid, 'valid': form.storage_data.submitted && form.storage_data.link.$valid}" id="link" name="link" type="text" class="file-path validate" ng-model="newDapp.link">
+            <label for="link"><translate>Application Link</translate></label>
+        </div>
+        <div class="error-newdapp-container" ng-show="form.storage_data.link.$invalid && form.storage_data.submitted">
+            <small class="error" ng-show="form.storage_data.link.$error.required">
+                <translate>An application link is required.</translate>
+            </small>
+            <small class="error" ng-show="form.storage_data.link.$error.validLink">
+                <translate>Your application link is invalid. It has to start with "http://" and end with ".zip"!</translate>
+            </small>
+        </div>
+    </div>
+    <div class="row clearfix" style="height: inherit;">
+        <div class="file-field input-field">
+            <input valid-link=".png|.jpg|.jpeg" ng-class="{'invalid': form.storage_data.submitted && form.storage_data.icon.$invalid, 'valid': form.storage_data.submitted && form.storage_data.icon.$valid}" id="icon" name="icon" type="text" class="file-path validate" ng-model="newDapp.icon">
+            <label for="icon"><translate>Icon Link</translate></label>
+        </div>
+        <div class="error-newdapp-container" ng-show="form.storage_data.icon.$invalid && form.storage_data.submitted">
+            <small class="error" ng-show="form.storage_data.icon.$error.validLink">
+                <translate>Your application icon is invalid. It has to start with "http://" and end with ".jpg" or ".png"!</translate>
+            </small>
+        </div>
+    </div>
+</form>

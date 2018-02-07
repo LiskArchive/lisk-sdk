@@ -1,0 +1,45 @@
+<div class="app-modal valign-wrapper">
+    <div class="container height100">
+        <div class="row height100">
+            <div class="col-md-9 col-md-offset-2 height100 valign-wrapper">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>{{'Transactions'|translate}} ({{block.numberOfTransactions}})</h2>
+                        <div class="close-modal" ng-click="close()">
+                            <span class="sr-only"><translate>Close modal</translate></span>
+                        </div>
+                    </div>
+                    <div class="scrolling">
+                        <div class="modal-body">
+                            <ul class="list-group transactions">
+                                <!-- ngRepeat: transaction in transactions -->
+                                <li class="list-group-item" ng-repeat="transaction in transactions">
+                                    <div class="transaction-data"><strong><translate>Transaction ID</translate>:</strong> {{transaction.id}}
+                                        <span class="pull-right">{{transaction.timestamp | timestampFilter}}</span>
+                                    </div>
+                                    <div class="transaction-path">
+                                        <div class="transaction-part pull-left">
+                                            <a href="#" class="blue-link" ng-click="userInfo(transaction.senderId)">{{transaction.senderId}}</a>
+                                            <span class="lisk">{{transaction.amount | liskFilter}} LSK</span>
+                                        </div>
+                                        <div class="transaction-direction"></div>
+                                        <div class="transaction-part pull-right">
+                                            <a href="#" class="blue-link" ng-click="userInfo(transaction.recipientId)">{{transaction.recipientId || "-"}}</a>
+                                            <span class="lisk">{{transaction.amount | liskFilter}} LSK</span>
+                                        </div>
+                                    </div>
+                                    <div class="transaction-bottom">
+                                        <div class="fee"><translate>FEE</translate>: {{transaction.fee | liskFilter}} LSK</div>
+                                        <div class="lisk">{{transaction.amount | liskFilter}} LSK</div>
+                                        <div class="confirmations">{{transaction.confirmations || 0}} <translate>CONFIRMATIONS</translate></div>
+                                    </div>
+                                </li>
+                                <!-- end ngRepeat: transaction in transactions -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,89 @@
+input[type=text], input[type=password], input[type=email], input[type=url], input[type=time], input[type=date], input[type=datetime-local], input[type=tel], input[type=number], input[type=search] {
+  height: 2.2rem;
+  width: 100%;
+  font-size: 1.15rem;
+}
+
+.input-field label {
+  top: .6rem;
+  left: 0;
+  font-size: 1.15rem;
+  opacity: 1;
+  color: #b8b8b8;
+  &.active {
+    font-size: .8rem;
+    -webkit-transform: translateY(-160%);
+    -moz-transform: translateY(-160%);
+    -ms-transform: translateY(-160%);
+    -o-transform: translateY(-160%);
+    transform: translateY(-160%);
+  }
+}
+
+.input-field {
+  position: relative;
+  margin-top: 1.6rem;
+}
+
+.switch label .lever {
+  margin-left: 0;
+}
+
+.switch.margin {
+  margin-top: 20px;
+}
+
+.progress {
+  position: relative;
+  height: 4px;
+  display: block;
+  width: 100%;
+  background-color: #90caf9;
+  border-radius: 2px;
+  margin: 0.5rem 0 1rem 0;
+  overflow: hidden;
+  .determinate {
+    position: absolute;
+    background-color: inherit;
+    top: 0;
+    bottom: 0;
+    background-color: #209bde;
+    -webkit-transition: width .3s linear;
+    -moz-transition: width .3s linear;
+    -o-transition: width .3s linear;
+    -ms-transition: width .3s linear;
+    transition: width .3s linear;
+  }
+}
+
+.materialize-textarea-big {
+  textarea.materialize-textarea {
+    font-size: 1.14rem;
+    overflow-y: hidden;
+    padding: 0;
+    resize: none;
+    min-height: 3rem;
+    margin: 0;
+  }
+  label.active {
+    top: 0;
+  }
+}
+
+[type=checkbox].filled-in:checked + label.imaged:before {
+  top: 15px;
+}
+
+[type=checkbox].filled-in:checked + label.imaged:after {
+  top: 15px;
+}
+
+[type=checkbox].filled-in:not(:checked) + label.imaged:after {
+  top: 15px;
+}
+
+label.imaged {
+  img{
+    height: 50px;
+  }
+}

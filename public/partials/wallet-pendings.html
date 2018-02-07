@@ -1,0 +1,34 @@
+<div class="top-margin"></div>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-default paginated">
+            <table ng-table="tableTransactions" border="0" width="100%" cellpadding="0" cellspacing="0">
+                <tr ng-repeat="transaction in $data">
+                    <td data-title="tableTransactions.cols.wallet" class="pointer">
+                        <a href="#">{{transaction.wallet}}</a>
+                    </td>
+                    <td data-title="tableTransactions.cols.t_id" class="pointer">
+                        <a href="#" ng-click="transactionInfo(transaction, transaction.signList)">{{transaction.t_id}}</a>
+                    </td>
+                    <td data-title="tableTransactions.cols.t_recipientId" class="pointer" sortable="'t_recipientId'">
+                        <a href="#" ng-click="userInfo(transaction.recipientId)">{{transaction.recipientId}}</a>
+                    </td>
+                    <td data-title="tableTransactions.cols.t_timestamp" sortable="'t_timestamp'">{{transaction.timestamp | timeAgoFilter : showFullTime}}
+                    </td>
+                    <td class="td-amount" data-title="tableTransactions.cols.t_amount" sortable="'t_amount'">
+                        <i ng-if="transaction.recipientId==transaction.senderId" class="vertical-text mdi-image-brightness-1 cloud-font"></i>
+                        <i ng-if="transaction.recipientId!=transaction.senderId" class="vertical-text" ng-class="{'mdi-content-add-circle dark-meent-font': transaction.recipientId==address, 'mdi-content-remove-circle dark-red-font': transaction.senderId==address}"></i>
+                        {{transaction.amount | liskFilter}}
+                    </td>
+                    <td data-title="tableTransactions.cols.t_fee" sortable="'t_fee'">{{transaction.t_fee | liskFilter}}</td>
+                    <td data-title="tableTransactions.cols.confirmations">
+                        {{transaction.multi.confirmations}}/{{transaction.multi.needed}}
+                    </td>
+                    <td data-title="''">
+                        <a class="btn btn-dark-meant"><i class="mdi-action-done left"></i><translate>CONFIRM</translate></a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

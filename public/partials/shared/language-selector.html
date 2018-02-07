@@ -1,0 +1,10 @@
+<div class="row language-selector">
+  <div class="col s2 flag">
+    <img ng-src="/images/flags/{{selectedLang}}.png">
+  </div>
+  <div class="col s10">
+    <select class="browser-default" ng-model="selectedLang" ng-change="changeLang(selectedLang)">
+      <option ng-repeat="option in languages" value="{{option.id}}" ng-selected="option.id==selectedLang">{{option.name}}</option>
+    </select>
+  </div>
+</div>

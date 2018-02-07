@@ -1,0 +1,142 @@
+<div class="app-modal valign-wrapper">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <div class="card card-modal">
+                    <div class="card-content">
+                        <div class="material-modal-content" ng-show="!passmode && step == 1">
+                            <div class="modal-header modal-iconed">
+                                <div class="close-modal" ng-click="close()">
+                                    <span class="sr-only"><translate>Close modal</translate></span>
+                                </div>
+                            </div>
+                            <div class="modal-header clearfix">
+                                <div>
+                                    <h2>{{'Step 1/2 - Generate a Second Passphrase'|translate}}</h2>
+                                </div>
+                                <div>
+                                    <div><translate>Further protect your account with an optional second passphrase! It may take a few moments for the changes to take effect.</translate></div>
+                                    <div><translate>Please find your second passphrase below.</translate></div>
+                                </div>
+                            </div>
+                            <div class="modal-body clearfix">
+                                <div class="left-margin-40 right-margin-40 top-margin-40 bottom-margin-20">
+                                    <div class="input-field passphraseGeneration">
+                                        <textarea ng-focus="focus=='secondPass'" id="newPassphrase" class="materialize-textarea" ng-model="newPassphrase" ng-trim="false" autofocus readonly></textarea>
+                                        <label for="newPassphrase" ng-class="{'active':activeLabel(newPassphrase)}">Second Passphrase</label>
+                                    </div>
+                                    <span class="fee-text fee-second-passphrase flat-text pull-right"><translate>Fee: {{fee | liskFilter}} LSK</span>
+                                    <span class="pull-left generate no-select" ng-click="generatePassphrase()">
+                                        <span><translate>Generate New</translate></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="modal-body bordered">
+                                <span class="send-info-text"><translate>Make sure that you keep the second passphrase safe. You will be asked to re-type it for confirmation.</translate></span>
+                            </div>
+                            <div class="modal-body bordered clearfix">
+                                <ul class="nav modal-buttons pull-right">
+                                    <li>
+                                        <input type="submit" value="{{'SAVE PASSPHRASE' | translate}}" ng-click="savePassToFile(newPassphrase)" class="btn-flat" />
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="{{'NEXT STEP' | translate}}" ng-click="goToStep(2)" class="btn-flat blue-link" />
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- <div class="card-action clearfix">
+                                <div class="pull-right">
+                                    <a href="#" class="waves-effect second-action" ng-click="savePassToFile(newPassphrase)"><translate>SAVE PASSPHRASE</translate></a>
+                                    <a href='#' class="primary-action waves-effect" ng-click="goToStep(2)"><translate>NEXT STEP</translate></a>
+                                </div>
+                            </div> -->
+                        </div>
+                        <div class="material-modal-content" ng-show="!passmode && step == 2">
+                            <div class="modal-header modal-iconed">
+                                <div class="close-modal" ng-click="close()">
+                                    <span class="sr-only"><translate>Close modal</translate></span>
+                                </div>
+                            </div>
+                            <div class="modal-header clearfix">
+                                <div>
+                                    <h2>{{'Step 2/2 - Confirm your Second Passphrase'|translate}}</h2>
+                                </div>
+                                <div><translate>Please re-enter your second passphrase below.</translate></div>
+                            </div>
+                            <div class="modal-body clearfix">
+                                <div class="left-margin-40 right-margin-40 bottom-margin-40 top-margin-40">
+                                    <div class="input-field passphraseGeneration">
+                                        <textarea ng-focus="focus=='secondPass'" id="repeatPassphrase" class="materialize-textarea" ng-trim="false" ng-model="repeatPassphrase" ng-class="{'invalid': noMatch || fromServer}" autofocus></textarea>
+                                        <label for="repeatPassphrase" ng-class="{'active':activeLabel(repeatPassphrase)}"><translate>Second Passphrase</translate></label>
+                                    </div>
+                                    <span class="pass-error" style="margin-top: 0" ng-show="noMatch"><translate>The second passphrase entered doesn't match with the one generated before. Please go back and generate a new one.</translate></span>
+                                    <span class="pass-error" style="margin-top: 0" ng-show="fromServer">{{fromServer}}.</span>
+                                </div>
+                            </div>
+                            <div class="modal-body bordered">
+                                <span class="send-info-text"><translate>Make sure that you keep the second passphrase safe. If you lose your second passphrase later on, your account can't be restored and all your funds will be lost.</translate></span>
+                            </div>
+                            <div class="modal-body bordered clearfix">
+                                <ul class="nav modal-buttons pull-right">
+                                    <li>
+                                        <input type="submit" value="{{'GO BACK' | translate}}" ng-click="goToStep(1)" class="btn-flat" />
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="{{'CONFIRM SECOND PASSPHRASE' | translate}}" ng-click="confirmNewPassphrase()" class="btn-flat blue-link" />
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- <div class="card-action clearfix">
+                                <div class="pull-right">
+                                    <a href="#" class="waves-effect second-action" ng-click="goToStep(1)"><translate>GO BACK</translate></a>
+                                    <a href='#' class="primary-action waves-effect" ng-click="confirmNewPassphrase()"><translate>confirm second passphrase</translate></a>
+                                </div>
+                            </div> -->
+                        </div>
+                        <div class="material-modal-content" ng-show="passmode">
+                            <div class="modal-header modal-iconed">
+                                <div class="close-modal" ng-click="close()">
+                                    <span class="sr-only"><translate>Close modal</translate></span>
+                                </div>
+                            </div>
+                            <div class="modal-header clearfix">
+                                <div>
+                                    <h2>{{'Account Verification'|translate}}</h2>
+                                </div>
+                                <div><translate>Please enter your primary passphrase below.</translate></div>
+                            </div>
+                            <div class="modal-body clearfix">
+                                <form ng-submit="addNewPassphrase(pass)">
+                                    <div class="field-padding">
+                                        <div class="input-field">
+                                            <input ng-focus="focus=='pass'" id="passPhrase" type="password" ng-model="pass" ng-trim="false" ng-class="{'invalid': fromServer}" autofocus>
+                                            <label for="passPhrase"><translate>Primary Passphrase</translate></label>
+                                        </div>
+                                        <span class="pass-error" ng-show="fromServer">{{fromServer}}</span>
+                                    </div>
+                                    <input type="submit" ng-show="false">
+                                </form>
+                            </div>
+                            <div class="modal-body bordered clearfix">
+                                <ul class="nav modal-buttons pull-right">
+                                    <li>
+                                        <input type="submit" value="{{'GO BACK' | translate}}" ng-click="goToStep(2)" class="btn-flat" />
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="{{'ADD SECOND PASSPHRASE' | translate}}" ng-click="addNewPassphrase(pass)" class="btn-flat blue-link" ng-class="{'disabled': sending}" ng-disabled="sending" />
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- <div class="card-action clearfix">
+                                <div class="pull-right">
+                                    <a href="#" class="waves-effect second-action" ng-click="goToStep(2)"><translate>GO BACK</translate></a>
+                                    <a href='#' class="primary-action waves-effect" ng-click="addNewPassphrase(pass)"><translate>add second passphrase</translate></a>
+                                </div>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

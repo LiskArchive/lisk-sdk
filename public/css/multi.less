@@ -1,0 +1,69 @@
+.owners-list {
+  margin-top: 12px;
+  border: none;
+  border-radius: 0;
+  background-color: #ffffff;
+  &.add-border {
+    box-shadow: 0 0 4px rgba(0, 0, 0, .2);
+    -webkit-box-shadow: 0 0 4px rgba(0, 0, 0, .2);
+    -moz-box-shadow: 0 0 4px rgba(0, 0, 0, .2);
+    border: 0px solid #cecece;
+  }
+  li {
+    padding: 20px 60px 20px 40px;
+    border: 1px solid #cecece;
+    margin: 0 -1px;
+    font-size: 14px;
+    font-weight: 500;
+    position: relative;
+    span {
+      display: inline-block;
+      &.address-line {
+        word-wrap: break-word;
+        width: 100%;
+      }
+      &.delete {
+        float: right;
+        width: 20px;
+        height: 20px;
+        margin-right: -21px;
+        content: '';
+        display: block;
+        background-image: url('@{images}/sprites/iconset.png');
+        background-repeat: no-repeat;
+        background-position: -57px -48px;
+        &:hover {
+          cursor: pointer;
+        }
+      }
+    }
+  }
+}
+
+#multi-range {
+  .thumb.active {
+    top: -40px !important;
+    display: none;
+  }
+}
+
+.multi-total{
+  padding: 0 40px;
+  li{
+    padding: 20px 0;
+    font-size: 16px;
+    span{
+      display: inline-block;
+      float: right;
+      font-weight: 500;}
+  }
+}
+
+.tooltip {
+  left: 40px !important;
+  opacity: .8;
+  background-color: #000;
+  color: #fff;
+  padding: 10px;
+  top: -22px !important;
+}

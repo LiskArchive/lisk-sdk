@@ -1,0 +1,11 @@
+require('../../js/directives/transactionDirective');
+require('../../js/directives/eatClickIfDirective');
+require('../../js/directives/stopPropagation');
+require('../../js/directives/autofocusDirective');
+require('../../js/directives/focusOnShowDirective');
+require('../../js/directives/targetBlankDirective');
+require('../../js/directives/rangeDirective');
+require('../../js/directives/voteActionDirective');
+require('../../js/directives/voteTitleDirective');
+require('../../js/directives/validLinkDirective');
+require('../../js/directives/clipboardDirective');

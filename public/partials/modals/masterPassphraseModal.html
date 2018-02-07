@@ -1,0 +1,46 @@
+<div class="app-modal valign-wrapper">
+    <div class="container height100">
+        <div class="row height100">
+            <div class="col-md-6 col-md-offset-4 height100 valign-wrapper">
+                <div class="modal-content">
+                    <div class="modal-header modal-iconed">
+                        <div class="close-modal" ng-click="close()">
+                            <span class="sr-only"><translate>Close modal</translate></span>
+                        </div>
+                    </div>
+                    <div class="modal-header clearfix">
+                        <div>
+                            <h2>{{'Account Verification'|translate}}</h2>
+                        </div>
+                        <div>{{title}}</div>
+                    </div>
+                    <div class="modal-body">
+                        <form ng-submit="passcheck(masterPass)">
+                            <div class="field-padding">
+                                <div class="input-field">
+                                    <input id="masterpass" type="password" ng-model="masterPass" ng-trim="false" autofocus ng-focus="true" ng-class="{'invalid': emptyPass}">
+                                    <label for="masterpass">{{label}}</label>
+                                </div>
+                                <span class="pass-error" ng-if="emptyPass"><translate>Empty passphrase</translate></span>
+                            </div>
+                            <input type="submit" ng-show="false">
+                        </form>
+                    </div>
+                    <div class="modal-body">
+                        <p class="send-info-text flat-text text-justify"><translate>The master passphrase is auto-generated upon first launching the Lisk client. It can be found at the end of the config.json file. Therefore only node operators can install, launch or uninstall applications. Once applications are in a launched state, anyone is free to open and use them.</translate></p>
+                    </div>
+                    <div class="modal-body bordered">
+                        <ul class="nav modal-buttons pull-right">
+                            <li>
+                                <a href="#" ng-click="close()"><translate>Cancel</translate></a>
+                            </li>
+                            <li>
+                                <a href="#" class="blue-link" ng-click="passcheck(masterPass)"><translate>CONFIRM</translate></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
