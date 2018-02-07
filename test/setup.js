@@ -11,14 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('colors');
+var mocha = require('mocha');
+var coMocha = require('co-mocha');
 var chai = require('chai');
 var sinon = require('sinon');
 var sinonChai = require('sinon-chai');
 var supertest = require('supertest');
 var _ = require('lodash');
+
+coMocha(mocha);
 
 process.env.NODE_ENV = 'test';
 
@@ -49,7 +54,7 @@ _.mixin(
 		 * @param {string} [sortOrder=asc] - Sorting order asc|desc
 		 * @return {*}
 		 */
-		dbSort: function(arr, sortOrder) {
+		dbSort(arr, sortOrder) {
 			var sortFactor = sortOrder === 'desc' ? -1 : 1;
 
 			return _.clone(arr).sort((a, b) => {
@@ -82,7 +87,7 @@ _.mixin(
 		 * @param {*} valueCheck - Value to check for.
 		 * @return {boolean}
 		 */
-		appearsInLast: function(arr, valueCheck) {
+		appearsInLast(arr, valueCheck) {
 			// Get list of indexes of desired value
 			var indices = _.compact(
 				arr.map((data, index) => {
@@ -99,9 +104,8 @@ _.mixin(
 				indices.length === indices[indices.length - 1] - indices[0] + 1
 			) {
 				return true;
-			} else {
-				return false;
 			}
+			return false;
 		},
 
 		/**
@@ -110,7 +114,7 @@ _.mixin(
 		 * @param {string} [sortOrder=asc] - Sorting order asc|desc
 		 * @return {*}
 		 */
-		sortNumbers: function(arr, sortOrder) {
+		sortNumbers(arr, sortOrder) {
 			var sortFactor = sortOrder === 'desc' ? -1 : 1;
 
 			return arr.sort((a, b) => {

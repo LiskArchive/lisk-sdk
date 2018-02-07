@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-top-level-hooks */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -13,8 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-before(done => {
-	require('../common/utils/wait_for').blockchainReady(done);
-});
+/*
+  DESCRIPTION: Convert a virgin account to non-virgin state
+
+  PARAMETERS:
+  	address - Address of the particular account
+*/
+
+UPDATE mem_accounts
+SET virgin = 0
+WHERE upper(address) = upper(${address})

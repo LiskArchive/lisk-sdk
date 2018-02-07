@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var randomstring = require('randomstring');
@@ -29,7 +30,7 @@ var randomNormalizedPeer = {
 
 function generateRandomActivePeer() {
 	var randomDigits = function(length) {
-		return randomstring.generate({ charset: 'numeric', length: length });
+		return randomstring.generate({ charset: 'numeric', length });
 	};
 	return {
 		broadhash: randomstring.generate(64),
@@ -48,6 +49,6 @@ function generateRandomActivePeer() {
 }
 
 module.exports = {
-	randomNormalizedPeer: randomNormalizedPeer,
-	generateRandomActivePeer: generateRandomActivePeer,
+	randomNormalizedPeer,
+	generateRandomActivePeer,
 };

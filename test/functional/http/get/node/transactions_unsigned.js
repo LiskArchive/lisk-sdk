@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../../functional.js');
@@ -118,12 +119,12 @@ describe('GET /api/node', () => {
 							);
 						}
 
-						return Promise.map(transactionList, function(transaction) {
+						return Promise.map(transactionList, transaction => {
 							return sendTransactionPromise(transaction);
 						});
 					})
-					.then(function(responses) {
-						responses.map(function(res) {
+					.then(responses => {
+						responses.map(res => {
 							expect(res.body.data.message).to.be.equal(
 								'Transaction(s) accepted'
 							);
@@ -246,7 +247,7 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(function(transaction) {
+						res.body.data.map(transaction => {
 							expect(transaction.type).to.be.equal(transactionInCheck.type);
 						});
 					});
@@ -270,7 +271,7 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(function(transaction) {
+						res.body.data.map(transaction => {
 							expect(transaction.senderId).to.be.equal(senderAccount.address);
 						});
 					});
@@ -303,7 +304,7 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(function(transaction) {
+						res.body.data.map(transaction => {
 							expect(transaction.senderPublicKey).to.be.equal(
 								senderAccount.publicKey
 							);

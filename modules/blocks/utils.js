@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -46,14 +47,14 @@ function Utils(
 	genesisblock
 ) {
 	library = {
-		logger: logger,
-		db: db,
-		dbSequence: dbSequence,
-		genesisblock: genesisblock,
+		logger,
+		db,
+		dbSequence,
+		genesisblock,
 		logic: {
-			account: account,
-			block: block,
-			transaction: transaction,
+			account,
+			block,
+			transaction,
 		},
 	};
 	self = this;
@@ -212,7 +213,7 @@ Utils.prototype.getIdSequence = function(height, cb) {
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
 	library.db.blocks
 		.getIdSequence({
-			height: height,
+			height,
 			limit: 5,
 			delegates: constants.activeDelegates,
 		})
@@ -402,10 +403,7 @@ Utils.prototype.getBlockProgressLogger = function(
 Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 	var params = {};
 
-	library.logic.account.get({ address: filter.address }, function(
-		err,
-		account
-	) {
+	library.logic.account.get({ address: filter.address }, (err, account) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -430,7 +428,7 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		// Get calculated rewards
 		library.db.blocks
 			.aggregateBlocksReward(params)
-			.then(function(rows) {
+			.then(rows => {
 				var data = rows[0];
 				if (data.delegate === null) {
 					return setImmediate(cb, 'Account is not a delegate');
@@ -442,7 +440,7 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 				};
 				return setImmediate(cb, null, data);
 			})
-			.catch(function(err) {
+			.catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
 			});

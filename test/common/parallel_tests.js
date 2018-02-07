@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var child_process = require('child_process');
@@ -150,5 +151,5 @@ function parallelTests(tag, suite, section) {
 parallelTests(process.argv[2], process.argv[3], process.argv[4]);
 
 module.exports = {
-	parallelTests: parallelTests,
+	parallelTests,
 };

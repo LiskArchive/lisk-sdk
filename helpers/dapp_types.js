@@ -11,7 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
+
 /**
  * @typedef {Object} dappType
  * - 0: DAPP

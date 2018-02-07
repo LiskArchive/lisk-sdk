@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -57,7 +58,7 @@ Node.prototype.internal = {
 	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getForgingStatus: function(publicKey, cb) {
+	getForgingStatus(publicKey, cb) {
 		var keyPairs = modules.delegates.getForgersKeyPairs();
 		var internalForgers = library.config.forging.secret;
 
@@ -66,13 +67,13 @@ Node.prototype.internal = {
 			publicKey: forger.publicKey,
 		}));
 
-		if (publicKey && _.find(fullList, { publicKey: publicKey })) {
+		if (publicKey && _.find(fullList, { publicKey })) {
 			return setImmediate(cb, null, [
-				{ publicKey: publicKey, forging: !!keyPairs[publicKey] },
+				{ publicKey, forging: !!keyPairs[publicKey] },
 			]);
 		}
 
-		if (publicKey && !_.find(fullList, { publicKey: publicKey })) {
+		if (publicKey && !_.find(fullList, { publicKey })) {
 			return setImmediate(cb, null, []);
 		}
 
@@ -86,7 +87,7 @@ Node.prototype.internal = {
 	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
-	toggleForgingStatus: function(publicKey, decryptionKey, cb) {
+	toggleForgingStatus(publicKey, decryptionKey, cb) {
 		modules.delegates.toggleForgingStatus(
 			publicKey,
 			decryptionKey,
@@ -103,7 +104,7 @@ Node.prototype.internal = {
 
 // Public methods
 Node.prototype.shared = {
-	getConstants: function(req, cb) {
+	getConstants(req, cb) {
 		if (!loaded) {
 			return setImmediate(cb, 'Blockchain is loading');
 		}
@@ -122,7 +123,7 @@ Node.prototype.shared = {
 		});
 	},
 
-	getStatus: function(req, cb) {
+	getStatus(req, cb) {
 		if (!loaded) {
 			return setImmediate(cb, 'Blockchain is loading');
 		}

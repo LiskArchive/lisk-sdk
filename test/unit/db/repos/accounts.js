@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 const Promise = require('bluebird');
@@ -138,9 +139,7 @@ describe('db', () => {
 				describe('fields', () => {
 					it('should return all table fields if no field is specified', () => {
 						return db.accounts.list().then(data => {
-							var columnNames = _.map(db.accounts.cs.select.columns, function(
-								column
-							) {
+							var columnNames = _.map(db.accounts.cs.select.columns, column => {
 								return column.prop || column.name;
 							});
 
@@ -602,7 +601,7 @@ describe('db', () => {
 					var account = accountFixtures.Account();
 
 					return db.accounts.upsert(account, 'address').then(result => {
-						expect(result).to.be.null;
+						expect(result).to.be.undefined;
 					});
 				});
 
@@ -683,9 +682,7 @@ describe('db', () => {
 
 										var immutableFields = db.accounts.getImmutableFields();
 
-										Object.keys(_.omit(result[0], 'rank')).forEach(function(
-											field
-										) {
+										Object.keys(_.omit(result[0], 'rank')).forEach(field => {
 											if (immutableFields.indexOf(field) !== -1) {
 												// If it's an immutable field
 												expect(result[0][field], field).to.eql(
@@ -722,9 +719,7 @@ describe('db', () => {
 
 									var immutableFields = db.accounts.getImmutableFields();
 
-									Object.keys(_.omit(result[0], 'rank')).forEach(function(
-										field
-									) {
+									Object.keys(_.omit(result[0], 'rank')).forEach(field => {
 										if (immutableFields.indexOf(field) !== -1) {
 											// If it's an immutable field
 											expect(result[0][field], field).to.eql(
@@ -899,6 +894,24 @@ describe('db', () => {
 					return db.accounts.insert(account).then(() => {
 						return db.accounts.update(account.address, updateAccount);
 					});
+				});
+			});
+
+			describe('convertToNonVirgin', () => {
+				it('should convert a virgin account to non virgin', function*() {
+					const account = accountFixtures.Account();
+					let result = null;
+
+					yield db.accounts.insert(account);
+					result = yield db.accounts.list({ address: account.address });
+
+					expect(result[0].address).to.eql(account.address);
+					expect(result[0].virgin).to.eql(true);
+
+					yield db.accounts.convertToNonVirgin(account.address);
+					result = yield db.accounts.list({ address: account.address });
+					expect(result[0].address).to.eql(account.address);
+					expect(result[0].virgin).to.eql(false);
 				});
 			});
 		});

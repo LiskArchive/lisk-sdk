@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var crypto = require('crypto');
@@ -60,10 +61,10 @@ describe('onReceiveBlock()', () => {
 
 	function createBlock(transactions, timestamp, keypair, previousBlock) {
 		var block = library.logic.block.create({
-			keypair: keypair,
-			timestamp: timestamp,
-			previousBlock: previousBlock,
-			transactions: transactions,
+			keypair,
+			timestamp,
+			previousBlock,
+			transactions,
 		});
 
 		block.id = library.logic.block.getId(block);
@@ -215,7 +216,7 @@ describe('onReceiveBlock()', () => {
 		return db
 			.one(
 				'SELECT * FROM forks_stat WHERE "blockId" = ${blockId} AND "cause" = ${cause}',
-				{ blockId: blockId, cause: cause }
+				{ blockId, cause }
 			)
 			.then(res => {
 				expect(res.blockId).to.equal(blockId);

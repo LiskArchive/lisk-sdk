@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
@@ -139,5 +140,5 @@ function invalidAssets(option, badTransactions) {
 }
 
 module.exports = {
-	invalidAssets: invalidAssets,
+	invalidAssets,
 };

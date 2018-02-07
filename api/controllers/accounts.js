@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -84,7 +85,7 @@ AccountsController.getAccounts = function(context, next) {
 		});
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
@@ -130,7 +131,7 @@ AccountsController.getMultisignatureGroups = function(context, next) {
 		}
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
@@ -178,7 +179,7 @@ AccountsController.getMultisignatureMemberships = function(context, next) {
 			}
 
 			next(null, {
-				data: data,
+				data,
 				meta: {
 					offset: filters.offset,
 					limit: filters.limit,
