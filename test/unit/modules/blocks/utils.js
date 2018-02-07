@@ -342,8 +342,7 @@ describe('blocks/utils', () => {
 				modules.blocks.lastBlock.set = sinonSandbox.spy();
 
 				blocksUtilsModule.loadLastBlock((err, block) => {
-					expect(modules.blocks.lastBlock.set.withArgs(block).calledOnce).to.be
-						.true;
+					expect(modules.blocks.lastBlock.set).to.have.been.calledWith(block);
 					done();
 				});
 			});
