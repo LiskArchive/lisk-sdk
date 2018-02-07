@@ -35,24 +35,26 @@
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
 		"docs:serve": "./node_modules/.bin/http-server docs/jsdoc/",
 		"precommit": "lint-staged && npm run lint",
-		"prepush": "npm run lint"
+		"prepush": "npm run lint",
+		"snyk-protect": "snyk protect",
+		"prepublish": "npm run snyk-protect"
 	},
 	"dependencies": {
 		"async": "=2.4.1",
 		"bignumber.js": "=4.0.2",
 		"bluebird": "=3.5.1",
-		"body-parser": "=1.17.2",
+		"body-parser": "=1.18.2",
 		"bson": "=1.0.4",
 		"bytebuffer": "=5.0.1",
 		"change-case": "=3.0.1",
 		"colors": "=1.1.2",
 		"commander": "=2.9.0",
-		"compression": "=1.6.2",
+		"compression": "=1.7.1",
 		"cors": "=2.8.3",
 		"debug": "=3.1.0",
 		"decompress-zip": "LiskHQ/decompress-zip#f46b0a3",
 		"ejs": "=2.5.6",
-		"express": "=4.15.3",
+		"express": "=4.16.0",
 		"express-domain-middleware": "=0.1.0",
 		"express-query-int": "=1.0.1",
 		"express-rate-limit": "=2.8.0",
@@ -66,7 +68,7 @@
 		"json-schema": "=0.2.3",
 		"json-sql": "LiskHQ/json-sql#6aa525c580f49c9a00e1814721e76764a4c9e0bb",
 		"lodash": "=4.17.4",
-		"method-override": "=2.3.9",
+		"method-override": "=2.3.10",
 		"pg-monitor": "=0.8.5",
 		"pg-native": "=2.2.0",
 		"pg-promise": "=7.4.1",
@@ -78,7 +80,7 @@
 		"semver": "=5.3.0",
 		"socket.io": "=2.0.3",
 		"socketcluster": "=9.2.0",
-		"socketcluster-client": "=9.0.2",
+		"socketcluster-client": "=9.0.3",
 		"sodium": "LiskHQ/node-sodium#895ac4482a56a34eba81205e43e0c859490fb99d",
 		"strftime": "=0.10.0",
 		"swagger-node-runner": "=0.7.3",
@@ -88,7 +90,8 @@
 		"validator.js": "=2.0.3",
 		"wamp-socket-cluster":
 			"LiskHQ/wamp-socket-cluster#8522bd69bed1b0698eced1bc49afb7a190b5f09e",
-		"z-schema": "=3.18.2"
+		"z-schema": "=3.18.2",
+		"snyk": "^1.69.6"
 	},
 	"devDependencies": {
 		"bitcore-mnemonic": "=1.2.5",
@@ -123,5 +126,6 @@
 		"sinon-chai": "=2.14.0",
 		"stampit": "=4.0.2",
 		"supertest": "=3.0.0"
-	}
+	},
+	"snyk": true
 }
