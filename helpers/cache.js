@@ -15,13 +15,21 @@
 'use strict';
 
 var redis = require('redis');
+/**
+ * Description of the module.
+ *
+ * @module
+ * @see Parent: {@link helpers}
+ */
 
 /**
- * Connects with redis server using the config provided via parameters
+ * Description of the function.
+ *
  * @param {boolean} cacheEnabled
  * @param {Object} config - Redis configuration
  * @param {Object} logger
  * @param {function} cb
+ * @todo Add descriptions of the function and its params
  */
 module.exports.connect = function(cacheEnabled, config, logger, cb) {
 	var isRedisLoaded = false;
