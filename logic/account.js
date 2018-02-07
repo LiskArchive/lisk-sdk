@@ -28,14 +28,15 @@ const __private = {};
 
 /**
  * Main account logic.
+ *
  * @memberof module:accounts
  * @class
  * @classdesc Main account logic.
  * @param {Database} db
  * @param {ZSchema} schema
  * @param {Object} logger
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} With `this` as data.
+ * @param {function} cb - Callback function
+ * @return {setImmediateCallback} error, this
  */
 class Account {
 	constructor(db, schema, logger, cb) {
@@ -74,7 +75,7 @@ class Account {
 			return _tmp;
 		});
 
-		// Obtains bynary fields from model
+		// Obtains binary fields from model
 		this.binary = [];
 		this.model.forEach(field => {
 			if (field.type === 'Binary') {
@@ -102,6 +103,7 @@ class Account {
 	// Public methods
 	/**
 	 * Binds input parameters to private variables modules.
+	 *
 	 * @param {Blocks} blocks
 	 */
 	// eslint-disable-next-line class-methods-use-this
@@ -118,8 +120,9 @@ class Account {
 	 * - mem_accounts2u_delegates
 	 * - mem_accounts2multisignatures
 	 * - mem_accounts2u_multisignatures
-	 * @param {function} cb - Callback function.
-	 * @returns {setImmediateCallback} cb|error.
+	 *
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} error
 	 */
 	resetMemTables(cb) {
 		this.scope.db.accounts
@@ -133,9 +136,10 @@ class Account {
 
 	/**
 	 * Validates account schema.
+	 *
 	 * @param {account} account
-	 * @returns {err|account} Error message or input parameter account.
-	 * @throws {string} If schema.validate fails, throws 'Failed to validate account schema'.
+	 * @returns {account} account
+	 * @throws {string} On schema.validate failure
 	 */
 	objectNormalize(account) {
 		const report = this.scope.schema.validate(
@@ -158,8 +162,9 @@ class Account {
 
 	/**
 	 * Checks type, lenght and format from publicKey.
+	 *
 	 * @param {publicKey} publicKey
-	 * @throws {string} throws one error for every check.
+	 * @throws {string} On check failure
 	 */
 	verifyPublicKey(publicKey) {
 		if (publicKey !== undefined) {
@@ -180,8 +185,9 @@ class Account {
 
 	/**
 	 * Normalizes address and creates binary buffers to insert.
-	 * @param {Object} raw - with address and public key.
-	 * @returns {Object} Normalized address.
+	 *
+	 * @param {Object} raw - With address and public key
+	 * @returns {Object} Normalized address
 	 */
 	toDB(raw) {
 		this.binary.forEach(field => {
@@ -197,12 +203,13 @@ class Account {
 	}
 
 	/**
-	 * Gets Multisignature account information for specified fields and filter criteria.
-	 * @param {Object} filter - Contains address.
-	 * @param {Object|function} fields - Table fields.
-	 * @param {function} cb - Callback function.
-	 * @param {Object} tx - Database Transaction/Task Object
-	 * @returns {setImmediateCallback} Returns null or Object with database data.
+	 * Gets multisignature account information for specified fields and filter criteria.
+	 *
+	 * @param {Object} filter - Contains address
+	 * @param {Object|function} fields - Table fields
+	 * @param {function} cb - Callback function
+	 * @param {Object} tx - Database transaction/task object
+	 * @returns {setImmediateCallback} error, object|null
 	 */
 	getMultiSignature(filter, fields, cb, tx) {
 		if (typeof fields === 'function') {
@@ -218,11 +225,12 @@ class Account {
 
 	/**
 	 * Gets account information for specified fields and filter criteria.
-	 * @param {Object} filter - Contains address.
-	 * @param {Object|function} fields - Table fields.
-	 * @param {function} cb - Callback function.
-	 * @param {Object} tx - Database Transaction/Task Object
-	 * @returns {setImmediateCallback} Returns null or Object with database data.
+	 *
+	 * @param {Object} filter - Contains address
+	 * @param {Object|function} fields - Table fields
+	 * @param {function} cb - Callback function
+	 * @param {Object} tx - Database transaction/task object
+	 * @returns {setImmediateCallback} error, account|null
 	 */
 	get(filter, fields, cb, tx) {
 		if (typeof fields === 'function') {
@@ -242,11 +250,12 @@ class Account {
 
 	/**
 	 * Gets accounts information from mem_accounts.
-	 * @param {Object} filter - Contains address.
-	 * @param {Object|function} fields - Table fields.
-	 * @param {function} cb - Callback function.
-	 * @param {Object} tx - Database Transaction/Task Object
-	 * @returns {setImmediateCallback} data with rows | 'Account#getAll error'.
+	 *
+	 * @param {Object} filter - Contains address
+	 * @param {Object|function} fields - Table fields
+	 * @param {function} cb - Callback function
+	 * @param {Object} tx - Database transaction/task object
+	 * @returns {setImmediateCallback} error, accounts
 	 */
 	getAll(filter, fields, cb, tx) {
 		if (typeof fields === 'function') {
@@ -370,13 +379,15 @@ class Account {
 
 	/**
 	 * Calculates productivity of a delegate account.
+	 *
 	 * @param {String} votersBalance
 	 * @param {String} totalSupply
 	 * @returns {Number}
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	calculateApproval(votersBalance, totalSupply) {
-		// votersBalance and totalSupply are sent as strings, we convert them into bignum and send the response as number as well.
+		// votersBalance and totalSupply are sent as strings,
+		// we convert them into bignum and send the response as number as well
 		const votersBalanceBignum = new Bignum(votersBalance || 0);
 		const totalSupplyBignum = new Bignum(totalSupply);
 		const approvalBignum = votersBalanceBignum
@@ -388,6 +399,7 @@ class Account {
 
 	/**
 	 * Calculates productivity of a delegate account.
+	 *
 	 * @param {String} producedBlocks
 	 * @param {String} missedBlocks
 	 * @returns {Number}
@@ -405,11 +417,12 @@ class Account {
 
 	/**
 	 * Sets fields for specific address in mem_accounts table.
+	 *
 	 * @param {address} address
 	 * @param {Object} fields
-	 * @param {function} cb - Callback function.
-	 * @param {Object} tx - Database Transaction/Task Object
-	 * @returns {setImmediateCallback} cb | 'Account#set error'.
+	 * @param {function} cb - Callback function
+	 * @param {Object} tx - Database transaction/task object
+	 * @returns {setImmediateCallback} error
 	 */
 	set(address, fields, cb, tx) {
 		// Verify public key
@@ -430,11 +443,12 @@ class Account {
 	/**
 	 * Updates account from mem_account with diff data belonging to an editable field.
 	 * Inserts into mem_round "address", "amount", "delegate", "blockId", "round" based on balance or delegates fields.
+	 *
 	 * @param {address} address
-	 * @param {Object} diff - Must contains only mem_account editable fields.
-	 * @param {function} cb - Callback function.
-	 * @param {Object} tx - Database Transaction/Task Object
-	 * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error.
+	 * @param {Object} diff - Must contains only mem_account editable fields
+	 * @param {function} cb - Callback function
+	 * @param {Object} tx - Database transaction/task object
+	 * @returns {setImmediateCallback} error
 	 */
 	merge(address, diff, cb, tx) {
 		// Verify public key
@@ -503,7 +517,7 @@ class Account {
 									)
 								);
 
-								// If money is taken out from an account so its an active account now.
+								// Withdrawal, therefore convert to non-virgin account
 								if (updatedField === 'u_balance') {
 									promises.push(dbTx.accounts.convertToNonVirgin(address));
 								}
@@ -569,7 +583,7 @@ class Account {
 								});
 								// If we received update as array of objects
 							} else if (_.isObject(updatedValue[0])) {
-								// TODO: Need to look the usage of object based diff param
+								// TODO: Need to look at usage of object based diff param
 							}
 							break;
 					}
@@ -587,9 +601,10 @@ class Account {
 
 	/**
 	 * Removes an account from mem_account table based on address.
+	 *
 	 * @param {address} address
-	 * @param {function} cb - Callback function.
-	 * @returns {setImmediateCallback} Data with address | Account#remove error.
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} error, address
 	 */
 	remove(address, cb) {
 		this.scope.db.accounts
@@ -604,27 +619,27 @@ class Account {
 
 /**
  * @typedef {Object} account
- * @property {string} username - Lowercase, between 1 and 20 chars.
+ * @property {string} username - Lowercase, between 1 and 20 chars
  * @property {boolean} isDelegate
  * @property {boolean} u_isDelegate
  * @property {boolean} secondSignature
  * @property {boolean} u_secondSignature
  * @property {string} u_username
- * @property {address} address - Uppercase, between 1 and 22 chars.
+ * @property {address} address - Uppercase, between 1 and 22 chars
  * @property {publicKey} publicKey
  * @property {publicKey} secondPublicKey
- * @property {number} balance - Between 0 and totalAmount from constants.
- * @property {number} u_balance - Between 0 and totalAmount from constants.
+ * @property {number} balance - Between 0 and totalAmount from constants
+ * @property {number} u_balance - Between 0 and totalAmount from constants
  * @property {number} vote
  * @property {number} rate
- * @property {String[]} delegates - From mem_account2delegates table, filtered by address.
- * @property {String[]} u_delegates - From mem_account2u_delegates table, filtered by address.
- * @property {String[]} multisignatures - From mem_account2multisignatures table, filtered by address.
- * @property {String[]} u_multisignatures - From mem_account2u_multisignatures table, filtered by address.
- * @property {number} multimin - Between 0 and 17.
- * @property {number} u_multimin - Between 0 and 17.
- * @property {number} multilifetime - Between 1 and 72.
- * @property {number} u_multilifetime - Between 1 and 72.
+ * @property {String[]} delegates - From mem_account2delegates table, filtered by address
+ * @property {String[]} u_delegates - From mem_account2u_delegates table, filtered by address
+ * @property {String[]} multisignatures - From mem_account2multisignatures table, filtered by address
+ * @property {String[]} u_multisignatures - From mem_account2u_multisignatures table, filtered by address
+ * @property {number} multimin - Between 0 and 17
+ * @property {number} u_multimin - Between 0 and 17
+ * @property {number} multilifetime - Between 1 and 72
+ * @property {number} u_multilifetime - Between 1 and 72
  * @property {string} blockId
  * @property {boolean} nameexist
  * @property {boolean} u_nameexist
@@ -636,6 +651,7 @@ class Account {
  */
 // TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
 Account.prototype.table = 'mem_accounts';
+
 Account.prototype.model = [
 	{
 		name: 'username',
@@ -806,6 +822,7 @@ Account.prototype.model = [
 		computedField: true,
 	},
 ];
+
 Account.prototype.schema = {
 	id: 'Account',
 	type: 'object',

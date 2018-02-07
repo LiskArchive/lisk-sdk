@@ -555,7 +555,8 @@ class AccountsRepository {
 	}
 
 	/**
-	 * Convert an account to be non-virgin account
+	 * Convert an account to be non-virgin account.
+	 *
 	 * @param {string} address - Account address
 	 * @return {Promise<null>}
 	 */
