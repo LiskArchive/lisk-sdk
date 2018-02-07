@@ -13,7 +13,21 @@
  */
 
 'use strict';
-
+/**
+ * Description of the namespace.
+ *
+ * @namespace transaction_types
+ * @memberof helpers
+ * @see Parent: {@link helpers}
+ * @property {number} SEND - Description of the value
+ * @property {number} SIGNATURE - Description of the value
+ * @property {number} DELEGATE - Description of the value
+ * @property {number} VOTE - Description of the value
+ * @property {number} MULTI - Description of the value
+ * @property {number} IN_TRANSFER - Description of the value
+ * @property {number} OUT_TRANSFER - Description of the value
+ * @todo Add description of the namespace and its values
+ */
 module.exports = {
 	SEND: 0,
 	SIGNATURE: 1,
