@@ -26,86 +26,153 @@ describe('blocks/process', () => {
 	var loggerStub;
 	var dummyBlock;
 	var dummyCommonBlock;
+	var blockStub;
+	var transactionStub;
+	var peersStub;
+	var schemaStub;
+	var modulesStub;
+	var definitions;
+
+	beforeEach(done => {
+		// Logic
+		dbStub = {
+			blocks: {
+				getCommonBlock: sinonSandbox.stub(),
+				loadBlocksOffset: sinonSandbox.stub(),
+			},
+		};
+
+		blockStub = {
+			objectNormalize: sinonSandbox.stub(),
+		};
+
+		var peerStub = {
+			rpc: {
+				blocksCommon: sinonSandbox.stub(),
+				blocks: sinonSandbox.stub(),
+			},
+			applyHeaders: sinonSandbox.stub(),
+			string: 'ip:wsPort',
+		};
+		dummyCommonBlock = { id: '3', previousBlock: '2', height: '3' };
+		peerStub.rpc.blocksCommon
+			.withArgs(sinonSandbox.match({ ids: 'ERRL' }))
+			.callsArgWith(1, 'rpc.blocksCommon-ERR', null)
+			.withArgs(sinonSandbox.match({ ids: 'rpc.blocksCommon-Empty' }))
+			.callsArgWith(1, null, { common: undefined })
+			.withArgs(sinonSandbox.match({ ids: 'OK' }))
+			.callsArgWith(1, null, {
+				common: dummyCommonBlock,
+			});
+
+		peersStub = {
+			create: function() {
+				return peerStub;
+			},
+			me: function() {
+				return '1.0.0.0';
+			},
+			applyHeaders: peerStub.applyHeaders,
+		};
+		transactionStub = {
+			ready: sinonSandbox.stub(),
+			verify: sinonSandbox.stub(),
+		};
+
+		loggerStub = {
+			trace: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
+			debug: sinonSandbox.spy(),
+		};
+
+		schemaStub = {
+			validate: sinonSandbox.stub(),
+		};
+
+		blocksProcessModule = new BlocksProcess(
+			loggerStub,
+			blockStub,
+			peersStub,
+			transactionStub,
+			schemaStub,
+			dbStub,
+			modulesLoader.scope.dbSequence,
+			modulesLoader.scope.sequence,
+			modulesLoader.scope.genesisblock
+		);
+		library = BlocksProcess.__get__('library');
+		__private = BlocksProcess.__get__('__private');
+		// Modules
+		dummyBlock = {
+			id: '1',
+			height: 1,
+			timestamp: 41287231,
+			reward: 100,
+		};
+
+		var modulesAccountsStub = sinonSandbox.stub();
+		var modulesBlocksStub = {
+			lastReceipt: {
+				update: sinonSandbox.stub(),
+			},
+			verify: {
+				processBlock: sinonSandbox.stub(),
+				verifyReceipt: sinonSandbox.stub(),
+				verifyBlock: sinonSandbox.stub(),
+			},
+			chain: {
+				deleteLastBlock: sinonSandbox.stub(),
+				recoverChain: sinonSandbox.stub(),
+			},
+			utils: {
+				getIdSequence: sinonSandbox.stub(),
+				readDbRows: sinonSandbox.stub(),
+			},
+			isCleaning: {
+				get: sinonSandbox.stub(),
+			},
+			lastBlock: {
+				get: sinonSandbox.stub(),
+			},
+		};
+
+		var modulesDelegatesStub = {
+			fork: sinonSandbox.stub(),
+		};
+
+		var modulesLoaderStub = sinonSandbox.stub();
+		var modulesRoundsStub = sinonSandbox.stub();
+		var modulesTransactionsStub = sinonSandbox.stub();
+		var modulesTransportStub = {
+			poorConsensus: sinonSandbox.stub(),
+		};
+		var swaggerDefinitionsStub = sinonSandbox.stub();
+
+		modulesStub = {
+			accounts: modulesAccountsStub,
+			blocks: modulesBlocksStub,
+			delegates: modulesDelegatesStub,
+			loader: modulesLoaderStub,
+			rounds: modulesRoundsStub,
+			transactions: modulesTransactionsStub,
+			transport: modulesTransportStub,
+			swagger: {
+				definitions: swaggerDefinitionsStub,
+			},
+		};
+		blocksProcessModule.onBind(modulesStub);
+		modules = BlocksProcess.__get__('modules');
+		definitions = BlocksProcess.__get__('definitions');
+		done();
+	});
+
+	afterEach(() => {
+		sinonSandbox.reset();
+	});
 
 	describe('constructor', () => {
-		var blockStub;
-		var transactionStub;
-		var peersStub;
-		var schemaStub;
-
-		before(done => {
-			dbStub = {
-				blocks: {
-					getCommonBlock: sinonSandbox.stub(),
-					loadBlocksOffset: sinonSandbox.stub(),
-				},
-			};
-
-			blockStub = {
-				objectNormalize: sinonSandbox.stub(),
-			};
-
-			var peerStub = {
-				rpc: {
-					blocksCommon: sinonSandbox.stub(),
-					blocks: sinonSandbox.stub(),
-				},
-				applyHeaders: sinonSandbox.stub(),
-				string: 'ip:wsPort',
-			};
-			dummyCommonBlock = { id: '3', previousBlock: '2', height: '3' };
-			peerStub.rpc.blocksCommon
-				.withArgs(sinonSandbox.match({ ids: 'ERRL' }))
-				.callsArgWith(1, 'rpc.blocksCommon-ERR', null)
-				.withArgs(sinonSandbox.match({ ids: 'rpc.blocksCommon-Empty' }))
-				.callsArgWith(1, null, { common: undefined })
-				.withArgs(sinonSandbox.match({ ids: 'OK' }))
-				.callsArgWith(1, null, {
-					common: dummyCommonBlock,
-				});
-
-			peersStub = {
-				create: function() {
-					return peerStub;
-				},
-				me: function() {
-					return '1.0.0.0';
-				},
-				applyHeaders: peerStub.applyHeaders,
-			};
-			transactionStub = {
-				ready: sinonSandbox.stub(),
-				verify: sinonSandbox.stub(),
-			};
-
-			loggerStub = {
-				trace: sinonSandbox.spy(),
-				info: sinonSandbox.spy(),
-				error: sinonSandbox.spy(),
-				warn: sinonSandbox.spy(),
-				debug: sinonSandbox.spy(),
-			};
-
-			schemaStub = {
-				validate: sinonSandbox.stub(),
-			};
-
-			blocksProcessModule = new BlocksProcess(
-				loggerStub,
-				blockStub,
-				peersStub,
-				transactionStub,
-				schemaStub,
-				dbStub,
-				modulesLoader.scope.dbSequence,
-				modulesLoader.scope.sequence,
-				modulesLoader.scope.genesisblock
-			);
-			library = BlocksProcess.__get__('library');
-			__private = BlocksProcess.__get__('__private');
-			done();
-		});
-
 		describe('library', () => {
 			it('should assign logger', () => {
 				expect(library.logger).to.eql(loggerStub);
@@ -154,74 +221,10 @@ describe('blocks/process', () => {
 	});
 
 	describe('onBind', () => {
-		var modulesStub;
-		var definitions;
-
-		before(() => {
-			dummyBlock = {
-				id: '1',
-				height: 1,
-				timestamp: 41287231,
-				reward: 100,
-			};
-
-			var modulesAccountsStub = sinonSandbox.stub();
-			var modulesBlocksStub = {
-				lastReceipt: {
-					update: sinonSandbox.stub(),
-				},
-				verify: {
-					processBlock: sinonSandbox.stub(),
-					verifyReceipt: sinonSandbox.stub(),
-					verifyBlock: sinonSandbox.stub(),
-				},
-				chain: {
-					deleteLastBlock: sinonSandbox.stub(),
-					recoverChain: sinonSandbox.stub(),
-				},
-				utils: {
-					getIdSequence: sinonSandbox.stub(),
-					readDbRows: sinonSandbox.stub(),
-				},
-				isCleaning: {
-					get: sinonSandbox.stub(),
-				},
-				lastBlock: {
-					get: sinonSandbox.stub(),
-				},
-			};
-
-			var modulesDelegatesStub = {
-				fork: sinonSandbox.stub(),
-			};
-
-			var modulesLoaderStub = sinonSandbox.stub();
-			var modulesRoundsStub = sinonSandbox.stub();
-			var modulesTransactionsStub = sinonSandbox.stub();
-			var modulesTransportStub = {
-				poorConsensus: sinonSandbox.stub(),
-			};
-			var swaggerDefinitionsStub = sinonSandbox.stub();
-
-			modulesStub = {
-				accounts: modulesAccountsStub,
-				blocks: modulesBlocksStub,
-				delegates: modulesDelegatesStub,
-				loader: modulesLoaderStub,
-				rounds: modulesRoundsStub,
-				transactions: modulesTransactionsStub,
-				transport: modulesTransportStub,
-				swagger: {
-					definitions: swaggerDefinitionsStub,
-				},
-			};
-
+		beforeEach(() => {
 			loggerStub.trace.reset();
 			__private.loaded = false;
-
 			blocksProcessModule.onBind(modulesStub);
-			modules = BlocksProcess.__get__('modules');
-			definitions = BlocksProcess.__get__('definitions');
 		});
 
 		it('should call library.logger.trace with "Blocks->Process: Shared modules bind."', () => {
@@ -274,12 +277,6 @@ describe('blocks/process', () => {
 	});
 
 	describe('__private.receiveBlock', () => {
-		beforeEach(done => {
-			loggerStub.info.reset();
-			modules.blocks.lastReceipt.update.reset();
-			done();
-		});
-
 		it('should return error when block is not valid', done => {
 			modules.blocks.verify.processBlock.callsArgWith(
 				3,
@@ -312,12 +309,6 @@ describe('blocks/process', () => {
 
 	describe('__private.receiveForkOne', () => {
 		describe('Last block stands', () => {
-			beforeEach(done => {
-				loggerStub.info.reset();
-				modules.delegates.fork.reset();
-				done();
-			});
-
 			afterEach(done => {
 				expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 				expect(
@@ -353,9 +344,7 @@ describe('blocks/process', () => {
 
 		describe('Last block and parent loses', () => {
 			beforeEach(done => {
-				loggerStub.info.reset();
-				loggerStub.error.reset();
-				modules.delegates.fork.reset();
+				__private.validateBlockSlot = sinonSandbox.stub();
 				done();
 			});
 
@@ -390,12 +379,12 @@ describe('blocks/process', () => {
 			});
 
 			it('should return error when __private.validateBlockSlot fails', done => {
-				library.logic.block.objectNormalize.returns(
-					library.logic.block.objectNormalize.getCall(0).args[0]
+				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
+				__private.validateBlockSlot.callsArgWith(
+					2,
+					'validateBlockSlot-ERR',
+					null
 				);
-				__private.validateBlockSlot = sinonSandbox
-					.stub()
-					.callsArgWith(2, 'validateBlockSlot-ERR', null);
 
 				__private.receiveForkOne(
 					{ timestamp: 1, id: 2 },
@@ -415,6 +404,7 @@ describe('blocks/process', () => {
 			});
 
 			it('should return error when modules.blocks.verify.verifyReceipt fails', done => {
+				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
 				__private.validateBlockSlot.callsArgWith(2, null, true);
 				modules.blocks.verify.verifyReceipt.returns({
 					verified: false,
@@ -443,11 +433,12 @@ describe('blocks/process', () => {
 			});
 
 			it('should return error when modules.blocks.chain.deleteLastBlock fails on first call', done => {
+				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
+				__private.validateBlockSlot.callsArgWith(2, null, true);
 				modules.blocks.verify.verifyReceipt.returns({ verified: true });
 				modules.blocks.chain.deleteLastBlock
 					.onCall(0)
-					.callsArgWith(0, 'deleteLastBlock-ERR-call-1', null);
-				modules.blocks.chain.deleteLastBlock
+					.callsArgWith(0, 'deleteLastBlock-ERR-call-1', null)
 					.onCall(1)
 					.callsArgWith(0, 'deleteLastBlock-ERR-call-2', null);
 
@@ -469,11 +460,12 @@ describe('blocks/process', () => {
 			});
 
 			it('should return error when modules.blocks.chain.deleteLastBlock fails on second call', done => {
-				modules.blocks.chain.deleteLastBlock.reset();
+				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
+				__private.validateBlockSlot.callsArgWith(2, null, true);
+				modules.blocks.verify.verifyReceipt.returns({ verified: true });
 				modules.blocks.chain.deleteLastBlock
 					.onCall(0)
-					.callsArgWith(0, null, 'delete block 1 ok');
-				modules.blocks.chain.deleteLastBlock
+					.callsArgWith(0, null, 'delete block 1 ok')
 					.onCall(1)
 					.callsArgWith(0, 'deleteLastBlock-ERR-call-2', null);
 
@@ -495,11 +487,12 @@ describe('blocks/process', () => {
 			});
 
 			it('should return no error', done => {
-				modules.blocks.chain.deleteLastBlock.reset();
+				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
+				__private.validateBlockSlot.callsArgWith(2, null, true);
+				modules.blocks.verify.verifyReceipt.returns({ verified: true });
 				modules.blocks.chain.deleteLastBlock
 					.onCall(0)
-					.callsArgWith(0, null, 'delete block 1 ok');
-				modules.blocks.chain.deleteLastBlock
+					.callsArgWith(0, null, 'delete block 1 ok')
 					.onCall(1)
 					.callsArgWith(0, null, 'delete block 2 ok');
 
@@ -518,11 +511,6 @@ describe('blocks/process', () => {
 
 	describe('__private.receiveForkFive', () => {
 		describe('Delegate forgin on multiple nodes', () => {
-			beforeEach(done => {
-				loggerStub.warn.reset();
-				done();
-			});
-
 			it('should warn when delegate forged on more than one node', done => {
 				__private.receiveForkFive(
 					{ timestamp: 1, id: 2, generatorPublicKey: '1a' },
@@ -554,12 +542,6 @@ describe('blocks/process', () => {
 		});
 
 		describe('Last block stands', () => {
-			beforeEach(done => {
-				loggerStub.info.reset();
-				modules.delegates.fork.reset();
-				done();
-			});
-
 			afterEach(done => {
 				expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 				expect(
@@ -595,9 +577,8 @@ describe('blocks/process', () => {
 
 		describe('Last block loses', () => {
 			beforeEach(done => {
-				loggerStub.info.reset();
-				loggerStub.error.reset();
-				modules.delegates.fork.reset();
+				__private.validateBlockSlot = sinonSandbox.stub();
+				__private.receiveBlock = sinonSandbox.stub();
 				done();
 			});
 
@@ -630,9 +611,7 @@ describe('blocks/process', () => {
 			});
 
 			it('should return error when __private.validateBlockSlot fails', done => {
-				library.logic.block.objectNormalize.returns(
-					library.logic.block.objectNormalize.getCall(0).args[0]
-				);
+				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
 				__private.validateBlockSlot.callsArgWith(
 					2,
 					'validateBlockSlot-ERR',
@@ -657,6 +636,7 @@ describe('blocks/process', () => {
 			});
 
 			it('should return error when modules.blocks.verify.verifyReceipt fails', done => {
+				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
 				__private.validateBlockSlot.callsArgWith(2, null, true);
 				modules.blocks.verify.verifyReceipt.returns({
 					verified: false,
@@ -685,6 +665,8 @@ describe('blocks/process', () => {
 			});
 
 			it('should return error when modules.blocks.chain.deleteLastBlock fails', done => {
+				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
+				__private.validateBlockSlot.callsArgWith(2, null, true);
 				modules.blocks.verify.verifyReceipt.returns({ verified: true });
 				modules.blocks.chain.deleteLastBlock.callsArgWith(
 					0,
@@ -708,14 +690,15 @@ describe('blocks/process', () => {
 			});
 
 			it('should return error when __private.receiveBlock fails', done => {
+				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
+				__private.validateBlockSlot.callsArgWith(2, null, true);
+				modules.blocks.verify.verifyReceipt.returns({ verified: true });
 				modules.blocks.chain.deleteLastBlock.callsArgWith(
 					0,
 					null,
 					'delete block ok'
 				);
-				__private.receiveBlock = sinonSandbox
-					.stub()
-					.callsArgWith(1, 'receiveBlock-ERR', null);
+				__private.receiveBlock.callsArgWith(1, 'receiveBlock-ERR', null);
 
 				__private.receiveForkFive(
 					{ timestamp: 10, id: 2 },
@@ -733,6 +716,14 @@ describe('blocks/process', () => {
 			});
 
 			it('should return no error', done => {
+				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
+				__private.validateBlockSlot.callsArgWith(2, null, true);
+				modules.blocks.verify.verifyReceipt.returns({ verified: true });
+				modules.blocks.chain.deleteLastBlock.callsArgWith(
+					0,
+					null,
+					'delete block ok'
+				);
 				__private.receiveBlock.callsArgWith(1, null, 'receiveBlock ok');
 
 				__private.receiveForkFive(
@@ -750,7 +741,7 @@ describe('blocks/process', () => {
 
 	describe('getCommonBlock', () => {
 		describe('consensus high', () => {
-			before(() => {
+			beforeEach(() => {
 				modules.transport.poorConsensus.returns(false);
 			});
 
@@ -792,7 +783,6 @@ describe('blocks/process', () => {
 			});
 
 			it('should return error when peer.rpc.blocksCommon chain comparison fails', done => {
-				library.logic.peers.applyHeaders.reset();
 				modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
 					ids: 'rpc.blocksCommon-Empty',
 				});
@@ -831,12 +821,8 @@ describe('blocks/process', () => {
 			});
 
 			it('should throw error when library.db.blocks.getCommonBlock fails', done => {
-				loggerStub.error.reset();
-				library.schema.validate.callsArgWith(
-					2,
-					null,
-					library.schema.validate.getCall(0).args[0]
-				);
+				modules.blocks.utils.getIdSequence.callsArgWith(1, null, { ids: 'OK' });
+				library.schema.validate.callsArgWith(2, null, { ip: 1, wsPort: 2 });
 				library.db.blocks.getCommonBlock.rejects(
 					new Error('blocks.getCommonBlock-REJECTS')
 				);
@@ -856,6 +842,8 @@ describe('blocks/process', () => {
 			});
 
 			it('should return error when library.db.blocks.getCommonBlock returns empty', done => {
+				modules.blocks.utils.getIdSequence.callsArgWith(1, null, { ids: 'OK' });
+				library.schema.validate.callsArgWith(2, null, { ip: 1, wsPort: 2 });
 				library.db.blocks.getCommonBlock.resolves([]);
 
 				blocksProcessModule.getCommonBlock(
@@ -874,6 +862,8 @@ describe('blocks/process', () => {
 			});
 
 			it('should return common block', done => {
+				modules.blocks.utils.getIdSequence.callsArgWith(1, null, { ids: 'OK' });
+				library.schema.validate.callsArgWith(2, null, { ip: 1, wsPort: 2 });
 				library.db.blocks.getCommonBlock.resolves([{ count: 1 }]);
 
 				blocksProcessModule.getCommonBlock(
@@ -889,13 +879,13 @@ describe('blocks/process', () => {
 		});
 
 		describe('consensus low', () => {
-			before(() => {
+			beforeEach(() => {
 				modules.transport.poorConsensus.returns(true);
 			});
 
 			describe('perform chain recovery', () => {
 				describe('when peer.rpc.blocksCommon chain comparison fails', () => {
-					before(() => {
+					beforeEach(() => {
 						modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
 							ids: 'rpc.blocksCommon-Empty',
 						});
@@ -939,7 +929,10 @@ describe('blocks/process', () => {
 				});
 
 				describe('when db.blocks.getCommonBlock block comparison fails', () => {
-					before(() => {
+					beforeEach(() => {
+						modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
+							ids: 'rpc.blocksCommon-Empty',
+						});
 						library.db.blocks.getCommonBlock.resolves([]);
 					});
 
@@ -984,11 +977,6 @@ describe('blocks/process', () => {
 	});
 
 	describe('loadBlocksOffset', () => {
-		beforeEach(done => {
-			loggerStub.debug.reset();
-			done();
-		});
-
 		afterEach(done => {
 			expect(loggerStub.debug.args[0][0]).to.equal('Loading blocks offset');
 			expect(loggerStub.debug.args[0][1]).to.deep.equal({
@@ -1000,7 +988,6 @@ describe('blocks/process', () => {
 		});
 
 		it('should throw error when library.db.blocks.loadBlocksOffset fails', done => {
-			loggerStub.error.reset();
 			library.db.blocks.loadBlocksOffset.rejects(
 				'blocks.loadBlocksOffset-REJECTS'
 			);
@@ -1018,13 +1005,10 @@ describe('blocks/process', () => {
 		});
 
 		describe('when library.db.blocks.loadBlocksOffset returns rows', () => {
-			before(() => {
-				library.db.blocks.loadBlocksOffset.resolves([]);
-			});
-
 			beforeEach(() => {
+				library.db.blocks.loadBlocksOffset.resolves([]);
 				modules.blocks.utils.readDbRows.returns([dummyBlock]);
-				loggerStub.error.reset();
+				modules.blocks.isCleaning.get.returns(true);
 			});
 
 			afterEach(() => {
@@ -1032,8 +1016,6 @@ describe('blocks/process', () => {
 			});
 
 			it('should return immediate when node shutdown is requested', done => {
-				modules.blocks.isCleaning.get.returns(true);
-
 				blocksProcessModule.loadBlocksOffset(100, 0, true, (err, lastBlock) => {
 					expect(err).to.be.null;
 					expect(lastBlock).to.be.undefined;
@@ -1043,7 +1025,7 @@ describe('blocks/process', () => {
 			});
 
 			describe('when verify is true and block id is not genesis block', () => {
-				before(() => {
+				beforeEach(() => {
 					modules.blocks.isCleaning.get.returns(false);
 				});
 
@@ -1069,9 +1051,7 @@ describe('blocks/process', () => {
 				});
 
 				it('should return error when library.logic.block.objectNormalize fails', done => {
-					library.logic.block.objectNormalize.returns(
-						library.logic.block.objectNormalize.getCall(0).args[0]
-					);
+					library.logic.block.objectNormalize.returns(dummyBlock);
 					modules.blocks.verify.verifyBlock.returns({
 						verified: false,
 						errors: ['verifyBlock-ERR'],
@@ -1085,7 +1065,7 @@ describe('blocks/process', () => {
 							expect(err).to.equal('verifyBlock-ERR');
 							expect(lastBlock).to.be.undefined;
 							expect(loggerStub.error.args[0][0]).to.equal(
-								'Block 2 verification failed'
+								'Block 1 verification failed'
 							);
 							expect(loggerStub.error.args[0][1]).to.equal('verifyBlock-ERR');
 							done();
@@ -1094,9 +1074,7 @@ describe('blocks/process', () => {
 				});
 
 				it('should return error when library.logic.block.objectNormalize fails', done => {
-					library.logic.block.objectNormalize.returns(
-						library.logic.block.objectNormalize.getCall(0).args[0]
-					);
+					library.logic.block.objectNormalize.returns(dummyBlock);
 					modules.blocks.verify.verifyBlock.returns({
 						verified: false,
 						errors: ['verifyBlock-ERR'],
@@ -1110,7 +1088,7 @@ describe('blocks/process', () => {
 							expect(err).to.equal('verifyBlock-ERR');
 							expect(lastBlock).to.be.undefined;
 							expect(loggerStub.error.args[0][0]).to.equal(
-								'Block 2 verification failed'
+								'Block 1 verification failed'
 							);
 							expect(loggerStub.error.args[0][1]).to.equal('verifyBlock-ERR');
 							done();
