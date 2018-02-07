@@ -15,16 +15,24 @@
 'use strict';
 
 /**
+ * Description of the module.
+ *
+ * @module
+ * @see Parent: {@link helpers}
+ * @todo Add description of the module and its properties
+ */
+
+/**
  * Validates sort options, methods and fields.
- * @memberof module:helpers
- * @function
- * @param {string|Object} sort
- * @param {Object} [options]
- * @param {string} options.fieldPrefix
- * @param {string} options.sortField
+ *
+ * @param {string|Object} sort - Description of the param
+ * @param {Object} [options] - Description of the param
+ * @param {string} options.fieldPrefix - Description of the param
+ * @param {string} options.sortField - Description of the param
  * @param {string} options.sortMethod - asc / desc
- * @param {Array} options.sortFields
- * @return {Object} error | {sortField, sortMethod}.
+ * @param {Array} options.sortFields - Description of the param
+ * @returns {Object} error | {sortField, sortMethod}.
+ * @todo Add description of the params
  */
 function sortBy(sort, options) {
 	options = typeof options === 'object' ? options : {};
@@ -76,7 +84,14 @@ function sortBy(sort, options) {
 		});
 		return { sortField: sortFields, sortMethod: sortMethods };
 	}
-
+	/**
+	 * Description of the function.
+	 *
+	 * @private
+	 * @todo Add param-tag and descriptions
+	 * @todo Add returns-tag
+	 * @todo Add description of the function
+	 */
 	function prefixField(sortField) {
 		if (!sortField) {
 			return sortField;
@@ -88,6 +103,14 @@ function sortBy(sort, options) {
 		return sortField;
 	}
 
+	/**
+	 * Description of the function.
+	 *
+	 * @private
+	 * @todo Add param-tag and descriptions
+	 * @todo Add returns-tag
+	 * @todo Add description of the function
+	 */
 	function quoteField(sortField) {
 		if (sortField && options.quoteField) {
 			return `"${sortField}"`;
@@ -129,9 +152,11 @@ function sortBy(sort, options) {
  * Ascending sort method number equivalent is 1.
  * Descending sort method number equivalent is -1.
  * If only field is specified in sortQuery, sortOrder will be ascending.
+ *
  * @param {string} sortQuery - sortField|sortField:sortOrder
  * @param {Array} sortableFields
  * @returns {Object}[={}] returns {} if incorrect format of sortQuery given or if field
+ * @todo Add description of the params
  */
 function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {
 	if (sortableFields.indexOf(sortQuery) !== -1) {
