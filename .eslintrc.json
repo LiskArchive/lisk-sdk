@@ -44,7 +44,7 @@
 		"no-use-before-define": "off",
 		"no-useless-escape": "off",
 		"no-var": "off",
-		"object-shorthand": ["error", "always", { "ignoreConstructors": true }],
+		"object-shorthand": ["error", "always", { "ignoreConstructors": false }],
 		"prefer-destructuring": "off",
 		"prefer-rest-params": "off",
 		"radix": "off",
