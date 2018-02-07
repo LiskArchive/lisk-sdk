@@ -106,8 +106,8 @@ describe('blocks/process', () => {
 		__private = BlocksProcess.__get__('__private');
 		// Modules
 		dummyBlock = {
-			id: '1',
-			height: 1,
+			id: '4',
+			height: 4,
 			timestamp: 41287231,
 			reward: 100,
 		};
@@ -125,6 +125,7 @@ describe('blocks/process', () => {
 			chain: {
 				deleteLastBlock: sinonSandbox.stub(),
 				recoverChain: sinonSandbox.stub(),
+				applyBlock: sinonSandbox.stub(),
 			},
 			utils: {
 				getIdSequence: sinonSandbox.stub(),
@@ -134,7 +135,10 @@ describe('blocks/process', () => {
 				get: sinonSandbox.stub(),
 			},
 			lastBlock: {
-				get: sinonSandbox.stub(),
+				get: sinonSandbox.stub().returns({
+					id: '2',
+					height: 2,
+				}),
 			},
 		};
 
@@ -299,7 +303,7 @@ describe('blocks/process', () => {
 				expect(err).to.be.null;
 				expect(cb).to.be.true;
 				expect(loggerStub.info.args[0]).to.contains(
-					'Received new block id: 1 height: 1 round: 1 slot: 4128723 reward: 100'
+					'Received new block id: 4 height: 4 round: 1 slot: 4128723 reward: 100'
 				);
 				expect(modules.blocks.lastReceipt.update.called).to.be.true;
 				done();
@@ -590,151 +594,217 @@ describe('blocks/process', () => {
 				done();
 			});
 
-			it('should throw error when library.logic.block.objectNormalize fails', done => {
-				library.logic.block.objectNormalize.throws('objectNormalize-ERR');
-
-				__private.receiveForkFive(
-					{ timestamp: 1, id: 2 },
-					{ timestamp: 2, id: 1 },
-					(err, cb) => {
-						expect(err.name).to.equal('objectNormalize-ERR');
-						expect(cb).to.be.undefined;
-						expect(loggerStub.error.args[0][0]).to.equal(
-							'Fork recovery failed'
-						);
-						expect(loggerStub.error.args[0][1].name).to.equal(
-							'objectNormalize-ERR'
-						);
+			describe('library.logic.block.objectNormalize', () => {
+				describe('when fails', () => {
+					beforeEach(done => {
+						library.logic.block.objectNormalize.throws('objectNormalize-ERR');
 						done();
-					}
-				);
-			});
+					});
 
-			it('should return error when __private.validateBlockSlot fails', done => {
-				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
-				__private.validateBlockSlot.callsArgWith(
-					2,
-					'validateBlockSlot-ERR',
-					null
-				);
-
-				__private.receiveForkFive(
-					{ timestamp: 1, id: 2 },
-					{ timestamp: 2, id: 1 },
-					(err, cb) => {
-						expect(err).to.equal('validateBlockSlot-ERR');
-						expect(cb).to.be.undefined;
-						expect(loggerStub.error.args[0][0]).to.equal(
-							'Fork recovery failed'
+					it('should throw error', done => {
+						__private.receiveForkFive(
+							{ timestamp: 1, id: 2 },
+							{ timestamp: 2, id: 1 },
+							(err, cb) => {
+								expect(err.name).to.equal('objectNormalize-ERR');
+								expect(cb).to.be.undefined;
+								expect(loggerStub.error.args[0][0]).to.equal(
+									'Fork recovery failed'
+								);
+								expect(loggerStub.error.args[0][1].name).to.equal(
+									'objectNormalize-ERR'
+								);
+								done();
+							}
 						);
-						expect(loggerStub.error.args[0][1]).to.equal(
-							'validateBlockSlot-ERR'
-						);
-						done();
-					}
-				);
-			});
-
-			it('should return error when modules.blocks.verify.verifyReceipt fails', done => {
-				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
-				__private.validateBlockSlot.callsArgWith(2, null, true);
-				modules.blocks.verify.verifyReceipt.returns({
-					verified: false,
-					errors: ['verifyReceipt-ERR', 'ERR2'],
+					});
 				});
 
-				__private.receiveForkFive(
-					{ timestamp: 10, id: 2 },
-					{ timestamp: 20, id: 1 },
-					(err, cb) => {
-						expect(err).to.equal('verifyReceipt-ERR');
-						expect(cb).to.be.undefined;
-						expect(loggerStub.error.args[0][0]).to.equal(
-							'Block 2 verification failed'
-						);
-						expect(loggerStub.error.args[0][1]).to.equal(
-							'verifyReceipt-ERR, ERR2'
-						);
-						expect(loggerStub.error.args[1][0]).to.equal(
-							'Fork recovery failed'
-						);
-						expect(loggerStub.error.args[1][1]).to.equal('verifyReceipt-ERR');
+				describe('when success', () => {
+					beforeEach(done => {
+						library.logic.block.objectNormalize.returns({
+							timestamp: 1,
+							id: 2,
+						});
 						done();
-					}
-				);
-			});
+					});
 
-			it('should return error when modules.blocks.chain.deleteLastBlock fails', done => {
-				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
-				__private.validateBlockSlot.callsArgWith(2, null, true);
-				modules.blocks.verify.verifyReceipt.returns({ verified: true });
-				modules.blocks.chain.deleteLastBlock.callsArgWith(
-					0,
-					'deleteLastBlock-ERR',
-					null
-				);
+					describe('__private.validateBlockSlot', () => {
+						describe('when fails', () => {
+							beforeEach(done => {
+								__private.validateBlockSlot.callsArgWith(
+									2,
+									'validateBlockSlot-ERR',
+									null
+								);
+								done();
+							});
 
-				__private.receiveForkFive(
-					{ timestamp: 10, id: 2 },
-					{ timestamp: 20, id: 1 },
-					(err, cb) => {
-						expect(err).to.equal('deleteLastBlock-ERR');
-						expect(cb).to.be.undefined;
-						expect(loggerStub.error.args[0][0]).to.equal(
-							'Fork recovery failed'
-						);
-						expect(loggerStub.error.args[0][1]).to.equal('deleteLastBlock-ERR');
-						done();
-					}
-				);
-			});
+							it('should return error', done => {
+								__private.receiveForkFive(
+									{ timestamp: 1, id: 2 },
+									{ timestamp: 2, id: 1 },
+									(err, cb) => {
+										expect(err).to.equal('validateBlockSlot-ERR');
+										expect(cb).to.be.undefined;
+										expect(loggerStub.error.args[0][0]).to.equal(
+											'Fork recovery failed'
+										);
+										expect(loggerStub.error.args[0][1]).to.equal(
+											'validateBlockSlot-ERR'
+										);
+										done();
+									}
+								);
+							});
+						});
 
-			it('should return error when __private.receiveBlock fails', done => {
-				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
-				__private.validateBlockSlot.callsArgWith(2, null, true);
-				modules.blocks.verify.verifyReceipt.returns({ verified: true });
-				modules.blocks.chain.deleteLastBlock.callsArgWith(
-					0,
-					null,
-					'delete block ok'
-				);
-				__private.receiveBlock.callsArgWith(1, 'receiveBlock-ERR', null);
+						describe('when success', () => {
+							beforeEach(done => {
+								__private.validateBlockSlot.callsArgWith(2, null, true);
+								done();
+							});
 
-				__private.receiveForkFive(
-					{ timestamp: 10, id: 2 },
-					{ timestamp: 20, id: 1 },
-					(err, cb) => {
-						expect(err).to.equal('receiveBlock-ERR');
-						expect(cb).to.be.undefined;
-						expect(loggerStub.error.args[0][0]).to.equal(
-							'Fork recovery failed'
-						);
-						expect(loggerStub.error.args[0][1]).to.equal('receiveBlock-ERR');
-						done();
-					}
-				);
-			});
+							describe('modules.blocks.verify.verifyReceipt', () => {
+								describe('when fails', () => {
+									beforeEach(done => {
+										modules.blocks.verify.verifyReceipt.returns({
+											verified: false,
+											errors: ['verifyReceipt-ERR', 'ERR2'],
+										});
+										done();
+									});
 
-			it('should return no error', done => {
-				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
-				__private.validateBlockSlot.callsArgWith(2, null, true);
-				modules.blocks.verify.verifyReceipt.returns({ verified: true });
-				modules.blocks.chain.deleteLastBlock.callsArgWith(
-					0,
-					null,
-					'delete block ok'
-				);
-				__private.receiveBlock.callsArgWith(1, null, 'receiveBlock ok');
+									it('should return error', done => {
+										__private.receiveForkFive(
+											{ timestamp: 10, id: 2 },
+											{ timestamp: 20, id: 1 },
+											(err, cb) => {
+												expect(err).to.equal('verifyReceipt-ERR');
+												expect(cb).to.be.undefined;
+												expect(loggerStub.error.args[0][0]).to.equal(
+													'Block 2 verification failed'
+												);
+												expect(loggerStub.error.args[0][1]).to.equal(
+													'verifyReceipt-ERR, ERR2'
+												);
+												expect(loggerStub.error.args[1][0]).to.equal(
+													'Fork recovery failed'
+												);
+												expect(loggerStub.error.args[1][1]).to.equal(
+													'verifyReceipt-ERR'
+												);
+												done();
+											}
+										);
+									});
+								});
 
-				__private.receiveForkFive(
-					{ timestamp: 10, id: 2 },
-					{ timestamp: 20, id: 1 },
-					(err, cb) => {
-						expect(err).to.be.null;
-						expect(cb).to.be.undefined;
-						done();
-					}
-				);
+								describe('when success', () => {
+									beforeEach(done => {
+										modules.blocks.verify.verifyReceipt.returns({
+											verified: true,
+										});
+										done();
+									});
+
+									describe('modules.blocks.chain.deleteLastBlock', () => {
+										describe('when fails', () => {
+											beforeEach(done => {
+												modules.blocks.chain.deleteLastBlock.callsArgWith(
+													0,
+													'deleteLastBlock-ERR',
+													null
+												);
+												done();
+											});
+
+											it('should return error', done => {
+												__private.receiveForkFive(
+													{ timestamp: 10, id: 2 },
+													{ timestamp: 20, id: 1 },
+													(err, cb) => {
+														expect(err).to.equal('deleteLastBlock-ERR');
+														expect(cb).to.be.undefined;
+														expect(loggerStub.error.args[0][0]).to.equal(
+															'Fork recovery failed'
+														);
+														expect(loggerStub.error.args[0][1]).to.equal(
+															'deleteLastBlock-ERR'
+														);
+														done();
+													}
+												);
+											});
+										});
+										describe('when success', () => {
+											beforeEach(done => {
+												modules.blocks.chain.deleteLastBlock.callsArgWith(
+													0,
+													null,
+													'delete block ok'
+												);
+												done();
+											});
+											describe('__private.receiveBlock', () => {
+												describe('when fails', () => {
+													beforeEach(done => {
+														__private.receiveBlock.callsArgWith(
+															1,
+															'receiveBlock-ERR',
+															null
+														);
+														done();
+													});
+
+													it('should return error', done => {
+														__private.receiveForkFive(
+															{ timestamp: 10, id: 2 },
+															{ timestamp: 20, id: 1 },
+															(err, cb) => {
+																expect(err).to.equal('receiveBlock-ERR');
+																expect(cb).to.be.undefined;
+																expect(loggerStub.error.args[0][0]).to.equal(
+																	'Fork recovery failed'
+																);
+																expect(loggerStub.error.args[0][1]).to.equal(
+																	'receiveBlock-ERR'
+																);
+																done();
+															}
+														);
+													});
+												});
+												describe('when success', () => {
+													beforeEach(done => {
+														__private.receiveBlock.callsArgWith(
+															1,
+															null,
+															'receiveBlock ok'
+														);
+														done();
+													});
+
+													it('should return no error', done => {
+														__private.receiveForkFive(
+															{ timestamp: 10, id: 2 },
+															{ timestamp: 20, id: 1 },
+															(err, cb) => {
+																expect(err).to.be.null;
+																expect(cb).to.be.undefined;
+																done();
+															}
+														);
+													});
+												});
+											});
+										});
+									});
+								});
+							});
+						});
+					});
+				});
 			});
 		});
 	});
@@ -755,9 +825,9 @@ describe('blocks/process', () => {
 				blocksProcessModule.getCommonBlock(
 					{ ip: 1, wsPort: 2 },
 					10,
-					(err, cb) => {
+					(err, block) => {
 						expect(err).to.equal('getIdSequence-ERR');
-						expect(cb).to.be.undefined;
+						expect(block).to.be.undefined;
 						done();
 					}
 				);
@@ -771,12 +841,12 @@ describe('blocks/process', () => {
 				blocksProcessModule.getCommonBlock(
 					{ ip: 1, wsPort: 2 },
 					10,
-					(err, cb) => {
+					(err, block) => {
 						expect(
 							library.logic.peers.applyHeaders.calledWithExactly({ state: 1 })
 						).to.be.true;
 						expect(err).to.equal('rpc.blocksCommon-ERR');
-						expect(cb).to.be.undefined;
+						expect(block).to.be.undefined;
 						done();
 					}
 				);
@@ -790,12 +860,12 @@ describe('blocks/process', () => {
 				blocksProcessModule.getCommonBlock(
 					{ ip: 1, wsPort: 2 },
 					10,
-					(err, cb) => {
+					(err, block) => {
 						expect(library.logic.peers.applyHeaders.called).to.be.false;
 						expect(err).to.equal(
 							'Chain comparison failed with peer: ip:wsPort using ids: rpc.blocksCommon-Empty'
 						);
-						expect(cb).to.be.undefined;
+						expect(block).to.be.undefined;
 						done();
 					}
 				);
@@ -812,9 +882,9 @@ describe('blocks/process', () => {
 				blocksProcessModule.getCommonBlock(
 					{ ip: 1, wsPort: 2 },
 					10,
-					(err, cb) => {
+					(err, block) => {
 						expect(err).to.equal('schema.validate-ERR');
-						expect(cb).to.be.undefined;
+						expect(block).to.be.undefined;
 						done();
 					}
 				);
@@ -830,9 +900,9 @@ describe('blocks/process', () => {
 				blocksProcessModule.getCommonBlock(
 					{ ip: 1, wsPort: 2 },
 					10,
-					(err, cb) => {
+					(err, block) => {
 						expect(err).to.equal('Blocks#getCommonBlock error');
-						expect(cb).to.be.undefined;
+						expect(block).to.be.undefined;
 						expect(loggerStub.error.args[0][0]).to.contains(
 							'Error: blocks.getCommonBlock-REJECTS'
 						);
@@ -849,13 +919,13 @@ describe('blocks/process', () => {
 				blocksProcessModule.getCommonBlock(
 					{ ip: 1, wsPort: 2 },
 					10,
-					(err, cb) => {
+					(err, block) => {
 						expect(err).to.equal(
 							`Chain comparison failed with peer: ip:wsPort using block: ${JSON.stringify(
 								dummyCommonBlock
 							)}`
 						);
-						expect(cb).to.be.undefined;
+						expect(block).to.be.undefined;
 						done();
 					}
 				);
@@ -1018,7 +1088,10 @@ describe('blocks/process', () => {
 			it('should return immediate when node shutdown is requested', done => {
 				blocksProcessModule.loadBlocksOffset(100, 0, true, (err, lastBlock) => {
 					expect(err).to.be.null;
-					expect(lastBlock).to.be.undefined;
+					expect(lastBlock).to.deep.equal({
+						id: '2',
+						height: 2,
+					});
 					expect(loggerStub.debug.args.length).to.equal(1);
 					done();
 				});
@@ -1031,7 +1104,7 @@ describe('blocks/process', () => {
 
 				afterEach(done => {
 					expect(loggerStub.debug.args[1][0]).to.equal('Processing block');
-					expect(loggerStub.debug.args[1][1]).to.equal('1');
+					expect(loggerStub.debug.args[1][1]).to.equal('4');
 					done();
 				});
 
@@ -1044,13 +1117,16 @@ describe('blocks/process', () => {
 						true,
 						(err, lastBlock) => {
 							expect(err.name).to.equal('objectNormalize-ERR');
-							expect(lastBlock).to.be.undefined;
+							expect(lastBlock).to.deep.equal({
+								id: '2',
+								height: 2,
+							});
 							done();
 						}
 					);
 				});
 
-				it('should return error when library.logic.block.objectNormalize fails', done => {
+				it('should return error when modules.blocks.verify.verifyBlock fails', done => {
 					library.logic.block.objectNormalize.returns(dummyBlock);
 					modules.blocks.verify.verifyBlock.returns({
 						verified: false,
@@ -1063,9 +1139,12 @@ describe('blocks/process', () => {
 						true,
 						(err, lastBlock) => {
 							expect(err).to.equal('verifyBlock-ERR');
-							expect(lastBlock).to.be.undefined;
+							expect(lastBlock).to.deep.equal({
+								id: '2',
+								height: 2,
+							});
 							expect(loggerStub.error.args[0][0]).to.equal(
-								'Block 1 verification failed'
+								'Block 4 verification failed'
 							);
 							expect(loggerStub.error.args[0][1]).to.equal('verifyBlock-ERR');
 							done();
@@ -1073,24 +1152,47 @@ describe('blocks/process', () => {
 					);
 				});
 
-				it('should return error when library.logic.block.objectNormalize fails', done => {
+				it('should return error when modules.blocks.chain.applyBlock fails', done => {
 					library.logic.block.objectNormalize.returns(dummyBlock);
 					modules.blocks.verify.verifyBlock.returns({
-						verified: false,
-						errors: ['verifyBlock-ERR'],
+						verified: true,
 					});
+					modules.blocks.chain.applyBlock.callsArgWith(
+						2,
+						'chain.applyBlock-ERR',
+						null
+					);
+					modules.blocks.lastBlock.get.returns(dummyBlock);
 
 					blocksProcessModule.loadBlocksOffset(
 						100,
 						0,
 						true,
 						(err, lastBlock) => {
-							expect(err).to.equal('verifyBlock-ERR');
-							expect(lastBlock).to.be.undefined;
-							expect(loggerStub.error.args[0][0]).to.equal(
-								'Block 1 verification failed'
-							);
-							expect(loggerStub.error.args[0][1]).to.equal('verifyBlock-ERR');
+							expect(err).to.equal('chain.applyBlock-ERR');
+							expect(lastBlock).to.deep.equal(dummyBlock);
+							expect(modules.blocks.lastBlock.get.called).to.be.true;
+							done();
+						}
+					);
+				});
+
+				it('should return lastBlock when no errors', done => {
+					library.logic.block.objectNormalize.returns(dummyBlock);
+					modules.blocks.verify.verifyBlock.returns({
+						verified: true,
+					});
+					modules.blocks.chain.applyBlock.callsArgWith(2, null, dummyBlock);
+					modules.blocks.lastBlock.get.returns(dummyBlock);
+
+					blocksProcessModule.loadBlocksOffset(
+						100,
+						0,
+						true,
+						(err, lastBlock) => {
+							expect(err).to.be.null;
+							expect(lastBlock).to.deep.equal(dummyBlock);
+							expect(modules.blocks.lastBlock.get.called).to.be.true;
 							done();
 						}
 					);
