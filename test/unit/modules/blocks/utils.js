@@ -128,32 +128,13 @@ describe('blocks/utils', () => {
 	});
 
 	describe('constructor', () => {
-		describe('library', () => {
-			it('should assign logger', () => {
-				expect(library.logger).to.eql(loggerStub);
-			});
-
-			describe('should assign logic', () => {
-				it('should assign account', () => {
-					expect(library.logic.account).to.eql(accountMock);
-				});
-
-				it('should assign block', () => {
-					expect(library.logic.block).to.eql(blockMock);
-				});
-
-				it('should assign transaction', () => {
-					expect(library.logic.transaction).to.eql(transactionMock);
-				});
-			});
-
-			it('should assign dbSequence', () => {
-				expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
-			});
-
-			it('should assign db', () => {
-				expect(library.db).to.eql(dbStub);
-			});
+		it('should assign params to library', () => {
+			expect(library.logger).to.eql(loggerStub);
+			expect(library.db).to.eql(dbStub);
+			expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
+			expect(library.logic.account).to.eql(accountMock);
+			expect(library.logic.block).to.eql(blockMock);
+			expect(library.logic.transaction).to.eql(transactionMock);
 		});
 
 		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."', () => {
