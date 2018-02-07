@@ -16,6 +16,15 @@
 
 var Promise = require('bluebird');
 
+/**
+ * Description of the class.
+ *
+ * @class
+ * @memberof helpers
+ * @returns {Object}
+ * @see Parent: {@link helpers}
+ * @todo Add descriptions of the class and the return value
+ */
 function PromiseDefer() {
 	var resolve;
 	var reject;
