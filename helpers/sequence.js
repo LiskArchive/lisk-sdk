@@ -20,9 +20,14 @@ var extend = require('extend');
 /**
  * Creates a FIFO sequence array and default settings with config values.
  * Calls __tick with 3
- * @memberof module:helpers
- * @constructor
- * @param {string} config
+ *
+ * @class
+ * @memberof helpers
+ * @requires extend
+ * @requires util
+ * @param {string} config - Description of the param
+ * @see Parent: {@link helpers}
+ * @todo Add descriptions of the params
  */
 function Sequence(config) {
 	var _default = {
@@ -45,8 +50,9 @@ function Sequence(config) {
 
 /**
  * Removes the first task from sequence and execute it with args.
- * @param {function} cb
- * @return {setImmediateCallback} With cb or task.done
+ *
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} With cb or task.done
  */
 Sequence.prototype.__tick = function(cb) {
 	var task = this.sequence.shift();
@@ -69,9 +75,10 @@ Sequence.prototype.__tick = function(cb) {
 
 /**
  * Adds a new task to sequence.
- * @param {function} worker
- * @param {Array} args
- * @param {function} done
+ *
+ * @param {function} worker - Description of the param
+ * @param {Array} args - Description of the param
+ * @param {function} done - Description of the param
  */
 Sequence.prototype.add = function(worker, args, done) {
 	if (!done && args && typeof args === 'function') {
@@ -89,7 +96,8 @@ Sequence.prototype.add = function(worker, args, done) {
 
 /**
  * Gets pending task in sequence.
- * @return {number} sequence lenght.
+ *
+ * @returns {number} sequence length
  */
 Sequence.prototype.count = function() {
 	return this.sequence.length;
