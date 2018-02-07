@@ -20,17 +20,20 @@ var bson = new BSON();
 
 /**
  * BSON wrapper.
- * @memberof module:helpers
+ *
+ * @module
+ * @see Parent: {@link helpers}
  * @requires bson
- * @namespace
  */
 var bs = {};
 
 /**
  * Serializes input data.
- * @implements {bson}
+ *
+ * @func serialize
  * @param {Object} data
- * @return {Buffer}
+ * @returns {Buffer}
+ * @todo Add descriptions of the parameters and return-value
  */
 bs.serialize = function(data) {
 	return bson.serialize(data);
@@ -38,9 +41,11 @@ bs.serialize = function(data) {
 
 /**
  * Deserializes input data.
- * @implements {bson}
+ *
+ * @func deserialize
  * @param {Buffer} data
- * @return {Object}
+ * @returns {Object}
+ * @todo Add descriptions of the parameters and return-value
  */
 bs.deserialize = function(data) {
 	return bson.deserialize(data);
