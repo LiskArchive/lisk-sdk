@@ -15,8 +15,11 @@
 'use strict';
 
 /**
+ * Description of the namespace.
+ *
  * @namespace constants
- * @memberof module:helpers
+ * @memberof helpers
+ * @see Parent: {@link helpers}
  * @property {number} activeDelegates - The default number of delegates.
  * @property {number} maxVotesPerTransaction - The maximum number of votes in vote type transaction.
  * @property {number} addressLength - The default address length.
@@ -55,6 +58,7 @@
  * @property {number} signatureLength
  * @property {number} totalAmount
  * @property {number} unconfirmedTransactionTimeOut - 1080 blocks
+ * @todo Add description of the namespace and its values
  */
 var constants = {
 	activeDelegates: 101,
