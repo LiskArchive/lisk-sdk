@@ -19,13 +19,15 @@ var constants = require('../helpers/constants.js');
 var __private = {};
 
 /**
+ * Main BlockReward logic.
  * Initializes variables:
  * - milestones
  * - distance
  * - rewardOffset
- * @memberof module:blocks
+ *
  * @class
- * @classdesc Main BlockReward logic.
+ * @memberof logic
+ * @requires helpers/constants
  */
 // Constructor
 function BlockReward() {
@@ -42,10 +44,12 @@ function BlockReward() {
 // Private methods
 /**
  * Returns absolute value from number.
+ *
  * @private
- * @param {number} height
- * @return {number}
+ * @param {number} height - Description of the param
+ * @returns {number}
  * @throws Invalid block height
+ * @todo Add description of the param and return value
  */
 __private.parseHeight = function(height) {
 	if (isNaN(height)) {
@@ -57,9 +61,11 @@ __private.parseHeight = function(height) {
 
 // Public methods
 /**
- * @implements {__private.parseHeight}
- * @param {number} height
- * @return {number}
+ * Description of the function.
+ *
+ * @param {number} height - Description of the param
+ * @returns {number}
+ * @todo Add description of the function, param and return value
  */
 BlockReward.prototype.calcMilestone = function(height) {
 	height = __private.parseHeight(height);
@@ -75,10 +81,11 @@ BlockReward.prototype.calcMilestone = function(height) {
 };
 
 /**
- * @implements {__private.parseHeight}
- * @implements {BlockReward.calcMilestone}
- * @param {number} height
+ * Description of the function.
+ *
+ * @param {number} height - Description of the param
  * @return {number}
+ * @todo Add description of the function, param and return value
  */
 BlockReward.prototype.calcReward = function(height) {
 	height = __private.parseHeight(height);
@@ -91,10 +98,11 @@ BlockReward.prototype.calcReward = function(height) {
 };
 
 /**
- * @implements {__private.parseHeight}
- * @implements {BlockReward.calcMilestone}
- * @param {number} height
+ * Description of the function.
+ *
+ * @param {number} height - Description of the param
  * @return {number}
+ * @todo Add description of the function, param and return value
  */
 BlockReward.prototype.calcSupply = function(height) {
 	height = __private.parseHeight(height);
