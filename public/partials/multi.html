@@ -1,0 +1,66 @@
+<div class="top-margin"></div>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-default" ng-class="{'paginated': !!countPendings, 'not_paginated': !countPendings}">
+            <div class="panel-heading">
+                <h2>{{'Latest Multi-Signature Transactions'|translate}}</h2>
+            </div>
+            <div ng-show="!countPendings" class="panel-body empty-body">
+                <div class="logo-grey"></div>
+                <p class="empty-state-text">{{'Your Multi-Signature group(s) have not made any transactions yet.'|translate}}</p>
+            </div>
+            <table ng-show="!!countPendings" ng-table="tableMultiTransactions" border="0" width="100%" cellpadding="0" cellspacing="0" template-pagination="custom/pager">
+                <tr ng-class="{'voted': transaction.confirmations>=transaction.needed}" style="height: 63px;" ng-repeat="item in $data">
+                    <td data-title="tableMultiTransactions.cols.transactionId" sortable="'transaction.id'">{{item.transaction.id}}</td>
+                    <td data-title="tableMultiTransactions.cols.recipientId" sortable="'transaction.recipientId'">
+                        {{item.transaction.recipientId}}
+                    </td>
+                    <td data-title="tableMultiTransactions.cols.timestamp" sortable="'transaction.timestamp'">
+                        {{item.transaction.timestamp | timeAgoFilter:false}}
+                    </td>
+                    <td data-title="tableMultiTransactions.cols.amount" sortable="'transaction.amount'">
+                        {{item.transaction.amount | liskFilter}}
+                    </td>
+                    <td data-title="tableMultiTransactions.cols.fee" sortable="'transaction.fee'">
+                        {{item.transaction.fee | liskFilter}}
+                    </td>
+                    <td data-title="tableMultiTransactions.cols.confirmations" sortable="'countSing(transaction)'">
+                        {{countSign(item.transaction)}}/{{confirmationsNeeded(item)}}
+                    </td>
+                    <td data-title="''">
+                        <a ng-click="confirmTransaction(item.transaction.id)" ng-if="!signedByUser(item)" class="btn btn-dark-meant"><i class="mdi-action-done left"></i><translate>CONFIRM</translate></a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="row" ng-if="showWallets">
+    <div class="col-xs-12">
+        <div class="panel panel-default" ng-class="{'paginated': !!countWallets, 'not_paginated': !countWallets}">
+            <div class="panel-heading">
+                <h2>{{'My Multi-Signature Groups'|translate}}</h2>
+            </div>
+            <div ng-show="!countWallets" class="panel-body empty-body">
+                <div class="logo-grey"></div>
+                <p class="empty-state-text">{{'You are not a member of any one Multi-Signature group.'|translate}}</p>
+            </div>
+            <table ng-show="!!countWallets" ng-table="" border="0" width="100%" cellpadding="0" cellspacing="0" template-pagination="custom/pager">
+                <tr ng-repeat="wallet in $data">
+                    <td data-title="tableWallets.cols.address" sortable="'address'">{{wallet.address}}</td>
+                    <td data-title="tableWallets.cols.members" sortable="'multimin'">
+                        <a href="#" ng-click="showMembers(false, wallet.multisigaccounts, wallet.address)">{{wallet.multisignatures.length + 1}}</a>
+                    </td>
+                    <td data-title="tableWallets.cols.confirmations" sortable="'multimin'">
+                        {{wallet.multimin}}
+                    </td>
+                    <td data-title="''">
+                        <a class="btn btn-dark-meant" ui-sref="main.walletTransactions({walletId:wallet.address})">
+                            <i class="mdi-action-done left"></i><translate>CONFIRMED TRANSACTIONS</translate>
+                        </a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+<div class="top-margin"></div>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-default paginated">
+            <table ng-table="tableWalletTransactions" border="0" width="100%" cellpadding="0" cellspacing="0">
+                <tr ng-repeat="transaction in $data">
+                    <td data-title="tableWalletTransactions.cols.height" sortable="'height'">{{transaction.height}}</td>
+                    <td data-title="tableWalletTransactions.cols.id" sortable="'id'" class="pointer">
+                        <a href="#" ng-click="transactionInfo(transaction, transaction.signList)">{{transaction.id}}</a>
+                    </td>
+                    <td data-title="tableWalletTransactions.cols.recipientId" class="pointer" sortable="'recipientId'">
+                        <a href="#" ng-click="userInfo(transaction.recipientId)">{{transaction.recipientId}}</a>
+                    </td>
+                    <td data-title="tableWalletTransactions.cols.timestamp" sortable="'timestamp'">{{transaction.timestamp | timeAgoFilter : showFullTime}}
+                    </td>
+                    <td class="td-amount" data-title="tableWalletTransactions.cols.amount" sortable="'amount'">
+                        <i ng-if="transaction.recipientId==transaction.senderId" class="vertical-text mdi-image-brightness-1 cloud-font"></i>
+                        <i ng-if="transaction.recipientId!=transaction.senderId" class="vertical-text" ng-class="{'mdi-content-add-circle dark-meent-font': transaction.recipientId==walletAddress, 'mdi-content-remove-circle dark-red-font': transaction.senderId==walletAddress}"></i>
+                        {{transaction.amount | liskFilter}}
+                    </td>
+                    <td data-title="tableWalletTransactions.cols.fee">{{transaction.fee | liskFilter}}</td>
+                    <td data-title="tableWalletTransactions.cols.confirmations">
+                        <span>{{transaction.signatures.length + 1}}</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

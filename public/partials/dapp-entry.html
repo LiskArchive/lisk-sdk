@@ -1,0 +1,359 @@
+<div class="row clearfix">
+    <div class="col-xs-12">
+        <div class="dapp-info clearfix">
+            <div class="cover-container"><img ng-if="!dapp.icon" class="cover-image" src="images/dappIcon.png">
+                <img ng-if="dapp.icon" class="cover-image" ng-src="{{dapp.icon}}">
+            </div>
+            <div class="info-container">
+                <div class="document-title">
+                    {{dapp.name}}
+                </div>
+                <div class="subtitle-container">
+                    <!-- <a class="document-subtitle primary" href="#"><span>{{dapp.nikname}}</span> </a> -->
+                    <!-- <div class="document-subtitle">25 Mar 2015</div> -->
+                </div>
+                <div class="details-info-divider"></div>
+                <div ng-show="!loading && !installed && !isInstalling() && !isUninstalling() && !isLaunched()" class="details-actions">
+                    <div>
+                        <a class="btn btn-sky-blue waves-effect waves-light" ng-click="installDapp()" ng-switch on="dapp.type">
+                            <i class="mdi-file-file-download left"></i>
+                            <span ng-switch-default><translate>INSTALL</translate></span>
+                            <span ng-switch-when="1"><translate>DOWNLOAD</translate></span>
+                        </a>
+                    </div>
+                    <!-- <a class="btn btn-white waves-effect left-margin-14">SHARE</a> -->
+                    <a ng-show="dapp.link" href="{{dapp.link}}" target="_blank" class="btn btn-white waves-effect pull-right source"><translate>SOURCE CODE</translate></a>
+                </div>
+                <div ng-show="!loading && installed && !isInstalling() && !isUninstalling() && !isLaunched()" class="details-actions">
+                    <a class="btn btn-sky-blue waves-effect waves-light" ng-click="runDApp()" ng-switch on="dapp.type">
+                        <i class="mdi-file-file-download left"></i>
+                        <span ng-switch-default><translate>LAUNCH</translate></span>
+                        <span ng-switch-when="1"><translate>DOWNLOAD</translate></span>
+                    </a>
+                    <!-- <a class="btn btn-white waves-effect left-margin-14">SHARE</a> -->
+                    <a ng-show="dapp.git" href="{{dapp.githublink}}" target="_blank" class="btn btn-white waves-effect pull-right source"><translate>SOURCE CODE</translate></a>
+                </div>
+                <div ng-show="!isInstalling() && !isUninstalling() && isLaunched()" class="details-actions">
+                    <a class="btn btn-sky-blue waves-effect waves-light" ng-click="openDapp(dapp.type)" ng-switch on="dapp.type">
+                        <i class="mdi-file-file-download left"></i>
+                        <span ng-switch-default><translate>OPEN</translate></span>
+                        <span ng-switch-when="1"><translate>DOWNLOAD</translate></span>
+                    </a>
+                    <!-- <a class="btn btn-white waves-effect left-margin-14">SHARE</a> -->
+                    <a ng-show="dapp.git" href="{{dapp.githublink}}" target="_blank" class="btn btn-white waves-effect pull-right source"><translate>SOURCE CODE</translate></a>
+                </div>
+                <div ng-show="(isInstalling() || isUninstalling()) && !isLaunched()" class="details-actions">
+                    <div class="progress" style="display: inline-block; width: 120px;">
+                        <div class="indeterminate"></div>
+                    </div>
+                    <!-- <a class="btn btn-white waves-effect left-margin-14">SHARE</a> -->
+                    <a ng-show="dapp.git" href="{{dapp.githublink}}" target="_blank" class="btn btn-white waves-effect pull-right source"><translate>SOURCE CODE</translate></a>
+                </div>
+                <div ng-show="installed" class="details-actions">
+                    <div>
+                        <a class="btn btn-white waves-effect waves-light" ng-click="uninstallDapp()">
+                            <i class="mdi-action-delete left"></i>
+                            <span><translate>UNINSTALL</translate></span>
+                        </a>
+                    </div>
+                </div>
+                <div class="subtitle-container">
+                    <div class="document-subtitle large-subtitle"><translate>Category:</translate></div>
+                    <a class="document-subtitle primary" ui-sref='main.dappsCategory({categoryId:getCategoryName(dapp.category)})'>
+                        <span>{{getCategoryName(dapp.category)}}</span>
+                    </a>
+                </div>
+                <div class="details-info-divider"></div>
+                <!-- <div class="reason-set">
+                    <span class="stars-container">
+                        <div class="reason-set-star-rating">
+                            <div class="small-star star-rating-non-editable-container" aria-label="Average Rating: 4.3 out of 5">
+                                <div class="current-rating" style="width: 68.29926300048828%;"></div>
+                            </div>
+                            <div class="stars-count"><translate>(1449)</translate></div>
+                        </div>
+                    </span>
+                </div> -->
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row clearfix" ng-show="dapp.description">
+    <div class="col-xs-12">
+        <div class="dapp-info clearfix">
+            <div class="description">
+                <h1 class="heading">{{'Description'|translate}}</h1>
+                <div class="text-body" ng-class="{'expanded': showMore}">
+                    <p>{{dapp.description | cut:true:100:' ...':!showMore}}</p>
+                </div>
+                <div class="show-more clearfix" ng-if="!showMore">
+                    <a ng-show="dapp.description.length > 100" class="btn btn-white" ng-click="changeShowMore()"><translate>READ MORE</translate></a>
+                </div>
+                <div class="text-body expanded">
+                    <span class="badge tag-badge" ng-repeat="tag in getTags() track by $index">{{tag}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--
+<div class="row clearfix">
+    <div class="in_develop col-md-4 col-sm-6 col-xs-12">
+        <div class="in_develop_text"><translate>in development</translate></div>
+        <div class="dapp-info clearfix in_develop_feature">
+            <div class="in_develop_blure_color"></div>
+            <div class="description">
+                <h1 class="heading"><translate>Rating</translate></h1>
+                <div class="score-container">
+                    <div class="score"><translate>4.5</translate></div>
+                    <div class="reason-set">
+                        <span class="stars-container">
+                            <div class="reason-set-star-rating">
+                                <div class="small-star star-rating-non-editable-container" aria-label="Average Rating: 4.5 out of 5">
+                                    <div class="current-rating" style="width: 90.1%;"></div>
+                                </div>
+                                <div class="stars-count"><translate>(1449)</translate></div>
+                            </div>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="in_develop col-md-8 col-sm-6 col-xs-12">
+        <div class="in_develop_text"><translate>in development</translate></div>
+        <div class="dapp-info clearfix in_develop_feature">
+            <div class="in_develop_blure_color"></div>
+            <div class="description">
+                <h1 class="heading"><translate>User Reviews</translate></h1>
+                <div class="comments-wrapper">
+                    <div class="comment-wrapper">
+                        <div class="comment">
+                            <div class="author"><img class="author-image" src="http://chantalducharme.com/wp-content/uploads/2014/03/Round-Avatar.png"></div>
+                            <div>
+                                <span class="author-name">Alexis Peterson</span>
+                                <div class="reason-set">
+                                    <span class="stars-container">
+                                        <div class="reason-set-star-rating">
+                                            <div class="small-star star-rating-non-editable-container">
+                                                <div class="current-rating" style="width: 70%;"></div>
+                                            </div>
+                                        </div>
+                                    </span>
+                                </div>
+                                <div class="quoted-review">
+                                    <div class="review-text">
+                                        {{'A whole new way to watch movies'| cut:true:30:' ...'}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comments-wrapper hidden-xs hidden-sm">
+                        <div class="comment-wrapper">
+                            <div class="comment">
+                                <div class="author"><img class="author-image" src="http://placekitten.com/g/64/64"></div>
+                                <div>
+                                    <span class="author-name">Martha Matthews</span>
+                                    <div class="reason-set">
+                                        <span class="stars-container">
+                                            <div class="reason-set-star-rating">
+                                                <div class="small-star star-rating-non-editable-container">
+                                                    <div class="current-rating" style="width: 80%;"></div>
+                                                </div>
+                                            </div>
+                                        </span>
+                                    </div>
+                                    <div class="quoted-review">
+                                        <div class="review-text">
+                                            {{'Just take care of the popcorn & leave the rest to us.'| cut:true:30:' ...'}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="show-more-reviews clearfix" style="padding: 0 26px 27px;">
+                <a class="btn btn-white">READ MORE</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row clearfix margin"></div>
+<div class="row clearfix" ng-if="false">
+    <div class="col-xs-12">
+        <div class="panel  panel-default no-margin-bottom">
+            <div class="panel-heading cursor">
+                <h2>Similar Dapps</h2>
+                <div class="more" ng-show="transactions.length">
+                    <span class="sr-only">More</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row clearfix" ng-if="false">
+    <div class="col-lg-2 col-md-4 col-sm-4 col-xs-6">
+        <div class="dapp-content small-dapp clearfix">
+            <div class="cover">
+                <div class="cover-image-container">
+                    <div class="cover-outer-align">
+                        <div class="cover-inner-align"><img alt="PeerNotes" class="cover-image" src="http://icons.iconarchive.com/icons/igh0zt/ios7-style-metro-ui/512/MetroUI-Apps-Notepad-Alt-icon.png"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="details">
+                <h2>
+                    <span class="title" href="#">PeerNotes</span>
+                </h2>
+                <div class="subtitle-container">
+                    <span class="subtitle">Peer-to-Peer Notes</span>
+                </div>
+            </div>
+            <div class="reason-set">
+                <span class="stars-container">
+                    <div class="reason-set-star-rating">
+                        <div class="small-star star-rating-non-editable-container" aria-label="Средняя оценка: 4,3 из 5">
+                            <div class="current-rating" style="width: 68.29926300048828%;"></div>
+                        </div>
+                    </div>
+                    <span class="price-container">
+                        <span class="paragraph-end"></span>
+                        <span class="apps is-price-tag buy-button-container" data-doc-fetch-skip-cache="0" data-doc-fetch-vouchers="0" data-docid="com.halfbrick.fruitninja">
+                            <div class="pon" style="display:none">1</div>
+                            <button style="display:none" class="price buy id-track-click" data-server-cookie="CAIaIgogEh4KGGNvbS5oYWxmYnJpY2suZnJ1aXRuaW5qYRABGAM=" data-uitype="200">
+                                <span class="display-price">0,91&nbsp;€</span>
+                            </button>
+                            <span class="acquired-label">
+                                <span class="acquired-icon"></span>
+                            </span>
+                        </span>
+                    </span>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-4 col-xs-6">
+        <div class="dapp-content small-dapp clearfix">
+            <div class="cover">
+                <div class="cover-image-container">
+                    <div class="cover-outer-align">
+                        <div class="cover-inner-align"><img alt="Angry Birds" class="cover-image" src="http://icons.iconarchive.com/icons/alecive/flatwoken/512/Apps-Angry-Birds-icon.png"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="details">
+                <h2>
+                    <span class="title" href="#">Angry Birds</span>
+                </h2>
+                <div class="subtitle-container">
+                    <span class="subtitle">Must Popular Game</span>
+                </div>
+            </div>
+            <div class="reason-set">
+                <span class="stars-container">
+                    <div class="reason-set-star-rating">
+                        <div class="small-star star-rating-non-editable-container" aria-label="Средняя оценка: 4,3 из 5">
+                            <div class="current-rating" style="width: 68.29926300048828%;"></div>
+                        </div>
+                    </div>
+                    <span class="price-container">
+                        <span class="paragraph-end"></span>
+                        <span class="apps is-price-tag buy-button-container" data-doc-fetch-skip-cache="0" data-doc-fetch-vouchers="0" data-docid="com.halfbrick.fruitninja">
+                            <div class="pon" style="display:none">1</div>
+                            <button style="display:none" class="price buy id-track-click" data-server-cookie="CAIaIgogEh4KGGNvbS5oYWxmYnJpY2suZnJ1aXRuaW5qYRABGAM=" data-uitype="200">
+                                <span class="display-price">0,91&nbsp;€</span>
+                            </button>
+                            <span class="acquired-label">
+                                <span class="acquired-icon"></span>
+                            </span>
+                        </span>
+                    </span>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-4 col-xs-6">
+        <div class="dapp-content small-dapp clearfix">
+            <div class="cover">
+                <div class="cover-image-container">
+                    <div class="cover-outer-align">
+                        <div class="cover-inner-align"><img alt="Fitness" class="cover-image" src="http://www.prolater.com/blog/wp-content/uploads/2013/10/nike-plus-gps-icon.png"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="details">
+                <h2>
+                    <span class="title" href="#">Nike Fitness</span>
+                </h2>
+                <div class="subtitle-container">
+                    <span class="subtitle">Your records in blockchain</span>
+                </div>
+            </div>
+            <div class="reason-set">
+                <span class="stars-container">
+                    <div class="reason-set-star-rating">
+                        <div class="small-star star-rating-non-editable-container" aria-label="Средняя оценка: 4,3 из 5">
+                            <div class="current-rating" style="width: 68.29926300048828%;"></div>
+                        </div>
+                    </div>
+                    <span class="price-container">
+                        <span class="paragraph-end"></span>
+                        <span class="apps is-price-tag buy-button-container" data-doc-fetch-skip-cache="0" data-doc-fetch-vouchers="0" data-docid="com.halfbrick.fruitninja">
+                            <div class="pon" style="display:none">1</div>
+                            <button style="display:none" class="price buy id-track-click" data-server-cookie="CAIaIgogEh4KGGNvbS5oYWxmYnJpY2suZnJ1aXRuaW5qYRABGAM=" data-uitype="200">
+                                <span class="display-price">0,91&nbsp;€</span>
+                            </button>
+                            <span class="acquired-label">
+                                <span class="acquired-icon"></span>
+                            </span>
+                        </span>
+                    </span>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-4 col-xs-6">
+        <div class="dapp-content small-dapp clearfix">
+            <div class="cover">
+                <div class="cover-image-container">
+                    <div class="cover-outer-align">
+                        <div class="cover-inner-align"><img alt="Btc Exchange" class="cover-image" src="http://www.emoneyblog.ru/images/upload/001/31_btc-2.png"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="details">
+                <h2>
+                    <span class="title" href="#">Btc Exchange</span>
+                </h2>
+                <div class="subtitle-container">
+                    <span class="subtitle">Trade btc clear</span>
+                </div>
+            </div>
+            <div class="reason-set">
+                <span class="stars-container">
+                    <div class="reason-set-star-rating">
+                        <div class="small-star star-rating-non-editable-container" aria-label="Средняя оценка: 4,3 из 5">
+                            <div class="current-rating" style="width: 68.29926300048828%;"></div>
+                        </div>
+                    </div>
+                    <span class="price-container">
+                        <span class="paragraph-end"></span>
+                        <span class="apps is-price-tag buy-button-container" data-doc-fetch-skip-cache="0" data-doc-fetch-vouchers="0" data-docid="com.halfbrick.fruitninja">
+                            <div class="pon" style="display:none">1</div>
+                            <button style="display:none" class="price buy id-track-click" data-server-cookie="CAIaIgogEh4KGGNvbS5oYWxmYnJpY2suZnJ1aXRuaW5qYRABGAM=" data-uitype="200">
+                                <span class="display-price">0,91&nbsp;€</span>
+                            </button>
+                            <span class="acquired-label">
+                                <span class="acquired-icon"></span>
+                            </span>
+                        </span>
+                    </span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div> -->
+<div class="row clearfix margin"></div>

@@ -1,0 +1,64 @@
+#account {
+  #paddingFix {
+    .button {
+      margin: 0px;
+      padding: 15px 13px 13px;
+
+      &.label {
+        width: 235px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        &.forging {
+          width: inherit;
+        }
+      }
+    }
+  }
+
+  .raw-buttons {
+    #buttons {
+      display: inline-block;
+
+      .container {
+        display: inline-block;
+      }
+    }
+    .send, .free {
+      width: 141px;
+    }
+  }
+
+  #transactions {
+    margin-bottom: 20px;
+  }
+}
+
+.account-block {
+  color: @white;
+  font-size: @content-text;
+  background-color: @gray3;
+ /* box-shadow: 0px 0px 18px 0px rgba(0, 0, 0, 0.8) inset;
+  -webkit-box-shadow: 0px 0px 18px 0px rgba(0, 0, 0, 0.8) inset;*/
+  padding: 17px 8px;
+  .icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 20px;
+  }
+  .name {
+    letter-spacing: 0.5px;
+    padding: 5px 0;
+    text-align: center;
+    display: block;
+    margin: 0 auto;
+  }
+  .address {
+    display: block;
+    margin: 0 auto;
+    padding: 5px 0 0;
+    text-align: center;
+  }
+}

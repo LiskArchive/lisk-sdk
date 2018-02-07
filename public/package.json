@@ -1,0 +1,55 @@
+{
+  "name": "lisk-ui",
+  "version": "0.8.0",
+  "description": "Lisk user-interface submodule",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:LiskHQ/lisk-ui.git"
+  },
+  "private": true,
+  "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+  "license": "GPL-3.0",
+  "scripts": {
+    "postinstall": "bower install",
+    "bower-install": "bower install",
+    "grunt-release": "grunt release"
+  },
+  "devDependencies": {
+    "browserify": "latest",
+    "grunt": "=1.0.1",
+    "grunt-angular-gettext": "=2.2.3",
+    "grunt-browserify": "latest",
+    "grunt-cli": "=1.2.0",
+    "grunt-contrib-concat": "=1.0.1",
+    "grunt-contrib-cssmin": "=1.0.2",
+    "grunt-contrib-jshint": "=1.0.0",
+    "grunt-contrib-less": "=1.4.0",
+    "grunt-contrib-nodeunit": "=1.0.0",
+    "grunt-contrib-uglify": "=2.0.0",
+    "grunt-contrib-watch": "latest",
+    "jit-grunt": "=0.10.0"
+  },
+  "dependencies": {
+    "angular": "=1.5.8",
+    "angular-animate": "=1.5.8",
+    "angular-chart.js": "=0.10.2",
+    "angular-cookies": "=1.5.8",
+    "angular-gettext": "=2.3.7",
+    "angular-modal": "=0.5.0",
+    "angular-resource": "=1.5.8",
+    "angular-route": "=1.5.8",
+    "angular-filter": "=0.5.11",
+    "angular-ui-router": "=0.3.1",
+    "angular-socket-io": "=0.7.0",
+    "bitcore-mnemonic": "=1.1.1",
+    "bower": "=1.7.9",
+    "browserify-angular-animate": "=1.2.18",
+    "chart.js": "=1.0.2",
+    "compare-version": "=0.1.2",
+    "ng-table": "=0.5.4",
+    "requests": "0.1.7",
+    "socket.io": "=1.4.8",
+    "buffer": "=4.9.1",
+    "lisk-js": "=0.2.3"
+  }
+}

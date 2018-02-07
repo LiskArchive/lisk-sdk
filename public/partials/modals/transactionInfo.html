@@ -1,0 +1,60 @@
+<div class="app-modal" id="transaction-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>{{'Transaction'|translate}}:</h2>
+
+            <input id="blockId" class="clipboard" value="{{block.id}}" readonly>
+            <button class="btn-flat btn-copy blue-link" clipboard data-clipboard-target="#blockId" clipboard-success="clipboardSuccess(e);" clipboard-error="clipboardCommand(e);"><i class="small material-icons">assignment</i><translate>Copy Block ID</translate></button>
+
+            <div class="close-modal" ng-click="close()">
+                <span class="sr-only"><translate>Close modal</translate></span>
+            </div>
+        </div>
+        <div class="modal-body">
+            <ul class="list-group">
+                <li class="list-group-item summary"><translate>Summary</translate></li>
+                <li class="list-group-item bordered"><translate>Confirmations</translate>
+                    <span class="pull-right small-text">{{block.confirmations}}</span>
+                </li>
+                <li class="list-group-item"><translate>Amount</translate>
+                    <span class="pull-right small-text">{{block.amount | liskFilter}} LSK</span>
+                </li>
+                <li class="list-group-item bordered"><translate>Fee</translate>
+                    <span class="pull-right small-text">{{block.fee | liskFilter}} LSK</span>
+                </li>
+                <li class="list-group-item"><translate>USD Equivalent</translate>
+                    <span class="pull-right small-text">${{convertToUSD(block.amount) || 0 | number: 2}}</span>
+                </li>
+                <li class="list-group-item bordered"><translate>Time</translate>
+                    <span class="pull-right small-text">{{block.timestamp | timestampFilter}}</span>
+                </li>
+            </ul>
+            <ul class="list-group transactions">
+                <!-- ngRepeat: transaction in transactions -->
+                <li class="list-group-item">
+                    <div class="transaction-data"><strong><translate>Block ID</translate>:</strong> {{block.id}}
+                        <span class="pull-right">{{block.timestamp | timestampFilter}}</span>
+                    </div>
+                    <div class="transaction-path">
+                        <div class="transaction-part pull-left">
+                            <a href="#" class="blue-link" ng-click="userInfo(block.recipientId)">{{block.senderId}}</a>
+                            <span class="lisk">{{block.amount | liskFilter}} LSK</span>
+                        </div>
+                        <div class="transaction-direction"></div>
+                        <div class="transaction-part pull-right">
+                            <a href="#" class="blue-link" ng-click="userInfo(block.recipientId)">{{block.recipientId || ""}}</a>
+                            <span class="lisk">{{block.amount | liskFilter}} LSK</span>
+                        </div>
+                    </div>
+                    <div class="transaction-bottom">
+                        <div class="fee"><translate>FEE</translate>: {{block.fee | liskFilter}} LSK</div>
+                        <div class="lisk">{{block.amount | liskFilter}} LSK
+                        </div>
+                        <div class="confirmations">{{block.confirmations || 0}} <translate>CONFIRMATIONS</translate></div>
+                    </div>
+                </li>
+                <!-- end ngRepeat: transaction in transactions -->
+            </ul>
+        </div>
+    </div>
+</div>

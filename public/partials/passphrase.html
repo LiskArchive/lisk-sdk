@@ -1,0 +1,34 @@
+<div id="pass">
+    <div class="pass-banner"></div>
+    <div class="pass-bottom">
+        <div class="pass-window">
+            <div class="pass-window-icon">
+            </div>
+            <form class="clearfix pass-window-form" _lpchecked="1" ng-submit="login(pass, rememberPassphrase)">
+              <div class="input-field">
+                  <input id="password" type="password" ng-model="pass" ng-trim="false" autofocus>
+                  <label for="password"><translate>Your Passphrase</translate></label>
+                  <span class="pass-error" ng-show="errorMessage">{{errorMessage}}</span>
+              </div>
+              <div class="input-group">
+                  <div class="switch blue-switch margin">
+                      <label>
+                          <input type="checkbox" ng-model="rememberPassphrase">
+                          <span class="lever"></span>
+                          <translate>Remember during this session</translate>
+                      </label>
+                  </div>
+              </div>
+              <div class="input-field">
+                  <div ng-include="'partials/shared/language-selector.html'"></div>
+              </div>
+              <div class="buttons-panel pull-right">
+                  <a class="btn btn-white waves-effect btn-marging" ng-click="newUser()"><translate>NEW ACCOUNT</translate></a>
+                  <a class="btn btn-blue waves-effect waves-light" ng-click="login(pass, rememberPassphrase)" ng-disabled="!pass"><translate>SIGN IN</translate></a>
+              </div>
+            </form>
+        </div>
+
+        <div class="pass-footer clearfix">Lisk © 2016. All Rights Reserved.</div>
+    </div>
+</div>

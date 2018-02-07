@@ -1,0 +1,361 @@
+<div ng-show="view.inLoading" ng-class="{'fadeInAnimation': view.inLoading}" class="loading-wrapper ng-scope" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999999; background: rgba(225,225,225,.6);">
+    <div class="valign-wrapper" style="height: 100%;">
+        <div class="valign" style="margin: 0 auto;">
+            <div class="preloader-wrapper big active" style="margin: 0 auto; display: block;">
+                <div class="spinner-layer spinner-blue">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="gap-patch">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
+                <div class="spinner-layer spinner-red">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="gap-patch">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
+                <div class="spinner-layer spinner-yellow">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="gap-patch">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
+                <div class="spinner-layer spinner-green">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="gap-patch">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
+            </div>
+            <h2 style="display: block; text-align: center; margin-top: 1.8rem; line-height: 1.4rem; font-size: 1.4rem;">{{view.loadingText}}</h2>
+        </div>
+    </div>
+</div>
+<div id="wrapper" ng-controller="appController" ng-class="{'toggled': !toggled}">
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <a ui-sref="main.account">
+            <div id="logo"></div>
+        </a>
+        <div class="account-block">
+            <div class="icon">
+                <img src="/images/account.png" alt="Account">
+            </div>
+            <span class="name" ng-show="username"><translate>Welcome back, {{username}}</translate></span>
+            <span class="address">{{address}}</span>
+        </div>
+        <!-- <div class="white-glow"></div> -->
+        <ul id="menu">
+            <li ng-show="showMenuItem('main.dashboard')" ui-sref-active="active">
+                <a ui-sref="main.dashboard" class="waves-effect waves-blue">
+                    <div class="nav-icon" id="dashboard-icon"></div>
+                    <span class="menu-text"><translate>Dashboard</translate></span>
+                </a>
+            </li>
+            <!-- <li ng-show="showMenuItem('main.multi') && multisignature" ui-sref-active="active">
+                <a ui-sref="main.multi" class="waves-effect waves-blue">
+                    <div class="nav-icon" id="multi-icon"></div>
+                    <span class="menu-text"><translate>Multi-Signature</translate></span>
+                </a>
+            </li> -->
+            <!-- <li ng-show="showMenuItem('main.conversations')" ui-sref-active="active">
+                <a ui-sref="main.conversations" class="waves-effect waves-blue">
+                    <div class="nav-icon" id="conversations-icon"></div>
+                    <span class="menu-text"><translate>Conversations</translate></span>
+                </a>
+            </li> -->
+            <!-- <li ng-show="showMenuItem('main.dappstore')" ui-sref-active="active">
+                <a ui-sref="main.dappstore" class="waves-effect waves-blue">
+                    <div class="nav-icon" id="dappstore-icon"></div>
+                    <span class="menu-text"><translate>Applications</translate></span>
+                </a>
+            </li> -->
+            <li ng-show="showMenuItem('main.forging')" ui-sref-active="active">
+                <a ui-sref="main.forging" class="waves-effect waves-blue">
+                    <div class="nav-icon" id="forging-icon"></div>
+                    <span class="menu-text"><translate>Forging</translate></span>
+                    <i ng-click="collapseMenu()" stop-event class="vertical-text right submenu-collapsing" ng-class="{'mdi-hardware-keyboard-arrow-down': subForgingCollapsed, 'mdi-hardware-keyboard-arrow-up':!subForgingCollapsed}"></i>
+                </a>
+            </li>
+            <ul id="submenu" ng-hide="subForgingCollapsed">
+                <li ng-show="showMenuItem('main.delegates')" ui-sref-active="active">
+                    <a ui-sref="main.delegates" class="waves-effect waves-blue">
+                        <div class="nav-icon" id="delegates-icon"></div>
+                        <span class="menu-text"><translate>Delegates</translate></span>
+                    </a>
+                </li>
+                <li ng-show="showMenuItem('main.votes')" ui-sref-active="active">
+                    <a ui-sref="main.votes" class="waves-effect waves-blue">
+                        <div class="nav-icon" id="myvotes-icon"></div>
+                        <span class="menu-text"><translate>My Votes</translate></span>
+                    </a>
+                </li>
+            </ul>
+        <li ng-show="showMenuItem('main.blockchain')" ui-sref-active="active">
+            <a ui-sref="main.blockchain" class="waves-effect waves-blue">
+                <div class="nav-icon" id="blockchain-icon"></div>
+                <span class="menu-text"><translate>Blockchain</translate></span>
+            </a>
+        </li>
+    </ul>
+    <div id="inc"></div>
+</div>
+<!-- /#sidebar-wrapper -->
+<!-- Page Content -->
+<div id="page-content-wrapper">
+    <div class="header-wrapper">
+        <div class="nav-bar clearfix" id="header">
+            <div class="logo">
+                <button type="button" class="toggle-menu" ng-click="toggleMenu()">
+                    <span class="sr-only"><translate>Toggle navigation</translate></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <h1 id="title">
+                    <span class="title-icon" ng-show="view.page.previous" ng-click="goToPrevious()">
+                        <span class="sr-only"><translate>Go to previous page</translate></span>
+                    </span>
+                    {{view.page.title}}
+                </h1>
+                <span class="forging-state" ng-class="{'disabled': !forgingEnabled}" ng-if="forgingStatus && view.bar.forgingMenu">{{forgingStatus}}</span>
+            </div>
+            <div id="top-menu">
+                <span id="balance">
+                    {{unconfirmedBalance | liskFilter}}
+                    LSK
+                </span>
+                <a class="btn btn-blue-nav waves-effect waves-light left-margin-20" ng-click="sendTransaction()">
+                    <i class="mdi-content-send left"></i><translate>SEND</translate>
+                </a>
+                <div class="mini-chart valign-wrapper" ng-show="syncState != undefined">
+                    <div class="mini-chart-label">{{syncState}}%</div>
+                    <canvas id="total-forged" class="chart chart-doughnut" chart-data="loading.values" chart-labels="loading.labels" chart-options="loading.options" chart-colours="loading.colours"></canvas>
+                </div>
+                <div class="more-down left-margin-20" dropdown is-open="moreDropdownStatus.isopen">
+                    <i class="mdi-navigation-more-vert" dropdown-toggle></i>
+                    <ul class="dropdown-menu" role="menu">
+                        <li>
+                            <a href="#" ng-click="myUserInfo()"><translate>My Profile</translate></a>
+                        </li>
+                        <li ng-if="!secondPassphrase">
+                            <a href="#" ng-click="setSecondPassphrase()"><translate>2nd Passphrase</translate></a>
+                        </li>
+                        <li>
+                            <a ui-sref="main.settings"><translate>Settings</translate></a>
+                        </li>
+                        <li>
+                            <a href="/"><translate>Logout</translate></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="search-bar" ng-show="view.bar.showTransactionsSearchBar">
+            <div class="search-toggle" ng-if="searchTransactions.searchForTransaction">
+                <i ng-click="clearSearch()" class="mdi-content-clear small"></i>
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <i class="mdi-action-search"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="{{'Search for transactions (Transaction ID, Sender address, Recipient address)'|translate}}" ng-model="searchTransactions.searchForTransaction">
+                <span class="input-group-addon spinner-addon">
+                    <div class="preloader-wrapper" ng-class="{'active': searchTransactions.inSearch}">
+                        <div class="spinner-layer spinner-blue-only">
+                            <div class="circle-clipper left">
+                                <div class="circle"></div>
+                            </div>
+                            <div class="gap-patch">
+                                <div class="circle"></div>
+                            </div>
+                            <div class="circle-clipper right">
+                                <div class="circle"></div>
+                            </div>
+                        </div>
+                    </div>
+                </span>
+            </div>
+        </div>
+        <div class="search-bar" ng-show="view.bar.showBlockSearchBar">
+            <div class="search-toggle" ng-if="searchBlocks.searchForBlock">
+                <i ng-click="clearSearch()" class="mdi-content-clear small"></i>
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <i class="mdi-action-search"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="{{'Search for blocks'|translate}}" ng-model="searchBlocks.searchForBlock">
+                <span class="input-group-addon spinner-addon">
+                    <div class="preloader-wrapper" ng-class="{'active': searchBlocks.inSearch}">
+                        <div class="spinner-layer spinner-blue-only">
+                            <div class="circle-clipper left">
+                                <div class="circle"></div>
+                            </div>
+                            <div class="gap-patch">
+                                <div class="circle"></div>
+                            </div>
+                            <div class="circle-clipper right">
+                                <div class="circle"></div>
+                            </div>
+                        </div>
+                    </div>
+                </span>
+            </div>
+        </div>
+        <div id="page-nav" ng-if="view.bar.forgingMenu">
+            <ul class="nav nav-underline pull-right" ng-show="!delegate.username && !delegateInRegistration">
+                <li>
+                    <a href="#" class="bold-text registration" ng-click="registrationDelegate()"><translate>delegate registration</translate></a>
+                </li>
+            </ul>
+            <ul class="nav nav-underline pull-right forgin-start" ng-show="delegate.username && forgingAllowed">
+                <li>
+                    <span><translate>FORGING</translate>:</span>
+                    <div class="switch blue-switch">
+                        <label>
+                            <translate>Off</translate>
+                            <input type="checkbox" ng-model="dataToShow.forging" ng-click="toggleForging()">
+                            <span class="lever"></span>
+                            <translate>On</translate>
+                        </label>
+                    </div>
+                </li>
+            </ul>
+            <ul class="nav nav-underline pull-left">
+                <li ui-sref-active="active">
+                    <a href="#" ui-sref="main.forging"><translate>Forging</translate></a>
+                </li>
+                <li ui-sref-active="active">
+                    <a href="#" ui-sref="main.delegates"><translate>Delegates</translate></a>
+                </li>
+                <li ui-sref-active="active">
+                    <a href="#" ui-sref="main.votes"><translate>My votes ({{myVotesCount||'0'}})</translate></a>
+                </li>
+            </ul>
+        </div>
+        <div id="page-nav" class="clearfix mobile-nav" ng-if="view.bar.showDappsBar">
+            <ul class="nav nav-underline categories pull-left">
+                <li>
+                    <a ng-click="view.bar.showCategories=!view.bar.showCategories"><translate>CATEGORIES</translate> <span class="dropdown-toggle"></span></a>
+                </li>
+            </ul>
+            <div class="categories-menu" ng-class="{'open': view.bar.showCategories}">
+                <ul class="clearfix">
+                    <li>
+                        <ul>
+                            <li ng-repeat="(key,item) in categories">
+                                <a ui-sref='main.dappsCategory({categoryId:"{{key}}"})'>{{key}}</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <ul class="nav nav-underline fast-sort pull-left">
+                <li ui-sref-active="active">
+                    <a href="#" ui-sref="main.dappstore"><translate>HOME</translate></a>
+                </li>
+                <!-- <li><a href="#">TOP RATED</a></li> -->
+                <!-- <li><a href="#">MOST USED</a> -->
+            </li>
+            <li>
+                <a ui-sref='main.dappsCategory({categoryId:"Installed"})'><translate>INSTALLED</translate></a>
+            </li>
+        </ul>
+        <div class="search-toggle">
+            <i ng-click="toggleSearchDapps()" class="mdi-action-search small" ng-class="{'mdi-content-clear': view.bar.searchDapps}"></i>
+        </div>
+        <div class="search-container" ng-class="{'open': view.bar.searchDapps}">
+            <span class="input-group-addon spinner-addon" style=" position: absolute; right: 0; top: 13px; ">
+                <div class="preloader-wrapper small" ng-class="{'active':searchDapp.inSearch}" style=" width: 22px; height: 22px; ">
+                    <div class="spinner-layer spinner-blue-only">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="gap-patch">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </span>
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <i class="mdi-action-search"></i>
+                </span>
+                <input type="text" focus-on="true" ng-model="searchDapp.searchForDappGlobal" class="form-control" placeholder="{{'Search for applications'|translate}}">
+            </div>
+        </div>
+    </div>
+    <div id="page-nav" class="clearfix mobile-nav" ng-if="view.bar.showDappsCategoryBar">
+        <div class="search-container open">
+            <span class="input-group-addon spinner-addon" style="position: absolute; right: 0; top: 13px;">
+                <div class="preloader-wrapper small" ng-class="{'active':searchDapp.inSearch}" style="width: 22px; height: 22px;">
+                    <div class="spinner-layer spinner-blue-only">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="gap-patch">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </span>
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <i class="mdi-action-search"></i>
+                </span>
+                <input type="text" focus-on="true" class="form-control" ng-model="searchDapp.searchForDapp" placeholder="{{'Search for applications'|translate}}">
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid" ui-view></div>
+<!-- /#page-content-wrapper -->
+<script type="text/ng-template" id="custom/pager">
+<ul class="pagination ng-table-pagination">
+    <li ng-class="{'disabled': !page.active && !page.current, 'active': page.current}" ng-repeat="page in pages" ng-switch="page.type">
+        <a ng-switch-when="prev" ng-click="params.page(page.number)" href="">
+            <i class="mdi-hardware-keyboard-arrow-left"></i>
+        </a>
+        <a ng-switch-when="first" ng-click="params.page(page.number)" href="">
+            <span ng-bind="page.number"></span>
+        </a>
+        <a ng-switch-when="page" ng-click="params.page(page.number)" href="">
+            <span ng-bind="page.number"></span>
+        </a>
+        <a ng-switch-when="more" ng-click="params.page(page.number)" href="">&#8230;</a>
+        <a ng-switch-when="last" ng-click="params.page(page.number)" href="">
+            <span ng-bind="page.number"></span>
+        </a>
+        <a ng-switch-when="next" ng-click="params.page(page.number)" href="">
+            <i class="mdi-hardware-keyboard-arrow-right"></i>
+        </a>
+    </li>
+</ul>
+</script>

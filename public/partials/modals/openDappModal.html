@@ -1,0 +1,38 @@
+<div class="app-modal valign-wrapper">
+    <div class="container height100">
+        <div class="row height100">
+            <div class="col-md-6 col-md-offset-4 height100 valign-wrapper">
+                <div class="modal-content">
+                    <div class="modal-header modal-iconed">
+                        <div class="close-modal" ng-click="close()">
+                            <span class="sr-only"><translate>Close modal</translate></span>
+                        </div>
+                    </div>
+                    <div class="modal-header clearfix">
+                        <div>
+                            <h2>{{'Security Warning'|translate}}</h2>
+                        </div>
+                        <div><translate>Please read carefully.</translate></div>
+                    </div>
+                    <div class="modal-body">
+                        <div class="left-margin-40 right-margin-40 top-margin-40 bottom-margin-40">
+                            <p class="flow-text text-justify bottom-margin-40" translate>The Lisk apps platform currently does not provide any protection against any unauthorized system calls made from the running application. Therefore opening any untrusted applications is not yet advisable, and could potentially lead to loss of funds.</p>
+
+                            <p class="flow-text text-justify bottom-margin-40" translate>If you are confident the application can be deemed trustworthy, click <strong>Open Anyway</strong>, otherwise click <strong>Cancel</strong> now.</p>
+                        </div>
+                    </div>
+                    <div class="modal-body bordered">
+                        <ul class="nav modal-buttons pull-right">
+                            <li>
+                                <a href="#" ng-click="close()"><translate>Cancel</translate></a>
+                            </li>
+                            <li>
+                                <a href="#" class="blue-link" ng-click="openAnyway(true)"><translate>OPEN ANYWAY</translate></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

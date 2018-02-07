@@ -1,0 +1,1139 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"X-Generator: Poedit 1.8.7\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?"
+"2:1));\n"
+"Language: ro\n"
+
+#: partials/dapp-entry.html:73
+msgid "(1449)"
+msgstr "(1449)"
+
+#: partials/template.html:162
+msgid "2nd Passphrase"
+msgstr "Cel de-al 2-lea rand de cuvinte cheie"
+
+#: partials/dapps.html:152
+msgid "ADD NEW DAPP"
+msgstr "ADAUGA O NOUA DAPP"
+
+#: partials/modals/addDappModal.html:21
+msgid "Accept / Next Step"
+msgstr "Accept/Urmatorul pas"
+
+#: partials/modals/userInfo.html:14
+msgid "Account"
+msgstr "Cont"
+
+#: partials/modals/addDappModal.html:102 partials/modals/addDappModal.html:122
+#: partials/modals/masterPassphraseModal.html:13
+#: partials/modals/multisignatureModal.html:148
+#: partials/modals/passphraseCheck.html:13
+#: partials/modals/registrationDelegateModal.html:50
+#: partials/modals/registrationDelegateModal.html:85
+#: partials/modals/secondPassphraseModal.html:81
+#: partials/modals/sendTransaction.html:55
+#: partials/modals/sendTransaction.html:90 partials/modals/vote.html:44
+#: partials/modals/vote.html:79
+msgid "Account Verification"
+msgstr "Verificare cont"
+
+#: partials/delegates.html:136 partials/delegates.html:67
+#: partials/votes.html:65
+msgid "Add as Contact"
+msgstr "Adauga la Contacte"
+
+#: partials/modals/multisignatureModal.html:46
+msgid "Add group members by typing in their LISK address and pressing enter."
+msgstr "Adauga membri in grup tastand adresa lor LISK si apasa tasta enter."
+
+#: js/controllers/blockchainController.js:45
+#: js/controllers/transactionsController.js:66
+#: js/controllers/walletPendingsController.js:47
+#: js/controllers/walletTransactionsController.js:70
+#: js/controllers/walletsController.js:148
+#: partials/modals/transactionInfo.html:16 partials/modals/userInfo.html:60
+msgid "Amount"
+msgstr "Suma"
+
+#: partials/account.html:79
+msgid "Amount (Fee)"
+msgstr "Suma(taxa)"
+
+#: js/controllers/delegatesController.js:160
+#: js/controllers/forgingController.js:64
+#: js/controllers/votedDelegatesController.js:119 partials/forging.html:45
+msgid "Approval"
+msgstr "Accept"
+
+#: partials/modals/confirmDeletionModal.html:16
+msgid "Are you sure you want to delete this item?"
+msgstr "Sigur vrei sa stergi?"
+
+#: partials/account.html:8
+msgid "Balance"
+msgstr "Disponibil in cont"
+
+#: partials/modals/registrationDelegateModal.html:29
+msgid ""
+"Becoming a delegate requires registration. You may choose your own delegate "
+"name, which can be used to promote your delegate. Only the top 101 delegates "
+"are eligible to forge. All fees are shared equally between the top 101 "
+"delegates. Registration costs: {{fee | liskFilter}} LISK."
+msgstr ""
+"Pentru a deveni delegat este necesar sa te inregistrezi. Vei putea sa iti "
+"alegi numele de delegat, care va fi folosit ulterior pentru a te promova ca "
+"delegat. Doar primii 101 de delegati sunt eligibili pentru a forja."
+
+#: js/controllers/blockchainController.js:41
+#: js/controllers/forgingController.js:115 partials/modals/blockInfo.html:7
+#: partials/modals/transactionInfo.html:32
+#: partials/modals/transactionInfo.html:4
+msgid "Block ID"
+msgstr "ID Block"
+
+#: js/controllers/blockchainController.js:8 partials/template.html:117
+msgid "Blockchain"
+msgstr "Blockchain"
+
+#: partials/modals/addDappModal.html:22
+#: partials/modals/multisignatureModal.html:28 partials/modals/vote.html:18
+msgid "CANCEL"
+msgstr "ANULEAZA"
+
+#: partials/template.html:260
+msgid "CATEGORIES"
+msgstr "CATEGORII"
+
+#: partials/multi.html:31 partials/wallet-pendings.html:28
+msgid "CONFIRM"
+msgstr "CONFIRMA"
+
+#: js/directives/voteActionDirective.js:14
+msgid "CONFIRM VOTE"
+msgstr "CONFIRMARE VOT"
+
+#: partials/modals/blockInfo.html:74 partials/modals/blockModal.html:34
+#: partials/modals/transactionInfo.html:50 partials/modals/userInfo.html:94
+msgid "CONFIRMATIONS"
+msgstr "CONFIRMARI"
+
+#: partials/multi.html:59
+msgid "CONFIRMED TRANSACTIONS"
+msgstr "TRANZACTII CONFIRMATE"
+
+#: partials/modals/forgingModal.html:32
+#: partials/modals/masterPassphraseModal.html:32
+#: partials/modals/multisignatureModal.html:88
+#: partials/modals/passphraseCheck.html:32
+#: partials/modals/registrationDelegateModal.html:34
+#: partials/modals/registrationDelegateModal.html:66
+#: partials/modals/sendTransaction.html:39 partials/modals/vote.html:63
+msgid "Cancel"
+msgstr "Anuleaza"
+
+#: partials/dapp-entry.html:61
+msgid "Category:"
+msgstr "Categorie:"
+
+#: partials/modals/addDappModal.html:10 partials/modals/addDappModal.html:117
+#: partials/modals/addDappModal.html:28 partials/modals/addDappModal.html:33
+#: partials/modals/addDappModal.html:5 partials/modals/addDappModal.html:51
+#: partials/modals/addDappModal.html:56 partials/modals/addDappModal.html:74
+#: partials/modals/addDappModal.html:79 partials/modals/addDappModal.html:97
+#: partials/modals/blockInfo.html:10 partials/modals/blockModal.html:9
+#: partials/modals/confirmDeletionModal.html:8
+#: partials/modals/errorModal.html:9 partials/modals/forgingModal.html:9
+#: partials/modals/masterPassphraseModal.html:8
+#: partials/modals/multiMembersModal.html:8
+#: partials/modals/multisignatureModal.html:143
+#: partials/modals/multisignatureModal.html:39
+#: partials/modals/multisignatureModal.html:8
+#: partials/modals/multisignatureModal.html:99 partials/modals/newUser.html:10
+#: partials/modals/newUser.html:43 partials/modals/passphraseCheck.html:8
+#: partials/modals/registrationDelegateModal.html:45
+#: partials/modals/registrationDelegateModal.html:8
+#: partials/modals/registrationDelegateModal.html:80
+#: partials/modals/secondPassphraseModal.html:10
+#: partials/modals/secondPassphraseModal.html:44
+#: partials/modals/secondPassphraseModal.html:76
+#: partials/modals/sendTransaction.html:50
+#: partials/modals/sendTransaction.html:8
+#: partials/modals/sendTransaction.html:85
+#: partials/modals/transactionInfo.html:7 partials/modals/userInfo.html:22
+#: partials/modals/vote.html:39 partials/modals/vote.html:74
+#: partials/modals/vote.html:9
+msgid "Close modal"
+msgstr "Inchidere modul"
+
+#: js/controllers/modals/multisignatureModalController.js:6
+msgid "Configuring multi-signature group"
+msgstr "Configurare grup semnaturi multiple"
+
+#: partials/modals/addDappModal.html:110 partials/modals/addDappModal.html:90
+msgid "Confirm"
+msgstr "Confirm"
+
+#: partials/modals/confirmDeletionModal.html:13
+msgid "Confirmation"
+msgstr "Confirmare"
+
+#: js/controllers/walletTransactionsController.js:72
+#: js/controllers/walletsController.js:115 partials/modals/blockInfo.html:20
+#: partials/modals/transactionInfo.html:13 partials/modals/userInfo.html:57
+msgid "Confirmations"
+msgstr "Confirmari"
+
+#: js/controllers/walletPendingsController.js:49
+#: js/controllers/walletsController.js:150
+msgid "Confirmations Needed"
+msgstr "Sunt necesare confirmari"
+
+#: partials/modals/multisignatureModal.html:113
+#: partials/modals/multisignatureModal.html:73
+msgid "Confirmations needed"
+msgstr "Sunt necesare confirmari"
+
+#: js/controllers/modals/multiMembersModalController.js:5
+msgid "Confirmed by"
+msgstr "Confirmat de"
+
+#: partials/template.html:84
+msgid "Conversations"
+msgstr "Conversatii"
+
+#: partials/delegates.html:127 partials/delegates.html:58
+#: partials/votes.html:56
+msgid "Copy Address"
+msgstr "Copiaza adresa"
+
+#: partials/delegates.html:130 partials/delegates.html:61
+#: partials/votes.html:59
+msgid "Copy Name"
+msgstr "Copiaza Numele"
+
+#: partials/dapp-entry.html:21 partials/dapp-entry.html:31
+#: partials/dapp-entry.html:40
+msgid "DOWNLOAD"
+msgstr "DESCARCA"
+
+#: js/controllers/dappsController.js:8 partials/template.html:90
+msgid "Dapp Store"
+msgstr "Magazin DAPPS"
+
+#: js/controllers/accountController.js:8 partials/template.html:72
+msgid "Dashboard"
+msgstr "Consola"
+
+#: partials/modals/registrationDelegateModal.html:21
+msgid "Delegate Name"
+msgstr "Nume delegat"
+
+#: partials/template.html:104 partials/template.html:232
+msgid "Delegates"
+msgstr "Delegati"
+
+#: partials/dapp-entry.html:85
+msgid "Description"
+msgstr "Descriere"
+
+#: js/controllers/modals/errorModalController.js:10
+#: js/controllers/modals/forgingModalController.js:11
+msgid "Disable Forging"
+msgstr "Dezactiveaza forjare"
+
+#: js/controllers/appController.js:299
+msgid "Disabled"
+msgstr "Dezactivat"
+
+#: partials/modals/masterPassphraseModal.html:24
+msgid "Empty passphrase"
+msgstr "Cuvinte secrete necompletate"
+
+#: js/controllers/modals/errorModalController.js:12
+#: js/controllers/modals/forgingModalController.js:13
+msgid "Enable Forging"
+msgstr "Activeaza forjare"
+
+#: js/controllers/appController.js:299
+msgid "Enabled"
+msgstr "Activat"
+
+#: partials/modals/blockInfo.html:72 partials/modals/blockModal.html:32
+#: partials/modals/transactionInfo.html:47 partials/modals/userInfo.html:92
+msgid "FEE"
+msgstr "Taxa"
+
+#: partials/template.html:245
+msgid "FORGING"
+msgstr "Forjare"
+
+#: js/controllers/dappController.js:143
+msgid "Failed to install dapp"
+msgstr "Esuare instalare dapp"
+
+#: js/controllers/dappController.js:183
+msgid "Failed to launch Dapp"
+msgstr "Esuare in lansare Dapp"
+
+#: js/controllers/dappController.js:94
+msgid "Failed to uninstall Dapp"
+msgstr "Esuare dezinstalare Dapp"
+
+#: js/controllers/blockchainController.js:46
+#: js/controllers/forgingController.js:117
+#: js/controllers/transactionsController.js:67
+#: js/controllers/walletPendingsController.js:48
+#: js/controllers/walletTransactionsController.js:71
+#: js/controllers/walletsController.js:149
+#: partials/modals/transactionInfo.html:19 partials/modals/userInfo.html:63
+msgid "Fee"
+msgstr "Taxa"
+
+#: partials/forging.html:74
+msgid "Forged Blocks"
+msgstr "Blocuri forjate"
+
+#: js/controllers/delegatesController.js:9
+#: js/controllers/forgingController.js:83
+#: js/controllers/votedDelegatesController.js:8 partials/template.html:229
+#: partials/template.html:96
+msgid "Forging"
+msgstr "Forjare"
+
+#: partials/modals/secondPassphraseModal.html:18
+msgid ""
+"Further protect your account with an optional second passphrase! Please "
+"allow some time for the changes to take effect. Service cost: <b>{{fee | "
+"liskFilter}} LISK</b>. Your balance: <b>{{totalBalance | liskFilter}} LISK</"
+"b>."
+msgstr ""
+"Protejeza-ti contul cu un al doilea set de cuvinte cheie! Acest proces poate "
+"dura mai mult. Acesta optiune costa <b>{{fee | liskFilter}} LISK</b>. "
+"Disponibil in cont:  <b>{{totalBalance | liskFilter}} LISK</b>."
+
+#: partials/modals/newUser.html:67
+msgid "GET STARTED"
+msgstr "INCEPE"
+
+#: partials/modals/addDappModal.html:131
+#: partials/modals/multisignatureModal.html:132
+#: partials/modals/multisignatureModal.html:171 partials/modals/newUser.html:66
+#: partials/modals/registrationDelegateModal.html:104
+#: partials/modals/secondPassphraseModal.html:68
+#: partials/modals/secondPassphraseModal.html:99
+#: partials/modals/sendTransaction.html:109
+#: partials/modals/sendTransaction.html:74 partials/modals/vote.html:98
+msgid "GO BACK"
+msgstr "INAPOI"
+
+#: partials/settings.html:6
+msgid "General"
+msgstr "General"
+
+#: partials/modals/newUser.html:26
+#: partials/modals/secondPassphraseModal.html:30
+msgid "Generate New"
+msgstr "Genereaza din nou"
+
+#: js/controllers/blockchainController.js:42 partials/modals/blockInfo.html:46
+msgid "Generator"
+msgstr "Generator"
+
+#: partials/modals/addDappModal.html:111 partials/modals/addDappModal.html:45
+#: partials/modals/addDappModal.html:68 partials/modals/addDappModal.html:91
+msgid "Go back"
+msgstr "Inapoi"
+
+#: partials/template.html:137
+msgid "Go to previous page"
+msgstr "Inapoi la pagina anterioara"
+
+#: js/controllers/walletsController.js:113
+msgid "Group Name"
+msgstr "Numele grupului"
+
+#: partials/template.html:276
+msgid "HOME"
+msgstr "ACASA"
+
+#: js/controllers/blockchainController.js:40
+#: js/controllers/forgingController.js:114
+#: js/controllers/transactionsController.js:61
+#: js/controllers/walletTransactionsController.js:66
+#: partials/modals/blockInfo.html:23
+msgid "Height"
+msgstr "Inaltime"
+
+#: partials/dapp-entry.html:20
+msgid "INSTALL"
+msgstr "INSTALEAZA"
+
+#: partials/template.html:282
+msgid "INSTALLED"
+msgstr "INSTALAT"
+
+#: partials/dapps.html:235
+msgid "Installed Dapps"
+msgstr "Aplicatii DAPP instalate"
+
+#: partials/dapp-entry.html:30
+msgid "LAUNCH"
+msgstr "LANSARE"
+
+#: partials/modals/multisignatureModal.html:52
+msgid "LISK Address"
+msgstr "Adresa LISK"
+
+#: partials/modals/sendTransaction.html:26
+msgid "LISK Amount"
+msgstr "Suma LISK"
+
+#: partials/forging.html:11
+msgid "LISK Earned"
+msgstr "LISK Castigati"
+
+#: partials/settings.html:9
+msgid "Language"
+msgstr "Limba"
+
+#: partials/multi.html:6
+msgid "Latest Multi-Signature Transactions"
+msgstr "Ultimele tranzactii semnaturi multiple"
+
+#: partials/account.html:57
+msgid "Latest Transactions"
+msgstr "Ultimele tranzactii"
+
+#: partials/account.html:36
+msgid "Latest version"
+msgstr "Ultima versiune"
+
+#: wallet.html:20
+msgid "Lisk - Decentralized Application Platform"
+msgstr "Lisk - Platforma Aplicatiilor Descentralizate"
+
+#: js/controllers/delegatesController.js:158
+#: js/controllers/votedDelegatesController.js:117
+#: js/controllers/walletPendingsController.js:43
+msgid "Lisk Address"
+msgstr "Adresa Lisk"
+
+#: partials/account.html:33
+msgid "Lisk Client"
+msgstr "Client Lisk"
+
+#: partials/account.html:43
+msgid "Lisk Client Outdated"
+msgstr "Clinet Lisk invechit"
+
+#: js/controllers/walletsController.js:7
+msgid "Loading Multi-Signature Groups"
+msgstr "Incarcare Grupuri Semnaturi Multiple"
+
+#: js/controllers/blockchainController.js:7
+msgid "Loading blockchain"
+msgstr "Incarcare blockchain"
+
+#: js/controllers/dappController.js:7
+msgid "Loading dapp"
+msgstr "Incarcare aplicatie Dapp"
+
+#: js/controllers/dappsCategoryController.js:7
+#: js/controllers/dappsController.js:7
+msgid "Loading dapps"
+msgstr "Incarcare aplicatii distribuite"
+
+#: js/controllers/accountController.js:7
+msgid "Loading dashboard"
+msgstr "Incarcare consola"
+
+#: js/controllers/delegatesController.js:7
+#: js/controllers/votedDelegatesController.js:7
+msgid "Loading delegates"
+msgstr "Incarcare delegati"
+
+#: js/controllers/forgingController.js:82
+msgid "Loading forging status"
+msgstr "Incarcare status forjare"
+
+#: js/controllers/transactionsController.js:7
+#: js/controllers/walletPendingsController.js:7
+msgid "Loading transactions"
+msgstr "Incarcare tranzactii"
+
+#: partials/blockchain.html:35 partials/delegates.html:150
+#: partials/delegates.html:81
+msgid "Loading..."
+msgstr "Incarcare..."
+
+#: partials/template.html:168
+msgid "Logout"
+msgstr "Iesire"
+
+#: partials/modals/newUser.html:31
+msgid ""
+"Make sure that you keep the passphrase safe. You will be asked to re-type it "
+"for confirmation."
+msgstr ""
+"Asigura-te ca pastrezi cuvintele cheie in siguranta. Ti se va cere sa o re-"
+"introduci pentru confirmare."
+
+#: partials/modals/sendTransaction.html:34
+msgid ""
+"Make sure you're sending LISK to the right address. This action can't be "
+"undone later."
+msgstr ""
+"Asigura-te ca transferi LISK catre adresa care vrei sa primeasca transferul. "
+"Aceasta actiune nu poate fi anulata."
+
+#: js/controllers/modals/masterPassphraseModalController.js:9
+msgid "Master Passphrase"
+msgstr "Primul rand de cuvinte cheie"
+
+#: js/controllers/walletsController.js:114
+msgid "Members"
+msgstr "Membri"
+
+#: partials/account.html:60 partials/dapps.html:177 partials/dapps.html:237
+msgid "More"
+msgstr "Mai mult"
+
+#: js/controllers/walletsController.js:8 partials/settings.html:11
+#: partials/template.html:78
+msgid "Multi-Signature"
+msgstr "Semnaturi multiple"
+
+#: js/controllers/modals/multiMembersModalController.js:5
+msgid "Multi-Signature Group Members"
+msgstr "Grupul Membrilor Semnaturi Multiple"
+
+#: partials/settings.html:22
+msgid "Multi-Signature is Disabled"
+msgstr "Optiunea Semnaturi Multiple este dezactivata"
+
+#: partials/settings.html:23
+msgid "Multi-Signature is Enabled"
+msgstr "Optiunea Semnaturi Multiple este activata"
+
+#: partials/multi.html:42
+msgid "My Multi-Signature Groups"
+msgstr "Grupul meu de semnaturi multiple"
+
+#: partials/template.html:159
+msgid "My Profile"
+msgstr "Profilul meu"
+
+#: partials/template.html:110 partials/votes.html:24
+msgid "My Votes"
+msgstr "Voturile mele"
+
+#: partials/template.html:235
+msgid "My votes ({{myVotesCount||'0'}})"
+msgstr "Voturile mele({{myVotesCount||'0'}})"
+
+#: partials/passphrase.html:26
+msgid "NEW ACCOUNT"
+msgstr "Cont nou"
+
+#: partials/modals/multisignatureModal.html:31
+msgid "NEXT"
+msgstr "Urmatorul"
+
+#: partials/modals/newUser.html:36
+#: partials/modals/secondPassphraseModal.html:37
+msgid "NEXT STEP"
+msgstr "Urmatorul pas"
+
+#: partials/modals/confirmDeletionModal.html:22
+msgid "NO"
+msgstr "NU"
+
+#: js/controllers/delegatesController.js:157
+#: js/controllers/votedDelegatesController.js:116
+msgid "Name"
+msgstr "Nume"
+
+#: partials/modals/addDappModal.html:44 partials/modals/addDappModal.html:67
+msgid "Next Step"
+msgstr "Urmatorul Pas"
+
+#: partials/blockchain.html:30
+msgid "No blockchain"
+msgstr "Nu exista blockchain"
+
+#: partials/dapps-category.html:6 partials/dapps-category.html:7
+msgid "No dapps matching your search criteria were found."
+msgstr ""
+"Nu au fost gasite aplicatii DAPPS care sa se potriveasca criteriilor de "
+"cautare"
+
+#: partials/delegates.html:145 partials/delegates.html:76
+msgid "No delegates"
+msgstr "Nu exista delegati"
+
+#: partials/dapps.html:166
+msgid "No results for search '{{searchDapp.searchForDappGlobal}}' in dapps."
+msgstr ""
+"Nici un rezultat pentru criteriul de cautare '{{searchDapp."
+"searchForDappGlobal}}' in lista de aplicatii DAPPS."
+
+#: partials/blockchain.html:42 partials/transactions.html:65
+msgid "No results for this search."
+msgstr "Aceasta cautare nu a returnat nici un rezultat."
+
+#: partials/modals/multisignatureModal.html:110
+msgid "Number of members"
+msgstr "Numarul de membri"
+
+#: partials/modals/errorModal.html:27
+msgid "OK"
+msgstr "OK"
+
+#: partials/dapp-entry.html:39
+msgid "OPEN"
+msgstr "DESCHIS"
+
+#: partials/template.html:248
+msgid "Off"
+msgstr "Inchis"
+
+#: partials/template.html:251
+msgid "On"
+msgstr "Deschis"
+
+#: js/controllers/forgingController.js:41
+#: js/controllers/forgingController.js:53
+#: js/controllers/forgingController.js:64
+msgid "Others"
+msgstr "Ceilalti"
+
+#: partials/modals/newUser.html:56
+msgid "Passphrase"
+msgstr "Cuvinte cheie"
+
+#: partials/modals/newUser.html:58
+#: partials/modals/secondPassphraseModal.html:59
+msgid "Passphrase doesn't match."
+msgstr "Cuvintele cheie nu se potrivesc"
+
+#: js/controllers/walletPendingsController.js:8
+msgid "Pending transactions"
+msgstr "Trazactii in asteptare"
+
+#: partials/modals/multisignatureModal.html:106
+msgid ""
+"Please check your input below and go back if necessary. Double-check the "
+"group members, else you risk losing your LISK balance!"
+msgstr ""
+"Te rugam sa verifici datele introduse si intorceti-va daca e cazul. "
+"Verificati de 2 ori membrii grupului, altfel riscati sa pierdeti LISK "
+"disponibil"
+
+#: partials/modals/registrationDelegateModal.html:15
+msgid "Please choose a delegate name."
+msgstr "Te rugam adauga numele unui delegat"
+
+#: partials/modals/addDappModal.html:84
+msgid "Please ensure all details are correct before confirming your dapp."
+msgstr ""
+"Te rugam ca inainte sa confirmi aplicatia, sa te asiguri ca toate detaliile "
+"sunt corecte"
+
+#: partials/modals/sendTransaction.html:15
+msgid ""
+"Please enter the Recipient Address and LISK Amount that you would like send "
+"below."
+msgstr ""
+"Te rugam sa introduci mai jos adresa destinatarului si valoarea in LISK pe "
+"care vrei sa ii transferi"
+
+#: js/controllers/modals/masterPassphraseModalController.js:8
+msgid "Please enter the master passphrase for this node."
+msgstr "Te rugam sa introduci cuvintele cheie pentru acest nod"
+
+#: partials/modals/addDappModal.html:104 partials/modals/forgingModal.html:16
+#: partials/modals/registrationDelegateModal.html:52
+#: partials/modals/sendTransaction.html:57 partials/modals/vote.html:46
+msgid "Please enter your passphrase below."
+msgstr "Te rugam sa te autentifici folosind cuvintele cheie"
+
+#: partials/modals/multisignatureModal.html:150
+#: partials/modals/passphraseCheck.html:15
+msgid "Please enter your passphrase."
+msgstr "Te rugam sa introduci cuvintele cheie"
+
+#: partials/modals/secondPassphraseModal.html:83
+msgid "Please enter your primary passphrase below."
+msgstr "Te rugam sa introduci mai jos primul rand de cuvinte cheie "
+
+#: partials/modals/addDappModal.html:124
+#: partials/modals/registrationDelegateModal.html:87
+#: partials/modals/sendTransaction.html:92 partials/modals/vote.html:81
+msgid "Please enter your second passphrase below."
+msgstr "Te rugam sa introduci mai jos al 2-lea rand de cuvinte cheie "
+
+#: partials/modals/secondPassphraseModal.html:20
+msgid "Please find your second passphrase below."
+msgstr "Vei gasi mai jos cel de-a 2-lea rand de cuvinte cheie"
+
+#: partials/modals/addDappModal.html:38
+msgid "Please provide a specification for your dapp below."
+msgstr "Te rugam sa detaliezi mai jos, descrierea aplicatiei DAPPS"
+
+#: partials/modals/addDappModal.html:61
+msgid "Please provide storage links for your dapp below."
+msgstr "Te rugam sa ne specifici mai jos locatia aplicatiei DAPPS"
+
+#: partials/modals/newUser.html:50
+msgid "Please re-enter your passphrase below."
+msgstr "Te rugam sa reintroduci cuvintele cheie mai jos"
+
+#: partials/modals/secondPassphraseModal.html:51
+msgid "Please re-enter your second passphrase below."
+msgstr "Te rugam sa reintroduci cel de-al 2-lea rand de cuvinte cheie"
+
+#: partials/modals/addDappModal.html:15
+#: partials/modals/multisignatureModal.html:15
+msgid "Please read carefully."
+msgstr "Te rugam sa citesti cu atentie."
+
+#: partials/modals/multisignatureModal.html:83
+msgid "Pressing enter confirms each member."
+msgstr "Apasand enter confirmi fiecare membru."
+
+#: partials/modals/blockInfo.html:41
+msgid "Previous Block"
+msgstr "Blocul anterior"
+
+#: partials/modals/secondPassphraseModal.html:90
+msgid "Primary Passphrase"
+msgstr "Primul set de cuvinte cheie"
+
+#: partials/modals/userInfo.html:18
+msgid "Public key"
+msgstr "Cheia publica"
+
+#: partials/dapp-entry.html:90
+msgid "READ MORE"
+msgstr "Citeste mai mult"
+
+#: js/directives/voteActionDirective.js:16
+msgid "REMOVE VOTE"
+msgstr "REVOCA VOT"
+
+#: js/controllers/delegatesController.js:156
+#: js/controllers/forgingController.js:41
+#: js/controllers/votedDelegatesController.js:115 partials/forging.html:26
+msgid "Rank"
+msgstr "Rang"
+
+#: js/controllers/transactionsController.js:64
+#: js/controllers/walletPendingsController.js:45
+#: js/controllers/walletTransactionsController.js:68
+#: js/controllers/walletsController.js:146 partials/account.html:73
+msgid "Recipient"
+msgstr "Destinatar"
+
+#: partials/modals/sendTransaction.html:20
+msgid "Recipient Address"
+msgstr "Adresa destinatarului"
+
+#: partials/modals/registrationDelegateModal.html:13
+msgid "Register as a Delegate"
+msgstr "Inregistrare ca delegat"
+
+#: partials/forging.html:6
+msgid "Registered on"
+msgstr "Inregistrat in"
+
+#: js/controllers/modals/newUserController.js:8
+msgid "Registering user"
+msgstr "Inregistrare utilizator"
+
+#: partials/passphrase.html:18
+msgid "Remember during this session"
+msgstr "Tine-ma minte aceasta sesiune"
+
+#: js/directives/voteTitleDirective.js:17
+msgid "Removing vote from delegates"
+msgstr "Revoca voturi "
+
+#: js/controllers/blockchainController.js:47
+#: js/controllers/forgingController.js:118 partials/modals/blockInfo.html:26
+msgid "Reward"
+msgstr "Recompensa"
+
+#: partials/modals/newUser.html:35
+#: partials/modals/secondPassphraseModal.html:36
+msgid "SAVE PASSPHRASE"
+msgstr "SALVEAZA CUVINTELE CHEIE"
+
+#: partials/modals/masterPassphraseModal.html:35 partials/template.html:149
+msgid "SEND"
+msgstr "TRIMITE"
+
+#: partials/modals/addDappModal.html:130
+msgid "SEND LISK"
+msgstr "TRIMITE LISK"
+
+#: partials/passphrase.html:27
+msgid "SIGN IN"
+msgstr "AUTENTIFICARE"
+
+#: partials/dapp-entry.html:25 partials/dapp-entry.html:34
+#: partials/dapp-entry.html:43 partials/dapp-entry.html:50
+msgid "SOURCE CODE"
+msgstr "COD SURSA"
+
+#: js/controllers/modals/addDappModalController.js:6
+msgid "Saving new dapp"
+msgstr "Salveaza o noua aplicatie DAPP"
+
+#: partials/template.html:308 partials/template.html:333
+msgid "Search for Dapps"
+msgstr "Cauta DAPPS"
+
+#: partials/template.html:208
+msgid "Search for blocks"
+msgstr "Cauta blocuri"
+
+#: partials/template.html:182
+msgid ""
+"Search for transactions (Transaction ID, Sender address, Recipient address)"
+msgstr ""
+"Cauta tranzactii (ID tranzactie, Adresa expeditorului, Adresa destinatarului)"
+
+#: partials/modals/secondPassphraseModal.html:57
+msgid "Second Passphrase"
+msgstr "Al 2-lea rand de cuvinte ceheie"
+
+#: partials/delegates.html:120 partials/delegates.html:51
+#: partials/modals/sendTransaction.html:13 partials/modals/userInfo.html:28
+#: partials/votes.html:49
+msgid "Send LISK"
+msgstr "Trimite LISK"
+
+#: js/controllers/transactionsController.js:63 partials/account.html:70
+msgid "Sender"
+msgstr "Expeditor"
+
+#: js/controllers/settingsController.js:6 partials/template.html:165
+msgid "Settings"
+msgstr "Configurari"
+
+#: partials/blockchain.html:12 partials/forging.html:82
+#: partials/transactions.html:11
+msgid "Show All Columns"
+msgstr "Afiseaza toate coloanele"
+
+#: partials/blockchain.html:13 partials/forging.html:85
+#: partials/transactions.html:14
+msgid "Show Full Time"
+msgstr "Afiseaza timpul complet"
+
+#: partials/modals/passphraseCheck.html:35
+msgid "Sign"
+msgstr "Semneaza"
+
+#: partials/delegates.html:92
+msgid "Standby Delegates"
+msgstr "Delegati in asteptare"
+
+#: partials/modals/newUser.html:15
+msgid "Step 1/2 - Generate a Passphrase"
+msgstr "Pasul 1/2 - Genereaza cuvinte cheie"
+
+#: partials/modals/secondPassphraseModal.html:15
+msgid "Step 1/2 - Generate a Second Passphrase"
+msgstr "Pasul 1/2 - Genereaza cel de-al 2-lea rand de cuvinte cheie"
+
+#: partials/modals/multisignatureModal.html:13
+msgid "Step 1/3 - Preamble"
+msgstr "Pasul 1/3 - Preambul"
+
+#: partials/modals/addDappModal.html:13
+msgid "Step 1/4 - Preamble"
+msgstr "Pasul 1/4 - Preambul"
+
+#: partials/modals/newUser.html:48
+msgid "Step 2/2 - Confirm your Passphrase"
+msgstr "Pasul 2/2 - Confirma cuvintele cheie"
+
+#: partials/modals/secondPassphraseModal.html:49
+msgid "Step 2/2 - Confirm your Second Passphrase"
+msgstr "Pasul 2/2 - Confirma cel de-al 2-lea rand de cuvinte cheie"
+
+#: partials/modals/multisignatureModal.html:44
+msgid "Step 2/3 - Specify Group Members"
+msgstr "Pasul 2/3 - Specifica Membrii Grupului"
+
+#: partials/modals/addDappModal.html:36
+msgid "Step 2/4 - Specifications"
+msgstr "Pasul 2/4 - Specificatii"
+
+#: partials/modals/multisignatureModal.html:104
+msgid "Step 3/3 - Confirmation"
+msgstr "Pasul 3/3 - Confirmare"
+
+# Storage Links or Lisk?
+#: partials/modals/addDappModal.html:59
+msgid "Step 3/4 - Storage Links"
+msgstr "Pasul 3/4 - Stocheaza Links"
+
+#: partials/modals/addDappModal.html:82
+msgid "Step 4/4 - Confirmation"
+msgstr "Pasul 4/4 - Confirmare"
+
+#: partials/modals/blockInfo.html:16 partials/modals/transactionInfo.html:12
+#: partials/modals/userInfo.html:35
+msgid "Summary"
+msgstr "Sumar"
+
+#: partials/modals/newUser.html:62
+#: partials/modals/secondPassphraseModal.html:64
+msgid ""
+"The passphrase entered doesn't match with the one generated before. Please "
+"go back and generate a new one."
+msgstr ""
+"Cuvintele cheie introduse nu se potrivesc cu cele generate anterior. Te "
+"rugam intoarce-te si generaeaza un nou set de cuvinte cheie."
+
+#: js/directives/voteTitleDirective.js:22
+msgid "This action will cost"
+msgstr "Aceasta actiune este taxata cu"
+
+#: partials/modals/multisignatureModal.html:21
+msgid ""
+"This walkthrough will guide you through the necessary steps to create a "
+"multi-signature group. It's very important that you know what multi-"
+"signatures are, else you risk loosing your LISK balance.<br><br>A multi-"
+"signature group consists of N accounts, the one who created the group is the "
+"group owner. When the owner wants to make a transaction, M of N accounts "
+"within the group need to confirm it, otherwise the transaction will not be "
+"processed. The values M and N are specified in this walkthrough."
+"<br><br><b>Things you need to know for the multi-signature group setup:</"
+"b><br><br>• The number of group members (N).<br>• The number of needed "
+"confirmations (M).<br>• The addresses of the Lisk accounts you want to add "
+"to the group."
+msgstr ""
+"Acest tutorial vă va ghida prin pașii necesari pentru a crea un grup de "
+"semnaturi multiple. Este foarte important să intelegeti ce inseamna termenul "
+"semnaturi-multiple, altfel riscați să pierdeți Lisk disponibil. <br> Un grup "
+"de semnaturi multiple este format din conturi N, unde cel care a creat "
+"grupul este proprietarul grupului. În cazul în care proprietarul dorește să "
+"facă o tranzacție, M a conturilor N în cadrul grupului trebuie să-l "
+"confirme, în caz contrar, tranzacția nu va fi procesată. Valorile M și N "
+"sunt specificate în acest tutorial. <br> <b> Lucruri pe care trebuie să "
+"știți pentru configurarea grupului semnatur-multiple:. </ B> <br> • Numărul "
+"de membri ai grupului ( N). <br> • Numărul confirmărilor necesare (M). <fie> "
+"• Adresele Lisk ale conturilor pe care doriți să le adăugați la grup."
+
+#: js/controllers/blockchainController.js:43
+#: js/controllers/forgingController.js:116
+#: js/controllers/transactionsController.js:65
+#: js/controllers/walletPendingsController.js:46
+#: js/controllers/walletTransactionsController.js:69
+#: js/controllers/walletsController.js:147 partials/account.html:76
+#: partials/modals/blockInfo.html:38 partials/modals/transactionInfo.html:25
+#: partials/modals/userInfo.html:69
+msgid "Time"
+msgstr "Timp"
+
+#: partials/forging.html:5
+msgid "To become a delegate, click on the \"Delegate Registration\" button."
+msgstr "Pentru a deveni delegat, apasa pe butonul \"Inregistrare delegat\"."
+
+#: partials/template.html:130
+msgid "Toggle navigation"
+msgstr "Schimbare navigatie"
+
+#: partials/delegates.html:23
+msgid "Top Delegates"
+msgstr "Clasament Delegati"
+
+#: partials/modals/blockInfo.html:32
+msgid "Total Amount"
+msgstr "Suma totala"
+
+#: partials/modals/userInfo.html:36
+msgid "Total Balance"
+msgstr "Total disponibil"
+
+#: partials/modals/blockInfo.html:29
+msgid "Total Fee"
+msgstr "Taxa totala"
+
+#: js/controllers/forgingController.js:26
+msgid "Total Forged"
+msgstr "Total forjat"
+
+#: js/controllers/transactionsController.js:62
+#: js/controllers/walletPendingsController.js:44
+#: js/controllers/walletTransactionsController.js:67
+#: js/controllers/walletsController.js:145 partials/account.html:67
+#: partials/modals/blockModal.html:17 partials/modals/userInfo.html:52
+#: partials/modals/userInfo.html:76
+msgid "Transaction ID"
+msgstr "ID Tranzactie"
+
+#: js/controllers/blockchainController.js:44
+#: js/controllers/transactionsController.js:8
+#: js/controllers/walletTransactionsController.js:6
+#: partials/modals/blockInfo.html:17 partials/modals/blockModal.html:7
+#: partials/modals/userInfo.html:46 partials/modals/userInfo.html:47
+msgid "Transactions"
+msgstr "Tranzactii"
+
+#: partials/dapp-entry.html:56
+msgid "UNINSTALL"
+msgstr "DEZINSTALEAZA"
+
+#: partials/account.html:46
+msgid "UPDATE"
+msgstr "ACTUALIZEAZA"
+
+#: partials/modals/blockInfo.html:35 partials/modals/transactionInfo.html:22
+#: partials/modals/userInfo.html:39 partials/modals/userInfo.html:66
+msgid "USD Equivalent"
+msgstr "Echivalentul in USD"
+
+# Here you will have some time or it's jus a title?
+#: js/controllers/delegatesController.js:159
+#: js/controllers/forgingController.js:53
+#: js/controllers/votedDelegatesController.js:118 partials/forging.html:35
+msgid "Uptime"
+msgstr "Activ"
+
+#: partials/delegates.html:7 partials/votes.html:8
+msgid "View selection"
+msgstr "Vezi selectia"
+
+#: js/directives/voteTitleDirective.js:15
+msgid "Voting for delegates"
+msgstr "Votez pentru delegati"
+
+#: partials/template.html:64
+msgid "Welcome back, {{username}}"
+msgstr "Bine ai revenit, {{username}}"
+
+#: partials/modals/confirmDeletionModal.html:25
+msgid "YES"
+msgstr "DA"
+
+#: partials/multi.html:46
+msgid "You are not a member of any one Multi-Signature group."
+msgstr "Nu esti membru al nici unui grup de semnaturi multiple"
+
+#: partials/modals/newUser.html:17
+msgid "You can find your passphrase below."
+msgstr "Mai jos vei gasi cuvintele cheie."
+
+#: partials/dapps.html:165
+msgid "You do not have any dapps installed yet."
+msgstr "Nu ai nici o aplicatie DAPPS instalata."
+
+#: partials/forging.html:106
+msgid "You have not forged any blocks yet."
+msgstr "Nu ai forjat niciun bloc inca."
+
+#: partials/dapps.html:242
+msgid "You have not installed dapps yet."
+msgstr "Nu ai instalat inca nici o aplicatie DAPPS."
+
+#: partials/account.html:109
+msgid "You have not made any transactions yet."
+msgstr "Nu ai efectuat inca nicio tranzactie"
+
+#: partials/votes.html:75
+msgid "You have not voted for any delegates yet."
+msgstr "Nu ai votat inca  niciun delegat"
+
+#: partials/multi.html:10
+msgid "Your Multi-Signature group(s) have not made any transactions yet."
+msgstr "Grupul tau de Semnaturi Multiple nu a efectuat inca nici o tranzactie"
+
+#: partials/modals/forgingModal.html:23
+#: partials/modals/multisignatureModal.html:157
+#: partials/modals/registrationDelegateModal.html:59
+#: partials/modals/sendTransaction.html:64 partials/modals/vote.html:53
+#: partials/passphrase.html:10
+msgid "Your Passphrase"
+msgstr "Cuvintele cheie"
+
+#: partials/modals/multisignatureModal.html:161
+#: partials/modals/passphraseCheck.html:22
+#: partials/modals/registrationDelegateModal.html:94
+#: partials/modals/sendTransaction.html:99 partials/modals/vote.html:88
+msgid "Your Second Passphrase"
+msgstr "Cel de-al 2-lea rand de cuvinte cheie"
+
+#: partials/modals/secondPassphraseModal.html:100
+msgid "add second passphrase"
+msgstr "adauga cel de-al 2-lea rand de cuvinte cheie"
+
+#: partials/modals/multisignatureModal.html:135
+#: partials/modals/multisignatureModal.html:174
+msgid "confirm"
+msgstr "confirma"
+
+#: partials/modals/secondPassphraseModal.html:69
+msgid "confirm second passphrase"
+msgstr "confirma cel al 2-lea rand de cuvinte cheie"
+
+#: partials/template.html:240
+msgid "delegate registration"
+msgstr "Inregistreaza-te ca delegat"
+
+#: partials/modals/multisignatureModal.html:91
+msgid "next"
+msgstr "urmatorul"
+
+#: partials/modals/registrationDelegateModal.html:107
+#: partials/modals/registrationDelegateModal.html:37
+#: partials/modals/registrationDelegateModal.html:69
+msgid "register"
+msgstr "inregistreaza-te"
+
+#: partials/votes.html:14
+msgid "remove vote"
+msgstr "revoca votul"
+
+#: partials/modals/sendTransaction.html:112
+#: partials/modals/sendTransaction.html:42
+#: partials/modals/sendTransaction.html:77
+msgid "send lisk"
+msgstr "trimite lisk"
+
+#: partials/delegates.html:13
+msgid "vote"
+msgstr "voteaza"
+
+#: partials/delegates.html:93
+msgid "{{countStandby}} in Total"
+msgstr "{{countStandby}} in Total"
+
+#: partials/delegates.html:24
+msgid "{{countTop}} in Total"
+msgstr "{{countTop}} in Total"
+
+#: partials/votes.html:25
+msgid "{{count}} in Total"
+msgstr "{{count}} in Total"
+
+#: partials/delegates.html:4
+msgid ""
+"{{voteList.length}} out of {{countStandby + countTop}} Delegates selected"
+msgstr "{{voteList.length}} din {{countStandby + countTop}} Delegati selectati"
+
+#: partials/votes.html:4
+msgid "{{voteList.length}} out of {{count}} Delegates selected"
+msgstr "{{voteList.length}} din {{count}} Delegati selectati"

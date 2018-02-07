@@ -1,0 +1,116 @@
+<div class="app-modal valign-wrapper">
+    <div class="container height100">
+        <div class="row height100">
+            <div class="col-md-6 col-md-offset-4 height100 valign-wrapper">
+                <div class="modal-content" ng-show="!passmode && !checkSecondPass">
+                    <div class="modal-header modal-iconed">
+                        <div class="close-modal" ng-click="close()">
+                            <span class="sr-only"><translate>Close modal</translate></span>
+                        </div>
+                    </div>
+                    <div class="modal-header clearfix">
+                        <div>
+                            <h2>{{'Register as a Delegate'|translate}}</h2>
+                        </div>
+                        <div><translate>Please choose a delegate name.</translate></div>
+                    </div>
+                    <div class="modal-body field-padding" ng-if="!username">
+                        <form ng-submit="passcheck()">
+                            <div class="input-field">
+                                <input ng-focus="focus == 'username'" id="delegateUsername" type="text" ng-model="delegateData.username" autofocus ng-class="{'invalid': error}">
+                                <label for="delegateUsername"><translate>Delegate Name</translate></label>
+                            </div>
+                            <span class="fee-text flat-text pull-right"><translate>Fee: {{fee | liskFilter}} LSK</span>
+                            <span class="pass-error" ng-show="error">{{error}}</span>
+                            <input type="submit" ng-show="false">
+                        </form>
+                    </div>
+                    <div class="modal-body bordered">
+                        <span ng-if="!!username" class="pass-error" ng-show="error" style="margin: 20px 40px 0px !important;">{{error}}</span>
+                        <span class="send-info-text padding-right-40 flat-text"><translate>Becoming a delegate requires registration. You may choose your own delegate name, which can be used to promote your delegate. Only the top 101 delegates are eligible to forge. All fees are shared equally between the top 101 delegates.</translate></span>
+                    </div>
+                    <div class="modal-body bordered">
+                        <ul class="nav modal-buttons pull-right">
+                            <li>
+                                <input type="submit" value="{{'Cancel' | translate}}" ng-click="close()" class="btn-flat" />
+                            </li>
+                            <li>
+                                <input type="submit" value="{{'register' | translate}}" ng-click="passcheck()" class="btn-flat blue-link" ng-class="{'disabled': sending}" ng-disabled="sending" />
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-content" ng-show="passmode && !checkSecondPass">
+                    <div class="modal-header modal-iconed">
+                        <div class="close-modal" ng-click="passcheck()">
+                            <span class="sr-only"><translate>Close modal</translate></span>
+                        </div>
+                    </div>
+                    <div class="modal-header clearfix">
+                        <div>
+                            <h2>{{'Account Verification'|translate}}</h2>
+                        </div>
+                        <div><translate>Please enter your passphrase below.</translate></div>
+                    </div>
+                    <div class="modal-body">
+                        <form ng-submit="registrationDelegate(secretPhrase)">
+                            <div class="field-padding">
+                                <div class="input-field">
+                                    <input ng-focus="focus == 'secretPhrase'" id="passPhrase" type="password" ng-model="secretPhrase" ng-trim="false" autofocus ng-class="{'invalid': error}">
+                                    <label for="passPhrase"><translate>Your Passphrase</translate></label>
+                                </div>
+                                <span class="pass-error" ng-show="error">{{error}}</span>
+                            </div>
+                            <div class="modal-body">
+                                <ul class="nav modal-buttons pull-right">
+                                    <li>
+                                        <input type="submit" value="{{'GO BACK' | translate}}" ng-click="passcheck()" class="btn-flat" />
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="{{'register' | translate}}" ng-click="registrationDelegate(secretPhrase)" class="btn-flat blue-link" ng-class="{'disabled': sending}" ng-disabled="sending" />
+                                    </li>
+                                </ul>
+                            </div>
+                            <input type="submit" ng-show="false">
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-content" ng-show="checkSecondPass">
+                    <div class="modal-header modal-iconed">
+                        <div class="close-modal" ng-click="close()">
+                            <span class="sr-only"><translate>Close modal</translate></span>
+                        </div>
+                    </div>
+                    <div class="modal-header clearfix">
+                        <div>
+                            <h2>{{'Account Verification'|translate}}</h2>
+                        </div>
+                        <div><translate>Please enter your second passphrase below.</translate></div>
+                    </div>
+                    <div class="modal-body">
+                        <form ng-submit="registrationDelegate(secretPhrase, true)">
+                            <div class="field-padding">
+                                <div class="input-field">
+                                    <input ng-focus="focus == 'secondPhrase'" id="secondPhrase" type="password" ng-model="secondPhrase" ng-trim="false" autofocus ng-class="{'invalid': error}">
+                                    <label for="secondPhrase"><translate>Your Second Passphrase</translate></label>
+                                </div>
+                                <span class="pass-error" ng-show="error">{{error}}</span>
+                            </div>
+                            <input type="submit" ng-show="false">
+                        </form>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="nav modal-buttons pull-right">
+                            <li>
+                                <input type="submit" value="{{'GO BACK' | translate}}" ng-click="passcheck(true)" class="btn-flat" />
+                            </li>
+                            <li>
+                                <input type="submit" value="{{'register' | translate}}" ng-click="registrationDelegate(secretPhrase, true)" class="btn-flat blue-link" ng-class="{'disabled': sending}" ng-disabled="sending" />
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

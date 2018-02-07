@@ -1,0 +1,253 @@
+.paginated {
+  position: relative;
+
+  .ng-table-pager {
+    background-color: @background;
+  }
+
+  .ng-table {
+    border-left: 1px solid @border-grey;
+    border-right: 1px solid @border-grey;
+    -webkit-box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, .12);
+    box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, .12);
+    thead {
+      border-bottom: 2px solid #cecece;
+      th div span {
+        position: relative;
+        display: inline-block;
+        padding: 18px 0;
+        font-weight: 500;
+        opacity: @font-opacity;
+      }
+      th.sortable div span {
+        cursor: pointer;
+      }
+    }
+  }
+
+  .pagination > li > a, .pagination > li > span {
+    position: relative;
+    float: left;
+    text-align: center;
+    height: 32px;
+    min-width: 22px;
+    padding: 5px;
+    line-height: 32px;
+    margin-right: 12px;
+    border-radius: 4px;
+    line-height: 1.42857143;
+    color: @grey-text;
+    text-decoration: none;
+    background-color: @background;
+    border: none;
+    font-size: @content-text;
+  }
+
+  .pagination > li:first-child > a, .pagination > li:first-child > span {
+    content: '';
+  }
+
+  .pagination > li:last-child > a, .pagination > li:last-child > span {
+    content: '';
+  }
+
+  .pagination > li:first-child > a:hover, .pagination > li:first-child > a:focus, .pagination > li:first-child > span:hover, .pagination > li:first-child > span:focus {
+    content: '';
+  }
+
+  .pagination > li:last-child > a:hover, .pagination > li:last-child > a:focus, .pagination > li:last-child > span:hover, .pagination > li:last-child > span:focus {
+    content: '';
+  }
+
+  .pagination > li > a:hover, .pagination > li > span:hover, .pagination > li > a:focus, .pagination > li > span:focus {
+    color: @white;
+    font-weight: 500;
+    background-color: @blue;
+  }
+
+  .pagination > .active > a, .pagination > .active > span, .pagination > .active > a:hover, .pagination > .active > span:hover, .pagination > .active > a:focus, .pagination > .active > span:focus {
+    z-index: 2;
+    color: @grey-text;
+    font-weight: 500;
+    cursor: default;
+    background-color: @gray2;
+    border-color: none
+  }
+
+  .pagination > .disabled > span, .pagination > .disabled > span:hover, .pagination > .disabled > span:focus, .pagination > .disabled > a, .pagination > .disabled > a:hover, .pagination > .disabled > a:focus {
+    color: @border-grey;
+    font-weight: normal;
+    cursor: not-allowed;
+    background-color: @background;
+    border-color: none
+  }
+}
+
+.not_paginated {
+  .ng-isolate-scope {
+    height: 0 !important;
+  }
+}
+
+.panel-default table.ng-table tr:last-child td, .panel-default table.ng-table tr:first-child td {
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+
+.ng-table-label {
+  min-width: 986px;
+  margin-top: 22px;
+  margin-bottom: 22px;
+  h2 {
+    font-weight: 500;
+    color: #4f5051;
+  }
+}
+
+.ng-table th.sortable.sort-desc, .ng-table th.sortable.sort-asc {
+  background-color: @grey;
+  text-shadow: none;
+  opacity: 0.6;
+}
+
+.ng-table th.sortable div span:after, .ng-table th.sortable div span:before {
+  right: -16px;
+  @media (max-width: @hide-transactions-screen) {
+    right: -12px;
+  }
+  top: 18px;
+  position: absolute;
+  border: 0;
+  width: 7px;
+  height: 5px;
+  background-image: url(/images/sprites/iconset.png);
+  content: '';
+  display: block;
+}
+
+.ng-table th.sortable div span:before {
+  background-position: -70px -9px;
+  border: none;
+  top: 26px;
+}
+
+.ng-table th.sortable div span:after {
+  background-position: -70px -0;
+  border: none;
+}
+
+.ng-table th.sortable.sort-asc div span:before {
+  background-position: -70px 0;
+  border: none;
+  opacity: 1 !important;
+  top: 22px;
+}
+
+.ng-table th.sortable.sort-asc div span:after {
+  display: none;
+}
+
+.ng-table th.sortable.sort-desc div span:after {
+  background-position: -70px -9px;
+  border: none;
+  opacity: 1 !important;
+  top: 22px;
+}
+
+.ng-table th.sortable.sort-desc div span:before {
+  display: none;
+}
+
+.ng-table tr.voted {
+  background-color: @orange1;
+  &:hover {
+    background-color: @orange2;
+  }
+}
+
+.ng-table tr.checked {
+  background-color: @blue1;
+  &:hover {
+    background-color: @blue2;
+  }
+}
+
+.ng-table tr.pending:not(.checked) {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.ng-table thead tr th {
+  background-color: @grey;
+  text-align: left;
+  font-size: @content-text;
+  color: @black;
+  font-weight: 500;
+  padding: 0 5px;
+  &:first-child {
+    padding-left: 16px;
+  }
+  &.sortable.sort-desc, &.sortable.sort-asc {
+    background-color: @grey;
+    text-align: left;
+    font-size: @content-text;
+    color: @black;
+    font-weight: 500;
+    opacity: 1;
+  }
+  &:hover {
+    cursor: auto;
+    background-color: @grey;
+  }
+}
+
+.table-menu {
+  position: absolute;
+  top: 7px;
+  right: 10px;
+}
+
+tbody {
+  tr:nth-child(even) {
+    background-color: @grey;
+  }
+}
+
+td {
+  padding-left: 5px;
+  a {
+    text-decoration: underline;
+    line-height: 1.5rem;
+  }
+}
+
+.pagination {
+  li {
+    i {
+      font-size: 20px;
+      line-height: 21px;
+    }
+    &.active {
+      background-color: @background;
+      color: @white !important;
+      a {
+        color: @white !important;
+      }
+    }
+  }
+}
+
+.user-icon-col {
+  width: 100px;
+}
+
+td {
+  border-radius: 0;
+  &.td-amount {
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 40px;
+  }
+}

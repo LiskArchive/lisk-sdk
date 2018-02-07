@@ -1,0 +1,88 @@
+<div class="app-modal valign-wrapper">
+    <div class="container height100">
+        <div class="row height100">
+            <div class="col-md-9 col-md-offset-2 height100 valign-wrapper">
+                <div class="modal-content" ng-click="$event.stopPropagation();">
+                    <div class="modal-header">
+                        <h2>{{'Block'|translate}}</h2>
+
+                        <input id="blockId" class="clipboard" value="{{block.id}}" readonly>
+                        <button class="btn-flat btn-copy blue-link" clipboard data-clipboard-target="#blockId" clipboard-success="clipboardSuccess(e);" clipboard-error="clipboardCommand(e);"><i class="small material-icons">assignment</i><translate>Copy Block ID</translate></button>
+
+                        <div class="close-modal" ng-click="close()">
+                            <span class="sr-only"><translate>Close modal</translate></span>
+                        </div>
+                    </div>
+                    <div class="scrolling">
+                        <div class="modal-body">
+                            <ul class="list-group">
+                                <li class="list-group-item summary"><translate>Summary</translate></li>
+                                <li class="list-group-item"><translate>Transactions</translate>
+                                    <span class="pull-right small-text">{{block.numberOfTransactions}}</span>
+                                </li>
+                                <li class="list-group-item bordered"><translate>Confirmations</translate>
+                                    <span class="pull-right small-text">{{block.confirmations}}</span>
+                                </li>
+                                <li class="list-group-item"><translate>Height</translate>
+                                    <span class="pull-right small-text">{{block.height}}</span>
+                                </li>
+                                <li class="list-group-item bordered"><translate>Reward</translate>
+                                    <span class="pull-right small-text">{{block.reward | liskFilter}}</span>
+                                </li>
+                                <li class="list-group-item bordered"><translate>Total Fee</translate>
+                                    <span class="pull-right small-text">{{block.totalFee | liskFilter}}</span>
+                                </li>
+                                <li class="list-group-item"><translate>Total Amount</translate>
+                                    <span class="pull-right small-text">{{block.totalAmount | liskFilter}}</span>
+                                </li>
+                                <li class="list-group-item"><translate>USD Equivalent</translate>
+                                    <span class="pull-right small-text">${{convertToUSD(block.totalAmount) || 0 | number: 2}}</span>
+                                </li>
+                                <li class="list-group-item bordered"><translate>Time</translate>
+                                    <span class="pull-right small-text">{{block.timestamp | timestampFilter}}</span>
+                                </li>
+                                <li class="list-group-item"><translate>Previous Block</translate>
+                                    <span class="pull-right small-text">
+                                        <a ng-click="previousBlock(block.previousBlock)">{{block.previousBlock}}</a>
+                                    </span>
+                                </li>
+                                <li class="list-group-item"><translate>Generator</translate>
+                                    <span class="pull-right small-text">
+                                        <a ng-click="showGenerator(block.generatorId)">{{block.generatorId}}</a>
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="modal-body" ng-show="transactionsLength > 0">
+                            <ul class="list-group transactions">
+                                <!-- ngRepeat: transaction in transactions -->
+                                <li class="list-group-item" ng-repeat="transaction in transactions">
+                                    <div class="transaction-data">{{transaction.id}}
+                                        <span class="pull-right">{{transaction.timestamp | timestampFilter}}</span>
+                                    </div>
+                                    <div class="transaction-path">
+                                        <div class="transaction-part pull-left">
+                                            <a href="#" ng-click="userInfo(transaction.senderId)">{{transaction.senderId}}</a>
+                                            <span class="lisk">{{transaction.amount | liskFilter}} LSK</span>
+                                        </div>
+                                        <div class="transaction-direction"></div>
+                                        <div class="transaction-part pull-right">
+                                            <a href="#" ng-click="userInfo(transaction.recipientId)">{{transaction.recipientId || "-"}}</a>
+                                            <span class="lisk">{{transaction.amount | liskFilter}} LSK</span>
+                                        </div>
+                                    </div>
+                                    <div class="transaction-bottom">
+                                        <div class="fee"><translate>FEE</translate>: {{transaction.fee | liskFilter}} LSK</div>
+                                        <div class="lisk">{{transaction.amount | liskFilter}} LSK </div>
+                                        <div class="confirmations">{{transaction.confirmations || 0}} <translate>CONFIRMATIONS</translate></div>
+                                    </div>
+                                </li>
+                                <!-- end ngRepeat: transaction in transactions -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

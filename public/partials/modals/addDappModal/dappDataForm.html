@@ -1,0 +1,45 @@
+<form name="form.dapp_data" novalidate class="clearfix" style="padding: 0 40px;">
+    <input type="submit" ng-show="false">
+    <div class="row clearfix" style="height: inherit;">
+        <div class="input-field">
+            <input ng-minlength=1 ng-maxlength=32 required ng-class="{'invalid': form.dapp_data.submitted && form.dapp_data.name.$invalid, 'valid': form.dapp_data.submitted && form.dapp_data.name.$valid}" id="name" name="name" type="text" class="validate" ng-model="newDapp.name" maxlength="32">
+            <label for="name"><translate>Name</translate></label>
+        </div>
+        <div class="error-newdapp-container" ng-show="form.dapp_data.name.$invalid && form.dapp_data.submitted">
+            <small class="error" ng-show="form.dapp_data.name.$error.required">
+                <translate>Application name is required.</translate>
+            </small>
+            <small class="error" ng-show="form.dapp_data.name.$error.maxlength">
+                <translate>Application name cannot be longer than 32 characters.</translate>
+            </small>
+        </div>
+    </div>
+    <div class="row clearfix" style="height: inherit;">
+        <div class="input-field materialize-textarea-big">
+            <textarea ng-maxlength="160" id="description" ng-class="{'invalid': form.dapp_data.submitted && form.dapp_data.description.$invalid, 'valid': form.dapp_data.submitted && form.dapp_data.description.$valid}" name="description" class="materialize-textarea validate" ng-model="newDapp.description"></textarea>
+            <label for="description"><translate>Description</translate></label>
+        </div>
+        <div class="error-newdapp-container" ng-show="form.dapp_data.description.$invalid && form.dapp_data.submitted">
+            <small class="error" ng-show="form.dapp_data.description.$error.maxlength">
+                <translate>Application description cannot be longer than 160 characters.</translate>
+            </small>
+        </div>
+    </div>
+    <div class="row clearfix" style="height: inherit;">
+        <div class="input-field">
+            <input ng-class="{'invalid': form.dapp_data.submitted && form.dapp_data.tags.$invalid , 'valid': form.dapp_data.submitted && form.dapp_data.tags.$valid}" ng-maxlength=160 maxlength=160 id="tags" type="text" name="tags" class="validate" ng-model="newDapp.tags">
+            <label for="tags"><translate>Tags (comma separated)</translate></label>
+        </div>
+        <div class="error-newdapp-container" ng-show="form.dapp_data.tags.$invalid && form.dapp_data.submitted">
+            {{form.dapp_data.tags.$error}}
+            <small class="error" ng-show="form.dapp_data.tags.$error">
+                <translate>Application tags cannot be longer than 160 characters.</translate>
+            </small>
+        </div>
+    </div>
+    <div class="row clearfix" style="height: inherit;">
+        <div class="input-field col s12">
+            <select ng-init="newDapp.category = 0" class="browser-default" ng-model="newDapp.category" ng-options="key for (key, value) in categories"></select>
+        </div>
+    </div>
+</form>

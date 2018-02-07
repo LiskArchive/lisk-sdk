@@ -1,0 +1,33 @@
+<div class="app-modal valign-wrapper">
+    <div class="container height100">
+        <div class="row height100">
+            <div class="col-md-6 col-md-offset-4 height100 valign-wrapper">
+                <div class="modal-content">
+                    <div class="modal-header modal-iconed">
+                        <div class="close-modal" ng-click="close()">
+                            <span class="sr-only"><translate>Close modal</translate></span>
+                        </div>
+                    </div>
+                    <div class="modal-header clearfix">
+                        <div>
+                            <h2>{{'Confirmation'|translate}}</h2>
+                        </div>
+                        <div>
+                            <translate>Are you sure you want to delete this item?</translate>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="nav modal-buttons pull-right">
+                            <li>
+                                <input type="submit" value="{{'NO' | translate}}" ng-click="close()" class="btn-flat" />
+                            </li>
+                            <li>
+                                <input type="submit" value="{{'YES' | translate}}" ng-click="close(true)" class="btn-flat blue-link" />
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
