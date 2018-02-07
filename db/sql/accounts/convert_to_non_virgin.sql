@@ -22,5 +22,4 @@
 
 UPDATE mem_accounts
 SET virgin = 0
-WHERE
-	upper(address) = upper(${address})
+WHERE upper(address) = upper(${address})
