@@ -157,6 +157,7 @@ function getTransactionFromModule(library, filter, cb) {
 }
 
 function beforeBlock(type, cb) {
+	// eslint-disable-next-line mocha/no-top-level-hooks
 	before(
 		'init sandboxed application, credit account and register dapp',
 		done => {
@@ -170,6 +171,7 @@ function beforeBlock(type, cb) {
 		}
 	);
 
+	// eslint-disable-next-line mocha/no-top-level-hooks
 	after('cleanup sandboxed application', done => {
 		application.cleanup(done);
 	});

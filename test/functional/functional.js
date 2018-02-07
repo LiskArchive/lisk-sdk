@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-top-level-hooks */
 /*
  * Copyright © 2018 Lisk Foundation
  *
