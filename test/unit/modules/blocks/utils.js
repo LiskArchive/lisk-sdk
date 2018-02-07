@@ -342,6 +342,8 @@ describe('blocks/utils', () => {
 				modules.blocks.lastBlock.set = sinonSandbox.spy();
 
 				blocksUtilsModule.loadLastBlock((err, block) => {
+					expect(block).to.be.an('object');
+					expect(block.id).to.equal('13068833527549895884');
 					expect(modules.blocks.lastBlock.set).to.have.been.calledWith(block);
 					done();
 				});
