@@ -18,7 +18,15 @@ var util = require('util');
 var Field = require('../validator').prototype.Field;
 
 module.exports = JsonSchemaField;
-
+/**
+ * Description of the class.
+ *
+ * @class
+ * @memberof helpers.json-schema
+ * @see Parent: {@link helpers.json-schema}
+ * @todo add description of the class
+ * @todo Add @param-tags
+ */
 function JsonSchemaField(validator, path, value, rule, thisArg) {
 	Field.call(this, validator, path, value, rule, thisArg);
 }

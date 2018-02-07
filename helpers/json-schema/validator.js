@@ -20,6 +20,17 @@ var Field = require('./field');
 
 module.exports = JsonSchema;
 
+/**
+ * Description of the class.
+ *
+ * @class
+ * @memberof helpers.json-schema
+ * @requires helpers/json-schema/field
+ * @requires helpers/validator
+ * @see Parent: {@link helpers.json-schema}
+ * @todo add description of the class
+ * @todo Add @param-tags
+ */
 function JsonSchema(options) {
 	Validator.call(this, options);
 }
@@ -38,7 +49,16 @@ JsonSchema.options = utils.extend({}, Validator.options);
 JsonSchema.validate = Validator.validate;
 
 JsonSchema.addRule('type', {
-	validate(accept, value) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func type_validate
+	 * @param {string} accept - Description of the param
+	 * @param {Object} value - Description of the param
+	 * @todo Add returns-tag
+	 * @todo Add descriptions of the function and its parameters
+	 */
+	validate: function(accept, value) {
 		switch (accept) {
 			case 'array':
 				return Array.isArray(value);
@@ -55,7 +75,16 @@ JsonSchema.addRule('type', {
 });
 
 JsonSchema.addRule('default', {
-	filter(accept, value) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func default_filter
+	 * @param {string} accept - Description of the param
+	 * @param {Object} value - Description of the param
+	 * @todo Add returns-tag
+	 * @todo Add descriptions of the function and its parameters
+	 */
+	filter: function(accept, value) {
 		if (typeof value === 'undefined') {
 			return accept;
 		}
@@ -64,7 +93,16 @@ JsonSchema.addRule('default', {
 });
 
 JsonSchema.addRule('enum', {
-	validate(accept, value) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func enum_validate
+	 * @param {string} accept - Description of the param
+	 * @param {Object} value - Description of the param
+	 * @todo Add returns-tag
+	 * @todo Add descriptions of the function and its parameters
+	 */
+	validate: function(accept, value) {
 		return accept.indexOf(value) > -1;
 	},
 });
@@ -72,7 +110,16 @@ JsonSchema.addRule('enum', {
 // String rules
 
 JsonSchema.addRule('case', {
-	validate(accept, value) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func case_validate
+	 * @param {string} accept - Description of the param
+	 * @param {Object} value - Description of the param
+	 * @todo Add returns-tag
+	 * @todo Add descriptions of the function and its parameters
+	 */
+	validate: function(accept, value) {
 		if (accept === 'lower') {
 			return String(value).toLowerCase() === String(value);
 		} else if (accept === 'upper') {
@@ -83,19 +130,46 @@ JsonSchema.addRule('case', {
 });
 
 JsonSchema.addRule('minLength', {
-	validate(accept, value) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func minLength_validate
+	 * @param {string} accept - Description of the param
+	 * @param {Object} value - Description of the param
+	 * @todo Add returns-tag
+	 * @todo Add descriptions of the function and its parameters
+	 */
+	validate: function(accept, value) {
 		return String(value).length >= accept;
 	},
 });
 
 JsonSchema.addRule('maxLength', {
-	validate(accept, value) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func maxLength_validate
+	 * @param {string} accept - Description of the param
+	 * @param {Object} value - Description of the param
+	 * @todo Add returns-tag
+	 * @todo Add descriptions of the function and its parameters
+	 */
+	validate: function(accept, value) {
 		return String(value).length <= accept;
 	},
 });
 
 JsonSchema.addRule('pattern', {
-	validate(accept, value) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func pattern_validate
+	 * @param {string} accept - Description of the param
+	 * @param {Object} value - Description of the param
+	 * @todo Add returns-tag
+	 * @todo Add descriptions of the function and its parameters
+	 */
+	validate: function(accept, value) {
 		if (accept instanceof RegExp === false) {
 			accept = new RegExp(accept);
 		}
@@ -106,7 +180,17 @@ JsonSchema.addRule('pattern', {
 // Numeric rules
 
 JsonSchema.addRule('minimum', {
-	validate(accept, value, field) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func minimum_validate
+	 * @param {number} accept - Description of the param
+	 * @param {number} value - Description of the param
+	 * @param {Object} field - Description of the param
+	 * @todo Add returns-tag
+	 * @todo Add descriptions of the function and its parameters
+	 */
+	validate: function(accept, value, field) {
 		if (field.rules.exclusiveMinimum) {
 			return value > accept;
 		}
@@ -117,7 +201,17 @@ JsonSchema.addRule('minimum', {
 JsonSchema.addRule('exclusiveMinimum', {});
 
 JsonSchema.addRule('maximum', {
-	validate(accept, value, field) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func maximum_validate
+	 * @param {number} accept - Description of the param
+	 * @param {number} value - Description of the param
+	 * @param {Object} field - Description of the param
+	 * @todo Add returns-tag
+	 * @todo Add descriptions of the function and its parameters
+	 */
+	validate: function(accept, value, field) {
 		if (field.rules.exclusiveMaximum) {
 			return value < accept;
 		}
@@ -128,7 +222,16 @@ JsonSchema.addRule('maximum', {
 JsonSchema.addRule('exclusiveMaximum', {});
 
 JsonSchema.addRule('divisibleBy', {
-	validate(accept, value) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func divisibleBy_validate
+	 * @param {number} accept - Description of the param
+	 * @param {number} value - Description of the param
+	 * @todo Add returns-tag
+	 * @todo Add descriptions of the function and its parameters
+	 */
+	validate: function(accept, value) {
 		return value % accept === 0;
 	},
 });
@@ -136,7 +239,16 @@ JsonSchema.addRule('divisibleBy', {
 // Object rules
 
 JsonSchema.addRule('properties', {
-	validate(accept, value, field) {
+	/**
+	 * Description of the function.
+	 *
+	 * @func properties_validate
+	 * @param {number} accept - Description of the param
+	 * @param {number} value - Description of the param
+	 * @todo Add returns-tag
+	 * @todo Add descriptions of the function and its parameters
+	 */
+	validate: function(accept, value, field) {
 		if (!field.isObject()) {
 			return;
 		}
@@ -212,18 +324,39 @@ JsonSchema.addRule('properties', {
 JsonSchema.addRule('additionalProperties', {});
 
 JsonSchema.addRule('minProperties', {
+	/**
+	 * Description of the function.
+	 *
+	 * @func minProperties_validate
+	 * @todo Add returns-tag and param-tags
+	 * @todo Add descriptions of the function and its parameters
+	 */
 	validate(accept, value) {
 		return Object.keys(value).length >= accept;
 	},
 });
 
 JsonSchema.addRule('maxProperties', {
+	/**
+	 * Description of the function.
+	 *
+	 * @func maxProperties_validate
+	 * @todo Add returns-tag and param-tags
+	 * @todo Add descriptions of the function and its parameters
+	 */
 	validate(accept, value) {
 		return Object.keys(value).length <= accept;
 	},
 });
 
 JsonSchema.addRule('required', {
+	/**
+	 * Description of the function.
+	 *
+	 * @func required_validate
+	 * @todo Add returns-tag and param-tags
+	 * @todo Add descriptions of the function and its parameters
+	 */
 	validate(accept, value, field) {
 		accept.forEach(property => {
 			if (value.hasOwnProperty(property)) {
@@ -244,6 +377,13 @@ JsonSchema.addRule('required', {
 // TODO Add additionalItems
 
 JsonSchema.addRule('items', {
+	/**
+	 * Description of the function.
+	 *
+	 * @func items_validate
+	 * @todo Add returns-tag and param-tags
+	 * @todo Add descriptions of the function and its parameters
+	 */
 	validate(accept, value, field) {
 		if (!Array.isArray(value)) {
 			return;
@@ -286,18 +426,39 @@ JsonSchema.addRule('items', {
 });
 
 JsonSchema.addRule('minItems', {
+	/**
+	 * Description of the function.
+	 *
+	 * @func minItems_validate
+	 * @todo Add returns-tag and param-tags
+	 * @todo Add descriptions of the function and its parameters
+	 */
 	validate(accept, value) {
 		return Array.isArray(value) && value.length >= accept;
 	},
 });
 
 JsonSchema.addRule('maxItems', {
+	/**
+	 * Description of the function.
+	 *
+	 * @func maxItems_validate
+	 * @todo Add returns-tag and param-tags
+	 * @todo Add descriptions of the function and its parameters
+	 */
 	validate(accept, value) {
 		return Array.isArray(value) && value.length <= accept;
 	},
 });
 
 JsonSchema.addRule('uniqueItems', {
+	/**
+	 * Description of the function.
+	 *
+	 * @func uniqueItems_validate
+	 * @todo Add returns-tag and param-tags
+	 * @todo Add descriptions of the function and its parameters
+	 */
 	validate(accept, value, field) {
 		if (!accept) {
 			return;
