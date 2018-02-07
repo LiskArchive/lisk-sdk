@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
@@ -53,7 +54,7 @@ describe('blocks/process', () => {
 	beforeEach(done => {
 		async.series(
 			{
-				clearTables: function(seriesCb) {
+				clearTables(seriesCb) {
 					async.every(
 						[
 							'blocks where height > 1',
@@ -73,7 +74,7 @@ describe('blocks/process', () => {
 						}
 					);
 				},
-				loadTables: function(seriesCb) {
+				loadTables(seriesCb) {
 					async.everySeries(
 						loadTables,
 						(table, seriesCb) => {
@@ -109,7 +110,7 @@ describe('blocks/process', () => {
 	});
 
 	describe('getCommonBlock()', () => {
-		describe('validation with definitions.CommonBlock', function() {
+		describe('validation with definitions.CommonBlock', () => {
 			var validCommonBlock;
 			var blockHeightTwo = {
 				id: '3082931137036442832',
@@ -120,7 +121,7 @@ describe('blocks/process', () => {
 
 			var commonBlockValidationError;
 
-			beforeEach(function() {
+			beforeEach(() => {
 				scope.schema.validate(
 					validCommonBlock,
 					scope.swagger.definitions.CommonBlock,
@@ -130,61 +131,61 @@ describe('blocks/process', () => {
 				);
 			});
 
-			describe('when rpc.commonBlock call returns valid result', function() {
-				before(function() {
+			describe('when rpc.commonBlock call returns valid result', () => {
+				before(() => {
 					validCommonBlock = Object.assign({}, blockHeightTwo);
 				});
 
-				it('should return error = null', function() {
+				it('should return error = null', () => {
 					expect(commonBlockValidationError).to.be.undefined;
 				});
 			});
 
-			describe('when rpc.commonBlock call returns invalid result', function() {
-				describe('when id = null', function() {
-					before(function() {
+			describe('when rpc.commonBlock call returns invalid result', () => {
+				describe('when id = null', () => {
+					before(() => {
 						validCommonBlock = Object.assign({}, blockHeightTwo);
 						validCommonBlock.id = null;
 					});
 
-					it('should return array of errors', function() {
+					it('should return array of errors', () => {
 						expect(commonBlockValidationError)
 							.to.be.an('array')
 							.of.length(1);
 					});
 
-					it('should return error containing message', function() {
+					it('should return error containing message', () => {
 						expect(commonBlockValidationError)
 							.to.have.nested.property('0.message')
 							.equal('Expected type string but found type null');
 					});
 
-					it('should return error containing path', function() {
+					it('should return error containing path', () => {
 						expect(commonBlockValidationError)
 							.to.have.nested.property('0.path')
 							.equal('#/id');
 					});
 				});
 
-				describe('when previousBlock = null', function() {
-					before(function() {
+				describe('when previousBlock = null', () => {
+					before(() => {
 						validCommonBlock = Object.assign({}, blockHeightTwo);
 						validCommonBlock.previousBlock = null;
 					});
 
-					it('should return array of errors', function() {
+					it('should return array of errors', () => {
 						expect(commonBlockValidationError)
 							.to.be.an('array')
 							.of.length(1);
 					});
 
-					it('should return error containing message', function() {
+					it('should return error containing message', () => {
 						expect(commonBlockValidationError)
 							.to.have.nested.property('0.message')
 							.equal('Expected type string but found type null');
 					});
 
-					it('should return error containing path', function() {
+					it('should return error containing path', () => {
 						expect(commonBlockValidationError)
 							.to.have.nested.property('0.path')
 							.equal('#/previousBlock');

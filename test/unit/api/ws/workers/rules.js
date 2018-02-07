@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var failureCodes = require('../../../../../api/ws/rpc/failure_codes');
@@ -97,13 +98,13 @@ describe('Rules', () => {
 				});
 
 				it('should return ALREADY_ADDED code when present on master, nonce is present, and present connection id', () => {
-					rules.rules[updateType][true][true][true]();
+					rules.rules[updateType].true.true.true();
 					expect(blockMock.calledWithExactly(failureCodes.ALREADY_ADDED)).to.be
 						.true;
 				});
 
 				it('should return DIFFERENT_CONN_ID code when present on master, nonce is not present, and present connection id', () => {
-					rules.rules[updateType][true][false][true]();
+					rules.rules[updateType].true.false.true();
 					expect(blockMock.calledWithExactly(failureCodes.DIFFERENT_CONN_ID)).to
 						.be.true;
 				});
@@ -115,13 +116,13 @@ describe('Rules', () => {
 				});
 
 				it('should return ALREADY_ADDED code when not present on master, nonce is not present, and not present connection id', () => {
-					rules.rules[updateType][false][false][false]();
+					rules.rules[updateType].false.false.false();
 					expect(blockMock.calledWithExactly(failureCodes.ALREADY_REMOVED)).to
 						.be.true;
 				});
 
 				it('should return DIFFERENT_CONN_ID code when present on master, nonce is not present, and present connection id', () => {
-					rules.rules[updateType][true][false][true]();
+					rules.rules[updateType].true.false.true();
 					expect(blockMock.calledWithExactly(failureCodes.DIFFERENT_CONN_ID)).to
 						.be.true;
 				});

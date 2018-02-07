@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var Promise = require('bluebird');
@@ -180,14 +181,13 @@ __private.list = function(filter, cb) {
 
 	var sort = sortBy(filter.sort, {
 		sortFields: library.db.transactions.sortFields,
-		fieldPrefix: function(sortField) {
+		fieldPrefix(sortField) {
 			if (['height'].indexOf(sortField) > -1) {
 				return `b_${sortField}`;
 			} else if (['confirmations'].indexOf(sortField) > -1) {
 				return sortField;
-			} else {
-				return `t_${sortField}`;
 			}
+			return `t_${sortField}`;
 		},
 	});
 
@@ -203,8 +203,8 @@ __private.list = function(filter, cb) {
 			Object.assign(
 				{},
 				{
-					where: where,
-					owner: owner,
+					where,
+					owner,
 				},
 				params
 			)
@@ -215,8 +215,8 @@ __private.list = function(filter, cb) {
 				Object.assign(
 					{},
 					{
-						where: where,
-						owner: owner,
+						where,
+						owner,
 						sortField: sort.sortField,
 						sortMethod: sort.sortMethod,
 					},
@@ -244,8 +244,8 @@ __private.list = function(filter, cb) {
 			);
 
 			var data = {
-				transactions: transactions,
-				count: count,
+				transactions,
+				count,
 			};
 
 			return setImmediate(cb, null, data);
@@ -664,20 +664,19 @@ Transactions.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getTransactions: function(filters, cb) {
+	getTransactions(filters, cb) {
 		__private.list(filters, (err, data) => {
 			if (err) {
 				return setImmediate(cb, `Failed to get transactions: ${err}`);
-			} else {
-				return setImmediate(cb, null, {
-					transactions: data.transactions,
-					count: data.count,
-				});
 			}
+			return setImmediate(cb, null, {
+				transactions: data.transactions,
+				count: data.count,
+			});
 		});
 	},
 
-	getTransactionsCount: function(cb) {
+	getTransactionsCount(cb) {
 		library.db.transactions.count().then(
 			transactionsCount =>
 				setImmediate(cb, null, {
@@ -698,7 +697,7 @@ Transactions.prototype.shared = {
 		);
 	},
 
-	getUnProcessedTransactions: function(filters, cb) {
+	getUnProcessedTransactions(filters, cb) {
 		return __private.getPooledTransactions(
 			'getQueuedTransactionList',
 			filters,
@@ -706,7 +705,7 @@ Transactions.prototype.shared = {
 		);
 	},
 
-	getMultisignatureTransactions: function(req, cb) {
+	getMultisignatureTransactions(req, cb) {
 		return __private.getPooledTransactions(
 			'getMultisignatureTransactionList',
 			req,
@@ -714,7 +713,7 @@ Transactions.prototype.shared = {
 		);
 	},
 
-	getUnconfirmedTransactions: function(req, cb) {
+	getUnconfirmedTransactions(req, cb) {
 		return __private.getPooledTransactions(
 			'getUnconfirmedTransactionList',
 			req,
@@ -722,9 +721,9 @@ Transactions.prototype.shared = {
 		);
 	},
 
-	postTransactions: function(transactions, cb) {
+	postTransactions(transactions, cb) {
 		return modules.transport.shared.postTransactions(
-			{ transactions: transactions },
+			{ transactions },
 			(err, res) => {
 				var error = null;
 				var response = null;

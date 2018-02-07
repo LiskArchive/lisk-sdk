@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var rewire = require('rewire');
@@ -76,6 +77,7 @@ describe('transport', () => {
 		peersStub = {};
 
 		restoreRewiredTopDeps = TransportModule.__set__({
+			// eslint-disable-next-line object-shorthand
 			Broadcaster: function() {
 				this.bind = () => {};
 				broadcasterStubRef = this;
@@ -227,9 +229,9 @@ describe('transport', () => {
 				definitions = {};
 
 				restoreRewiredDeps = TransportModule.__set__({
-					library: library,
-					modules: modules,
-					definitions: definitions,
+					library,
+					modules,
+					definitions,
 				});
 
 				done();
@@ -837,7 +839,7 @@ describe('transport', () => {
 						id: transaction.id,
 						err: 'Unknown transaction type 0',
 						module: 'transport',
-						transaction: transaction,
+						transaction,
 					};
 					expect(
 						library.logger.debug.calledWith(
@@ -1012,8 +1014,8 @@ describe('transport', () => {
 				};
 
 				restoreRewiredTransportDeps = TransportModule.__set__({
-					library: library,
-					modules: modules,
+					library,
+					modules,
 				});
 
 				done();

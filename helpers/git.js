@@ -11,7 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
+
 /*
 * Helper module for parsing git commit information
 *
@@ -39,5 +41,5 @@ function getLastCommit() {
 }
 
 module.exports = {
-	getLastCommit: getLastCommit,
+	getLastCommit,
 };

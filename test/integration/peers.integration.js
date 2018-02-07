@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var fs = require('fs');
@@ -244,9 +245,8 @@ function runFunctionalTests(cb) {
 	child.on('close', code => {
 		if (code === 0) {
 			return cb();
-		} else {
-			return cb('Functional tests failed');
 		}
+		return cb('Functional tests failed');
 	});
 
 	child.on('error', err => {

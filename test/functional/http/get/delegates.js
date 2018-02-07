@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
@@ -138,10 +139,10 @@ describe('GET /delegates', () => {
 					});
 			});
 
-			it('using no secondPublicKey should return an empty array', function() {
+			it('using no secondPublicKey should return an empty array', () => {
 				return delegatesEndpoint
 					.makeRequest({ secondPublicKey: '' }, 200)
-					.then(function(res) {
+					.then(res => {
 						expect(res.body.data).to.be.empty;
 					});
 			});
@@ -241,13 +242,11 @@ describe('GET /delegates', () => {
 			});
 		});
 
-		describe('search', function() {
-			it('using blank search should fail', function() {
-				return delegatesEndpoint
-					.makeRequest({ search: '' }, 400)
-					.then(function(res) {
-						expectSwaggerParamError(res, 'search');
-					});
+		describe('search', () => {
+			it('using blank search should fail', () => {
+				return delegatesEndpoint.makeRequest({ search: '' }, 400).then(res => {
+					expectSwaggerParamError(res, 'search');
+				});
 			});
 
 			it('using the special match all character should return all results', () => {
@@ -545,16 +544,16 @@ describe('GET /delegates', () => {
 		});
 	});
 
-	describe('GET /{address}/forging_stats', function() {
+	describe('GET /{address}/forging_stats', () => {
 		var forgedEndpoint = new swaggerEndpoint(
 			'GET /delegates/{address}/forging_stats'
 		);
 
-		describe('address', function() {
-			it('using known address should be ok', function() {
+		describe('address', () => {
+			it('using known address should be ok', () => {
 				return forgedEndpoint
 					.makeRequest({ address: validDelegate.address }, 200)
-					.then(function(res) {
+					.then(res => {
 						var group = res.body.data;
 						expect(parseInt(group.fees)).to.be.at.least(0);
 						expect(parseInt(group.rewards)).to.be.at.least(0);
@@ -566,52 +565,48 @@ describe('GET /delegates', () => {
 					});
 			});
 
-			it('using unknown address should return empty result', function() {
+			it('using unknown address should return empty result', () => {
 				return forgedEndpoint
 					.makeRequest({ address: randomUtil.account().address }, 400)
-					.then(function(res) {
+					.then(res => {
 						expectSwaggerParamError(res, 'address');
 					});
 			});
 
-			it('using invalid address should fail', function() {
+			it('using invalid address should fail', () => {
 				return forgedEndpoint
 					.makeRequest({ address: 'InvalidAddress' }, 400)
-					.then(function(res) {
+					.then(res => {
 						expectSwaggerParamError(res, 'address');
 					});
 			});
 
-			it('using empty address should fail', function() {
-				return forgedEndpoint
-					.makeRequest({ address: ' ' }, 400)
-					.then(function(res) {
-						expectSwaggerParamError(res, 'address');
-					});
+			it('using empty address should fail', () => {
+				return forgedEndpoint.makeRequest({ address: ' ' }, 400).then(res => {
+					expectSwaggerParamError(res, 'address');
+				});
 			});
 
-			it('using null address should fail', function() {
-				return forgedEndpoint
-					.makeRequest({ address: null }, 400)
-					.then(function(res) {
-						expectSwaggerParamError(res, 'address');
-					});
+			it('using null address should fail', () => {
+				return forgedEndpoint.makeRequest({ address: null }, 400).then(res => {
+					expectSwaggerParamError(res, 'address');
+				});
 			});
 
-			describe('?', function() {
-				describe('fromTimestamp', function() {
-					it('using too small fromTimestamp should fail', function() {
+			describe('?', () => {
+				describe('fromTimestamp', () => {
+					it('using too small fromTimestamp should fail', () => {
 						return forgedEndpoint
 							.makeRequest(
 								{ address: validDelegate.address, fromTimestamp: -1 },
 								400
 							)
-							.then(function(res) {
+							.then(res => {
 								expectSwaggerParamError(res, 'fromTimestamp');
 							});
 					});
 
-					it('using valid fromTimestamp should return transactions', function() {
+					it('using valid fromTimestamp should return transactions', () => {
 						// Last hour lisk time
 						var queryTime = slots.getTime() - 60 * 60;
 
@@ -620,7 +615,7 @@ describe('GET /delegates', () => {
 								{ address: validDelegate.address, fromTimestamp: queryTime },
 								200
 							)
-							.then(function(res) {
+							.then(res => {
 								var group = res.body.data;
 								expect(parseInt(group.fees)).to.be.at.least(0);
 								expect(parseInt(group.rewards)).to.be.at.least(0);
@@ -633,19 +628,19 @@ describe('GET /delegates', () => {
 					});
 				});
 
-				describe('toTimestamp', function() {
-					it('using too small toTimestamp should fail', function() {
+				describe('toTimestamp', () => {
+					it('using too small toTimestamp should fail', () => {
 						return forgedEndpoint
 							.makeRequest(
 								{ address: validDelegate.address, toTimestamp: 0 },
 								400
 							)
-							.then(function(res) {
+							.then(res => {
 								expectSwaggerParamError(res, 'toTimestamp');
 							});
 					});
 
-					it('using valid toTimestamp should return transactions', function() {
+					it('using valid toTimestamp should return transactions', () => {
 						// Current lisk time
 						var queryTime = slots.getTime();
 
@@ -654,7 +649,7 @@ describe('GET /delegates', () => {
 								{ address: validDelegate.address, toTimestamp: queryTime },
 								200
 							)
-							.then(function(res) {
+							.then(res => {
 								var group = res.body.data;
 								expect(parseInt(group.fees)).to.be.at.least(0);
 								expect(parseInt(group.rewards)).to.be.at.least(0);

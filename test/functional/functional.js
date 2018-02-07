@@ -11,8 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-before(function(done) {
+before(done => {
 	require('../common/utils/wait_for').blockchainReady(done);
 });

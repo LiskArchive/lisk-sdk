@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var crypto = require('crypto');
@@ -138,10 +139,10 @@ function createBlock(
 	);
 	blocksModule.lastBlock.set(previousBlock);
 	var newBlock = blockLogic.create({
-		keypair: keypair,
-		timestamp: timestamp,
+		keypair,
+		timestamp,
 		previousBlock: blocksModule.lastBlock.get(),
-		transactions: transactions,
+		transactions,
 	});
 	// newBlock.id = blockLogic.getId(newBlock);
 	return newBlock;
@@ -954,7 +955,7 @@ describe('blocks/verify', () => {
 
 			before(() => {
 				blockVerify.__set__('library', {
-					db: db,
+					db,
 					logger: library.logger,
 				});
 				onBlockchainReady = blockVerify.prototype.onBlockchainReady;

@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../../functional.js');
@@ -132,23 +133,19 @@ describe('GET /node', () => {
 			it('using existing publicKey should be ok', () => {
 				var publicKey = __testContext.config.forging.secret[0].publicKey;
 
-				return forgingEndpoint
-					.makeRequest({ publicKey: publicKey }, 200)
-					.then(res => {
-						expect(res.body.data).to.have.length(1);
-						expect(res.body.data[0].publicKey).to.be.eql(publicKey);
-					});
+				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {
+					expect(res.body.data).to.have.length(1);
+					expect(res.body.data[0].publicKey).to.be.eql(publicKey);
+				});
 			});
 
 			it('using enabled publicKey should be ok', () => {
 				var publicKey = __testContext.config.forging.secret[0].publicKey;
 
-				return forgingEndpoint
-					.makeRequest({ publicKey: publicKey }, 200)
-					.then(res => {
-						expect(res.body.data[0].publicKey).to.be.eql(publicKey);
-						expect(res.body.data[0].forging).to.be.true;
-					});
+				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {
+					expect(res.body.data[0].publicKey).to.be.eql(publicKey);
+					expect(res.body.data[0].forging).to.be.true;
+				});
 			});
 		});
 	});

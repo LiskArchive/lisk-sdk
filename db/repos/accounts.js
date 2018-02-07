@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 const _ = require('lodash');
@@ -234,7 +235,7 @@ class AccountsRepository {
 		}
 
 		const conditionObject = {};
-		conflictingFields.forEach(function(field) {
+		conflictingFields.forEach(field => {
 			conditionObject[field] = data[field];
 		});
 
@@ -272,7 +273,7 @@ class AccountsRepository {
 			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
-		this.getImmutableFields().map(function(field) {
+		this.getImmutableFields().map(field => {
 			delete data[field];
 		});
 
@@ -299,9 +300,9 @@ class AccountsRepository {
 	increment(address, field, value) {
 		return this.db.none(sql.incrementAccount, {
 			table: this.dbTable,
-			field: field,
-			value: value,
-			address: address,
+			field,
+			value,
+			address,
 		});
 	}
 
@@ -316,9 +317,9 @@ class AccountsRepository {
 	decrement(address, field, value) {
 		return this.db.none(sql.decrementAccount, {
 			table: this.dbTable,
-			field: field,
-			value: value,
-			address: address,
+			field,
+			value,
+			address,
 		});
 	}
 
@@ -382,10 +383,10 @@ class AccountsRepository {
 		if (
 			filters &&
 			typeof filters.username === 'object' &&
-			filters.username['$like']
+			filters.username.$like
 		) {
 			dynamicConditions.push(
-				pgp.as.format('username LIKE $1', [filters.username['$like']])
+				pgp.as.format('username LIKE $1', [filters.username.$like])
 			);
 			delete filters.username;
 		}
@@ -442,9 +443,9 @@ class AccountsRepository {
 
 		if (filters) {
 			const filterKeys = Object.keys(filters);
-			const filteredColumns = this.cs.insert.columns.filter(function(column) {
-				return filterKeys.indexOf(column.name) >= 0;
-			});
+			const filteredColumns = this.cs.insert.columns.filter(
+				column => filterKeys.indexOf(column.name) >= 0
+			);
 
 			// TODO: Improve this logic to convert set statement to composite logic
 			conditions = pgp.helpers
@@ -472,11 +473,11 @@ class AccountsRepository {
 
 		const query = this.pgp.as.format(sql, {
 			fields: selectClause,
-			conditions: conditions,
-			sortField: sortField,
-			sortMethod: sortMethod,
-			limit: limit,
-			offset: offset,
+			conditions,
+			sortField,
+			sortMethod,
+			limit,
+			offset,
 		});
 
 		return this.db.query(query);
@@ -508,8 +509,8 @@ class AccountsRepository {
 
 		return this.db.none(sql.removeAccountDependencies, {
 			table: `${this.dbTable}2${dependency}`,
-			address: address,
-			dependentId: dependentId,
+			address,
+			dependentId,
 		});
 	}
 
@@ -546,7 +547,7 @@ class AccountsRepository {
 			this.pgp.helpers.insert(
 				{
 					accountId: address,
-					dependentId: dependentId,
+					dependentId,
 				},
 				null,
 				dependentTable
@@ -561,7 +562,7 @@ class AccountsRepository {
 	 * @return {Promise<null>}
 	 */
 	convertToNonVirgin(address) {
-		return this.db.none(sql.convertToNonVirgin, { address: address });
+		return this.db.none(sql.convertToNonVirgin, { address });
 	}
 }
 

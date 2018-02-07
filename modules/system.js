@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var os = require('os');
@@ -172,15 +173,14 @@ System.prototype.getBroadhash = function(cb) {
 		.then(rows => {
 			if (rows.length <= 1) {
 				return setImmediate(cb, null, __private.nethash);
-			} else {
-				var seed = rows.map(row => row.id).join('');
-				var hash = crypto
-					.createHash('sha256')
-					.update(seed, 'utf8')
-					.digest();
-
-				return setImmediate(cb, null, hash.toString('hex'));
 			}
+			var seed = rows.map(row => row.id).join('');
+			var hash = crypto
+				.createHash('sha256')
+				.update(seed, 'utf8')
+				.digest();
+
+			return setImmediate(cb, null, hash.toString('hex'));
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -253,7 +253,7 @@ System.prototype.nonceCompatible = function(nonce) {
 System.prototype.update = function(cb) {
 	async.series(
 		{
-			getBroadhash: function(seriesCb) {
+			getBroadhash(seriesCb) {
 				self.getBroadhash((err, hash) => {
 					if (!err) {
 						__private.broadhash = hash;
@@ -262,7 +262,7 @@ System.prototype.update = function(cb) {
 					return setImmediate(seriesCb);
 				});
 			},
-			getHeight: function(seriesCb) {
+			getHeight(seriesCb) {
 				__private.height = modules.blocks.lastBlock.get().height;
 				return setImmediate(seriesCb);
 			},

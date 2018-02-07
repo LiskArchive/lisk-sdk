@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var Promise = require('bluebird');
@@ -85,7 +86,7 @@ function Round(scope, t) {
 Round.prototype.mergeBlockGenerator = function() {
 	var self = this;
 
-	return new Promise(function(resolve, reject) {
+	return new Promise((resolve, reject) => {
 		self.scope.modules.accounts.mergeAccountAndGet(
 			{
 				publicKey: self.scope.block.generatorPublicKey,
@@ -93,7 +94,7 @@ Round.prototype.mergeBlockGenerator = function() {
 				blockId: self.scope.block.id,
 				round: self.scope.round,
 			},
-			function(err, account) {
+			(err, account) => {
 				if (err) {
 					return reject(err);
 				}
@@ -148,9 +149,8 @@ Round.prototype.updateVotes = function() {
 
 		if (queries.length > 0) {
 			return self.t.batch(queries);
-		} else {
-			return self.t;
 		}
+		return self.t;
 	});
 };
 
@@ -164,9 +164,8 @@ Round.prototype.markBlockId = function() {
 			this.scope.block.id,
 			'0'
 		);
-	} else {
-		return this.t;
 	}
+	return this.t;
 };
 
 /**
@@ -242,11 +241,11 @@ Round.prototype.applyRound = function() {
 		changes = roundChanges.at(i);
 
 		this.scope.library.logger.trace('Delegate changes', {
-			delegate: delegate,
-			changes: changes,
+			delegate,
+			changes,
 		});
 
-		p = new Promise(function(resolve, reject) {
+		p = new Promise((resolve, reject) => {
 			self.scope.modules.accounts.mergeAccountAndGet(
 				{
 					publicKey: delegate,
@@ -257,7 +256,7 @@ Round.prototype.applyRound = function() {
 					fees: self.scope.backwards ? -changes.fees : changes.fees,
 					rewards: self.scope.backwards ? -changes.rewards : changes.rewards,
 				},
-				function(err, account) {
+				(err, account) => {
 					if (err) {
 						return reject(err);
 					}
@@ -289,7 +288,7 @@ Round.prototype.applyRound = function() {
 			fees: feesRemaining,
 		});
 
-		p = new Promise(function(resolve, reject) {
+		p = new Promise((resolve, reject) => {
 			self.scope.modules.accounts.mergeAccountAndGet(
 				{
 					publicKey: remainderDelegate,
@@ -299,7 +298,7 @@ Round.prototype.applyRound = function() {
 					round: self.scope.round,
 					fees: feesRemaining,
 				},
-				function(err, account) {
+				(err, account) => {
 					if (err) {
 						return reject(err);
 					}
@@ -316,9 +315,8 @@ Round.prototype.applyRound = function() {
 
 	if (queries.length > 0) {
 		return this.t.batch(queries);
-	} else {
-		return this.t;
 	}
+	return this.t;
 };
 
 /**
