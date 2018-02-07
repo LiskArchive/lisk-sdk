@@ -15,9 +15,13 @@
 'use strict';
 
 /**
+ * Description of the namespace.
+ *
  * @namespace milestones
- * @memberof module:helpers
- * @property {integer} disableDappTransfers
+ * @memberof helpers
+ * @see Parent: {@link helpers}
+ * @property {number} disableDappTransfers - Description of the value
+ * @todo Add description of the namespace and its value
  */
 module.exports = {
 	disableDappTransfers: 0,
