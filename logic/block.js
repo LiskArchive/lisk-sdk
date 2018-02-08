@@ -28,6 +28,7 @@ var __private = {};
  *
  * @class
  * @memberof logic
+ * @see Parent: {@link logic}
  * @requires bytebuffer
  * @requires crypto
  * @requires helpers/bignum

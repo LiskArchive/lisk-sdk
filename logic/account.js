@@ -31,9 +31,15 @@ var __private = {};
  *
  * @class
  * @memberof logic
- * @param {Database} db
- * @param {ZSchema} schema
- * @param {Object} logger
+ * @see Parent: {@link logic}
+ * @requires lodash
+ * @requires helpers/constants
+ * @requires helpers/sort_by
+ * @requires helpers/bignum
+ * @requires logic/block_reward
+ * @param {Database} db - Description of the param
+ * @param {ZSchema} schema - Description of the param
+ * @param {Object} logger - Description of the param
  * @param {function} cb - Callback function.
  * @property {account_model} model
  * @property {account_schema} schema
@@ -626,7 +632,7 @@ Account.prototype.schema = {
 /**
  * Binds input parameters to private variables modules.
  *
- * @param {Blocks} blocks
+ * @param {Blocks} blocks - Description of the param
  * @todo Add description of the param
  */
 Account.prototype.bind = function(blocks) {
@@ -661,7 +667,7 @@ Account.prototype.resetMemTables = function(cb) {
 /**
  * Validates account schema.
  *
- * @param {account} account
+ * @param {account} account - Description of the param
  * @returns {err|account} Error message or input parameter account.
  * @throws {string} If schema.validate fails, throws 'Failed to validate account schema'.
  * @todo Add description of the param
@@ -685,7 +691,7 @@ Account.prototype.objectNormalize = function(account) {
 /**
  * Checks type, lenght and format from publicKey.
  *
- * @param {publicKey} publicKey
+ * @param {publicKey} publicKey - Description of the param
  * @throws {string} throws one error for every check
  * @todo Add description of the param
  */
@@ -902,8 +908,8 @@ Account.prototype.getAll = function(filter, fields, cb, tx) {
 /**
  * Calculates productivity of a delegate account.
  *
- * @param {String} votersBalance
- * @param {String} totalSupply
+ * @param {String} votersBalance - Description of the param
+ * @param {String} totalSupply - Description of the param
  * @returns {Number}
  * @todo Add descriptions of the params and returns-value
  */
@@ -921,8 +927,8 @@ Account.prototype.calculateApproval = function(votersBalance, totalSupply) {
 /**
  * Calculates productivity of a delegate account.
  *
- * @param {String} producedBlocks
- * @param {String} missedBlocks
+ * @param {String} producedBlocks - Description of the param
+ * @param {String} missedBlocks - Description of the param
  * @returns {Number}
  * @todo Add descriptions of the params and returns-value
  */
@@ -942,8 +948,8 @@ Account.prototype.calculateProductivity = function(
 /**
  * Sets fields for specific address in mem_accounts table.
  *
- * @param {address} address
- * @param {Object} fields
+ * @param {address} address - Description of the param
+ * @param {Object} fields - Description of the param
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb | 'Account#set error'
  * @todo Add descriptions of the params and returns-value
@@ -970,7 +976,7 @@ Account.prototype.set = function(address, fields, cb, tx) {
  * Updates account from mem_account with diff data belonging to an editable field.
  * Inserts into mem_round "address", "amount", "delegate", "blockId", "round" based on balance or delegates fields.
  *
- * @param {address} address
+ * @param {address} address - Description of the param
  * @param {Object} diff - Must contains only mem_account editable fields
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error
@@ -1127,7 +1133,7 @@ Account.prototype.merge = function(address, diff, cb, tx) {
 /**
  * Removes an account from mem_account table based on address.
  *
- * @param {address} address
+ * @param {address} address - Description of the param
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} Data with address | Account#remove error
  * @todo Add descriptions of the params
