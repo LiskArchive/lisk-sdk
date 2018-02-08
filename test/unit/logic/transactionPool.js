@@ -16,6 +16,8 @@ var TransactionPool = rewire('../../../logic/transactionPool.js');
 // Create fresh instance of jobsQueue
 var jobsQueue = rewire('../../../helpers/jobsQueue.js');
 
+var Sequence = require('../../../helpers/sequence.js');
+
 describe('transactionPool', function () {
 
 	var transactionPool;
@@ -23,6 +25,7 @@ describe('transactionPool', function () {
 	var dummyProcessVerifyTransaction;
 	var dummyApplyUnconfirmed;
 	var dummyUndoUnconfirmed;
+	var balancesSequence;
 
 	// Init fake logger
 	var logger = {
@@ -58,6 +61,8 @@ describe('transactionPool', function () {
 		// Use fresh instance of jobsQueue inside transaction pool
 		TransactionPool.__set__('jobsQueue', jobsQueue);
 
+		balancesSequence = new Sequence();
+
 		// Init test subject
 		transactionPool = new TransactionPool(
 			config.broadcasts.broadcastInterval,
@@ -65,7 +70,7 @@ describe('transactionPool', function () {
 			sinon.spy(), // transaction
 			sinon.spy(), // bus
 			logger, // logger
-			{add: sinon.spy()}
+			balancesSequence
 		);
 
 		// Bind fake modules
@@ -514,7 +519,7 @@ describe('transactionPool', function () {
 						after(resetStates);
 					});
 
-					describe('that results with error on modules.transactions.undoUnconfirme', function () {
+					describe('that results with error on modules.transactions.undoUnconfirmed', function () {
 
 						var badTransaction = {id: 'badTx'};
 						var transactions = [ badTransaction ];
