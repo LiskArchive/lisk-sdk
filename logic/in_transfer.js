@@ -23,12 +23,17 @@ var library;
 var shared;
 
 /**
- * Initializes library.
- * @memberof module:dapps
+ * Main InTransfer logic. Initializes library.
+ *
  * @class
- * @classdesc Main InTransfer logic.
- * @param {Database} db
- * @param {ZSchema} schema
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires helpers/constants
+ * @requires helpers/milestones
+ * @requires helpers/slots
+ * @param {Database} db - Description of the param
+ * @param {ZSchema} schema - Description of the param
+ * @todo Add descriptions for the params
  */
 // Constructor
 function InTransfer(db, schema) {
@@ -41,8 +46,10 @@ function InTransfer(db, schema) {
 // Public methods
 /**
  * Binds input parameters to private variables modules and shared.
- * @param {Accounts} accounts
- * @param {Object} sharedApi
+ *
+ * @param {Accounts} accounts - Description of the param
+ * @param {Object} sharedApi - Description of the param
+ * @todo Add descriptions for the params
  */
 InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
 	modules = {
@@ -54,9 +61,11 @@ InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
 
 /**
  * Returns send fee from constants.
- * @param {transaction} transaction
- * @param {account} sender
- * @return {number} fee
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @returns {number} fee
+ * @todo Add descriptions for the params
  */
 InTransfer.prototype.calculateFee = function() {
 	return constants.fees.send;
@@ -65,11 +74,12 @@ InTransfer.prototype.calculateFee = function() {
 /**
  * Verifies recipientId, amount and InTransfer object content.
  * Finds application into `dapps` table.
- * @implements {library.db.one}
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} errors message | transaction
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} errors message | transaction
+ * @todo Add descriptions for the params
  */
 InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 	var lastBlock = modules.blocks.lastBlock.get();
@@ -105,10 +115,13 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 };
 
 /**
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb, null, transaction
+ * Description of the function.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb, null, transaction
+ * @todo Add descriptions for the params
  */
 InTransfer.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
@@ -117,9 +130,11 @@ InTransfer.prototype.process = function(transaction, sender, cb) {
 /**
  * Creates buffer with inTransfer content:
  * - dappId
- * @param {transaction} transaction
- * @return {Array} Buffer
+ *
+ * @param {transaction} transaction - Description of the param
+ * @returns {Array} Buffer
  * @throws {e} Error
+ * @todo Add descriptions for the params
  */
 InTransfer.prototype.getBytes = function(transaction) {
 	var buf;
@@ -139,14 +154,13 @@ InTransfer.prototype.getBytes = function(transaction) {
  * Calls getGenesis with dappid to obtain authorId.
  * Calls mergeAccountAndGet with unconfirmed transaction amount and authorId as
  * address.
- * @implements {shared.getGenesis}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {block} block - Description of the param
+ * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
+ * @returns {setImmediateCallback} error, cb
+ * @todo Add descriptions for the params
  */
 InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
 	shared.getGenesis(
@@ -175,14 +189,13 @@ InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * Calls getGenesis with dappid to obtain authorId.
  * Calls mergeAccountAndGet with authorId as address and unconfirmed
  * transaction amount and balance both negatives.
- * @implements {shared.getGenesis}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {block} block - Description of the param
+ * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
+ * @returns {setImmediateCallback} error, cb
+ * @todo Add descriptions for the params
  */
 InTransfer.prototype.undo = function(transaction, block, sender, cb) {
 	shared.getGenesis(
@@ -206,20 +219,26 @@ InTransfer.prototype.undo = function(transaction, block, sender, cb) {
 };
 
 /**
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ * Description of the function.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb
+ * @todo Add descriptions for the function and its params
  */
 InTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 	return setImmediate(cb);
 };
 
 /**
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ * Description of the function.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb
+ * @todo Add descriptions for the function and its params
  */
 InTransfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
 	return setImmediate(cb);
@@ -241,10 +260,11 @@ InTransfer.prototype.schema = {
 
 /**
  * Calls `objectNormalize` with asset inTransfer.
- * @implements {library.schema.validate}
- * @param {transaction} transaction
- * @return {error|transaction} error string | transaction normalized
+ *
+ * @param {transaction} transaction - Description of the param
+ * @returns {error|transaction} error string | transaction normalized
  * @throws {string} error message
+ * @todo Add descriptions for the params
  */
 InTransfer.prototype.objectNormalize = function(transaction) {
 	var report = library.schema.validate(
@@ -264,8 +284,10 @@ InTransfer.prototype.objectNormalize = function(transaction) {
 
 /**
  * Creates inTransfer object based on raw data.
- * @param {Object} raw
- * @return {Object} inTransfer with dappId
+ *
+ * @param {Object} raw - Description of the param
+ * @returns {Object} inTransfer with dappId
+ * @todo Add descriptions for the params
  */
 InTransfer.prototype.dbRead = function(raw) {
 	if (!raw.in_dappId) {
@@ -280,9 +302,12 @@ InTransfer.prototype.dbRead = function(raw) {
 };
 
 /**
- * @param {transaction} transaction
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ * Description of the function.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb
+ * @todo Add descriptions for the params
  */
 InTransfer.prototype.afterSave = function(transaction, cb) {
 	return setImmediate(cb);
@@ -290,9 +315,11 @@ InTransfer.prototype.afterSave = function(transaction, cb) {
 
 /**
  * Checks if transaction has enough signatures to be confirmed.
- * @param {transaction} transaction
- * @param {account} sender
- * @return {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @todo Add descriptions for the params
  */
 InTransfer.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
