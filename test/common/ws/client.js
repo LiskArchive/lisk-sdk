@@ -63,12 +63,12 @@ WSClient.prototype.start = function() {
 		self.client = scClient.connect(self.socketOptions);
 
 		self.client.on('connecting', () => {
-			console.log('Client Socket: Connecting...');
+			console.info('Client Socket: Connecting...');
 		});
 
 		self.client.on('connect', data => {
 			self.id = data.id;
-			console.log('Client Socket: Connected... id: ', self.id);
+			console.info('Client Socket: Connected... id: ', self.id);
 			resolve(data);
 		});
 

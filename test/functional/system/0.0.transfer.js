@@ -40,7 +40,7 @@ describe('system test (type 0) - double transfers', () => {
 			var transaction2;
 
 			before(done => {
-				console.log(++t);
+				console.info(`Iteration count: ${++t}`);
 				localCommon.addTransactionsAndForge(library, [transaction], () => {
 					done();
 				});

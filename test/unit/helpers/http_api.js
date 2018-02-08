@@ -47,7 +47,7 @@ describe('httpApi', () => {
 				error: `API error: ${validError.message}`,
 			};
 			validNextSpy = sinonSandbox.spy();
-			spyConsoleTrace = sinonSandbox.spy(console, 'trace');
+			spyConsoleTrace = sinonSandbox.spy(console, 'error');
 
 			loggerMock = {
 				trace: sinonSandbox.spy(),

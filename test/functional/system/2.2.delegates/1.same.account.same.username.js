@@ -41,7 +41,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			);
 
 			before(done => {
-				console.log(++t);
+				console.info(`Iteration count: ${++t}`);
 				localCommon.addTransactionsAndForge(library, [transaction], () => {
 					done();
 				});

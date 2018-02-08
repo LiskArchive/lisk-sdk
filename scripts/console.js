@@ -56,11 +56,11 @@ application.init(
 		// e.g. modules.accounts.shared.getAccount({body: {}}, cb)
 		replServer.context.cb = function(err, data) {
 			// Make sure cab response showed in terminal
-			console.log(data);
+			console.info(data);
 		};
 
 		replServer.on('exit', () => {
-			console.log('Goodbye! See you later.');
+			console.info('Goodbye! See you later.');
 			process.exit();
 		});
 	},
@@ -77,7 +77,7 @@ application.init(
  */
 process.on('uncaughtException', err => {
 	// Handle error safely
-	console.log('System error', { message: err.message, stack: err.stack });
+	console.error('System error', { message: err.message, stack: err.stack });
 	/**
 	 * emits cleanup once 'uncaughtException'.
 	 * @emits cleanup
@@ -94,5 +94,5 @@ process.on('uncaughtException', err => {
  * @listens unhandledRejection
  */
 process.on('unhandledRejection', (reason, p) => {
-	console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+	console.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });
