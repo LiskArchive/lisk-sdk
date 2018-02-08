@@ -27,14 +27,20 @@ __private.unconfirmedLinks = {};
 __private.unconfirmedAscii = {};
 
 /**
- * Initializes library.
- * @memberof module:dapps
+ * Main dapp logic. Initializes library.
+ *
  * @class
- * @classdesc Main dapp logic.
- * @param {Database} db
- * @param {Object} logger
- * @param {ZSchema} schema
- * @param {Object} network
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires bytebuffer
+ * @requires valid
+ * @requires helpers/constants
+ * @requires helpers/dapp_categories
+ * @param {Database} db - Description of the param
+ * @param {Object} logger - Description of the param
+ * @param {ZSchema} schema - Description of the param
+ * @param {Object} network - Description of the param
+ * @todo Add descriptions for the params
  */
 // Constructor
 function DApp(db, logger, schema, network) {
@@ -54,7 +60,8 @@ DApp.prototype.bind = function() {};
 
 /**
  * Returns dapp fee from constants.
- * @return {number} fee
+ *
+ * @returns {number} fee
  */
 DApp.prototype.calculateFee = function() {
 	return constants.fees.dappRegistration;
@@ -63,11 +70,12 @@ DApp.prototype.calculateFee = function() {
 /**
  * Verifies transaction and dapp fields. Checks dapp name and link in
  * `dapps` table.
- * @implements {library.db.query}
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} errors | transaction
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} errors | transaction
+ * @todo Add descriptions for the params
  */
 DApp.prototype.verify = function(transaction, sender, cb, tx) {
 	var i;
@@ -215,10 +223,13 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 };
 
 /**
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb, null, transaction
+ * Description of the function.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb, null, transaction
+ * @todo Add description of the function and its params
  */
 DApp.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
@@ -233,9 +244,11 @@ DApp.prototype.process = function(transaction, sender, cb) {
  * - icon
  * - type
  * - category
- * @param {transaction} transaction
- * @return {Array} Buffer
+ *
+ * @param {transaction} transaction - Description of the param
  * @throws {e} error
+ * @returns {Array} Buffer
+ * @todo Add descriptions for the params
  */
 DApp.prototype.getBytes = function(transaction) {
 	var buf;
@@ -286,11 +299,14 @@ DApp.prototype.getBytes = function(transaction) {
 };
 
 /**
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ * Description of the function.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {block} block - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb
+ * @todo Add description of the function and its params
  */
 DApp.prototype.apply = function(transaction, block, sender, cb) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
@@ -300,11 +316,14 @@ DApp.prototype.apply = function(transaction, block, sender, cb) {
 };
 
 /**
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ * Description of the function.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {block} block - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb
+ * @todo Add description of the function and its params
  */
 DApp.prototype.undo = function(transaction, block, sender, cb) {
 	return setImmediate(cb);
@@ -313,10 +332,12 @@ DApp.prototype.undo = function(transaction, block, sender, cb) {
 /**
  * Checks if dapp name and link exists, if not adds them to private
  * unconfirmed variables.
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb|errors
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb|errors
+ * @todo Add descriptions for the params
  */
 DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
@@ -338,10 +359,12 @@ DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 
 /**
  * Deletes dapp name and link from private unconfirmed variables.
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb
+ * @todo Add descriptions for the params
  */
 DApp.prototype.undoUnconfirmed = function(transaction, sender, cb) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
@@ -405,10 +428,11 @@ DApp.prototype.schema = {
 
 /**
  * Deletes null or undefined dapp from transaction and validate dapp schema.
- * @implements {library.schema.validate}
- * @param {transaction} transaction
- * @return {transaction}
+ *
+ * @param {transaction} transaction - Description of the param
  * @throws {string} Failed to validate dapp schema.
+ * @returns {transaction}
+ * @todo Add descriptions for the params
  */
 DApp.prototype.objectNormalize = function(transaction) {
 	for (var i in transaction.asset.dapp) {
@@ -437,8 +461,10 @@ DApp.prototype.objectNormalize = function(transaction) {
 
 /**
  * Creates dapp object based on raw data.
- * @param {Object} raw
- * @return {null|dapp} dapp object
+ *
+ * @param {Object} raw - Description of the param
+ * @returns {null|dapp} dapp object
+ * @todo Add descriptions for the params
  */
 DApp.prototype.dbRead = function(raw) {
 	if (!raw.dapp_name) {
@@ -460,10 +486,11 @@ DApp.prototype.dbRead = function(raw) {
 
 /**
  * Emits 'dapps/change' signal.
- * @implements {library.network.io.sockets}
- * @param {transaction} transaction
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb
+ * @todo Add descriptions for the params
  */
 DApp.prototype.afterSave = function(transaction, cb) {
 	if (library) {
@@ -474,9 +501,11 @@ DApp.prototype.afterSave = function(transaction, cb) {
 
 /**
  * Checks if transaction has enough signatures to be confirmed.
- * @param {transaction} transaction
- * @param {account} sender
- * @return {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @todo Add descriptions for the params
  */
 DApp.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
