@@ -111,8 +111,7 @@ Round.prototype.mergeBlockGenerator = function() {
 /**
  * If outsiders content, calls sql updateMissedBlocks.
  *
- * @returns {}
- * @todo Describe returns tag
+ * @todo Add returns tag
  */
 Round.prototype.updateMissedBlocks = function() {
 	if (this.scope.roundOutsiders.length === 0) {
@@ -128,9 +127,8 @@ Round.prototype.updateMissedBlocks = function() {
 /**
  * Calls sql getVotes from `mem_round` table.
  *
- * @returns {}
  * @todo Round must be a param option.
- * @todo Describe returns tag
+ * @todo Add returns tag
  */
 Round.prototype.getVotes = function() {
 	return (this.t || this.scope.library.db).rounds.getVotes(this.scope.round);

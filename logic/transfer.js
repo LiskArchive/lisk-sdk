@@ -273,7 +273,7 @@ Transfer.prototype.objectNormalize = function(transaction) {
  * Checks if asset exists, if so, returns value, otherwise returns null.
  *
  * @param {Object} raw - Description of the param
- * @returns {transferAsset|null}
+ * @returns {?transferAsset}
  * @todo Add descriptions for the params
  */
 Transfer.prototype.dbRead = function(raw) {

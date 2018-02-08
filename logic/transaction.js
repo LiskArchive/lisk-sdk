@@ -175,7 +175,7 @@ Transaction.prototype.getHash = function(transaction) {
 
 /**
  * Calls `getBytes` based on transaction type (see privateTypes)
- * @see privateTypes
+ * @see {@link privateTypes}
  *
  * @param {transaction} transaction - Description of the param
  * @param {boolean} skipSignature - Description of the param
@@ -270,7 +270,7 @@ Transaction.prototype.getBytes = function(
 /**
  * Calls `ready` based on transaction type (see privateTypes).
  *
- * @see privateTypes
+ * @see {@link privateTypes}
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @returns {function|boolean} calls `ready` | false
@@ -370,7 +370,7 @@ Transaction.prototype.checkBalance = function(
  * Validates parameters.
  * Calls `process` based on transaction type (see privateTypes).
  *
- * @see privateTypes
+ * @see {@link privateTypes}
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {account} requester - Description of the param
@@ -441,9 +441,9 @@ Transaction.prototype.process = function(
 
 /**
  * Validates parameters.
- * Calls `process` based on transaction type (see privateTypes)
+ * Calls `process` based on transaction type (see privateTypes).
  *
- * @see privateTypes
+ * @see {@link privateTypes}
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {account} requester - Description of the param
@@ -846,7 +846,7 @@ Transaction.prototype.verifyBytes = function(bytes, publicKey, signature) {
 /**
  * Merges account into sender address, Calls `apply` based on transaction type (privateTypes).
  *
- * @see privateTypes
+ * @see {@link privateTypes}
  * @param {transaction} transaction - Description of the param
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
@@ -923,7 +923,7 @@ Transaction.prototype.apply = function(transaction, block, sender, cb, tx) {
 /**
  * Merges account into sender address, Calls `undo` based on transaction type (privateTypes).
  *
- * @see privateTypes
+ * @see {@link privateTypes}
  * @param {transaction} transaction - Description of the param
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
@@ -984,7 +984,7 @@ Transaction.prototype.undo = function(transaction, block, sender, cb) {
  * Calls `applyUnconfirmed` based on transaction type (privateTypes). If error merge
  * account with amount.
  *
- * @see privateTypes
+ * @see {@link privateTypes}
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {account} requester - Description of the param
@@ -1060,7 +1060,7 @@ Transaction.prototype.applyUnconfirmed = function(
  * Calls `undoUnconfirmed` based on transaction type (privateTypes). If error merge
  * account with megative amount.
  *
- * @see privateTypes
+ * @see {@link privateTypes}
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
@@ -1105,7 +1105,7 @@ Transaction.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 /**
  * Calls `afterSave` based on transaction type (privateTypes).
  *
- * @see privateTypes
+ * @see {@link privateTypes}
  * @param {transaction} transaction - Description of the param
  * @param {function} cb - Description of the param
  * @returns {setImmediateCallback} error string | cb
@@ -1220,7 +1220,7 @@ Transaction.prototype.schema = {
 /**
  * Calls `objectNormalize` based on transaction type (privateTypes).
  *
- * @see privateTypes
+ * @see {@link privateTypes}
  * @param {transaction} transaction - Description of the param
  * @throws {string} error message
  * @returns {error|transaction} error string | transaction normalized
@@ -1279,7 +1279,7 @@ Transaction.prototype.objectNormalize = function(transaction) {
 /**
  * Calls `dbRead` based on transaction type (privateTypes) to add tr asset.
  *
- * @see privateTypes
+ * @see {@link privateTypes}
  * @param {Object} raw - Description of the param
  * @throws {string} Unknown transaction type
  * @returns {null|transaction}

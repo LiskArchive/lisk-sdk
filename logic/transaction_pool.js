@@ -144,7 +144,7 @@ TransactionPool.prototype.transactionInPool = function(id) {
  * Gets an unconfirmed transaction based on transaction id.
  *
  * @param {string} id - Transaction id
- * @returns {(Object|undefined)} - Transaction or undefined
+ * @returns {Object|undefined} - Transaction or undefined
  */
 TransactionPool.prototype.getUnconfirmedTransaction = function(id) {
 	var index = self.unconfirmed.index[id];
