@@ -503,13 +503,15 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 		})
 		.then(() => {
 			modules.blocks.isActive.set(false);
-			appliedTransactions = block = null;
+			block = null;
+			appliedTransactions = null;
 
 			return setImmediate(cb, null);
 		})
 		.catch(reason => {
 			modules.blocks.isActive.set(false);
-			appliedTransactions = block = null;
+			block = null;
+			appliedTransactions = null;
 
 			// Finish here if snapshotting.
 			// FIXME: Not the best place to do that
