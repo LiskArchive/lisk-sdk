@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getTransactionId } from '../../../src/transactions/utils';
+import { getTransactionId } from 'transactions/utils';
 
-const hash = require('../../../src/crypto/hash');
-const utils = require('../../../src/transactions/utils');
+const hash = require('cryptography/hash');
+const utils = require('transactions/utils');
 
 describe('#getTransactionId', () => {
 	const defaultPublicKey =

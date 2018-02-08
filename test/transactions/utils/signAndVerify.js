@@ -16,11 +16,11 @@ import {
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
-} from '../../../src/transactions/utils';
+} from 'transactions/utils';
 
-import cryptoModule from '../../../src/crypto';
+import cryptoModule from 'cryptography';
 
-const getTransactionHash = require('../../../src/transactions/utils/getTransactionHash');
+const getTransactionHash = require('transactions/utils/getTransactionHash');
 
 describe('signAndVerify transaction utils', () => {
 	const defaultPassphrase =

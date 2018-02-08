@@ -13,7 +13,7 @@
  *
  */
 const popsicle = require('popsicle');
-const privateApi = require('../../src/api/privateApi');
+const privateApi = require('api/privateApi');
 
 describe('privateApi module', () => {
 	const port = 7000;

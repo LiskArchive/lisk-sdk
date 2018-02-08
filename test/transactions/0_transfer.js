@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transfer from '../../src/transactions/0_transfer';
+import transfer from 'transactions/0_transfer';
 
-const time = require('../../src/transactions/utils/time');
+const time = require('transactions/utils/time');
 
 describe('#transfer transaction', () => {
 	const fixedPoint = 10 ** 8;

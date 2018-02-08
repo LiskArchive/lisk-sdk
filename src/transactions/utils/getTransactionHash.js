@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import crypto from '../../crypto';
+import cryptoModule from 'cryptography';
 import getTransactionBytes from './getTransactionBytes';
 
 const getTransactionHash = transaction => {
 	const bytes = getTransactionBytes(transaction);
-	return crypto.hash(bytes);
+	return cryptoModule.hash(bytes);
 };
 
 export default getTransactionHash;

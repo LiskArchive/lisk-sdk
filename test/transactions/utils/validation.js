@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../../src/crypto';
+import cryptoModule from 'cryptography';
 import {
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
 	validatePublicKeys,
 	validateKeysgroup,
-} from '../../../src/transactions/utils/validation';
+} from 'transactions/utils/validation';
 
 describe('public key validation', () => {
 	describe('#validatePublicKey', () => {

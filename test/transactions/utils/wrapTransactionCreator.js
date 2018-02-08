@@ -1,6 +1,6 @@
-import wrapTransactionCreator from '../../../src/transactions/utils/wrapTransactionCreator';
+import wrapTransactionCreator from 'transactions/utils/wrapTransactionCreator';
 
-const prepareTransaction = require('../../../src/transactions/utils/prepareTransaction');
+const prepareTransaction = require('transactions/utils/prepareTransaction');
 
 describe('#wrapTransactionCreator', () => {
 	const defaultPassphrase = 'secret';

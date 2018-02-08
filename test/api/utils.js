@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const utils = require('../../src/api/utils');
+const utils = require('api/utils');
 
 describe('api utils module', () => {
 	const POST = 'POST';

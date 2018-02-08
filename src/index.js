@@ -14,7 +14,7 @@
  */
 import naclFactory from 'js-nacl';
 import api from './api/liskApi';
-import crypto from './crypto';
+import crypto from './cryptography';
 import passphrase from './passphrase';
 import * as time from './transactions/utils/time';
 import transaction from './transactions';

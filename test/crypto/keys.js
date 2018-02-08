@@ -17,10 +17,10 @@ import {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 	getKeys,
 	getAddressAndPublicKeyFromPassphrase,
-} from '../../src/crypto/keys';
+} from 'cryptography/keys';
 
-const convert = require('../../src/crypto/convert');
-const hash = require('../../src/crypto/hash');
+const convert = require('cryptography/convert');
+const hash = require('cryptography/hash');
 
 describe('keys', () => {
 	const defaultPassphrase = 'secret';

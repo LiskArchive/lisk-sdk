@@ -15,7 +15,7 @@
 import {
 	getTimeFromBlockchainEpoch,
 	getTimeWithOffset,
-} from '../../../src/transactions/utils/time';
+} from 'transactions/utils/time';
 
 describe('time module', () => {
 	const nowRealTime = 1464109220000;

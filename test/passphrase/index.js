@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import passphrase from '../../src/passphrase/index';
+import passphrase from 'passphrase/index';
 
 describe('passphrase index.js', () => {
 	it('should export an object', () => {

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../crypto';
+import cryptoModule from 'cryptography';
 import prepareTransaction from './prepareTransaction';
 import { getTimeWithOffset } from './time';
 

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../crypto';
+import cryptoModule from 'cryptography';
 import getTransactionBytes from './getTransactionBytes';
 
 const getTransactionId = transaction => {

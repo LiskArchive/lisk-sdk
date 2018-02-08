@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import LiskAPI from '../../src/api/liskApi';
+import LiskAPI from 'api/liskApi';
 
-const privateApi = require('../../src/api/privateApi');
-const utils = require('../../src/api/utils');
+const privateApi = require('api/privateApi');
+const utils = require('api/utils');
 
 describe('Lisk API module', () => {
 	const fixedPoint = 10 ** 8;

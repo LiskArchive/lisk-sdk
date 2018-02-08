@@ -1,12 +1,28 @@
 {
 	"presets": ["env"],
-	"plugins": ["transform-runtime"],
+	"plugins": [
+		"transform-runtime",
+		["module-resolver", {
+				"root": ["./src"]
+			}
+		]
+	],
 	"env": {
 		"test": {
 			"plugins": ["istanbul", "rewire"]
 		},
 		"browsertest": {
 			"plugins": ["rewire"]
+		},
+		"buildcheck": {
+			"plugins": [
+				["module-resolver", {
+					"root": ["./dist-node"]
+					}
+				],
+				"istanbul",
+				"rewire"
+			]
 		}
 	}
 }

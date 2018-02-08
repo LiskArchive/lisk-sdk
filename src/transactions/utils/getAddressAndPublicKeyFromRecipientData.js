@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import crypto from '../../crypto';
+import crypto from 'cryptography';
 
 const getAddressAndPublicKeyFromRecipientData = ({
 	recipientId,

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../src/crypto/index';
+import cryptoModule from 'cryptography/index';
 
 describe('crypto index.js', () => {
 	it('should export an object', () => {

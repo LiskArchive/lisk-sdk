@@ -8,6 +8,23 @@
 		"curly": "off",
 		"indent": "off",
 		"no-confusing-arrow": "off",
-		"no-mixed-operators": "off"
+		"no-mixed-operators": "off",
+		"import/no-extraneous-dependencies": [
+			"error", {
+				"devDependencies": true,
+				"packageDir": "./"
+			}
+		]
+	},
+	"settings": {
+		"import/resolver": {
+			"node": {
+				"extensions": [".js"],
+					"moduleDirectory": [
+						"node_modules",
+						"src"
+					]
+			}
+		}
 	}
 }

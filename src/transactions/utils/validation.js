@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { bufferToHex, hexToBuffer } from '../../crypto/convert';
+import { bufferToHex, hexToBuffer } from 'cryptography/convert';
 
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = hexToBuffer(publicKey);

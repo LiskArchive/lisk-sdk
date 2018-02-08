@@ -13,7 +13,7 @@
  *
  */
 import bignum from 'browserify-bignum';
-import cryptoModule from '../../crypto';
+import cryptoModule from 'cryptography';
 
 export const isValidValue = value => ![undefined, false, NaN].includes(value);
 

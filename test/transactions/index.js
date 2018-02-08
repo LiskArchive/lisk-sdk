@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transaction from '../../src/transactions/index';
+import transaction from 'transactions/index';
 
 describe('transactions', () => {
 	describe('exports', () => {

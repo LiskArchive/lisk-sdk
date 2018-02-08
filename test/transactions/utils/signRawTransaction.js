@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import signRawTransaction from '../../../src/transactions/utils/signRawTransaction';
+import signRawTransaction from 'transactions/utils/signRawTransaction';
 
-const time = require('../../../src/transactions/utils/time');
+const time = require('transactions/utils/time');
 
 describe('#signRawTransaction', () => {
 	const timeWithOffset = 38350076;

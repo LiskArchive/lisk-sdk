@@ -15,7 +15,7 @@
 		"serve:browsertest": "http-server browsertest",
 		"jenkins": "grunt jenkins --verbose",
 		"build": "grunt build",
-		"build:check": "node -e \"require('./dist-node')\"",
+		"build:check": "BABEL_ENV=buildcheck nyc mocha test --recursive",
 		"build:browsertest": "grunt build-browsertest",
 		"precommit": "lint-staged && npm run eslint",
 		"prepush": "npm run eslint && npm test",
@@ -41,6 +41,7 @@
 	"devDependencies": {
 		"babel-cli": "=6.24.1",
 		"babel-plugin-istanbul": "=4.1.4",
+		"babel-plugin-module-resolver": "=3.0.0",
 		"babel-plugin-rewire": "=1.1.0",
 		"babel-plugin-transform-runtime": "=6.23.0",
 		"babel-preset-env": "=1.6.0",

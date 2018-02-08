@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../src/crypto';
-import registerMultisignatureAccount from '../../src/transactions/4_registerMultisignatureAccount';
+import cryptoModule from 'cryptography';
+import registerMultisignatureAccount from 'transactions/4_registerMultisignatureAccount';
 
-const time = require('../../src/transactions/utils/time');
+const time = require('transactions/utils/time');
 
 describe('#registerMultisignatureAccount transaction', () => {
 	const fixedPoint = 10 ** 8;

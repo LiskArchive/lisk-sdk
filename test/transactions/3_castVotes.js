@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import castVotes from '../../src/transactions/3_castVotes';
+import castVotes from 'transactions/3_castVotes';
 
-const time = require('../../src/transactions/utils/time');
+const time = require('transactions/utils/time');
 
 describe('#castVotes transaction', () => {
 	const fixedPoint = 10 ** 8;

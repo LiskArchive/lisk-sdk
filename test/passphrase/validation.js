@@ -20,7 +20,7 @@ import {
 	getPassphraseValidationErrors,
 	locateUppercaseCharacters,
 	locateWhitespaces,
-} from '../../src/passphrase/validation';
+} from 'passphrase/validation';
 
 describe('passphrase validation', () => {
 	describe('countPassphraseWhitespaces', () => {

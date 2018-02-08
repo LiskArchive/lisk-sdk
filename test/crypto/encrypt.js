@@ -12,17 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { version } from '../../package.json';
 import {
 	encryptMessageWithPassphrase,
 	decryptMessageWithPassphrase,
 	encryptPassphraseWithPassword,
 	decryptPassphraseWithPassword,
-} from '../../src/crypto/encrypt';
+} from 'cryptography/encrypt';
+import { version } from '../../package.json';
 
-const convert = require('../../src/crypto/convert');
-const keys = require('../../src/crypto/keys');
-const hash = require('../../src/crypto/hash');
+const convert = require('cryptography/convert');
+const keys = require('cryptography/keys');
+const hash = require('cryptography/hash');
 
 describe('encrypt', () => {
 	const defaultPassphrase =

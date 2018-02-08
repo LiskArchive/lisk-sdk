@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transferOutOfDapp from '../../src/transactions/7_transferOutOfDapp';
+import transferOutOfDapp from 'transactions/7_transferOutOfDapp';
 
-const time = require('../../src/transactions/utils/time');
+const time = require('transactions/utils/time');
 
 describe('#transferOutOfDapp', () => {
 	const fixedPoint = 10 ** 8;

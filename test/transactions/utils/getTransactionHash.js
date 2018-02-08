@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getTransactionHash } from '../../../src/transactions/utils';
+import { getTransactionHash } from 'transactions/utils';
 
-const getTransactionBytes = require('../../../src/transactions/utils/getTransactionBytes');
+const getTransactionBytes = require('transactions/utils/getTransactionBytes');
 
 describe('#getTransactionHash', () => {
 	let defaultTransactionBytes;

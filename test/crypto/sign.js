@@ -21,9 +21,9 @@ import {
 	signAndPrintMessage,
 	signData,
 	verifyData,
-} from '../../src/crypto/sign';
+} from 'cryptography/sign';
 
-const keys = require('../../src/crypto/keys');
+const keys = require('cryptography/keys');
 
 const makeInvalid = str => {
 	const char = str[0] === '0' ? '1' : '0';
