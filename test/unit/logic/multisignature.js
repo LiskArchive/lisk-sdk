@@ -612,7 +612,9 @@ describe('multisignature', () => {
 		});
 	});
 
-	it('undo', () => {
+	// The below skipped test should be fixed as part of this issue: https://github.com/LiskHQ/lisk/issues/1527
+	// eslint-disable-next-line mocha/no-skipped-tests
+	it.skip('undo', () => {
 		/* eslint-disable mocha/no-sibling-hooks */
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
@@ -621,6 +623,7 @@ describe('multisignature', () => {
 		});
 		/* eslint-enable */
 
+		/* eslint-disable mocha/no-nested-tests */
 		it('should set __private.unconfirmedSignatures[sender.address] = true', () => {
 			var unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
@@ -676,6 +679,7 @@ describe('multisignature', () => {
 				});
 			});
 		});
+		/* eslint-enable */
 	});
 
 	describe('applyUnconfirmed', () => {

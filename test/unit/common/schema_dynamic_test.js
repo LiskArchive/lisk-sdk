@@ -219,6 +219,7 @@ SchemaDynamicTest.prototype.carpetTesting = function(
 ) {
 	inputs.forEach(input => {
 		it(util.format(description, input.description), done => {
+			// eslint-disable-next-line mocha/no-nested-tests
 			test(input, done);
 		});
 	});
