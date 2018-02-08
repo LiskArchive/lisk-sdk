@@ -21,12 +21,16 @@ var modules;
 var library;
 
 /**
- * Initializes library.
- * @memberof module:signatures
+ * Main signature logic. Initializes library.
+ *
  * @class
- * @classdesc Main signature logic.
- * @param {ZSchema} schema
- * @param {Object} logger
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires bytebuffer
+ * @requires helpers/constants
+ * @param {ZSchema} schema - Description of the param
+ * @param {Object} logger - Description of the param
+ * @todo Add descriptions for the params
  */
 // Constructor
 function Signature(schema, logger) {
@@ -37,8 +41,10 @@ function Signature(schema, logger) {
 }
 
 /**
- * Binds input parameters to private variable modules
- * @param {Accounts} accounts
+ * Binds input parameters to private variable modules.
+ *
+ * @param {Accounts} accounts - Description of the param
+ * @todo Add descriptions for the params
  */
 Signature.prototype.bind = function(accounts) {
 	modules = {
@@ -48,6 +54,7 @@ Signature.prototype.bind = function(accounts) {
 
 /**
  * Obtains constant fee secondSignature.
+ *
  * @see {@link module:helpers~constants}
  * @returns {number} Secondsignature fee.
  */
@@ -57,12 +64,13 @@ Signature.prototype.calculateFee = function() {
 
 /**
  * Verifies signature fields from transaction asset and sender.
- * @implements module:transactions#Transaction~verifySignature
- * @param {transaction} transaction
- * @param {account} sender
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
  * transaction validated.
+ * @todo Add descriptions for the params
  */
 Signature.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.asset || !transaction.asset.signature) {
@@ -90,11 +98,13 @@ Signature.prototype.verify = function(transaction, sender, cb) {
 
 /**
  * Returns transaction with setImmediate.
- * @param {transaction} transaction
- * @param {account} sender
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} Null error
  * @todo check extra parameter sender.
+ * @todo Add descriptions for the params
  */
 Signature.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
@@ -102,11 +112,11 @@ Signature.prototype.process = function(transaction, sender, cb) {
 
 /**
  * Returns a buffer with bytes from transaction asset information.
- * @requires bytebuffer
+ *
  * @see {@link https://github.com/dcodeIO/bytebuffer.js/wiki/API}
  * @param {transaction} transaction - Uses multisignature from asset.
- * @returns {!Array} Contents as an ArrayBuffer.
  * @throws {error} If buffer fails.
+ * @returns {!Array} Contents as an ArrayBuffer.
  * @todo check if this function is called.
  */
 Signature.prototype.getBytes = function(transaction) {
@@ -132,12 +142,12 @@ Signature.prototype.getBytes = function(transaction) {
 
 /**
  * Sets account second signature from transaction asset.
- * @implements module:accounts#Accounts~setAccountAndGet
+ *
  * @param {transaction} transaction - Uses publicKey from asset signature.
  * @param {block} block - Unnecessary parameter.
  * @param {account} sender - Uses the address
  * @param {function} cb - Callback function.
- * @return {setImmediateCallback} for errors
+ * @returns {setImmediateCallback} for errors
  */
 Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
 	modules.accounts.setAccountAndGet(
@@ -154,11 +164,12 @@ Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
 
 /**
  * Sets account second signature to null.
- * @implements module:accounts#Accounts~setAccountAndGet
+ *
  * @param {transaction} transaction - Unnecessary parameter.
  * @param {block} block - Unnecessary parameter.
- * @param {account} sender
+ * @param {account} sender - Description of the param
  * @param {function} cb - Callback function.
+ * @todo Add descriptions for the params
  */
 Signature.prototype.undo = function(transaction, block, sender, cb) {
 	modules.accounts.setAccountAndGet(
@@ -174,12 +185,13 @@ Signature.prototype.undo = function(transaction, block, sender, cb) {
 
 /**
  * Activates unconfirmed second signature for sender account.
- * @implements module:accounts#Accounts~setAccountAndGet
+ *
  * @param {transaction} transaction - Unnecessary parameter.
  * @param {block} block - Unnecessary parameter.
- * @param {account} sender
+ * @param {account} sender - Description of the param
  * @param {function} cb - Callback function.
- * @return {setImmediateCallback} Error if second signature is already enabled.
+ * @returns {setImmediateCallback} Error if second signature is already enabled.
+ * @todo Add descriptions for the params
  */
 Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 	if (sender.u_secondSignature || sender.secondSignature) {
@@ -195,11 +207,12 @@ Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 
 /**
  * Deactivates unconfirmed second signature for sender account.
- * @implements module:accounts#Accounts~setAccountAndGet
+ *
  * @param {transaction} transaction - Unnecessary parameter.
  * @param {block} block - Unnecessary parameter.
- * @param {account} sender
+ * @param {account} sender - Description of the param
  * @param {function} cb - Callback function.
+ * @todo Add descriptions for the params
  */
 Signature.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 	modules.accounts.setAccountAndGet(
@@ -226,9 +239,10 @@ Signature.prototype.schema = {
 
 /**
  * Validates signature schema.
+ *
  * @param {transaction} transaction - Uses signature from asset.
- * @return {transaction} Transaction validated.
  * @throws {string} Error message.
+ * @returns {transaction} Transaction validated.
  */
 Signature.prototype.objectNormalize = function(transaction) {
 	var report = library.schema.validate(
@@ -248,8 +262,9 @@ Signature.prototype.objectNormalize = function(transaction) {
 
 /**
  * Creates signature object based on raw data.
+ *
  * @param {Object} raw - Data from database.
- * @return {multisignature} signature Object with transaction id.
+ * @returns {multisignature} signature Object with transaction id.
  * @todo check if this function is called.
  */
 Signature.prototype.dbRead = function(raw) {
@@ -267,9 +282,11 @@ Signature.prototype.dbRead = function(raw) {
 
 /**
  * Checks if transaction has enough signatures to be confirmed.
- * @param {transaction} transaction
- * @param {account} sender
- * @return {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @todo Add descriptions for the params
  */
 Signature.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
