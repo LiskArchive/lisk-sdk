@@ -31,7 +31,6 @@
 		"no-plusplus": "off",
 		"no-prototype-builtins": "off",
 		"no-restricted-globals": "off",
-		"no-restricted-properties": "off",
 		"no-restricted-syntax": "off",
 		"no-shadow": "off",
 		"no-template-curly-in-string": "off",
