@@ -605,7 +605,7 @@ Chain.prototype.deleteLastBlock = function (cb) {
 					false,
 					function (err) {
 						if (err) {
-							library.logger.error('Error adding transactions', err);
+							library.logger.error('Error receiving transactions after deleting block', err);
 						}
 						return setImmediate(waterCb, null, lastBlock);
 					}
