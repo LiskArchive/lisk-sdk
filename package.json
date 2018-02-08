@@ -89,7 +89,7 @@
 		"validator": "=7.0.0",
 		"validator.js": "=2.0.3",
 		"wamp-socket-cluster":
-			"LiskHQ/wamp-socket-cluster#8522bd69bed1b0698eced1bc49afb7a190b5f09e",
+			"LiskHQ/wamp-socket-cluster#77326d47d24eea6903a3cbf5172f7b88908c9d84",
 		"z-schema": "=3.18.2",
 		"snyk": "^1.69.6"
 	},
