@@ -30,7 +30,9 @@ let initOptions = {
 	// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
 	extend: object => {
 		Object.keys(repos).forEach(repoName => {
-			object[repoName] = new repos[repoName](object, pgp);
+			if (!!repos[repoName].prototype && !!repos[repoName].prototype.constructor.name) {
+				object[repoName] = new repos[repoName](object, pgp);
+			}
 		});
 	},
 };
