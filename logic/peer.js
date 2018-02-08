@@ -18,13 +18,17 @@ var ip = require('ip');
 var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 /**
- * Creates a peer.
- * @memberof module:peers
+ * Main peer logic. Creates a peer.
+ *
  * @class
- * @classdesc Main peer logic.
- * @implements {Peer.accept}
- * @param {peer} peer
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires lodash
+ * @requires ip
+ * @requires api/ws/rpc/ws_rpc
+ * @param {peer} peer - Description of the param
  * @return calls accept method
+ * @todo Add descriptions for the params
  */
 // Constructor
 function Peer(peer) {
@@ -82,8 +86,10 @@ Peer.STATE = {
 // Public methods
 /**
  * Checks peer properties and adjusts according rules.
- * @param {peer} peer
- * @return {Object} this
+ *
+ * @param {peer} peer - Description of the param
+ * @returns {Object} this
+ * @todo Add descriptions for the params
  */
 Peer.prototype.accept = function(peer) {
 	// Normalize peer data
@@ -110,8 +116,10 @@ Peer.prototype.accept = function(peer) {
 
 /**
  * Normalizes peer data.
- * @param {peer} peer
- * @return {peer}
+ *
+ * @param {peer} peer - Description of the param
+ * @returns {peer}
+ * @todo Add descriptions for the params
  */
 Peer.prototype.normalize = function(peer) {
 	if (peer.height) {
@@ -130,9 +138,11 @@ Peer.prototype.normalize = function(peer) {
 
 /**
  * Checks number or assigns default value from parameter.
- * @param {number} integer
- * @param {number} [fallback]
- * @return {number} if not integer returns fallback
+ *
+ * @param {number} integer - Description of the param
+ * @param {number} [fallback] - Description of the param
+ * @returns {number} if not integer returns fallback
+ * @todo Add descriptions for the params
  */
 Peer.prototype.parseInt = function(integer, fallback) {
 	integer = parseInt(integer);
@@ -142,9 +152,11 @@ Peer.prototype.parseInt = function(integer, fallback) {
 };
 
 /**
- * Normalizes headers
- * @param {Object} headers
- * @return {Object} headers normalized
+ * Normalizes headers.
+ *
+ * @param {Object} headers - Description of the param
+ * @returns {Object} headers normalized
+ * @todo Add descriptions for the params
  */
 Peer.prototype.applyHeaders = function(headers) {
 	headers = headers || {};
@@ -155,8 +167,10 @@ Peer.prototype.applyHeaders = function(headers) {
 
 /**
  * Updates peer values if mutable.
- * @param {peer} peer
- * @return {Object} this
+ *
+ * @param {peer} peer - Description of the param
+ * @returns {Object} this
+ * @todo Add descriptions for the params
  */
 Peer.prototype.update = function(peer) {
 	peer = this.normalize(peer);
@@ -177,7 +191,7 @@ Peer.prototype.update = function(peer) {
 };
 
 /**
- * @return {peer} clones current peer
+ * @returns {peer} clones current peer
  */
 Peer.prototype.object = function() {
 	var copy = {};
