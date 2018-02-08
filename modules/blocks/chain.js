@@ -607,7 +607,7 @@ Chain.prototype.deleteLastBlock = function (cb) {
 						if (err) {
 							library.logger.error('Error adding transactions', lastBlock);
 						}
-						return setImmediate(waterCb, err, lastBlock);
+						return setImmediate(waterCb, null, lastBlock);
 					}
 				);
 			}
