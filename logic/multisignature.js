@@ -290,7 +290,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
  *
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
  * @returns {setImmediateCallback} Null error
  * @todo check extra parameter sender.
  * @todo Add descriptions for the params
@@ -305,7 +305,7 @@ Multisignature.prototype.process = function(transaction, sender, cb) {
  * @requires bytebuffer
  * @see {@link https://github.com/dcodeIO/bytebuffer.js/wiki/API}
  * @param {transaction} transaction - Uses multisignature from asset
- * @returns {!Array} Contents as an ArrayBuffer.
+ * @returns {!Array} Contents as an ArrayBuffer
  */
 Multisignature.prototype.getBytes = function(transaction) {
 	var keysgroupBuffer = Buffer.from(
@@ -331,7 +331,7 @@ Multisignature.prototype.getBytes = function(transaction) {
  * @param {transaction} transaction - Uses multisignature from asset
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
  * @returns {setImmediateCallback} for errors
  * @todo Add descriptions for the params
  */
@@ -447,10 +447,10 @@ Multisignature.prototype.applyUnconfirmed = function(
  * Inverts multisignature signs and merges into sender address
  * to unconfirmed fields.
  *
- * @param {transaction} transaction - Uses multisignature from asset.
+ * @param {transaction} transaction - Uses multisignature from asset
  * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} For error.
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} For error
  * @todo Add descriptions for the params
  */
 Multisignature.prototype.undoUnconfirmed = function(
@@ -507,9 +507,9 @@ Multisignature.prototype.schema = {
 /**
  * Validates multisignature schema.
  *
- * @param {transaction} transaction - Uses multisignature from asset.
- * @throws {string} Error message.
- * @returns {transaction} Transaction validated.
+ * @param {transaction} transaction - Uses multisignature from asset
+ * @throws {string} Error message
+ * @returns {transaction} Transaction validated
  */
 Multisignature.prototype.objectNormalize = function(transaction) {
 	var report = library.schema.validate(
@@ -530,8 +530,8 @@ Multisignature.prototype.objectNormalize = function(transaction) {
 /**
  * Creates multisignature object based on raw data.
  *
- * @param {Object} raw - Data from database.
- * @returns {multisignature} multisignature Object.
+ * @param {Object} raw - Data from database
+ * @returns {multisignature} multisignature Object
  * @todo check if this function is called.
  */
 Multisignature.prototype.dbRead = function(raw) {
@@ -569,9 +569,9 @@ Multisignature.prototype.afterSave = function(transaction, cb) {
 /**
  * Evaluates transaction signatures and sender multisignatures.
  *
- * @param {transaction} transaction - Signatures.
+ * @param {transaction} transaction - Signatures
  * @param {account} sender - Description of the param
- * @returns {boolean} logic based on transaction signatures and sender multisignatures.
+ * @returns {boolean} logic based on transaction signatures and sender multisignatures
  * @todo Add descriptions for the params
  */
 Multisignature.prototype.ready = function(transaction, sender) {

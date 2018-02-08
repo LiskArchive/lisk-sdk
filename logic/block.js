@@ -195,7 +195,7 @@ Block.prototype.sign = function(block, keypair) {
  * @param {block} block - Description of the param
  * @throws {error} If buffer fails
  * @returns {!Array} Contents as an ArrayBuffer
- * @todo Add description of the funciton and its params
+ * @todo Add description of the function and its params
  */
 Block.prototype.getBytes = function(block) {
 	var size = 4 + 4 + 8 + 4 + 4 + 8 + 8 + 4 + 4 + 4 + 32 + 32 + 64;
@@ -388,7 +388,7 @@ Block.prototype.schema = {
  * @param {block} block - Description of the param
  * @throws {string|error} error message | catch error
  * @returns {error|transaction} error string | block normalized
- * @todo Add description of the funciton and its params
+ * @todo Add description of the function and its params
  */
 Block.prototype.objectNormalize = function(block) {
 	var i;
@@ -470,7 +470,7 @@ Block.prototype.calculateFee = function() {
  * Creates block object based on raw data.
  *
  * @param {Object} raw - Description of the param
- * @returns {null|block} blcok object
+ * @returns {null|block} block object
  * @todo Add description of the params
  */
 Block.prototype.dbRead = function(raw) {

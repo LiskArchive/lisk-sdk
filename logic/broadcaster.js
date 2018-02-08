@@ -228,7 +228,7 @@ Broadcaster.prototype.broadcast = function(params, options, cb) {
 };
 
 /**
- * Counts relays and valids limit.
+ * Counts relays and valid limit.
  *
  * @param {Object} object - Description of the param
  * @returns {boolean} True if Broadcast relays exhausted
