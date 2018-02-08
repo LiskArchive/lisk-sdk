@@ -23,7 +23,6 @@
 		"max-len": "off",
 		"new-cap": "off",
 		"no-bitwise": "off",
-		"no-console": "off",
 		"no-loop-func": "off",
 		"no-multi-assign": "off",
 		"no-nested-ternary": "off",
