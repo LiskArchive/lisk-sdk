@@ -39,7 +39,7 @@ var __private = {};
  * @param {ZSchema} schema - Description of the param
  * @param {Transaction} transaction - Description of the param
  * @param {function} cb - Callback function.
- * @return {setImmediateCallback} With `this` as data.
+ * @returns {setImmediateCallback} With `this` as data.
  * @todo Add description of the params
  */
 // Constructor
@@ -62,7 +62,7 @@ function Block(ed, schema, transaction, cb) {
  *
  * @private
  * @param {publicKey} publicKey - Description of the param
- * @return {address} address
+ * @returns {address} address
  * @todo Add description of the params
  */
 __private.getAddressByPublicKey = function(publicKey) {
@@ -193,8 +193,8 @@ Block.prototype.sign = function(block, keypair) {
  * Description of the function.
  *
  * @param {block} block - Description of the param
- * @return {!Array} Contents as an ArrayBuffer
  * @throws {error} If buffer fails
+ * @returns {!Array} Contents as an ArrayBuffer
  * @todo Add description of the funciton and its params
  */
 Block.prototype.getBytes = function(block) {
@@ -256,8 +256,8 @@ Block.prototype.getBytes = function(block) {
  * Verifies block hash, generator block publicKey and block signature.
  *
  * @param {block} block - Description of the param
- * @return {boolean} verified hash, signature and publicKey
  * @throws {error} catch error
+ * @returns {boolean} verified hash, signature and publicKey
  * @todo Add description of the params
  */
 Block.prototype.verifySignature = function(block) {
@@ -386,8 +386,8 @@ Block.prototype.schema = {
  * Description of the function.
  *
  * @param {block} block - Description of the param
- * @return {error|transaction} error string | block normalized
  * @throws {string|error} error message | catch error
+ * @returns {error|transaction} error string | block normalized
  * @todo Add description of the funciton and its params
  */
 Block.prototype.objectNormalize = function(block) {
@@ -425,7 +425,7 @@ Block.prototype.objectNormalize = function(block) {
  * Calculates block id based on block.
  *
  * @param {block} block - Description of the param
- * @return {string} id string
+ * @returns {string} id string
  * @todo Add description of the params
  */
 Block.prototype.getId = function(block) {
@@ -446,7 +446,7 @@ Block.prototype.getId = function(block) {
  * Creates hash based on block bytes.
  *
  * @param {block} block - Description of the param
- * @return {hash} sha256 crypto hash
+ * @returns {hash} sha256 crypto hash
  * @todo Add description of the params
  */
 Block.prototype.getHash = function(block) {
@@ -459,7 +459,7 @@ Block.prototype.getHash = function(block) {
 /**
  * Returns send fees from constants.
  *
- * @return {number} fee
+ * @returns {number} fee
  * @todo delete unused input parameter
  */
 Block.prototype.calculateFee = function() {
@@ -470,7 +470,7 @@ Block.prototype.calculateFee = function() {
  * Creates block object based on raw data.
  *
  * @param {Object} raw - Description of the param
- * @return {null|block} blcok object
+ * @returns {null|block} blcok object
  * @todo Add description of the params
  */
 Block.prototype.dbRead = function(raw) {

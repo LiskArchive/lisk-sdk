@@ -27,7 +27,7 @@ var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
  * @requires ip
  * @requires api/ws/rpc/ws_rpc
  * @param {peer} peer - Description of the param
- * @return calls accept method
+ * @returns calls accept method
  * @todo Add descriptions for the params
  */
 // Constructor
@@ -191,7 +191,10 @@ Peer.prototype.update = function(peer) {
 };
 
 /**
+ * Description of the function.
+ *
  * @returns {peer} clones current peer
+ * @todo Add description of the function
  */
 Peer.prototype.object = function() {
 	var copy = {};

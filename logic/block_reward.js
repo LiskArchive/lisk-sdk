@@ -85,7 +85,7 @@ BlockReward.prototype.calcMilestone = function(height) {
  * Description of the function.
  *
  * @param {number} height - Description of the param
- * @return {number}
+ * @returns {number}
  * @todo Add description of the function, param and return value
  */
 BlockReward.prototype.calcReward = function(height) {
@@ -102,7 +102,7 @@ BlockReward.prototype.calcReward = function(height) {
  * Description of the function.
  *
  * @param {number} height - Description of the param
- * @return {number}
+ * @returns {number}
  * @todo Add description of the function, param and return value
  */
 BlockReward.prototype.calcSupply = function(height) {
