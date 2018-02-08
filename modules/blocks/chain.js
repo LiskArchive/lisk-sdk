@@ -607,8 +607,6 @@ Chain.prototype.deleteLastBlock = function (cb) {
 						if (err) {
 							library.logger.error('Error adding transactions', lastBlock);
 						}
-						// Replace last block with previous
-						lastBlock = modules.blocks.lastBlock.set(newLastBlock);
 						return setImmediate(waterCb, err, lastBlock);
 					}
 				);
