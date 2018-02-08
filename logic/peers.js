@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -37,7 +38,7 @@ var modules;
 // Constructor
 function Peers(logger, cb) {
 	library = {
-		logger: logger,
+		logger,
 	};
 	self = this;
 	__private.me = null;
@@ -61,9 +62,8 @@ Peers.prototype.me = function() {
 Peers.prototype.create = function(peer) {
 	if (!(peer instanceof Peer)) {
 		return new Peer(peer);
-	} else {
-		return peer;
 	}
+	return peer;
 };
 
 /**
@@ -84,10 +84,9 @@ Peers.prototype.exists = function(peer) {
 Peers.prototype.get = function(peer) {
 	if (typeof peer === 'string') {
 		return self.peersManager.getByAddress(peer);
-	} else {
-		peer = self.create(peer);
-		return self.peersManager.getByAddress(peer.string);
 	}
+	peer = self.create(peer);
+	return self.peersManager.getByAddress(peer.string);
 };
 
 /**
@@ -130,7 +129,7 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	peer.string = peer.string || self.peersManager.getAddress(peer.nonce);
 
 	if (!peer.string) {
-		library.logger.trace('Upsert invalid peer rejected', { peer: peer });
+		library.logger.trace('Upsert invalid peer rejected', { peer });
 		return failureCodes.ON_MASTER.UPDATE.INVALID_PEER;
 	}
 
@@ -197,16 +196,15 @@ Peers.prototype.remove = function(peer) {
 	// Remove peer if exists
 	if (self.exists(peer)) {
 		library.logger.info('Removed peer', peer.string);
-		library.logger.debug('Removed peer', { peer: peer });
+		library.logger.debug('Removed peer', { peer });
 		self.peersManager.remove(peer);
 		return true;
-	} else {
-		library.logger.debug('Failed to remove peer', {
-			err: 'AREMOVED',
-			peer: peer,
-		});
-		return failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST;
 	}
+	library.logger.debug('Failed to remove peer', {
+		err: 'AREMOVED',
+		peer,
+	});
+	return failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST;
 };
 
 /**
@@ -219,11 +217,10 @@ Peers.prototype.list = function(normalize) {
 		return Object.keys(self.peersManager.addressToNonceMap).map(key =>
 			self.peersManager.getByAddress(key).object()
 		);
-	} else {
-		return Object.keys(self.peersManager.addressToNonceMap).map(key =>
-			self.create(self.peersManager.getByAddress(key))
-		);
 	}
+	return Object.keys(self.peersManager.addressToNonceMap).map(key =>
+		self.create(self.peersManager.getByAddress(key))
+	);
 };
 
 // Public methods

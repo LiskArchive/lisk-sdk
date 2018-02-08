@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var util = require('util');
@@ -48,7 +49,6 @@ function copy(target) {
 			result[name] = copy(target[name]);
 		});
 		return result;
-	} else {
-		return target;
 	}
+	return target;
 }

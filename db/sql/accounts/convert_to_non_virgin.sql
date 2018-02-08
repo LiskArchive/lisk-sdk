@@ -12,25 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-/**
- * Extends standard Error with a code field and toJson function.
- * @param {string} message
- * @param {number} code
- * @constructor
- */
-function ApiError(message, code) {
-	this.message = message;
-	this.code = code;
-}
+/*
+  DESCRIPTION: Convert a virgin account to non-virgin state
 
-ApiError.prototype = new Error();
+  PARAMETERS:
+  	address - Address of the particular account
+*/
 
-ApiError.prototype.toJson = function() {
-	return {
-		message: this.message,
-	};
-};
-
-module.exports = ApiError;
+UPDATE mem_accounts
+SET virgin = 0
+WHERE upper(address) = upper(${address})

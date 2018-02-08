@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 const path = require('path');
@@ -42,21 +43,16 @@ module.exports = function(grunt) {
 			},
 
 			mocha: {
-				cmd: function(tag, suite, section) {
+				cmd(tag, suite, section) {
 					if (suite === 'integration') {
 						var slowTag = '';
 						if (tag !== 'slow') {
 							slowTag = '--grep @slow --invert';
 						}
 						return `./node_modules/.bin/_mocha --bail test/integration/index.js ${slowTag}`;
-					} else {
-						var toExecute = [tag, suite, section]
-							.filter(function(val) {
-								return val;
-							})
-							.join(' ');
-						return `node test/common/parallel_tests.js ${toExecute}`;
 					}
+					var toExecute = [tag, suite, section].filter(val => val).join(' ');
+					return `node test/common/parallel_tests.js ${toExecute}`;
 				},
 				maxBuffer: maxBufferSize,
 			},

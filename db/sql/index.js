@@ -30,6 +30,7 @@ module.exports = {
 		columnMultisignatures: link('accounts/column_multisignatures.sql'),
 		columnUMultisignatures: link('accounts/column_u_multisignatures.sql'),
 		columnRank: link('accounts/column_rank.sql'),
+		convertToNonVirgin: link('accounts/convert_to_non_virgin.sql'),
 	},
 	blocks: {
 		aggregateBlocksReward: link('blocks/aggregate_blocks_reward.sql'),

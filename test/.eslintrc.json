@@ -15,8 +15,6 @@
 		// To Remove
 		"mocha/no-identical-title": "off",
 		"mocha/no-nested-tests": "off",
-		"mocha/no-pending-tests": "off",
-		"mocha/no-skipped-tests": "off",
 		"mocha/no-synchronous-tests": "off",
 		"mocha/no-top-level-hooks": "off"
 	}

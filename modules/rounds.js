@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
@@ -106,10 +107,10 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done) {
 	var nextRound = slots.calcRound(block.height + 1);
 
 	var scope = {
-		library: library,
-		modules: modules,
-		block: block,
-		round: round,
+		library,
+		modules,
+		block,
+		round,
 		backwards: true,
 	};
 
@@ -127,9 +128,8 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done) {
 		return promised.mergeBlockGenerator().then(() => {
 			if (scope.finishRound) {
 				return promised.backwardLand().then(() => promised.markBlockId());
-			} else {
-				return promised.markBlockId();
 			}
+			return promised.markBlockId();
 		});
 	}
 
@@ -142,17 +142,15 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done) {
 				// Sum round if finishing round
 				if (scope.finishRound) {
 					return __private.sumRound(scope, cb);
-				} else {
-					return setImmediate(cb);
 				}
+				return setImmediate(cb);
 			},
 			function(cb) {
 				// Get outsiders if finishing round
 				if (scope.finishRound) {
 					return __private.getOutsiders(scope, cb);
-				} else {
-					return setImmediate(cb);
 				}
+				return setImmediate(cb);
 			},
 			function(cb) {
 				// Perform round tick
@@ -198,10 +196,10 @@ Rounds.prototype.tick = function(block, done) {
 	var nextRound = slots.calcRound(block.height + 1);
 
 	var scope = {
-		library: library,
-		modules: modules,
-		block: block,
-		round: round,
+		library,
+		modules,
+		block,
+		round,
 		backwards: false,
 	};
 
@@ -266,17 +264,15 @@ Rounds.prototype.tick = function(block, done) {
 				// Sum round if finishing round
 				if (scope.finishRound) {
 					return __private.sumRound(scope, cb);
-				} else {
-					return setImmediate(cb);
 				}
+				return setImmediate(cb);
 			},
 			function(cb) {
 				// Get outsiders if finishing round
 				if (scope.finishRound) {
 					return __private.getOutsiders(scope, cb);
-				} else {
-					return setImmediate(cb);
 				}
+				return setImmediate(cb);
 			},
 			// Perform round tick
 			function(cb) {
@@ -295,9 +291,8 @@ Rounds.prototype.tick = function(block, done) {
 
 			if (scope.finishSnapshot) {
 				return done('Snapshot finished');
-			} else {
-				return done(err);
 			}
+			return done(err);
 		}
 	);
 };

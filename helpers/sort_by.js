@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 /**
@@ -62,19 +63,18 @@ function sortBy(sort, options) {
 				`${keys[0]}:${sort[keys[0]] === -1 ? 'desc' : 'asc'}`,
 				options
 			);
-		} else {
-			var sortFields = [];
-			var sortMethods = [];
-			keys.forEach(function(key) {
-				var sortResult = self.sortBy(
-					`${key}:${sort[key] === -1 ? 'desc' : 'asc'}`,
-					options
-				);
-				sortFields.push(sortResult.sortField);
-				sortMethods.push(sortResult.sortMethod);
-			});
-			return { sortField: sortFields, sortMethod: sortMethods };
 		}
+		var sortFields = [];
+		var sortMethods = [];
+		keys.forEach(key => {
+			var sortResult = self.sortBy(
+				`${key}:${sort[key] === -1 ? 'desc' : 'asc'}`,
+				options
+			);
+			sortFields.push(sortResult.sortField);
+			sortMethods.push(sortResult.sortMethod);
+		});
+		return { sortField: sortFields, sortMethod: sortMethods };
 	}
 
 	function prefixField(sortField) {
@@ -84,17 +84,15 @@ function sortBy(sort, options) {
 			return options.fieldPrefix + sortField;
 		} else if (typeof options.fieldPrefix === 'function') {
 			return options.fieldPrefix(sortField);
-		} else {
-			return sortField;
 		}
+		return sortField;
 	}
 
 	function quoteField(sortField) {
 		if (sortField && options.quoteField) {
 			return `"${sortField}"`;
-		} else {
-			return sortField;
 		}
+		return sortField;
 	}
 
 	var emptyWhiteList = options.sortFields.length === 0;
@@ -158,6 +156,6 @@ function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {
 }
 
 module.exports = {
-	sortQueryToJsonSqlFormat: sortQueryToJsonSqlFormat,
-	sortBy: sortBy,
+	sortQueryToJsonSqlFormat,
+	sortBy,
 };

@@ -517,8 +517,15 @@ paths:
         - $ref: '#/parameters/publicKey'
         - $ref: '#/parameters/secondPublicKey'
         - $ref: '#/parameters/username'
-        - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
+        - name: limit
+          in: query
+          description: Limit applied to results
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 101
+          default: 10
         - name: search
           in: query
           description: Fuzzy delegate username to query

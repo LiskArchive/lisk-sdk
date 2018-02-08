@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
@@ -42,15 +43,15 @@ var __private = {};
 // Constructor
 function Broadcaster(broadcasts, force, peers, transaction, logger) {
 	library = {
-		logger: logger,
+		logger,
 		logic: {
-			peers: peers,
-			transaction: transaction,
+			peers,
+			transaction,
 		},
 		config: {
-			broadcasts: broadcasts,
+			broadcasts,
 			forging: {
-				force: force,
+				force,
 			},
 		},
 	};
@@ -100,9 +101,9 @@ function Broadcaster(broadcasts, force, peers, transaction, logger) {
  */
 Broadcaster.prototype.bind = function(peers, transport, transactions) {
 	modules = {
-		peers: peers,
-		transport: transport,
-		transactions: transactions,
+		peers,
+		transport,
+		transactions,
 	};
 };
 
@@ -145,7 +146,7 @@ Broadcaster.prototype.getPeers = function(params, cb) {
  */
 Broadcaster.prototype.enqueue = function(params, options) {
 	options.immediate = false;
-	return self.queue.push({ params: params, options: options });
+	return self.queue.push({ params, options });
 };
 
 /**
@@ -167,9 +168,8 @@ Broadcaster.prototype.broadcast = function(params, options, cb) {
 			function getPeers(waterCb) {
 				if (!params.peers) {
 					return self.getPeers(params, waterCb);
-				} else {
-					return setImmediate(waterCb, null, params.peers);
 				}
+				return setImmediate(waterCb, null, params.peers);
 			},
 			function sendToPeer(peers, waterCb) {
 				library.logger.debug('Begin broadcast', options);
@@ -228,10 +228,9 @@ Broadcaster.prototype.maxRelays = function(object) {
 	if (Math.abs(object.relays) >= self.config.relayLimit) {
 		library.logger.debug('Broadcast relays exhausted', object);
 		return true;
-	} else {
-		object.relays++; // Next broadcast
-		return false;
 	}
+	object.relays++; // Next broadcast
+	return false;
 };
 
 // Private
@@ -255,9 +254,8 @@ __private.filterQueue = function(cb) {
 					broadcast.options.data.transaction ||
 					broadcast.options.data.signature;
 				return __private.filterTransaction(transaction, filterCb);
-			} else {
-				return setImmediate(filterCb, null, true);
 			}
+			return setImmediate(filterCb, null, true);
 		},
 		(err, broadcasts) => {
 			self.queue = broadcasts;
@@ -281,14 +279,12 @@ __private.filterTransaction = function(transaction, cb) {
 	if (transaction !== undefined) {
 		if (modules.transactions.transactionInPool(transaction.id)) {
 			return setImmediate(cb, null, true);
-		} else {
-			return library.logic.transaction.checkConfirmed(transaction, err =>
-				setImmediate(cb, null, !err)
-			);
 		}
-	} else {
-		return setImmediate(cb, null, false);
+		return library.logic.transaction.checkConfirmed(transaction, err =>
+			setImmediate(cb, null, !err)
+		);
 	}
+	return setImmediate(cb, null, false);
 };
 
 /**
@@ -311,7 +307,7 @@ __private.squashQueue = function(broadcasts) {
 				.filter(Boolean);
 
 			squashed.push({
-				options: { api: route.path, data: data },
+				options: { api: route.path, data },
 				immediate: false,
 			});
 		}
@@ -360,7 +356,7 @@ __private.releaseQueue = function(cb) {
 					broadcasts,
 					(broadcast, eachSeriesCb) => {
 						self.broadcast(
-							extend({ peers: peers }, broadcast.params),
+							extend({ peers }, broadcast.params),
 							broadcast.options,
 							eachSeriesCb
 						);
