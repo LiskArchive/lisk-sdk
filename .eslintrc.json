@@ -3,7 +3,6 @@
 	"plugins": ["mocha"],
 	"rules": {
 		"array-callback-return": "off",
-		"block-scoped-var": "off",
 		"camelcase": "off",
 		"comma-dangle": [
 			"error",
