@@ -8,7 +8,7 @@
 		"start": "./bin/start.sh",
 		"test": "nyc mocha test --recursive",
 		"test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test --recursive\" --initial",
-		"test:node": "BABEL_ENV=buildcheck mocha test --recursive",
+		"test:node": "npm run build:check && BABEL_ENV=buildcheck mocha test --recursive",
 		"test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
 		"cover": "nyc report --reporter=lcov",
 		"eslint": "grunt eslint",
