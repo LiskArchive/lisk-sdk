@@ -66,6 +66,7 @@ function __init(initScope, done) {
 		// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
 		extend(object) {
 			Object.keys(dbRepos).forEach(repoName => {
+				// eslint-disable-next-line block-scoped-var
 				object[repoName] = new dbRepos[repoName](object, pgp);
 			});
 		},

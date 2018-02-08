@@ -70,8 +70,8 @@ BigNumber.prototype.toBuffer = function(opts) {
 		}
 
 		var abs = this.abs();
-		var buf = abs.toBuffer({ size: 1, endian: 'big' });
-		var len = buf.length === 1 && buf[0] === 0 ? 0 : buf.length;
+		const buf = abs.toBuffer({ size: 1, endian: 'big' });
+		let len = buf.length === 1 && buf[0] === 0 ? 0 : buf.length;
 		if (buf[0] & 0x80) {
 			len++;
 		}
@@ -118,8 +118,8 @@ BigNumber.prototype.toBuffer = function(opts) {
 
 	var size = opts.size === 'auto' ? Math.ceil(hex.length / 2) : opts.size || 1;
 
-	len = Math.ceil(hex.length / (2 * size)) * size;
-	buf = Buffer.alloc(len);
+	const len = Math.ceil(hex.length / (2 * size)) * size;
+	const buf = Buffer.alloc(len);
 
 	// Zero-pad the hex string so the chunks are all `size` long
 	while (hex.length < 2 * len) {
