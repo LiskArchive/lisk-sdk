@@ -15,7 +15,6 @@
 			}
 		],
 		"consistent-return": "off",
-		"default-case": "off",
 		"eqeqeq": "off",
 		"func-names": "off",
 		"global-require": "off",
