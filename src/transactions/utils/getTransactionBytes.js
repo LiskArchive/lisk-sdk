@@ -13,7 +13,7 @@
  *
  */
 import bignum from 'browserify-bignum';
-import cryptoModule from 'cryptography';
+import cryptography from 'cryptography';
 
 export const isValidValue = value => ![undefined, false, NaN].includes(value);
 
@@ -168,7 +168,7 @@ const getTransactionBytes = transaction => {
 		: Buffer.alloc(0);
 
 	const transactionRecipientID = transaction.recipientId
-		? cryptoModule.bigNumberToBuffer(
+		? cryptography.bigNumberToBuffer(
 				transaction.recipientId.slice(0, -1),
 				BYTESIZES.RECIPIENT_ID,
 			)

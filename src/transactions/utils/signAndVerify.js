@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from 'cryptography';
+import cryptography from 'cryptography';
 import getTransactionHash from './getTransactionHash';
 
 export const signTransaction = (transaction, passphrase) => {
 	const transactionHash = getTransactionHash(transaction);
-	return cryptoModule.signData(transactionHash, passphrase);
+	return cryptography.signData(transactionHash, passphrase);
 };
 
 export const multiSignTransaction = (transaction, passphrase) => {
@@ -27,7 +27,7 @@ export const multiSignTransaction = (transaction, passphrase) => {
 
 	const transactionHash = getTransactionHash(transactionToSign);
 
-	return cryptoModule.signData(transactionHash, passphrase);
+	return cryptography.signData(transactionHash, passphrase);
 };
 
 export const verifyTransaction = (transaction, secondPublicKey) => {
@@ -53,7 +53,7 @@ export const verifyTransaction = (transaction, secondPublicKey) => {
 		? transaction.signSignature
 		: transaction.signature;
 
-	const verified = cryptoModule.verifyData(
+	const verified = cryptography.verifyData(
 		transactionHash,
 		signature,
 		publicKey,

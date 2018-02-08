@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from 'cryptography/index';
+import cryptography from 'cryptography';
 
-describe('crypto index.js', () => {
+describe('cryptography index.js', () => {
 	it('should export an object', () => {
-		return cryptoModule.should.be.type('object');
+		return cryptography.should.be.type('object');
 	});
 });

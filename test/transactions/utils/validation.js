@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from 'cryptography';
+import cryptography from 'cryptography';
 import {
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
@@ -144,7 +144,7 @@ describe('public key validation', () => {
 					.fill()
 					.map(
 						(_, index) =>
-							cryptoModule.getPrivateAndPublicKeyFromPassphrase(
+							cryptography.getPrivateAndPublicKeyFromPassphrase(
 								index.toString(),
 							).publicKey,
 					);

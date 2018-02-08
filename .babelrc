@@ -17,7 +17,7 @@
 		"buildcheck": {
 			"plugins": [
 				["module-resolver", {
-					"root": ["./dist-node"]
+						"root": ["./dist-node"]
 					}
 				],
 				"istanbul",

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { TRANSFER_FEE, DATA_FEE } from '../constants';
+import { TRANSFER_FEE, DATA_FEE } from 'constants';
 import {
 	getAddressAndPublicKeyFromRecipientData,
 	wrapTransactionCreator,

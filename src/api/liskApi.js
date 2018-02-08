@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { LIVE_PORT, TEST_PORT, GET, POST } from 'constants';
 import config from '../../config.json';
-import { LIVE_PORT, TEST_PORT, GET, POST } from '../constants';
 import * as privateApi from './privateApi';
 import * as utils from './utils';
 

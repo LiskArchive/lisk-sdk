@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from 'cryptography';
-import { SIGNATURE_FEE } from '../constants';
+import cryptography from 'cryptography';
+import { SIGNATURE_FEE } from 'constants';
 import { wrapTransactionCreator } from './utils';
 
 const registerSecondPassphrase = ({ secondPassphrase }) => {
-	const { publicKey } = cryptoModule.getKeys(secondPassphrase);
+	const { publicKey } = cryptography.getKeys(secondPassphrase);
 
 	return {
 		type: 1,

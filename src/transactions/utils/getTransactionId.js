@@ -12,16 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from 'cryptography';
+import cryptography from 'cryptography';
 import getTransactionBytes from './getTransactionBytes';
 
 const getTransactionId = transaction => {
 	const transactionBytes = getTransactionBytes(transaction);
-	const transactionHash = cryptoModule.hash(transactionBytes);
-	const bufferFromFirstEntriesReversed = cryptoModule.getFirstEightBytesReversed(
+	const transactionHash = cryptography.hash(transactionBytes);
+	const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(
 		transactionHash,
 	);
-	const firstEntriesToNumber = cryptoModule.bufferToBigNumberString(
+	const firstEntriesToNumber = cryptography.bufferToBigNumberString(
 		bufferFromFirstEntriesReversed,
 	);
 

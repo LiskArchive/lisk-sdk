@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from 'cryptography';
+import cryptography from 'cryptography';
 import registerMultisignatureAccount from 'transactions/4_registerMultisignatureAccount';
 
 const time = require('transactions/utils/time');
@@ -261,7 +261,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 				.fill()
 				.map(
 					(_, index) =>
-						cryptoModule.getPrivateAndPublicKeyFromPassphrase(index.toString())
+						cryptography.getPrivateAndPublicKeyFromPassphrase(index.toString())
 							.publicKey,
 				);
 		});

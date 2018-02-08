@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { DAPP_FEE } from '../constants';
+import { DAPP_FEE } from 'constants';
 import { wrapTransactionCreator } from './utils';
 
 const isInt = n => parseInt(n, 10) === n;

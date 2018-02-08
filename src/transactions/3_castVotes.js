@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from 'cryptography';
-import { VOTE_FEE } from '../constants';
+import cryptography from 'cryptography';
+import { VOTE_FEE } from 'constants';
 import {
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
@@ -25,7 +25,7 @@ const castVotes = ({ passphrase, votes = [], unvotes = [] }) => {
 	validatePublicKeys([...votes, ...unvotes]);
 
 	const recipientId = passphrase
-		? cryptoModule.getAddressAndPublicKeyFromPassphrase(passphrase).address
+		? cryptography.getAddressAndPublicKeyFromPassphrase(passphrase).address
 		: null;
 
 	const plusPrependedVotes = prependPlusToPublicKeys(votes);

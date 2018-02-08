@@ -26,7 +26,7 @@ import {
 	EPOCH_TIME,
 	EPOCH_TIME_SECONDS,
 	EPOCH_TIME_MILLISECONDS,
-} from '../src/constants';
+} from 'constants';
 
 describe('constants', () => {
 	it('FIXED_POINT should be an integer', () => {

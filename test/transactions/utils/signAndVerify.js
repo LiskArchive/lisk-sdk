@@ -18,7 +18,7 @@ import {
 	verifyTransaction,
 } from 'transactions/utils';
 
-import cryptoModule from 'cryptography';
+import cryptography from 'cryptography';
 
 const getTransactionHash = require('transactions/utils/getTransactionHash');
 
@@ -55,10 +55,10 @@ describe('signAndVerify transaction utils', () => {
 		};
 
 		cryptoSignDataStub = sandbox
-			.stub(cryptoModule, 'signData')
+			.stub(cryptography, 'signData')
 			.returns(defaultSignature);
 		cryptoVerifyDataStub = sandbox
-			.stub(cryptoModule, 'verifyData')
+			.stub(cryptography, 'verifyData')
 			.returns(true);
 		getTransactionHashStub = sandbox
 			.stub(getTransactionHash, 'default')

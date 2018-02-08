@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import crypto from 'cryptography';
+import cryptography from 'cryptography';
 
 const getAddressAndPublicKeyFromRecipientData = ({
 	recipientId,
 	recipientPublicKey,
 }) => {
 	if (recipientId && recipientPublicKey) {
-		const addressFromPublicKey = crypto.getAddressFromPublicKey(
+		const addressFromPublicKey = cryptography.getAddressFromPublicKey(
 			recipientPublicKey,
 		);
 		if (recipientId === addressFromPublicKey) {
@@ -31,7 +31,7 @@ const getAddressAndPublicKeyFromRecipientData = ({
 	}
 
 	if (!recipientId && recipientPublicKey) {
-		const addressFromPublicKey = crypto.getAddressFromPublicKey(
+		const addressFromPublicKey = cryptography.getAddressFromPublicKey(
 			recipientPublicKey,
 		);
 		return { address: addressFromPublicKey, publicKey: recipientPublicKey };

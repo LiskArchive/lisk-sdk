@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from 'cryptography';
+import cryptography from 'cryptography';
 import prepareTransaction from './prepareTransaction';
 import { getTimeWithOffset } from './time';
 
@@ -20,7 +20,7 @@ const wrapTransactionCreator = transactionCreator => transactionParameters => {
 	const { passphrase, secondPassphrase, timeOffset } = transactionParameters;
 
 	const senderPublicKey = passphrase
-		? cryptoModule.getKeys(passphrase).publicKey
+		? cryptography.getKeys(passphrase).publicKey
 		: null;
 	const timestamp = getTimeWithOffset(timeOffset);
 

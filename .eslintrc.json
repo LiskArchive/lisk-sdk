@@ -11,7 +11,11 @@
 		"no-mixed-operators": "off",
 		"import/no-extraneous-dependencies": [
 			"error", {
-				"devDependencies": true,
+				"devDependencies": [
+					"test/**",
+					"**/Gruntfile{,.js}" // grunt config
+				],
+				"optionalDependencies": false,
 				"packageDir": "./"
 			}
 		]

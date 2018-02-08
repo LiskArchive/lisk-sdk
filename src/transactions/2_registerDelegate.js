@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { DELEGATE_FEE } from '../constants';
+import { DELEGATE_FEE } from 'constants';
 import { wrapTransactionCreator } from './utils';
 
 const registerDelegate = ({ username }) => ({
