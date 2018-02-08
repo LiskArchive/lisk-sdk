@@ -340,6 +340,7 @@ Transaction.prototype.checkBalance = function(
 					'Account does not have enough LSK:',
 					sender.address,
 					'balance:',
+					// eslint-disable-next-line no-restricted-properties
 					new bignum(sender[balance].toString() || '0').div(Math.pow(10, 8)),
 				].join(' ')
 			: null,
