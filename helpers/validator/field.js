@@ -66,7 +66,7 @@ Field.prototype.child = function(path, value, rules, thisArg) {
 /**
  * Validate field value and trigger callback on result.
  *
- * @param callback
+ * @param callback - Description of the param
  * @todo Add description of the param
  */
 Field.prototype.validate = function(callback) {
@@ -176,7 +176,7 @@ Field.prototype.end = function(err) {
 /**
  * Create validation async. Callback get done function to emit validation end.
  *
- * @param {function(done:function)} callback
+ * @param {function} callback - Description of the param
  * @todo Add description of the param
  */
 Field.prototype.async = function(callback) {
@@ -207,7 +207,7 @@ Field.prototype.async = function(callback) {
 /**
  * Report an invalid validation result.
  *
- * @param {{}} report - Validation report object
+ * @param {Object} report - Validation report object
  */
 Field.prototype.issue = function(report) {
 	this.hasError = true;

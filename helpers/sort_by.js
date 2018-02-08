@@ -154,8 +154,8 @@ function sortBy(sort, options) {
  * If only field is specified in sortQuery, sortOrder will be ascending.
  *
  * @param {string} sortQuery - sortField|sortField:sortOrder
- * @param {Array} sortableFields
- * @returns {Object}[={}] returns {} if incorrect format of sortQuery given or if field
+ * @param {Array} sortableFields - Description of the param
+ * @returns {Object} returns {} if incorrect format of sortQuery given or if field
  * @todo Add description of the params
  */
 function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {

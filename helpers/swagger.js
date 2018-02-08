@@ -142,7 +142,7 @@ function generateParamsErrorObject(params, messages, codes) {
  * Get list of undocumented params.
  *
  * @param {object} request - Request object.
- * @return {boolean}
+ * @returns {boolean}
  * @todo Add description for the returns-tag
  */
 function invalidParams(request) {

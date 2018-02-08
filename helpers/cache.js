@@ -25,10 +25,10 @@ var redis = require('redis');
 /**
  * Description of the function.
  *
- * @param {boolean} cacheEnabled
+ * @param {boolean} cacheEnabled - Description of the param
  * @param {Object} config - Redis configuration
- * @param {Object} logger
- * @param {function} cb
+ * @param {Object} logger - Description of the param
+ * @param {function} cb - Description of the param
  * @todo Add descriptions of the function and its params
  */
 module.exports.connect = function(cacheEnabled, config, logger, cb) {

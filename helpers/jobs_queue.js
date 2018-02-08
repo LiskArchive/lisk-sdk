@@ -38,8 +38,8 @@ var jobsQueue = {
 	 * @param {string} name - Description of the param
 	 * @param { } job - Description of the param
 	 * @param {number} time - Description of the param
-	 * @returns {string} Hash of last git commit
 	 * @throws {Error} Throws error if cannot get last git commit
+	 * @returns {string} Hash of last git commit
 	 * @todo Add descriptions and types of the parameters
 	 */
 	register(name, job, time) {
