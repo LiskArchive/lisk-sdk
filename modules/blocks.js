@@ -35,14 +35,21 @@ __private.cleanup = false;
 __private.isActive = false;
 
 /**
- * Initializes submodules with scope content.
+ * Main Blocks methods. Initializes submodules with scope content.
  * Calls submodules.chain.saveGenesisBlock.
- * @memberof module:blocks
+ *
  * @class
- * @classdesc Main Blocks methods.
- * @param {function} cb - Callback function.
- * @param {scope} scope - App instance.
- * @return {setImmediateCallback} Callback function with `self` as data.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires helpers/constants
+ * @requires modules/blocks/api
+ * @requires modules/blocks/verify
+ * @requires modules/blocks/process
+ * @requires modules/blocks/utils
+ * @requires modules/blocks/chain
+ * @param {function} cb - Callback function
+ * @param {scope} scope - App instance
+ * @returns {setImmediateCallback} Callback function with `self` as data
  */
 // Constructor
 function Blocks(cb, scope) {
@@ -112,7 +119,8 @@ function Blocks(cb, scope) {
  * PUBLIC METHODS
  */
 /**
- * Last block functions, getter, setter and isFresh
+ * Last block functions, getter, setter and isFresh.
+ *
  * @property {function} get Returns lastBlock
  * @property {function} set Sets lastBlock
  * @property {function} isFresh Returns status of last block - if it fresh or not
@@ -129,7 +137,7 @@ Blocks.prototype.lastBlock = {
 	 * Returns status of last block - if it fresh or not
 	 *
 	 * @function isFresh
-	 * @return {boolean} Fresh status of last block
+	 * @returns {boolean} Fresh status of last block
 	 */
 	isFresh() {
 		if (!__private.lastBlock) {
@@ -145,6 +153,7 @@ Blocks.prototype.lastBlock = {
 
 /**
  * Last Receipt functions: get, update and isStale.
+ *
  * @property {function} get Returns lastReceipt
  * @property {function} update Updates lastReceipt
  * @property {function} isStale Returns status of last receipt - if it fresh or not
@@ -158,11 +167,11 @@ Blocks.prototype.lastReceipt = {
 		return __private.lastReceipt;
 	},
 	/**
-	 * Returns status of last receipt - if it stale or not
+	 * Returns status of last receipt - if it stale or not.
 	 *
 	 * @public
 	 * @method lastReceipt.isStale
-	 * @return {boolean} Stale status of last receipt
+	 * @returns {boolean} Stale status of last receipt
 	 */
 	isStale() {
 		if (!__private.lastReceipt) {
@@ -193,6 +202,7 @@ Blocks.prototype.isCleaning = {
 /**
  * Handle modules initialization.
  * Modules are not required in this file.
+ *
  * @param {modules} scope Exposed modules
  */
 Blocks.prototype.onBind = function() {
@@ -202,13 +212,13 @@ Blocks.prototype.onBind = function() {
 };
 
 /**
- * Handle node shutdown request
+ * Handle node shutdown request.
  *
  * @public
  * @method cleanup
  * @listens module:app~event:cleanup
  * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
+ * @returns {function} cb Callback function from params (through setImmediate)
  */
 Blocks.prototype.cleanup = function(cb) {
 	__private.loaded = false;
@@ -234,7 +244,7 @@ Blocks.prototype.cleanup = function(cb) {
  *
  * @public
  * @method isLoaded
- * @return {boolean} status Module loading status
+ * @returns {boolean} status Module loading status
  */
 Blocks.prototype.isLoaded = function() {
 	// Return 'true' if 'modules' are present
