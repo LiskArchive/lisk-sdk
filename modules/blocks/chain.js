@@ -587,7 +587,7 @@ Chain.prototype.deleteLastBlock = function (cb) {
 
 	async.waterfall(
 		[
-			function (seriesCb) {
+			function (waterCb) {
 				// Delete last block, replace last block with previous block, undo things
 				__private.popLastBlock(lastBlock, function (err, newLastBlock) {
 					if (err) {
@@ -596,10 +596,10 @@ Chain.prototype.deleteLastBlock = function (cb) {
 						// Replace last block with previous
 						lastBlock = modules.blocks.lastBlock.set(newLastBlock);
 					}
-					return setImmediate(seriesCb, err, lastBlock);
+					return setImmediate(waterCb, err, lastBlock);
 				});
 			},
-			function (newLastBlock, seriesCb) {
+			function (newLastBlock, waterCb) {
 				modules.transactions.receiveTransactions(
 					lastBlock.transactions.reverse(),
 					false,
@@ -609,7 +609,7 @@ Chain.prototype.deleteLastBlock = function (cb) {
 						}
 						// Replace last block with previous
 						lastBlock = modules.blocks.lastBlock.set(newLastBlock);
-						return setImmediate(seriesCb, err, lastBlock);
+						return setImmediate(waterCb, err, lastBlock);
 					}
 				);
 			}
