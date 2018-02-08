@@ -99,6 +99,7 @@ class TransactionsRepository {
 	 * Counts total transactions.
 	 *
 	 * @returns {Promise<number>}
+	 * @todo Add description of the return value
 	 */
 	count() {
 		return this.db.one(sql.count, [], a => +a.count);
@@ -107,8 +108,8 @@ class TransactionsRepository {
 	/**
 	 * Count transactions by Id.
 	 *
-	 * @param {string} id
-	 * @return {Promise}
+	 * @param {string} id - Description of the param
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	countById(id) {
@@ -118,10 +119,10 @@ class TransactionsRepository {
 	/**
 	 * Count transactions with extended params.
 	 *
-	 * @param {Object} params
-	 * @param {Array} params.where
-	 * @param {string} params.owner
-	 * @return {Promise}
+	 * @param {Object} params - Description of the param
+	 * @param {Array} params.where - Description of the param
+	 * @param {string} params.owner - Description of the param
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	countList(params) {
@@ -132,14 +133,14 @@ class TransactionsRepository {
 	/**
 	 * Search transactions.
 	 *
-	 * @param {Object} params
-	 * @param {Array} params.where
-	 * @param {string} params.owner
-	 * @param {string} params.sortField
-	 * @param {string} params.sortMethod
-	 * @param {int} params.limit
-	 * @param {int} params.offset
-	 * @return {Promise}
+	 * @param {Object} params - Description of the param
+	 * @param {Array} params.where - Description of the param
+	 * @param {string} params.owner - Description of the param
+	 * @param {string} params.sortField - Description of the param
+	 * @param {string} params.sortMethod - Description of the param
+	 * @param {int} params.limit - Description of the param
+	 * @param {int} params.offset - Description of the param
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	list(params) {
@@ -150,8 +151,8 @@ class TransactionsRepository {
 	/**
 	 * ets transfer transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @param {Array.<string>} ids - Description of the param
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	getTransferByIds(ids) {
@@ -161,8 +162,8 @@ class TransactionsRepository {
 	/**
 	 * Gets vote transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @param {Array.<string>} ids - Description of the param
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	getVotesByIds(ids) {
@@ -172,8 +173,8 @@ class TransactionsRepository {
 	/**
 	 * Gets delegate transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @param {Array.<string>} ids - Description of the param
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	getDelegateByIds(ids) {
@@ -183,8 +184,8 @@ class TransactionsRepository {
 	/**
 	 * Gets signature transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @param {Array.<string>} ids - Description of the param
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	getSignatureByIds(ids) {
@@ -194,8 +195,8 @@ class TransactionsRepository {
 	/**
 	 * Gets multisignature transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @param {Array.<string>} ids - Description of the param
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	getMultiByIds(ids) {
@@ -205,8 +206,8 @@ class TransactionsRepository {
 	/**
 	 * Gets dapp transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @param {Array.<string>} ids - Description of the param
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	getDappByIds(ids) {
@@ -216,8 +217,8 @@ class TransactionsRepository {
 	/**
 	 * Gets in-transfer transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @param {Array.<string>} ids - Description of the param
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	getInTransferByIds(ids) {
@@ -227,8 +228,8 @@ class TransactionsRepository {
 	/**
 	 * Gets out-transfer transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @param {Array.<string>} ids - Description of the param
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	getOutTransferByIds(ids) {
@@ -239,7 +240,7 @@ class TransactionsRepository {
 	 * Saves transactions to the database.
 	 *
 	 * @param {Array.<Object>} transactions - Each object should justify *logic/transaction.prototype.schema*
-	 * @return {Promise}
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	save(transactions) {

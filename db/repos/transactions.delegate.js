@@ -56,8 +56,8 @@ function DelegateTransactionsRepo(db, pgp) {
 /**
  * Save Dapp transactions.
  *
- * @param {Array.<{id: string, asset: {delegate: {username: string}}}>} transactions
- * @return {Promise}
+ * @param {Array} transactions
+ * @returns {Promise}
  * @todo Add descriptions for the params and the return value
  */
 DelegateTransactionsRepo.prototype.save = function(transactions) {

@@ -56,8 +56,8 @@ function InTransferTransactionsRepo(db, pgp) {
 /**
  * Save InTransfer transactions.
  *
- * @param {Array.<{id: string, asset: {inTransfer: {dappId: string}}}>} transactions
- * @return {Promise}
+ * @param {Array} transactions
+ * @returns {Promise}
  * @todo Add descriptions for the params and the return value
  */
 InTransferTransactionsRepo.prototype.save = function(transactions) {

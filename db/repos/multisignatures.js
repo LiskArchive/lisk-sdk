@@ -37,7 +37,7 @@ class MultisignaturesRepository {
 	 * Gets list of public keys for a member address.
 	 *
 	 * @param {string} address - Address of a member
-	 * @return {Promise}
+	 * @returns {Promise}
 	 * @todo Add description for the return value
 	 */
 	getMemberPublicKeys(address) {
@@ -52,7 +52,7 @@ class MultisignaturesRepository {
 	 * Gets list of addresses for group by a public key.
 	 *
 	 * @param {string} publicKey - Public key of a group
-	 * @return {Promise}
+	 * @returns {Promise}
 	 * @todo Add description for the return value
 	 */
 	getGroupIds(publicKey) {

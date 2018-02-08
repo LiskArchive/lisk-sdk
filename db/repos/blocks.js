@@ -85,7 +85,7 @@ class BlocksRepository {
 	/**
 	 * Get genesis block by id.
 	 *
-	 * @param {string} id
+	 * @param {string} id - Description of the param
 	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
@@ -97,7 +97,7 @@ class BlocksRepository {
 	/**
 	 * Delete a block from database.
 	 *
-	 * @param {string} id
+	 * @param {string} id - Description of the param
 	 * @returns {Promise}
 	 * @todo Add descriptions for the param and the return value
 	 */
@@ -108,8 +108,8 @@ class BlocksRepository {
 	/**
 	 * Aggregate rewards for a block.
 	 *
-	 * @param {Object} params
-	 * @param {string} params.generatorPublicKey
+	 * @param {Object} params - Description of the param
+	 * @param {string} params.generatorPublicKey - Description of the param
 	 * @param {int} params.start - Start time of aggregation period
 	 * @param {int} params.end - End time for aggregation period
 	 * @returns {Promise}
@@ -137,12 +137,12 @@ class BlocksRepository {
 	/**
 	 * Search blocks in database.
 	 *
-	 * @param {Object} params
-	 * @param {array} params.where
-	 * @param {string} params.sortField
-	 * @param {string} params.sortMethod
-	 * @param {int} params.limit
-	 * @param {int} params.offset
+	 * @param {Object} params - Description of the param
+	 * @param {array} params.where - Description of the param
+	 * @param {string} params.sortField - Description of the param
+	 * @param {string} params.sortMethod - Description of the param
+	 * @param {int} params.limit - Description of the param
+	 * @param {int} params.offset - Description of the param
 	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
@@ -154,10 +154,10 @@ class BlocksRepository {
 	/**
 	 * Get sequence of blocks ids for delegates.
 	 *
-	 * @param {Object} params
+	 * @param {Object} params - Description of the param
 	 * @param {int} params.delegates - Number of delegates
-	 * @param {int} params.height
-	 * @param {int} params.limit
+	 * @param {int} params.height - Description of the param
+	 * @param {int} params.limit - Description of the param
 	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
@@ -169,10 +169,10 @@ class BlocksRepository {
 	/**
 	 * Get common block among peers.
 	 *
-	 * @param {Object} params
-	 * @param {string} params.id
-	 * @param {string} params.previousBlock
-	 * @param {int} params.height
+	 * @param {Object} params - Description of the param
+	 * @param {string} params.id - Description of the param
+	 * @param {string} params.previousBlock - Description of the param
+	 * @param {int} params.height - Description of the param
 	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
@@ -200,11 +200,11 @@ class BlocksRepository {
 	/**
 	 * Load block including transactions.
 	 *
-	 * @param {Object} params
-	 * @param {string} params.id
-	 * @param {string} params.lastId
-	 * @param {int} params.height
-	 * @param {int} params.limit
+	 * @param {Object} params - Description of the param
+	 * @param {string} params.id - Description of the param
+	 * @param {string} params.lastId - Description of the param
+	 * @param {int} params.height - Description of the param
+	 * @param {int} params.limit - Description of the param
 	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
@@ -216,8 +216,8 @@ class BlocksRepository {
 	/**
 	 * Load blocks including transactions with an offset and limit.
 	 *
-	 * @param {int} offset
-	 * @param {int} limit
+	 * @param {int} offset - Description of the param
+	 * @param {int} limit - Description of the param
 	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
@@ -250,9 +250,9 @@ class BlocksRepository {
 	/**
 	 * Check if a block exits with a particular ID.
 	 *
-	 * @param {string} id
-	 * @returns {Promise}
+	 * @param {string} id - Description of the param
 	 * @throws {QueryResultError} - Multiple rows were not expected - in the case of multiple blocks found with same id
+	 * @returns {Promise}
 	 * @todo Add descriptions for the params and the return value
 	 */
 	blockExists(id) {
@@ -262,7 +262,7 @@ class BlocksRepository {
 	/**
 	 * Delete all blocks after a particular height.
 	 *
-	 * @param {string} id
+	 * @param {string} id - Description of the param
 	 * @returns {Promise}
 	 */
 	deleteAfterBlock(id) {

@@ -63,8 +63,8 @@ function DappsTransactionsRepo(db, pgp) {
 /**
  * Save Dapp transactions.
  *
- * @param {Array.<{id: string, asset: {dapp: {type: int, name: string, description: string, tags: string, link: string, icon: string, category: string}}}>} transactions
- * @return {Promise}
+ * @param {Array} transactions
+ * @returns {Promise}
  * @todo Add descriptions for the params and the return value
  */
 DappsTransactionsRepo.prototype.save = function(transactions) {

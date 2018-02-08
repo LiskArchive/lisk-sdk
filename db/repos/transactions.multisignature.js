@@ -56,8 +56,8 @@ function MultiSigTransactionsRepo(db, pgp) {
 /**
  * Save Multisignature transactions.
  *
- * @param {Array} transactions
- * @return {Promise}
+ * @param {Array} transactions - Description of the param
+ * @returns {Promise}
  * @todo Add descriptions for the params and the return value
  */
 MultiSigTransactionsRepo.prototype.save = function(transactions) {

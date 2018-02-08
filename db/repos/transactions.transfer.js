@@ -24,9 +24,9 @@ var columnSet;
  *
  * @class
  * @memberof db.repos
+ * @see Parent: {@link db.repos}
  * @requires bluebird
  * @requires lodash
- * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @returns {Object} - An instance of a TransferTransactionsRepo
@@ -56,8 +56,8 @@ function TransferTransactionsRepo(db, pgp) {
 /**
  * Save transfer transactions.
  *
- * @param {Array.<{id: string, asset: {data: string}}>} transactions
- * @return {Promise}
+ * @param {Array} transactions - Description of the param
+ * @returns {Promise}
  * @todo Add descriptions for the params and the return value
  */
 TransferTransactionsRepo.prototype.save = function(transactions) {

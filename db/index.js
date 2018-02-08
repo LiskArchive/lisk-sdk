@@ -57,7 +57,8 @@ pgp = pgp(initOptions);
  * @function connect
  * @param {Object} config - Description of the param
  * @param {function} logger - Description of the param
- * @return {Promise}
+ * @returns {Promise}
+ * @todo Add descriptions for the params and return value
  */
 module.exports.connect = (config, logger) => {
 	try {
@@ -88,6 +89,7 @@ module.exports.connect = (config, logger) => {
  *
  * @function disconnect
  * @param {Object} logger - Description of the param
+ * @todo Add descriptions for the params
  */
 module.exports.disconnect = logger => {
 	logger = logger || console;

@@ -56,8 +56,8 @@ function OutTransferTransactionsRepo(db, pgp) {
 /**
  * Save OutTransfer transactions.
  *
- * @param {Array.<{id: string, asset: {outTransfer: {dappId: string, transactionId: string}}}>} transactions
- * @return {Promise}
+ * @param {Array} transactions
+ * @returns {Promise}
  * @todo Add descriptions for the params and the return value
  */
 OutTransferTransactionsRepo.prototype.save = function(transactions) {
