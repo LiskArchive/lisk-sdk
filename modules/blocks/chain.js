@@ -585,16 +585,35 @@ Chain.prototype.deleteLastBlock = function (cb) {
 		return setImmediate(cb, 'Cannot delete genesis block');
 	}
 
-	// Delete last block, replace last block with previous block, undo things
-	__private.popLastBlock(lastBlock, function (err, newLastBlock) {
-		if (err) {
-			library.logger.error('Error deleting last block', lastBlock);
-		} else {
-			// Replace last block with previous
-			lastBlock = modules.blocks.lastBlock.set(newLastBlock);
-		}
-		return setImmediate(cb, err, lastBlock);
-	});
+	async.waterfall(
+		[
+			function (waterCb) {
+				// Delete last block, replace last block with previous block, undo things
+				__private.popLastBlock(lastBlock, function (err, newLastBlock) {
+					if (err) {
+						library.logger.error('Error deleting last block', lastBlock);
+					} else {
+						// Replace last block with previous
+						lastBlock = modules.blocks.lastBlock.set(newLastBlock);
+					}
+					return setImmediate(waterCb, err, lastBlock);
+				});
+			},
+			function (newLastBlock, waterCb) {
+				modules.transactions.receiveTransactions(
+					lastBlock.transactions.reverse(),
+					false,
+					function (err) {
+						if (err) {
+							library.logger.error('Error receiving transactions after deleting block', err);
+						}
+						return setImmediate(waterCb, null, lastBlock);
+					}
+				);
+			}
+		],
+		cb
+	);
 };
 
 /**
