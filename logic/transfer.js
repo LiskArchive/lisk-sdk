@@ -23,9 +23,16 @@ var library;
 
 /**
  * Main transfer logic.
- * @memberof module:transactions
+ *
  * @class
- * @classdesc Main transfer logic.
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires helpers/bignum
+ * @requires helpers/constants
+ * @requires helpers/slots
+ * @param {Object} logger - Description of the param
+ * @param {Object} schema - Description of the param
+ * @todo Add descriptions for the params
  */
 // Constructor
 function Transfer(logger, schema) {
@@ -38,7 +45,9 @@ function Transfer(logger, schema) {
 // Public methods
 /**
  * Binds input parameters to private variable modules.
- * @param {Accounts} accounts
+ *
+ * @param {Accounts} accounts - Description of the param
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.bind = function(accounts) {
 	modules = {
@@ -48,9 +57,11 @@ Transfer.prototype.bind = function(accounts) {
 
 /**
  * Returns send fees from constants.
- * @param {transaction} transaction
- * @param {account} sender
- * @return {number} fee
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @returns {number} fee
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.calculateFee = function(transaction) {
 	var fee = new bignum(constants.fees.send);
@@ -63,10 +74,12 @@ Transfer.prototype.calculateFee = function(transaction) {
 
 /**
  * Verifies recipientId and amount greather than 0.
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} errors | transaction
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} errors | transaction
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.recipientId) {
@@ -81,10 +94,13 @@ Transfer.prototype.verify = function(transaction, sender, cb) {
 };
 
 /**
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb, null, transaction
+ * Description of the function.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb, null, transaction
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
@@ -92,9 +108,11 @@ Transfer.prototype.process = function(transaction, sender, cb) {
 
 /**
  * Creates a buffer with asset.transfer.data.
- * @param {transaction} transaction
- * @return {buffer} buf
+ *
+ * @param {transaction} transaction - Description of the param
  * @throws {error} error
+ * @returns {buffer} buf
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.getBytes = function(transaction) {
 	var buf;
@@ -114,14 +132,13 @@ Transfer.prototype.getBytes = function(transaction) {
 /**
  * Calls setAccountAndGet based on transaction recipientId and
  * mergeAccountAndGet with unconfirmed transaction amount.
- * @implements {modules.accounts.setAccountAndGet}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {block} block - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Callback function - Description of the param
+ * @returns {setImmediateCallback} error, cb
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
 	modules.accounts.setAccountAndGet(
@@ -150,14 +167,13 @@ Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
 /**
  * Calls setAccountAndGet based on transaction recipientId and
  * mergeAccountAndGet with unconfirmed transaction amount and balance negative.
- * @implements {modules.accounts.setAccountAndGet}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {block} block - Description of the param
+ * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
+ * @returns {setImmediateCallback} error, cb
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.undo = function(transaction, block, sender, cb) {
 	modules.accounts.setAccountAndGet(
@@ -182,20 +198,26 @@ Transfer.prototype.undo = function(transaction, block, sender, cb) {
 };
 
 /**
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ * Description of the function.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 	return setImmediate(cb);
 };
 
 /**
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ * Description of the function.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @param {function} cb - Description of the param
+ * @returns {setImmediateCallback} cb
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
 	return setImmediate(cb);
@@ -220,8 +242,10 @@ Transfer.prototype.schema = {
 
 /**
  * Deletes blockId from transaction, and validates schema if asset exists.
- * @param {transaction} transaction
- * @return {transaction}
+ *
+ * @param {transaction} transaction - Description of the param
+ * @returns {transaction}
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.objectNormalize = function(transaction) {
 	delete transaction.blockId;
@@ -247,8 +271,10 @@ Transfer.prototype.objectNormalize = function(transaction) {
 
 /**
  * Checks if asset exists, if so, returns value, otherwise returns null.
- * @param {Object} raw
- * @return {transferAsset|null}
+ *
+ * @param {Object} raw - Description of the param
+ * @returns {transferAsset|null}
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.dbRead = function(raw) {
 	if (raw.tf_data) {
@@ -260,9 +286,11 @@ Transfer.prototype.dbRead = function(raw) {
 
 /**
  * Checks if transaction has enough signatures to be confirmed.
- * @param {transaction} transaction
- * @param {account} sender
- * @return {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ *
+ * @param {transaction} transaction - Description of the param
+ * @param {account} sender - Description of the param
+ * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @todo Add descriptions for the params
  */
 Transfer.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
