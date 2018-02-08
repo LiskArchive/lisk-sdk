@@ -613,6 +613,7 @@ describe('multisignature', () => {
 	});
 
 	// The below skipped test should be fixed as part of this issue: https://github.com/LiskHQ/lisk/issues/1527
+	// eslint-disable-next-line mocha/no-skipped-tests
 	it.skip('undo', () => {
 		/* eslint-disable mocha/no-sibling-hooks */
 		beforeEach(done => {
