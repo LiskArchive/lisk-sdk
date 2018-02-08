@@ -444,6 +444,7 @@ function Account(db, schema, logger, cb) {
  * @property {number} properties.approval.type - Description of the value
  * @property {Object} properties.productivity - Description of the value
  * @property {number} properties.productivity.type - Description of the value
+ * @todo Add descriptions of the values
  */
 Account.prototype.schema = {
 	id: 'Account',
@@ -650,7 +651,7 @@ Account.prototype.bind = function(blocks) {
  * - mem_accounts2u_multisignatures
  *
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb|error
+ * @returns {Immediate} cb|error
  */
 Account.prototype.resetMemTables = function(cb) {
 	this.scope.db.accounts
@@ -689,7 +690,7 @@ Account.prototype.objectNormalize = function(account) {
 };
 
 /**
- * Checks type, lenght and format from publicKey.
+ * Checks type, length and format from publicKey.
  *
  * @param {publicKey} publicKey - Description of the param
  * @throws {string} throws one error for every check
