@@ -118,6 +118,7 @@ function generateNodePeers(numOfPeers, syncMode, syncModeArgs) {
 					});
 				}
 			});
+		// no default
 	}
 	return peersList;
 }

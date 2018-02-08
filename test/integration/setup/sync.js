@@ -81,6 +81,7 @@ module.exports = {
 						});
 					}
 				});
+			// no default
 		}
 
 		return peersList;
