@@ -621,6 +621,7 @@ describe('multisignature', () => {
 		});
 		/* eslint-enable */
 
+		/* eslint-disable mocha/no-nested-tests */
 		it('should set __private.unconfirmedSignatures[sender.address] = true', () => {
 			var unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
@@ -676,6 +677,7 @@ describe('multisignature', () => {
 				});
 			});
 		});
+		/* eslint-enable */
 	});
 
 	describe('applyUnconfirmed', () => {

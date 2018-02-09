@@ -46,12 +46,12 @@ describe('GET /delegates', () => {
 			var data = [];
 
 			return delegatesEndpoint
-				.makeRequest({ limit: 100 }, 200)
+				.makeRequest({ limit: 101 }, 200)
 				.then(res => {
 					data = res.body.data;
 
 					return delegatesEndpoint.makeRequest(
-						{ offset: 100, limit: 100 },
+						{ offset: 101, limit: 101 },
 						200
 					);
 				})
@@ -307,9 +307,9 @@ describe('GET /delegates', () => {
 
 			it('using higher limit should return 101 delegates', () => {
 				return delegatesEndpoint
-					.makeRequest({ search: 'genesis_', limit: 100 }, 200)
+					.makeRequest({ search: 'genesis_', limit: 101 }, 200)
 					.then(res => {
-						expect(res.body.data).to.have.length(100);
+						expect(res.body.data).to.have.length(101);
 						res.body.data.map(d => {
 							expect(/^genesis_.*/.test(d.username)).to.be.true;
 						});
@@ -461,13 +461,13 @@ describe('GET /delegates', () => {
 			});
 
 			it('using limit=101 should be ok', () => {
-				return delegatesEndpoint.makeRequest({ limit: 100 }, 200).then(res => {
-					expect(res.body.data).to.have.length(100);
+				return delegatesEndpoint.makeRequest({ limit: 101 }, 200).then(res => {
+					expect(res.body.data).to.have.length(101);
 				});
 			});
 
-			it('using limit > 100 should fail', () => {
-				return delegatesEndpoint.makeRequest({ limit: 101 }, 400).then(res => {
+			it('using limit > 101 should fail', () => {
+				return delegatesEndpoint.makeRequest({ limit: 102 }, 400).then(res => {
 					expectSwaggerParamError(res, 'limit');
 				});
 			});
