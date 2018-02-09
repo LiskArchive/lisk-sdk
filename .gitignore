@@ -49,6 +49,7 @@ jspm_packages
 
 # IDE directories
 .idea
+tmp
 
 # Distribution folders
 dist-browser/*.js
