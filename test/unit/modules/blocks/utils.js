@@ -272,7 +272,7 @@ describe('blocks/utils', () => {
 			});
 		});
 
-		it('should return block object', done => {
+		it('should return an array of blocks', done => {
 			library.db.blocks.loadBlocksData = sinonSandbox
 				.stub()
 				.resolves(viewRow_full_blocks_list);
@@ -286,7 +286,7 @@ describe('blocks/utils', () => {
 			});
 		});
 
-		it('should call self.readDbRows with rows', done => {
+		it('should call self.readDbRows with the resolved rows', done => {
 			library.db.blocks.loadBlocksData = sinonSandbox
 				.stub()
 				.resolves(viewRow_full_blocks_list);
@@ -409,7 +409,7 @@ describe('blocks/utils', () => {
 				});
 			});
 
-			it('should set the last block', done => {
+			it('should call modules.blocks.lastBlock.set with block', done => {
 				library.db.blocks.loadLastBlock = sinonSandbox
 					.stub()
 					.resolves(viewRow_full_blocks_list);
@@ -725,7 +725,7 @@ describe('blocks/utils', () => {
 			);
 		});
 
-		it('should return block object', done => {
+		it('should return aggregate blocks rewards', done => {
 			library.db.blocks.aggregateBlocksReward = sinonSandbox
 				.stub()
 				.resolves([{ delegate: '123abc', fees: 1, count: 100 }]);
