@@ -23,9 +23,27 @@ var BlocksUtils = rewire('../../../../modules/blocks/utils.js');
 var viewRow_full_blocks_list = [
 	{
 		b_id: '13068833527549895884',
-		b_height: 3,
+		b_height: 3, // Block 1
 		t_id: '6950874693022090568',
 		t_type: 0,
+	},
+	{
+		b_id: '13068833527549895884',
+		b_height: 3, // Block 1
+		t_id: '13831767660337349834',
+		t_type: 1,
+	},
+	{
+		b_id: '7018883617995376402',
+		b_height: 4, // Block 2
+		t_id: '10550826199952791739',
+		t_type: 2,
+	},
+	{
+		b_id: '7018883617995376402',
+		b_height: 4, // Block 2
+		t_id: '3502881310841638511',
+		t_type: 3,
 	},
 ];
 
@@ -150,17 +168,65 @@ describe('blocks/utils', () => {
 	});
 
 	describe('readDbRows', () => {
-		it('should transform a full_blocks_list view row into a block object', () => {
-			var blockObject = blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
+		it('should call library.logic.block.dbRead with each block', () => {
+			library.logic.block.dbRead = sinonSandbox.spy();
 
-			expect(blockObject).to.be.an('array');
-			expect(blockObject[0]).to.be.an('object');
-			expect(blockObject[0].id).to.equal('13068833527549895884');
-			expect(blockObject[0].height).to.equal(3);
-			expect(blockObject[0].transactions).to.be.an('array');
-			expect(blockObject[0].transactions[0]).to.be.an('object');
-			expect(blockObject[0].transactions[0].id).to.equal('6950874693022090568');
-			expect(blockObject[0].transactions[0].type).to.equal(0);
+			blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
+
+			for (const block of viewRow_full_blocks_list) {
+				expect(library.logic.block.dbRead).to.have.callCount(4);
+				expect(library.logic.block.dbRead).to.have.been.calledWith(block);
+			}
+		});
+
+		it('should call library.logic.transaction.dbRead with each block', () => {
+			library.logic.transaction.dbRead = sinonSandbox.spy();
+
+			blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
+
+			for (const block of viewRow_full_blocks_list) {
+				expect(library.logic.transaction.dbRead).to.have.callCount(4);
+				expect(library.logic.transaction.dbRead).to.have.been.calledWith(block);
+			}
+		});
+
+		it('should read an empty array', () => {
+			expect(blocksUtilsModule.readDbRows([])).to.be.an('array');
+		});
+
+		describe('with 2 blocks each containing 2 transactions', () => {
+			var blocks;
+
+			beforeEach(() => {
+				blocks = blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
+				expect(blocks).to.be.an('array');
+			});
+
+			it('should read the rows correctly', () => {
+				// Block 1
+				expect(blocks[0]).to.be.an('object');
+				expect(blocks[0].id).to.equal('13068833527549895884');
+				expect(blocks[0].height).to.equal(3);
+				expect(blocks[0].transactions).to.be.an('array');
+				expect(blocks[0].transactions[0]).to.be.an('object');
+				expect(blocks[0].transactions[0].id).to.equal('6950874693022090568');
+				expect(blocks[0].transactions[0].type).to.equal(0);
+				expect(blocks[0].transactions[1]).to.be.an('object');
+				expect(blocks[0].transactions[1].id).to.equal('13831767660337349834');
+				expect(blocks[0].transactions[1].type).to.equal(1);
+
+				// Block 2
+				expect(blocks[1]).to.be.an('object');
+				expect(blocks[1].id).to.equal('7018883617995376402');
+				expect(blocks[1].height).to.equal(4);
+				expect(blocks[1].transactions).to.be.an('array');
+				expect(blocks[1].transactions[0]).to.be.an('object');
+				expect(blocks[1].transactions[0].id).to.equal('10550826199952791739');
+				expect(blocks[1].transactions[0].type).to.equal(2);
+				expect(blocks[1].transactions[1]).to.be.an('object');
+				expect(blocks[1].transactions[1].id).to.equal('3502881310841638511');
+				expect(blocks[1].transactions[1].type).to.equal(3);
+			});
 		});
 
 		it('should generate fake signature for genesis block', () => {
