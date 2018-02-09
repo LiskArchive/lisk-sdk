@@ -20,7 +20,7 @@ var modulesLoader = require('../../../common/modules_loader');
 
 var BlocksUtils = rewire('../../../../modules/blocks/utils.js');
 
-var viewRow_full_blocks_list = [
+var fullBlocksListRows = [
 	{
 		b_id: '13068833527549895884',
 		b_height: 3, // Block 1
@@ -64,7 +64,7 @@ describe('blocks/utils', () => {
 			blocks: {
 				getIdSequence: sinonSandbox.stub().resolves(),
 				getHeightByLastId: sinonSandbox.stub().resolves(['1']),
-				loadLastBlock: sinonSandbox.stub().resolves(viewRow_full_blocks_list),
+				loadLastBlock: sinonSandbox.stub().resolves(fullBlocksListRows),
 				loadBlocksData: sinonSandbox.stub(),
 				aggregateBlocksReward: sinonSandbox.stub().resolves(),
 			},
@@ -72,7 +72,7 @@ describe('blocks/utils', () => {
 
 		dbStub.blocks.loadBlocksData
 			.withArgs(sinonSandbox.match({ id: '13068833527549895884' }))
-			.resolves(viewRow_full_blocks_list)
+			.resolves(fullBlocksListRows)
 			.withArgs(sinonSandbox.match({ id: '1' }))
 			.resolves([]);
 
@@ -171,9 +171,9 @@ describe('blocks/utils', () => {
 		it('should call library.logic.block.dbRead with each block', () => {
 			library.logic.block.dbRead = sinonSandbox.spy();
 
-			blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
+			blocksUtilsModule.readDbRows(fullBlocksListRows);
 
-			for (const block of viewRow_full_blocks_list) {
+			for (const block of fullBlocksListRows) {
 				expect(library.logic.block.dbRead).to.have.callCount(4);
 				expect(library.logic.block.dbRead).to.have.been.calledWith(block);
 			}
@@ -182,9 +182,9 @@ describe('blocks/utils', () => {
 		it('should call library.logic.transaction.dbRead with each block', () => {
 			library.logic.transaction.dbRead = sinonSandbox.spy();
 
-			blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
+			blocksUtilsModule.readDbRows(fullBlocksListRows);
 
-			for (const block of viewRow_full_blocks_list) {
+			for (const block of fullBlocksListRows) {
 				expect(library.logic.transaction.dbRead).to.have.callCount(4);
 				expect(library.logic.transaction.dbRead).to.have.been.calledWith(block);
 			}
@@ -198,7 +198,7 @@ describe('blocks/utils', () => {
 			var blocks;
 
 			beforeEach(() => {
-				blocks = blocksUtilsModule.readDbRows(viewRow_full_blocks_list);
+				blocks = blocksUtilsModule.readDbRows(fullBlocksListRows);
 				expect(blocks).to.be.an('array');
 			});
 
@@ -275,7 +275,7 @@ describe('blocks/utils', () => {
 		it('should return an array of blocks', done => {
 			library.db.blocks.loadBlocksData = sinonSandbox
 				.stub()
-				.resolves(viewRow_full_blocks_list);
+				.resolves(fullBlocksListRows);
 
 			blocksUtilsModule.loadBlocksPart({}, (err, blocks) => {
 				expect(err).to.be.null;
@@ -289,13 +289,13 @@ describe('blocks/utils', () => {
 		it('should call self.readDbRows with the resolved rows', done => {
 			library.db.blocks.loadBlocksData = sinonSandbox
 				.stub()
-				.resolves(viewRow_full_blocks_list);
+				.resolves(fullBlocksListRows);
 
 			blocksUtilsModule.readDbRows = sinonSandbox.spy();
 
 			blocksUtilsModule.loadBlocksPart({}, () => {
 				expect(blocksUtilsModule.readDbRows).to.have.been.calledOnce;
-				expect(blocksUtilsModule.readDbRows).to.have.been.calledWith(viewRow_full_blocks_list);
+				expect(blocksUtilsModule.readDbRows).to.have.been.calledWith(fullBlocksListRows);
 				done();
 			});
 		});
@@ -412,7 +412,7 @@ describe('blocks/utils', () => {
 			it('should call modules.blocks.lastBlock.set with block', done => {
 				library.db.blocks.loadLastBlock = sinonSandbox
 					.stub()
-					.resolves(viewRow_full_blocks_list);
+					.resolves(fullBlocksListRows);
 
 				modules.blocks.lastBlock.set = sinonSandbox.spy();
 
