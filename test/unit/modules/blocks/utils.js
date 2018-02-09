@@ -427,6 +427,18 @@ describe('blocks/utils', () => {
 	});
 
 	describe('getIdSequence', () => {
+		it('should call library.db.blocks.getIdSequence with proper params', done => {
+			blocksUtilsModule.getIdSequence(10, () => {
+				expect(library.db.blocks.getIdSequence).to.have.been.calledOnce;
+				expect(library.db.blocks.getIdSequence).to.have.been.calledWith({
+					height: 10,
+					limit: 5,
+					delegates: 101,
+				});
+				done();
+			});
+		});
+
 		it('should return error when library.db.blocks.getIdSequence fails', done => {
 			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
 				expect(loggerStub.error.args[0][0]).to.contains(
@@ -459,10 +471,117 @@ describe('blocks/utils', () => {
 				]);
 
 			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
 				expect(sequence).to.be.an('object');
 				expect(sequence.firstHeight).to.equal(1);
 				expect(sequence.ids).to.equal(
 					'9314232245035524467,1,2,3,4,6524861224470851795'
+				);
+				done();
+			});
+		});
+
+		it('should not add genesis block to the set when library.genesisblock is undefined', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: 1, height: 2 }]);
+
+			const genesisblock = library.genesisblock;
+			library.genesisblock = undefined;
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'9314232245035524467,1'
+				);
+				library.genesisblock = genesisblock;
+				done();
+			});
+		});
+
+		it('should not add genesis block to the set when library.genesisblock.block is undefined', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: 1, height: 2 }]);
+
+			const block = library.genesisblock.block;
+			library.genesisblock.block = undefined;
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'9314232245035524467,1'
+				);
+				library.genesisblock.block = block;
+				done();
+			});
+		});
+
+		it('should not add genesis block to the set more than once', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: '6524861224470851795', height: 1 }]);
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'9314232245035524467,6524861224470851795'
+				);
+				done();
+			});
+		});
+
+		it('should not add last block when it is undefined', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: '6524861224470851795', height: 1 }]);
+
+			modules.blocks.lastBlock.get = sinonSandbox.stub(undefined);
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'6524861224470851795'
+				);
+				done();
+			});
+		});
+
+		it('should not add last block to the set more than once', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: '9314232245035524467', height: 1 }]);
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'9314232245035524467,6524861224470851795'
+				);
+				done();
+			});
+		});
+
+		it('should not add resolved block to the set more than once', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: 2, height: 3 }, { id: 2, height: 3 }]);
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'9314232245035524467,2,6524861224470851795'
 				);
 				done();
 			});
