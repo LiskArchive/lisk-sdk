@@ -13,6 +13,7 @@
  */
 
 'use strict';
+
 /**
  * Description of the class.
  *
