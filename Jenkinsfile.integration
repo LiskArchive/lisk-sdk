@@ -29,7 +29,7 @@ def statusFail() {
 }
 
 def cleanUp() {
-	sh '''#!/bin/bash
+	sh '''
 		node_modules/.bin/pm2 kill
 	'''
 }
@@ -41,10 +41,10 @@ node('node-06') {
 				deleteDir()
 				checkout scm
 
-				sh '''#!/bin/bash
+				sh '''
 					# Cycle postgres, install deps and prepare config
 					sudo service postgresql restart
-					rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/"
+					rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/" || true
 					npm install
 					cp test/data/config.json test/data/genesis_block.json .
 				'''
@@ -55,7 +55,8 @@ node('node-06') {
 
 		stage('Run integration tests') {
 			try {
-				sh '''#!/bin/bash
+				sh '''#!/bin/bash -xe
+					set -o pipefail
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
 					if [ params.JENKINS_PROFILE == 'jenkins-extensive' ]; then
 						npm test -- mocha:extensive:integration |& tee integrationTests.logs

@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-top-level-hooks */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -11,8 +12,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-before(function(done) {
+before(done => {
 	require('../common/utils/wait_for').blockchainReady(done);
 });

@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -50,7 +51,7 @@ function DappsTransactionsRepo(db, pgp) {
 			schema: 'public',
 		});
 		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: table,
+			table,
 		});
 	}
 

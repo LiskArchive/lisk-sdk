@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 const sql = require('../sql').blocks;
@@ -274,7 +275,7 @@ class BlocksRepository {
 // TODO: All these queries need to be thrown away, and use proper implementation inside corresponding methods.
 
 const Queries = {
-	list: function(params) {
+	list(params) {
 		return [
 			'SELECT * FROM blocks_list',
 			params.where && params.where.length
@@ -289,7 +290,7 @@ const Queries = {
 			.join(' ');
 	},
 
-	loadBlocksData: function(params) {
+	loadBlocksData(params) {
 		var limitPart;
 
 		if (!params.id && !params.lastId) {

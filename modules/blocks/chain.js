@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var Promise = require('bluebird');
@@ -46,14 +47,14 @@ function Chain(
 	balancesSequence
 ) {
 	library = {
-		logger: logger,
-		db: db,
-		genesisblock: genesisblock,
-		bus: bus,
-		balancesSequence: balancesSequence,
+		logger,
+		db,
+		genesisblock,
+		bus,
+		balancesSequence,
 		logic: {
-			block: block,
-			transaction: transaction,
+			block,
+			transaction,
 		},
 	};
 	self = this;
@@ -221,9 +222,8 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 	block.transactions = block.transactions.sort(a => {
 		if (a.type === transactionTypes.VOTE) {
 			return 1;
-		} else {
-			return 0;
 		}
+		return 0;
 	});
 	// Initialize block progress tracker
 	var tracker = modules.blocks.utils.getBlockProgressLogger(
@@ -243,8 +243,8 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 					if (err) {
 						return setImmediate(cb, {
 							message: err,
-							transaction: transaction,
-							block: block,
+							transaction,
+							block,
 						});
 					}
 					// Apply transaction to confirmed & unconfirmed balances
@@ -259,13 +259,12 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 			if (err) {
 				// If genesis block is invalid, kill the node...
 				return process.exit(0);
-			} else {
-				// Set genesis block as last block
-				modules.blocks.lastBlock.set(block);
-				// Tick round
-				// WARNING: DB_WRITE
-				modules.rounds.tick(block, cb);
 			}
+			// Set genesis block as last block
+			modules.blocks.lastBlock.set(block);
+			// Tick round
+			// WARNING: DB_WRITE
+			modules.rounds.tick(block, cb);
 		}
 	);
 };
@@ -289,8 +288,8 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 		if (err) {
 			return setImmediate(cb, {
 				message: err,
-				transaction: transaction,
-				block: block,
+				transaction,
+				block,
 			});
 		}
 
@@ -298,8 +297,8 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 			if (err) {
 				return setImmediate(cb, {
 					message: `Failed to apply transaction: ${transaction.id}`,
-					transaction: transaction,
-					block: block,
+					transaction,
+					block,
 				});
 			}
 			return setImmediate(cb);
@@ -384,9 +383,8 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 										error => {
 											if (error) {
 												return setImmediate(reject, error);
-											} else {
-												return setImmediate(resolve);
 											}
+											return setImmediate(resolve);
 										},
 										tx
 									);

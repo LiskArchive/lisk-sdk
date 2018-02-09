@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 // Init tests dependencies
@@ -52,8 +53,8 @@ describe('rounds', () => {
 			db = __db;
 
 			validScope = {
-				logger: logger,
-				db: db,
+				logger,
+				db,
 				bus: { message: sinon.spy() },
 				network: { io: { sockets: { emit: sinon.spy() } } },
 				config: { loading: { snapshot: false } },
@@ -264,12 +265,12 @@ describe('rounds', () => {
 					// Bind fake modules
 					modules = {
 						delegates: {
-							generateDelegateList: function(a, b, cb) {
+							generateDelegateList(a, b, cb) {
 								return cb(null, ['delegate1', 'delegate2', 'delegate3']);
 							},
 						},
 						accounts: {
-							generateAddressByPublicKey: function() {
+							generateAddressByPublicKey() {
 								return 'delegate';
 							},
 						},
@@ -355,7 +356,7 @@ describe('rounds', () => {
 					// Bind fake modules
 					var modules = {
 						delegates: {
-							generateDelegateList: function(a, b, cb) {
+							generateDelegateList(a, b, cb) {
 								cb('error');
 							},
 						},

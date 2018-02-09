@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var apiCodes = require('../helpers/api_codes.js');
@@ -94,9 +95,9 @@ Signatures.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @return {setImmediateCallback}
 	 */
-	postSignatures: function(signatures, cb) {
+	postSignatures(signatures, cb) {
 		return modules.transport.shared.postSignatures(
-			{ signatures: signatures },
+			{ signatures },
 			(err, res) => {
 				var processingError = /(error|processing)/gi;
 				var badRequestBodyError = /(invalid|signature)/gi;
@@ -112,15 +113,13 @@ Signatures.prototype.shared = {
 							cb,
 							new ApiError(res.message, apiCodes.BAD_REQUEST)
 						);
-					} else {
-						return setImmediate(
-							cb,
-							new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR)
-						);
 					}
-				} else {
-					return setImmediate(cb, null, { status: 'Signature Accepted' });
+					return setImmediate(
+						cb,
+						new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR)
+					);
 				}
+				return setImmediate(cb, null, { status: 'Signature Accepted' });
 			}
 		);
 	},

@@ -16,13 +16,7 @@
 const QueryFile = require('pg-promise').QueryFile;
 const path = require('path');
 
-// Check if we are in development environment:
-const isDev = __dirname.endsWith('db/sql');
-
-// Full path to the SQL folder, depending on the packaging:
-// - production expects ./sql folder at its root;
-// - development expects sql in this very folder.
-const sqlRoot = isDev ? __dirname : path.join(__dirname, './sql');
+const sqlRoot = __dirname;
 
 /////////////////////////////////////////
 // Provides dynamic link to an SQL file:
@@ -31,7 +25,6 @@ function link(file) {
 
 	const options = {
 		minify: true, // Minifies the SQL
-		debug: isDev, // Debug SQL when in Dev environment
 	};
 
 	const qf = new QueryFile(fullPath, options);

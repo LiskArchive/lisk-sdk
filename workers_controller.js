@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var SCWorker = require('socketcluster/scworker');
@@ -32,13 +33,13 @@ var config = require('./config.json');
  * is ready to accept requests/connections.
  */
 SCWorker.create({
-	run: function() {
+	run() {
 		var self = this;
 		var scServer = this.getSCServer();
 
 		async.auto(
 			{
-				logger: function(cb) {
+				logger(cb) {
 					cb(
 						null,
 						new Logger({

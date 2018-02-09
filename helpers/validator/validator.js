@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 // Dependencies
@@ -220,7 +221,7 @@ Validator.addRule = function(name, descriptor) {
  */
 Validator.addAlias = function(name, origin) {
 	Object.defineProperty(this.prototype.rules, name, {
-		get: function() {
+		get() {
 			return this[origin];
 		},
 	});
@@ -273,32 +274,31 @@ Validator.validate = function(value, rules, customRules, callback) {
 
 Validator.addRule('defaults', {
 	description: 'Set default value if passed value is undefined',
-	filter: function(accept, value) {
+	filter(accept, value) {
 		if (typeof value === 'undefined') {
 			return accept;
-		} else {
-			return value;
 		}
+		return value;
 	},
 });
 
 Validator.addRule('type', {
 	description: 'Check value type',
-	validate: function(accept, value) {
+	validate(accept, value) {
 		return typeof (value === accept);
 	},
 });
 
 Validator.addRule('equal', {
 	description: 'Check if value equals acceptable value',
-	validate: function(accept, value) {
+	validate(accept, value) {
 		return value === accept;
 	},
 });
 
 Validator.addRule('notEqual', {
 	description: 'Check if value not equals acceptable value',
-	validate: function(accept, value) {
+	validate(accept, value) {
 		return typeof (value !== accept);
 	},
 });
@@ -306,7 +306,7 @@ Validator.addRule('notEqual', {
 Validator.addRule('greater', {
 	description: 'Check if value is greater then acceptable value',
 	aliases: ['>', 'gt'],
-	validate: function(accept, value) {
+	validate(accept, value) {
 		return typeof value > accept;
 	},
 });
@@ -314,7 +314,7 @@ Validator.addRule('greater', {
 Validator.addRule('greaterOrEqual', {
 	description: 'Check if value is greater then or equal acceptable value',
 	aliases: ['>=', 'gte'],
-	validate: function(accept, value) {
+	validate(accept, value) {
 		return typeof value >= accept;
 	},
 });
@@ -322,7 +322,7 @@ Validator.addRule('greaterOrEqual', {
 Validator.addRule('less', {
 	description: 'Check if value is less then acceptable value',
 	aliases: ['<', 'lt'],
-	validate: function(accept, value) {
+	validate(accept, value) {
 		return typeof value < accept;
 	},
 });
@@ -330,7 +330,7 @@ Validator.addRule('less', {
 Validator.addRule('lessOrEqual', {
 	description: 'Check if value is less then or equal acceptable value',
 	aliases: ['<=', 'lte'],
-	validate: function(accept, value) {
+	validate(accept, value) {
 		return typeof value <= accept;
 	},
 });

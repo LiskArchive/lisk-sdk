@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var httpMocks = require('node-mocks-http');
@@ -52,7 +53,7 @@ describe('lisk_request_limit', () => {
 			delayAfter: 0,
 			windowMs: 60000,
 		};
-		limit_fititng = fitting({ limits: limits });
+		limit_fititng = fitting({ limits });
 		expect(limit_fititng.limits).to.be.eql(limits);
 	});
 
@@ -66,7 +67,7 @@ describe('lisk_request_limit', () => {
 
 		context.response = httpMocks.createResponse({ req: context.request });
 
-		limit_fititng = fitting({ limits: limits });
+		limit_fititng = fitting({ limits });
 
 		for (var i = 0; i < limits.max + 5; i++) {
 			limit_fititng(context, next);
@@ -83,7 +84,7 @@ describe('lisk_request_limit', () => {
 			windowMs: 2000,
 		};
 
-		limit_fititng = fitting({ limits: limits });
+		limit_fititng = fitting({ limits });
 
 		var success = 0;
 
@@ -130,7 +131,7 @@ describe('lisk_request_limit', () => {
 		context.request.ip = '192.168.99.10';
 		context2.request.ip = '192.168.99.11';
 
-		limit_fititng = fitting({ limits: limits });
+		limit_fititng = fitting({ limits });
 
 		for (var i = 0; i < limits.max + 5; i++) {
 			limit_fititng(context, next);

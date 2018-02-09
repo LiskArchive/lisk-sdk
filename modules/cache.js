@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
@@ -139,14 +140,13 @@ Cache.prototype.removeByPattern = function(pattern, cb) {
 			client.scan(cursor, 'MATCH', pattern, (err, res) => {
 				if (err) {
 					return whilstCb(err);
+				}
+				cursor = Number(res.shift());
+				keys = res.shift();
+				if (keys.length > 0) {
+					client.del(keys, whilstCb);
 				} else {
-					cursor = Number(res.shift());
-					keys = res.shift();
-					if (keys.length > 0) {
-						client.del(keys, whilstCb);
-					} else {
-						return whilstCb();
-					}
+					return whilstCb();
 				}
 			});
 		},
