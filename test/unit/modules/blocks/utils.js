@@ -260,7 +260,6 @@ describe('blocks/utils', () => {
 
 	describe('loadBlocksPart', () => {
 		it('should return error when library.db.blocks.loadBlocksData fails', done => {
-			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves([]);
 			library.db.blocks.loadBlocksData = sinonSandbox
 				.stub()
 				.throws(new Error('An error'));
@@ -277,10 +276,6 @@ describe('blocks/utils', () => {
 			library.db.blocks.loadBlocksData = sinonSandbox
 				.stub()
 				.resolves(viewRow_full_blocks_list);
-
-			library.db.blocks.getHeightByLastId = sinonSandbox
-				.stub()
-				.resolves(library.db.blocks.loadBlocksData);
 
 			blocksUtilsModule.loadBlocksPart({}, (err, blocks) => {
 				expect(err).to.be.null;
