@@ -65,13 +65,13 @@ describe('blocks/utils', () => {
 		};
 
 		blockMock = {
-			dbRead: function(input) {
+			dbRead(input) {
 				return { id: input.b_id, height: input.b_height };
 			},
 		};
 
 		transactionMock = {
-			dbRead: function(input) {
+			dbRead(input) {
 				return { id: input.t_id, type: input.t_type };
 			},
 		};
@@ -430,10 +430,10 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return one row when called with valid id', done => {
-			blocksUtilsModule.loadBlocksData({ id: '13068833527549895884' }, function(
+			blocksUtilsModule.loadBlocksData({ id: '13068833527549895884' }, (
 				err,
 				blocks
-			) {
+			) => {
 				expect(err).to.be.null;
 				expect(blocks).to.be.an('array');
 				expect(blocks[0].b_id).to.eql('13068833527549895884');
