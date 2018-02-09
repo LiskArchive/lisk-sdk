@@ -285,6 +285,20 @@ describe('blocks/utils', () => {
 				done();
 			});
 		});
+
+		it('should call self.readDbRows with rows', done => {
+			library.db.blocks.loadBlocksData = sinonSandbox
+				.stub()
+				.resolves(viewRow_full_blocks_list);
+
+			blocksUtilsModule.readDbRows = sinonSandbox.spy();
+
+			blocksUtilsModule.loadBlocksPart({}, () => {
+				expect(blocksUtilsModule.readDbRows).to.have.been.calledOnce;
+				expect(blocksUtilsModule.readDbRows).to.have.been.calledWith(viewRow_full_blocks_list);
+				done();
+			});
+		});
 	});
 
 	describe('loadLastBlock', () => {
