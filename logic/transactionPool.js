@@ -538,17 +538,17 @@ TransactionPool.prototype.undoUnconfirmedList = function (cb) {
 
 				if (err) {
 					library.logger.error('Failed to undo unconfirmed transaction: ' + transaction.id, err);
-				} else {
-					// Transaction successfully undone from unconfirmed states, try move it to queued list
-					library.balancesSequence.add(function (balancesSequenceCb) {
-						self.processUnconfirmedTransaction(transaction, false, function (err) {
-							if (err) {
-								library.logger.debug('Failed to queue transaction back after successful undo unconfirmed: ' + transaction.id, err);
-							}
-							return setImmediate(balancesSequenceCb);
-						});
-					}, eachSeriesCb);
+					return setImmediate(eachSeriesCb);
 				}
+				// Transaction successfully undone from unconfirmed states, try move it to queued list
+				library.balancesSequence.add(function (balancesSequenceCb) {
+					self.processUnconfirmedTransaction(transaction, false, function (err) {
+						if (err) {
+							library.logger.debug('Failed to queue transaction back after successful undo unconfirmed: ' + transaction.id, err);
+						}
+						return setImmediate(balancesSequenceCb);
+					});
+				}, eachSeriesCb);
 			});
 		} else {
 			return setImmediate(eachSeriesCb);
