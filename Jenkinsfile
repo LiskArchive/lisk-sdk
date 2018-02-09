@@ -37,7 +37,7 @@ pipeline {
 				ansiColor('xterm') {
 					sh 'npm run test'
 					sh '''
-					cp ~/.coveralls.yml-lisk-js .coveralls.yml
+					cp ~/.coveralls.yml .coveralls.yml
 					npm run cover
 					'''
 				}
