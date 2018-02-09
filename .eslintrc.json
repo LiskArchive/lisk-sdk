@@ -13,7 +13,7 @@
 			"error", {
 				"devDependencies": [
 					"test/**",
-					"**/Gruntfile{,.js}" // grunt config
+					"**/Gruntfile{,.js}"
 				],
 				"optionalDependencies": false,
 				"packageDir": "./"
