@@ -35,7 +35,7 @@
 		"build": "webpack",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
 		"docs:serve": "./node_modules/.bin/http-server docs/jsdoc/",
-		"precommit": "lint-staged && npm run lint",
+    "precommit": "lint-staged",
 		"prepush": "npm run lint"
 	},
 	"dependencies": {
