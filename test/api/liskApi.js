@@ -15,19 +15,19 @@
 import LiskAPI from 'api/liskApi';
 import config from '../../config.json';
 
-const privateApi = require('api/privateApi');
+const httpClient = require('api/httpClient');
 const utils = require('api/utils');
 
-describe.only('Lisk API module', () => {
+describe('Lisk API module', () => {
 	const fixedPoint = 10 ** 8;
 	const testPort = '7000';
-	// const livePort = '8000';
+	const livePort = '8000';
 	const sslPort = '443';
 	const mainnetHash =
 		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
 	const testnetHash =
 		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
-	const defaultNethash = {
+	const defaultHeaders = {
 		'Content-Type': 'application/json',
 		nethash: mainnetHash,
 		broadhash: mainnetHash,
@@ -36,19 +36,19 @@ describe.only('Lisk API module', () => {
 		minVersion: '>=0.5.0',
 		port: sslPort,
 	};
-	const testnetNethash = Object.assign({}, defaultNethash, {
+	const testnetHeaders = Object.assign({}, defaultHeaders, {
 		nethash: testnetHash,
 		broadhash: testnetHash,
 		port: testPort,
 	});
-	const customNethash = Object.assign({}, defaultNethash, {
+	const customHeaders = Object.assign({}, defaultHeaders, {
 		nethash: '123',
 		version: '0.0.0a',
 	});
 	const defaultPassphrase = 'secret';
 	const defaultSecondPassphrase = 'second secret';
-	const GET = 'GET';
-	const POST = 'POST';
+	const defaultEndpoint = 'defaultendpoint';
+	const fullURL = 'http://localhost:8080';
 	const defaultRequestLimit = 10;
 	const defaultRequestOffset = 101;
 	const defaultAmount = 1 * fixedPoint;
@@ -68,35 +68,22 @@ describe.only('Lisk API module', () => {
 			success: true,
 		},
 	};
-	const defaultCheckedOptions = {
-		key1: 'value1',
-		key2: 2,
-	};
 
-	let selectNewNodeStub;
-	let sendRequestPromiseStub;
-	let checkOptionsStub;
-	let handleTimestampIsInFutureFailuresStub;
-	let handleSendRequestFailuresStub;
-	let getFullURLStub;
+	let getStub;
+	let postStub;
+	let getHeadersStub;
 	let LSK;
 
 	beforeEach(() => {
-		sendRequestPromiseStub = sandbox
-			.stub(privateApi, 'sendRequestPromise')
+		getStub = sandbox
+			.stub(httpClient, 'get')
 			.resolves(Object.assign({}, defaultRequestPromiseResult));
-		checkOptionsStub = sandbox
-			.stub(utils, 'checkOptions')
-			.returns(Object.assign({}, defaultCheckedOptions));
-		handleTimestampIsInFutureFailuresStub = sandbox
-			.stub(privateApi, 'handleTimestampIsInFutureFailures')
-			.resolves(Object.assign({}, defaultRequestPromiseResult.body));
-		handleSendRequestFailuresStub = sandbox.stub(
-			privateApi,
-			'handleSendRequestFailures',
-		);
-		getFullURLStub = sandbox.stub(utils, 'getFullURL').returns(defaultUrl);
-
+		postStub = sandbox
+			.stub(httpClient, 'post')
+			.resolves(Object.assign({}, defaultRequestPromiseResult));
+		getHeadersStub = sandbox
+			.stub(utils, 'getDefaultHeaders')
+			.returns(defaultHeaders);
 		config.nodes.mainnet = defaultNodes;
 		config.nodes.testnet = defaultTestnetNodes;
 		LSK = new LiskAPI({});
@@ -129,6 +116,7 @@ describe.only('Lisk API module', () => {
 	describe('on initialize', () => {
 		describe('SSL', () => {
 			it('should set SSL to true on initialization when no SSL options is passed', () => {
+				LSK = new LiskAPI({ ssl: undefined });
 				return LSK.should.have.property('ssl').be.true();
 			});
 
@@ -145,6 +133,7 @@ describe.only('Lisk API module', () => {
 
 		describe('randomizeNodes', () => {
 			it('should set randomizeNodes to true when randomizeNodes not explicitly set', () => {
+				LSK = new LiskAPI({ randomizeNodes: undefined });
 				return LSK.should.have.property('randomizeNodes').be.true();
 			});
 
@@ -197,42 +186,93 @@ describe.only('Lisk API module', () => {
 				return LSK.should.have.property('node').be.equal(defaultUrl);
 			});
 		});
+
+		describe('bannedNodes', () => {
+			it('should set empty array if no option is passed', () => {
+				LSK = new LiskAPI({ bannedNodes: undefined });
+				return LSK.should.have.property('bannedNodes').be.eql([]);
+			});
+
+			it('should set bannedNodes when passed as an option', () => {
+				const bannedNodes = ['a', 'b'];
+				LSK = new LiskAPI({ bannedNodes });
+				return LSK.should.have.property('bannedNodes').be.eql(bannedNodes);
+			});
+		});
+
+		describe('headers', () => {
+			it('should set with passed nethash', () => {
+				LSK = new LiskAPI({ headers: customHeaders });
+				return LSK.should.have.property('headers').be.eql(customHeaders);
+			});
+
+			it('should set default mainnet nethash', () => {
+				LSK = new LiskAPI();
+				return LSK.should.have.property('headers').be.equal(defaultHeaders);
+			});
+		});
 	});
 
 	describe('get nodes', () => {
-		let sslStub;
-		let testnetStub;
-
-		beforeEach(() => {
-			sslStub = sandbox.stub(LSK, 'ssl');
-			testnetStub = sandbox.stub(LSK, 'testnet');
-		});
-
 		describe('with SSL set to true', () => {
 			it('should return default testnet nodes if testnet is set to true', () => {
-				testnetStub.get(() => true);
+				LSK = new LiskAPI({
+					nodes: defaultTestnetNodes,
+					testnet: true,
+					ssl: true,
+				});
 				return LSK.nodes.should.be.eql(defaultTestnetNodes);
 			});
 
 			it('should return default SSL nodes if testnet is not set to true', () => {
-				LSK = new LiskAPI({ nodes: defaultSSLNodes });
+				LSK = new LiskAPI({
+					nodes: defaultSSLNodes,
+					testnet: false,
+					ssl: true,
+				});
+				LSK.testnet = false;
 				return LSK.nodes.should.be.eql(defaultSSLNodes);
 			});
 		});
 
 		describe('with SSL set to false', () => {
-			beforeEach(() => {
-				sslStub.get(() => false);
-			});
-
 			it('should return default testnet nodes if testnet is set to true', () => {
-				testnetStub.get(() => true);
+				LSK = new LiskAPI({
+					nodes: defaultTestnetNodes,
+					testnet: true,
+					ssl: false,
+				});
 				return LSK.nodes.should.be.eql(defaultTestnetNodes);
 			});
 
 			it('should return default mainnet nodes if testnet is not set to true', () => {
+				LSK = new LiskAPI({ nodes: defaultNodes, testnet: false, ssl: false });
 				return LSK.nodes.should.be.eql(defaultNodes);
 			});
+		});
+	});
+
+	describe('get urlPrefix', () => {
+		it('should return https if ssl is true', () => {
+			LSK.ssl = true;
+			return LSK.urlPrefix.should.be.equal('https');
+		});
+
+		it('should return https if ssl is false', () => {
+			LSK.ssl = false;
+			return LSK.urlPrefix.should.be.equal('http');
+		});
+	});
+
+	describe('get fullURL', () => {
+		it('should return with set port', () => {
+			LSK = new LiskAPI({ port: '8080', node: localNode });
+			return LSK.fullURL.should.be.equal('https://localhost:8080');
+		});
+
+		it('should return default port if it is not set', () => {
+			LSK = new LiskAPI({ port: '', node: localNode });
+			return LSK.fullURL.should.be.equal('https://localhost');
 		});
 	});
 
@@ -293,6 +333,7 @@ describe.only('Lisk API module', () => {
 		describe('if a node was provided in the options', () => {
 			beforeEach(() => {
 				LSK.providedNode = customNode;
+				LSK.bannedNodes = [];
 			});
 			describe('if randomizeNodes is set to false', () => {
 				beforeEach(() => {
@@ -300,8 +341,7 @@ describe.only('Lisk API module', () => {
 				});
 
 				it('should throw an error if the provided node is banned', () => {
-					LSK.banActiveNode();
-					LSK.banActiveNode();
+					LSK.bannedNodes = [customNode];
 					return LSK.selectNewNode
 						.bind(LSK)
 						.should.throw(
@@ -398,6 +438,12 @@ describe.only('Lisk API module', () => {
 				const result = LSK.hasAvailableNodes();
 				return result.should.be.false();
 			});
+
+			it('should return true with contents', () => {
+				nodesStub.get(() => ['nodeA']);
+				const result = LSK.hasAvailableNodes();
+				return result.should.be.true();
+			});
 		});
 
 		describe('without randomized nodes', () => {
@@ -412,18 +458,23 @@ describe.only('Lisk API module', () => {
 		});
 	});
 
-	describe('#getNethash', () => {
-		it('should provide default mainnet nethash values', () => {
-			return LSK.getNethash().should.eql(defaultNethash);
+	describe('#getHeaders', () => {
+		it('should provide default mainnet nethash values with ssl', () => {
+			getHeadersStub.returns(defaultHeaders);
+			getHeadersStub.calledWithExactly(LSK.node, LSK.testnet);
+			return LSK.getHeaders().should.eql(defaultHeaders);
 		});
 
 		it('should provide default testnet nethash values', () => {
-			LSK = new LiskAPI({ testnet: true });
-			return LSK.getNethash().should.eql(testnetNethash);
+			getHeadersStub.returns(testnetHeaders);
+			getHeadersStub.calledWithExactly(LSK.node, LSK.testnet);
+			return LSK.getHeaders().should.eql(testnetHeaders);
 		});
 
 		it('should get values for a custom nethash', () => {
-			return LSK.getNethash('123').should.be.eql(customNethash);
+			getHeadersStub.returns(defaultHeaders);
+			getHeadersStub.calledWithExactly(LSK.node, LSK.testnet);
+			return LSK.getHeaders('123').should.be.eql(customHeaders);
 		});
 	});
 
@@ -460,7 +511,8 @@ describe.only('Lisk API module', () => {
 		});
 	});
 
-	describe('set testnet', () => {
+	describe('#setTestnet', () => {
+		let selectNewNodeStub;
 		beforeEach(() => {
 			selectNewNodeStub = sandbox
 				.stub(LSK, 'selectNewNode')
@@ -469,44 +521,51 @@ describe.only('Lisk API module', () => {
 
 		describe('to true', () => {
 			beforeEach(() => {
-				LSK.testnet = false;
+				LSK.setTestnet(false);
 			});
 
 			it('should set testnet to true', () => {
-				LSK.testnet = true;
+				LSK.setTestnet(true);
 				return LSK.should.have.property('testnet').and.be.true();
 			});
 
 			it('should set port to 7000', () => {
-				LSK.testnet = true;
+				LSK.setTestnet(true);
 				return LSK.should.have.property('port').and.be.equal(testPort);
 			});
 
 			it('should select a node', () => {
 				const callCount = selectNewNodeStub.callCount;
-				LSK.testnet = true;
+				LSK.setTestnet(true);
 				return selectNewNodeStub.should.have.callCount(callCount + 1);
 			});
 		});
 
 		describe('to false', () => {
 			beforeEach(() => {
-				LSK.testnet = true;
+				LSK.setTestnet(true);
 			});
 
 			it('should set testnet to false', () => {
-				LSK.testnet = false;
+				LSK.setTestnet(false);
 				return LSK.should.have.property('testnet').and.be.false();
 			});
 
 			it('should set port to 443', () => {
-				LSK.testnet = false;
+				LSK.ssl = true;
+				LSK.setTestnet(false);
 				return LSK.should.have.property('port').and.be.equal(sslPort);
+			});
+
+			it('should set port to live port', () => {
+				LSK.ssl = false;
+				LSK.setTestnet(false);
+				return LSK.should.have.property('port').and.be.equal(livePort);
 			});
 
 			it('should select a node', () => {
 				const callCount = selectNewNodeStub.callCount;
-				LSK.testnet = false;
+				LSK.setTestnet(false);
 				return selectNewNodeStub.should.have.callCount(callCount + 1);
 			});
 		});
@@ -518,26 +577,22 @@ describe.only('Lisk API module', () => {
 
 			describe('when initially on mainnet', () => {
 				it('should reset banned nodes when switching from mainnet to testnet', () => {
-					LSK.testnet = true;
+					LSK.setTestnet(true);
 					return defaultNodes.every(node =>
 						LSK.isBanned(node).should.be.false(),
 					);
 				});
 
 				it('should not reset banned nodes when switching from mainnet to mainnet', () => {
-					const bannedNodes = defaultNodes.filter(node =>
-						LSK.isBanned(node),
-					);
-					LSK.testnet = false;
-					return bannedNodes.every(node =>
-						LSK.isBanned(node).should.be.true(),
-					);
+					const bannedNodes = defaultNodes.filter(node => LSK.isBanned(node));
+					LSK.setTestnet(false);
+					return bannedNodes.every(node => LSK.isBanned(node).should.be.true());
 				});
 			});
 
 			describe('when initially on testnet', () => {
 				beforeEach(() => {
-					LSK.testnet = true;
+					LSK.setTestnet(true);
 					defaultBannedNodes.forEach(() => LSK.banActiveNode());
 				});
 
@@ -549,19 +604,16 @@ describe.only('Lisk API module', () => {
 				});
 
 				it('should not reset banned nodes when switching from testnet to testnet', () => {
-					const bannedNodes = defaultNodes.filter(node =>
-						LSK.isBanned(node),
-					);
+					const bannedNodes = defaultNodes.filter(node => LSK.isBanned(node));
 					LSK.testnet = true;
-					return bannedNodes.every(node =>
-						LSK.isBanned(node).should.be.true(),
-					);
+					return bannedNodes.every(node => LSK.isBanned(node).should.be.true());
 				});
 			});
 		});
 	});
 
-	describe('set ssl', () => {
+	describe('#setSSL', () => {
+		let selectNewNodeStub;
 		beforeEach(() => {
 			selectNewNodeStub = sandbox
 				.stub(LSK, 'selectNewNode')
@@ -570,18 +622,18 @@ describe.only('Lisk API module', () => {
 
 		describe('when ssl is initially true', () => {
 			beforeEach(() => {
-				LSK.ssl = true;
+				LSK.setSSL(true);
 			});
 
 			describe('when set to true', () => {
 				it('should have ssl set to true', () => {
-					LSK.ssl = true;
+					LSK.setSSL(true);
 					return LSK.should.have.property('ssl').and.be.true();
 				});
 
 				it('should not change bannedNodes', () => {
 					LSK.bannedNodes = [].concat(defaultBannedNodes);
-					LSK.ssl = true;
+					LSK.setSSL(true);
 					return LSK.should.have
 						.property('bannedNodes')
 						.and.eql(defaultBannedNodes);
@@ -589,20 +641,32 @@ describe.only('Lisk API module', () => {
 
 				it('should not select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
-					LSK.ssl = true;
+					LSK.setSSL(true);
 					return selectNewNodeStub.should.have.callCount(callCount);
 				});
 			});
 
 			describe('when set to false', () => {
+				beforeEach(() => {
+					LSK.setSSL(true);
+				});
+				it('should set port to ssl port', () => {
+					LSK.setSSL(false);
+					return LSK.should.have.property('port').and.be.equal(livePort);
+				});
+				it('should set port to test port', () => {
+					LSK.testnet = true;
+					LSK.setSSL(false);
+					return LSK.should.have.property('port').and.be.equal(testPort);
+				});
 				it('should have ssl set to false', () => {
-					LSK.ssl = false;
+					LSK.setSSL(false);
 					return LSK.should.have.property('ssl').and.be.false();
 				});
 
 				it('should reset bannedNodes', () => {
 					defaultBannedNodes.forEach(() => LSK.banActiveNode());
-					LSK.ssl = false;
+					LSK.setSSL(false);
 					return defaultNodes.every(node =>
 						LSK.isBanned(node).should.be.false(),
 					);
@@ -610,28 +674,37 @@ describe.only('Lisk API module', () => {
 
 				it('should select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
-					LSK.ssl = false;
-					return selectNewNodeStub.should.have.callCount(
-						callCount + 1,
-					);
+					LSK.setSSL(false);
+					return selectNewNodeStub.should.have.callCount(callCount + 1);
 				});
 			});
 		});
 
 		describe('when ssl is initially false', () => {
 			beforeEach(() => {
-				LSK.ssl = false;
+				LSK.setSSL(false);
 			});
 
 			describe('when set to true', () => {
 				it('should have ssl set to true', () => {
-					LSK.ssl = true;
+					LSK.setSSL(true);
 					return LSK.should.have.property('ssl').and.be.true();
+				});
+
+				it('should set port to ssl port', () => {
+					LSK.setSSL(true);
+					return LSK.should.have.property('port').and.be.equal(sslPort);
+				});
+
+				it('should set port to test port', () => {
+					LSK.testnet = true;
+					LSK.setSSL(true);
+					return LSK.should.have.property('port').and.be.equal(sslPort);
 				});
 
 				it('should reset bannedNodes', () => {
 					defaultBannedNodes.forEach(() => LSK.banActiveNode());
-					LSK.ssl = true;
+					LSK.setSSL(true);
 					return defaultNodes.every(node =>
 						LSK.isBanned(node).should.be.false(),
 					);
@@ -639,22 +712,20 @@ describe.only('Lisk API module', () => {
 
 				it('should select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
-					LSK.ssl = true;
-					return selectNewNodeStub.should.have.callCount(
-						callCount + 1,
-					);
+					LSK.setSSL(true);
+					return selectNewNodeStub.should.have.callCount(callCount + 1);
 				});
 			});
 
 			describe('when set to false', () => {
 				it('should have ssl set to false', () => {
-					LSK.ssl = false;
+					LSK.setSSL(false);
 					return LSK.should.have.property('ssl').and.be.false();
 				});
 
 				it('should not change bannedNodes', () => {
 					LSK.bannedNodes = [].concat(defaultBannedNodes);
-					LSK.ssl = false;
+					LSK.setSSL(false);
 					return LSK.should.have
 						.property('bannedNodes')
 						.and.eql(defaultBannedNodes);
@@ -662,7 +733,7 @@ describe.only('Lisk API module', () => {
 
 				it('should select a node', () => {
 					const callCount = selectNewNodeStub.callCount;
-					LSK.ssl = false;
+					LSK.setSSL(false);
 					return selectNewNodeStub.should.have.callCount(callCount);
 				});
 			});
@@ -671,32 +742,23 @@ describe.only('Lisk API module', () => {
 
 	describe('#broadcastSignedTransaction', () => {
 		let transaction;
-		let requestObject;
 
 		beforeEach(() => {
 			transaction = {
 				key1: 'value1',
 				key2: 2,
 			};
-			requestObject = {
-				requestUrl: `${defaultUrl}/api/transactions`,
-				nethash: defaultNethash,
-				requestParams: { transaction },
-			};
+			LSK.headers = defaultHeaders;
+			sandbox.stub(LSK, 'fullURL').get(() => fullURL);
 		});
 
-		it('should use getFullURL to get the url', () => {
-			return LSK.broadcastSignedTransaction({}).then(() => {
-				getFullURLStub.should.be.calledWithExactly(LSK);
-			});
-		});
-
-		it('should call sendRequestPromise with a prepared request object', () => {
+		it('should call post with a prepared request object', () => {
 			return LSK.broadcastSignedTransaction(transaction).then(() => {
-				sendRequestPromiseStub.should.be.calledOn(LSK);
-				sendRequestPromiseStub.should.be.calledWithExactly(
-					POST,
-					requestObject,
+				postStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
+					'transactions',
+					{ transaction },
 				);
 			});
 		});
@@ -706,19 +768,10 @@ describe.only('Lisk API module', () => {
 				result.should.be.equal(defaultRequestPromiseResult.body),
 			);
 		});
-
-		it('should call the callback with the body of the result of sendRequestPromise', () => {
-			return new Promise(resolve => {
-				LSK.broadcastSignedTransaction({}, resolve);
-			}).then(result => {
-				result.should.be.equal(defaultRequestPromiseResult.body);
-			});
-		});
 	});
 
 	describe('#broadcastSignatures', () => {
 		let signatures;
-		let requestObject;
 
 		beforeEach(() => {
 			signatures = [
@@ -731,25 +784,17 @@ describe.only('Lisk API module', () => {
 					key4: 4,
 				},
 			];
-			requestObject = {
-				requestUrl: `${defaultUrl}/api/signatures`,
-				nethash: defaultNethash,
-				requestParams: { signatures },
-			};
-		});
-
-		it('should use getFullURL to get the url', () => {
-			return LSK.broadcastSignatures({}).then(() => {
-				getFullURLStub.should.be.calledWithExactly(LSK);
-			});
+			sandbox.stub(LSK, 'fullURL').get(() => fullURL);
+			LSK.headers = defaultHeaders;
 		});
 
 		it('should call sendRequestPromise with a prepared request object', () => {
 			return LSK.broadcastSignatures(signatures).then(() => {
-				sendRequestPromiseStub.should.be.calledOn(LSK);
-				sendRequestPromiseStub.should.be.calledWithExactly(
-					POST,
-					requestObject,
+				postStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
+					'signatures',
+					{ signatures },
 				);
 			});
 		});
@@ -759,120 +804,303 @@ describe.only('Lisk API module', () => {
 				result.should.be.equal(defaultRequestPromiseResult.body),
 			);
 		});
+	});
 
-		it('should call the callback with the body of the result of sendRequestPromise', () => {
-			return new Promise(resolve => {
-				LSK.broadcastSignatures({}, resolve);
-			}).then(result => {
-				result.should.be.equal(defaultRequestPromiseResult.body);
-			});
+	describe('#transferLSK', () => {
+		let handlePostStub;
+		beforeEach(() => {
+			handlePostStub = sandbox.stub(LSK, 'handlePost');
+		});
+
+		it('should transfer testnet LSK', () => {
+			const recipientId = '10279923186189318946L';
+			const options = {
+				recipientId,
+				amount: defaultAmount,
+				passphrase: defaultPassphrase,
+				secondPassphrase: defaultSecondPassphrase,
+			};
+
+			LSK.transferLSK(
+				recipientId,
+				defaultAmount,
+				defaultPassphrase,
+				defaultSecondPassphrase,
+			);
+			handlePostStub.should.calledWithExactly('transactions', options);
 		});
 	});
 
-	describe('#sendRequest', () => {
-		const method = GET;
-		const endpoint = 'transactions';
+	describe('#handlePost', () => {
 		let options;
+		let handleTimestampIsInFutureFailuresStub;
+		let handlePostFailuresStub;
 
 		beforeEach(() => {
 			options = {
 				limit: 5,
 				offset: 101,
 			};
+			handleTimestampIsInFutureFailuresStub = sandbox.stub(
+				LSK,
+				'handleTimestampIsInFutureFailures',
+			);
+			handlePostFailuresStub = sandbox.stub(LSK, 'handlePostFailures');
 		});
 
-		it('should call a callback if provided with no options', () => {
-			return new Promise(resolve => {
-				LSK.sendRequest(method, endpoint, resolve);
-			});
-		});
-
-		it('should call a callback if provided with options', () => {
-			return new Promise(resolve => {
-				LSK.sendRequest(method, endpoint, options, resolve);
-			});
-		});
-
-		it('should return a promise if no callback is provided with no options', () => {
-			return new Promise(resolve => {
-				LSK.sendRequest(method, endpoint).then(resolve);
-			});
-		});
-
-		it('should return a promise if no callback is provided with options', () => {
-			return new Promise(resolve => {
-				LSK.sendRequest(method, endpoint, options).then(resolve);
-			});
-		});
-
-		it('should check options if provided', () => {
-			return LSK.sendRequest(method, endpoint, options).then(() => {
-				checkOptionsStub.should.be.calledWithExactly(options);
-			});
-		});
-
-		it('should call sendRequestPromise with provided options', () => {
-			return LSK.sendRequest(method, endpoint, options).then(() => {
-				sendRequestPromiseStub.should.be.calledOn(LSK);
-				sendRequestPromiseStub.firstCall.args[2].should.be.eql(
-					defaultCheckedOptions,
+		it('should call post with provided options', () => {
+			LSK.handlePost(defaultEndpoint, options).then(() => {
+				postStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
+					defaultEndpoint,
+					options,
 				);
 			});
 		});
 
-		it('should call sendRequestPromise with default options', () => {
-			return LSK.sendRequest(method, endpoint).then(() => {
-				sendRequestPromiseStub.should.be.calledOn(LSK);
-				sendRequestPromiseStub.firstCall.args[2].should.be.eql({});
-			});
-		});
-
-		it('should handle timestamp is in future failures', () => {
-			return LSK.sendRequest(method, endpoint, options).then(() => {
-				handleTimestampIsInFutureFailuresStub.should.be.calledOn(LSK);
-				handleTimestampIsInFutureFailuresStub.should.be.calledWithExactly(
-					method,
-					endpoint,
-					defaultCheckedOptions,
+		it('should call handleTimestampIsInFutureFailures with provided options', () => {
+			LSK.handlePost(defaultEndpoint, options).then(() => {
+				handleTimestampIsInFutureFailuresStub.should.calledWithExactly(
 					defaultRequestPromiseResult.body,
+					defaultEndpoint,
+					options,
 				);
 			});
 		});
 
-		it('should catch promise rejections', () => {
+		it('should call handle post failures with provided options if error', () => {
 			const error = new Error('oh no');
-			handleTimestampIsInFutureFailuresStub.rejects(error);
-			return LSK.sendRequest(method, endpoint, options).then(() => {
-				handleSendRequestFailuresStub.should.be.calledOn(LSK);
-				handleSendRequestFailuresStub.should.be.calledWithExactly(
-					method,
-					endpoint,
-					defaultCheckedOptions,
+			postStub.rejects(error);
+			LSK.handlePost(defaultEndpoint, options).then(() => {
+				handlePostFailuresStub.should.be.calledWithExactly(
 					error,
+					defaultEndpoint,
+					options,
+				);
+			});
+		});
+	});
+
+	describe('#handlePostFailures', () => {
+		let options;
+		let error;
+		let handlePostSpy;
+		let selectNewNodeSpy;
+		let banActiveNodeSpy;
+		let clock;
+
+		beforeEach(() => {
+			options = {
+				key1: 'value 1',
+				key2: 2,
+			};
+			error = new Error('Test error.');
+		});
+
+		describe('if a redial is possible', () => {
+			beforeEach(() => {
+				LSK = new LiskAPI({ nodes: defaultNodes });
+				sandbox.stub(LSK, 'hasAvailableNodes').returns(true);
+				banActiveNodeSpy = sandbox.spy(LSK, 'banActiveNode');
+				handlePostSpy = sandbox.spy(LSK, 'handlePost');
+				selectNewNodeSpy = sandbox.spy(LSK, 'selectNewNode');
+				clock = sinon.useFakeTimers();
+			});
+
+			afterEach(() => {
+				clock.restore();
+			});
+
+			it('should ban the node with options randomizeNodes true', () => {
+				LSK.randomizeNodes = true;
+				const req = LSK.handlePostFailures(error, defaultEndpoint, options);
+				clock.tick(1000);
+				req.then(() => {
+					banActiveNodeSpy.should.be.calledOnce();
+				});
+			});
+
+			it('should not ban the node with options randomizeNodes false', () => {
+				LSK.randomizeNodes = false;
+				const req = LSK.handlePostFailures(error, defaultEndpoint, options);
+				clock.tick(1000);
+				req.then(() => {
+					banActiveNodeSpy.should.not.be.called();
+				});
+			});
+
+			it('should set a new node', () => {
+				const req = LSK.handlePostFailures(error, defaultEndpoint, options);
+				clock.tick(1000);
+				req.then(() => {
+					selectNewNodeSpy.should.be.calledOnce();
+				});
+			});
+
+			it('should send the request again with the same arguments', () => {
+				const req = LSK.handlePostFailures(error, defaultEndpoint, options);
+				clock.tick(1000);
+				req.then(() => {
+					handlePostSpy.should.be.calledWithExactly(defaultEndpoint, options);
+				});
+			});
+		});
+
+		describe('if no redial is possible', () => {
+			beforeEach(() => {
+				sandbox.stub(LSK, 'hasAvailableNodes').returns(false);
+			});
+
+			it('should resolve to an object with success set to false', () => {
+				return LSK.handlePostFailures(
+					error,
+					defaultEndpoint,
+					options,
+				).then(result => {
+					result.should.have.property('success').and.be.equal(false);
+				});
+			});
+
+			it('should resolve to an object with the provided error if no redial is possible', () => {
+				return LSK.handlePostFailures(
+					error,
+					defaultEndpoint,
+					options,
+				).then(result => {
+					result.should.have.property('error').and.be.equal(error);
+				});
+			});
+
+			it('should resolve to an object with a helpful message', () => {
+				return LSK.handlePostFailures(
+					error,
+					defaultEndpoint,
+					options,
+				).then(result => {
+					result.should.have
+						.property('message')
+						.and.be.equal(
+							'Could not create an HTTP request to any known nodes.',
+						);
+				});
+			});
+		});
+	});
+
+	describe('#handleTimestampIsInFutureFailures', () => {
+		let result;
+		let options;
+		let postResult;
+		let handlePostStub;
+
+		beforeEach(() => {
+			result = {
+				success: false,
+				message: 'Timestamp is in the future',
+			};
+			options = {
+				key1: 'value 1',
+				key2: 2,
+				timeOffset: 40,
+			};
+			postResult = { success: true, sendRequest: true };
+			handlePostStub = sandbox.stub(LSK, 'handlePost').resolves(postResult);
+		});
+
+		it('should resolve the result if success is true', () => {
+			result.success = true;
+			return LSK.handleTimestampIsInFutureFailures(
+				result,
+				defaultEndpoint,
+				options,
+			).then(returnValue => {
+				returnValue.should.equal(result);
+			});
+		});
+
+		it('should resolve the result if there is no message', () => {
+			delete result.message;
+			return LSK.handleTimestampIsInFutureFailures(
+				result,
+				defaultEndpoint,
+				options,
+			).then(returnValue => {
+				returnValue.should.equal(result);
+			});
+		});
+
+		it('should resolve the result if the message is not about the timestamp being in the future', () => {
+			result.message = 'Timestamp is in the past';
+			return LSK.handleTimestampIsInFutureFailures(
+				result,
+				defaultEndpoint,
+				options,
+			).then(returnValue => {
+				returnValue.should.equal(result);
+			});
+		});
+
+		it('should resolve the result if the time offset is greater than 40 seconds', () => {
+			options.timeOffset = 41;
+			return LSK.handleTimestampIsInFutureFailures(
+				result,
+				defaultEndpoint,
+				options,
+			).then(returnValue => {
+				returnValue.should.equal(result);
+			});
+		});
+
+		it('should resend the request with a time offset of 10 seconds if all those conditions are met and the time offset is not specified', () => {
+			delete options.timeOffset;
+			const expectedOptions = Object.assign({}, options, {
+				timeOffset: 10,
+			});
+			return LSK.handleTimestampIsInFutureFailures(
+				result,
+				defaultEndpoint,
+				options,
+			).then(returnValue => {
+				returnValue.should.be.eql(postResult);
+				handlePostStub.should.be.calledWithExactly(
+					defaultEndpoint,
+					expectedOptions,
+				);
+			});
+		});
+
+		it('should resend the request with the time offset increased by 10 seconds if all those conditions are met and the time offset is specified', () => {
+			const expectedOptions = Object.assign({}, options, {
+				timeOffset: 50,
+			});
+			return LSK.handleTimestampIsInFutureFailures(
+				result,
+				defaultEndpoint,
+				options,
+			).then(returnValue => {
+				returnValue.should.be.eql(postResult);
+				handlePostStub.should.be.calledWithExactly(
+					defaultEndpoint,
+					expectedOptions,
 				);
 			});
 		});
 	});
 
 	describe('API methods', () => {
-		let callback;
-
 		beforeEach(() => {
-			callback = () => {};
-			sandbox.stub(LSK, 'sendRequest');
+			sandbox.stub(LSK, 'fullURL').get(() => fullURL);
 		});
-
 		describe('#getAccount', () => {
 			it('should get account information', () => {
 				const address = '12731041415715717263L';
-				const options = { address };
-
-				LSK.getAccount(address, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
+				LSK.getAccount(address);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
 					'accounts',
-					options,
-					callback,
+					{ address },
 				);
 			});
 		});
@@ -880,13 +1108,12 @@ describe.only('Lisk API module', () => {
 		describe('#getActiveDelegates', () => {
 			it('should get active delegates', () => {
 				const options = { limit: defaultRequestLimit };
-
-				LSK.getActiveDelegates(defaultRequestLimit, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
+				LSK.getActiveDelegates(defaultRequestLimit);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
 					'delegates',
 					options,
-					callback,
 				);
 			});
 		});
@@ -900,42 +1127,42 @@ describe.only('Lisk API module', () => {
 					offset,
 					limit: defaultRequestLimit,
 				};
-
-				LSK.getStandbyDelegates(defaultRequestLimit, options, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
+				LSK.getStandbyDelegates(defaultRequestLimit, options);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
 					'delegates',
 					options,
-					callback,
 				);
 			});
 
 			it('should get standby delegates with a default offset and ordering when not specified', () => {
-				LSK.getStandbyDelegates(defaultRequestLimit, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
+				LSK.getStandbyDelegates(defaultRequestLimit);
+				const options = {
+					limit: defaultRequestLimit,
+					orderBy: defaultOrderBy,
+					offset: defaultRequestOffset,
+				};
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
 					'delegates',
-					{
-						limit: defaultRequestLimit,
-						orderBy: defaultOrderBy,
-						offset: defaultRequestOffset,
-					},
-					callback,
+					options,
 				);
 			});
 		});
 
-		describe('#searchDelegatesByUsername', () => {
-			it('should find delegates by name', () => {
-				const searchTerm = 'light';
-				const options = { search: searchTerm };
+		describe('#getBlock', () => {
+			it('should get a block for a given height', () => {
+				const height = '2346638';
+				const options = { height };
 
-				LSK.searchDelegatesByUsername(searchTerm, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
-					'delegates',
+				LSK.getBlock(height);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
+					'blocks',
 					options,
-					callback,
 				);
 			});
 		});
@@ -944,12 +1171,12 @@ describe.only('Lisk API module', () => {
 			it('should get a number of blocks according to requested limit', () => {
 				const options = { limit: defaultRequestLimit };
 
-				LSK.getBlocks(defaultRequestLimit, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
+				LSK.getBlocks(defaultRequestLimit);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
 					'blocks',
 					options,
-					callback,
 				);
 			});
 		});
@@ -960,27 +1187,81 @@ describe.only('Lisk API module', () => {
 					'130649e3d8d34eb59197c00bcf6f199bc4ec06ba0968f1d473b010384569e7f0';
 				const options = { generatorPublicKey };
 
-				LSK.getForgedBlocks(generatorPublicKey, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
+				LSK.getForgedBlocks(generatorPublicKey);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
 					'blocks',
 					options,
-					callback,
 				);
 			});
 		});
 
-		describe('#getBlock', () => {
-			it('should get a block for a given height', () => {
-				const height = '2346638';
-				const options = { height };
+		describe('#getDapp', () => {
+			it('should get a dapp by transaction id', () => {
+				const transactionId = '7520138931049441691';
+				const options = { transactionId };
 
-				LSK.getBlock(height, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
-					'blocks',
+				LSK.getDapp(transactionId);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
+					'dapps',
 					options,
-					callback,
+				);
+			});
+		});
+
+		describe('#getDapps', () => {
+			it('should get dapps with options', () => {
+				const options = {
+					limit: defaultRequestLimit,
+					offset: defaultRequestOffset,
+				};
+
+				LSK.getDapps(options);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
+					'dapps',
+					options,
+				);
+			});
+		});
+
+		describe('#getDappsByCategory', () => {
+			it('should get dapps by category', () => {
+				const category = 'blockchain';
+				const options = {
+					limit: defaultRequestLimit,
+					offset: defaultRequestOffset,
+				};
+				const expectedPassedOptions = {
+					category,
+					limit: defaultRequestLimit,
+					offset: defaultRequestOffset,
+				};
+				LSK.getDappsByCategory(category, options);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
+					'dapps',
+					expectedPassedOptions,
+				);
+			});
+		});
+
+		describe('#getTransaction', () => {
+			it('should get a transaction by id', () => {
+				const transactionId = '7520138931049441691';
+				const options = { transactionId };
+
+				LSK.getTransaction(transactionId);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
+					'transactions',
+					options,
 				);
 			});
 		});
@@ -1004,57 +1285,12 @@ describe.only('Lisk API module', () => {
 					orderBy,
 				};
 
-				LSK.getTransactions(recipientAddress, options, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
+				LSK.getTransactions(recipientAddress, options);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
 					'transactions',
 					expectedPassedOptions,
-					callback,
-				);
-			});
-		});
-
-		describe('#getTransaction', () => {
-			it('should get a transaction by id', () => {
-				const transactionId = '7520138931049441691';
-				const options = { transactionId };
-
-				LSK.getTransaction(transactionId, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
-					'transactions',
-					options,
-					callback,
-				);
-			});
-		});
-
-		describe('#getVotes', () => {
-			it('should get votes from a given address', () => {
-				const address = '16010222169256538112L';
-				const options = { address };
-
-				LSK.getVotes(address, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
-					'votes',
-					options,
-					callback,
-				);
-			});
-		});
-
-		describe('#getVoters', () => {
-			it('should get voters for a given delegate username', () => {
-				const username = 'lightcurve';
-				const options = { username };
-
-				LSK.getVoters(username, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
-					'voters',
-					options,
-					callback,
 				);
 			});
 		});
@@ -1064,93 +1300,56 @@ describe.only('Lisk API module', () => {
 				const transactionId = '7520138931049441691';
 				const options = { transactionId };
 
-				LSK.getUnsignedMultisignatureTransactions(options, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
+				LSK.getUnsignedMultisignatureTransactions(options);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
 					'transactions/unsigned',
 					options,
-					callback,
 				);
 			});
 		});
 
-		describe('#getDapp', () => {
-			it('should get a dapp by transaction id', () => {
-				const transactionId = '7520138931049441691';
-				const options = { transactionId };
+		describe('#getVoters', () => {
+			it('should get voters for a given delegate username', () => {
+				const username = 'lightcurve';
+				const options = { username };
 
-				LSK.getDapp(transactionId, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
-					'dapps',
+				LSK.getVoters(username);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
+					'voters',
 					options,
-					callback,
 				);
 			});
 		});
+		describe('#getVotes', () => {
+			it('should get votes from a given address', () => {
+				const address = '16010222169256538112L';
+				const options = { address };
 
-		describe('#getDapps', () => {
-			it('should get dapps with options', () => {
-				const options = {
-					limit: defaultRequestLimit,
-					offset: defaultRequestOffset,
-				};
-
-				LSK.getDapps(options, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
-					'dapps',
+				LSK.getVotes(address);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
+					'votes',
 					options,
-					callback,
 				);
 			});
 		});
 
-		describe('#getDappsByCategory', () => {
-			it('should get dapps by category', () => {
-				const category = 'blockchain';
-				const options = {
-					limit: defaultRequestLimit,
-					offset: defaultRequestOffset,
-				};
-				const expectedPassedOptions = {
-					category,
-					limit: defaultRequestLimit,
-					offset: defaultRequestOffset,
-				};
+		describe('#searchDelegatesByUsername', () => {
+			it('should find delegates by name', () => {
+				const searchTerm = 'light';
+				const options = { search: searchTerm };
 
-				LSK.getDappsByCategory(category, options, callback);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					GET,
-					'dapps',
-					expectedPassedOptions,
-					callback,
-				);
-			});
-		});
-
-		describe('#transferLSK', () => {
-			it('should transfer testnet LSK', () => {
-				const recipientId = '10279923186189318946L';
-				const options = {
-					recipientId,
-					amount: defaultAmount,
-					passphrase: defaultPassphrase,
-					secondPassphrase: defaultSecondPassphrase,
-				};
-
-				LSK.transferLSK(
-					recipientId,
-					defaultAmount,
-					defaultPassphrase,
-					defaultSecondPassphrase,
-					callback,
-				);
-				return LSK.sendRequest.should.be.calledWithExactly(
-					POST,
-					'transactions',
+				LSK.searchDelegatesByUsername(searchTerm);
+				return getStub.should.be.calledWithExactly(
+					fullURL,
+					defaultHeaders,
+					'delegates',
 					options,
-					callback,
 				);
 			});
 		});

@@ -12,20 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { LIVE_PORT, SSL_PORT, TEST_PORT } from 'constants';
+import {
+	LIVE_PORT,
+	SSL_PORT,
+	TEST_PORT,
+	TESTNET_NETHASH,
+	MAINNET_NETHASH,
+} from 'constants';
 
-export const getDefaultPort = options => {
-	if (options.testnet) return TEST_PORT;
-	if (options.ssl) return SSL_PORT;
+export const getDefaultPort = (testnet, ssl) => {
+	if (testnet) {
+		return TEST_PORT;
+	}
+	if (ssl) {
+		return SSL_PORT;
+	}
 	return LIVE_PORT;
 };
 
-export const netHashOptions = ({ port }) => {
-	const testnetNethash =
-		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
-	const mainnetNethash =
-		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
-
+export const getDefaultHeaders = (port, testnet) => {
 	const commonNethash = {
 		'Content-Type': 'application/json',
 		os: 'lisk-js-api',
@@ -34,52 +39,14 @@ export const netHashOptions = ({ port }) => {
 		port,
 		Accept: 'application/json',
 	};
-
-	return {
-		testnet: Object.assign({}, commonNethash, {
-			nethash: testnetNethash,
-			broadhash: testnetNethash,
-		}),
-		mainnet: Object.assign({}, commonNethash, {
-			nethash: mainnetNethash,
-			broadhash: mainnetNethash,
-		}),
-	};
-};
-
-export const getURLPrefix = ({ ssl }) => (ssl ? 'https' : 'http');
-
-export const getFullURL = ({ node, port, ssl }) => {
-	const nodeUrl = port ? `${node}:${port}` : node;
-	return `${getURLPrefix({ ssl })}://${nodeUrl}`;
-};
-
-export const wrapSendRequest = (method, endpoint, getDataFn) =>
-	function wrappedSendRequest(value, options) {
-		const providedOptions = options || {};
-		const providedData = getDataFn(value, providedOptions);
-		const data = Object.assign({}, providedData, providedOptions);
-		return this.sendRequest(method, endpoint, data);
-	};
-
-export const checkOptions = (options = {}) => {
-	Object.entries(options).forEach(([key, value]) => {
-		if (value === undefined || Number.isNaN(value)) {
-			throw new Error(`"${key}" option should not be ${value}`);
-		}
+	if (testnet) {
+		return Object.assign({}, commonNethash, {
+			nethash: TESTNET_NETHASH,
+			broadhash: TESTNET_NETHASH,
+		});
+	}
+	return Object.assign({}, commonNethash, {
+		nethash: MAINNET_NETHASH,
+		broadhash: MAINNET_NETHASH,
 	});
-
-	return options;
-};
-
-export const toQueryString = obj => {
-	const parts = Object.entries(obj).reduce(
-		(accumulator, [key, value]) => [
-			...accumulator,
-			`${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
-		],
-		[],
-	);
-
-	return parts.join('&');
 };

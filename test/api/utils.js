@@ -15,213 +15,71 @@
 const utils = require('api/utils');
 
 describe('api utils module', () => {
-	const POST = 'POST';
-	const defaultMethod = POST;
-	const defaultEndpoint = 'transactions';
-	const defaultPort = 7000;
+	const mainnetHash =
+		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
+	const testnetHash =
+		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
+	const livePort = '8000';
+	const testPort = '7000';
+	const sslPort = '443';
 
-	let LSK;
-	let sendRequestResult;
-
-	beforeEach(() => {
-		sendRequestResult = { success: true, sendRequest: true };
-		LSK = {
-			port: defaultPort,
-			sendRequest: sandbox.stub().resolves(sendRequestResult),
-		};
-	});
-
-	describe('#netHashOptions', () => {
-		const { netHashOptions } = utils;
-		let result;
-
-		beforeEach(() => {
-			result = netHashOptions({ port: defaultPort });
+	describe('#getDefaultPort', () => {
+		it('should return testnet port when testport is true and ssl is false', () => {
+			const port = utils.getDefaultPort(true, false);
+			port.should.be.type('string').and.equal(testPort);
 		});
-
-		it('should return an object with a testnet nethash', () => {
-			const { testnet } = result;
-			testnet.should.have.property('Content-Type').and.be.a('string');
-			testnet.should.have.property('nethash').and.be.a('string');
-			testnet.should.have.property('broadhash').and.be.a('string');
-			testnet.should.have.property('os').and.be.a('string');
-			testnet.should.have.property('version').and.be.a('string');
-			testnet.should.have.property('minVersion').and.be.a('string');
-			return testnet.should.have.property('port').and.be.a('number');
+		it('should return testnet port when testport and ssl is true', () => {
+			const port = utils.getDefaultPort(true, true);
+			port.should.be.type('string').and.equal(testPort);
 		});
-		it('should return an object with a mainnet nethash', () => {
-			const { mainnet } = result;
-			mainnet.should.have.property('Content-Type').and.be.a('string');
-			mainnet.should.have.property('nethash').and.be.a('string');
-			mainnet.should.have.property('broadhash').and.be.a('string');
-			mainnet.should.have.property('os').and.be.a('string');
-			mainnet.should.have.property('version').and.be.a('string');
-			mainnet.should.have.property('minVersion').and.be.a('string');
-			return mainnet.should.have.property('port').and.be.a('number');
+		it('should return ssl port', () => {
+			const port = utils.getDefaultPort(false, true);
+			port.should.be.type('string').and.equal(sslPort);
+		});
+		it('should return live port', () => {
+			const port = utils.getDefaultPort(false, false);
+			port.should.be.type('string').and.equal(livePort);
 		});
 	});
 
-	describe('#getURLPrefix', () => {
-		const { getURLPrefix } = utils;
-
-		it('should return http when ssl is set to false', () => {
-			const ssl = false;
-			const result = getURLPrefix({ ssl });
-			return result.should.be.equal('http');
+	describe('#getDefaultHeaders', () => {
+		it('should return testnet headers', () => {
+			const header = utils.getDefaultHeaders(8080, true);
+			header.should.have.property('Content-Type').and.be.type('string');
+			header.should.have
+				.property('nethash')
+				.and.be.type('string')
+				.and.equal(testnetHash);
+			header.should.have
+				.property('broadhash')
+				.and.be.type('string')
+				.and.equal(testnetHash);
+			header.should.have.property('os').and.be.type('string');
+			header.should.have.property('version').and.be.type('string');
+			header.should.have.property('minVersion').and.be.type('string');
+			return header.should.have
+				.property('port')
+				.and.be.type('number')
+				.and.equal(8080);
 		});
-
-		it('should return https when ssl is set to true', () => {
-			const ssl = true;
-			const result = getURLPrefix({ ssl });
-			return result.should.be.equal('https');
-		});
-	});
-
-	describe('#getFullURL', () => {
-		const { getFullURL } = utils;
-		const URLPrefix = 'ftp';
-
-		let getURLPrefixStub;
-		let restoreGetURLPrefixStub;
-		let result;
-
-		beforeEach(() => {
-			getURLPrefixStub = sandbox.stub().returns(URLPrefix);
-			// eslint-disable-next-line no-underscore-dangle
-			restoreGetURLPrefixStub = utils.__set__('getURLPrefix', getURLPrefixStub);
-			result = getFullURL(LSK);
-		});
-
-		afterEach(() => {
-			restoreGetURLPrefixStub();
-		});
-
-		it('should get the URL prefix', () => {
-			const { ssl } = LSK;
-			return getURLPrefixStub.should.be.calledWithExactly({ ssl });
-		});
-
-		it('should add the prefix to the node URL and the port', () => {
-			return result.should.equal(`${URLPrefix}://${LSK.node}:${defaultPort}`);
-		});
-
-		it('should not include a port if not set', () => {
-			delete LSK.port;
-			result = getFullURL(LSK);
-			return result.should.equal(`${URLPrefix}://${LSK.node}`);
-		});
-	});
-
-	describe('#toQueryString', () => {
-		const { toQueryString } = utils;
-
-		it('should create a query string from an object', () => {
-			const queryString = toQueryString({
-				key1: 'value1',
-				key2: 'value2',
-				key3: 'value3',
-			});
-			return queryString.should.be.equal('key1=value1&key2=value2&key3=value3');
-		});
-
-		it('should escape invalid special characters', () => {
-			const queryString = toQueryString({
-				'key:/;?': 'value:/;?',
-			});
-			return queryString.should.be.equal('key%3A%2F%3B%3F=value%3A%2F%3B%3F');
-		});
-	});
-
-	describe('#checkOptions', () => {
-		const { checkOptions } = utils;
-		const goodOptions = {
-			key1: 'value 1',
-			key2: 2,
-		};
-
-		it('should throw an error if any option is undefined', () => {
-			const optionsWithUndefined = Object.assign(
-				{
-					badKey: undefined,
-				},
-				goodOptions,
-			);
-
-			return checkOptions
-				.bind(null, optionsWithUndefined)
-				.should.throw('"badKey" option should not be undefined');
-		});
-
-		it('should throw an error if any option is NaN', () => {
-			const optionsWithNaN = Object.assign(
-				{
-					badKey: NaN,
-				},
-				goodOptions,
-			);
-
-			return checkOptions
-				.bind(null, optionsWithNaN)
-				.should.throw('"badKey" option should not be NaN');
-		});
-
-		it('should return the options if they are all ok', () => {
-			const result = checkOptions(Object.assign({}, goodOptions));
-			return result.should.be.eql(goodOptions);
-		});
-
-		it('should have a default empty object when passed undefined', () => {
-			const options = {};
-			const result = checkOptions(undefined);
-			return result.should.be.eql(options);
-		});
-	});
-
-	describe('#wrapSendRequest', () => {
-		const { wrapSendRequest } = utils;
-		const value = '123';
-
-		let options;
-		let getDataFnResult;
-		let getDataFnStub;
-		let returnedFunction;
-
-		beforeEach(() => {
-			options = {
-				key1: 'value 1',
-				key2: 2,
-			};
-			getDataFnResult = {
-				key3: 'value3',
-				key4: 4,
-			};
-			getDataFnStub = sandbox
-				.stub()
-				.returns(Object.assign({}, getDataFnResult));
-
-			returnedFunction = wrapSendRequest(
-				defaultMethod,
-				defaultEndpoint,
-				getDataFnStub,
-			);
-		});
-
-		it('should return a function', () => {
-			return returnedFunction.should.be.a('function');
-		});
-
-		describe('returned function', () => {
-			it('should call the provided getData function on the provided value and options', () => {
-				return returnedFunction.call(LSK, value, options).then(() => {
-					getDataFnStub.should.be.calledWithExactly(value, options);
-				});
-			});
-
-			it('should return the result of the sent request', () => {
-				return returnedFunction.call(LSK, value).then(result => {
-					result.should.be.eql(sendRequestResult);
-				});
-			});
+		it('should return mainnet headers', () => {
+			const header = utils.getDefaultHeaders(8080, false);
+			header.should.have.property('Content-Type').and.be.type('string');
+			header.should.have
+				.property('nethash')
+				.and.be.type('string')
+				.and.equal(mainnetHash);
+			header.should.have
+				.property('broadhash')
+				.and.be.type('string')
+				.and.equal(mainnetHash);
+			header.should.have.property('os').and.be.type('string');
+			header.should.have.property('version').and.be.type('string');
+			header.should.have.property('minVersion').and.be.type('string');
+			return header.should.have
+				.property('port')
+				.and.be.type('number')
+				.and.equal(8080);
 		});
 	});
 });

@@ -12,39 +12,33 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { LIVE_PORT, TEST_PORT, SSL_PORT, GET, POST } from 'constants';
+import { LIVE_PORT, TEST_PORT, SSL_PORT } from 'constants';
 import config from '../../config.json';
-import * as privateApi from './privateApi';
-import * as utils from './utils';
-
-const bannedNodes = Symbol('bannedNodes');
-const defaultNodes = Symbol('defaultNodes');
-const defaultSSLNodes = Symbol('defaultSSLNodes');
-const defaultTestnetNodes = Symbol('defaultTestnetNodes');
-const nethash = Symbol('nethash');
-const ssl = Symbol('ssl');
-const testnet = Symbol('testnet');
+import { get, post } from './httpClient';
+import { getDefaultPort, getDefaultHeaders } from './utils';
 
 export default class LiskAPI {
 	constructor(providedOptions) {
 		const options = Object.assign({}, config.options, providedOptions);
+		this.ssl = options.ssl !== undefined ? options.ssl : true;
+		this.testnet = options.testnet || false;
+		const nethash =
+			options.headers && options.headers.nethash
+				? options.headers.nethash
+				: null;
+		this.headers = this.getHeaders(nethash);
 
-		this[ssl] = [true, false].includes(options.ssl) ? options.ssl : true;
-		this[testnet] = options.testnet || false;
-		this[nethash] = this.getNethash(options.nethash);
-
-		this[defaultNodes] = [...(options.nodes || config.nodes.mainnet)];
-		this[defaultSSLNodes] = [...this[defaultNodes]];
-		this[defaultTestnetNodes] = [...(options.nodes || config.nodes.testnet)];
-		this[bannedNodes] = [...options.bannedNodes] || [];
+		this.defaultNodes = [...(options.nodes || config.nodes.mainnet)];
+		this.defaultSSLNodes = [...this.defaultNodes];
+		this.defaultTestnetNodes = [...(options.nodes || config.nodes.testnet)];
+		this.bannedNodes = [...(options.bannedNodes || [])];
 
 		this.port =
 			options.port === '' || options.port
 				? options.port
-				: utils.getDefaultPort(options);
-		this.randomizeNodes = [true, false].includes(options.randomizeNodes)
-			? options.randomizeNodes
-			: true;
+				: getDefaultPort(this.testnet, this.ssl);
+		this.randomizeNodes =
+			options.randomizeNodes !== undefined ? options.randomizeNodes : true;
 		this.providedNode = options.node || null;
 		this.node = options.node || this.selectNewNode();
 	}
@@ -52,22 +46,26 @@ export default class LiskAPI {
 	get allNodes() {
 		return {
 			current: this.node,
-			default: this[defaultNodes],
-			ssl: this[defaultSSLNodes],
-			testnet: this[defaultTestnetNodes],
+			default: this.defaultNodes,
+			ssl: this.defaultSSLNodes,
+			testnet: this.defaultTestnetNodes,
 		};
 	}
 
 	get nodes() {
-		if (this.testnet) return this[defaultTestnetNodes];
-		if (this.ssl) return this[defaultSSLNodes];
-		return this[defaultNodes];
+		if (this.testnet) {
+			return this.defaultTestnetNodes;
+		}
+		if (this.ssl) {
+			return this.defaultSSLNodes;
+		}
+		return this.defaultNodes;
 	}
 
 	get randomNode() {
 		const nodes = this.nodes.filter(node => !this.isBanned(node));
 
-		if (!nodes.length) {
+		if (!nodes.length || nodes.length === 0) {
 			throw new Error(
 				'Cannot get random node: all relevant nodes have been banned.',
 			);
@@ -77,33 +75,37 @@ export default class LiskAPI {
 		return nodes[randomIndex];
 	}
 
-	get ssl() {
-		return this[ssl];
+	get urlPrefix() {
+		if (this.ssl) {
+			return 'https';
+		}
+		return 'http';
 	}
 
-	set ssl(newSSLValue) {
+	get fullURL() {
+		const nodeUrl = this.port ? `${this.node}:${this.port}` : this.node;
+		return `${this.urlPrefix}://${nodeUrl}`;
+	}
+
+	setSSL(newSSLValue) {
 		if (this.ssl !== newSSLValue) {
 			const nonSSLPort = this.testnet ? TEST_PORT : LIVE_PORT;
 
-			this[ssl] = newSSLValue;
+			this.ssl = newSSLValue;
 			this.port = newSSLValue ? SSL_PORT : nonSSLPort;
-			this[bannedNodes] = [];
+			this.bannedNodes = [];
 
 			this.selectNewNode();
 		}
 	}
 
-	get testnet() {
-		return this[testnet];
-	}
-
-	set testnet(newTestnetValue) {
+	setTestnet(newTestnetValue) {
 		if (this.testnet !== newTestnetValue) {
 			const nonTestnetPort = this.ssl ? SSL_PORT : LIVE_PORT;
 
-			this[testnet] = newTestnetValue;
+			this.testnet = newTestnetValue;
 			this.port = newTestnetValue ? TEST_PORT : nonTestnetPort;
-			this[bannedNodes] = [];
+			this.bannedNodes = [];
 
 			this.selectNewNode();
 		}
@@ -111,50 +113,32 @@ export default class LiskAPI {
 
 	banActiveNode() {
 		if (!this.isBanned(this.node)) {
-			this[bannedNodes].push(this.node);
+			this.bannedNodes.push(this.node);
 			this.node = this.selectNewNode();
 			return true;
 		}
 		return false;
 	}
 
-	broadcastSignatures(signatures, callback) {
-		const request = {
-			requestUrl: `${utils.getFullURL(this)}/api/signatures`,
-			nethash: this.nethash,
-			requestParams: { signatures },
-		};
-		return privateApi.sendRequestPromise
-			.call(this, POST, request)
-			.then(result => result.body)
-			.then(utils.optionallyCallCallback.bind(null, callback));
+	broadcastSignatures(signatures) {
+		return post(this.fullURL, this.headers, 'signatures', { signatures }).then(
+			result => result.body,
+		);
 	}
 
-	broadcastSignedTransaction(transaction, callback) {
-		const request = {
-			requestUrl: `${utils.getFullURL(this)}/api/transactions`,
-			nethash: this.nethash,
-			requestParams: { transaction },
-		};
-
-		return privateApi.sendRequestPromise
-			.call(this, POST, request)
-			.then(result => result.body)
-			.then(utils.optionallyCallCallback.bind(null, callback));
+	broadcastSignedTransaction(transaction) {
+		return post(this.fullURL, this.headers, 'transactions', {
+			transaction,
+		}).then(result => result.body);
 	}
 
-	getNethash(providedNethash) {
-		const { port } = this;
-		const NetHash = this.testnet
-			? utils.netHashOptions({ port }).testnet
-			: utils.netHashOptions({ port }).mainnet;
-
+	getHeaders(providedNethash) {
+		const headers = getDefaultHeaders(this.port, this.testnet);
 		if (providedNethash) {
-			NetHash.nethash = providedNethash;
-			NetHash.version = '0.0.0a';
+			headers.nethash = providedNethash;
+			headers.version = '0.0.0a';
 		}
-
-		return NetHash;
+		return headers;
 	}
 
 	hasAvailableNodes() {
@@ -164,7 +148,7 @@ export default class LiskAPI {
 	}
 
 	isBanned(node) {
-		return this[bannedNodes].includes(node);
+		return this.bannedNodes.includes(node);
 	}
 
 	selectNewNode() {
@@ -184,83 +168,150 @@ export default class LiskAPI {
 		);
 	}
 
-	sendRequest(
-		requestMethod,
-		requestType,
-		optionsOrCallback,
-		callbackIfOptions,
-	) {
-		const callback = callbackIfOptions || optionsOrCallback;
-		const options =
-			typeof optionsOrCallback !== 'function' &&
-			typeof optionsOrCallback !== 'undefined'
-				? utils.checkOptions(optionsOrCallback)
-				: {};
-
-		return privateApi.sendRequestPromise
-			.call(this, requestMethod, requestType, options)
-			.then(result => result.body)
-			.then(
-				privateApi.handleTimestampIsInFutureFailures.bind(
-					this,
-					requestMethod,
-					requestType,
-					options,
-				),
-			)
-			.catch(
-				privateApi.handleSendRequestFailures.bind(
-					this,
-					requestMethod,
-					requestType,
-					options,
-				),
-			)
-			.then(utils.optionallyCallCallback.bind(null, callback));
+	transferLSK(recipientId, amount, passphrase, secondPassphrase) {
+		const body = { recipientId, amount, passphrase, secondPassphrase };
+		return this.handlePost('transactions', body);
 	}
 
-	transferLSK(recipientId, amount, passphrase, secondPassphrase, callback) {
-		return this.sendRequest(
-			POST,
-			'transactions',
-			{ recipientId, amount, passphrase, secondPassphrase },
-			callback,
-		);
+	handlePost(endpoint, body) {
+		return post(this.fullURL, this.headers, endpoint, body)
+			.then(result => result.body)
+			.then(result =>
+				this.handleTimestampIsInFutureFailures(result, endpoint, body),
+			)
+			.catch(err => this.handlePostFailures(err, endpoint, body));
+	}
+
+	handlePostFailures(error, endpoint, body) {
+		if (this.hasAvailableNodes()) {
+			return new Promise((resolve, reject) => {
+				setTimeout(() => {
+					if (this.randomizeNodes) {
+						this.banActiveNode();
+					}
+					this.handlePost(endpoint, body).then(resolve, reject);
+				}, 1000);
+			});
+		}
+		return Promise.resolve({
+			success: false,
+			error,
+			message: 'Could not create an HTTP request to any known nodes.',
+		});
+	}
+
+	handleTimestampIsInFutureFailures(result, endpoint, body) {
+		if (
+			!result.success &&
+			result.message &&
+			result.message.match(/Timestamp is in the future/) &&
+			!(body.timeOffset > 40)
+		) {
+			const newBody = Object.assign({}, body, {
+				timeOffset: (body.timeOffset || 0) + 10,
+			});
+
+			return this.handlePost(endpoint, newBody);
+		}
+		return Promise.resolve(result);
 	}
 }
 
+/**
+ * @method wrapGetRequest
+ * @param endpoint
+ * @param body
+ *
+ * @return {Function}
+ */
+const wrapGetRequest = (endpoint, getDataFn) =>
+	function wrapped(value, options) {
+		const providedOptions = options || {};
+		const providedData = getDataFn(value, providedOptions);
+		const query = Object.assign({}, providedData, providedOptions);
+		return get(this.fullURL, this.headers, endpoint, query);
+	};
+
 [
-	['getAccount', 'accounts', address => ({ address })],
-	['getActiveDelegates', 'delegates', limit => ({ limit })],
-	['getBlock', 'blocks', height => ({ height })],
-	['getBlocks', 'blocks', limit => ({ limit })],
-	['getDapp', 'dapps', transactionId => ({ transactionId })],
-	['getDapps', 'dapps', data => data],
-	['getDappsByCategory', 'dapps', category => ({ category })],
-	['getForgedBlocks', 'blocks', generatorPublicKey => ({ generatorPublicKey })],
-	[
-		'getStandbyDelegates',
-		'delegates',
-		(limit, { orderBy = 'rate:asc', offset = 101 }) => ({
+	{
+		methodName: 'getAccount',
+		endpoint: 'accounts',
+		dataFn: address => ({ address }),
+	},
+	{
+		methodName: 'getActiveDelegates',
+		endpoint: 'delegates',
+		dataFn: limit => ({ limit }),
+	},
+	{
+		methodName: 'getStandbyDelegates',
+		endpoint: 'delegates',
+		dataFn: (limit, { orderBy = 'rate:asc', offset = 101 }) => ({
 			limit,
 			orderBy,
 			offset,
 		}),
-	],
-	['getTransaction', 'transactions', transactionId => ({ transactionId })],
-	['getTransactions', 'transactions', recipientId => ({ recipientId })],
-	[
-		'getUnsignedMultisignatureTransactions',
-		'transactions/unsigned',
-		data => data,
-	],
-	['getVoters', 'voters', username => ({ username })],
-	['getVotes', 'votes', address => ({ address })],
-	['searchDelegatesByUsername', 'delegates', search => ({ search })],
-].forEach(([methodName, endpoint, getDataFunction]) => {
-	LiskAPI.prototype[methodName] = utils.wrapSendRequest(
-		GET,
-		endpoint,
-		getDataFunction,
-	);
+	},
+	{
+		methodName: 'getBlock',
+		endpoint: 'blocks',
+		dataFn: height => ({ height }),
+	},
+	{
+		methodName: 'getBlocks',
+		endpoint: 'blocks',
+		dataFn: limit => ({ limit }),
+	},
+	{
+		methodName: 'getForgedBlocks',
+		endpoint: 'blocks',
+		dataFn: generatorPublicKey => ({ generatorPublicKey }),
+	},
+	{
+		methodName: 'getDapp',
+		endpoint: 'dapps',
+		dataFn: transactionId => ({ transactionId }),
+	},
+	{
+		methodName: 'getDapps',
+		endpoint: 'dapps',
+		dataFn: data => data,
+	},
+	{
+		methodName: 'getDappsByCategory',
+		endpoint: 'dapps',
+		dataFn: category => ({ category }),
+	},
+	{
+		methodName: 'getTransaction',
+		endpoint: 'transactions',
+		dataFn: transactionId => ({ transactionId }),
+	},
+	{
+		methodName: 'getTransactions',
+		endpoint: 'transactions',
+		dataFn: recipientId => ({ recipientId }),
+	},
+	{
+		methodName: 'getUnsignedMultisignatureTransactions',
+		endpoint: 'transactions/unsigned',
+		dataFn: data => data,
+	},
+	{
+		methodName: 'getVoters',
+		endpoint: 'voters',
+		dataFn: username => ({ username }),
+	},
+	{
+		methodName: 'getVotes',
+		endpoint: 'votes',
+		dataFn: address => ({ address }),
+	},
+	{
+		methodName: 'searchDelegatesByUsername',
+		endpoint: 'delegates',
+		dataFn: search => ({ search }),
+	},
+].forEach(obj => {
+	LiskAPI.prototype[obj.methodName] = wrapGetRequest(obj.endpoint, obj.dataFn);
 });
