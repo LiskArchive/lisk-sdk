@@ -430,7 +430,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 									if (err) {
 										return setImmediate(cb, err);
 									} else {
-										// Apply block - broadcast: false, saveBlock: false
+										// Apply block - saveBlock: false
 										modules.blocks.chain.applyBlock(block, false, err => {
 											setImmediate(cb, err);
 										});
@@ -442,15 +442,10 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 								setImmediate(cb, err);
 							});
 						} else {
-							// Apply block - broadcast: false, saveBlock: false
-							modules.blocks.chain.applyBlock(
-								block,
-								false,
-								err => {
-									setImmediate(cb, err);
-								},
-								false
-							);
+							// Apply block - saveBlock: false
+							modules.blocks.chain.applyBlock(block, false, err => {
+								setImmediate(cb, err);
+							});
 						}
 					},
 					err => setImmediate(cb, err, modules.blocks.lastBlock.get())
