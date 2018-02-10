@@ -549,11 +549,12 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 		// TODO: Can be inefficient, need performnce tests
 		modules.blocks.utils.loadBlocksPart(
 			{ id: oldLastBlock.previousBlock },
-			(err, previousBlock) => {
-				if (err || !previousBlock.length) {
+			(err, blocks) => {
+				if (err || !blocks.length) {
 					return setImmediate(cb, err || 'previousBlock is null');
 				}
-				previousBlock = previousBlock[0];
+
+				const previousBlock = blocks[0];
 
 				// Reverse order of transactions in last blocks...
 				async.eachSeries(
