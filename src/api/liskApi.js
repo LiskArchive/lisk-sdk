@@ -87,6 +87,15 @@ export default class LiskAPI {
 		return `${this.urlPrefix}://${nodeUrl}`;
 	}
 
+	getHeaders(providedNethash) {
+		const headers = getDefaultHeaders(this.port, this.testnet);
+		if (providedNethash) {
+			headers.nethash = providedNethash;
+			headers.version = '0.0.0a';
+		}
+		return headers;
+	}
+
 	setSSL(newSSLValue) {
 		if (this.ssl !== newSSLValue) {
 			const nonSSLPort = this.testnet ? TEST_PORT : LIVE_PORT;
@@ -120,27 +129,6 @@ export default class LiskAPI {
 		return false;
 	}
 
-	broadcastSignatures(signatures) {
-		return post(this.fullURL, this.headers, 'signatures', { signatures }).then(
-			result => result.body,
-		);
-	}
-
-	broadcastSignedTransaction(transaction) {
-		return post(this.fullURL, this.headers, 'transactions', {
-			transaction,
-		}).then(result => result.body);
-	}
-
-	getHeaders(providedNethash) {
-		const headers = getDefaultHeaders(this.port, this.testnet);
-		if (providedNethash) {
-			headers.nethash = providedNethash;
-			headers.version = '0.0.0a';
-		}
-		return headers;
-	}
-
 	hasAvailableNodes() {
 		return this.randomizeNodes
 			? this.nodes.some(node => !this.isBanned(node))
@@ -166,6 +154,18 @@ export default class LiskAPI {
 		throw new Error(
 			'Cannot select node: no node provided and randomizeNodes is not set to true.',
 		);
+	}
+
+	broadcastSignatures(signatures) {
+		return post(this.fullURL, this.headers, 'signatures', { signatures }).then(
+			result => result.body,
+		);
+	}
+
+	broadcastSignedTransaction(transaction) {
+		return post(this.fullURL, this.headers, 'transactions', {
+			transaction,
+		}).then(result => result.body);
 	}
 
 	transferLSK(recipientId, amount, passphrase, secondPassphrase) {
