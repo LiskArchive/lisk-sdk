@@ -31,8 +31,8 @@ INSERT INTO rounds_rewards (
 	"pk"
 ) VALUES (
    ${timestamp},
-   ${fees},
-   ${reward},
+   ${fees}::bigint,
+   ${reward}::bigint,
    ${round},
    DECODE(${pk}, 'hex')
  );
