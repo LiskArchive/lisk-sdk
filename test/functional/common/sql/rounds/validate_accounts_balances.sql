@@ -1,32 +1,26 @@
-WITH
--- Determine last round
-last_round AS (SELECT height FROM blocks WHERE height % 101 = 0 ORDER BY height DESC LIMIT 1),
--- Collect changes of balances
-balances AS (
-    -- Sender accounts
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+WITH balances AS (
 	(SELECT UPPER("senderId") AS address, -SUM(amount+fee) AS amount FROM trs GROUP BY UPPER("senderId"))
 		UNION ALL
-	-- Recipient accounts
 	(SELECT UPPER("recipientId") AS address, SUM(amount) AS amount FROM trs WHERE "recipientId" IS NOT NULL GROUP BY UPPER("recipientId"))
 		UNION ALL
-	(
-		-- Apply fees
-		SELECT a.address, f.fees AS amount
-		FROM (SELECT "publicKey" AS pk, SUM(fees) AS fees FROM rounds_fees GROUP BY "publicKey") f
-		LEFT JOIN mem_accounts a ON f.pk = a."publicKey"
-	)
-		UNION ALL
-	(
-	    -- Apply rewards
-		SELECT a.address, f.rewards AS amount
-		FROM (SELECT "generatorPublicKey" AS pk, SUM(reward) AS rewards FROM blocks WHERE height <= (SELECT * FROM last_round) GROUP BY "generatorPublicKey") f
-		LEFT JOIN mem_accounts a ON f.pk = a."publicKey"
+	(SELECT a.address, r.amount FROM
+		(SELECT r."publicKey", SUM(r.fees) + SUM(r.reward) AS amount FROM rounds_rewards r GROUP BY r."publicKey") r LEFT JOIN mem_accounts a ON r."publicKey" = a."publicKey"
 	)
 ),
--- Sum balances
-accounts AS (SELECT address, SUM(amount) AS balance FROM balances GROUP BY address)
--- Check differences
-SELECT a.address, m."publicKey", m.username, a.balance AS blockchain, m.balance AS memory, m.balance-a.balance AS diff
-FROM accounts a
-LEFT JOIN mem_accounts m ON a.address = m.address
-WHERE a.balance <> m.balance;
+accounts AS (SELECT b.address, SUM(b.amount) AS balance FROM balances b GROUP BY b.address)
+SELECT m.address, ENCODE(m."publicKey", 'hex') AS "publicKey", m.username, a.balance::BIGINT AS blockchain, m.balance::BIGINT AS memory, (m.balance-a.balance)::BIGINT AS diff
+FROM accounts a LEFT JOIN mem_accounts m ON a.address = m.address WHERE a.balance <> m.balance;
