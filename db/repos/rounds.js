@@ -241,13 +241,13 @@ class RoundsRepository {
 	 * @param {Buffer} pk - Public key of a delegate that forged a block
 	 * @return {Promise}
 	 */
-	insertRoundRewards(timestamp, fees, reward, round, pk) {
+	insertRoundRewards(timestamp, fees, reward, round, publicKey) {
 		return this.db.none(sql.insertRoundRewards, {
 			timestamp,
 			fees,
 			reward,
 			round,
-			pk,
+			publicKey,
 		});
 	}
 

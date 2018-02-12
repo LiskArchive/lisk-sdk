@@ -20,7 +20,7 @@
               fees - Fees amount for particular block
               reward - Rewards amount for particular block
               round - Round number
-              pk - Public key of a delegate that forged a block
+              publicKey - Public key of a delegate that forged a block
 */
 
 INSERT INTO rounds_rewards (
@@ -28,11 +28,11 @@ INSERT INTO rounds_rewards (
 	"fees",
 	"reward",
 	"round",
-	"pk"
+	"publicKey"
 ) VALUES (
    ${timestamp},
    ${fees}::bigint,
    ${reward}::bigint,
    ${round},
-   DECODE(${pk}, 'hex')
+   DECODE(${publicKey}, 'hex')
  );

@@ -293,7 +293,7 @@ Round.prototype.applyRound = function() {
 				fees: new bignum(changes.fees).toString(),
 				reward: new bignum(changes.rewards).toString(),
 				round: self.scope.round,
-				pk: delegate,
+				publicKey: delegate,
 			});
 		}
 	}
@@ -357,7 +357,7 @@ Round.prototype.applyRound = function() {
 				item.fees,
 				item.reward,
 				item.round,
-				item.pk
+				item.publicKey
 			)
 		);
 	});
