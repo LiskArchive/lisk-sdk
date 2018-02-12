@@ -148,6 +148,36 @@ describe('POST /peer/transactions @slow', function () {
 					});
 				}).timeout(500000);
 			});
+
+			describe('sending 1000 random type 2', function () {
+
+				var delegateTransactions = [];
+
+				before(function (done) {
+					node.async.each(accounts, function (account, eachCb) {
+						var delegateTransaction = node.lisk.delegate.createDelegate(account.password, node.randomDelegateName());
+						postTransaction(delegateTransaction, function (err, res) {
+							node.expect(res.body).to.have.property('success').to.be.ok;
+							node.expect(res.body).to.have.property('transactionId').to.equal(delegateTransaction.id);
+							delegateTransactions.push(delegateTransaction);
+							eachCb(err);
+						});
+					}, done);
+				});
+
+				it('should confirm all delegates registrations', function (done) {
+					var blocksToWait = Math.ceil(maximum / node.constants.maxTxsPerBlock) + 1;
+					node.waitForBlocks(blocksToWait, function () {
+						node.async.eachSeries(delegateTransactions, function (delegateTransaction, eachSeriesCb) {
+							node.get('/api/transactions/get?id=' + delegateTransaction.id, function (err, res) {
+								node.expect(res.body).to.have.property('success').to.be.ok;
+								node.expect(res.body).to.have.property('transaction').that.is.an('object');
+								return setImmediate(eachSeriesCb);
+							});
+						}, done);
+					});
+				}).timeout(500000);
+			});
 		});
 	});
 });
