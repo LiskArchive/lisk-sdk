@@ -62,6 +62,7 @@ describe('rounds', () => {
 					generatorPublicKey: genesisBlock.generatorPublicKey,
 					id: genesisBlock.id,
 					height: 1,
+					timestamp: 100,
 				},
 			};
 			done();

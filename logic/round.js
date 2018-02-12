@@ -340,7 +340,7 @@ Round.prototype.applyRound = function() {
 		// Aggregate round rewards data (remaining fees) - when going forward
 		if (!self.scope.backwards) {
 			roundRewards[roundRewards.length - 1].fees = new bignum(
-				roundRewards[remainderDelegate].fees
+				roundRewards[roundRewards.length - 1].fees
 			)
 				.plus(feesRemaining)
 				.toString();
