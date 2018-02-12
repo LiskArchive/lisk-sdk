@@ -21,62 +21,33 @@ import naclFactory from 'js-nacl';
 
 process.env.NODE_ENV = 'test';
 
-Assertion.addMethod('hexString', function handleAssert(type) {
-	// eslint-disable-next-line no-underscore-dangle
-	const obj = this._obj;
+/* eslint-disable no-underscore-dangle */
+Assertion.addProperty('hexString', function handleAssert() {
+	const actual = this._obj;
 
-	// eslint-disable-next-line no-underscore-dangle
-	new Assertion(this._obj).to.be.a('string');
+	new Assertion(actual).to.be.a('string');
 
-	// second, our type check
+	const expected = Buffer.from(actual, 'hex').toString('hex');
 	this.assert(
-		// eslint-disable-next-line no-underscore-dangle
-		obj._type === type,
-		'expected #{this} to be of type #{exp} but got #{act}',
-		'expected #{this} to not be of type #{act}',
-		type,
-		// eslint-disable-next-line no-underscore-dangle
-		obj._type,
-	);
-	// eslint-disable-next-line no-underscore-dangle
-	const converted = Buffer.from(this._obj, 'hex').toString('hex');
-	this.assert(
-		converted === obj,
-		'expected #{this} to be of hexString #{exp} but got #{act}',
-		'expected #{this} to not be of type #{act}',
-		obj,
-		converted,
+		expected === actual,
+		'expected #{this} to be a hexString',
+		'expected #{this} to not be a hexString',
 	);
 });
 
-Assertion.addMethod('integer', function handleAssert(type) {
-	// eslint-disable-next-line no-underscore-dangle
-	const obj = this._obj;
+Assertion.addProperty('integer', function handleAssert() {
+	const actual = this._obj;
 
-	// first, our instanceof check, shortcut
-	// eslint-disable-next-line no-underscore-dangle
-	new Assertion(this._obj).to.be.a('number');
+	new Assertion(actual).to.be.a('number');
 
-	// second, our type check
+	const expected = parseInt(actual, 10);
 	this.assert(
-		// eslint-disable-next-line no-underscore-dangle
-		obj._type === type,
-		'expected #{this} to be of type #{exp} but got #{act}',
-		'expected #{this} to not be of type #{act}',
-		type,
-		// eslint-disable-next-line no-underscore-dangle
-		obj._type,
-	);
-	// eslint-disable-next-line no-underscore-dangle
-	const converted = parseInt(this._obj, 10);
-	this.assert(
-		converted === obj,
-		'expected #{this} to be of hexString #{exp} but got #{act}',
-		'expected #{this} to not be of type #{act}',
-		obj,
-		converted,
+		actual === expected,
+		'expected #{this} to be an integer',
+		'expected #{this} to not be an integer',
 	);
 });
+/* eslint-enable no-underscore-dangle */
 
 [chaiAsPromised, sinonChai].forEach(plugin => chai.use(plugin));
 

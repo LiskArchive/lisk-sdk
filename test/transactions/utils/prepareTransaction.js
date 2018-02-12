@@ -40,8 +40,7 @@ describe('#prepareTransaction', () => {
 		it('should add a signature to a transaction', () => {
 			return preparedTransaction.should.have
 				.property('signature')
-				.and.be.hexString()
-				.and.equal(signature);
+				.and.be.hexString.and.equal(signature);
 		});
 
 		it('should add an id to a transaction', () => {
@@ -68,8 +67,7 @@ describe('#prepareTransaction', () => {
 		it('should add a second signature to a transaction if a second passphrase is provided', () => {
 			return preparedTransaction.should.have
 				.property('signSignature')
-				.and.be.hexString()
-				.and.equal(secondSignature);
+				.and.be.hexString.and.equal(secondSignature);
 		});
 
 		it('should not add a second signature to a type 1 transaction', () => {

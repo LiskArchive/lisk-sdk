@@ -178,8 +178,7 @@ describe('#createDapp transaction', () => {
 			it('should have senderPublicKey hex string equal to sender public key', () => {
 				return createDappTransaction.should.have
 					.property('senderPublicKey')
-					.and.be.hexString()
-					.and.equal(publicKey);
+					.and.be.hexString.and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
@@ -190,9 +189,8 @@ describe('#createDapp transaction', () => {
 			});
 
 			it('should have signature hex string', () => {
-				return createDappTransaction.should.have
-					.property('signature')
-					.and.be.hexString();
+				return createDappTransaction.should.have.property('signature').and.be
+					.hexString;
 			});
 
 			it('should not have the second signature property', () => {
@@ -273,9 +271,8 @@ describe('#createDapp transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			return createDappTransaction.should.have
-				.property('signSignature')
-				.and.be.hexString();
+			return createDappTransaction.should.have.property('signSignature').and.be
+				.hexString;
 		});
 	});
 
@@ -319,11 +316,12 @@ describe('#createDapp transaction', () => {
 				return createDappTransaction.should.have.property('timestamp');
 			});
 
-			it('should have the asset with dapp with properties category, name, tags, type, link, icon', () => {
+			it('should have the asset with dapp with properties category, description, name, tags, type, link, icon', () => {
 				return createDappTransaction.should.have.nested
 					.property('asset.dapp')
-					.and.to.have.any.keys(
+					.with.keys(
 						'category',
+						'description',
 						'name',
 						'tags',
 						'type',

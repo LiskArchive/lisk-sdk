@@ -346,9 +346,7 @@ describe('privateApi module', () => {
 		});
 
 		it('should create a valid request object for GET request', () => {
-			expectedObject.url += `?limit=${options.limit}&offset=${
-				options.offset
-			}&details=${options.details}`;
+			expectedObject.url += `?limit=${options.limit}&offset=${options.offset}&details=${options.details}`;
 
 			const requestObject = privateApi.createRequestObject.call(
 				LSK,

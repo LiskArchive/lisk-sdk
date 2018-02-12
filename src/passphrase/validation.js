@@ -76,11 +76,7 @@ export const getPassphraseValidationErrors = (passphrase, wordlist) => {
 	if (wordsInPassphrase !== expectedWords) {
 		const passphraseWordError = {
 			code: 'INVALID_AMOUNT_OF_WORDS',
-			message: `Passphrase contains ${
-				wordsInPassphrase
-			} words instead of expected ${
-				expectedWords
-			}. Please check the passphrase.`,
+			message: `Passphrase contains ${wordsInPassphrase} words instead of expected ${expectedWords}. Please check the passphrase.`,
 			expected: expectedWords,
 			actual: wordsInPassphrase,
 		};
@@ -90,11 +86,7 @@ export const getPassphraseValidationErrors = (passphrase, wordlist) => {
 	if (whiteSpacesInPassphrase > expectedWhitespaces) {
 		const whiteSpaceError = {
 			code: 'INVALID_AMOUNT_OF_WHITESPACES',
-			message: `Passphrase contains ${
-				whiteSpacesInPassphrase
-			} whitespaces instead of expected ${
-				expectedWhitespaces
-			}. Please check the passphrase.`,
+			message: `Passphrase contains ${whiteSpacesInPassphrase} whitespaces instead of expected ${expectedWhitespaces}. Please check the passphrase.`,
 			expected: expectedWhitespaces,
 			actual: whiteSpacesInPassphrase,
 			location: locateWhitespaces(passphrase),
@@ -105,11 +97,7 @@ export const getPassphraseValidationErrors = (passphrase, wordlist) => {
 	if (uppercaseCharacterInPassphrase !== expectedUppercaseCharacterCount) {
 		const uppercaseCharacterError = {
 			code: 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER',
-			message: `Passphrase contains ${
-				uppercaseCharacterInPassphrase
-			} uppercase character instead of expected ${
-				expectedUppercaseCharacterCount
-			}. Please check the passphrase.`,
+			message: `Passphrase contains ${uppercaseCharacterInPassphrase} uppercase character instead of expected ${expectedUppercaseCharacterCount}. Please check the passphrase.`,
 			expected: expectedUppercaseCharacterCount,
 			actual: uppercaseCharacterInPassphrase,
 			location: locateUppercaseCharacters(passphrase),

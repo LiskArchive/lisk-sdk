@@ -114,8 +114,7 @@ describe('#castVotes transaction', () => {
 			it('should have senderPublicKey hex string equal to sender public key', () => {
 				return castVotesTransaction.should.have
 					.property('senderPublicKey')
-					.and.be.hexString()
-					.and.equal(firstPublicKey);
+					.and.be.hexString.and.equal(firstPublicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
@@ -126,9 +125,8 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('should have signature hex string', () => {
-				return castVotesTransaction.should.have
-					.property('signature')
-					.and.be.hexString();
+				return castVotesTransaction.should.have.property('signature').and.be
+					.hexString;
 			});
 
 			it('should not have the second signature property', () => {
@@ -169,9 +167,8 @@ describe('#castVotes transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			return castVotesTransaction.should.have
-				.property('signSignature')
-				.and.be.hexString();
+			return castVotesTransaction.should.have.property('signSignature').and.be
+				.hexString;
 		});
 	});
 

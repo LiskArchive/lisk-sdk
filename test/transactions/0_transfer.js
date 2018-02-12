@@ -110,8 +110,7 @@ describe('#transfer transaction', () => {
 			it('should have senderPublicKey hex string equal to sender public key', () => {
 				return transferTransaction.should.have
 					.property('senderPublicKey')
-					.and.be.hexString()
-					.and.equal(publicKey);
+					.and.be.hexString.and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
@@ -122,9 +121,8 @@ describe('#transfer transaction', () => {
 			});
 
 			it('should have signature hex string', () => {
-				return transferTransaction.should.have
-					.property('signature')
-					.and.be.hexString();
+				return transferTransaction.should.have.property('signature').and.be
+					.hexString;
 			});
 
 			it('should have an empty asset object', () => {
@@ -202,9 +200,8 @@ describe('#transfer transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			return transferTransaction.should.have
-				.property('signSignature')
-				.and.be.hexString();
+			return transferTransaction.should.have.property('signSignature').and.be
+				.hexString;
 		});
 	});
 

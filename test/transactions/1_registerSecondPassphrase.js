@@ -105,8 +105,7 @@ describe('#registerSecondPassphrase transaction', () => {
 		it('should have senderPublicKey hex string equal to sender public key', () => {
 			return registerSecondPassphraseTransaction.should.have
 				.property('senderPublicKey')
-				.and.be.hexString()
-				.and.equal(publicKey);
+				.and.be.hexString.and.equal(publicKey);
 		});
 
 		it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
@@ -117,9 +116,9 @@ describe('#registerSecondPassphrase transaction', () => {
 		});
 
 		it('should have signature hex string', () => {
-			return registerSecondPassphraseTransaction.should.have
-				.property('signature')
-				.and.be.hexString();
+			return registerSecondPassphraseTransaction.should.have.property(
+				'signature',
+			).and.be.hexString;
 		});
 
 		it('should have asset object', () => {
@@ -143,8 +142,7 @@ describe('#registerSecondPassphrase transaction', () => {
 			it('should have a 32-byte publicKey hex string', () => {
 				registerSecondPassphraseTransaction.asset.should.have
 					.property('signature')
-					.with.property('publicKey')
-					.and.be.hexString();
+					.with.property('publicKey').and.be.hexString;
 				return Buffer.from(
 					registerSecondPassphraseTransaction.asset.signature.publicKey,
 					'hex',
