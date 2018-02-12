@@ -13,8 +13,8 @@
  */
 'use strict';
 
-var bignum = require('../helpers/bignum.js');
 var Promise = require('bluebird');
+var bignum = require('../helpers/bignum.js');
 var RoundChanges = require('../helpers/round_changes.js');
 
 /**
@@ -242,7 +242,7 @@ Round.prototype.applyRound = function() {
 	var delegates;
 	var delegate;
 	var p;
-	let roundRewards = [];
+	const roundRewards = [];
 
 	// Reverse delegates if going backwards
 	delegates = self.scope.backwards
