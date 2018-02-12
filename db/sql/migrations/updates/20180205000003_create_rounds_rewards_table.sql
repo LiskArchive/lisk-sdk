@@ -46,14 +46,14 @@ DO $$
 		FOR row IN
 			SELECT
 				-- Round number
-				CEIL(height / 101::float)::int AS round
+				ceil(height / 101::float)::int AS round
 			FROM blocks
 			-- Perform only for rounds that are completed and not present in 'rounds_rewards'
 			WHERE height % 101 = 0 AND height NOT IN (SELECT height FROM rounds_rewards)
 			-- Group by round
-			GROUP BY CEIL(height / 101::float)::int
+			GROUP BY ceil(height / 101::float)::int
 			-- Order by round
-			ORDER BY CEIL(height / 101::float)::int ASC
+			ORDER BY ceil(height / 101::float)::int ASC
 		LOOP
 			WITH
 				-- Selecting all blocks of round
@@ -62,10 +62,10 @@ DO $$
 						b.timestamp, b.height, b."generatorPublicKey" AS "publicKey", b."totalFee" AS fees,
 						b.reward AS reward
 					FROM blocks b
-					WHERE CEIL(b.height / 101::float)::int = row.round AND b.height > 1
+					WHERE ceil(b.height / 101::float)::int = row.round AND b.height > 1
 				),
 				-- Calculating total fees of round
-				fees AS (SELECT SUM(fees) AS total, FLOOR(SUM(fees) / 101) AS single FROM round),
+				fees AS (SELECT sum(fees) AS total, floor(sum(fees) / 101) AS single FROM round),
 				-- Get last delegate and timestamp of round's last block
 				last AS (SELECT "publicKey", timestamp FROM round ORDER BY height DESC LIMIT 1)
 			INSERT INTO rounds_rewards
@@ -78,7 +78,7 @@ DO $$
 					-- Block reward
 					round.reward,
 					-- Round
-					CEIL(round.height / 101::float)::int,
+					ceil(round.height / 101::float)::int,
 					-- Delegate public key
 					round."publicKey"
 				FROM last, fees, round

@@ -23,7 +23,7 @@ DO $$
 	DECLARE
 		is_mainnet INT;
 	BEGIN
-		SELECT COUNT(1) FROM blocks WHERE height = 1 AND ENCODE("generatorPublicKey", 'hex') = 'd121d3abf5425fdc0f161d9ddb32f89b7750b4bdb0bff7d18b191d4b4bafa6d4' INTO is_mainnet;
+		SELECT count(1) FROM blocks WHERE height = 1 AND encode("generatorPublicKey", 'hex') = 'd121d3abf5425fdc0f161d9ddb32f89b7750b4bdb0bff7d18b191d4b4bafa6d4' INTO is_mainnet;
 
 		IF is_mainnet > 0 THEN
 			RAISE NOTICE 'Apply reward exceptions for round 27040, please wait...';
@@ -35,10 +35,10 @@ DO $$
 						b.timestamp, b.height, b."generatorPublicKey" AS "publicKey", b."totalFee" * 2 AS fees,
 						b.reward * 2 AS reward, 10000000 AS fb
 					FROM blocks b
-					WHERE CEIL(b.height / 101::float)::int = 27040
+					WHERE ceil(b.height / 101::float)::int = 27040
 				),
 				-- Calculating total fees of round, apply exception fees bonus
-				fees AS (SELECT SUM(fees) + fb AS total, FLOOR((SUM(fees) + fb) / 101) AS single FROM round GROUP BY fb),
+				fees AS (SELECT sum(fees) + fb AS total, floor((sum(fees) + fb) / 101) AS single FROM round GROUP BY fb),
 				-- Get last delegate and timestamp of round's last block
 				last AS (SELECT "publicKey", timestamp FROM round ORDER BY height DESC LIMIT 1)
 			UPDATE rounds_rewards r SET fees = fix.fees, reward = fix.reward
@@ -52,7 +52,7 @@ DO $$
 					-- Block reward
 					round.reward,
 					-- Round
-					CEIL(round.height / 101::float)::int,
+					ceil(round.height / 101::float)::int,
 					-- Delegate public key
 					round."publicKey"
 				FROM last, fees, round
