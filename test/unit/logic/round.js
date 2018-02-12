@@ -591,6 +591,28 @@ describe('rounds', () => {
 		});
 	});
 
+	describe('deleteRoundRewards', () => {
+		var stub;
+		var res;
+
+		before(() => {
+			stub = sinonSandbox.stub(db.rounds, 'deleteRoundRewards');
+			stub.withArgs().resolves('success');
+			res = round.deleteRoundRewards();
+		});
+
+		it('should return promise', () => {
+			expect(isPromise(res)).to.be.true;
+		});
+
+		it('query should be called with no args', () => {
+			return res.then(res => {
+				expect(res).to.equal('success');
+				expect(stub.calledWith()).to.be.true;
+			});
+		});
+	});
+
 	describe('applyRound', () => {
 		var res;
 		var batch_stub;
@@ -1799,6 +1821,7 @@ describe('rounds', () => {
 		var getVotes_stub;
 		var restoreRoundSnapshot_stub;
 		var restoreVotesSnapshot_stub;
+		var deleteRoundRewards_stub;
 		var flush_stub;
 		var res;
 		var scope;
@@ -1838,6 +1861,9 @@ describe('rounds', () => {
 					.resolves();
 				restoreVotesSnapshot_stub = sinonSandbox
 					.stub(t.rounds, 'restoreVotesSnapshot')
+					.resolves();
+				deleteRoundRewards_stub = sinonSandbox
+					.stub(t.rounds, 'deleteRoundRewards')
 					.resolves();
 
 				round = new Round(_.cloneDeep(scope), t);
@@ -1879,6 +1905,10 @@ describe('rounds', () => {
 
 		it('query restoreVotesSnapshot should be called once', () => {
 			expect(restoreVotesSnapshot_stub.callCount).to.equal(1);
+		});
+
+		it('query deleteRoundRewards should be called once', () => {
+			expect(deleteRoundRewards_stub.callCount).to.equal(1);
 		});
 	});
 });
