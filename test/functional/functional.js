@@ -16,8 +16,5 @@
 'use strict';
 
 before(done => {
-	require('../common/utils/wait_for').blockchainReady(reason => {
-		console.info(`Blockchain ready status: ${reason}`);
-		done();
-	});
+	require('../common/utils/wait_for').blockchainReady(done);
 });
