@@ -433,6 +433,9 @@ describe('GET /api/voters', () => {
 								_.intersection(voters, _.map(res.body.data.voters, 'address'))
 							).to.have.length(1);
 							done();
+						})
+						.catch(err => {
+							done(err);
 						});
 				});
 			});
