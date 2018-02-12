@@ -134,7 +134,7 @@ Utils.prototype.readDbRows = function(rows) {
  */
 Utils.prototype.loadBlocksPart = function(filter, cb) {
 	self.loadBlocksData(filter, (err, rows) => {
-		var blocks = [];
+		var blocks;
 
 		if (!err) {
 			// Normalize list of blocks
@@ -160,7 +160,7 @@ Utils.prototype.loadBlocksPart = function(filter, cb) {
 Utils.prototype.loadLastBlock = function(cb) {
 	library.dbSequence.add(cb => {
 		// Get full last block from database
-		// FIXME: Ordering in that SQL - to rewrite
+		// FIXME: Review SQL order by clause
 		library.db.blocks
 			.loadLastBlock()
 			.then(rows => {
