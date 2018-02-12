@@ -466,133 +466,134 @@ class Account {
 		}
 
 		// Loop through each of updated attribute
-		(tx || self.scope.db)
-			.tx('logic:account:merge', dbTx => {
-				const promises = [];
+		const job = dbTx => {
+			const promises = [];
 
-				Object.keys(diff).forEach(updatedField => {
-					// Return if updated field is not editable
-					if (!self.editable.includes(updatedField)) {
-						return;
-					}
+			Object.keys(diff).forEach(updatedField => {
+				// Return if updated field is not editable
+				if (!self.editable.includes(updatedField)) {
+					return;
+				}
 
-					// Get field data type
-					const fieldType = self.conv[updatedField];
-					const updatedValue = diff[updatedField];
+				// Get field data type
+				const fieldType = self.conv[updatedField];
+				const updatedValue = diff[updatedField];
 
-					// Make execution selection based on field type
-					switch (fieldType) {
-						// blockId
-						case String:
+				// Make execution selection based on field type
+				switch (fieldType) {
+					// blockId
+					case String:
+						promises.push(
+							dbTx.accounts.update(address, _.pick(diff, [updatedField]))
+						);
+						break;
+
+					// [u_]balance, [u_]multimin, [u_]multilifetime, rate, fees, rank, rewards, votes, producedBlocks, missedBlocks
+					case Number:
+						if (isNaN(updatedValue) || updatedValue === Infinity) {
+							throw `Encountered insane number: ${updatedValue}`;
+						}
+
+						// If updated value is positive number
+						if (
+							Math.abs(updatedValue) === updatedValue &&
+							updatedValue !== 0
+						) {
 							promises.push(
-								dbTx.accounts.update(address, _.pick(diff, [updatedField]))
+								dbTx.accounts.increment(
+									address,
+									updatedField,
+									Math.floor(updatedValue)
+								)
 							);
-							break;
 
-						// [u_]balance, [u_]multimin, [u_]multilifetime, rate, fees, rank, rewards, votes, producedBlocks, missedBlocks
-						case Number:
-							if (isNaN(updatedValue) || updatedValue === Infinity) {
-								throw `Encountered insane number: ${updatedValue}`;
+							// If updated value is negative number
+						} else if (updatedValue < 0) {
+							promises.push(
+								dbTx.accounts.decrement(
+									address,
+									updatedField,
+									Math.floor(Math.abs(updatedValue))
+								)
+							);
+
+							// Withdrawal, therefore convert to non-virgin account
+							if (updatedField === 'u_balance') {
+								promises.push(dbTx.accounts.convertToNonVirgin(address));
 							}
+						}
 
-							// If updated value is positive number
-							if (
-								Math.abs(updatedValue) === updatedValue &&
-								updatedValue !== 0
-							) {
-								promises.push(
-									dbTx.accounts.increment(
-										address,
-										updatedField,
-										Math.floor(updatedValue)
-									)
-								);
+						if (updatedField === 'balance') {
+							promises.push(
+								dbTx.rounds.insertRoundInformationWithAmount(
+									address,
+									diff.blockId,
+									diff.round,
+									updatedValue
+								)
+							);
+						}
+						break;
 
-								// If updated value is negative number
-							} else if (updatedValue < 0) {
-								promises.push(
-									dbTx.accounts.decrement(
-										address,
-										updatedField,
-										Math.floor(Math.abs(updatedValue))
-									)
-								);
+					// [u_]delegates, [u_]multisignatures
+					case Array:
+						// If we received update as array of strings
+						if (_.isString(updatedValue[0])) {
+							updatedValue.forEach(updatedValueItem => {
+								// Fetch first character
+								let mode = updatedValueItem[0];
+								let dependentId = '';
 
-								// Withdrawal, therefore convert to non-virgin account
-								if (updatedField === 'u_balance') {
-									promises.push(dbTx.accounts.convertToNonVirgin(address));
+								if (mode === '-' || mode === '+') {
+									dependentId = updatedValueItem.slice(1);
+								} else {
+									dependentId = updatedValueItem;
+									mode = '+';
 								}
-							}
 
-							if (updatedField === 'balance') {
-								promises.push(
-									dbTx.rounds.insertRoundInformationWithAmount(
-										address,
-										diff.blockId,
-										diff.round,
-										updatedValue
-									)
-								);
-							}
-							break;
+								if (mode === '-') {
+									promises.push(
+										dbTx.accounts.removeDependencies(
+											address,
+											dependentId,
+											updatedField
+										)
+									);
+								} else {
+									promises.push(
+										dbTx.accounts.insertDependencies(
+											address,
+											dependentId,
+											updatedField
+										)
+									);
+								}
 
-						// [u_]delegates, [u_]multisignatures
-						case Array:
-							// If we received update as array of strings
-							if (_.isString(updatedValue[0])) {
-								updatedValue.forEach(updatedValueItem => {
-									// Fetch first character
-									let mode = updatedValueItem[0];
-									let dependentId = '';
+								if (updatedField === 'delegates') {
+									promises.push(
+										dbTx.rounds.insertRoundInformationWithDelegate(
+											address,
+											diff.blockId,
+											diff.round,
+											dependentId,
+											mode
+										)
+									);
+								}
+							});
+							// If we received update as array of objects
+						} else if (_.isObject(updatedValue[0])) {
+							// TODO: Need to look at usage of object based diff param
+						}
+						break;
+				}
+			});
 
-									if (mode === '-' || mode === '+') {
-										dependentId = updatedValueItem.slice(1);
-									} else {
-										dependentId = updatedValueItem;
-										mode = '+';
-									}
+			// Run all db operations in a batch
+			return dbTx.batch(promises);
+		};
 
-									if (mode === '-') {
-										promises.push(
-											dbTx.accounts.removeDependencies(
-												address,
-												dependentId,
-												updatedField
-											)
-										);
-									} else {
-										promises.push(
-											dbTx.accounts.insertDependencies(
-												address,
-												dependentId,
-												updatedField
-											)
-										);
-									}
-
-									if (updatedField === 'delegates') {
-										promises.push(
-											dbTx.rounds.insertRoundInformationWithDelegate(
-												address,
-												diff.blockId,
-												diff.round,
-												dependentId,
-												mode
-											)
-										);
-									}
-								});
-								// If we received update as array of objects
-							} else if (_.isObject(updatedValue[0])) {
-								// TODO: Need to look at usage of object based diff param
-							}
-							break;
-					}
-				});
-
-				// Run all db operations in a batch
-				return dbTx.batch(promises);
-			})
+		(tx ? job(tx) : self.scope.db.tx('logic:account:merge', job))
 			.then(() => self.get({ address }, cb, tx))
 			.catch(err => {
 				library.logger.error(err.stack);
