@@ -77,7 +77,7 @@ application.init(
  */
 process.on('uncaughtException', err => {
 	// Handle error safely
-	console.error('System error', { message: err.message, stack: err.stack });
+	console.warn('System error', { message: err.message, stack: err.stack });
 	/**
 	 * emits cleanup once 'uncaughtException'.
 	 * @emits cleanup

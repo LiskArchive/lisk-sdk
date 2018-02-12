@@ -56,6 +56,7 @@ function __init(initScope, done) {
 	jobsQueue.jobs = {};
 	var modules = [];
 	var rewiredModules = {};
+	var pgp;
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
 		promiseLib: Promise,
@@ -66,14 +67,13 @@ function __init(initScope, done) {
 		// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
 		extend(object) {
 			Object.keys(dbRepos).forEach(repoName => {
-				// eslint-disable-next-line block-scoped-var
 				object[repoName] = new dbRepos[repoName](object, pgp);
 			});
 		},
 	};
 	var db = initScope.db;
 	if (!db) {
-		var pgp = require('pg-promise')(options);
+		pgp = require('pg-promise')(options);
 		__testContext.config.db.user =
 			__testContext.config.db.user || process.env.USER;
 		db = pgp(__testContext.config.db);

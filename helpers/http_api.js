@@ -58,7 +58,7 @@ var middleware = {
 			return next();
 		}
 		logger.error(`API error ${req.url}`, err.message);
-		console.error(err);
+		console.trace(err);
 		res
 			.status(500)
 			.send({ success: false, error: `API error: ${err.message}` });

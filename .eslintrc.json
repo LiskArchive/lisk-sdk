@@ -58,6 +58,7 @@
 		"wrap-iife": "off",
 		// To keep
 		"no-restricted-properties": "off",
+		"no-console": ["error", { "allow": ["trace", "error", "info", "warn"] }],
 		"import/no-extraneous-dependencies": [
 			"error",
 			{

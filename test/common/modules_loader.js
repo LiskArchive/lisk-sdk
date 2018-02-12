@@ -142,7 +142,6 @@ var modulesLoader = new function() {
 				break;
 			default:
 				console.info('no Logic case initLogic');
-				break;
 		}
 	};
 
