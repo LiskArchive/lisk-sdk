@@ -1,6 +1,5 @@
 {
 	"extends": ["lisk-base"],
-	"plugins": ["mocha"],
 	"globals": {
 		"naclInstance": true
 	},
