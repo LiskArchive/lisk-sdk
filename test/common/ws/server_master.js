@@ -77,6 +77,8 @@ WSServerMaster.prototype.start = function() {
 				reject(message);
 			}
 		});
+	}).catch(err => {
+		console.error(`server master error: ${err}`);
 	});
 };
 
