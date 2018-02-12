@@ -110,6 +110,7 @@ describe('POST /peer/transactions @slow', function () {
 		}).timeout(500000);
 
 		describe('having 1000 confirmed type 0 transactions', function () {
+
 			describe('sending 1000 full type 3 transactions for genesis delegates', function () {
 
 				var votesTransactions = [];
