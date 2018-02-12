@@ -112,12 +112,6 @@ describe('POST /peer/transactions @slow', function () {
 		describe('having 1000 confirmed type 0 transactions', function () {
 			describe('sending 1000 full type 3 transactions for genesis delegates', function () {
 
-				function convertStringToNonDeterministicNumber (str) {
-					return str.split('').reduce(function (strBytesSum, letter) {
-						return _.random(0, letter.charCodeAt(0)) + strBytesSum;
-					}, 0);
-				}
-
 				var votesTransactions = [];
 
 				before(function (done) {
@@ -125,8 +119,7 @@ describe('POST /peer/transactions @slow', function () {
 						var voteTransaction = node.lisk.vote.createVote(
 							account.password,
 							_(33).range().map(function () {
-								var randomDelegateNumber = convertStringToNonDeterministicNumber(account.publicKey) % 101;
-								return '+' + genesisDelegates.delegates[randomDelegateNumber].publicKey
+								return '+' + genesisDelegates.delegates[_.random(0, 100)].publicKey
 							}).uniq().value()
 						);
 						postTransaction(voteTransaction, function (err, res) {
