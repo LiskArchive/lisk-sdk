@@ -22,7 +22,7 @@ var randomUtil = require('../../../common/utils/random');
 var normalizeTransactionObject = require('../../../common/helpers/api')
 	.normalizeTransactionObject;
 
-function postTransaction(transaction, callback) {
+function postTransaction(transaction, cb) {
 	transaction = normalizeTransactionObject(transaction);
 
 	ws.call(
@@ -30,7 +30,7 @@ function postTransaction(transaction, callback) {
 		{
 			transactions: [transaction],
 		},
-		callback,
+		cb,
 		true
 	);
 }

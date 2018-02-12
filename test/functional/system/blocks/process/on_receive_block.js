@@ -119,7 +119,7 @@ describe('onReceiveBlock()', () => {
 						Last block ID: ${last_block.id}
 						Last block timestamp: ${last_block.timestamp}
 						Next slot: ${slot}
-						Next delegate PK: ${delegatePublicKey}
+						Next delegate public key: ${delegatePublicKey}
 						Next block timestamp: ${slots.getSlotTime(slot)}`
 					);
 

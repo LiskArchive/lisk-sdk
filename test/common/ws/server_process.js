@@ -109,7 +109,7 @@ WSServer.prototype.start = function() {
 			self.stop();
 		});
 	}).catch(err => {
-		console.error(`server process error: ${err}`);
+		console.error(`Server process error: ${err}`);
 	});
 };
 
