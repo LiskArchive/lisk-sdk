@@ -612,9 +612,7 @@ describe('multisignature', () => {
 		});
 	});
 
-	// The below skipped test should be fixed as part of this issue: https://github.com/LiskHQ/lisk/issues/1527
-	// eslint-disable-next-line mocha/no-skipped-tests
-	it.skip('undo', () => {
+	describe('undo', () => {
 		/* eslint-disable mocha/no-sibling-hooks */
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
@@ -646,8 +644,8 @@ describe('multisignature', () => {
 				multisignatures: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
 				),
-				multimin: transaction.asset.multisignature.min,
-				multilifetime: transaction.asset.multisignature.lifetime,
+				multimin: -transaction.asset.multisignature.min,
+				multilifetime: -transaction.asset.multisignature.lifetime,
 				blockId: dummyBlock.id,
 				round: slots.calcRound(dummyBlock.height),
 			};
