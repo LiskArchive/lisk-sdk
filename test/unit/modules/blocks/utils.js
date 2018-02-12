@@ -295,7 +295,9 @@ describe('blocks/utils', () => {
 
 			blocksUtilsModule.loadBlocksPart({}, () => {
 				expect(blocksUtilsModule.readDbRows).to.have.been.calledOnce;
-				expect(blocksUtilsModule.readDbRows).to.have.been.calledWith(fullBlocksListRows);
+				expect(blocksUtilsModule.readDbRows).to.have.been.calledWith(
+					fullBlocksListRows
+				);
 				done();
 			});
 		});
@@ -493,9 +495,7 @@ describe('blocks/utils', () => {
 				expect(err).to.be.null;
 				expect(sequence).to.be.an('object');
 				expect(sequence.firstHeight).to.equal(1);
-				expect(sequence.ids).to.equal(
-					'9314232245035524467,1'
-				);
+				expect(sequence.ids).to.equal('9314232245035524467,1');
 				library.genesisblock = genesisblock;
 				done();
 			});
@@ -513,9 +513,7 @@ describe('blocks/utils', () => {
 				expect(err).to.be.null;
 				expect(sequence).to.be.an('object');
 				expect(sequence.firstHeight).to.equal(1);
-				expect(sequence.ids).to.equal(
-					'9314232245035524467,1'
-				);
+				expect(sequence.ids).to.equal('9314232245035524467,1');
 				library.genesisblock.block = block;
 				done();
 			});
@@ -548,9 +546,7 @@ describe('blocks/utils', () => {
 				expect(err).to.be.null;
 				expect(sequence).to.be.an('object');
 				expect(sequence.firstHeight).to.equal(1);
-				expect(sequence.ids).to.equal(
-					'6524861224470851795'
-				);
+				expect(sequence.ids).to.equal('6524861224470851795');
 				done();
 			});
 		});
@@ -624,15 +620,15 @@ describe('blocks/utils', () => {
 		});
 
 		it('should return one row when called with valid id', done => {
-			blocksUtilsModule.loadBlocksData({ id: '13068833527549895884' }, (
-				err,
-				blocks
-			) => {
-				expect(err).to.be.null;
-				expect(blocks).to.be.an('array');
-				expect(blocks[0].b_id).to.eql('13068833527549895884');
-				done();
-			});
+			blocksUtilsModule.loadBlocksData(
+				{ id: '13068833527549895884' },
+				(err, blocks) => {
+					expect(err).to.be.null;
+					expect(blocks).to.be.an('array');
+					expect(blocks[0].b_id).to.eql('13068833527549895884');
+					done();
+				}
+			);
 		});
 	});
 
