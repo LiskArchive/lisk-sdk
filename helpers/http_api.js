@@ -144,7 +144,7 @@ var middleware = {
 	 * @param {function} next
 	 */
 	applyAPIAccessRules(config, req, res, next) {
-		if (req.url.match(/^\/peer[*]?.*/)) {
+		if (req.url.match(/^\/peer[/]?.*/)) {
 			var internalApiAllowed =
 				config.peers.enabled &&
 				!checkIpInList(config.peers.access.blackList, req.ip, false);

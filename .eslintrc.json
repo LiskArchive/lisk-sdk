@@ -57,8 +57,6 @@
 		"vars-on-top": "off",
 		"wrap-iife": "off",
 		// To keep
-		"no-restricted-properties": "off",
-		"no-console": ["error", { "allow": ["trace", "error", "info", "warn"] }],
 		"import/no-extraneous-dependencies": [
 			"error",
 			{
@@ -70,6 +68,8 @@
 					"Gruntfile.js"
 				]
 			}
-		]
+		],
+		"no-console": ["error", { "allow": ["trace", "error", "info", "warn"] }],
+		"no-restricted-properties": "off"
 	}
 }

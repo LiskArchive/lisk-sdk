@@ -77,7 +77,7 @@ application.init(
  */
 process.on('uncaughtException', err => {
 	// Handle error safely
-	console.warn('System error', { message: err.message, stack: err.stack });
+	console.error('System error', { message: err.message, stack: err.stack });
 	/**
 	 * emits cleanup once 'uncaughtException'.
 	 * @emits cleanup
@@ -94,5 +94,5 @@ process.on('uncaughtException', err => {
  * @listens unhandledRejection
  */
 process.on('unhandledRejection', (reason, p) => {
-	console.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
+	console.warn('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });
