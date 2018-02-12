@@ -161,16 +161,18 @@ describe('convert', () => {
 	describe('#convertPublicKeyEd2Curve', () => {
 		it('should convert publicKey ED25519 to Curve25519 key', () => {
 			const curveRepresentation = convertPublicKeyEd2Curve(defaultPublicKey);
-			return defaultPublicKeyCurve.equals(Buffer.from(curveRepresentation))
-				.should.be.true;
+			return defaultPublicKeyCurve
+				.equals(Buffer.from(curveRepresentation))
+				.should.be.true();
 		});
 	});
 
 	describe('#convertPrivateKeyEd2Curve', () => {
 		it('should convert privateKey ED25519 to Curve25519 key', () => {
 			const curveRepresentation = convertPrivateKeyEd2Curve(defaultPrivateKey);
-			return defaultPrivateKeyCurve.equals(Buffer.from(curveRepresentation))
-				.should.be.true;
+			return defaultPrivateKeyCurve
+				.equals(Buffer.from(curveRepresentation))
+				.should.be.true();
 		});
 	});
 

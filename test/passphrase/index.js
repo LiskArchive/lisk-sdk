@@ -16,18 +16,18 @@ import passphrase from 'passphrase';
 
 describe('passphrase index.js', () => {
 	it('should export an object', () => {
-		return passphrase.should.be.an('object');
+		return passphrase.should.be.type('object');
 	});
 
 	describe('menmonic module', () => {
 		it('should have the BIP39 Mnemonic module', () => {
-			return passphrase.Mnemonic.should.be.ok;
+			return passphrase.Mnemonic.should.be.ok();
 		});
 	});
 
 	describe('validation module', () => {
 		it('should have the validation module', () => {
-			return passphrase.validation.should.be.ok;
+			return passphrase.validation.should.be.ok();
 		});
 	});
 });
