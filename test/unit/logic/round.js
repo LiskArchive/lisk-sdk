@@ -597,7 +597,7 @@ describe('rounds', () => {
 
 		before(() => {
 			stub = sinonSandbox.stub(db.rounds, 'deleteRoundRewards');
-			stub.withArgs().resolves('success');
+			stub.withArgs(validScope.round).resolves('success');
 			res = round.deleteRoundRewards();
 		});
 
@@ -608,7 +608,7 @@ describe('rounds', () => {
 		it('query should be called with no args', () => {
 			return res.then(res => {
 				expect(res).to.equal('success');
-				expect(stub.calledWith()).to.be.true;
+				expect(stub).to.have.been.calledWith(validScope.round);
 			});
 		});
 	});
