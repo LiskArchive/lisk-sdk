@@ -14,7 +14,7 @@
 
 
 /*
-  DESCRIPTION: Drop existing rounds_fees table with correcponding triggers and functions.
+  DESCRIPTION: Drop existing rounds_fees table with corresponding triggers and functions.
                Create and populate rounds_rewards table.
 
   PARAMETERS: None

@@ -238,7 +238,7 @@ class RoundsRepository {
 	 * @param {String} fees - Fees amount for particular block
 	 * @param {String} reward - Rewards amount for particular block
 	 * @param {Number} round - Round number
-	 * @param {Buffer} pk - Public key of a delegate that forged a block
+	 * @param {Buffer} publicKey - Public key of a delegate that forged a block
 	 * @return {Promise}
 	 */
 	insertRoundRewards(timestamp, fees, reward, round, publicKey) {
