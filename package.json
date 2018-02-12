@@ -34,7 +34,7 @@
 		"mocha": "./node_modules/.bin/mocha",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
 		"docs:serve": "./node_modules/.bin/http-server docs/jsdoc/",
-    "precommit": "lint-staged",
+		"precommit": "lint-staged",
 		"prepush": "npm run lint",
 		"snyk-protect": "snyk protect",
 		"prepublish": "npm run snyk-protect"
