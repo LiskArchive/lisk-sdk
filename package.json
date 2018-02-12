@@ -85,6 +85,8 @@
 		"coveralls": "=3.0.0",
 		"cypress": "=2.0.2",
 		"eslint": "=4.16.0",
+		"chai": "=4.1.2",
+		"chai-as-promised": "=7.1.1",
 		"eslint-config-airbnb-base": "=11.3.1",
 		"eslint-config-lisk-base": "=0.1.0",
 		"eslint-plugin-import": "=2.7.0",
@@ -96,9 +98,9 @@
 		"nyc": "=11.3.0",
 		"prettier": "=1.8.2",
 		"rewireify": "=0.2.5",
-		"should": "=11.2.1",
-		"should-sinon": "=0.0.6",
 		"sinon": "=4.1.2",
 		"uglify-js": "=3.3.10"
+		"sinon-chai": "=2.14.0",
+		"sinon": "=2.2.0"
 	}
 }

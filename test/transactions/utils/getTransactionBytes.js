@@ -388,10 +388,7 @@ describe('getTransactionBytes functions', () => {
 				1: 10,
 			};
 
-			return checkRequiredFields(
-				arrayToCheck,
-				objectParameter,
-			).should.be.true();
+			return checkRequiredFields(arrayToCheck, objectParameter).should.be.true;
 		});
 
 		it('should throw on missing value', () => {
@@ -696,7 +693,7 @@ describe('getTransactionBytes functions', () => {
 			defaultTransaction.asset.data = new Array(maxDataLength)
 				.fill('1')
 				.join('');
-			return checkTransaction(defaultTransaction).should.be.true();
+			return checkTransaction(defaultTransaction).should.be.true;
 		});
 	});
 
@@ -705,14 +702,14 @@ describe('getTransactionBytes functions', () => {
 			const allInvalidValues = [NaN, false, undefined];
 			return allInvalidValues.forEach(value => {
 				const invalid = isValidValue(value);
-				invalid.should.be.false();
+				invalid.should.be.false;
 			});
 		});
 		it('should return true on valid values', () => {
 			const exampleValidValues = ['123', 123, { 1: 2, 3: 4 }, [1, 2, 3]];
 			return exampleValidValues.forEach(value => {
 				const valid = isValidValue(value);
-				valid.should.be.true();
+				valid.should.be.true;
 			});
 		});
 	});

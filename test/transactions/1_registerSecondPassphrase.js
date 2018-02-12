@@ -46,7 +46,7 @@ describe('#registerSecondPassphrase transaction', () => {
 	});
 
 	it('should create a register second passphrase transaction', () => {
-		return registerSecondPassphraseTransaction.should.be.ok();
+		return registerSecondPassphraseTransaction.should.be.ok;
 	});
 
 	it('should use time.getTimeWithOffset to calculate the timestamp', () => {
@@ -66,40 +66,40 @@ describe('#registerSecondPassphrase transaction', () => {
 
 	describe('returned register second passphrase transaction', () => {
 		it('should be an object', () => {
-			return registerSecondPassphraseTransaction.should.be.type('object');
+			return registerSecondPassphraseTransaction.should.be.a('object');
 		});
 
 		it('should have an id string', () => {
 			return registerSecondPassphraseTransaction.should.have
 				.property('id')
-				.and.be.type('string');
+				.and.be.a('string');
 		});
 
 		it('should have type number equal to 1', () => {
 			return registerSecondPassphraseTransaction.should.have
 				.property('type')
-				.and.be.type('number')
+				.and.be.a('number')
 				.and.equal(transactionType);
 		});
 
 		it('should have amount string equal to 0', () => {
 			return registerSecondPassphraseTransaction.should.have
 				.property('amount')
-				.and.be.type('string')
+				.and.be.a('string')
 				.and.equal(amount);
 		});
 
 		it('should have fee string equal to second passphrase fee', () => {
 			return registerSecondPassphraseTransaction.should.have
 				.property('fee')
-				.and.be.type('string')
+				.and.be.a('string')
 				.and.equal(secondPassphraseFee);
 		});
 
 		it('should have recipientId equal to null', () => {
-			return registerSecondPassphraseTransaction.should.have
-				.property('recipientId')
-				.and.be.null();
+			return registerSecondPassphraseTransaction.should.have.property(
+				'recipientId',
+			).and.be.null;
 		});
 
 		it('should have senderPublicKey hex string equal to sender public key', () => {
@@ -112,7 +112,7 @@ describe('#registerSecondPassphrase transaction', () => {
 		it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 			return registerSecondPassphraseTransaction.should.have
 				.property('timestamp')
-				.and.be.type('number')
+				.and.be.a('number')
 				.and.equal(timeWithOffset);
 		});
 
@@ -123,9 +123,8 @@ describe('#registerSecondPassphrase transaction', () => {
 		});
 
 		it('should have asset object', () => {
-			return registerSecondPassphraseTransaction.should.have
-				.property('asset')
-				.and.not.be.empty();
+			return registerSecondPassphraseTransaction.should.have.property('asset')
+				.and.not.be.empty;
 		});
 
 		it('should not have a signSignature property', () => {
@@ -138,8 +137,7 @@ describe('#registerSecondPassphrase transaction', () => {
 			it('should be an object', () => {
 				return registerSecondPassphraseTransaction.asset.should.have
 					.property('signature')
-					.and.be.type('object')
-					.and.not.be.empty();
+					.and.be.a('object').and.not.be.empty;
 			});
 
 			it('should have a 32-byte publicKey hex string', () => {
@@ -221,7 +219,7 @@ describe('#registerSecondPassphrase transaction', () => {
 					.property('asset')
 					.with.property('signature')
 					.with.property('publicKey')
-					.of.type('string');
+					.of.a('string');
 			});
 
 			it('should not have the signature', () => {

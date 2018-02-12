@@ -107,12 +107,12 @@ describe('privateApi module', () => {
 		const { isBanned } = privateApi;
 		it('should return true when provided node is banned', () => {
 			LSK.bannedNodes = [].concat(defaultNodes);
-			return isBanned.call(LSK, localNode).should.be.true();
+			return isBanned.call(LSK, localNode).should.be.true;
 		});
 
 		it('should return false when provided node is not banned', () => {
 			LSK.bannedNodes = [];
-			return isBanned.call(LSK, localNode).should.be.false();
+			return isBanned.call(LSK, localNode).should.be.false;
 		});
 	});
 
@@ -147,7 +147,7 @@ describe('privateApi module', () => {
 
 		it('should return a node', () => {
 			const result = getRandomNode.call(LSK);
-			return LSK.defaultNodes.should.containEql(result);
+			return LSK.defaultNodes.should.include(result);
 		});
 
 		it('should randomly select the node', () => {
@@ -270,7 +270,7 @@ describe('privateApi module', () => {
 		it('should add current node to banned nodes', () => {
 			banActiveNode.call(LSK);
 
-			return LSK.bannedNodes.should.containEql(node);
+			return LSK.bannedNodes.should.include(node);
 		});
 
 		it('should not duplicate a banned node', () => {
@@ -311,7 +311,7 @@ describe('privateApi module', () => {
 				LSK.defaultNodes = [];
 				restoreGetNodesStub();
 				const result = hasAvailableNodes.call(LSK);
-				return result.should.be.false();
+				return result.should.be.false;
 			});
 		});
 
@@ -322,7 +322,7 @@ describe('privateApi module', () => {
 
 			it('should return false', () => {
 				const result = hasAvailableNodes.call(LSK);
-				return result.should.be.false();
+				return result.should.be.false;
 			});
 		});
 	});
@@ -346,7 +346,9 @@ describe('privateApi module', () => {
 		});
 
 		it('should create a valid request object for GET request', () => {
-			expectedObject.url += `?limit=${options.limit}&offset=${options.offset}&details=${options.details}`;
+			expectedObject.url += `?limit=${options.limit}&offset=${
+				options.offset
+			}&details=${options.details}`;
 
 			const requestObject = privateApi.createRequestObject.call(
 				LSK,
@@ -435,7 +437,7 @@ describe('privateApi module', () => {
 		});
 
 		it('should create a request object', () => {
-			createRequestObjectStub.calledOn(LSK).should.be.true();
+			createRequestObjectStub.calledOn(LSK).should.be.true;
 			return createRequestObjectStub.should.be.calledWithExactly(
 				defaultMethod,
 				defaultEndpoint,
@@ -619,7 +621,7 @@ describe('privateApi module', () => {
 					error,
 				);
 				clock.tick(1000);
-				return request.then(() => setNodeSpy.should.be.calledOnce());
+				return request.then(() => setNodeSpy.should.be.calledOnce);
 			});
 
 			it('should send the request again with the same arguments', () => {

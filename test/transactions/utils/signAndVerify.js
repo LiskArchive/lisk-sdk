@@ -169,12 +169,12 @@ describe('signAndVerify transaction utils', () => {
 			it('should return false for an invalid signature', () => {
 				cryptoVerifyDataStub.returns(false);
 				const verification = verifyTransaction(transaction);
-				return verification.should.be.false();
+				return verification.should.be.false;
 			});
 
 			it('should return true for a valid signature', () => {
 				const verification = verifyTransaction(transaction);
-				return verification.should.be.true();
+				return verification.should.be.true;
 			});
 		});
 
@@ -220,7 +220,7 @@ describe('signAndVerify transaction utils', () => {
 					transaction,
 					defaultSecondPublicKey,
 				);
-				return verification.should.be.false();
+				return verification.should.be.false;
 			});
 
 			it('should return false for an invalid first signature', () => {
@@ -237,7 +237,7 @@ describe('signAndVerify transaction utils', () => {
 					transaction,
 					defaultSecondPublicKey,
 				);
-				return verification.should.be.false();
+				return verification.should.be.false;
 			});
 
 			it('should return true for a valid signature', () => {
@@ -245,7 +245,7 @@ describe('signAndVerify transaction utils', () => {
 					transaction,
 					defaultSecondPublicKey,
 				);
-				return verification.should.be.true();
+				return verification.should.be.true;
 			});
 		});
 	});

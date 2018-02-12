@@ -58,7 +58,7 @@ describe('#castVotes transaction', () => {
 		});
 
 		it('should create a cast votes transaction', () => {
-			return castVotesTransaction.should.be.ok();
+			return castVotesTransaction.should.be.ok;
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
@@ -74,40 +74,40 @@ describe('#castVotes transaction', () => {
 
 		describe('the returned cast votes transaction', () => {
 			it('should be an object', () => {
-				return castVotesTransaction.should.be.type('object');
+				return castVotesTransaction.should.be.a('object');
 			});
 
 			it('should have id string', () => {
 				return castVotesTransaction.should.have
 					.property('id')
-					.and.be.type('string');
+					.and.be.a('string');
 			});
 
 			it('should have type number equal to 3', () => {
 				return castVotesTransaction.should.have
 					.property('type')
-					.and.be.type('number')
+					.and.be.a('number')
 					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 0', () => {
 				return castVotesTransaction.should.have
 					.property('amount')
-					.and.be.type('string')
+					.and.be.a('string')
 					.and.equal(amount);
 			});
 
 			it('should have fee string equal to 100000000', () => {
 				return castVotesTransaction.should.have
 					.property('fee')
-					.and.be.type('string')
+					.and.be.a('string')
 					.and.equal(fee);
 			});
 
 			it('should have recipientId string equal to address', () => {
 				return castVotesTransaction.should.have
 					.property('recipientId')
-					.and.be.type('string')
+					.and.be.a('string')
 					.and.equal(address);
 			});
 
@@ -121,7 +121,7 @@ describe('#castVotes transaction', () => {
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 				return castVotesTransaction.should.have
 					.property('timestamp')
-					.and.be.type('number')
+					.and.be.a('number')
 					.and.equal(timeWithOffset);
 			});
 
@@ -136,16 +136,15 @@ describe('#castVotes transaction', () => {
 			});
 
 			it('should have asset', () => {
-				return castVotesTransaction.should.have
-					.property('asset')
-					.and.not.be.empty();
+				return castVotesTransaction.should.have.property('asset').and.not.be
+					.empty;
 			});
 
 			describe('votes asset', () => {
 				it('should be array', () => {
 					return castVotesTransaction.asset.should.have
 						.property('votes')
-						.and.be.Array();
+						.and.be.an('array');
 				});
 
 				it('should contain two elements', () => {
@@ -188,7 +187,7 @@ describe('#castVotes transaction', () => {
 		it('the transaction should have the votes as an array', () => {
 			return castVotesTransaction.asset.should.have
 				.property('votes')
-				.and.be.Array();
+				.and.be.an('array');
 		});
 
 		it('the transaction should have the votes and the unvotes', () => {
@@ -213,7 +212,7 @@ describe('#castVotes transaction', () => {
 		it('the transaction should have the votes array', () => {
 			return castVotesTransaction.asset.should.have
 				.property('votes')
-				.and.be.Array();
+				.and.be.an('array');
 		});
 
 		it('the transaction asset should have the unvotes', () => {

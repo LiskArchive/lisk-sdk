@@ -151,12 +151,12 @@ ${defaultSecondSignature}
 				signature: makeInvalid(defaultSignature),
 				publicKey: defaultPublicKey,
 			});
-			return verification.should.be.false();
+			return verification.should.be.false;
 		});
 
 		it('should return true if the signature is valid', () => {
 			const verification = verifyMessageWithPublicKey(defaultSignedMessage);
-			return verification.should.be.true();
+			return verification.should.be.true;
 		});
 	});
 
@@ -227,7 +227,7 @@ ${defaultSecondSignature}
 					signature: makeInvalid(defaultSignature),
 				}),
 			);
-			return verified.should.be.false();
+			return verified.should.be.false;
 		});
 
 		it('should return false for incorrect second signature', () => {
@@ -236,14 +236,14 @@ ${defaultSecondSignature}
 					secondSignature: makeInvalid(defaultSecondSignature),
 				}),
 			);
-			return verified.should.be.false();
+			return verified.should.be.false;
 		});
 
 		it('should return true for two valid signatures', () => {
 			const verified = verifyMessageWithTwoPublicKeys(
 				defaultDoubleSignedMessage,
 			);
-			return verified.should.be.true();
+			return verified.should.be.true;
 		});
 	});
 
@@ -309,7 +309,7 @@ ${defaultSecondSignature}
 				makeInvalid(defaultDataSignature),
 				defaultPublicKey,
 			);
-			return verification.should.be.false();
+			return verification.should.be.false;
 		});
 
 		it('should return true for a valid signature', () => {
@@ -318,7 +318,7 @@ ${defaultSecondSignature}
 				defaultDataSignature,
 				defaultPublicKey,
 			);
-			return verification.should.be.true();
+			return verification.should.be.true;
 		});
 	});
 });
