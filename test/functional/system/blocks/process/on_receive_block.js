@@ -56,6 +56,10 @@ describe('onReceiveBlock()', () => {
 			.then(() => {
 				library.modules.blocks.lastBlock.set(genesisBlock);
 				done();
+			})
+			.catch(err => {
+				__testContext.debug(err.stack);
+				done();
 			});
 	});
 
@@ -77,7 +81,7 @@ describe('onReceiveBlock()', () => {
 		var slot = forgingSlot || slots.getSlotNumber(last_block.timestamp) + 1;
 		var delegate;
 
-		function getNextForger(offset, cb) {
+		function getNextForger(offset, seriesCb) {
 			offset = !offset ? 0 : offset;
 			var keys = library.rewiredModules.delegates.__get__(
 				'__private.getKeysSortByVote'
@@ -87,7 +91,7 @@ describe('onReceiveBlock()', () => {
 				keys,
 				(err, delegateList) => {
 					var nextForger = delegateList[(slot + offset) % slots.delegates];
-					return cb(nextForger);
+					return seriesCb(nextForger);
 				}
 			);
 		}
@@ -99,40 +103,40 @@ describe('onReceiveBlock()', () => {
 		async.waterfall(
 			[
 				transactionPool.fillPool,
-				function(cb) {
+				function(waterFallCb) {
 					getNextForger(null, delegatePublicKey => {
-						cb(null, delegatePublicKey);
+						waterFallCb(null, delegatePublicKey);
 					});
 				},
-				function(delegatePublicKey, seriesCb) {
+				function(delegatePublicKey, waterFallCb) {
 					delegate = _.find(genesisDelegates, delegate => {
 						return delegate.publicKey === delegatePublicKey;
 					});
 					var keypair = getKeypair(delegate.secret);
 
 					__testContext.debug(
-						`		Last block height: ${last_block.height} Last block ID: ${
-							last_block.id
-						} Last block timestamp: ${
-							last_block.timestamp
-						} Next slot: ${slot} Next delegate PK: ${delegatePublicKey} Next block timestamp: ${slots.getSlotTime(
-							slot
-						)}`
+						`Last block height: ${last_block.height}
+						Last block ID: ${last_block.id}
+						Last block timestamp: ${last_block.timestamp}
+						Next slot: ${slot}
+						Next delegate PK: ${delegatePublicKey}
+						Next block timestamp: ${slots.getSlotTime(slot)}`
 					);
+
 					library.modules.blocks.process.generateBlock(
 						keypair,
 						slots.getSlotTime(slot) + 5,
 						err => {
 							if (err) {
-								return seriesCb(err);
+								return waterFallCb(err);
 							}
 							last_block = library.modules.blocks.lastBlock.get();
 							__testContext.debug(
-								`		New last block height: ${
+								`New last block height: ${
 									last_block.height
 								} New last block ID: ${last_block.id}`
 							);
-							return seriesCb(err);
+							return waterFallCb(err);
 						}
 					);
 				},
@@ -195,21 +199,22 @@ describe('onReceiveBlock()', () => {
 	}
 
 	function getBlocks(cb) {
-		library.sequence.add(sequenceCb => {
-			db
-				.query(
-					new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
-				)
-				.then(rows => {
-					sequenceCb();
-					cb(null, _.map(rows, 'id'));
-				})
-				.catch(err => {
-					sequenceCb();
+		library.sequence.add(
+			sequenceCb => {
+				db
+					.query(
+						new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
+					)
+					.then(rows => sequenceCb(null, rows))
+					.catch(err => sequenceCb(err, []));
+			},
+			(err, rows) => {
+				if (err) {
 					__testContext.debug(err.stack);
-					cb(err);
-				});
-		});
+				}
+				cb(err, _.map(rows, 'id'));
+			}
+		);
 	}
 
 	function verifyForkStat(blockId, cause) {
@@ -220,6 +225,9 @@ describe('onReceiveBlock()', () => {
 			)
 			.then(res => {
 				expect(res.blockId).to.equal(blockId);
+			})
+			.catch(err => {
+				__testContext.debug(err.stack);
 			});
 	}
 
