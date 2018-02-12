@@ -479,7 +479,16 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 						library.bus.message('newBlock', block);
 
 						// DATABASE write. Update delegates accounts
-						modules.rounds.tick(block, resolve);
+						modules.rounds.tick(
+							block,
+							err => {
+								if (err) {
+									return reject(err);
+								}
+								return resolve();
+							},
+							tx
+						);
 					},
 					tx
 				);
@@ -487,7 +496,16 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 				library.bus.message('newBlock', block);
 
 				// DATABASE write. Update delegates accounts
-				modules.rounds.tick(block, resolve);
+				modules.rounds.tick(
+					block,
+					err => {
+						if (err) {
+							return reject(err);
+						}
+						return resolve();
+					},
+					tx
+				);
 			}
 		});
 	};
