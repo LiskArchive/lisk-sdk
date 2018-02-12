@@ -26,9 +26,16 @@ describe('GET /peers', () => {
 	var validHeaders = wsServer1.headers;
 
 	before(() => {
-		return wsServer1.start().then(() => {
-			return wsServer2.start();
-		});
+		return wsServer1
+			.start()
+			.then(() => {
+				return wsServer2.start().catch(() => {
+					wsServer2.stop();
+				});
+			})
+			.catch(() => {
+				wsServer1.stop();
+			});
 	});
 
 	after(() => {

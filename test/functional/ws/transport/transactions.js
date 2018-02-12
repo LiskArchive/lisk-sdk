@@ -22,7 +22,7 @@ var randomUtil = require('../../../common/utils/random');
 var normalizeTransactionObject = require('../../../common/helpers/api')
 	.normalizeTransactionObject;
 
-function postTransaction(transaction, done) {
+function postTransaction(transaction, callback) {
 	transaction = normalizeTransactionObject(transaction);
 
 	ws.call(
@@ -30,7 +30,7 @@ function postTransaction(transaction, done) {
 		{
 			transactions: [transaction],
 		},
-		done,
+		callback,
 		true
 	);
 }
@@ -54,6 +54,7 @@ describe('Posting transaction (type 0)', () => {
 			);
 
 			postTransaction(transaction, (err, res) => {
+				expect(err).to.be.null;
 				expect(res).to.have.property('success').to.be.not.ok;
 				expect(res)
 					.to.have.property('message')
@@ -67,6 +68,7 @@ describe('Posting transaction (type 0)', () => {
 
 		it('when sender has funds should be ok', done => {
 			postTransaction(transaction, (err, res) => {
+				expect(err).to.be.null;
 				expect(res).to.have.property('success').to.be.ok;
 				expect(res)
 					.to.have.property('transactionId')

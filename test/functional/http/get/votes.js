@@ -414,6 +414,9 @@ describe('GET /api/votes', () => {
 							nonVoterDelegate.publicKey,
 						]);
 						done();
+					})
+					.catch(err => {
+						done(err);
 					});
 			});
 		});
