@@ -24,7 +24,7 @@ describe('#wrapTransactionCreator', () => {
 	});
 
 	it('should return a function', () => {
-		return wrappedTransactionCreator.should.have.type('function');
+		return wrappedTransactionCreator.should.have.a('function');
 	});
 
 	describe('when a transaction is created with no passphrase', () => {
@@ -37,19 +37,19 @@ describe('#wrapTransactionCreator', () => {
 		});
 
 		it('should set a default recipientId of null', () => {
-			return result.should.have.property('recipientId').be.null();
+			return result.should.have.property('recipientId').be.null;
 		});
 
 		it('should set a default senderPublicKey of null', () => {
-			return result.should.have.property('senderPublicKey').be.null();
+			return result.should.have.property('senderPublicKey').be.null;
 		});
 
 		it('should set a timestamp', () => {
-			return result.should.have.property('timestamp').have.type('number');
+			return result.should.have.property('timestamp').have.a('number');
 		});
 
 		it('should not prepare the transaction', () => {
-			return prepareTransactionStub.should.not.have.been.called();
+			return prepareTransactionStub.should.not.have.been.called;
 		});
 	});
 
@@ -87,7 +87,7 @@ describe('#wrapTransactionCreator', () => {
 		});
 
 		it('should set a default recipientId of null', () => {
-			return result.should.have.property('recipientId').be.null();
+			return result.should.have.property('recipientId').be.null;
 		});
 
 		it('should set a default senderPublicKey using the passphrase', () => {
@@ -97,7 +97,7 @@ describe('#wrapTransactionCreator', () => {
 		});
 
 		it('should set a timestamp', () => {
-			return result.should.have.property('timestamp').have.type('number');
+			return result.should.have.property('timestamp').have.a('number');
 		});
 
 		it('should prepare the transaction with the passphrase', () => {
@@ -118,7 +118,7 @@ describe('#wrapTransactionCreator', () => {
 		});
 
 		it('should set a default recipientId of null', () => {
-			return result.should.have.property('recipientId').be.null();
+			return result.should.have.property('recipientId').be.null;
 		});
 
 		it('should set a default senderPublicKey using the passphrase', () => {
@@ -128,7 +128,7 @@ describe('#wrapTransactionCreator', () => {
 		});
 
 		it('should set a timestamp', () => {
-			return result.should.have.property('timestamp').have.type('number');
+			return result.should.have.property('timestamp').have.a('number');
 		});
 
 		it('should prepare the transaction with the passphrase and the second passphrase', () => {
