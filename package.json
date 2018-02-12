@@ -1,6 +1,6 @@
 {
   "name": "lisk",
-  "version": "0.9.12g",
+  "version": "0.9.12h",
   "private": true,
   "engines": {
     "node": "=6.12.3",
