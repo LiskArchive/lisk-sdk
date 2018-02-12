@@ -25,10 +25,10 @@ function JsonSchema(options) {
 }
 
 utils.inherits(JsonSchema, Validator);
-
-JsonSchema.prototype.Field = JsonSchema.Field = Field;
-
-JsonSchema.prototype.rules = JsonSchema.rules = {};
+JsonSchema.Field = Field;
+JsonSchema.prototype.Field = Field;
+JsonSchema.rules = {};
+JsonSchema.prototype.rules = {};
 
 JsonSchema.addRule = Validator.addRule;
 JsonSchema.fieldProperty = Validator.fieldProperty;

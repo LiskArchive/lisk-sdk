@@ -583,6 +583,7 @@ class Account {
 							// TODO: Need to look at usage of object based diff param
 						}
 						break;
+					// no default
 				}
 			});
 

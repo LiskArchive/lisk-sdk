@@ -248,6 +248,7 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 				accountCopy.secondPassword
 			);
 			break;
+		// no default
 	}
 
 	cb(transaction);

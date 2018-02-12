@@ -141,7 +141,7 @@ var modulesLoader = new function() {
 				new Logic(scope.logger, cb);
 				break;
 			default:
-				console.log('no Logic case initLogic');
+				console.info('no Logic case initLogic');
 		}
 	};
 

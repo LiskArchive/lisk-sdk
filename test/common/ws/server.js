@@ -44,7 +44,7 @@ var wsServer = {
 
 	// Invoked by each worker
 	run(worker) {
-		console.log('run invoked');
+		console.info('wsServer: run invoked');
 		var scServer = worker.scServer;
 		this.rpcServer = new WAMPServer();
 		this.rpcServer.registerRPCEndpoints(this.necessaryRPCEndpoints);

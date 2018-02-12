@@ -3,7 +3,6 @@
 	"plugins": ["mocha"],
 	"rules": {
 		"array-callback-return": "off",
-		"block-scoped-var": "off",
 		"camelcase": "off",
 		"comma-dangle": [
 			"error",
@@ -16,7 +15,6 @@
 			}
 		],
 		"consistent-return": "off",
-		"default-case": "off",
 		"eqeqeq": "off",
 		"func-names": "off",
 		"global-require": "off",
@@ -25,16 +23,12 @@
 		"max-len": "off",
 		"new-cap": "off",
 		"no-bitwise": "off",
-		"no-console": "off",
-		"no-loop-func": "off",
-		"no-multi-assign": "off",
 		"no-nested-ternary": "off",
 		"no-new": "off",
 		"no-param-reassign": "off",
 		"no-plusplus": "off",
 		"no-prototype-builtins": "off",
 		"no-restricted-globals": "off",
-		"no-restricted-properties": "off",
 		"no-restricted-syntax": "off",
 		"no-shadow": "off",
 		"no-template-curly-in-string": "off",
@@ -42,7 +36,6 @@
 		"no-underscore-dangle": "off",
 		"no-unused-expressions": "off",
 		"no-use-before-define": "off",
-		"no-useless-escape": "off",
 		"no-var": "off",
 		"prefer-destructuring": "off",
 		"prefer-rest-params": "off",
@@ -75,6 +68,8 @@
 					"Gruntfile.js"
 				]
 			}
-		]
+		],
+		"no-console": ["error", { "allow": ["trace", "error", "info", "warn"] }],
+		"no-restricted-properties": "off"
 	}
 }

@@ -48,14 +48,14 @@ function Config(packageJson) {
 	);
 
 	if (!appConfig.length) {
-		console.log('Failed to read config file');
+		console.error('Failed to read config file');
 		process.exit(1);
 	} else {
 		try {
 			appConfig = JSON.parse(appConfig);
 		} catch (err) {
-			console.log('Failed to parse config file');
-			console.log(err.message);
+			console.error('Failed to parse config file');
+			console.error(err.message);
 			process.exit(1);
 		}
 	}
@@ -106,7 +106,7 @@ function Config(packageJson) {
 	var valid = validator.validate(appConfig, configSchema.config);
 
 	if (!valid) {
-		console.log('Failed to validate config data', validator.getLastErrors());
+		console.error('Failed to validate config data', validator.getLastErrors());
 		process.exit(1);
 	} else {
 		validateForce(appConfig);
@@ -124,7 +124,7 @@ function validateForce(configData) {
 		var index = constants.nethashes.indexOf(configData.nethash);
 
 		if (index !== -1) {
-			console.log('Forced forging disabled for nethash', configData.nethash);
+			console.info('Forced forging disabled for nethash', configData.nethash);
 			configData.forging.force = false;
 		}
 	}

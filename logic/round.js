@@ -245,17 +245,19 @@ Round.prototype.applyRound = function() {
 			changes,
 		});
 
+		const accountData = {
+			publicKey: delegate,
+			balance: self.scope.backwards ? -changes.balance : changes.balance,
+			u_balance: self.scope.backwards ? -changes.balance : changes.balance,
+			blockId: self.scope.block.id,
+			round: self.scope.round,
+			fees: self.scope.backwards ? -changes.fees : changes.fees,
+			rewards: self.scope.backwards ? -changes.rewards : changes.rewards,
+		};
+
 		p = new Promise((resolve, reject) => {
 			self.scope.modules.accounts.mergeAccountAndGet(
-				{
-					publicKey: delegate,
-					balance: self.scope.backwards ? -changes.balance : changes.balance,
-					u_balance: self.scope.backwards ? -changes.balance : changes.balance,
-					blockId: self.scope.block.id,
-					round: self.scope.round,
-					fees: self.scope.backwards ? -changes.fees : changes.fees,
-					rewards: self.scope.backwards ? -changes.rewards : changes.rewards,
-				},
+				accountData,
 				(err, account) => {
 					if (err) {
 						return reject(err);

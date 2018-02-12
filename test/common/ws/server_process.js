@@ -126,7 +126,7 @@ server
 		}
 	})
 	.catch(err => {
-		console.log('Error starting WS server', err);
+		console.error('Error starting WS server', err);
 		server.stop();
 	});
 
