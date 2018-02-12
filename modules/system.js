@@ -220,8 +220,7 @@ System.prototype.versionCompatible = function(version) {
 	}
 
 	// if no range specifier is used for minVersion, check the complete version string (inclusive versionChar)
-	// eslint-disable-next-line no-useless-escape
-	var rangeRegExp = /[\^~\*]/;
+	var rangeRegExp = /[\^~*]/;
 	if (
 		this.minVersionChar &&
 		versionChar &&
