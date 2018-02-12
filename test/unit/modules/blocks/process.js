@@ -44,6 +44,9 @@ describe('blocks/process', () => {
 
 		blockStub = {
 			objectNormalize: sinonSandbox.stub(),
+			create: function(input) {
+				return input;
+			},
 		};
 
 		var peerStub = {
@@ -126,7 +129,9 @@ describe('blocks/process', () => {
 			reward: 100,
 		};
 
-		var modulesAccountsStub = sinonSandbox.stub();
+		var modulesAccountsStub = {
+			getAccount: sinonSandbox.stub(),
+		};
 		var modulesBlocksStub = {
 			lastReceipt: {
 				update: sinonSandbox.stub(),
@@ -163,7 +168,9 @@ describe('blocks/process', () => {
 
 		var modulesLoaderStub = sinonSandbox.stub();
 		var modulesRoundsStub = sinonSandbox.stub();
-		var modulesTransactionsStub = sinonSandbox.stub();
+		var modulesTransactionsStub = {
+			getUnconfirmedTransactionList: sinonSandbox.stub(),
+		};
 		var modulesTransportStub = {
 			poorConsensus: sinonSandbox.stub(),
 		};
@@ -627,7 +634,7 @@ describe('blocks/process', () => {
 					});
 				});
 
-				describe('when success', () => {
+				describe('when succeeds', () => {
 					beforeEach(() => {
 						library.logic.block.objectNormalize.returns({
 							timestamp: 1,
@@ -664,7 +671,7 @@ describe('blocks/process', () => {
 							});
 						});
 
-						describe('when success', () => {
+						describe('when succeeds', () => {
 							beforeEach(() => {
 								__private.validateBlockSlot.callsArgWith(2, null, true);
 							});
@@ -703,7 +710,7 @@ describe('blocks/process', () => {
 									});
 								});
 
-								describe('when success', () => {
+								describe('when succeeds', () => {
 									beforeEach(() => {
 										modules.blocks.verify.verifyReceipt.returns({
 											verified: true,
@@ -738,7 +745,7 @@ describe('blocks/process', () => {
 												);
 											});
 										});
-										describe('when success', () => {
+										describe('when succeeds', () => {
 											beforeEach(() => {
 												modules.blocks.chain.deleteLastBlock.callsArgWith(
 													0,
@@ -774,7 +781,7 @@ describe('blocks/process', () => {
 														);
 													});
 												});
-												describe('when success', () => {
+												describe('when succeeds', () => {
 													beforeEach(() => {
 														__private.receiveBlock.callsArgWith(
 															1,
@@ -977,7 +984,7 @@ describe('blocks/process', () => {
 						);
 					});
 
-					it('should return no error when chain.recoverChain success', done => {
+					it('should return no error when chain.recoverChain succeeds', done => {
 						modules.blocks.chain.recoverChain.callsArgWith(
 							0,
 							null,
@@ -1022,7 +1029,7 @@ describe('blocks/process', () => {
 						);
 					});
 
-					it('should return no error when chain.recoverChain success', done => {
+					it('should return no error when chain.recoverChain succeeds', done => {
 						modules.blocks.chain.recoverChain.callsArgWith(
 							0,
 							null,
@@ -1076,7 +1083,7 @@ describe('blocks/process', () => {
 				});
 			});
 
-			describe('when success', () => {
+			describe('when succeeds', () => {
 				describe('if returns empty', () => {
 					beforeEach(() => {
 						library.db.blocks.loadBlocksOffset.resolves([]);
@@ -1191,7 +1198,7 @@ describe('blocks/process', () => {
 										});
 									});
 
-									describe('when success', () => {
+									describe('when succeeds', () => {
 										beforeEach(() => {
 											library.logic.block.objectNormalize.returns(dummyBlock);
 										});
@@ -1227,7 +1234,7 @@ describe('blocks/process', () => {
 												});
 											});
 
-											describe('when success', () => {
+											describe('when succeeds', () => {
 												beforeEach(() => {
 													modules.blocks.verify.verifyBlock.returns({
 														verified: true,
@@ -1260,7 +1267,7 @@ describe('blocks/process', () => {
 														});
 													});
 
-													describe('when success', () => {
+													describe('when succeeds', () => {
 														beforeEach(() => {
 															modules.blocks.chain.applyBlock.callsArgWith(
 																2,
@@ -1338,7 +1345,7 @@ describe('blocks/process', () => {
 										});
 									});
 
-									describe('when success', () => {
+									describe('when succeeds', () => {
 										beforeEach(() => {
 											modules.blocks.chain.applyGenesisBlock.callsArgWith(
 												1,
@@ -1400,7 +1407,7 @@ describe('blocks/process', () => {
 										});
 									});
 
-									describe('when success', () => {
+									describe('when succeeds', () => {
 										beforeEach(() => {
 											modules.blocks.chain.applyBlock.callsArgWith(
 												2,
@@ -1492,7 +1499,7 @@ describe('blocks/process', () => {
 						});
 					});
 				});
-				describe('when success', () => {
+				describe('when succeeds', () => {
 					beforeEach(() => {
 						modules.blocks.lastBlock.get.returns({
 							id: '3',
@@ -1521,7 +1528,7 @@ describe('blocks/process', () => {
 								});
 							});
 
-							describe('when success', () => {
+							describe('when succeeds', () => {
 								beforeEach(() => {
 									library.schema.validate.returns(true);
 								});
@@ -1575,7 +1582,7 @@ describe('blocks/process', () => {
 												});
 											});
 
-											describe('when success', () => {
+											describe('when succeeds', () => {
 												beforeEach(() => {
 													modules.blocks.utils.readDbRows.returns([dummyBlock]);
 												});
@@ -1648,7 +1655,7 @@ describe('blocks/process', () => {
 																		);
 																	});
 																});
-																describe('when success', () => {
+																describe('when succeeds', () => {
 																	beforeEach(() => {
 																		modules.blocks.verify.processBlock.callsArgWith(
 																			3,
@@ -1687,6 +1694,187 @@ describe('blocks/process', () => {
 									});
 								});
 							});
+						});
+					});
+				});
+			});
+		});
+	});
+
+	describe('generateBlock', () => {
+		beforeEach(() => {
+			modules.transactions.getUnconfirmedTransactionList.returns([
+				{ id: 1, type: 0 },
+				{ id: 2, type: 1 },
+			]);
+			modules.blocks.verify.processBlock.callsArgWith(
+				3,
+				null,
+				modules.blocks.verify.processBlock.args
+			);
+		});
+
+		describe('modules.accounts.getAccount', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					modules.accounts.getAccount.callsArgWith(
+						1,
+						'accounts.getAccount-ERR',
+						null
+					);
+				});
+
+				it('should return error', done => {
+					blocksProcessModule.generateBlock(
+						{ publicKey: '123abc', privateKey: 'aaa' },
+						41287231,
+						(err, cb) => {
+							expect(err).to.equal('Sender not found');
+							expect(cb).to.be.undefined;
+							done();
+						}
+					);
+				});
+			});
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					modules.accounts.getAccount.callsArgWith(1, null, true);
+				});
+
+				describe('library.logic.transaction.ready', () => {
+					describe('when returns false', () => {
+						beforeEach(() => {
+							library.logic.transaction.ready.returns(false);
+						});
+
+						it('should generate block without transactions', done => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								(err, cb) => {
+									expect(err).to.be.null;
+									expect(cb[0][0].transactions.length).to.equal(0);
+									expect(library.logic.transaction.verify.calledOnce).to.be
+										.false;
+									done();
+								}
+							);
+						});
+					});
+
+					describe('when returns true', () => {
+						beforeEach(() => {
+							library.logic.transaction.ready.returns(true);
+						});
+
+						describe('library.logic.transaction.verify', () => {
+							describe('when fails', () => {
+								beforeEach(() => {
+									library.logic.transaction.verify.callsArgWith(
+										2,
+										'transaction.verify-ERR',
+										null
+									);
+								});
+
+								it('should generate block without transactions', done => {
+									blocksProcessModule.generateBlock(
+										{ publicKey: '123abc', privateKey: 'aaa' },
+										41287231,
+										(err, cb) => {
+											expect(err).to.be.null;
+											expect(cb[0][0].transactions.length).to.equal(0);
+											done();
+										}
+									);
+								});
+							});
+							describe('when succeeds', () => {
+								beforeEach(() => {
+									library.logic.transaction.verify.callsArgWith(2, null, true);
+								});
+
+								it('should generate block with transactions', done => {
+									blocksProcessModule.generateBlock(
+										{ publicKey: '123abc', privateKey: 'aaa' },
+										41287231,
+										(err, cb) => {
+											expect(err).to.be.null;
+											expect(cb[0][0].transactions.length).to.equal(2);
+											done();
+										}
+									);
+								});
+							});
+						});
+					});
+				});
+			});
+		});
+
+		describe('library.logic.block.create', () => {
+			beforeEach(() => {
+				modules.accounts.getAccount.callsArgWith(1, null, true);
+				library.logic.transaction.ready.returns(true);
+				library.logic.transaction.verify.callsArgWith(2, null, true);
+			});
+			describe('when fails', () => {
+				beforeEach(() => {
+					library.logic.block.create = sinonSandbox.stub();
+					library.logic.block.create.throws('block-create-ERR');
+				});
+
+				it('should throws error', done => {
+					blocksProcessModule.generateBlock(
+						{ publicKey: '123abc', privateKey: 'aaa' },
+						41287231,
+						(err, cb) => {
+							expect(err.name).to.equal('block-create-ERR');
+							expect(cb).to.be.undefined;
+							expect(loggerStub.error.args[0][0]).to.contains(
+								'block-create-ERR'
+							);
+							done();
+						}
+					);
+				});
+			});
+
+			describe('when succeeds', () => {
+				describe('modules.blocks.verify.processBlock', () => {
+					describe('when fails', () => {
+						beforeEach(() => {
+							modules.blocks.verify.processBlock.callsArgWith(
+								3,
+								'verify.processBlock-ERR',
+								null
+							);
+						});
+
+						it('should return error', done => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								(err, cb) => {
+									expect(err).to.equal('verify.processBlock-ERR');
+									expect(cb).to.be.null;
+									done();
+								}
+							);
+						});
+					});
+
+					describe('when succeeds', () => {
+						it('should process block', done => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								(err, cb) => {
+									expect(err).to.be.null;
+									expect(cb[0][0].transactions.length).to.equal(2);
+									done();
+								}
+							);
 						});
 					});
 				});
