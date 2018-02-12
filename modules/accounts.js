@@ -109,9 +109,10 @@ Accounts.prototype.getAccount = function(filter, fields, cb, tx) {
  * @param {Object} filter
  * @param {Object} fields
  * @param {function} cb - Callback function.
+ * @param {Object} tx - Database transaction/task object
  */
-Accounts.prototype.getAccounts = function(filter, fields, cb) {
-	library.logic.account.getAll(filter, fields, cb);
+Accounts.prototype.getAccounts = function(filter, fields, cb, tx) {
+	library.logic.account.getAll(filter, fields, cb, tx);
 };
 
 /**
