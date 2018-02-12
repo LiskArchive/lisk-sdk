@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -244,7 +245,7 @@ __private.insertSeeds = function(cb) {
 		},
 		() => {
 			library.logger.trace('Peers->insertSeeds - Peers discovered', {
-				updated: updated,
+				updated,
 				total: library.config.peers.list.length,
 			});
 			return setImmediate(cb);
@@ -300,7 +301,7 @@ __private.dbLoad = function(cb) {
 				},
 				() => {
 					library.logger.trace('Peers->dbLoad Peers discovered', {
-						updated: updated,
+						updated,
 						total: rows.length,
 					});
 					return setImmediate(cb);
@@ -467,7 +468,7 @@ Peers.prototype.discover = function(cb) {
 					if (err) {
 						library.logger.warn(
 							['Rejecting invalid peer:', peer.string].join(' '),
-							{ err: err }
+							{ err }
 						);
 						return setImmediate(eachCb);
 					}
@@ -506,7 +507,7 @@ Peers.prototype.acceptable = function(peers) {
 		)
 		.filter(peer => {
 			// Removing peers with private address or nonce equal to itself
-			if ((process.env['NODE_ENV'] || '').toUpperCase() === 'TEST') {
+			if ((process.env.NODE_ENV || '').toUpperCase() === 'TEST') {
 				return peer.nonce !== modules.system.getNonce();
 			}
 			return !ip.isPrivate(peer.ip) && peer.nonce !== modules.system.getNonce();
@@ -559,10 +560,9 @@ Peers.prototype.list = function(options, cb) {
 								: // Unmatched broadhash when attempt 1
 									attempt === 1 ? peer.broadhash !== broadhash : false)
 						);
-					} else {
-						// Skip banned and disconnected peers by default
-						return allowedStates.indexOf(peer.state) !== -1;
 					}
+					// Skip banned and disconnected peers by default
+					return allowedStates.indexOf(peer.state) !== -1;
 				});
 				matched = peersList.length;
 				// Apply limit
@@ -571,9 +571,9 @@ Peers.prototype.list = function(options, cb) {
 				accepted = peers.concat(peersList);
 				library.logger.debug('Listing peers', {
 					attempt: attemptsDescriptions[options.attempt],
-					found: found,
-					matched: matched,
-					picked: picked,
+					found,
+					matched,
+					picked,
 					accepted: accepted.length,
 				});
 				return setImmediate(cb, null, accepted);
@@ -592,9 +592,8 @@ Peers.prototype.list = function(options, cb) {
 				if (attempts.length && limit > 0) {
 					// Unmatched broadhash
 					return randomList(peers, waterCb);
-				} else {
-					return setImmediate(waterCb, null, peers);
 				}
+				return setImmediate(waterCb, null, peers);
 			},
 		],
 		cb
@@ -623,13 +622,13 @@ Peers.prototype.onBind = function(scope) {
 Peers.prototype.onBlockchainReady = function() {
 	async.series(
 		{
-			insertSeeds: function(seriesCb) {
+			insertSeeds(seriesCb) {
 				__private.insertSeeds(() => setImmediate(seriesCb));
 			},
-			importFromDatabase: function(seriesCb) {
+			importFromDatabase(seriesCb) {
 				__private.dbLoad(() => setImmediate(seriesCb));
 			},
-			discoverNew: function(seriesCb) {
+			discoverNew(seriesCb) {
 				self.discover(() => setImmediate(seriesCb));
 			},
 		},
@@ -647,7 +646,7 @@ Peers.prototype.onPeersReady = function() {
 	function peersDiscoveryAndUpdate(cb) {
 		async.series(
 			{
-				discoverPeers: function(seriesCb) {
+				discoverPeers(seriesCb) {
 					library.logger.trace('Discovering new peers...');
 					self.discover(err => {
 						if (err) {
@@ -656,7 +655,7 @@ Peers.prototype.onPeersReady = function() {
 						return setImmediate(seriesCb);
 					});
 				},
-				updatePeers: function(seriesCb) {
+				updatePeers(seriesCb) {
 					var updated = 0;
 					var peers = library.logic.peers.list();
 
@@ -690,7 +689,7 @@ Peers.prototype.onPeersReady = function() {
 						},
 						() => {
 							library.logger.trace('Peers updated', {
-								updated: updated,
+								updated,
 								total: peers.length,
 							});
 							return setImmediate(seriesCb);
@@ -746,12 +745,12 @@ Peers.prototype.shared = {
 	 * @param {function} cb - Callback function
 	 * @return {Array.<Object>}
 	 */
-	getPeers: function(parameters, cb) {
+	getPeers(parameters, cb) {
 		parameters.normalized = true;
 		return setImmediate(cb, null, __private.getByFilter(parameters));
 	},
 
-	getPeersCount: function() {
+	getPeersCount() {
 		return library.logic.peers.list(true).length;
 	},
 };

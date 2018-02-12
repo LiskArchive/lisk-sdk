@@ -1,0 +1,19 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.10.1
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  'npm:qs:20170213':
+    - istanbul-middleware > body-parser > qs:
+        reason: None given
+        expires: '2018-03-08T16:18:03.803Z'
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:debug:20170905':
+    - istanbul-middleware > body-parser > debug:
+        patched: '2018-02-06T16:13:04.525Z'
+  'npm:minimatch:20160620':
+    - istanbul-middleware > archiver > glob > minimatch:
+        patched: '2018-02-06T16:13:04.525Z'
+  'npm:ms:20170412':
+    - istanbul-middleware > body-parser > debug > ms:
+        patched: '2018-02-06T16:13:04.525Z'

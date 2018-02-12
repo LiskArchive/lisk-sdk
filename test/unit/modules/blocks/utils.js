@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -11,270 +12,755 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
+var rewire = require('rewire');
+var modulesLoader = require('../../../common/modules_loader');
+
+var BlocksUtils = rewire('../../../../modules/blocks/utils.js');
+
+var fullBlocksListRows = [
+	{
+		b_id: '13068833527549895884',
+		b_height: 3, // Block 1
+		t_id: '6950874693022090568',
+		t_type: 0,
+	},
+	{
+		b_id: '13068833527549895884',
+		b_height: 3, // Block 1
+		t_id: '13831767660337349834',
+		t_type: 1,
+	},
+	{
+		b_id: '7018883617995376402',
+		b_height: 4, // Block 2
+		t_id: '10550826199952791739',
+		t_type: 2,
+	},
+	{
+		b_id: '7018883617995376402',
+		b_height: 4, // Block 2
+		t_id: '3502881310841638511',
+		t_type: 3,
+	},
+];
+
 describe('blocks/utils', () => {
-	describe('Utils', () => {
-		describe('library', () => {
-			it('should assign logger');
+	var dbStub;
+	var loggerStub;
+	var blockMock;
+	var transactionMock;
+	var accountMock;
+	var blocksUtilsModule;
+	var modulesStub;
+	var __private;
+	var library;
+	var modules;
 
-			it('should assign db');
+	beforeEach(() => {
+		dbStub = {
+			blocks: {
+				getIdSequence: sinonSandbox.stub().resolves(),
+				getHeightByLastId: sinonSandbox.stub().resolves(['1']),
+				loadLastBlock: sinonSandbox.stub().resolves(fullBlocksListRows),
+				loadBlocksData: sinonSandbox.stub(),
+				aggregateBlocksReward: sinonSandbox.stub().resolves(),
+			},
+		};
 
-			it('should assign dbSequence');
+		dbStub.blocks.loadBlocksData
+			.withArgs(sinonSandbox.match({ id: '13068833527549895884' }))
+			.resolves(fullBlocksListRows)
+			.withArgs(sinonSandbox.match({ id: '1' }))
+			.resolves([]);
 
-			it('should assign genesisblock');
+		loggerStub = {
+			trace: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+		};
 
-			describe('should assign logic', () => {
-				it('should assign block');
+		blockMock = {
+			dbRead(input) {
+				return { id: input.b_id, height: input.b_height };
+			},
+		};
 
-				it('should assign transaction');
-			});
-		});
+		transactionMock = {
+			dbRead(input) {
+				return { id: input.t_id, type: input.t_type };
+			},
+		};
 
-		it('should set self to this');
+		accountMock = {
+			get: sinonSandbox.stub(),
+		};
 
-		it(
-			'should call library.logger.trace with "Blocks->Utils: Submodule initialized."'
+		accountMock.get
+			.withArgs(sinonSandbox.match({ address: 'ERRL' }))
+			.callsArgWith(1, 'Address error stub', null)
+			.withArgs(sinonSandbox.match({ address: '0L' }))
+			.callsArgWith(1, null, undefined)
+			.withArgs(sinonSandbox.match({ address: '1L' }))
+			.callsArgWith(1, null, { publicKey: '123abc' });
+
+		blocksUtilsModule = new BlocksUtils(
+			loggerStub,
+			accountMock,
+			blockMock,
+			transactionMock,
+			dbStub,
+			modulesLoader.scope.dbSequence,
+			modulesLoader.scope.genesisblock
 		);
 
-		it('should return self');
+		modulesStub = {
+			blocks: {
+				lastBlock: {
+					get: sinonSandbox
+						.stub()
+						.returns({ id: '9314232245035524467', height: 1 }),
+					set: sinonSandbox
+						.stub()
+						.returns({ id: '9314232245035524467', height: 1 }),
+				},
+				utils: {
+					readDbRows: blocksUtilsModule.readDbRows,
+				},
+			},
+		};
+
+		blocksUtilsModule.onBind(modulesStub);
+
+		__private = BlocksUtils.__get__('__private');
+		__private.loaded = false;
+
+		library = BlocksUtils.__get__('library');
+		modules = BlocksUtils.__get__('modules');
+	});
+
+	afterEach(() => {
+		sinonSandbox.reset();
+	});
+
+	describe('constructor', () => {
+		it('should assign params to library', () => {
+			expect(library.logger).to.eql(loggerStub);
+			expect(library.db).to.eql(dbStub);
+			expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
+			expect(library.logic.account).to.eql(accountMock);
+			expect(library.logic.block).to.eql(blockMock);
+			expect(library.logic.transaction).to.eql(transactionMock);
+		});
+
+		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."', () => {
+			expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Utils: Submodule initialized.'
+			);
+		});
+
+		it('should return self', () => {
+			expect(blocksUtilsModule).to.be.an('object');
+			expect(blocksUtilsModule.readDbRows).to.be.a('function');
+		});
 	});
 
 	describe('readDbRows', () => {
-		it('should loop through all given rows');
+		it('should call library.logic.block.dbRead with each block', () => {
+			library.logic.block.dbRead = sinonSandbox.spy();
 
-		it('should call library.logic.block.dbRead with every row');
+			blocksUtilsModule.readDbRows(fullBlocksListRows);
 
-		describe('when block with id does not exist', () => {
-			it('should not return the block');
+			for (const block of fullBlocksListRows) {
+				expect(library.logic.block.dbRead).to.have.callCount(4);
+				expect(library.logic.block.dbRead).to.have.been.calledWith(block);
+			}
 		});
 
-		describe('when block with id exists', () => {
-			describe('and block indices are duplicated', () => {
-				it('should not return duplicated blocks');
+		it('should call library.logic.transaction.dbRead with each block', () => {
+			library.logic.transaction.dbRead = sinonSandbox.spy();
+
+			blocksUtilsModule.readDbRows(fullBlocksListRows);
+
+			for (const block of fullBlocksListRows) {
+				expect(library.logic.transaction.dbRead).to.have.callCount(4);
+				expect(library.logic.transaction.dbRead).to.have.been.calledWith(block);
+			}
+		});
+
+		it('should read an empty array', () => {
+			expect(blocksUtilsModule.readDbRows([])).to.be.an('array');
+		});
+
+		describe('with 2 blocks each containing 2 transactions', () => {
+			var blocks;
+
+			beforeEach(() => {
+				blocks = blocksUtilsModule.readDbRows(fullBlocksListRows);
+				expect(blocks).to.be.an('array');
 			});
 
-			describe('and block indices are unique', () => {
-				describe('and there are no transactions in the block', () => {
-					it('should return the block containing transactions = {}');
-				});
+			it('should read the rows correctly', () => {
+				// Block 1
+				expect(blocks[0]).to.be.an('object');
+				expect(blocks[0].id).to.equal('13068833527549895884');
+				expect(blocks[0].height).to.equal(3);
+				expect(blocks[0].transactions).to.be.an('array');
+				expect(blocks[0].transactions[0]).to.be.an('object');
+				expect(blocks[0].transactions[0].id).to.equal('6950874693022090568');
+				expect(blocks[0].transactions[0].type).to.equal(0);
+				expect(blocks[0].transactions[1]).to.be.an('object');
+				expect(blocks[0].transactions[1].id).to.equal('13831767660337349834');
+				expect(blocks[0].transactions[1].type).to.equal(1);
 
-				describe('and there are transactions in the block', () => {
-					it('should return the block containing transactions');
-				});
+				// Block 2
+				expect(blocks[1]).to.be.an('object');
+				expect(blocks[1].id).to.equal('7018883617995376402');
+				expect(blocks[1].height).to.equal(4);
+				expect(blocks[1].transactions).to.be.an('array');
+				expect(blocks[1].transactions[0]).to.be.an('object');
+				expect(blocks[1].transactions[0].id).to.equal('10550826199952791739');
+				expect(blocks[1].transactions[0].type).to.equal(2);
+				expect(blocks[1].transactions[1]).to.be.an('object');
+				expect(blocks[1].transactions[1].id).to.equal('3502881310841638511');
+				expect(blocks[1].transactions[1].type).to.equal(3);
 			});
+		});
+
+		it('should generate fake signature for genesis block', () => {
+			var genesisBlock_view_full_blocks_list = [
+				{
+					b_id: '6524861224470851795',
+					b_height: 1,
+					t_id: '1465651642158264047',
+					t_type: 0,
+				},
+				{
+					b_id: '6524861224470851795',
+					b_height: 1,
+					t_id: '3634383815892709956',
+					t_type: 2,
+				},
+			];
+
+			var blockObject = blocksUtilsModule.readDbRows(
+				genesisBlock_view_full_blocks_list
+			);
+
+			expect(blockObject).to.be.an('array');
+			expect(blockObject[0]).to.be.an('object');
+			expect(blockObject[0].id).to.equal('6524861224470851795');
+			expect(blockObject[0].generationSignature).to.equal(
+				'0000000000000000000000000000000000000000000000000000000000000000'
+			);
 		});
 	});
 
 	describe('loadBlocksPart', () => {
-		describe('when there is no error when loading block array', () => {
-			it('should be normalized');
+		it('should return error when library.db.blocks.loadBlocksData fails', done => {
+			library.db.blocks.loadBlocksData = sinonSandbox
+				.stub()
+				.throws(new Error('An error'));
 
-			it('should call callback with error = undefined');
-
-			it('should call callback with blocks as result');
+			blocksUtilsModule.loadBlocksPart({}, (err, blocks) => {
+				expect(loggerStub.error.args[0][0]).to.contains('An error');
+				expect(err).to.equal('Blocks#loadBlockData error');
+				expect(blocks).to.be.undefined;
+				done();
+			});
 		});
 
-		describe('when error is defined', () => {
-			it('should call callback with the error object');
+		it('should return an array of blocks', done => {
+			library.db.blocks.loadBlocksData = sinonSandbox
+				.stub()
+				.resolves(fullBlocksListRows);
 
-			it('should call callback with blocks as result');
+			blocksUtilsModule.loadBlocksPart({}, (err, blocks) => {
+				expect(err).to.be.null;
+				expect(blocks).to.be.an('array');
+				expect(blocks[0]).to.be.an('object');
+				expect(blocks[0].id).to.equal('13068833527549895884');
+				done();
+			});
+		});
+
+		it('should call self.readDbRows with the resolved rows', done => {
+			library.db.blocks.loadBlocksData = sinonSandbox
+				.stub()
+				.resolves(fullBlocksListRows);
+
+			blocksUtilsModule.readDbRows = sinonSandbox.spy();
+
+			blocksUtilsModule.loadBlocksPart({}, () => {
+				expect(blocksUtilsModule.readDbRows).to.have.been.calledOnce;
+				expect(blocksUtilsModule.readDbRows).to.have.been.calledWith(fullBlocksListRows);
+				done();
+			});
 		});
 	});
 
 	describe('loadLastBlock', () => {
-		it('should call library.dbSequence.add');
+		it('should return error when library.db.blocks.loadLastBlock fails', done => {
+			library.db.blocks.loadLastBlock = sinonSandbox.stub().resolves(null);
 
-		it('should call library.db.query to load the last block');
-
-		describe('when db query fails', () => {
-			it('should call logger.error with error stack');
-
-			it('should call callback with the Blocks#loadLastBlock error');
+			blocksUtilsModule.loadLastBlock((err, block) => {
+				expect(loggerStub.error.args[0][0]).to.contains(
+					"TypeError: Cannot read property 'length' of null"
+				);
+				expect(err).to.equal('Blocks#loadLastBlock error');
+				expect(block).to.be.undefined;
+				done();
+			});
 		});
 
-		describe('when db.query succeeds', () => {
-			describe('sorting the block.transactions array', () => {
-				describe('when block.id equals genesis.block.id', () => {
-					describe('and transactionType equals VOTE', () => {
-						it('should move it to the end of the block array');
-					});
-				});
+		describe('sorting the block.transactions array', () => {
+			it('should move votes to the end when block is genesis block', done => {
+				var genesisBlock_votes = [
+					{
+						b_id: '6524861224470851795',
+						b_height: 1,
+						t_id: '1465651642158264047',
+						t_type: 3,
+					},
+					{
+						b_id: '6524861224470851795',
+						b_height: 1,
+						t_id: '3634383815892709956',
+						t_type: 2,
+					},
+					{
+						b_id: '6524861224470851795',
+						b_height: 1,
+						t_id: '3634383815892709957',
+						t_type: 0,
+					},
+				];
 
-				describe('when transactionType equals SIGNATURE', () => {
-					it('should move it to the end of the block.transactions array');
+				library.db.blocks.loadLastBlock = sinonSandbox
+					.stub()
+					.resolves(genesisBlock_votes);
+
+				blocksUtilsModule.loadLastBlock((err, block) => {
+					expect(block).to.be.an('object');
+					expect(block.id).to.equal('6524861224470851795');
+					expect(block.transactions).to.be.an('array');
+					expect(block.transactions[0]).to.be.an('object');
+					expect(block.transactions[0].id).to.equal('3634383815892709956');
+					expect(block.transactions[0].type).to.equal(2);
+					expect(block.transactions[1].id).to.equal('3634383815892709957');
+					expect(block.transactions[1].type).to.equal(0);
+					expect(block.transactions[2].id).to.equal('1465651642158264047');
+					expect(block.transactions[2].type).to.equal(3);
+					done();
 				});
 			});
 
-			it('should call modules.blocks.lastBlock.set with block');
+			it('should move signatures to the end', done => {
+				var genesisBlock_votes = [
+					{
+						b_id: '6524861224470851000',
+						b_height: 1,
+						t_id: '1465651642158264047',
+						t_type: 3,
+					},
+					{
+						b_id: '6524861224470851000',
+						b_height: 1,
+						t_id: '3634383815892709955',
+						t_type: 2,
+					},
+					{
+						b_id: '6524861224470851000',
+						b_height: 1,
+						t_id: '3634383815892709956',
+						t_type: 1,
+					},
+					{
+						b_id: '6524861224470851000',
+						b_height: 1,
+						t_id: '3634383815892709957',
+						t_type: 0,
+					},
+				];
 
-			it('should call callback with error = null');
+				library.db.blocks.loadLastBlock = sinonSandbox
+					.stub()
+					.resolves(genesisBlock_votes);
 
-			it('should call callback with result containing the block');
+				blocksUtilsModule.loadLastBlock((err, block) => {
+					expect(block).to.be.an('object');
+					expect(block.id).to.equal('6524861224470851000');
+					expect(block.transactions).to.be.an('array');
+					expect(block.transactions[0]).to.be.an('object');
+					expect(block.transactions[0].id).to.equal('1465651642158264047');
+					expect(block.transactions[0].type).to.equal(3);
+					expect(block.transactions[1]).to.be.an('object');
+					expect(block.transactions[1].id).to.equal('3634383815892709955');
+					expect(block.transactions[1].type).to.equal(2);
+					expect(block.transactions[2]).to.be.an('object');
+					expect(block.transactions[2].id).to.equal('3634383815892709957');
+					expect(block.transactions[2].type).to.equal(0);
+					expect(block.transactions[3]).to.be.an('object');
+					expect(block.transactions[3].id).to.equal('3634383815892709956');
+					expect(block.transactions[3].type).to.equal(1);
+					done();
+				});
+			});
+
+			it('should call modules.blocks.lastBlock.set with block', done => {
+				library.db.blocks.loadLastBlock = sinonSandbox
+					.stub()
+					.resolves(fullBlocksListRows);
+
+				modules.blocks.lastBlock.set = sinonSandbox.spy();
+
+				blocksUtilsModule.loadLastBlock((err, block) => {
+					expect(block).to.be.an('object');
+					expect(block.id).to.equal('13068833527549895884');
+					expect(modules.blocks.lastBlock.set).to.have.been.calledWith(block);
+					done();
+				});
+			});
 		});
 	});
 
 	describe('getIdSequence', () => {
-		it('should call modules.blocks.lastBlock.get');
-
-		it('should call library.db.query');
-
-		it('should call library.db.query with sql.getIdSequence');
-
-		it(
-			'should call library.db.query with {height: height, limit: 5, delegates: constants.activeDelegates}'
-		);
-
-		describe('when db query fails', () => {
-			it('should call logger.error with error stack');
-
-			it('should call callback with the Blocks#getIdSequence error');
+		it('should call library.db.blocks.getIdSequence with proper params', done => {
+			blocksUtilsModule.getIdSequence(10, () => {
+				expect(library.db.blocks.getIdSequence).to.have.been.calledOnce;
+				expect(library.db.blocks.getIdSequence).to.have.been.calledWith({
+					height: 10,
+					limit: 5,
+					delegates: 101,
+				});
+				done();
+			});
 		});
 
-		describe('when db query succeeds', () => {
-			describe('and returns no results', () => {
-				it('should call callback with an error');
+		it('should return error when library.db.blocks.getIdSequence fails', done => {
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(loggerStub.error.args[0][0]).to.contains(
+					"TypeError: Cannot read property 'length' of undefined"
+				);
+				expect(err).to.equal('Blocks#getIdSequence error');
+				expect(sequence).to.be.undefined;
+				done();
 			});
+		});
 
-			it(
-				'should add the genesis block to the end of the block array, if it does not contain it already'
-			);
+		it('should return error when no row is found', done => {
+			library.db.blocks.getIdSequence = sinonSandbox.stub().resolves([]);
 
-			it(
-				'should add the last block to the beginning of the block array, if it does not contain it already'
-			);
-
-			it('should call callback with error = null');
-
-			describe('result object', () => {
-				it('should assign firstHeight to the height of the last block');
-
-				it('should assign ids to a string of the block ids');
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.equal('Failed to get id sequence for height: 10');
+				expect(sequence).to.be.undefined;
+				done();
 			});
+		});
 
-			it('should call callback with result object');
+		it('should return valid block id list', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([
+					{ id: 1, height: 2 },
+					{ id: 2, height: 3 },
+					{ id: 3, height: 4 },
+					{ id: 4, height: 5 },
+				]);
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'9314232245035524467,1,2,3,4,6524861224470851795'
+				);
+				done();
+			});
+		});
+
+		it('should not add genesis block to the set when library.genesisblock is undefined', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: 1, height: 2 }]);
+
+			const genesisblock = library.genesisblock;
+			library.genesisblock = undefined;
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'9314232245035524467,1'
+				);
+				library.genesisblock = genesisblock;
+				done();
+			});
+		});
+
+		it('should not add genesis block to the set when library.genesisblock.block is undefined', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: 1, height: 2 }]);
+
+			const block = library.genesisblock.block;
+			library.genesisblock.block = undefined;
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'9314232245035524467,1'
+				);
+				library.genesisblock.block = block;
+				done();
+			});
+		});
+
+		it('should not add genesis block to the set more than once', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: '6524861224470851795', height: 1 }]);
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'9314232245035524467,6524861224470851795'
+				);
+				done();
+			});
+		});
+
+		it('should not add last block when it is undefined', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: '6524861224470851795', height: 1 }]);
+
+			modules.blocks.lastBlock.get = sinonSandbox.stub(undefined);
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'6524861224470851795'
+				);
+				done();
+			});
+		});
+
+		it('should not add last block to the set more than once', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: '9314232245035524467', height: 1 }]);
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'9314232245035524467,6524861224470851795'
+				);
+				done();
+			});
+		});
+
+		it('should not add resolved block to the set more than once', done => {
+			library.db.blocks.getIdSequence = sinonSandbox
+				.stub()
+				.resolves([{ id: 2, height: 3 }, { id: 2, height: 3 }]);
+
+			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
+				expect(err).to.be.null;
+				expect(sequence).to.be.an('object');
+				expect(sequence.firstHeight).to.equal(1);
+				expect(sequence.ids).to.equal(
+					'9314232245035524467,2,6524861224470851795'
+				);
+				done();
+			});
 		});
 	});
 
 	describe('loadBlocksData', () => {
-		describe('when 3 parameters are passed to loadBlocksData', () => {
-			it('should call third parameter');
-		});
+		it('should return error when library.db.blocks.loadBlocksData fails', done => {
+			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(null);
 
-		describe('when 2 parameters are passed to loadBlocksData', () => {
-			it('should call second parameter');
-		});
-
-		describe('when filter.id and filter.lastId are defined', () => {
-			it('should call callback with Invalid Filter error');
-		});
-
-		describe('when filter.lastId is undefined and filter.id is defined', () => {
-			it('should set params.id to filter.id');
-		});
-
-		describe('when filter.id is undefined and filter.lastId is defined', () => {
-			it('should set params.lastId to filter.lastId');
-		});
-
-		it('should call library.dbSequence.add');
-
-		it('should call library.db.query');
-
-		it('should call library.db.blocks.getHeightByLastId');
-
-		describe('when filter.lastId exists', () => {
-			it('should call library.db.query with {lastId: filter.lastId}');
-		});
-
-		describe('when filter.lastId does not exist', () => {
-			it('should call library.db.query with {lastId: null}');
-		});
-
-		describe('when db query fails', () => {
-			it('should call logger.error with error stack');
-
-			it('should call callback with the Blocks#loadBlockData error');
-		});
-
-		describe('when db query succeeds', () => {
-			describe('and does not return results', () => {
-				it('should set height to 0');
+			blocksUtilsModule.loadBlocksData({ id: '1' }, (err, blocks) => {
+				expect(loggerStub.error.args[0][0]).to.contains(
+					"TypeError: Cannot read property 'length' of null"
+				);
+				expect(err).to.equal('Blocks#loadBlockData error');
+				expect(blocks).to.be.undefined;
+				done();
 			});
+		});
 
-			describe('and returns results', () => {
-				it('should set height to rows[0].height');
+		it('should return error when called with both id and lastId', done => {
+			library.db.blocks.getHeightByLastId = sinonSandbox.stub().resolves(['1']);
+
+			blocksUtilsModule.loadBlocksData(
+				{ id: '1', lastId: '5' },
+				(err, blocks) => {
+					expect(err).to.equal('Invalid filter: Received both id and lastId');
+					expect(blocks).to.be.undefined;
+					done();
+				}
+			);
+		});
+
+		it('should return empty row when called with invalid id', done => {
+			blocksUtilsModule.loadBlocksData({ id: '1' }, (err, blocks) => {
+				expect(err).to.be.null;
+				expect(blocks).to.an('array').that.is.empty;
+				done();
 			});
+		});
 
-			it('should set params.limit to realLimit');
-
-			it('should set params.height to height');
-
-			it('should call library.db.query');
-
-			it('should call library.db.query with sql.loadBlocksData with filter');
-
-			it('should call library.db.query with params)');
-
-			describe('when db query succeeds', () => {
-				it('should call callback with error = null');
-
-				it('should call callback with result containing the rows');
+		it('should return one row when called with valid id', done => {
+			blocksUtilsModule.loadBlocksData({ id: '13068833527549895884' }, (
+				err,
+				blocks
+			) => {
+				expect(err).to.be.null;
+				expect(blocks).to.be.an('array');
+				expect(blocks[0].b_id).to.eql('13068833527549895884');
+				done();
 			});
 		});
 	});
 
 	describe('getBlockProgressLogger', () => {
-		describe('BlockProgressLogger', () => {
-			it('should set this.target to transactionsCount');
+		var testTracker;
 
-			it(
-				'should set this.step to Math.floor(transactionsCount / logsFrequency);'
+		it('should initialize BlockProgressLogger', () => {
+			testTracker = blocksUtilsModule.getBlockProgressLogger(
+				1,
+				1,
+				'Test tracker'
 			);
-
-			it('should set this.applied to 0');
-
-			describe('reset function', () => {
-				it('should set this.applied to 0');
-			});
-
-			describe('applyNext function', () => {
-				describe('when this.applied >= this.target', () => {
-					it('should throw error');
-				});
-
-				it('should increment this.applied');
-
-				describe('when this.applied = 1', () => {
-					it('should call this.log');
-				});
-
-				describe('when this.applied = this.target', () => {
-					it('should call this.log');
-				});
-
-				describe('when this.applied %this.step = 1', () => {
-					it('should call this.log');
-				});
-			});
-
-			describe('log function', () => {
-				it('should call library.logger.info with msg');
-
-				it('should call library.logger.info with message');
-			});
+			expect(testTracker.target).to.eql(1);
+			expect(testTracker.step).to.eql(1);
 		});
 
-		it('should return a new instance of BlockProgressLogger');
+		it('should return valid log information when call applyNext()', () => {
+			testTracker.applyNext();
+			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
+			expect(loggerStub.info.args[0][1]).to.equal(
+				'100.0 %: applied 1 of 1 transactions'
+			);
+		});
+
+		it('should throw error when times applied >= transactionsCount', () => {
+			expect(() => {
+				testTracker.applyNext();
+			}).to.throw('Cannot apply transaction over the limit: 1');
+		});
+
+		it('should return valid log information when reset tracker and call applyNext()', () => {
+			testTracker.reset();
+			testTracker.applyNext();
+			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
+			expect(loggerStub.info.args[0][1]).to.equal(
+				'100.0 %: applied 1 of 1 transactions'
+			);
+		});
+	});
+
+	describe('aggregateBlocksReward', () => {
+		it('should return error when account.get fails', done => {
+			blocksUtilsModule.aggregateBlocksReward(
+				{ address: 'ERRL' },
+				(err, data) => {
+					expect(err).to.equal('Address error stub');
+					expect(data).to.be.undefined;
+					done();
+				}
+			);
+		});
+
+		it('should return error when account not found', done => {
+			blocksUtilsModule.aggregateBlocksReward(
+				{ address: '0L' },
+				(err, data) => {
+					expect(err).to.equal('Account not found');
+					expect(data).to.be.undefined;
+					done();
+				}
+			);
+		});
+
+		it('should return error when library.db.blocks.aggregateBlocksReward fails', done => {
+			blocksUtilsModule.aggregateBlocksReward(
+				{ address: '1L' },
+				(err, data) => {
+					expect(loggerStub.error.args[0][0]).to.contains(
+						"TypeError: Cannot read property '0' of undefined"
+					);
+					expect(err).to.equal('Blocks#aggregateBlocksReward error');
+					expect(data).to.be.undefined;
+					done();
+				}
+			);
+		});
+
+		it('should return error when account is not a delegate', done => {
+			library.db.blocks.aggregateBlocksReward = sinonSandbox
+				.stub()
+				.resolves([{ delegate: null }]);
+
+			blocksUtilsModule.aggregateBlocksReward(
+				{ address: '1L' },
+				(err, data) => {
+					expect(err).to.equal('Account is not a delegate');
+					expect(data).to.be.undefined;
+					done();
+				}
+			);
+		});
+
+		it('should return aggregate blocks rewards', done => {
+			library.db.blocks.aggregateBlocksReward = sinonSandbox
+				.stub()
+				.resolves([{ delegate: '123abc', fees: 1, count: 100 }]);
+
+			blocksUtilsModule.aggregateBlocksReward(
+				{ address: '1L' },
+				(err, data) => {
+					expect(data).to.be.an('object');
+					expect(data.fees).to.equal(1);
+					expect(data.count).to.equal(100);
+					expect(data.rewards).to.equal('0');
+					done();
+				}
+			);
+		});
 	});
 
 	describe('onBind', () => {
-		it(
-			'should call library.logger.trace with "Blocks->Utils: Shared modules bind."'
-		);
+		beforeEach(() => {
+			loggerStub.trace.reset();
+			blocksUtilsModule.onBind(modulesStub);
+		});
 
-		it('should create a modules object { blocks: scope.blocks }');
+		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', () => {
+			expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Utils: Shared modules bind.'
+			);
+		});
 
-		it('should set __private.loaded to true');
+		it('should create a modules object { blocks: scope.blocks }', () => {
+			expect(modules.blocks).to.equal(modulesStub.blocks);
+		});
+
+		it('should set __private.loaded to true', () => {
+			expect(__private.loaded).to.be.true;
+		});
 	});
 });

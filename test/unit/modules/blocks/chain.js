@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests, mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -11,6 +12,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var crypto = require('crypto');
@@ -36,10 +38,10 @@ function createBlock(
 	);
 	blocksModule.lastBlock.set(previousBlock);
 	var newBlock = blockLogic.create({
-		keypair: keypair,
-		timestamp: timestamp,
+		keypair,
+		timestamp,
 		previousBlock: blocksModule.lastBlock.get(),
-		transactions: transactions,
+		transactions,
 	});
 	newBlock.id = blockLogic.getId(newBlock);
 	newBlock.height = previousBlock ? previousBlock.height + 1 : 1;

@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests, mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -11,6 +12,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var httpApi = require('../../../helpers/http_api');
@@ -30,16 +32,16 @@ var resMock;
 var loggerMock;
 var checkIpInListStub;
 
-describe('httpApi', function() {
-	before(function() {
+describe('httpApi', () => {
+	before(() => {
 		validError = {
 			message: 'validError',
 			toJson: sinonSandbox.stub(),
 		};
 	});
 
-	describe('middleware', function() {
-		before(function() {
+	describe('middleware', () => {
+		before(() => {
 			validSendObject = {
 				success: false,
 				error: `API error: ${validError.message}`,
@@ -72,12 +74,12 @@ describe('httpApi', function() {
 			resMock.status.returns(resMock);
 		});
 
-		afterEach(function() {
+		afterEach(() => {
 			validNextSpy.reset();
 			spyConsoleTrace.reset();
 		});
 
-		after(function() {
+		after(() => {
 			loggerMock.trace.reset();
 			loggerMock.log.reset();
 			loggerMock.error.reset();
@@ -86,18 +88,18 @@ describe('httpApi', function() {
 			resMock.send.reset();
 		});
 
-		describe('cors', function() {
-			beforeEach(function() {
+		describe('cors', () => {
+			beforeEach(() => {
 				httpApi.middleware.cors(validReq, resMock, validNextSpy);
 			});
 
-			it('should call res.header with "Access-Control-Allow-Origin" and "*"', function() {
+			it('should call res.header with "Access-Control-Allow-Origin" and "*"', () => {
 				expect(
 					resMock.header.calledWith('Access-Control-Allow-Origin', '*')
 				).to.eql(true);
 			});
 
-			it('should call res.header "Access-Control-Allow-Headers" and "Origin, X-Objected-With, Content-Type, Accept"', function() {
+			it('should call res.header "Access-Control-Allow-Headers" and "Origin, X-Objected-With, Content-Type, Accept"', () => {
 				expect(
 					resMock.header.calledWith(
 						'Access-Control-Allow-Headers',
@@ -106,13 +108,13 @@ describe('httpApi', function() {
 				).to.eql(true);
 			});
 
-			it('should call next()', function() {
+			it('should call next()', () => {
 				expect(validNextSpy.calledOnce).to.be.true;
 			});
 		});
 
-		describe('errorLogger', function() {
-			beforeEach(function() {
+		describe('errorLogger', () => {
+			beforeEach(() => {
 				httpApi.middleware.errorLogger(
 					loggerMock,
 					validError,
@@ -122,26 +124,26 @@ describe('httpApi', function() {
 				);
 			});
 
-			describe('when error is null', function() {
-				before(function() {
+			describe('when error is null', () => {
+				before(() => {
 					validError = null;
 				});
 
-				it('should never call logger.error', function() {
+				it('should never call logger.error', () => {
 					expect(loggerMock.error.notCalled).to.be.true;
 				});
 
-				it('should call next()', function() {
+				it('should call next()', () => {
 					expect(validNextSpy.calledOnce).to.be.true;
 				});
 			});
 
-			describe('when error is not null', function() {
-				before(function() {
+			describe('when error is not null', () => {
+				before(() => {
 					validError = { message: 'validError' };
 				});
 
-				it('should call logger.error with "API error: validError"', function() {
+				it('should call logger.error with "API error: validError"', () => {
 					expect(
 						loggerMock.error.calledWith(
 							`API error ${validReq.url}`,
@@ -150,23 +152,23 @@ describe('httpApi', function() {
 					).to.be.true;
 				});
 
-				it('should call console.trace with error', function() {
+				it('should call console.trace with error', () => {
 					expect(spyConsoleTrace.calledOnce).to.be.true;
 				});
 
-				it('should send status 500 and error-object', function() {
+				it('should send status 500 and error-object', () => {
 					expect(resMock.status.calledWith(500)).to.be.true;
 					expect(resMock.status().send.calledWith(validSendObject)).to.be.true;
 				});
 			});
 		});
 
-		describe('logClientConnections', function() {
-			before(function() {
+		describe('logClientConnections', () => {
+			before(() => {
 				validRes = null;
 			});
 
-			beforeEach(function() {
+			beforeEach(() => {
 				httpApi.middleware.logClientConnections(
 					loggerMock,
 					validReq,
@@ -175,24 +177,24 @@ describe('httpApi', function() {
 				);
 			});
 
-			it('should call logger.log with string "GET req/url from 127.0.0.1"', function() {
+			it('should call logger.log with string "GET req/url from 127.0.0.1"', () => {
 				expect(loggerMock.log.calledWith('GET req/url from 127.0.0.1'));
 			});
 
-			it('should call next function', function() {
+			it('should call next function', () => {
 				expect(validNextSpy.calledOnce).to.be.true;
 			});
 		});
 
-		describe('blockchainReady', function() {
+		describe('blockchainReady', () => {
 			var validIsLoaded;
 
-			before(function() {
+			before(() => {
 				validIsLoaded = sinonSandbox.stub();
 				validSendObject = { success: false, error: 'Blockchain is loading' };
 			});
 
-			beforeEach(function() {
+			beforeEach(() => {
 				httpApi.middleware.blockchainReady(
 					validIsLoaded,
 					validReq,
@@ -201,56 +203,56 @@ describe('httpApi', function() {
 				);
 			});
 
-			describe('when isLoaded returns true', function() {
-				before(function() {
+			describe('when isLoaded returns true', () => {
+				before(() => {
 					validIsLoaded.returns(true);
 				});
 
-				it('should call next function', function() {
+				it('should call next function', () => {
 					expect(validNextSpy.calledOnce).to.be.true;
 				});
 			});
 
-			describe('when isLoaded returns false', function() {
-				before(function() {
+			describe('when isLoaded returns false', () => {
+				before(() => {
 					validIsLoaded.returns(false);
 				});
 
-				it('should send status 500 and error-object', function() {
+				it('should send status 500 and error-object', () => {
 					expect(resMock.status.calledWith(500)).to.be.true;
 					expect(resMock.status().send.calledWith(validSendObject)).to.be.true;
 				});
 			});
 		});
 
-		describe('notFound', function() {
-			before(function() {
+		describe('notFound', () => {
+			before(() => {
 				validSendObject = { success: false, error: 'API endpoint not found' };
 			});
 
-			beforeEach(function() {
+			beforeEach(() => {
 				httpApi.middleware.notFound(validReq, resMock, validNextSpy);
 			});
 
-			it('should send status 500 and error-object', function() {
+			it('should send status 500 and error-object', () => {
 				expect(resMock.status.calledWith(500)).to.be.true;
 				expect(resMock.status().send.calledWith(validSendObject)).to.be.true;
 			});
 		});
 
-		describe('sanitize', function() {
+		describe('sanitize', () => {
 			var validProperty;
 			var validSchema;
 			var validCbSpy;
 			var sanitizeResultFunction;
 
-			before(function() {
+			before(() => {
 				validProperty = 'url';
 				validSchema = null;
 				validCbSpy = sinonSandbox.spy();
 			});
 
-			beforeEach(function() {
+			beforeEach(() => {
 				sanitizeResultFunction = httpApi.middleware.sanitize(
 					validProperty,
 					validSchema,
@@ -258,11 +260,11 @@ describe('httpApi', function() {
 				);
 			});
 
-			it('should return a function', function() {
+			it('should return a function', () => {
 				expect(sanitizeResultFunction).to.be.a('function');
 			});
 
-			describe('when sanitize result is called', function() {
+			describe('when sanitize result is called', () => {
 				var validReqMock;
 				var validSanitizeError;
 				var validSanitizeReport;
@@ -270,7 +272,7 @@ describe('httpApi', function() {
 				var validValue = 'validValue';
 				var validSanitizeCallback;
 
-				before(function() {
+				before(() => {
 					validRes = {
 						json: sinonSandbox.stub(),
 					};
@@ -287,11 +289,11 @@ describe('httpApi', function() {
 					validSanitizeCallback = sinonSandbox.stub();
 				});
 
-				beforeEach(function() {
+				beforeEach(() => {
 					sanitizeResultFunction(validReqMock, validRes, validSanitizeCallback);
 				});
 
-				it('should call req.sanitize with req[property], schema and cb as arguments', function() {
+				it('should call req.sanitize with req[property], schema and cb as arguments', () => {
 					expect(
 						validReqMock.sanitize.calledWith(
 							validReqMock[validProperty],
@@ -300,39 +302,39 @@ describe('httpApi', function() {
 					).to.be.true;
 				});
 
-				describe('when report.isValid = false', function() {
-					before(function() {
+				describe('when report.isValid = false', () => {
+					before(() => {
 						validSanitizeReport.isValid = false;
 					});
 
-					it('should call res.json', function() {
+					it('should call res.json', () => {
 						expect(validCbSpy.called).to.be.true;
 					});
 				});
 
-				describe('when report.isValid = true', function() {
-					before(function() {
+				describe('when report.isValid = true', () => {
+					before(() => {
 						validSanitizeReport.isValid = true;
 					});
 
-					it('should call callback', function() {
+					it('should call callback', () => {
 						expect(validCbSpy.called).to.be.true;
 					});
 				});
 			});
 		});
 
-		describe('attachResponseHeader', function() {
+		describe('attachResponseHeader', () => {
 			var validHeaderKey;
 			var validHeaderValue;
 
-			before(function() {
+			before(() => {
 				validHeaderKey = 'key';
 				validHeaderValue = 'value';
 				validSendObject = { success: false, error: 'API endpoint not found' };
 			});
 
-			beforeEach(function() {
+			beforeEach(() => {
 				httpApi.middleware.attachResponseHeader(
 					validHeaderKey,
 					validHeaderValue,
@@ -342,20 +344,20 @@ describe('httpApi', function() {
 				);
 			});
 
-			it('should attach provided key and value to a response-header', function() {
+			it('should attach provided key and value to a response-header', () => {
 				expect(resMock.setHeader.calledWith(validHeaderKey, validHeaderValue))
 					.to.be.true;
 			});
 
-			it('should call next function', function() {
+			it('should call next function', () => {
 				expect(validNextSpy.calledOnce).to.be.true;
 			});
 		});
 
-		describe.skip('applyAPIAccessRules', function() {
+		describe.skip('applyAPIAccessRules', () => {
 			var validConfig;
 
-			before(function() {
+			before(() => {
 				validConfig = {
 					peers: {
 						enabled: true,
@@ -365,7 +367,7 @@ describe('httpApi', function() {
 				};
 			});
 
-			beforeEach(function() {
+			beforeEach(() => {
 				httpApi.middleware.applyAPIAccessRules(
 					validConfig,
 					validReq,
@@ -374,12 +376,12 @@ describe('httpApi', function() {
 				);
 			});
 
-			describe('when req.url matches regex(/^\\/peer[\\/]?.*!/)', function() {
-				before(function() {
+			describe('when req.url matches regex(/^\\/peer[\\/]?.*!/)', () => {
+				before(() => {
 					validReq.url = '/peer/.';
 				});
 
-				it('should call checkIpInList with parameters: config.peers.access.blackList, req.ip, false', function() {
+				it('should call checkIpInList with parameters: config.peers.access.blackList, req.ip, false', () => {
 					sinonSandbox.assert.called(checkIpInListStub);
 					expect(
 						checkIpInListStub.calledWith(
@@ -390,56 +392,56 @@ describe('httpApi', function() {
 					).to.be.true;
 				});
 
-				describe('when config.peers.enabled = true and checkIpInList() = false', function() {
+				describe('when config.peers.enabled = true and checkIpInList() = false', () => {
 					it('should call rejectDisallowed with "true" and "true" as argument');
 				});
 
-				describe('when config.peers.enabled = false', function() {
+				describe('when config.peers.enabled = false', () => {
 					it(
 						'should call rejectDisallowed with "false" and "false" as arguments'
 					);
 				});
 
-				describe('when checkIpInList() = true and config.peers.enabled = true', function() {
+				describe('when checkIpInList() = true and config.peers.enabled = true', () => {
 					it(
 						'should call rejectDisallowed with "false" and "true" as arguments'
 					);
 				});
 			});
 
-			describe('when req.url does not match regex(/^\\/peer[\\/]?.*!/)', function() {
+			describe('when req.url does not match regex(/^\\/peer[\\/]?.*!/)', () => {
 				it(
 					'should call checkIpInList with parameters: config.peers.access.blackList, req.ip, false'
 				);
 
-				describe('when config.api.enabled = true and checkIpInList() = true and config.api.access.public = false', function() {
+				describe('when config.api.enabled = true and checkIpInList() = true and config.api.access.public = false', () => {
 					it(
 						'should call rejectDisallowed with "true" and "true" as arguments'
 					);
 				});
 
-				describe('when config.api.enabled = true and config.api.access.public = true and checkIpInList() = false', function() {
+				describe('when config.api.enabled = true and config.api.access.public = true and checkIpInList() = false', () => {
 					it(
 						'should call rejectDisallowed with "true" and "true" as arguments'
 					);
 				});
 
-				describe('when config.api.enabled = false', function() {
+				describe('when config.api.enabled = false', () => {
 					it('should call rejectDisallowed "false" and "false"');
 				});
 
-				describe('when config.api.enabled.public = true and checkIpInList() = false and config.api.access = false', function() {
+				describe('when config.api.enabled.public = true and checkIpInList() = false and config.api.access = false', () => {
 					it('should call rejectDisallowed "false" and "true"');
 				});
 			});
 		});
 
-		describe.skip('useCache', function() {
+		describe.skip('useCache', () => {
 			var validCache;
 			var validCachedValue;
 			var validErr;
 
-			before(function() {
+			before(() => {
 				validCache = {
 					isReady: sinonSandbox.stub(),
 					getJsonForKey: sinonSandbox.stub(),
@@ -450,7 +452,7 @@ describe('httpApi', function() {
 				validCachedValue = 'cachedValue';
 			});
 
-			beforeEach(function() {
+			beforeEach(() => {
 				httpApi.middleware.useCache(
 					loggerMock,
 					validCache,
@@ -460,53 +462,53 @@ describe('httpApi', function() {
 				);
 			});
 
-			afterEach(function() {
+			afterEach(() => {
 				loggerMock.debug.reset();
 			});
 
-			describe('when cache.isReady() = false', function() {
-				before(function() {
+			describe('when cache.isReady() = false', () => {
+				before(() => {
 					validCache.isReady.returns(false);
 				});
 
-				it('should call next function', function() {
+				it('should call next function', () => {
 					expect(validNextSpy.calledOnce).to.be.true;
 				});
 			});
 
-			describe('when cache.isReady() = true', function() {
-				before(function() {
+			describe('when cache.isReady() = true', () => {
+				before(() => {
 					validCache.isReady.returns(true);
 					validCache.getJsonForKey.yields(validErr, validCachedValue);
 				});
 
-				it('should call cache.getJsonForKey with key = req.originalUrl', function() {
+				it('should call cache.getJsonForKey with key = req.originalUrl', () => {
 					expect(validCache.getJsonForKey.calledWith(validReq.originalUrl)).to
 						.be.true;
 				});
 
-				describe('when err = true', function() {
-					before(function() {
+				describe('when err = true', () => {
+					before(() => {
 						validErr = true;
 					});
 
-					it('should add json function to response', function() {
+					it('should add json function to response', () => {
 						expect(validRes.json).to.be.a('function');
 					});
 
 					// Not tested, because defined function is not executed at this point
-					describe.skip('when res.statusCode = 200 (OK)', function() {
-						before(function() {
+					describe.skip('when res.statusCode = 200 (OK)', () => {
+						before(() => {
 							validRes.statusCode = 200;
 						});
 
-						it('should call logger.debug with "cached response for key: api/url"', function() {
+						it('should call logger.debug with "cached response for key: api/url"', () => {
 							expect(
 								loggerMock.debug.calledWith('cached response for key: api/url')
 							).to.be.true;
 						});
 
-						it('should call cache.setJsonForKey with key, response as arguments', function() {
+						it('should call cache.setJsonForKey with key, response as arguments', () => {
 							// expect(validCache.setJsonForKey.calledWith(validReq.url, validCachedValue));
 							expect(
 								validCache.setJsonForKey.calledWith(
@@ -517,27 +519,27 @@ describe('httpApi', function() {
 						});
 					});
 
-					it('should call next function', function() {
+					it('should call next function', () => {
 						expect(validNextSpy.calledOnce).to.be.true;
 					});
 				});
 
-				describe('when cachedValue  = false', function() {
-					before(function() {
+				describe('when cachedValue  = false', () => {
+					before(() => {
 						validCachedValue = false;
 					});
 
-					it('should add json function to response', function() {
+					it('should add json function to response', () => {
 						expect(validRes.json).to.be.a('function');
 					});
 
-					it('should call next function', function() {
+					it('should call next function', () => {
 						expect(validNextSpy.calledOnce).to.be.true;
 					});
 				});
 
-				describe('when cachedValue = true and err = false', function() {
-					before(function() {
+				describe('when cachedValue = true and err = false', () => {
+					before(() => {
 						validCachedValue = 'cachedValue';
 						validErr = false;
 						validRes = {
@@ -547,11 +549,11 @@ describe('httpApi', function() {
 						validCache.getJsonForKey.yields(validErr, validCachedValue);
 					});
 
-					it('should call logger.debug', function() {
+					it('should call logger.debug', () => {
 						expect(loggerMock.debug.called).to.be.true;
 					});
 
-					it('should call res.json with cachedValue', function() {
+					it('should call res.json with cachedValue', () => {
 						expect(validRes.json.calledWith(validCachedValue)).to.be.true;
 					});
 				});
@@ -559,46 +561,46 @@ describe('httpApi', function() {
 		});
 	});
 
-	describe('respond', function() {
+	describe('respond', () => {
 		var validResponse = {};
 
-		before(function() {
+		before(() => {
 			validRes = {
 				json: sinonSandbox.stub(),
 			};
 		});
 
-		beforeEach(function() {
+		beforeEach(() => {
 			httpApi.respond(validRes, validError, validResponse);
 		});
 
-		afterEach(function() {
+		afterEach(() => {
 			validRes.json.reset();
 		});
 
-		describe('when error is defined', function() {
-			it('should call res.json with {"success": false, "error": err}', function() {
+		describe('when error is defined', () => {
+			it('should call res.json with {"success": false, "error": err}', () => {
 				expect(validRes.json.calledWith({ success: false, error: validError }))
 					.to.be.true;
 			});
 		});
 
-		describe('when error is undefined', function() {
-			before(function() {
+		describe('when error is undefined', () => {
+			before(() => {
 				validError = null;
 			});
 
-			it('should call res.json with extend({}, {"success": true}, response)', function() {
+			it('should call res.json with extend({}, {"success": true}, response)', () => {
 				validResponse.success = true;
 				expect(validRes.json.calledWith(validResponse)).to.be.true;
 			});
 		});
 	});
 
-	describe('respondWithCode', function() {
+	describe('respondWithCode', () => {
 		var validResponse;
 
-		before(function() {
+		before(() => {
 			validResponse = {
 				data: [],
 			};
@@ -614,23 +616,23 @@ describe('httpApi', function() {
 			validRes.status.returns(validRes);
 		});
 
-		beforeEach(function() {
+		beforeEach(() => {
 			httpApi.respondWithCode(validRes, validError, validResponse);
 		});
 
-		afterEach(function() {
+		afterEach(() => {
 			validRes.json.reset();
 		});
 
-		describe('when error is defined', function() {
-			before(function() {
+		describe('when error is defined', () => {
+			before(() => {
 				validError = {
 					message: 'validError',
 					toJson: sinonSandbox.stub(),
 				};
 			});
 
-			it('should call res.status(500).json() with error in json format', function() {
+			it('should call res.status(500).json() with error in json format', () => {
 				var tmp_error = validError.code
 					? validError.code
 					: apiCodes.INTERNAL_SERVER_ERROR;
@@ -640,27 +642,27 @@ describe('httpApi', function() {
 			});
 		});
 
-		describe('when error is undefined', function() {
-			before(function() {
+		describe('when error is undefined', () => {
+			before(() => {
 				validError = null;
 			});
 
-			describe('when response is empty', function() {
-				it('should call res.status with code = 204 and res.json', function() {
+			describe('when response is empty', () => {
+				it('should call res.status with code = 204 and res.json', () => {
 					expect(validRes.status.calledWith(apiCodes.EMPTY_RESOURCES_OK)).to.be
 						.true;
 					expect(validRes.json.calledOnce).to.be.true;
 				});
 			});
 
-			describe('when response is not empty', function() {
-				before(function() {
+			describe('when response is not empty', () => {
+				before(() => {
 					validResponse = {
 						data: [1, 2, 3],
 					};
 				});
 
-				it('should call res.status with code = 200 and res.json', function() {
+				it('should call res.status with code = 200 and res.json', () => {
 					expect(validRes.status.calledWith(apiCodes.OK)).to.be.true;
 					expect(validRes.json.calledOnce).to.be.true;
 				});
@@ -668,13 +670,13 @@ describe('httpApi', function() {
 		});
 	});
 
-	describe('registerEndpoint', function() {
+	describe('registerEndpoint', () => {
 		var validRoute;
 		var validApp;
 		var validRouter;
 		var validIsLoaded;
 
-		before(function() {
+		before(() => {
 			validRoute = null;
 			validApp = {
 				use: sinonSandbox.stub(),
@@ -685,7 +687,7 @@ describe('httpApi', function() {
 			validIsLoaded = true;
 		});
 
-		beforeEach(function() {
+		beforeEach(() => {
 			httpApi.registerEndpoint(
 				validRoute,
 				validApp,
@@ -694,18 +696,18 @@ describe('httpApi', function() {
 			);
 		});
 
-		it('should call router.use with middleware.notFound', function() {
+		it('should call router.use with middleware.notFound', () => {
 			expect(validRouter.use.calledWith(httpApi.middleware.notFound)).to.be
 				.true;
 		});
 
-		it('should call router.use with middleware.blockchainReady.bind(null, validIsLoaded)', function() {
+		it('should call router.use with middleware.blockchainReady.bind(null, validIsLoaded)', () => {
 			expect(validRouter.use.args[1][0].toString()).to.equal(
 				httpApi.middleware.blockchainReady.bind(null, validIsLoaded).toString()
 			);
 		});
 
-		it('should call app.use with route and router as arguments', function() {
+		it('should call app.use with route and router as arguments', () => {
 			expect(validApp.use.calledWith(validRoute, validRouter));
 		});
 	});

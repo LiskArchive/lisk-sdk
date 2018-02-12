@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
@@ -23,7 +24,7 @@ var sync = require('./sync');
 var WAIT_BEFORE_CONNECT_MS = 20000;
 
 module.exports = {
-	setupNetwork: function(configurations, cb) {
+	setupNetwork(configurations, cb) {
 		async.series(
 			[
 				function(cbSeries) {
@@ -64,11 +65,11 @@ module.exports = {
 		);
 	},
 
-	exit: function(cb) {
+	exit(cb) {
 		shell.killTestNodes(cb);
 	},
-	network: network,
-	pm2: pm2,
-	shell: shell,
-	sync: sync,
+	network,
+	pm2,
+	shell,
+	sync,
 };

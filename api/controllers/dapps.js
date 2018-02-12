@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -74,7 +75,7 @@ DappsController.getDapps = function(context, next) {
 			});
 
 			next(null, {
-				data: data,
+				data,
 				meta: {
 					offset: filters.offset,
 					limit: filters.limit,

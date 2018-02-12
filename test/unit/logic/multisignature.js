@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var crypto = require('crypto');
@@ -560,7 +561,7 @@ describe('multisignature', () => {
 						it('should call library.logic.account.setAccountAndGet with {address: address}', () => {
 							expect(
 								accountsMock.setAccountAndGet.calledWith(
-									sinonSandbox.match({ address: address })
+									sinonSandbox.match({ address })
 								)
 							).to.be.true;
 						});
@@ -611,7 +612,7 @@ describe('multisignature', () => {
 		});
 	});
 
-	it('undo', () => {
+	describe('undo', () => {
 		/* eslint-disable mocha/no-sibling-hooks */
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
@@ -620,6 +621,7 @@ describe('multisignature', () => {
 		});
 		/* eslint-enable */
 
+		/* eslint-disable mocha/no-nested-tests */
 		it('should set __private.unconfirmedSignatures[sender.address] = true', () => {
 			var unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
@@ -642,8 +644,8 @@ describe('multisignature', () => {
 				multisignatures: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
 				),
-				multimin: transaction.asset.multisignature.min,
-				multilifetime: transaction.asset.multisignature.lifetime,
+				multimin: -transaction.asset.multisignature.min,
+				multilifetime: -transaction.asset.multisignature.lifetime,
 				blockId: dummyBlock.id,
 				round: slots.calcRound(dummyBlock.height),
 			};
@@ -675,6 +677,7 @@ describe('multisignature', () => {
 				});
 			});
 		});
+		/* eslint-enable */
 	});
 
 	describe('applyUnconfirmed', () => {

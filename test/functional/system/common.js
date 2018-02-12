@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
@@ -99,9 +100,8 @@ function addTransaction(library, transaction, cb) {
 			err => {
 				if (err) {
 					return setImmediate(sequenceCb, err.toString());
-				} else {
-					return setImmediate(sequenceCb, null, transaction.id);
 				}
+				return setImmediate(sequenceCb, null, transaction.id);
 			}
 		);
 	}, cb);
@@ -157,6 +157,7 @@ function getTransactionFromModule(library, filter, cb) {
 }
 
 function beforeBlock(type, cb) {
+	// eslint-disable-next-line mocha/no-top-level-hooks
 	before(
 		'init sandboxed application, credit account and register dapp',
 		done => {
@@ -170,6 +171,7 @@ function beforeBlock(type, cb) {
 		}
 	);
 
+	// eslint-disable-next-line mocha/no-top-level-hooks
 	after('cleanup sandboxed application', done => {
 		application.cleanup(done);
 	});
@@ -252,11 +254,11 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 }
 
 module.exports = {
-	forge: forge,
-	addTransaction: addTransaction,
-	addTransactionsAndForge: addTransactionsAndForge,
-	getAccountFromDb: getAccountFromDb,
-	getTransactionFromModule: getTransactionFromModule,
-	beforeBlock: beforeBlock,
-	loadTransactionType: loadTransactionType,
+	forge,
+	addTransaction,
+	addTransactionsAndForge,
+	getAccountFromDb,
+	getTransactionFromModule,
+	beforeBlock,
+	loadTransactionType,
 };

@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -85,7 +86,7 @@ DelegatesController.getDelegates = function(context, next) {
 		});
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
@@ -132,15 +133,14 @@ DelegatesController.getForgingStatistics = function(context, next) {
 		end: params.toTimestamp.value || Date.now(),
 	};
 
-	modules.blocks.utils.aggregateBlocksReward(filters, function(err, reward) {
+	modules.blocks.utils.aggregateBlocksReward(filters, (err, reward) => {
 		if (err) {
 			if (err === 'Account not found' || err === 'Account is not a delegate') {
 				return next(
 					swaggerHelper.generateParamsErrorObject([params.address], [err])
 				);
-			} else {
-				return next(err);
 			}
+			return next(err);
 		}
 
 		var forged = new bignum(reward.fees)
@@ -150,7 +150,7 @@ DelegatesController.getForgingStatistics = function(context, next) {
 			data: {
 				fees: reward.fees,
 				rewards: reward.rewards,
-				forged: forged,
+				forged,
 				count: reward.count,
 			},
 			meta: {
