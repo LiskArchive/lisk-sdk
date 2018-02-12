@@ -50,7 +50,7 @@ describe('#transfer transaction', () => {
 			});
 
 			it('should create a transfer transaction', () => {
-				return transferTransaction.should.be.ok;
+				return transferTransaction.should.be.ok();
 			});
 
 			it('should use time.getTimeWithOffset to calculate the timestamp', () => {
@@ -70,40 +70,40 @@ describe('#transfer transaction', () => {
 			});
 
 			it('should be an object', () => {
-				return transferTransaction.should.be.a('object');
+				return transferTransaction.should.be.type('object');
 			});
 
 			it('should have id string', () => {
 				return transferTransaction.should.have
 					.property('id')
-					.and.be.a('string');
+					.and.be.type('string');
 			});
 
 			it('should have type number equal to 0', () => {
 				return transferTransaction.should.have
 					.property('type')
-					.and.be.a('number')
+					.and.be.type('number')
 					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to provided amount', () => {
 				return transferTransaction.should.have
 					.property('amount')
-					.and.be.a('string')
+					.and.be.type('string')
 					.and.equal(amount);
 			});
 
 			it('should have fee string equal to transfer fee', () => {
 				return transferTransaction.should.have
 					.property('fee')
-					.and.be.a('string')
+					.and.be.type('string')
 					.and.equal(fee);
 			});
 
 			it('should have recipientId string equal to provided recipient id', () => {
 				return transferTransaction.should.have
 					.property('recipientId')
-					.and.be.a('string')
+					.and.be.type('string')
 					.and.equal(recipientId);
 			});
 
@@ -117,7 +117,7 @@ describe('#transfer transaction', () => {
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 				return transferTransaction.should.have
 					.property('timestamp')
-					.and.be.a('number')
+					.and.be.type('number')
 					.and.equal(timeWithOffset);
 			});
 
@@ -130,7 +130,8 @@ describe('#transfer transaction', () => {
 			it('should have an empty asset object', () => {
 				return transferTransaction.should.have
 					.property('asset')
-					.and.be.a('object').and.be.empty;
+					.and.be.type('object')
+					.and.be.empty();
 			});
 
 			it('should not have the second signature property', () => {
@@ -164,7 +165,7 @@ describe('#transfer transaction', () => {
 			it('should have fee string equal to transfer with data fee', () => {
 				return transferTransaction.should.have
 					.property('fee')
-					.and.be.a('string')
+					.and.be.type('string')
 					.and.equal(feeWithData);
 			});
 
@@ -172,7 +173,7 @@ describe('#transfer transaction', () => {
 				it('should be a string equal to provided data', () => {
 					return transferTransaction.asset.should.have
 						.property('data')
-						.and.be.a('string')
+						.and.be.type('string')
 						.and.equal(testData);
 				});
 			});

@@ -71,7 +71,7 @@ describe('public key validation', () => {
 			const publicKey =
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca';
 			it('should return true', () => {
-				return validatePublicKey(publicKey).should.be.true;
+				return validatePublicKey(publicKey).should.be.true();
 			});
 		});
 
@@ -79,7 +79,7 @@ describe('public key validation', () => {
 			const publicKey =
 				'1234567812345678123456781234567812345678123456781234567812345678';
 			it('should return true', () => {
-				return validatePublicKey(publicKey).should.be.true;
+				return validatePublicKey(publicKey).should.be.true();
 			});
 		});
 	});
@@ -106,7 +106,7 @@ describe('public key validation', () => {
 				'1234567812345678123456781234567812345678123456781234567812345678',
 			];
 			it('should return true', () => {
-				return validatePublicKeys(publicKeys).should.be.true;
+				return validatePublicKeys(publicKeys).should.be.true();
 			});
 		});
 	});
@@ -122,7 +122,7 @@ describe('public key validation', () => {
 				];
 			});
 			it('the validated keysgroup should return true', () => {
-				return validateKeysgroup(keysgroup).should.be.true;
+				return validateKeysgroup(keysgroup).should.be.true();
 			});
 		});
 
@@ -168,7 +168,7 @@ describe('public key validation', () => {
 				'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 			];
 			it('should return true', () => {
-				return checkPublicKeysForDuplicates(publicKeys).should.be.true;
+				return checkPublicKeysForDuplicates(publicKeys).should.be.true();
 			});
 		});
 
