@@ -150,8 +150,20 @@ export const checkTransaction = transaction => {
 };
 
 const getTransactionBytes = transaction => {
+	const {
+		type,
+		timestamp,
+		requesterPublicKey,
+		senderPublicKey,
+		recipientId,
+		amount,
+		signature,
+		signSignature,
+	} = transaction;
+
 	checkTransaction(transaction);
-	const transactionType = Buffer.alloc(BYTESIZES.TYPE, transaction.type);
+
+	const transactionType = Buffer.alloc(BYTESIZES.TYPE, type);
 	const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 	transactionTimestamp.writeIntLE(
 		transaction.timestamp,
@@ -174,7 +186,7 @@ const getTransactionBytes = transaction => {
 			)
 		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
-	const transactionAmount = bignum(transaction.amount).toBuffer({
+	const transactionAmount = bignum(amount).toBuffer({
 		endian: 'little',
 		size: BYTESIZES.AMOUNT,
 	});
