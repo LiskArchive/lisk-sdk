@@ -89,7 +89,7 @@ function Delegates(cb, scope) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback}
  */
-__private.getKeysSortByVote = function(cb) {
+__private.getKeysSortByVote = function(cb, tx) {
 	modules.accounts.getAccounts(
 		{
 			isDelegate: 1,
@@ -102,7 +102,8 @@ __private.getKeysSortByVote = function(cb) {
 				return setImmediate(cb, err);
 			}
 			return setImmediate(cb, null, rows.map(el => el.publicKey));
-		}
+		},
+		tx
 	);
 };
 
@@ -112,8 +113,8 @@ __private.getKeysSortByVote = function(cb) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback}
  */
-__private.getDelegatesFromPreviousRound = function(cb) {
-	library.db.rounds
+__private.getDelegatesFromPreviousRound = function(cb, tx) {
+	(tx || library.db).rounds
 		.getDelegatesSnapshot(slots.delegates)
 		.then(rows => {
 			var delegatesPublicKeys = [];
@@ -625,7 +626,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
  * @param {function} cb - Callback function.
  * @returns {setImmediateCallback} err | truncated delegate list
  */
-Delegates.prototype.generateDelegateList = function(height, source, cb) {
+Delegates.prototype.generateDelegateList = function(height, source, cb, tx) {
 	// Set default function for getting delegates
 	source = source || __private.getKeysSortByVote;
 
@@ -654,7 +655,7 @@ Delegates.prototype.generateDelegateList = function(height, source, cb) {
 		}
 
 		return setImmediate(cb, null, truncDelegateList);
-	});
+	}, tx);
 };
 
 /**
