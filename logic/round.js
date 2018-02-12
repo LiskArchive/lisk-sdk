@@ -350,7 +350,7 @@ Round.prototype.applyRound = function() {
 	}
 
 	// Prepare queries for inserting round rewards
-	roundRewards.forEach(function(item) {
+	roundRewards.forEach(item => {
 		queries.push(
 			self.t.rounds.insertRoundRewards(
 				item.timestamp,
