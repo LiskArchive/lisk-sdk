@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var Promise = require('bluebird');
@@ -24,9 +25,9 @@ function PromiseDefer() {
 	});
 
 	return {
-		resolve: resolve,
-		reject: reject,
-		promise: promise,
+		resolve,
+		reject,
+		promise,
 	};
 }
 

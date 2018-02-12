@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var constants = require('../helpers/constants.js');
@@ -36,9 +37,9 @@ __private.unconfirmedOutTansfers = {};
 // Constructor
 function OutTransfer(db, schema, logger) {
 	library = {
-		db: db,
-		schema: schema,
-		logger: logger,
+		db,
+		schema,
+		logger,
 	};
 }
 
@@ -49,8 +50,8 @@ function OutTransfer(db, schema, logger) {
  */
 OutTransfer.prototype.bind = function(accounts, blocks) {
 	modules = {
-		accounts: accounts,
-		blocks: blocks,
+		accounts,
+		blocks,
 	};
 };
 
@@ -141,9 +142,8 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 								transaction.asset.outTransfer.transactionId
 							}`
 						);
-					} else {
-						return setImmediate(cb, null, transaction);
 					}
+					return setImmediate(cb, null, transaction);
 				})
 				.catch(err => setImmediate(cb, err));
 		})
@@ -334,14 +334,13 @@ OutTransfer.prototype.objectNormalize = function(transaction) {
 OutTransfer.prototype.dbRead = function(raw) {
 	if (!raw.ot_dappId) {
 		return null;
-	} else {
-		var outTransfer = {
-			dappId: raw.ot_dappId,
-			transactionId: raw.ot_outTransactionId,
-		};
-
-		return { outTransfer: outTransfer };
 	}
+	var outTransfer = {
+		dappId: raw.ot_dappId,
+		transactionId: raw.ot_outTransactionId,
+	};
+
+	return { outTransfer };
 };
 
 /**
@@ -356,9 +355,8 @@ OutTransfer.prototype.ready = function(transaction, sender) {
 			return false;
 		}
 		return transaction.signatures.length >= sender.multimin;
-	} else {
-		return true;
 	}
+	return true;
 };
 
 // Export

@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var crypto = require('crypto');
@@ -108,9 +109,10 @@ Accounts.prototype.getAccount = function(filter, fields, cb, tx) {
  * @param {Object} filter
  * @param {Object} fields
  * @param {function} cb - Callback function.
+ * @param {Object} tx - Database transaction/task object
  */
-Accounts.prototype.getAccounts = function(filter, fields, cb) {
-	library.logic.account.getAll(filter, fields, cb);
+Accounts.prototype.getAccounts = function(filter, fields, cb, tx) {
+	library.logic.account.getAll(filter, fields, cb, tx);
 };
 
 /**
@@ -141,9 +143,8 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 	if (err) {
 		if (typeof cb === 'function') {
 			return setImmediate(cb, err);
-		} else {
-			throw err;
 		}
+		throw err;
 	}
 
 	library.logic.account.set(
@@ -153,7 +154,7 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			return library.logic.account.get({ address: address }, cb, tx);
+			return library.logic.account.get({ address }, cb, tx);
 		},
 		tx
 	);
@@ -187,9 +188,8 @@ Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
 	if (err) {
 		if (typeof cb === 'function') {
 			return setImmediate(cb, err);
-		} else {
-			throw err;
 		}
+		throw err;
 	}
 
 	return library.logic.account.merge(address, data, cb, tx);
@@ -237,7 +237,7 @@ Accounts.prototype.shared = {
 	 * @param {function} cb - Callback function
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getAccounts: function(filters, cb) {
+	getAccounts(filters, cb) {
 		library.logic.account.getAll(filters, (err, accounts) => {
 			if (err) {
 				return setImmediate(cb, err);
@@ -268,7 +268,7 @@ Accounts.prototype.shared = {
 					unconfirmedSignature: account.u_secondSignature,
 					secondSignature: account.secondSignature,
 					secondPublicKey: account.secondPublicKey,
-					delegate: delegate,
+					delegate,
 				};
 			});
 

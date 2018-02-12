@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var Peer = require('../../../logic/peer');
@@ -150,7 +151,7 @@ PeersUpdateRules.prototype.internal = {
 	 * @todo: Add description of the functions and its parameters
 	 * @todo: Add returns-tag
 	 */
-	update: function(updateType, peer, connectionId, cb) {
+	update(updateType, peer, connectionId, cb) {
 		self.slaveToMasterSender.getPeer(peer.nonce, (err, onMasterPresence) => {
 			if (err) {
 				return setImmediate(
@@ -192,7 +193,7 @@ PeersUpdateRules.prototype.external = {
 	 * @todo: Add description of the functions and its parameters
 	 * @todo: Add returns-tag
 	 */
-	update: function(request, cb) {
+	update(request, cb) {
 		z_schema.validate(request, definitions.WSPeerUpdateRequest, err => {
 			if (err) {
 				return setImmediate(cb, err[0].message);

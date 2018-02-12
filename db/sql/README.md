@@ -44,8 +44,11 @@ Try to avoid needlessly repeating in the file name the name of the repository th
 ## Development Notes
 
 When editing an SQL file on the development machine, you do not need to restart the application in order
-to see the immediate change. The development environment is configured to detect any change, and reload
-the SQL file immediately. This feature is provided automatically by the [QueryFile] class (option `debug`).
+to see the immediate change. Class [QueryFile] automatically detects changes and reloads the SQL file
+immediately, if its option `debug` is set.
+
+Option `debug` defaults to `true` when your `NODE_ENV` is set to a name that contains `dev` in it,
+case-insensitive. Otherwise, SQL-auto-reload feature is disabled.
 
 [index variables]: https://github.com/vitaly-t/pg-promise#index-variables
 [named parameters]: https://github.com/vitaly-t/pg-promise#named-parameters

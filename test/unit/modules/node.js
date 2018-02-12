@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -11,6 +12,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var genesisDelegates = require('../../data/genesis_delegates.json');

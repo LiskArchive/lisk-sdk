@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 const _ = require('lodash');
@@ -68,12 +69,12 @@ const normalFields = [
 		init: () => 'encode("secondPublicKey", \'hex\')',
 		skip: ifNotExists,
 	},
-	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
 ];
 
 // Only used in SELECT and INSERT queries
 const immutableFields = [
 	{ name: 'address', mod: ':raw', init: () => 'upper(address)' },
+	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
 ];
 
 // Only used in SELECT queries
@@ -130,11 +131,11 @@ class AccountsRepository {
 				{ name: 'u_isDelegate', cast: 'int', def: 0, skip: ifNotExists },
 				{ name: 'secondSignature', cast: 'int', def: 0, skip: ifNotExists },
 				{ name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists },
-				{ name: 'virgin', cast: 'int', def: 1 },
 			]);
 
 			cs.insert = cs.update.merge([
 				{ name: 'address', mod: ':raw', init: c => `upper('${c.value}')` },
+				{ name: 'virgin', cast: 'int', def: 1, skip: ifNotExists },
 			]);
 		}
 	}
@@ -233,33 +234,19 @@ class AccountsRepository {
 			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
-		if (conflictingFields.length === 1 && conflictingFields[0] === 'address') {
-			const sql =
-				'${insertSQL:raw} ON CONFLICT(${conflictFields:name}) DO UPDATE SET ${setsSQL:raw}';
+		const conditionObject = {};
+		conflictingFields.forEach(field => {
+			conditionObject[field] = data[field];
+		});
 
-			return this.db.none(sql, {
-				insertSQL: this.pgp.helpers.insert(data, this.cs.insert),
-				conflictFields: conflictingFields,
-				setsSQL: this.pgp.helpers.sets(updateData, this.cs.update),
-			});
-		} else {
-			const conditionObject = {};
-			conflictingFields.forEach(function(field) {
-				conditionObject[field] = data[field];
-			});
-
-			return this.db.tx('db:accounts:upsert', function(t) {
-				return t.accounts
-					.list(conditionObject, ['address'])
-					.then(function(result) {
-						if (result.length) {
-							return t.accounts.update(result[0].address, updateData);
-						} else {
-							return t.accounts.insert(data);
-						}
-					});
-			});
-		}
+		return this.db.tx('db:accounts:upsert', function*(t) {
+			const result = yield t.accounts.list(conditionObject, ['address']);
+			if (result.length) {
+				yield t.accounts.update(result[0].address, updateData);
+			} else {
+				yield t.accounts.insert(data);
+			}
+		});
 	}
 
 	/**
@@ -286,6 +273,16 @@ class AccountsRepository {
 			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
+		this.getImmutableFields().map(field => {
+			delete data[field];
+		});
+
+		// To avoid Error: Cannot generate an UPDATE without any columns.
+		// If there is nothing to update, return else pg-promise will fail
+		if (Object.keys(data).length === 0) {
+			return Promise.resolve();
+		}
+
 		return this.db.none(
 			this.pgp.helpers.update(data, this.cs.update) +
 				this.pgp.as.format(' WHERE $1:name=$2', ['address', address])
@@ -303,9 +300,9 @@ class AccountsRepository {
 	increment(address, field, value) {
 		return this.db.none(sql.incrementAccount, {
 			table: this.dbTable,
-			field: field,
-			value: value,
-			address: address,
+			field,
+			value,
+			address,
 		});
 	}
 
@@ -320,9 +317,9 @@ class AccountsRepository {
 	decrement(address, field, value) {
 		return this.db.none(sql.decrementAccount, {
 			table: this.dbTable,
-			field: field,
-			value: value,
-			address: address,
+			field,
+			value,
+			address,
 		});
 	}
 
@@ -386,10 +383,10 @@ class AccountsRepository {
 		if (
 			filters &&
 			typeof filters.username === 'object' &&
-			filters.username['$like']
+			filters.username.$like
 		) {
 			dynamicConditions.push(
-				pgp.as.format('username LIKE $1', [filters.username['$like']])
+				pgp.as.format('username LIKE $1', [filters.username.$like])
 			);
 			delete filters.username;
 		}
@@ -446,9 +443,9 @@ class AccountsRepository {
 
 		if (filters) {
 			const filterKeys = Object.keys(filters);
-			const filteredColumns = this.cs.insert.columns.filter(function(column) {
-				return filterKeys.indexOf(column.name) >= 0;
-			});
+			const filteredColumns = this.cs.insert.columns.filter(
+				column => filterKeys.indexOf(column.name) >= 0
+			);
 
 			// TODO: Improve this logic to convert set statement to composite logic
 			conditions = pgp.helpers
@@ -476,11 +473,11 @@ class AccountsRepository {
 
 		const query = this.pgp.as.format(sql, {
 			fields: selectClause,
-			conditions: conditions,
-			sortField: sortField,
-			sortMethod: sortMethod,
-			limit: limit,
-			offset: offset,
+			conditions,
+			sortField,
+			sortMethod,
+			limit,
+			offset,
 		});
 
 		return this.db.query(query);
@@ -512,8 +509,8 @@ class AccountsRepository {
 
 		return this.db.none(sql.removeAccountDependencies, {
 			table: `${this.dbTable}2${dependency}`,
-			address: address,
-			dependentId: dependentId,
+			address,
+			dependentId,
 		});
 	}
 
@@ -550,12 +547,22 @@ class AccountsRepository {
 			this.pgp.helpers.insert(
 				{
 					accountId: address,
-					dependentId: dependentId,
+					dependentId,
 				},
 				null,
 				dependentTable
 			)
 		);
+	}
+
+	/**
+	 * Convert an account to be non-virgin account.
+	 *
+	 * @param {string} address - Account address
+	 * @return {Promise<null>}
+	 */
+	convertToNonVirgin(address) {
+		return this.db.none(sql.convertToNonVirgin, { address });
 	}
 }
 

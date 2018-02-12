@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 // Private fields
@@ -53,8 +54,8 @@ function getConfig() {
 }
 
 module.exports = {
-	bind: bind,
-	getCache: getCache,
-	getLogger: getLogger,
-	getConfig: getConfig,
+	bind,
+	getCache,
+	getLogger,
+	getConfig,
 };

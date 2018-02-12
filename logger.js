@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var fs = require('fs');
@@ -117,7 +118,7 @@ module.exports = function(config) {
 				config.levels[config.echo] <= config.levels[log.level]
 			) {
 				if (log.data) {
-					console.log(
+					console.info(
 						`[${log.symbol.bgYellow.black}]`,
 						log.timestamp.grey,
 						'|',
@@ -126,7 +127,7 @@ module.exports = function(config) {
 						log.data
 					);
 				} else {
-					console.log(
+					console.info(
 						`[${log.symbol.bgYellow.black}]`,
 						log.timestamp.grey,
 						'|',

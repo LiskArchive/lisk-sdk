@@ -1,0 +1,13 @@
+.*
+docs/
+logs/*
+package/
+pids/*
+release/
+scripts/
+tasks/
+test/
+Grunt*
+Jenkins*
+*.sh
+*.tgz

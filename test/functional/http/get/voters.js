@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
@@ -432,6 +433,9 @@ describe('GET /api/voters', () => {
 								_.intersection(voters, _.map(res.body.data.voters, 'address'))
 							).to.have.length(1);
 							done();
+						})
+						.catch(err => {
+							done(err);
 						});
 				});
 			});

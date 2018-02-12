@@ -11,12 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var jobsQueue = {
 	jobs: {},
 
-	register: function(name, job, time) {
+	register(name, job, time) {
 		// Check if job is already registered - we check only if property exists, because value can be undefined
 		if (hasOwnProperty.call(this.jobs, name)) {
 			throw new Error(`Synchronous job ${name} already registered`);

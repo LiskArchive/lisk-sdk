@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
@@ -413,6 +414,9 @@ describe('GET /api/votes', () => {
 							nonVoterDelegate.publicKey,
 						]);
 						done();
+					})
+					.catch(err => {
+						done(err);
 					});
 			});
 		});

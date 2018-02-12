@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var constants = require('../helpers/constants.js');
@@ -117,10 +118,10 @@ function Blocks(cb, scope) {
  * @property {function} isFresh Returns status of last block - if it fresh or not
  */
 Blocks.prototype.lastBlock = {
-	get: function() {
+	get() {
 		return __private.lastBlock;
 	},
-	set: function(lastBlock) {
+	set(lastBlock) {
 		__private.lastBlock = lastBlock;
 		return __private.lastBlock;
 	},
@@ -130,7 +131,7 @@ Blocks.prototype.lastBlock = {
 	 * @function isFresh
 	 * @return {boolean} Fresh status of last block
 	 */
-	isFresh: function() {
+	isFresh() {
 		if (!__private.lastBlock) {
 			return false;
 		}
@@ -149,10 +150,10 @@ Blocks.prototype.lastBlock = {
  * @property {function} isStale Returns status of last receipt - if it fresh or not
  */
 Blocks.prototype.lastReceipt = {
-	get: function() {
+	get() {
 		return __private.lastReceipt;
 	},
-	update: function() {
+	update() {
 		__private.lastReceipt = Math.floor(Date.now() / 1000);
 		return __private.lastReceipt;
 	},
@@ -163,7 +164,7 @@ Blocks.prototype.lastReceipt = {
 	 * @method lastReceipt.isStale
 	 * @return {boolean} Stale status of last receipt
 	 */
-	isStale: function() {
+	isStale() {
 		if (!__private.lastReceipt) {
 			return true;
 		}
@@ -174,17 +175,17 @@ Blocks.prototype.lastReceipt = {
 };
 
 Blocks.prototype.isActive = {
-	get: function() {
+	get() {
 		return __private.isActive;
 	},
-	set: function(isActive) {
+	set(isActive) {
 		__private.isActive = isActive;
 		return __private.isActive;
 	},
 };
 
 Blocks.prototype.isCleaning = {
-	get: function() {
+	get() {
 		return __private.cleanup;
 	},
 };
@@ -216,17 +217,16 @@ Blocks.prototype.cleanup = function(cb) {
 	if (!__private.isActive) {
 		// Module ready for shutdown
 		return setImmediate(cb);
-	} else {
-		// Module is not ready, repeat
-		setImmediate(function nextWatch() {
-			if (__private.isActive) {
-				library.logger.info('Waiting for block processing to finish...');
-				setTimeout(nextWatch, 10000); // 10 sec
-			} else {
-				return setImmediate(cb);
-			}
-		});
 	}
+	// Module is not ready, repeat
+	setImmediate(function nextWatch() {
+		if (__private.isActive) {
+			library.logger.info('Waiting for block processing to finish...');
+			setTimeout(nextWatch, 10000); // 10 sec
+		} else {
+			return setImmediate(cb);
+		}
+	});
 };
 
 /**

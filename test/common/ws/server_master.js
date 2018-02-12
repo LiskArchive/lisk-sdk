@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var ChildProcess = require('child_process');
@@ -47,7 +48,7 @@ function WSServerMaster() {
 WSServerMaster.prototype.start = function() {
 	var self = this;
 
-	return new Promise(function(resolve, reject) {
+	return new Promise((resolve, reject) => {
 		self.masterProcess = ChildProcess.fork(
 			path.join(__dirname, 'server_process.js'),
 			[JSON.stringify(self.headers)],
@@ -76,6 +77,8 @@ WSServerMaster.prototype.start = function() {
 				reject(message);
 			}
 		});
+	}).catch(err => {
+		console.error(`Server master error: ${err}`);
 	});
 };
 
@@ -99,7 +102,7 @@ WSServerMaster.generatePeerHeaders = function(headers) {
 		state: 2,
 		height: 1,
 		wsPort: httpPort - 1,
-		httpPort: httpPort,
+		httpPort,
 		nonce: randomstring.generate(16),
 		os: operatingSystems[random.number(0, operatingSystems.length)],
 		version: testConfig.version,

@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests, mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -11,6 +12,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
@@ -153,7 +155,7 @@ describe('transactions', () => {
 
 		async.auto(
 			{
-				accountLogic: function(cb) {
+				accountLogic(cb) {
 					modulesLoader.initLogic(AccountLogic, { db: dbStub }, cb);
 				},
 				transactionLogic: [
@@ -276,7 +278,7 @@ describe('transactions', () => {
 	describe('Transaction#shared', () => {
 		describe('getTransaction', () => {
 			function getTransactionsById(id, done) {
-				transactionsModule.shared.getTransactions({ id: id }, done);
+				transactionsModule.shared.getTransactions({ id }, done);
 			}
 
 			var transactionsByType = {

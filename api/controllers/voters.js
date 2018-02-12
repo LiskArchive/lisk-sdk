@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -93,9 +94,8 @@ VotersController.getVoters = function(context, next) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
 				return next('Delegate not found');
-			} else {
-				return next(err);
 			}
+			return next(err);
 		}
 
 		data = _.cloneDeep(data);
@@ -105,7 +105,7 @@ VotersController.getVoters = function(context, next) {
 		}
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
@@ -168,9 +168,8 @@ VotersController.getVotes = function(context, next) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
 				return next('Delegate not found');
-			} else {
-				return next(err);
 			}
+			return next(err);
 		}
 
 		data = _.cloneDeep(data);
@@ -182,7 +181,7 @@ VotersController.getVotes = function(context, next) {
 		});
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,

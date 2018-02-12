@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var util = require('util');
@@ -78,7 +79,7 @@ Sequence.prototype.add = function(worker, args, done) {
 		args = undefined;
 	}
 	if (worker && typeof worker === 'function') {
-		var task = { worker: worker, done: done };
+		var task = { worker, done };
 		if (util.isArray(args)) {
 			task.args = args;
 		}

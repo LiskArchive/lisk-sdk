@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 module.exports = Field;
@@ -102,12 +103,8 @@ Field.prototype.validate = function(callback) {
 			}
 
 			if (descriptor.filter) {
-				value = this.value = descriptor.filter.call(
-					thisArg,
-					accept,
-					value,
-					this
-				);
+				this.value = descriptor.filter.call(thisArg, accept, value, this);
+				value = this.value;
 			}
 
 			if (descriptor.validate) {
@@ -121,8 +118,8 @@ Field.prototype.validate = function(callback) {
 			if (result === false) {
 				report.push({
 					path: this.path,
-					rule: rule,
-					accept: accept,
+					rule,
+					accept,
 				});
 
 				this.hasError = true;

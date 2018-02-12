@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var wsRPC = require('./rpc/ws_rpc').wsRPC;

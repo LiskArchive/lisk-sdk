@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 /**
@@ -43,9 +44,9 @@ SlaveToMasterSender.prototype.send = function(
 	this.slaveWAMPServer.sendToMaster(
 		procedureName,
 		{
-			peer: peer,
+			peer,
 			authKey: this.slaveWAMPServer.worker.options.authKey,
-			updateType: updateType,
+			updateType,
 		},
 		peer.nonce,
 		cb
@@ -62,7 +63,7 @@ SlaveToMasterSender.prototype.send = function(
 SlaveToMasterSender.prototype.getPeer = function(nonce, cb) {
 	this.slaveWAMPServer.sendToMaster(
 		'list',
-		{ query: { nonce: nonce } },
+		{ query: { nonce } },
 		nonce,
 		(err, result) => {
 			if (err) {

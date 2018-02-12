@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var randomstring = require('randomstring');
@@ -31,7 +32,7 @@ describe('handshake', () => {
 	var validConfig = {
 		config: {
 			version: config.version,
-			minVersion: minVersion,
+			minVersion,
 			nethash: config.nethash,
 			nonce: validNodeNonce,
 		},
