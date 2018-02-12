@@ -189,6 +189,7 @@ Rounds.prototype.setSnapshotRound = function(round) {
  * @implements {__private.getOutsiders}
  * @param {block} block - Current block.
  * @param {function} done - Callback function.
+ * @param {Object} tx - Database transaction/task object
  * @return {function} Calling done with error if any.
  */
 Rounds.prototype.tick = function(block, done, tx) {
@@ -349,6 +350,7 @@ Rounds.prototype.cleanup = function(cb) {
  * @implements {modules.accounts.generateAddressByPublicKey}
  * @param {scope} scope
  * @param {function} cb
+ * @param {Object} tx - Database transaction/task object
  * @return {setImmediateCallback}
  */
 __private.getOutsiders = function(scope, cb, tx) {
@@ -391,6 +393,7 @@ __private.getOutsiders = function(scope, cb, tx) {
  * @implements {library.db.query}
  * @param {number} round
  * @param {function} cb
+ * @param {Object} tx - Database transaction/task object
  * @return {setImmediateCallback}
  */
 __private.sumRound = function(scope, cb, tx) {

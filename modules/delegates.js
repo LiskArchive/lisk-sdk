@@ -87,6 +87,7 @@ function Delegates(cb, scope) {
  * Gets delegate public keys sorted by vote descending.
  * @private
  * @param {function} cb - Callback function.
+ * @param {Object} tx - Database transaction/task object
  * @returns {setImmediateCallback}
  */
 __private.getKeysSortByVote = function(cb, tx) {
@@ -111,6 +112,7 @@ __private.getKeysSortByVote = function(cb, tx) {
  * Gets delegate public keys from previous round, sorted by vote descending.
  * @private
  * @param {function} cb - Callback function.
+ * @param {Object} tx - Database transaction/task object
  * @returns {setImmediateCallback}
  */
 __private.getDelegatesFromPreviousRound = function(cb, tx) {
@@ -624,6 +626,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
  * @param {number} height
  * @param {function} source - Source function for get delegates.
  * @param {function} cb - Callback function.
+ * @param {Object} tx - Database transaction/task object
  * @returns {setImmediateCallback} err | truncated delegate list
  */
 Delegates.prototype.generateDelegateList = function(height, source, cb, tx) {
