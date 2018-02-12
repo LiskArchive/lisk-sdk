@@ -41,23 +41,23 @@ describe('api utils module', () => {
 
 		it('should return an object with a testnet nethash', () => {
 			const { testnet } = result;
-			testnet.should.have.property('Content-Type').and.be.type('string');
-			testnet.should.have.property('nethash').and.be.type('string');
-			testnet.should.have.property('broadhash').and.be.type('string');
-			testnet.should.have.property('os').and.be.type('string');
-			testnet.should.have.property('version').and.be.type('string');
-			testnet.should.have.property('minVersion').and.be.type('string');
-			return testnet.should.have.property('port').and.be.type('number');
+			testnet.should.have.property('Content-Type').and.be.a('string');
+			testnet.should.have.property('nethash').and.be.a('string');
+			testnet.should.have.property('broadhash').and.be.a('string');
+			testnet.should.have.property('os').and.be.a('string');
+			testnet.should.have.property('version').and.be.a('string');
+			testnet.should.have.property('minVersion').and.be.a('string');
+			return testnet.should.have.property('port').and.be.a('number');
 		});
 		it('should return an object with a mainnet nethash', () => {
 			const { mainnet } = result;
-			mainnet.should.have.property('Content-Type').and.be.type('string');
-			mainnet.should.have.property('nethash').and.be.type('string');
-			mainnet.should.have.property('broadhash').and.be.type('string');
-			mainnet.should.have.property('os').and.be.type('string');
-			mainnet.should.have.property('version').and.be.type('string');
-			mainnet.should.have.property('minVersion').and.be.type('string');
-			return mainnet.should.have.property('port').and.be.type('number');
+			mainnet.should.have.property('Content-Type').and.be.a('string');
+			mainnet.should.have.property('nethash').and.be.a('string');
+			mainnet.should.have.property('broadhash').and.be.a('string');
+			mainnet.should.have.property('os').and.be.a('string');
+			mainnet.should.have.property('version').and.be.a('string');
+			mainnet.should.have.property('minVersion').and.be.a('string');
+			return mainnet.should.have.property('port').and.be.a('number');
 		});
 	});
 
@@ -207,7 +207,7 @@ describe('api utils module', () => {
 		});
 
 		it('should return a function', () => {
-			return returnedFunction.should.be.type('function');
+			return returnedFunction.should.be.a('function');
 		});
 
 		describe('returned function', () => {

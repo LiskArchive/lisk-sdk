@@ -52,7 +52,7 @@ describe('#transferOutOfDapp', () => {
 		});
 
 		it('should create an out transfer dapp transaction', () => {
-			return transferOutOfDappTransaction.should.be.ok();
+			return transferOutOfDappTransaction.should.be.ok;
 		});
 
 		it('should use time.getTimeWithOffset to get the time for the timestamp', () => {
@@ -74,33 +74,33 @@ describe('#transferOutOfDapp', () => {
 
 		describe('returned out of dapp transfer transaction object', () => {
 			it('should be an object', () => {
-				return transferOutOfDappTransaction.should.be.type('object');
+				return transferOutOfDappTransaction.should.be.a('object');
 			});
 
 			it('should have id string', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('id')
-					.and.be.type('string');
+					.and.be.a('string');
 			});
 
 			it('should have type number equal to 7', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('type')
-					.and.be.type('number')
+					.and.be.a('number')
 					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 10 LSK', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('amount')
-					.and.be.type('string')
+					.and.be.a('string')
 					.and.equal(amount);
 			});
 
 			it('should have fee string equal to 0.1 LSK', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('fee')
-					.and.be.type('string')
+					.and.be.a('string')
 					.and.equal(fee);
 			});
 
@@ -120,7 +120,7 @@ describe('#transferOutOfDapp', () => {
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('timestamp')
-					.and.be.type('number')
+					.and.be.a('number')
 					.and.equal(timeWithOffset);
 			});
 
@@ -139,7 +139,7 @@ describe('#transferOutOfDapp', () => {
 			it('should have an asset object', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('asset')
-					.and.be.type('object');
+					.and.be.a('object');
 			});
 
 			describe('asset', () => {
@@ -225,10 +225,9 @@ describe('#transferOutOfDapp', () => {
 			});
 
 			it('should have the asset with the out transfer with dappId and transactionId', () => {
-				return transferOutOfDappTransaction.should.have
-					.property('asset')
-					.with.property('outTransfer')
-					.with.properties('dappId', 'transactionId');
+				return transferOutOfDappTransaction.should.have.nested
+					.property('asset.outTransfer')
+					.and.to.have.any.keys('dappId', 'transactionId');
 			});
 
 			it('should not have the signature', () => {

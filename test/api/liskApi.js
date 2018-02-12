@@ -97,11 +97,11 @@ describe('Lisk API module', () => {
 
 	describe('LiskAPI()', () => {
 		it('should create a new instance of LiskAPI', () => {
-			return LSK.should.be.type('object').and.be.instanceof(LiskAPI);
+			return LSK.should.be.an('object').and.be.an.instanceof(LiskAPI);
 		});
 
 		it('should set node string by default', () => {
-			return LSK.should.have.property('node').and.be.type('string');
+			return LSK.should.have.a.property('node').and.be.a('string');
 		});
 
 		describe('with option testnet true', () => {
@@ -122,33 +122,33 @@ describe('Lisk API module', () => {
 	describe('on initialize', () => {
 		describe('SSL', () => {
 			it('should set SSL to true on initialization when no SSL options is passed', () => {
-				return LSK.should.have.property('ssl').be.true();
+				return LSK.should.have.a.property('ssl').be.true;
 			});
 
 			it('should set SSL to false on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ ssl: false });
-				return LSK.should.have.property('ssl').be.false();
+				return LSK.should.have.property('ssl').be.false;
 			});
 
 			it('should set SSL to true on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ ssl: true });
-				return LSK.should.have.property('ssl').be.true();
+				return LSK.should.have.property('ssl').be.true;
 			});
 		});
 
 		describe('randomNode', () => {
 			it('should set randomNode to true when randomNode not explicitly set', () => {
-				return LSK.should.have.property('randomNode').be.true();
+				return LSK.should.have.property('randomNode').be.true;
 			});
 
 			it('should set randomNode to true on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ randomNode: true });
-				return LSK.should.have.property('randomNode').be.true();
+				return LSK.should.have.property('randomNode').be.true;
 			});
 
 			it('should set randomNode to false on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ randomNode: false });
-				return LSK.should.have.property('randomNode').be.false();
+				return LSK.should.have.property('randomNode').be.false;
 			});
 		});
 
@@ -228,7 +228,7 @@ describe('Lisk API module', () => {
 
 	describe('#getNodes', () => {
 		it('should get a set of nodes', () => {
-			return LSK.getNodes().should.be.type('object');
+			return LSK.getNodes().should.be.a('object');
 		});
 
 		it('should list 8 official nodes', () => {
@@ -238,7 +238,7 @@ describe('Lisk API module', () => {
 				.have.property('length')
 				.be.equal(8);
 			return nodes.official.forEach(node => {
-				node.should.have.property('node').and.be.type('string');
+				node.should.have.property('node').and.be.a('string');
 			});
 		});
 
@@ -249,8 +249,8 @@ describe('Lisk API module', () => {
 				.have.property('length')
 				.be.equal(8);
 			return nodes.ssl.forEach(node => {
-				node.should.have.property('node').and.be.type('string');
-				node.should.have.property('ssl').and.be.true();
+				node.should.have.property('node').and.be.a('string');
+				node.should.have.property('ssl').and.be.true;
 			});
 		});
 
@@ -261,8 +261,8 @@ describe('Lisk API module', () => {
 				.have.property('length')
 				.be.equal(1);
 			return nodes.testnet.forEach(node => {
-				node.should.have.property('node').and.be.type('string');
-				node.should.have.property('testnet').and.be.true();
+				node.should.have.property('node').and.be.a('string');
+				node.should.have.property('testnet').and.be.true;
 			});
 		});
 	});
@@ -291,7 +291,7 @@ describe('Lisk API module', () => {
 			});
 
 			it('should set testnet to true', () => {
-				return LSK.should.have.property('testnet').and.be.true();
+				return LSK.should.have.property('testnet').and.be.true;
 			});
 
 			it('should set port to 7000', () => {
@@ -311,7 +311,7 @@ describe('Lisk API module', () => {
 			});
 
 			it('should set testnet to false', () => {
-				return LSK.should.have.property('testnet').and.be.false();
+				return LSK.should.have.property('testnet').and.be.false;
 			});
 
 			it('should set port to 8000', () => {
@@ -333,10 +333,8 @@ describe('Lisk API module', () => {
 			describe('when initially on mainnet', () => {
 				it('should reset banned nodes when switching from mainnet to testnet', () => {
 					LSK.setTestnet(true);
-					return LSK.should.have
-						.property('bannedNodes')
-						.and.be.Array()
-						.and.be.empty();
+					return LSK.should.have.property('bannedNodes').and.be.an('array').and
+						.be.empty;
 				});
 
 				it('should not reset banned nodes when switching from mainnet to mainnet', () => {
@@ -354,10 +352,8 @@ describe('Lisk API module', () => {
 
 				it('should reset banned nodes when switching from testnet to mainnet', () => {
 					LSK.setTestnet(false);
-					return LSK.should.have
-						.property('bannedNodes')
-						.and.be.Array()
-						.and.be.empty();
+					return LSK.should.have.property('bannedNodes').and.be.an('array').and
+						.be.empty;
 				});
 
 				it('should not reset banned nodes when switching from testnet to testnet', () => {
@@ -379,7 +375,7 @@ describe('Lisk API module', () => {
 			describe('when set to true', () => {
 				it('should have ssl set to true', () => {
 					LSK.setSSL(true);
-					return LSK.should.have.property('ssl').and.be.true();
+					return LSK.should.have.property('ssl').and.be.true;
 				});
 
 				it('should not change bannedNodes', () => {
@@ -400,16 +396,14 @@ describe('Lisk API module', () => {
 			describe('when set to false', () => {
 				it('should have ssl set to false', () => {
 					LSK.setSSL(false);
-					return LSK.should.have.property('ssl').and.be.false();
+					return LSK.should.have.property('ssl').and.be.false;
 				});
 
 				it('should reset bannedNodes', () => {
 					LSK.bannedNodes = [].concat(defaultbannedNodes);
 					LSK.setSSL(false);
-					return LSK.should.have
-						.property('bannedNodes')
-						.and.be.Array()
-						.and.be.empty();
+					return LSK.should.have.property('bannedNodes').and.be.an('array').and
+						.be.empty;
 				});
 
 				it('should select a node', () => {
@@ -428,16 +422,14 @@ describe('Lisk API module', () => {
 			describe('when set to true', () => {
 				it('should have ssl set to true', () => {
 					LSK.setSSL(true);
-					return LSK.should.have.property('ssl').and.be.true();
+					return LSK.should.have.property('ssl').and.be.true;
 				});
 
 				it('should reset bannedNodes', () => {
 					LSK.bannedNodes = [].concat(defaultbannedNodes);
 					LSK.setSSL(true);
-					return LSK.should.have
-						.property('bannedNodes')
-						.and.be.Array()
-						.and.be.empty();
+					return LSK.should.have.property('bannedNodes').and.be.an('array').and
+						.be.empty;
 				});
 
 				it('should select a node', () => {
@@ -450,7 +442,7 @@ describe('Lisk API module', () => {
 			describe('when set to false', () => {
 				it('should have ssl set to false', () => {
 					LSK.setSSL(false);
-					return LSK.should.have.property('ssl').and.be.false();
+					return LSK.should.have.property('ssl').and.be.false;
 				});
 
 				it('should not change bannedNodes', () => {
