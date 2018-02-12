@@ -189,9 +189,10 @@ Rounds.prototype.setSnapshotRound = function(round) {
  * @implements {__private.getOutsiders}
  * @param {block} block - Current block.
  * @param {function} done - Callback function.
+ * @param {Object} tx - Database transaction/task object
  * @return {function} Calling done with error if any.
  */
-Rounds.prototype.tick = function(block, done) {
+Rounds.prototype.tick = function(block, done, tx) {
 	var round = slots.calcRound(block.height);
 	var nextRound = slots.calcRound(block.height + 1);
 
@@ -263,21 +264,21 @@ Rounds.prototype.tick = function(block, done) {
 
 				// Sum round if finishing round
 				if (scope.finishRound) {
-					return __private.sumRound(scope, cb);
+					return __private.sumRound(scope, cb, tx);
 				}
 				return setImmediate(cb);
 			},
 			function(cb) {
 				// Get outsiders if finishing round
 				if (scope.finishRound) {
-					return __private.getOutsiders(scope, cb);
+					return __private.getOutsiders(scope, cb, tx);
 				}
 				return setImmediate(cb);
 			},
 			// Perform round tick
 			function(cb) {
-				library.db
-					.tx(Tick)
+				(tx || library.db)
+					.task(Tick)
 					.then(() => setImmediate(cb))
 					.catch(err => {
 						library.logger.error(err.stack);
@@ -349,9 +350,10 @@ Rounds.prototype.cleanup = function(cb) {
  * @implements {modules.accounts.generateAddressByPublicKey}
  * @param {scope} scope
  * @param {function} cb
+ * @param {Object} tx - Database transaction/task object
  * @return {setImmediateCallback}
  */
-__private.getOutsiders = function(scope, cb) {
+__private.getOutsiders = function(scope, cb, tx) {
 	scope.roundOutsiders = [];
 
 	if (scope.block.height === 1) {
@@ -379,7 +381,8 @@ __private.getOutsiders = function(scope, cb) {
 					return setImmediate(cb, err);
 				}
 			);
-		}
+		},
+		tx
 	);
 };
 
@@ -390,12 +393,13 @@ __private.getOutsiders = function(scope, cb) {
  * @implements {library.db.query}
  * @param {number} round
  * @param {function} cb
+ * @param {Object} tx - Database transaction/task object
  * @return {setImmediateCallback}
  */
-__private.sumRound = function(scope, cb) {
+__private.sumRound = function(scope, cb, tx) {
 	library.logger.debug('Summing round', scope.round);
 
-	library.db.rounds
+	(tx || library.db).rounds
 		.summedRound(scope.round, constants.activeDelegates)
 		.then(rows => {
 			var rewards = [];
