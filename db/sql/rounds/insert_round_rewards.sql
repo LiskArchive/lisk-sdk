@@ -30,9 +30,9 @@ INSERT INTO rounds_rewards (
 	"round",
 	"publicKey"
 ) VALUES (
-   ${timestamp},
-   ${fees}::bigint,
-   ${reward}::bigint,
-   ${round},
-   DECODE(${publicKey}, 'hex')
- );
+	${timestamp},
+	${fees}::bigint,
+	${reward}::bigint,
+	${round},
+	DECODE(${publicKey}, 'hex')
+)
