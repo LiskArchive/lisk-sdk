@@ -28,7 +28,7 @@ WITH delegate AS
      rewards AS
   (SELECT count(*), sum(reward) AS rewards, sum(fees) AS fees
    FROM rounds_rewards
-   WHERE "pk" = decode($1, 'hex')
+   WHERE "publicKey" = decode($1, 'hex')
      AND ($2 IS NULL
           OR "timestamp" >= $2)
      AND ($3 IS NULL

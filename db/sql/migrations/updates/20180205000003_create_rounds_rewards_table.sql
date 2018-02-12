@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS "rounds_rewards"(
 	"fees"      BIGINT NOT NULL,
 	"reward"    BIGINT NOT NULL,
 	"round"     INT    NOT NULL,
-	"pk"        BYTEA  NOT NULL
+	"publicKey" BYTEA  NOT NULL
 );
 
 -- Compute all rewards for previous rounds and insert them to 'rounds_rewards'
@@ -59,7 +59,7 @@ DO $$
 				-- Selecting all blocks of round
 				round AS (
 					SELECT
-						b.timestamp, b.height, b."generatorPublicKey" AS pk, b."totalFee" AS fees,
+						b.timestamp, b.height, b."generatorPublicKey" AS "publicKey", b."totalFee" AS fees,
 						b.reward AS reward
 					FROM blocks b
 					WHERE CEIL(b.height / 101::float)::int = row.round AND b.height > 1
@@ -67,20 +67,20 @@ DO $$
 				-- Calculating total fees of round
 				fees AS (SELECT SUM(fees) AS total, FLOOR(SUM(fees) / 101) AS single FROM round),
 				-- Get last delegate and timestamp of round's last block
-				last AS (SELECT pk, timestamp FROM round ORDER BY height DESC LIMIT 1)
+				last AS (SELECT "publicKey", timestamp FROM round ORDER BY height DESC LIMIT 1)
 			INSERT INTO rounds_rewards
 				SELECT
 					-- Timestamp of last round's block
 					last.timestamp,
 					-- Calculating real fee reward for delegate:
 					-- Rounded fee per delegate + remaining fees if block is last one of round
-					(fees.single + (CASE WHEN last.pk = round.pk AND last.timestamp = round.timestamp THEN (fees.total - fees.single * 101) ELSE 0 END)) AS fees,
+					(fees.single + (CASE WHEN last."publicKey" = round."publicKey" AND last.timestamp = round.timestamp THEN (fees.total - fees.single * 101) ELSE 0 END)) AS fees,
 					-- Block reward
 					round.reward,
 					-- Round
 					CEIL(round.height / 101::float)::int,
 					-- Delegate public key
-					round.pk
+					round."publicKey"
 				FROM last, fees, round
 				-- Sort fees by block height
 				ORDER BY round.height ASC;
@@ -91,4 +91,4 @@ END $$;
 -- Create indexes on columns of 'rounds_rewards'
 CREATE INDEX IF NOT EXISTS "rounds_rewards_timestamp" ON rounds_rewards (timestamp);
 CREATE INDEX IF NOT EXISTS "rounds_rewards_round" ON rounds_rewards (round);
-CREATE INDEX IF NOT EXISTS "rounds_rewards_public_key" ON rounds_rewards (pk);
+CREATE INDEX IF NOT EXISTS "rounds_rewards_public_key" ON rounds_rewards ("publicKey");
