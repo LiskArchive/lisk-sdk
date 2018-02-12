@@ -101,7 +101,7 @@ describe('Lisk API module', () => {
 		});
 
 		it('should set node string by default', () => {
-			return LSK.should.have.a.property('node').and.be.a('string');
+			return LSK.should.have.property('node').and.be.a('string');
 		});
 
 		describe('with option testnet true', () => {
@@ -122,7 +122,7 @@ describe('Lisk API module', () => {
 	describe('on initialize', () => {
 		describe('SSL', () => {
 			it('should set SSL to true on initialization when no SSL options is passed', () => {
-				return LSK.should.have.a.property('ssl').be.true;
+				return LSK.should.have.property('ssl').be.true;
 			});
 
 			it('should set SSL to false on initialization when passed as an option', () => {
