@@ -13,6 +13,7 @@
  */
 'use strict';
 
+var bignum = require('../helpers/bignum.js');
 var Promise = require('bluebird');
 var RoundChanges = require('../helpers/round_changes.js');
 
@@ -45,6 +46,7 @@ function Round(scope, t) {
 			generatorPublicKey: scope.block.generatorPublicKey,
 			id: scope.block.id,
 			height: scope.block.height,
+			timestamp: scope.block.timestamp,
 		},
 	};
 	this.t = t;
@@ -225,6 +227,7 @@ Round.prototype.applyRound = function() {
 	var delegates;
 	var delegate;
 	var p;
+	let roundRewards = [];
 
 	// Reverse delegates if going backwards
 	delegates = self.scope.backwards
@@ -268,6 +271,17 @@ Round.prototype.applyRound = function() {
 		});
 
 		queries.push(p);
+
+		// Aggregate round rewards data - when going forward
+		if (!self.scope.backwards) {
+			roundRewards.push({
+				timestamp: self.scope.block.timestamp,
+				fees: new bignum(changes.fees).toString(),
+				reward: new bignum(changes.rewards).toString(),
+				round: self.scope.round,
+				pk: delegate,
+			});
+		}
 	}
 
 	// Decide which delegate receives fees remainder
@@ -309,10 +323,35 @@ Round.prototype.applyRound = function() {
 			);
 		});
 
+		// Aggregate round rewards data (remaining fees) - when going forward
+		if (!self.scope.backwards) {
+			roundRewards[roundRewards.length - 1].fees = new bignum(
+				roundRewards[remainderDelegate].fees
+			)
+				.plus(feesRemaining)
+				.toString();
+		}
+
 		queries.push(p);
 	}
 
-	self.scope.library.logger.trace('Applying round', queries);
+	// Prepare queries for inserting round rewards
+	roundRewards.forEach(function(item) {
+		queries.push(
+			self.t.rounds.insertRoundRewards(
+				item.timestamp,
+				item.fees,
+				item.reward,
+				item.round,
+				item.pk
+			)
+		);
+	});
+
+	self.scope.library.logger.trace('Applying round', {
+		queries_count: queries.length,
+		rewards: roundRewards,
+	});
 
 	if (queries.length > 0) {
 		return this.t.batch(queries);
