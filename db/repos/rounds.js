@@ -229,6 +229,38 @@ class RoundsRepository {
 			balanceMode: mode === '-' ? '-' : '',
 		});
 	}
+
+	/**
+	 * Insert information about round rewards into rounds_rewards.
+	 *
+	 * @param {Number} timestamp - Timestamp of last block of round
+	 * @param {String} fees - Fees amount for particular block
+	 * @param {String} reward - Rewards amount for particular block
+	 * @param {Number} round - Round number
+	 * @param {Buffer} pk - Public key of a delegate that forged a block
+	 * @return {Promise}
+	 */
+	insertRoundRewards(timestamp, fees, reward, round, pk) {
+		return this.db.none(sql.insertRoundRewards, {
+			timestamp,
+			fees,
+			reward,
+			round,
+			pk,
+		});
+	}
+
+	/**
+	 * Delete information about entire round rewards from rounds_rewards.
+	 *
+	 * @param {Number} round - Round number
+	 * @return {Promise}
+	 */
+	deleteRoundRewards(round) {
+		return this.db.none(sql.deleteRoundRewards, {
+			round,
+		});
+	}
 }
 
 module.exports = RoundsRepository;
