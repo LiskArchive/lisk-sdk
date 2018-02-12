@@ -57,6 +57,7 @@
 		"vars-on-top": "off",
 		"wrap-iife": "off",
 		// To keep
+		"no-restricted-properties": "off",
 		"import/no-extraneous-dependencies": [
 			"error",
 			{

@@ -81,7 +81,6 @@ var constants = {
 	},
 	feeStart: 1,
 	feeStartVolume: 10000 * 100000000,
-	// eslint-disable-next-line no-restricted-properties
 	fixedPoint: Math.pow(10, 8),
 	maxAddressesLength: 208 * 128,
 	maxAmount: 100000000,
