@@ -93,7 +93,11 @@ WSServer.prototype.start = function() {
 					.callsArgWith(1, null, { success: true, common: null }),
 			});
 
-			self.socketClient.start().then(resolve);
+			self.socketClient.start()
+				.then(resolve)
+				.catch(() => {
+					reject();
+				});
 		});
 
 		self.socketCluster.on('fail', () => {
@@ -104,6 +108,8 @@ WSServer.prototype.start = function() {
 		self.socketCluster.on('error', () => {
 			self.stop();
 		});
+	}).catch(err => {
+		console.error(`server process error: ${err}`);
 	});
 };
 
