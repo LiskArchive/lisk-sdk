@@ -61,7 +61,7 @@ describe('#registerDelegate transaction', () => {
 		});
 
 		it('should be an object', () => {
-			return registerDelegateTransaction.should.be.a('object');
+			return registerDelegateTransaction.should.be.an('object');
 		});
 
 		it('should have an id string', () => {
@@ -129,7 +129,7 @@ describe('#registerDelegate transaction', () => {
 			it('should be an object', () => {
 				return registerDelegateTransaction.asset.should.have
 					.property('delegate')
-					.and.be.a('object');
+					.and.be.an('object');
 			});
 
 			it('should have the provided username as a string', () => {

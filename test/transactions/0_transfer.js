@@ -70,7 +70,7 @@ describe('#transfer transaction', () => {
 			});
 
 			it('should be an object', () => {
-				return transferTransaction.should.be.a('object');
+				return transferTransaction.should.be.an('object');
 			});
 
 			it('should have id string', () => {
@@ -128,7 +128,7 @@ describe('#transfer transaction', () => {
 			it('should have an empty asset object', () => {
 				return transferTransaction.should.have
 					.property('asset')
-					.and.be.a('object').and.be.empty;
+					.and.be.an('object').and.be.empty;
 			});
 
 			it('should not have the second signature property', () => {

@@ -63,7 +63,7 @@ describe('#transferIntoDapp transaction', () => {
 
 		describe('returned inTransfer transaction object', () => {
 			it('should be an object', () => {
-				return transferIntoDappTransaction.should.be.a('object');
+				return transferIntoDappTransaction.should.be.an('object');
 			});
 
 			it('should have id string', () => {
@@ -125,7 +125,7 @@ describe('#transferIntoDapp transaction', () => {
 			it('should have an asset object', () => {
 				return transferIntoDappTransaction.should.have
 					.property('asset')
-					.and.be.a('object');
+					.and.be.an('object');
 			});
 
 			describe('asset', () => {

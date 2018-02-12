@@ -74,7 +74,7 @@ describe('#transferOutOfDapp', () => {
 
 		describe('returned out of dapp transfer transaction object', () => {
 			it('should be an object', () => {
-				return transferOutOfDappTransaction.should.be.a('object');
+				return transferOutOfDappTransaction.should.be.an('object');
 			});
 
 			it('should have id string', () => {
@@ -137,7 +137,7 @@ describe('#transferOutOfDapp', () => {
 			it('should have an asset object', () => {
 				return transferOutOfDappTransaction.should.have
 					.property('asset')
-					.and.be.a('object');
+					.and.be.an('object');
 			});
 
 			describe('asset', () => {

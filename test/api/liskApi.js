@@ -228,7 +228,7 @@ describe('Lisk API module', () => {
 
 	describe('#getNodes', () => {
 		it('should get a set of nodes', () => {
-			return LSK.getNodes().should.be.a('object');
+			return LSK.getNodes().should.be.an('object');
 		});
 
 		it('should list 8 official nodes', () => {

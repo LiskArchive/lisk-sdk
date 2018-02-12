@@ -140,7 +140,7 @@ describe('#createDapp transaction', () => {
 
 		describe('returned create dapp transaction', () => {
 			it('should be an object', () => {
-				return createDappTransaction.should.be.a('object');
+				return createDappTransaction.should.be.an('object');
 			});
 
 			it('should have an id string', () => {
@@ -206,7 +206,7 @@ describe('#createDapp transaction', () => {
 				it('should be object', () => {
 					return createDappTransaction.asset.should.have
 						.property('dapp')
-						.and.be.a('object');
+						.and.be.an('object');
 				});
 
 				it('should have a category number equal to provided category', () => {

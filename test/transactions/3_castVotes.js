@@ -74,7 +74,7 @@ describe('#castVotes transaction', () => {
 
 		describe('the returned cast votes transaction', () => {
 			it('should be an object', () => {
-				return castVotesTransaction.should.be.a('object');
+				return castVotesTransaction.should.be.an('object');
 			});
 
 			it('should have id string', () => {

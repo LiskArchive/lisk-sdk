@@ -89,7 +89,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 		describe('returned register multisignature transaction', () => {
 			it('should be an object', () => {
-				return registerMultisignatureTransaction.should.be.a('object');
+				return registerMultisignatureTransaction.should.be.an('object');
 			});
 
 			it('should have id string', () => {
@@ -159,7 +159,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 				it('should be object', () => {
 					return registerMultisignatureTransaction.asset.should.have
 						.property('multisignature')
-						.and.be.a('object');
+						.and.be.an('object');
 				});
 
 				it('should have a min number equal to provided minimum', () => {

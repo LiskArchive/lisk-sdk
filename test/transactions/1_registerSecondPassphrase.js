@@ -66,7 +66,7 @@ describe('#registerSecondPassphrase transaction', () => {
 
 	describe('returned register second passphrase transaction', () => {
 		it('should be an object', () => {
-			return registerSecondPassphraseTransaction.should.be.a('object');
+			return registerSecondPassphraseTransaction.should.be.an('object');
 		});
 
 		it('should have an id string', () => {
@@ -136,7 +136,7 @@ describe('#registerSecondPassphrase transaction', () => {
 			it('should be an object', () => {
 				return registerSecondPassphraseTransaction.asset.should.have
 					.property('signature')
-					.and.be.a('object').and.not.be.empty;
+					.and.be.an('object').and.not.be.empty;
 			});
 
 			it('should have a 32-byte publicKey hex string', () => {
