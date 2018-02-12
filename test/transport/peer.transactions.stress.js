@@ -1,5 +1,6 @@
 'use strict';
 
+var _ = require('lodash');
 var node = require('./../node.js');
 var genesisDelegates = require('./../genesisDelegates.json');
 
@@ -109,11 +110,11 @@ describe('POST /peer/transactions @slow', function () {
 		}).timeout(500000);
 
 		describe('having 1000 confirmed type 0 transactions', function () {
-			describe('sending 1000 type 3 transactions for genesis delegates', function () {
+			describe('sending 1000 full type 3 transactions for genesis delegates', function () {
 
-				function convertStringToDeterministicNumber (str) {
+				function convertStringToNonDeterministicNumber (str) {
 					return str.split('').reduce(function (strBytesSum, letter) {
-						return letter.charCodeAt(0) + strBytesSum;
+						return _.random(0, letter.charCodeAt(0)) + strBytesSum;
 					}, 0);
 				}
 
@@ -121,10 +122,12 @@ describe('POST /peer/transactions @slow', function () {
 
 				before(function (done) {
 					node.async.each(accounts, function (account, eachCb) {
-						var randomDelegateIndex = convertStringToDeterministicNumber(account.publicKey) % 101;
 						var voteTransaction = node.lisk.vote.createVote(
 							account.password,
-							['+' + genesisDelegates.delegates[randomDelegateIndex].publicKey]
+							_(33).range().map(function () {
+								var randomDelegateNumber = convertStringToNonDeterministicNumber(account.publicKey) % 101;
+								return '+' + genesisDelegates.delegates[randomDelegateNumber].publicKey
+							}).uniq().value()
 						);
 						postTransaction(voteTransaction, function (err, res) {
 							node.expect(res.body).to.have.property('success').to.be.ok;
