@@ -98,6 +98,8 @@ module.exports = {
 		insertRoundInformationWithDelegate: link(
 			'rounds/insert_round_information_with_delegate.sql'
 		),
+		insertRoundRewards: link('rounds/insert_round_rewards.sql'),
+		deleteRoundRewards: link('rounds/delete_round_rewards.sql'),
 	},
 	transactions: {
 		count: link('transactions/count.sql'),

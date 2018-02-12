@@ -62,6 +62,7 @@ describe('rounds', () => {
 					generatorPublicKey: genesisBlock.generatorPublicKey,
 					id: genesisBlock.id,
 					height: 1,
+					timestamp: 100,
 				},
 			};
 			done();
@@ -590,9 +591,32 @@ describe('rounds', () => {
 		});
 	});
 
+	describe('deleteRoundRewards', () => {
+		var stub;
+		var res;
+
+		before(() => {
+			stub = sinonSandbox.stub(db.rounds, 'deleteRoundRewards');
+			stub.withArgs(validScope.round).resolves('success');
+			res = round.deleteRoundRewards();
+		});
+
+		it('should return promise', () => {
+			expect(isPromise(res)).to.be.true;
+		});
+
+		it('query should be called with no args', () => {
+			return res.then(res => {
+				expect(res).to.equal('success');
+				expect(stub).to.have.been.calledWith(validScope.round);
+			});
+		});
+	});
+
 	describe('applyRound', () => {
 		var res;
 		var batch_stub;
+		var insertRoundRewards_stub;
 		var scope;
 
 		function sumChanges(forward, backwards) {
@@ -690,6 +714,9 @@ describe('rounds', () => {
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(t => {
+							insertRoundRewards_stub = sinonSandbox
+								.stub(t.rounds, 'insertRoundRewards')
+								.resolves('success');
 							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = false;
@@ -743,6 +770,16 @@ describe('rounds', () => {
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
+
+					it('should call insertRoundRewards with proper args', () => {
+						expect(insertRoundRewards_stub).to.have.been.calledWith(
+							validScope.block.timestamp,
+							forwardResults[0].fees.toString(),
+							forwardResults[0].rewards.toString(),
+							validScope.round,
+							forwardResults[0].publicKey
+						);
+					});
 				});
 
 				describe('backwards', () => {
@@ -751,6 +788,9 @@ describe('rounds', () => {
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(t => {
+							insertRoundRewards_stub = sinonSandbox
+								.stub(t.rounds, 'insertRoundRewards')
+								.resolves('success');
 							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = true;
@@ -804,6 +844,10 @@ describe('rounds', () => {
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
+
+					it('should not call insertRoundRewards', () => {
+						expect(insertRoundRewards_stub).to.have.not.been.called;
+					});
 				});
 
 				describe('consistency checks for each delegate', () => {
@@ -854,6 +898,9 @@ describe('rounds', () => {
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(t => {
+							insertRoundRewards_stub = sinonSandbox
+								.stub(t.rounds, 'insertRoundRewards')
+								.resolves('success');
 							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = false;
@@ -935,6 +982,16 @@ describe('rounds', () => {
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
+
+					it('should call insertRoundRewards with proper args', () => {
+						expect(insertRoundRewards_stub).to.have.been.calledWith(
+							validScope.block.timestamp,
+							(forwardResults[0].fees + forwardResults[1].fees).toString(),
+							forwardResults[0].rewards.toString(),
+							validScope.round,
+							forwardResults[0].publicKey
+						);
+					});
 				});
 
 				describe('backwards', () => {
@@ -943,6 +1000,9 @@ describe('rounds', () => {
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(t => {
+							insertRoundRewards_stub = sinonSandbox
+								.stub(t.rounds, 'insertRoundRewards')
+								.resolves('success');
 							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = true;
@@ -1024,6 +1084,10 @@ describe('rounds', () => {
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
+
+					it('should not call insertRoundRewards', () => {
+						expect(insertRoundRewards_stub).to.have.not.been.called;
+					});
 				});
 
 				describe('consistency checks for each delegate', () => {
@@ -1081,6 +1145,9 @@ describe('rounds', () => {
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(t => {
+							insertRoundRewards_stub = sinonSandbox
+								.stub(t.rounds, 'insertRoundRewards')
+								.resolves('success');
 							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = false;
@@ -1200,6 +1267,30 @@ describe('rounds', () => {
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
+
+					it('should call insertRoundRewards with proper args', () => {
+						expect(insertRoundRewards_stub).to.have.been.calledWith(
+							validScope.block.timestamp,
+							forwardResults[0].fees.toString(),
+							forwardResults[0].rewards.toString(),
+							validScope.round,
+							forwardResults[0].publicKey
+						);
+						expect(insertRoundRewards_stub).to.have.been.calledWith(
+							validScope.block.timestamp,
+							forwardResults[1].fees.toString(),
+							forwardResults[1].rewards.toString(),
+							validScope.round,
+							forwardResults[1].publicKey
+						);
+						expect(insertRoundRewards_stub).to.have.been.calledWith(
+							validScope.block.timestamp,
+							forwardResults[2].fees.toString(),
+							forwardResults[2].rewards.toString(),
+							validScope.round,
+							forwardResults[2].publicKey
+						);
+					});
 				});
 
 				describe('backwards', () => {
@@ -1208,6 +1299,9 @@ describe('rounds', () => {
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(t => {
+							insertRoundRewards_stub = sinonSandbox
+								.stub(t.rounds, 'insertRoundRewards')
+								.resolves('success');
 							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = true;
@@ -1327,6 +1421,10 @@ describe('rounds', () => {
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
+
+					it('should not call insertRoundRewards', () => {
+						expect(insertRoundRewards_stub).to.have.not.been.called;
+					});
 				});
 
 				describe('consistency checks for each delegate', () => {
@@ -1382,6 +1480,9 @@ describe('rounds', () => {
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(t => {
+							insertRoundRewards_stub = sinonSandbox
+								.stub(t.rounds, 'insertRoundRewards')
+								.resolves('success');
 							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = false;
@@ -1527,6 +1628,30 @@ describe('rounds', () => {
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
+
+					it('should call insertRoundRewards with proper args', () => {
+						expect(insertRoundRewards_stub).to.have.been.calledWith(
+							validScope.block.timestamp,
+							forwardResults[0].fees.toString(),
+							forwardResults[0].rewards.toString(),
+							validScope.round,
+							forwardResults[0].publicKey
+						);
+						expect(insertRoundRewards_stub).to.have.been.calledWith(
+							validScope.block.timestamp,
+							forwardResults[1].fees.toString(),
+							forwardResults[1].rewards.toString(),
+							validScope.round,
+							forwardResults[1].publicKey
+						);
+						expect(insertRoundRewards_stub).to.have.been.calledWith(
+							validScope.block.timestamp,
+							(forwardResults[2].fees + forwardResults[3].fees).toString(),
+							forwardResults[2].rewards.toString(),
+							validScope.round,
+							forwardResults[2].publicKey
+						);
+					});
 				});
 
 				describe('backwards', () => {
@@ -1535,6 +1660,9 @@ describe('rounds', () => {
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
 						return db.task(t => {
+							insertRoundRewards_stub = sinonSandbox
+								.stub(t.rounds, 'insertRoundRewards')
+								.resolves('success');
 							batch_stub = sinonSandbox.stub(t, 'batch').resolves('success');
 							scope = _.cloneDeep(validScope);
 							scope.backwards = true;
@@ -1679,6 +1807,10 @@ describe('rounds', () => {
 						expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
+					});
+
+					it('should not call insertRoundRewards', () => {
+						expect(insertRoundRewards_stub).to.have.not.been.called;
 					});
 				});
 
@@ -1798,6 +1930,7 @@ describe('rounds', () => {
 		var getVotes_stub;
 		var restoreRoundSnapshot_stub;
 		var restoreVotesSnapshot_stub;
+		var deleteRoundRewards_stub;
 		var flush_stub;
 		var res;
 		var scope;
@@ -1837,6 +1970,9 @@ describe('rounds', () => {
 					.resolves();
 				restoreVotesSnapshot_stub = sinonSandbox
 					.stub(t.rounds, 'restoreVotesSnapshot')
+					.resolves();
+				deleteRoundRewards_stub = sinonSandbox
+					.stub(t.rounds, 'deleteRoundRewards')
 					.resolves();
 
 				round = new Round(_.cloneDeep(scope), t);
@@ -1878,6 +2014,10 @@ describe('rounds', () => {
 
 		it('query restoreVotesSnapshot should be called once', () => {
 			expect(restoreVotesSnapshot_stub.callCount).to.equal(1);
+		});
+
+		it('query deleteRoundRewards should be called once', () => {
+			expect(deleteRoundRewards_stub.callCount).to.equal(1);
 		});
 	});
 });
