@@ -399,8 +399,6 @@ __private.sumRound = function(scope, cb, tx) {
 	(tx || library.db).rounds
 		.summedRound(scope.round, constants.activeDelegates)
 		.then(rows => {
-			console.log('QUERY: ' + rows);
-			console.log('QUERY: ' + rows[0].delegates.length);
 			var rewards = [];
 
 			rows[0].rewards.forEach(reward => {
