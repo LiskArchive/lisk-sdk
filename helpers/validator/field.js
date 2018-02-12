@@ -103,12 +103,8 @@ Field.prototype.validate = function(callback) {
 			}
 
 			if (descriptor.filter) {
-				value = this.value = descriptor.filter.call(
-					thisArg,
-					accept,
-					value,
-					this
-				);
+				this.value = descriptor.filter.call(thisArg, accept, value, this);
+				value = this.value;
 			}
 
 			if (descriptor.validate) {

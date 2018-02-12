@@ -105,7 +105,7 @@ function parallelTests(tag, suite, section) {
 			}
 		);
 
-		console.log(
+		console.info(
 			'Running the test:',
 			test,
 			'as a separate process - pid',
@@ -121,19 +121,19 @@ function parallelTests(tag, suite, section) {
 
 		child.on('close', code => {
 			if (code === 0) {
-				console.log('Test finished successfully:', test);
+				console.info('Test finished successfully:', test);
 				delete parallelTestsRunning[child.pid];
 
 				if (pathfiles.length) {
 					spawnTest(pathfiles.shift());
 				}
 				if (Object.keys(parallelTestsRunning).length === 0) {
-					return console.log('All tests finished successfully.');
+					return console.info('All tests finished successfully.');
 				}
 				return;
 			}
 
-			console.log('Test failed:', test);
+			console.info('Test failed:', test);
 			cleanupRunningTests();
 			process.exit(code);
 		});

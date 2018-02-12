@@ -38,7 +38,7 @@ testContext.config.root = process.cwd();
 if (process.env.SILENT === 'true') {
 	testContext.debug = function() {};
 } else {
-	testContext.debug = console.log;
+	testContext.debug = console.info;
 }
 
 testContext.baseUrl = `http://${testContext.config.address}:${

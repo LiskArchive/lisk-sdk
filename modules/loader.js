@@ -75,7 +75,8 @@ function Loader(cb, scope) {
 	self = this;
 
 	__private.initialize();
-	__private.genesisBlock = __private.lastBlock = library.genesisblock;
+	__private.lastBlock = library.genesisblock;
+	__private.genesisBlock = library.genesisblock;
 
 	setImmediate(cb, null, self);
 }
@@ -622,7 +623,8 @@ __private.loadBlocksFromNetwork = function(cb) {
 								errorCount += 1;
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
-							lastValidBlock = lastBlock = null;
+							lastBlock = null;
+							lastValidBlock = null;
 							next();
 						}
 					);

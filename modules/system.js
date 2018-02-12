@@ -220,7 +220,7 @@ System.prototype.versionCompatible = function(version) {
 	}
 
 	// if no range specifier is used for minVersion, check the complete version string (inclusive versionChar)
-	var rangeRegExp = /[\^~\*]/;
+	var rangeRegExp = /[\^~*]/;
 	if (
 		this.minVersionChar &&
 		versionChar &&

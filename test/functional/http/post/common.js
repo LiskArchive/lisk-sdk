@@ -78,6 +78,7 @@ function invalidAssets(option, badTransactions) {
 						accountFixtures.genesis.password
 					);
 					break;
+				// no default
 			}
 		});
 
