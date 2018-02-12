@@ -90,6 +90,5 @@ END $$;
 
 -- Create indexes on columns of 'rounds_rewards'
 CREATE INDEX IF NOT EXISTS "rounds_rewards_timestamp" ON rounds_rewards (timestamp);
-CREATE INDEX IF NOT EXISTS "rounds_rewards_height" ON rounds_rewards (height);
 CREATE INDEX IF NOT EXISTS "rounds_rewards_round" ON rounds_rewards (round);
 CREATE INDEX IF NOT EXISTS "rounds_rewards_public_key" ON rounds_rewards (pk);
