@@ -150,43 +150,48 @@ export const checkTransaction = transaction => {
 };
 
 const getTransactionBytes = transaction => {
-	checkTransaction(transaction);
-	const transactionType = Buffer.alloc(BYTESIZES.TYPE, transaction.type);
-	const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-	transactionTimestamp.writeIntLE(
-		transaction.timestamp,
-		0,
-		BYTESIZES.TIMESTAMP,
-	);
+	const {
+		type,
+		timestamp,
+		requesterPublicKey,
+		senderPublicKey,
+		recipientId,
+		amount,
+		signature,
+		signSignature,
+	} = transaction;
 
-	const transactionSenderPublicKey = Buffer.from(
-		transaction.senderPublicKey,
-		'hex',
-	);
-	const transactionRequesterPublicKey = transaction.requesterPublicKey
-		? Buffer.from(transaction.requesterPublicKey, 'hex')
+	checkTransaction(transaction);
+
+	const transactionType = Buffer.alloc(BYTESIZES.TYPE, type);
+	const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
+	transactionTimestamp.writeIntLE(timestamp, 0, BYTESIZES.TIMESTAMP);
+
+	const transactionSenderPublicKey = Buffer.from(senderPublicKey, 'hex');
+	const transactionRequesterPublicKey = requesterPublicKey
+		? Buffer.from(requesterPublicKey, 'hex')
 		: Buffer.alloc(0);
 
-	const transactionRecipientID = transaction.recipientId
+	const transactionRecipientID = recipientId
 		? cryptoModule.bigNumberToBuffer(
-				transaction.recipientId.slice(0, -1),
+				recipientId.slice(0, -1),
 				BYTESIZES.RECIPIENT_ID,
 			)
 		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
-	const transactionAmount = bignum(transaction.amount).toBuffer({
+	const transactionAmount = bignum(amount).toBuffer({
 		endian: 'little',
 		size: BYTESIZES.AMOUNT,
 	});
 
 	const transactionAssetData = getAssetBytes(transaction);
 
-	const transactionSignature = transaction.signature
-		? Buffer.from(transaction.signature, 'hex')
+	const transactionSignature = signature
+		? Buffer.from(signature, 'hex')
 		: Buffer.alloc(0);
 
-	const transactionSecondSignature = transaction.signSignature
-		? Buffer.from(transaction.signSignature, 'hex')
+	const transactionSecondSignature = signSignature
+		? Buffer.from(signSignature, 'hex')
 		: Buffer.alloc(0);
 
 	return Buffer.concat([
