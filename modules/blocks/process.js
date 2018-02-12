@@ -596,8 +596,10 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 					// Check transaction depends on type
 					if (library.logic.transaction.ready(transaction, sender)) {
 						// Verify transaction
-						library.logic.transaction.verify(transaction, sender, () => {
-							ready.push(transaction);
+						library.logic.transaction.verify(transaction, sender, err => {
+							if (!err) {
+								ready.push(transaction);
+							}
 							return setImmediate(cb);
 						});
 					} else {
@@ -606,7 +608,10 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 				}
 			);
 		},
-		() => {
+		err => {
+			if (err) {
+				return setImmediate(cb, err);
+			}
 			var block;
 
 			try {
