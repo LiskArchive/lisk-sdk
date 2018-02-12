@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-top-level-hooks */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -15,11 +14,15 @@
 
 'use strict';
 
-before(done => {
-	setTimeout(() => {
-		require('../common/utils/wait_for').blockchainReady(reason => {
-			console.info(`Blockchain ready status: ${reason}`);
-			done();
+require('../../functional.js');
+var apiHelpers = require('../../../common/helpers/api');
+
+describe('GET /unknown_endpoint', () => {
+	it('should fail with error 404', () => {
+		return apiHelpers.getNotFoundEndpointPromise().then(res => {
+			expect(res.error).is.not.empty;
+			expect(res.error.status).to.equal(404);
+			expect(res.body.description).to.equal('Page not found');
 		});
-	}, 6000);
+	});
 });

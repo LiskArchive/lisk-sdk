@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-top-level-hooks */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -13,13 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-before(done => {
-	setTimeout(() => {
-		require('../common/utils/wait_for').blockchainReady(reason => {
-			console.info(`Blockchain ready status: ${reason}`);
-			done();
-		});
-	}, 6000);
-});
+/*
+  DESCRIPTION: Delete rewards for round from round rewards table.
+
+  PARAMETERS: round - Round for which data will be deleted
+*/
+
+DELETE FROM rounds_rewards WHERE round = ${round}

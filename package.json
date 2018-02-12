@@ -34,10 +34,11 @@
 		"mocha": "./node_modules/.bin/mocha",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
 		"docs:serve": "./node_modules/.bin/http-server docs/jsdoc/",
-		"precommit": "lint-staged && npm run lint",
+		"precommit": "lint-staged",
 		"prepush": "npm run lint",
-		"snyk-protect": "snyk protect",
-		"prepublish": "npm run snyk-protect"
+		"check:dependencies": "./node_modules/.bin/snyk protect",
+		"prepublishOnly": "npm run check:dependencies",
+		"postinstall": "npm run check:dependencies"
 	},
 	"dependencies": {
 		"async": "=2.4.1",
@@ -89,8 +90,7 @@
 		"validator.js": "=2.0.3",
 		"wamp-socket-cluster":
 			"LiskHQ/wamp-socket-cluster#77326d47d24eea6903a3cbf5172f7b88908c9d84",
-		"z-schema": "=3.18.2",
-		"snyk": "^1.69.6"
+		"z-schema": "=3.18.2"
 	},
 	"devDependencies": {
 		"bitcore-mnemonic": "=1.2.5",
@@ -123,6 +123,7 @@
 		"rewire": "=2.5.2",
 		"sinon": "=3.2.1",
 		"sinon-chai": "=2.14.0",
+		"snyk": "^1.69.6",
 		"stampit": "=4.0.2",
 		"supertest": "=3.0.0"
 	},

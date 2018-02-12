@@ -923,7 +923,7 @@ paths:
             maxItems: 1
             minItems: 1
             items:
-              $ref: '#/definitions/Transaction'
+              $ref: '#/definitions/TransactionRequest'
       responses:
         200:
           description: Transaction accepted by the node for processing
@@ -1127,6 +1127,71 @@ parameters:
     minimum: 1
 
 definitions:
+  TransactionRequest:
+    type: object
+    required:
+      - id
+      - type
+      - amount
+      - fee
+      - senderPublicKey
+      - recipientId
+      - timestamp
+      - asset
+      - signature
+    properties:
+      id:
+        type: string
+        format: id
+        example: "222675625422353767"
+        minLength: 1
+        maxLength: 20
+      amount:
+        type: string
+        example: '150000000'
+      fee:
+        type: string
+        example: '1000000'
+      type:
+        type: integer
+        minimum: 0
+        maximum: 7
+      timestamp:
+        type: integer
+        example: 28227090
+      senderId:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      senderPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      senderSecondPublicKey:
+        type: string
+        format: publicKey
+        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      recipientId:
+        type: string
+        format: address
+        example: 12668885769632475474L
+      signature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+      signSignature:
+        type: string
+        format: signature
+        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+      multisignatures:
+        type: array
+        items:
+          type: string
+          format: signature
+          example: 72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a
+      asset:
+        type: object
+
   NodeStatusResponse:
     type: object
     required:
@@ -1562,7 +1627,7 @@ definitions:
         type: string
         format: signature
         example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
-      secondSignature:
+      signSignature:
         type: string
         format: signature
         example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
@@ -1582,9 +1647,6 @@ definitions:
         format: 'date-time'
       relays:
         type: integer
-      signSignature:
-        type: string
-        format: signature
 
   Signature:
     type: object
