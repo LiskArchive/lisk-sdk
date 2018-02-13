@@ -205,50 +205,32 @@ describe('blocks/process', () => {
 	});
 
 	describe('constructor', () => {
-		describe('library', () => {
-			it('should assign logger', () => {
-				expect(library.logger).to.eql(loggerStub);
-			});
+		it('should assign params to library', () => {
+			expect(library.logger).to.eql(loggerStub);
+			expect(library.schema).to.eql(schemaStub);
+			expect(library.db).to.eql(dbStub);
+			expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
+			expect(library.sequence).to.eql(modulesLoader.scope.sequence);
+			expect(library.genesisblock).to.eql(modulesLoader.scope.genesisblock);
+			expect(library.logic.block).to.eql(blockStub);
+			expect(library.logic.peers).to.eql(peersStub);
+			expect(library.logic.transaction).to.eql(transactionStub);
+		});
 
-			it('should assign schema', () => {
-				expect(library.schema).to.eql(schemaStub);
-			});
+		it('should call library.logger.trace with "Blocks->Process: Submodule initialized."', () => {
+			expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Process: Submodule initialized.'
+			);
+		});
 
-			it('should assign db', () => {
-				expect(library.db).to.eql(dbStub);
-			});
-
-			it('should assign dbSequence', () => {
-				expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
-			});
-
-			it('should assign sequence', () => {
-				expect(library.sequence).to.eql(modulesLoader.scope.sequence);
-			});
-
-			it('should assign genesisblock', () => {
-				expect(library.genesisblock).to.eql(modulesLoader.scope.genesisblock);
-			});
-
-			it('should call library.logger.trace with "Blocks->Process: Submodule initialized."', () => {
-				expect(loggerStub.trace.args[0][0]).to.equal(
-					'Blocks->Process: Submodule initialized.'
-				);
-			});
-
-			describe('should assign logic', () => {
-				it('should assign block', () => {
-					expect(library.logic.block).to.eql(blockStub);
-				});
-
-				it('should assign peers', () => {
-					expect(library.logic.peers).to.eql(peersStub);
-				});
-
-				it('should assign transaction', () => {
-					expect(library.logic.transaction).to.eql(transactionStub);
-				});
-			});
+		it('should return self', () => {
+			expect(blocksProcessModule).to.be.an('object');
+			expect(blocksProcessModule.getCommonBlock).to.be.a('function');
+			expect(blocksProcessModule.loadBlocksOffset).to.be.a('function');
+			expect(blocksProcessModule.loadBlocksFromPeer).to.be.a('function');
+			expect(blocksProcessModule.generateBlock).to.be.a('function');
+			expect(blocksProcessModule.onReceiveBlock).to.be.a('function');
+			expect(blocksProcessModule.onBind).to.be.a('function');
 		});
 	});
 
