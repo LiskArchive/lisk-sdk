@@ -252,62 +252,6 @@ describe('blocks/process', () => {
 		});
 	});
 
-	describe('onBind', () => {
-		beforeEach(() => {
-			loggerStub.trace.reset();
-			__private.loaded = false;
-			blocksProcessModule.onBind(modulesStub);
-		});
-
-		it('should call library.logger.trace with "Blocks->Process: Shared modules bind."', () => {
-			expect(loggerStub.trace.args[0][0]).to.equal(
-				'Blocks->Process: Shared modules bind.'
-			);
-		});
-
-		it('should create a modules object { blocks: scope.blocks }', () => {
-			expect(modules.blocks).to.equal(modulesStub.blocks);
-		});
-
-		it('should set __private.loaded to true', () => {
-			expect(__private.loaded).to.be.true;
-		});
-
-		it('should set definitions with swagger.definitions', () => {
-			expect(definitions).to.equal(modulesStub.swagger.definitions);
-		});
-
-		describe('modules', () => {
-			it('should assign accounts', () => {
-				expect(modules.accounts).to.equal(modulesStub.accounts);
-			});
-
-			it('should assign blocks', () => {
-				expect(modules.blocks).to.equal(modulesStub.blocks);
-			});
-
-			it('should assign delegates', () => {
-				expect(modules.delegates).to.equal(modulesStub.delegates);
-			});
-
-			it('should assign loader', () => {
-				expect(modules.loader).to.equal(modulesStub.loader);
-			});
-
-			it('should assign rounds', () => {
-				expect(modules.rounds).to.equal(modulesStub.rounds);
-			});
-
-			it('should assign transactions', () => {
-				expect(modules.transactions).to.equal(modulesStub.transactions);
-			});
-
-			it('should assign transport', () => {
-				expect(modules.transport).to.equal(modulesStub.transport);
-			});
-		});
-	});
-
 	describe('__private.receiveBlock', () => {
 		it('should return error when block is not valid', done => {
 			modules.blocks.verify.processBlock.callsArgWith(
@@ -2294,6 +2238,62 @@ describe('blocks/process', () => {
 						generatorPublicKey: 'a1',
 					});
 				});
+			});
+		});
+	});
+
+	describe('onBind', () => {
+		beforeEach(() => {
+			loggerStub.trace.reset();
+			__private.loaded = false;
+			blocksProcessModule.onBind(modulesStub);
+		});
+
+		it('should call library.logger.trace with "Blocks->Process: Shared modules bind."', () => {
+			expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Process: Shared modules bind.'
+			);
+		});
+
+		it('should create a modules object { blocks: scope.blocks }', () => {
+			expect(modules.blocks).to.equal(modulesStub.blocks);
+		});
+
+		it('should set __private.loaded to true', () => {
+			expect(__private.loaded).to.be.true;
+		});
+
+		it('should set definitions with swagger.definitions', () => {
+			expect(definitions).to.equal(modulesStub.swagger.definitions);
+		});
+
+		describe('modules', () => {
+			it('should assign accounts', () => {
+				expect(modules.accounts).to.equal(modulesStub.accounts);
+			});
+
+			it('should assign blocks', () => {
+				expect(modules.blocks).to.equal(modulesStub.blocks);
+			});
+
+			it('should assign delegates', () => {
+				expect(modules.delegates).to.equal(modulesStub.delegates);
+			});
+
+			it('should assign loader', () => {
+				expect(modules.loader).to.equal(modulesStub.loader);
+			});
+
+			it('should assign rounds', () => {
+				expect(modules.rounds).to.equal(modulesStub.rounds);
+			});
+
+			it('should assign transactions', () => {
+				expect(modules.transactions).to.equal(modulesStub.transactions);
+			});
+
+			it('should assign transport', () => {
+				expect(modules.transport).to.equal(modulesStub.transport);
 			});
 		});
 	});
