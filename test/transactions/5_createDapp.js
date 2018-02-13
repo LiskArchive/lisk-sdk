@@ -319,7 +319,7 @@ describe('#createDapp transaction', () => {
 			it('should have the asset with dapp with properties category, description, name, tags, type, link, icon', () => {
 				return createDappTransaction.should.have.nested
 					.property('asset.dapp')
-					.with.keys(
+					.with.all.keys(
 						'category',
 						'description',
 						'name',

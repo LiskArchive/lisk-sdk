@@ -348,7 +348,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 			it('should have the asset with the multisignature with the min, lifetime and keysgroup', () => {
 				return registerMultisignatureTransaction.should.have.nested
 					.property('asset.multisignature')
-					.with.keys('min', 'lifetime', 'keysgroup');
+					.with.all.keys('min', 'lifetime', 'keysgroup');
 			});
 
 			it('should not have the signature', () => {

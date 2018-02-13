@@ -225,7 +225,7 @@ describe('#transferOutOfDapp', () => {
 			it('should have the asset with the out transfer with dappId and transactionId', () => {
 				return transferOutOfDappTransaction.should.have.nested
 					.property('asset.outTransfer')
-					.with.keys('dappId', 'transactionId');
+					.with.all.keys('dappId', 'transactionId');
 			});
 
 			it('should not have the signature', () => {

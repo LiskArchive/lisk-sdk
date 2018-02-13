@@ -31,7 +31,7 @@ Assertion.addProperty('hexString', function handleAssert() {
 	this.assert(
 		expected === actual,
 		'expected #{this} to be a hexString',
-		'expected #{this} to not be a hexString',
+		'expected #{this} not to be a hexString',
 	);
 });
 
@@ -44,7 +44,7 @@ Assertion.addProperty('integer', function handleAssert() {
 	this.assert(
 		actual === expected,
 		'expected #{this} to be an integer',
-		'expected #{this} to not be an integer',
+		'expected #{this} not to be an integer',
 	);
 });
 /* eslint-enable no-underscore-dangle */
