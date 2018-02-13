@@ -48,20 +48,20 @@ describe('GET /api/accounts', () => {
 					.to.have.property('status')
 					.to.equal(200);
 
-				var signatures = [];
-				scenario.members.map(member => {
-					return signatures.push(
-						apiHelpers.createSignatureObject(
+				var signatureRequests = scenario.members.map(member => {
+					return {
+						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
 							member
 						)
-					);
+					};
 				});
-
-				return signatureEndpoint.makeRequest({ signatures }, 200);
+				return signatureEndpoint.makeRequests(signatureRequests, 200);
 			})
-			.then(res => {
-				expect(res.body.meta.status).to.be.true;
+			.then(responses => {
+				responses.forEach(res => {
+					expect(res.body.meta.status).to.be.true;
+				});
 				return waitFor.confirmations([scenario.multiSigTransaction.id]);
 			});
 	});

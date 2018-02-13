@@ -472,16 +472,22 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			return sendTransactionPromise(scenario.multiSigTransaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 
-				var signatures = _.map(scenario.members, member => {
-					return apiHelpers.createSignatureObject(
-						scenario.multiSigTransaction,
-						member
-					);
+				var signatureRequests = _.map(scenario.members, member => {
+					return {
+						signature: apiHelpers.createSignatureObject(
+							scenario.multiSigTransaction,
+							member
+						)
+					};
 				});
 
-				return signatureEndpoint.makeRequest({ signatures }, 200).then(res => {
-					expect(res.body.meta.status).to.be.true;
-					expect(res.body.data.message).to.be.equal('Signature Accepted');
+				return signatureEndpoint
+					.makeRequests(signatureRequests, 200)
+					.then(results => {
+						results.forEach(res => {
+							expect(res.body.meta.status).to.be.true;
+							expect(res.body.data.message).to.be.equal('Signature Accepted');
+						});
 
 					goodTransactions.push(scenario.multiSigTransaction);
 				});
@@ -512,18 +518,22 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				.then(res => {
 					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 
-					var signatures = _.map(scenario.members, member => {
-						return apiHelpers.createSignatureObject(
-							multiSigSecondPasswordTransaction,
-							member
-						);
+					var signatureRequests = _.map(scenario.members, member => {
+						return {
+							signature: apiHelpers.createSignatureObject(
+								multiSigSecondPasswordTransaction,
+								member
+							)
+						};
 					});
 
 					return signatureEndpoint
-						.makeRequest({ signatures }, 200)
-						.then(res => {
-							expect(res.body.meta.status).to.be.true;
-							expect(res.body.data.message).to.be.equal('Signature Accepted');
+						.makeRequests(signatureRequests, 200)
+						.then(results => {
+							results.forEach(res => {
+								expect(res.body.meta.status).to.be.true;
+								expect(res.body.data.message).to.be.equal('Signature Accepted');
+							});
 
 							goodTransactions.push(multiSigSecondPasswordTransaction);
 						});
@@ -546,16 +556,22 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			return sendTransactionPromise(scenario.multiSigTransaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 
-				var signatures = _.map(scenario.members, member => {
-					return apiHelpers.createSignatureObject(
-						scenario.multiSigTransaction,
-						member
-					);
+				var signatureRequests = _.map(scenario.members, member => {
+					return {
+						signature: apiHelpers.createSignatureObject(
+							scenario.multiSigTransaction,
+							member
+						)
+					};
 				});
 
-				return signatureEndpoint.makeRequest({ signatures }, 200).then(res => {
-					expect(res.body.meta.status).to.be.true;
-					expect(res.body.data.message).to.be.equal('Signature Accepted');
+				return signatureEndpoint
+					.makeRequests(signatureRequests, 200)
+					.then(results => {
+						results.forEach(res => {
+							expect(res.body.meta.status).to.be.true;
+							expect(res.body.data.message).to.be.equal('Signature Accepted');
+						});
 
 					goodTransactions.push(scenario.multiSigTransaction);
 				});
@@ -568,16 +584,22 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			return sendTransactionPromise(scenario.multiSigTransaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 
-				var signatures = _.map(scenario.members, member => {
-					return apiHelpers.createSignatureObject(
-						scenario.multiSigTransaction,
-						member
-					);
+				var signatureRequests = _.map(scenario.members, member => {
+					return {
+						signature: apiHelpers.createSignatureObject(
+							scenario.multiSigTransaction,
+							member
+						)
+					};
 				});
 
-				return signatureEndpoint.makeRequest({ signatures }, 200).then(res => {
-					expect(res.body.meta.status).to.be.true;
-					expect(res.body.data.message).to.be.equal('Signature Accepted');
+				return signatureEndpoint
+					.makeRequests(signatureRequests, 200)
+					.then(results => {
+						results.forEach(res => {
+							expect(res.body.meta.status).to.be.true;
+							expect(res.body.data.message).to.be.equal('Signature Accepted');
+						});
 
 					goodTransactions.push(scenario.multiSigTransaction);
 				});
@@ -593,13 +615,13 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				);
 
 				return signatureEndpoint
-					.makeRequest({ signatures: [signature] }, 200)
+					.makeRequest({ signature: signature }, 200)
 					.then(res => {
 						expect(res.body.meta.status).to.be.true;
 						expect(res.body.data.message).to.be.equal('Signature Accepted');
 
 						return signatureEndpoint.makeRequest(
-							{ signatures: [signature] },
+							{ signature: signature },
 							apiCodes.PROCESSING_ERROR
 						);
 					})
@@ -619,7 +641,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				);
 
 				return signatureEndpoint
-					.makeRequest({ signatures: [signature] }, apiCodes.PROCESSING_ERROR)
+					.makeRequest({ signature: signature }, apiCodes.PROCESSING_ERROR)
 					.then(res => {
 						expect(res)
 							.to.have.nested.property('body.message')

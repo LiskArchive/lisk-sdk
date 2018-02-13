@@ -314,141 +314,65 @@ describe('transport', () => {
 		});
 
 		describe('receiveSignatures', () => {
-			describe('when signatures array is empty', () => {
-				beforeEach(done => {
-					__private.receiveSignature = sinonSandbox.stub().callsArg(1);
-					__private.receiveSignatures(
-						{
-							signatures: [],
-						},
-						() => {
-							done();
-						}
-					);
-				});
+			describe('for every signature in signatures', () => {
+				describe('when __private.receiveSignature succeeds', () => {
+					var error;
 
-				it('should call library.schema.validate with empty query.signatures', () => {
-					return expect(library.schema.validate.called).to.be.true;
-				});
-			});
-
-			describe('when signatures array contains multiple signatures', () => {
-				beforeEach(done => {
-					definitions.Signature = defaultScope.swagger.definitions.Signature;
-					__private.receiveSignature = sinonSandbox.stub().callsArg(1);
-					__private.receiveSignatures(
-						{
-							signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
-						},
-						() => {
-							done();
-						}
-					);
-				});
-
-				it('should call library.schema.validate with custom schema.signatures', () => {
-					return expect(library.schema.validate.called).to.be.true;
-				});
-			});
-
-			describe('when library.schema.validate fails', () => {
-				var error;
-				var validateErr;
-
-				beforeEach(done => {
-					validateErr = new Error('Transaction did not match schema');
-					validateErr.code = 'INVALID_FORMAT';
-					library.schema.validate = sinonSandbox
-						.stub()
-						.callsArgWith(2, [validateErr]);
-
-					__private.receiveSignatures(
-						{
-							signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
-						},
-						err => {
-							error = err;
-							done();
-						}
-					);
-				});
-
-				it('should call series callback with error = "Invalid signatures body"', () => {
-					expect(library.schema.validate.called).to.be.true;
-					return expect(error).to.equal('Invalid signatures body');
-				});
-			});
-
-			describe('when library.schema.validate succeeds', () => {
-				describe('for every signature in signatures', () => {
-					describe('when __private.receiveSignature succeeds', () => {
-						var error;
-
-						beforeEach(done => {
-							__private.receiveSignature = sinonSandbox.stub().callsArg(1);
-							__private.receiveSignatures(
-								{
-									signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
-								},
-								err => {
-									error = err;
-									done();
-								}
-							);
-						});
-
-						it('should call __private.receiveSignature with signature', () => {
-							expect(library.schema.validate.called).to.be.true;
-							expect(__private.receiveSignature.calledTwice).to.be.true;
-							expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_1))
-								.to.be.true;
-							return expect(
-								__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2)
-							).to.be.true;
-						});
-
-						it('should call callback with error null', () => {
-							return expect(error).to.equal(null);
-						});
+					beforeEach(done => {
+						__private.receiveSignature = sinonSandbox.stub().callsArg(1);
+						__private.receiveSignatures(
+							[SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
+							err => {
+								error = err;
+								done();
+							}
+						);
 					});
 
-					describe('when __private.receiveSignature fails', () => {
-						var error;
-						var receiveSignatureError;
+					it('should call __private.receiveSignature with signature', () => {
+						expect(__private.receiveSignature.calledTwice).to.be.true;
+						expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_1))
+							.to.be.true;
+						expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2))
+							.to.be.true;
+					});
 
-						beforeEach(done => {
-							receiveSignatureError =
-								'Error processing signature: Error message';
-							__private.receiveSignature = sinonSandbox
-								.stub()
-								.callsArgWith(1, receiveSignatureError);
-							__private.receiveSignatures(
-								{
-									signatures: [SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
-								},
-								err => {
-									error = err;
-									done();
-								}
-							);
-						});
+					it('should call callback with error null', () => {
+						expect(error).to.equal(null);
+					});
+				});
 
-						it('should call library.logger.debug with err and signature', () => {
-							expect(library.schema.validate.called).to.be.true;
-							// If any of the __private.receiveSignature calls fail, the rest of
-							// the batch should still be processed.
-							expect(__private.receiveSignature.calledTwice).to.be.true;
-							expect(
-								library.logger.debug.calledWith(receiveSignatureError, SAMPLE_SIGNATURE_1)
-							).to.be.true;
-							expect(
-								library.logger.debug.calledWith(receiveSignatureError, SAMPLE_SIGNATURE_2)
-							).to.be.true;
-						});
+				describe('when __private.receiveSignature fails', () => {
+					var error;
+					var receiveSignatureError;
 
-						it('should call callback with error set to null', () => {
-							expect(error).to.equal(null);
-						});
+					beforeEach(done => {
+						receiveSignatureError =
+							'Error processing signature: Error message';
+						__private.receiveSignature = sinonSandbox
+							.stub()
+							.callsArgWith(1, receiveSignatureError);
+						__private.receiveSignatures(
+							[SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
+							err => {
+								error = err;
+								done();
+							}
+						);
+					});
+
+					it('should call library.logger.debug with err and signature', () => {
+						// If any of the __private.receiveSignature calls fail, the rest of
+						// the batch should still be processed.
+						expect(__private.receiveSignature.calledTwice).to.be.true;
+						expect(library.logger.debug.calledWith(receiveSignatureError, SAMPLE_SIGNATURE_1))
+							.to.be.true;
+						expect(library.logger.debug.calledWith(receiveSignatureError, SAMPLE_SIGNATURE_2))
+							.to.be.true;
+					});
+
+					it('should call callback with error set to null', () => {
+						expect(error).to.equal(null);
 					});
 				});
 			});
@@ -1140,7 +1064,7 @@ describe('transport', () => {
 					it('should call __private.broadcaster.enqueue with {}');
 
 					it(
-						'should call __private.broadcaster.enqueue with {api: "postSignatures", data: {signature: signature}}'
+						'should call __private.broadcaster.enqueue with {api: "postSignature", data: {signature: signature}}'
 					);
 
 					it('should call library.network.io.sockets.emit');
@@ -1490,7 +1414,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when query.signatures is undefined', () => {
+				describe('when query.signature is undefined', () => {
 					it('should call __private.receiveSignature');
 
 					it('should call __private.receiveSignature with query.signature');
