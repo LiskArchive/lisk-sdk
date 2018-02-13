@@ -43,6 +43,7 @@
 		"test:node": "npm run build:check && BABEL_ENV=buildcheck mocha test --recursive",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"test:node": "npm run build:check && BABEL_ENV=buildcheck mocha test --recursive",
 		"test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
 		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
