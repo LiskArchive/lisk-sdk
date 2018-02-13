@@ -19,8 +19,8 @@
  *
  * @class
  * @memberof helpers
- * @param {string} message - Description of the param
- * @param {number} code - Description of the param
+ * @param {string} message
+ * @param {number} code
  * @see Parent: {@link helpers}
  * @todo Add description for the params
  */

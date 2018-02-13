@@ -47,9 +47,9 @@ var middleware = {
 	/**
 	 * Adds CORS header to all requests.
 	 *
-	 * @param {Object} req - Description of the param
-	 * @param {Object} res - Description of the param
-	 * @param {function} next - Description of the param
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {function} next
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -65,11 +65,11 @@ var middleware = {
 	/**
 	 * Logs all api errors.
 	 *
-	 * @param {Logger} logger - Description of the param
-	 * @param {Error} err - Description of the param
-	 * @param {Object} req - Description of the param
-	 * @param {Object} res - Description of the param
-	 * @param {function} next - Description of the param
+	 * @param {Logger} logger
+	 * @param {Error} err
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {function} next
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -87,10 +87,10 @@ var middleware = {
 	/**
 	 * Logs api client connections.
 	 *
-	 * @param {Logger} logger - Description of the param
-	 * @param {Object} req - Description of the param
-	 * @param {Object} res - Description of the param
-	 * @param {function} next - Description of the param
+	 * @param {Logger} logger
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {function} next
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -104,10 +104,10 @@ var middleware = {
 	/**
 	 * Resends error msg when blockchain is not loaded.
 	 *
-	 * @param {function} isLoaded - Description of the param
-	 * @param {Object} req - Description of the param
-	 * @param {Object} res - Description of the param
-	 * @param {function} next - Description of the param
+	 * @param {function} isLoaded
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {function} next
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -121,9 +121,9 @@ var middleware = {
 	/**
 	 * Resends error if API endpoint doesn't exists.
 	 *
-	 * @param {Object} req - Description of the param
-	 * @param {Object} res - Description of the param
-	 * @param {function} next - Description of the param
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {function} next
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -136,9 +136,9 @@ var middleware = {
 	/**
 	 * Uses req.sanitize for particular endpoint.
 	 *
-	 * @param {string} property - Description of the param
-	 * @param {Object} schema - Description of the param
-	 * @param {function} cb - Description of the param
+	 * @param {string} property
+	 * @param {Object} schema
+	 * @param {function} cb
 	 * @returns {function}
 	 * @todo Add description for the params
 	 */
@@ -157,11 +157,11 @@ var middleware = {
 	/**
 	 * Attachs header to response.
 	 *
-	 * @param {string} headerKey - Description of the param
-	 * @param {string} headerValue - Description of the param
-	 * @param {Object} req - Description of the param
-	 * @param {Object} res - Description of the param
-	 * @param {function} next - Description of the param
+	 * @param {string} headerKey
+	 * @param {string} headerValue
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {function} next
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -173,10 +173,10 @@ var middleware = {
 	/**
 	 * Applies rules of public / internal API described in config.json.
 	 *
-	 * @param {Object} config - Description of the param
-	 * @param {Object} req - Description of the param
-	 * @param {Object} res - Description of the param
-	 * @param {function} next - Description of the param
+	 * @param {Object} config
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {function} next
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -197,8 +197,8 @@ var middleware = {
 		/**
 		 * Description of the function.
 		 *
-		 * @param {boolean} apiAllowed - Description of the param
-		 * @param {boolean} isEnabled - Description of the param
+		 * @param {boolean} apiAllowed
+		 * @param {boolean} isEnabled
 		 * @todo Add description for the function and the params
 		 * @todo Add @returns tag
 		 */
@@ -216,10 +216,10 @@ var middleware = {
 	/**
 	 * Passes getter for headers and assign then to response.
 	 *
-	 * @param {function} getHeaders - Description of the param
-	 * @param {Object} req - Description of the param
-	 * @param {Object} res - Description of the param
-	 * @param {function} next - Description of the param
+	 * @param {function} getHeaders
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {function} next
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -232,9 +232,9 @@ var middleware = {
 	 * Lookup cache, and reply with cached response if it's a hit.
 	 * If it's a miss, forward the request but cache the response if it's a success.
 	 *
-	 * @param {Object} req - Description of the param
-	 * @param {Object} res - Description of the param
-	 * @param {function} next - Description of the param
+	 * @param {Object} req
+	 * @param {Object} res
+	 * @param {function} next
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
@@ -272,9 +272,9 @@ var middleware = {
 /**
  * Adds 'success' field to every response and attach error message if needed.
  *
- * @param {Object} res - Description of the param
- * @param {string} err - Description of the param
- * @param {Object} response - Description of the param
+ * @param {Object} res
+ * @param {string} err
+ * @param {Object} response
  * @todo Add description for the params
  * @todo Add @returns tag
  */
@@ -292,9 +292,9 @@ function respond(res, err, response) {
  * Success code is 200.
  * Success code for empty data is 204.
  *
- * @param {Object} res - Description of the param
- * @param {ApiError} err - Description of the param
- * @param {Object} response - Description of the param
+ * @param {Object} res
+ * @param {ApiError} err
+ * @param {Object} response
  * @todo Add description for the params
  * @todo Add @returns tag
  */
@@ -320,10 +320,10 @@ function respondWithCode(res, err, response) {
 /**
  * Register router in express app using default middleware.
  *
- * @param {string} route - Description of the param
- * @param {Object} app - Description of the param
- * @param {Object} router - Description of the param
- * @param {function} isLoaded - Description of the param
+ * @param {string} route
+ * @param {Object} app
+ * @param {Object} router
+ * @param {function} isLoaded
  * @todo Add description for the params
  * @todo Add @returns tag
  */

@@ -56,7 +56,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -66,7 +66,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -80,7 +80,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -90,7 +90,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -105,7 +105,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -115,7 +115,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -125,7 +125,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -145,7 +145,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -155,7 +155,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {Object} obj - Description of the param
+	 * @param {Object} obj
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -170,7 +170,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {Object} obj - Description of the param
+	 * @param {Object} obj
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -186,7 +186,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {number} value - Description of the param
+	 * @param {number} value
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -204,7 +204,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -214,7 +214,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -228,7 +228,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
@@ -241,7 +241,7 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {string} str - Description of the param
+	 * @param {string} str
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */

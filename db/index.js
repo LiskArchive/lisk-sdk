@@ -55,8 +55,8 @@ pgp = pgp(initOptions);
  * Connects to the database.
  *
  * @function connect
- * @param {Object} config - Description of the param
- * @param {function} logger - Description of the param
+ * @param {Object} config
+ * @param {function} logger
  * @returns {Promise}
  * @todo Add description for the params and the return value
  */
@@ -88,7 +88,7 @@ module.exports.connect = (config, logger) => {
  * Detaches pg-monitor. Should be invoked after connect.
  *
  * @function disconnect
- * @param {Object} logger - Description of the param
+ * @param {Object} logger
  * @todo Add description for the params
  */
 module.exports.disconnect = logger => {

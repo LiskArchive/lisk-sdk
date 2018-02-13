@@ -31,7 +31,7 @@ function PeersManager() {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
+ * @param {Object} peer
  * @todo Add description for the params
  * @todo Add @returns tag
  */
@@ -60,7 +60,7 @@ PeersManager.prototype.add = function(peer) {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
+ * @param {Object} peer
  * @todo Add description for the params
  * @todo Add @returns tag
  */
@@ -83,7 +83,7 @@ PeersManager.prototype.remove = function(peer) {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
+ * @param {Object} peer
  * @todo Add description for the params
  * @todo Add @returns tag
  */
@@ -108,7 +108,7 @@ PeersManager.prototype.update = function(peer) {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
+ * @param {Object} peer
  * @todo Add description for the params
  * @todo Add @returns tag
  */
@@ -119,7 +119,7 @@ PeersManager.prototype.getAll = function() {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
+ * @param {Object} peer
  * @todo Add description for the params
  * @todo Add @returns tag
  */
@@ -130,7 +130,7 @@ PeersManager.prototype.getByAddress = function(address) {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
+ * @param {Object} peer
  * @todo Add description for the params
  * @todo Add @returns tag
  */
@@ -141,7 +141,7 @@ PeersManager.prototype.getByNonce = function(nonce) {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
+ * @param {Object} peer
  * @todo Add description for the params
  * @todo Add @returns tag
  */
@@ -152,7 +152,7 @@ PeersManager.prototype.getNonce = function(address) {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
+ * @param {Object} peer
  * @todo Add description for the params
  * @todo Add @returns tag
  */

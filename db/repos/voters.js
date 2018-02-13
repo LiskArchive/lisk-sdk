@@ -39,10 +39,10 @@ class VotersRepository {
 	/**
 	 * Searches the voters for a delegate with a public Key.
 	 *
-	 * @param {Object} params - Description of the param
-	 * @param {string} params.publicKey - Description of the param
-	 * @param {int} params.limit - Description of the param
-	 * @param {int} params.offset - Description of the param
+	 * @param {Object} params
+	 * @param {string} params.publicKey
+	 * @param {int} params.limit
+	 * @param {int} params.offset
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -54,7 +54,7 @@ class VotersRepository {
 	/**
 	 * Counts voters for a delegate with a public key.
 	 *
-	 * @param {string} publicKey - Description of the param
+	 * @param {string} publicKey
 	 * @returns {Promise<number>}
 	 * @todo Add description for the params and the return value
 	 */

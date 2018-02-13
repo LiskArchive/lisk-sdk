@@ -112,9 +112,9 @@ module.exports.errorMessages = {
  * Description of the class.
  *
  * @class
- * @param {number} code - Description of the param
- * @param {string} message - Description of the param
- * @param {string} description - Description of the param
+ * @param {number} code
+ * @param {string} message
+ * @param {string} description
  * @todo Add description for the function and the params
  */
 function PeerUpdateError(code, message, description) {

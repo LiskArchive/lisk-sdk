@@ -64,7 +64,7 @@ module.exports = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {number} time - Description of the param
+	 * @param {number} time
 	 * @returns {number} Lisk epoch time
 	 * @todo Add description for the function and the params
 	 */
@@ -75,7 +75,7 @@ module.exports = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {number} [epochTime] - Description of the param
+	 * @param {number} [epochTime]
 	 * @returns {number} Constant time from Lisk epoch + input time
 	 * @todo Add description for the function and the params
 	 */
@@ -131,7 +131,7 @@ module.exports = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {number} nextSlot - Description of the param
+	 * @param {number} nextSlot
 	 * @returns {number} Input next slot + delegates
 	 * @todo Add description for the function and the params
 	 */
@@ -142,7 +142,7 @@ module.exports = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {number} nextSlot - Description of the param
+	 * @param {number} nextSlot
 	 * @returns {number} Input next slot + delegates
 	 * @todo Add description for the function and the params
 	 */

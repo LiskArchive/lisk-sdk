@@ -23,8 +23,8 @@ var httpApi = require('./http_api');
  *
  * @class
  * @memberof helpers
- * @param {string} message - Description of the param
- * @param {number} code - Description of the param
+ * @param {string} message
+ * @param {number} code
  * @throws {Error} If config is invalid
  * @returns {Object} Express router
  * @see Parent: {@link helpers}
@@ -67,8 +67,8 @@ var Router = function() {
 	/**
 	 * Adds one middleware to an array of routes.
 	 *
-	 * @param {function} middleware - Description of the param
-	 * @param {string} routes - Description of the param
+	 * @param {function} middleware
+	 * @param {string} routes
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */

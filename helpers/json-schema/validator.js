@@ -53,8 +53,8 @@ JsonSchema.addRule('type', {
 	 * Description of the function.
 	 *
 	 * @func type_validate
-	 * @param {string} accept - Description of the param
-	 * @param {Object} value - Description of the param
+	 * @param {string} accept
+	 * @param {Object} value
 	 * @todo Add @returns tag
 	 * @todo Add description for the function and the params
 	 */
@@ -79,8 +79,8 @@ JsonSchema.addRule('default', {
 	 * Description of the function.
 	 *
 	 * @func default_filter
-	 * @param {string} accept - Description of the param
-	 * @param {Object} value - Description of the param
+	 * @param {string} accept
+	 * @param {Object} value
 	 * @todo Add @returns tag
 	 * @todo Add description for the function and the params
 	 */
@@ -97,8 +97,8 @@ JsonSchema.addRule('enum', {
 	 * Description of the function.
 	 *
 	 * @func enum_validate
-	 * @param {string} accept - Description of the param
-	 * @param {Object} value - Description of the param
+	 * @param {string} accept
+	 * @param {Object} value
 	 * @todo Add @returns tag
 	 * @todo Add description for the function and the params
 	 */
@@ -114,8 +114,8 @@ JsonSchema.addRule('case', {
 	 * Description of the function.
 	 *
 	 * @func case_validate
-	 * @param {string} accept - Description of the param
-	 * @param {Object} value - Description of the param
+	 * @param {string} accept
+	 * @param {Object} value
 	 * @todo Add @returns tag
 	 * @todo Add description for the function and the params
 	 */
@@ -134,8 +134,8 @@ JsonSchema.addRule('minLength', {
 	 * Description of the function.
 	 *
 	 * @func minLength_validate
-	 * @param {string} accept - Description of the param
-	 * @param {Object} value - Description of the param
+	 * @param {string} accept
+	 * @param {Object} value
 	 * @todo Add @returns tag
 	 * @todo Add description for the function and the params
 	 */
@@ -149,8 +149,8 @@ JsonSchema.addRule('maxLength', {
 	 * Description of the function.
 	 *
 	 * @func maxLength_validate
-	 * @param {string} accept - Description of the param
-	 * @param {Object} value - Description of the param
+	 * @param {string} accept
+	 * @param {Object} value
 	 * @todo Add @returns tag
 	 * @todo Add description for the function and the params
 	 */
@@ -164,8 +164,8 @@ JsonSchema.addRule('pattern', {
 	 * Description of the function.
 	 *
 	 * @func pattern_validate
-	 * @param {string} accept - Description of the param
-	 * @param {Object} value - Description of the param
+	 * @param {string} accept
+	 * @param {Object} value
 	 * @todo Add @returns tag
 	 * @todo Add description for the function and the params
 	 */
@@ -184,9 +184,9 @@ JsonSchema.addRule('minimum', {
 	 * Description of the function.
 	 *
 	 * @func minimum_validate
-	 * @param {number} accept - Description of the param
-	 * @param {number} value - Description of the param
-	 * @param {Object} field - Description of the param
+	 * @param {number} accept
+	 * @param {number} value
+	 * @param {Object} field
 	 * @todo Add @returns tag
 	 * @todo Add description for the function and the params
 	 */
@@ -205,9 +205,9 @@ JsonSchema.addRule('maximum', {
 	 * Description of the function.
 	 *
 	 * @func maximum_validate
-	 * @param {number} accept - Description of the param
-	 * @param {number} value - Description of the param
-	 * @param {Object} field - Description of the param
+	 * @param {number} accept
+	 * @param {number} value
+	 * @param {Object} field
 	 * @todo Add @returns tag
 	 * @todo Add description for the function and the params
 	 */
@@ -226,8 +226,8 @@ JsonSchema.addRule('divisibleBy', {
 	 * Description of the function.
 	 *
 	 * @func divisibleBy_validate
-	 * @param {number} accept - Description of the param
-	 * @param {number} value - Description of the param
+	 * @param {number} accept
+	 * @param {number} value
 	 * @todo Add @returns tag
 	 * @todo Add description for the function and the params
 	 */
@@ -243,8 +243,8 @@ JsonSchema.addRule('properties', {
 	 * Description of the function.
 	 *
 	 * @func properties_validate
-	 * @param {number} accept - Description of the param
-	 * @param {number} value - Description of the param
+	 * @param {number} accept
+	 * @param {number} value
 	 * @todo Add @returns tag
 	 * @todo Add description for the function and the params
 	 */

@@ -108,7 +108,7 @@ class TransactionsRepository {
 	/**
 	 * Count transactions by Id.
 	 *
-	 * @param {string} id - Description of the param
+	 * @param {string} id
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -119,9 +119,9 @@ class TransactionsRepository {
 	/**
 	 * Count transactions with extended params.
 	 *
-	 * @param {Object} params - Description of the param
-	 * @param {Array} params.where - Description of the param
-	 * @param {string} params.owner - Description of the param
+	 * @param {Object} params
+	 * @param {Array} params.where
+	 * @param {string} params.owner
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -133,13 +133,13 @@ class TransactionsRepository {
 	/**
 	 * Search transactions.
 	 *
-	 * @param {Object} params - Description of the param
-	 * @param {Array} params.where - Description of the param
-	 * @param {string} params.owner - Description of the param
-	 * @param {string} params.sortField - Description of the param
-	 * @param {string} params.sortMethod - Description of the param
-	 * @param {int} params.limit - Description of the param
-	 * @param {int} params.offset - Description of the param
+	 * @param {Object} params
+	 * @param {Array} params.where
+	 * @param {string} params.owner
+	 * @param {string} params.sortField
+	 * @param {string} params.sortMethod
+	 * @param {int} params.limit
+	 * @param {int} params.offset
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -151,7 +151,7 @@ class TransactionsRepository {
 	/**
 	 * Gets transfer transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids - Description of the param
+	 * @param {Array.<string>} ids
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -162,7 +162,7 @@ class TransactionsRepository {
 	/**
 	 * Gets vote transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids - Description of the param
+	 * @param {Array.<string>} ids
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -173,7 +173,7 @@ class TransactionsRepository {
 	/**
 	 * Gets delegate transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids - Description of the param
+	 * @param {Array.<string>} ids
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -184,7 +184,7 @@ class TransactionsRepository {
 	/**
 	 * Gets signature transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids - Description of the param
+	 * @param {Array.<string>} ids
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -195,7 +195,7 @@ class TransactionsRepository {
 	/**
 	 * Gets multisignature transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids - Description of the param
+	 * @param {Array.<string>} ids
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -206,7 +206,7 @@ class TransactionsRepository {
 	/**
 	 * Gets dapp transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids - Description of the param
+	 * @param {Array.<string>} ids
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -217,7 +217,7 @@ class TransactionsRepository {
 	/**
 	 * Gets in-transfer transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids - Description of the param
+	 * @param {Array.<string>} ids
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -228,7 +228,7 @@ class TransactionsRepository {
 	/**
 	 * Gets out-transfer transactions from a list of id-s.
 	 *
-	 * @param {Array.<string>} ids - Description of the param
+	 * @param {Array.<string>} ids
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */

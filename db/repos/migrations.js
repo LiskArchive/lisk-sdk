@@ -93,7 +93,7 @@ class MigrationsRepository {
 	/**
 	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
 	 *
-	 * @param {number} lastMigrationId - Description of the param
+	 * @param {number} lastMigrationId
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */

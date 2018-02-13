@@ -51,7 +51,7 @@ var middleware = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {Object} system - Description of the param
+	 * @param {Object} system
 	 * @todo Add description for the function and the params
 	 * @todo Add @returns tag
 	 */
@@ -60,7 +60,7 @@ var middleware = {
 		/**
 		 * Description of the function.
 		 *
-		 * @param {Object} system - Description of the param
+		 * @param {Object} system
 		 * @todo Add description for the function and the params
 		 * @todo Add @returns tag
 		 */
@@ -125,7 +125,7 @@ var middleware = {
 /**
  * Description of the function.
  *
- * @param {Object} request - Description of the param
+ * @param {Object} request
  * @todo Add description for the function and the params
  * @todo Add @returns tag
  */

@@ -26,7 +26,7 @@ var exceptions = require('./exceptions');
  * @requires helpers/bignum
  * @requires helpers/exceptions
  * @requires helpers/slots
- * @param {Object} scope - Description of the param
+ * @param {Object} scope
  * @see Parent: {@link helpers}
  * @todo Add description for the params
  */
@@ -57,7 +57,7 @@ function RoundChanges(scope) {
  * Calculates rewards at round position.
  * Fees and feesRemaining based on slots.
  *
- * @param {number} index - Description of the param
+ * @param {number} index
  * @returns {Object} With fees, feesRemaining, rewards, balance
  * @todo Add description for the params
  */

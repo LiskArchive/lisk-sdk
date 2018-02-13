@@ -35,9 +35,9 @@ var jobsQueue = {
 	/**
 	 * Returns hash of the last git commit if available.
 	 *
-	 * @param {string} name - Description of the param
-	 * @param { } job - Description of the param
-	 * @param {number} time - Description of the param
+	 * @param {string} name
+	 * @param { } job
+	 * @param {number} time
 	 * @throws {Error} If cannot get last git commit
 	 * @returns {string} Hash of last git commit
 	 * @todo Add description for the params

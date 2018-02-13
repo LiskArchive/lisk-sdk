@@ -39,8 +39,8 @@ function AccountsController(scope) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
+ * @param {Object} context
+ * @param {function} next
  * @todo Add description for the function and the params
  */
 AccountsController.getAccounts = function(context, next) {
@@ -97,8 +97,8 @@ AccountsController.getAccounts = function(context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
+ * @param {Object} context
+ * @param {function} next
  * @todo Add description for the function and the params
  */
 AccountsController.getMultisignatureGroups = function(context, next) {
@@ -143,8 +143,8 @@ AccountsController.getMultisignatureGroups = function(context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
+ * @param {Object} context
+ * @param {function} next
  * @todo Add description for the function and the params
  */
 AccountsController.getMultisignatureMemberships = function(context, next) {

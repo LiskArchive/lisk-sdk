@@ -24,8 +24,8 @@ var _ = require('lodash');
  * @memberof api/fittings
  * @requires debug
  * @requires lodash
- * @param {Object} fittingDef - Description of the param
- * @param {Object} bagpipes - Description of the param
+ * @param {Object} fittingDef
+ * @param {Object} bagpipes
  * @returns {function} {@link api/fittings.lisk_response_formatter}
  * @todo Add description for the function and the params
  */
@@ -35,8 +35,8 @@ module.exports = function create() {
 	 *
 	 * @func lisk_response_formatter
 	 * @memberof api/fittings
-	 * @param {Object} context - Description of the param
-	 * @param {function} next - Description of the param
+	 * @param {Object} context
+	 * @param {function} next
 	 * @todo Add description for the function and the params
 	 */
 	return function lisk_response_formatter(context, next) {

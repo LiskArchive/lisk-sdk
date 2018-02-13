@@ -25,7 +25,7 @@ var extend = require('extend');
  * @memberof helpers
  * @requires extend
  * @requires util
- * @param {string} config - Description of the param
+ * @param {string} config
  * @see Parent: {@link helpers}
  * @todo Add description for the params
  */
@@ -51,7 +51,7 @@ function Sequence(config) {
 /**
  * Removes the first task from sequence and execute it with args.
  *
- * @param {function} cb - Description of the param
+ * @param {function} cb
  * @returns {setImmediateCallback} With cb or task.done
  * @todo Add description for the params
  */
@@ -77,9 +77,9 @@ Sequence.prototype.__tick = function(cb) {
 /**
  * Adds a new task to sequence.
  *
- * @param {function} worker - Description of the param
- * @param {Array} args - Description of the param
- * @param {function} done - Description of the param
+ * @param {function} worker
+ * @param {Array} args
+ * @param {function} done
  * @todo Add description for the params
  */
 Sequence.prototype.add = function(worker, args, done) {

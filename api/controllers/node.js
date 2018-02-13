@@ -45,8 +45,8 @@ function NodeController(scope) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
+ * @param {Object} context
+ * @param {function} next
  * @todo Add description for the function and the params
  */
 NodeController.getConstants = function(context, next) {
@@ -83,8 +83,8 @@ NodeController.getConstants = function(context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
+ * @param {Object} context
+ * @param {function} next
  * @todo Add description for the function and the params
  */
 NodeController.getStatus = function(context, next) {
@@ -119,8 +119,8 @@ NodeController.getStatus = function(context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
+ * @param {Object} context
+ * @param {function} next
  * @todo Add description for the function and the params
  */
 NodeController.getForgingStatus = function(context, next) {
@@ -143,8 +143,8 @@ NodeController.getForgingStatus = function(context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
+ * @param {Object} context
+ * @param {function} next
  * @todo Add description for the function and the params
  */
 NodeController.updateForgingStatus = function(context, next) {
@@ -173,8 +173,8 @@ NodeController.updateForgingStatus = function(context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
+ * @param {Object} context
+ * @param {function} next
  * @todo Add description for the function and the params
  */
 NodeController.getPooledTransactions = function(context, next) {

@@ -29,7 +29,7 @@ var ed = {};
  * Creates a keypar based on a hash.
  *
  * @func makeKeypair
- * @param {hash} hash - Description of the param
+ * @param {hash} hash
  * @returns {Buffer}
  * @todo Add description for the params and the return value
  */
@@ -46,8 +46,8 @@ ed.makeKeypair = function(hash) {
  * Creates a signature based on a hash and a keypair.
  *
  * @func sign
- * @param {hash} hash - Description of the param
- * @param {Buffer} privateKey - Description of the param
+ * @param {hash} hash
+ * @param {Buffer} privateKey
  * @returns {Buffer}
  * @todo Add description for the params and the return value
  */
@@ -59,9 +59,9 @@ ed.sign = function(hash, privateKey) {
  * Verifies a signature based on a hash and a publicKey.
  *
  * @func verify
- * @param {hash} hash - Description of the param
- * @param {Buffer} signature - Description of the param
- * @param {Buffer} publicKey - Description of the param
+ * @param {hash} hash
+ * @param {Buffer} signature
+ * @param {Buffer} publicKey
  * @returns {boolean} True if verified
  * @todo Add description for the params
  */

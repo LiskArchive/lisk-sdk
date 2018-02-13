@@ -27,8 +27,8 @@ var BigNumber = require('bignumber.js');
 /**
  * Creates an instance from a Buffer.
  *
- * @param {ArrayBuffer} buf - Description of the param
- * @param {Object} opts - Description of the param
+ * @param {ArrayBuffer} buf
+ * @param {Object} opts
  * @returns {ArrayBuffer} New BigNumber instance
  * @throws {RangeError} If description multiple of size
  * @todo Add description for the params
@@ -65,7 +65,7 @@ BigNumber.fromBuffer = function(buf, opts) {
 /**
  * Returns an instance as Buffer.
  *
- * @param {Object} opts - Description of the param
+ * @param {Object} opts
  * @returns {ArrayBuffer} New buffer or error message
  * @todo Add description for the params
  */

@@ -24,7 +24,7 @@ module.exports = {
 	/**
 	 * Changes operation sign.
 	 *
-	 * @param {Array} diff - Description of the param
+	 * @param {Array} diff
 	 * @returns {Array} Reverse sign
 	 * @todo Add description for the params
 	 */
@@ -40,8 +40,8 @@ module.exports = {
 	/**
 	 * Acts over source content adding(+) or deleting(-) public keys based on diff content.
 	 *
-	 * @param {Array} source - Description of the param
-	 * @param {Array} diff - Description of the param
+	 * @param {Array} source
+	 * @param {Array} diff
 	 * @returns {Array} Source data without -publicKeys and with +publicKeys from diff.
 	 * @todo Add description for the params
 	 */

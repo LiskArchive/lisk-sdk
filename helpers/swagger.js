@@ -102,9 +102,9 @@ function getSwaggerSpec() {
 /**
  * Generate swagger based param error object to handle custom errors.
  *
- * @param {Array} params - List of param objects.
- * @param {Array} [messages] - List of error messages.
- * @param {Array} [codes] - List of error codes.
+ * @param {Array} params - List of param objects
+ * @param {Array} [messages] - List of error messages
+ * @param {Array} [codes] - List of error codes
  * @returns {Object}
  * @todo Add description for the return value
  */

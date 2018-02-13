@@ -58,7 +58,7 @@ class RoundsRepository {
 	/**
 	 * Delete all blocks above a particular height.
 	 *
-	 * @param {int} height - Description of the param
+	 * @param {int} height
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -111,8 +111,8 @@ class RoundsRepository {
 	/**
 	 * Update the blockId attribute for an account.
 	 *
-	 * @param {string} newId - Description of the param
-	 * @param {string} oldId - Description of the param
+	 * @param {string} newId
+	 * @param {string} oldId
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */

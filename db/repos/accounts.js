@@ -591,9 +591,9 @@ class AccountsRepository {
  * @class
  * @memberof db.repos.accounts
  * @see Parent: {@link db.repos.accounts}
- * @param {Object} columnSet - Description of the param
- * @param {Array} fields - Description of the param
- * @param {Object} pgp - Description of the param
+ * @param {Object} columnSet
+ * @param {Array} fields
+ * @param {Object} pgp
  * @todo Add @returns tag
  */
 // Generate select SQL based on column set definition and conditions

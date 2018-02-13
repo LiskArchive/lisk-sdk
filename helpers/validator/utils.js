@@ -31,7 +31,7 @@ exports.inherits = util.inherits;
 /**
  * Description of the function.
  *
- * @param {Object} target - Description of the param
+ * @param {Object} target
  * @todo Add @returns tag
  * @todo Add description for the function and the params
  */
@@ -54,7 +54,7 @@ function extend(target) {
 /**
  * Description of the function.
  *
- * @param {Object} target - Description of the param
+ * @param {Object} target
  * @todo Add @returns tag
  * @todo Add description for the function and the params
  */

@@ -25,12 +25,12 @@
 /**
  * Validates sort options, methods and fields.
  *
- * @param {string|Object} sort - Description of the param
- * @param {Object} [options] - Description of the param
- * @param {string} options.fieldPrefix - Description of the param
- * @param {string} options.sortField - Description of the param
+ * @param {string|Object} sort
+ * @param {Object} [options]
+ * @param {string} options.fieldPrefix
+ * @param {string} options.sortField
  * @param {string} options.sortMethod - asc / desc
- * @param {Array} options.sortFields - Description of the param
+ * @param {Array} options.sortFields
  * @returns {Object} {error} | {sortField, sortMethod}
  * @todo Add description for the params
  */
@@ -154,7 +154,7 @@ function sortBy(sort, options) {
  * If only field is specified in sortQuery, sortOrder will be ascending.
  *
  * @param {string} sortQuery - sortField|sortField:sortOrder
- * @param {Array} sortableFields - Description of the param
+ * @param {Array} sortableFields
  * @returns {Object} If incorrect format of sortQuery given or if field
  * @todo Add description for the params
  */

@@ -31,7 +31,7 @@ var bs = {};
  * Serializes input data.
  *
  * @func serialize
- * @param {Object} data - Description of the param
+ * @param {Object} data
  * @returns {Buffer}
  * @todo Add description for the params and the return value
  */
@@ -43,7 +43,7 @@ bs.serialize = function(data) {
  * Deserializes input data.
  *
  * @func deserialize
- * @param {Buffer} data - Description of the param
+ * @param {Buffer} data
  * @returns {Object}
  * @todo Add description for the params and the return value
  */

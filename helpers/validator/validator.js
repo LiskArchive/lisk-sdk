@@ -28,7 +28,7 @@ exports.Field = Field;
  *
  * @class
  * @memberof helpers.validator
- * @param {Object} options - Description of the param
+ * @param {Object} options
  * @see Parent: {@link helpers.validator}
  * @todo Add description for the params
  */
@@ -83,7 +83,7 @@ Validator.prototype.reporter = null;
 /**
  * Check whether rule exists.
  *
- * @param {string} name - Description of the param
+ * @param {string} name
  * @returns {boolean}
  * @todo Add description for the params and the return value
  */
@@ -94,7 +94,7 @@ Validator.prototype.hasRule = function(name) {
 /**
  * Get rule descriptor.
  *
- * @param {string} name - Description of the param
+ * @param {string} name
  * @returns {*}
  * @todo Add description for the params and the return value
  */
@@ -108,7 +108,7 @@ Validator.prototype.getRule = function(name) {
 /**
  * Validate values with specified rules set.
  *
- * @param {*} value - Description of the param
+ * @param {*} value
  * @param {Object} rules - Set of rules
  * @param {function} callback - Result callback (err:Error,report:Array,output:*)=
  * @returns {Object} Report object
@@ -236,8 +236,8 @@ Validator.addRule = function(name, descriptor) {
 /**
  * Add rule alias.
  *
- * @param {string} name - Description of the param
- * @param {string} origin - Description of the param
+ * @param {string} name
+ * @param {string} origin
  * @todo Add @returns tag
  * @todo Add description for the params
  */
@@ -252,8 +252,8 @@ Validator.addAlias = function(name, origin) {
 /**
  * Add extra property to Field.
  *
- * @param name - Description of the param
- * @param value - Description of the param
+ * @param name
+ * @param value
  * @todo Add description for the params
  */
 Validator.fieldProperty = function(name, value) {

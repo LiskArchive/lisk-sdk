@@ -19,7 +19,7 @@
  *
  * @memberof helpers
  * @function z_schema-express
- * @param {function} z_schema - Description of the param
+ * @param {function} z_schema
  * @returns {function}
  * @todo Add description for the params and return value
  */
