@@ -11,16 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../../functional.js');
 
 var Scenarios = require('../../../common/scenarios');
 var accountFixtures = require('../../../../fixtures/accounts');
-
 var apiHelpers = require('../../../../common/helpers/api');
 var waitFor = require('../../../../common/utils/wait_for');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
+
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/accounts', () => {
@@ -48,7 +49,7 @@ describe('GET /api/accounts', () => {
 					.to.equal(200);
 
 				var signatures = [];
-				scenario.members.map(function(member) {
+				scenario.members.map(member => {
 					return signatures.push(
 						apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
@@ -57,7 +58,7 @@ describe('GET /api/accounts', () => {
 					);
 				});
 
-				return signatureEndpoint.makeRequest({ signatures: signatures }, 200);
+				return signatureEndpoint.makeRequest({ signatures }, 200);
 			})
 			.then(res => {
 				expect(res.body.meta.status).to.be.true;

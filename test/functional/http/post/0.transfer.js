@@ -11,15 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
 var lisk = require('lisk-js');
-
 var accountFixtures = require('../../../fixtures/accounts');
-
 var typesRepresentatives = require('../../../fixtures/types_representatives');
-
 var phases = require('../../common/phases');
 var sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;

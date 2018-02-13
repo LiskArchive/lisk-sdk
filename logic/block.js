@@ -11,15 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var crypto = require('crypto');
-var bignum = require('../helpers/bignum.js');
 var ByteBuffer = require('bytebuffer');
-var BlockReward = require('./block_reward.js');
+var bignum = require('../helpers/bignum.js');
 var constants = require('../helpers/constants.js');
-
 var transactionTypes = require('../helpers/transaction_types.js');
+var BlockReward = require('./block_reward.js');
 
 // Private fields
 var __private = {};
@@ -38,9 +38,9 @@ var __private = {};
 // Constructor
 function Block(ed, schema, transaction, cb) {
 	this.scope = {
-		ed: ed,
-		schema: schema,
-		transaction: transaction,
+		ed,
+		schema,
+		transaction,
 	};
 	__private.blockReward = new BlockReward();
 	if (cb) {
@@ -152,9 +152,9 @@ Block.prototype.create = function(data) {
 
 	var block = {
 		version: 0,
-		totalAmount: totalAmount,
-		totalFee: totalFee,
-		reward: reward,
+		totalAmount,
+		totalFee,
+		reward,
 		payloadHash: payloadHash.digest().toString('hex'),
 		timestamp: data.timestamp,
 		numberOfTransactions: blockTransactions.length,
@@ -474,29 +474,28 @@ Block.prototype.calculateFee = function() {
 Block.prototype.dbRead = function(raw) {
 	if (!raw.b_id) {
 		return null;
-	} else {
-		var block = {
-			id: raw.b_id,
-			version: parseInt(raw.b_version),
-			timestamp: parseInt(raw.b_timestamp),
-			height: parseInt(raw.b_height),
-			previousBlock: raw.b_previousBlock,
-			numberOfTransactions: parseInt(raw.b_numberOfTransactions),
-			totalAmount: parseInt(raw.b_totalAmount),
-			totalFee: parseInt(raw.b_totalFee),
-			reward: parseInt(raw.b_reward),
-			payloadLength: parseInt(raw.b_payloadLength),
-			payloadHash: raw.b_payloadHash,
-			generatorPublicKey: raw.b_generatorPublicKey,
-			generatorId: __private.getAddressByPublicKey(raw.b_generatorPublicKey),
-			blockSignature: raw.b_blockSignature,
-			confirmations: parseInt(raw.b_confirmations),
-		};
-		block.totalForged = new bignum(block.totalFee)
-			.plus(new bignum(block.reward))
-			.toString();
-		return block;
 	}
+	var block = {
+		id: raw.b_id,
+		version: parseInt(raw.b_version),
+		timestamp: parseInt(raw.b_timestamp),
+		height: parseInt(raw.b_height),
+		previousBlock: raw.b_previousBlock,
+		numberOfTransactions: parseInt(raw.b_numberOfTransactions),
+		totalAmount: parseInt(raw.b_totalAmount),
+		totalFee: parseInt(raw.b_totalFee),
+		reward: parseInt(raw.b_reward),
+		payloadLength: parseInt(raw.b_payloadLength),
+		payloadHash: raw.b_payloadHash,
+		generatorPublicKey: raw.b_generatorPublicKey,
+		generatorId: __private.getAddressByPublicKey(raw.b_generatorPublicKey),
+		blockSignature: raw.b_blockSignature,
+		confirmations: parseInt(raw.b_confirmations),
+	};
+	block.totalForged = new bignum(block.totalFee)
+		.plus(new bignum(block.reward))
+		.toString();
+	return block;
 };
 
 // Export

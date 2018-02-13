@@ -11,16 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-
 var failureCodes = require('../../../../api/ws/rpc/failure_codes');
 var wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
 var transport = require('../../../../api/ws/transport');
 var System = require('../../../../modules/system');
-
 var WSServer = require('../../../common/ws/server_master');
 
 describe('ClientRPCStub', () => {

@@ -11,11 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var genesisDelegates = require('../../data/genesis_delegates.json');
 var accountFixtures = require('../../fixtures/accounts');
-
 var application = require('../../common/application');
 
 describe('delegates', () => {

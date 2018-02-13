@@ -11,10 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
 require('../../helpers/transaction_types');
+
 var columnSet;
 
 /**
@@ -41,7 +43,7 @@ function MultiSigTransactionsRepo(db, pgp) {
 			schema: 'public',
 		});
 		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: table,
+			table,
 		});
 	}
 
@@ -61,7 +63,7 @@ MultiSigTransactionsRepo.prototype.save = function(transactions) {
 	transactions = transactions.map(transaction => ({
 		min: transaction.asset.multisignature.min,
 		lifetime: transaction.asset.multisignature.lifetime,
-		keysgroup: transaction.asset.multisignature.keysgroup.join(','),
+		keysgroup: transaction.asset.multisignature.keysgroup.join(),
 		transactionId: transaction.id,
 	}));
 

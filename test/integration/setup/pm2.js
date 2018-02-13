@@ -11,12 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var fs = require('fs');
 
 module.exports = {
-	generatePM2Configuration: function(configurations, cb) {
+	generatePM2Configuration(configurations, cb) {
 		var pm2Config = configurations.reduce(
 			(pm2Config, configuration) => {
 				var index = pm2Config.apps.length;

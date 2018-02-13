@@ -11,9 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
+
 var columnSet;
 
 /**
@@ -40,7 +42,7 @@ function VoteTransactionsRepo(db, pgp) {
 			schema: 'public',
 		});
 		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: table,
+			table,
 		});
 	}
 
@@ -59,7 +61,7 @@ VoteTransactionsRepo.prototype.save = function(transactions) {
 
 	transactions = transactions.map(transaction => ({
 		votes: Array.isArray(transaction.asset.votes)
-			? transaction.asset.votes.join(',')
+			? transaction.asset.votes.join()
 			: null,
 		transactionId: transaction.id,
 	}));

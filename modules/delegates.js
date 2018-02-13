@@ -11,8 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
+var crypto = require('crypto');
 var _ = require('lodash');
 var async = require('async');
 var apiCodes = require('../helpers/api_codes.js');
@@ -20,7 +22,6 @@ var ApiError = require('../helpers/api_error.js');
 var BlockReward = require('../logic/block_reward.js');
 var constants = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobs_queue.js');
-var crypto = require('crypto');
 var Delegate = require('../logic/delegate.js');
 var slots = require('../helpers/slots.js');
 var transactionTypes = require('../helpers/transaction_types.js');
@@ -86,9 +87,10 @@ function Delegates(cb, scope) {
  * Gets delegate public keys sorted by vote descending.
  * @private
  * @param {function} cb - Callback function.
+ * @param {Object} tx - Database transaction/task object
  * @returns {setImmediateCallback}
  */
-__private.getKeysSortByVote = function(cb) {
+__private.getKeysSortByVote = function(cb, tx) {
 	modules.accounts.getAccounts(
 		{
 			isDelegate: 1,
@@ -101,7 +103,8 @@ __private.getKeysSortByVote = function(cb) {
 				return setImmediate(cb, err);
 			}
 			return setImmediate(cb, null, rows.map(el => el.publicKey));
-		}
+		},
+		tx
 	);
 };
 
@@ -109,10 +112,11 @@ __private.getKeysSortByVote = function(cb) {
  * Gets delegate public keys from previous round, sorted by vote descending.
  * @private
  * @param {function} cb - Callback function.
+ * @param {Object} tx - Database transaction/task object
  * @returns {setImmediateCallback}
  */
-__private.getDelegatesFromPreviousRound = function(cb) {
-	library.db.rounds
+__private.getDelegatesFromPreviousRound = function(cb, tx) {
+	(tx || library.db).rounds
 		.getDelegatesSnapshot(slots.delegates)
 		.then(rows => {
 			var delegatesPublicKeys = [];
@@ -145,14 +149,13 @@ __private.validateBlockSlot = function(block, source, cb) {
 
 		if (delegateId && block.generatorPublicKey === delegateId) {
 			return setImmediate(cb);
-		} else {
-			library.logger.error(
-				`Expected generator: ${delegateId} Received generator: ${
-					block.generatorPublicKey
-				}`
-			);
-			return setImmediate(cb, `Failed to verify slot: ${currentSlot}`);
 		}
+		library.logger.error(
+			`Expected generator: ${delegateId} Received generator: ${
+				block.generatorPublicKey
+			}`
+		);
+		return setImmediate(cb, `Failed to verify slot: ${currentSlot}`);
 	});
 };
 
@@ -328,7 +331,7 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 	}
 
 	modules.accounts.getAccount(
-		{ publicKey: publicKey },
+		{ publicKey },
 		(err, account) => {
 			if (err) {
 				return setImmediate(cb, err);
@@ -367,7 +370,7 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 					}
 
 					modules.accounts.getAccount(
-						{ publicKey: publicKey, isDelegate: 1 },
+						{ publicKey, isDelegate: 1 },
 						(err, account) => {
 							if (err) {
 								return setImmediate(cb, err);
@@ -422,9 +425,8 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 								constants.activeDelegates
 							} votes exceeded (${exceeded} too many)`
 						);
-					} else {
-						return setImmediate(cb);
 					}
+					return setImmediate(cb);
 				}
 			);
 		},
@@ -448,15 +450,14 @@ __private.loadDelegates = function(cb) {
 		!library.config.forging.defaultKey
 	) {
 		return setImmediate(cb);
-	} else {
-		library.logger.info(
-			[
-				'Loading',
-				secretsList.length,
-				'delegates using encrypted secrets from config',
-			].join(' ')
-		);
 	}
+	library.logger.info(
+		[
+			'Loading',
+			secretsList.length,
+			'delegates using encrypted secrets from config',
+		].join(' ')
+	);
 
 	async.eachSeries(
 		secretsList,
@@ -610,12 +611,11 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 				}
 
 				return setImmediate(cb, null, {
-					publicKey: publicKey,
+					publicKey,
 					forging: forgingStatus,
 				});
-			} else {
-				return setImmediate(cb, 'Delegate not found');
 			}
+			return setImmediate(cb, 'Delegate not found');
 		}
 	);
 };
@@ -626,9 +626,10 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
  * @param {number} height
  * @param {function} source - Source function for get delegates.
  * @param {function} cb - Callback function.
+ * @param {Object} tx - Database transaction/task object
  * @returns {setImmediateCallback} err | truncated delegate list
  */
-Delegates.prototype.generateDelegateList = function(height, source, cb) {
+Delegates.prototype.generateDelegateList = function(height, source, cb, tx) {
 	// Set default function for getting delegates
 	source = source || __private.getKeysSortByVote;
 
@@ -657,7 +658,7 @@ Delegates.prototype.generateDelegateList = function(height, source, cb) {
 		}
 
 		return setImmediate(cb, null, truncDelegateList);
-	});
+	}, tx);
 };
 
 /**
@@ -819,7 +820,7 @@ Delegates.prototype.fork = function(block, cause) {
 			height: block.height,
 			previousBlock: block.previousBlock,
 		},
-		cause: cause,
+		cause,
 	});
 
 	var fork = {
@@ -828,7 +829,7 @@ Delegates.prototype.fork = function(block, cause) {
 		blockId: block.id,
 		blockHeight: block.height,
 		previousBlock: block.previousBlock,
-		cause: cause,
+		cause,
 	};
 
 	library.db.delegates.insertFork(fork).then(() => {
@@ -919,7 +920,7 @@ Delegates.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getForgers: function(filters, cb) {
+	getForgers(filters, cb) {
 		var lastBlock = modules.blocks.lastBlock.get();
 		var lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
 		var currentSlot = slots.getSlotNumber();
@@ -936,8 +937,8 @@ Delegates.prototype.shared = {
 				data: forgers,
 				meta: {
 					lastBlock: lastBlock.height,
-					lastBlockSlot: lastBlockSlot,
-					currentSlot: currentSlot,
+					lastBlockSlot,
+					currentSlot,
 				},
 			});
 		});
@@ -958,7 +959,7 @@ Delegates.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getDelegates: function(filters, cb) {
+	getDelegates(filters, cb) {
 		modules.delegates.getDelegates(filters, (err, delegates) => {
 			if (err) {
 				return setImmediate(

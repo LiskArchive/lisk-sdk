@@ -11,10 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var crypto = require('crypto');
-
 var ed = require('../../../helpers/ed');
 
 describe('ed', () => {

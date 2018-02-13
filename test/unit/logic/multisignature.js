@@ -11,24 +11,21 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-var lisk = require('lisk-js');
 var crypto = require('crypto');
 var rewire = require('rewire');
-
-var testData = require('./test_data/multisignature');
+var lisk = require('lisk-js');
+var modulesLoader = require('../../common/modules_loader');
+var randomUtil = require('../../common/utils/random');
+var constants = require('../../../helpers/constants');
 var accountFixtures = require('../../fixtures/accounts');
-
 var slots = require('../../../helpers/slots');
 var Diff = require('../../../helpers/diff');
+var testData = require('./test_data/multisignature');
 
-var constants = require('../../../helpers/constants');
 var Multisignature = rewire('../../../logic/multisignature');
-
-var randomUtil = require('../../common/utils/random');
-var modulesLoader = require('../../common/modules_loader');
-
 var validKeypair = testData.validKeypair;
 var validSender = testData.validSender;
 var validTransaction = testData.validTransaction;
@@ -564,7 +561,7 @@ describe('multisignature', () => {
 						it('should call library.logic.account.setAccountAndGet with {address: address}', () => {
 							expect(
 								accountsMock.setAccountAndGet.calledWith(
-									sinonSandbox.match({ address: address })
+									sinonSandbox.match({ address })
 								)
 							).to.be.true;
 						});
@@ -615,7 +612,7 @@ describe('multisignature', () => {
 		});
 	});
 
-	it('undo', () => {
+	describe('undo', () => {
 		/* eslint-disable mocha/no-sibling-hooks */
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
@@ -624,6 +621,7 @@ describe('multisignature', () => {
 		});
 		/* eslint-enable */
 
+		/* eslint-disable mocha/no-nested-tests */
 		it('should set __private.unconfirmedSignatures[sender.address] = true', () => {
 			var unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
@@ -646,8 +644,8 @@ describe('multisignature', () => {
 				multisignatures: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
 				),
-				multimin: transaction.asset.multisignature.min,
-				multilifetime: transaction.asset.multisignature.lifetime,
+				multimin: -transaction.asset.multisignature.min,
+				multilifetime: -transaction.asset.multisignature.lifetime,
 				blockId: dummyBlock.id,
 				round: slots.calcRound(dummyBlock.height),
 			};
@@ -679,6 +677,7 @@ describe('multisignature', () => {
 				});
 			});
 		});
+		/* eslint-enable */
 	});
 
 	describe('applyUnconfirmed', () => {

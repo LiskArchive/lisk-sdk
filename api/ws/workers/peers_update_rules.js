@@ -11,17 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-var connectionsTable = require('./connections_table');
-var SlaveToMasterSender = require('./slave_to_master_sender');
-var Rules = require('./rules');
+var Peer = require('../../../logic/peer');
 var failureCodes = require('../rpc/failure_codes');
 var PeerUpdateError = require('../rpc/failure_codes').PeerUpdateError;
 var swaggerHelper = require('../../../helpers/swagger');
+var connectionsTable = require('./connections_table');
+var SlaveToMasterSender = require('./slave_to_master_sender');
+var Rules = require('./rules');
+
 var definitions = swaggerHelper.getSwaggerSpec().definitions;
 var z_schema = swaggerHelper.getValidator();
-var Peer = require('../../../logic/peer');
 
 var self;
 
@@ -149,7 +151,7 @@ PeersUpdateRules.prototype.internal = {
 	 * @todo: Add description of the functions and its parameters
 	 * @todo: Add returns-tag
 	 */
-	update: function(updateType, peer, connectionId, cb) {
+	update(updateType, peer, connectionId, cb) {
 		self.slaveToMasterSender.getPeer(peer.nonce, (err, onMasterPresence) => {
 			if (err) {
 				return setImmediate(
@@ -191,7 +193,7 @@ PeersUpdateRules.prototype.external = {
 	 * @todo: Add description of the functions and its parameters
 	 * @todo: Add returns-tag
 	 */
-	update: function(request, cb) {
+	update(request, cb) {
 		z_schema.validate(request, definitions.WSPeerUpdateRequest, err => {
 			if (err) {
 				return setImmediate(cb, err[0].message);

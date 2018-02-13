@@ -14,11 +14,12 @@
 
 
 /*
-  DESCRIPTION: Add Height Column to Peers.
+  DESCRIPTION: Counts transactions by Id
 
-  PARAMETERS: None
+  PARAMETERS:
+      - id: trs id
 */
 
-ALTER TABLE "peers" ADD COLUMN "height" INT;
-
-CREATE INDEX IF NOT EXISTS "peers_height" ON "peers"("height");
+SELECT count(*)
+FROM trs
+WHERE id = ${id}

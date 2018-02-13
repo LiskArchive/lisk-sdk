@@ -1,24 +1,36 @@
+/* eslint-disable mocha/no-skipped-tests */
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 'use strict';
 
 var expect = require('chai').expect;
 var lisk = require('lisk-js');
-
 var accountFixtures = require('../../../fixtures/accounts');
-
 var randomUtil = require('../../../common/utils/random');
-
 var localCommon = require('../common');
 
-describe('system test (blocks) - chain/deleteLastBlock', function() {
+describe('system test (blocks) - chain/deleteLastBlock', () => {
 	var library;
-	localCommon.beforeBlock('system_blocks_chain', function(lib) {
+	localCommon.beforeBlock('system_blocks_chain', lib => {
 		library = lib;
 	});
 
-	describe('deleteLastBlock', function() {
-		describe('errors', function() {
-			it('should fail when trying to delete genesis block', function(done) {
-				library.modules.blocks.chain.deleteLastBlock(function(err, res) {
+	describe('deleteLastBlock', () => {
+		describe('errors', () => {
+			it('should fail when trying to delete genesis block', done => {
+				library.modules.blocks.chain.deleteLastBlock((err, res) => {
 					expect(err).to.equal('Cannot delete genesis block');
 					expect(res).to.not.exist;
 					done();
@@ -26,7 +38,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 			});
 		});
 
-		describe('single transaction scenarios: create transaction, forge, delete block, forge again', function() {
+		describe('single transaction scenarios: create transaction, forge, delete block, forge again', () => {
 			var testAccount;
 			var testAccountData;
 			var testAccountDataAfterBlock;
@@ -44,8 +56,8 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 				localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 			}
 
-			describe('(type 0) transfer funds', function() {
-				before('create account with funds', function(done) {
+			describe('(type 0) transfer funds', () => {
+				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
 						'balance',
@@ -56,11 +68,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					];
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							testAccountData = res;
 							expect(res.virgin).to.equal(true);
 							expect(res.publicKey).to.be.null;
@@ -69,7 +81,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should create a transaction and forge a block', function(done) {
+				it('should create a transaction and forge a block', done => {
 					testReceipt = randomUtil.account();
 					var transferTransaction = lisk.transaction.createTransaction(
 						testReceipt.address,
@@ -83,11 +95,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							testAccountDataAfterBlock = res;
 							expect(res.virgin).to.equal(false);
 							expect(res.publicKey).to.not.be.null;
@@ -96,11 +108,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should get account data from receipt', function(done) {
+				it('should get account data from receipt', done => {
 					library.logic.account.get(
 						{ address: testReceipt.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							testReceiptData = res;
 							expect(res.virgin).to.equal(true);
 							expect(res.publicKey).to.be.null;
@@ -109,19 +121,19 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should delete last block', function(done) {
-					library.modules.blocks.chain.deleteLastBlock(function(err, res) {
+				it('should delete last block', done => {
+					library.modules.blocks.chain.deleteLastBlock((err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.be.an('object');
 						done();
 					});
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							// FIXME: Incorrect blockId
@@ -132,11 +144,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should get account data from receipt', function(done) {
+				it('should get account data from receipt', done => {
 					library.logic.account.get(
 						{ address: testReceipt.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal('0');
 							expect(res.u_balance).to.equal('0');
 							// CHECKME: virgin should be 1
@@ -146,15 +158,15 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should forge a block with pool transaction', function(done) {
+				it('should forge a block with pool transaction', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 							expect(res.u_balance).to.equal(
 								testAccountDataAfterBlock.u_balance
@@ -169,11 +181,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should get account data from receipt', function(done) {
+				it('should get account data from receipt', done => {
 					library.logic.account.get(
 						{ address: testReceipt.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal(testReceiptData.balance);
 							expect(res.u_balance).to.equal(testReceiptData.u_balance);
 							// FIXME: virgin should be 1 (account without outgoing transaction)
@@ -184,8 +196,8 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 				});
 			});
 
-			describe('(type 1) register second signature', function() {
-				before('create account with funds', function(done) {
+			describe('(type 1) register second signature', () => {
+				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
 						'balance',
@@ -199,11 +211,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					];
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							testAccountData = res;
 							expect(res.virgin).to.equal(true);
 							expect(res.publicKey).to.be.null;
@@ -215,7 +227,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should forge a block', function(done) {
+				it('should forge a block', done => {
 					var signatureTransaction = lisk.signature.createSignature(
 						testAccount.password,
 						testAccount.secondPassword
@@ -227,11 +239,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							testAccountDataAfterBlock = res;
 							expect(res.virgin).to.equal(false);
 							expect(res.publicKey).to.not.be.null;
@@ -243,19 +255,19 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should delete last block', function(done) {
-					library.modules.blocks.chain.deleteLastBlock(function(err, res) {
+				it('should delete last block', done => {
+					library.modules.blocks.chain.deleteLastBlock((err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.be.an('object');
 						done();
 					});
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							expect(res.secondPublicKey).to.be.null;
@@ -269,15 +281,15 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should forge a block with pool transaction', function(done) {
+				it('should forge a block with pool transaction', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 							expect(res.u_balance).to.equal(
 								testAccountDataAfterBlock.u_balance
@@ -297,8 +309,8 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 				});
 			});
 
-			describe('(type 2) register delegate', function() {
-				before('create account with funds', function(done) {
+			describe('(type 2) register delegate', () => {
+				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
 						'balance',
@@ -319,11 +331,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					// CHECKME: When are nameexist and u_nameexist used?
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							testAccountData = res;
 							expect(res.virgin).to.equal(true);
 							expect(res.publicKey).to.be.null;
@@ -341,7 +353,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should forge a block', function(done) {
+				it('should forge a block', done => {
 					var delegateTransaction = lisk.delegate.createDelegate(
 						testAccount.password,
 						testAccount.username
@@ -353,11 +365,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							testAccountDataAfterBlock = res;
 							expect(res.virgin).to.equal(false);
 							expect(res.publicKey).to.not.be.null;
@@ -375,19 +387,19 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should delete last block', function(done) {
-					library.modules.blocks.chain.deleteLastBlock(function(err, res) {
+				it('should delete last block', done => {
+					library.modules.blocks.chain.deleteLastBlock((err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.be.an('object');
 						done();
 					});
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							expect(res.isDelegate).to.equal(false);
@@ -407,15 +419,15 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should forge a block with pool transaction', function(done) {
+				it('should forge a block with pool transaction', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 							expect(res.u_balance).to.equal(
 								testAccountDataAfterBlock.u_balance
@@ -442,8 +454,8 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 				});
 			});
 
-			describe('(type 3) votes', function() {
-				before('create account with funds', function(done) {
+			describe('(type 3) votes', () => {
+				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
 						'balance',
@@ -456,11 +468,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					];
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							testAccountData = res;
 							expect(res.virgin).to.equal(true);
 							expect(res.publicKey).to.be.null;
@@ -471,18 +483,18 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should forge a block', function(done) {
+				it('should forge a block', done => {
 					var voteTransaction = lisk.vote.createVote(testAccount.password, [
 						`+${accountFixtures.existingDelegate.publicKey}`,
 					]);
 					localCommon.addTransactionsAndForge(library, [voteTransaction], done);
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							testAccountDataAfterBlock = res;
 							expect(res.virgin).to.equal(false);
 							expect(res.publicKey).to.not.be.null;
@@ -497,19 +509,19 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should delete last block', function(done) {
-					library.modules.blocks.chain.deleteLastBlock(function(err, res) {
+				it('should delete last block', done => {
+					library.modules.blocks.chain.deleteLastBlock((err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.be.an('object');
 						done();
 					});
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							expect(res.delegates).to.be.null;
@@ -522,15 +534,15 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should forge a block with pool transaction', function(done) {
+				it('should forge a block with pool transaction', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 							expect(res.u_balance).to.equal(
 								testAccountDataAfterBlock.u_balance
@@ -552,8 +564,8 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 				});
 			});
 
-			describe('(type 4) register multisignature', function() {
-				before('create account with funds', function(done) {
+			describe('(type 4) register multisignature', () => {
+				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
 						'balance',
@@ -570,11 +582,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					];
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							testAccountData = res;
 							expect(res.virgin).to.equal(true);
 							expect(res.publicKey).to.be.null;
@@ -589,7 +601,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should forge a block', function(done) {
+				it('should forge a block', done => {
 					var multisigTransaction = lisk.multisignature.createMultisignature(
 						testAccount.password,
 						null,
@@ -610,11 +622,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							testAccountDataAfterBlock = res;
 							expect(res.virgin).to.equal(false);
 							expect(res.publicKey).to.not.be.null;
@@ -633,19 +645,19 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should delete last block', function(done) {
-					library.modules.blocks.chain.deleteLastBlock(function(err, res) {
+				it('should delete last block', done => {
+					library.modules.blocks.chain.deleteLastBlock((err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.be.an('object');
 						done();
 					});
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							expect(res.multilifetime).to.equal(0);
@@ -662,15 +674,15 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					);
 				});
 
-				it('should forge a block with pool transaction', function(done) {
+				it('should forge a block with pool transaction', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender', function(done) {
+				it('should validate account data from sender', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
-						function(err, res) {
+						(err, res) => {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 							expect(res.u_balance).to.equal(
 								testAccountDataAfterBlock.u_balance
@@ -696,8 +708,8 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 				});
 			});
 
-			describe('dapps', function() {
-				before('create account with funds', function(done) {
+			describe('dapps', () => {
+				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
 						'balance',
@@ -708,12 +720,12 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					];
 				});
 
-				describe('(type 5) register dapp', function() {
-					it('should validate account data from sender', function(done) {
+				describe('(type 5) register dapp', () => {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								testAccountData = res;
 								expect(res.virgin).to.equal(true);
 								expect(res.publicKey).to.be.null;
@@ -722,7 +734,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						);
 					});
 
-					it('should forge a block', function(done) {
+					it('should forge a block', done => {
 						var dappTransaction = lisk.dapp.createDapp(
 							testAccount.password,
 							null,
@@ -736,11 +748,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						);
 					});
 
-					it('should validate account data from sender', function(done) {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								testAccountDataAfterBlock = res;
 								expect(res.virgin).to.equal(false);
 								expect(res.publicKey).to.not.be.null;
@@ -749,19 +761,19 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						);
 					});
 
-					it('should delete last block', function(done) {
-						library.modules.blocks.chain.deleteLastBlock(function(err, res) {
+					it('should delete last block', done => {
+						library.modules.blocks.chain.deleteLastBlock((err, res) => {
 							expect(err).to.not.exist;
 							expect(res).to.be.an('object');
 							done();
 						});
 					});
 
-					it('should validate account data from sender', function(done) {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								expect(res.balance).to.equal(testAccountData.balance);
 								expect(res.u_balance).to.equal(testAccountData.u_balance);
 								// FIXME: Incorrect blockId
@@ -772,15 +784,15 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						);
 					});
 
-					it('should forge a block with pool transaction', function(done) {
+					it('should forge a block with pool transaction', done => {
 						localCommon.addTransactionsAndForge(library, [], done);
 					});
 
-					it('should validate account data from sender', function(done) {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 								expect(res.u_balance).to.equal(
 									testAccountDataAfterBlock.u_balance
@@ -796,12 +808,12 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					});
 				});
 
-				describe.skip('(type 6) inTransfer dapp', function() {
-					it('should validate account data from sender', function(done) {
+				describe.skip('(type 6) inTransfer dapp', () => {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								testAccountData = res;
 								// expect(res.virgin).to.equal(true);
 								// expect(res.publicKey).to.be.null;
@@ -810,7 +822,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						);
 					});
 
-					it('should forge a block', function(done) {
+					it('should forge a block', done => {
 						var inTransferTransaction = lisk.transfer.createInTransfer(
 							randomUtil.guestbookDapp.id,
 							10 * 100000000,
@@ -823,11 +835,11 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						);
 					});
 
-					it('should validate account data from sender', function(done) {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								testAccountDataAfterBlock = res;
 								expect(res.virgin).to.equal(false);
 								expect(res.publicKey).to.not.be.null;
@@ -836,19 +848,19 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						);
 					});
 
-					it('should delete last block', function(done) {
-						library.modules.blocks.chain.deleteLastBlock(function(err, res) {
+					it('should delete last block', done => {
+						library.modules.blocks.chain.deleteLastBlock((err, res) => {
 							expect(err).to.not.exist;
 							expect(res).to.be.an('object');
 							done();
 						});
 					});
 
-					it('should validate account data from sender', function(done) {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								expect(res.balance).to.equal(testAccountData.balance);
 								expect(res.u_balance).to.equal(testAccountData.u_balance);
 								// FIXME: Incorrect blockId
@@ -859,15 +871,15 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						);
 					});
 
-					it('should forge a block with pool transaction', function(done) {
+					it('should forge a block with pool transaction', done => {
 						localCommon.addTransactionsAndForge(library, [], done);
 					});
 
-					it('should validate account data from sender', function(done) {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 								expect(res.u_balance).to.equal(
 									testAccountDataAfterBlock.u_balance
@@ -883,12 +895,12 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 					});
 				});
 
-				describe.skip('(type 7) outTransfer dapp', function() {
-					it('should validate account data from sender', function(done) {
+				describe.skip('(type 7) outTransfer dapp', () => {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								testAccountData = res;
 								// expect(res.virgin).to.equal(true);
 								// expect(res.publicKey).to.be.null;
@@ -897,7 +909,7 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						);
 					});
 
-					it('should forge a block', function(done) {
+					it('should forge a block', done => {
 						var outTransferTransaction = lisk.transfer.createOutTransfer(
 							randomUtil.guestbookDapp.id,
 							randomUtil.transaction().id,
@@ -908,18 +920,18 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						localCommon.addTransactionsAndForge(
 							library,
 							[outTransferTransaction],
-							function(err) {
+							err => {
 								expect(err).to.equal('Transaction type 7 is frozen');
 								done();
 							}
 						);
 					});
 
-					it('should validate account data from sender', function(done) {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								testAccountDataAfterBlock = res;
 								expect(res.virgin).to.equal(false);
 								expect(res.publicKey).to.not.be.null;
@@ -928,19 +940,19 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						);
 					});
 
-					it('should delete last block', function(done) {
-						library.modules.blocks.chain.deleteLastBlock(function(err, res) {
+					it('should delete last block', done => {
+						library.modules.blocks.chain.deleteLastBlock((err, res) => {
 							expect(err).to.not.exist;
 							expect(res).to.be.an('object');
 							done();
 						});
 					});
 
-					it('should validate account data from sender', function(done) {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								expect(res.balance).to.equal(testAccountData.balance);
 								expect(res.u_balance).to.equal(testAccountData.u_balance);
 								// FIXME: Incorrect blockId
@@ -951,15 +963,15 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 						);
 					});
 
-					it('should forge a block with pool transaction', function(done) {
+					it('should forge a block with pool transaction', done => {
 						localCommon.addTransactionsAndForge(library, [], done);
 					});
 
-					it('should validate account data from sender', function(done) {
+					it('should validate account data from sender', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
-							function(err, res) {
+							(err, res) => {
 								expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
 								expect(res.u_balance).to.equal(
 									testAccountDataAfterBlock.u_balance
@@ -977,6 +989,6 @@ describe('system test (blocks) - chain/deleteLastBlock', function() {
 			});
 		});
 
-		describe('multiple transactions scenarios: create transactions, forge, delete block, forge again', function() {});
+		describe('multiple transactions scenarios: create transactions, forge, delete block, forge again', () => {});
 	});
 });

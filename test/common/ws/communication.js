@@ -11,13 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
-
 var System = require('../../../modules/system');
-var WSServer = require('./server_master');
 var wsRPC = require('../../../api/ws/rpc/ws_rpc');
+var WSServer = require('./server_master');
 
 var ClientRPCStub = wsRPC.ClientRPCStub;
 var ConnectionState = wsRPC.ConnectionState;
@@ -27,7 +27,7 @@ var wsCommunication = {
 	defaultSocketPeerHeaders: null,
 
 	// Get the given path
-	call: function(procedure, data, done, includePeer) {
+	call(procedure, data, done, includePeer) {
 		if (!this.defaultConnectionState) {
 			this.defaultConnectionState = new ConnectionState('127.0.0.1', 5000);
 			this.defaultSocketPeerHeaders = WSServer.generatePeerHeaders({

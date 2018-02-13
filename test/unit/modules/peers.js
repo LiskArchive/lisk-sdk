@@ -11,17 +11,16 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var rewire = require('rewire');
 var randomstring = require('randomstring');
-
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var Peer = require('../../../logic/peer');
 var generateRandomActivePeer = require('../../fixtures/peers')
 	.generateRandomActivePeer;
 var constants = require('../../../helpers/constants');
-
 var generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers')
 	.generateMatchedAndUnmatchedBroadhashes;
 var modulesLoader = require('../../common/modules_loader');
@@ -85,11 +84,11 @@ describe('peers', () => {
 		before(() => {
 			validOptions = {};
 			// Set TEST variable in case public ip address gets generated
-			process.env['NODE_ENV'] = 'TEST';
+			process.env.NODE_ENV = 'TEST';
 		});
 
 		after(() => {
-			process.env['NODE_ENV'] = '';
+			process.env.NODE_ENV = '';
 		});
 
 		beforeEach(done => {
@@ -718,7 +717,7 @@ describe('peers', () => {
 	describe('acceptable', () => {
 		before(() => {
 			systemModuleMock.getNonce = sinonSandbox.stub().returns(NONCE);
-			process.env['NODE_ENV'] = 'DEV';
+			process.env.NODE_ENV = 'DEV';
 		});
 
 		it('should accept peer with public ip', () => {
@@ -741,7 +740,7 @@ describe('peers', () => {
 		});
 
 		it('should not accept peer with different ip but the same nonce', () => {
-			process.env['NODE_ENV'] = 'TEST';
+			process.env.NODE_ENV = 'TEST';
 			var meAsPeer = {
 				ip: '40.00.40.40',
 				wsPort: 4001,
@@ -751,7 +750,7 @@ describe('peers', () => {
 		});
 
 		after(() => {
-			process.env['NODE_ENV'] = 'TEST';
+			process.env.NODE_ENV = 'TEST';
 		});
 	});
 

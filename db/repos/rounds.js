@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 const sql = require('../sql').rounds;
@@ -197,10 +198,10 @@ class RoundsRepository {
 	 */
 	insertRoundInformationWithAmount(address, blockId, round, amount) {
 		return this.db.none(sql.insertRoundInformationWithAmount, {
-			address: address,
-			amount: amount,
-			blockId: blockId,
-			round: round,
+			address,
+			amount,
+			blockId,
+			round,
 		});
 	}
 
@@ -222,11 +223,43 @@ class RoundsRepository {
 		mode
 	) {
 		return this.db.none(sql.insertRoundInformationWithDelegate, {
-			address: address,
-			blockId: blockId,
-			round: round,
+			address,
+			blockId,
+			round,
 			delegate: delegateId,
 			balanceMode: mode === '-' ? '-' : '',
+		});
+	}
+
+	/**
+	 * Insert information about round rewards into rounds_rewards.
+	 *
+	 * @param {Number} timestamp - Timestamp of last block of round
+	 * @param {String} fees - Fees amount for particular block
+	 * @param {String} reward - Rewards amount for particular block
+	 * @param {Number} round - Round number
+	 * @param {Buffer} publicKey - Public key of a delegate that forged a block
+	 * @return {Promise}
+	 */
+	insertRoundRewards(timestamp, fees, reward, round, publicKey) {
+		return this.db.none(sql.insertRoundRewards, {
+			timestamp,
+			fees,
+			reward,
+			round,
+			publicKey,
+		});
+	}
+
+	/**
+	 * Delete information about entire round rewards from rounds_rewards.
+	 *
+	 * @param {Number} round - Round number
+	 * @return {Promise}
+	 */
+	deleteRoundRewards(round) {
+		return this.db.none(sql.deleteRoundRewards, {
+			round,
 		});
 	}
 }

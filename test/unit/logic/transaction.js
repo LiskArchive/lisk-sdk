@@ -11,22 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var crypto = require('crypto');
 var lisk = require('lisk-js');
-
 var accountFixtures = require('../../fixtures/accounts');
-
 var modulesLoader = require('../../common/modules_loader');
 var application = require('../../common/application');
-
 var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum');
 var transactionTypes = require('../../../helpers/transaction_types');
 var slots = require('../../../helpers/slots');
 var constants = require('../../../helpers/constants');
-
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 var Delegate = require('../../../logic/delegate');
@@ -76,7 +73,7 @@ var sender = {
 var transactionData = {
 	type: 0,
 	amount: 8067474861277,
-	sender: sender,
+	sender,
 	senderId: '16313739661670634666L',
 	recipientId: '5649948960790668770L',
 	fee: 10000000,

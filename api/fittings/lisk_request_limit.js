@@ -11,12 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
+var _ = require('lodash');
+var RateLimit = require('express-rate-limit');
 var debug = require('debug')('swagger:lisk:request_limit');
 var config = require('../../helpers/swagger_module_registry').getConfig();
-var RateLimit = require('express-rate-limit');
-var _ = require('lodash');
 
 var defaults = {
 	max: 0, // Disabled

@@ -11,17 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 // Init tests dependencies
 var rewire = require('rewire');
-
 // Instantiate test subject
 var Rounds = rewire('../../../modules/rounds.js');
-
-var sinon = sinonSandbox;
 var Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
 var DBSandbox = require('../../common/db_sandbox').DBSandbox;
+
+var sinon = sinonSandbox;
 
 describe('rounds', () => {
 	var db;
@@ -53,8 +53,8 @@ describe('rounds', () => {
 			db = __db;
 
 			validScope = {
-				logger: logger,
-				db: db,
+				logger,
+				db,
 				bus: { message: sinon.spy() },
 				network: { io: { sockets: { emit: sinon.spy() } } },
 				config: { loading: { snapshot: false } },
@@ -265,12 +265,12 @@ describe('rounds', () => {
 					// Bind fake modules
 					modules = {
 						delegates: {
-							generateDelegateList: function(a, b, cb) {
+							generateDelegateList(a, b, cb) {
 								return cb(null, ['delegate1', 'delegate2', 'delegate3']);
 							},
 						},
 						accounts: {
-							generateAddressByPublicKey: function() {
+							generateAddressByPublicKey() {
 								return 'delegate';
 							},
 						},
@@ -356,7 +356,7 @@ describe('rounds', () => {
 					// Bind fake modules
 					var modules = {
 						delegates: {
-							generateDelegateList: function(a, b, cb) {
+							generateDelegateList(a, b, cb) {
 								cb('error');
 							},
 						},

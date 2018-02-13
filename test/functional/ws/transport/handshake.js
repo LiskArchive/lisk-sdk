@@ -11,17 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var randomstring = require('randomstring');
 var scClient = require('socketcluster-client');
-
 var testConfig = require('../../../data/config.json');
-
 var failureCodes = require('../../../../api/ws/rpc/failure_codes');
-
 var ws = require('../../../common/ws/communication'); // eslint-disable-line no-unused-vars
 var wsServer = require('../../../common/ws/server');
 var WSServerMaster = require('../../../common/ws/server_master');

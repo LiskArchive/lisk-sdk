@@ -11,13 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var SCWorker = require('socketcluster/scworker');
 var async = require('async');
-
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
-
 var Peer = require('./logic/peer');
 var System = require('./modules/system');
 var Handshake = require('./helpers/ws_api').middleware.Handshake;
@@ -34,13 +33,13 @@ var config = require('./config.json');
  * is ready to accept requests/connections.
  */
 SCWorker.create({
-	run: function() {
+	run() {
 		var self = this;
 		var scServer = this.getSCServer();
 
 		async.auto(
 			{
-				logger: function(cb) {
+				logger(cb) {
 					cb(
 						null,
 						new Logger({

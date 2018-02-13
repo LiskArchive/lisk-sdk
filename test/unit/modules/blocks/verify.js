@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests, mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -11,22 +12,21 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-var _ = require('lodash');
 var crypto = require('crypto');
-
+var _ = require('lodash');
 var rewire = require('rewire');
-var constants = require('../../../../helpers/constants');
-
-var application = require('../../../common/application'); // eslint-disable-line no-unused-vars
 var async = require('async'); // eslint-disable-line no-unused-vars
+var Promise = require('bluebird');
+var constants = require('../../../../helpers/constants');
+var application = require('../../../common/application'); // eslint-disable-line no-unused-vars
 var clearDatabaseTable = require('../../../common/db_sandbox')
 	.clearDatabaseTable; // eslint-disable-line no-unused-vars
 var modulesLoader = require('../../../common/modules_loader'); // eslint-disable-line no-unused-vars
 var random = require('../../../common/utils/random');
 var slots = require('../../../../helpers/slots.js');
-var Promise = require('bluebird');
 var genesisBlock = require('../../../data/genesis_block.json');
 var genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
@@ -140,10 +140,10 @@ function createBlock(
 	);
 	blocksModule.lastBlock.set(previousBlock);
 	var newBlock = blockLogic.create({
-		keypair: keypair,
-		timestamp: timestamp,
+		keypair,
+		timestamp,
 		previousBlock: blocksModule.lastBlock.get(),
-		transactions: transactions,
+		transactions,
 	});
 	// newBlock.id = blockLogic.getId(newBlock);
 	return newBlock;
@@ -956,7 +956,7 @@ describe('blocks/verify', () => {
 
 			before(() => {
 				blockVerify.__set__('library', {
-					db: db,
+					db,
 					logger: library.logger,
 				});
 				onBlockchainReady = blockVerify.prototype.onBlockchainReady;

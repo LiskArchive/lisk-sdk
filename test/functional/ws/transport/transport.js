@@ -11,17 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
 var async = require('async');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var scClient = require('socketcluster-client');
-
 var prefixedPeer = require('../../../fixtures/peers').randomNormalizedPeer;
-
 var Rules = require('../../../../api/ws/workers/rules');
-
 var wsServer = require('../../../common/ws/server');
 var WSServerMaster = require('../../../common/ws/server_master');
 
@@ -241,6 +239,7 @@ describe('RPC', () => {
 
 		it('asking for a list multiple times should be ok', done => {
 			var successfulAsks = 0;
+			/* eslint-disable no-loop-func */
 			for (var i = 0; i < 100; i += 1) {
 				clientSocket
 					.wampSend('list')

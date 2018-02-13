@@ -11,22 +11,21 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-var async = require('async');
-var child_process = require('child_process');
 var fs = require('fs');
+var child_process = require('child_process');
+var async = require('async');
 var popsicle = require('popsicle');
 var Promise = require('bluebird');
 var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-
 var baseConfig = require('../data/config.json');
-
 var blockchainReady = require('../common/utils/wait_for').blockchainReady;
 var WSServerMaster = require('../common/ws/server_master');
-
 var Logger = require('../../logger');
+
 var logger = new Logger({
 	filename: 'integrationTestsLogger.logs',
 	echo: 'log',
@@ -119,6 +118,7 @@ function generateNodePeers(numOfPeers, syncMode, syncModeArgs) {
 					});
 				}
 			});
+		// no default
 	}
 	return peersList;
 }
@@ -246,9 +246,8 @@ function runFunctionalTests(cb) {
 	child.on('close', code => {
 		if (code === 0) {
 			return cb();
-		} else {
-			return cb('Functional tests failed');
 		}
+		return cb('Functional tests failed');
 	});
 
 	child.on('error', err => {

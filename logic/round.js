@@ -11,10 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-var RoundChanges = require('../helpers/round_changes.js');
 var Promise = require('bluebird');
+var bignum = require('../helpers/bignum.js');
+var RoundChanges = require('../helpers/round_changes.js');
 
 /**
  * Validates required scope properties.
@@ -45,6 +47,7 @@ function Round(scope, t) {
 			generatorPublicKey: scope.block.generatorPublicKey,
 			id: scope.block.id,
 			height: scope.block.height,
+			timestamp: scope.block.timestamp,
 		},
 	};
 	this.t = t;
@@ -85,7 +88,7 @@ function Round(scope, t) {
 Round.prototype.mergeBlockGenerator = function() {
 	var self = this;
 
-	return new Promise(function(resolve, reject) {
+	return new Promise((resolve, reject) => {
 		self.scope.modules.accounts.mergeAccountAndGet(
 			{
 				publicKey: self.scope.block.generatorPublicKey,
@@ -93,7 +96,7 @@ Round.prototype.mergeBlockGenerator = function() {
 				blockId: self.scope.block.id,
 				round: self.scope.round,
 			},
-			function(err, account) {
+			(err, account) => {
 				if (err) {
 					return reject(err);
 				}
@@ -148,9 +151,8 @@ Round.prototype.updateVotes = function() {
 
 		if (queries.length > 0) {
 			return self.t.batch(queries);
-		} else {
-			return self.t;
 		}
+		return self.t;
 	});
 };
 
@@ -164,9 +166,8 @@ Round.prototype.markBlockId = function() {
 			this.scope.block.id,
 			'0'
 		);
-	} else {
-		return this.t;
 	}
+	return this.t;
 };
 
 /**
@@ -212,6 +213,21 @@ Round.prototype.restoreVotesSnapshot = function() {
 };
 
 /**
+ * Calls sql deleteRoundRewards:
+ * - Removes rewards for entire round from round_rewards table.
+ * - Performed only when rollback last block of round.
+ * @return {function} Promise
+ */
+Round.prototype.deleteRoundRewards = function() {
+	this.scope.library.logger.debug(
+		`Deleting rewards for round ${this.scope.round}`
+	);
+	return (this.t || this.scope.library.db).rounds.deleteRoundRewards(
+		this.scope.round
+	);
+};
+
+/**
  * For each delegate calls mergeAccountAndGet and creates an address array.
  * @implements {helpers.RoundChanges}
  * @implements {modules.accounts.mergeAccountAndGet}
@@ -225,6 +241,7 @@ Round.prototype.applyRound = function() {
 	var delegates;
 	var delegate;
 	var p;
+	const roundRewards = [];
 
 	// Reverse delegates if going backwards
 	delegates = self.scope.backwards
@@ -242,22 +259,24 @@ Round.prototype.applyRound = function() {
 		changes = roundChanges.at(i);
 
 		this.scope.library.logger.trace('Delegate changes', {
-			delegate: delegate,
-			changes: changes,
+			delegate,
+			changes,
 		});
 
-		p = new Promise(function(resolve, reject) {
+		const accountData = {
+			publicKey: delegate,
+			balance: self.scope.backwards ? -changes.balance : changes.balance,
+			u_balance: self.scope.backwards ? -changes.balance : changes.balance,
+			blockId: self.scope.block.id,
+			round: self.scope.round,
+			fees: self.scope.backwards ? -changes.fees : changes.fees,
+			rewards: self.scope.backwards ? -changes.rewards : changes.rewards,
+		};
+
+		p = new Promise((resolve, reject) => {
 			self.scope.modules.accounts.mergeAccountAndGet(
-				{
-					publicKey: delegate,
-					balance: self.scope.backwards ? -changes.balance : changes.balance,
-					u_balance: self.scope.backwards ? -changes.balance : changes.balance,
-					blockId: self.scope.block.id,
-					round: self.scope.round,
-					fees: self.scope.backwards ? -changes.fees : changes.fees,
-					rewards: self.scope.backwards ? -changes.rewards : changes.rewards,
-				},
-				function(err, account) {
+				accountData,
+				(err, account) => {
 					if (err) {
 						return reject(err);
 					}
@@ -268,6 +287,17 @@ Round.prototype.applyRound = function() {
 		});
 
 		queries.push(p);
+
+		// Aggregate round rewards data - when going forward
+		if (!self.scope.backwards) {
+			roundRewards.push({
+				timestamp: self.scope.block.timestamp,
+				fees: new bignum(changes.fees).toString(),
+				reward: new bignum(changes.rewards).toString(),
+				round: self.scope.round,
+				publicKey: delegate,
+			});
+		}
 	}
 
 	// Decide which delegate receives fees remainder
@@ -289,7 +319,7 @@ Round.prototype.applyRound = function() {
 			fees: feesRemaining,
 		});
 
-		p = new Promise(function(resolve, reject) {
+		p = new Promise((resolve, reject) => {
 			self.scope.modules.accounts.mergeAccountAndGet(
 				{
 					publicKey: remainderDelegate,
@@ -299,7 +329,7 @@ Round.prototype.applyRound = function() {
 					round: self.scope.round,
 					fees: feesRemaining,
 				},
-				function(err, account) {
+				(err, account) => {
 					if (err) {
 						return reject(err);
 					}
@@ -309,16 +339,40 @@ Round.prototype.applyRound = function() {
 			);
 		});
 
+		// Aggregate round rewards data (remaining fees) - when going forward
+		if (!self.scope.backwards) {
+			roundRewards[roundRewards.length - 1].fees = new bignum(
+				roundRewards[roundRewards.length - 1].fees
+			)
+				.plus(feesRemaining)
+				.toString();
+		}
+
 		queries.push(p);
 	}
 
-	self.scope.library.logger.trace('Applying round', queries);
+	// Prepare queries for inserting round rewards
+	roundRewards.forEach(item => {
+		queries.push(
+			self.t.rounds.insertRoundRewards(
+				item.timestamp,
+				item.fees,
+				item.reward,
+				item.round,
+				item.publicKey
+			)
+		);
+	});
+
+	self.scope.library.logger.trace('Applying round', {
+		queries_count: queries.length,
+		rewards: roundRewards,
+	});
 
 	if (queries.length > 0) {
 		return this.t.batch(queries);
-	} else {
-		return this.t;
 	}
+	return this.t;
 };
 
 /**
@@ -361,6 +415,7 @@ Round.prototype.land = function() {
  * @implements {applyRound}
  * @implements {restoreRoundSnapshot}
  * @implements {restoreVotesSnapshot}
+ * @implements {deleteRoundRewards}
  * @return {function} Call result.
  */
 Round.prototype.backwardLand = function() {
@@ -372,6 +427,7 @@ Round.prototype.backwardLand = function() {
 		.then(this.flushRound.bind(this))
 		.then(this.restoreRoundSnapshot.bind(this))
 		.then(this.restoreVotesSnapshot.bind(this))
+		.then(this.deleteRoundRewards.bind(this))
 		.then(() => this.t);
 };
 

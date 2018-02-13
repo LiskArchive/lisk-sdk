@@ -11,10 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
 require('../../helpers/transaction_types');
+
 var columnSet;
 
 /**
@@ -41,7 +43,7 @@ function DelegateTransactionsRepo(db, pgp) {
 			schema: 'public',
 		});
 		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: table,
+			table,
 		});
 	}
 

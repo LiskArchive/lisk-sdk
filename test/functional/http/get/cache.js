@@ -11,16 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
-var swaggerEndpoint = require('../../../common/swagger_spec');
 var Promise = require('bluebird');
-
+var swaggerEndpoint = require('../../../common/swagger_spec');
 var accountFixtures = require('../../../fixtures/accounts');
 var modulesLoader = require('../../../common/modules_loader');
 var apiHelpers = require('../../../common/helpers/api');
 var waitFor = require('../../../common/utils/wait_for');
+
 var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
 var onNewRoundPromise = Promise.promisify(waitFor.newRound);
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -52,7 +53,7 @@ describe('cached endpoints', () => {
 		cache.quit(done);
 	});
 
-	describe('GET /transactions', () => {
+	describe('GET /transactions @unstable', () => {
 		var transactionsEndpoint = new swaggerEndpoint('GET /transactions');
 
 		it('cache transactions by the url and parameters when response is a success', () => {

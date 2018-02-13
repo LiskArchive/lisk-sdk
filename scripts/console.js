@@ -11,11 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
+var path = require('path');
 var repl = require('repl');
 var fs = require('fs');
-var path = require('path');
+require('../test/setup');
+var application = require('../test/common/application.js');
 
 // Created this before in global scope as its dependency of test/node.js
 if (typeof before !== 'function') {
@@ -24,8 +27,6 @@ if (typeof before !== 'function') {
 		cb();
 	};
 }
-require('../test/setup');
-var application = require('../test/common/application.js');
 
 application.init(
 	{},
@@ -45,6 +46,7 @@ application.init(
 		fs.readdirSync(helpersFolder).forEach(file => {
 			var filePath = path.resolve(helpersFolder, file);
 			var fileName = path.basename(filePath, '.js');
+			// eslint-disable-next-line import/no-dynamic-require
 			helpers[fileName] = require(filePath);
 		});
 
@@ -54,11 +56,11 @@ application.init(
 		// e.g. modules.accounts.shared.getAccount({body: {}}, cb)
 		replServer.context.cb = function(err, data) {
 			// Make sure cab response showed in terminal
-			console.log(data);
+			console.info(data);
 		};
 
 		replServer.on('exit', () => {
-			console.log('Goodbye! See you later.');
+			console.info('Goodbye! See you later.');
 			process.exit();
 		});
 	},
@@ -75,7 +77,7 @@ application.init(
  */
 process.on('uncaughtException', err => {
 	// Handle error safely
-	console.log('System error', { message: err.message, stack: err.stack });
+	console.error('System error', { message: err.message, stack: err.stack });
 	/**
 	 * emits cleanup once 'uncaughtException'.
 	 * @emits cleanup
@@ -92,5 +94,5 @@ process.on('uncaughtException', err => {
  * @listens unhandledRejection
  */
 process.on('unhandledRejection', (reason, p) => {
-	console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+	console.warn('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });

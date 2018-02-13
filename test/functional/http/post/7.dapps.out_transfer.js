@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -11,25 +12,24 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
 var lisk = require('lisk-js');
 var Promise = require('bluebird');
-
 var accountFixtures = require('../../../fixtures/accounts');
-var common = require('./common');
 var phases = require('../../common/phases');
-
 var constants = require('../../../../helpers/constants');
 var bignum = require('../../../../helpers/bignum.js');
-
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 var errorCodes = require('../../../../helpers/api_codes');
+var common = require('./common');
+
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	var transaction;
@@ -98,7 +98,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 	});
 
-	describe('schema validations', () => {
+	describe.skip('schema validations', () => {
 		common.invalidAssets('outTransfer', badTransactions);
 
 		describe('dappId', () => {
@@ -557,7 +557,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 		});
 	});
 
-	describe('transactions processing', () => {
+	describe.skip('transactions processing', () => {
 		it('using unknown dapp id should fail', () => {
 			var unknownDappId = '1';
 			transaction = lisk.transfer.createOutTransfer(
@@ -673,11 +673,11 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 		});
 	});
 
-	describe('confirmation', () => {
+	describe.skip('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 
-	describe.only('check frozen type', () => {
+	describe('check frozen type', () => {
 		it('transaction should be rejected', () => {
 			transaction = lisk.transfer.createOutTransfer(
 				randomUtil.guestbookDapp.id,

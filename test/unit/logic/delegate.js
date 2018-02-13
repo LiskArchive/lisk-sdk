@@ -11,11 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var crypto = require('crypto');
 var rewire = require('rewire');
-
 var accounts = require('../../fixtures/accounts');
 var constants = require('../../../helpers/constants');
 var ed = require('../../../helpers/ed');
@@ -1001,7 +1001,7 @@ describe('delegate', () => {
 		describe('when library.schema.validate fails', () => {
 			var schemaDynamicTest = new SchemaDynamicTest({
 				testStyle: SchemaDynamicTest.TEST_STYLE.THROWABLE,
-				customPropertyAssertion: function(input, expectedType, property, err) {
+				customPropertyAssertion(input, expectedType, property, err) {
 					expect(err).to.equal(
 						`Failed to validate delegate schema: Expected type ${expectedType} but found type ${
 							input.expectation

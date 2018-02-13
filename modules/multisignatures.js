@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
@@ -18,6 +19,7 @@ var Multisignature = require('../logic/multisignature.js');
 var transactionTypes = require('../helpers/transaction_types.js');
 var ApiError = require('../helpers/api_error');
 var errorCodes = require('../helpers/api_codes');
+
 var genesisblock = null; // eslint-disable-line no-unused-vars
 
 // Private fields
@@ -110,18 +112,17 @@ Multisignatures.prototype.processSignature = function(transaction, cb) {
 						return setImmediate(cb, err);
 					} else if (!sender) {
 						return setImmediate(cb, 'Sender not found');
-					} else {
-						multisignatureTransaction.signatures =
-							multisignatureTransaction.signatures || [];
-						multisignatureTransaction.signatures.push(transaction.signature);
-						multisignatureTransaction.ready = Multisignature.prototype.ready(
-							multisignatureTransaction,
-							sender
-						);
-
-						library.bus.message('signature', transaction, true);
-						return setImmediate(cb);
 					}
+					multisignatureTransaction.signatures =
+						multisignatureTransaction.signatures || [];
+					multisignatureTransaction.signatures.push(transaction.signature);
+					multisignatureTransaction.ready = Multisignature.prototype.ready(
+						multisignatureTransaction,
+						sender
+					);
+
+					library.bus.message('signature', transaction, true);
+					return setImmediate(cb);
 				}
 			);
 		}, cb);
@@ -171,62 +172,60 @@ Multisignatures.prototype.processSignature = function(transaction, cb) {
 		}
 
 		return done(cb);
-	} else {
-		modules.accounts.getAccount(
-			{
-				address: multisignatureTransaction.senderId,
-			},
-			(err, account) => {
-				if (err) {
-					return setImmediate(cb, 'Multisignature account not found');
-				}
-
-				var verify = false;
-				var multisignatures = account.multisignatures;
-
-				if (multisignatureTransaction.requesterPublicKey) {
-					multisignatures.push(multisignatureTransaction.senderPublicKey);
-				}
-
-				if (!account) {
-					return setImmediate(cb, 'Account not found');
-				}
-
-				multisignatureTransaction.signatures =
-					multisignatureTransaction.signatures || [];
-
-				if (
-					multisignatureTransaction.signatures.indexOf(transaction.signature) >=
-					0
-				) {
-					return setImmediate(cb, 'Signature already exists');
-				}
-
-				try {
-					for (var i = 0; i < multisignatures.length && !verify; i++) {
-						verify = library.logic.transaction.verifySignature(
-							multisignatureTransaction,
-							multisignatures[i],
-							transaction.signature
-						);
-					}
-				} catch (e) {
-					library.logger.error(e.stack);
-					return setImmediate(cb, 'Failed to verify signature');
-				}
-
-				if (!verify) {
-					return setImmediate(cb, 'Failed to verify signature');
-				}
-
-				library.network.io.sockets.emit(
-					'multisignatures/signature/change',
-					multisignatureTransaction
-				);
-				return done(cb);
-			}
-		);
 	}
+	modules.accounts.getAccount(
+		{
+			address: multisignatureTransaction.senderId,
+		},
+		(err, account) => {
+			if (err) {
+				return setImmediate(cb, 'Multisignature account not found');
+			}
+
+			var verify = false;
+			var multisignatures = account.multisignatures;
+
+			if (multisignatureTransaction.requesterPublicKey) {
+				multisignatures.push(multisignatureTransaction.senderPublicKey);
+			}
+
+			if (!account) {
+				return setImmediate(cb, 'Account not found');
+			}
+
+			multisignatureTransaction.signatures =
+				multisignatureTransaction.signatures || [];
+
+			if (
+				multisignatureTransaction.signatures.indexOf(transaction.signature) >= 0
+			) {
+				return setImmediate(cb, 'Signature already exists');
+			}
+
+			try {
+				for (var i = 0; i < multisignatures.length && !verify; i++) {
+					verify = library.logic.transaction.verifySignature(
+						multisignatureTransaction,
+						multisignatures[i],
+						transaction.signature
+					);
+				}
+			} catch (e) {
+				library.logger.error(e.stack);
+				return setImmediate(cb, 'Failed to verify signature');
+			}
+
+			if (!verify) {
+				return setImmediate(cb, 'Failed to verify signature');
+			}
+
+			library.network.io.sockets.emit(
+				'multisignatures/signature/change',
+				multisignatureTransaction
+			);
+			return done(cb);
+		}
+	);
 };
 
 Multisignatures.prototype.getGroup = function(address, cb) {
@@ -234,11 +233,8 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 
 	async.series(
 		{
-			getAccount: function(seriesCb) {
-				library.logic.account.getMultiSignature({ address: address }, function(
-					err,
-					account
-				) {
+			getAccount(seriesCb) {
+				library.logic.account.getMultiSignature({ address }, (err, account) => {
 					if (err) {
 						return setImmediate(seriesCb, err);
 					}
@@ -267,7 +263,7 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 					return setImmediate(seriesCb);
 				});
 			},
-			getMembers: function(seriesCb) {
+			getMembers(seriesCb) {
 				library.db.multisignatures
 					.getMemberPublicKeys(scope.group.address)
 					.then(memberAccountKeys => {
@@ -280,8 +276,8 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 						modules.accounts.getAccounts(
 							{ address: addresses },
 							['address', 'publicKey', 'secondPublicKey'],
-							function(err, accounts) {
-								accounts.forEach(function(account) {
+							(err, accounts) => {
+								accounts.forEach(account => {
 									scope.group.members.push({
 										address: account.address,
 										publicKey: account.publicKey,
@@ -298,9 +294,8 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 		err => {
 			if (err) {
 				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null, scope.group);
 			}
+			return setImmediate(cb, null, scope.group);
 		}
 	);
 };
@@ -342,13 +337,12 @@ Multisignatures.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getGroups: function(filters, cb) {
+	getGroups(filters, cb) {
 		modules.multisignatures.getGroup(filters.address, (err, group) => {
 			if (err) {
 				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null, [group]);
 			}
+			return setImmediate(cb, null, [group]);
 		});
 	},
 
@@ -359,12 +353,12 @@ Multisignatures.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @returns {setImmediateCallbackObject}
 	 */
-	getMemberships: function(filters, cb) {
+	getMemberships(filters, cb) {
 		var scope = {};
 
 		async.series(
 			{
-				getAccount: function(seriesCb) {
+				getAccount(seriesCb) {
 					library.logic.account.get(
 						{ address: filters.address },
 						(err, account) => {
@@ -388,7 +382,7 @@ Multisignatures.prototype.shared = {
 						}
 					);
 				},
-				getGroupAccountIds: function(seriesCb) {
+				getGroupAccountIds(seriesCb) {
 					library.db.multisignatures
 						.getGroupIds(scope.targetAccount.publicKey)
 						.then(groupAccountIds => {
@@ -411,9 +405,8 @@ Multisignatures.prototype.shared = {
 			err => {
 				if (err) {
 					return setImmediate(cb, err);
-				} else {
-					return setImmediate(cb, null, scope.groups);
 				}
+				return setImmediate(cb, null, scope.groups);
 			}
 		);
 	},

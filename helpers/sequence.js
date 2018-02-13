@@ -11,10 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-var extend = require('extend');
 var util = require('util');
+var extend = require('extend');
 
 /**
  * Creates a FIFO sequence array and default settings with config values.
@@ -78,7 +79,7 @@ Sequence.prototype.add = function(worker, args, done) {
 		args = undefined;
 	}
 	if (worker && typeof worker === 'function') {
-		var task = { worker: worker, done: done };
+		var task = { worker, done };
 		if (util.isArray(args)) {
 			task.args = args;
 		}

@@ -11,14 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
+
+var util = require('util');
+var typesRepresentatives = require('../../fixtures/types_representatives');
 
 var assign = _.assign;
 var difference = _.difference;
 var set = _.set;
-var util = require('util');
-
-var typesRepresentatives = require('../../fixtures/types_representatives');
 
 var allTypes = typesRepresentatives.allTypes;
 var arrays = typesRepresentatives.arrays;
@@ -33,9 +34,11 @@ var strings = typesRepresentatives.strings;
 var self;
 
 SchemaDynamicTest.TEST_STYLE = {
+	// eslint-disable-next-line object-shorthand
 	ASYNC: function(testFunction, argument, cb) {
 		testFunction(argument, cb);
 	},
+	// eslint-disable-next-line object-shorthand
 	THROWABLE: function(testFunction, argument, cb) {
 		try {
 			testFunction(argument);
@@ -216,6 +219,7 @@ SchemaDynamicTest.prototype.carpetTesting = function(
 ) {
 	inputs.forEach(input => {
 		it(util.format(description, input.description), done => {
+			// eslint-disable-next-line mocha/no-nested-tests
 			test(input, done);
 		});
 	});

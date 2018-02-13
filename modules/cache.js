@@ -11,10 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
 var transactionTypes = require('../helpers/transaction_types.js');
+
 var cacheReady = true;
 var errorCacheDisabled = 'Cache Unavailable';
 var client;
@@ -138,14 +140,13 @@ Cache.prototype.removeByPattern = function(pattern, cb) {
 			client.scan(cursor, 'MATCH', pattern, (err, res) => {
 				if (err) {
 					return whilstCb(err);
+				}
+				cursor = Number(res.shift());
+				keys = res.shift();
+				if (keys.length > 0) {
+					client.del(keys, whilstCb);
 				} else {
-					cursor = Number(res.shift());
-					keys = res.shift();
-					if (keys.length > 0) {
-						client.del(keys, whilstCb);
-					} else {
-						return whilstCb();
-					}
+					return whilstCb();
 				}
 			});
 		},

@@ -11,10 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var randomstring = require('randomstring');
-
 var typeRepresentatives = require('../../fixtures/types_representatives.js');
 var wsApi = require('../../../helpers/ws_api');
 var failureCodes = require('../../../api/ws/rpc/failure_codes');
@@ -32,7 +32,7 @@ describe('handshake', () => {
 	var validConfig = {
 		config: {
 			version: config.version,
-			minVersion: minVersion,
+			minVersion,
 			nethash: config.nethash,
 			nonce: validNodeNonce,
 		},

@@ -11,17 +11,16 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-'use strict';
 
-var nodeExternals = require('webpack-node-externals');
 
-module.exports = {
-	entry: './workers_controller.js',
-	output: {
-		path: `${__dirname}/release`,
-		filename: 'workers_controller.js',
-		libraryTarget: 'commonjs2',
-	},
-	target: 'node',
-	externals: [nodeExternals()],
-};
+/*
+  DESCRIPTION: Drop rewards-related SQL functions and data type.
+
+  PARAMETERS: None
+*/
+
+DROP FUNCTION IF EXISTS getBlockRewards();
+DROP FUNCTION IF EXISTS calcBlockReward(int);
+DROP FUNCTION If EXISTS calcSupply(int);
+DROP FUNCTION IF EXISTS calcSupply_test(int, int, bigint);
+DROP TYPE IF EXISTS blockRewards;

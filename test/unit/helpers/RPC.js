@@ -11,13 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
+var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 var wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 var ClientRPCStub = require('../../../api/ws/rpc/ws_rpc').ClientRPCStub;
 var ConnectionState = require('../../../api/ws/rpc/ws_rpc').ConnectionState;
-
-var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
 var socketClusterMock = {
 	on: sinonSandbox.spy(),
@@ -173,14 +173,14 @@ describe('wsRPC', () => {
 
 		describe('stub', () => {
 			var validRPCEndpoint = {
-				rpcProcedure: function(param) {
+				rpcProcedure(param) {
 					return param;
 				},
 			};
 			var masterWAMPServer;
 			var masterWAMPServerConfig;
 			var validEventEndpoint = {
-				eventProcedure: function(param) {
+				eventProcedure(param) {
 					return param;
 				},
 			};

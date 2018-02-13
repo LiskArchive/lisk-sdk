@@ -11,13 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-var async = require('async');
 var child_process = require('child_process');
+var async = require('async');
 
 module.exports = {
-	recreateDatabases: function(configurations, cb) {
+	recreateDatabases(configurations, cb) {
 		async.forEachOf(
 			configurations,
 			(configuration, index, eachCb) => {
@@ -32,7 +33,7 @@ module.exports = {
 		);
 	},
 
-	launchTestNodes: function(cb) {
+	launchTestNodes(cb) {
 		child_process.exec(
 			'node_modules/.bin/pm2 start test/integration/pm2.integration.json',
 			err => {
@@ -41,29 +42,38 @@ module.exports = {
 		);
 	},
 
-	clearLogs: function(cb) {
+	clearLogs(cb) {
 		child_process.exec('rm -rf test/integration/logs/*', err => {
 			return cb(err);
 		});
 	},
 
-	runMochaTests: function(testsPaths, cb) {
+	runMochaTests(testsPaths, cb) {
 		var child = child_process.spawn(
 			'node_modules/.bin/_mocha',
-			['--timeout', (8 * 60 * 1000).toString(), '--exit'].concat(testsPaths),
+			[
+				'--timeout',
+				(8 * 60 * 1000).toString(),
+				'--exit',
+				'--require',
+				'./test/setup.js',
+				'--grep',
+				'@slow|@unstable',
+				'--invert',
+			].concat(testsPaths),
 			{
 				cwd: `${__dirname}/../../..`,
 			}
 		);
 
 		child.stdout.pipe(process.stdout);
+		child.stderr.pipe(process.stderr);
 
 		child.on('close', code => {
 			if (code === 0) {
 				return cb();
-			} else {
-				return cb('Functional tests failed');
 			}
+			return cb('Functional tests failed');
 		});
 
 		child.on('error', err => {
@@ -71,7 +81,7 @@ module.exports = {
 		});
 	},
 
-	killTestNodes: function(cb) {
+	killTestNodes(cb) {
 		child_process.exec('node_modules/.bin/pm2 kill', err => {
 			if (err) {
 				console.warn(

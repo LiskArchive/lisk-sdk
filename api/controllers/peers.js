@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -72,7 +73,7 @@ PeersController.getPeers = function(context, next) {
 		});
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,

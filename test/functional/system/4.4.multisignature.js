@@ -11,10 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var lisk = require('lisk-js');
-
 var Scenarios = require('../common/scenarios');
 var localCommon = require('./common');
 

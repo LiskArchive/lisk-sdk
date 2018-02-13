@@ -11,10 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var devConfig = require('../data/config.json');
-
 var utils = require('./utils');
 var setup = require('./setup');
 var scenarios = require('./scenarios');

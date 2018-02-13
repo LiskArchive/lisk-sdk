@@ -11,20 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var express = require('express');
-var path = require('path');
 var randomstring = require('randomstring');
 var async = require('async');
-
-var dirname = path.join(__dirname, '..', '..');
-var config = require(path.join(dirname, '/test/data/config.json'));
-var Sequence = require(path.join(dirname, '/helpers', 'sequence.js'));
-var database = require(path.join(dirname, '/db'));
-var genesisblock = require(path.join(dirname, '/test/data/genesis_block.json'));
-var Logger = require(`${dirname}/logger.js`);
-
+var config = require('../../test/data/config.json');
+var Sequence = require('../../helpers/sequence.js');
+var database = require('../../db');
+var genesisblock = require('../../test/data/genesis_block.json');
+var Logger = require('../../logger.js');
 var z_schema = require('../../helpers/z_schema.js');
 var cacheHelper = require('../../helpers/cache.js');
 var Cache = require('../../modules/cache.js');
@@ -42,7 +39,7 @@ var modulesLoader = new function() {
 	});
 	config.nonce = randomstring.generate(16);
 	this.scope = {
-		config: config,
+		config,
 		genesisblock: { block: genesisblock },
 		logger: this.logger,
 		network: {
@@ -52,32 +49,32 @@ var modulesLoader = new function() {
 			},
 		},
 		schema: new z_schema(),
-		ed: ed,
+		ed,
 		bus: {
 			argsMessages: [],
-			message: function() {
+			message() {
 				Array.prototype.push.apply(this.argsMessages, arguments);
 			},
-			getMessages: function() {
+			getMessages() {
 				return this.argsMessages;
 			},
-			clearMessages: function() {
+			clearMessages() {
 				this.argsMessages = [];
 			},
 		},
 		nonce: randomstring.generate(16),
 		dbSequence: new Sequence({
-			onWarning: function(current) {
+			onWarning(current) {
 				this.logger.warn('DB queue', current);
 			},
 		}),
 		sequence: new Sequence({
-			onWarning: function(current) {
+			onWarning(current) {
 				this.logger.warn('Main queue', current);
 			},
 		}),
 		balancesSequence: new Sequence({
-			onWarning: function(current) {
+			onWarning(current) {
 				this.logger.warn('Balance queue', current);
 			},
 		}),
@@ -100,7 +97,7 @@ var modulesLoader = new function() {
 			case 'Transaction':
 				async.series(
 					{
-						account: function(cb) {
+						account(cb) {
 							new Account(scope.db, scope.schema, scope.logger, cb);
 						},
 					},
@@ -144,7 +141,7 @@ var modulesLoader = new function() {
 				new Logic(scope.logger, cb);
 				break;
 			default:
-				console.log('no Logic case initLogic');
+				console.info('no Logic case initLogic');
 		}
 	};
 
@@ -192,7 +189,7 @@ var modulesLoader = new function() {
 					);
 				}.bind(this),
 				function(logic, waterCb) {
-					scope = _.merge({}, this.scope, scope, { logic: logic });
+					scope = _.merge({}, this.scope, scope, { logic });
 					async.reduce(
 						modules,
 						{},
@@ -210,7 +207,7 @@ var modulesLoader = new function() {
 				function(modules, waterCb) {
 					_.each(scope.logic, logic => {
 						if (typeof logic.bind === 'function') {
-							logic.bind({ modules: modules });
+							logic.bind({ modules });
 						}
 						if (typeof logic.bindModules === 'function') {
 							logic.bindModules(modules);
@@ -269,7 +266,7 @@ var modulesLoader = new function() {
 				return cb(err);
 			}
 
-			moduleConstructor(Klass, _.merge(this.scope, { db: db }, scope), cb);
+			moduleConstructor(Klass, _.merge(this.scope, { db }, scope), cb);
 		});
 	};
 

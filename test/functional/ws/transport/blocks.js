@@ -11,11 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
 var ws = require('../../../common/ws/communication');
-
 var genesisblock = require('../../../data/genesis_block.json');
 var verify = require('../../../../modules/blocks/verify');
 var bson = require('../../../../helpers/bson');
@@ -233,7 +233,7 @@ describe('WS transport blocks', () => {
 		it('using ids which include genesisblock.id should be ok', done => {
 			ws.call(
 				'blocksCommon',
-				{ ids: [genesisblock.id.toString(), '2', '3'].join(',') },
+				{ ids: [genesisblock.id.toString(), '2', '3'].join() },
 				(err, res) => {
 					__testContext.debug(
 						'> Error / Response:'.grey,

@@ -11,11 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-var moment = require('moment');
 var fs = require('fs');
 var path = require('path');
+var moment = require('moment');
 
 module.exports = function(grunt) {
 	grunt.registerTask('newMigration', 'Create a new migration file.', name => {

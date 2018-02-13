@@ -11,18 +11,21 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-var _ = require('lodash');
 var url = require('url');
+var _ = require('lodash');
 var failureCodes = require('../api/ws/rpc/failure_codes.js');
 var swaggerHelper = require('../helpers/swagger');
-var definitions = swaggerHelper.getSwaggerSpec().definitions;
 var Peer = require('../logic/peer.js');
+
+var definitions = swaggerHelper.getSwaggerSpec().definitions;
 
 var z_schema = swaggerHelper.getValidator();
 
 var middleware = {
+	// eslint-disable-next-line object-shorthand
 	Handshake: function(system) {
 		return function(headers, cb) {
 			z_schema.validate(headers, definitions.WSPeerHeaders, error => {
@@ -92,6 +95,6 @@ var extractHeaders = function(request) {
 };
 
 module.exports = {
-	middleware: middleware,
-	extractHeaders: extractHeaders,
+	middleware,
+	extractHeaders,
 };

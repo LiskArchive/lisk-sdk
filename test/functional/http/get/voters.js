@@ -11,20 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
 var randomstring = require('randomstring');
 var lisk = require('lisk-js');
-
 var accountFixtures = require('../../../fixtures/accounts');
-
 var constants = require('../../../../helpers/constants');
-
 var randomUtil = require('../../../common/utils/random');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
+
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/voters', () => {
@@ -434,6 +433,9 @@ describe('GET /api/voters', () => {
 								_.intersection(voters, _.map(res.body.data.voters, 'address'))
 							).to.have.length(1);
 							done();
+						})
+						.catch(err => {
+							done(err);
 						});
 				});
 			});

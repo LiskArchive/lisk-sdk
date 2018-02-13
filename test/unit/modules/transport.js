@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests, mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -11,14 +12,16 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var rewire = require('rewire');
 var chai = require('chai');
-var expect = chai.expect;
-
 var swaggerHelper = require('../../../helpers/swagger');
+
 var TransportModule = rewire('../../../modules/transport.js');
+
+var expect = chai.expect;
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
 describe('transport', () => {
@@ -75,6 +78,7 @@ describe('transport', () => {
 		peersStub = {};
 
 		restoreRewiredTopDeps = TransportModule.__set__({
+			// eslint-disable-next-line object-shorthand
 			Broadcaster: function() {
 				this.bind = () => {};
 				broadcasterStubRef = this;
@@ -226,9 +230,9 @@ describe('transport', () => {
 				definitions = {};
 
 				restoreRewiredDeps = TransportModule.__set__({
-					library: library,
-					modules: modules,
-					definitions: definitions,
+					library,
+					modules,
+					definitions,
 				});
 
 				done();
@@ -836,7 +840,7 @@ describe('transport', () => {
 						id: transaction.id,
 						err: 'Unknown transaction type 0',
 						module: 'transport',
-						transaction: transaction,
+						transaction,
 					};
 					expect(
 						library.logger.debug.calledWith(
@@ -1011,8 +1015,8 @@ describe('transport', () => {
 				};
 
 				restoreRewiredTransportDeps = TransportModule.__set__({
-					library: library,
-					modules: modules,
+					library,
+					modules,
 				});
 
 				done();

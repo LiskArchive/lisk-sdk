@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
@@ -33,8 +34,8 @@ var self;
 function Delegate(logger, schema) {
 	self = this;
 	library = {
-		schema: schema,
-		logger: logger,
+		schema,
+		logger,
 	};
 }
 
@@ -45,7 +46,7 @@ function Delegate(logger, schema) {
  */
 Delegate.prototype.bind = function(accounts) {
 	modules = {
-		accounts: accounts,
+		accounts,
 	};
 };
 
@@ -178,13 +179,13 @@ Delegate.prototype.checkDuplicates = function(
 ) {
 	async.parallel(
 		{
-			duplicatedDelegate: function(eachCb) {
+			duplicatedDelegate(eachCb) {
 				var query = {};
 				query[isDelegate] = 1;
 				query.publicKey = transaction.senderPublicKey;
 				return modules.accounts.getAccount(query, [username], eachCb, tx);
 			},
-			duplicatedUsername: function(eachCb) {
+			duplicatedUsername(eachCb) {
 				var query = {};
 				query[username] = transaction.asset.delegate.username;
 				return modules.accounts.getAccount(query, [username], eachCb, tx);
@@ -391,15 +392,14 @@ Delegate.prototype.objectNormalize = function(transaction) {
 Delegate.prototype.dbRead = function(raw) {
 	if (!raw.d_username) {
 		return null;
-	} else {
-		var delegate = {
-			username: raw.d_username,
-			publicKey: raw.t_senderPublicKey,
-			address: raw.t_senderId,
-		};
-
-		return { delegate: delegate };
 	}
+	var delegate = {
+		username: raw.d_username,
+		publicKey: raw.t_senderPublicKey,
+		address: raw.t_senderId,
+	};
+
+	return { delegate };
 };
 
 /**
@@ -414,9 +414,8 @@ Delegate.prototype.ready = function(transaction, sender) {
 			return false;
 		}
 		return transaction.signatures.length >= sender.multimin;
-	} else {
-		return true;
 	}
+	return true;
 };
 
 // Export

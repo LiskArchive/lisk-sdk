@@ -11,25 +11,23 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
 var Promise = require('bluebird');
-
+var lisk = require('lisk-js');
 var accountFixtures = require('../../../fixtures/accounts');
 var genesisblock = require('../../../data/genesis_block.json');
-
 var transactionTypes = require('../../../../helpers/transaction_types');
-
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
-
 var swaggerEndpoint = require('../../../common/swagger_spec');
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 var slots = require('../../../../helpers/slots');
+
+var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/transactions', () => {
 	var transactionsEndpoint = new swaggerEndpoint('GET /transactions');
@@ -441,13 +439,11 @@ describe('GET /api/transactions', () => {
 			it('using one blockId should return transactions', () => {
 				var blockId = '6524861224470851795';
 
-				return transactionsEndpoint
-					.makeRequest({ blockId: blockId }, 200)
-					.then(res => {
-						res.body.data.map(transaction => {
-							expect(transaction.blockId).to.be.equal(blockId);
-						});
+				return transactionsEndpoint.makeRequest({ blockId }, 200).then(res => {
+					res.body.data.map(transaction => {
+						expect(transaction.blockId).to.be.equal(blockId);
 					});
+				});
 			});
 		});
 
@@ -474,7 +470,7 @@ describe('GET /api/transactions', () => {
 		describe('minAmount', () => {
 			it('should get transactions with amount more than minAmount', () => {
 				return transactionsEndpoint
-					.makeRequest({ minAmount: minAmount }, 200)
+					.makeRequest({ minAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
 							expect(parseInt(transaction.amount)).to.be.at.least(minAmount);
@@ -486,7 +482,7 @@ describe('GET /api/transactions', () => {
 		describe('maxAmount', () => {
 			it('should get transactions with amount less than maxAmount', () => {
 				return transactionsEndpoint
-					.makeRequest({ maxAmount: maxAmount }, 200)
+					.makeRequest({ maxAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
 							expect(parseInt(transaction.amount)).to.be.at.most(maxAmount);
@@ -759,8 +755,8 @@ describe('GET /api/transactions', () => {
 				return transactionsEndpoint
 					.makeRequest(
 						{
-							minAmount: minAmount,
-							maxAmount: maxAmount,
+							minAmount,
+							maxAmount,
 							sort: 'amount:asc',
 						},
 						200

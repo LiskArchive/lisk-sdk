@@ -11,25 +11,24 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
 var lisk = require('lisk-js');
-
-var common = require('./common');
 var phases = require('../../common/phases');
 var Scenarios = require('../../common/scenarios');
 var accountFixtures = require('../../../fixtures/accounts');
-
 var apiCodes = require('../../../../helpers/api_codes');
 var constants = require('../../../../helpers/constants');
-
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 var errorCodes = require('../../../../helpers/api_codes');
+var common = require('./common');
+
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 4) register multisignature', () => {
 	var scenarios = {
@@ -480,14 +479,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				return signatureEndpoint
-					.makeRequest({ signatures: signatures }, 200)
-					.then(res => {
-						expect(res.body.meta.status).to.be.true;
-						expect(res.body.data.message).to.be.equal('Signature Accepted');
+				return signatureEndpoint.makeRequest({ signatures }, 200).then(res => {
+					expect(res.body.meta.status).to.be.true;
+					expect(res.body.data.message).to.be.equal('Signature Accepted');
 
-						goodTransactions.push(scenario.multiSigTransaction);
-					});
+					goodTransactions.push(scenario.multiSigTransaction);
+				});
 			});
 		});
 
@@ -523,7 +520,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					});
 
 					return signatureEndpoint
-						.makeRequest({ signatures: signatures }, 200)
+						.makeRequest({ signatures }, 200)
 						.then(res => {
 							expect(res.body.meta.status).to.be.true;
 							expect(res.body.data.message).to.be.equal('Signature Accepted');
@@ -556,14 +553,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				return signatureEndpoint
-					.makeRequest({ signatures: signatures }, 200)
-					.then(res => {
-						expect(res.body.meta.status).to.be.true;
-						expect(res.body.data.message).to.be.equal('Signature Accepted');
+				return signatureEndpoint.makeRequest({ signatures }, 200).then(res => {
+					expect(res.body.meta.status).to.be.true;
+					expect(res.body.data.message).to.be.equal('Signature Accepted');
 
-						goodTransactions.push(scenario.multiSigTransaction);
-					});
+					goodTransactions.push(scenario.multiSigTransaction);
+				});
 			});
 		});
 
@@ -580,14 +575,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				return signatureEndpoint
-					.makeRequest({ signatures: signatures }, 200)
-					.then(res => {
-						expect(res.body.meta.status).to.be.true;
-						expect(res.body.data.message).to.be.equal('Signature Accepted');
+				return signatureEndpoint.makeRequest({ signatures }, 200).then(res => {
+					expect(res.body.meta.status).to.be.true;
+					expect(res.body.data.message).to.be.equal('Signature Accepted');
 
-						goodTransactions.push(scenario.multiSigTransaction);
-					});
+					goodTransactions.push(scenario.multiSigTransaction);
+				});
 			});
 		});
 

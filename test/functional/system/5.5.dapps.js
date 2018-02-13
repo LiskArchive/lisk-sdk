@@ -11,15 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var lisk = require('lisk-js');
 var async = require('async');
-
 var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
-var localCommon = require('./common');
 var normalizer = require('../../common/utils/normalizer');
+var localCommon = require('./common');
 
 describe('system test (type 5) - dapp registrations with repeated values', () => {
 	var library;
@@ -174,18 +174,15 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			);
 		});
 
-		it('last dapp transactions to arrive should be included', function(done) {
+		it('last dapp transactions to arrive should be included', done => {
 			async.every(
 				goodTransactions,
-				function(transaction, callback) {
+				(transaction, callback) => {
 					var filter = {
 						id: transaction.id,
 					};
 
-					localCommon.getTransactionFromModule(library, filter, function(
-						err,
-						res
-					) {
+					localCommon.getTransactionFromModule(library, filter, (err, res) => {
 						expect(err).to.be.null;
 						expect(res)
 							.to.have.property('transactions')

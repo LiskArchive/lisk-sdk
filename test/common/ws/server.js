@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../setup'); // Ensure availability of global variables
@@ -18,7 +19,6 @@ require('../../setup'); // Ensure availability of global variables
 var randomstring = require('randomstring');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');
 var SocketCluster = require('socketcluster');
-
 var testConfig = require('../../data/config.json');
 
 var wsServer = {
@@ -26,14 +26,14 @@ var wsServer = {
 	testSocketCluster: null,
 	testWampServer: null,
 
-	start: function() {
+	start() {
 		if (this.socketCluster) {
 			throw new Error('SocketCluster instance is already running');
 		}
 		this.socketCluster = new SocketCluster(this.options);
 	},
 
-	stop: function() {
+	stop() {
 		if (!this.socketCluster) {
 			throw new Error('No SocketCluster instance running');
 		}
@@ -43,8 +43,8 @@ var wsServer = {
 	},
 
 	// Invoked by each worker
-	run: function(worker) {
-		console.log('run invoked');
+	run(worker) {
+		console.info('wsServer: run invoked');
 		var scServer = worker.scServer;
 		this.rpcServer = new WAMPServer();
 		this.rpcServer.registerRPCEndpoints(this.necessaryRPCEndpoints);

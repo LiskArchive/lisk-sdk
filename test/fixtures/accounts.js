@@ -11,9 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
-var accounts = {};
+const stampit = require('stampit');
+const randomstring = require('randomstring');
+
+const accounts = {};
 
 // Existing delegate account
 accounts.existingDelegate = {
@@ -36,5 +40,67 @@ accounts.genesis = {
 		'ddbb37d465228d52a78ad13555e609750ec30e8f5912a1b8fbdb091f50e269cbcc3875dad032115e828976f0c7f5ed71ce925e16974233152149e902b48cec51d93c2e40a6c95de75c1c5a2c369e6d24',
 	key: 'elephant tree paris dragon chair galaxy',
 };
+
+const Account = stampit({
+	props: {
+		username: '',
+		isDelegate: false,
+		u_isDelegate: false,
+		secondSignature: false,
+		u_secondSignature: false,
+		u_username: '',
+		address: '',
+		publicKey: '',
+		secondPublicKey: null,
+		balance: '0',
+		u_balance: '0',
+		vote: '10000000000000000',
+		rate: '0',
+		delegates: null,
+		u_delegates: null,
+		multisignatures: null,
+		u_multisignatures: null,
+		multimin: 0,
+		u_multimin: 0,
+		multilifetime: 0,
+		u_multilifetime: 0,
+		blockId: '',
+		nameexist: 0,
+		u_nameexist: 0,
+		producedBlocks: '9',
+		missedBlocks: '0',
+		fees: '0',
+		rewards: '0',
+		virgin: true,
+	},
+	init({ isDelegate, username, u_username, address, publicKey, blockId }) {
+		this.isDelegate = isDelegate || this.isDelegate;
+		this.username = username || randomstring.generate(10).toLowerCase();
+		this.u_username = u_username || randomstring.generate(10).toLowerCase();
+		this.address =
+			address ||
+			`${randomstring.generate({ charset: 'numeric', length: 20 })}L`;
+		this.publicKey =
+			publicKey ||
+			randomstring
+				.generate({ charset: '0123456789ABCDE', length: 32 })
+				.toLowerCase();
+		this.blockId =
+			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
+
+		if (this.isDelegate) {
+			this.virgin = false;
+		}
+	},
+});
+
+const Delegate = stampit(Account, {
+	props: {
+		isDelegate: true,
+	},
+});
+
+accounts.Account = Account;
+accounts.Delegate = Delegate;
 
 module.exports = accounts;
