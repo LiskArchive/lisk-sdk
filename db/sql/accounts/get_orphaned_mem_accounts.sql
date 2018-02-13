@@ -19,7 +19,8 @@
   PARAMETERS: ?
 */
 
-SELECT a."blockId",
+SELECT a."address",
+	   a."blockId",
        b.id
 FROM mem_accounts a
 LEFT OUTER JOIN blocks b ON b.id = a."blockId"

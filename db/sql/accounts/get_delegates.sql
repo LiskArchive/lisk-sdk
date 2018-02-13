@@ -19,6 +19,6 @@
   PARAMETERS: ?
 */
 
-SELECT encode("publicKey", 'hex')
+SELECT encode("publicKey", 'hex') as "publicKey"
 FROM mem_accounts
 WHERE "isDelegate" = 1
