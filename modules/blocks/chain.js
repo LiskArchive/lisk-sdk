@@ -24,18 +24,18 @@ var self;
 var __private = {};
 
 /**
- * Initializes library.
- * @memberof module:blocks
+ *  Main Chain logic. Allows set information. Initializes library.
+ *
  * @class
- * @classdesc Main Chain logic.
- * Allows set information.
- * @param {Object} logger
- * @param {Block} block
- * @param {Transaction} transaction
- * @param {Database} db
- * @param {Object} genesisblock
- * @param {bus} bus
- * @param {Sequence} balancesSequence
+ * @memberof blocks
+ * @param {Object} logger - Description of the param
+ * @param {Block} block - Description of the param
+ * @param {Transaction} transaction - Description of the param
+ * @param {Database} db - Description of the param
+ * @param {Object} genesisblock - Description of the param
+ * @param {bus} bus - Description of the param
+ * @param {Sequence} balancesSequence - Description of the param
+ * @todo Add description for params
  */
 function Chain(
 	logger,
@@ -64,12 +64,11 @@ function Chain(
 }
 
 /**
- * Save genesis block to database
+ * Save genesis block to database.
  *
- * @async
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
+ * @param  {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err Error if occurred
  */
 Chain.prototype.saveGenesisBlock = function(cb) {
 	// Check if genesis block ID already exists in the database
@@ -97,14 +96,12 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 };
 
 /**
- * Save block with transactions to database
+ * Save block with transactions to database.
  *
- * @async
- * @param  {Object}   block Full normalized block
- * @param  {function} cb Callback function
- * @return {Function|afterSave} cb If SQL transaction was OK - returns safterSave execution,
- *                                 if not returns callback function from params (through setImmediate)
- * @return {string}   cb.err Error if occurred
+ * @param  {Object}   block - Full normalized block
+ * @param  {function} cb - Callback function
+ * @returns {Function|afterSave} cb - If SQL transaction was OK - returns safterSave execution, if not returns callback function from params (through setImmediate)
+ * @returns {string}   cb.err - Error if occurred
  */
 Chain.prototype.saveBlock = function(block, cb, tx) {
 	block.transactions.map(transaction => {
@@ -142,15 +139,14 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 };
 
 /**
- * Execute afterSave callback for transactions depends on transaction type
+ * Execute afterSave callback for transactions depends on transaction type.
  *
  * @private
- * @async
- * @method afterSave
- * @param  {Object}   block Full normalized block
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
+ * @func afterSave
+ * @param  {Object}   block - Full normalized block
+ * @param  {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object}   cb.err - Error if occurred
  */
 __private.afterSave = function(block, cb) {
 	library.bus.message('transactionsSaved', block.transactions);
@@ -162,15 +158,13 @@ __private.afterSave = function(block, cb) {
 };
 
 /**
- * Deletes block from blocks table
+ * Deletes block from blocks table.
  *
- * @private
- * @async
- * @method deleteBlock
- * @param  {number}   blockId ID of block to delete
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err String if SQL error occurred, null if success
+ * @func deleteBlock
+ * @param  {number}   blockId - ID of block to delete
+ * @param  {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object}   cb.err - String if SQL error occurred, null if success
  */
 Chain.prototype.deleteBlock = function(blockId, cb) {
 	// Delete block with ID from blocks table
@@ -185,16 +179,14 @@ Chain.prototype.deleteBlock = function(blockId, cb) {
 };
 
 /**
- * Deletes all blocks with height >= supplied block ID
+ * Deletes all blocks with height >= supplied block ID.
  *
- * @public
- * @async
- * @method deleteAfterBlock
- * @param  {number}   blockId ID of block to begin with
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err SQL error
- * @return {Object}   cb.res SQL response
+ * @func deleteAfterBlock
+ * @param  {number}   blockId - ID of block to begin with
+ * @param  {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - SQL error
+ * @returns {Object} cb.res - SQL response
  */
 Chain.prototype.deleteAfterBlock = function(blockId, cb) {
 	library.db.blocks
@@ -207,15 +199,13 @@ Chain.prototype.deleteAfterBlock = function(blockId, cb) {
 };
 
 /**
- * Apply genesis block's transactions to blockchain
+ * Apply genesis block's transactions to blockchain.
  *
- * @private
- * @async
- * @method applyGenesisBlock
- * @param  {Object}   block Full normalized genesis block
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
+ * @func applyGenesisBlock
+ * @param  {Object}   block - Full normalized genesis block
+ * @param  {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object}   cb.err - Error if occurred
  */
 Chain.prototype.applyGenesisBlock = function(block, cb) {
 	// Sort transactions included in block
@@ -270,17 +260,16 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 };
 
 /**
- * Apply transaction to unconfirmed and confirmed
+ * Apply transaction to unconfirmed and confirmed.
  *
  * @private
- * @async
  * @method applyTransaction
- * @param  {Object}   block Block object
- * @param  {Object}   transaction Transaction object
- * @param  {Object}   sender Sender account
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
+ * @param {Object} block - Block object
+ * @param {Object} transaction - Transaction object
+ * @param {Object} sender - Sender account
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
  */
 __private.applyTransaction = function(block, transaction, sender, cb) {
 	// FIXME: Not sure about flow here, when nodes have different transactions - 'applyUnconfirmed' can fail but 'apply' can be ok
@@ -306,6 +295,15 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 	});
 };
 
+/**
+ * Description of the function.
+ *
+ * @func applyBlock
+ * @param  {Object}   block - Full normalized genesis block
+ * @param  {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object}   cb.err - Error if occurred
+ */
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 	// Transactions to rewind in case of error.
 	var appliedTransactions = {};
@@ -325,7 +323,15 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 		});
 	};
 
-	// Apply transactions to unconfirmed mem_accounts fields
+	/**
+	 * Apply transactions to unconfirmed mem_accounts fields.
+	 *
+	 * @private
+	 * @func applyUnconfirmedStep
+	 * @param {Object} tx - Description of the param
+	 * @todo Add description of the param
+	 * @todo Add returns tag
+	 */
 	var applyUnconfirmedStep = function(tx) {
 		return Promise.mapSeries(
 			block.transactions,
@@ -399,6 +405,15 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 		);
 	};
 
+	/**
+	 * Description of the function.
+	 *
+	 * @private
+	 * @func applyConfirmedStep
+	 * @param {Object} tx - Description of the param
+	 * @todo Add description of the function and its param
+	 * @todo Add returns tag
+	 */
 	var applyConfirmedStep = function(tx) {
 		return Promise.mapSeries(
 			block.transactions,
@@ -454,6 +469,15 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 		);
 	};
 
+	/**
+	 * Description of the function.
+	 *
+	 * @private
+	 * @func saveBlockStep
+	 * @param {Object} tx - Description of the param
+	 * @todo Add description of the function and its param
+	 * @todo Add returns tag
+	 */
 	var saveBlockStep = function(tx) {
 		return new Promise((resolve, reject) => {
 			modules.blocks.lastBlock.set(block);
