@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var ByteBuffer = require('bytebuffer');
@@ -35,8 +36,8 @@ var library;
 // Constructor
 function Signature(schema, logger) {
 	library = {
-		schema: schema,
-		logger: logger,
+		schema,
+		logger,
 	};
 }
 
@@ -48,7 +49,7 @@ function Signature(schema, logger) {
  */
 Signature.prototype.bind = function(accounts) {
 	modules = {
-		accounts: accounts,
+		accounts,
 	};
 };
 
@@ -270,14 +271,13 @@ Signature.prototype.objectNormalize = function(transaction) {
 Signature.prototype.dbRead = function(raw) {
 	if (!raw.s_publicKey) {
 		return null;
-	} else {
-		var signature = {
-			transactionId: raw.t_id,
-			publicKey: raw.s_publicKey,
-		};
-
-		return { signature: signature };
 	}
+	var signature = {
+		transactionId: raw.t_id,
+		publicKey: raw.s_publicKey,
+	};
+
+	return { signature };
 };
 
 /**
@@ -294,9 +294,8 @@ Signature.prototype.ready = function(transaction, sender) {
 			return false;
 		}
 		return transaction.signatures.length >= sender.multimin;
-	} else {
-		return true;
 	}
+	return true;
 };
 
 // Export

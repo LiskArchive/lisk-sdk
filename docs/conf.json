@@ -9,6 +9,7 @@
 			"./app.js",
 			"./api/",
 			"./config/",
+			"./db/",
 			"./helpers/",
 			"./logic/",
 			"./modules/",

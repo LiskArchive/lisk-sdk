@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var lisk = require('lisk-js');
@@ -27,6 +28,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 
 	var i = 0;
 	var t = 0;
+	/* eslint-disable no-loop-func */
 	while (i < 30) {
 		describe('executing 30 times', () => {
 			var account = randomUtil.account();
@@ -41,7 +43,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			);
 
 			before(done => {
-				console.log(++t);
+				console.info(`Iteration count: ${++t}`);
 				localCommon.addTransactionsAndForge(library, [transaction], () => {
 					done();
 				});

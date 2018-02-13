@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var wsRPC = require('./rpc/ws_rpc').wsRPC;
@@ -22,8 +23,8 @@ var slaveRPCStub = require('./rpc/ws_rpc').slaveRPCStub;
  * @class
  * @memberof api.ws
  * @see Parent: {@link api.ws}
- * @param {Object} transportModule - Description of the param
- * @todo: Add description of the function and its parameters
+ * @param {Object} transportModule
+ * @todo Add description for the function and the params
  */
 function TransportWSApi(transportModule) {
 	wsRPC.getServer().registerRPCEndpoints({

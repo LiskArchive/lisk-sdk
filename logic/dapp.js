@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var valid_url = require('valid-url');
@@ -45,10 +46,10 @@ __private.unconfirmedAscii = {};
 // Constructor
 function DApp(db, logger, schema, network) {
 	library = {
-		db: db,
-		logger: logger,
-		schema: schema,
-		network: network,
+		db,
+		logger,
+		schema,
+		network,
 	};
 }
 
@@ -209,12 +210,10 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 						cb,
 						`Application link already exists: ${dapp.link}`
 					);
-				} else {
-					return setImmediate(cb, 'Application already exists');
 				}
-			} else {
-				return setImmediate(cb, null, transaction);
+				return setImmediate(cb, 'Application already exists');
 			}
+			return setImmediate(cb, null, transaction);
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -470,19 +469,18 @@ DApp.prototype.objectNormalize = function(transaction) {
 DApp.prototype.dbRead = function(raw) {
 	if (!raw.dapp_name) {
 		return null;
-	} else {
-		var dapp = {
-			name: raw.dapp_name,
-			description: raw.dapp_description,
-			tags: raw.dapp_tags,
-			type: raw.dapp_type,
-			link: raw.dapp_link,
-			category: raw.dapp_category,
-			icon: raw.dapp_icon,
-		};
-
-		return { dapp: dapp };
 	}
+	var dapp = {
+		name: raw.dapp_name,
+		description: raw.dapp_description,
+		tags: raw.dapp_tags,
+		type: raw.dapp_type,
+		link: raw.dapp_link,
+		category: raw.dapp_category,
+		icon: raw.dapp_icon,
+	};
+
+	return { dapp };
 };
 
 /**
@@ -514,9 +512,8 @@ DApp.prototype.ready = function(transaction, sender) {
 			return false;
 		}
 		return transaction.signatures.length >= sender.multimin;
-	} else {
-		return true;
 	}
+	return true;
 };
 
 // Export

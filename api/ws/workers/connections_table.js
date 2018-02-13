@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 /**
@@ -28,9 +29,9 @@ function ConnectionsTable() {
 /**
  * Description of the function.
  *
- * @param {string} connectionId - Description of the param
+ * @param {string} connectionId
  * @returns {string|undefined} Matching nonce if an entry was added previously
- * @todo: Add description of the function and its parameters
+ * @todo Add description for the function and the params
  */
 ConnectionsTable.prototype.getNonce = function(connectionId) {
 	return this.connectionIdToNonceMap[connectionId];
@@ -39,9 +40,9 @@ ConnectionsTable.prototype.getNonce = function(connectionId) {
 /**
  * Description of the function.
  *
- * @param {string} nonce - Description of the param
+ * @param {string} nonce
  * @returns {string|undefined} Matching connectionId if an entry was added previously
- * @todo: Add description of the function and its parameters
+ * @todo Add description for the function and the params
  */
 ConnectionsTable.prototype.getConnectionId = function(nonce) {
 	return this.nonceToConnectionIdMap[nonce];
@@ -50,9 +51,9 @@ ConnectionsTable.prototype.getConnectionId = function(nonce) {
 /**
  * Links peer via nonce with given connectionId.
  *
- * @param {string} nonce - Description of the param
- * @param {string} connectionId - Description of the param
- * @todo: Add descriptions of the parameters
+ * @param {string} nonce
+ * @param {string} connectionId
+ * @todo Add description for the params
  */
 ConnectionsTable.prototype.add = function(nonce, connectionId) {
 	if (!nonce) {
@@ -69,8 +70,8 @@ ConnectionsTable.prototype.add = function(nonce, connectionId) {
 /**
  * Removes a peer with assigned connectionId.
  *
- * @param {string} nonce - Description of the param
- * @todo: Add description of the parameters
+ * @param {string} nonce
+ * @todo Add description for the params
  */
 ConnectionsTable.prototype.remove = function(nonce) {
 	if (!nonce) {

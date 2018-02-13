@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 const _ = require('lodash');
@@ -20,13 +21,17 @@ const sql = require('../sql').transactions;
 const cs = {}; // Reusable ColumnSet objects
 
 /**
- * Transactions database interaction module
- * @memberof module:transactions
+ * Transactions database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @requires lodash
+ * @requires pg-promise
+ * @requires helpers/transaction_types
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {TransactionsRepository}
+ * @returns {Object} An instance of a TransactionsRepo
  */
 class TransactionsRepository {
 	constructor(db, pgp) {
@@ -92,27 +97,33 @@ class TransactionsRepository {
 
 	/**
 	 * Counts total transactions.
-	 * @return {Promise<number>}
+	 *
+	 * @returns {Promise<number>}
+	 * @todo Add description for the return value
 	 */
 	count() {
 		return this.db.one(sql.count, [], a => +a.count);
 	}
 
 	/**
-	 * Counts transactions by Id.
+	 * Count transactions by Id.
+	 *
 	 * @param {string} id
-	 * @return {Promise<number>}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	countById(id) {
 		return this.db.one(sql.countById, { id }, a => +a.count);
 	}
 
 	/**
-	 * Counts transactions with extended params.
+	 * Count transactions with extended params.
+	 *
 	 * @param {Object} params
 	 * @param {Array} params.where
 	 * @param {string} params.owner
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	countList(params) {
 		// TODO: Get rid of the in-code query, and a result-specific query method
@@ -120,7 +131,8 @@ class TransactionsRepository {
 	}
 
 	/**
-	 * Searches for transactions.
+	 * Search transactions.
+	 *
 	 * @param {Object} params
 	 * @param {Array} params.where
 	 * @param {string} params.owner
@@ -128,7 +140,8 @@ class TransactionsRepository {
 	 * @param {string} params.sortMethod
 	 * @param {int} params.limit
 	 * @param {int} params.offset
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	list(params) {
 		// TODO: Get rid of the in-code query, and a result-specific query method
@@ -137,8 +150,10 @@ class TransactionsRepository {
 
 	/**
 	 * Gets transfer transactions from a list of id-s.
+	 *
 	 * @param {Array.<string>} ids
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	getTransferByIds(ids) {
 		return this.db.any(sql.getTransferByIds, { ids });
@@ -146,8 +161,10 @@ class TransactionsRepository {
 
 	/**
 	 * Gets vote transactions from a list of id-s.
+	 *
 	 * @param {Array.<string>} ids
-	 * @return {Promise<[]>}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	getVotesByIds(ids) {
 		return this.db.any(sql.getVotesByIds, { ids });
@@ -155,8 +172,10 @@ class TransactionsRepository {
 
 	/**
 	 * Gets delegate transactions from a list of id-s.
+	 *
 	 * @param {Array.<string>} ids
-	 * @return {Promise<[]>}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	getDelegateByIds(ids) {
 		return this.db.any(sql.getDelegateByIds, { ids });
@@ -164,8 +183,10 @@ class TransactionsRepository {
 
 	/**
 	 * Gets signature transactions from a list of id-s.
+	 *
 	 * @param {Array.<string>} ids
-	 * @return {Promise<[]>}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	getSignatureByIds(ids) {
 		return this.db.any(sql.getSignatureByIds, { ids });
@@ -173,8 +194,10 @@ class TransactionsRepository {
 
 	/**
 	 * Gets multisignature transactions from a list of id-s.
+	 *
 	 * @param {Array.<string>} ids
-	 * @return {Promise<[]>}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	getMultiByIds(ids) {
 		return this.db.any(sql.getMultiByIds, { ids });
@@ -182,8 +205,10 @@ class TransactionsRepository {
 
 	/**
 	 * Gets dapp transactions from a list of id-s.
+	 *
 	 * @param {Array.<string>} ids
-	 * @return {Promise<[]>}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	getDappByIds(ids) {
 		return this.db.any(sql.getDappByIds, { ids });
@@ -191,8 +216,10 @@ class TransactionsRepository {
 
 	/**
 	 * Gets in-transfer transactions from a list of id-s.
+	 *
 	 * @param {Array.<string>} ids
-	 * @return {Promise<[]>}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	getInTransferByIds(ids) {
 		return this.db.any(sql.getInTransferByIds, { ids });
@@ -200,8 +227,10 @@ class TransactionsRepository {
 
 	/**
 	 * Gets out-transfer transactions from a list of id-s.
+	 *
 	 * @param {Array.<string>} ids
-	 * @return {Promise<[]>}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	getOutTransferByIds(ids) {
 		return this.db.any(sql.getOutTransferByIds, { ids });
@@ -209,8 +238,10 @@ class TransactionsRepository {
 
 	/**
 	 * Saves transactions to the database.
+	 *
 	 * @param {Array.<Object>} transactions - Each object should justify *logic/transaction.prototype.schema*
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	save(transactions) {
 		let saveTransactions = _.cloneDeep(transactions);
@@ -252,9 +283,8 @@ class TransactionsRepository {
 		// we check when there is a transaction on this level or above:
 		if (this.db.ctx && this.db.ctx.inTransaction) {
 			return this.db.batch(batch);
-		} else {
-			return this.db.tx(tx => tx.batch(batch));
 		}
+		return this.db.tx(tx => tx.batch(batch));
 	}
 }
 

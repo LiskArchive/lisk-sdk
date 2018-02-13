@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var lisk = require('lisk-js');
@@ -27,8 +28,9 @@ describe('system test (type 0) - double transfers', () => {
 
 	var i = 0;
 	var t = 0;
+	/* eslint-disable no-loop-func */
 	while (i < 1) {
-		describe('executing 30 times', function() {
+		describe('executing 30 times', () => {
 			var account = randomUtil.account();
 			var transaction = lisk.transaction.createTransaction(
 				account.address,
@@ -39,7 +41,7 @@ describe('system test (type 0) - double transfers', () => {
 			var transaction2;
 
 			before(done => {
-				console.log(++t);
+				console.info(`Iteration count: ${++t}`);
 				localCommon.addTransactionsAndForge(library, [transaction], () => {
 					done();
 				});

@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var constants = require('../helpers/constants.js');
@@ -37,8 +38,8 @@ var library;
 // Constructor
 function Transfer(logger, schema) {
 	library = {
-		logger: logger,
-		schema: schema,
+		logger,
+		schema,
 	};
 }
 
@@ -51,7 +52,7 @@ function Transfer(logger, schema) {
  */
 Transfer.prototype.bind = function(accounts) {
 	modules = {
-		accounts: accounts,
+		accounts,
 	};
 };
 
@@ -298,9 +299,8 @@ Transfer.prototype.ready = function(transaction, sender) {
 			return false;
 		}
 		return transaction.signatures.length >= sender.multimin;
-	} else {
-		return true;
 	}
+	return true;
 };
 
 // Export

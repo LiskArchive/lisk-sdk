@@ -11,14 +11,24 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 // Private fields
 var __private = {};
 
 /**
+ * Description of the module.
+ *
+ * @module
+ * @see Parent: {@link helpers}
+ * @todo Add description for the module
+ */
+
+/**
  * A module to reference the scope of the application between swagger pipeline.
- * @param {Object} scope - Application scope.
+ *
+ * @param {Object} scope - Application scope
  */
 function bind(scope) {
 	__private = {
@@ -30,7 +40,9 @@ function bind(scope) {
 
 /**
  * Get cache module.
- * @return {Object}
+ *
+ * @returns {Object}
+ * @todo Add description for the return value
  */
 function getCache() {
 	return __private.cache;
@@ -38,7 +50,9 @@ function getCache() {
 
 /**
  * Get system logger.
- * @return {Object}
+ *
+ * @returns {Object}
+ * @todo Add description for the return value
  */
 function getLogger() {
 	return __private.logger;
@@ -46,15 +60,17 @@ function getLogger() {
 
 /**
  * Get system config.
- * @return {Object}
+ *
+ * @returns {Object}
+ * @todo Add description for the return value
  */
 function getConfig() {
 	return __private.config;
 }
 
 module.exports = {
-	bind: bind,
-	getCache: getCache,
-	getLogger: getLogger,
-	getConfig: getConfig,
+	bind,
+	getCache,
+	getLogger,
+	getConfig,
 };

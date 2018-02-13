@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -28,7 +29,7 @@ var modules;
  * @memberof api/controllers
  * @requires lodash
  * @param {Object} scope - App instance
- * @todo: Add description of DelegatesController
+ * @todo Add description of DelegatesController
  */
 function DelegatesController(scope) {
 	modules = scope.modules;
@@ -37,9 +38,9 @@ function DelegatesController(scope) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
  */
 DelegatesController.getDelegates = function(context, next) {
 	var params = context.request.swagger.params;
@@ -85,7 +86,7 @@ DelegatesController.getDelegates = function(context, next) {
 		});
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
@@ -97,9 +98,9 @@ DelegatesController.getDelegates = function(context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
  */
 DelegatesController.getForgers = function(context, next) {
 	var params = context.request.swagger.params;
@@ -132,15 +133,14 @@ DelegatesController.getForgingStatistics = function(context, next) {
 		end: params.toTimestamp.value || Date.now(),
 	};
 
-	modules.blocks.utils.aggregateBlocksReward(filters, function(err, reward) {
+	modules.blocks.utils.aggregateBlocksReward(filters, (err, reward) => {
 		if (err) {
 			if (err === 'Account not found' || err === 'Account is not a delegate') {
 				return next(
 					swaggerHelper.generateParamsErrorObject([params.address], [err])
 				);
-			} else {
-				return next(err);
 			}
+			return next(err);
 		}
 
 		var forged = new bignum(reward.fees)
@@ -150,7 +150,7 @@ DelegatesController.getForgingStatistics = function(context, next) {
 			data: {
 				fees: reward.fees,
 				rewards: reward.rewards,
-				forged: forged,
+				forged,
 				count: reward.count,
 			},
 			meta: {

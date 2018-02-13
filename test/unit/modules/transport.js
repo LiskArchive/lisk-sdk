@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests, mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -11,6 +12,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var rewire = require('rewire');
@@ -76,6 +78,7 @@ describe('transport', () => {
 		peersStub = {};
 
 		restoreRewiredTopDeps = TransportModule.__set__({
+			// eslint-disable-next-line object-shorthand
 			Broadcaster: function() {
 				this.bind = () => {};
 				broadcasterStubRef = this;
@@ -227,9 +230,9 @@ describe('transport', () => {
 				definitions = {};
 
 				restoreRewiredDeps = TransportModule.__set__({
-					library: library,
-					modules: modules,
-					definitions: definitions,
+					library,
+					modules,
+					definitions,
 				});
 
 				done();
@@ -837,7 +840,7 @@ describe('transport', () => {
 						id: transaction.id,
 						err: 'Unknown transaction type 0',
 						module: 'transport',
-						transaction: transaction,
+						transaction,
 					};
 					expect(
 						library.logger.debug.calledWith(
@@ -1012,8 +1015,8 @@ describe('transport', () => {
 				};
 
 				restoreRewiredTransportDeps = TransportModule.__set__({
-					library: library,
-					modules: modules,
+					library,
+					modules,
 				});
 
 				done();
@@ -1096,31 +1099,72 @@ describe('transport', () => {
 		});
 
 		describe('onBind', () => {
-			describe('modules', () => {
-				it('should assign blocks');
+			var restoreRewiredDeps;
 
-				it('should assign dapps');
+			beforeEach(done => {
+				__private = {
+					broadcaster: {},
+				};
+				restoreRewiredDeps = TransportModule.__set__({
+					__private,
+				});
 
-				it('should assign loader');
-
-				it('should assign multisignatures');
-
-				it('should assign peers');
-
-				it('should assign system');
-
-				it('should assign transaction');
+				// Create a new TransportModule instance.
+				// We want to check that internal variables are being set correctly so we don't
+				// want any stubs to interfere here (e.g. from the top-level beforeEach block).
+				new TransportModule((err, transportSelf) => {
+					__private.broadcaster.bind = sinonSandbox.spy();
+					transportSelf.onBind(defaultScope);
+					done();
+				}, defaultScope);
 			});
 
-			it('should call System.getHeaders');
+			afterEach(done => {
+				restoreRewiredDeps();
+				done();
+			});
 
-			it('should call __private.broadcaster.bind');
+			describe('modules', () => {
+				var modulesObject;
 
-			it('should call __private.broadcaster.bind with scope.peers');
+				beforeEach(done => {
+					modulesObject = TransportModule.__get__('modules');
+					done();
+				});
 
-			it('should call __private.broadcaster.bind with scope.transport');
+				it('should assign blocks, dapps, loader, multisignatures, peers, system and transactions properties', () => {
+					expect(modulesObject).to.have.property('blocks');
+					expect(modulesObject).to.have.property('dapps');
+					expect(modulesObject).to.have.property('loader');
+					expect(modulesObject).to.have.property('multisignatures');
+					expect(modulesObject).to.have.property('peers');
+					expect(modulesObject).to.have.property('system');
+					expect(modulesObject).to.have.property('transactions');
+				});
+			});
 
-			it('should call __private.broadcaster.bind with scope.transactions');
+			describe('definitions', () => {
+				var definitionsObject;
+
+				beforeEach(done => {
+					definitionsObject = TransportModule.__get__('definitions');
+					done();
+				});
+
+				it('should assign definitions object', () => {
+					expect(definitionsObject).to.equal(defaultScope.swagger.definitions);
+				});
+			});
+
+			it('should call __private.broadcaster.bind with scope.peers, scope.transport and scope.transactions as arguments', () => {
+				expect(
+					__private.broadcaster.bind.calledWith(
+						defaultScope.peers,
+						defaultScope.transport,
+						defaultScope.transactions
+					)
+				).to.be.true;
+			});
 		});
 
 		describe('onSignature', () => {

@@ -3,32 +3,32 @@
 	"plugins": ["mocha"],
 	"rules": {
 		"array-callback-return": "off",
-		"block-scoped-var": "off",
 		"camelcase": "off",
-		"comma-dangle": "off",
+		"comma-dangle": [
+			"error",
+			{
+				"arrays": "always-multiline",
+				"objects": "always-multiline",
+				"imports": "always-multiline",
+				"exports": "always-multiline",
+				"functions": "never"
+			}
+		],
 		"consistent-return": "off",
-		"default-case": "off",
-		"dot-notation": "off",
 		"eqeqeq": "off",
 		"func-names": "off",
 		"global-require": "off",
 		"guard-for-in": "off",
 		"generator-star-spacing": ["error", { "before": false, "after": false }],
-		"lines-around-directive": "off",
 		"max-len": "off",
 		"new-cap": "off",
 		"no-bitwise": "off",
-		"no-console": "off",
-		"no-else-return": "off",
-		"no-loop-func": "off",
-		"no-multi-assign": "off",
 		"no-nested-ternary": "off",
 		"no-new": "off",
 		"no-param-reassign": "off",
 		"no-plusplus": "off",
 		"no-prototype-builtins": "off",
 		"no-restricted-globals": "off",
-		"no-restricted-properties": "off",
 		"no-restricted-syntax": "off",
 		"no-shadow": "off",
 		"no-template-curly-in-string": "off",
@@ -36,10 +36,7 @@
 		"no-underscore-dangle": "off",
 		"no-unused-expressions": "off",
 		"no-use-before-define": "off",
-		"no-useless-escape": "off",
 		"no-var": "off",
-		"object-shorthand": "off",
-		"prefer-arrow-callback": "off",
 		"prefer-destructuring": "off",
 		"prefer-rest-params": "off",
 		"radix": "off",
@@ -71,6 +68,8 @@
 					"Gruntfile.js"
 				]
 			}
-		]
+		],
+		"no-console": ["error", { "allow": ["trace", "error", "info", "warn"] }],
+		"no-restricted-properties": "off"
 	}
 }

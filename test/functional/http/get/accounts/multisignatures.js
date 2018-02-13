@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../../functional.js');
@@ -48,7 +49,7 @@ describe('GET /api/accounts', () => {
 					.to.equal(200);
 
 				var signatures = [];
-				scenario.members.map(function(member) {
+				scenario.members.map(member => {
 					return signatures.push(
 						apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
@@ -57,7 +58,7 @@ describe('GET /api/accounts', () => {
 					);
 				});
 
-				return signatureEndpoint.makeRequest({ signatures: signatures }, 200);
+				return signatureEndpoint.makeRequest({ signatures }, 200);
 			})
 			.then(res => {
 				expect(res.body.meta.status).to.be.true;

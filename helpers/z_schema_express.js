@@ -11,14 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 /**
  * Applies z_schema to validate schema.
- * @memberof module:helpers
+ *
+ * @memberof helpers
  * @function z_schema-express
  * @param {function} z_schema
- * @return {function}
+ * @returns {function}
+ * @todo Add description for the params and return value
  */
 module.exports = function(z_schema) {
 	return function(req, res, next) {

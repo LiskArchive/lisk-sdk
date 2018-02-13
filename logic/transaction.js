@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var crypto = require('crypto');
@@ -66,12 +67,12 @@ __private.types = {};
 // Constructor
 function Transaction(db, ed, schema, genesisblock, account, logger, cb) {
 	this.scope = {
-		db: db,
-		ed: ed,
-		schema: schema,
-		genesisblock: genesisblock,
-		account: account,
-		logger: logger,
+		db,
+		ed,
+		schema,
+		genesisblock,
+		account,
+		logger,
 	};
 	self = this;
 	if (cb) {
@@ -106,9 +107,8 @@ Transaction.prototype.attachAssetType = function(typeId, instance) {
 	) {
 		__private.types[typeId] = instance;
 		return instance;
-	} else {
-		throw 'Invalid instance interface';
 	}
+	throw 'Invalid instance interface';
 };
 
 /**
@@ -327,9 +327,8 @@ Transaction.prototype.checkConfirmed = function(transaction, cb) {
 				cb,
 				`Transaction is already confirmed: ${transaction.id}`
 			);
-		} else {
-			return setImmediate(cb);
 		}
+		return setImmediate(cb);
 	});
 };
 
@@ -354,7 +353,7 @@ Transaction.prototype.checkBalance = function(
 		transaction.blockId !== this.scope.genesisblock.block.id && exceededBalance;
 
 	return {
-		exceeded: exceeded,
+		exceeded,
 		error: exceeded
 			? [
 					'Account does not have enough LSK:',
@@ -416,9 +415,8 @@ Transaction.prototype.process = function(
 	// Check transaction id
 	if (transaction.id && transaction.id !== txId) {
 		return setImmediate(cb, 'Invalid transaction id');
-	} else {
-		transaction.id = txId;
 	}
+	transaction.id = txId;
 
 	// Equalize sender address
 	transaction.senderId = sender.address;
@@ -431,9 +429,8 @@ Transaction.prototype.process = function(
 		(err, transaction) => {
 			if (err) {
 				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null, transaction);
 			}
+			return setImmediate(cb, null, transaction);
 		},
 		tx
 	);
@@ -725,10 +722,9 @@ Transaction.prototype.verify = function(
 		err => {
 			if (err) {
 				return setImmediate(cb, err);
-			} else {
-				// Check for already confirmed transaction
-				return self.checkConfirmed(transaction, cb);
 			}
+			// Check for already confirmed transaction
+			return self.checkConfirmed(transaction, cb);
 		},
 		tx
 	);
@@ -1118,9 +1114,8 @@ Transaction.prototype.afterSave = function(transaction, cb) {
 		return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
 	} else if (typeof tx_type.afterSave === 'function') {
 		return tx_type.afterSave.call(this, transaction, cb);
-	} else {
-		return setImmediate(cb);
 	}
+	return setImmediate(cb);
 };
 
 /**
@@ -1288,39 +1283,38 @@ Transaction.prototype.objectNormalize = function(transaction) {
 Transaction.prototype.dbRead = function(raw) {
 	if (!raw.t_id) {
 		return null;
-	} else {
-		var transaction = {
-			id: raw.t_id,
-			height: raw.b_height,
-			blockId: raw.b_id || raw.t_blockId,
-			type: parseInt(raw.t_type),
-			timestamp: parseInt(raw.t_timestamp),
-			senderPublicKey: raw.t_senderPublicKey,
-			requesterPublicKey: raw.t_requesterPublicKey,
-			senderId: raw.t_senderId,
-			recipientId: raw.t_recipientId,
-			recipientPublicKey: raw.m_recipientPublicKey || null,
-			amount: parseInt(raw.t_amount),
-			fee: parseInt(raw.t_fee),
-			signature: raw.t_signature,
-			signSignature: raw.t_signSignature,
-			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
-			confirmations: parseInt(raw.confirmations),
-			asset: {},
-		};
-
-		if (!__private.types[transaction.type]) {
-			throw `Unknown transaction type ${transaction.type}`;
-		}
-
-		var asset = __private.types[transaction.type].dbRead.call(this, raw);
-
-		if (asset) {
-			transaction.asset = extend(transaction.asset, asset);
-		}
-
-		return transaction;
 	}
+	var transaction = {
+		id: raw.t_id,
+		height: raw.b_height,
+		blockId: raw.b_id || raw.t_blockId,
+		type: parseInt(raw.t_type),
+		timestamp: parseInt(raw.t_timestamp),
+		senderPublicKey: raw.t_senderPublicKey,
+		requesterPublicKey: raw.t_requesterPublicKey,
+		senderId: raw.t_senderId,
+		recipientId: raw.t_recipientId,
+		recipientPublicKey: raw.m_recipientPublicKey || null,
+		amount: parseInt(raw.t_amount),
+		fee: parseInt(raw.t_fee),
+		signature: raw.t_signature,
+		signSignature: raw.t_signSignature,
+		signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
+		confirmations: parseInt(raw.confirmations),
+		asset: {},
+	};
+
+	if (!__private.types[transaction.type]) {
+		throw `Unknown transaction type ${transaction.type}`;
+	}
+
+	var asset = __private.types[transaction.type].dbRead.call(this, raw);
+
+	if (asset) {
+		transaction.asset = extend(transaction.asset, asset);
+	}
+
+	return transaction;
 };
 
 // Export

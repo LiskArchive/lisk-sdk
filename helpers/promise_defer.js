@@ -11,10 +11,20 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var Promise = require('bluebird');
 
+/**
+ * Description of the class.
+ *
+ * @class
+ * @memberof helpers
+ * @returns {Object}
+ * @see Parent: {@link helpers}
+ * @todo Add description for the class and the return value
+ */
 function PromiseDefer() {
 	var resolve;
 	var reject;
@@ -24,9 +34,9 @@ function PromiseDefer() {
 	});
 
 	return {
-		resolve: resolve,
-		reject: reject,
-		promise: promise,
+		resolve,
+		reject,
+		promise,
 	};
 }
 

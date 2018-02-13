@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var faker = require('faker');
@@ -248,29 +249,29 @@ var allTypes = arrays
 	.concat(strings);
 
 module.exports = {
-	allTypes: allTypes,
-	arrays: arrays,
+	allTypes,
+	arrays,
 	nonArrays: difference(allTypes, arrays),
-	booleans: booleans,
+	booleans,
 	nonBooleans: difference(allTypes, booleans),
-	positiveIntegers: positiveIntegers,
+	positiveIntegers,
 	nonPositiveIntegers: difference(allTypes, positiveIntegers),
-	negativeIntegers: negativeIntegers,
+	negativeIntegers,
 	nonNegativeIntegers: difference(allTypes, negativeIntegers),
-	positiveNumbers: positiveNumbers,
+	positiveNumbers,
 	nonPositiveNumbers: difference(allTypes, positiveNumbers),
-	negativeNumbers: negativeNumbers,
+	negativeNumbers,
 	nonNegativeNumbers: difference(allTypes, negativeNumbers),
-	objects: objects,
+	objects,
 	nonObjects: difference(allTypes, objects),
-	others: others,
+	others,
 	nonOthers: difference(allTypes, others),
-	strings: strings,
+	strings,
 	nonStrings: difference(allTypes, strings),
-	nonEmptyStrings: nonEmptyStrings,
+	nonEmptyStrings,
 	nonNonEmptyStrings: difference(allTypes, nonEmptyStrings),
-	emptyString: emptyString,
+	emptyString,
 	nonEmptyString: difference(allTypes, emptyString),
-	additionalDataValidCases: additionalDataValidCases,
-	additionalDataInvalidCases: additionalDataInvalidCases,
+	additionalDataValidCases,
+	additionalDataInvalidCases,
 };

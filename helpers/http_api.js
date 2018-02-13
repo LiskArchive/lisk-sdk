@@ -11,14 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-'use strict';
 
-/**
- * Middleware functions to add cors, log errors and conections, send status
- * and setup router.
- * @memberof module:helpers
- * @module helpers/httpApi
- */
+'use strict';
 
 var _ = require('lodash');
 var extend = require('extend');
@@ -26,16 +20,40 @@ var apiCodes = require('./api_codes');
 var checkIpInList = require('./check_ip_in_list');
 
 /**
+ * Description of the module.
+ *
+ * @module
+ * @see Parent: {@link helpers}
+ * @requires extend
+ * @requires lodash
+ * @requires helpers/api_codes
+ * @requires helpers/check_ip_in_list
+ * @property {Object} middleware
+ * @property {function} registerEndpoint
+ * @property {function} respond
+ * @property {function} respondWithCode
+ * @todo Add description for the module and the properties
+ */
+
+/**
+ * Middleware functions to add cors, log errors and conections, send status
+ * and setup router.
+ *
  * @namespace middleware
+ * @see Parent: {@link helpers.http_api}
+ * @memberof module:helpers/http_api
  */
 var middleware = {
 	/**
 	 * Adds CORS header to all requests.
+	 *
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
-	cors: function(req, res, next) {
+	cors(req, res, next) {
 		res.header('Access-Control-Allow-Origin', '*');
 		res.header(
 			'Access-Control-Allow-Headers',
@@ -46,13 +64,16 @@ var middleware = {
 
 	/**
 	 * Logs all api errors.
+	 *
 	 * @param {Logger} logger
 	 * @param {Error} err
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
-	errorLogger: function(logger, err, req, res, next) {
+	errorLogger(logger, err, req, res, next) {
 		if (!err) {
 			return next();
 		}
@@ -65,12 +86,15 @@ var middleware = {
 
 	/**
 	 * Logs api client connections.
+	 *
 	 * @param {Logger} logger
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
-	logClientConnections: function(logger, req, res, next) {
+	logClientConnections(logger, req, res, next) {
 		// Log client connections
 		logger.log(`${req.method} ${req.url} from ${req.ip}`);
 
@@ -79,12 +103,15 @@ var middleware = {
 
 	/**
 	 * Resends error msg when blockchain is not loaded.
+	 *
 	 * @param {function} isLoaded
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
-	blockchainReady: function(isLoaded, req, res, next) {
+	blockchainReady(isLoaded, req, res, next) {
 		if (isLoaded()) {
 			return next();
 		}
@@ -93,11 +120,14 @@ var middleware = {
 
 	/**
 	 * Resends error if API endpoint doesn't exists.
+	 *
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
-	notFound: function(req, res) {
+	notFound(req, res) {
 		return res
 			.status(500)
 			.send({ success: false, error: 'API endpoint not found' });
@@ -105,12 +135,14 @@ var middleware = {
 
 	/**
 	 * Uses req.sanitize for particular endpoint.
+	 *
 	 * @param {string} property
 	 * @param {Object} schema
 	 * @param {function} cb
-	 * @return {function} Sanitize middleware.
+	 * @returns {function}
+	 * @todo Add description for the params
 	 */
-	sanitize: function(property, schema, cb) {
+	sanitize(property, schema, cb) {
 		// TODO: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
 		return function(req, res) {
 			req.sanitize(req[property], schema, (err, report, sanitized) => {
@@ -124,26 +156,32 @@ var middleware = {
 
 	/**
 	 * Attachs header to response.
+	 *
 	 * @param {string} headerKey
 	 * @param {string} headerValue
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
-	attachResponseHeader: function(headerKey, headerValue, req, res, next) {
+	attachResponseHeader(headerKey, headerValue, req, res, next) {
 		res.setHeader(headerKey, headerValue);
 		return next();
 	},
 
 	/**
 	 * Applies rules of public / internal API described in config.json.
+	 *
 	 * @param {Object} config
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
-	applyAPIAccessRules: function(config, req, res, next) {
-		if (req.url.match(/^\/peer[\/]?.*/)) {
+	applyAPIAccessRules(config, req, res, next) {
+		if (req.url.match(/^\/peer[/]?.*/)) {
 			var internalApiAllowed =
 				config.peers.enabled &&
 				!checkIpInList(config.peers.access.blackList, req.ip, false);
@@ -156,6 +194,14 @@ var middleware = {
 			rejectDisallowed(publicApiAllowed, config.api.enabled);
 		}
 
+		/**
+		 * Description of the function.
+		 *
+		 * @param {boolean} apiAllowed
+		 * @param {boolean} isEnabled
+		 * @todo Add description for the function and the params
+		 * @todo Add @returns tag
+		 */
 		function rejectDisallowed(apiAllowed, isEnabled) {
 			return apiAllowed
 				? next()
@@ -169,12 +215,15 @@ var middleware = {
 
 	/**
 	 * Passes getter for headers and assign then to response.
+	 *
 	 * @param {function} getHeaders
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
-	attachResponseHeaders: function(getHeaders, req, res, next) {
+	attachResponseHeaders(getHeaders, req, res, next) {
 		res.set(getHeaders());
 		return next();
 	},
@@ -182,11 +231,14 @@ var middleware = {
 	/**
 	 * Lookup cache, and reply with cached response if it's a hit.
 	 * If it's a miss, forward the request but cache the response if it's a success.
+	 *
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
-	useCache: function(logger, cache, req, res, next) {
+	useCache(logger, cache, req, res, next) {
 		if (!cache.isReady()) {
 			return next();
 		}
@@ -219,9 +271,12 @@ var middleware = {
 
 /**
  * Adds 'success' field to every response and attach error message if needed.
+ *
  * @param {Object} res
  * @param {string} err
  * @param {Object} response
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 function respond(res, err, response) {
 	if (err) {
@@ -236,36 +291,41 @@ function respond(res, err, response) {
  * Default error code is 500.
  * Success code is 200.
  * Success code for empty data is 204.
+ *
  * @param {Object} res
  * @param {ApiError} err
  * @param {Object} response
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 function respondWithCode(res, err, response) {
 	if (err) {
 		return res
 			.status(err.code || apiCodes.INTERNAL_SERVER_ERROR)
 			.json(err.toJson());
-	} else {
-		var isResponseEmpty = function(response) {
-			var firstValue = _(response)
-				.values()
-				.first();
-			return _.isArray(firstValue) && _.isEmpty(firstValue);
-		};
-		return res
-			.status(
-				isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK
-			)
-			.json(response);
 	}
+	var isResponseEmpty = function(response) {
+		var firstValue = _(response)
+			.values()
+			.first();
+		return _.isArray(firstValue) && _.isEmpty(firstValue);
+	};
+	return res
+		.status(
+			isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK
+		)
+		.json(response);
 }
 
 /**
  * Register router in express app using default middleware.
+ *
  * @param {string} route
  * @param {Object} app
  * @param {Object} router
  * @param {function} isLoaded
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 function registerEndpoint(route, app, router, isLoaded) {
 	router.use(middleware.notFound);
@@ -274,8 +334,8 @@ function registerEndpoint(route, app, router, isLoaded) {
 }
 
 module.exports = {
-	middleware: middleware,
-	registerEndpoint: registerEndpoint,
-	respond: respond,
-	respondWithCode: respondWithCode,
+	middleware,
+	registerEndpoint,
+	respond,
+	respondWithCode,
 };

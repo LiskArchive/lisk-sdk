@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var util = require('util');
@@ -23,10 +24,10 @@ var debug = require('debug')('swagger:lisk:error_handler');
  * @memberof api/fittings
  * @requires debug
  * @requires util
- * @param {Object} fittingDef - Description of the param
- * @param {Object} bagpipes - Description of the param
+ * @param {Object} fittingDef
+ * @param {Object} bagpipes
  * @returns {function} {@link api/fittings.lisk_error_handler}
- * @todo: Add description of the function and its parameters
+ * @todo Add description for the function and the params
  */
 module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
@@ -36,9 +37,9 @@ module.exports = function create(fittingDef) {
 	 *
 	 * @func lisk_error_handler
 	 * @memberof api/fittings
-	 * @param {Object} context - Description of the param
-	 * @param {function} cb - Description of the param
-	 * @todo: Add description of the function and its parameters
+	 * @param {Object} context
+	 * @param {function} cb
+	 * @todo Add description for the function and the params
 	 */
 	return function lisk_error_handler(context, next) {
 		if (!util.isError(context.error)) {

@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -18,13 +19,15 @@ var _ = require('lodash');
 var columnSet;
 
 /**
- * Votes Transactions database interaction module
- * @memberof module:accounts
+ * Votes transactions database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @requires lodash
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {VoteTransactionsRepo}
+ * @returns {Object} An instance of a VoteTransactionsRepo
  */
 function VoteTransactionsRepo(db, pgp) {
 	this.db = db;
@@ -41,7 +44,7 @@ function VoteTransactionsRepo(db, pgp) {
 			schema: 'public',
 		});
 		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: table,
+			table,
 		});
 	}
 
@@ -49,9 +52,11 @@ function VoteTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save vote transactions
- * @param {Array.<{id: string, asset:{votes: Array.<string>}}>} transactions
- * @return {Promise}
+ * Save vote transactions.
+ *
+ * @param {Array} transactions
+ * @returns {Promise}
+ * @todo Add description for the params and the return value
  */
 VoteTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {

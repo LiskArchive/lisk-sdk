@@ -11,22 +11,27 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var sodium = require('sodium').api;
+
 /**
  * Crypto functions that implements sodium.
- * @memberof module:helpers
- * @requires sodium
- * @namespace
+ *
+ * @module
+ * @requires sodium.api
+ * @see Parent: {@link helpers}
  */
 var ed = {};
 
 /**
  * Creates a keypar based on a hash.
- * @implements {sodium}
+ *
+ * @func makeKeypair
  * @param {hash} hash
- * @return {Object} publicKey, privateKey
+ * @returns {Buffer}
+ * @todo Add description for the params and the return value
  */
 ed.makeKeypair = function(hash) {
 	var keypair = sodium.crypto_sign_seed_keypair(hash);
@@ -39,10 +44,12 @@ ed.makeKeypair = function(hash) {
 
 /**
  * Creates a signature based on a hash and a keypair.
- * @implements {sodium}
+ *
+ * @func sign
  * @param {hash} hash
  * @param {Buffer} privateKey
- * @return {Buffer} signature
+ * @returns {Buffer}
+ * @todo Add description for the params and the return value
  */
 ed.sign = function(hash, privateKey) {
 	return sodium.crypto_sign_detached(hash, privateKey);
@@ -50,11 +57,13 @@ ed.sign = function(hash, privateKey) {
 
 /**
  * Verifies a signature based on a hash and a publicKey.
- * @implements {sodium}
+ *
+ * @func verify
  * @param {hash} hash
  * @param {Buffer} signature
  * @param {Buffer} publicKey
- * @return {boolean} true id verified
+ * @returns {boolean} True if verified
+ * @todo Add description for the params
  */
 ed.verify = function(hash, signature, publicKey) {
 	return sodium.crypto_sign_verify_detached(signature, hash, publicKey);

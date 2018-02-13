@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -47,8 +48,8 @@ var self;
 function Vote(logger, schema) {
 	self = this;
 	library = {
-		logger: logger,
-		schema: schema,
+		logger,
+		schema,
 	};
 }
 
@@ -61,7 +62,7 @@ function Vote(logger, schema) {
  */
 Vote.prototype.bind = function(delegates) {
 	modules = {
-		delegates: delegates,
+		delegates,
 	};
 };
 
@@ -131,9 +132,8 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 								err,
 							].join(' ')
 						);
-					} else {
-						return setImmediate(eachSeriesCb);
 					}
+					return setImmediate(eachSeriesCb);
 				},
 				tx
 			);
@@ -141,19 +141,18 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 		err => {
 			if (err) {
 				return setImmediate(cb, err);
-			} else {
-				if (
-					transaction.asset.votes.length >
-					_.uniqBy(transaction.asset.votes, v => v.slice(1)).length
-				) {
-					return setImmediate(
-						cb,
-						'Multiple votes for same delegate are not allowed'
-					);
-				}
-
-				return self.checkConfirmedDelegates(transaction, cb, tx);
 			}
+			if (
+				transaction.asset.votes.length >
+				_.uniqBy(transaction.asset.votes, v => v.slice(1)).length
+			) {
+				return setImmediate(
+					cb,
+					'Multiple votes for same delegate are not allowed'
+				);
+			}
+
+			return self.checkConfirmedDelegates(transaction, cb, tx);
 		}
 	);
 };
@@ -445,11 +444,10 @@ Vote.prototype.objectNormalize = function(transaction) {
 Vote.prototype.dbRead = function(raw) {
 	if (!raw.v_votes) {
 		return null;
-	} else {
-		var votes = raw.v_votes.split(',');
-
-		return { votes: votes };
 	}
+	var votes = raw.v_votes.split(',');
+
+	return { votes };
 };
 
 /**
@@ -466,9 +464,8 @@ Vote.prototype.ready = function(transaction, sender) {
 			return false;
 		}
 		return transaction.signatures.length >= sender.multimin;
-	} else {
-		return true;
 	}
+	return true;
 };
 
 // Export

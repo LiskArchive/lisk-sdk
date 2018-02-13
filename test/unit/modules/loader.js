@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var rewire = require('rewire');
@@ -26,7 +27,7 @@ describe('loader', () => {
 		var loaderModuleRewired = rewire('../../../modules/loader');
 		blocksModuleMock = {
 			lastBlock: {
-				get: function() {},
+				get() {},
 			},
 		};
 

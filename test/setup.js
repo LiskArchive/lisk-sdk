@@ -11,18 +11,25 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('colors');
+var mocha = require('mocha');
+var coMocha = require('co-mocha');
 var chai = require('chai');
+var chaiAsPromised = require('chai-as-promised');
 var sinon = require('sinon');
 var sinonChai = require('sinon-chai');
 var supertest = require('supertest');
 var _ = require('lodash');
 
+coMocha(mocha);
+
 process.env.NODE_ENV = 'test';
 
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 var testContext = {};
 
@@ -33,8 +40,24 @@ testContext.config.root = process.cwd();
 if (process.env.SILENT === 'true') {
 	testContext.debug = function() {};
 } else {
-	testContext.debug = console.log;
+	testContext.debug = console.info;
 }
+
+if (process.env.LOG_DB_EVENTS === 'true') {
+	testContext.config.db.logEvents = [
+		'connect',
+		'disconnect',
+		'query',
+		'task',
+		'transact',
+		'error',
+	];
+} else {
+	testContext.config.db.logEvents = ['error'];
+}
+
+testContext.consoleLogLevel =
+	process.env.LOG_LEVEL || testContext.consoleLogLevel;
 
 testContext.baseUrl = `http://${testContext.config.address}:${
 	testContext.config.httpPort
@@ -49,7 +72,7 @@ _.mixin(
 		 * @param {string} [sortOrder=asc] - Sorting order asc|desc
 		 * @return {*}
 		 */
-		dbSort: function(arr, sortOrder) {
+		dbSort(arr, sortOrder) {
 			var sortFactor = sortOrder === 'desc' ? -1 : 1;
 
 			return _.clone(arr).sort((a, b) => {
@@ -82,7 +105,7 @@ _.mixin(
 		 * @param {*} valueCheck - Value to check for.
 		 * @return {boolean}
 		 */
-		appearsInLast: function(arr, valueCheck) {
+		appearsInLast(arr, valueCheck) {
 			// Get list of indexes of desired value
 			var indices = _.compact(
 				arr.map((data, index) => {
@@ -99,9 +122,8 @@ _.mixin(
 				indices.length === indices[indices.length - 1] - indices[0] + 1
 			) {
 				return true;
-			} else {
-				return false;
 			}
+			return false;
 		},
 
 		/**
@@ -110,7 +132,7 @@ _.mixin(
 		 * @param {string} [sortOrder=asc] - Sorting order asc|desc
 		 * @return {*}
 		 */
-		sortNumbers: function(arr, sortOrder) {
+		sortNumbers(arr, sortOrder) {
 			var sortFactor = sortOrder === 'desc' ? -1 : 1;
 
 			return arr.sort((a, b) => {

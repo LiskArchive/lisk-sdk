@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -18,13 +19,16 @@ var _ = require('lodash');
 var columnSet;
 
 /**
- * Signatures Transactions database interaction module
- * @memberof module:signatures
+ * Signatures transactions database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @requires lodash
+ * @requires helpers/transaction_types
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {SignatureTransactionsRepo}
+ * @returns {Object} An instance of a SignatureTransactionsRepo
  */
 function SignatureTransactionsRepo(db, pgp) {
 	this.db = db;
@@ -41,7 +45,7 @@ function SignatureTransactionsRepo(db, pgp) {
 			schema: 'public',
 		});
 		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: table,
+			table,
 		});
 	}
 
@@ -49,9 +53,11 @@ function SignatureTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save signature transactions
- * @param {Array.<{id: string, asset: {signature: {publicKey: string}}}>} transactions
- * @return {Promise}
+ * Save signature transactions.
+ *
+ * @param {Array} transactions
+ * @returns {Promise}
+ * @todo Add description for the params and the return value
  */
 SignatureTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {

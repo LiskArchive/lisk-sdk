@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var popsicle = require('popsicle');
@@ -57,9 +58,8 @@ function blockchainReady(cb, retries, timeout, baseUrl) {
 					return setTimeout(() => {
 						fetchBlockchainStatus();
 					}, timeout);
-				} else {
-					return cb('Server is not responding');
 				}
+				return cb('Server is not responding');
 			});
 	})();
 }
@@ -76,9 +76,8 @@ function getHeight(cb) {
 				cb,
 				['Received bad response code', res.status, res.url].join(' ')
 			);
-		} else {
-			return setImmediate(cb, null, res.body.data.height);
 		}
+		return setImmediate(cb, null, res.body.data.height);
 	});
 
 	request.catch(err => {
@@ -91,12 +90,11 @@ function newRound(cb) {
 	getHeight((err, height) => {
 		if (err) {
 			return cb(err);
-		} else {
-			var nextRound = slots.calcRound(height);
-			var blocksToWait = nextRound * slots.delegates - height;
-			__testContext.debug('blocks to wait: '.grey, blocksToWait);
-			newBlock(height, blocksToWait, cb);
 		}
+		var nextRound = slots.calcRound(height);
+		var blocksToWait = nextRound * slots.delegates - height;
+		__testContext.debug('blocks to wait: '.grey, blocksToWait);
+		newBlock(height, blocksToWait, cb);
 	});
 }
 
@@ -105,9 +103,8 @@ function blocks(blocksToWait, cb) {
 	getHeight((err, height) => {
 		if (err) {
 			return cb(err);
-		} else {
-			newBlock(height, blocksToWait, cb);
 		}
+		newBlock(height, blocksToWait, cb);
 	});
 }
 
@@ -156,9 +153,8 @@ function newBlock(height, blocksToWait, cb) {
 		err => {
 			if (err) {
 				return setImmediate(cb, err);
-			} else {
-				return setImmediate(cb, null, height);
 			}
+			return setImmediate(cb, null, height);
 		}
 	);
 }
@@ -200,8 +196,8 @@ function confirmations(transactions, limitHeight) {
 }
 
 module.exports = {
-	blockchainReady: blockchainReady,
-	newRound: newRound,
-	blocks: blocks,
-	confirmations: confirmations,
+	blockchainReady,
+	newRound,
+	blocks,
+	confirmations,
 };

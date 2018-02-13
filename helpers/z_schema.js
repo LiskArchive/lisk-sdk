@@ -11,12 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var ip = require('ip');
+var _ = require('lodash');
+var z_schema = require('z-schema');
+var FormatValidators = require('z-schema/src/FormatValidators');
+var constants = require('./constants');
+
 /**
- * Uses JSON Schema validator z_schema to register custom formats. <br/>
- * Since an IP is not considered to be a hostname while used with SSL. So have to apply additional validation for IP and FQDN with **ipOrFQDN**.
+ * Uses JSON Schema validator z_schema to register custom formats.
+ * Since an IP is not considered to be a hostname while used with SSL.
+ * So have to apply additional validation for IP and FQDN with **ipOrFQDN**.
  * - id
  * - address
  * - username
@@ -31,35 +38,63 @@ var ip = require('ip');
  * - ipOrFQDN
  * - os
  * - version
+ *
+ * @module
  * @see {@link https://github.com/zaggino/z-schema}
- * @memberof module:helpers
  * @requires ip
- * @constructor
- * @return {boolean} True if the format is valid
+ * @requires lodash
+ * @requires z-schema
+ * @requires helpers/constants
+ * @returns {boolean} True if the format is valid
+ * @see Parent: {@link helpers}
  */
-var _ = require('lodash');
-var z_schema = require('z-schema');
-var FormatValidators = require('z-schema/src/FormatValidators');
-var constants = require('./constants');
 
+/**
+ * @exports helpers/z_schema
+ */
 var liskFormats = {
-	id: function(str) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	id(str) {
 		return str === '' || /^[0-9]+$/g.test(str);
 	},
-
-	additionalData: function(str) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	additionalData(str) {
 		if (typeof str !== 'string') {
 			return false;
 		}
 
 		return Buffer.from(str).length <= constants.additionalData.maxLength;
 	},
-
-	address: function(str) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	address(str) {
 		return str === '' || /^[0-9]+L$/gi.test(str);
 	},
-
-	username: function(str) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	username(str) {
 		if (typeof str !== 'string') {
 			return false;
 		}
@@ -67,16 +102,35 @@ var liskFormats = {
 		return /^[a-z0-9!@$&_.]*$/gi.test(str);
 	},
 
-	hex: function(str) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	hex(str) {
 		return str === '' || /^[a-f0-9]+$/i.test(str);
 	},
-
-	publicKey: function(str) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	publicKey(str) {
 		return str === '' || /^[a-f0-9]{64}$/i.test(str);
 	},
-
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
 	// Currently this allow empty values e.g. ',,,' or '' - is this correct?
-	csv: function(str) {
+	csv(str) {
 		if (typeof str !== 'string') {
 			return false;
 		}
@@ -85,16 +139,27 @@ var liskFormats = {
 
 		if (a.length > 0 && a.length <= 1000) {
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	},
-
-	signature: function(str) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	signature(str) {
 		return str === '' || /^[a-f0-9]{128}$/i.test(str);
 	},
-
-	queryList: function(obj) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {Object} obj
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	queryList(obj) {
 		if (obj == null || typeof obj !== 'object' || _.isArray(obj)) {
 			return false;
 		}
@@ -102,8 +167,14 @@ var liskFormats = {
 		obj.limit = 100;
 		return true;
 	},
-
-	delegatesList: function(obj) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {Object} obj
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	delegatesList(obj) {
 		if (obj == null || typeof obj !== 'object' || _.isArray(obj)) {
 			return false;
 		}
@@ -112,7 +183,14 @@ var liskFormats = {
 		return true;
 	},
 
-	parsedInt: function(value) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {number} value
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	parsedInt(value) {
 		if (
 			isNaN(value) ||
 			parseInt(value) != value ||
@@ -123,27 +201,51 @@ var liskFormats = {
 		value = parseInt(value);
 		return true;
 	},
-
-	ip: function(str) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	ip(str) {
 		return ip.isV4Format(str);
 	},
-
-	os: function(str) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	os(str) {
 		if (typeof str !== 'string') {
 			return false;
 		}
 
 		return /^[a-z0-9-_.+]*$/gi.test(str);
 	},
-
-	version: function(str) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	version(str) {
 		return (
 			str === '' ||
 			/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})([a-z]{1})?$/g.test(str)
 		);
 	},
-
-	ipOrFQDN: function(str) {
+	/**
+	 * Description of the function.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	ipOrFQDN(str) {
 		if (typeof str !== 'string') {
 			return false;
 		}

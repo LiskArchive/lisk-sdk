@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -25,7 +26,7 @@ var modules;
  * @memberof api/controllers
  * @requires lodash
  * @param {Object} scope - App instance
- * @todo: Add description of DappsController
+ * @todo Add description of DappsController
  */
 function DappsController(scope) {
 	modules = scope.modules;
@@ -34,9 +35,9 @@ function DappsController(scope) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
  */
 DappsController.getDapps = function(context, next) {
 	var params = context.request.swagger.params;
@@ -74,7 +75,7 @@ DappsController.getDapps = function(context, next) {
 			});
 
 			next(null, {
-				data: data,
+				data,
 				meta: {
 					offset: filters.offset,
 					limit: filters.limit,

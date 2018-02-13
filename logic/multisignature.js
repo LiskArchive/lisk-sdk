@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
@@ -48,12 +49,12 @@ __private.unconfirmedSignatures = {};
 // Constructor
 function Multisignature(schema, network, transaction, account, logger) {
 	library = {
-		schema: schema,
-		network: network,
-		logger: logger,
+		schema,
+		network,
+		logger,
 		logic: {
-			transaction: transaction,
-			account: account,
+			transaction,
+			account,
 		},
 	};
 }
@@ -67,7 +68,7 @@ function Multisignature(schema, network, transaction, account, logger) {
  */
 Multisignature.prototype.bind = function(accounts) {
 	modules = {
-		accounts: accounts,
+		accounts,
 	};
 };
 
@@ -361,7 +362,7 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
 					// Create accounts
 					modules.accounts.setAccountAndGet(
 						{
-							address: address,
+							address,
 							publicKey: key,
 						},
 						err => setImmediate(cb, err),
@@ -536,20 +537,19 @@ Multisignature.prototype.objectNormalize = function(transaction) {
 Multisignature.prototype.dbRead = function(raw) {
 	if (!raw.m_keysgroup) {
 		return null;
-	} else {
-		var multisignature = {
-			min: raw.m_min,
-			lifetime: raw.m_lifetime,
-		};
-
-		if (typeof raw.m_keysgroup === 'string') {
-			multisignature.keysgroup = raw.m_keysgroup.split(',');
-		} else {
-			multisignature.keysgroup = [];
-		}
-
-		return { multisignature: multisignature };
 	}
+	var multisignature = {
+		min: raw.m_min,
+		lifetime: raw.m_lifetime,
+	};
+
+	if (typeof raw.m_keysgroup === 'string') {
+		multisignature.keysgroup = raw.m_keysgroup.split(',');
+	} else {
+		multisignature.keysgroup = [];
+	}
+
+	return { multisignature };
 };
 
 /**
@@ -586,9 +586,8 @@ Multisignature.prototype.ready = function(transaction, sender) {
 			transaction.signatures.length ===
 			transaction.asset.multisignature.keysgroup.length
 		);
-	} else {
-		return transaction.signatures.length >= sender.multimin;
 	}
+	return transaction.signatures.length >= sender.multimin;
 };
 
 // Export

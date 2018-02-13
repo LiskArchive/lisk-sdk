@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var util = require('util');
@@ -19,9 +20,14 @@ var extend = require('extend');
 /**
  * Creates a FIFO sequence array and default settings with config values.
  * Calls __tick with 3
- * @memberof module:helpers
- * @constructor
+ *
+ * @class
+ * @memberof helpers
+ * @requires extend
+ * @requires util
  * @param {string} config
+ * @see Parent: {@link helpers}
+ * @todo Add description for the params
  */
 function Sequence(config) {
 	var _default = {
@@ -44,8 +50,10 @@ function Sequence(config) {
 
 /**
  * Removes the first task from sequence and execute it with args.
+ *
  * @param {function} cb
- * @return {setImmediateCallback} With cb or task.done
+ * @returns {setImmediateCallback} With cb or task.done
+ * @todo Add description for the params
  */
 Sequence.prototype.__tick = function(cb) {
 	var task = this.sequence.shift();
@@ -68,9 +76,11 @@ Sequence.prototype.__tick = function(cb) {
 
 /**
  * Adds a new task to sequence.
+ *
  * @param {function} worker
  * @param {Array} args
  * @param {function} done
+ * @todo Add description for the params
  */
 Sequence.prototype.add = function(worker, args, done) {
 	if (!done && args && typeof args === 'function') {
@@ -78,7 +88,7 @@ Sequence.prototype.add = function(worker, args, done) {
 		args = undefined;
 	}
 	if (worker && typeof worker === 'function') {
-		var task = { worker: worker, done: done };
+		var task = { worker, done };
 		if (util.isArray(args)) {
 			task.args = args;
 		}
@@ -88,7 +98,8 @@ Sequence.prototype.add = function(worker, args, done) {
 
 /**
  * Gets pending task in sequence.
- * @return {number} sequence lenght.
+ *
+ * @returns {number} Sequence length
  */
 Sequence.prototype.count = function() {
 	return this.sequence.length;

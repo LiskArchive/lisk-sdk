@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -33,7 +34,7 @@ var modules;
  * @requires helpers/apiError
  * @requires helpers/swagger.generateParamsErrorObject
  * @param {Object} scope - App instance
- * @todo: Add description of VotersController
+ * @todo Add description of VotersController
  */
 function VotersController(scope) {
 	modules = scope.modules;
@@ -42,9 +43,9 @@ function VotersController(scope) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
  */
 VotersController.getVoters = function(context, next) {
 	var params = context.request.swagger.params;
@@ -93,9 +94,8 @@ VotersController.getVoters = function(context, next) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
 				return next('Delegate not found');
-			} else {
-				return next(err);
 			}
+			return next(err);
 		}
 
 		data = _.cloneDeep(data);
@@ -105,7 +105,7 @@ VotersController.getVoters = function(context, next) {
 		}
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
@@ -117,9 +117,9 @@ VotersController.getVoters = function(context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
  */
 VotersController.getVotes = function(context, next) {
 	var params = context.request.swagger.params;
@@ -168,9 +168,8 @@ VotersController.getVotes = function(context, next) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
 				return next('Delegate not found');
-			} else {
-				return next(err);
 			}
+			return next(err);
 		}
 
 		data = _.cloneDeep(data);
@@ -182,7 +181,7 @@ VotersController.getVotes = function(context, next) {
 		});
 
 		next(null, {
-			data: data,
+			data,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,

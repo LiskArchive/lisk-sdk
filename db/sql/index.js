@@ -15,6 +15,19 @@
 
 const { link } = require('./config');
 
+/**
+ * @namespace sql
+ * @memberof db
+ * @see Parent: {@link db}
+ * @property {module:db/sql} SQL
+ */
+
+/**
+ * Description of the module.
+ *
+ * @module db/sql
+ * @see Parent: {@link db.sql}
+ */
 module.exports = {
 	accounts: {
 		resetMemoryTables: link('accounts/reset_memory_tables.sql'),
@@ -30,6 +43,7 @@ module.exports = {
 		columnMultisignatures: link('accounts/column_multisignatures.sql'),
 		columnUMultisignatures: link('accounts/column_u_multisignatures.sql'),
 		columnRank: link('accounts/column_rank.sql'),
+		convertToNonVirgin: link('accounts/convert_to_non_virgin.sql'),
 	},
 	blocks: {
 		aggregateBlocksReward: link('blocks/aggregate_blocks_reward.sql'),
@@ -97,6 +111,8 @@ module.exports = {
 		insertRoundInformationWithDelegate: link(
 			'rounds/insert_round_information_with_delegate.sql'
 		),
+		insertRoundRewards: link('rounds/insert_round_rewards.sql'),
+		deleteRoundRewards: link('rounds/delete_round_rewards.sql'),
 	},
 	transactions: {
 		count: link('transactions/count.sql'),

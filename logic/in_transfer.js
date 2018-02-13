@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var constants = require('../helpers/constants.js');
@@ -38,8 +39,8 @@ var shared;
 // Constructor
 function InTransfer(db, schema) {
 	library = {
-		db: db,
-		schema: schema,
+		db,
+		schema,
 	};
 }
 
@@ -53,8 +54,8 @@ function InTransfer(db, schema) {
  */
 InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
 	modules = {
-		accounts: accounts,
-		blocks: blocks,
+		accounts,
+		blocks,
 	};
 	shared = sharedApi;
 };
@@ -107,9 +108,8 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 					cb,
 					`Application not found: ${transaction.asset.inTransfer.dappId}`
 				);
-			} else {
-				return setImmediate(cb);
 			}
+			return setImmediate(cb);
 		})
 		.catch(err => setImmediate(cb, err));
 };
@@ -293,13 +293,12 @@ InTransfer.prototype.objectNormalize = function(transaction) {
 InTransfer.prototype.dbRead = function(raw) {
 	if (!raw.in_dappId) {
 		return null;
-	} else {
-		var inTransfer = {
-			dappId: raw.in_dappId,
-		};
-
-		return { inTransfer: inTransfer };
 	}
+	var inTransfer = {
+		dappId: raw.in_dappId,
+	};
+
+	return { inTransfer };
 };
 
 /**
@@ -328,9 +327,8 @@ InTransfer.prototype.ready = function(transaction, sender) {
 			return false;
 		}
 		return transaction.signatures.length >= sender.multimin;
-	} else {
-		return true;
 	}
+	return true;
 };
 
 // Export

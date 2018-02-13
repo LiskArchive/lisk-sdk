@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 require('../../functional.js');
@@ -52,7 +53,7 @@ describe('cached endpoints', () => {
 		cache.quit(done);
 	});
 
-	describe('GET /transactions', () => {
+	describe('GET /transactions @unstable', () => {
 		var transactionsEndpoint = new swaggerEndpoint('GET /transactions');
 
 		it('cache transactions by the url and parameters when response is a success', () => {

@@ -11,15 +11,54 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 /**
- * Description of the object.
+ * Description of the module.
  *
- * @name failureCodes
- * @memberof api.ws.rpc.failureCodes
- * @see Parent: {@link api.ws.rpc}
- * @todo: Add description of the object
+ * @module
+ * @see Parent: {@link rpc}
+ * @property {number} INVALID_HEADERS
+ * @property {number} INCOMPATIBLE_NONCE
+ * @property {number} INCOMPATIBLE_NETWORK
+ * @property {number} INCOMPATIBLE_VERSION
+ * @property {number} ALREADY_ADDED
+ * @property {number} ALREADY_REMOVED
+ * @property {number} DIFFERENT_CONN_ID
+ * @property {number} HANDSHAKE_ERROR
+ * @property {number} CONNECTION_TIMEOUT
+ * @property {Object} ON_MASTER
+ * @property {Object} ON_MASTER.UPDATE
+ * @property {number} ON_MASTER.UPDATE.CHECK_PRESENCE
+ * @property {number} ON_MASTER.UPDATE.INVALID_PEER
+ * @property {number} ON_MASTER.UPDATE.TRANSPORT
+ * @property {Object} ON_MASTER.REMOVE
+ * @property {number} ON_MASTER.UPDATE.NOT_ON_LIST
+ * @property {number} ON_MASTER.UPDATE.FROZEN_PEER
+ * @property {Object} ON_MASTER.INSERT
+ * @property {number} ON_MASTER.UPDATE.INSERT_ONLY_FAILURE
+ * @property {number} ON_MASTER.UPDATE.NOT_ACCEPTED
+ * @property {number} ON_MASTER.UPDATE.NONCE_EXISTS
+ * @property {Object} errorMessages
+ * @property {string} errorMessages.4100
+ * @property {string} errorMessages.4101
+ * @property {string} errorMessages.4102
+ * @property {string} errorMessages.4103
+ * @property {string} errorMessages.4104
+ * @property {string} errorMessages.4105
+ * @property {string} errorMessages.4106
+ * @property {string} errorMessages.4107
+ * @property {string} errorMessages.4108
+ * @property {string} errorMessages.4200
+ * @property {string} errorMessages.4201
+ * @property {string} errorMessages.4210
+ * @property {string} errorMessages.4211
+ * @property {string} errorMessages.4230
+ * @property {string} errorMessages.4231
+ * @property {string} errorMessages.4232
+ * @property {Object} PeerUpdateError
+ * @todo Add description for the module and the properties
  */
 module.exports = {
 	INVALID_HEADERS: 4100,
@@ -49,13 +88,6 @@ module.exports = {
 	},
 };
 
-/**
- * Description of the object.
- *
- * @name errorMessages
- * @memberof api.ws.rpc.failureCodes
- * @todo: Add description of the object
- */
 module.exports.errorMessages = {
 	4100: 'Invalid headers',
 	4101: 'Request is made by itself',
@@ -77,14 +109,13 @@ module.exports.errorMessages = {
 };
 
 /**
- * Description of the function.
+ * Description of the class.
  *
  * @class
- * @memberof api.ws.rpc.failureCodes
- * @param {number} code - Description of the param
- * @param {string} message - Description of the param
- * @param {string} description - Description of the param
- * @todo: Add description of the function and its parameters
+ * @param {number} code
+ * @param {string} message
+ * @param {string} description
+ * @todo Add description for the function and the params
  */
 function PeerUpdateError(code, message, description) {
 	this.code = code;

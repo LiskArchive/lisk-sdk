@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var fs = require('fs');
@@ -27,15 +28,23 @@ var resolvedSwaggerSpec = null;
 
 /**
  * Uses default swagger validator and extend with custom formats.
- * @name swagger
- * @memberof module:helpers
- * @requires module:helpers:z_schema
- * @requires sway
+ *
+ * @module
+ * @requires bluebird
+ * @requires fs
+ * @requires json-refs
+ * @requires js-yaml
+ * @requires lodash
+ * @requires path
+ * @requires sway/lib/helpers
+ * @requires helpers/z_schema
+ * @see Parent: {@link helpers}
  */
 
 /**
  * Get extended version of swagger validator.
- * @return {Object} - Instance of z-schema validator.
+ *
+ * @returns {Object} Instance of z-schema validator
  */
 function getValidator() {
 	// Get validator instace attached to Swagger
@@ -55,33 +64,34 @@ function getValidator() {
 
 /**
  * Get resolved swagger spec in JSON format.
- * @return {Promise} - Resolved promise with content of resolved json spec.
+ *
+ * @returns {Promise} Resolved promise with content of resolved json spec
  */
 function getResolvedSwaggerSpec() {
 	if (resolvedSwaggerSpec) {
 		return Promise.resolve(resolvedSwaggerSpec);
-	} else {
-		var content = getSwaggerSpec();
-
-		var options = {
-			includeInvalid: true,
-			loaderOptions: {
-				processContent: function(content, callback) {
-					callback(null, YAML.safeLoad(content.text));
-				},
-			},
-		};
-
-		return jsonRefs.resolveRefs(content, options).then(results => {
-			resolvedSwaggerSpec = results.resolved;
-			return resolvedSwaggerSpec;
-		});
 	}
+	var content = getSwaggerSpec();
+
+	var options = {
+		includeInvalid: true,
+		loaderOptions: {
+			processContent(content, callback) {
+				callback(null, YAML.safeLoad(content.text));
+			},
+		},
+	};
+
+	return jsonRefs.resolveRefs(content, options).then(results => {
+		resolvedSwaggerSpec = results.resolved;
+		return resolvedSwaggerSpec;
+	});
 }
 
 /**
  * Get swagger spec in JSON format.
- * @return {Object} - JSON object with swagger spec.
+ *
+ * @returns {Object} JSON object with swagger spec
  */
 function getSwaggerSpec() {
 	return YAML.safeLoad(
@@ -91,10 +101,12 @@ function getSwaggerSpec() {
 
 /**
  * Generate swagger based param error object to handle custom errors.
- * @param {Array} params - List of param objects.
- * @param {Array} [messages] - List of error messages.
- * @param {Array} [codes] - List of error codes.
- * @return {object}
+ *
+ * @param {Array} params - List of param objects
+ * @param {Array} [messages] - List of error messages
+ * @param {Array} [codes] - List of error codes
+ * @returns {Object}
+ * @todo Add description for the return value
  */
 function generateParamsErrorObject(params, messages, codes) {
 	if (!codes) {
@@ -114,14 +126,13 @@ function generateParamsErrorObject(params, messages, codes) {
 				in: def.in,
 				code: codes[i] || 'INVALID_PARAM',
 			};
-		} else {
-			return {
-				name: p,
-				message: 'Unknown request parameter',
-				in: 'query',
-				code: codes[i] || 'UNKNOWN_PARAM',
-			};
 		}
+		return {
+			name: p,
+			message: 'Unknown request parameter',
+			in: 'query',
+			code: codes[i] || 'UNKNOWN_PARAM',
+		};
 	});
 
 	return error;
@@ -129,8 +140,10 @@ function generateParamsErrorObject(params, messages, codes) {
 
 /**
  * Get list of undocumented params.
- * @param {object} request - Request object.
- * @return {boolean}
+ *
+ * @param {object} request - Request object
+ * @returns {boolean}
+ * @todo Add description for the return value
  */
 function invalidParams(request) {
 	var swaggerParams = Object.keys(request.swagger.params);
@@ -140,9 +153,9 @@ function invalidParams(request) {
 }
 
 module.exports = {
-	getValidator: getValidator,
-	getResolvedSwaggerSpec: getResolvedSwaggerSpec,
-	getSwaggerSpec: getSwaggerSpec,
-	generateParamsErrorObject: generateParamsErrorObject,
-	invalidParams: invalidParams,
+	getValidator,
+	getResolvedSwaggerSpec,
+	getSwaggerSpec,
+	generateParamsErrorObject,
+	invalidParams,
 };

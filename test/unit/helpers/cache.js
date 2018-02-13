@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var redis = require('redis');
@@ -33,10 +34,10 @@ describe('cache', () => {
 
 		before(() => {
 			validLogger = {
-				info: function(info) {
+				info(info) {
 					expect(info).to.eq('App connected with redis server');
 				},
-				error: function(message, errorObject) {
+				error(message, errorObject) {
 					expect(message).to.eq('Redis:');
 					expect(errorObject).to.be.an('error');
 				},

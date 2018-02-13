@@ -11,19 +11,28 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 /**
+ * Description of the module.
+ *
+ * @module
+ * @see Parent: {@link helpers}
+ * @todo Add description for the module and the properties
+ */
+
+/**
  * Validates sort options, methods and fields.
- * @memberof module:helpers
- * @function
+ *
  * @param {string|Object} sort
  * @param {Object} [options]
  * @param {string} options.fieldPrefix
  * @param {string} options.sortField
  * @param {string} options.sortMethod - asc / desc
  * @param {Array} options.sortFields
- * @return {Object} error | {sortField, sortMethod}.
+ * @returns {Object} {error} | {sortField, sortMethod}
+ * @todo Add description for the params
  */
 function sortBy(sort, options) {
 	options = typeof options === 'object' ? options : {};
@@ -62,21 +71,27 @@ function sortBy(sort, options) {
 				`${keys[0]}:${sort[keys[0]] === -1 ? 'desc' : 'asc'}`,
 				options
 			);
-		} else {
-			var sortFields = [];
-			var sortMethods = [];
-			keys.forEach(function(key) {
-				var sortResult = self.sortBy(
-					`${key}:${sort[key] === -1 ? 'desc' : 'asc'}`,
-					options
-				);
-				sortFields.push(sortResult.sortField);
-				sortMethods.push(sortResult.sortMethod);
-			});
-			return { sortField: sortFields, sortMethod: sortMethods };
 		}
+		var sortFields = [];
+		var sortMethods = [];
+		keys.forEach(key => {
+			var sortResult = self.sortBy(
+				`${key}:${sort[key] === -1 ? 'desc' : 'asc'}`,
+				options
+			);
+			sortFields.push(sortResult.sortField);
+			sortMethods.push(sortResult.sortMethod);
+		});
+		return { sortField: sortFields, sortMethod: sortMethods };
 	}
-
+	/**
+	 * Description of the function.
+	 *
+	 * @private
+	 * @todo Add param-tag and descriptions
+	 * @todo Add @returns tag
+	 * @todo Add description for the function
+	 */
 	function prefixField(sortField) {
 		if (!sortField) {
 			return sortField;
@@ -84,17 +99,23 @@ function sortBy(sort, options) {
 			return options.fieldPrefix + sortField;
 		} else if (typeof options.fieldPrefix === 'function') {
 			return options.fieldPrefix(sortField);
-		} else {
-			return sortField;
 		}
+		return sortField;
 	}
 
+	/**
+	 * Description of the function.
+	 *
+	 * @private
+	 * @todo Add param-tag and descriptions
+	 * @todo Add @returns tag
+	 * @todo Add description for the function
+	 */
 	function quoteField(sortField) {
 		if (sortField && options.quoteField) {
 			return `"${sortField}"`;
-		} else {
-			return sortField;
 		}
+		return sortField;
 	}
 
 	var emptyWhiteList = options.sortFields.length === 0;
@@ -131,9 +152,11 @@ function sortBy(sort, options) {
  * Ascending sort method number equivalent is 1.
  * Descending sort method number equivalent is -1.
  * If only field is specified in sortQuery, sortOrder will be ascending.
+ *
  * @param {string} sortQuery - sortField|sortField:sortOrder
  * @param {Array} sortableFields
- * @returns {Object}[={}] returns {} if incorrect format of sortQuery given or if field
+ * @returns {Object} If incorrect format of sortQuery given or if field
+ * @todo Add description for the params
  */
 function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {
 	if (sortableFields.indexOf(sortQuery) !== -1) {
@@ -158,6 +181,6 @@ function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {
 }
 
 module.exports = {
-	sortQueryToJsonSqlFormat: sortQueryToJsonSqlFormat,
-	sortBy: sortBy,
+	sortQueryToJsonSqlFormat,
+	sortBy,
 };

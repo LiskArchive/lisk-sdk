@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -23,10 +24,10 @@ var debug = require('debug')('swagger:lisk:params_validator');
  * @memberof api/fittings
  * @requires debug
  * @requires lodash
- * @param {Object} fittingDef - Description of the param
- * @param {Object} bagpipes - Description of the param
+ * @param {Object} fittingDef
+ * @param {Object} bagpipes
  * @returns {function} {@link api/fittings.lisk_params_validator}
- * @todo: Add description of the function and its parameters
+ * @todo Add description for the function and the params
  */
 module.exports = function create() {
 	/**
@@ -34,9 +35,9 @@ module.exports = function create() {
 	 *
 	 * @func lisk_params_validator
 	 * @memberof api/fittings
-	 * @param {Object} context - Description of the param
-	 * @param {function} cb - Description of the param
-	 * @todo: Add description of the function and its parameters
+	 * @param {Object} context
+	 * @param {function} cb
+	 * @todo Add description for the function and the params
 	 */
 	return function lisk_params_validator(context, cb) {
 		var error = null;

@@ -11,17 +11,30 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
+
 /**
+ * Description of the namespace.
+ *
  * @namespace exceptions
- * @memberof module:helpers
+ * @memberof helpers
+ * @see Parent: {@link helpers}
+ * @property {Array} blockRewards
+ * @property {Array} delegates
  * @property {Object} genesisPublicKey
  * @property {string} genesisPublicKey.mainnet
  * @property {string} genesisPublicKey.testnet
+ * @property {Object} rounds
+ * @property {Object} rounds.27040
+ * @property {number} rounds.27040.rewards_factor
+ * @property {number} rounds.27040.fees_factor
+ * @property {number} rounds.27040.fees_bonus
  * @property {string[]} senderPublicKey
  * @property {string[]} signatures
  * @property {string[]} multisignatures
  * @property {string[]} votes
+ * @todo Add description for the namespace and the properties
  */
 module.exports = {
 	blockRewards: [],

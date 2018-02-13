@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var _ = require('lodash');
@@ -19,13 +20,16 @@ require('../../helpers/transaction_types');
 var columnSet;
 
 /**
- * OutTransfer Transactions database interaction module
- * @memberof module:dapps
+ * OutTransfer transactions database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @requires lodash
+ * @requires helpers/transaction_types
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {OutTransferTransactionsRepo}
+ * @returns {Object} An instance of a OutTransferTransactionsRepo
  */
 function OutTransferTransactionsRepo(db, pgp) {
 	this.db = db;
@@ -42,7 +46,7 @@ function OutTransferTransactionsRepo(db, pgp) {
 			schema: 'public',
 		});
 		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: table,
+			table,
 		});
 	}
 
@@ -50,9 +54,11 @@ function OutTransferTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save OutTransfer transactions
- * @param {Array.<{id: string, asset: {outTransfer: {dappId: string, transactionId: string}}}>} transactions
- * @return {Promise}
+ * Save outTransfer transactions.
+ *
+ * @param {Array} transactions
+ * @returns {Promise}
+ * @todo Add description for the params and the return value
  */
 OutTransferTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {
