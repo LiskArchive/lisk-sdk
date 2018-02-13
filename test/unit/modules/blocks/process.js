@@ -16,6 +16,7 @@
 var rewire = require('rewire');
 var modulesLoader = require('../../../common/modules_loader');
 var BlocksProcess = rewire('../../../../modules/blocks/process.js');
+var Promise = require('bluebird');
 
 describe('blocks/process', () => {
 	var __private;
@@ -168,8 +169,12 @@ describe('blocks/process', () => {
 			validateBlockSlot: sinonSandbox.stub(),
 		};
 
-		var modulesLoaderStub = sinonSandbox.stub();
-		var modulesRoundsStub = sinonSandbox.stub();
+		var modulesLoaderStub = {
+			syncing: sinonSandbox.stub(),
+		};
+		var modulesRoundsStub = {
+			ticking: sinonSandbox.stub(),
+		};
 		var modulesTransactionsStub = {
 			getUnconfirmedTransactionList: sinonSandbox.stub(),
 		};
@@ -2063,6 +2068,230 @@ describe('blocks/process', () => {
 								}
 							);
 						});
+					});
+				});
+			});
+		});
+	});
+
+	describe('onReceiveBlock', () => {
+		var tempReceiveBlock;
+		var tempReceiveForkOne;
+		var tempReceiveForkFive;
+
+		before(() => {
+			tempReceiveBlock = __private.receiveBlock;
+			tempReceiveForkOne = __private.receiveForkOne;
+			tempReceiveForkFive = __private.receiveForkFive;
+		});
+
+		after(() => {
+			__private.receiveBlock = tempReceiveBlock;
+			__private.receiveForkOne = tempReceiveForkOne;
+			__private.receiveForkFive = tempReceiveForkFive;
+		});
+
+		describe('client not ready to receive block', () => {
+			afterEach(() => {
+				expect(loggerStub.debug.args[0][0]).to.equal(
+					'Client not ready to receive block'
+				);
+				expect(loggerStub.debug.args[0][1]).to.equal(5);
+				expect(modules.blocks.lastBlock.get.calledOnce).to.be.false;
+			});
+
+			describe('when __private.loaded is false', () => {
+				beforeEach(() => {
+					__private.loaded = false;
+				});
+
+				afterEach(() => {
+					__private.loaded = true;
+				});
+
+				it('should return without process block', done => {
+					library.sequence.add = function(cb) {
+						var fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.onReceiveBlock({ id: 5 });
+				});
+			});
+
+			describe('when modules.loader.syncing is true', () => {
+				beforeEach(() => {
+					modules.loader.syncing.returns(true);
+				});
+
+				afterEach(() => {
+					modules.loader.syncing.returns(false);
+				});
+
+				it('should return without process block', done => {
+					library.sequence.add = function(cb) {
+						var fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.onReceiveBlock({ id: 5 });
+				});
+			});
+
+			describe('when modules.rounds.ticking is true', () => {
+				beforeEach(() => {
+					modules.rounds.ticking.returns(true);
+				});
+
+				afterEach(() => {
+					modules.rounds.ticking.returns(false);
+				});
+
+				it('should return without process block', done => {
+					library.sequence.add = function(cb) {
+						var fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.onReceiveBlock({ id: 5 });
+				});
+			});
+		});
+
+		describe('client ready to receive block', () => {
+			afterEach(() => {
+				expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			});
+
+			describe('when block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height', () => {
+				beforeEach(() => {
+					__private.receiveBlock = sinonSandbox
+						.stub()
+						.callsArgWith(1, null, true);
+				});
+
+				afterEach(() => {
+					expect(__private.receiveBlock.calledOnce).to.be.true;
+				});
+
+				it('should call __private.receiveBlock', done => {
+					library.sequence.add = function(cb) {
+						var fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.onReceiveBlock({
+						id: 5,
+						previousBlock: '2',
+						height: 3,
+					});
+				});
+			});
+
+			describe('when block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height', () => {
+				beforeEach(() => {
+					__private.receiveForkOne = sinonSandbox
+						.stub()
+						.callsArgWith(2, null, true);
+				});
+
+				afterEach(() => {
+					expect(__private.receiveForkOne.calledOnce).to.be.true;
+				});
+
+				it('should call __private.receiveForkOne', done => {
+					library.sequence.add = function(cb) {
+						var fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.onReceiveBlock({
+						id: 5,
+						previousBlock: '3',
+						height: 3,
+					});
+				});
+			});
+
+			describe('when block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id', () => {
+				beforeEach(() => {
+					__private.receiveForkFive = sinonSandbox
+						.stub()
+						.callsArgWith(2, null, true);
+					modules.blocks.lastBlock.get.returns({
+						id: '2',
+						height: 2,
+						previousBlock: '1',
+					});
+				});
+
+				afterEach(() => {
+					expect(__private.receiveForkFive.calledOnce).to.be.true;
+				});
+
+				it('should call __private.receiveForkFive', done => {
+					library.sequence.add = function(cb) {
+						var fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.onReceiveBlock({
+						id: 5,
+						previousBlock: '1',
+						height: 2,
+					});
+				});
+			});
+
+			describe('when block.id === lastBlock.id', () => {
+				afterEach(() => {
+					expect(loggerStub.debug.args[0][0]).to.equal(
+						'Block already processed'
+					);
+					expect(loggerStub.debug.args[0][1]).to.equal('2');
+				});
+
+				it('should skip block, already processed', done => {
+					library.sequence.add = function(cb) {
+						var fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.onReceiveBlock({
+						id: '2',
+						previousBlock: '1',
+						height: 2,
+					});
+				});
+			});
+
+			describe('otherwise', () => {
+				afterEach(() => {
+					expect(loggerStub.warn.args[0][0]).to.equal(
+						'Discarded block that does not match with current chain: 7 height: 11 round: 1 slot: 544076 generator: a1'
+					);
+				});
+
+				it('should discard block, it does not match with current chain', done => {
+					library.sequence.add = function(cb) {
+						var fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.onReceiveBlock({
+						id: '7',
+						previousBlock: '6',
+						height: 11,
+						timestamp: 5440768,
+						generatorPublicKey: 'a1',
 					});
 				});
 			});
