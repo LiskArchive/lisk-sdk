@@ -2191,7 +2191,6 @@ definitions:
     required:
       - code
       - name
-      - in
       - message
     properties:
       code:
