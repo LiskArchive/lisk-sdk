@@ -135,6 +135,7 @@ InTransfer.prototype.process = function(transaction, sender, cb) {
  * @returns {Array} Buffer
  * @throws {Error} e
  * @todo Add descriptions for the params
+ * @todo Check type and description of the return value
  */
 InTransfer.prototype.getBytes = function(transaction) {
 	var buf;

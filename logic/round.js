@@ -84,6 +84,7 @@ function Round(scope, t) {
  * Returns result from call to mergeAccountAndGet.
  *
  * @returns {function} Promise
+ * @todo Check type and description of the return value
  */
 Round.prototype.mergeBlockGenerator = function() {
 	var self = this;
@@ -138,6 +139,7 @@ Round.prototype.getVotes = function() {
  * Calls getVotes with round.
  *
  * @returns {function} Promise
+ * @todo Check type and description of the return value
  */
 Round.prototype.updateVotes = function() {
 	var self = this;
@@ -162,6 +164,7 @@ Round.prototype.updateVotes = function() {
  * For backwards option calls sql updateBlockId with newID: 0.
  *
  * @returns {function} Promise
+ * @todo Check type and description of the return value
  */
 Round.prototype.markBlockId = function() {
 	if (this.scope.backwards) {
@@ -179,6 +182,7 @@ Round.prototype.markBlockId = function() {
  * - Deletes round from `mem_round` table.
  *
  * @returns {function} Promise
+ * @todo Check type and description of the return value
  */
 Round.prototype.flushRound = function() {
 	return (this.t || this.scope.library.db).rounds.flush(this.scope.round);
@@ -189,6 +193,7 @@ Round.prototype.flushRound = function() {
  * - Deletes blocks greather than height from `blocks` table.
  *
  * @returns {function} Promise
+ * @todo Check type and description of the return value
  */
 Round.prototype.truncateBlocks = function() {
 	return (this.t || this.scope.library.db).rounds.truncateBlocks(
@@ -202,6 +207,7 @@ Round.prototype.truncateBlocks = function() {
  * - Performed only when rollback last block of round.
  *
  * @returns {function} Promise
+ * @todo Check type and description of the return value
  */
 Round.prototype.restoreRoundSnapshot = function() {
 	this.scope.library.logger.debug('Restoring mem_round snapshot...');
@@ -214,6 +220,7 @@ Round.prototype.restoreRoundSnapshot = function() {
  * - Performed only when rollback last block of round.
  *
  * @returns {function} Promise
+ * @todo Check type and description of the return value
  */
 Round.prototype.restoreVotesSnapshot = function() {
 	this.scope.library.logger.debug('Restoring mem_accounts.vote snapshot...');

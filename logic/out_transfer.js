@@ -167,6 +167,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
  * @throws {Error} e
  * @returns {Array} Buffer
  * @todo Add descriptions for the params
+ * @todo Check type and description of the return value
  */
 OutTransfer.prototype.getBytes = function(transaction) {
 	var buf;
