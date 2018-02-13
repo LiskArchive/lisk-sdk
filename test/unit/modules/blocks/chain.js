@@ -15,101 +15,92 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var lisk = require('lisk-js');
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var application = require('../../../common/application'); // eslint-disable-line no-unused-vars
+var rewire = require('rewire');
+var modulesLoader = require('../../../common/modules_loader');
 
-var previousBlock;
+var BlocksChain = rewire('../../../../modules/blocks/chain.js');
 
-function createBlock(
-	blocksModule,
-	blockLogic,
-	secret,
-	timestamp,
-	transactions
-) {
-	var keypair = blockLogic.scope.ed.makeKeypair(
-		crypto
-			.createHash('sha256')
-			.update(secret, 'utf8')
-			.digest()
-	);
-	blocksModule.lastBlock.set(previousBlock);
-	var newBlock = blockLogic.create({
-		keypair,
-		timestamp,
-		previousBlock: blocksModule.lastBlock.get(),
-		transactions,
-	});
-	newBlock.id = blockLogic.getId(newBlock);
-	newBlock.height = previousBlock ? previousBlock.height + 1 : 1;
-	return newBlock;
-}
 
 describe('blocks/chain', () => {
-	var blocksModule;
+	var __private;
+	var library;
+	var modules;
 	var blocksChainModule;
-	var blockLogic;
-	var genesisBlock;
-	var db;
+	var dbStub;
+	var loggerStub;
+	var blockStub;
+	var transactionStub;
+	var modulesStub;
 
-	before(done => {
-		// Force rewards start at 150-th block
-		application.init(
-			{
-				sandbox: { name: 'lisk_test_blocks_chain' },
-				waitForGenesisBlock: true,
-			},
-			(err, scope) => {
-				db = scope.db;
-				blocksModule = scope.modules.blocks;
-				blocksChainModule = scope.modules.blocks.chain;
-				blockLogic = scope.logic.block;
-				genesisBlock = scope.genesisblock.block;
-				blocksModule.onBind(scope.modules);
-				blocksChainModule.onBind(scope.modules);
+	beforeEach(() => {
+		//Logic
+		dbStub = sinonSandbox.stub();
+		blockStub = sinonSandbox.stub();
+		loggerStub = {
+			trace: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
+			debug: sinonSandbox.spy(),
+		};
 
-				previousBlock = genesisBlock;
-
-				done();
-			}
+		blocksChainModule = new BlocksChain(
+			loggerStub,
+			blockStub,
+			transactionStub,
+			dbStub,
+			modulesLoader.scope.genesisblock,
+			modulesLoader.scope.bus,
+			modulesLoader.scope.balancesSequence
 		);
-	});
 
-	after(done => {
-		application.cleanup(done);
+		library = BlocksChain.__get__('library');
+		__private = BlocksChain.__get__('__private');
+		//Module
+		var modulesAccountsStub = sinonSandbox.stub();
+		var modulesBlocksStub = sinonSandbox.stub();
+		var modulesRoundsStub = sinonSandbox.stub();
+		var modulesTransactionsStub = sinonSandbox.stub();
+		modulesStub = {
+			accounts: modulesAccountsStub,
+			blocks: modulesBlocksStub,
+			rounds: modulesRoundsStub,
+			transactions: modulesTransactionsStub,
+		};
+		blocksChainModule.onBind(modulesStub);
+		modules = BlocksChain.__get__('modules');
 	});
 
 	describe('constructor', () => {
-		describe('library', () => {
-			it('should assign logger');
-
-			it('should assign db');
-
-			it('should assign genesisblock');
-
-			it('should assign bus');
-
-			it('should assign balanceSequence');
-
-			describe('should assign logic', () => {
-				it('should assign block');
-
-				it('should assign transaction');
-			});
+		it('should assign params to library', () => {
+			expect(library.logger).to.eql(loggerStub);
+			expect(library.db).to.eql(dbStub);
+			expect(library.genesisblock).to.eql(modulesLoader.scope.genesisblock);
+			expect(library.bus).to.eql(modulesLoader.scope.bus);
+			expect(library.balancesSequence).to.eql(modulesLoader.scope.balancesSequence);
+			expect(library.logic.block).to.eql(blockStub);
+			expect(library.logic.transaction).to.eql(transactionStub);
 		});
 
-		it('should set self to this');
+		it('should call library.logger.trace with "Blocks->Chain: Submodule initialized."', () => {
+			expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Chain: Submodule initialized.'
+			);
+		});
 
-		it('should call library.logger.trace"');
-
-		it(
-			'should call library.logger.trace with "Blocks->Chain: Submodule initialized."'
-		);
-
-		it('should return self');
+		it('should return self', () => {
+			expect(blocksChainModule).to.be.an('object');
+			expect(blocksChainModule.saveGenesisBlock).to.be.a('function');
+			expect(blocksChainModule.saveBlock).to.be.a('function');
+			expect(blocksChainModule.deleteBlock).to.be.a('function');
+			expect(blocksChainModule.deleteAfterBlock).to.be.a('function');
+			expect(blocksChainModule.applyGenesisBlock).to.be.a('function');
+			expect(blocksChainModule.applyBlock).to.be.a('function');
+			expect(blocksChainModule.broadcastReducedBlock).to.be.a('function');
+			expect(blocksChainModule.deleteLastBlock).to.be.a('function');
+			expect(blocksChainModule.recoverChain).to.be.a('function');
+			expect(blocksChainModule.onBind).to.be.a('function');
+		});
 	});
 
 	describe('saveGenesisBlock', () => {
@@ -363,98 +354,9 @@ describe('blocks/chain', () => {
 	});
 
 	describe('applyBlock', () => {
-		var secret =
-			'lend crime turkey diary muscle donkey arena street industry innocent network lunar';
-		var block;
-		var transactions;
 
-		beforeEach(() => {
-			transactions = [];
-			var account = randomUtil.account();
-			var transaction = lisk.transaction.createTransaction(
-				account.address,
-				randomUtil.number(100000000, 1000000000),
-				accountFixtures.genesis.password
-			);
-			transaction.senderId = accountFixtures.genesis.address;
-			transactions.push(transaction);
-		});
+		it('should apply a valid block successfully');
 
-		afterEach(() => {
-			previousBlock = block;
-		});
-
-		it('should apply a valid block successfully', done => {
-			block = createBlock(
-				blocksModule,
-				blockLogic,
-				secret,
-				32578370,
-				transactions
-			);
-
-			blocksChainModule.applyBlock(block, true, err => {
-				if (err) {
-					return done(err);
-				}
-
-				blocksModule.shared.getBlocks({ id: block.id }, (err, data) => {
-					expect(data).to.have.lengthOf(1);
-					expect(data[0].id).to.be.equal(block.id);
-					done(err);
-				});
-			});
-		});
-
-		// TODO: Need to enable it after making block part of the single transaction
-		it.skip('should apply block in a single transaction', done => {
-			block = createBlock(
-				blocksModule,
-				blockLogic,
-				secret,
-				32578370,
-				transactions
-			);
-
-			db.$config.options.query = function(event) {
-				if (
-					!(
-						event.ctx &&
-						event.ctx.isTX &&
-						event.ctx.txLevel === 0 &&
-						event.ctx.tag === 'Chain:applyBlock'
-					)
-				) {
-					return done(
-						`Some query executed outside transaction context: ${event.query}`,
-						event
-					);
-				}
-			};
-
-			var connect = sinonSandbox.stub();
-			var disconnect = sinonSandbox.stub();
-
-			db.$config.options.connect = connect;
-			db.$config.options.disconnect = disconnect;
-
-			blocksChainModule.applyBlock(block, true, err => {
-				if (err) {
-					done(err);
-				}
-
-				expect(connect.calledOnce).to.be.true;
-				expect(disconnect.calledOnce).to.be.true;
-
-				delete db.$config.options.connect;
-				delete db.$config.options.disconnect;
-				delete db.$config.options.query;
-
-				blocksModule.shared.getBlocks({ id: block.id }, err => {
-					done(err);
-				});
-			});
-		});
 
 		it('should call modules.blocks.isActive');
 
