@@ -41,6 +41,22 @@ if (process.env.SILENT === 'true') {
 	testContext.debug = console.info;
 }
 
+if (process.env.LOG_DB_EVENTS === 'true') {
+	testContext.config.db.logEvents = [
+		'connect',
+		'disconnect',
+		'query',
+		'task',
+		'transact',
+		'error',
+	];
+} else {
+	testContext.config.db.logEvents = ['error'];
+}
+
+testContext.consoleLogLevel =
+	process.env.LOG_LEVEL || testContext.consoleLogLevel;
+
 testContext.baseUrl = `http://${testContext.config.address}:${
 	testContext.config.httpPort
 }`;
