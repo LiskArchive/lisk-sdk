@@ -30,7 +30,7 @@ var modules;
  * @requires helpers/apiError
  * @requires helpers/swagger.generateParamsErrorObject
  * @param {Object} scope - App instance
- * @todo: Add description of AccountsController
+ * @todo Add description of AccountsController
  */
 function AccountsController(scope) {
 	modules = scope.modules;
@@ -41,7 +41,7 @@ function AccountsController(scope) {
  *
  * @param {Object} context - Description of the param
  * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @todo Add description for the function and the params
  */
 AccountsController.getAccounts = function(context, next) {
 	var params = context.request.swagger.params;
@@ -99,7 +99,7 @@ AccountsController.getAccounts = function(context, next) {
  *
  * @param {Object} context - Description of the param
  * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @todo Add description for the function and the params
  */
 AccountsController.getMultisignatureGroups = function(context, next) {
 	var params = context.request.swagger.params;
@@ -145,7 +145,7 @@ AccountsController.getMultisignatureGroups = function(context, next) {
  *
  * @param {Object} context - Description of the param
  * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @todo Add description for the function and the params
  */
 AccountsController.getMultisignatureMemberships = function(context, next) {
 	var params = context.request.swagger.params;

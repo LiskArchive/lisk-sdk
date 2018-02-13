@@ -17,13 +17,15 @@
 const sql = require('../sql').multisignatures;
 
 /**
- * Multisignature database interaction module
- * @memberof module:multisignatures
+ * Multisignature database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @requires db/sql
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {MultisignaturesRepository}
+ * @returns {Object} - An instance of a MultisignaturesRepository
  */
 class MultisignaturesRepository {
 	constructor(db, pgp) {
@@ -32,9 +34,11 @@ class MultisignaturesRepository {
 	}
 
 	/**
-	 * Gets list of public keys for a member address
+	 * Gets list of public keys for a member address.
+	 *
 	 * @param {string} address - Address of a member
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	getMemberPublicKeys(address) {
 		return this.db.one(
@@ -45,9 +49,11 @@ class MultisignaturesRepository {
 	}
 
 	/**
-	 * Gets list of addresses for group by a public key
+	 * Gets list of addresses for group by a public key.
+	 *
 	 * @param {string} publicKey - Public key of a group
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	getGroupIds(publicKey) {
 		return this.db.one(sql.getGroupIds, { publicKey }, a => a.groupAccountIds);

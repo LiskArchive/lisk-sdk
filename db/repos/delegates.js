@@ -17,13 +17,15 @@
 const sql = require('../sql').delegates;
 
 /**
- * Delegates database interaction module
- * @memberof module:delegates
+ * Delegates database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @requires db/sql
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {DelegatesRepository}
+ * @returns {Object} - An instance of a DelegatesRepository
  */
 class DelegatesRepository {
 	constructor(db, pgp) {
@@ -32,18 +34,22 @@ class DelegatesRepository {
 	}
 
 	/**
-	 * Inserts a fork data table entry
+	 * Inserts a fork data table entry.
+	 *
 	 * @param {Object} fork
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	insertFork(fork) {
 		return this.db.none(sql.insertFork, fork);
 	}
 
 	/**
-	 * Gets delegates for a list of public keys
+	 * Gets delegates for a list of public keys.
+	 *
 	 * @param {string} publicKeys - Comma Separated list of public keys
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	getDelegatesByPublicKeys(publicKeys) {
 		return this.db.any(sql.getDelegatesByPublicKeys, { publicKeys });
@@ -51,7 +57,9 @@ class DelegatesRepository {
 
 	/**
 	 * Counts duplicate delegates by transactionId.
-	 * @return {Promise<number>}
+	 *
+	 * @returns {Promise<number>}
+	 * @todo Add description for the return value
 	 */
 	countDuplicatedDelegates() {
 		return this.db.one(sql.countDuplicatedDelegates, [], a => +a.count);

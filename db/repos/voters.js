@@ -17,13 +17,15 @@
 const sql = require('../sql').voters;
 
 /**
- * Voters database interaction module
- * @memberof module:accounts
+ * Voters database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @requires db/sql
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {VotersRepository}
+ * @returns {Object} - An instance of a VotersRepository
  */
 class VotersRepository {
 	constructor(db, pgp) {
@@ -35,12 +37,14 @@ class VotersRepository {
 	}
 
 	/**
-	 * Searches the voters for a delegate with a public Key
-	 * @param {Object} params
-	 * @param {string} params.publicKey
-	 * @param {int} params.limit
-	 * @param {int} params.offset
-	 * @return {Promise}
+	 * Searches the voters for a delegate with a public Key.
+	 *
+	 * @param {Object} params - Description of the param
+	 * @param {string} params.publicKey - Description of the param
+	 * @param {int} params.limit - Description of the param
+	 * @param {int} params.offset - Description of the param
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	list(params) {
 		// TODO: Should use a result-specific method, not .query
@@ -48,9 +52,11 @@ class VotersRepository {
 	}
 
 	/**
-	 * Counts voters for a delegate with a public key
-	 * @param {string} publicKey
-	 * @return {Promise<number>}
+	 * Counts voters for a delegate with a public key.
+	 *
+	 * @param {string} publicKey - Description of the param
+	 * @returns {Promise<number>}
+	 * @todo Add description for the params and the return value
 	 */
 	count(publicKey) {
 		return this.db.one(sql.getVotersCount, publicKey, a => +a.count);

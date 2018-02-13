@@ -18,8 +18,14 @@ const path = require('path');
 
 const sqlRoot = __dirname;
 
-/////////////////////////////////////////
-// Provides dynamic link to an SQL file:
+/**
+ * Provides dynamic link to an SQL file.
+ *
+ * @memberof db.sql
+ * @param {Object} file - Description of the param
+ * @returns {Object} QueryFile
+ * @todo Add description for params and return value
+ */
 function link(file) {
 	const fullPath = path.join(sqlRoot, file); // Generating full path;
 

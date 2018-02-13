@@ -20,13 +20,16 @@ var Promise = require('bluebird');
 var columnSet;
 
 /**
- * Transfer Transactions database interaction module
- * @memberof module:transactions
+ * Transfer transactions database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @see Parent: {@link db.repos}
+ * @requires bluebird
+ * @requires lodash
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {TransferTransactionsRepo}
+ * @returns {Object} - An instance of a TransferTransactionsRepo
  */
 function TransferTransactionsRepo(db, pgp) {
 	this.db = db;
@@ -51,9 +54,11 @@ function TransferTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save transfer transactions
- * @param {Array.<{id: string, asset: {data: string}}>} transactions
- * @return {Promise}
+ * Save transfer transactions.
+ *
+ * @param {Array} transactions - Description of the param
+ * @returns {Promise}
+ * @todo Add description for the params and the return value
  */
 TransferTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {

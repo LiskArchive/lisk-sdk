@@ -24,7 +24,7 @@ var slaveRPCStub = require('./rpc/ws_rpc').slaveRPCStub;
  * @memberof api.ws
  * @see Parent: {@link api.ws}
  * @param {Object} transportModule - Description of the param
- * @todo: Add description of the function and its parameters
+ * @todo Add description for the function and the params
  */
 function TransportWSApi(transportModule) {
 	wsRPC.getServer().registerRPCEndpoints({

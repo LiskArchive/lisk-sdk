@@ -17,14 +17,15 @@
 const sql = require('../sql').rounds;
 
 /**
- * Rounds database interaction module.
+ * Rounds database interaction class.
  *
- * @memberof module:rounds
  * @class
+ * @memberof db.repos
+ * @requires db/sql
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {RoundsRepository}
+ * @returns {Object} - An instance of a RoundsRepository
  */
 class RoundsRepository {
 	constructor(db, pgp) {
@@ -35,7 +36,8 @@ class RoundsRepository {
 	/**
 	 * Get round information from mem tables.
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	getMemRounds() {
 		// TODO: Must use a result-specific method, not .query
@@ -46,7 +48,8 @@ class RoundsRepository {
 	 * Remove a particular round from database.
 	 *
 	 * @param {string} round - Id of the round
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	flush(round) {
 		return this.db.none(sql.flush, [round]);
@@ -55,8 +58,9 @@ class RoundsRepository {
 	/**
 	 * Delete all blocks above a particular height.
 	 *
-	 * @param {int} height
-	 * @return {Promise}
+	 * @param {int} height - Description of the param
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	truncateBlocks(height) {
 		// TODO: This method must be in BlocksRepository, not here!
@@ -68,7 +72,8 @@ class RoundsRepository {
 	 *
 	 * @param {boolean} backwards - Backwards flag
 	 * @param {string} outsiders - Comma separated string of ids
-	 * @return {*}
+	 * @returns {*}
+	 * @todo Add description for the return value
 	 */
 	updateMissedBlocks(backwards, outsiders) {
 		return this.db.none(sql.updateMissedBlocks, {
@@ -82,7 +87,8 @@ class RoundsRepository {
 	 * Get votes for a round.
 	 *
 	 * @param {string} round - Id of the round
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	getVotes(round) {
 		// TODO: Must use a result-specific method, not .query
@@ -95,6 +101,7 @@ class RoundsRepository {
 	 *
 	 * @param {string} address - Address of the account
 	 * @param {int} amount - Votes to update
+	 * @todo Add @returns tag
 	 */
 	updateVotes(address, amount) {
 		return this.db.none(sql.updateVotes, [amount, address]);
@@ -104,9 +111,10 @@ class RoundsRepository {
 	/**
 	 * Update the blockId attribute for an account.
 	 *
-	 * @param {string} newId
-	 * @param {string} oldId
-	 * @return {Promise}
+	 * @param {string} newId - Description of the param
+	 * @param {string} oldId - Description of the param
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
 	 */
 	updateBlockId(newId, oldId) {
 		return this.db.none(sql.updateBlockId, [newId, oldId]);
@@ -117,7 +125,8 @@ class RoundsRepository {
 	 *
 	 * @param {string} round - Id of the round
 	 * @param {int} activeDelegates - Number of active delegates
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	summedRound(round, activeDelegates) {
 		// TODO: Must use a result-specific method, not .query
@@ -127,7 +136,8 @@ class RoundsRepository {
 	/**
 	 * Drop the table for round snapshot.
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	clearRoundSnapshot() {
 		return this.db.none(sql.clearRoundSnapshot);
@@ -136,7 +146,8 @@ class RoundsRepository {
 	/**
 	 * Create table for the round snapshot.
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	performRoundSnapshot() {
 		return this.db.none(sql.performRoundSnapshot);
@@ -145,7 +156,9 @@ class RoundsRepository {
 	/**
 	 * Create table for the round snapshot.
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
+	 * @todo Add @param tag
 	 */
 	getDelegatesSnapshot(limit) {
 		return this.db.query(sql.getDelegatesSnapshot, [limit]);
@@ -154,7 +167,8 @@ class RoundsRepository {
 	/**
 	 * Delete table for votes snapshot.
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	clearVotesSnapshot() {
 		return this.db.none(sql.clearVotesSnapshot);
@@ -163,7 +177,8 @@ class RoundsRepository {
 	/**
 	 * Take a snapshot of the votes by creating table and populating records from votes.
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	performVotesSnapshot() {
 		return this.db.none(sql.performVotesSnapshot);
@@ -172,7 +187,8 @@ class RoundsRepository {
 	/**
 	 * Update accounts from the round snapshot.
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	restoreRoundSnapshot() {
 		return this.db.none(sql.restoreRoundSnapshot);
@@ -181,7 +197,8 @@ class RoundsRepository {
 	/**
 	 * Update votes for account from a snapshot.
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	restoreVotesSnapshot() {
 		return this.db.none(sql.restoreVotesSnapshot);
@@ -194,7 +211,8 @@ class RoundsRepository {
 	 * @param {string} blockId - Associated block id
 	 * @param {Number} round - Associated round number
 	 * @param {Number} amount - Amount updated on account
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	insertRoundInformationWithAmount(address, blockId, round, amount) {
 		return this.db.none(sql.insertRoundInformationWithAmount, {
@@ -213,7 +231,8 @@ class RoundsRepository {
 	 * @param {Number} round - Associated round number
 	 * @param {string} delegateId - Associated delegate id
 	 * @param {string} mode - Possible values of '+' or '-' represents behaviour of adding or removing delegate
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	insertRoundInformationWithDelegate(
 		address,

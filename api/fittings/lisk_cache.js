@@ -28,7 +28,7 @@ var modules = require('../../helpers/swagger_module_registry');
  * @param {Object} fittingDef - Description of the param
  * @param {Object} bagpipes - Description of the param
  * @returns {function} {@link api/fittings.lisk_cache}
- * @todo: Add description of the function and its parameters
+ * @todo Add description for the function and the params
  */
 module.exports = function create(fittingDef) {
 	var cache = modules.getCache();
@@ -45,8 +45,8 @@ module.exports = function create(fittingDef) {
 	 * @memberof api/fittings
 	 * @param {Object} context - Description of the param
 	 * @param {function} next - Description of the param
-	 * @todo: Add description of the function and its parameters
-	 * @todo: Add @returns-tag
+	 * @todo Add description for the function and the params
+	 * @todo Add @returns tag
 	 */
 	return function lisk_cache(context, next) {
 		debug('exec', mode);

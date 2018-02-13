@@ -26,7 +26,7 @@ var modules;
  * @memberof api/controllers
  * @requires lodash
  * @param {Object} scope - App instance
- * @todo: Add description of DappsController
+ * @todo Add description of DappsController
  */
 function DappsController(scope) {
 	modules = scope.modules;
@@ -37,7 +37,7 @@ function DappsController(scope) {
  *
  * @param {Object} context - Description of the param
  * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @todo Add description for the function and the params
  */
 DappsController.getDapps = function(context, next) {
 	var params = context.request.swagger.params;
