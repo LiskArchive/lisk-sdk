@@ -58,7 +58,7 @@ JsonSchema.addRule('type', {
 	 * @todo Add returns-tag
 	 * @todo Add descriptions of the function and its parameters
 	 */
-	validate: function(accept, value) {
+	validate(accept, value) {
 		switch (accept) {
 			case 'array':
 				return Array.isArray(value);
@@ -84,7 +84,7 @@ JsonSchema.addRule('default', {
 	 * @todo Add returns-tag
 	 * @todo Add descriptions of the function and its parameters
 	 */
-	filter: function(accept, value) {
+	filter(accept, value) {
 		if (typeof value === 'undefined') {
 			return accept;
 		}
@@ -102,7 +102,7 @@ JsonSchema.addRule('enum', {
 	 * @todo Add returns-tag
 	 * @todo Add descriptions of the function and its parameters
 	 */
-	validate: function(accept, value) {
+	validate(accept, value) {
 		return accept.indexOf(value) > -1;
 	},
 });
@@ -119,7 +119,7 @@ JsonSchema.addRule('case', {
 	 * @todo Add returns-tag
 	 * @todo Add descriptions of the function and its parameters
 	 */
-	validate: function(accept, value) {
+	validate(accept, value) {
 		if (accept === 'lower') {
 			return String(value).toLowerCase() === String(value);
 		} else if (accept === 'upper') {
@@ -139,7 +139,7 @@ JsonSchema.addRule('minLength', {
 	 * @todo Add returns-tag
 	 * @todo Add descriptions of the function and its parameters
 	 */
-	validate: function(accept, value) {
+	validate(accept, value) {
 		return String(value).length >= accept;
 	},
 });
@@ -154,7 +154,7 @@ JsonSchema.addRule('maxLength', {
 	 * @todo Add returns-tag
 	 * @todo Add descriptions of the function and its parameters
 	 */
-	validate: function(accept, value) {
+	validate(accept, value) {
 		return String(value).length <= accept;
 	},
 });
@@ -169,7 +169,7 @@ JsonSchema.addRule('pattern', {
 	 * @todo Add returns-tag
 	 * @todo Add descriptions of the function and its parameters
 	 */
-	validate: function(accept, value) {
+	validate(accept, value) {
 		if (accept instanceof RegExp === false) {
 			accept = new RegExp(accept);
 		}
@@ -190,7 +190,7 @@ JsonSchema.addRule('minimum', {
 	 * @todo Add returns-tag
 	 * @todo Add descriptions of the function and its parameters
 	 */
-	validate: function(accept, value, field) {
+	validate(accept, value, field) {
 		if (field.rules.exclusiveMinimum) {
 			return value > accept;
 		}
@@ -211,7 +211,7 @@ JsonSchema.addRule('maximum', {
 	 * @todo Add returns-tag
 	 * @todo Add descriptions of the function and its parameters
 	 */
-	validate: function(accept, value, field) {
+	validate(accept, value, field) {
 		if (field.rules.exclusiveMaximum) {
 			return value < accept;
 		}
@@ -231,7 +231,7 @@ JsonSchema.addRule('divisibleBy', {
 	 * @todo Add returns-tag
 	 * @todo Add descriptions of the function and its parameters
 	 */
-	validate: function(accept, value) {
+	validate(accept, value) {
 		return value % accept === 0;
 	},
 });
@@ -248,7 +248,7 @@ JsonSchema.addRule('properties', {
 	 * @todo Add returns-tag
 	 * @todo Add descriptions of the function and its parameters
 	 */
-	validate: function(accept, value, field) {
+	validate(accept, value, field) {
 		if (!field.isObject()) {
 			return;
 		}
