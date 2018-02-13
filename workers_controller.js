@@ -96,39 +96,55 @@ SCWorker.create({
 				],
 			},
 			(err, scope) => {
+				scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE, (req, next) => {
+					scope.handshake(extractHeaders(req), (err, peer) => {
+						if (err) {
+							// Set a custom property on the HTTP request object; we will check this property and handle
+							// this issue later.
+							// Because of WebSocket protocol handshake restrictions, we can't call next(err) here because the
+							// error will not be passed to the client. So we can attach the error to the request and disconnect later during the SC 'handshake' event.
+							req.failedHeadersValidationError = err;
+						} else {
+							req.peerObject = peer.object();
+						}
+						// Pass through the WebSocket MIDDLEWARE_HANDSHAKE successfully, but
+						// we will handle the req.failedQueryValidation error later inside scServer.on('handshake', handler);
+						next();
+					});
+				});
+
+				scServer.on('handshake', socket => {
+					// We can access the HTTP request (which instantiated the WebSocket connection) using socket.request
+					// so we can access our custom socket.request.failedQueryValidation property here.
+					// If the property exists then we disconnect the connection.
+					if (socket.request.failedHeadersValidationError) {
+						return socket.disconnect(
+							socket.request.failedHeadersValidationError.code,
+							socket.request.failedHeadersValidationError.description
+						);
+					}
+					updatePeerConnection(
+						Rules.UPDATES.INSERT,
+						socket,
+						socket.request.peerObject,
+						onUpdateError => {
+							if (onUpdateError) {
+								socket.disconnect(
+									onUpdateError.code,
+									onUpdateError.description
+								);
+							}
+						}
+					);
+				});
+
 				scServer.on('connection', socket => {
 					scope.slaveWAMPServer.upgradeToWAMP(socket);
 					socket.on('disconnect', removePeerConnection.bind(null, socket));
 					socket.on('error', err => {
 						socket.disconnect(err.code, err.message);
 					});
-
-					insertPeerConnection(socket);
 				});
-
-				function insertPeerConnection(socket) {
-					var headers = extractHeaders(socket.request);
-					scope.handshake(headers, (err, peer) => {
-						if (err) {
-							return socket.disconnect(err.code, err.description);
-						}
-						updatePeerConnection(
-							Rules.UPDATES.INSERT,
-							socket,
-							peer.object(),
-							onUpdateError => {
-								if (onUpdateError) {
-									socket.disconnect(
-										onUpdateError.code,
-										onUpdateError.description
-									);
-								} else {
-									socket.emit('accepted');
-								}
-							}
-						);
-					});
-				}
 
 				function removePeerConnection(socket, code) {
 					if (failureCodes.errorMessages[code]) {
