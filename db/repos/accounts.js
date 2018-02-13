@@ -167,7 +167,7 @@ class AccountsRepository {
 	 * @return {Promise<number>}
 	 */
 	countMemAccounts() {
-		return this.db.one(sql.countMemAccounts, [], a => +a.count);
+		return this.db.one(sql.countMemAccounts, []).then(a => +a.count);
 	}
 
 	/**
@@ -321,17 +321,6 @@ class AccountsRepository {
 			value,
 			address,
 		});
-	}
-
-	/**
-	 * Delete an account from mem_accounts.
-	 *
-	 * @param {string} address - Address of the account to be updated
-	 * @return {Promise}
-	 */
-	remove(address) {
-		const sql = 'DELETE FROM $1:name WHERE $2:name = $3';
-		return this.db.none(sql, [this.dbTable, 'address', address]);
 	}
 
 	/**
