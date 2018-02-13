@@ -112,8 +112,8 @@ Validator.prototype.getRule = function(name) {
  * @param {Object} rules - Set of rules
  * @param {function} callback - Result callback (err:Error,report:Array,output:*)=
  * @returns {Object} Report object
- * @throws {err} If finish err parameter is true
- * @throws {Error} If callback, async and finished are not valids
+ * @throws {err} If validation not finished
+ * @throws {Error} If callback, async and finished are not valid
  * @todo Debug this function and adjust callback function parameter
  * @todo Add description for the first param
  */

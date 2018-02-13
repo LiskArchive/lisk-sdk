@@ -30,7 +30,7 @@ var BigNumber = require('bignumber.js');
  * @param {ArrayBuffer} buf - Description of the param
  * @param {Object} opts - Description of the param
  * @returns {ArrayBuffer} New BigNumber instance
- * @throws {RangeError} Error description multiple of size
+ * @throws {RangeError} If description multiple of size
  * @todo Add description for the params
  */
 BigNumber.fromBuffer = function(buf, opts) {

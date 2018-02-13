@@ -251,7 +251,7 @@ class BlocksRepository {
 	 * Check if a block exits with a particular ID.
 	 *
 	 * @param {string} id - Description of the param
-	 * @throws {QueryResultError} - Multiple rows were not expected - in the case of multiple blocks found with same id
+	 * @throws {QueryResultError} - If multiple rows were not expected - in the case of multiple blocks found with same id
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */

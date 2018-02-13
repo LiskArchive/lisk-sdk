@@ -60,7 +60,7 @@ var wsRPC = {
 	/**
 	 * Description of the function.
 	 *
-	 * @throws {Error} if WS server has not been initialized yet
+	 * @throws {Error} If WS server has not been initialized yet
 	 * @returns {MasterWAMPServer} wsServer
 	 * @todo Add description for the function
 	 */
@@ -102,7 +102,7 @@ var wsRPC = {
 	/**
 	 * Description of the function.
 	 *
-	 * @throws {Error} if WS server has not been initialized yet
+	 * @throws {Error} If WS server has not been initialized yet
 	 * @returns {Object} wsServer
 	 * @todo Add description for the function
 	 */
