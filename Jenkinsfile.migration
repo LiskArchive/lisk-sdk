@@ -27,12 +27,16 @@ pipeline {
 				dropdb lisk_test || true
 				createdb lisk_test
 				cd "${params.MIGRATE_FROM}"
-				cp test/config.json .
-				cp test/genesis_block.json .
+				cd test
+				find . -iname config.json -exec cp {} .. \;
+				find . -iname genesis\*lock.json -exec cp {} .. \;
+				cd ..
 				npm install
 				cd "../${params.MIGRATE_TO}"
-				cp test/data/config.json .
-				cp test/data/genesis_block.json .
+				cd test
+				find . -iname config.json -exec cp {} .. \;
+				find . -iname genesis\*lock.json -exec cp {} .. \;
+				cd ..
 				npm install
 				sudo service postgresql restart
 				"""
