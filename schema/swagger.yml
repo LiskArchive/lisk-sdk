@@ -803,29 +803,27 @@ paths:
     x-swagger-router-controller: signatures
     post:
       tags:
-        - Signatures
-      summary: Submits an array of signatures objects to sign multisignature transactions
-      operationId: postSignatures
+        - Signature
+      summary: Submits a signature object to sign multisignature transactions
+      operationId: postSignature
       description:
-        Submits signature(s) to sign a multisignature transaction
+        Submits signature to sign a multisignature transaction
       consumes:
         - application/json
       produces:
         - application/json
       parameters:
         - in: body
-          name: signatures
-          description: Signatures object to submit to the network
+          name: signature
+          description: Signature object to submit to the network
           required: true
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Signature'
+            $ref: '#/definitions/Signature'
       responses:
         200:
           description: Signature is accepted by the node for processing
           schema:
-            $ref: '#/definitions/SignaturesResponse'
+            $ref: '#/definitions/SignatureResponse'
         400:
           description: Malformed query or parameters
           schema:
@@ -1473,8 +1471,8 @@ definitions:
       links:
         type: object
 
-  SignaturesResponse:
-    description: Signatures response
+  SignatureResponse:
+    description: Signature response
     type: object
     required:
       - data
@@ -1495,7 +1493,7 @@ definitions:
          - status
        properties:
          status:
-           description: Acceptance status for signatures
+           description: Acceptance status for the signature
            type: boolean
            example: true
       links:
