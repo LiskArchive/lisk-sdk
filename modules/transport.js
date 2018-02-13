@@ -109,40 +109,21 @@ __private.removePeer = function(options, extraMessage) {
  * @private
  * @implements {library.schema.validate}
  * @implements {__private.receiveSignature}
- * @param {Object} query
+ * @param {Array} signatures A list of signature objects
  * @param {function} cb
  * @return {setImmediateCallback} cb, err
  */
-__private.receiveSignatures = function(query, cb) {
-	var signatures;
+__private.receiveSignatures = function(signatures, cb) {
+	async.eachSeries(
+		signatures,
+		(signature, eachSeriesCb) => {
+			__private.receiveSignature(signature, err => {
+				if (err) {
+					library.logger.debug(err, signature);
+				}
 
-	async.series(
-		{
-			validateSchema(seriesCb) {
-				library.schema.validate(query, definitions.WSSignaturesList, err => {
-					if (err) {
-						return setImmediate(seriesCb, 'Invalid signatures body');
-					}
-					return setImmediate(seriesCb);
-				});
-			},
-			receiveSignatures(seriesCb) {
-				signatures = query.signatures;
-
-				async.eachSeries(
-					signatures,
-					(signature, eachSeriesCb) => {
-						__private.receiveSignature(signature, err => {
-							if (err) {
-								library.logger.debug(err, signature);
-							}
-
-							return setImmediate(eachSeriesCb);
-						});
-					},
-					seriesCb
-				);
-			},
+				return setImmediate(eachSeriesCb);
+			});
 		},
 		err => setImmediate(cb, err)
 	);
@@ -600,22 +581,27 @@ Transport.prototype.shared = {
 		});
 	},
 
-	postSignatures(query, cb) {
-		if (query.signatures) {
-			__private.receiveSignatures(query, err => {
+	postSignature: function(query, cb) {
+		__private.receiveSignature(query.signature, err => {
+			if (err) {
+				return setImmediate(cb, null, { success: false, message: err });
+			}
+			return setImmediate(cb, null, { success: true });
+		});
+	},
+
+	postSignatures: function(query, cb) {
+		library.schema.validate(query, definitions.WSSignaturesList, err => {
+			if (err) {
+				return setImmediate(cb, null, { success: false, message: 'Invalid signatures body' });
+			}
+			__private.receiveSignatures(query.signatures, err => {
 				if (err) {
 					return setImmediate(cb, null, { success: false, message: err });
 				}
 				return setImmediate(cb, null, { success: true });
 			});
-		} else {
-			__private.receiveSignature(query.signature, err => {
-				if (err) {
-					return setImmediate(cb, null, { success: false, message: err });
-				}
-				return setImmediate(cb, null, { success: true });
-			});
-		}
+		});
 	},
 
 	getSignatures(req, cb) {
