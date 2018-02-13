@@ -1132,7 +1132,7 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should assign blocks, dapps, loader, multisignatures, peers, system and transaction properties', () => {
+				it('should assign blocks, dapps, loader, multisignatures, peers, system and transactions properties', () => {
 					expect(modulesObject).to.have.property('blocks');
 					expect(modulesObject).to.have.property('dapps');
 					expect(modulesObject).to.have.property('loader');
