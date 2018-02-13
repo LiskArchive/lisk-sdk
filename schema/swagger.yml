@@ -902,26 +902,22 @@ paths:
             $ref: '#/definitions/UnexpectedError'
     post:
       tags:
-        - Transactions
-      summary: Submits signed transactions for processing
-      operationId: postTransactions
+        - Transaction
+      summary: Submits signed transaction for processing
+      operationId: postTransaction
       description:
-        Submits signed transactions for processing by the transaction pool
+        Submits signed transaction for processing by the transaction pool
       consumes:
         - application/json
       produces:
         - application/json
       parameters:
         - in: body
-          name: transactions
+          name: transaction
           description: Transaction object to submit to the network
           required: true
           schema:
-            type: array
-            maxItems: 1
-            minItems: 1
-            items:
-              $ref: '#/definitions/TransactionRequest'
+            $ref: '#/definitions/TransactionRequest'
       responses:
         200:
           description: Transaction accepted by the node for processing
