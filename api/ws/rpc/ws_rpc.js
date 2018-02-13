@@ -240,8 +240,6 @@ ClientRPCStub.prototype.initializeNewConnection = function(connectionState) {
 	var clientSocket = wsRPC.scClient.connect(options);
 	wsRPC.wampClient.upgradeToWAMP(clientSocket);
 
-	clientSocket.on('accepted', () => connectionState.resolve(clientSocket));
-
 	clientSocket.on('error', () => {
 		clientSocket.disconnect();
 	});
@@ -259,6 +257,10 @@ ClientRPCStub.prototype.initializeNewConnection = function(connectionState) {
 		connectionState.reject(
 			new PeerUpdateError(code, failureCodes.errorMessages[code], description)
 		);
+	});
+
+	clientSocket.on('connect', () => {
+		connectionState.resolve(clientSocket);
 	});
 };
 
