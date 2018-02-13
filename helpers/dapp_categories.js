@@ -20,16 +20,16 @@
  * @namespace dapp_categories
  * @memberof helpers
  * @see Parent: {@link helpers}
- * @property {number} Education - Description of the value
- * @property {number} Entertainment - Description of the value
- * @property {number} Finance - Description of the value
- * @property {number} Games - Description of the value
- * @property {number} Miscellaneous - Description of the value
- * @property {number} Networking - Description of the value
- * @property {number} Science - Description of the value
- * @property {number} Social - Description of the value
- * @property {number} Utilities - Description of the value
- * @todo Add description for the namespace and the values
+ * @property {number} Education
+ * @property {number} Entertainment
+ * @property {number} Finance
+ * @property {number} Games
+ * @property {number} Miscellaneous
+ * @property {number} Networking
+ * @property {number} Science
+ * @property {number} Social
+ * @property {number} Utilities
+ * @todo Add description for the namespace and the properties
  */
 module.exports = {
 	Education: 0,

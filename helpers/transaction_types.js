@@ -20,13 +20,13 @@
  * @namespace transaction_types
  * @memberof helpers
  * @see Parent: {@link helpers}
- * @property {number} SEND - Description of the value
- * @property {number} SIGNATURE - Description of the value
- * @property {number} DELEGATE - Description of the value
- * @property {number} VOTE - Description of the value
- * @property {number} MULTI - Description of the value
- * @property {number} IN_TRANSFER - Description of the value
- * @property {number} OUT_TRANSFER - Description of the value
+ * @property {number} SEND
+ * @property {number} SIGNATURE
+ * @property {number} DELEGATE
+ * @property {number} VOTE
+ * @property {number} MULTI
+ * @property {number} IN_TRANSFER
+ * @property {number} OUT_TRANSFER
  * @todo Add description for the namespace and the properties
  */
 module.exports = {

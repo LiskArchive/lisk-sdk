@@ -21,8 +21,8 @@ var constants = require('./constants.js');
  *
  * @module
  * @requires helpers/constants
- * @property {number} interval - Slot time interval in seconds.
- * @property {number} delegates - Active delegates from constants.
+ * @property {number} interval - Slot time interval in seconds
+ * @property {number} delegates - Active delegates from constants
  * @see Parent: {@link helpers}
  * @todo Add description for the module
  */

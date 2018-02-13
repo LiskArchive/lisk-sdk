@@ -20,15 +20,15 @@
  * @namespace constants
  * @memberof helpers
  * @see Parent: {@link helpers}
- * @property {number} activeDelegates - The default number of delegates.
- * @property {number} maxVotesPerTransaction - The maximum number of votes in vote type transaction.
- * @property {number} addressLength - The default address length.
- * @property {number} blockSlotWindow - The default no. of previous blocks to keep in memory.
- * @property {number} blockHeaderLength - The default block header length.
+ * @property {number} activeDelegates - The default number of delegates
+ * @property {number} maxVotesPerTransaction - The maximum number of votes in vote type transaction
+ * @property {number} addressLength - The default address length
+ * @property {number} blockSlotWindow - The default no. of previous blocks to keep in memory
+ * @property {number} blockHeaderLength - The default block header length
  * @property {number} blockReceiptTimeOut
  * @property {number} confirmationLength
  * @property {Date} epochTime
- * @property {Object} fees - The default values for fees.
+ * @property {Object} fees - The default values for fees
  * @property {number} fees.send
  * @property {number} fees.vote
  * @property {number} fees.secondSignature
@@ -48,12 +48,12 @@
  * @property {number} maxSignaturesLength
  * @property {number} maxTxsPerBlock
  * @property {number} minBroadhashConsensus
- * @property {string[]} nethashes - Mainnet and Testnet.
+ * @property {string[]} nethashes - For mainnet and testnet
  * @property {number} numberLength
  * @property {number} requestLength
  * @property {Object} rewards
- * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1.
- * @property {number} rewards.offset - Start rewards at block (n).
+ * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1
+ * @property {number} rewards.offset - Start rewards at block (n)
  * @property {number} rewards.distance - Distance between each milestone
  * @property {number} signatureLength
  * @property {number} totalAmount

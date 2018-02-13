@@ -20,16 +20,16 @@
  * @namespace api_codes
  * @memberof helpers
  * @see Parent: {@link helpers}
- * @property {number} OK - Description of the value
- * @property {number} EMPTY_RESOURCES_OK - Description of the value
- * @property {number} NO_CONTENT - Description of the value
- * @property {number} INTERNAL_SERVER_ERROR - Description of the value
- * @property {number} BAD_REQUEST - Description of the value
- * @property {number} FORBIDDEN - Description of the value
- * @property {number} NOT_FOUND - Description of the value
- * @property {number} PROCESSING_ERROR - Description of the value
- * @property {number} TOO_MANY_REQUESTS - Description of the value
- * @todo Add description for the namespace and the values
+ * @property {number} OK
+ * @property {number} EMPTY_RESOURCES_OK
+ * @property {number} NO_CONTENT
+ * @property {number} INTERNAL_SERVER_ERROR
+ * @property {number} BAD_REQUEST
+ * @property {number} FORBIDDEN
+ * @property {number} NOT_FOUND
+ * @property {number} PROCESSING_ERROR
+ * @property {number} TOO_MANY_REQUESTS
+ * @todo Add description for the namespace and the properties
  */
 module.exports = {
 	OK: 200,

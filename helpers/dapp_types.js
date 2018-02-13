@@ -20,8 +20,8 @@
  * @namespace dapp_types
  * @memberof helpers
  * @see Parent: {@link helpers}
- * @property {number} DAPP - Description of the value
- * @property {number} FILE - Description of the value
+ * @property {number} DAPP
+ * @property {number} FILE
  * @todo Add description for the namespace and the properties
  */
 module.exports = {
