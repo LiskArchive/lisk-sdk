@@ -2322,46 +2322,22 @@ describe('blocks/process', () => {
 			);
 		});
 
-		it('should create a modules object { blocks: scope.blocks }', () => {
+		it('should assign params to modules', () => {
+			expect(modules.accounts).to.equal(modulesStub.accounts);
 			expect(modules.blocks).to.equal(modulesStub.blocks);
-		});
-
-		it('should set __private.loaded to true', () => {
-			expect(__private.loaded).to.be.true;
+			expect(modules.delegates).to.equal(modulesStub.delegates);
+			expect(modules.loader).to.equal(modulesStub.loader);
+			expect(modules.rounds).to.equal(modulesStub.rounds);
+			expect(modules.transactions).to.equal(modulesStub.transactions);
+			expect(modules.transport).to.equal(modulesStub.transport);
 		});
 
 		it('should set definitions with swagger.definitions', () => {
 			expect(definitions).to.equal(modulesStub.swagger.definitions);
 		});
 
-		describe('modules', () => {
-			it('should assign accounts', () => {
-				expect(modules.accounts).to.equal(modulesStub.accounts);
-			});
-
-			it('should assign blocks', () => {
-				expect(modules.blocks).to.equal(modulesStub.blocks);
-			});
-
-			it('should assign delegates', () => {
-				expect(modules.delegates).to.equal(modulesStub.delegates);
-			});
-
-			it('should assign loader', () => {
-				expect(modules.loader).to.equal(modulesStub.loader);
-			});
-
-			it('should assign rounds', () => {
-				expect(modules.rounds).to.equal(modulesStub.rounds);
-			});
-
-			it('should assign transactions', () => {
-				expect(modules.transactions).to.equal(modulesStub.transactions);
-			});
-
-			it('should assign transport', () => {
-				expect(modules.transport).to.equal(modulesStub.transport);
-			});
+		it('should set __private.loaded to true', () => {
+			expect(__private.loaded).to.be.true;
 		});
 	});
 });
