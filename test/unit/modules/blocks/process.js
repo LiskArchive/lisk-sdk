@@ -322,153 +322,217 @@ describe('blocks/process', () => {
 				).to.be.true;
 			});
 
-			it('should throw error when library.logic.block.objectNormalize fails', done => {
-				library.logic.block.objectNormalize.throws('objectNormalize-ERR');
+			describe('library.logic.block.objectNormalize', () => {
+				describe('when fails', () => {
+					it('should throw error', done => {
+						library.logic.block.objectNormalize.throws('objectNormalize-ERR');
 
-				__private.receiveForkOne(
-					{ timestamp: 1, id: 2 },
-					{ timestamp: 2, id: 1 },
-					(err, cb) => {
-						expect(err.name).to.equal('objectNormalize-ERR');
-						expect(cb).to.be.undefined;
-						expect(loggerStub.error.args[0][0]).to.equal(
-							'Fork recovery failed'
+						__private.receiveForkOne(
+							{ timestamp: 1, id: 2 },
+							{ timestamp: 2, id: 1 },
+							(err, cb) => {
+								expect(err.name).to.equal('objectNormalize-ERR');
+								expect(cb).to.be.undefined;
+								expect(loggerStub.error.args[0][0]).to.equal(
+									'Fork recovery failed'
+								);
+								expect(loggerStub.error.args[0][1].name).to.equal(
+									'objectNormalize-ERR'
+								);
+								done();
+							}
 						);
-						expect(loggerStub.error.args[0][1].name).to.equal(
-							'objectNormalize-ERR'
-						);
-						done();
-					}
-				);
-			});
-
-			it('should return error when __private.validateBlockSlot fails', done => {
-				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
-				__private.validateBlockSlot.callsArgWith(
-					2,
-					'validateBlockSlot-ERR',
-					null
-				);
-
-				__private.receiveForkOne(
-					{ timestamp: 1, id: 2 },
-					{ timestamp: 2, id: 1 },
-					(err, cb) => {
-						expect(err).to.equal('validateBlockSlot-ERR');
-						expect(cb).to.be.undefined;
-						expect(loggerStub.error.args[0][0]).to.equal(
-							'Fork recovery failed'
-						);
-						expect(loggerStub.error.args[0][1]).to.equal(
-							'validateBlockSlot-ERR'
-						);
-						done();
-					}
-				);
-			});
-
-			it('should return error when modules.blocks.verify.verifyReceipt fails', done => {
-				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
-				__private.validateBlockSlot.callsArgWith(2, null, true);
-				modules.blocks.verify.verifyReceipt.returns({
-					verified: false,
-					errors: ['verifyReceipt-ERR', 'ERR2'],
+					});
 				});
 
-				__private.receiveForkOne(
-					{ timestamp: 10, id: 2 },
-					{ timestamp: 20, id: 1 },
-					(err, cb) => {
-						expect(err).to.equal('verifyReceipt-ERR');
-						expect(cb).to.be.undefined;
-						expect(loggerStub.error.args[0][0]).to.equal(
-							'Block 2 verification failed'
-						);
-						expect(loggerStub.error.args[0][1]).to.equal(
-							'verifyReceipt-ERR, ERR2'
-						);
-						expect(loggerStub.error.args[1][0]).to.equal(
-							'Fork recovery failed'
-						);
-						expect(loggerStub.error.args[1][1]).to.equal('verifyReceipt-ERR');
-						done();
-					}
-				);
-			});
+				describe('when succeeds', () => {
+					describe('__private.validateBlockSlot', () => {
+						describe('when fails', () => {
+							it('should return error', done => {
+								library.logic.block.objectNormalize.returns({
+									timestamp: 1,
+									id: 2,
+								});
+								__private.validateBlockSlot.callsArgWith(
+									2,
+									'validateBlockSlot-ERR',
+									null
+								);
 
-			it('should return error when modules.blocks.chain.deleteLastBlock fails on first call', done => {
-				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
-				__private.validateBlockSlot.callsArgWith(2, null, true);
-				modules.blocks.verify.verifyReceipt.returns({ verified: true });
-				modules.blocks.chain.deleteLastBlock
-					.onCall(0)
-					.callsArgWith(0, 'deleteLastBlock-ERR-call-1', null)
-					.onCall(1)
-					.callsArgWith(0, 'deleteLastBlock-ERR-call-2', null);
+								__private.receiveForkOne(
+									{ timestamp: 1, id: 2 },
+									{ timestamp: 2, id: 1 },
+									(err, cb) => {
+										expect(err).to.equal('validateBlockSlot-ERR');
+										expect(cb).to.be.undefined;
+										expect(loggerStub.error.args[0][0]).to.equal(
+											'Fork recovery failed'
+										);
+										expect(loggerStub.error.args[0][1]).to.equal(
+											'validateBlockSlot-ERR'
+										);
+										done();
+									}
+								);
+							});
+						});
 
-				__private.receiveForkOne(
-					{ timestamp: 10, id: 2 },
-					{ timestamp: 20, id: 1 },
-					(err, cb) => {
-						expect(err).to.equal('deleteLastBlock-ERR-call-1');
-						expect(cb).to.be.undefined;
-						expect(loggerStub.error.args[0][0]).to.equal(
-							'Fork recovery failed'
-						);
-						expect(loggerStub.error.args[0][1]).to.equal(
-							'deleteLastBlock-ERR-call-1'
-						);
-						done();
-					}
-				);
-			});
+						describe('when succeeds', () => {
+							describe('modules.blocks.verify.verifyReceipt', () => {
+								describe('when fails', () => {
+									it('should return error', done => {
+										library.logic.block.objectNormalize.returns({
+											timestamp: 1,
+											id: 2,
+										});
+										__private.validateBlockSlot.callsArgWith(2, null, true);
+										modules.blocks.verify.verifyReceipt.returns({
+											verified: false,
+											errors: ['verifyReceipt-ERR', 'ERR2'],
+										});
 
-			it('should return error when modules.blocks.chain.deleteLastBlock fails on second call', done => {
-				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
-				__private.validateBlockSlot.callsArgWith(2, null, true);
-				modules.blocks.verify.verifyReceipt.returns({ verified: true });
-				modules.blocks.chain.deleteLastBlock
-					.onCall(0)
-					.callsArgWith(0, null, 'delete block 1 ok')
-					.onCall(1)
-					.callsArgWith(0, 'deleteLastBlock-ERR-call-2', null);
+										__private.receiveForkOne(
+											{ timestamp: 10, id: 2 },
+											{ timestamp: 20, id: 1 },
+											(err, cb) => {
+												expect(err).to.equal('verifyReceipt-ERR');
+												expect(cb).to.be.undefined;
+												expect(loggerStub.error.args[0][0]).to.equal(
+													'Block 2 verification failed'
+												);
+												expect(loggerStub.error.args[0][1]).to.equal(
+													'verifyReceipt-ERR, ERR2'
+												);
+												expect(loggerStub.error.args[1][0]).to.equal(
+													'Fork recovery failed'
+												);
+												expect(loggerStub.error.args[1][1]).to.equal(
+													'verifyReceipt-ERR'
+												);
+												done();
+											}
+										);
+									});
+								});
+								describe('when succeeds', () => {
+									describe('modules.blocks.chain.deleteLastBlock (first call)', () => {
+										describe('when fails', () => {
+											it('should return error', done => {
+												library.logic.block.objectNormalize.returns({
+													timestamp: 1,
+													id: 2,
+												});
+												__private.validateBlockSlot.callsArgWith(2, null, true);
+												modules.blocks.verify.verifyReceipt.returns({
+													verified: true,
+												});
+												modules.blocks.chain.deleteLastBlock
+													.onCall(0)
+													.callsArgWith(0, 'deleteLastBlock-ERR-call-1', null)
+													.onCall(1)
+													.callsArgWith(0, 'deleteLastBlock-ERR-call-2', null);
 
-				__private.receiveForkOne(
-					{ timestamp: 10, id: 2 },
-					{ timestamp: 20, id: 1 },
-					(err, cb) => {
-						expect(err).to.equal('deleteLastBlock-ERR-call-2');
-						expect(cb).to.be.undefined;
-						expect(loggerStub.error.args[0][0]).to.equal(
-							'Fork recovery failed'
-						);
-						expect(loggerStub.error.args[0][1]).to.equal(
-							'deleteLastBlock-ERR-call-2'
-						);
-						done();
-					}
-				);
-			});
+												__private.receiveForkOne(
+													{ timestamp: 10, id: 2 },
+													{ timestamp: 20, id: 1 },
+													(err, cb) => {
+														expect(err).to.equal('deleteLastBlock-ERR-call-1');
+														expect(cb).to.be.undefined;
+														expect(loggerStub.error.args[0][0]).to.equal(
+															'Fork recovery failed'
+														);
+														expect(loggerStub.error.args[0][1]).to.equal(
+															'deleteLastBlock-ERR-call-1'
+														);
+														done();
+													}
+												);
+											});
+										});
+										describe('when succeeds', () => {
+											describe('modules.blocks.chain.deleteLastBlock (second call)', () => {
+												describe('when fails', () => {
+													it('should return error', done => {
+														library.logic.block.objectNormalize.returns({
+															timestamp: 1,
+															id: 2,
+														});
+														__private.validateBlockSlot.callsArgWith(
+															2,
+															null,
+															true
+														);
+														modules.blocks.verify.verifyReceipt.returns({
+															verified: true,
+														});
+														modules.blocks.chain.deleteLastBlock
+															.onCall(0)
+															.callsArgWith(0, null, 'delete block 1 ok')
+															.onCall(1)
+															.callsArgWith(
+																0,
+																'deleteLastBlock-ERR-call-2',
+																null
+															);
 
-			it('should return no error', done => {
-				library.logic.block.objectNormalize.returns({ timestamp: 1, id: 2 });
-				__private.validateBlockSlot.callsArgWith(2, null, true);
-				modules.blocks.verify.verifyReceipt.returns({ verified: true });
-				modules.blocks.chain.deleteLastBlock
-					.onCall(0)
-					.callsArgWith(0, null, 'delete block 1 ok')
-					.onCall(1)
-					.callsArgWith(0, null, 'delete block 2 ok');
+														__private.receiveForkOne(
+															{ timestamp: 10, id: 2 },
+															{ timestamp: 20, id: 1 },
+															(err, cb) => {
+																expect(err).to.equal(
+																	'deleteLastBlock-ERR-call-2'
+																);
+																expect(cb).to.be.undefined;
+																expect(loggerStub.error.args[0][0]).to.equal(
+																	'Fork recovery failed'
+																);
+																expect(loggerStub.error.args[0][1]).to.equal(
+																	'deleteLastBlock-ERR-call-2'
+																);
+																done();
+															}
+														);
+													});
+												});
+												describe('when succeeds', () => {
+													it('should return no error', done => {
+														library.logic.block.objectNormalize.returns({
+															timestamp: 1,
+															id: 2,
+														});
+														__private.validateBlockSlot.callsArgWith(
+															2,
+															null,
+															true
+														);
+														modules.blocks.verify.verifyReceipt.returns({
+															verified: true,
+														});
+														modules.blocks.chain.deleteLastBlock
+															.onCall(0)
+															.callsArgWith(0, null, 'delete block 1 ok')
+															.onCall(1)
+															.callsArgWith(0, null, 'delete block 2 ok');
 
-				__private.receiveForkOne(
-					{ timestamp: 10, id: 2 },
-					{ timestamp: 20, id: 1 },
-					(err, cb) => {
-						expect(err).to.be.null;
-						expect(cb).to.be.undefined;
-						done();
-					}
-				);
+														__private.receiveForkOne(
+															{ timestamp: 10, id: 2 },
+															{ timestamp: 20, id: 1 },
+															(err, cb) => {
+																expect(err).to.be.null;
+																expect(cb).to.be.undefined;
+																done();
+															}
+														);
+													});
+												});
+											});
+										});
+									});
+								});
+							});
+						});
+					});
+				});
 			});
 		});
 	});
