@@ -18,6 +18,7 @@ require('colors');
 var mocha = require('mocha');
 var coMocha = require('co-mocha');
 var chai = require('chai');
+var chaiAsPromised = require('chai-as-promised');
 var sinon = require('sinon');
 var sinonChai = require('sinon-chai');
 var supertest = require('supertest');
@@ -28,6 +29,7 @@ coMocha(mocha);
 process.env.NODE_ENV = 'test';
 
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 var testContext = {};
 
