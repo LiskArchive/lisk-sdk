@@ -160,45 +160,25 @@ __private.receiveSignature = function(query, cb) {
  * @private
  * @implements {library.schema.validate}
  * @implements {__private.receiveTransaction}
- * @param {Object} query - Contains transactions
+ * @param {Array} transactions - List of transactions
  * @param {peer} peer
  * @param {string} extraLogMessage
  * @param {function} cb
  * @return {setImmediateCallback} cb, err
  */
-__private.receiveTransactions = function(query, peer, extraLogMessage, cb) {
-	var transactions;
-
-	async.series(
-		{
-			validateSchema: function(seriesCb) {
-				library.schema.validate(query, definitions.WSTransactionsRequest, err => {
-					if (err) {
-						return setImmediate(seriesCb, 'Invalid transactions body');
-					} else {
-						return setImmediate(seriesCb);
-					}
-				});
-			},
-			receiveTransactions: function(seriesCb) {
-				transactions = query.transactions;
-
-				async.eachSeries(
-					transactions,
-					(transaction, eachSeriesCb) => {
-						if (transaction) {
-							transaction.bundled = true;
-						}
-						__private.receiveTransaction(transaction, peer, extraLogMessage, err => {
-							if (err) {
-								library.logger.debug(err, transaction);
-							}
-							return setImmediate(eachSeriesCb);
-						});
-					},
-					seriesCb
-				);
-			},
+__private.receiveTransactions = function(transactions, peer, extraLogMessage, cb) {
+	async.eachSeries(
+		transactions,
+		(transaction, eachSeriesCb) => {
+			if (transaction) {
+				transaction.bundled = true;
+			}
+			__private.receiveTransaction(transaction, peer, extraLogMessage, err => {
+				if (err) {
+					library.logger.debug(err, transaction);
+				}
+				return setImmediate(eachSeriesCb);
+			});
 		},
 		err => setImmediate(cb, err)
 	);
@@ -637,26 +617,31 @@ Transport.prototype.shared = {
 		});
 	},
 
-	postTransactions: function(query, cb) {
-		if (query.transactions && query.transactions.length == 1) {
-			__private.receiveTransaction(
-				query.transactions[0],
-				query.peer,
-				query.extraLogMessage,
-				(err, id) => {
-					if (err) {
-						return setImmediate(cb, null, { success: false, message: err });
-					} else {
-						return setImmediate(cb, null, {
-							success: true,
-							transactionId: id,
-						});
-					}
+	postTransaction: function(query, cb) {
+		__private.receiveTransaction(
+			query.transaction,
+			query.peer,
+			query.extraLogMessage,
+			(err, id) => {
+				if (err) {
+					return setImmediate(cb, null, { success: false, message: err });
+				} else {
+					return setImmediate(cb, null, {
+						success: true,
+						transactionId: id,
+					});
 				}
-			);
-		} else {
+			}
+		);
+	},
+
+	postTransactions: function(query, cb) {
+		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
+			if (err) {
+				return setImmediate(cb, null, { success: false, message: 'Invalid transactions body' });
+			}
 			__private.receiveTransactions(
-				query,
+				query.transactions,
 				query.peer,
 				query.extraLogMessage,
 				err => {
@@ -666,7 +651,7 @@ Transport.prototype.shared = {
 					return setImmediate(cb, null, { success: true });
 				}
 			);
-		}
+		});
 	},
 };
 
