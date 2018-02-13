@@ -19,12 +19,14 @@ var Promise = require('bluebird');
 var apiHelpers = require('../../common/helpers/api');
 var waitFor = require('../../common/utils/wait_for');
 
+// TODO: Skip tests because WS batch transaction processing doesn't currently
+// send back errors or success statuses.
 function confirmation(
 	goodTransactions,
 	badTransactions,
 	pendingMultisignatures
 ) {
-	describe('after transactions get confirmed', () => {
+	describe.skip('after transactions get confirmed', () => {
 		before(() => {
 			return waitFor.confirmations(_.map(goodTransactions, 'id'));
 		});
