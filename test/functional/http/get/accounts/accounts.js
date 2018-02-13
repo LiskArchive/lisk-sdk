@@ -287,7 +287,7 @@ describe('GET /accounts', () => {
 			});
 		});
 
-		describe('sort @unstable', () => {
+		describe('sort', () => {
 			it('using sort = invalid should return error', () => {
 				return accountsEndpoint.makeRequest({ sort: 'invalid' }, 400);
 			});
@@ -307,10 +307,12 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:asc' }, 200)
 					.then(res => {
-						var balances = _(res.body.data)
-							.map('balance')
-							.value();
-						expect(_.clone(balances).sort()).to.be.eql(balances);
+						var balances = _.map(res.body.data, 'balance');
+						expect(
+							_(res.body.data)
+								.map('balance')
+								.sortNumbers()
+						).to.be.eql(balances);
 					});
 			});
 
@@ -318,13 +320,11 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:desc' }, 200)
 					.then(res => {
-						var balances = _(res.body.data)
-							.map('balance')
-							.value();
+						var balances = _.map(res.body.data, 'balance');
 						expect(
-							_.clone(balances)
-								.sort()
-								.reverse()
+							_(res.body.data)
+								.map('balance')
+								.sortNumbers('desc')
 						).to.be.eql(balances);
 					});
 			});
