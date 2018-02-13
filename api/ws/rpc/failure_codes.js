@@ -18,7 +18,7 @@
  * Description of the module.
  *
  * @module
- * @see Parent: {@link helpers}
+ * @see Parent: {@link rpc}
  * @property {number} INVALID_HEADERS
  * @property {number} INCOMPATIBLE_NONCE
  * @property {number} INCOMPATIBLE_NETWORK
