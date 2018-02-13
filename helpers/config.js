@@ -31,8 +31,8 @@ var z_schema = require('./z_schema.js');
  * Loads config.json file.
  *
  * @param {Object} packageJson - Description of the param
- * @returns {Object} configData
- * @todo Add description for the params
+ * @returns {OBject}
+ * @todo Add description for the params and the return value
  */
 function Config(packageJson) {
 	program

@@ -57,7 +57,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	id(str) {
@@ -67,7 +67,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	additionalData(str) {
@@ -81,7 +81,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	address(str) {
@@ -91,7 +91,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	username(str) {
@@ -106,7 +106,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	hex(str) {
@@ -116,7 +116,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	publicKey(str) {
@@ -126,7 +126,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	// Currently this allow empty values e.g. ',,,' or '' - is this correct?
@@ -146,7 +146,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	signature(str) {
@@ -156,7 +156,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {Object} obj - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	queryList(obj) {
@@ -171,7 +171,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {Object} obj - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	delegatesList(obj) {
@@ -187,7 +187,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {number} value - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	parsedInt(value) {
@@ -205,7 +205,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	ip(str) {
@@ -215,7 +215,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	os(str) {
@@ -229,7 +229,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	version(str) {
@@ -242,7 +242,7 @@ var liskFormats = {
 	 * Description of the function.
 	 *
 	 * @param {string} str - Description of the param
-	 * @returns {boolean} Description of the returns-value
+	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
 	 */
 	ipOrFQDN(str) {

@@ -99,7 +99,7 @@ const allFields = _.union(normalFields, immutableFields, dynamicFields);
  * @see Parent: {@link db.repos.accounts}
  * @param {Object} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of an AccountsRepository
+ * @returns {Object} An instance of an AccountsRepository
  */
 class AccountsRepository {
 	constructor(db, pgp) {

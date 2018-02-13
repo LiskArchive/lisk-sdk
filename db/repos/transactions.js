@@ -31,7 +31,7 @@ const cs = {}; // Reusable ColumnSet objects
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a TransactionsRepo
+ * @returns {Object} An instance of a TransactionsRepo
  */
 class TransactionsRepository {
 	constructor(db, pgp) {

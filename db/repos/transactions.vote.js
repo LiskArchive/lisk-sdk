@@ -27,7 +27,7 @@ var columnSet;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a VoteTransactionsRepo
+ * @returns {Object} An instance of a VoteTransactionsRepo
  */
 function VoteTransactionsRepo(db, pgp) {
 	this.db = db;

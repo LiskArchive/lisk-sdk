@@ -247,7 +247,7 @@ Transfer.prototype.objectNormalize = function(transaction) {
 };
 
 /**
- * Checks if asset exists, if so, returns value, otherwise returns null.
+ * Checks if asset exists, if so, return value, otherwise returns null.
  * @param {Object} raw
  * @return {transferAsset|null}
  */

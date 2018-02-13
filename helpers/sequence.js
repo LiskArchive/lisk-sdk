@@ -99,7 +99,7 @@ Sequence.prototype.add = function(worker, args, done) {
 /**
  * Gets pending task in sequence.
  *
- * @returns {number} sequence length
+ * @returns {number} Sequence length
  */
 Sequence.prototype.count = function() {
 	return this.sequence.length;

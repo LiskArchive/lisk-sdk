@@ -31,7 +31,7 @@
  * @param {string} options.sortField - Description of the param
  * @param {string} options.sortMethod - asc / desc
  * @param {Array} options.sortFields - Description of the param
- * @returns {Object} error | {sortField, sortMethod}.
+ * @returns {Object} {error} | {sortField, sortMethod}
  * @todo Add description for the params
  */
 function sortBy(sort, options) {
@@ -155,7 +155,7 @@ function sortBy(sort, options) {
  *
  * @param {string} sortQuery - sortField|sortField:sortOrder
  * @param {Array} sortableFields - Description of the param
- * @returns {Object} returns {} if incorrect format of sortQuery given or if field
+ * @returns {Object} If incorrect format of sortQuery given or if field
  * @todo Add description for the params
  */
 function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {

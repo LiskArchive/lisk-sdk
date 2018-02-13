@@ -25,7 +25,7 @@ const sql = require('../sql').votes;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a VotesRepository
+ * @returns {Object} An instance of a VotesRepository
  */
 class VotesRepository {
 	constructor(db, pgp) {

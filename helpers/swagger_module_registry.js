@@ -28,7 +28,7 @@ var __private = {};
 /**
  * A module to reference the scope of the application between swagger pipeline.
  *
- * @param {Object} scope - Application scope.
+ * @param {Object} scope - Application scope
  */
 function bind(scope) {
 	__private = {

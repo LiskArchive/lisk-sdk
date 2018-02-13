@@ -85,7 +85,7 @@ Validator.prototype.reporter = null;
  *
  * @param {string} name - Description of the param
  * @returns {boolean}
- * @todo Add description for the params
+ * @todo Add description for the params and the return value
  */
 Validator.prototype.hasRule = function(name) {
 	return name in this.rules;
@@ -96,7 +96,7 @@ Validator.prototype.hasRule = function(name) {
  *
  * @param {string} name - Description of the param
  * @returns {*}
- * @todo Add description for the params
+ * @todo Add description for the params and the return value
  */
 Validator.prototype.getRule = function(name) {
 	if (name in this.rules === false) {
@@ -111,10 +111,10 @@ Validator.prototype.getRule = function(name) {
  * @param {*} value - Description of the param
  * @param {Object} rules - Set of rules
  * @param {function} callback - Result callback (err:Error,report:Array,output:*)=
- * @returns {Object} report
+ * @returns {Object} Report object
  * @throws {err} If finish err parameter is true
  * @throws {Error} If callback, async and finished are not valids
- * @todo debug this function and adjust callback function parameter
+ * @todo Debug this function and adjust callback function parameter
  * @todo Add description for the first param
  */
 Validator.prototype.validate = function(value, rules, callback) {
@@ -188,7 +188,7 @@ Validator.prototype.Field = Field;
  * @param {Object} rules - Rule set
  * @param {*=} thisArg - This reference for Validation methods. Optional
  * @returns {Validator.Field}
- * @todo Add description for the returns tag
+ * @todo Add description for the returns value
  */
 Validator.prototype.createField = function(path, value, rules, thisArg) {
 	return new this.Field(this, path, value, rules, thisArg);
@@ -279,7 +279,7 @@ Validator.options = {
  * @param {Object} rules - Set of rules
  * @param {Object} customRules - Customized rule set. Optional
  * @param {function} callback - Assign customRules if it is a function
- * @returns {instance} instance
+ * @returns {instance}
  */
 Validator.validate = function(value, rules, customRules, callback) {
 	if (typeof customRules === 'function') {

@@ -44,7 +44,7 @@ var resolvedSwaggerSpec = null;
 /**
  * Get extended version of swagger validator.
  *
- * @returns {Object} - Instance of z-schema validator.
+ * @returns {Object} Instance of z-schema validator
  */
 function getValidator() {
 	// Get validator instace attached to Swagger
@@ -65,7 +65,7 @@ function getValidator() {
 /**
  * Get resolved swagger spec in JSON format.
  *
- * @returns {Promise} - Resolved promise with content of resolved json spec.
+ * @returns {Promise} Resolved promise with content of resolved json spec
  */
 function getResolvedSwaggerSpec() {
 	if (resolvedSwaggerSpec) {
@@ -91,7 +91,7 @@ function getResolvedSwaggerSpec() {
 /**
  * Get swagger spec in JSON format.
  *
- * @returns {Object} - JSON object with swagger spec.
+ * @returns {Object} JSON object with swagger spec
  */
 function getSwaggerSpec() {
 	return YAML.safeLoad(
@@ -141,7 +141,7 @@ function generateParamsErrorObject(params, messages, codes) {
 /**
  * Get list of undocumented params.
  *
- * @param {object} request - Request object.
+ * @param {object} request - Request object
  * @returns {boolean}
  * @todo Add description for the return value
  */

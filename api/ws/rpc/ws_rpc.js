@@ -256,7 +256,7 @@ ClientRPCStub.prototype.initializeNewConnection = function(connectionState) {
  *
  * @memberof module:api/ws/rpc/wsRPC.ClientRPCStub
  * @param {Object} connectionState
- * @returns {function} function to be called with procedure, to be then called with optional argument and/or callback
+ * @returns {function} To be called with procedure, to be then called with optional argument and/or callback
  * @todo Add description for the function and the params
  * @todo Document this as an instance method (not static)
  */

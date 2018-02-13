@@ -31,7 +31,7 @@ const { sqlRoot } = require('../sql/config');
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a MigrationsRepository
+ * @returns {Object} An instance of a MigrationsRepository
  */
 class MigrationsRepository {
 	constructor(db, pgp) {

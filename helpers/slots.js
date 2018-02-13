@@ -31,7 +31,7 @@ var constants = require('./constants.js');
  * Gets constant time from Lisk epoch.
  *
  * @private
- * @returns {number} epochTime from constants
+ * @returns {number} Lisk epoch time
  */
 function beginEpochTime() {
 	var d = constants.epochTime;
@@ -44,7 +44,7 @@ function beginEpochTime() {
  *
  * @private
  * @param {number|undefined} time - Time in unix seconds
- * @returns {number} current time - Lisk epoch time
+ * @returns {number} Current time - Lisk epoch time
  */
 function getEpochTime(time) {
 	if (time === undefined) {
@@ -65,7 +65,7 @@ module.exports = {
 	 * Description of the function.
 	 *
 	 * @param {number} time - Description of the param
-	 * @returns {number} lisk epoch time constant
+	 * @returns {number} Lisk epoch time
 	 * @todo Add description for the function and the params
 	 */
 	getTime(time) {
@@ -76,7 +76,7 @@ module.exports = {
 	 * Description of the function.
 	 *
 	 * @param {number} [epochTime] - Description of the param
-	 * @returns {number} constant time from Lisk epoch + input time
+	 * @returns {number} Constant time from Lisk epoch + input time
 	 * @todo Add description for the function and the params
 	 */
 	getRealTime(epochTime) {
@@ -93,8 +93,8 @@ module.exports = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {number} [epochTime] - time or
-	 * @returns {number} input time / slot interval.
+	 * @param {number} [epochTime] - Time or
+	 * @returns {number} Input time / slot interval
 	 * @todo Add description for the function and the params
 	 */
 	getSlotNumber(epochTime) {
@@ -108,8 +108,8 @@ module.exports = {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {number} slot - slot number
-	 * @returns {number} input slot * slot interval.
+	 * @param {number} slot - Slot number
+	 * @returns {number} Input slot * slot interval
 	 * @todo Add description for the function and the params
 	 */
 	getSlotTime(slot) {
@@ -119,7 +119,7 @@ module.exports = {
 	/**
 	 * Description of the function.
 	 *
-	 * @returns {number} current slot number + 1.
+	 * @returns {number} Current slot number + 1
 	 * @todo Add description for the function and the params
 	 */
 	getNextSlot() {
@@ -132,7 +132,7 @@ module.exports = {
 	 * Description of the function.
 	 *
 	 * @param {number} nextSlot - Description of the param
-	 * @returns {number} input next slot + delegates
+	 * @returns {number} Input next slot + delegates
 	 * @todo Add description for the function and the params
 	 */
 	getLastSlot(nextSlot) {
@@ -143,7 +143,7 @@ module.exports = {
 	 * Description of the function.
 	 *
 	 * @param {number} nextSlot - Description of the param
-	 * @returns {number} input next slot + delegates
+	 * @returns {number} Input next slot + delegates
 	 * @todo Add description for the function and the params
 	 */
 	roundTime(date) {
@@ -154,7 +154,7 @@ module.exports = {
 	 * Calculates round number from the given height.
 	 *
 	 * @param {number} height - Height from which round is calculated
-	 * @returns {number} Round
+	 * @returns {number} Round number
 	 * @todo Add description for the params
 	 *
 	 */

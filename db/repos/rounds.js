@@ -25,7 +25,7 @@ const sql = require('../sql').rounds;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a RoundsRepository
+ * @returns {Object} An instance of a RoundsRepository
  */
 class RoundsRepository {
 	constructor(db, pgp) {

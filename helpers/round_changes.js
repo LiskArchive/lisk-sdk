@@ -58,7 +58,7 @@ function RoundChanges(scope) {
  * Fees and feesRemaining based on slots.
  *
  * @param {number} index - Description of the param
- * @returns {Object} With fees, feesRemaining, rewards, balance.
+ * @returns {Object} With fees, feesRemaining, rewards, balance
  * @todo Add description for the params
  */
 RoundChanges.prototype.at = function(index) {

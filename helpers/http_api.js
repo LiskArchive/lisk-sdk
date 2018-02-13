@@ -139,7 +139,7 @@ var middleware = {
 	 * @param {string} property - Description of the param
 	 * @param {Object} schema - Description of the param
 	 * @param {function} cb - Description of the param
-	 * @returns {function} Sanitize middleware.
+	 * @returns {function}
 	 * @todo Add description for the params
 	 */
 	sanitize(property, schema, cb) {

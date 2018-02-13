@@ -25,7 +25,7 @@ module.exports = {
 	 * Changes operation sign.
 	 *
 	 * @param {Array} diff - Description of the param
-	 * @returns {Array} reverse sign.
+	 * @returns {Array} Reverse sign
 	 * @todo Add description for the params
 	 */
 	reverse(diff) {

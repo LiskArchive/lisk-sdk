@@ -26,7 +26,7 @@ var httpApi = require('./http_api');
  * @param {string} message - Description of the param
  * @param {number} code - Description of the param
  * @throws {Error} If config is invalid
- * @returns {Object} router express
+ * @returns {Object} Express router
  * @see Parent: {@link helpers}
  * @todo Add description for the params
  */
