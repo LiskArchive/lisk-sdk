@@ -20,7 +20,7 @@ require('../../helpers/transaction_types');
 var columnSet;
 
 /**
- * Multisignature Transactions database interaction class.
+ * Multisignature transactions database interaction class.
  *
  * @class
  * @memberof db.repos
@@ -54,7 +54,7 @@ function MultiSigTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save Multisignature transactions.
+ * Save multisignature transactions.
  *
  * @param {Array} transactions - Description of the param
  * @returns {Promise}

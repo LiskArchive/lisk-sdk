@@ -20,7 +20,7 @@ var Promise = require('bluebird');
 var columnSet;
 
 /**
- * Transfer Transactions database interaction class.
+ * Transfer transactions database interaction class.
  *
  * @class
  * @memberof db.repos

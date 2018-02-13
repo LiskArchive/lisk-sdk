@@ -19,7 +19,7 @@ var _ = require('lodash');
 var columnSet;
 
 /**
- * Votes Transactions database interaction class.
+ * Votes transactions database interaction class.
  *
  * @class
  * @memberof db.repos

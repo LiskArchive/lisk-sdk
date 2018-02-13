@@ -19,7 +19,7 @@ var _ = require('lodash');
 var columnSet;
 
 /**
- * Dapps Transactions database interaction class.
+ * Dapps transactions database interaction class.
  *
  * @class
  * @memberof db.repos
@@ -61,7 +61,7 @@ function DappsTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save Dapp transactions.
+ * Save dapp transactions.
  *
  * @param {Array} transactions
  * @returns {Promise}

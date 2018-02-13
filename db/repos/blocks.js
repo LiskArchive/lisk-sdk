@@ -310,7 +310,7 @@ class BlocksRepository {
 
 // TODO: All these queries need to be thrown away, and use proper implementation inside corresponding methods.
 /**
- * Description of the Object.
+ * Description of the object.
  *
  * @namespace Queries
  * @memberof db.repos.blocks

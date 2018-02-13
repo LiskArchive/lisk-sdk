@@ -19,7 +19,7 @@ var _ = require('lodash');
 var columnSet;
 
 /**
- * Signatures Transactions database interaction class.
+ * Signatures transactions database interaction class.
  *
  * @class
  * @memberof db.repos

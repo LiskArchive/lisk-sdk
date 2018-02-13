@@ -20,7 +20,7 @@ require('../../helpers/transaction_types');
 var columnSet;
 
 /**
- * InTransfer Transactions database interaction class.
+ * InTransfer transactions database interaction class.
  *
  * @class
  * @memberof db.repos
@@ -54,7 +54,7 @@ function InTransferTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save InTransfer transactions.
+ * Save inTransfer transactions.
  *
  * @param {Array} transactions
  * @returns {Promise}

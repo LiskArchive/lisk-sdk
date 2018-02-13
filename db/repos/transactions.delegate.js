@@ -20,7 +20,7 @@ require('../../helpers/transaction_types');
 var columnSet;
 
 /**
- * Delegates Transactions database interaction class.
+ * Delegates transactions database interaction class.
  *
  * @class
  * @memberof db.repos
@@ -54,7 +54,7 @@ function DelegateTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save Dapp transactions.
+ * Save dapp transactions.
  *
  * @param {Array} transactions
  * @returns {Promise}

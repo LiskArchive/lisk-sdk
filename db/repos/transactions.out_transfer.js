@@ -20,7 +20,7 @@ require('../../helpers/transaction_types');
 var columnSet;
 
 /**
- * OutTransfer Transactions database interaction class.
+ * OutTransfer transactions database interaction class.
  *
  * @class
  * @memberof db.repos
@@ -54,7 +54,7 @@ function OutTransferTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save OutTransfer transactions.
+ * Save outTransfer transactions.
  *
  * @param {Array} transactions
  * @returns {Promise}
