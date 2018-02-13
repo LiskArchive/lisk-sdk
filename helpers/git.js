@@ -14,12 +14,6 @@
 
 'use strict';
 
-/*
-*
-*
-* @class git.js
-*/
-
 var childProcess = require('child_process');
 
 /**

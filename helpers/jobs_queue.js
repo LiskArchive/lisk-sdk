@@ -26,7 +26,7 @@
  * Description of the namespace.
  *
  * @namespace jobsQueue
- * @memeberof module:helpers/jobs_queue
+ * @memberof module:helpers/jobs_queue
  * @see Parent: {@link helpers~jobsQueue}
  */
 var jobsQueue = {

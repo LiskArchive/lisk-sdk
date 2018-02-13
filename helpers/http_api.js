@@ -41,7 +41,7 @@ var checkIpInList = require('./check_ip_in_list');
  *
  * @namespace middleware
  * @see Parent: {@link helpers.http_api}
- * @memeberof module:helpers/http_api
+ * @memberof module:helpers/http_api
  */
 var middleware = {
 	/**

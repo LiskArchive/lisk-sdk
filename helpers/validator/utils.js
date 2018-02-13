@@ -33,7 +33,7 @@ exports.inherits = util.inherits;
  *
  * @param {Object} target - Description of the param
  * @todo Add returns-tag
- * @todo Add descriptions of the funciton and its parameters
+ * @todo Add descriptions of the function and its parameters
  */
 function extend(target) {
 	if (!target || typeof target !== 'object') {
@@ -56,7 +56,7 @@ function extend(target) {
  *
  * @param {Object} target - Description of the param
  * @todo Add returns-tag
- * @todo Add descriptions of the funciton and its parameters
+ * @todo Add descriptions of the function and its parameters
  */
 function copy(target) {
 	if (!target || typeof target !== 'object') {

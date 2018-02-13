@@ -45,7 +45,7 @@ var z_schema = swaggerHelper.getValidator();
  *
  * @namespace middleware
  * @see Parent: {@link helpers.ws_api}
- * @memeberof module:helpers/ws_api
+ * @memberof module:helpers/ws_api
  */
 var middleware = {
 	/**

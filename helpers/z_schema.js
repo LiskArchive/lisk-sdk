@@ -58,7 +58,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	id(str) {
 		return str === '' || /^[0-9]+$/g.test(str);
@@ -68,7 +68,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	additionalData(str) {
 		if (typeof str !== 'string') {
@@ -82,7 +82,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	address(str) {
 		return str === '' || /^[0-9]+L$/gi.test(str);
@@ -92,7 +92,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	username(str) {
 		if (typeof str !== 'string') {
@@ -107,7 +107,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	hex(str) {
 		return str === '' || /^[a-f0-9]+$/i.test(str);
@@ -117,7 +117,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	publicKey(str) {
 		return str === '' || /^[a-f0-9]{64}$/i.test(str);
@@ -127,7 +127,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	// Currently this allow empty values e.g. ',,,' or '' - is this correct?
 	csv(str) {
@@ -147,7 +147,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	signature(str) {
 		return str === '' || /^[a-f0-9]{128}$/i.test(str);
@@ -157,7 +157,7 @@ var liskFormats = {
 	 *
 	 * @param {Object} obj - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	queryList(obj) {
 		if (obj == null || typeof obj !== 'object' || _.isArray(obj)) {
@@ -172,7 +172,7 @@ var liskFormats = {
 	 *
 	 * @param {Object} obj - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	delegatesList(obj) {
 		if (obj == null || typeof obj !== 'object' || _.isArray(obj)) {
@@ -188,7 +188,7 @@ var liskFormats = {
 	 *
 	 * @param {number} value - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	parsedInt(value) {
 		if (
@@ -206,7 +206,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	ip(str) {
 		return ip.isV4Format(str);
@@ -216,7 +216,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	os(str) {
 		if (typeof str !== 'string') {
@@ -230,7 +230,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	version(str) {
 		return (
@@ -243,7 +243,7 @@ var liskFormats = {
 	 *
 	 * @param {string} str - Description of the param
 	 * @returns {boolean} Description of the returns-value
-	 * @todo Add descriptions for the function, it's params and returns value
+	 * @todo Add descriptions for the function, its params and returns value
 	 */
 	ipOrFQDN(str) {
 		if (typeof str !== 'string') {
