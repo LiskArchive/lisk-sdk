@@ -16,9 +16,10 @@
 'use strict';
 
 var rewire = require('rewire');
-var modulesLoader = require('../../../common/modules_loader');
-var BlocksProcess = rewire('../../../../modules/blocks/process.js');
 var Promise = require('bluebird');
+var modulesLoader = require('../../../common/modules_loader');
+
+var BlocksProcess = rewire('../../../../modules/blocks/process.js');
 
 describe('blocks/process', () => {
 	var __private;
@@ -47,7 +48,7 @@ describe('blocks/process', () => {
 
 		blockStub = {
 			objectNormalize: sinonSandbox.stub(),
-			create: function(input) {
+			create: input => {
 				return input;
 			},
 		};
@@ -86,10 +87,10 @@ describe('blocks/process', () => {
 			});
 
 		peersStub = {
-			create: function() {
+			create: () => {
 				return peerStub;
 			},
-			me: function() {
+			me: () => {
 				return 'me';
 			},
 			applyHeaders: peerStub.applyHeaders,
