@@ -77,11 +77,30 @@ var middleware = {
 		if (!err) {
 			return next();
 		}
-		logger.error(`API error ${req.url}`, err.message);
-		console.trace(err);
-		res
+		if (err.status === 400 && err.name === 'SyntaxError') {
+			// Express JSON body-parser throws an error with status === 400 if the
+			// payload cannot be parsed to valid JSON, in this case we want to send
+			// a response with status code 400.
+			res
+			.status(400)
+			.send({
+				message: 'Parse errors',
+				errors: [
+					{
+						code: 'INVALID_REQUEST_PAYLOAD',
+						name: 'payload',
+						in: 'query',
+						message: err.message
+					}
+				]
+			});
+		} else {
+			logger.error(`API error ${req.url}`, err.message);
+			console.trace(err);
+			res
 			.status(500)
 			.send({ success: false, error: `API error: ${err.message}` });
+		}
 	},
 
 	/**
