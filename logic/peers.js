@@ -40,7 +40,7 @@ var modules;
  * @param {Object} logger
  * @param {function} cb - Callback function
  * @returns {Immediate} Callback function with `this` as data.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 // Constructor
 function Peers(logger, cb) {
@@ -66,7 +66,7 @@ Peers.prototype.me = function() {
  *
  * @param {peer} peer
  * @returns {peer} peer instance
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Peers.prototype.create = function(peer) {
 	if (!(peer instanceof Peer)) {
@@ -80,7 +80,7 @@ Peers.prototype.create = function(peer) {
  *
  * @param {peer} peer
  * @returns {boolean} True if peer is in peers list
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Peers.prototype.exists = function(peer) {
 	peer = self.create(peer);
@@ -92,7 +92,7 @@ Peers.prototype.exists = function(peer) {
  *
  * @param {peer} peer
  * @returns {peer} peer new or peer from peers
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Peers.prototype.get = function(peer) {
 	if (typeof peer === 'string') {
@@ -108,7 +108,7 @@ Peers.prototype.get = function(peer) {
  * @param {peer} peer
  * @param {boolean} insertOnly - True to only insert
  * @returns {boolean|number} True if operation is success, error code in other case
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Peers.prototype.upsert = function(peer, insertOnly) {
 	// Insert new peer
@@ -206,7 +206,7 @@ Peers.prototype.upsert = function(peer, insertOnly) {
  *
  * @param {peer} peer
  * @returns {boolean|number} True if peer exists, error code in other case
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Peers.prototype.remove = function(peer) {
 	peer = self.create(peer);

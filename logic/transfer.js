@@ -33,7 +33,7 @@ var library;
  * @requires helpers/slots
  * @param {Object} logger
  * @param {Object} schema
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 // Constructor
 function Transfer(logger, schema) {
@@ -48,7 +48,7 @@ function Transfer(logger, schema) {
  * Binds input parameters to private variable modules.
  *
  * @param {Accounts} accounts
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.bind = function(accounts) {
 	modules = {
@@ -62,7 +62,7 @@ Transfer.prototype.bind = function(accounts) {
  * @param {transaction} transaction
  * @param {account} sender
  * @returns {number} fee
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.calculateFee = function(transaction) {
 	var fee = new bignum(constants.fees.send);
@@ -80,7 +80,7 @@ Transfer.prototype.calculateFee = function(transaction) {
  * @param {account} sender
  * @param {function} cb
  * @returns {Immediate} errors | transaction
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.recipientId) {
@@ -101,7 +101,7 @@ Transfer.prototype.verify = function(transaction, sender, cb) {
  * @param {account} sender
  * @param {function} cb
  * @returns {Immediate} cb, null, transaction
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
@@ -113,7 +113,7 @@ Transfer.prototype.process = function(transaction, sender, cb) {
  * @param {transaction} transaction
  * @throws {error} error
  * @returns {buffer} buf
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.getBytes = function(transaction) {
 	var buf;
@@ -139,7 +139,7 @@ Transfer.prototype.getBytes = function(transaction) {
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} error, cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
 	modules.accounts.setAccountAndGet(
@@ -174,7 +174,7 @@ Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} error, cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.undo = function(transaction, block, sender, cb) {
 	modules.accounts.setAccountAndGet(
@@ -205,7 +205,7 @@ Transfer.prototype.undo = function(transaction, block, sender, cb) {
  * @param {account} sender
  * @param {function} cb
  * @returns {Immediate} cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 	return setImmediate(cb);
@@ -218,7 +218,7 @@ Transfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @param {account} sender
  * @param {function} cb
  * @returns {Immediate} cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
 	return setImmediate(cb);
@@ -246,7 +246,7 @@ Transfer.prototype.schema = {
  *
  * @param {transaction} transaction
  * @returns {transaction}
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.objectNormalize = function(transaction) {
 	delete transaction.blockId;
@@ -275,7 +275,7 @@ Transfer.prototype.objectNormalize = function(transaction) {
  *
  * @param {Object} raw
  * @returns {?transferAsset}
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.dbRead = function(raw) {
 	if (raw.tf_data) {
@@ -291,7 +291,7 @@ Transfer.prototype.dbRead = function(raw) {
  * @param {transaction} transaction
  * @param {account} sender
  * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transfer.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {

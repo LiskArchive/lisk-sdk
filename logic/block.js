@@ -41,7 +41,7 @@ var __private = {};
  * @param {Transaction} transaction
  * @param {function} cb - Callback function
  * @returns {Immediate} With `this` as data.
- * @todo Add description of the params
+ * @todo Add description for the params
  */
 // Constructor
 function Block(ed, schema, transaction, cb) {
@@ -64,7 +64,7 @@ function Block(ed, schema, transaction, cb) {
  * @private
  * @param {publicKey} publicKey
  * @returns {address} address
- * @todo Add description of the params
+ * @todo Add description for the params
  */
 __private.getAddressByPublicKey = function(publicKey) {
 	var publicKeyHash = crypto
@@ -89,7 +89,7 @@ __private.getAddressByPublicKey = function(publicKey) {
  *
  * @param {Object} data
  * @returns {block} block
- * @todo Add description of the params
+ * @todo Add description for the params
  */
 Block.prototype.create = function(data) {
 	var transactions = data.transactions.sort((a, b) => {
@@ -182,7 +182,7 @@ Block.prototype.create = function(data) {
  * @param {block} block
  * @param {Object} keypair
  * @returns {signature} block signature
- * @todo Add description of the params
+ * @todo Add description for the params
  */
 Block.prototype.sign = function(block, keypair) {
 	var hash = this.getHash(block);
@@ -196,7 +196,7 @@ Block.prototype.sign = function(block, keypair) {
  * @param {block} block
  * @throws {error} If buffer fails
  * @returns {!Array} Contents as an ArrayBuffer
- * @todo Add description of the function and its params
+ * @todo Add description for the function and the params
  */
 Block.prototype.getBytes = function(block) {
 	var size = 4 + 4 + 8 + 4 + 4 + 8 + 8 + 4 + 4 + 4 + 32 + 32 + 64;
@@ -259,7 +259,7 @@ Block.prototype.getBytes = function(block) {
  * @param {block} block
  * @throws {error} catch error
  * @returns {boolean} verified hash, signature and publicKey
- * @todo Add description of the params
+ * @todo Add description for the params
  */
 Block.prototype.verifySignature = function(block) {
 	var remove = 64;
@@ -389,7 +389,7 @@ Block.prototype.schema = {
  * @param {block} block
  * @throws {string|error} error message | catch error
  * @returns {error|transaction} error string | block normalized
- * @todo Add description of the function and its params
+ * @todo Add description for the function and the params
  */
 Block.prototype.objectNormalize = function(block) {
 	var i;
@@ -427,7 +427,7 @@ Block.prototype.objectNormalize = function(block) {
  *
  * @param {block} block
  * @returns {string} id string
- * @todo Add description of the params
+ * @todo Add description for the params
  */
 Block.prototype.getId = function(block) {
 	var hash = crypto
@@ -448,7 +448,7 @@ Block.prototype.getId = function(block) {
  *
  * @param {block} block
  * @returns {hash} sha256 crypto hash
- * @todo Add description of the params
+ * @todo Add description for the params
  */
 Block.prototype.getHash = function(block) {
 	return crypto
@@ -461,7 +461,7 @@ Block.prototype.getHash = function(block) {
  * Returns send fees from constants.
  *
  * @returns {number} fee
- * @todo delete unused input parameter
+ * @todo Delete unused param
  */
 Block.prototype.calculateFee = function() {
 	return constants.fees.send;
@@ -472,7 +472,7 @@ Block.prototype.calculateFee = function() {
  *
  * @param {Object} raw
  * @returns {null|block} block object
- * @todo Add description of the params
+ * @todo Add description for the params
  */
 Block.prototype.dbRead = function(raw) {
 	if (!raw.b_id) {

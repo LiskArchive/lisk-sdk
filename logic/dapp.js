@@ -41,7 +41,7 @@ __private.unconfirmedAscii = {};
  * @param {Object} logger
  * @param {ZSchema} schema
  * @param {Object} network
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 // Constructor
 function DApp(db, logger, schema, network) {
@@ -76,7 +76,7 @@ DApp.prototype.calculateFee = function() {
  * @param {account} sender
  * @param {function} cb
  * @returns {Immediate} errors | transaction
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 DApp.prototype.verify = function(transaction, sender, cb, tx) {
 	var i;
@@ -228,7 +228,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
  * @param {account} sender
  * @param {function} cb
  * @returns {Immediate} cb, null, transaction
- * @todo Add description of the function and its params
+ * @todo Add description for the function and the params
  */
 DApp.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
@@ -247,7 +247,7 @@ DApp.prototype.process = function(transaction, sender, cb) {
  * @param {transaction} transaction
  * @throws {Error} e
  * @returns {Array} Buffer
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  * @todo Check type and description of the return value
  */
 DApp.prototype.getBytes = function(transaction) {
@@ -306,7 +306,7 @@ DApp.prototype.getBytes = function(transaction) {
  * @param {account} sender
  * @param {function} cb
  * @returns {Immediate} cb
- * @todo Add description of the function and its params
+ * @todo Add description for the function and the params
  */
 DApp.prototype.apply = function(transaction, block, sender, cb) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
@@ -323,7 +323,7 @@ DApp.prototype.apply = function(transaction, block, sender, cb) {
  * @param {account} sender
  * @param {function} cb
  * @returns {Immediate} cb
- * @todo Add description of the function and its params
+ * @todo Add description for the function and the params
  */
 DApp.prototype.undo = function(transaction, block, sender, cb) {
 	return setImmediate(cb);
@@ -337,7 +337,7 @@ DApp.prototype.undo = function(transaction, block, sender, cb) {
  * @param {account} sender
  * @param {function} cb
  * @returns {Immediate} cb|errors
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
@@ -364,7 +364,7 @@ DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @param {account} sender
  * @param {function} cb
  * @returns {Immediate} cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 DApp.prototype.undoUnconfirmed = function(transaction, sender, cb) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
@@ -432,7 +432,7 @@ DApp.prototype.schema = {
  * @param {transaction} transaction
  * @throws {string} Failed to validate dapp schema.
  * @returns {transaction}
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 DApp.prototype.objectNormalize = function(transaction) {
 	for (var i in transaction.asset.dapp) {
@@ -464,7 +464,7 @@ DApp.prototype.objectNormalize = function(transaction) {
  *
  * @param {Object} raw
  * @returns {null|dapp} dapp object
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 DApp.prototype.dbRead = function(raw) {
 	if (!raw.dapp_name) {
@@ -489,7 +489,7 @@ DApp.prototype.dbRead = function(raw) {
  * @param {transaction} transaction
  * @param {function} cb
  * @returns {Immediate} cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 DApp.prototype.afterSave = function(transaction, cb) {
 	if (library) {
@@ -504,7 +504,7 @@ DApp.prototype.afterSave = function(transaction, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 DApp.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {

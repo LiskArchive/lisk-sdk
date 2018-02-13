@@ -28,7 +28,7 @@ var RoundChanges = require('../helpers/round_changes.js');
  * @requires helpers/round_changes
  * @param {Object} scope
  * @param {Task} t
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 // Constructor
 function Round(scope, t) {
@@ -115,7 +115,7 @@ Round.prototype.mergeBlockGenerator = function() {
 /**
  * If outsiders content, calls sql updateMissedBlocks.
  *
- * @todo Add returns tag
+ * @todo Add @returns tag
  */
 Round.prototype.updateMissedBlocks = function() {
 	if (this.scope.roundOutsiders.length === 0) {
@@ -131,8 +131,8 @@ Round.prototype.updateMissedBlocks = function() {
 /**
  * Calls sql getVotes from `mem_round` table.
  *
- * @todo Round must be a param option.
- * @todo Add returns tag
+ * @todo Round must be a param option
+ * @todo Add @returns tag
  */
 Round.prototype.getVotes = function() {
 	return (this.t || this.scope.library.db).rounds.getVotes(this.scope.round);

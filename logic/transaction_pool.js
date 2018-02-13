@@ -261,7 +261,7 @@ TransactionPool.prototype.getMultisignatureTransactionList = function(
  * @param {boolean} reverse - Reverse order of results
  * @param {number} limit - Limit applied to results
  * @returns {Object[]} Of unconfirmed, multisignatures, queued transactions
- * @todo Limit is only implemented with queued transactions.
+ * @todo Limit is only implemented with queued transactions
  */
 TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
 	var minLimit = constants.maxTxsPerBlock + 2;
@@ -452,7 +452,6 @@ TransactionPool.prototype.countMultisignature = function() {
  * @param {boolean} broadcast - Broadcast flag
  * @param {function} cb - Callback function
  * @returns {Immediate} err, transactions
- * @todo
  */
 TransactionPool.prototype.receiveTransactions = function(
 	transactions,

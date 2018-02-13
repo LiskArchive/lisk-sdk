@@ -34,7 +34,7 @@ var self;
  * @requires helpers/exceptions
  * @param {logger} logger
  * @param {ZSchema} schema
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 function Delegate(logger, schema) {
 	self = this;
@@ -49,7 +49,7 @@ function Delegate(logger, schema) {
  * Binds input parameters to private variables modules.
  *
  * @param {Accounts} accounts
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Delegate.prototype.bind = function(accounts) {
 	modules = {
@@ -62,7 +62,7 @@ Delegate.prototype.bind = function(accounts) {
  *
  * @see {@link helpers/constants}
  * @returns {number} constants.fees.delegate
- * @todo Delete unused transaction, sender parameters.
+ * @todo Delete unused transaction, sender parameters
  */
 Delegate.prototype.calculateFee = function() {
 	return constants.fees.delegate;
@@ -75,7 +75,7 @@ Delegate.prototype.calculateFee = function() {
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate|Object} Returns error if invalid parameter | transaction validated.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 	if (transaction.recipientId) {
@@ -145,8 +145,8 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} Null error
- * @todo Delete unused sender parameter.
- * @todo Add descriptions for the params
+ * @todo Delete unused sender parameter
+ * @todo Add description for the params
  */
 Delegate.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
@@ -158,7 +158,7 @@ Delegate.prototype.process = function(transaction, sender, cb) {
  * @param {transaction} transaction
  * @returns {null|string} Returns null if no delegate| buffer.
  * @throws {error} If buffer fails.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Delegate.prototype.getBytes = function(transaction) {
 	if (!transaction.asset.delegate.username) {
@@ -183,7 +183,7 @@ Delegate.prototype.getBytes = function(transaction) {
  * @param {string} username - Key to check transaction with (username / u_username)
  * @param {string} isDelegate - Key to check transaction with (isDelegate / u_isDelegate)
  * @param {function} cb - Callback function
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Delegate.prototype.checkDuplicates = function(
 	transaction,
@@ -229,7 +229,7 @@ Delegate.prototype.checkDuplicates = function(
  *
  * @param {transaction} transaction
  * @param {function} cb - Callback function
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Delegate.prototype.checkConfirmed = function(transaction, cb, tx) {
 	self.checkDuplicates(
@@ -253,7 +253,7 @@ Delegate.prototype.checkConfirmed = function(transaction, cb, tx) {
  *
  * @param {transaction} transaction
  * @param {function} cb - Callback function
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
 	self.checkDuplicates(
@@ -272,7 +272,8 @@ Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Add descriptions for the params
+ * @todo Delete unused block parameter
+ * @todo Add description for the params
  */
 Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
 	var data = {
@@ -305,7 +306,8 @@ Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Add descriptions for the params
+ * @todo Delete unused block parameter
+ * @todo Add description for the params
  */
 Delegate.prototype.undo = function(transaction, block, sender, cb) {
 	var data = {
@@ -326,7 +328,7 @@ Delegate.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 	var data = {
@@ -357,7 +359,7 @@ Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Delegate.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 	var data = {
@@ -389,7 +391,7 @@ Delegate.prototype.schema = {
  * @param {transaction} transaction
  * @returns {err|transaction} Error message if fails validation | input parameter.
  * @throws {string} Failed to validate delegate schema.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Delegate.prototype.objectNormalize = function(transaction) {
 	var report = library.schema.validate(
@@ -432,7 +434,7 @@ Delegate.prototype.dbRead = function(raw) {
  * @param {transaction} transaction
  * @param {account} sender
  * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Delegate.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {

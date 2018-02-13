@@ -29,7 +29,7 @@ var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
  * @requires api/ws/rpc/ws_rpc
  * @param {peer} peer
  * @returns calls accept method
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 // Constructor
 function Peer(peer) {
@@ -90,7 +90,7 @@ Peer.STATE = {
  *
  * @param {peer} peer
  * @returns {Object} this
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Peer.prototype.accept = function(peer) {
 	// Normalize peer data
@@ -120,7 +120,7 @@ Peer.prototype.accept = function(peer) {
  *
  * @param {peer} peer
  * @returns {peer}
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Peer.prototype.normalize = function(peer) {
 	if (peer.height) {
@@ -143,7 +143,7 @@ Peer.prototype.normalize = function(peer) {
  * @param {number} integer
  * @param {number} [fallback]
  * @returns {number} if not integer returns fallback
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Peer.prototype.parseInt = function(integer, fallback) {
 	integer = parseInt(integer);
@@ -157,7 +157,7 @@ Peer.prototype.parseInt = function(integer, fallback) {
  *
  * @param {Object} headers
  * @returns {Object} headers normalized
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Peer.prototype.applyHeaders = function(headers) {
 	headers = headers || {};
@@ -171,7 +171,7 @@ Peer.prototype.applyHeaders = function(headers) {
  *
  * @param {peer} peer
  * @returns {Object} this
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Peer.prototype.update = function(peer) {
 	peer = this.normalize(peer);
@@ -195,7 +195,7 @@ Peer.prototype.update = function(peer) {
  * Description of the function.
  *
  * @returns {peer} clones current peer
- * @todo Add description of the function
+ * @todo Add description for the function
  */
 Peer.prototype.object = function() {
 	var copy = {};

@@ -45,7 +45,7 @@ const __private = {};
  * @property {account_model} model
  * @property {account_schema} schema
  * @return {setImmediateCallback} error, this
- * @todo Add description of the params
+ * @todo Add description for the params
  */
 class Account {
 	constructor(db, schema, logger, cb) {

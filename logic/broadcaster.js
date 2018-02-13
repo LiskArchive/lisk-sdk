@@ -45,7 +45,7 @@ var __private = {};
  * @param {Peers} peers - Peers instance
  * @param {Transaction} transaction - Transaction instance
  * @param {Object} logger
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 // Constructor
 function Broadcaster(broadcasts, force, peers, transaction, logger) {
@@ -106,7 +106,7 @@ function Broadcaster(broadcasts, force, peers, transaction, logger) {
  * @param {Peers} peers
  * @param {Transport} transport
  * @param {Transactions} transactions
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 Broadcaster.prototype.bind = function(peers, transport, transactions) {
 	modules = {
@@ -122,7 +122,7 @@ Broadcaster.prototype.bind = function(peers, transport, transactions) {
  * @param {Object} params
  * @param {function} cb
  * @returns {Immediate} err | peers
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 Broadcaster.prototype.getPeers = function(params, cb) {
 	params.limit = params.limit || self.config.peerLimit;
@@ -154,7 +154,7 @@ Broadcaster.prototype.getPeers = function(params, cb) {
  * @param {Object} params
  * @param {Object} options
  * @returns {Object[]} queue private variable with new data
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 Broadcaster.prototype.enqueue = function(params, options) {
 	options.immediate = false;
@@ -168,7 +168,7 @@ Broadcaster.prototype.enqueue = function(params, options) {
  * @param {Object} options
  * @param {function} cb
  * @returns {Immediate} err | peers
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 Broadcaster.prototype.broadcast = function(params, options, cb) {
 	options.data.peer = library.logic.peers.me();
@@ -232,7 +232,7 @@ Broadcaster.prototype.broadcast = function(params, options, cb) {
  *
  * @param {Object} object
  * @returns {boolean} True if Broadcast relays exhausted
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 Broadcaster.prototype.maxRelays = function(object) {
 	if (!Number.isInteger(object.relays)) {
@@ -254,7 +254,7 @@ Broadcaster.prototype.maxRelays = function(object) {
  * @private
  * @param {function} cb
  * @returns {Immediate} cb
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 __private.filterQueue = function(cb) {
 	library.logger.debug(`Broadcasts before filtering: ${self.queue.length}`);
@@ -288,7 +288,7 @@ __private.filterQueue = function(cb) {
  * @param {transaction} transaction
  * @param {function} cb
  * @returns {Immediate} cb, null, boolean
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 __private.filterTransaction = function(transaction, cb) {
 	if (transaction !== undefined) {
@@ -308,7 +308,7 @@ __private.filterTransaction = function(transaction, cb) {
  * @private
  * @param {Object} broadcasts
  * @returns {Object[]} squashed routes
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 __private.squashQueue = function(broadcasts) {
 	var grouped = _.groupBy(broadcasts, broadcast => broadcast.options.api);
@@ -342,7 +342,7 @@ __private.squashQueue = function(broadcasts) {
  * @private
  * @param {function} cb
  * @returns {Immediate} cb
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 __private.releaseQueue = function(cb) {
 	library.logger.debug('Releasing enqueued broadcasts');

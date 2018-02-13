@@ -51,7 +51,7 @@ function BlockReward() {
  * @param {number} height
  * @returns {number}
  * @throws Invalid block height
- * @todo Add description of the param and return value
+ * @todo Add description for the params and the return value
  */
 __private.parseHeight = function(height) {
 	if (isNaN(height)) {
@@ -67,7 +67,7 @@ __private.parseHeight = function(height) {
  *
  * @param {number} height
  * @returns {number}
- * @todo Add description of the function, param and return value
+ * @todo Add description for the function, params and the return value
  */
 BlockReward.prototype.calcMilestone = function(height) {
 	height = __private.parseHeight(height);
@@ -86,7 +86,7 @@ BlockReward.prototype.calcMilestone = function(height) {
  *
  * @param {number} height
  * @returns {number}
- * @todo Add description of the function, param and return value
+ * @todo Add description for the function, params and the return value
  */
 BlockReward.prototype.calcReward = function(height) {
 	height = __private.parseHeight(height);
@@ -102,7 +102,7 @@ BlockReward.prototype.calcReward = function(height) {
  *
  * @param {number} height
  * @returns {number}
- * @todo Add description of the function, param and return value
+ * @todo Add description for the function, params and the return value
  */
 BlockReward.prototype.calcSupply = function(height) {
 	height = __private.parseHeight(height);

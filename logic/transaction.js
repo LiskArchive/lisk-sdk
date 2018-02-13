@@ -62,7 +62,7 @@ __private.types = {};
  * @param {Object} logger
  * @param {function} cb - Callback function
  * @returns {Immediate} With `this` as data.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 // Constructor
 function Transaction(db, ed, schema, genesisblock, account, logger, cb) {
@@ -88,7 +88,7 @@ function Transaction(db, ed, schema, genesisblock, account, logger, cb) {
  * @param {Object} instance
  * @throws {string} Invalid instance interface if validations are wrong
  * @returns {Object} instance
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.attachAssetType = function(typeId, instance) {
 	if (
@@ -117,7 +117,7 @@ Transaction.prototype.attachAssetType = function(typeId, instance) {
  * @param {Object} keypair - Constains privateKey and publicKey
  * @param {transaction} transaction
  * @returns {signature} sign
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.sign = function(keypair, transaction) {
 	var hash = this.getHash(transaction);
@@ -130,7 +130,7 @@ Transaction.prototype.sign = function(keypair, transaction) {
  * @param {Object} keypair - Constains privateKey and publicKey
  * @param {transaction} transaction
  * @returns {signature} sign
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.multisign = function(keypair, transaction) {
 	var bytes = this.getBytes(transaction, true, true);
@@ -145,8 +145,8 @@ Transaction.prototype.multisign = function(keypair, transaction) {
  * Calculates transaction id based on transaction
  *
  * @param {transaction} transaction
- * @returns {string} id@todo Add descriptions for the params
- *
+ * @returns {string} id
+ * @todo Add description for the params
  */
 Transaction.prototype.getId = function(transaction) {
 	var hash = this.getHash(transaction);
@@ -164,7 +164,7 @@ Transaction.prototype.getId = function(transaction) {
  *
  * @param {transaction} transaction
  * @returns {hash} sha256 crypto hash
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.getHash = function(transaction) {
 	return crypto
@@ -182,7 +182,7 @@ Transaction.prototype.getHash = function(transaction) {
  * @param {boolean} skipSecondSignature
  * @throws {error} If buffer fails.
  * @returns {!Array} Contents as an ArrayBuffer.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.getBytes = function(
 	transaction,
@@ -274,7 +274,7 @@ Transaction.prototype.getBytes = function(
  * @param {transaction} transaction
  * @param {account} sender
  * @returns {function|boolean} calls `ready` | false
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.ready = function(transaction, sender) {
 	if (!__private.types[transaction.type]) {
@@ -298,7 +298,7 @@ Transaction.prototype.ready = function(transaction, sender) {
  * @param {transaction} transaction
  * @param {function} cb
  * @returns {Immediate} error | row.count
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.countById = function(transaction, cb) {
 	self.scope.db.transactions
@@ -316,7 +316,7 @@ Transaction.prototype.countById = function(transaction, cb) {
  * @param {transaction} transaction
  * @param {function} cb
  * @returns {Immediate} error | cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.checkConfirmed = function(transaction, cb) {
 	this.countById(transaction, (err, count) => {
@@ -340,7 +340,7 @@ Transaction.prototype.checkConfirmed = function(transaction, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @returns {Object} With exceeded boolean and error: address, balance
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.checkBalance = function(
 	amount,
@@ -375,7 +375,7 @@ Transaction.prototype.checkBalance = function(
  * @param {account} requester
  * @param {function} cb
  * @returns {Immediate} validation errors | transaction
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.process = function(
 	transaction,
@@ -446,7 +446,7 @@ Transaction.prototype.process = function(
  * @param {account} requester
  * @param {function} cb
  * @returns {Immediate} validation errors | transaction
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.verify = function(
 	transaction,
@@ -738,7 +738,7 @@ Transaction.prototype.verify = function(
  * @param {signature} signature
  * @throws {error}
  * @returns {boolean}
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.verifySignature = function(
 	transaction,
@@ -773,7 +773,7 @@ Transaction.prototype.verifySignature = function(
  * @param {signature} signature
  * @throws {error}
  * @returns {boolean}
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.verifySecondSignature = function(
 	transaction,
@@ -808,7 +808,7 @@ Transaction.prototype.verifySecondSignature = function(
  * @param {signature} signature
  * @throws {error}
  * @returns {boolean} verified hash, signature and publicKey
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.verifyBytes = function(bytes, publicKey, signature) {
 	var res;
@@ -848,7 +848,7 @@ Transaction.prototype.verifyBytes = function(bytes, publicKey, signature) {
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} for errors | cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.apply = function(transaction, block, sender, cb, tx) {
 	if (!this.ready(transaction, sender)) {
@@ -925,7 +925,7 @@ Transaction.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} for errors | cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.undo = function(transaction, block, sender, cb) {
 	var amount = new bignum(transaction.amount.toString());
@@ -986,7 +986,7 @@ Transaction.prototype.undo = function(transaction, block, sender, cb) {
  * @param {account} requester
  * @param {function} cb - Callback function
  * @returns {Immediate} for errors | cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.applyUnconfirmed = function(
 	transaction,
@@ -1061,7 +1061,7 @@ Transaction.prototype.applyUnconfirmed = function(
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} for errors | cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 	var amount = new bignum(transaction.amount.toString());
@@ -1105,7 +1105,7 @@ Transaction.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
  * @param {transaction} transaction
  * @param {function} cb
  * @returns {Immediate} error string | cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.afterSave = function(transaction, cb) {
 	var tx_type = __private.types[transaction.type];
@@ -1219,7 +1219,7 @@ Transaction.prototype.schema = {
  * @param {transaction} transaction
  * @throws {string} error message
  * @returns {error|transaction} error string | transaction normalized
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.objectNormalize = function(transaction) {
 	if (_.isEmpty(transaction)) {
@@ -1278,7 +1278,7 @@ Transaction.prototype.objectNormalize = function(transaction) {
  * @param {Object} raw
  * @throws {string} Unknown transaction type
  * @returns {null|transaction}
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Transaction.prototype.dbRead = function(raw) {
 	if (!raw.t_id) {

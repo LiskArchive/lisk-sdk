@@ -43,7 +43,7 @@ var self;
  * @requires helpers/slots
  * @param {Object} logger
  * @param {ZSchema} schema
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 function Vote(logger, schema) {
 	self = this;
@@ -58,7 +58,7 @@ function Vote(logger, schema) {
  * Binds module content to private object modules.
  *
  * @param {Delegates} delegates
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Vote.prototype.bind = function(delegates) {
 	modules = {
@@ -83,7 +83,7 @@ Vote.prototype.calculateFee = function() {
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate|function} returns error if invalid field | calls checkConfirmedDelegates
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Vote.prototype.verify = function(transaction, sender, cb, tx) {
 	if (transaction.recipientId !== transaction.senderId) {
@@ -163,7 +163,7 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
  * @param {Object} vote
  * @param {function} cb - Callback function
  * @returns {Immediate} error message | cb
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Vote.prototype.verifyVote = function(vote, cb) {
 	if (typeof vote !== 'string') {
@@ -187,7 +187,7 @@ Vote.prototype.verifyVote = function(vote, cb) {
  * @param {transaction} transaction
  * @param {function} cb - Callback function
  * @returns {Immediate} cb, err(if transaction id is not in exceptions votes list)
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
 	modules.delegates.checkConfirmedDelegates(
@@ -212,7 +212,7 @@ Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
  * @param {Object} transaction
  * @param {function} cb
  * @returns {Immediate} cb, err(if transaction id is not in exceptions votes list)
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
 	modules.delegates.checkUnconfirmedDelegates(
@@ -238,7 +238,7 @@ Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
  * @param {account} sender
  * @param {function} cb
  * @returns {Immediate} cb, null, transaction
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Vote.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
@@ -250,7 +250,7 @@ Vote.prototype.process = function(transaction, sender, cb) {
  * @param {transaction} transaction
  * @throws {Error} e
  * @returns {Array} Buffer
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  * @todo Check type and description of the return value
  */
 Vote.prototype.getBytes = function(transaction) {
@@ -275,8 +275,8 @@ Vote.prototype.getBytes = function(transaction) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo delete unnecessary var parent = this
- * @todo Add descriptions for the params
+ * @todo Delete unnecessary var parent = this
+ * @todo Add description for the params
  */
 Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
 	var parent = this;
@@ -312,7 +312,7 @@ Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} cb, err
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Vote.prototype.undo = function(transaction, block, sender, cb) {
 	if (transaction.asset.votes === null) {
@@ -339,8 +339,8 @@ Vote.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo delete unnecessary var parent = this
- * @todo Add descriptions for the params
+ * @todo Delete unnecessary var parent = this
+ * @todo Add description for the params
  */
 Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 	var parent = this;
@@ -373,7 +373,7 @@ Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} cb, err
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Vote.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 	if (transaction.asset.votes === null) {
@@ -415,8 +415,8 @@ Vote.prototype.schema = {
  * @param {transaction} transaction
  * @throws {string} Failed to validate vote schema
  * @returns {transaction}
- * @todo should pass transaction.asset.vote to validate?
- * @todo Add descriptions for the params
+ * @todo Should pass transaction.asset.vote to validate?
+ * @todo Add description for the params
  */
 Vote.prototype.objectNormalize = function(transaction) {
 	var report = library.schema.validate(
@@ -439,7 +439,7 @@ Vote.prototype.objectNormalize = function(transaction) {
  *
  * @param {Object} raw
  * @returns {null|votes} votes object
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Vote.prototype.dbRead = function(raw) {
 	if (!raw.v_votes) {
@@ -456,7 +456,7 @@ Vote.prototype.dbRead = function(raw) {
  * @param {transaction} transaction
  * @param {account} sender
  * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Vote.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {

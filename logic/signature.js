@@ -31,7 +31,7 @@ var library;
  * @requires helpers/constants
  * @param {ZSchema} schema
  * @param {Object} logger
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 // Constructor
 function Signature(schema, logger) {
@@ -45,7 +45,7 @@ function Signature(schema, logger) {
  * Binds input parameters to private variable modules.
  *
  * @param {Accounts} accounts
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Signature.prototype.bind = function(accounts) {
 	modules = {
@@ -71,7 +71,7 @@ Signature.prototype.calculateFee = function() {
  * @param {function} cb - Callback function
  * @returns {Immediate|transaction} returns error string if invalid parameter |
  * transaction validated.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Signature.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.asset || !transaction.asset.signature) {
@@ -104,8 +104,8 @@ Signature.prototype.verify = function(transaction, sender, cb) {
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} Null error
- * @todo check extra parameter sender.
- * @todo Add descriptions for the params
+ * @todo Check extra parameter sender
+ * @todo Add description for the params
  */
 Signature.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
@@ -118,7 +118,7 @@ Signature.prototype.process = function(transaction, sender, cb) {
  * @param {transaction} transaction - Uses multisignature from asset
  * @throws {error} If buffer fails.
  * @returns {!Array} Contents as an ArrayBuffer.
- * @todo check if this function is called.
+ * @todo Check if this function is called
  */
 Signature.prototype.getBytes = function(transaction) {
 	var bb;
@@ -170,7 +170,7 @@ Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block - Unnecessary parameter
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Signature.prototype.undo = function(transaction, block, sender, cb) {
 	modules.accounts.setAccountAndGet(
@@ -192,7 +192,7 @@ Signature.prototype.undo = function(transaction, block, sender, cb) {
  * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} Error if second signature is already enabled
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 	if (sender.u_secondSignature || sender.secondSignature) {
@@ -213,7 +213,7 @@ Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
  * @param {block} block - Unnecessary parameter
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Signature.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 	modules.accounts.setAccountAndGet(
@@ -266,7 +266,7 @@ Signature.prototype.objectNormalize = function(transaction) {
  *
  * @param {Object} raw - Data from database
  * @returns {multisignature} signature Object with transaction id.
- * @todo check if this function is called.
+ * @todo Check if this function is called
  */
 Signature.prototype.dbRead = function(raw) {
 	if (!raw.s_publicKey) {
@@ -286,7 +286,7 @@ Signature.prototype.dbRead = function(raw) {
  * @param {transaction} transaction
  * @param {account} sender
  * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
- * @todo Add descriptions for the params
+ * @todo Add description for the params
  */
 Signature.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
