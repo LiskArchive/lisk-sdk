@@ -38,9 +38,9 @@ const __private = {};
  * @requires helpers/sort_by
  * @requires helpers/bignum
  * @requires logic/block_reward
- * @param {Database} db - Description of the param
- * @param {ZSchema} schema - Description of the param
- * @param {Object} logger - Description of the param
+ * @param {Database} db
+ * @param {ZSchema} schema
+ * @param {Object} logger
  * @param {function} cb - Callback function
  * @property {account_model} model
  * @property {account_schema} schema

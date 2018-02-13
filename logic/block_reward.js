@@ -48,7 +48,7 @@ function BlockReward() {
  * Returns absolute value from number.
  *
  * @private
- * @param {number} height - Description of the param
+ * @param {number} height
  * @returns {number}
  * @throws Invalid block height
  * @todo Add description of the param and return value
@@ -65,7 +65,7 @@ __private.parseHeight = function(height) {
 /**
  * Description of the function.
  *
- * @param {number} height - Description of the param
+ * @param {number} height
  * @returns {number}
  * @todo Add description of the function, param and return value
  */
@@ -84,7 +84,7 @@ BlockReward.prototype.calcMilestone = function(height) {
 /**
  * Description of the function.
  *
- * @param {number} height - Description of the param
+ * @param {number} height
  * @returns {number}
  * @todo Add description of the function, param and return value
  */
@@ -100,7 +100,7 @@ BlockReward.prototype.calcReward = function(height) {
 /**
  * Description of the function.
  *
- * @param {number} height - Description of the param
+ * @param {number} height
  * @returns {number}
  * @todo Add description of the function, param and return value
  */

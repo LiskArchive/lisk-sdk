@@ -40,11 +40,11 @@ var __private = {};
  * @requires helpers/constants
  * @requires helpers/jobs_queue
  * @requires helpers/bson
- * @param {Object} broadcasts - Description of the param
- * @param {boolean} force - Description of the param
- * @param {Peers} peers - from logic, Peers instance
- * @param {Transaction} transaction - from logic, Transaction instance
- * @param {Object} logger - Description of the param
+ * @param {Object} broadcasts
+ * @param {boolean} force
+ * @param {Peers} peers - Peers instance
+ * @param {Transaction} transaction - Transaction instance
+ * @param {Object} logger
  * @todo Add descriptions of the params
  */
 // Constructor
@@ -103,9 +103,9 @@ function Broadcaster(broadcasts, force, peers, transaction, logger) {
 /**
  * Binds input parameters to private variables modules.
  *
- * @param {Peers} peers - Description of the param
- * @param {Transport} transport - Description of the param
- * @param {Transactions} transactions - Description of the param
+ * @param {Peers} peers
+ * @param {Transport} transport
+ * @param {Transactions} transactions
  * @todo Add descriptions of the params
  */
 Broadcaster.prototype.bind = function(peers, transport, transactions) {
@@ -119,8 +119,8 @@ Broadcaster.prototype.bind = function(peers, transport, transactions) {
 /**
  * Calls peers.list function to get peers.
  *
- * @param {Object} params - Description of the param
- * @param {function} cb - Description of the param
+ * @param {Object} params
+ * @param {function} cb
  * @returns {Immediate} err | peers
  * @todo Add descriptions of the params
  */
@@ -151,8 +151,8 @@ Broadcaster.prototype.getPeers = function(params, cb) {
 /**
  * Adds new object {params, options} to queue array.
  *
- * @param {Object} params - Description of the param
- * @param {Object} options - Description of the param
+ * @param {Object} params
+ * @param {Object} options
  * @returns {Object[]} queue private variable with new data
  * @todo Add descriptions of the params
  */
@@ -164,9 +164,9 @@ Broadcaster.prototype.enqueue = function(params, options) {
 /**
  * Gets peers and for each peer create it and broadcast.
  *
- * @param {Object} params - Description of the param
- * @param {Object} options - Description of the param
- * @param {function} cb - Description of the param
+ * @param {Object} params
+ * @param {Object} options
+ * @param {function} cb
  * @returns {Immediate} err | peers
  * @todo Add descriptions of the params
  */
@@ -230,7 +230,7 @@ Broadcaster.prototype.broadcast = function(params, options, cb) {
 /**
  * Counts relays and valid limit.
  *
- * @param {Object} object - Description of the param
+ * @param {Object} object
  * @returns {boolean} True if Broadcast relays exhausted
  * @todo Add descriptions of the params
  */
@@ -252,7 +252,7 @@ Broadcaster.prototype.maxRelays = function(object) {
  * Filters private queue based on broadcasts.
  *
  * @private
- * @param {function} cb - Description of the param
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add descriptions of the params
  */
@@ -285,8 +285,8 @@ __private.filterQueue = function(cb) {
  * Checks if transaction is in pool or confirm it.
  *
  * @private
- * @param {transaction} transaction - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {function} cb
  * @returns {Immediate} cb, null, boolean
  * @todo Add descriptions of the params
  */
@@ -306,7 +306,7 @@ __private.filterTransaction = function(transaction, cb) {
  * Groups broadcasts by api.
  *
  * @private
- * @param {Object} broadcasts - Description of the param
+ * @param {Object} broadcasts
  * @returns {Object[]} squashed routes
  * @todo Add descriptions of the params
  */
@@ -340,7 +340,7 @@ __private.squashQueue = function(broadcasts) {
  * - broadcast
  *
  * @private
- * @param {function} cb - Description of the param
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add descriptions of the params
  */

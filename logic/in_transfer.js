@@ -32,8 +32,8 @@ var shared;
  * @requires helpers/constants
  * @requires helpers/milestones
  * @requires helpers/slots
- * @param {Database} db - Description of the param
- * @param {ZSchema} schema - Description of the param
+ * @param {Database} db
+ * @param {ZSchema} schema
  * @todo Add descriptions for the params
  */
 // Constructor
@@ -48,8 +48,8 @@ function InTransfer(db, schema) {
 /**
  * Binds input parameters to private variables modules and shared.
  *
- * @param {Accounts} accounts - Description of the param
- * @param {Object} sharedApi - Description of the param
+ * @param {Accounts} accounts
+ * @param {Object} sharedApi
  * @todo Add descriptions for the params
  */
 InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
@@ -63,8 +63,8 @@ InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
 /**
  * Returns send fee from constants.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
  * @returns {number} fee
  * @todo Add descriptions for the params
  */
@@ -76,9 +76,9 @@ InTransfer.prototype.calculateFee = function() {
  * Verifies recipientId, amount and InTransfer object content.
  * Finds application into `dapps` table.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} errors message | transaction
  * @todo Add descriptions for the params
  */
@@ -117,9 +117,9 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 /**
  * Description of the function.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} cb, null, transaction
  * @todo Add descriptions for the params
  */
@@ -131,7 +131,7 @@ InTransfer.prototype.process = function(transaction, sender, cb) {
  * Creates buffer with inTransfer content:
  * - dappId
  *
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @returns {Array} Buffer
  * @throws {Error} e
  * @todo Add descriptions for the params
@@ -156,9 +156,9 @@ InTransfer.prototype.getBytes = function(transaction) {
  * Calls mergeAccountAndGet with unconfirmed transaction amount and authorId as
  * address.
  *
- * @param {transaction} transaction - Description of the param
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} error, cb
  * @todo Add descriptions for the params
@@ -191,9 +191,9 @@ InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * Calls mergeAccountAndGet with authorId as address and unconfirmed
  * transaction amount and balance both negatives.
  *
- * @param {transaction} transaction - Description of the param
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} error, cb
  * @todo Add descriptions for the params
@@ -222,9 +222,9 @@ InTransfer.prototype.undo = function(transaction, block, sender, cb) {
 /**
  * Description of the function.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add descriptions for the function and its params
  */
@@ -235,9 +235,9 @@ InTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 /**
  * Description of the function.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add descriptions for the function and its params
  */
@@ -262,7 +262,7 @@ InTransfer.prototype.schema = {
 /**
  * Calls `objectNormalize` with asset inTransfer.
  *
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @returns {error|transaction} error string | transaction normalized
  * @throws {string} error message
  * @todo Add descriptions for the params
@@ -286,7 +286,7 @@ InTransfer.prototype.objectNormalize = function(transaction) {
 /**
  * Creates inTransfer object based on raw data.
  *
- * @param {Object} raw - Description of the param
+ * @param {Object} raw
  * @returns {Object} inTransfer with dappId
  * @todo Add descriptions for the params
  */
@@ -304,8 +304,8 @@ InTransfer.prototype.dbRead = function(raw) {
 /**
  * Description of the function.
  *
- * @param {transaction} transaction - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
@@ -316,8 +316,8 @@ InTransfer.prototype.afterSave = function(transaction, cb) {
 /**
  * Checks if transaction has enough signatures to be confirmed.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
  * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
  * @todo Add descriptions for the params
  */

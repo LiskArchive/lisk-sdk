@@ -29,8 +29,8 @@ var library;
  * @see Parent: {@link logic}
  * @requires bytebuffer
  * @requires helpers/constants
- * @param {ZSchema} schema - Description of the param
- * @param {Object} logger - Description of the param
+ * @param {ZSchema} schema
+ * @param {Object} logger
  * @todo Add descriptions for the params
  */
 // Constructor
@@ -44,7 +44,7 @@ function Signature(schema, logger) {
 /**
  * Binds input parameters to private variable modules.
  *
- * @param {Accounts} accounts - Description of the param
+ * @param {Accounts} accounts
  * @todo Add descriptions for the params
  */
 Signature.prototype.bind = function(accounts) {
@@ -66,9 +66,9 @@ Signature.prototype.calculateFee = function() {
 /**
  * Verifies signature fields from transaction asset and sender.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb - Callback function
  * @returns {Immediate|transaction} returns error string if invalid parameter |
  * transaction validated.
  * @todo Add descriptions for the params
@@ -100,9 +100,9 @@ Signature.prototype.verify = function(transaction, sender, cb) {
 /**
  * Returns transaction with setImmediate.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb - Callback function
  * @returns {Immediate} Null error
  * @todo check extra parameter sender.
  * @todo Add descriptions for the params
@@ -115,7 +115,7 @@ Signature.prototype.process = function(transaction, sender, cb) {
  * Returns a buffer with bytes from transaction asset information.
  *
  * @see {@link https://github.com/dcodeIO/bytebuffer.js/wiki/API}
- * @param {transaction} transaction - Uses multisignature from asset.
+ * @param {transaction} transaction - Uses multisignature from asset
  * @throws {error} If buffer fails.
  * @returns {!Array} Contents as an ArrayBuffer.
  * @todo check if this function is called.
@@ -144,10 +144,10 @@ Signature.prototype.getBytes = function(transaction) {
 /**
  * Sets account second signature from transaction asset.
  *
- * @param {transaction} transaction - Uses publicKey from asset signature.
- * @param {block} block - Unnecessary parameter.
+ * @param {transaction} transaction - Uses publicKey from asset signature
+ * @param {block} block - Unnecessary parameter
  * @param {account} sender - Uses the address
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
  * @returns {Immediate} for errors
  */
 Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -166,10 +166,10 @@ Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
 /**
  * Sets account second signature to null.
  *
- * @param {transaction} transaction - Unnecessary parameter.
- * @param {block} block - Unnecessary parameter.
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction - Unnecessary parameter
+ * @param {block} block - Unnecessary parameter
+ * @param {account} sender
+ * @param {function} cb - Callback function
  * @todo Add descriptions for the params
  */
 Signature.prototype.undo = function(transaction, block, sender, cb) {
@@ -187,11 +187,11 @@ Signature.prototype.undo = function(transaction, block, sender, cb) {
 /**
  * Activates unconfirmed second signature for sender account.
  *
- * @param {transaction} transaction - Unnecessary parameter.
- * @param {block} block - Unnecessary parameter.
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
- * @returns {Immediate} Error if second signature is already enabled.
+ * @param {transaction} transaction - Unnecessary parameter
+ * @param {block} block - Unnecessary parameter
+ * @param {account} sender
+ * @param {function} cb - Callback function
+ * @returns {Immediate} Error if second signature is already enabled
  * @todo Add descriptions for the params
  */
 Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
@@ -209,10 +209,10 @@ Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 /**
  * Deactivates unconfirmed second signature for sender account.
  *
- * @param {transaction} transaction - Unnecessary parameter.
- * @param {block} block - Unnecessary parameter.
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction - Unnecessary parameter
+ * @param {block} block - Unnecessary parameter
+ * @param {account} sender
+ * @param {function} cb - Callback function
  * @todo Add descriptions for the params
  */
 Signature.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
@@ -241,7 +241,7 @@ Signature.prototype.schema = {
 /**
  * Validates signature schema.
  *
- * @param {transaction} transaction - Uses signature from asset.
+ * @param {transaction} transaction - Uses signature from asset
  * @throws {string} Error message.
  * @returns {transaction} Transaction validated.
  */
@@ -264,7 +264,7 @@ Signature.prototype.objectNormalize = function(transaction) {
 /**
  * Creates signature object based on raw data.
  *
- * @param {Object} raw - Data from database.
+ * @param {Object} raw - Data from database
  * @returns {multisignature} signature Object with transaction id.
  * @todo check if this function is called.
  */
@@ -283,8 +283,8 @@ Signature.prototype.dbRead = function(raw) {
 /**
  * Checks if transaction has enough signatures to be confirmed.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
  * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
  * @todo Add descriptions for the params
  */

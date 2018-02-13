@@ -37,10 +37,10 @@ __private.unconfirmedAscii = {};
  * @requires valid
  * @requires helpers/constants
  * @requires helpers/dapp_categories
- * @param {Database} db - Description of the param
- * @param {Object} logger - Description of the param
- * @param {ZSchema} schema - Description of the param
- * @param {Object} network - Description of the param
+ * @param {Database} db
+ * @param {Object} logger
+ * @param {ZSchema} schema
+ * @param {Object} network
  * @todo Add descriptions for the params
  */
 // Constructor
@@ -72,9 +72,9 @@ DApp.prototype.calculateFee = function() {
  * Verifies transaction and dapp fields. Checks dapp name and link in
  * `dapps` table.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} errors | transaction
  * @todo Add descriptions for the params
  */
@@ -224,9 +224,9 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 /**
  * Description of the function.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} cb, null, transaction
  * @todo Add description of the function and its params
  */
@@ -244,7 +244,7 @@ DApp.prototype.process = function(transaction, sender, cb) {
  * - type
  * - category
  *
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @throws {Error} e
  * @returns {Array} Buffer
  * @todo Add descriptions for the params
@@ -301,10 +301,10 @@ DApp.prototype.getBytes = function(transaction) {
 /**
  * Description of the function.
  *
- * @param {transaction} transaction - Description of the param
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add description of the function and its params
  */
@@ -318,10 +318,10 @@ DApp.prototype.apply = function(transaction, block, sender, cb) {
 /**
  * Description of the function.
  *
- * @param {transaction} transaction - Description of the param
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add description of the function and its params
  */
@@ -333,9 +333,9 @@ DApp.prototype.undo = function(transaction, block, sender, cb) {
  * Checks if dapp name and link exists, if not adds them to private
  * unconfirmed variables.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} cb|errors
  * @todo Add descriptions for the params
  */
@@ -360,9 +360,9 @@ DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 /**
  * Deletes dapp name and link from private unconfirmed variables.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
@@ -429,7 +429,7 @@ DApp.prototype.schema = {
 /**
  * Deletes null or undefined dapp from transaction and validate dapp schema.
  *
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @throws {string} Failed to validate dapp schema.
  * @returns {transaction}
  * @todo Add descriptions for the params
@@ -462,7 +462,7 @@ DApp.prototype.objectNormalize = function(transaction) {
 /**
  * Creates dapp object based on raw data.
  *
- * @param {Object} raw - Description of the param
+ * @param {Object} raw
  * @returns {null|dapp} dapp object
  * @todo Add descriptions for the params
  */
@@ -486,8 +486,8 @@ DApp.prototype.dbRead = function(raw) {
 /**
  * Emits 'dapps/change' signal.
  *
- * @param {transaction} transaction - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
@@ -501,8 +501,8 @@ DApp.prototype.afterSave = function(transaction, cb) {
 /**
  * Checks if transaction has enough signatures to be confirmed.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
  * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
  * @todo Add descriptions for the params
  */

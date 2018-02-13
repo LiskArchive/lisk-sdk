@@ -37,8 +37,8 @@ var modules;
  * @requires logic/peer
  * @requires modules/system
  * @requires helpers/peers_manager
- * @param {Object} logger - Description of the param
- * @param {function} cb - Callback function.
+ * @param {Object} logger
+ * @param {function} cb - Callback function
  * @returns {Immediate} Callback function with `this` as data.
  * @todo Add descriptions for the params
  */
@@ -64,7 +64,7 @@ Peers.prototype.me = function() {
 /**
  * Returns a peer instance.
  *
- * @param {peer} peer - Description of the param
+ * @param {peer} peer
  * @returns {peer} peer instance
  * @todo Add descriptions for the params
  */
@@ -78,7 +78,7 @@ Peers.prototype.create = function(peer) {
 /**
  * Checks if peer is in peers list.
  *
- * @param {peer} peer - Description of the param
+ * @param {peer} peer
  * @returns {boolean} True if peer is in peers list
  * @todo Add descriptions for the params
  */
@@ -90,7 +90,7 @@ Peers.prototype.exists = function(peer) {
 /**
  * Gets a peer from peers or creates a new one and returns it.
  *
- * @param {peer} peer - Description of the param
+ * @param {peer} peer
  * @returns {peer} peer new or peer from peers
  * @todo Add descriptions for the params
  */
@@ -105,8 +105,8 @@ Peers.prototype.get = function(peer) {
 /**
  * Inserts or updates a peer.
  *
- * @param {peer} peer - Description of the param
- * @param {boolean} insertOnly - true to only insert.
+ * @param {peer} peer
+ * @param {boolean} insertOnly - True to only insert
  * @returns {boolean|number} True if operation is success, error code in other case
  * @todo Add descriptions for the params
  */
@@ -204,7 +204,7 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 /**
  * Deletes peer from peers list.
  *
- * @param {peer} peer - Description of the param
+ * @param {peer} peer
  * @returns {boolean|number} True if peer exists, error code in other case
  * @todo Add descriptions for the params
  */
@@ -245,7 +245,7 @@ Peers.prototype.list = function(normalize) {
 /**
  * Modules are not required in this file.
  *
- * @param {Object} __modules - Peers module.
+ * @param {Object} __modules - Peers module
  */
 Peers.prototype.bindModules = function(__modules) {
 	modules = {

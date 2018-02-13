@@ -41,8 +41,8 @@ var self;
  * @requires helpers/diff
  * @requires helpers/exceptions
  * @requires helpers/slots
- * @param {Object} logger - Description of the param
- * @param {ZSchema} schema - Description of the param
+ * @param {Object} logger
+ * @param {ZSchema} schema
  * @todo Add descriptions for the params
  */
 function Vote(logger, schema) {
@@ -57,7 +57,7 @@ function Vote(logger, schema) {
 /**
  * Binds module content to private object modules.
  *
- * @param {Delegates} delegates - Description of the param
+ * @param {Delegates} delegates
  * @todo Add descriptions for the params
  */
 Vote.prototype.bind = function(delegates) {
@@ -79,8 +79,8 @@ Vote.prototype.calculateFee = function() {
 /**
  * Validates transaction votes fields and for each vote calls verifyVote.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate|function} returns error if invalid field | calls checkConfirmedDelegates
  * @todo Add descriptions for the params
@@ -160,7 +160,7 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 /**
  * Checks type, format and lenght from vote.
  *
- * @param {Object} vote - Description of the param
+ * @param {Object} vote
  * @param {function} cb - Callback function
  * @returns {Immediate} error message | cb
  * @todo Add descriptions for the params
@@ -184,7 +184,7 @@ Vote.prototype.verifyVote = function(vote, cb) {
 /**
  * Calls checkConfirmedDelegates() with senderPublicKeykey and asset votes.
  *
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @param {function} cb - Callback function
  * @returns {Immediate} cb, err(if transaction id is not in exceptions votes list)
  * @todo Add descriptions for the params
@@ -209,8 +209,8 @@ Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
 /**
  * Calls checkUnconfirmedDelegates() with senderPublicKeykey and asset votes.
  *
- * @param {Object} transaction - Description of the param
- * @param {function} cb - Description of the param
+ * @param {Object} transaction
+ * @param {function} cb
  * @returns {Immediate} cb, err(if transaction id is not in exceptions votes list)
  * @todo Add descriptions for the params
  */
@@ -234,9 +234,9 @@ Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
 /**
  * Description of the function.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} cb, null, transaction
  * @todo Add descriptions for the params
  */
@@ -247,7 +247,7 @@ Vote.prototype.process = function(transaction, sender, cb) {
 /**
  * Creates a buffer with asset.votes information.
  *
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @throws {Error} e
  * @returns {Array} Buffer
  * @todo Add descriptions for the params
@@ -271,9 +271,9 @@ Vote.prototype.getBytes = function(transaction) {
  * Calls checkConfirmedDelegates based on transaction data and
  * merges account to sender address with votes as delegates.
  *
- * @param {transaction} transaction - Description of the param
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @todo delete unnecessary var parent = this
  * @todo Add descriptions for the params
@@ -307,9 +307,9 @@ Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
  * Calls Diff.reverse to change asset.votes signs and merges account to
  * sender address with inverted votes as delegates.
  *
- * @param {transaction} transaction - Description of the param
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} cb, err
  * @todo Add descriptions for the params
@@ -336,8 +336,8 @@ Vote.prototype.undo = function(transaction, block, sender, cb) {
  * Calls checkUnconfirmedDelegates based on transaction data and
  * merges account to sender address with votes as unconfirmed delegates.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @todo delete unnecessary var parent = this
  * @todo Add descriptions for the params
@@ -369,8 +369,8 @@ Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
  * Calls Diff.reverse to change asset.votes signs and merges account to
  * sender address with inverted votes as unconfirmed delegates.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} cb, err
  * @todo Add descriptions for the params
@@ -412,7 +412,7 @@ Vote.prototype.schema = {
 /**
  * Validates asset schema.
  *
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @throws {string} Failed to validate vote schema
  * @returns {transaction}
  * @todo should pass transaction.asset.vote to validate?
@@ -437,7 +437,7 @@ Vote.prototype.objectNormalize = function(transaction) {
 /**
  * Creates votes object based on raw data.
  *
- * @param {Object} raw - Description of the param
+ * @param {Object} raw
  * @returns {null|votes} votes object
  * @todo Add descriptions for the params
  */
@@ -453,8 +453,8 @@ Vote.prototype.dbRead = function(raw) {
 /**
  * Checks if transaction has enough signatures to be confirmed.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
  * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
  * @todo Add descriptions for the params
  */

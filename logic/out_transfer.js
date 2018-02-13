@@ -31,9 +31,9 @@ __private.unconfirmedOutTansfers = {};
  * @class
  * @memberof logic
  * @see Parent: {@link logic}
- * @param {Database} db - Description of the param
- * @param {ZSchema} schema - Description of the param
- * @param {Object} logger - Description of the param
+ * @param {Database} db
+ * @param {ZSchema} schema
+ * @param {Object} logger
  * @todo Add descriptions for the params
  */
 // Constructor
@@ -49,7 +49,7 @@ function OutTransfer(db, schema, logger) {
 /**
  * Binds input modules to private variable module.
  *
- * @param {Accounts} accounts - Description of the param
+ * @param {Accounts} accounts
  * @todo Add descriptions for the params
  */
 OutTransfer.prototype.bind = function(accounts, blocks) {
@@ -71,9 +71,9 @@ OutTransfer.prototype.calculateFee = function() {
 /**
  * Verifies recipientId, amount and outTransfer object content.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} errors messages | transaction
  * @todo Add descriptions for the params
  */
@@ -110,9 +110,9 @@ OutTransfer.prototype.verify = function(transaction, sender, cb) {
  * Finds application into `dapps` table. Checks if transaction is already
  * processed. Checks if transaction is already confirmed.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} errors messages | transaction
  * @todo Add descriptions for the params
  */
@@ -163,7 +163,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
  * - dappId
  * - transactionId
  *
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @throws {Error} e
  * @returns {Array} Buffer
  * @todo Add descriptions for the params
@@ -192,9 +192,9 @@ OutTransfer.prototype.getBytes = function(transaction) {
  * Calls setAccountAndGet based on transaction recipientId and
  * mergeAccountAndGet with unconfirmed transaction amount.
  *
- * @param {transaction} transaction - Description of the param
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} error, cb
  * @todo Add descriptions for the params
@@ -232,9 +232,9 @@ OutTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * Calls setAccountAndGet based on transaction recipientId and
  * mergeAccountAndGet with unconfirmed transaction amount and balance both negatives.
  *
- * @param {transaction} transaction - Description of the param
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} error, cb
  * @todo Add descriptions for the params
@@ -267,9 +267,9 @@ OutTransfer.prototype.undo = function(transaction, block, sender, cb) {
 /**
  * Sets unconfirmed OutTansfers to true.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
@@ -283,9 +283,9 @@ OutTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 /**
  * Sets unconfirmed OutTansfers to false.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
@@ -319,7 +319,7 @@ OutTransfer.prototype.schema = {
 /**
  * Calls `objectNormalize` with asset outTransfer.
  *
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @throws {string} error message
  * @returns {error|transaction} error string | transaction normalized
  * @todo Add descriptions for the params
@@ -343,7 +343,7 @@ OutTransfer.prototype.objectNormalize = function(transaction) {
 /**
  * Creates outTransfer object based on raw data.
  *
- * @param {Object} raw - Description of the param
+ * @param {Object} raw
  * @returns {Object} outTransfer with dappId and transactionId
  * @todo Add descriptions for the params
  */
@@ -362,8 +362,8 @@ OutTransfer.prototype.dbRead = function(raw) {
 /**
  * Checks if transaction has enough signatures to be confirmed.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
  * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
  * @todo Add descriptions for the params
  */

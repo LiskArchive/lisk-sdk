@@ -27,7 +27,7 @@ var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
  * @requires lodash
  * @requires ip
  * @requires api/ws/rpc/ws_rpc
- * @param {peer} peer - Description of the param
+ * @param {peer} peer
  * @returns calls accept method
  * @todo Add descriptions for the params
  */
@@ -88,7 +88,7 @@ Peer.STATE = {
 /**
  * Checks peer properties and adjusts according rules.
  *
- * @param {peer} peer - Description of the param
+ * @param {peer} peer
  * @returns {Object} this
  * @todo Add descriptions for the params
  */
@@ -118,7 +118,7 @@ Peer.prototype.accept = function(peer) {
 /**
  * Normalizes peer data.
  *
- * @param {peer} peer - Description of the param
+ * @param {peer} peer
  * @returns {peer}
  * @todo Add descriptions for the params
  */
@@ -140,8 +140,8 @@ Peer.prototype.normalize = function(peer) {
 /**
  * Checks number or assigns default value from parameter.
  *
- * @param {number} integer - Description of the param
- * @param {number} [fallback] - Description of the param
+ * @param {number} integer
+ * @param {number} [fallback]
  * @returns {number} if not integer returns fallback
  * @todo Add descriptions for the params
  */
@@ -155,7 +155,7 @@ Peer.prototype.parseInt = function(integer, fallback) {
 /**
  * Normalizes headers.
  *
- * @param {Object} headers - Description of the param
+ * @param {Object} headers
  * @returns {Object} headers normalized
  * @todo Add descriptions for the params
  */
@@ -169,7 +169,7 @@ Peer.prototype.applyHeaders = function(headers) {
 /**
  * Updates peer values if mutable.
  *
- * @param {peer} peer - Description of the param
+ * @param {peer} peer
  * @returns {Object} this
  * @todo Add descriptions for the params
  */

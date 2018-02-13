@@ -32,8 +32,8 @@ var self;
  * @requires async
  * @requires helpers/constants
  * @requires helpers/exceptions
- * @param {logger} logger - Description of the param
- * @param {ZSchema} schema - Description of the param
+ * @param {logger} logger
+ * @param {ZSchema} schema
  * @todo Add descriptions for the params
  */
 function Delegate(logger, schema) {
@@ -48,7 +48,7 @@ function Delegate(logger, schema) {
 /**
  * Binds input parameters to private variables modules.
  *
- * @param {Accounts} accounts - Description of the param
+ * @param {Accounts} accounts
  * @todo Add descriptions for the params
  */
 Delegate.prototype.bind = function(accounts) {
@@ -71,9 +71,9 @@ Delegate.prototype.calculateFee = function() {
 /**
  * Verifies fields from transaction and sender, calls modules.accounts.getAccount().
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb - Callback function
  * @returns {Immediate|Object} Returns error if invalid parameter | transaction validated.
  * @todo Add descriptions for the params
  */
@@ -141,9 +141,9 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 /**
  * Returns transaction with setImmediate.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb - Callback function
  * @returns {Immediate} Null error
  * @todo Delete unused sender parameter.
  * @todo Add descriptions for the params
@@ -155,7 +155,7 @@ Delegate.prototype.process = function(transaction, sender, cb) {
 /**
  * Validates delegate username and returns buffer.
  *
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @returns {null|string} Returns null if no delegate| buffer.
  * @throws {error} If buffer fails.
  * @todo Add descriptions for the params
@@ -179,10 +179,10 @@ Delegate.prototype.getBytes = function(transaction) {
 /**
  * Calls cb with error when account already exists.
  *
- * @param {transaction} transaction - Description of the param
- * @param {string} username - Key to check transaction with (username / u_username).
- * @param {string} isDelegate - Key to check transaction with (isDelegate / u_isDelegate).
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction
+ * @param {string} username - Key to check transaction with (username / u_username)
+ * @param {string} isDelegate - Key to check transaction with (isDelegate / u_isDelegate)
+ * @param {function} cb - Callback function
  * @todo Add descriptions for the params
  */
 Delegate.prototype.checkDuplicates = function(
@@ -227,8 +227,8 @@ Delegate.prototype.checkDuplicates = function(
 /**
  * Checks if confirmed delegate is already registered.
  *
- * @param {transaction} transaction - Description of the param
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction
+ * @param {function} cb - Callback function
  * @todo Add descriptions for the params
  */
 Delegate.prototype.checkConfirmed = function(transaction, cb, tx) {
@@ -251,8 +251,8 @@ Delegate.prototype.checkConfirmed = function(transaction, cb, tx) {
 /**
  * Checks if unconfirmed delegate is already registered.
  *
- * @param {transaction} transaction - Description of the param
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction
+ * @param {function} cb - Callback function
  * @todo Add descriptions for the params
  */
 Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
@@ -268,11 +268,10 @@ Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
 /**
  * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with username.
  *
- * @param {transaction} transaction - Description of the param
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
- * @todo Delete unused block parameter.
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb - Callback function
  * @todo Add descriptions for the params
  */
 Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -302,11 +301,10 @@ Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
 /**
  * Checks transaction delegate and no nameexist and calls modules.accounts.setAccountAndGet() with u_username.
  *
- * @param {transaction} transaction - Description of the param
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
- * @todo Delete unused block parameter.
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb - Callback function
  * @todo Add descriptions for the params
  */
 Delegate.prototype.undo = function(transaction, block, sender, cb) {
@@ -325,9 +323,9 @@ Delegate.prototype.undo = function(transaction, block, sender, cb) {
 /**
  * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with u_username.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb - Callback function
  * @todo Add descriptions for the params
  */
 Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
@@ -356,9 +354,9 @@ Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 /**
  * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with username and u_username both null.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb - Callback function
  * @todo Add descriptions for the params
  */
 Delegate.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
@@ -388,7 +386,7 @@ Delegate.prototype.schema = {
 /**
  * Validates transaction delegate schema.
  *
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @returns {err|transaction} Error message if fails validation | input parameter.
  * @throws {string} Failed to validate delegate schema.
  * @todo Add descriptions for the params
@@ -412,7 +410,7 @@ Delegate.prototype.objectNormalize = function(transaction) {
 /**
  * Creates delegate Object based on raw data.
  *
- * @param {Object} raw - Contains d_username, t_senderPK, t_senderId.
+ * @param {Object} raw - Contains d_username, t_senderPK, t_senderId
  * @returns {null|Object} Null if no d_username, otherwise created delegate object.
  */
 Delegate.prototype.dbRead = function(raw) {
@@ -431,8 +429,8 @@ Delegate.prototype.dbRead = function(raw) {
 /**
  * Checks if transaction has enough signatures to be confirmed.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
  * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
  * @todo Add descriptions for the params
  */

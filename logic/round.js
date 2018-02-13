@@ -26,8 +26,8 @@ var RoundChanges = require('../helpers/round_changes.js');
  * @see Parent: {@link logic}
  * @requires bluebird
  * @requires helpers/round_changes
- * @param {Object} scope - Description of the param
- * @param {Task} t - Description of the param
+ * @param {Object} scope
+ * @param {Task} t
  * @todo Add descriptions for the params
  */
 // Constructor

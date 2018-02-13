@@ -40,10 +40,10 @@ __private.unconfirmedSignatures = {};
  * @requires helpers/diff
  * @requires helpers/exceptions
  * @requires helpers/slots
- * @param {ZSchema} schema - Description of the param
- * @param {Object} network - Description of the param
- * @param {Transaction} transaction - Description of the param
- * @param {Object} logger - Description of the param
+ * @param {ZSchema} schema
+ * @param {Object} network
+ * @param {Transaction} transaction
+ * @param {Object} logger
  * @todo Add descriptions for the params
  */
 // Constructor
@@ -63,7 +63,7 @@ function Multisignature(schema, network, transaction, account, logger) {
 /**
  * Binds input parameters to private variable modules.
  *
- * @param {Accounts} accounts - Description of the param
+ * @param {Accounts} accounts
  * @todo Add descriptions for the params
  */
 Multisignature.prototype.bind = function(accounts) {
@@ -76,7 +76,7 @@ Multisignature.prototype.bind = function(accounts) {
  * Obtains constant fee multisignature and multiply by quantity of signatures.
  *
  * @see {@link module:helpers/constants}
- * @param {transaction} transaction - Description of the param
+ * @param {transaction} transaction
  * @returns {number} Quantity of multisignature keysgroup * multisignature fees
  * @todo Add descriptions for the params
  */
@@ -90,9 +90,9 @@ Multisignature.prototype.calculateFee = function(transaction) {
 /**
  * Verifies multisignature fields from transaction asset and sender.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
- * @param {function} cb - Callback function.
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb - Callback function
  * @returns {Immediate|transaction} returns error string if invalid parameter | transaction validated.
  * @todo Add descriptions for the params
  */
@@ -288,8 +288,8 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 /**
  * Returns transaction with setImmediate.
  *
- * @param {transaction} transaction - Description of the param
- * @param {account} sender - Description of the param
+ * @param {transaction} transaction
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} Null error
  * @todo check extra parameter sender.
@@ -329,8 +329,8 @@ Multisignature.prototype.getBytes = function(transaction) {
  * Checks public keys from multisignature and creates accounts.
  *
  * @param {transaction} transaction - Uses multisignature from asset
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
+ * @param {block} block
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} for errors
  * @todo Add descriptions for the params
@@ -381,8 +381,8 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
  * Stores sender address into private unconfirmedSignatures.
  *
  * @param {transaction} transaction - Uses multisignature from asset
- * @param {block} block - Description of the param
- * @param {account} sender - Description of the param
+ * @param {block} block
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} For error
  * @todo Add descriptions for the params
@@ -410,7 +410,7 @@ Multisignature.prototype.undo = function(transaction, block, sender, cb) {
  * Merges into sender address transaction asset to unconfirmed fields.
  *
  * @param {transaction} transaction - Uses multisignature from asset
- * @param {account} sender - Description of the param
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} For error
  * @todo Add descriptions for the params
@@ -448,7 +448,7 @@ Multisignature.prototype.applyUnconfirmed = function(
  * to unconfirmed fields.
  *
  * @param {transaction} transaction - Uses multisignature from asset
- * @param {account} sender - Description of the param
+ * @param {account} sender
  * @param {function} cb - Callback function
  * @returns {Immediate} For error
  * @todo Add descriptions for the params
@@ -555,8 +555,8 @@ Multisignature.prototype.dbRead = function(raw) {
 /**
  * Emits a 'multisignatures/change' socket signal with transaction info.
  *
- * @param {transaction} transaction - Description of the param
- * @param {function} cb - Description of the param
+ * @param {transaction} transaction
+ * @param {function} cb
  * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
@@ -569,7 +569,7 @@ Multisignature.prototype.afterSave = function(transaction, cb) {
  * Evaluates transaction signatures and sender multisignatures.
  *
  * @param {transaction} transaction - Signatures
- * @param {account} sender - Description of the param
+ * @param {account} sender
  * @returns {boolean} logic based on transaction signatures and sender multisignatures
  * @todo Add descriptions for the params
  */

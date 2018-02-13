@@ -36,10 +36,10 @@ var __private = {};
  * @requires helpers/constants
  * @requires helpers/transaction_types
  * @requires logic/block_reward
- * @param {Object} ed - Description of the param
- * @param {ZSchema} schema - Description of the param
- * @param {Transaction} transaction - Description of the param
- * @param {function} cb - Callback function.
+ * @param {Object} ed
+ * @param {ZSchema} schema
+ * @param {Transaction} transaction
+ * @param {function} cb - Callback function
  * @returns {Immediate} With `this` as data.
  * @todo Add description of the params
  */
@@ -62,7 +62,7 @@ function Block(ed, schema, transaction, cb) {
  * Gets address by public.
  *
  * @private
- * @param {publicKey} publicKey - Description of the param
+ * @param {publicKey} publicKey
  * @returns {address} address
  * @todo Add description of the params
  */
@@ -87,7 +87,7 @@ __private.getAddressByPublicKey = function(publicKey) {
  * Calculates reward based on previous block data.
  * Generates new block.
  *
- * @param {Object} data - Description of the param
+ * @param {Object} data
  * @returns {block} block
  * @todo Add description of the params
  */
@@ -179,8 +179,8 @@ Block.prototype.create = function(data) {
 /**
  * Creates a block signature.
  *
- * @param {block} block - Description of the param
- * @param {Object} keypair - Description of the param
+ * @param {block} block
+ * @param {Object} keypair
  * @returns {signature} block signature
  * @todo Add description of the params
  */
@@ -193,7 +193,7 @@ Block.prototype.sign = function(block, keypair) {
 /**
  * Description of the function.
  *
- * @param {block} block - Description of the param
+ * @param {block} block
  * @throws {error} If buffer fails
  * @returns {!Array} Contents as an ArrayBuffer
  * @todo Add description of the function and its params
@@ -256,7 +256,7 @@ Block.prototype.getBytes = function(block) {
 /**
  * Verifies block hash, generator block publicKey and block signature.
  *
- * @param {block} block - Description of the param
+ * @param {block} block
  * @throws {error} catch error
  * @returns {boolean} verified hash, signature and publicKey
  * @todo Add description of the params
@@ -386,7 +386,7 @@ Block.prototype.schema = {
 /**
  * Description of the function.
  *
- * @param {block} block - Description of the param
+ * @param {block} block
  * @throws {string|error} error message | catch error
  * @returns {error|transaction} error string | block normalized
  * @todo Add description of the function and its params
@@ -425,7 +425,7 @@ Block.prototype.objectNormalize = function(block) {
 /**
  * Calculates block id based on block.
  *
- * @param {block} block - Description of the param
+ * @param {block} block
  * @returns {string} id string
  * @todo Add description of the params
  */
@@ -446,7 +446,7 @@ Block.prototype.getId = function(block) {
 /**
  * Creates hash based on block bytes.
  *
- * @param {block} block - Description of the param
+ * @param {block} block
  * @returns {hash} sha256 crypto hash
  * @todo Add description of the params
  */
@@ -470,7 +470,7 @@ Block.prototype.calculateFee = function() {
 /**
  * Creates block object based on raw data.
  *
- * @param {Object} raw - Description of the param
+ * @param {Object} raw
  * @returns {null|block} block object
  * @todo Add description of the params
  */
