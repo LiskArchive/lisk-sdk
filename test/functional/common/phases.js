@@ -26,7 +26,7 @@ function confirmation(
 	badTransactions,
 	pendingMultisignatures
 ) {
-	describe.skip('after transactions get confirmed', () => {
+	describe('after transactions get confirmed', () => {
 		before(() => {
 			return waitFor.confirmations(_.map(goodTransactions, 'id'));
 		});

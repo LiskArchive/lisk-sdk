@@ -740,16 +740,16 @@ Transactions.prototype.shared = {
 		);
 	},
 
-	postTransaction: function(transaction, cb) {
+	postTransaction(transaction, cb) {
 		return modules.transport.shared.postTransaction(
-			{ transaction: transaction },
+			{ transaction },
 			(err, res) => {
 				__private.processPostResult(err, res, cb);
 			}
 		);
 	},
 
-	postTransactions: function(transactions, cb) {
+	postTransactions(transactions, cb) {
 		return modules.transport.shared.postTransactions(
 			{ transactions },
 			(err, res) => {

@@ -37,7 +37,7 @@ function postTransaction(transaction, cb) {
 
 // TODO: Skip test because WS batch transaction processing doesn't currently
 // send back errors or success statuses.
-describe.skip('Posting transaction (type 0)', () => {
+describe('Posting transaction (type 0)', () => {
 	var transaction;
 	var goodTransactions = [];
 	var badTransactions = [];

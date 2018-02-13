@@ -166,7 +166,12 @@ __private.receiveSignature = function(query, cb) {
  * @param {function} cb
  * @return {setImmediateCallback} cb, err
  */
-__private.receiveTransactions = function(transactions, peer, extraLogMessage, cb) {
+__private.receiveTransactions = function(
+	transactions,
+	peer,
+	extraLogMessage,
+	cb
+) {
 	async.eachSeries(
 		transactions,
 		(transaction, eachSeriesCb) => {
@@ -561,7 +566,7 @@ Transport.prototype.shared = {
 		});
 	},
 
-	postSignature: function(query, cb) {
+	postSignature(query, cb) {
 		__private.receiveSignature(query.signature, err => {
 			if (err) {
 				return setImmediate(cb, null, { success: false, message: err });
@@ -570,10 +575,13 @@ Transport.prototype.shared = {
 		});
 	},
 
-	postSignatures: function(query, cb) {
+	postSignatures(query, cb) {
 		library.schema.validate(query, definitions.WSSignaturesList, err => {
 			if (err) {
-				return setImmediate(cb, null, { success: false, message: 'Invalid signatures body' });
+				return setImmediate(cb, null, {
+					success: false,
+					message: 'Invalid signatures body',
+				});
 			}
 			__private.receiveSignatures(query.signatures, err => {
 				if (err) {
@@ -617,7 +625,7 @@ Transport.prototype.shared = {
 		});
 	},
 
-	postTransaction: function(query, cb) {
+	postTransaction(query, cb) {
 		__private.receiveTransaction(
 			query.transaction,
 			query.peer,
@@ -625,20 +633,22 @@ Transport.prototype.shared = {
 			(err, id) => {
 				if (err) {
 					return setImmediate(cb, null, { success: false, message: err });
-				} else {
-					return setImmediate(cb, null, {
-						success: true,
-						transactionId: id,
-					});
 				}
+				return setImmediate(cb, null, {
+					success: true,
+					transactionId: id,
+				});
 			}
 		);
 	},
 
-	postTransactions: function(query, cb) {
+	postTransactions(query, cb) {
 		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {
-				return setImmediate(cb, null, { success: false, message: 'Invalid transactions body' });
+				return setImmediate(cb, null, {
+					success: false,
+					message: 'Invalid transactions body',
+				});
 			}
 			__private.receiveTransactions(
 				query.transactions,

@@ -488,7 +488,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 	// transactions and only allowing a single POST transaction per request.
 	// The issue doesn't appear to be related. Maybe a race condition?
 	// See https://github.com/LiskHQ/lisk/issues/1427
-	describe.skip('validation', () => {
+	describe('validation', () => {
 		it('upvoting same delegate twice should fail', () => {
 			transaction = lisk.vote.createVote(delegateAccount.password, [
 				`+${accountFixtures.existingDelegate.publicKey}`,

@@ -24,7 +24,6 @@ describe('POST /api/transactions (general)', () => {
 		return transactionsEndpoint
 			.makeRequest({ transaction: null }, 400)
 			.then(res => {
-				console.log('transaction request completed, res.body:', res.body);
 				expect(res.body.message).to.eql('Parse errors');
 				expect(res.body.errors[0].code).to.be.equal('INVALID_REQUEST_PAYLOAD');
 			});

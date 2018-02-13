@@ -477,7 +477,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
 							member
-						)
+						),
 					};
 				});
 
@@ -489,8 +489,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 							expect(res.body.data.message).to.be.equal('Signature Accepted');
 						});
 
-					goodTransactions.push(scenario.multiSigTransaction);
-				});
+						goodTransactions.push(scenario.multiSigTransaction);
+					});
 			});
 		});
 
@@ -523,7 +523,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 							signature: apiHelpers.createSignatureObject(
 								multiSigSecondPasswordTransaction,
 								member
-							)
+							),
 						};
 					});
 
@@ -561,7 +561,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
 							member
-						)
+						),
 					};
 				});
 
@@ -573,8 +573,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 							expect(res.body.data.message).to.be.equal('Signature Accepted');
 						});
 
-					goodTransactions.push(scenario.multiSigTransaction);
-				});
+						goodTransactions.push(scenario.multiSigTransaction);
+					});
 			});
 		});
 
@@ -589,7 +589,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
 							member
-						)
+						),
 					};
 				});
 
@@ -601,8 +601,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 							expect(res.body.data.message).to.be.equal('Signature Accepted');
 						});
 
-					goodTransactions.push(scenario.multiSigTransaction);
-				});
+						goodTransactions.push(scenario.multiSigTransaction);
+					});
 			});
 		});
 
@@ -615,13 +615,13 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				);
 
 				return signatureEndpoint
-					.makeRequest({ signature: signature }, 200)
+					.makeRequest({ signature }, 200)
 					.then(res => {
 						expect(res.body.meta.status).to.be.true;
 						expect(res.body.data.message).to.be.equal('Signature Accepted');
 
 						return signatureEndpoint.makeRequest(
-							{ signature: signature },
+							{ signature },
 							apiCodes.PROCESSING_ERROR
 						);
 					})
@@ -641,7 +641,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				);
 
 				return signatureEndpoint
-					.makeRequest({ signature: signature }, apiCodes.PROCESSING_ERROR)
+					.makeRequest({ signature }, apiCodes.PROCESSING_ERROR)
 					.then(res => {
 						expect(res)
 							.to.have.nested.property('body.message')

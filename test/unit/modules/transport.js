@@ -46,14 +46,18 @@ describe('transport', () => {
 
 	const SAMPLE_SIGNATURE_1 = {
 		transactionId: '222675625422353767',
-		publicKey: '2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-		signature: '32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739'
+		publicKey:
+			'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+		signature:
+			'32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739',
 	};
 
 	const SAMPLE_SIGNATURE_2 = {
 		transactionId: '222675625422353768',
-		publicKey: '3ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23080',
-		signature: '61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595'
+		publicKey:
+			'3ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23080',
+		signature:
+			'61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595',
 	};
 
 	beforeEach(done => {
@@ -331,10 +335,10 @@ describe('transport', () => {
 
 					it('should call __private.receiveSignature with signature', () => {
 						expect(__private.receiveSignature.calledTwice).to.be.true;
-						expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_1))
-							.to.be.true;
-						expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2))
-							.to.be.true;
+						expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_1)).to
+							.be.true;
+						expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2)).to
+							.be.true;
 					});
 
 					it('should call callback with error null', () => {
@@ -347,8 +351,7 @@ describe('transport', () => {
 					var receiveSignatureError;
 
 					beforeEach(done => {
-						receiveSignatureError =
-							'Error processing signature: Error message';
+						receiveSignatureError = 'Error processing signature: Error message';
 						__private.receiveSignature = sinonSandbox
 							.stub()
 							.callsArgWith(1, receiveSignatureError);
@@ -365,10 +368,18 @@ describe('transport', () => {
 						// If any of the __private.receiveSignature calls fail, the rest of
 						// the batch should still be processed.
 						expect(__private.receiveSignature.calledTwice).to.be.true;
-						expect(library.logger.debug.calledWith(receiveSignatureError, SAMPLE_SIGNATURE_1))
-							.to.be.true;
-						expect(library.logger.debug.calledWith(receiveSignatureError, SAMPLE_SIGNATURE_2))
-							.to.be.true;
+						expect(
+							library.logger.debug.calledWith(
+								receiveSignatureError,
+								SAMPLE_SIGNATURE_1
+							)
+						).to.be.true;
+						expect(
+							library.logger.debug.calledWith(
+								receiveSignatureError,
+								SAMPLE_SIGNATURE_2
+							)
+						).to.be.true;
 					});
 
 					it('should call callback with error set to null', () => {

@@ -53,7 +53,7 @@ describe('GET /api/accounts', () => {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
 							member
-						)
+						),
 					};
 				});
 				return signatureEndpoint.makeRequests(signatureRequests, 200);

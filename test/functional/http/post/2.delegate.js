@@ -202,7 +202,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	// transactions and only allowing a single POST transaction per request.
 	// The issue doesn't appear to be related. Maybe a race condition?
 	// See https://github.com/LiskHQ/lisk/issues/1427
-	describe.skip('validation', () => {
+	describe('validation', () => {
 		it('setting same delegate twice should fail', () => {
 			// TODO: This transaction has the same id as the one from the previous
 			// test case 'using valid params should be ok'. This causes the test

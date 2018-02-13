@@ -95,10 +95,7 @@ __private.processPostResult = function(res, cb) {
 				new ApiError(res.message, apiCodes.PROCESSING_ERROR)
 			);
 		} else if (badRequestBodyError.exec(res.message).length === 2) {
-			return setImmediate(
-				cb,
-				new ApiError(res.message, apiCodes.BAD_REQUEST)
-			);
+			return setImmediate(cb, new ApiError(res.message, apiCodes.BAD_REQUEST));
 		}
 		return setImmediate(
 			cb,
@@ -119,13 +116,10 @@ Signatures.prototype.shared = {
 	 * @param {function} cb - Callback function.
 	 * @return {setImmediateCallback}
 	 */
-	postSignature: function(signature, cb) {
-		return modules.transport.shared.postSignature(
-			{ signature: signature },
-			(err, res) => {
-				__private.processPostResult(res, cb);
-			}
-		);
+	postSignature(signature, cb) {
+		return modules.transport.shared.postSignature({ signature }, (err, res) => {
+			__private.processPostResult(res, cb);
+		});
 	},
 
 	/**
