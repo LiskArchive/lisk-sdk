@@ -294,7 +294,7 @@ ClientRPCStub.prototype.sendAfterSocketReadyCb = function(connectionState) {
 				.timeout(1000)
 				.then(socket =>
 					socket
-						.wampSend(procedureName, data)
+						.call(procedureName, data)
 						.then(res => setImmediate(cb, null, res))
 						.catch(err => setImmediate(cb, err))
 				)
