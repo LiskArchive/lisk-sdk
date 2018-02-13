@@ -554,7 +554,7 @@ describe('transport', () => {
 		});
 
 		describe('receiveTransactions', () => {
-			var query;
+			var transactions;
 
 			beforeEach(done => {
 				library.schema = {
@@ -567,167 +567,116 @@ describe('transport', () => {
 					remove: sinonSandbox.stub().returns(true),
 				};
 
-				query = {
-					transactions: [
-						{
-							id: '222675625422353767',
-							type: 0,
-							amount: '100',
-							fee: '10',
-							senderPublicKey:
-								'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-							recipientId: '12668885769632475474L',
-							timestamp: 28227090,
-							asset: {},
-							signature:
-								'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-						},
-					],
-				};
+				transactions = [
+					{
+						id: '222675625422353767',
+						type: 0,
+						amount: '100',
+						fee: '10',
+						senderPublicKey:
+							'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+						recipientId: '12668885769632475474L',
+						timestamp: 28227090,
+						asset: {},
+						signature:
+							'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
+					},
+				];
 
 				__private.receiveTransaction = sinonSandbox.stub().callsArg(3);
 
 				done();
 			});
 
-			describe('when library.schema.validate fails', () => {
-				var validateErr;
-				var error;
-
-				beforeEach(done => {
-					validateErr = new Error('Transaction did not match schema');
-					validateErr.code = 'INVALID_FORMAT';
-					library.schema.validate = sinonSandbox
-						.stub()
-						.callsArgWith(2, [validateErr]);
-
-					__private.receiveTransactions(query, peerStub, '', err => {
-						error = err;
-						done();
-					});
-				});
-
-				it('should call callback with error = "Invalid transactions body"', () => {
-					expect(error).to.equal('Invalid transactions body');
-					expect(library.schema.validate.called).to.be.true;
-				});
-			});
-
-			describe('when library.schema.validate succeeds', () => {
-				describe('when called', () => {
+			describe('for every transaction in transactions', () => {
+				describe('when transactions argument is undefined', () => {
 					var error;
 
 					beforeEach(done => {
-						definitions.WSTransactionsRequest = defaultScope.swagger.definitions.WSTransactionsRequest;
-
-						__private.receiveTransactions(query, peerStub, '', err => {
+						__private.receiveTransactions(undefined, peerStub, '', err => {
 							error = err;
 							done();
 						});
 					});
 
-					it('should call library.schema.validate with query and definitions.WSTransactionsRequest', () => {
+					// If a single transaction within the batch fails, it is not going to
+					// send back an error.
+					it('should call callback with null error', () => {
 						expect(error).to.equal(null);
-						return expect(
-							library.schema.validate.calledWith(
-								query,
-								defaultScope.swagger.definitions.WSTransactionsRequest
-							)
-						).to.be.true;
 					});
 				});
 
-				describe('for every transaction in transactions', () => {
-					describe('when transaction is undefined', () => {
+				describe('when transaction is defined', () => {
+					describe('when call __private.receiveTransaction succeeds', () => {
 						var error;
 
 						beforeEach(done => {
-							query.transactions[0] = undefined;
-							__private.receiveTransactions(query, peerStub, '', err => {
-								error = err;
-								done();
-							});
+							__private.receiveTransactions(
+								transactions,
+								peerStub,
+								'This is a log message',
+								err => {
+									error = err;
+									done();
+								}
+							);
+						});
+
+						it('should set transaction.bundled = true', () => {
+							expect(transactions[0])
+								.to.have.property('bundled')
+								.which.equals(true);
+						});
+
+						it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', () => {
+							expect(
+								__private.receiveTransaction.calledWith(
+									transactions[0],
+									peerStub,
+									'This is a log message'
+								)
+							).to.be.true;
+						});
+
+						it('should call callback with error = null', () => {
+							expect(error).to.equal(null);
+						});
+					});
+
+					describe('when call __private.receiveTransaction fails', () => {
+						var error;
+						var receiveTransactionError;
+
+						beforeEach(done => {
+							receiveTransactionError = 'Invalid transaction body - ...';
+							__private.receiveTransaction = sinonSandbox
+								.stub()
+								.callsArgWith(3, receiveTransactionError);
+
+							__private.receiveTransactions(
+								transactions,
+								peerStub,
+								'This is a log message',
+								err => {
+									error = err;
+									done();
+								}
+							);
+						});
+
+						it('should call library.logger.debug with error and transaction', () => {
+							expect(
+								library.logger.debug.calledWith(
+									receiveTransactionError,
+									transactions[0]
+								)
+							).to.be.true;
 						});
 
 						// If a single transaction within the batch fails, it is not going to
 						// send back an error.
 						it('should call callback with null error', () => {
 							expect(error).to.equal(null);
-						});
-					});
-
-					describe('when transaction is defined', () => {
-						describe('when call __private.receiveTransaction succeeds', () => {
-							var error;
-
-							beforeEach(done => {
-								__private.receiveTransactions(
-									query,
-									peerStub,
-									'This is a log message',
-									err => {
-										error = err;
-										done();
-									}
-								);
-							});
-
-							it('should set transaction.bundled = true', () => {
-								return expect(query.transactions[0])
-									.to.have.property('bundled')
-									.which.equals(true);
-							});
-
-							it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', () => {
-								return expect(
-									__private.receiveTransaction.calledWith(
-										query.transactions[0],
-										peerStub,
-										'This is a log message'
-									)
-								).to.be.true;
-							});
-
-							it('should call callback with error = null', () => {
-								return expect(error).to.equal(null);
-							});
-						});
-
-						describe('when call __private.receiveTransaction fails', () => {
-							var error;
-							var receiveTransactionError;
-
-							beforeEach(done => {
-								receiveTransactionError = 'Invalid transaction body - ...';
-								__private.receiveTransaction = sinonSandbox
-									.stub()
-									.callsArgWith(3, receiveTransactionError);
-
-								__private.receiveTransactions(
-									query,
-									peerStub,
-									'This is a log message',
-									err => {
-										error = err;
-										done();
-									}
-								);
-							});
-
-							it('should call library.logger.debug with error and transaction', () => {
-								return expect(
-									library.logger.debug.calledWith(
-										receiveTransactionError,
-										query.transactions[0]
-									)
-								).to.be.true;
-							});
-
-							// If a single transaction within the batch fails, it is not going to
-							// send back an error.
-							it('should call callback with null error', () => {
-								expect(error).to.equal(null);
-							});
 						});
 					});
 				});
