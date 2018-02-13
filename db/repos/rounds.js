@@ -60,7 +60,7 @@ class RoundsRepository {
 	 *
 	 * @param {int} height - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	truncateBlocks(height) {
 		// TODO: This method must be in BlocksRepository, not here!
@@ -101,7 +101,7 @@ class RoundsRepository {
 	 *
 	 * @param {string} address - Address of the account
 	 * @param {int} amount - Votes to update
-	 * @todo Add returns tag
+	 * @todo Add @returns tag
 	 */
 	updateVotes(address, amount) {
 		return this.db.none(sql.updateVotes, [amount, address]);
@@ -114,7 +114,7 @@ class RoundsRepository {
 	 * @param {string} newId - Description of the param
 	 * @param {string} oldId - Description of the param
 	 * @returns {Promise}
-	 * @todo Add description for the params and return value
+	 * @todo Add description for the params and the return value
 	 */
 	updateBlockId(newId, oldId) {
 		return this.db.none(sql.updateBlockId, [newId, oldId]);

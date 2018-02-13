@@ -76,7 +76,7 @@ class BlocksRepository {
 	 * Get the genesis block.
 	 *
 	 * @returns {Promise}
-	 * @todo Add description of the return value
+	 * @todo Add description for the return value
 	 */
 	getGenesisBlock() {
 		return this.db.any(sql.getGenesisBlock);
@@ -87,7 +87,7 @@ class BlocksRepository {
 	 *
 	 * @param {string} id - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getGenesisBlockId(id) {
 		// TODO: Must use a result-specific method, not .query
@@ -99,7 +99,7 @@ class BlocksRepository {
 	 *
 	 * @param {string} id - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the param and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	deleteBlock(id) {
 		return this.db.none(sql.deleteBlock, [id]);
@@ -113,7 +113,7 @@ class BlocksRepository {
 	 * @param {int} params.start - Start time of aggregation period
 	 * @param {int} params.end - End time for aggregation period
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	aggregateBlocksReward(params) {
 		// TODO: Must use a result-specific method, not .query
@@ -144,7 +144,7 @@ class BlocksRepository {
 	 * @param {int} params.limit - Description of the param
 	 * @param {int} params.offset - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	list(params) {
 		// TODO: Must use a result-specific method, not .query
@@ -159,7 +159,7 @@ class BlocksRepository {
 	 * @param {int} params.height - Description of the param
 	 * @param {int} params.limit - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getIdSequence(params) {
 		// TODO: Must use a result-specific method, not .query
@@ -174,7 +174,7 @@ class BlocksRepository {
 	 * @param {string} params.previousBlock - Description of the param
 	 * @param {int} params.height - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getCommonBlock(params) {
 		// TODO: Must use a result-specific method, not .query
@@ -206,7 +206,7 @@ class BlocksRepository {
 	 * @param {int} params.height - Description of the param
 	 * @param {int} params.limit - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	loadBlocksData(params) {
 		// TODO: Must use a result-specific method, not .query
@@ -219,7 +219,7 @@ class BlocksRepository {
 	 * @param {int} offset - Description of the param
 	 * @param {int} limit - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	loadBlocksOffset(offset, limit) {
 		// TODO: Must use a result-specific method, not .query
@@ -241,7 +241,7 @@ class BlocksRepository {
 	 * Load last N block ids from the database.
 	 *
 	 * @param {limit} - Number of blocks to load
-	 * @todo Add a returns-tag
+	 * @todo Add @returns tag
 	 */
 	loadLastNBlockIds(limit) {
 		return this.db.query(sql.loadLastNBlockIds, [limit]);
@@ -253,7 +253,7 @@ class BlocksRepository {
 	 * @param {string} id - Description of the param
 	 * @throws {QueryResultError} - Multiple rows were not expected - in the case of multiple blocks found with same id
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	blockExists(id) {
 		return this.db.oneOrNone(sql.blockExists, [id]);
@@ -322,8 +322,8 @@ const Queries = {
 	 * @func list
 	 * @memberof db.repos.blocks.Queries
 	 * @param {Object} params - Description of the param
-	 * @todo Add description of the function and its param
-	 * @todo Add returns-tag
+	 * @todo Add description for the function and the params
+	 * @todo Add @returns tag
 	 */
 	list(params) {
 		return [
@@ -346,8 +346,8 @@ const Queries = {
 	 * @func loadBlocksData
 	 * @memberof db.repos.blocks.Queries
 	 * @param {Object} params - Description of the param
-	 * @todo Add description of the function and its param
-	 * @todo Add returns-tag
+	 * @todo Add description for the function and the params
+	 * @todo Add @returns tag
 	 */
 	loadBlocksData(params) {
 		var limitPart;

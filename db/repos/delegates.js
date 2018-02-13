@@ -38,7 +38,7 @@ class DelegatesRepository {
 	 *
 	 * @param {Object} fork
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	insertFork(fork) {
 		return this.db.none(sql.insertFork, fork);

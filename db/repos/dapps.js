@@ -41,7 +41,7 @@ class DappsRepository {
 	 *
 	 * @param {string} id - Description of the param
 	 * @returns {Promise<number>}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	countByTransactionId(id) {
 		return this.db.one(sql.countByTransactionId, id, a => +a.count);
@@ -52,7 +52,7 @@ class DappsRepository {
 	 *
 	 * @param {string} id - Description of the param
 	 * @returns {Promise<number>}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	countByOutTransactionId(id) {
 		return this.db.one(sql.countByOutTransactionId, id, a => +a.count);
@@ -66,7 +66,7 @@ class DappsRepository {
 	 * @param {string} params.name - Description of the param
 	 * @param {string} params.link - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getExisting(params) {
 		// TODO: Should use a result-specific method, not .query
@@ -83,7 +83,7 @@ class DappsRepository {
 	 * @param {int} params.limit - Description of the param
 	 * @param {int} params.offset - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	list(params) {
 		// TODO: Use cases need to be reviewed, and new methods added before it can be made into a proper external SQL
@@ -110,7 +110,7 @@ class DappsRepository {
 	 *
 	 * @param {string} id - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the param and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getGenesis(id) {
 		// TODO: Should use a result-specific method, not .query

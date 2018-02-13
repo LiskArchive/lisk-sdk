@@ -95,7 +95,7 @@ class MigrationsRepository {
 	 *
 	 * @param {number} lastMigrationId - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	readPending(lastMigrationId) {
 		const updatesPath = path.join(sqlRoot, 'migrations/updates');

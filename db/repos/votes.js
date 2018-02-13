@@ -44,7 +44,7 @@ class VotesRepository {
 	 * @param {int} params.limit - Description of the param
 	 * @param {int} params.offset - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	list(params) {
 		// TODO: Should use a result-specific method, not .query
@@ -56,7 +56,7 @@ class VotesRepository {
 	 *
 	 * @param {string} address - Description of the param
 	 * @returns {Promise<number>}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	count(address) {
 		return this.db.one(sql.getVotesCount, address, a => +a.count);

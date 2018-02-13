@@ -99,7 +99,7 @@ class TransactionsRepository {
 	 * Counts total transactions.
 	 *
 	 * @returns {Promise<number>}
-	 * @todo Add description of the return value
+	 * @todo Add description for the return value
 	 */
 	count() {
 		return this.db.one(sql.count, [], a => +a.count);
@@ -110,7 +110,7 @@ class TransactionsRepository {
 	 *
 	 * @param {string} id - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	countById(id) {
 		return this.db.one(sql.countById, { id }, a => +a.count);
@@ -123,7 +123,7 @@ class TransactionsRepository {
 	 * @param {Array} params.where - Description of the param
 	 * @param {string} params.owner - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	countList(params) {
 		// TODO: Get rid of the in-code query, and a result-specific query method
@@ -141,7 +141,7 @@ class TransactionsRepository {
 	 * @param {int} params.limit - Description of the param
 	 * @param {int} params.offset - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	list(params) {
 		// TODO: Get rid of the in-code query, and a result-specific query method
@@ -153,7 +153,7 @@ class TransactionsRepository {
 	 *
 	 * @param {Array.<string>} ids - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getTransferByIds(ids) {
 		return this.db.any(sql.getTransferByIds, { ids });
@@ -164,7 +164,7 @@ class TransactionsRepository {
 	 *
 	 * @param {Array.<string>} ids - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getVotesByIds(ids) {
 		return this.db.any(sql.getVotesByIds, { ids });
@@ -175,7 +175,7 @@ class TransactionsRepository {
 	 *
 	 * @param {Array.<string>} ids - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getDelegateByIds(ids) {
 		return this.db.any(sql.getDelegateByIds, { ids });
@@ -186,7 +186,7 @@ class TransactionsRepository {
 	 *
 	 * @param {Array.<string>} ids - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getSignatureByIds(ids) {
 		return this.db.any(sql.getSignatureByIds, { ids });
@@ -197,7 +197,7 @@ class TransactionsRepository {
 	 *
 	 * @param {Array.<string>} ids - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getMultiByIds(ids) {
 		return this.db.any(sql.getMultiByIds, { ids });
@@ -208,7 +208,7 @@ class TransactionsRepository {
 	 *
 	 * @param {Array.<string>} ids - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getDappByIds(ids) {
 		return this.db.any(sql.getDappByIds, { ids });
@@ -219,7 +219,7 @@ class TransactionsRepository {
 	 *
 	 * @param {Array.<string>} ids - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getInTransferByIds(ids) {
 		return this.db.any(sql.getInTransferByIds, { ids });
@@ -230,7 +230,7 @@ class TransactionsRepository {
 	 *
 	 * @param {Array.<string>} ids - Description of the param
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	getOutTransferByIds(ids) {
 		return this.db.any(sql.getOutTransferByIds, { ids });
@@ -241,7 +241,7 @@ class TransactionsRepository {
 	 *
 	 * @param {Array.<Object>} transactions - Each object should justify *logic/transaction.prototype.schema*
 	 * @returns {Promise}
-	 * @todo Add descriptions for the params and the return value
+	 * @todo Add description for the params and the return value
 	 */
 	save(transactions) {
 		let saveTransactions = _.cloneDeep(transactions);

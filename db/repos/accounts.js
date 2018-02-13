@@ -147,7 +147,7 @@ class AccountsRepository {
 	 * Get list of all database fields.
 	 *
 	 * @returns {array}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	getDBFields() {
 		return _.map(this.dbFields, field => field.prop || field.name);
@@ -157,7 +157,7 @@ class AccountsRepository {
 	 * Get list of all immutable fields.
 	 *
 	 * @returns {array}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	getImmutableFields() {
 		return _.difference(
@@ -170,7 +170,7 @@ class AccountsRepository {
 	 * Counts memory accounts by blocks.
 	 *
 	 * @returns {Promise<number>}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	countMemAccounts() {
 		return this.db.one(sql.countMemAccounts, [], a => +a.count);
@@ -180,7 +180,7 @@ class AccountsRepository {
 	 * Update mem_accounts.
 	 *
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	updateMemAccounts() {
 		return this.db.none(sql.updateMemAccounts);
@@ -190,7 +190,7 @@ class AccountsRepository {
 	 * Get orphan mem_accounts.
 	 *
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	getOrphanedMemAccounts() {
 		return this.db.any(sql.getOrphanedMemAccounts);
@@ -200,7 +200,7 @@ class AccountsRepository {
 	 * Get delegates.
 	 *
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	getDelegates() {
 		return this.db.any(sql.getDelegates);
@@ -213,7 +213,7 @@ class AccountsRepository {
 	 * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#dbFields}
 	 * @param {Object} updateData - Attributes to be updated, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.update}
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	upsert(data, conflictingFields, updateData) {
 		// If single field is specified as conflict field
@@ -264,7 +264,7 @@ class AccountsRepository {
 	 *
 	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	insert(data) {
 		return this.db.none(this.pgp.helpers.insert(data, this.cs.insert));
@@ -276,7 +276,7 @@ class AccountsRepository {
 	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
 	 * @param {string} address - Address of the account to be updated
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	update(address, data) {
 		if (!address) {
@@ -308,7 +308,7 @@ class AccountsRepository {
 	 * @param {string} field - Name of the field to increment
 	 * @param {Number} value - Value to be incremented
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	increment(address, field, value) {
 		return this.db.none(sql.incrementAccount, {
@@ -326,7 +326,7 @@ class AccountsRepository {
 	 * @param {string} field - Name of the field to decrement
 	 * @param {Number} value - Value to be decremented
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	decrement(address, field, value) {
 		return this.db.none(sql.decrementAccount, {
@@ -342,7 +342,7 @@ class AccountsRepository {
 	 *
 	 * @param {string} address - Address of the account to be updated
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	remove(address) {
 		const sql = 'DELETE FROM $1:name WHERE $2:name = $3';
@@ -358,7 +358,7 @@ class AccountsRepository {
 	 * - mem_accounts2u_multisignatures
 	 *
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	resetMemTables() {
 		return this.db.none(sql.resetMemoryTables);
@@ -379,7 +379,7 @@ class AccountsRepository {
 	 * @param {string} options.sortMethod - Sort method ASC or DESC
 	 * @param {string} options.extraCondition - Extra conditions to be appended to fetch objects. It must be properly formatted
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	list(filters, fields, options) {
 		const pgp = this.pgp;
@@ -507,7 +507,7 @@ class AccountsRepository {
 	 * @param {string} dependentId - Dependent address
 	 * @param {string} dependency - Any of [u_]delegates, [u_]multisignatures
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	removeDependencies(address, dependentId, dependency) {
 		if (
@@ -539,7 +539,7 @@ class AccountsRepository {
 	 * @param {string} dependentId - Dependent address
 	 * @param {string} dependency - Any of [u_]delegates, [u_]multisignatures
 	 * @returns {Promise}
-	 * @todo Add a description for the return value
+	 * @todo Add description for the return value
 	 */
 	insertDependencies(address, dependentId, dependency) {
 		if (
@@ -594,7 +594,7 @@ class AccountsRepository {
  * @param {Object} columnSet - Description of the param
  * @param {Array} fields - Description of the param
  * @param {Object} pgp - Description of the param
- * @todo Add a returns-tag
+ * @todo Add @returns tag
  */
 // Generate select SQL based on column set definition and conditions
 function Selects(columnSet, fields, pgp) {
@@ -606,7 +606,8 @@ function Selects(columnSet, fields, pgp) {
 	/**
 	 * Description of the function.
 	 *
-	 * @todo Add description of the function and a returns-tag
+	 * @todo Add description for the function
+	 * @todo Add @returns tag
 	 */
 	this.toPostgres = () => {
 		const selectSQL = 'SELECT $1:raw FROM $2^';

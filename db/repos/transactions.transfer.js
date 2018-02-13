@@ -58,7 +58,7 @@ function TransferTransactionsRepo(db, pgp) {
  *
  * @param {Array} transactions - Description of the param
  * @returns {Promise}
- * @todo Add descriptions for the params and the return value
+ * @todo Add description for the params and the return value
  */
 TransferTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {

@@ -57,7 +57,7 @@ function SignatureTransactionsRepo(db, pgp) {
  *
  * @param {Array} transactions
  * @returns {Promise}
- * @todo Add descriptions for the params and the return value
+ * @todo Add description for the params and the return value
  */
 SignatureTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {
