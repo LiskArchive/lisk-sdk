@@ -29,7 +29,7 @@ var columnSet;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a MultiSigTransactionsRepo
+ * @returns {Object} An instance of a MultiSigTransactionsRepo
  */
 function MultiSigTransactionsRepo(db, pgp) {
 	this.db = db;
@@ -56,7 +56,7 @@ function MultiSigTransactionsRepo(db, pgp) {
 /**
  * Save multisignature transactions.
  *
- * @param {Array} transactions - Description of the param
+ * @param {Array} transactions
  * @returns {Promise}
  * @todo Add description for the params and the return value
  */

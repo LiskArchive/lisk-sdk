@@ -16,10 +16,25 @@
 
 var util = require('util');
 
+/**
+ * Description of the module.
+ *
+ * @module
+ * @requires util
+ * @see Parent: {@link helpers.validator}
+ */
+
 exports.extend = extend;
 exports.copy = copy;
 exports.inherits = util.inherits;
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} target
+ * @todo Add @returns tag
+ * @todo Add description for the function and the params
+ */
 function extend(target) {
 	if (!target || typeof target !== 'object') {
 		return target;
@@ -36,6 +51,13 @@ function extend(target) {
 	return target;
 }
 
+/**
+ * Description of the function.
+ *
+ * @param {Object} target
+ * @todo Add @returns tag
+ * @todo Add description for the function and the params
+ */
 function copy(target) {
 	if (!target || typeof target !== 'object') {
 		return target;

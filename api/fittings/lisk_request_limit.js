@@ -35,8 +35,8 @@ var defaults = {
  * @requires express-rate-limit
  * @requires helpers/swagger_module_registry.getConfig
  * @requires lodash
- * @param {Object} fittingDef - Description of the param
- * @param {Object} bagpipes - Description of the param
+ * @param {Object} fittingDef
+ * @param {Object} bagpipes
  * @returns {function} {@link api/fittings.lisk_request_limit}
  * @todo Add description for the function and the params
  */
@@ -69,8 +69,8 @@ module.exports = function create(fittingDef) {
 	 *
 	 * @func lisk_request_limit
 	 * @memberof api/fittings
-	 * @param {Object} context - Description of the param
-	 * @param {function} cb - Description of the param
+	 * @param {Object} context
+	 * @param {function} cb
 	 * @returns {function} {@link api/fittings.lisk_request_limit}
 	 * @todo Add description for the function and the params
 	 */

@@ -25,7 +25,7 @@ const sql = require('../sql').votes;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a VotesRepository
+ * @returns {Object} An instance of a VotesRepository
  */
 class VotesRepository {
 	constructor(db, pgp) {
@@ -39,10 +39,10 @@ class VotesRepository {
 	/**
 	 * Searches votes for delegate with an address.
 	 *
-	 * @param {Object} params - Description of the param
-	 * @param {string} params.address - Description of the param
-	 * @param {int} params.limit - Description of the param
-	 * @param {int} params.offset - Description of the param
+	 * @param {Object} params
+	 * @param {string} params.address
+	 * @param {int} params.limit
+	 * @param {int} params.offset
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -54,7 +54,7 @@ class VotesRepository {
 	/**
 	 * Counts votes for a delegate with an address.
 	 *
-	 * @param {string} address - Description of the param
+	 * @param {string} address
 	 * @returns {Promise<number>}
 	 * @todo Add description for the params and the return value
 	 */

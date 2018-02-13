@@ -27,7 +27,7 @@ const cs = {}; // Reusable ColumnSet objects
  * @requires db/sql
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a PeersRepository
+ * @returns {Object} An instance of a PeersRepository
  */
 class PeersRepository {
 	constructor(db, pgp) {

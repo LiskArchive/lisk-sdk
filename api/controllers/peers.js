@@ -35,8 +35,8 @@ function PeersController(scope) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
+ * @param {Object} context
+ * @param {function} next
  * @todo Add description for the function and the params
  */
 PeersController.getPeers = function(context, next) {

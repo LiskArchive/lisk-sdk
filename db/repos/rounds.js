@@ -25,7 +25,7 @@ const sql = require('../sql').rounds;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a RoundsRepository
+ * @returns {Object} An instance of a RoundsRepository
  */
 class RoundsRepository {
 	constructor(db, pgp) {
@@ -58,7 +58,7 @@ class RoundsRepository {
 	/**
 	 * Delete all blocks above a particular height.
 	 *
-	 * @param {int} height - Description of the param
+	 * @param {int} height
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -111,8 +111,8 @@ class RoundsRepository {
 	/**
 	 * Update the blockId attribute for an account.
 	 *
-	 * @param {string} newId - Description of the param
-	 * @param {string} oldId - Description of the param
+	 * @param {string} newId
+	 * @param {string} oldId
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */

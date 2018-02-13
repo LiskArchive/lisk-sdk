@@ -20,11 +20,15 @@ var exceptions = require('./exceptions');
 
 /**
  * Sets round fees and rewards.
+ *
+ * @class
+ * @memberof helpers
  * @requires helpers/bignum
+ * @requires helpers/exceptions
  * @requires helpers/slots
- * @memberof module:helpers
- * @constructor
  * @param {Object} scope
+ * @see Parent: {@link helpers}
+ * @todo Add description for the params
  */
 // Constructor
 function RoundChanges(scope) {
@@ -52,10 +56,10 @@ function RoundChanges(scope) {
 /**
  * Calculates rewards at round position.
  * Fees and feesRemaining based on slots.
- * @implements bignum
- * @implements slots
+ *
  * @param {number} index
- * @return {Object} With fees, feesRemaining, rewards, balance.
+ * @returns {Object} With fees, feesRemaining, rewards, balance
+ * @todo Add description for the params
  */
 RoundChanges.prototype.at = function(index) {
 	var fees = new bignum(this.roundFees.toPrecision(15))

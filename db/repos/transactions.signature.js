@@ -28,7 +28,7 @@ var columnSet;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a SignatureTransactionsRepo
+ * @returns {Object} An instance of a SignatureTransactionsRepo
  */
 function SignatureTransactionsRepo(db, pgp) {
 	this.db = db;

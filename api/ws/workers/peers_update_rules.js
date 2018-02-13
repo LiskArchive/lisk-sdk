@@ -51,9 +51,9 @@ function PeersUpdateRules(slaveWAMPServer) {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
- * @param {string} connectionId - Description of the param
- * @param {function} cb - Description of the param
+ * @param {Object} peer
+ * @param {string} connectionId
+ * @param {function} cb
  * @todo Add description for the function and the params
  * @todo Add @returns tag
  */
@@ -89,9 +89,9 @@ PeersUpdateRules.prototype.insert = function(peer, connectionId, cb) {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
- * @param {string} connectionId - Description of the param
- * @param {function} cb - Description of the param
+ * @param {Object} peer
+ * @param {string} connectionId
+ * @param {function} cb
  * @todo Add description for the function and the params
  * @todo Add @returns tag
  */
@@ -122,10 +122,10 @@ PeersUpdateRules.prototype.remove = function(peer, connectionId, cb) {
 /**
  * Description of the function.
  *
- * @param {number} code - Description of the param
- * @param {Object} peer - Description of the param
- * @param {string} connectionId - Description of the param
- * @param {function} cb - Description of the param
+ * @param {number} code
+ * @param {Object} peer
+ * @param {string} connectionId
+ * @param {function} cb
  * @todo Add description for the function and the params
  * @todo Add @returns tag
  */
@@ -144,10 +144,10 @@ PeersUpdateRules.prototype.internal = {
 	 * Description of the function.
 	 *
 	 * @memberof api.ws.workers.PeersUpdateRules
-	 * @param {number} updateType - Description of the param
-	 * @param {Object} peer - Description of the param
-	 * @param {string} connectionId - Description of the param
-	 * @param {function} cb - Description of the param
+	 * @param {number} updateType
+	 * @param {Object} peer
+	 * @param {string} connectionId
+	 * @param {function} cb
 	 * @todo Add description for the function and the params
 	 * @todo Add @returns tag
 	 */
@@ -185,11 +185,11 @@ PeersUpdateRules.prototype.external = {
 	 * Description of the function.
 	 *
 	 * @memberof api.ws.workers.PeersUpdateRules
-	 * @param {Object} request - peer object with extra requests fields added by SlaveWAMPServer
-	 * @param {Object} request.data - peer's data
-	 * @param {string} request.socketId - connection id
-	 * @param {string} request.workerId - worker id
-	 * @param {function} cb - Description of the param
+	 * @param {Object} request - Peer object with extra requests fields added by SlaveWAMPServer
+	 * @param {Object} request.data - Peer data
+	 * @param {string} request.socketId - Connection id
+	 * @param {string} request.workerId - Worker id
+	 * @param {function} cb
 	 * @todo Add description for the function and the params
 	 * @todo Add @returns tag
 	 */

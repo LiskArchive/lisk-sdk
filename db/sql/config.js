@@ -22,7 +22,7 @@ const sqlRoot = __dirname;
  * Provides dynamic link to an SQL file.
  *
  * @memberof db.sql
- * @param {Object} file - Description of the param
+ * @param {Object} file
  * @returns {Object} QueryFile
  * @todo Add description for params and return value
  */

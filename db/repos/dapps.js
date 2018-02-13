@@ -25,7 +25,7 @@ const sql = require('../sql').dapps;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a DappsRepository
+ * @returns {Object} An instance of a DappsRepository
  */
 class DappsRepository {
 	constructor(db, pgp) {
@@ -39,7 +39,7 @@ class DappsRepository {
 	/**
 	 * Counts dapps by transaction id.
 	 *
-	 * @param {string} id - Description of the param
+	 * @param {string} id
 	 * @returns {Promise<number>}
 	 * @todo Add description for the params and the return value
 	 */
@@ -50,7 +50,7 @@ class DappsRepository {
 	/**
 	 * Counts dapps by out transfer transaction id.
 	 *
-	 * @param {string} id - Description of the param
+	 * @param {string} id
 	 * @returns {Promise<number>}
 	 * @todo Add description for the params and the return value
 	 */
@@ -61,10 +61,10 @@ class DappsRepository {
 	/**
 	 * Checks if a dapp exists.
 	 *
-	 * @param {Object} params - Description of the param
-	 * @param {string} params.transactionId - Description of the param
-	 * @param {string} params.name - Description of the param
-	 * @param {string} params.link - Description of the param
+	 * @param {Object} params
+	 * @param {string} params.transactionId
+	 * @param {string} params.name
+	 * @param {string} params.link
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -76,12 +76,12 @@ class DappsRepository {
 	/**
 	 * Searches existing dapps in database.
 	 *
-	 * @param {Object} params - Description of the param
-	 * @param {Array} params.where - Description of the param
-	 * @param {string} params.sortField - Description of the param
-	 * @param {string} params.sortMethod - Description of the param
-	 * @param {int} params.limit - Description of the param
-	 * @param {int} params.offset - Description of the param
+	 * @param {Object} params
+	 * @param {Array} params.where
+	 * @param {string} params.sortField
+	 * @param {string} params.sortMethod
+	 * @param {int} params.limit
+	 * @param {int} params.offset
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
@@ -108,7 +108,7 @@ class DappsRepository {
 	/**
 	 * Gets Genesis block.
 	 *
-	 * @param {string} id - Description of the param
+	 * @param {string} id
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */

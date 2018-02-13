@@ -40,8 +40,8 @@ function TransactionsController(scope) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
+ * @param {Object} context
+ * @param {function} next
  * @todo Add description for the function and the params
  */
 TransactionsController.getTransactions = function(context, next) {
@@ -107,8 +107,8 @@ TransactionsController.getTransactions = function(context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
+ * @param {Object} context
+ * @param {function} next
  * @todo Add description for the function and the params
  */
 TransactionsController.postTransactions = function(context, next) {

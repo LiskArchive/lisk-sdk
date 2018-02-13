@@ -29,7 +29,7 @@ var columnSet;
  * @requires lodash
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} - An instance of a TransferTransactionsRepo
+ * @returns {Object} An instance of a TransferTransactionsRepo
  */
 function TransferTransactionsRepo(db, pgp) {
 	this.db = db;
@@ -56,7 +56,7 @@ function TransferTransactionsRepo(db, pgp) {
 /**
  * Save transfer transactions.
  *
- * @param {Array} transactions - Description of the param
+ * @param {Array} transactions
  * @returns {Promise}
  * @todo Add description for the params and the return value
  */
