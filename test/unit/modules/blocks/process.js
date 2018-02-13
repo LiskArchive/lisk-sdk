@@ -324,9 +324,11 @@ describe('blocks/process', () => {
 
 			describe('library.logic.block.objectNormalize', () => {
 				describe('when fails', () => {
-					it('should throw error', done => {
+					beforeEach(() => {
 						library.logic.block.objectNormalize.throws('objectNormalize-ERR');
+					});
 
+					it('should throw error', done => {
 						__private.receiveForkOne(
 							{ timestamp: 1, id: 2 },
 							{ timestamp: 2, id: 1 },
@@ -348,7 +350,7 @@ describe('blocks/process', () => {
 				describe('when succeeds', () => {
 					describe('__private.validateBlockSlot', () => {
 						describe('when fails', () => {
-							it('should return error', done => {
+							beforeEach(() => {
 								library.logic.block.objectNormalize.returns({
 									timestamp: 1,
 									id: 2,
@@ -358,7 +360,9 @@ describe('blocks/process', () => {
 									'validateBlockSlot-ERR',
 									null
 								);
+							});
 
+							it('should return error', done => {
 								__private.receiveForkOne(
 									{ timestamp: 1, id: 2 },
 									{ timestamp: 2, id: 1 },
@@ -380,7 +384,7 @@ describe('blocks/process', () => {
 						describe('when succeeds', () => {
 							describe('modules.blocks.verify.verifyReceipt', () => {
 								describe('when fails', () => {
-									it('should return error', done => {
+									beforeEach(() => {
 										library.logic.block.objectNormalize.returns({
 											timestamp: 1,
 											id: 2,
@@ -390,7 +394,9 @@ describe('blocks/process', () => {
 											verified: false,
 											errors: ['verifyReceipt-ERR', 'ERR2'],
 										});
+									});
 
+									it('should return error', done => {
 										__private.receiveForkOne(
 											{ timestamp: 10, id: 2 },
 											{ timestamp: 20, id: 1 },
@@ -417,7 +423,7 @@ describe('blocks/process', () => {
 								describe('when succeeds', () => {
 									describe('modules.blocks.chain.deleteLastBlock (first call)', () => {
 										describe('when fails', () => {
-											it('should return error', done => {
+											beforeEach(() => {
 												library.logic.block.objectNormalize.returns({
 													timestamp: 1,
 													id: 2,
@@ -431,7 +437,9 @@ describe('blocks/process', () => {
 													.callsArgWith(0, 'deleteLastBlock-ERR-call-1', null)
 													.onCall(1)
 													.callsArgWith(0, 'deleteLastBlock-ERR-call-2', null);
+											});
 
+											it('should return error', done => {
 												__private.receiveForkOne(
 													{ timestamp: 10, id: 2 },
 													{ timestamp: 20, id: 1 },
@@ -452,7 +460,7 @@ describe('blocks/process', () => {
 										describe('when succeeds', () => {
 											describe('modules.blocks.chain.deleteLastBlock (second call)', () => {
 												describe('when fails', () => {
-													it('should return error', done => {
+													beforeEach(() => {
 														library.logic.block.objectNormalize.returns({
 															timestamp: 1,
 															id: 2,
@@ -474,7 +482,9 @@ describe('blocks/process', () => {
 																'deleteLastBlock-ERR-call-2',
 																null
 															);
+													});
 
+													it('should return error', done => {
 														__private.receiveForkOne(
 															{ timestamp: 10, id: 2 },
 															{ timestamp: 20, id: 1 },
@@ -495,7 +505,7 @@ describe('blocks/process', () => {
 													});
 												});
 												describe('when succeeds', () => {
-													it('should return no error', done => {
+													beforeEach(() => {
 														library.logic.block.objectNormalize.returns({
 															timestamp: 1,
 															id: 2,
@@ -513,7 +523,9 @@ describe('blocks/process', () => {
 															.callsArgWith(0, null, 'delete block 1 ok')
 															.onCall(1)
 															.callsArgWith(0, null, 'delete block 2 ok');
+													});
 
+													it('should return no error', done => {
 														__private.receiveForkOne(
 															{ timestamp: 10, id: 2 },
 															{ timestamp: 20, id: 1 },
