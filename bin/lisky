@@ -16,6 +16,9 @@
  */
 var os = require('os');
 var lockfile = require('lockfile');
+var semver = require('semver');
+
+var packageJSON = require('../package.json');
 
 var configLockfilePath;
 var lisky;
@@ -35,6 +38,11 @@ function exit(code) {
 	process.exit(code || 0);
 }
 
+if (!semver.satisfies(process.version, packageJSON.engines.node)) {
+	console.error('\x1b[31m', `ERROR: Requires Node.js version ${semver.clean(packageJSON.engines.node)}, but was started with version ${semver.clean(process.version)}.`, '\x1b[0m');
+	exit();
+}
+
 // eslint-disable-next-line default-case
 switch (process.argv[2]) {
 case 'clean':
@@ -44,8 +52,7 @@ case 'clean':
 	break;
 case '--version':
 case '-v':
-	// eslint-disable-next-line global-require
-	console.info(require('../package.json').version);
+	console.info(packageJSON.version);
 	exit();
 	break;
 default:

@@ -3,6 +3,10 @@
 	"version": "0.3.0",
 	"description": "A command line interface for Lisk",
 	"main": "./dist/index.js",
+	"engines": {
+		"node": "=6.12.3",
+		"npm": "=3.10.10"
+	},
 	"directories": {
 		"bin": "./bin"
 	},
@@ -72,6 +76,7 @@
 		"cli-table2": "=0.2.0",
 		"lisk-js": "LiskHQ/lisk-js#1.0.0-dev-lisky",
 		"lockfile": "=1.0.3",
+		"semver": "=5.5.0",
 		"strip-ansi": "=4.0.0",
 		"vorpal": "LiskHQ/vorpal#master"
 	}
