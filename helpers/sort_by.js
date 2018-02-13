@@ -19,7 +19,7 @@
  *
  * @module
  * @see Parent: {@link helpers}
- * @todo Add description of the module and its properties
+ * @todo Add description for the module and the properties
  */
 
 /**
@@ -32,7 +32,7 @@
  * @param {string} options.sortMethod - asc / desc
  * @param {Array} options.sortFields - Description of the param
  * @returns {Object} error | {sortField, sortMethod}.
- * @todo Add description of the params
+ * @todo Add description for the params
  */
 function sortBy(sort, options) {
 	options = typeof options === 'object' ? options : {};
@@ -89,8 +89,8 @@ function sortBy(sort, options) {
 	 *
 	 * @private
 	 * @todo Add param-tag and descriptions
-	 * @todo Add returns-tag
-	 * @todo Add description of the function
+	 * @todo Add @returns tag
+	 * @todo Add description for the function
 	 */
 	function prefixField(sortField) {
 		if (!sortField) {
@@ -108,8 +108,8 @@ function sortBy(sort, options) {
 	 *
 	 * @private
 	 * @todo Add param-tag and descriptions
-	 * @todo Add returns-tag
-	 * @todo Add description of the function
+	 * @todo Add @returns tag
+	 * @todo Add description for the function
 	 */
 	function quoteField(sortField) {
 		if (sortField && options.quoteField) {
@@ -156,7 +156,7 @@ function sortBy(sort, options) {
  * @param {string} sortQuery - sortField|sortField:sortOrder
  * @param {Array} sortableFields - Description of the param
  * @returns {Object} returns {} if incorrect format of sortQuery given or if field
- * @todo Add description of the params
+ * @todo Add description for the params
  */
 function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {
 	if (sortableFields.indexOf(sortQuery) !== -1) {

@@ -28,7 +28,7 @@ var exceptions = require('./exceptions');
  * @requires helpers/slots
  * @param {Object} scope - Description of the param
  * @see Parent: {@link helpers}
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 // Constructor
 function RoundChanges(scope) {
@@ -59,7 +59,7 @@ function RoundChanges(scope) {
  *
  * @param {number} index - Description of the param
  * @returns {Object} With fees, feesRemaining, rewards, balance.
- * @todo Add description of the param
+ * @todo Add description for the params
  */
 RoundChanges.prototype.at = function(index) {
 	var fees = new bignum(this.roundFees.toPrecision(15))

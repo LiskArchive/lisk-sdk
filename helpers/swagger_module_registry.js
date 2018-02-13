@@ -22,7 +22,7 @@ var __private = {};
  *
  * @module
  * @see Parent: {@link helpers}
- * @todo Add description of the module
+ * @todo Add description for the module
  */
 
 /**
@@ -42,7 +42,7 @@ function bind(scope) {
  * Get cache module.
  *
  * @returns {Object}
- * @todo Add description for the returns-tag
+ * @todo Add description for the return value
  */
 function getCache() {
 	return __private.cache;
@@ -52,7 +52,7 @@ function getCache() {
  * Get system logger.
  *
  * @returns {Object}
- * @todo Add description for the returns-tag
+ * @todo Add description for the return value
  */
 function getLogger() {
 	return __private.logger;
@@ -62,7 +62,7 @@ function getLogger() {
  * Get system config.
  *
  * @returns {Object}
- * @todo Add description for the returns-tag
+ * @todo Add description for the return value
  */
 function getConfig() {
 	return __private.config;

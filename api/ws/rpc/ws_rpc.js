@@ -36,7 +36,7 @@ var wsServer = null;
  * @requires api/ws/rpc/failureCodes
  * @requires helpers/promiseDefer
  * @requires modules/system
- * @todo Add description of the module
+ * @todo Add description for the module
  */
 
 /**

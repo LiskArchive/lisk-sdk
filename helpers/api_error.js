@@ -22,7 +22,7 @@
  * @param {string} message - Description of the param
  * @param {number} code - Description of the param
  * @see Parent: {@link helpers}
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 function ApiError(message, code) {
 	this.message = message;
@@ -34,7 +34,7 @@ ApiError.prototype = new Error();
 /**
  * Description of the function.
  *
- * @todo Add returns-tag
+ * @todo Add @returns tag
  */
 ApiError.prototype.toJson = function() {
 	return {

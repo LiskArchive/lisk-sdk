@@ -27,7 +27,7 @@ module.exports = Field;
  * @param {Object} rules - Set of rules
  * @param {*} thisArg Value used as this reference within rule callback calls
  * @see Parent: {@link helpers.validator}
- * @todo Add description of the class
+ * @todo Add description for the class
  */
 function Field(validator, path, value, rules, thisArg) {
 	this.isAsync = false;
@@ -50,7 +50,7 @@ function Field(validator, path, value, rules, thisArg) {
  * @param {Object} rules - Set of rules
  * @param {*} thisArg Value used as this reference within rule callback calls
  * @returns {Validator.Field}
- * @todo Add description of the return value
+ * @todo Add description for the return value
  */
 Field.prototype.child = function(path, value, rules, thisArg) {
 	var field = this.validator.createField(
@@ -67,7 +67,7 @@ Field.prototype.child = function(path, value, rules, thisArg) {
  * Validate field value and trigger callback on result.
  *
  * @param callback - Description of the param
- * @todo Add description of the param
+ * @todo Add description for the params
  */
 Field.prototype.validate = function(callback) {
 	var stack = this._stack;
@@ -177,7 +177,7 @@ Field.prototype.end = function(err) {
  * Create validation async. Callback get done function to emit validation end.
  *
  * @param {function} callback - Description of the param
- * @todo Add description of the param
+ * @todo Add description for the params
  */
 Field.prototype.async = function(callback) {
 	this.isAsync = true;

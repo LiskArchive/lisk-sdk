@@ -34,7 +34,7 @@
  * @property {string[]} signatures
  * @property {string[]} multisignatures
  * @property {string[]} votes
- * @todo Add description of the namespace and its values
+ * @todo Add description for the namespace and the properties
  */
 module.exports = {
 	blockRewards: [],

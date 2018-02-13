@@ -32,7 +32,7 @@ var Peer = require('../logic/peer.js');
  * @requires logic/peer
  * @property {Object} middleware
  * @property {function} extractHeaders
- * @todo Add description of the module and its properties
+ * @todo Add description for the module and the properties
  */
 
 var definitions = swaggerHelper.getSwaggerSpec().definitions;
@@ -52,8 +52,8 @@ var middleware = {
 	 * Description of the function.
 	 *
 	 * @param {Object} system - Description of the param
-	 * @todo Add descriptions of the function and its parameters
-	 * @todo Add @returns-tag
+	 * @todo Add description for the function and the params
+	 * @todo Add @returns tag
 	 */
 	// eslint-disable-next-line object-shorthand
 	Handshake: function(system) {
@@ -61,8 +61,8 @@ var middleware = {
 		 * Description of the function.
 		 *
 		 * @param {Object} system - Description of the param
-		 * @todo Add descriptions of the function and its parameters
-		 * @todo Add @returns-tag
+		 * @todo Add description for the function and the params
+		 * @todo Add @returns tag
 		 */
 		return function(headers, cb) {
 			z_schema.validate(headers, definitions.WSPeerHeaders, error => {
@@ -126,8 +126,8 @@ var middleware = {
  * Description of the function.
  *
  * @param {Object} request - Description of the param
- * @todo Add descriptions of the function and its parameters
- * @todo Add @returns-tag
+ * @todo Add description for the function and the params
+ * @todo Add @returns tag
  */
 var extractHeaders = function(request) {
 	var headers = _.get(url.parse(request.url, true), 'query', null);

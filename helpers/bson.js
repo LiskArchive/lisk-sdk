@@ -33,7 +33,7 @@ var bs = {};
  * @func serialize
  * @param {Object} data - Description of the param
  * @returns {Buffer}
- * @todo Add descriptions of the parameters and return-value
+ * @todo Add description for the params and the return value
  */
 bs.serialize = function(data) {
 	return bson.serialize(data);
@@ -45,7 +45,7 @@ bs.serialize = function(data) {
  * @func deserialize
  * @param {Buffer} data - Description of the param
  * @returns {Object}
- * @todo Add descriptions of the parameters and return-value
+ * @todo Add description for the params and the return value
  */
 bs.deserialize = function(data) {
 	return bson.deserialize(data);

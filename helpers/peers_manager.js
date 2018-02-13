@@ -20,7 +20,7 @@
  * @class
  * @memberof helpers
  * @see Parent: {@link helpers}
- * @todo Add descriptions of the class
+ * @todo Add description for the class
  */
 function PeersManager() {
 	this.peers = {};
@@ -32,8 +32,8 @@ function PeersManager() {
  * Description of the function.
  *
  * @param {Object} peer - Description of the param
- * @todo Add descriptions of the params
- * @todo Add returns-tag
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 PeersManager.prototype.add = function(peer) {
 	// 1. do not add peers without address
@@ -61,8 +61,8 @@ PeersManager.prototype.add = function(peer) {
  * Description of the function.
  *
  * @param {Object} peer - Description of the param
- * @todo Add descriptions of the params
- * @todo Add returns-tag
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 PeersManager.prototype.remove = function(peer) {
 	if (!peer || !this.peers[peer.string]) {
@@ -84,8 +84,8 @@ PeersManager.prototype.remove = function(peer) {
  * Description of the function.
  *
  * @param {Object} peer - Description of the param
- * @todo Add descriptions of the params
- * @todo Add returns-tag
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 PeersManager.prototype.update = function(peer) {
 	var oldNonce = this.addressToNonceMap[peer.string];
@@ -109,8 +109,8 @@ PeersManager.prototype.update = function(peer) {
  * Description of the function.
  *
  * @param {Object} peer - Description of the param
- * @todo Add descriptions of the params
- * @todo Add returns-tag
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 PeersManager.prototype.getAll = function() {
 	return this.peers;
@@ -120,8 +120,8 @@ PeersManager.prototype.getAll = function() {
  * Description of the function.
  *
  * @param {Object} peer - Description of the param
- * @todo Add descriptions of the params
- * @todo Add returns-tag
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 PeersManager.prototype.getByAddress = function(address) {
 	return this.peers[address];
@@ -131,8 +131,8 @@ PeersManager.prototype.getByAddress = function(address) {
  * Description of the function.
  *
  * @param {Object} peer - Description of the param
- * @todo Add descriptions of the params
- * @todo Add returns-tag
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 PeersManager.prototype.getByNonce = function(nonce) {
 	return this.peers[this.nonceToAddressMap[nonce]];
@@ -142,8 +142,8 @@ PeersManager.prototype.getByNonce = function(nonce) {
  * Description of the function.
  *
  * @param {Object} peer - Description of the param
- * @todo Add descriptions of the params
- * @todo Add returns-tag
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 PeersManager.prototype.getNonce = function(address) {
 	return this.addressToNonceMap[address];
@@ -153,8 +153,8 @@ PeersManager.prototype.getNonce = function(address) {
  * Description of the function.
  *
  * @param {Object} peer - Description of the param
- * @todo Add descriptions of the params
- * @todo Add returns-tag
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 PeersManager.prototype.getAddress = function(nonce) {
 	return this.nonceToAddressMap[nonce];

@@ -32,7 +32,7 @@ var z_schema = require('./z_schema.js');
  *
  * @param {Object} packageJson - Description of the param
  * @returns {Object} configData
- * @todo Add description of the parameter
+ * @todo Add description for the params
  */
 function Config(packageJson) {
 	program
@@ -125,7 +125,7 @@ function Config(packageJson) {
  *
  * @private
  * @param {Object} configData - Description of the param
- * @todo Add description of the parameter
+ * @todo Add description for the params
  */
 function validateForce(configData) {
 	if (configData.forging.force) {

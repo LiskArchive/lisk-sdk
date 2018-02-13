@@ -40,7 +40,7 @@ var jobsQueue = {
 	 * @param {number} time - Description of the param
 	 * @throws {Error} Throws error if cannot get last git commit
 	 * @returns {string} Hash of last git commit
-	 * @todo Add descriptions and types of the parameters
+	 * @todo Add description for the params
 	 */
 	register(name, job, time) {
 		// Check if job is already registered - we check only if property exists, because value can be undefined

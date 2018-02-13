@@ -29,7 +29,7 @@
  * @property {number} NOT_FOUND - Description of the value
  * @property {number} PROCESSING_ERROR - Description of the value
  * @property {number} TOO_MANY_REQUESTS - Description of the value
- * @todo Add description of the namespace and its values
+ * @todo Add description for the namespace and the values
  */
 module.exports = {
 	OK: 200,

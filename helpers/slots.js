@@ -24,7 +24,7 @@ var constants = require('./constants.js');
  * @property {number} interval - Slot time interval in seconds.
  * @property {number} delegates - Active delegates from constants.
  * @see Parent: {@link helpers}
- * @todo Add description of the module
+ * @todo Add description for the module
  */
 
 /**
@@ -44,7 +44,7 @@ function beginEpochTime() {
  *
  * @private
  * @param {number|undefined} time - Time in unix seconds
- * @returns {number} current time - lisk epoch time
+ * @returns {number} current time - Lisk epoch time
  */
 function getEpochTime(time) {
 	if (time === undefined) {
@@ -66,7 +66,7 @@ module.exports = {
 	 *
 	 * @param {number} time - Description of the param
 	 * @returns {number} lisk epoch time constant
-	 * @todo Add description of the function and its param
+	 * @todo Add description for the function and the params
 	 */
 	getTime(time) {
 		return getEpochTime(time);
@@ -77,7 +77,7 @@ module.exports = {
 	 *
 	 * @param {number} [epochTime] - Description of the param
 	 * @returns {number} constant time from Lisk epoch + input time
-	 * @todo Add description of the function and its param
+	 * @todo Add description for the function and the params
 	 */
 	getRealTime(epochTime) {
 		if (epochTime === undefined) {
@@ -95,7 +95,7 @@ module.exports = {
 	 *
 	 * @param {number} [epochTime] - time or
 	 * @returns {number} input time / slot interval.
-	 * @todo Add description of the function and its param
+	 * @todo Add description for the function and the params
 	 */
 	getSlotNumber(epochTime) {
 		if (epochTime === undefined) {
@@ -110,7 +110,7 @@ module.exports = {
 	 *
 	 * @param {number} slot - slot number
 	 * @returns {number} input slot * slot interval.
-	 * @todo Add description of the function and its param
+	 * @todo Add description for the function and the params
 	 */
 	getSlotTime(slot) {
 		return slot * this.interval;
@@ -120,7 +120,7 @@ module.exports = {
 	 * Description of the function.
 	 *
 	 * @returns {number} current slot number + 1.
-	 * @todo Add description of the function and its param
+	 * @todo Add description for the function and the params
 	 */
 	getNextSlot() {
 		var slot = this.getSlotNumber();
@@ -133,7 +133,7 @@ module.exports = {
 	 *
 	 * @param {number} nextSlot - Description of the param
 	 * @returns {number} input next slot + delegates
-	 * @todo Add description of the function and its param
+	 * @todo Add description for the function and the params
 	 */
 	getLastSlot(nextSlot) {
 		return nextSlot + this.delegates;
@@ -144,7 +144,7 @@ module.exports = {
 	 *
 	 * @param {number} nextSlot - Description of the param
 	 * @returns {number} input next slot + delegates
-	 * @todo Add description of the function and its param
+	 * @todo Add description for the function and the params
 	 */
 	roundTime(date) {
 		return Math.floor(date.getTime() / 1000) * 1000;
@@ -155,7 +155,7 @@ module.exports = {
 	 *
 	 * @param {number} height - Height from which round is calculated
 	 * @returns {number} Round
-	 * @todo Add description of the param
+	 * @todo Add description for the params
 	 *
 	 */
 	calcRound(height) {

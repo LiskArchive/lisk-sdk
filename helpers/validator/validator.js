@@ -30,7 +30,7 @@ exports.Field = Field;
  * @memberof helpers.validator
  * @param {Object} options - Description of the param
  * @see Parent: {@link helpers.validator}
- * @todo Add description of the param
+ * @todo Add description for the params
  */
 function Validator(options) {
 	options = options || {};
@@ -85,7 +85,7 @@ Validator.prototype.reporter = null;
  *
  * @param {string} name - Description of the param
  * @returns {boolean}
- * @todo Add description of the param
+ * @todo Add description for the params
  */
 Validator.prototype.hasRule = function(name) {
 	return name in this.rules;
@@ -96,7 +96,7 @@ Validator.prototype.hasRule = function(name) {
  *
  * @param {string} name - Description of the param
  * @returns {*}
- * @todo Add description of the param
+ * @todo Add description for the params
  */
 Validator.prototype.getRule = function(name) {
 	if (name in this.rules === false) {
@@ -215,7 +215,7 @@ Validator.prototype.onEnd = function() {};
  *
  * @param {string} name - Validator name
  * @param {Object} descriptor - Validator descriptor object
- * @todo Add throws tag
+ * @todo Add @throws tag
  */
 Validator.addRule = function(name, descriptor) {
 	if (typeof descriptor !== 'object') {
@@ -238,8 +238,8 @@ Validator.addRule = function(name, descriptor) {
  *
  * @param {string} name - Description of the param
  * @param {string} origin - Description of the param
- * @todo Add returns-tag
- * @todo Add descriptions of the params
+ * @todo Add @returns tag
+ * @todo Add description for the params
  */
 Validator.addAlias = function(name, origin) {
 	Object.defineProperty(this.prototype.rules, name, {
@@ -254,7 +254,7 @@ Validator.addAlias = function(name, origin) {
  *
  * @param name - Description of the param
  * @param value - Description of the param
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 Validator.fieldProperty = function(name, value) {
 	this.prototype.Field.prototype[name] = value;
@@ -278,7 +278,7 @@ Validator.options = {
  * @param {*} value - Validated value
  * @param {Object} rules - Set of rules
  * @param {Object} customRules - Customized rule set. Optional
- * @param {function} callback - assign customRules if it is a function
+ * @param {function} callback - Assign customRules if it is a function
  * @returns {instance} instance
  */
 Validator.validate = function(value, rules, customRules, callback) {

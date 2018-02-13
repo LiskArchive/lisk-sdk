@@ -23,7 +23,7 @@ var Promise = require('bluebird');
  * @memberof helpers
  * @returns {Object}
  * @see Parent: {@link helpers}
- * @todo Add descriptions of the class and the return value
+ * @todo Add description for the class and the return value
  */
 function PromiseDefer() {
 	var resolve;

@@ -18,7 +18,7 @@
  * Description if the module.
  *
  * @module
- * @todo Add description of the module
+ * @todo Add description for the module
  */
 module.exports = {
 	/**
@@ -26,7 +26,7 @@ module.exports = {
 	 *
 	 * @param {Array} diff - Description of the param
 	 * @returns {Array} reverse sign.
-	 * @todo Add description of the parameter
+	 * @todo Add description for the params
 	 */
 	reverse(diff) {
 		var copyDiff = diff.slice();
@@ -43,7 +43,7 @@ module.exports = {
 	 * @param {Array} source - Description of the param
 	 * @param {Array} diff - Description of the param
 	 * @returns {Array} Source data without -publicKeys and with +publicKeys from diff.
-	 * @todo Add descriptions of the parameters
+	 * @todo Add description for the params
 	 */
 	merge(source, diff) {
 		var res = source ? source.slice() : [];

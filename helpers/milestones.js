@@ -21,7 +21,7 @@
  * @memberof helpers
  * @see Parent: {@link helpers}
  * @property {number} disableDappTransfers - Description of the value
- * @todo Add description of the namespace and its value
+ * @todo Add description for the namespace and the properties
  */
 module.exports = {
 	disableDappTransfers: 0,

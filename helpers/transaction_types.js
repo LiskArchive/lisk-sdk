@@ -27,7 +27,7 @@
  * @property {number} MULTI - Description of the value
  * @property {number} IN_TRANSFER - Description of the value
  * @property {number} OUT_TRANSFER - Description of the value
- * @todo Add description of the namespace and its values
+ * @todo Add description for the namespace and the properties
  */
 module.exports = {
 	SEND: 0,

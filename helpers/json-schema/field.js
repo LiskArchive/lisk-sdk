@@ -24,8 +24,8 @@ module.exports = JsonSchemaField;
  * @class
  * @memberof helpers.json-schema
  * @see Parent: {@link helpers.json-schema}
- * @todo add description of the class
- * @todo Add @param-tags
+ * @todo Add description for the class
+ * @todo Add @param tags
  */
 function JsonSchemaField(validator, path, value, rule, thisArg) {
 	Field.call(this, validator, path, value, rule, thisArg);

@@ -31,7 +31,7 @@ var BigNumber = require('bignumber.js');
  * @param {Object} opts - Description of the param
  * @returns {ArrayBuffer} new BigNumber instance
  * @throws {RangeError} error description multiple of size
- * @todo Add descriptions of the parameters
+ * @todo Add description for the params
  */
 BigNumber.fromBuffer = function(buf, opts) {
 	if (!opts) {
@@ -67,7 +67,7 @@ BigNumber.fromBuffer = function(buf, opts) {
  *
  * @param {Object} opts - Description of the param
  * @returns {ArrayBuffer} new buffer | error message invalid option
- * @todo Add descriptions of the parameters
+ * @todo Add description for the params
  */
 BigNumber.prototype.toBuffer = function(opts) {
 	var abs = this.abs();

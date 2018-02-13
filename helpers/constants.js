@@ -58,7 +58,7 @@
  * @property {number} signatureLength
  * @property {number} totalAmount
  * @property {number} unconfirmedTransactionTimeOut - 1080 blocks
- * @todo Add description of the namespace and its values
+ * @todo Add description for the namespace and the properties
  */
 var constants = {
 	activeDelegates: 101,

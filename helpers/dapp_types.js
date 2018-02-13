@@ -22,7 +22,7 @@
  * @see Parent: {@link helpers}
  * @property {number} DAPP - Description of the value
  * @property {number} FILE - Description of the value
- * @todo Add description of the namespace and its values
+ * @todo Add description for the namespace and the properties
  */
 module.exports = {
 	DAPP: 0,

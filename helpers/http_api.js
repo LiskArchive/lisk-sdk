@@ -32,7 +32,7 @@ var checkIpInList = require('./check_ip_in_list');
  * @property {function} registerEndpoint
  * @property {function} respond
  * @property {function} respondWithCode
- * @todo Add description of the module and its properties
+ * @todo Add description for the module and the properties
  */
 
 /**
@@ -50,8 +50,8 @@ var middleware = {
 	 * @param {Object} req - Description of the param
 	 * @param {Object} res - Description of the param
 	 * @param {function} next - Description of the param
-	 * @todo Add descriptions of the parameters
-	 * @todo Add @returns-tag
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
 	cors(req, res, next) {
 		res.header('Access-Control-Allow-Origin', '*');
@@ -70,8 +70,8 @@ var middleware = {
 	 * @param {Object} req - Description of the param
 	 * @param {Object} res - Description of the param
 	 * @param {function} next - Description of the param
-	 * @todo Add descriptions of the parameters
-	 * @todo Add @returns-tag
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
 	errorLogger(logger, err, req, res, next) {
 		if (!err) {
@@ -91,8 +91,8 @@ var middleware = {
 	 * @param {Object} req - Description of the param
 	 * @param {Object} res - Description of the param
 	 * @param {function} next - Description of the param
-	 * @todo Add descriptions of the parameters
-	 * @todo Add @returns-tag
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
 	logClientConnections(logger, req, res, next) {
 		// Log client connections
@@ -108,8 +108,8 @@ var middleware = {
 	 * @param {Object} req - Description of the param
 	 * @param {Object} res - Description of the param
 	 * @param {function} next - Description of the param
-	 * @todo Add descriptions of the parameters
-	 * @todo Add @returns-tag
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
 	blockchainReady(isLoaded, req, res, next) {
 		if (isLoaded()) {
@@ -124,8 +124,8 @@ var middleware = {
 	 * @param {Object} req - Description of the param
 	 * @param {Object} res - Description of the param
 	 * @param {function} next - Description of the param
-	 * @todo Add descriptions of the parameters
-	 * @todo Add @returns-tag
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
 	notFound(req, res) {
 		return res
@@ -140,7 +140,7 @@ var middleware = {
 	 * @param {Object} schema - Description of the param
 	 * @param {function} cb - Description of the param
 	 * @returns {function} Sanitize middleware.
-	 * @todo Add descriptions of the parameters
+	 * @todo Add description for the params
 	 */
 	sanitize(property, schema, cb) {
 		// TODO: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
@@ -162,8 +162,8 @@ var middleware = {
 	 * @param {Object} req - Description of the param
 	 * @param {Object} res - Description of the param
 	 * @param {function} next - Description of the param
-	 * @todo Add descriptions of the parameters
-	 * @todo Add @returns-tag
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
 	attachResponseHeader(headerKey, headerValue, req, res, next) {
 		res.setHeader(headerKey, headerValue);
@@ -177,8 +177,8 @@ var middleware = {
 	 * @param {Object} req - Description of the param
 	 * @param {Object} res - Description of the param
 	 * @param {function} next - Description of the param
-	 * @todo Add descriptions of the parameters
-	 * @todo Add @returns-tag
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
 	applyAPIAccessRules(config, req, res, next) {
 		if (req.url.match(/^\/peer[/]?.*/)) {
@@ -199,8 +199,8 @@ var middleware = {
 		 *
 		 * @param {boolean} apiAllowed - Description of the param
 		 * @param {boolean} isEnabled - Description of the param
-		 * @todo Add descriptions of the function and its parameters
-		 * @todo Add @returns-tag
+		 * @todo Add description for the function and the params
+		 * @todo Add @returns tag
 		 */
 		function rejectDisallowed(apiAllowed, isEnabled) {
 			return apiAllowed
@@ -220,8 +220,8 @@ var middleware = {
 	 * @param {Object} req - Description of the param
 	 * @param {Object} res - Description of the param
 	 * @param {function} next - Description of the param
-	 * @todo Add descriptions of the parameters
-	 * @todo Add @returns-tag
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
 	attachResponseHeaders(getHeaders, req, res, next) {
 		res.set(getHeaders());
@@ -235,8 +235,8 @@ var middleware = {
 	 * @param {Object} req - Description of the param
 	 * @param {Object} res - Description of the param
 	 * @param {function} next - Description of the param
-	 * @todo Add descriptions of the parameters
-	 * @todo Add @returns-tag
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
 	useCache(logger, cache, req, res, next) {
 		if (!cache.isReady()) {
@@ -275,8 +275,8 @@ var middleware = {
  * @param {Object} res - Description of the param
  * @param {string} err - Description of the param
  * @param {Object} response - Description of the param
- * @todo Add descriptions of the parameters
- * @todo Add @returns-tag
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 function respond(res, err, response) {
 	if (err) {
@@ -295,8 +295,8 @@ function respond(res, err, response) {
  * @param {Object} res - Description of the param
  * @param {ApiError} err - Description of the param
  * @param {Object} response - Description of the param
- * @todo Add descriptions of the parameters
- * @todo Add @returns-tag
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 function respondWithCode(res, err, response) {
 	if (err) {
@@ -324,8 +324,8 @@ function respondWithCode(res, err, response) {
  * @param {Object} app - Description of the param
  * @param {Object} router - Description of the param
  * @param {function} isLoaded - Description of the param
- * @todo Add descriptions of the parameters
- * @todo Add @returns-tag
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 function registerEndpoint(route, app, router, isLoaded) {
 	router.use(middleware.notFound);

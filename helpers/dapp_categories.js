@@ -29,7 +29,7 @@
  * @property {number} Science - Description of the value
  * @property {number} Social - Description of the value
  * @property {number} Utilities - Description of the value
- * @todo Add descriptions of the namespace and its values
+ * @todo Add description for the namespace and the values
  */
 module.exports = {
 	Education: 0,

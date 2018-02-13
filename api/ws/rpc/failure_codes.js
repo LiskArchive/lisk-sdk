@@ -58,7 +58,7 @@
  * @property {string} errorMessages.4231
  * @property {string} errorMessages.4232
  * @property {Object} PeerUpdateError
- * @todo Add description of the module and its properties
+ * @todo Add description for the module and the properties
  */
 module.exports = {
 	INVALID_HEADERS: 4100,

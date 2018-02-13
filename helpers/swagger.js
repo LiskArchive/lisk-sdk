@@ -106,7 +106,7 @@ function getSwaggerSpec() {
  * @param {Array} [messages] - List of error messages.
  * @param {Array} [codes] - List of error codes.
  * @returns {Object}
- * @todo Add description for the returns-tag
+ * @todo Add description for the return value
  */
 function generateParamsErrorObject(params, messages, codes) {
 	if (!codes) {
@@ -143,7 +143,7 @@ function generateParamsErrorObject(params, messages, codes) {
  *
  * @param {object} request - Request object.
  * @returns {boolean}
- * @todo Add description for the returns-tag
+ * @todo Add description for the return value
  */
 function invalidParams(request) {
 	var swaggerParams = Object.keys(request.swagger.params);

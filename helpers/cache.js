@@ -29,7 +29,7 @@ var redis = require('redis');
  * @param {Object} config - Redis configuration
  * @param {Object} logger - Description of the param
  * @param {function} cb - Description of the param
- * @todo Add descriptions of the function and its params
+ * @todo Add description for the function and the params
  */
 module.exports.connect = function(cacheEnabled, config, logger, cb) {
 	var isRedisLoaded = false;

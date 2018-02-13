@@ -21,7 +21,7 @@
  * @function z_schema-express
  * @param {function} z_schema - Description of the param
  * @returns {function}
- * @todo Add description of the param and returns-value
+ * @todo Add description for the params and return value
  */
 module.exports = function(z_schema) {
 	return function(req, res, next) {

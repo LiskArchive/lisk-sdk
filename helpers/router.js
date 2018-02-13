@@ -28,7 +28,7 @@ var httpApi = require('./http_api');
  * @throws {Error} If config is invalid
  * @returns {Object} router express
  * @see Parent: {@link helpers}
- * @todo Add descriptions of the params
+ * @todo Add description for the params
  */
 var Router = function() {
 	router.use(httpApi.middleware.cors);
@@ -69,8 +69,8 @@ var Router = function() {
 	 *
 	 * @param {function} middleware - Description of the param
 	 * @param {string} routes - Description of the param
-	 * @todo Add descriptions of the params
-	 * @todo Add returns-tag
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
 	router.attachMiddlwareForUrls = function(middleware, routes) {
 		routes.forEach(entry => {

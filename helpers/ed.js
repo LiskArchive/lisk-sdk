@@ -31,7 +31,7 @@ var ed = {};
  * @func makeKeypair
  * @param {hash} hash - Description of the param
  * @returns {Object} publicKey, privateKey
- * @todo Add descriptions of the parameters
+ * @todo Add description for the params
  */
 ed.makeKeypair = function(hash) {
 	var keypair = sodium.crypto_sign_seed_keypair(hash);
@@ -49,7 +49,7 @@ ed.makeKeypair = function(hash) {
  * @param {hash} hash - Description of the param
  * @param {Buffer} privateKey - Description of the param
  * @returns {Buffer} signature
- * @todo Add descriptions of the parameters
+ * @todo Add description for the params
  */
 ed.sign = function(hash, privateKey) {
 	return sodium.crypto_sign_detached(hash, privateKey);
@@ -63,7 +63,7 @@ ed.sign = function(hash, privateKey) {
  * @param {Buffer} signature - Description of the param
  * @param {Buffer} publicKey - Description of the param
  * @returns {boolean} true id verified
- * @todo Add descriptions of the parameters
+ * @todo Add description for the params
  */
 ed.verify = function(hash, signature, publicKey) {
 	return sodium.crypto_sign_verify_detached(signature, hash, publicKey);
