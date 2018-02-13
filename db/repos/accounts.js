@@ -324,6 +324,17 @@ class AccountsRepository {
 	}
 
 	/**
+	 * Delete an account from mem_accounts.
+	 *
+	 * @param {string} address - Address of the account to be updated
+	 * @return {Promise}
+	 */
+	remove(address) {
+		const sql = 'DELETE FROM $1:name WHERE $2:name = $3';
+		return this.db.none(sql, [this.dbTable, 'address', address]);
+	}
+
+	/**
 	 * Clear data in memory tables:
 	 * - mem_round
 	 * - mem_accounts2delegates

@@ -51,12 +51,18 @@ describe('db', () => {
 	});
 
 	beforeEach(done => {
-		seeder.seed(db).then(() => done(null)).catch(done);
+		seeder
+			.seed(db)
+			.then(() => done(null))
+			.catch(done);
 	});
 
 	afterEach(done => {
 		sinonSandbox.restore();
-		seeder.reset(db).then(() => done(null)).catch(done);
+		seeder
+			.reset(db)
+			.then(() => done(null))
+			.catch(done);
 	});
 
 	it('should initialize db db.accounts repo', () => {
@@ -138,7 +144,9 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'query');
 				yield db.accounts.updateMemAccounts();
 
-				expect(db.query.firstCall.args[0]).to.eql(accountsSQL.updateMemAccounts);
+				expect(db.query.firstCall.args[0]).to.eql(
+					accountsSQL.updateMemAccounts
+				);
 			});
 
 			it('should pass no params to the SQL file', function*() {
@@ -162,64 +170,94 @@ describe('db', () => {
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_isDelegate', function*() {
-				yield db.query('UPDATE mem_accounts SET "isDelegate" = 1, "u_isDelegate" = 0');
+				yield db.query(
+					'UPDATE mem_accounts SET "isDelegate" = 1, "u_isDelegate" = 0'
+				);
 				yield db.accounts.updateMemAccounts();
-				const result = yield db.one('SELECT count(*) FROM mem_accounts WHERE "isDelegate" <> "u_isDelegate"');
+				const result = yield db.one(
+					'SELECT count(*) FROM mem_accounts WHERE "isDelegate" <> "u_isDelegate"'
+				);
 
 				expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_secondSignature', function*() {
-				yield db.query('UPDATE mem_accounts SET "secondSignature" = 1, "u_secondSignature" = 0');
+				yield db.query(
+					'UPDATE mem_accounts SET "secondSignature" = 1, "u_secondSignature" = 0'
+				);
 				yield db.accounts.updateMemAccounts();
-				const result = yield db.one('SELECT count(*) FROM mem_accounts WHERE "secondSignature" <> "u_secondSignature"');
+				const result = yield db.one(
+					'SELECT count(*) FROM mem_accounts WHERE "secondSignature" <> "u_secondSignature"'
+				);
 
 				expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_username', function*() {
 				yield db.accounts.updateMemAccounts();
-				const result = yield db.one('SELECT count(*) FROM mem_accounts WHERE "username" <> "u_username"');
+				const result = yield db.one(
+					'SELECT count(*) FROM mem_accounts WHERE "username" <> "u_username"'
+				);
 
 				expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_balance', function*() {
-				yield db.query('UPDATE mem_accounts SET "balance" = 123, "u_balance" = 124');
+				yield db.query(
+					'UPDATE mem_accounts SET "balance" = 123, "u_balance" = 124'
+				);
 				yield db.accounts.updateMemAccounts();
-				const result = yield db.one('SELECT count(*) FROM mem_accounts WHERE "balance" <> "u_balance"');
+				const result = yield db.one(
+					'SELECT count(*) FROM mem_accounts WHERE "balance" <> "u_balance"'
+				);
 
 				expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_delegates', function*() {
-				yield db.query('UPDATE mem_accounts SET "delegates" = \'Alpha\', "u_delegates" = \'Beta\' ');
+				yield db.query(
+					'UPDATE mem_accounts SET "delegates" = \'Alpha\', "u_delegates" = \'Beta\' '
+				);
 				yield db.accounts.updateMemAccounts();
-				const result = yield db.one('SELECT count(*) FROM mem_accounts WHERE "delegates" <> "u_delegates"');
+				const result = yield db.one(
+					'SELECT count(*) FROM mem_accounts WHERE "delegates" <> "u_delegates"'
+				);
 
 				expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_multisignatures', function*() {
-				yield db.query('UPDATE mem_accounts SET "multisignatures" = \'Alpha\', "u_multisignatures" = \'Beta\' ');
+				yield db.query(
+					'UPDATE mem_accounts SET "multisignatures" = \'Alpha\', "u_multisignatures" = \'Beta\' '
+				);
 				yield db.accounts.updateMemAccounts();
-				const result = yield db.one('SELECT count(*) FROM mem_accounts WHERE "multisignatures" <> "u_multisignatures"');
+				const result = yield db.one(
+					'SELECT count(*) FROM mem_accounts WHERE "multisignatures" <> "u_multisignatures"'
+				);
 
 				expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_multimin', function*() {
-				yield db.query('UPDATE mem_accounts SET "multimin" = 1, "u_multimin" = 0');
+				yield db.query(
+					'UPDATE mem_accounts SET "multimin" = 1, "u_multimin" = 0'
+				);
 				yield db.accounts.updateMemAccounts();
-				const result = yield db.one('SELECT count(*) FROM mem_accounts WHERE "multimin" <> "u_multimin"');
+				const result = yield db.one(
+					'SELECT count(*) FROM mem_accounts WHERE "multimin" <> "u_multimin"'
+				);
 
 				expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_multilifetime', function*() {
-				yield db.query('UPDATE mem_accounts SET "multilifetime" = 1, "u_multilifetime" = 0');
+				yield db.query(
+					'UPDATE mem_accounts SET "multilifetime" = 1, "u_multilifetime" = 0'
+				);
 				yield db.accounts.updateMemAccounts();
-				const result = yield db.one('SELECT count(*) FROM mem_accounts WHERE "multilifetime" <> "u_multilifetime"');
+				const result = yield db.one(
+					'SELECT count(*) FROM mem_accounts WHERE "multilifetime" <> "u_multilifetime"'
+				);
 
 				expect(result.count).to.be.equal('0');
 			});
@@ -230,17 +268,25 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'any');
 				yield db.accounts.getOrphanedMemAccounts();
 
-				expect(db.any.firstCall.args[0]).to.eql(accountsSQL.getOrphanedMemAccounts);
+				expect(db.any.firstCall.args[0]).to.eql(
+					accountsSQL.getOrphanedMemAccounts
+				);
 			});
 
 			it('should yield orphan db.accounts if associated blockId does not exist', function*() {
 				const firstAccount = (yield db.accounts.list({}, ['address']))[0];
 
 				// Let some account to be orphan
-				yield db.none(`UPDATE mem_accounts SET "blockId" = 'unknownId' WHERE address = '${firstAccount.address}'`);
+				yield db.none(
+					`UPDATE mem_accounts SET "blockId" = 'unknownId' WHERE address = '${
+						firstAccount.address
+					}'`
+				);
 
 				const orphanAccounts = yield db.accounts.getOrphanedMemAccounts();
-				const totalAccounts = yield db.one('SELECT count(*)::int FROM mem_accounts');
+				const totalAccounts = yield db.one(
+					'SELECT count(*)::int FROM mem_accounts'
+				);
 
 				// There must be some db.accounts to test
 				expect(totalAccounts.count).to.above(1);
@@ -313,10 +359,13 @@ describe('db', () => {
 			});
 
 			it('should throw error if unknown field is provided to data or updateData', () => {
-				return expect(db.accounts.upsert(
-					{ address: '12L' },
-					'address',
-					{ unknownField: 'myValue' })).to.eventually.rejectedWith('Unknown field provided to db.accounts.upsert');
+				return expect(
+					db.accounts.upsert({ address: '12L' }, 'address', {
+						unknownField: 'myValue',
+					})
+				).to.eventually.rejectedWith(
+					'Unknown field provided to db.accounts.upsert'
+				);
 			});
 
 			it('should succeed with null', () => {
@@ -331,12 +380,10 @@ describe('db', () => {
 				const account = accountFixtures.Account();
 
 				return db.accounts.upsert(account, 'address').then(() => {
-					return db.accounts
-						.list({ address: account.address })
-						.then(result => {
-							expect(result.length).to.be.eql(1);
-							expect(account).to.be.eql(_.omit(result[0], 'rank'));
-						});
+					return db.accounts.list({ address: account.address }).then(result => {
+						expect(result.length).to.be.eql(1);
+						expect(account).to.be.eql(_.omit(result[0], 'rank'));
+					});
 				});
 			});
 
@@ -376,12 +423,10 @@ describe('db', () => {
 				});
 
 				return db.accounts.upsert(account, 'address').then(() => {
-					return db.accounts
-						.list({ address: account.address })
-						.then(result => {
-							expect(result.length).to.eql(1);
-							expect(result[0].delegates).to.be.null;
-						});
+					return db.accounts.list({ address: account.address }).then(result => {
+						expect(result.length).to.eql(1);
+						expect(result[0].delegates).to.be.null;
+					});
 				});
 			});
 
@@ -479,7 +524,9 @@ describe('db', () => {
 			});
 
 			it('should match the multiple conflict keys with AND composite', () => {
-				const originalAccount = accountFixtures.Account({ u_username: 'alpha' });
+				const originalAccount = accountFixtures.Account({
+					u_username: 'alpha',
+				});
 				const updatedAccount = accountFixtures.Account({
 					username: originalAccount.username,
 					u_username: originalAccount.u_username,
@@ -520,17 +567,15 @@ describe('db', () => {
 				const account = accountFixtures.Account();
 
 				return db.accounts.insert(account).then(() => {
-					return db.accounts
-						.list({ address: account.address })
-						.then(result => {
-							db.accounts.cs.insert.columns.forEach(column => {
-								expect(result.length).to.eql(1);
+					return db.accounts.list({ address: account.address }).then(result => {
+						db.accounts.cs.insert.columns.forEach(column => {
+							expect(result.length).to.eql(1);
 
-								expect(result[0][column.prop || column.name]).to.eql(
-									account[column.prop || column.name]
-								);
-							});
+							expect(result[0][column.prop || column.name]).to.eql(
+								account[column.prop || column.name]
+							);
 						});
+					});
 				});
 			});
 
@@ -567,9 +612,9 @@ describe('db', () => {
 			it('should throw error if called without an address', () => {
 				const account = accountFixtures.Account();
 
-				return expect(db.accounts
-					.update(null, account))
-					.to.be.rejectedWith('Error: db.accounts.update - invalid address argument');
+				return expect(db.accounts.update(null, account)).to.be.rejectedWith(
+					'Error: db.accounts.update - invalid address argument'
+				);
 			});
 
 			it('should resolve to promise without any error if no data is passed', () => {
@@ -585,21 +630,19 @@ describe('db', () => {
 				delete account.u_username;
 
 				return db.accounts.insert(account).then(() => {
-					return db.accounts
-						.update(account.address, updateAccount)
-						.then(() => {
-							return db.accounts
-								.list({ address: account.address })
-								.then(result => {
-									db.accounts.cs.update.columns.forEach(column => {
-										expect(result.length).to.eql(1);
+					return db.accounts.update(account.address, updateAccount).then(() => {
+						return db.accounts
+							.list({ address: account.address })
+							.then(result => {
+								db.accounts.cs.update.columns.forEach(column => {
+									expect(result.length).to.eql(1);
 
-										expect(result[0][column.prop || column.name]).to.eql(
-											updateAccount[column.prop || column.name]
-										);
-									});
+									expect(result[0][column.prop || column.name]).to.eql(
+										updateAccount[column.prop || column.name]
+									);
 								});
-						});
+							});
+					});
 				});
 			});
 
@@ -630,13 +673,17 @@ describe('db', () => {
 				yield db.accounts.insert(account);
 				yield db.accounts.increment(account.address, 'balance', 1000);
 
-				const updatedAccount = (yield db.accounts.list({ address: account.address }, ['balance']))[0];
+				const updatedAccount = (yield db.accounts.list(
+					{ address: account.address },
+					['balance']
+				))[0];
 
 				expect(updatedAccount.balance).to.eql('16000');
 			});
 
 			it('should throw error if unknown field is provided', function*() {
-				yield expect(db.accounts.increment('12L', 'unknown', 1000)).to.eventually.rejected;
+				yield expect(db.accounts.increment('12L', 'unknown', 1000)).to
+					.eventually.rejected;
 			});
 		});
 
@@ -655,13 +702,33 @@ describe('db', () => {
 				yield db.accounts.insert(account);
 				yield db.accounts.decrement(account.address, 'balance', 1000);
 
-				const updatedAccount = (yield db.accounts.list({ address: account.address }, ['balance']))[0];
+				const updatedAccount = (yield db.accounts.list(
+					{ address: account.address },
+					['balance']
+				))[0];
 
 				expect(updatedAccount.balance).to.eql('14000');
 			});
 
 			it('should throw error if unknown field is provided', function*() {
-				yield expect(db.accounts.decrement('12L', 'unknown', 1000)).to.eventually.rejected;
+				yield expect(db.accounts.decrement('12L', 'unknown', 1000)).to
+					.eventually.rejected;
+			});
+		});
+
+		describe('remove()', () => {
+			it('should remove a persisted account', function*() {
+				const account = (yield db.accounts.list({}, ['address'], {
+					limit: 1,
+				}))[0];
+
+				yield db.accounts.remove(account.address);
+
+				const result = yield db.accounts.list({ address: account.address }, [
+					'address',
+				]);
+
+				expect(result).to.be.empty;
 			});
 		});
 
@@ -772,13 +839,11 @@ describe('db', () => {
 				});
 
 				it('should return only "address" and "isDelegate" if fields specify ["address", "isDelegate"]', () => {
-					return db.accounts
-						.list({}, ['address', 'isDelegate'])
-						.then(data => {
-							data.forEach(account => {
-								expect(account).to.have.all.keys(['isDelegate', 'address']);
-							});
+					return db.accounts.list({}, ['address', 'isDelegate']).then(data => {
+						data.forEach(account => {
+							expect(account).to.have.all.keys(['isDelegate', 'address']);
 						});
+					});
 				});
 
 				it('should skip any unknown field specified ["address", "unKnownField"]', () => {
@@ -843,21 +908,19 @@ describe('db', () => {
 					});
 
 					it('should fetch "delegates" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2delegates WHERE "accountId" = "mem_accounts"."address")', () => {
-						return db.accounts
-							.list({}, ['address', 'delegates'])
-							.then(data => {
-								return Promise.map(data, account => {
-									return db
-										.one(
-											`SELECT (ARRAY_AGG("dependentId")) AS "delegates" FROM mem_accounts2delegates WHERE "accountId" = '${
-												account.address
-												}'`
-										)
-										.then(result => {
-											expect(account.delegates).to.be.eql(result.delegates);
-										});
-								});
+						return db.accounts.list({}, ['address', 'delegates']).then(data => {
+							return Promise.map(data, account => {
+								return db
+									.one(
+										`SELECT (ARRAY_AGG("dependentId")) AS "delegates" FROM mem_accounts2delegates WHERE "accountId" = '${
+											account.address
+										}'`
+									)
+									.then(result => {
+										expect(account.delegates).to.be.eql(result.delegates);
+									});
 							});
+						});
 					});
 
 					it('should fetch "u_delegates" based on query (SELECT ARRAY_AGG("dependentId") FROM mem_accounts2u_delegates WHERE "accountId" = "mem_accounts"."address")', () => {
@@ -869,12 +932,10 @@ describe('db', () => {
 										.one(
 											`SELECT (ARRAY_AGG("dependentId")) AS "u_delegates" FROM mem_accounts2u_delegates WHERE "accountId" = '${
 												account.address
-												}'`
+											}'`
 										)
 										.then(result => {
-											expect(account.u_delegates).to.be.eql(
-												result.u_delegates
-											);
+											expect(account.u_delegates).to.be.eql(result.u_delegates);
 										});
 								});
 							});
@@ -889,7 +950,7 @@ describe('db', () => {
 										.one(
 											`SELECT (ARRAY_AGG("dependentId")) AS "multisignatures" FROM mem_accounts2multisignatures WHERE "accountId" = '${
 												account.address
-												}'`
+											}'`
 										)
 										.then(result => {
 											expect(account.multisignatures).to.be.eql(
@@ -909,7 +970,7 @@ describe('db', () => {
 										.one(
 											`SELECT (ARRAY_AGG("dependentId")) AS "u_multisignatures" FROM mem_accounts2u_multisignatures WHERE "accountId" = '${
 												account.address
-												}'`
+											}'`
 										)
 										.then(result => {
 											expect(account.u_multisignatures).to.be.eql(
@@ -1013,11 +1074,9 @@ describe('db', () => {
 					});
 
 					it('should return "virgin" as "boolean"', () => {
-						return db.accounts
-							.list({}, ['virgin'], { limit: 1 })
-							.then(data => {
-								expect(data[0].virgin).to.be.a('boolean');
-							});
+						return db.accounts.list({}, ['virgin'], { limit: 1 }).then(data => {
+							expect(data[0].virgin).to.be.a('boolean');
+						});
 					});
 				});
 
@@ -1068,7 +1127,9 @@ describe('db', () => {
 
 					yield db.accounts.insert(account1);
 					yield db.accounts.insert(account2);
-					const accounts = yield db.accounts.list({ address: [account1.address, account2.address] });
+					const accounts = yield db.accounts.list({
+						address: [account1.address, account2.address],
+					});
 
 					expect(accounts).to.lengthOf(2);
 					expect(accounts[0].address).to.eql(account1.address);
@@ -1087,12 +1148,16 @@ describe('db', () => {
 
 				it('should return valid result if filter.username is provided with $like object', function*() {
 					const account1 = accountFixtures.Account({ username: 'AlphaBravo' });
-					const account2 = accountFixtures.Account({ username: 'BravoCharlie' });
+					const account2 = accountFixtures.Account({
+						username: 'BravoCharlie',
+					});
 
 					yield db.accounts.insert(account1);
 					yield db.accounts.insert(account2);
 
-					const accounts = yield db.accounts.list({ username: { $like: '%Bravo%' } });
+					const accounts = yield db.accounts.list({
+						username: { $like: '%Bravo%' },
+					});
 
 					expect(accounts).to.lengthOf(2);
 					expect(accounts[0].address).to.eql(account1.address);
@@ -1114,9 +1179,12 @@ describe('db', () => {
 				});
 
 				it('should throw error if unknown field is provided as filter', () => {
-					return expect(db.accounts.list({
-						username: validAccount.username,
-						unknownField: 'Alpha' })).to.be.rejectedWith('Unknown filter field provided to list');
+					return expect(
+						db.accounts.list({
+							username: validAccount.username,
+							unknownField: 'Alpha',
+						})
+					).to.be.rejectedWith('Unknown filter field provided to list');
 				});
 			});
 
@@ -1161,37 +1229,47 @@ describe('db', () => {
 					});
 
 					it('should sort by multiple keys if sortField and sortField is provided as array', function*() {
-						const accounts = yield db.accounts.list({}, ['address', 'username'], {
-							sortField: ['username', 'address'],
-							sortMethod: ['DESC', 'ASC'],
-						});
+						const accounts = yield db.accounts.list(
+							{},
+							['address', 'username'],
+							{
+								sortField: ['username', 'address'],
+								sortMethod: ['DESC', 'ASC'],
+							}
+						);
 
 						const sortedAccounts = _.orderBy(
 							Object.assign({}, accounts),
 							['username', 'address'],
-							['desc', 'asc']);
+							['desc', 'asc']
+						);
 
 						expect(accounts).to.lengthOf.above(0);
 						expect(accounts).to.eql(sortedAccounts);
 					});
 
 					it('should fail if unknown sort field is specified', () => {
-						return expect(db.accounts
-							.list({}, ['address'], { sortField: 'unknownField', limit: 10 }))
-							.to.be.rejectedWith('column "unknownField" does not exist');
+						return expect(
+							db.accounts.list({}, ['address'], {
+								sortField: 'unknownField',
+								limit: 10,
+							})
+						).to.be.rejectedWith('column "unknownField" does not exist');
 					});
 				});
 
 				describe('extraCondition', () => {
 					it('should user additional SQL condition if options.extraCondition is provided', function*() {
 						const account = accountFixtures.Account({
-								username: 'AlphaBravo',
-							});
+							username: 'AlphaBravo',
+						});
 
 						yield db.accounts.insert(account);
 
 						const accounts = yield db.accounts.list({}, ['address'], {
-							extraCondition: `"username" = 'AlphaBravo' AND "blockId" = '${account.blockId}'`,
+							extraCondition: `"username" = 'AlphaBravo' AND "blockId" = '${
+								account.blockId
+							}'`,
 						});
 
 						expect(accounts).to.lengthOf(1);
@@ -1249,11 +1327,17 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'none');
 				yield db.accounts.removeDependencies('12L', '12345', 'delegates');
 
-				expect(db.none.firstCall.args[0]).to.eql(accountsSQL.removeAccountDependencies);
+				expect(db.none.firstCall.args[0]).to.eql(
+					accountsSQL.removeAccountDependencies
+				);
 			});
 
 			it('should throw error if wrong dependency is passed', () => {
-				return expect(db.accounts.removeDependencies('12L', '12345', 'unknown')).to.eventually.rejectedWith('Error: db.accounts.removeDependencies called with invalid argument dependency=unknown');
+				return expect(
+					db.accounts.removeDependencies('12L', '12345', 'unknown')
+				).to.eventually.rejectedWith(
+					'Error: db.accounts.removeDependencies called with invalid argument dependency=unknown'
+				);
 			});
 
 			[
@@ -1263,15 +1347,34 @@ describe('db', () => {
 				'u_multisignatures',
 			].forEach(dependentTable => {
 				it(`should remove dependent account from ${dependentTable}`, function*() {
-					const accounts = yield db.accounts.list({}, ['address', 'publicKey'], { limit: 2 });
+					const accounts = yield db.accounts.list(
+						{},
+						['address', 'publicKey'],
+						{ limit: 2 }
+					);
 
-					yield db.query(db.$config.pgp.helpers.insert(
-						{ accountId: accounts[0].address, dependentId: accounts[1].publicKey }, null,
-						{ table: `mem_accounts2${dependentTable}` }));
+					yield db.query(
+						db.$config.pgp.helpers.insert(
+							{
+								accountId: accounts[0].address,
+								dependentId: accounts[1].publicKey,
+							},
+							null,
+							{ table: `mem_accounts2${dependentTable}` }
+						)
+					);
 
-					const before = yield db.one(`SELECT count(*) from mem_accounts2${dependentTable}`);
-					yield db.accounts.removeDependencies(accounts[0].address, accounts[1].publicKey, dependentTable);
-					const after = yield db.one(`SELECT count(*) from mem_accounts2${dependentTable}`);
+					const before = yield db.one(
+						`SELECT count(*) from mem_accounts2${dependentTable}`
+					);
+					yield db.accounts.removeDependencies(
+						accounts[0].address,
+						accounts[1].publicKey,
+						dependentTable
+					);
+					const after = yield db.one(
+						`SELECT count(*) from mem_accounts2${dependentTable}`
+					);
 
 					expect(before.count).to.eql('1');
 					expect(after.count).to.eql('0');
@@ -1281,7 +1384,11 @@ describe('db', () => {
 
 		describe('insertDependencies()', () => {
 			it('should throw error if wrong dependency is passed', () => {
-				return expect(db.accounts.insertDependencies('12L', '12345', 'unknown')).to.eventually.rejectedWith('Error: db.accounts.insertDependencies called with invalid argument dependency=unknown');
+				return expect(
+					db.accounts.insertDependencies('12L', '12345', 'unknown')
+				).to.eventually.rejectedWith(
+					'Error: db.accounts.insertDependencies called with invalid argument dependency=unknown'
+				);
 			});
 
 			[
@@ -1291,15 +1398,23 @@ describe('db', () => {
 				'u_multisignatures',
 			].forEach(dependentTable => {
 				it(`should insert dependent account from ${dependentTable}`, function*() {
-					const accounts = yield db.accounts.list({}, ['address', 'publicKey'], { limit: 2 });
+					const accounts = yield db.accounts.list(
+						{},
+						['address', 'publicKey'],
+						{ limit: 2 }
+					);
 
-					const before = yield db.one(`SELECT count(*) from mem_accounts2${dependentTable}`);
+					const before = yield db.one(
+						`SELECT count(*) from mem_accounts2${dependentTable}`
+					);
 					yield db.accounts.insertDependencies(
 						accounts[0].address,
 						accounts[1].publicKey,
 						dependentTable
 					);
-					const after = yield db.one(`SELECT count(*) from mem_accounts2${dependentTable}`);
+					const after = yield db.one(
+						`SELECT count(*) from mem_accounts2${dependentTable}`
+					);
 
 					expect(before.count).to.eql('0');
 					expect(after.count).to.eql('1');
@@ -1314,7 +1429,9 @@ describe('db', () => {
 
 				sinonSandbox.spy(db, 'none');
 				yield db.accounts.convertToNonVirgin(account.address);
-				expect(db.none.firstCall.args[0]).to.eql(accountsSQL.convertToNonVirgin);
+				expect(db.none.firstCall.args[0]).to.eql(
+					accountsSQL.convertToNonVirgin
+				);
 			});
 
 			it('should convert a virgin account to non virgin', function*() {
