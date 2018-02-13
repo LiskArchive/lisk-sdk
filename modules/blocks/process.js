@@ -685,7 +685,7 @@ Process.prototype.onReceiveBlock = function(block) {
 			modules.rounds.ticking()
 		) {
 			library.logger.debug('Client not ready to receive block', block.id);
-			return;
+			return setImmediate(cb);
 		}
 
 		// Get the last block
