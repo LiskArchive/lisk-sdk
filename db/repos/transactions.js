@@ -149,7 +149,7 @@ class TransactionsRepository {
 	}
 
 	/**
-	 * ets transfer transactions from a list of id-s.
+	 * Gets transfer transactions from a list of id-s.
 	 *
 	 * @param {Array.<string>} ids - Description of the param
 	 * @returns {Promise}
