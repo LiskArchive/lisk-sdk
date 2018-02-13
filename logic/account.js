@@ -43,7 +43,7 @@ var __private = {};
  * @param {function} cb - Callback function.
  * @property {account_model} model
  * @property {account_schema} schema
- * @returns {setImmediateCallback} With `this` as data.
+ * @returns {Immediate} With `this` as data.
  * @todo Add description of the params
  */
 function Account(db, schema, logger, cb) {
@@ -60,38 +60,7 @@ function Account(db, schema, logger, cb) {
 	};
 
 	this.table = 'mem_accounts';
-	/**
-	 * @typedef {Object} account_model
-	 * @property {string} username - Lowercase, between 1 and 20 chars.
-	 * @property {boolean} isDelegate
-	 * @property {boolean} u_isDelegate
-	 * @property {boolean} secondSignature
-	 * @property {boolean} u_secondSignature
-	 * @property {string} u_username
-	 * @property {address} address - Uppercase, between 1 and 22 chars.
-	 * @property {publicKey} publicKey
-	 * @property {publicKey} secondPublicKey
-	 * @property {number} balance - Between 0 and totalAmount from constants.
-	 * @property {number} u_balance - Between 0 and totalAmount from constants.
-	 * @property {number} vote
-	 * @property {number} rate
-	 * @property {String[]} delegates - From mem_account2delegates table, filtered by address.
-	 * @property {String[]} u_delegates - From mem_account2u_delegates table, filtered by address.
-	 * @property {String[]} multisignatures - From mem_account2multisignatures table, filtered by address.
-	 * @property {String[]} u_multisignatures - From mem_account2u_multisignatures table, filtered by address.
-	 * @property {number} multimin - Between 0 and 17.
-	 * @property {number} u_multimin - Between 0 and 17.
-	 * @property {number} multilifetime - Between 1 and 72.
-	 * @property {number} u_multilifetime - Between 1 and 72.
-	 * @property {string} blockId
-	 * @property {boolean} nameexist
-	 * @property {boolean} u_nameexist
-	 * @property {number} producedblocks
-	 * @property {number} missedblocks
-	 * @property {number} fees
-	 * @property {number} rewards
-	 * @property {boolean} virgin
-	 */
+
 	this.model = [
 		{
 			name: 'username',
@@ -738,7 +707,7 @@ Account.prototype.toDB = function(raw) {
  * @param {Object} filter - Contains address
  * @param {Object|function} fields - Table fields
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} Returns null or Object with database data
+ * @returns {Immediate} Returns null or Object with database data
  */
 Account.prototype.getMultiSignature = function(filter, fields, cb, tx) {
 	if (typeof fields === 'function') {
@@ -758,7 +727,7 @@ Account.prototype.getMultiSignature = function(filter, fields, cb, tx) {
  * @param {Object} filter - Contains address
  * @param {Object|function} fields - Table fields
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} Returns null or Object with database data
+ * @returns {Immediate} Returns null or Object with database data
  */
 Account.prototype.get = function(filter, fields, cb, tx) {
 	if (typeof fields === 'function') {
@@ -783,7 +752,7 @@ Account.prototype.get = function(filter, fields, cb, tx) {
  * @param {Object} filter - Contains address
  * @param {Object|function} fields - Table fields
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} data with rows | 'Account#getAll error'
+ * @returns {Immediate} data with rows | 'Account#getAll error'
  */
 Account.prototype.getAll = function(filter, fields, cb, tx) {
 	if (typeof fields === 'function') {
@@ -952,7 +921,7 @@ Account.prototype.calculateProductivity = function(
  * @param {address} address - Description of the param
  * @param {Object} fields - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb | 'Account#set error'
+ * @returns {Immediate} cb | 'Account#set error'
  * @todo Add descriptions of the params and returns-value
  */
 Account.prototype.set = function(address, fields, cb, tx) {
@@ -980,7 +949,7 @@ Account.prototype.set = function(address, fields, cb, tx) {
  * @param {address} address - Description of the param
  * @param {Object} diff - Must contains only mem_account editable fields
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback|cb|done} Multiple returns: done() or error
+ * @returns {Immediate|cb|done} Multiple returns: done() or error
  * @todo Add descriptions of the params
  */
 Account.prototype.merge = function(address, diff, cb, tx) {
@@ -1136,7 +1105,7 @@ Account.prototype.merge = function(address, diff, cb, tx) {
  *
  * @param {address} address - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} Data with address | Account#remove error
+ * @returns {Immediate} Data with address | Account#remove error
  * @todo Add descriptions of the params
  */
 Account.prototype.remove = function(address, cb) {

@@ -74,7 +74,7 @@ DApp.prototype.calculateFee = function() {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} errors | transaction
+ * @returns {Immediate} errors | transaction
  * @todo Add descriptions for the params
  */
 DApp.prototype.verify = function(transaction, sender, cb, tx) {
@@ -228,7 +228,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb, null, transaction
+ * @returns {Immediate} cb, null, transaction
  * @todo Add description of the function and its params
  */
 DApp.prototype.process = function(transaction, sender, cb) {
@@ -246,7 +246,7 @@ DApp.prototype.process = function(transaction, sender, cb) {
  * - category
  *
  * @param {transaction} transaction - Description of the param
- * @throws {e} error
+ * @throws {Error} e
  * @returns {Array} Buffer
  * @todo Add descriptions for the params
  */
@@ -305,7 +305,7 @@ DApp.prototype.getBytes = function(transaction) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add description of the function and its params
  */
 DApp.prototype.apply = function(transaction, block, sender, cb) {
@@ -322,7 +322,7 @@ DApp.prototype.apply = function(transaction, block, sender, cb) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add description of the function and its params
  */
 DApp.prototype.undo = function(transaction, block, sender, cb) {
@@ -336,7 +336,7 @@ DApp.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb|errors
+ * @returns {Immediate} cb|errors
  * @todo Add descriptions for the params
  */
 DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
@@ -363,7 +363,7 @@ DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
 DApp.prototype.undoUnconfirmed = function(transaction, sender, cb) {
@@ -489,7 +489,7 @@ DApp.prototype.dbRead = function(raw) {
  *
  * @param {transaction} transaction - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
 DApp.prototype.afterSave = function(transaction, cb) {

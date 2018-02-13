@@ -78,7 +78,7 @@ Transfer.prototype.calculateFee = function(transaction) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} errors | transaction
+ * @returns {Immediate} errors | transaction
  * @todo Add descriptions for the params
  */
 Transfer.prototype.verify = function(transaction, sender, cb) {
@@ -99,7 +99,7 @@ Transfer.prototype.verify = function(transaction, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb, null, transaction
+ * @returns {Immediate} cb, null, transaction
  * @todo Add descriptions for the params
  */
 Transfer.prototype.process = function(transaction, sender, cb) {
@@ -137,7 +137,7 @@ Transfer.prototype.getBytes = function(transaction) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function - Description of the param
- * @returns {setImmediateCallback} error, cb
+ * @returns {Immediate} error, cb
  * @todo Add descriptions for the params
  */
 Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -172,7 +172,7 @@ Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error, cb
+ * @returns {Immediate} error, cb
  * @todo Add descriptions for the params
  */
 Transfer.prototype.undo = function(transaction, block, sender, cb) {
@@ -203,7 +203,7 @@ Transfer.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
 Transfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
@@ -216,7 +216,7 @@ Transfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
 Transfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {

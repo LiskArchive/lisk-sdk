@@ -120,7 +120,7 @@ Broadcaster.prototype.bind = function(peers, transport, transactions) {
  *
  * @param {Object} params - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} err | peers
+ * @returns {Immediate} err | peers
  * @todo Add descriptions of the params
  */
 Broadcaster.prototype.getPeers = function(params, cb) {
@@ -166,7 +166,7 @@ Broadcaster.prototype.enqueue = function(params, options) {
  * @param {Object} params - Description of the param
  * @param {Object} options - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} err | peers
+ * @returns {Immediate} err | peers
  * @todo Add descriptions of the params
  */
 Broadcaster.prototype.broadcast = function(params, options, cb) {
@@ -254,7 +254,7 @@ Broadcaster.prototype.maxRelays = function(object) {
  *
  * @private
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions of the params
  */
 __private.filterQueue = function(cb) {
@@ -289,7 +289,7 @@ __private.filterQueue = function(cb) {
  * @private
  * @param {transaction} transaction - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb, null, boolean
+ * @returns {Immediate} cb, null, boolean
  * @todo Add descriptions of the params
  */
 __private.filterTransaction = function(transaction, cb) {
@@ -345,7 +345,7 @@ __private.squashQueue = function(broadcasts) {
  *
  * @private
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions of the params
  */
 __private.releaseQueue = function(cb) {

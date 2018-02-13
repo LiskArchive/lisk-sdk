@@ -155,7 +155,7 @@ TransactionPool.prototype.getUnconfirmedTransaction = function(id) {
  * Gets a bundled transaction based on transaction id.
  *
  * @param {string} id - Transaction id
- * @returns {(Object|undefined)} - Transaction or undefined
+ * @returns {Object|undefined} - Transaction or undefined
  * @todo This function is never called
  */
 TransactionPool.prototype.getBundledTransaction = function(id) {
@@ -167,7 +167,7 @@ TransactionPool.prototype.getBundledTransaction = function(id) {
  * Gets a queued transaction based on transaction id.
  *
  * @param {string} id - Transaction id
- * @returns {(Object|undefined)} - Transaction or undefined
+ * @returns {Object|undefined} - Transaction or undefined
  */
 TransactionPool.prototype.getQueuedTransaction = function(id) {
 	var index = self.queued.index[id];
@@ -451,7 +451,8 @@ TransactionPool.prototype.countMultisignature = function() {
  * @param {Object[]} transactions - Array of received transactions
  * @param {boolean} broadcast - Broadcast flag
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} err, transactions
+ * @returns {Immediate} err, transactions
+ * @todo
  */
 TransactionPool.prototype.receiveTransactions = function(
 	transactions,
@@ -485,7 +486,8 @@ TransactionPool.prototype.reindexQueues = function() {
  * Processes the next bundle of transactions and add them to the queued index.
  *
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} err | cb
+ * @returns {Immediate} err | cb
+ * @todo Compare / standardize the returns-description
  */
 TransactionPool.prototype.processBundled = function(cb) {
 	var bundled = self.getBundledTransactionList(true, self.bundleLimit);
@@ -534,7 +536,7 @@ TransactionPool.prototype.processBundled = function(cb) {
  * @param {Object} transaction - Transaction object
  * @param {Object} broadcast - Broadcast flag
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback|queueTransaction} error | queueTransaction
+ * @returns {Immediate|queueTransaction} error | queueTransaction
  */
 TransactionPool.prototype.processUnconfirmedTransaction = function(
 	transaction,
@@ -572,7 +574,7 @@ TransactionPool.prototype.processUnconfirmedTransaction = function(
  *
  * @param {Object} transaction - Transaction object
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error | cb
+ * @returns {Immediate} error | cb
  */
 TransactionPool.prototype.queueTransaction = function(transaction, cb) {
 	transaction.receivedAt = new Date();
@@ -605,7 +607,7 @@ TransactionPool.prototype.queueTransaction = function(transaction, cb) {
  * Undoes the unconfirmed queue, reverting the unconfirmed state of each transaction.
  *
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error | ids[]
+ * @returns {Immediate} error | ids[]
  */
 TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 	var ids = [];
@@ -645,7 +647,7 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
  * Expires unconfirmed, queued and multisignature transactions.
  *
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error | ids[]
+ * @returns {Immediate} error | ids[]
  */
 TransactionPool.prototype.expireTransactions = function(cb) {
 	var ids = [];
@@ -683,7 +685,7 @@ TransactionPool.prototype.expireTransactions = function(cb) {
  * Including up to 5 multisignature transactions when there is spare capacity.
  *
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback|applyUnconfirmedList}
+ * @returns {Immediate|applyUnconfirmedList}
  */
 TransactionPool.prototype.fillPool = function(cb) {
 	if (modules.loader.syncing()) {
@@ -754,7 +756,7 @@ __private.getTransactionList = function(transactions, reverse, limit) {
  * @param {Object} transaction - Transaction object
  * @param {Object} broadcast - Broadcast flag
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} errors | sender
+ * @returns {Immediate} errors | sender
  */
 __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 	if (!transaction) {
@@ -849,7 +851,7 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
  * @private
  * @param {Object[]} transactions - Array of transactions to be applied
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error | cb
+ * @returns {Immediate} error | cb
  */
 __private.applyUnconfirmedList = function(transactions, cb, tx) {
 	async.eachSeries(
@@ -922,7 +924,7 @@ __private.transactionTimeOut = function(transaction) {
  * @param {Object[]} transactions - Array of transactions to be expired
  * @param {string[]} parentIds - Array of transaction ids concatenated from parent caller
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error | ids[]
+ * @returns {Immediate} error | ids[]
  */
 __private.expireTransactions = function(transactions, parentIds, cb) {
 	var ids = [];

@@ -60,7 +60,7 @@ __private.types = {};
  * @param {Account} account - Description of the param
  * @param {Object} logger - Description of the param
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} With `this` as data.
+ * @returns {Immediate} With `this` as data.
  * @todo Add descriptions for the params
  */
 // Constructor
@@ -297,7 +297,7 @@ Transaction.prototype.ready = function(transaction, sender) {
  *
  * @param {transaction} transaction - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} error | row.count
+ * @returns {Immediate} error | row.count
  * @todo Add descriptions for the params
  */
 Transaction.prototype.countById = function(transaction, cb) {
@@ -315,7 +315,7 @@ Transaction.prototype.countById = function(transaction, cb) {
  *
  * @param {transaction} transaction - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} error | cb
+ * @returns {Immediate} error | cb
  * @todo Add descriptions for the params
  */
 Transaction.prototype.checkConfirmed = function(transaction, cb) {
@@ -375,7 +375,7 @@ Transaction.prototype.checkBalance = function(
  * @param {account} sender - Description of the param
  * @param {account} requester - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} validation errors | transaction
+ * @returns {Immediate} validation errors | transaction
  * @todo Add descriptions for the params
  */
 Transaction.prototype.process = function(
@@ -448,7 +448,7 @@ Transaction.prototype.process = function(
  * @param {account} sender - Description of the param
  * @param {account} requester - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} validation errors | transaction
+ * @returns {Immediate} validation errors | transaction
  * @todo Add descriptions for the params
  */
 Transaction.prototype.verify = function(
@@ -851,7 +851,7 @@ Transaction.prototype.verifyBytes = function(bytes, publicKey, signature) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} for errors | cb
+ * @returns {Immediate} for errors | cb
  * @todo Add descriptions for the params
  */
 Transaction.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -928,7 +928,7 @@ Transaction.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} for errors | cb
+ * @returns {Immediate} for errors | cb
  * @todo Add descriptions for the params
  */
 Transaction.prototype.undo = function(transaction, block, sender, cb) {
@@ -989,7 +989,7 @@ Transaction.prototype.undo = function(transaction, block, sender, cb) {
  * @param {account} sender - Description of the param
  * @param {account} requester - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} for errors | cb
+ * @returns {Immediate} for errors | cb
  * @todo Add descriptions for the params
  */
 Transaction.prototype.applyUnconfirmed = function(
@@ -1064,7 +1064,7 @@ Transaction.prototype.applyUnconfirmed = function(
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} for errors | cb
+ * @returns {Immediate} for errors | cb
  * @todo Add descriptions for the params
  */
 Transaction.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
@@ -1108,7 +1108,7 @@ Transaction.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
  * @see {@link privateTypes}
  * @param {transaction} transaction - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} error string | cb
+ * @returns {Immediate} error string | cb
  * @todo Add descriptions for the params
  */
 Transaction.prototype.afterSave = function(transaction, cb) {

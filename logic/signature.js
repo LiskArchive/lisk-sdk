@@ -68,7 +68,7 @@ Signature.prototype.calculateFee = function() {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
+ * @returns {Immediate|transaction} returns error string if invalid parameter |
  * transaction validated.
  * @todo Add descriptions for the params
  */
@@ -102,7 +102,7 @@ Signature.prototype.verify = function(transaction, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} Null error
+ * @returns {Immediate} Null error
  * @todo check extra parameter sender.
  * @todo Add descriptions for the params
  */
@@ -147,7 +147,7 @@ Signature.prototype.getBytes = function(transaction) {
  * @param {block} block - Unnecessary parameter.
  * @param {account} sender - Uses the address
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} for errors
+ * @returns {Immediate} for errors
  */
 Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
 	modules.accounts.setAccountAndGet(
@@ -190,7 +190,7 @@ Signature.prototype.undo = function(transaction, block, sender, cb) {
  * @param {block} block - Unnecessary parameter.
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} Error if second signature is already enabled.
+ * @returns {Immediate} Error if second signature is already enabled.
  * @todo Add descriptions for the params
  */
 Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {

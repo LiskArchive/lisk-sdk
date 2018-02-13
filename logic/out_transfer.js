@@ -73,7 +73,7 @@ OutTransfer.prototype.calculateFee = function() {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} errors messages | transaction
+ * @returns {Immediate} errors messages | transaction
  * @todo Add descriptions for the params
  */
 OutTransfer.prototype.verify = function(transaction, sender, cb) {
@@ -112,7 +112,7 @@ OutTransfer.prototype.verify = function(transaction, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} errors messages | transaction
+ * @returns {Immediate} errors messages | transaction
  * @todo Add descriptions for the params
  */
 OutTransfer.prototype.process = function(transaction, sender, cb) {
@@ -164,7 +164,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
  * - transactionId
  *
  * @param {transaction} transaction - Description of the param
- * @throws {e} Error
+ * @throws {Error} e
  * @returns {Array} Buffer
  * @todo Add descriptions for the params
  */
@@ -195,7 +195,7 @@ OutTransfer.prototype.getBytes = function(transaction) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error, cb
+ * @returns {Immediate} error, cb
  * @todo Add descriptions for the params
  */
 OutTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -235,7 +235,7 @@ OutTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error, cb
+ * @returns {Immediate} error, cb
  * @todo Add descriptions for the params
  */
 OutTransfer.prototype.undo = function(transaction, block, sender, cb) {
@@ -269,7 +269,7 @@ OutTransfer.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
 OutTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
@@ -285,7 +285,7 @@ OutTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
 OutTransfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {

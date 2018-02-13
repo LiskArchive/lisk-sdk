@@ -39,7 +39,7 @@ var __private = {};
  * @param {ZSchema} schema - Description of the param
  * @param {Transaction} transaction - Description of the param
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} With `this` as data.
+ * @returns {Immediate} With `this` as data.
  * @todo Add description of the params
  */
 // Constructor

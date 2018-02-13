@@ -78,7 +78,7 @@ InTransfer.prototype.calculateFee = function() {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} errors message | transaction
+ * @returns {Immediate} errors message | transaction
  * @todo Add descriptions for the params
  */
 InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
@@ -120,7 +120,7 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb, null, transaction
+ * @returns {Immediate} cb, null, transaction
  * @todo Add descriptions for the params
  */
 InTransfer.prototype.process = function(transaction, sender, cb) {
@@ -133,7 +133,7 @@ InTransfer.prototype.process = function(transaction, sender, cb) {
  *
  * @param {transaction} transaction - Description of the param
  * @returns {Array} Buffer
- * @throws {e} Error
+ * @throws {Error} e
  * @todo Add descriptions for the params
  */
 InTransfer.prototype.getBytes = function(transaction) {
@@ -159,7 +159,7 @@ InTransfer.prototype.getBytes = function(transaction) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error, cb
+ * @returns {Immediate} error, cb
  * @todo Add descriptions for the params
  */
 InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -194,7 +194,7 @@ InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error, cb
+ * @returns {Immediate} error, cb
  * @todo Add descriptions for the params
  */
 InTransfer.prototype.undo = function(transaction, block, sender, cb) {
@@ -224,7 +224,7 @@ InTransfer.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions for the function and its params
  */
 InTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
@@ -237,7 +237,7 @@ InTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions for the function and its params
  */
 InTransfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
@@ -306,7 +306,7 @@ InTransfer.prototype.dbRead = function(raw) {
  *
  * @param {transaction} transaction - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
 InTransfer.prototype.afterSave = function(transaction, cb) {

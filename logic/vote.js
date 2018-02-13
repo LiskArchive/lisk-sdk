@@ -81,7 +81,7 @@ Vote.prototype.calculateFee = function() {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback|function} returns error if invalid field | calls checkConfirmedDelegates
+ * @returns {Immediate|function} returns error if invalid field | calls checkConfirmedDelegates
  * @todo Add descriptions for the params
  */
 Vote.prototype.verify = function(transaction, sender, cb, tx) {
@@ -163,7 +163,7 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
  *
  * @param {Object} vote - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error message | cb
+ * @returns {Immediate} error message | cb
  * @todo Add descriptions for the params
  */
 Vote.prototype.verifyVote = function(vote, cb) {
@@ -187,7 +187,7 @@ Vote.prototype.verifyVote = function(vote, cb) {
  *
  * @param {transaction} transaction - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err(if transaction id is not in exceptions votes list)
+ * @returns {Immediate} cb, err(if transaction id is not in exceptions votes list)
  * @todo Add descriptions for the params
  */
 Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
@@ -212,7 +212,7 @@ Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
  *
  * @param {Object} transaction - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb, err(if transaction id is not in exceptions votes list)
+ * @returns {Immediate} cb, err(if transaction id is not in exceptions votes list)
  * @todo Add descriptions for the params
  */
 Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
@@ -238,7 +238,7 @@ Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb, null, transaction
+ * @returns {Immediate} cb, null, transaction
  * @todo Add descriptions for the params
  */
 Vote.prototype.process = function(transaction, sender, cb) {
@@ -249,7 +249,7 @@ Vote.prototype.process = function(transaction, sender, cb) {
  * Creates a buffer with asset.votes information.
  *
  * @param {transaction} transaction - Description of the param
- * @throws {e} error
+ * @throws {Error} e
  * @returns {Array} Buffer
  * @todo Add descriptions for the params
  */
@@ -311,7 +311,7 @@ Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
+ * @returns {Immediate} cb, err
  * @todo Add descriptions for the params
  */
 Vote.prototype.undo = function(transaction, block, sender, cb) {
@@ -372,7 +372,7 @@ Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
+ * @returns {Immediate} cb, err
  * @todo Add descriptions for the params
  */
 Vote.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {

@@ -38,7 +38,7 @@ var modules;
  * @requires helpers/peers_manager
  * @param {Object} logger - Description of the param
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} Callback function with `this` as data.
+ * @returns {Immediate} Callback function with `this` as data.
  * @todo Add descriptions for the params
  */
 // Constructor

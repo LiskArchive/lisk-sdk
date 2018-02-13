@@ -92,8 +92,7 @@ Multisignature.prototype.calculateFee = function(transaction) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
- * transaction validated.
+ * @returns {Immediate|transaction} returns error string if invalid parameter | transaction validated.
  * @todo Add descriptions for the params
  */
 Multisignature.prototype.verify = function(transaction, sender, cb) {
@@ -291,7 +290,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} Null error
+ * @returns {Immediate} Null error
  * @todo check extra parameter sender.
  * @todo Add descriptions for the params
  */
@@ -332,7 +331,7 @@ Multisignature.prototype.getBytes = function(transaction) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} for errors
+ * @returns {Immediate} for errors
  * @todo Add descriptions for the params
  */
 Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -384,7 +383,7 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} For error
+ * @returns {Immediate} For error
  * @todo Add descriptions for the params
  */
 Multisignature.prototype.undo = function(transaction, block, sender, cb) {
@@ -412,7 +411,7 @@ Multisignature.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction - Uses multisignature from asset
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} For error
+ * @returns {Immediate} For error
  * @todo Add descriptions for the params
  */
 Multisignature.prototype.applyUnconfirmed = function(
@@ -450,7 +449,7 @@ Multisignature.prototype.applyUnconfirmed = function(
  * @param {transaction} transaction - Uses multisignature from asset
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} For error
+ * @returns {Immediate} For error
  * @todo Add descriptions for the params
  */
 Multisignature.prototype.undoUnconfirmed = function(
@@ -558,7 +557,7 @@ Multisignature.prototype.dbRead = function(raw) {
  *
  * @param {transaction} transaction - Description of the param
  * @param {function} cb - Description of the param
- * @returns {setImmediateCallback} cb
+ * @returns {Immediate} cb
  * @todo Add descriptions for the params
  */
 Multisignature.prototype.afterSave = function(transaction, cb) {

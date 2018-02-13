@@ -73,7 +73,7 @@ Delegate.prototype.calculateFee = function() {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|Object} Returns error if invalid parameter | transaction validated.
+ * @returns {Immediate|Object} Returns error if invalid parameter | transaction validated.
  * @todo Add descriptions for the params
  */
 Delegate.prototype.verify = function(transaction, sender, cb, tx) {
@@ -143,7 +143,7 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
  * @param {transaction} transaction - Description of the param
  * @param {account} sender - Description of the param
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} Null error
+ * @returns {Immediate} Null error
  * @todo Delete unused sender parameter.
  * @todo Add descriptions for the params
  */
