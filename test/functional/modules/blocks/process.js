@@ -11,25 +11,24 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var async = require('async');
-
+var constants = require('../../../../helpers/constants');
 var genesisBlock = require('../../../data/genesis_block.json');
 var application = require('../../../common/application');
-var loadTables = require('./process_tables_data.json');
-
 var modulesLoader = require('../../../common/modules_loader');
 var clearDatabaseTable = require('../../../common/db_sandbox')
 	.clearDatabaseTable;
-
-var constants = require('../../../../helpers/constants');
+var loadTables = require('./process_tables_data.json');
 
 describe('blocks/process', () => {
 	var blocksProcess;
 	var blocks;
 	var db;
 	var originalBlockRewardsOffset;
+	var scope;
 
 	before(done => {
 		// Force rewards start at 150-th block
@@ -37,10 +36,11 @@ describe('blocks/process', () => {
 		constants.rewards.offset = 150;
 		application.init(
 			{ sandbox: { name: 'lisk_test_blocks_process' } },
-			(err, scope) => {
-				blocksProcess = scope.modules.blocks.process;
-				blocks = scope.modules.blocks;
-				db = scope.db;
+			(err, scopeInit) => {
+				blocksProcess = scopeInit.modules.blocks.process;
+				blocks = scopeInit.modules.blocks;
+				db = scopeInit.db;
+				scope = scopeInit;
 				done(err);
 			}
 		);
@@ -54,7 +54,7 @@ describe('blocks/process', () => {
 	beforeEach(done => {
 		async.series(
 			{
-				clearTables: function(seriesCb) {
+				clearTables: seriesCb => {
 					async.every(
 						[
 							'blocks where height > 1',
@@ -74,7 +74,7 @@ describe('blocks/process', () => {
 						}
 					);
 				},
-				loadTables: function(seriesCb) {
+				loadTables: seriesCb => {
 					async.everySeries(
 						loadTables,
 						(table, seriesCb) => {
@@ -110,7 +110,89 @@ describe('blocks/process', () => {
 	});
 
 	describe('getCommonBlock()', () => {
-		it('should be ok');
+		describe('validation with definitions.CommonBlock', () => {
+			var validCommonBlock;
+			var blockHeightTwo = {
+				id: '3082931137036442832',
+				previousBlock: '6524861224470851795',
+				timestamp: '52684260',
+				height: 2,
+			};
+
+			var commonBlockValidationError;
+
+			beforeEach(() => {
+				scope.schema.validate(
+					validCommonBlock,
+					scope.swagger.definitions.CommonBlock,
+					err => {
+						commonBlockValidationError = err;
+					}
+				);
+			});
+
+			describe('when rpc.commonBlock call returns valid result', () => {
+				before(() => {
+					validCommonBlock = Object.assign({}, blockHeightTwo);
+				});
+
+				it('should return error = null', () => {
+					expect(commonBlockValidationError).to.be.undefined;
+				});
+			});
+
+			describe('when rpc.commonBlock call returns invalid result', () => {
+				describe('when id = null', () => {
+					before(() => {
+						validCommonBlock = Object.assign({}, blockHeightTwo);
+						validCommonBlock.id = null;
+					});
+
+					it('should return array of errors', () => {
+						expect(commonBlockValidationError)
+							.to.be.an('array')
+							.of.length(1);
+					});
+
+					it('should return error containing message', () => {
+						expect(commonBlockValidationError)
+							.to.have.nested.property('0.message')
+							.equal('Expected type string but found type null');
+					});
+
+					it('should return error containing path', () => {
+						expect(commonBlockValidationError)
+							.to.have.nested.property('0.path')
+							.equal('#/id');
+					});
+				});
+
+				describe('when previousBlock = null', () => {
+					before(() => {
+						validCommonBlock = Object.assign({}, blockHeightTwo);
+						validCommonBlock.previousBlock = null;
+					});
+
+					it('should return array of errors', () => {
+						expect(commonBlockValidationError)
+							.to.be.an('array')
+							.of.length(1);
+					});
+
+					it('should return error containing message', () => {
+						expect(commonBlockValidationError)
+							.to.have.nested.property('0.message')
+							.equal('Expected type string but found type null');
+					});
+
+					it('should return error containing path', () => {
+						expect(commonBlockValidationError)
+							.to.have.nested.property('0.path')
+							.equal('#/previousBlock');
+					});
+				});
+			});
+		});
 	});
 
 	describe('loadBlocksOffset({verify: true}) - no errors', () => {
