@@ -122,8 +122,8 @@ var config = {
  * @property {Object} - Logger instance.
  */
 var logger = new Logger({
-	echo: appConfig.consoleLogLevel,
-	errorLevel: appConfig.fileLogLevel,
+	echo: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
+	errorLevel: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
 	filename: appConfig.logFileName,
 });
 
@@ -136,8 +136,8 @@ if (
 	dbLogger = logger;
 } else {
 	dbLogger = new Logger({
-		echo: appConfig.db.consoleLogLevel || appConfig.consoleLogLevel,
-		errorLevel: appConfig.db.fileLogLevel || appConfig.fileLogLevel,
+		echo: process.env.DB_LOG_LEVEL || appConfig.db.consoleLogLevel,
+		errorLevel: process.env.FILE_LOG_LEVEL || appConfig.db.fileLogLevel,
 		filename: appConfig.db.logFileName,
 	});
 }
