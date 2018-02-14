@@ -69,7 +69,7 @@ describe('dapp', () => {
 		});
 
 		describe('constructor', () => {
-			describe('private library object should be updated', () => {
+			describe('private library object', () => {
 				var library;
 
 				beforeEach(() => {
@@ -82,19 +82,19 @@ describe('dapp', () => {
 					library = Dapp.__get__('library');
 				});
 
-				it('should attach dbStub', () => {
+				it('should be updated with db stub object', () => {
 					expect(library.db).to.eql(dbStub);
 				});
 
-				it('should attach dbStub', () => {
+				it('should be loaded schema from modulesLoader', () => {
 					expect(library.schema).to.eql(modulesLoader.scope.schema);
 				});
 
-				it('should attach logger', () => {
+				it('should be loaded logger from modulesLoader', () => {
 					expect(library.logger).to.eql(modulesLoader.scope.logger);
 				});
 
-				it('should attach logger', () => {
+				it('should be loaded network from modulesLoader', () => {
 					expect(library.network).to.eql(modulesLoader.scope.network);
 				});
 			});
@@ -1038,43 +1038,43 @@ describe('dapp', () => {
 					expect(dapp.dbRead(rawTransaction)).to.have.property('dapp');
 				});
 
-				it('should return result containing dapp property', () => {
+				it('should return result containing nested dapp_category property', () => {
 					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.category')
 						.to.equal(rawTransaction.dapp_category);
 				});
 
-				it('should return result containing dapp property', () => {
+				it('should return result containing nested dapp_description property', () => {
 					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.description')
 						.to.eql(rawTransaction.dapp_description);
 				});
 
-				it('should return result containing dapp property', () => {
+				it('should return result containing nested dapp.icon property', () => {
 					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.icon')
 						.to.eql(rawTransaction.dapp_icon);
 				});
 
-				it('should return result containing dapp property', () => {
+				it('should return result containing nested dapp.link property', () => {
 					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.link')
 						.to.eql(rawTransaction.dapp_link);
 				});
 
-				it('should return result containing dapp property', () => {
+				it('should return result containing nested dapp.name property', () => {
 					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.name')
 						.to.eql(rawTransaction.dapp_name);
 				});
 
-				it('should return result containing dapp property', () => {
+				it('should return result containing nested dapp.tags property', () => {
 					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.tags')
 						.to.eql(rawTransaction.dapp_tags);
 				});
 
-				it('should return result containing dapp property', () => {
+				it('should return result containing nested dapp.type property', () => {
 					expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.type')
 						.to.eql(rawTransaction.dapp_type);
