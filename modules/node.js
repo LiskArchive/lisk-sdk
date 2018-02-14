@@ -25,13 +25,18 @@ var blockReward;
 var loaded;
 
 /**
- * Initializes library with scope content and private variables:
+ * Main System methods. Initializes library with scope content and private variables:
  * - library
  * - blockReward
+ *
  * @class
- * @classdesc Main System methods.
- * @param {setImmediateCallback} cb - Callback function.
- * @param {scope} scope - App instance.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires lodash
+ * @requires helpers/constants
+ * @requires logic/block_reward
+ * @param {setImmediateCallback} cb - Callback function
+ * @param {scope} scope - App instance
  */
 // Constructor
 function Node(cb, scope) {
@@ -54,9 +59,11 @@ function Node(cb, scope) {
 Node.prototype.internal = {
 	/**
 	 * Get the forging status of a delegate.
-	 * @param {string} publicKey - Public key of delegate.
-	 * @param {function} cb - Callback function.
+	 *
+	 * @param {string} publicKey - Public key of delegate
+	 * @param {function} cb - Callback function
 	 * @returns {setImmediateCallbackObject}
+	 * @todo Add description for the return value
 	 */
 	getForgingStatus(publicKey, cb) {
 		var keyPairs = modules.delegates.getForgersKeyPairs();
@@ -82,10 +89,12 @@ Node.prototype.internal = {
 
 	/**
 	 * Toggle the forging status of a delegate.
-	 * @param {string} publicKey - Public key of a delegate.
-	 * @param {string} decryptionKey - Key used to decrypt encrypted passphrase.
-	 * @param {function} cb - Callback function.
+	 *
+	 * @param {string} publicKey - Public key of a delegate
+	 * @param {string} decryptionKey - Key used to decrypt encrypted passphrase
+	 * @param {function} cb - Callback function
 	 * @returns {setImmediateCallbackObject}
+	 * @todo Add description for the return value
 	 */
 	toggleForgingStatus(publicKey, decryptionKey, cb) {
 		modules.delegates.toggleForgingStatus(
@@ -103,7 +112,21 @@ Node.prototype.internal = {
 };
 
 // Public methods
+/**
+ * Description of the member
+ *
+ * @property {function} getConstants
+ * @property {function} getStatus
+ * @todo Add description for the member and its functions
+ */
 Node.prototype.shared = {
+	/**
+	 * Description of getConstants.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	getConstants(req, cb) {
 		if (!loaded) {
 			return setImmediate(cb, 'Blockchain is loading');
@@ -123,6 +146,13 @@ Node.prototype.shared = {
 		});
 	},
 
+	/**
+	 * Description of getStatus.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	getStatus(req, cb) {
 		if (!loaded) {
 			return setImmediate(cb, 'Blockchain is loading');
@@ -144,7 +174,8 @@ Node.prototype.shared = {
 // Events
 /**
  * Assigns used modules to modules variable.
- * @param {modules} scope - Loaded modules.
+ *
+ * @param {modules} scope - Loaded modules
  */
 Node.prototype.onBind = function(scope) {
 	modules = {
