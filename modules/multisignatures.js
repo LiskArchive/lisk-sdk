@@ -31,16 +31,21 @@ var __private = {};
 __private.assetTypes = {};
 
 /**
- * Initializes library with scope content and generates a Multisignature instance.
+ * Main multisignatures methods. Initializes library with scope content and generates a Multisignature instance.
  * Calls logic.transaction.attachAssetType().
- * @memberof module:multisignatures
+ *
  * @class
- * @classdesc Main multisignatures methods.
- * @param {function} cb - Callback function.
- * @param {scope} scope - App instance.
- * @return {setImmediateCallback} Callback function with `self` as data.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires async
+ * @requires helpers/api_codes
+ * @requires helpers/api_error
+ * @requires helpers/transaction_types
+ * @requires logic/multisignature
+ * @param {function} cb - Callback function
+ * @param {scope} scope - App instance
+ * @returns {setImmediateCallback} Callback function with `self` as data
  */
-// Constructor
 function Multisignatures(cb, scope) {
 	library = {
 		logger: scope.logger,
@@ -77,8 +82,9 @@ function Multisignatures(cb, scope) {
 // Public methods
 /**
  * Gets transaction from transaction id and add it to sequence and bus.
- * @param {Object} transaction - Contains transaction and signature.
- * @param {function} cb - Callback function.
+ *
+ * @param {Object} transaction - Contains transaction and signature
+ * @param {function} cb - Callback function
  * @returns {setImmediateCallback} err messages| cb
  * @todo Add test coverage.
  */
@@ -228,6 +234,12 @@ Multisignatures.prototype.processSignature = function(transaction, cb) {
 	);
 };
 
+/**
+ * Description of getGroup.
+ *
+ * @todo Add @returns and @param tags
+ * @todo Add description for the function
+ */
 Multisignatures.prototype.getGroup = function(address, cb) {
 	var scope = {};
 
@@ -303,8 +315,8 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 // Events
 /**
  * Calls Multisignature.bind() with modules params.
- * @implements module:multisignatures#Multisignature~bind
- * @param {modules} scope - Loaded modules.
+ *
+ * @param {modules} scope - Loaded modules
  */
 Multisignatures.prototype.onBind = function(scope) {
 	modules = {
@@ -318,7 +330,8 @@ Multisignatures.prototype.onBind = function(scope) {
 
 /**
  * Checks if `modules` is loaded.
- * @return {boolean} True if `modules` is loaded.
+ *
+ * @returns {boolean} True if `modules` is loaded
  */
 Multisignatures.prototype.isLoaded = function() {
 	return !!modules;
@@ -332,9 +345,10 @@ Multisignatures.prototype.isLoaded = function() {
 Multisignatures.prototype.shared = {
 	/**
 	 * Search accounts based on the query parameter passed.
-	 * @param {Object} filters - Filters applied to results.
-	 * @param {string} filters.address - Account address.
-	 * @param {function} cb - Callback function.
+	 *
+	 * @param {Object} filters - Filters applied to results
+	 * @param {string} filters.address - Account address
+	 * @param {function} cb - Callback function
 	 * @returns {setImmediateCallbackObject}
 	 */
 	getGroups(filters, cb) {
