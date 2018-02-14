@@ -44,7 +44,7 @@ const __private = {};
  * @param {function} cb - Callback function
  * @property {account_model} model
  * @property {account_schema} schema
- * @return {setImmediateCallback} error, this
+ * @returns {setImmediate} error, this
  * @todo Add description for the params
  */
 class Account {
@@ -131,7 +131,7 @@ class Account {
 	 * - mem_accounts2u_multisignatures
 	 *
 	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} error
+	 * @returns {setImmediate} error
 	 */
 	resetMemTables(cb) {
 		this.scope.db.accounts
@@ -218,7 +218,7 @@ class Account {
 	 * @param {Object|function} fields - Table fields
 	 * @param {function} cb - Callback function
 	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediateCallback} error, object|null
+	 * @returns {setImmediate} error, object or null
 	 */
 	getMultiSignature(filter, fields, cb, tx) {
 		if (typeof fields === 'function') {
@@ -239,7 +239,7 @@ class Account {
 	 * @param {Object|function} fields - Table fields
 	 * @param {function} cb - Callback function
 	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediateCallback} error, account|null
+	 * @returns {setImmediate} error, account or null
 	 */
 	get(filter, fields, cb, tx) {
 		if (typeof fields === 'function') {
@@ -264,7 +264,7 @@ class Account {
 	 * @param {Object|function} fields - Table fields
 	 * @param {function} cb - Callback function
 	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediateCallback} error, accounts
+	 * @returns {setImmediate} error, accounts
 	 */
 	getAll(filter, fields, cb, tx) {
 		if (typeof fields === 'function') {
@@ -391,7 +391,7 @@ class Account {
 	 *
 	 * @param {String} votersBalance
 	 * @param {String} totalSupply
-	 * @returns {Number}
+	 * @returns {number}
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	calculateApproval(votersBalance, totalSupply) {
@@ -411,7 +411,7 @@ class Account {
 	 *
 	 * @param {String} producedBlocks
 	 * @param {String} missedBlocks
-	 * @returns {Number}
+	 * @returns {number}
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	calculateProductivity(producedBlocks, missedBlocks) {
@@ -431,7 +431,7 @@ class Account {
 	 * @param {Object} fields
 	 * @param {function} cb - Callback function
 	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediateCallback} error
+	 * @returns {setImmediate} error
 	 */
 	set(address, fields, cb, tx) {
 		// Verify public key
@@ -457,7 +457,7 @@ class Account {
 	 * @param {Object} diff - Must contains only mem_account editable fields
 	 * @param {function} cb - Callback function
 	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediateCallback} error
+	 * @returns {setImmediate} error
 	 */
 	merge(address, diff, cb, tx) {
 		// Verify public key
@@ -612,7 +612,7 @@ class Account {
 	 *
 	 * @param {address} address
 	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} error, address
+	 * @returns {setImmediate} error, address
 	 */
 	remove(address, cb) {
 		this.scope.db.accounts

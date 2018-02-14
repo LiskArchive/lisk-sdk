@@ -61,7 +61,7 @@ __private.types = {};
  * @param {Account} account
  * @param {Object} logger
  * @param {function} cb - Callback function
- * @returns {Immediate} With `this` as data.
+ * @returns {SetImmediate} error, this
  * @todo Add description for the params
  */
 // Constructor
@@ -87,7 +87,7 @@ function Transaction(db, ed, schema, genesisblock, account, logger, cb) {
  * @param {number} typeId
  * @param {Object} instance
  * @throws {string} Invalid instance interface if validations are wrong
- * @returns {Object} instance
+ * @returns {Object}
  * @todo Add description for the params
  */
 Transaction.prototype.attachAssetType = function(typeId, instance) {
@@ -116,7 +116,7 @@ Transaction.prototype.attachAssetType = function(typeId, instance) {
  *
  * @param {Object} keypair - Constains privateKey and publicKey
  * @param {transaction} transaction
- * @returns {signature} sign
+ * @returns {signature}
  * @todo Add description for the params
  */
 Transaction.prototype.sign = function(keypair, transaction) {
@@ -129,7 +129,7 @@ Transaction.prototype.sign = function(keypair, transaction) {
  *
  * @param {Object} keypair - Constains privateKey and publicKey
  * @param {transaction} transaction
- * @returns {signature} sign
+ * @returns {signature}
  * @todo Add description for the params
  */
 Transaction.prototype.multisign = function(keypair, transaction) {
@@ -145,7 +145,7 @@ Transaction.prototype.multisign = function(keypair, transaction) {
  * Calculates transaction id based on transaction
  *
  * @param {transaction} transaction
- * @returns {string} id
+ * @returns {string} Transaction id
  * @todo Add description for the params
  */
 Transaction.prototype.getId = function(transaction) {
@@ -163,7 +163,7 @@ Transaction.prototype.getId = function(transaction) {
  * Creates hash based on transaction bytes.
  *
  * @param {transaction} transaction
- * @returns {hash} sha256 crypto hash
+ * @returns {hash} SHA256 hash
  * @todo Add description for the params
  */
 Transaction.prototype.getHash = function(transaction) {
@@ -181,7 +181,7 @@ Transaction.prototype.getHash = function(transaction) {
  * @param {boolean} skipSignature
  * @param {boolean} skipSecondSignature
  * @throws {error} If buffer fails.
- * @returns {!Array} Contents as an ArrayBuffer.
+ * @returns {!Array} Contents as an ArrayBuffer
  * @todo Add description for the params
  */
 Transaction.prototype.getBytes = function(
@@ -273,7 +273,7 @@ Transaction.prototype.getBytes = function(
  * @see {@link privateTypes}
  * @param {transaction} transaction
  * @param {account} sender
- * @returns {function|boolean} calls `ready` | false
+ * @returns {function|boolean} Calls `ready()` on sub class | false
  * @todo Add description for the params
  */
 Transaction.prototype.ready = function(transaction, sender) {
@@ -297,7 +297,7 @@ Transaction.prototype.ready = function(transaction, sender) {
  *
  * @param {transaction} transaction
  * @param {function} cb
- * @returns {Immediate} error | row.count
+ * @returns {SetImmediate} error, row.count
  * @todo Add description for the params
  */
 Transaction.prototype.countById = function(transaction, cb) {
@@ -315,7 +315,7 @@ Transaction.prototype.countById = function(transaction, cb) {
  *
  * @param {transaction} transaction
  * @param {function} cb
- * @returns {Immediate} error | cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Transaction.prototype.checkConfirmed = function(transaction, cb) {
@@ -374,7 +374,7 @@ Transaction.prototype.checkBalance = function(
  * @param {account} sender
  * @param {account} requester
  * @param {function} cb
- * @returns {Immediate} validation errors | transaction
+ * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
 Transaction.prototype.process = function(
@@ -445,7 +445,7 @@ Transaction.prototype.process = function(
  * @param {account} sender
  * @param {account} requester
  * @param {function} cb
- * @returns {Immediate} validation errors | transaction
+ * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
 Transaction.prototype.verify = function(
@@ -806,8 +806,8 @@ Transaction.prototype.verifySecondSignature = function(
  * @param {Array} bytes
  * @param {publicKey} publicKey
  * @param {signature} signature
- * @throws {error}
- * @returns {boolean} verified hash, signature and publicKey
+ * @throws {Error}
+ * @returns {boolean} true - If verified hash, signature and publicKey
  * @todo Add description for the params
  */
 Transaction.prototype.verifyBytes = function(bytes, publicKey, signature) {
@@ -847,7 +847,7 @@ Transaction.prototype.verifyBytes = function(bytes, publicKey, signature) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} for errors | cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Transaction.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -924,7 +924,7 @@ Transaction.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} for errors | cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Transaction.prototype.undo = function(transaction, block, sender, cb) {
@@ -985,7 +985,7 @@ Transaction.prototype.undo = function(transaction, block, sender, cb) {
  * @param {account} sender
  * @param {account} requester
  * @param {function} cb - Callback function
- * @returns {Immediate} for errors | cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Transaction.prototype.applyUnconfirmed = function(
@@ -1060,7 +1060,7 @@ Transaction.prototype.applyUnconfirmed = function(
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} for errors | cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Transaction.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
@@ -1104,7 +1104,7 @@ Transaction.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
  * @see {@link privateTypes}
  * @param {transaction} transaction
  * @param {function} cb
- * @returns {Immediate} error string | cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Transaction.prototype.afterSave = function(transaction, cb) {
@@ -1218,7 +1218,7 @@ Transaction.prototype.schema = {
  * @see {@link privateTypes}
  * @param {transaction} transaction
  * @throws {string} error message
- * @returns {error|transaction} error string | transaction normalized
+ * @returns {error|transaction}
  * @todo Add description for the params
  */
 Transaction.prototype.objectNormalize = function(transaction) {

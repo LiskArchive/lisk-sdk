@@ -70,7 +70,7 @@ Vote.prototype.bind = function(delegates) {
  * Obtains constant fee vote.
  *
  * @see {@link module:helpers/constants}
- * @returns {number} fee
+ * @returns {number} Transaction fee
  */
 Vote.prototype.calculateFee = function() {
 	return constants.fees.vote;
@@ -82,7 +82,7 @@ Vote.prototype.calculateFee = function() {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate|function} returns error if invalid field | calls checkConfirmedDelegates
+ * @returns {SetImmediate|checkConfirmedDelegates}
  * @todo Add description for the params
  */
 Vote.prototype.verify = function(transaction, sender, cb, tx) {
@@ -162,7 +162,7 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
  *
  * @param {Object} vote
  * @param {function} cb - Callback function
- * @returns {Immediate} error message | cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Vote.prototype.verifyVote = function(vote, cb) {
@@ -186,7 +186,7 @@ Vote.prototype.verifyVote = function(vote, cb) {
  *
  * @param {transaction} transaction
  * @param {function} cb - Callback function
- * @returns {Immediate} cb, err(if transaction id is not in exceptions votes list)
+ * @returns {SetImmediate} error - If transaction id is not in exceptions votes list
  * @todo Add description for the params
  */
 Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
@@ -211,7 +211,7 @@ Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
  *
  * @param {Object} transaction
  * @param {function} cb
- * @returns {Immediate} cb, err(if transaction id is not in exceptions votes list)
+ * @returns {SetImmediate} error - If transaction id is not in exceptions votes list
  * @todo Add description for the params
  */
 Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
@@ -237,7 +237,7 @@ Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb, null, transaction
+ * @returns {SetImmediate} null, transaction
  * @todo Add description for the params
  */
 Vote.prototype.process = function(transaction, sender, cb) {
@@ -311,7 +311,7 @@ Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} cb, err
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Vote.prototype.undo = function(transaction, block, sender, cb) {
@@ -372,7 +372,7 @@ Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} cb, err
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Vote.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
@@ -438,7 +438,7 @@ Vote.prototype.objectNormalize = function(transaction) {
  * Creates votes object based on raw data.
  *
  * @param {Object} raw
- * @returns {null|votes} votes object
+ * @returns {null|votes}
  * @todo Add description for the params
  */
 Vote.prototype.dbRead = function(raw) {
@@ -455,7 +455,7 @@ Vote.prototype.dbRead = function(raw) {
  *
  * @param {transaction} transaction
  * @param {account} sender
- * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
  * @todo Add description for the params
  */
 Vote.prototype.ready = function(transaction, sender) {

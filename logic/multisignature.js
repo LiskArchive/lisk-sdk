@@ -93,7 +93,7 @@ Multisignature.prototype.calculateFee = function(transaction) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate|transaction} returns error string if invalid parameter | transaction validated.
+ * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
 Multisignature.prototype.verify = function(transaction, sender, cb) {
@@ -291,7 +291,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} Null error
+ * @returns {SetImmediate} null
  * @todo Check extra parameter sender
  * @todo Add description for the params
  */
@@ -332,7 +332,7 @@ Multisignature.prototype.getBytes = function(transaction) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} for errors
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -384,7 +384,7 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} For error
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Multisignature.prototype.undo = function(transaction, block, sender, cb) {
@@ -412,7 +412,7 @@ Multisignature.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction - Uses multisignature from asset
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} For error
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Multisignature.prototype.applyUnconfirmed = function(
@@ -450,7 +450,7 @@ Multisignature.prototype.applyUnconfirmed = function(
  * @param {transaction} transaction - Uses multisignature from asset
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} For error
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Multisignature.prototype.undoUnconfirmed = function(
@@ -509,7 +509,7 @@ Multisignature.prototype.schema = {
  *
  * @param {transaction} transaction - Uses multisignature from asset
  * @throws {string} Error message
- * @returns {transaction} Transaction validated
+ * @returns {transaction} Validated transaction
  */
 Multisignature.prototype.objectNormalize = function(transaction) {
 	var report = library.schema.validate(
@@ -531,7 +531,7 @@ Multisignature.prototype.objectNormalize = function(transaction) {
  * Creates multisignature object based on raw data.
  *
  * @param {Object} raw - Data from database
- * @returns {multisignature} multisignature Object
+ * @returns {multisignature} Multisignature object
  * @todo Check if this function is called
  */
 Multisignature.prototype.dbRead = function(raw) {
@@ -557,7 +557,7 @@ Multisignature.prototype.dbRead = function(raw) {
  *
  * @param {transaction} transaction
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate}
  * @todo Add description for the params
  */
 Multisignature.prototype.afterSave = function(transaction, cb) {
@@ -570,7 +570,7 @@ Multisignature.prototype.afterSave = function(transaction, cb) {
  *
  * @param {transaction} transaction - Signatures
  * @param {account} sender
- * @returns {boolean} logic based on transaction signatures and sender multisignatures
+ * @returns {boolean} true - If transaction is deemed ready
  * @todo Add description for the params
  */
 Multisignature.prototype.ready = function(transaction, sender) {

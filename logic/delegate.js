@@ -74,7 +74,7 @@ Delegate.prototype.calculateFee = function() {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate|Object} Returns error if invalid parameter | transaction validated.
+ * @returns {SetImmediate|Object} error, transaction
  * @todo Add description for the params
  */
 Delegate.prototype.verify = function(transaction, sender, cb, tx) {
@@ -144,7 +144,7 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} Null error
+ * @returns {SetImmediate} null
  * @todo Delete unused sender parameter
  * @todo Add description for the params
  */
@@ -156,7 +156,7 @@ Delegate.prototype.process = function(transaction, sender, cb) {
  * Validates delegate username and returns buffer.
  *
  * @param {transaction} transaction
- * @returns {null|string} Returns null if no delegate| buffer.
+ * @returns {null|string}
  * @throws {error} If buffer fails.
  * @todo Add description for the params
  */
@@ -389,7 +389,7 @@ Delegate.prototype.schema = {
  * Validates transaction delegate schema.
  *
  * @param {transaction} transaction
- * @returns {err|transaction} Error message if fails validation | input parameter.
+ * @returns {error|transaction}
  * @throws {string} Failed to validate delegate schema.
  * @todo Add description for the params
  */
@@ -413,7 +413,7 @@ Delegate.prototype.objectNormalize = function(transaction) {
  * Creates delegate Object based on raw data.
  *
  * @param {Object} raw - Contains d_username, t_senderPK, t_senderId
- * @returns {null|Object} Null if no d_username, otherwise created delegate object.
+ * @returns {null|Object} null - If no d_username, otherwise created delegate object
  */
 Delegate.prototype.dbRead = function(raw) {
 	if (!raw.d_username) {
@@ -433,7 +433,7 @@ Delegate.prototype.dbRead = function(raw) {
  *
  * @param {transaction} transaction
  * @param {account} sender
- * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
  * @todo Add description for the params
  */
 Delegate.prototype.ready = function(transaction, sender) {

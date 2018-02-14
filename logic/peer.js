@@ -28,7 +28,7 @@ var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
  * @requires ip
  * @requires api/ws/rpc/ws_rpc
  * @param {peer} peer
- * @returns calls accept method
+ * @returns Calls accept method
  * @todo Add description for the params
  */
 // Constructor
@@ -142,7 +142,7 @@ Peer.prototype.normalize = function(peer) {
  *
  * @param {number} integer
  * @param {number} [fallback]
- * @returns {number} if not integer returns fallback
+ * @returns {number} If not integer returns fallback
  * @todo Add description for the params
  */
 Peer.prototype.parseInt = function(integer, fallback) {
@@ -156,7 +156,7 @@ Peer.prototype.parseInt = function(integer, fallback) {
  * Normalizes headers.
  *
  * @param {Object} headers
- * @returns {Object} headers normalized
+ * @returns {Object} Normalized headers
  * @todo Add description for the params
  */
 Peer.prototype.applyHeaders = function(headers) {
@@ -194,7 +194,7 @@ Peer.prototype.update = function(peer) {
 /**
  * Description of the function.
  *
- * @returns {peer} clones current peer
+ * @returns {peer} Clone of peer
  * @todo Add description for the function
  */
 Peer.prototype.object = function() {

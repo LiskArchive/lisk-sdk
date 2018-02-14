@@ -65,7 +65,7 @@ InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
  *
  * @param {transaction} transaction
  * @param {account} sender
- * @returns {number} fee
+ * @returns {number} Transaction fee
  * @todo Add description for the params
  */
 InTransfer.prototype.calculateFee = function() {
@@ -79,7 +79,7 @@ InTransfer.prototype.calculateFee = function() {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} errors message | transaction
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
@@ -120,7 +120,7 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb, null, transaction
+ * @returns {SetImmediate} null, transaction
  * @todo Add description for the params
  */
 InTransfer.prototype.process = function(transaction, sender, cb) {
@@ -160,7 +160,7 @@ InTransfer.prototype.getBytes = function(transaction) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} error, cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -195,7 +195,7 @@ InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} error, cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 InTransfer.prototype.undo = function(transaction, block, sender, cb) {
@@ -226,7 +226,7 @@ InTransfer.prototype.undo = function(transaction, block, sender, cb) {
  * @param {account} sender
  * @param {function} cb
  * @returns {SetImmediate}
- * @todo Add description for the function and the params
+ * @todo Add descriptions for the function and the params
  */
 InTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 	return setImmediate(cb);
@@ -239,7 +239,7 @@ InTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @param {account} sender
  * @param {function} cb
  * @returns {SetImmediate}
- * @todo Add description for the function and the params
+ * @todo Add descriptions for the function and the params
  */
 InTransfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
 	return setImmediate(cb);
@@ -263,7 +263,7 @@ InTransfer.prototype.schema = {
  * Calls `objectNormalize` with asset inTransfer.
  *
  * @param {transaction} transaction
- * @returns {error|transaction} error string | transaction normalized
+ * @returns {error|transaction}
  * @throws {string} error message
  * @todo Add description for the params
  */
@@ -287,7 +287,7 @@ InTransfer.prototype.objectNormalize = function(transaction) {
  * Creates inTransfer object based on raw data.
  *
  * @param {Object} raw
- * @returns {Object} inTransfer with dappId
+ * @returns {Object} InTransfer with dappId
  * @todo Add description for the params
  */
 InTransfer.prototype.dbRead = function(raw) {
@@ -306,7 +306,7 @@ InTransfer.prototype.dbRead = function(raw) {
  *
  * @param {transaction} transaction
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate}
  * @todo Add description for the params
  */
 InTransfer.prototype.afterSave = function(transaction, cb) {
@@ -318,7 +318,7 @@ InTransfer.prototype.afterSave = function(transaction, cb) {
  *
  * @param {transaction} transaction
  * @param {account} sender
- * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures.
  * @todo Add description for the params
  */
 InTransfer.prototype.ready = function(transaction, sender) {

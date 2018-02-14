@@ -57,7 +57,7 @@ Signature.prototype.bind = function(accounts) {
  * Obtains constant fee secondSignature.
  *
  * @see {@link module:helpers~constants}
- * @returns {number} Secondsignature fee.
+ * @returns {number} Transaction fee
  */
 Signature.prototype.calculateFee = function() {
 	return constants.fees.secondSignature;
@@ -69,8 +69,7 @@ Signature.prototype.calculateFee = function() {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate|transaction} returns error string if invalid parameter |
- * transaction validated.
+ * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
 Signature.prototype.verify = function(transaction, sender, cb) {
@@ -103,7 +102,7 @@ Signature.prototype.verify = function(transaction, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} Null error
+ * @returns {SetImmediate} null
  * @todo Check extra parameter sender
  * @todo Add description for the params
  */
@@ -117,7 +116,7 @@ Signature.prototype.process = function(transaction, sender, cb) {
  * @see {@link https://github.com/dcodeIO/bytebuffer.js/wiki/API}
  * @param {transaction} transaction - Uses multisignature from asset
  * @throws {error} If buffer fails.
- * @returns {!Array} Contents as an ArrayBuffer.
+ * @returns {!Array} Contents as an ArrayBuffer
  * @todo Check if this function is called
  */
 Signature.prototype.getBytes = function(transaction) {
@@ -148,7 +147,7 @@ Signature.prototype.getBytes = function(transaction) {
  * @param {block} block - Unnecessary parameter
  * @param {account} sender - Uses the address
  * @param {function} cb - Callback function
- * @returns {Immediate} for errors
+ * @returns {SetImmediate} error
  */
 Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
 	modules.accounts.setAccountAndGet(
@@ -191,7 +190,7 @@ Signature.prototype.undo = function(transaction, block, sender, cb) {
  * @param {block} block - Unnecessary parameter
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} Error if second signature is already enabled
+ * @returns {SetImmediate} error - If second signature is already enabled
  * @todo Add description for the params
  */
 Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
@@ -243,7 +242,7 @@ Signature.prototype.schema = {
  *
  * @param {transaction} transaction - Uses signature from asset
  * @throws {string} Error message.
- * @returns {transaction} Transaction validated.
+ * @returns {transaction} Validated transaction
  */
 Signature.prototype.objectNormalize = function(transaction) {
 	var report = library.schema.validate(
@@ -265,7 +264,7 @@ Signature.prototype.objectNormalize = function(transaction) {
  * Creates signature object based on raw data.
  *
  * @param {Object} raw - Data from database
- * @returns {multisignature} signature Object with transaction id.
+ * @returns {multisignature} Signature object with transaction id
  * @todo Check if this function is called
  */
 Signature.prototype.dbRead = function(raw) {
@@ -285,7 +284,7 @@ Signature.prototype.dbRead = function(raw) {
  *
  * @param {transaction} transaction
  * @param {account} sender
- * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
  * @todo Add description for the params
  */
 Signature.prototype.ready = function(transaction, sender) {

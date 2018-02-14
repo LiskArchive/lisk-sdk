@@ -62,7 +62,7 @@ OutTransfer.prototype.bind = function(accounts, blocks) {
 /**
  * Returns send fee from constants.
  *
- * @returns {number} fee
+ * @returns {number} Transaction fee
  */
 OutTransfer.prototype.calculateFee = function() {
 	return constants.fees.send;
@@ -74,7 +74,7 @@ OutTransfer.prototype.calculateFee = function() {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} errors messages | transaction
+ * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
 OutTransfer.prototype.verify = function(transaction, sender, cb) {
@@ -113,7 +113,7 @@ OutTransfer.prototype.verify = function(transaction, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} errors messages | transaction
+ * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
 OutTransfer.prototype.process = function(transaction, sender, cb) {
@@ -196,7 +196,7 @@ OutTransfer.prototype.getBytes = function(transaction) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} error, cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 OutTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -236,7 +236,7 @@ OutTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} error, cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 OutTransfer.prototype.undo = function(transaction, block, sender, cb) {
@@ -270,7 +270,7 @@ OutTransfer.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate}
  * @todo Add description for the params
  */
 OutTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
@@ -286,7 +286,7 @@ OutTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate}
  * @todo Add description for the params
  */
 OutTransfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
@@ -321,7 +321,7 @@ OutTransfer.prototype.schema = {
  *
  * @param {transaction} transaction
  * @throws {string} error message
- * @returns {error|transaction} error string | transaction normalized
+ * @returns {error|transaction}
  * @todo Add description for the params
  */
 OutTransfer.prototype.objectNormalize = function(transaction) {
@@ -344,7 +344,7 @@ OutTransfer.prototype.objectNormalize = function(transaction) {
  * Creates outTransfer object based on raw data.
  *
  * @param {Object} raw
- * @returns {Object} outTransfer with dappId and transactionId
+ * @returns {Object} OutTransfer with dappId and transactionId
  * @todo Add description for the params
  */
 OutTransfer.prototype.dbRead = function(raw) {
@@ -364,7 +364,7 @@ OutTransfer.prototype.dbRead = function(raw) {
  *
  * @param {transaction} transaction
  * @param {account} sender
- * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
  * @todo Add description for the params
  */
 OutTransfer.prototype.ready = function(transaction, sender) {

@@ -62,7 +62,7 @@ DApp.prototype.bind = function() {};
 /**
  * Returns dapp fee from constants.
  *
- * @returns {number} fee
+ * @returns {number} Transaction fee
  */
 DApp.prototype.calculateFee = function() {
 	return constants.fees.dappRegistration;
@@ -75,7 +75,7 @@ DApp.prototype.calculateFee = function() {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} errors | transaction
+ * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
 DApp.prototype.verify = function(transaction, sender, cb, tx) {
@@ -227,7 +227,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb, null, transaction
+ * @returns {SetImmediate} null, transaction
  * @todo Add description for the function and the params
  */
 DApp.prototype.process = function(transaction, sender, cb) {
@@ -305,7 +305,7 @@ DApp.prototype.getBytes = function(transaction) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate}
  * @todo Add description for the function and the params
  */
 DApp.prototype.apply = function(transaction, block, sender, cb) {
@@ -322,7 +322,7 @@ DApp.prototype.apply = function(transaction, block, sender, cb) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate}
  * @todo Add description for the function and the params
  */
 DApp.prototype.undo = function(transaction, block, sender, cb) {
@@ -336,7 +336,7 @@ DApp.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb|errors
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
@@ -363,7 +363,7 @@ DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate}
  * @todo Add description for the params
  */
 DApp.prototype.undoUnconfirmed = function(transaction, sender, cb) {
@@ -463,7 +463,7 @@ DApp.prototype.objectNormalize = function(transaction) {
  * Creates dapp object based on raw data.
  *
  * @param {Object} raw
- * @returns {null|dapp} dapp object
+ * @returns {null|Object} Dapp object
  * @todo Add description for the params
  */
 DApp.prototype.dbRead = function(raw) {
@@ -488,7 +488,7 @@ DApp.prototype.dbRead = function(raw) {
  *
  * @param {transaction} transaction
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate}
  * @todo Add description for the params
  */
 DApp.prototype.afterSave = function(transaction, cb) {
@@ -503,7 +503,7 @@ DApp.prototype.afterSave = function(transaction, cb) {
  *
  * @param {transaction} transaction
  * @param {account} sender
- * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
  * @todo Add description for the params
  */
 DApp.prototype.ready = function(transaction, sender) {

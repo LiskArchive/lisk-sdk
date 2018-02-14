@@ -40,7 +40,7 @@ var __private = {};
  * @param {ZSchema} schema
  * @param {Transaction} transaction
  * @param {function} cb - Callback function
- * @returns {Immediate} With `this` as data.
+ * @returns {SetImmediate} error, this
  * @todo Add description for the params
  */
 // Constructor
@@ -181,7 +181,7 @@ Block.prototype.create = function(data) {
  *
  * @param {block} block
  * @param {Object} keypair
- * @returns {signature} block signature
+ * @returns {signature} Block signature
  * @todo Add description for the params
  */
 Block.prototype.sign = function(block, keypair) {
@@ -258,7 +258,7 @@ Block.prototype.getBytes = function(block) {
  *
  * @param {block} block
  * @throws {error} catch error
- * @returns {boolean} verified hash, signature and publicKey
+ * @returns {boolean} Verified hash, signature and publicKey
  * @todo Add description for the params
  */
 Block.prototype.verifySignature = function(block) {
@@ -388,7 +388,7 @@ Block.prototype.schema = {
  *
  * @param {block} block
  * @throws {string|error} error message | catch error
- * @returns {error|transaction} error string | block normalized
+ * @returns {Object} Normalized block
  * @todo Add description for the function and the params
  */
 Block.prototype.objectNormalize = function(block) {
@@ -426,7 +426,7 @@ Block.prototype.objectNormalize = function(block) {
  * Calculates block id based on block.
  *
  * @param {block} block
- * @returns {string} id string
+ * @returns {string} Block id
  * @todo Add description for the params
  */
 Block.prototype.getId = function(block) {
@@ -447,7 +447,7 @@ Block.prototype.getId = function(block) {
  * Creates hash based on block bytes.
  *
  * @param {block} block
- * @returns {hash} sha256 crypto hash
+ * @returns {hash} SHA256 hash
  * @todo Add description for the params
  */
 Block.prototype.getHash = function(block) {
@@ -460,7 +460,7 @@ Block.prototype.getHash = function(block) {
 /**
  * Returns send fees from constants.
  *
- * @returns {number} fee
+ * @returns {number} Transaction fee
  * @todo Delete unused param
  */
 Block.prototype.calculateFee = function() {
@@ -471,7 +471,7 @@ Block.prototype.calculateFee = function() {
  * Creates block object based on raw data.
  *
  * @param {Object} raw
- * @returns {null|block} block object
+ * @returns {null|block} Block object
  * @todo Add description for the params
  */
 Block.prototype.dbRead = function(raw) {

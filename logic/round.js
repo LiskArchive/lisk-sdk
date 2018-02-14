@@ -232,7 +232,7 @@ Round.prototype.restoreVotesSnapshot = function() {
  * Calls sql deleteRoundRewards:
  * - Removes rewards for entire round from round_rewards table.
  * - Performed only when rollback last block of round.
- * @return {function} Promise
+ * @returns {function} Promise
  */
 Round.prototype.deleteRoundRewards = function() {
 	this.scope.library.logger.debug(
@@ -246,7 +246,7 @@ Round.prototype.deleteRoundRewards = function() {
 /**
  * For each delegate calls mergeAccountAndGet and creates an address array.
  *
- * @returns {function} Promise with address array.
+ * @returns {function} Promise with address array
  */
 Round.prototype.applyRound = function() {
 	var roundChanges = new RoundChanges(this.scope);
@@ -399,7 +399,7 @@ Round.prototype.applyRound = function() {
  * - updateVotes
  * - flushRound
  *
- * @returns {function} Call result.
+ * @returns {function} Call result
  */
 Round.prototype.land = function() {
 	return this.updateVotes()
@@ -422,7 +422,7 @@ Round.prototype.land = function() {
  * - restoreRoundSnapshot
  * - restoreVotesSnapshot
  *
- * @returns {function} Call result.
+ * @returns {function} Call result
  */
 Round.prototype.backwardLand = function() {
 	return this.updateVotes()

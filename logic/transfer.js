@@ -61,7 +61,7 @@ Transfer.prototype.bind = function(accounts) {
  *
  * @param {transaction} transaction
  * @param {account} sender
- * @returns {number} fee
+ * @returns {number} Transaction fee
  * @todo Add description for the params
  */
 Transfer.prototype.calculateFee = function(transaction) {
@@ -79,7 +79,7 @@ Transfer.prototype.calculateFee = function(transaction) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} errors | transaction
+ * @returns {SetImmediate} error, transaction
  * @todo Add description for the params
  */
 Transfer.prototype.verify = function(transaction, sender, cb) {
@@ -100,7 +100,7 @@ Transfer.prototype.verify = function(transaction, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb, null, transaction
+ * @returns {SetImmediate} null, transaction
  * @todo Add description for the params
  */
 Transfer.prototype.process = function(transaction, sender, cb) {
@@ -112,7 +112,7 @@ Transfer.prototype.process = function(transaction, sender, cb) {
  *
  * @param {transaction} transaction
  * @throws {error} error
- * @returns {buffer} buf
+ * @returns {buffer}
  * @todo Add description for the params
  */
 Transfer.prototype.getBytes = function(transaction) {
@@ -138,7 +138,7 @@ Transfer.prototype.getBytes = function(transaction) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} error, cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
@@ -173,7 +173,7 @@ Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {Immediate} error, cb
+ * @returns {SetImmediate} error
  * @todo Add description for the params
  */
 Transfer.prototype.undo = function(transaction, block, sender, cb) {
@@ -204,7 +204,7 @@ Transfer.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate}
  * @todo Add description for the params
  */
 Transfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
@@ -217,7 +217,7 @@ Transfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate}
  * @todo Add description for the params
  */
 Transfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
@@ -274,7 +274,7 @@ Transfer.prototype.objectNormalize = function(transaction) {
  * Checks if asset exists, if so, returns value, otherwise returns null.
  *
  * @param {Object} raw
- * @returns {?transferAsset}
+ * @returns {transferAsset|null}
  * @todo Add description for the params
  */
 Transfer.prototype.dbRead = function(raw) {
@@ -290,7 +290,7 @@ Transfer.prototype.dbRead = function(raw) {
  *
  * @param {transaction} transaction
  * @param {account} sender
- * @returns {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
  * @todo Add description for the params
  */
 Transfer.prototype.ready = function(transaction, sender) {

@@ -121,7 +121,7 @@ Broadcaster.prototype.bind = function(peers, transport, transactions) {
  *
  * @param {Object} params
  * @param {function} cb
- * @returns {Immediate} err | peers
+ * @returns {SetImmediate} error, peers
  * @todo Add description for the params
  */
 Broadcaster.prototype.getPeers = function(params, cb) {
@@ -153,7 +153,7 @@ Broadcaster.prototype.getPeers = function(params, cb) {
  *
  * @param {Object} params
  * @param {Object} options
- * @returns {Object[]} queue private variable with new data
+ * @returns {Object[]} Queue private variable with new data
  * @todo Add description for the params
  */
 Broadcaster.prototype.enqueue = function(params, options) {
@@ -167,7 +167,7 @@ Broadcaster.prototype.enqueue = function(params, options) {
  * @param {Object} params
  * @param {Object} options
  * @param {function} cb
- * @returns {Immediate} err | peers
+ * @returns {SetImmediate} error, peers
  * @todo Add description for the params
  */
 Broadcaster.prototype.broadcast = function(params, options, cb) {
@@ -231,7 +231,7 @@ Broadcaster.prototype.broadcast = function(params, options, cb) {
  * Counts relays and valid limit.
  *
  * @param {Object} object
- * @returns {boolean} True if Broadcast relays exhausted
+ * @returns {boolean} true - If broadcast relays exhausted
  * @todo Add description for the params
  */
 Broadcaster.prototype.maxRelays = function(object) {
@@ -253,7 +253,7 @@ Broadcaster.prototype.maxRelays = function(object) {
  *
  * @private
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate} null, boolean|undefined
  * @todo Add description for the params
  */
 __private.filterQueue = function(cb) {
@@ -287,7 +287,7 @@ __private.filterQueue = function(cb) {
  * @private
  * @param {transaction} transaction
  * @param {function} cb
- * @returns {Immediate} cb, null, boolean
+ * @returns {SetImmediate} null, boolean
  * @todo Add description for the params
  */
 __private.filterTransaction = function(transaction, cb) {
@@ -307,7 +307,7 @@ __private.filterTransaction = function(transaction, cb) {
  *
  * @private
  * @param {Object} broadcasts
- * @returns {Object[]} squashed routes
+ * @returns {Object[]} Squashed routes
  * @todo Add description for the params
  */
 __private.squashQueue = function(broadcasts) {
@@ -341,7 +341,7 @@ __private.squashQueue = function(broadcasts) {
  *
  * @private
  * @param {function} cb
- * @returns {Immediate} cb
+ * @returns {SetImmediate}
  * @todo Add description for the params
  */
 __private.releaseQueue = function(cb) {
