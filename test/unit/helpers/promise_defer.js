@@ -23,7 +23,7 @@ describe('PromiseDefer', () => {
 
 	beforeEach(() => {
 		promiseDefer = PromiseDefer();
-		promiseDefer.promise
+		return promiseDefer.promise
 			.then(input => {
 				expect(input.message).to.equal(RESOLVED);
 				input.done();
