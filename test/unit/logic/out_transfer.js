@@ -257,7 +257,7 @@ describe('outTransfer', () => {
 			});
 		});
 
-		it('should call library.db.dapps.countByTransactionId', done => {
+		it('should call library.db.dapps.countByTransactionId with dappId', done => {
 			outTransfer.process(transaction, sender, () => {
 				expect(
 					dbStub.dapps.countByTransactionId.calledWith(
@@ -877,7 +877,7 @@ describe('outTransfer', () => {
 					.equal(rawTransaction.ot_dappId);
 			});
 
-			it('should return result containing outTransfer.dappId = raw.ot_dappId', () => {
+			it('should return result containing outTransfer.transactionId = raw.ot_outTransactionId', () => {
 				expect(outTransfer.dbRead(rawTransaction))
 					.to.have.nested.property('outTransfer.transactionId')
 					.equal(rawTransaction.ot_outTransactionId);

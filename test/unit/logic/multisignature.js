@@ -111,7 +111,7 @@ describe('multisignature', () => {
 			expect(library.logic.transaction).to.eql(transactionMock);
 		});
 
-		it('should attach schema to library variable', () => {
+		it('should attach account to library variable', () => {
 			expect(library.logic.account).to.eql(accountMock);
 		});
 	});
@@ -1062,7 +1062,7 @@ describe('multisignature', () => {
 			});
 		});
 
-		it('should return transaction when asset is valid', () => {
+		it('should return transaction when created using createMultisignature', () => {
 			var transaction = lisk.multisignature.createMultisignature(
 				accountFixtures.genesis.password,
 				null,
