@@ -32,7 +32,7 @@ export function itShouldExecuteAScriptExecutingThirdInASeparateChildProcess() {
 }
 
 export function itShouldNotExecuteAThirdScriptInASeparateChildProcess() {
-	return childProcess.exec.should.not.be.calledThrice();
+	return childProcess.exec.should.not.be.calledThrice;
 }
 
 export function theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst() {

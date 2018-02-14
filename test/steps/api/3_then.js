@@ -18,7 +18,7 @@ import { getFirstBoolean } from '../utils';
 
 export function itShouldNotSetTheLiskAPIInstanceTestnetSetting() {
 	const { liskAPIInstance } = this.test.ctx;
-	return liskAPIInstance.setTestnet.should.not.be.called();
+	return liskAPIInstance.setTestnet.should.not.be.called;
 }
 
 export function itShouldSetTheLiskAPIInstanceTestnetSettingTo() {
@@ -42,7 +42,7 @@ export function itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingThe
 
 export function itShouldNotBroadcastTheSignature() {
 	const { liskAPIInstance } = this.test.ctx;
-	return liskAPIInstance.broadcastSignatures.should.not.be.called();
+	return liskAPIInstance.broadcastSignatures.should.not.be.called;
 }
 
 export function itShouldBroadcastTheSignature() {
@@ -54,7 +54,7 @@ export function itShouldBroadcastTheSignature() {
 
 export function itShouldNotBroadcastTheTransaction() {
 	const { liskAPIInstance } = this.test.ctx;
-	return liskAPIInstance.broadcastTransaction.should.not.be.called();
+	return liskAPIInstance.broadcastTransaction.should.not.be.called;
 }
 
 export function itShouldBroadcastTheTransaction() {
@@ -66,7 +66,7 @@ export function itShouldBroadcastTheTransaction() {
 
 export function itShouldResolveToTheAPIResponse() {
 	const { returnValue, apiResponse } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(apiResponse);
+	return returnValue.should.be.eventually.eql(apiResponse);
 }
 
 export function theLiskAPIInstanceShouldBeALiskJSAPIInstance() {

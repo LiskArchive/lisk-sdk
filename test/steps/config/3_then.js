@@ -42,7 +42,7 @@ export function itShouldUpdateTheConfigVariableToBoolean() {
 
 export function itShouldResolveToTheConfig() {
 	const { returnValue, config } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(config);
+	return returnValue.should.be.eventually.eql(config);
 }
 
 export function theDefaultConfigShouldBeExported() {

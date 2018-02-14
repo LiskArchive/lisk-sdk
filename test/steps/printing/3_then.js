@@ -64,7 +64,7 @@ export function theErrorShouldBePrintedWithThePrefix() {
 
 export function theActiveCommandShouldBeUsedToLog() {
 	const { activeCommand } = this.test.ctx;
-	return activeCommand.log.should.be.calledOnce();
+	return activeCommand.log.should.be.calledOnce;
 }
 
 export function theObjectShouldBePrinted() {

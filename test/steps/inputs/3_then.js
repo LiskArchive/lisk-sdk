@@ -28,11 +28,11 @@ export async function itShouldGetTheDataUsingTheVotesSource() {
 }
 
 export async function itShouldNotGetTheDataUsingTheUnvotesSource() {
-	return inputUtils.getData.should.not.be.called();
+	return inputUtils.getData.should.not.be.called;
 }
 
 export async function itShouldNotGetTheDataUsingTheVotesSource() {
-	return inputUtils.getData.should.not.be.called();
+	return inputUtils.getData.should.not.be.called;
 }
 
 export async function itShouldResolveWithThePassphrase() {
@@ -44,7 +44,7 @@ export async function itShouldResolveWithThePassphrase() {
 export async function itShouldResolveWithoutThePassphrase() {
 	const { returnValue } = this.test.ctx;
 	const result = await returnValue;
-	return result.should.have.property('passphrase').be.null();
+	return result.should.have.property('passphrase').be.null;
 }
 
 export async function itShouldResolveWithTheSecondPassphrase() {
@@ -58,7 +58,7 @@ export async function itShouldResolveWithTheSecondPassphrase() {
 export async function itShouldResolveWithoutTheSecondPassphrase() {
 	const { returnValue } = this.test.ctx;
 	const result = await returnValue;
-	return result.should.have.property('secondPassphrase').be.null();
+	return result.should.have.property('secondPassphrase').be.null;
 }
 
 export async function itShouldResolveWithThePassword() {
@@ -70,7 +70,7 @@ export async function itShouldResolveWithThePassword() {
 export async function itShouldResolveWithoutThePassword() {
 	const { returnValue } = this.test.ctx;
 	const result = await returnValue;
-	return result.should.have.property('password').be.null();
+	return result.should.have.property('password').be.null;
 }
 
 export async function itShouldResolveWithTheData() {
@@ -82,7 +82,7 @@ export async function itShouldResolveWithTheData() {
 export async function itShouldResolveWithoutTheData() {
 	const { returnValue } = this.test.ctx;
 	const result = await returnValue;
-	return result.should.have.property('data').be.null();
+	return result.should.have.property('data').be.null;
 }
 
 export function itShouldGetTheInputsFromSourcesUsingTheVorpalInstance() {
@@ -93,7 +93,7 @@ export function itShouldGetTheInputsFromSourcesUsingTheVorpalInstance() {
 
 export function itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource() {
 	const firstCallArgs = getInputsFromSources.firstCall.args;
-	return firstCallArgs[1].should.have.property('secondPassphrase').be.null();
+	return firstCallArgs[1].should.have.property('secondPassphrase').be.null;
 }
 
 export function itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt() {
@@ -115,7 +115,7 @@ export function itShouldGetTheInputsFromSourcesUsingTheEncryptedPassphraseSource
 
 export function itShouldNotGetTheInputsFromSourcesUsingTheEncryptedPassphraseSource() {
 	const firstCallArgs = getInputsFromSources.firstCall.args;
-	return firstCallArgs[1].should.have.property('data').be.null();
+	return firstCallArgs[1].should.have.property('data').be.null;
 }
 
 export function itShouldGetTheInputsFromSourcesUsingTheMessageSource() {
@@ -128,7 +128,7 @@ export function itShouldGetTheInputsFromSourcesUsingTheMessageSource() {
 
 export function itShouldNotGetTheInputsFromSourcesUsingTheMessageSource() {
 	const firstCallArgs = getInputsFromSources.firstCall.args;
-	return firstCallArgs[1].should.have.property('data').be.null();
+	return firstCallArgs[1].should.have.property('data').be.null;
 }
 
 export function itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt() {
@@ -169,7 +169,7 @@ export function itShouldGetTheInputsFromSourcesWithoutARepeatingPassphrasePrompt
 	const repeatPromptArg = getInputsFromSources.firstCall.args[1];
 	// istanbul ignore next
 	return repeatPromptArg.repeatPrompt && repeatPromptArg.repeatPrompt.passphrase
-		? repeatPromptArg.repeatPrompt.passphrase.should.not.be.true()
+		? repeatPromptArg.repeatPrompt.passphrase.should.not.be.true
 		: true;
 }
 
@@ -184,7 +184,7 @@ export function itShouldNotGetThePassphrase() {
 	const passphraseArgs = inputUtils.getPassphrase.args.filter(
 		args => !args[2].displayName,
 	);
-	return passphraseArgs.should.be.empty();
+	return passphraseArgs.should.be.empty;
 }
 
 export function itShouldGetTheSecondPassphrase() {
@@ -198,7 +198,7 @@ export function itShouldNotGetTheSecondPassphrase() {
 	const passphraseArgs = inputUtils.getPassphrase.args.filter(
 		args => args[2].displayName === 'your second secret passphrase',
 	);
-	return passphraseArgs.should.be.empty();
+	return passphraseArgs.should.be.empty;
 }
 
 export function itShouldGetThePassword() {
@@ -212,7 +212,7 @@ export function itShouldNotGetThePassword() {
 	const passphraseArgs = inputUtils.getPassphrase.args.filter(
 		args => args[2].displayName === 'your password',
 	);
-	return passphraseArgs.should.be.empty();
+	return passphraseArgs.should.be.empty;
 }
 
 export function itShouldGetTheData() {
@@ -221,7 +221,7 @@ export function itShouldGetTheData() {
 }
 
 export function itShouldNotGetTheData() {
-	return inputUtils.getData.should.not.be.called();
+	return inputUtils.getData.should.not.be.called;
 }
 
 export function itShouldAskForTheSecondPassphraseFromStdIn() {
@@ -244,14 +244,14 @@ export function itShouldGetTheSecondPassphraseWithASinglePrompt() {
 	)[0];
 	return secondPassphraseArgs[2].should.have
 		.property('shouldRepeat')
-		.not.be.ok();
+		.not.be.ok;
 }
 
 export function itShouldGetTheSecondPassphraseWithARepeatedPrompt() {
 	const secondPassphraseArgs = inputUtils.getPassphrase.args.filter(
 		args => args[2].displayName === 'your second secret passphrase',
 	)[0];
-	return secondPassphraseArgs[2].should.have.property('shouldRepeat').be.true();
+	return secondPassphraseArgs[2].should.have.property('shouldRepeat').be.true;
 }
 
 export function itShouldGetThePassphraseWithASinglePrompt() {
@@ -260,28 +260,28 @@ export function itShouldGetThePassphraseWithASinglePrompt() {
 	)[0];
 	return firstPassphraseArgs[2].should.have
 		.property('shouldRepeat')
-		.not.be.ok();
+		.not.be.ok;
 }
 
 export function itShouldGetThePassphraseWithARepeatedPrompt() {
 	const firstPassphraseArgs = inputUtils.getPassphrase.args.filter(
 		args => !args[2] || !args[2].displayName,
 	)[0];
-	return firstPassphraseArgs[2].should.have.property('shouldRepeat').be.true();
+	return firstPassphraseArgs[2].should.have.property('shouldRepeat').be.true;
 }
 
 export function itShouldGetThePasswordWithARepeatedPrompt() {
 	const passwordArgs = inputUtils.getPassphrase.args.filter(
 		args => args[2].displayName === 'your password',
 	)[0];
-	return passwordArgs[2].should.have.property('shouldRepeat').be.true();
+	return passwordArgs[2].should.have.property('shouldRepeat').be.true;
 }
 
 export function itShouldGetThePasswordWithASinglePrompt() {
 	const passwordArgs = inputUtils.getPassphrase.args.filter(
 		args => args[2].displayName === 'your password',
 	)[0];
-	return passwordArgs[2].should.have.property('shouldRepeat').not.be.ok();
+	return passwordArgs[2].should.have.property('shouldRepeat').not.be.ok;
 }
 
 export function itShouldNotAskForThePassphraseFromStdIn() {
@@ -352,12 +352,12 @@ export function anOptionsObjectWithTheMessageShouldBeReturned() {
 
 export function itShouldPromptForThePassphraseOnce() {
 	const { vorpal } = this.test.ctx;
-	return vorpal.activeCommand.prompt.should.be.calledOnce();
+	return vorpal.activeCommand.prompt.should.be.calledOnce;
 }
 
 export function itShouldPromptForThePassphraseTwice() {
 	const { vorpal } = this.test.ctx;
-	return vorpal.activeCommand.prompt.should.be.calledTwice();
+	return vorpal.activeCommand.prompt.should.be.calledTwice;
 }
 
 export function itShouldUseOptionsWithTheMessage() {

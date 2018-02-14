@@ -64,10 +64,10 @@ export function theDefaultConfigShouldBeWrittenToTheConfigFile() {
 }
 
 export function theConfigFileShouldNotBeWritten() {
-	return fsUtils.writeJSONSync.should.not.be.called();
+	return fsUtils.writeJSONSync.should.not.be.called;
 }
 
 export function itShouldResolveToTheFirstLineOfTheFile() {
 	const { returnValue, passphrase } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(passphrase);
+	return returnValue.should.be.eventually.eql(passphrase);
 }

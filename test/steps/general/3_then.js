@@ -35,13 +35,13 @@ export function itShouldReturnTheResult() {
 export function itShouldThrowValidationError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return testFunction.should.throw(new ValidationError(message));
+	return testFunction.should.throw(ValidationError, message);
 }
 
 export function itShouldThrowFileSystemError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return testFunction.should.throw(new FileSystemError(message));
+	return testFunction.should.throw(FileSystemError, message);
 }
 
 export function itShouldExitWithCode() {
@@ -52,7 +52,7 @@ export function itShouldExitWithCode() {
 
 export function itShouldResolveToTheErrorObject() {
 	const { returnValue, errorObject } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(errorObject);
+	return returnValue.should.be.eventually.eql(errorObject);
 }
 
 export async function itShouldResolveToAnObjectWithMessage() {
@@ -104,22 +104,22 @@ export function itShouldRejectWithTheOriginalRejection() {
 
 export function itShouldReturnAnEmptyObject() {
 	const { returnValue } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith({});
+	return returnValue.should.be.eventually.eql({});
 }
 
 export function itShouldReturnTrue() {
 	const { returnValue } = this.test.ctx;
-	return returnValue.should.be.true();
+	return returnValue.should.be.true;
 }
 
 export function itShouldReturnFalse() {
 	const { returnValue } = this.test.ctx;
-	return returnValue.should.be.false();
+	return returnValue.should.be.false;
 }
 
 export function itShouldReturnNull() {
 	const { returnValue } = this.test.ctx;
-	return should(returnValue).be.null();
+	return should(returnValue).be.null;
 }
 
 export function itShouldReturnString() {
@@ -131,12 +131,12 @@ export function itShouldReturnString() {
 
 export function itShouldResolveToTheOptions() {
 	const { options, returnValue } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(options);
+	return returnValue.should.be.eventually.eql(options);
 }
 
 export function itShouldResolveToTheDataAsAString() {
 	const { returnValue, data } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(data);
+	return returnValue.should.be.eventually.eql(data);
 }
 
 export function itShouldReturnAnObjectWithError() {
@@ -149,10 +149,10 @@ export function itShouldReturnAnObjectWithError() {
 
 export function itShouldResolveToTheWarrantyInformation() {
 	const { returnValue, warranty } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith({ warranty });
+	return returnValue.should.be.eventually.eql({ warranty });
 }
 
 export function itShouldResolveToTheCopyrightInformation() {
 	const { returnValue, copyright } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith({ copyright });
+	return returnValue.should.be.eventually.eql({ copyright });
 }
