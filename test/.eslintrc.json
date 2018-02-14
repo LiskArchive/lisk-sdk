@@ -11,8 +11,6 @@
 	},
 	"rules": {
 		// To Keep
-		"arrow-body-style": "off",
-		// To Remove
-		"mocha/no-synchronous-tests": "off"
+		"arrow-body-style": "off"
 	}
 }
