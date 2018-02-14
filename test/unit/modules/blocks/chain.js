@@ -40,6 +40,7 @@ describe('blocks/chain', () => {
 			blocks: {
 				getGenesisBlockId: sinonSandbox.stub(),
 				deleteBlock: sinonSandbox.stub(),
+				deleteAfterBlock: sinonSandbox.stub(),
 			},
 			tx: sinonSandbox.stub(),
 		};
@@ -369,24 +370,39 @@ describe('blocks/chain', () => {
 	});
 
 	describe('deleteAfterBlock', () => {
-		it('should call library.db.query');
+		describe('library.db.blocks.deleteAfterBlock', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					library.db.blocks.deleteAfterBlock.rejects('deleteAfterBlock-ERR');
+				});
 
-		it('should call library.db.query with sql.deleteAfterBlock');
+				afterEach(() => {
+					expect(loggerStub.error.args[0][0]).to.contains(
+						'deleteAfterBlock-ERR'
+					);
+				});
 
-		it('should call library.db.query with {id: blockId}');
+				it('should return error', done => {
+					blocksChainModule.deleteAfterBlock(1, err => {
+						expect(err).to.equal('Blocks#deleteAfterBlock error');
+						done();
+					});
+				});
+			});
 
-		describe('when library.db.query fails', () => {
-			it('should call logger.error');
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					library.db.blocks.deleteAfterBlock.resolves(true);
+				});
 
-			it('should call logger.error with err.stack');
-
-			it('should call callback with "Blocks#deleteAfterBlock error"');
-		});
-
-		describe('when library.db.query succeeds', () => {
-			it('should call callback with error = null');
-
-			it('should call callback with result = res');
+				it('should return immediate', done => {
+					blocksChainModule.deleteAfterBlock(1, (err, res) => {
+						expect(err).to.be.null;
+						expect(res).to.be.true;
+						done();
+					});
+				});
+			});
 		});
 	});
 
