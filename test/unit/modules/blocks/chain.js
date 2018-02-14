@@ -33,8 +33,13 @@ describe('blocks/chain', () => {
 	var modulesStub;
 
 	beforeEach(() => {
-		//Logic
-		dbStub = sinonSandbox.stub();
+		// Logic
+
+		dbStub = {
+			blocks: {
+				getGenesisBlockId: sinonSandbox.stub(),
+			},
+		};
 		blockStub = sinonSandbox.stub();
 		loggerStub = {
 			trace: sinonSandbox.spy(),
@@ -56,7 +61,8 @@ describe('blocks/chain', () => {
 
 		library = BlocksChain.__get__('library');
 		__private = BlocksChain.__get__('__private');
-		//Module
+		// Module
+
 		var modulesAccountsStub = sinonSandbox.stub();
 		var modulesBlocksStub = sinonSandbox.stub();
 		var modulesRoundsStub = sinonSandbox.stub();
@@ -69,6 +75,10 @@ describe('blocks/chain', () => {
 		};
 		blocksChainModule.onBind(modulesStub);
 		modules = BlocksChain.__get__('modules');
+	});
+
+	afterEach(() => {
+		sinonSandbox.restore();
 	});
 
 	describe('constructor', () => {
@@ -104,36 +114,86 @@ describe('blocks/chain', () => {
 	});
 
 	describe('saveGenesisBlock', () => {
-		it('should call library.db.query');
+		var saveBlockTemp;
+		describe('library.db.blocks.getGenesisBlockId', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					library.db.blocks.getGenesisBlockId.rejects('getGenesisBlockId-ERR');
+				});
 
-		it('should call library.db.blocks.getGenesisBlockId');
+				afterEach(() => {
+					expect(loggerStub.error.args[0][0]).to.contains(
+						'getGenesisBlockId-ERR'
+					);
+				});
 
-		it(
-			'should call library.db.query with { id: library.genesisblock.block.id }'
-		);
-
-		describe('when db query fails', () => {
-			it('should call logger.error');
-
-			it('should call logger.error with err.stack');
-
-			it('should call callback with "Blocks#saveGenesisBlock error"');
-		});
-
-		describe('when db query succeeds', () => {
-			describe('when genesis block does not exist', () => {
-				it('should call self.saveBlock');
-
-				it('should call self.saveBlock with library.genesisblock.block');
-
-				describe('when self.saveBlock fails', () => {
-					it('should call callback with error');
+				it('should throws error', done => {
+					blocksChainModule.saveGenesisBlock((err, cb) => {
+						expect(err).to.equal('Blocks#saveGenesisBlock error');
+						expect(cb).to.be.undefined;
+						done();
+					});
 				});
 			});
 
-			it('should call callback with error = undefined');
+			describe('when succeeds', () => {
+				describe('if returns empty row (genesis block is not in database)', () => {
+					beforeEach(() => {
+						library.db.blocks.getGenesisBlockId.resolves([]);
+						saveBlockTemp = blocksChainModule.saveBlock;
+					});
+					afterEach(() => {
+						blocksChainModule.saveBlock = saveBlockTemp;
+					});
 
-			it('should call callback with result = undefined');
+					describe('self.saveBlock', () => {
+						beforeEach(() => {
+							blocksChainModule.saveBlock = sinonSandbox.stub();
+						});
+
+						describe('when fails', () => {
+							beforeEach(() => {
+								blocksChainModule.saveBlock.callsArgWith(1, 'saveBlock-ERR', null);
+							});
+
+							it('should return error', done => {
+								blocksChainModule.saveGenesisBlock((err, cb) => {
+									expect(err).to.equal('saveBlock-ERR');
+									expect(cb).to.be.undefined;
+									done();
+								});
+							});
+						});
+						describe('when succeeds', () => {
+							beforeEach(() => {
+								blocksChainModule.saveBlock.callsArgWith(1, null, true);
+							});
+
+							it('should return cb', done => {
+								blocksChainModule.saveGenesisBlock((err, cb) => {
+									expect(err).to.be.null;
+									expect(cb).to.be.undefined;
+									done();
+								});
+							});
+						});
+					});
+				});
+
+				describe('if returns row', () => {
+					beforeEach(() => {
+						library.db.blocks.getGenesisBlockId.resolves([{ id: 1 }]);
+					});
+
+					it('should return cb', done => {
+						blocksChainModule.saveGenesisBlock((err, cb) => {
+							expect(err).to.be.undefined;
+							expect(cb).to.be.undefined;
+							done();
+						});
+					});
+				});
+			});
 		});
 	});
 
@@ -354,7 +414,6 @@ describe('blocks/chain', () => {
 	});
 
 	describe('applyBlock', () => {
-
 		it('should apply a valid block successfully');
 
 
