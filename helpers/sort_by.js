@@ -15,16 +15,24 @@
 'use strict';
 
 /**
+ * Description of the module.
+ *
+ * @module
+ * @see Parent: {@link helpers}
+ * @todo Add description for the module and the properties
+ */
+
+/**
  * Validates sort options, methods and fields.
- * @memberof module:helpers
- * @function
+ *
  * @param {string|Object} sort
  * @param {Object} [options]
  * @param {string} options.fieldPrefix
  * @param {string} options.sortField
  * @param {string} options.sortMethod - asc / desc
  * @param {Array} options.sortFields
- * @return {Object} error | {sortField, sortMethod}.
+ * @returns {Object} {error} | {sortField, sortMethod}
+ * @todo Add description for the params
  */
 function sortBy(sort, options) {
 	options = typeof options === 'object' ? options : {};
@@ -76,7 +84,14 @@ function sortBy(sort, options) {
 		});
 		return { sortField: sortFields, sortMethod: sortMethods };
 	}
-
+	/**
+	 * Description of the function.
+	 *
+	 * @private
+	 * @todo Add param-tag and descriptions
+	 * @todo Add @returns tag
+	 * @todo Add description for the function
+	 */
 	function prefixField(sortField) {
 		if (!sortField) {
 			return sortField;
@@ -88,6 +103,14 @@ function sortBy(sort, options) {
 		return sortField;
 	}
 
+	/**
+	 * Description of the function.
+	 *
+	 * @private
+	 * @todo Add param-tag and descriptions
+	 * @todo Add @returns tag
+	 * @todo Add description for the function
+	 */
 	function quoteField(sortField) {
 		if (sortField && options.quoteField) {
 			return `"${sortField}"`;
@@ -129,9 +152,11 @@ function sortBy(sort, options) {
  * Ascending sort method number equivalent is 1.
  * Descending sort method number equivalent is -1.
  * If only field is specified in sortQuery, sortOrder will be ascending.
+ *
  * @param {string} sortQuery - sortField|sortField:sortOrder
  * @param {Array} sortableFields
- * @returns {Object}[={}] returns {} if incorrect format of sortQuery given or if field
+ * @returns {Object} If incorrect format of sortQuery given or if field
+ * @todo Add description for the params
  */
 function sortQueryToJsonSqlFormat(sortQuery, sortableFields) {
 	if (sortableFields.indexOf(sortQuery) !== -1) {

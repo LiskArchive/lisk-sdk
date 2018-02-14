@@ -26,13 +26,15 @@ var __private = {};
 __private.unconfirmedOutTansfers = {};
 
 /**
- * Initializes library.
- * @memberof module:dapps
+ * Main OutTransfer logic. Initializes library.
+ *
  * @class
- * @classdesc Main OutTransfer logic.
+ * @memberof logic
+ * @see Parent: {@link logic}
  * @param {Database} db
  * @param {ZSchema} schema
  * @param {Object} logger
+ * @todo Add description for the params
  */
 // Constructor
 function OutTransfer(db, schema, logger) {
@@ -46,7 +48,9 @@ function OutTransfer(db, schema, logger) {
 // Public methods
 /**
  * Binds input modules to private variable module.
+ *
  * @param {Accounts} accounts
+ * @todo Add description for the params
  */
 OutTransfer.prototype.bind = function(accounts, blocks) {
 	modules = {
@@ -57,7 +61,8 @@ OutTransfer.prototype.bind = function(accounts, blocks) {
 
 /**
  * Returns send fee from constants.
- * @return {number} fee
+ *
+ * @returns {number} Transaction fee
  */
 OutTransfer.prototype.calculateFee = function() {
 	return constants.fees.send;
@@ -65,10 +70,12 @@ OutTransfer.prototype.calculateFee = function() {
 
 /**
  * Verifies recipientId, amount and outTransfer object content.
+ *
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} errors messages | transaction
+ * @returns {SetImmediate} error, transaction
+ * @todo Add description for the params
  */
 OutTransfer.prototype.verify = function(transaction, sender, cb) {
 	var lastBlock = modules.blocks.lastBlock.get();
@@ -102,11 +109,12 @@ OutTransfer.prototype.verify = function(transaction, sender, cb) {
 /**
  * Finds application into `dapps` table. Checks if transaction is already
  * processed. Checks if transaction is already confirmed.
- * @implements {library.db.one}
+ *
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} errors messages | transaction
+ * @returns {SetImmediate} error, transaction
+ * @todo Add description for the params
  */
 OutTransfer.prototype.process = function(transaction, sender, cb) {
 	library.db.dapps
@@ -154,9 +162,12 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
  * Creates buffer with outTransfer content:
  * - dappId
  * - transactionId
+ *
  * @param {transaction} transaction
- * @return {Array} Buffer
- * @throws {e} Error
+ * @throws {Error}
+ * @returns {Array} Buffer
+ * @todo Add description for the params
+ * @todo Check type and description of the return value
  */
 OutTransfer.prototype.getBytes = function(transaction) {
 	var buf;
@@ -180,14 +191,13 @@ OutTransfer.prototype.getBytes = function(transaction) {
  * Sets unconfirmed out transfers to false.
  * Calls setAccountAndGet based on transaction recipientId and
  * mergeAccountAndGet with unconfirmed transaction amount.
- * @implements {modules.accounts.setAccountAndGet}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
+ *
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 OutTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
 	__private.unconfirmedOutTansfers[
@@ -221,14 +231,13 @@ OutTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * Sets unconfirmed out transfers to true.
  * Calls setAccountAndGet based on transaction recipientId and
  * mergeAccountAndGet with unconfirmed transaction amount and balance both negatives.
- * @implements {modules.accounts.setAccountAndGet}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {slots.calcRound}
+ *
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 OutTransfer.prototype.undo = function(transaction, block, sender, cb) {
 	__private.unconfirmedOutTansfers[
@@ -257,10 +266,12 @@ OutTransfer.prototype.undo = function(transaction, block, sender, cb) {
 
 /**
  * Sets unconfirmed OutTansfers to true.
+ *
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the params
  */
 OutTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 	__private.unconfirmedOutTansfers[
@@ -271,10 +282,12 @@ OutTransfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
 
 /**
  * Sets unconfirmed OutTansfers to false.
+ *
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the params
  */
 OutTransfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
 	__private.unconfirmedOutTansfers[
@@ -305,10 +318,11 @@ OutTransfer.prototype.schema = {
 
 /**
  * Calls `objectNormalize` with asset outTransfer.
- * @implements {library.schema.validate}
+ *
  * @param {transaction} transaction
- * @return {error|transaction} error string | transaction normalized
- * @throws {string} error message
+ * @throws {string}
+ * @returns {error|transaction}
+ * @todo Add description for the params
  */
 OutTransfer.prototype.objectNormalize = function(transaction) {
 	var report = library.schema.validate(
@@ -328,8 +342,10 @@ OutTransfer.prototype.objectNormalize = function(transaction) {
 
 /**
  * Creates outTransfer object based on raw data.
+ *
  * @param {Object} raw
- * @return {Object} outTransfer with dappId and transactionId
+ * @returns {Object} OutTransfer with dappId and transactionId
+ * @todo Add description for the params
  */
 OutTransfer.prototype.dbRead = function(raw) {
 	if (!raw.ot_dappId) {
@@ -345,9 +361,11 @@ OutTransfer.prototype.dbRead = function(raw) {
 
 /**
  * Checks if transaction has enough signatures to be confirmed.
+ *
  * @param {transaction} transaction
  * @param {account} sender
- * @return {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
+ * @todo Add description for the params
  */
 OutTransfer.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {

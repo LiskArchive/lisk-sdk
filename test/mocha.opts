@@ -1,3 +1,4 @@
 --timeout 1200s
 --exit
+--reporter min
 --require ./test/setup.js

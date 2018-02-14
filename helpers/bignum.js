@@ -16,18 +16,22 @@
 
 /**
  * Buffer functions that implements bignumber.
- * @memberof module:helpers
+ *
+ * @class
+ * @memberof helpers
+ *
  * @requires bignumber
- * @constructor
  */
 var BigNumber = require('bignumber.js');
 
 /**
  * Creates an instance from a Buffer.
+ *
  * @param {ArrayBuffer} buf
  * @param {Object} opts
- * @return {ArrayBuffer} new BigNumber instance
- * @throws {RangeError} error description multiple of size
+ * @returns {ArrayBuffer} New BigNumber instance
+ * @throws {RangeError} If description multiple of size
+ * @todo Add description for the params
  */
 BigNumber.fromBuffer = function(buf, opts) {
 	if (!opts) {
@@ -60,8 +64,10 @@ BigNumber.fromBuffer = function(buf, opts) {
 
 /**
  * Returns an instance as Buffer.
+ *
  * @param {Object} opts
- * @return {ArrayBuffer} new buffer | error message invalid option
+ * @returns {ArrayBuffer} New buffer or error message
+ * @todo Add description for the params
  */
 BigNumber.prototype.toBuffer = function(opts) {
 	var abs = this.abs();
