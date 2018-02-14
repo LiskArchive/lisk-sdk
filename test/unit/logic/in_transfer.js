@@ -286,17 +286,6 @@ describe('inTransfer', () => {
 			});
 		});
 
-		it('should call library.db.dapps.countByTransactionId with trs.asset.inTransfer.dappId', done => {
-			inTransfer.verify(trs, sender, () => {
-				expect(
-					dbStub.dapps.countByTransactionId.calledWith(
-						trs.asset.inTransfer.dappId
-					)
-				).to.be.false;
-				done();
-			});
-		});
-
 		describe('when library.db.one fails', () => {
 			beforeEach(() => {
 				dbStub.dapps.countByTransactionId = sinonSandbox
