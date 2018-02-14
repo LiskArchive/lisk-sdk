@@ -5,7 +5,7 @@
 	"main": "./dist-node/index.js",
 	"engines": {
 		"node": ">=6 <=9",
-		"npm": "=>3 <=5"
+		"npm": ">=3 <=5"
 	},
 	"scripts": {
 		"prestart": "./bin/prestart.sh",
