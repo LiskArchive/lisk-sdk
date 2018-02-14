@@ -99,15 +99,15 @@ describe('account', () => {
 		});
 
 		it('should attach schema to scope variable', () => {
-			expect(accountLogic.scope.schema).to.eql(modulesLoader.scope.schema);
+			return expect(accountLogic.scope.schema).to.eql(modulesLoader.scope.schema);
 		});
 
 		it('should attach db to scope variable', () => {
-			expect(accountLogic.scope.db).to.eql(dbStub);
+			return expect(accountLogic.scope.db).to.eql(dbStub);
 		});
 
 		it('should attach logger to library variable', () => {
-			expect(library.logger).to.eql(modulesLoader.scope.logger);
+			return expect(library.logger).to.eql(modulesLoader.scope.logger);
 		});
 	});
 
@@ -123,29 +123,29 @@ describe('account', () => {
 
 	describe('objectNormalize', () => {
 		it('should be okay for a valid account object', () => {
-			expect(account.objectNormalize(validAccount)).to.be.an('object');
+			return expect(account.objectNormalize(validAccount)).to.be.an('object');
 		});
 	});
 
 	describe('verifyPublicKey', () => {
 		it('should be okay for empty params', () => {
-			expect(account.verifyPublicKey()).to.be.undefined;
+			return expect(account.verifyPublicKey()).to.be.undefined;
 		});
 
 		it('should throw error if parameter is not a string', () => {
-			expect(() => {
+			return expect(() => {
 				account.verifyPublicKey(1);
 			}).to.throw('Invalid public key, must be a string');
 		});
 
 		it('should throw error if parameter is of invalid length', () => {
-			expect(() => {
+			return expect(() => {
 				account.verifyPublicKey('231312312321');
 			}).to.throw('Invalid public key, must be 64 characters long');
 		});
 
 		it('should throw error if parameter is not a hex string', () => {
-			expect(() => {
+			return expect(() => {
 				account.verifyPublicKey(
 					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az'
 				);
@@ -153,7 +153,7 @@ describe('account', () => {
 		});
 
 		it('should be okay if parameter is in correct format', () => {
-			expect(() => {
+			return expect(() => {
 				account.verifyPublicKey(
 					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a2'
 				);
@@ -234,26 +234,26 @@ describe('account', () => {
 
 	describe('calculateApproval', () => {
 		it('when voterBalance = 0 and totalSupply = 0, it should return 0', () => {
-			expect(account.calculateApproval(0, 0)).to.equal(0);
+			return expect(account.calculateApproval(0, 0)).to.equal(0);
 		});
 
 		it('when voterBalance = totalSupply, it should return 100', () => {
 			var totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
 			var votersBalance = totalSupply;
-			expect(account.calculateApproval(votersBalance, totalSupply)).to.equal(
+			return expect(account.calculateApproval(votersBalance, totalSupply)).to.equal(
 				100
 			);
 		});
 
 		it('when voterBalance = 50 and total supply = 100, it should return 50', () => {
-			expect(account.calculateApproval(50, 100)).to.equal(50);
+			return expect(account.calculateApproval(50, 100)).to.equal(50);
 		});
 
 		it('with random values, it should return approval between 0 and 100', () => {
 			// So total supply is never 0
 			var totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
 			var votersBalance = Math.floor(Math.random() * totalSupply);
-			expect(account.calculateApproval(votersBalance, totalSupply))
+			return expect(account.calculateApproval(votersBalance, totalSupply))
 				.to.be.least(0)
 				.and.be.at.most(100);
 		});
@@ -261,13 +261,13 @@ describe('account', () => {
 
 	describe('calculateProductivity', () => {
 		it('when missedBlocks = 0 and producedBlocks = 0, it should return 0', () => {
-			expect(account.calculateProductivity(0, 0)).to.equal(0);
+			return expect(account.calculateProductivity(0, 0)).to.equal(0);
 		});
 
 		it('when missedBlocks = producedBlocks, it should return 50', () => {
 			var producedBlocks = Math.floor(Math.random() * 1000000000);
 			var missedBlocks = producedBlocks;
-			expect(
+			return expect(
 				account.calculateProductivity(producedBlocks, missedBlocks)
 			).to.equal(50);
 		});
@@ -275,7 +275,7 @@ describe('account', () => {
 		it('when missedBlocks = 5 and producedBlocks = 15, it should return 75', () => {
 			var missedBlocks = 5;
 			var producedBlocks = 15;
-			expect(
+			return expect(
 				account.calculateProductivity(producedBlocks, missedBlocks)
 			).to.equal(75);
 		});
@@ -283,7 +283,7 @@ describe('account', () => {
 		it('with random values, it should return approval between 0 and 100', () => {
 			var missedBlocks = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
 			var producedBlocks = Math.floor(Math.random() * missedBlocks);
-			expect(account.calculateProductivity(producedBlocks, missedBlocks))
+			return expect(account.calculateProductivity(producedBlocks, missedBlocks))
 				.to.be.least(0)
 				.and.be.at.most(100);
 		});
@@ -606,19 +606,19 @@ describe('account', () => {
 
 		describe('verify public key', () => {
 			it('should throw error if parameter is not a string', () => {
-				expect(() => {
+				return expect(() => {
 					account.merge(validAccount.address, { publicKey: 1 });
 				}).to.throw('Invalid public key, must be a string');
 			});
 
 			it('should throw error if parameter is of invalid length', () => {
-				expect(() => {
+				return expect(() => {
 					account.merge(validAccount.address, { publicKey: '231312312321' });
 				}).to.throw('Invalid public key, must be 64 characters long');
 			});
 
 			it('should throw error if parameter is not a hex string', () => {
-				expect(() => {
+				return expect(() => {
 					account.merge(validAccount.address, {
 						publicKey:
 							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az',
