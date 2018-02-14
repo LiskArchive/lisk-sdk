@@ -96,7 +96,7 @@ Accounts.prototype.generateAddressByPublicKey = function(publicKey) {
 /**
  * Gets account information, calls logic.account.get().
  *
- * @param {Object} filter - Containts publicKey
+ * @param {Object} filter - Contains publicKey
  * @param {function} fields - Fields to get
  * @param {function} cb - Callback function
  */
@@ -171,8 +171,8 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
  *
  * @param {Object} data - Contains address and public key
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} for errors wit address and public key
- * @returns {function} calls to logic.account.merge()
+ * @returns {setImmediateCallback} For errors wit address and public key
+ * @returns {function} Calls to logic.account.merge()
  * @todo improve publicKey validation try/catch
  */
 Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
@@ -220,7 +220,7 @@ Accounts.prototype.onBind = function(scope) {
 /**
  * Checks if modules is loaded.
  *
- * @returns {boolean} true if modules is loaded
+ * @returns {boolean} True if modules is loaded
  */
 Accounts.prototype.isLoaded = function() {
 	return !!modules;
@@ -228,14 +228,16 @@ Accounts.prototype.isLoaded = function() {
 
 // Shared API
 /**
- * Public methods, accessible via API
- * @name shared
+ * Public methods, accessible via API.
+ *
+ * @property {function} getAccounts - Search accounts based on the query parameter passed
  */
 Accounts.prototype.shared = {
 	/**
 	 * Search accounts based on the query parameter passed.
 	 *
-	 * @memberof shared
+	 * @func shared.getAccounts
+	 * @memberof modules.Accounts
 	 * @param {Object} filters - Filters applied to results
 	 * @param {string} filters.address - Account address
 	 * @param {string} filters.publicKey - Public key associated to account
