@@ -803,7 +803,7 @@ paths:
     x-swagger-router-controller: signatures
     post:
       tags:
-        - Signature
+        - Signatures
       summary: Submits a signature object to sign multisignature transactions
       operationId: postSignature
       description:
@@ -902,7 +902,7 @@ paths:
             $ref: '#/definitions/UnexpectedError'
     post:
       tags:
-        - Transaction
+        - Transactions
       summary: Submits signed transaction for processing
       operationId: postTransaction
       description:
