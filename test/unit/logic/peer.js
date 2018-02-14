@@ -148,16 +148,6 @@ describe('peer', () => {
 			peer.state = initialState;
 		});
 
-		it('should change state of banned peer', () => {
-			var initialState = peer.state;
-			// Ban peer
-			peer.state = 0;
-			// Try to unban peer
-			peer.update({ state: 2 });
-			expect(peer.state).to.equal(2);
-			peer.state = initialState;
-		});
-
 		it('should update defined values', () => {
 			var updateData = {
 				os: 'test os',
