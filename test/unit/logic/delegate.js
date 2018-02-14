@@ -127,7 +127,7 @@ describe('delegate', () => {
 				.equal(modulesLoader.scope.schema);
 		});
 
-		it('should attach schema to library variable', () => {
+		it('should attach logger to library variable', () => {
 			var library = Delegate.__get__('library');
 			expect(library)
 				.to.have.property('logger')
