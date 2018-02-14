@@ -30,7 +30,7 @@ describe('PeersUpdateRules', () => {
 	var validPeer;
 	var actionCb = sinonSandbox.spy();
 
-	beforeEach(() => {
+	beforeEach(done => {
 		slaveWAMPServerMock = {
 			worker: {
 				options: {
@@ -48,19 +48,22 @@ describe('PeersUpdateRules', () => {
 		validPeer = _.clone(prefixedPeer);
 		connectionsTable.nonceToConnectionIdMap = {};
 		connectionsTable.connectionIdToNonceMap = {};
+		done();
 	});
 
 	describe('constructor', () => {
-		it('should have empty slaveToMasterSender object assigned', () => {
+		it('should have empty slaveToMasterSender object assigned', done => {
 			expect(peersUpdateRules)
 				.to.have.property('slaveToMasterSender')
 				.to.be.a('object');
+			done();
 		});
 
-		it('should have empty rules object assigned', () => {
+		it('should have empty rules object assigned', done => {
 			expect(peersUpdateRules)
 				.to.have.property('rules')
 				.to.be.a('object');
+			done();
 		});
 	});
 
@@ -106,18 +109,20 @@ describe('PeersUpdateRules', () => {
 			});
 		});
 
-		it('should call sendInternally when invoked with valid arguments', () => {
+		it('should call sendInternally when invoked with valid arguments', done => {
 			peersUpdateRules.insert(validPeer, validConnectionId, actionCb);
 			expect(peersUpdateRules.slaveToMasterSender.send.called).to.be.true;
+			done();
 		});
 
-		it('should call sendInternally with acceptPeer procedure when invoked with valid arguments', () => {
+		it('should call sendInternally with acceptPeer procedure when invoked with valid arguments', done => {
 			peersUpdateRules.insert(validPeer, validConnectionId, actionCb);
 			expect(peersUpdateRules.slaveToMasterSender.send.calledWith('updatePeer'))
 				.to.be.true;
+			done();
 		});
 
-		it('should insert entries to connectionsTable when invoked with valid arguments', () => {
+		it('should insert entries to connectionsTable when invoked with valid arguments', done => {
 			peersUpdateRules.insert(validPeer, validConnectionId, actionCb);
 			expect(connectionsTable.nonceToConnectionIdMap)
 				.to.have.property(validPeer.nonce)
@@ -125,6 +130,7 @@ describe('PeersUpdateRules', () => {
 			expect(connectionsTable.connectionIdToNonceMap)
 				.to.have.property(validConnectionId)
 				.equal(validPeer.nonce);
+			done();
 		});
 
 		it('should return an error from server when invoked with valid arguments and received error code', done => {
@@ -189,7 +195,7 @@ describe('PeersUpdateRules', () => {
 			var validConnectionIdA = `${validConnectionId}A`;
 			var validConnectionIdB = `${validConnectionId}B`;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				validPeerA = _.clone(validPeer);
 				validPeerA.string += 'A';
 				validPeerA.nonce += 'A';
@@ -200,9 +206,10 @@ describe('PeersUpdateRules', () => {
 
 				peersUpdateRules.insert(validPeerA, validConnectionIdA, actionCb);
 				peersUpdateRules.insert(validPeerB, validConnectionIdB, actionCb);
+				done();
 			});
 
-			it('should insert multiple entries to connectionsTable when invoked with valid arguments', () => {
+			it('should insert multiple entries to connectionsTable when invoked with valid arguments', done => {
 				expect(
 					Object.keys(connectionsTable.nonceToConnectionIdMap).length
 				).to.equal(2);
@@ -221,11 +228,13 @@ describe('PeersUpdateRules', () => {
 				expect(connectionsTable.connectionIdToNonceMap)
 					.to.have.property(validConnectionIdB)
 					.equal(validPeerB.nonce);
+				done();
 			});
 
-			it('should call sendInternally multiple times', () => {
+			it('should call sendInternally multiple times', done => {
 				expect(peersUpdateRules.slaveToMasterSender.send.calledTwice).to.be
 					.true;
+				done();
 			});
 		});
 	});
@@ -270,33 +279,37 @@ describe('PeersUpdateRules', () => {
 			});
 		});
 
-		it('should call slaveToMasterSender.send when invoked with valid arguments', () => {
+		it('should call slaveToMasterSender.send when invoked with valid arguments', done => {
 			peersUpdateRules.remove(validPeer, validConnectionId, actionCb);
 			expect(peersUpdateRules.slaveToMasterSender.send.calledOnce).to.be.true;
+			done();
 		});
 
-		it('should call slaveToMasterSender.send with updatePeer procedure when invoked with valid arguments', () => {
+		it('should call slaveToMasterSender.send with updatePeer procedure when invoked with valid arguments', done => {
 			peersUpdateRules.remove(validPeer, validConnectionId, actionCb);
 			expect(peersUpdateRules.slaveToMasterSender.send.calledWith('updatePeer'))
 				.to.be.true;
+			done();
 		});
 
 		describe('after peer is added', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				peersUpdateRules.insert(validPeer, validConnectionId, actionCb);
 				peersUpdateRules.slaveToMasterSender.send.restore();
 				peersUpdateRules.slaveToMasterSender.send = sinonSandbox
 					.stub(peersUpdateRules.slaveToMasterSender, 'send')
 					.callsArg(3, null);
+				done();
 			});
 
-			it('should leave the connections table in empty state after successful removal', () => {
+			it('should leave the connections table in empty state after successful removal', done => {
 				peersUpdateRules.remove(validPeer, validConnectionId, actionCb);
 				expect(peersUpdateRules.slaveToMasterSender.send.calledOnce).to.be.true;
 				expect(connectionsTable).to.have.property('connectionIdToNonceMap').to
 					.be.empty;
 				expect(connectionsTable).to.have.property('nonceToConnectionIdMap').to
 					.be.empty;
+				done();
 			});
 
 			it('should be ok to remove peer using different connection id', done => {
@@ -392,7 +405,7 @@ describe('PeersUpdateRules', () => {
 		var removeStub;
 		var blockStub;
 
-		before(() => {
+		before(done => {
 			insertStub = sinonSandbox.stub(PeersUpdateRules.prototype, 'insert');
 			removeStub = sinonSandbox.stub(PeersUpdateRules.prototype, 'remove');
 			blockStub = sinonSandbox.stub(PeersUpdateRules.prototype, 'block');
@@ -405,14 +418,16 @@ describe('PeersUpdateRules', () => {
 				connectionsTable,
 				'getConnectionId'
 			);
+			done();
 		});
 
-		beforeEach(() => {
+		beforeEach(done => {
 			insertStub.reset();
 			removeStub.reset();
 			blockStub.reset();
 			connectionsTable.getNonce.restore();
 			connectionsTable.getConnectionId.restore();
+			done();
 		});
 
 		function setNoncePresence(presence) {
@@ -433,13 +448,14 @@ describe('PeersUpdateRules', () => {
 			describe('when peer is present on master', () => {
 				const onMasterPresence = true;
 
-				beforeEach(() => {
+				beforeEach(done => {
 					peersUpdateRules.slaveToMasterSender.getPeer = sinonSandbox
 						.stub(peersUpdateRules.slaveToMasterSender, 'getPeer')
 						.callsArgWith(1, null, onMasterPresence);
+					done();
 				});
 
-				it('with present nonce and present connectionId should call block', () => {
+				it('with present nonce and present connectionId should call block', done => {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(
@@ -449,9 +465,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(blockStub.called).to.be.true;
+					done();
 				});
 
-				it('with present nonce and not present connectionId should call block', () => {
+				it('with present nonce and not present connectionId should call block', done => {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(
@@ -461,9 +478,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(blockStub.called).to.be.true;
+					done();
 				});
 
-				it('with not present nonce and present connectionId should call insert', () => {
+				it('with not present nonce and present connectionId should call insert', done => {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(
@@ -473,9 +491,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(insertStub.called).to.be.true;
+					done();
 				});
 
-				it('with not present nonce and not present connectionId should call insert', () => {
+				it('with not present nonce and not present connectionId should call insert', done => {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(
@@ -485,19 +504,21 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(insertStub.called).to.be.true;
+					done();
 				});
 			});
 
 			describe('when peer is not present on master', () => {
 				const onMasterPresence = false;
 
-				beforeEach(() => {
+				beforeEach(done => {
 					peersUpdateRules.slaveToMasterSender.getPeer = sinonSandbox
 						.stub(peersUpdateRules.slaveToMasterSender, 'getPeer')
 						.callsArgWith(1, null, onMasterPresence);
+					done();
 				});
 
-				it('with present nonce and present connectionId should call insert', () => {
+				it('with present nonce and present connectionId should call insert', done => {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(
@@ -507,9 +528,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(insertStub.called).to.be.true;
+					done();
 				});
 
-				it('with present nonce and not present connectionId should call insert', () => {
+				it('with present nonce and not present connectionId should call insert', done => {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(
@@ -519,9 +541,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(insertStub.called).to.be.true;
+					done();
 				});
 
-				it('with not present nonce and present connectionId should call insert', () => {
+				it('with not present nonce and present connectionId should call insert', done => {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(
@@ -531,9 +554,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(insertStub.called).to.be.true;
+					done();
 				});
 
-				it('with not present nonce and not present connectionId should call insert', () => {
+				it('with not present nonce and not present connectionId should call insert', done => {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(
@@ -543,6 +567,7 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(insertStub.called).to.be.true;
+					done();
 				});
 			});
 		});
@@ -553,13 +578,14 @@ describe('PeersUpdateRules', () => {
 			describe('when peer is present on master', () => {
 				const onMasterPresence = true;
 
-				beforeEach(() => {
+				beforeEach(done => {
 					peersUpdateRules.slaveToMasterSender.getPeer = sinonSandbox
 						.stub(peersUpdateRules.slaveToMasterSender, 'getPeer')
 						.callsArgWith(1, null, onMasterPresence);
+					done();
 				});
 
-				it('with present nonce and present connectionId should call remove', () => {
+				it('with present nonce and present connectionId should call remove', done => {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(
@@ -569,9 +595,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(removeStub.called).to.be.true;
+					done();
 				});
 
-				it('with present nonce and not present connectionId should call block', () => {
+				it('with present nonce and not present connectionId should call block', done => {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(
@@ -581,9 +608,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(blockStub.called).to.be.true;
+					done();
 				});
 
-				it('with not present nonce and present connectionId should call remove', () => {
+				it('with not present nonce and present connectionId should call remove', done => {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(
@@ -593,9 +621,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(removeStub.called).to.be.true;
+					done();
 				});
 
-				it('with not present nonce and not present connectionId should call remove', () => {
+				it('with not present nonce and not present connectionId should call remove', done => {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(
@@ -605,19 +634,21 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(removeStub.called).to.be.true;
+					done();
 				});
 			});
 
 			describe('when peer is not present on master', () => {
 				const onMasterPresence = false;
 
-				beforeEach(() => {
+				beforeEach(done => {
 					peersUpdateRules.slaveToMasterSender.getPeer = sinonSandbox
 						.stub(peersUpdateRules.slaveToMasterSender, 'getPeer')
 						.callsArgWith(1, null, onMasterPresence);
+					done();
 				});
 
-				it('with present nonce and present connectionId should call block', () => {
+				it('with present nonce and present connectionId should call block', done => {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(
@@ -627,9 +658,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(removeStub.called).to.be.true;
+					done();
 				});
 
-				it('with present nonce and not present connectionId should call block', () => {
+				it('with present nonce and not present connectionId should call block', done => {
 					setNoncePresence('validNonce');
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(
@@ -639,9 +671,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(removeStub.called).to.be.true;
+					done();
 				});
 
-				it('with not present nonce and present connectionId should call remove', () => {
+				it('with not present nonce and present connectionId should call remove', done => {
 					setNoncePresence(null);
 					setConnectionIdPresence('validConnectionId');
 					peersUpdateRules.internal.update(
@@ -651,9 +684,10 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(removeStub.called).to.be.true;
+					done();
 				});
 
-				it('with not present nonce and not present connectionId should call block', () => {
+				it('with not present nonce and not present connectionId should call block', done => {
 					setNoncePresence(null);
 					setConnectionIdPresence(null);
 					peersUpdateRules.internal.update(
@@ -663,6 +697,7 @@ describe('PeersUpdateRules', () => {
 						actionCb
 					);
 					expect(blockStub.called).to.be.true;
+					done();
 				});
 			});
 		});
@@ -671,13 +706,14 @@ describe('PeersUpdateRules', () => {
 	describe('external.update', () => {
 		var minimalValidUpdateRequest;
 
-		beforeEach(() => {
+		beforeEach(done => {
 			minimalValidUpdateRequest = {
 				data: {
 					nonce: validPeer.nonce,
 				},
 				socketId: validConnectionId,
 			};
+			done();
 		});
 
 		describe('schema', () => {
