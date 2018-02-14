@@ -30,6 +30,7 @@ describe('blocks/chain', () => {
 	var loggerStub;
 	var blockStub;
 	var transactionStub;
+	var busStub;
 	var modulesStub;
 
 	beforeEach(() => {
@@ -49,14 +50,19 @@ describe('blocks/chain', () => {
 			warn: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
 		};
-
+		busStub = {
+			message: sinonSandbox.stub(),
+		};
+		transactionStub = {
+			afterSave: sinonSandbox.stub().callsArgWith(1, null, true),
+		};
 		blocksChainModule = new BlocksChain(
 			loggerStub,
 			blockStub,
 			transactionStub,
 			dbStub,
 			modulesLoader.scope.genesisblock,
-			modulesLoader.scope.bus,
+			busStub,
 			modulesLoader.scope.balancesSequence
 		);
 
@@ -87,7 +93,7 @@ describe('blocks/chain', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.db).to.eql(dbStub);
 			expect(library.genesisblock).to.eql(modulesLoader.scope.genesisblock);
-			expect(library.bus).to.eql(modulesLoader.scope.bus);
+			expect(library.bus).to.eql(busStub);
 			expect(library.balancesSequence).to.eql(modulesLoader.scope.balancesSequence);
 			expect(library.logic.block).to.eql(blockStub);
 			expect(library.logic.transaction).to.eql(transactionStub);
@@ -195,6 +201,15 @@ describe('blocks/chain', () => {
 	});
 
 	describe('saveBlock', () => {
+		var afterSaveTemp;
+		beforeEach(() => {
+			afterSaveTemp = __private.afterSave;
+		});
+
+		afterEach(() => {
+			__private.afterSave = afterSaveTemp;
+		});
+
 		describe('when tx param is passed', () => {
 			var txStub;
 			beforeEach(() => {
@@ -215,16 +230,17 @@ describe('blocks/chain', () => {
 					});
 
 					it('should throw error', done => {
-						var block = { id: 1, 
+						var block = { id: 1,
 						transactions: [
-							{ id: 1, type: 0 }, { id: 2, type: 1 }
-						]};
+							{ id: 1, type: 0 }, { id: 2, type: 1 },
+						] };
 						blocksChainModule.saveBlock(block, err => {
 							expect(err).to.equal('Blocks#saveBlock error');
 							done();
 						}, txStub);
 					});
 				});
+
 				describe('when succeeds', () => {
 					beforeEach(() => {
 						txStub.batch.resolves();
@@ -232,10 +248,10 @@ describe('blocks/chain', () => {
 					});
 
 					it('should call __private.afterSave', done => {
-						var block = { id: 1, 
+						var block = { id: 1,
 						transactions: [
-							{ id: 1, type: 0 }, { id: 2, type: 1 }
-						]};
+							{ id: 1, type: 0 }, { id: 2, type: 1 },
+						] };
 						blocksChainModule.saveBlock(block, () => {
 							expect(__private.afterSave.calledOnce).to.be.true;
 							done();
@@ -266,10 +282,10 @@ describe('blocks/chain', () => {
 					});
 
 					it('should throw error', done => {
-						var block = { id: 1, 
+						var block = { id: 1,
 						transactions: [
-							{ id: 1, type: 0 }, { id: 2, type: 1 }
-						]};
+							{ id: 1, type: 0 }, { id: 2, type: 1 },
+						] };
 						blocksChainModule.saveBlock(block, err => {
 							expect(err).to.equal('Blocks#saveBlock error');
 							done();
@@ -283,10 +299,10 @@ describe('blocks/chain', () => {
 					});
 
 					it('should call __private.afterSave', done => {
-						var block = { id: 1, 
+						var block = { id: 1,
 						transactions: [
-							{ id: 1, type: 0 }, { id: 2, type: 1 }
-						]};
+							{ id: 1, type: 0 }, { id: 2, type: 1 },
+						] };
 						blocksChainModule.saveBlock(block, () => {
 							expect(__private.afterSave.calledOnce).to.be.true;
 							done();
@@ -297,29 +313,26 @@ describe('blocks/chain', () => {
 		});
 	});
 
-	describe('__private', () => {
-		describe('afterSave', () => {
-			it('should call library.bus.message');
-
-			it('should call library.bus.message with "transactionsSaved"');
-
-			it('should call library.bus.message with block.transactions');
-
-			it(
-				'should call library.logic.transaction.afterSave for every block.transaction'
-			);
-
-			describe('when library.logic.transaction.afterSave fails', () => {
-				it('should call callback with error');
-			});
-
-			describe('when library.logic.transaction.afterSave succeeds', () => {
-				it('should call callback with error = undefined');
-
-				it('should call callback with result = undefined');
-			});
+	describe('__private.afterSave', () => {
+		afterEach(() => {
+			expect(library.bus.message.calledOnce).to.be.true;
+			expect(library.bus.message.args[0][0]).to.equal('transactionsSaved');
+			expect(library.bus.message.args[0][1]).to.deep.equal([{ id: 1, type: 0 }, { id: 2, type: 1 }]);
 		});
 
+		it('should call afterSave for all transactions', done => {
+			var block = { id: 1,
+				transactions: [
+					{ id: 1, type: 0 }, { id: 2, type: 1 },
+				] };
+			__private.afterSave(block, () => {
+				expect(library.logic.transaction.afterSave.callCount).to.equal(2);
+				done();
+			});
+		});
+	});
+
+	describe('__private', () => {
 		describe('promiseTransactions', () => {
 			describe('when block.transactions is empty', () => {
 				it('should return t');
