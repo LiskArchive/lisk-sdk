@@ -48,8 +48,8 @@ var MemAccounts = {
 		'"blockId",' +
 		'"nameexist",' +
 		'"u_nameexist",' +
-		'"producedblocks",' +
-		'"missedblocks",' +
+		'"producedBlocks",' +
+		'"missedBlocks",' +
 		'"fees",' +
 		'"rewards",' +
 		'"virgin"' +
@@ -78,8 +78,8 @@ var MemAccounts = {
 		'${blockId}, ' +
 		'${nameexist}, ' +
 		'${u_nameexist}, ' +
-		'${producedblocks}, ' +
-		'${missedblocks}, ' +
+		'${producedBlocks}, ' +
+		'${missedBlocks}, ' +
 		'${fees}, ' +
 		'${rewards}, ' +
 		'${virgin}' +
