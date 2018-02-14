@@ -99,8 +99,8 @@ export function itShouldHaveAFunctionForCreatingATypeTransaction() {
 		transactionType,
 	);
 	return transactionsObject.should.have
-		.key(transactionFunctionName)
-		.and.be.type('function');
+		.property(transactionFunctionName)
+		.and.be.a('function');
 }
 
 export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase() {

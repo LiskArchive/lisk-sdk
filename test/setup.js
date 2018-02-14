@@ -52,6 +52,23 @@ Assertion.addProperty('integer', function handleAssert() {
 		'expected #{this} not to be an integer',
 	);
 });
+
+Assertion.addMethod('matchAny', function handleAssert(matcher) {
+	const obj = this._obj;
+
+	new Assertion(obj).to.be.an('array');
+	let result = false;
+	obj.forEach(val => {
+		if (matcher(val)) {
+			result = true;
+		}
+	});
+	this.assert(
+		result,
+		'expected #{this} to match at least once',
+		'expected #{this} to not to match',
+	);
+});
 /* eslint-enable no-underscore-dangle */
 
 mochaBDD();

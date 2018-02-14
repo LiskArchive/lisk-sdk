@@ -199,9 +199,9 @@ export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues(
 		const row = returnValue[i];
 		const values = Object.values(testObject);
 
-		values.forEach(value => row.should.containEql(value));
+		values.forEach(value => row.should.include(value));
 		return row
 			.filter(value => !values.includes(value))
-			.forEach(value => should(value).be.undefined());
+			.forEach(value => should(value).be.undefined);
 	});
 }
