@@ -382,7 +382,7 @@ DApp.prototype.undoUnconfirmed = function(transaction, sender, cb) {
  * @property {dappType} type - Number, minimum 0
  * @property {string} link - Between 0 and 2000 chars
  * @property {string} icon - Between 0 and 2000 chars
- * @property {string} transactionId - transaction id
+ * @property {string} transactionId - Transaction id
  */
 DApp.prototype.schema = {
 	id: 'DApp',

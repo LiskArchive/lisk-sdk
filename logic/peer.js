@@ -56,7 +56,7 @@ function Peer(peer) {
  * @property {number} height - Minimum 1
  * @property {Date} clock
  * @property {Date} updated
- * @property {string} nonce - Check this!
+ * @property {string} nonce
  * @property {string} string
  */
 // Public properties
