@@ -28,16 +28,20 @@ var __private = {};
 __private.assetTypes = {};
 
 /**
- * Initializes library with scope content and generates a Signature instance.
+ * Main signatures methods. Initializes library with scope content and generates a Signature instance.
  * Calls logic.transaction.attachAssetType().
- * @memberof module:signatures
+ *
  * @class
- * @classdesc Main signatures methods.
- * @param {function} cb - Callback function.
- * @param {scope} scope - App instance.
- * @return {setImmediateCallback} Callback function with `self` as data.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires helpers/api_codes
+ * @requires helpers/api_error
+ * @requires helpers/transaction_types
+ * @requires logic/signature
+ * @param {function} cb - Callback function
+ * @param {scope} scope - App instance
+ * @returns {setImmediateCallback} Callback function with `self` as data
  */
-// Constructor
 function Signatures(cb, scope) {
 	library = {
 		schema: scope.schema,
@@ -62,7 +66,8 @@ function Signatures(cb, scope) {
 // Public methods
 /**
  * Checks if `modules` is loaded.
- * @return {boolean} True if `modules` is loaded.
+ *
+ * @returns {boolean} True if `modules` is loaded
  */
 Signatures.prototype.isLoaded = function() {
 	return !!modules;
@@ -71,8 +76,8 @@ Signatures.prototype.isLoaded = function() {
 // Events
 /**
  * Calls Signature.bind() with modules params.
- * @implements module:signatures#Signature~bind
- * @param {modules} scope - Loaded modules.
+ *
+ * @param {modules} scope - Loaded modules
  */
 Signatures.prototype.onBind = function(scope) {
 	modules = {
@@ -84,16 +89,19 @@ Signatures.prototype.onBind = function(scope) {
 	__private.assetTypes[transactionTypes.SIGNATURE].bind(scope.accounts);
 };
 
-// Shared API
 /**
- * Public methods, accessible via API
+ * Public methods, accessible via API.
+ *
+ * @property {function} postSignatures - Post signatures for transactions
  */
 Signatures.prototype.shared = {
 	/**
 	 * Post signatures for transactions.
-	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures.
-	 * @param {function} cb - Callback function.
-	 * @return {setImmediateCallback}
+	 *
+	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback}
+	 * @todo Add description for the return value
 	 */
 	postSignatures(signatures, cb) {
 		return modules.transport.shared.postSignatures(
