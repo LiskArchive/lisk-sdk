@@ -864,16 +864,27 @@ describe('blocks/chain', () => {
 	});
 
 	describe('onBind', () => {
-		it('should call logger.trace with "Blocks->Chain: Shared modules bind."');
+		beforeEach(() => {
+			loggerStub.trace.reset();
+			__private.loaded = false;
+			blocksChainModule.onBind(modulesStub);
+		});
 
-		it('should set __private.loaded = true');
+		it('should call library.logger.trace with "Blocks->Chain: Shared modules bind."', () => {
+			expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Chain: Shared modules bind.'
+			);
+		});
 
-		describe('modules', () => {
-			it('should assign accounts');
+		it('should assign params to modules', () => {
+			expect(modules.accounts).to.equal(modulesStub.accounts);
+			expect(modules.blocks).to.equal(modulesStub.blocks);
+			expect(modules.rounds).to.equal(modulesStub.rounds);
+			expect(modules.transactions).to.equal(modulesStub.transactions);
+		});
 
-			it('should assign blocks');
-
-			it('should assign transactions');
+		it('should set __private.loaded to true', () => {
+			expect(__private.loaded).to.be.true;
 		});
 	});
 });
