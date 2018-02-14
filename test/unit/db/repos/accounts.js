@@ -65,8 +65,8 @@ describe('db', () => {
 			.catch(done);
 	});
 
-	it('should initialize db db.accounts repo', () => {
-		expect(db.accounts).to.not.null;
+	it('should initialize db.accounts repo', () => {
+		expect(db.accounts).to.be.not.null;
 	});
 
 	describe('AccountsRepository', () => {
@@ -276,7 +276,7 @@ describe('db', () => {
 			it('should yield orphan db.accounts if associated blockId does not exist', function*() {
 				const firstAccount = (yield db.accounts.list({}, ['address']))[0];
 
-				// Let some account to be orphan
+				//  Make an orphan account
 				yield db.none(
 					`UPDATE mem_accounts SET "blockId" = 'unknownId' WHERE address = '${
 						firstAccount.address
@@ -288,15 +288,15 @@ describe('db', () => {
 					'SELECT count(*)::int FROM mem_accounts'
 				);
 
-				// There must be some db.accounts to test
-				expect(totalAccounts.count).to.above(1);
+				// Check there are some accounts to test
+				expect(totalAccounts.count).to.above(0);
 
 				expect(orphanAccounts).to.lengthOf(1);
 				expect(orphanAccounts[0].address).to.eql(firstAccount.address);
 			});
 
 			it('should yield orphan db.accounts with address, blockId and id attribute', function*() {
-				// Convert some db.accounts to orphan
+				//  Make an orphan account
 				yield db.none('UPDATE mem_accounts SET "blockId" = \'unknownId\'');
 
 				const orphanAccounts = yield db.accounts.getOrphanedMemAccounts();
@@ -327,7 +327,7 @@ describe('db', () => {
 			it('should return db.accounts with isDelegate set to true ', function*() {
 				const delegates = yield db.accounts.getDelegates();
 
-				// There must be some result to validate
+				// Check there are some accounts to test
 				expect(delegates).to.lengthOf(1);
 				expect(delegates[0].publicKey).to.eql(delegateAccount.publicKey);
 			});
@@ -717,7 +717,7 @@ describe('db', () => {
 		});
 
 		describe('remove()', () => {
-			it('should remove a persisted account', function*() {
+			it('should remove an existing account', function*() {
 				const account = (yield db.accounts.list({}, ['address'], {
 					limit: 1,
 				}))[0];
@@ -1259,7 +1259,7 @@ describe('db', () => {
 				});
 
 				describe('extraCondition', () => {
-					it('should user additional SQL condition if options.extraCondition is provided', function*() {
+					it('should use additional SQL condition if options.extraCondition is provided', function*() {
 						const account = accountFixtures.Account({
 							username: 'AlphaBravo',
 						});
@@ -1292,7 +1292,7 @@ describe('db', () => {
 						});
 					});
 
-					it('should return 1 results if options.limit=1', () => {
+					it('should return 1 result if options.limit=1', () => {
 						return db.accounts
 							.list({}, ['address'], { limit: 1 })
 							.then(data => {
@@ -1300,7 +1300,7 @@ describe('db', () => {
 							});
 					});
 
-					it('should skip first 1 result if options.offset=1', () => {
+					it('should skip first result if options.offset=1', () => {
 						let previousData;
 
 						return db.accounts
@@ -1434,7 +1434,7 @@ describe('db', () => {
 				);
 			});
 
-			it('should convert a virgin account to non virgin', function*() {
+			it('should convert a virgin account to a non virgin account', function*() {
 				const account = accountFixtures.Account();
 				let result = null;
 
