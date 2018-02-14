@@ -20,7 +20,7 @@
 */
 
 SELECT a."address",
-	   a."blockId",
+       a."blockId",
        b.id
 FROM mem_accounts a
 LEFT OUTER JOIN blocks b ON b.id = a."blockId"
