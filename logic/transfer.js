@@ -111,7 +111,7 @@ Transfer.prototype.process = function(transaction, sender, cb) {
  * Creates a buffer with asset.transfer.data.
  *
  * @param {transaction} transaction
- * @throws {error} error
+ * @throws {Error}
  * @returns {buffer}
  * @todo Add description for the params
  */

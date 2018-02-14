@@ -115,7 +115,7 @@ Signature.prototype.process = function(transaction, sender, cb) {
  *
  * @see {@link https://github.com/dcodeIO/bytebuffer.js/wiki/API}
  * @param {transaction} transaction - Uses multisignature from asset
- * @throws {error} If buffer fails.
+ * @throws {Error}
  * @returns {!Array} Contents as an ArrayBuffer
  * @todo Check if this function is called
  */
@@ -241,7 +241,7 @@ Signature.prototype.schema = {
  * Validates signature schema.
  *
  * @param {transaction} transaction - Uses signature from asset
- * @throws {string} Error message.
+ * @throws {string}
  * @returns {transaction} Validated transaction
  */
 Signature.prototype.objectNormalize = function(transaction) {

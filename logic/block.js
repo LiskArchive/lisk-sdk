@@ -194,7 +194,7 @@ Block.prototype.sign = function(block, keypair) {
  * Description of the function.
  *
  * @param {block} block
- * @throws {error} If buffer fails
+ * @throws {Error}
  * @returns {!Array} Contents as an ArrayBuffer
  * @todo Add description for the function and the params
  */
@@ -257,7 +257,7 @@ Block.prototype.getBytes = function(block) {
  * Verifies block hash, generator block publicKey and block signature.
  *
  * @param {block} block
- * @throws {error} catch error
+ * @throws {Error}
  * @returns {boolean} Verified hash, signature and publicKey
  * @todo Add description for the params
  */
@@ -387,7 +387,7 @@ Block.prototype.schema = {
  * Description of the function.
  *
  * @param {block} block
- * @throws {string|error} error message | catch error
+ * @throws {string|Error}
  * @returns {Object} Normalized block
  * @todo Add description for the function and the params
  */

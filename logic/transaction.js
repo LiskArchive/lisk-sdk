@@ -86,7 +86,7 @@ function Transaction(db, ed, schema, genesisblock, account, logger, cb) {
  *
  * @param {number} typeId
  * @param {Object} instance
- * @throws {string} Invalid instance interface if validations are wrong
+ * @throws {string} If invalid instance interface
  * @returns {Object}
  * @todo Add description for the params
  */
@@ -180,7 +180,7 @@ Transaction.prototype.getHash = function(transaction) {
  * @param {transaction} transaction
  * @param {boolean} skipSignature
  * @param {boolean} skipSecondSignature
- * @throws {error} If buffer fails.
+ * @throws {Error}
  * @returns {!Array} Contents as an ArrayBuffer
  * @todo Add description for the params
  */
@@ -736,7 +736,7 @@ Transaction.prototype.verify = function(
  * @param {transaction} transaction
  * @param {publicKey} publicKey
  * @param {signature} signature
- * @throws {error}
+ * @throws {Error}
  * @returns {boolean}
  * @todo Add description for the params
  */
@@ -771,7 +771,7 @@ Transaction.prototype.verifySignature = function(
  * @param {transaction} transaction
  * @param {publicKey} publicKey
  * @param {signature} signature
- * @throws {error}
+ * @throws {Error}
  * @returns {boolean}
  * @todo Add description for the params
  */
@@ -1217,7 +1217,7 @@ Transaction.prototype.schema = {
  *
  * @see {@link privateTypes}
  * @param {transaction} transaction
- * @throws {string} error message
+ * @throws {string}
  * @returns {error|transaction}
  * @todo Add description for the params
  */
@@ -1276,7 +1276,7 @@ Transaction.prototype.objectNormalize = function(transaction) {
  *
  * @see {@link privateTypes}
  * @param {Object} raw
- * @throws {string} Unknown transaction type
+ * @throws {string} If unknown transaction type
  * @returns {null|transaction}
  * @todo Add description for the params
  */

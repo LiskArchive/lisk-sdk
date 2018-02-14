@@ -245,7 +245,7 @@ DApp.prototype.process = function(transaction, sender, cb) {
  * - category
  *
  * @param {transaction} transaction
- * @throws {Error} e
+ * @throws {Error}
  * @returns {Array} Buffer
  * @todo Add description for the params
  * @todo Check type and description of the return value
@@ -430,7 +430,7 @@ DApp.prototype.schema = {
  * Deletes null or undefined dapp from transaction and validate dapp schema.
  *
  * @param {transaction} transaction
- * @throws {string} Failed to validate dapp schema.
+ * @throws {string} If dapp schema is invalid
  * @returns {transaction}
  * @todo Add description for the params
  */

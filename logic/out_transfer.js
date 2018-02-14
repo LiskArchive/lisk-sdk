@@ -164,7 +164,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
  * - transactionId
  *
  * @param {transaction} transaction
- * @throws {Error} e
+ * @throws {Error}
  * @returns {Array} Buffer
  * @todo Add description for the params
  * @todo Check type and description of the return value
@@ -320,7 +320,7 @@ OutTransfer.prototype.schema = {
  * Calls `objectNormalize` with asset outTransfer.
  *
  * @param {transaction} transaction
- * @throws {string} error message
+ * @throws {string}
  * @returns {error|transaction}
  * @todo Add description for the params
  */

@@ -50,7 +50,7 @@ function BlockReward() {
  * @private
  * @param {number} height
  * @returns {number}
- * @throws Invalid block height
+ * @throws If block height invalid
  * @todo Add description for the params and the return value
  */
 __private.parseHeight = function(height) {

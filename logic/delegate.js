@@ -157,7 +157,7 @@ Delegate.prototype.process = function(transaction, sender, cb) {
  *
  * @param {transaction} transaction
  * @returns {null|string}
- * @throws {error} If buffer fails.
+ * @throws {Error}
  * @todo Add description for the params
  */
 Delegate.prototype.getBytes = function(transaction) {
@@ -390,7 +390,7 @@ Delegate.prototype.schema = {
  *
  * @param {transaction} transaction
  * @returns {error|transaction}
- * @throws {string} Failed to validate delegate schema.
+ * @throws {string} If delegate schema is invalid
  * @todo Add description for the params
  */
 Delegate.prototype.objectNormalize = function(transaction) {

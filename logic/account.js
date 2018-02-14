@@ -173,7 +173,7 @@ class Account {
 	 * Checks type, lenght and format from publicKey.
 	 *
 	 * @param {publicKey} publicKey
-	 * @throws {string} On check failure
+	 * @throws {string} On invalid public key
 	 */
 	verifyPublicKey(publicKey) {
 		if (publicKey !== undefined) {

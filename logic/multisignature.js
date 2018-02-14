@@ -508,7 +508,7 @@ Multisignature.prototype.schema = {
  * Validates multisignature schema.
  *
  * @param {transaction} transaction - Uses multisignature from asset
- * @throws {string} Error message
+ * @throws {string}
  * @returns {transaction} Validated transaction
  */
 Multisignature.prototype.objectNormalize = function(transaction) {

@@ -133,7 +133,7 @@ InTransfer.prototype.process = function(transaction, sender, cb) {
  *
  * @param {transaction} transaction
  * @returns {Array} Buffer
- * @throws {Error} e
+ * @throws {Error}
  * @todo Add description for the params
  * @todo Check type and description of the return value
  */
@@ -264,7 +264,7 @@ InTransfer.prototype.schema = {
  *
  * @param {transaction} transaction
  * @returns {error|transaction}
- * @throws {string} error message
+ * @throws {string}
  * @todo Add description for the params
  */
 InTransfer.prototype.objectNormalize = function(transaction) {

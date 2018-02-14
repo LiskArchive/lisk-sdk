@@ -248,7 +248,7 @@ Vote.prototype.process = function(transaction, sender, cb) {
  * Creates a buffer with asset.votes information.
  *
  * @param {transaction} transaction
- * @throws {Error} e
+ * @throws {Error}
  * @returns {Array} Buffer
  * @todo Add description for the params
  * @todo Check type and description of the return value
@@ -413,7 +413,7 @@ Vote.prototype.schema = {
  * Validates asset schema.
  *
  * @param {transaction} transaction
- * @throws {string} Failed to validate vote schema
+ * @throws {string} If vote schema is invalid
  * @returns {transaction}
  * @todo Should pass transaction.asset.vote to validate?
  * @todo Add description for the params
