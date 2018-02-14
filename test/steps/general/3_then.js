@@ -14,7 +14,6 @@
  *
  */
 import { getFirstQuotedString, getFirstNumber } from '../utils';
-import { FileSystemError, ValidationError } from '../../../src/utils/error';
 
 export function theErrorShouldBeInstanceOfNodesBuiltInError() {
 	const { testError } = this.test.ctx;
@@ -35,13 +34,29 @@ export function itShouldReturnTheResult() {
 export function itShouldThrowValidationError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return testFunction.should.throw(ValidationError, message);
+	testFunction.should.throw().and.is.instanceOf(Error);
+	testFunction.should
+		.throw()
+		.and.has.property('name')
+		.which.equal('ValidationError');
+	return testFunction.should
+		.throw()
+		.and.has.property('message')
+		.which.include(message);
 }
 
 export function itShouldThrowFileSystemError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return testFunction.should.throw(FileSystemError, message);
+	testFunction.should.throw().and.is.instanceOf(Error);
+	testFunction.should
+		.throw()
+		.and.has.property('name')
+		.which.equal('FileSystemError');
+	return testFunction.should
+		.throw()
+		.and.has.property('message')
+		.which.include(message);
 }
 
 export function itShouldExitWithCode() {
@@ -82,13 +97,21 @@ export function itShouldRejectWithTheErrorMessage() {
 export function itShouldRejectWithFileSystemErrorAndMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return returnValue.should.be.rejectedWith(new FileSystemError(message));
+	return returnValue.should.be.rejected.then(err => {
+		err.should.be.instanceOf(Error);
+		err.should.have.property('name').which.equal('FileSystemError');
+		return err.should.have.property('message').which.include(message);
+	});
 }
 
 export function itShouldRejectWithValidationErrorAndMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return returnValue.should.be.rejectedWith(new ValidationError(message));
+	return returnValue.should.be.rejected.then(err => {
+		err.should.be.instanceOf(Error);
+		err.should.have.property('name').which.equal('ValidationError');
+		return err.should.have.property('message').which.include(message);
+	});
 }
 
 export function itShouldRejectWithMessage() {
@@ -119,7 +142,7 @@ export function itShouldReturnFalse() {
 
 export function itShouldReturnNull() {
 	const { returnValue } = this.test.ctx;
-	return should(returnValue).be.null;
+	return should.equal(returnValue, null);
 }
 
 export function itShouldReturnString() {

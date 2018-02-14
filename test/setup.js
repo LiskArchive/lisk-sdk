@@ -75,6 +75,5 @@ mochaBDD();
 
 [sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
 
-global.should = chai.should();
 global.sinon = sinon;
 global.sandbox = sinon.sandbox.create();

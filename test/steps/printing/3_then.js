@@ -202,6 +202,6 @@ export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues(
 		values.forEach(value => row.should.include(value));
 		return row
 			.filter(value => !values.includes(value))
-			.forEach(value => should(value).be.undefined);
+			.forEach(value => should.equal(value, undefined));
 	});
 }
