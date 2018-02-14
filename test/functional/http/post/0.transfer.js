@@ -288,7 +288,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				errorCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					`Transaction is already processed: ${goodTransaction.id}`
+					`Transaction is already confirmed: ${goodTransaction.id}`
 				);
 			});
 		});
