@@ -225,9 +225,9 @@ describe('blocks/verify', () => {
 
 	describe('__private', () => {
 		var privateFunctions;
-
+		var RewiredVerify;
 		before(() => {
-			var RewiredVerify = rewire('../../../../modules/blocks/verify.js');
+			RewiredVerify = rewire('../../../../modules/blocks/verify.js');
 			var verify = new RewiredVerify(
 				library.logger,
 				library.logic.block,
@@ -563,6 +563,255 @@ describe('blocks/verify', () => {
 				validBlock.timestamp = timestamp;
 			});
 		});
+
+		describe('verifyBlockSlotWindow', () => {
+			var verifyBlockSlotWindow;
+			var result;
+
+			before(() => {
+				verifyBlockSlotWindow = RewiredVerify.__get__(
+					'__private.verifyBlockSlotWindow'
+				);
+			});
+
+			beforeEach(() => {
+				result = {
+					errors: [],
+				};
+			});
+
+			describe('for current slot number', () => {
+				var dummyBlock;
+
+				before(() => {
+					dummyBlock = {
+						timestamp: slots.getSlotTime(slots.getSlotNumber()),
+					};
+				});
+
+				it('should return empty result.errors array', () => {
+					expect(
+						verifyBlockSlotWindow(dummyBlock, result).errors
+					).to.have.length(0);
+				});
+			});
+
+			describe(`for slot number ${
+				constants.blockSlotWindow
+			} slots in the past`, () => {
+				var dummyBlock;
+
+				before(() => {
+					dummyBlock = {
+						timestamp: slots.getSlotTime(
+							slots.getSlotNumber() - constants.blockSlotWindow
+						),
+					};
+				});
+
+				it('should return empty result.errors array', () => {
+					expect(
+						verifyBlockSlotWindow(dummyBlock, result).errors
+					).to.have.length(0);
+				});
+			});
+
+			describe('for slot number in the future', () => {
+				var dummyBlock;
+
+				before(() => {
+					dummyBlock = {
+						timestamp: slots.getSlotTime(slots.getSlotNumber() + 1),
+					};
+				});
+
+				it('should call callback with error = Block slot is in the future ', () => {
+					expect(
+						verifyBlockSlotWindow(dummyBlock, result).errors
+					).to.include.members(['Block slot is in the future']);
+				});
+			});
+
+			describe(`for slot number ${constants.blockSlotWindow +
+				1} slots in the past`, () => {
+				var dummyBlock;
+
+				before(() => {
+					dummyBlock = {
+						timestamp: slots.getSlotTime(
+							slots.getSlotNumber() - (constants.blockSlotWindow + 1)
+						),
+					};
+				});
+
+				it('should call callback with error = Block slot is too old', () => {
+					expect(
+						verifyBlockSlotWindow(dummyBlock, result).errors
+					).to.include.members(['Block slot is too old']);
+				});
+			});
+		});
+
+		describe('onBlockchainReady', () => {
+			var onBlockchainReady;
+
+			before(() => {
+				RewiredVerify.__set__('library', {
+					db,
+					logger: library.logger,
+				});
+				onBlockchainReady = RewiredVerify.prototype.onBlockchainReady;
+			});
+
+			it('should set the __private.lastNBlockIds variable', () => {
+				return onBlockchainReady().then(() => {
+					var lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
+					expect(lastNBlockIds)
+						.to.be.an('array')
+						.and.to.have.length.below(constants.blockSlotWindow + 1);
+					_.each(lastNBlockIds, value => {
+						expect(value).to.be.a('string');
+					});
+				});
+			});
+		});
+
+		describe('onNewBlock', () => {
+			describe('with lastNBlockIds', () => {
+				var lastNBlockIds;
+
+				before(() => {
+					lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
+				});
+
+				describe('when onNewBlock function is called once', () => {
+					var dummyBlock;
+
+					before(() => {
+						dummyBlock = {
+							id: '123123123',
+						};
+
+						RewiredVerify.prototype.onNewBlock(dummyBlock);
+					});
+
+					it('should include block in lastNBlockIds queue', () => {
+						expect(lastNBlockIds).to.include.members([dummyBlock.id]);
+					});
+				});
+
+				describe(`when onNewBlock function is called ${
+					constants.blockSlotWindow
+				}times`, () => {
+					var blockIds = [];
+
+					before(() => {
+						_.map(_.range(0, constants.blockSlotWindow), () => {
+							var randomId = Math.floor(
+								Math.random() * 100000000000
+							).toString();
+							blockIds.push(randomId);
+							var dummyBlock = {
+								id: randomId,
+							};
+
+							RewiredVerify.prototype.onNewBlock(dummyBlock);
+						});
+					});
+
+					it('should include blockId in lastNBlockIds queue', () => {
+						expect(lastNBlockIds).to.include.members(blockIds);
+					});
+				});
+
+				describe(`when onNewBlock function is called ${constants.blockSlotWindow *
+					2} times`, () => {
+					var recentNBlockIds;
+					var olderThanNBlockIds;
+
+					before(() => {
+						var blockIds = [];
+						_.map(_.range(0, constants.blockSlotWindow * 2), () => {
+							var randomId = Math.floor(
+								Math.random() * 100000000000
+							).toString();
+							blockIds.push(randomId);
+							var dummyBlock = {
+								id: randomId,
+							};
+
+							RewiredVerify.prototype.onNewBlock(dummyBlock);
+						});
+
+						recentNBlockIds = blockIds.filter((value, index) => {
+							return blockIds.length - 1 - index < constants.blockSlotWindow;
+						});
+
+						olderThanNBlockIds = blockIds.filter((value, index) => {
+							return blockIds.length - 1 - index >= constants.blockSlotWindow;
+						});
+					});
+
+					it(`should maintain last ${
+						constants.blockSlotWindow
+					} blockIds in lastNBlockIds queue`, () => {
+						expect(lastNBlockIds).to.include.members(recentNBlockIds);
+						expect(lastNBlockIds).to.not.include.members(olderThanNBlockIds);
+					});
+				});
+			});
+		});
+
+		describe('verifyAgainstLastNBlockIds', () => {
+			var verifyAgainstLastNBlockIds;
+			var result = {
+				verified: true,
+				errors: [],
+			};
+
+			before(() => {
+				verifyAgainstLastNBlockIds = RewiredVerify.__get__(
+					'__private.verifyAgainstLastNBlockIds'
+				);
+			});
+
+			afterEach(() => {
+				result = {
+					verified: true,
+					errors: [],
+				};
+			});
+
+			describe('when __private.lastNBlockIds', () => {
+				var lastNBlockIds;
+
+				before(() => {
+					lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
+				});
+
+				describe('contains block id', () => {
+					var dummyBlockId = '123123123123';
+
+					before(() => {
+						lastNBlockIds.push(dummyBlockId);
+					});
+
+					it('should return result with error = Block already exists in chain', () => {
+						expect(
+							verifyAgainstLastNBlockIds({ id: dummyBlockId }, result).errors
+						).to.include.members(['Block already exists in chain']);
+					});
+				});
+
+				describe('does not contain block id', () => {
+					it('should return result with no errors', () => {
+						expect(
+							verifyAgainstLastNBlockIds({ id: '1231231234' }, result).errors
+						).to.have.length(0);
+					});
+				});
+			});
+		});
 	});
 
 	// TODO: Refactor this test, dataset being used is no longer valid because of blockSlotWindow check
@@ -852,263 +1101,6 @@ describe('blocks/verify', () => {
 				}
 				expect(result).to.be.undefined;
 				done();
-			});
-		});
-	});
-
-	describe('__private', () => {
-		var blockVerify;
-
-		before(() => {
-			blockVerify = rewire('../../../../modules/blocks/verify.js');
-		});
-
-		describe('verifyBlockSlotWindow', () => {
-			var verifyBlockSlotWindow;
-			var result;
-
-			before(() => {
-				verifyBlockSlotWindow = blockVerify.__get__(
-					'__private.verifyBlockSlotWindow'
-				);
-			});
-
-			beforeEach(() => {
-				result = {
-					errors: [],
-				};
-			});
-
-			describe('for current slot number', () => {
-				var dummyBlock;
-
-				before(() => {
-					dummyBlock = {
-						timestamp: slots.getSlotTime(slots.getSlotNumber()),
-					};
-				});
-
-				it('should return empty result.errors array', () => {
-					expect(
-						verifyBlockSlotWindow(dummyBlock, result).errors
-					).to.have.length(0);
-				});
-			});
-
-			describe(`for slot number ${
-				constants.blockSlotWindow
-			} slots in the past`, () => {
-				var dummyBlock;
-
-				before(() => {
-					dummyBlock = {
-						timestamp: slots.getSlotTime(
-							slots.getSlotNumber() - constants.blockSlotWindow
-						),
-					};
-				});
-
-				it('should return empty result.errors array', () => {
-					expect(
-						verifyBlockSlotWindow(dummyBlock, result).errors
-					).to.have.length(0);
-				});
-			});
-
-			describe('for slot number in the future', () => {
-				var dummyBlock;
-
-				before(() => {
-					dummyBlock = {
-						timestamp: slots.getSlotTime(slots.getSlotNumber() + 1),
-					};
-				});
-
-				it('should call callback with error = Block slot is in the future ', () => {
-					expect(
-						verifyBlockSlotWindow(dummyBlock, result).errors
-					).to.include.members(['Block slot is in the future']);
-				});
-			});
-
-			describe(`for slot number ${constants.blockSlotWindow +
-				1} slots in the past`, () => {
-				var dummyBlock;
-
-				before(() => {
-					dummyBlock = {
-						timestamp: slots.getSlotTime(
-							slots.getSlotNumber() - (constants.blockSlotWindow + 1)
-						),
-					};
-				});
-
-				it('should call callback with error = Block slot is too old', () => {
-					expect(
-						verifyBlockSlotWindow(dummyBlock, result).errors
-					).to.include.members(['Block slot is too old']);
-				});
-			});
-		});
-
-		describe('onBlockchainReady', () => {
-			var onBlockchainReady;
-
-			before(() => {
-				blockVerify.__set__('library', {
-					db,
-					logger: library.logger,
-				});
-				onBlockchainReady = blockVerify.prototype.onBlockchainReady;
-			});
-
-			it('should set the __private.lastNBlockIds variable', () => {
-				return onBlockchainReady().then(() => {
-					var lastNBlockIds = blockVerify.__get__('__private.lastNBlockIds');
-					expect(lastNBlockIds)
-						.to.be.an('array')
-						.and.to.have.length.below(constants.blockSlotWindow + 1);
-					_.each(lastNBlockIds, value => {
-						expect(value).to.be.a('string');
-					});
-				});
-			});
-		});
-
-		describe('onNewBlock', () => {
-			describe('with lastNBlockIds', () => {
-				var lastNBlockIds;
-
-				before(() => {
-					lastNBlockIds = blockVerify.__get__('__private.lastNBlockIds');
-				});
-
-				describe('when onNewBlock function is called once', () => {
-					var dummyBlock;
-
-					before(() => {
-						dummyBlock = {
-							id: '123123123',
-						};
-
-						blockVerify.prototype.onNewBlock(dummyBlock);
-					});
-
-					it('should include block in lastNBlockIds queue', () => {
-						expect(lastNBlockIds).to.include.members([dummyBlock.id]);
-					});
-				});
-
-				describe(`when onNewBlock function is called ${
-					constants.blockSlotWindow
-				}times`, () => {
-					var blockIds = [];
-
-					before(() => {
-						_.map(_.range(0, constants.blockSlotWindow), () => {
-							var randomId = Math.floor(
-								Math.random() * 100000000000
-							).toString();
-							blockIds.push(randomId);
-							var dummyBlock = {
-								id: randomId,
-							};
-
-							blockVerify.prototype.onNewBlock(dummyBlock);
-						});
-					});
-
-					it('should include blockId in lastNBlockIds queue', () => {
-						expect(lastNBlockIds).to.include.members(blockIds);
-					});
-				});
-
-				describe(`when onNewBlock function is called ${constants.blockSlotWindow *
-					2} times`, () => {
-					var recentNBlockIds;
-					var olderThanNBlockIds;
-
-					before(() => {
-						var blockIds = [];
-						_.map(_.range(0, constants.blockSlotWindow * 2), () => {
-							var randomId = Math.floor(
-								Math.random() * 100000000000
-							).toString();
-							blockIds.push(randomId);
-							var dummyBlock = {
-								id: randomId,
-							};
-
-							blockVerify.prototype.onNewBlock(dummyBlock);
-						});
-
-						recentNBlockIds = blockIds.filter((value, index) => {
-							return blockIds.length - 1 - index < constants.blockSlotWindow;
-						});
-
-						olderThanNBlockIds = blockIds.filter((value, index) => {
-							return blockIds.length - 1 - index >= constants.blockSlotWindow;
-						});
-					});
-
-					it(`should maintain last ${
-						constants.blockSlotWindow
-					} blockIds in lastNBlockIds queue`, () => {
-						expect(lastNBlockIds).to.include.members(recentNBlockIds);
-						expect(lastNBlockIds).to.not.include.members(olderThanNBlockIds);
-					});
-				});
-			});
-		});
-
-		describe('verifyAgainstLastNBlockIds', () => {
-			var verifyAgainstLastNBlockIds;
-			var result = {
-				verified: true,
-				errors: [],
-			};
-
-			before(() => {
-				verifyAgainstLastNBlockIds = blockVerify.__get__(
-					'__private.verifyAgainstLastNBlockIds'
-				);
-			});
-
-			afterEach(() => {
-				result = {
-					verified: true,
-					errors: [],
-				};
-			});
-
-			describe('when __private.lastNBlockIds', () => {
-				var lastNBlockIds;
-
-				before(() => {
-					lastNBlockIds = blockVerify.__get__('__private.lastNBlockIds');
-				});
-
-				describe('contains block id', () => {
-					var dummyBlockId = '123123123123';
-
-					before(() => {
-						lastNBlockIds.push(dummyBlockId);
-					});
-
-					it('should return result with error = Block already exists in chain', () => {
-						expect(
-							verifyAgainstLastNBlockIds({ id: dummyBlockId }, result).errors
-						).to.include.members(['Block already exists in chain']);
-					});
-				});
-
-				describe('does not contain block id', () => {
-					it('should return result with no errors', () => {
-						expect(
-							verifyAgainstLastNBlockIds({ id: '1231231234' }, result).errors
-						).to.have.length(0);
-					});
-				});
 			});
 		});
 	});

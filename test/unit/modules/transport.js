@@ -1402,12 +1402,6 @@ describe('transport', () => {
 
 					it('should call callback with result = { blocks: [] }');
 				});
-
-				describe('when modules.blocks.utils.loadBlocksData fails', () => {
-					it('should call callback with error = null');
-
-					it('should call callback with result = { blocks: data }');
-				});
 			});
 
 			describe('postBlock', () => {
