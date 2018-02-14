@@ -39,6 +39,7 @@ describe('blocks/chain', () => {
 		dbStub = {
 			blocks: {
 				getGenesisBlockId: sinonSandbox.stub(),
+				deleteBlock: sinonSandbox.stub(),
 			},
 			tx: sinonSandbox.stub(),
 		};
@@ -332,43 +333,38 @@ describe('blocks/chain', () => {
 		});
 	});
 
-	describe('__private', () => {
-		describe('promiseTransactions', () => {
-			describe('when block.transactions is empty', () => {
-				it('should return t');
-			});
-
-			describe('for every block.transaction', () => {
-				it('should call library.logic.transaction.dbSave');
-
-				it('should call library.logic.transaction.dbSave with transaction');
-
-				it('should call t.nonce');
-			});
-		});
-	});
-
 	describe('deleteBlock', () => {
-		it('should call library.db.none');
+		describe('library.db.blocks.deleteBlock', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					library.db.blocks.deleteBlock.rejects('deleteBlock-ERR');
+				});
 
-		it('should call library.db.blocks.deleteBlock');
+				afterEach(() => {
+					expect(loggerStub.error.args[0][0]).to.contains(
+						'deleteBlock-ERR'
+					);
+				});
 
-		it('should call library.db.none with {id: blockId}');
+				it('should return error', done => {
+					blocksChainModule.deleteBlock(1, err => {
+						expect(err).to.equal('Blocks#deleteBlock error');
+						done();
+					});
+				});
+			});
 
-		describe('when library.db.none fails', () => {
-			it('should call logger.error');
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					library.db.blocks.deleteBlock.resolves(true);
+				});
 
-			it('should call logger.error with err.stack');
-
-			it('should call callback with "Blocks#deleteBlock error"');
-		});
-
-		describe('when library.db.none succeeds', () => {
-			it('should call callback');
-
-			it('should call callback with error = undefined');
-
-			it('should call callback with result = undefined');
+				it('should return immediate', done => {
+					blocksChainModule.deleteBlock(1, () => {
+						done();
+					});
+				});
+			});
 		});
 	});
 
