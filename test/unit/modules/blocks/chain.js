@@ -193,6 +193,52 @@ describe('blocks/chain', () => {
 			});
 		});
 
+		describe('applyTransaction', () => {
+			it('should call modules.transactions.applyUnconfirmed');
+
+			it('should call modules.transactions.applyUnconfirmed with transaction');
+
+			it('should call modules.transactions.applyUnconfirmed with sender');
+
+			it('should call modules.transactions.applyUnconfirmed with callback');
+
+			describe('when modules.transactions.applyUnconfirmed fails', () => {
+				describe('error object', () => {
+					it('should assign message');
+
+					it('should assign transaction');
+
+					it('should assign block');
+				});
+
+				it('should call callback with error object');
+			});
+
+			describe('when modules.transactions.applyUnconfirmed succeeds', () => {
+				it('should call modules.transactions.apply with sender');
+
+				it('should call modules.transactions.apply with transaction');
+
+				it('should call modules.transactions.apply with block');
+
+				it('should call modules.transactions.apply with callback');
+
+				describe('when error is defined in the callback', () => {
+					describe('result object', () => {
+						it('should assign message');
+
+						it('should assign transaction');
+
+						it('should assign block');
+					});
+
+					it('should call callback with result object');
+				});
+
+				it('should call callback');
+			});
+		});
+
 		describe('promiseTransactions', () => {
 			describe('when block.transactions is empty', () => {
 				it('should return t');
@@ -204,6 +250,82 @@ describe('blocks/chain', () => {
 				it('should call library.logic.transaction.dbSave with transaction');
 
 				it('should call t.nonce');
+			});
+		});
+
+		describe('popLastBlock', () => {
+			describe('call library.balancesSequence.add', () => {
+				it('should call modules.blocks.utils.loadBlocksPart');
+
+				it(
+					'should call modules.blocks.utils.loadBlocksPart with { id: oldLastBlock.previousBlock }'
+				);
+
+				describe('when modules.blocks.utils.loadBlocksPart fails', () => {
+					it('should call callback with error');
+				});
+
+				describe('when modules.blocks.utils.loadBlocksPart succeeds', () => {
+					describe('when previousBlock is null', () => {
+						it('should call callback with "previousBlock is null"');
+					});
+
+					describe('for every oldLastBlock.transactions', () => {
+						it('should call modules.accounts.getAccount');
+
+						it(
+							'should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}'
+						);
+
+						describe('when modules.accounts.getAccount fails', () => {
+							it('should call library.logger.error with error');
+
+							it(
+								'should call library.logger.error "Failed to undo transactions"'
+							);
+
+							it('should call process.exit with 0');
+						});
+
+						describe('when modules.accounts.getAccount succeeds', () => {
+							it('should call modules.transactions.undo');
+
+							it('should call modules.transactions.undo with transaction');
+
+							it('should call modules.transactions.undo with oldLastBlock');
+
+							it('should call modules.transactions.undo with sender');
+
+							it('should call modules.transactions.undoUnconfirmed');
+
+							it(
+								'should call modules.transactions.undoUnconfirmed with transaction'
+							);
+
+							it('should call self.deleteBlock');
+
+							it('should call self.deleteBlock with oldLastBlock.id');
+
+							describe('when self.deleteBlock fails', () => {
+								it('should call library.logger.error with error');
+
+								it(
+									'should call library.logger.error with "Failed to delete block"'
+								);
+
+								it('should call process.exit with 0');
+							});
+
+							describe('when self.deleteBlock succeeds', () => {
+								it('should call callback');
+
+								it('should call callback with error = null');
+
+								it('should call callback with result = previousBlock');
+							});
+						});
+					});
+				});
 			});
 		});
 	});
@@ -310,54 +432,6 @@ describe('blocks/chain', () => {
 				it('should call callback with error = undefined');
 
 				it('should call callback with result = undefined');
-			});
-		});
-	});
-
-	describe('__private', () => {
-		describe('applyTransaction', () => {
-			it('should call modules.transactions.applyUnconfirmed');
-
-			it('should call modules.transactions.applyUnconfirmed with transaction');
-
-			it('should call modules.transactions.applyUnconfirmed with sender');
-
-			it('should call modules.transactions.applyUnconfirmed with callback');
-
-			describe('when modules.transactions.applyUnconfirmed fails', () => {
-				describe('error object', () => {
-					it('should assign message');
-
-					it('should assign transaction');
-
-					it('should assign block');
-				});
-
-				it('should call callback with error object');
-			});
-
-			describe('when modules.transactions.applyUnconfirmed succeeds', () => {
-				it('should call modules.transactions.apply with sender');
-
-				it('should call modules.transactions.apply with transaction');
-
-				it('should call modules.transactions.apply with block');
-
-				it('should call modules.transactions.apply with callback');
-
-				describe('when error is defined in the callback', () => {
-					describe('result object', () => {
-						it('should assign message');
-
-						it('should assign transaction');
-
-						it('should assign block');
-					});
-
-					it('should call callback with result object');
-				});
-
-				it('should call callback');
 			});
 		});
 	});
@@ -611,84 +685,6 @@ describe('blocks/chain', () => {
 		it('should call library.bus.message with broadcast');
 
 		it('should call library.logger.debug with blockId');
-	});
-
-	describe('__private', () => {
-		describe('popLastBlock', () => {
-			describe('call library.balancesSequence.add', () => {
-				it('should call modules.blocks.utils.loadBlocksPart');
-
-				it(
-					'should call modules.blocks.utils.loadBlocksPart with { id: oldLastBlock.previousBlock }'
-				);
-
-				describe('when modules.blocks.utils.loadBlocksPart fails', () => {
-					it('should call callback with error');
-				});
-
-				describe('when modules.blocks.utils.loadBlocksPart succeeds', () => {
-					describe('when previousBlock is null', () => {
-						it('should call callback with "previousBlock is null"');
-					});
-
-					describe('for every oldLastBlock.transactions', () => {
-						it('should call modules.accounts.getAccount');
-
-						it(
-							'should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}'
-						);
-
-						describe('when modules.accounts.getAccount fails', () => {
-							it('should call library.logger.error with error');
-
-							it(
-								'should call library.logger.error "Failed to undo transactions"'
-							);
-
-							it('should call process.exit with 0');
-						});
-
-						describe('when modules.accounts.getAccount succeeds', () => {
-							it('should call modules.transactions.undo');
-
-							it('should call modules.transactions.undo with transaction');
-
-							it('should call modules.transactions.undo with oldLastBlock');
-
-							it('should call modules.transactions.undo with sender');
-
-							it('should call modules.transactions.undoUnconfirmed');
-
-							it(
-								'should call modules.transactions.undoUnconfirmed with transaction'
-							);
-
-							it('should call self.deleteBlock');
-
-							it('should call self.deleteBlock with oldLastBlock.id');
-
-							describe('when self.deleteBlock fails', () => {
-								it('should call library.logger.error with error');
-
-								it(
-									'should call library.logger.error with "Failed to delete block"'
-								);
-
-								it('should call process.exit with 0');
-							});
-
-							describe('when self.deleteBlock succeeds', () => {
-								it('should call callback');
-
-								it('should call callback with error = null');
-
-								it('should call callback with result = previousBlock');
-							});
-						});
-					});
-				});
-			});
-		});
 	});
 
 	describe('deleteLastBlock', () => {
