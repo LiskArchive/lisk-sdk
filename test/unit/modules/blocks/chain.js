@@ -39,6 +39,7 @@ describe('blocks/chain', () => {
 			blocks: {
 				getGenesisBlockId: sinonSandbox.stub(),
 			},
+			tx: sinonSandbox.stub(),
 		};
 		blockStub = sinonSandbox.stub();
 		loggerStub = {
@@ -128,9 +129,8 @@ describe('blocks/chain', () => {
 				});
 
 				it('should throws error', done => {
-					blocksChainModule.saveGenesisBlock((err, cb) => {
+					blocksChainModule.saveGenesisBlock(err => {
 						expect(err).to.equal('Blocks#saveGenesisBlock error');
-						expect(cb).to.be.undefined;
 						done();
 					});
 				});
@@ -157,9 +157,8 @@ describe('blocks/chain', () => {
 							});
 
 							it('should return error', done => {
-								blocksChainModule.saveGenesisBlock((err, cb) => {
+								blocksChainModule.saveGenesisBlock(err => {
 									expect(err).to.equal('saveBlock-ERR');
-									expect(cb).to.be.undefined;
 									done();
 								});
 							});
@@ -170,9 +169,8 @@ describe('blocks/chain', () => {
 							});
 
 							it('should return cb', done => {
-								blocksChainModule.saveGenesisBlock((err, cb) => {
-									expect(err).to.be.null;
-									expect(cb).to.be.undefined;
+								blocksChainModule.saveGenesisBlock(cb => {
+									expect(cb).to.be.null;
 									done();
 								});
 							});
@@ -186,9 +184,8 @@ describe('blocks/chain', () => {
 					});
 
 					it('should return cb', done => {
-						blocksChainModule.saveGenesisBlock((err, cb) => {
+						blocksChainModule.saveGenesisBlock(err => {
 							expect(err).to.be.undefined;
-							expect(cb).to.be.undefined;
 							done();
 						});
 					});
@@ -198,26 +195,105 @@ describe('blocks/chain', () => {
 	});
 
 	describe('saveBlock', () => {
-		it('should call library.db.transaction');
+		describe('when tx param is passed', () => {
+			var txStub;
+			beforeEach(() => {
+				txStub = {
+					blocks: {
+						save: sinonSandbox.stub(),
+					},
+					transactions: {
+						save: sinonSandbox.stub(),
+					},
+					batch: sinonSandbox.stub(),
+				};
+			});
+			describe('tx.batch', () => {
+				describe('when fails', () => {
+					beforeEach(() => {
+						txStub.batch.rejects('txbatch-ERR');
+					});
 
-		it('should call library.logic.block.dbSave');
+					it('should throw error', done => {
+						var block = { id: 1, 
+						transactions: [
+							{ id: 1, type: 0 }, { id: 2, type: 1 }
+						]};
+						blocksChainModule.saveBlock(block, err => {
+							expect(err).to.equal('Blocks#saveBlock error');
+							done();
+						}, txStub);
+					});
+				});
+				describe('when succeeds', () => {
+					beforeEach(() => {
+						txStub.batch.resolves();
+						__private.afterSave = sinonSandbox.stub().callsArgWith(1, null, true);
+					});
 
-		it('should call library.logic.block.dbSave with block');
-
-		describe('when library.db.transaction callback throws', () => {
-			it('should call logger.error');
-
-			it('should call logger.error with err.stack');
-
-			it('should call callback with "Blocks#saveBlock error"');
+					it('should call __private.afterSave', done => {
+						var block = { id: 1, 
+						transactions: [
+							{ id: 1, type: 0 }, { id: 2, type: 1 }
+						]};
+						blocksChainModule.saveBlock(block, () => {
+							expect(__private.afterSave.calledOnce).to.be.true;
+							done();
+						}, txStub);
+					});
+				});
+			});
 		});
 
-		describe('when library.db.transaction callback does not throw', () => {
-			it('should call __private.afterSave');
+		describe('when tx param is not passed', () => {
+			var txStub;
+			beforeEach(() => {
+				txStub = {
+					blocks: {
+						save: sinonSandbox.stub(),
+					},
+					transactions: {
+						save: sinonSandbox.stub(),
+					},
+					batch: sinonSandbox.stub(),
+				};
+				library.db.tx.callsArgWith(1, txStub);
+			});
+			describe('tx.batch', () => {
+				describe('when fails', () => {
+					beforeEach(() => {
+						txStub.batch.rejects('txbatch-ERR');
+					});
 
-			it('should call __private.afterSave with block');
+					it('should throw error', done => {
+						var block = { id: 1, 
+						transactions: [
+							{ id: 1, type: 0 }, { id: 2, type: 1 }
+						]};
+						blocksChainModule.saveBlock(block, err => {
+							expect(err).to.equal('Blocks#saveBlock error');
+							done();
+						});
+					});
+				});
+				describe('when succeeds', () => {
+					beforeEach(() => {
+						txStub.batch.resolves();
+						__private.afterSave = sinonSandbox.stub().callsArgWith(1, null, true);
+					});
 
-			it('should call __private.afterSave with callback');
+					it('should call __private.afterSave', done => {
+						var block = { id: 1, 
+						transactions: [
+							{ id: 1, type: 0 }, { id: 2, type: 1 }
+						]};
+						blocksChainModule.saveBlock(block, () => {
+							expect(__private.afterSave.calledOnce).to.be.true;
+							done();
+						});
+					});
+				});
+			});
 		});
 	});
 
