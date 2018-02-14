@@ -108,7 +108,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should get account data from receipt to be virgin', done => {
+				it('should get account data from receipt that is a virgin', done => {
 					library.logic.account.get(
 						{ address: testReceipt.address },
 						fieldsToCompare,
@@ -144,7 +144,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should get account data from receipt to have zero balance', done => {
+				it('should get account data from receipt that has a zero balance', done => {
 					library.logic.account.get(
 						{ address: testReceipt.address },
 						fieldsToCompare,
@@ -181,7 +181,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should get account data from receipt to have balance', done => {
+				it('should get account data from receipt that has a balance', done => {
 					library.logic.account.get(
 						{ address: testReceipt.address },
 						fieldsToCompare,
@@ -423,7 +423,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender after forging a block with pool transaction', done => {
+				it('should validate account data from sender after forging a block with transaction pool', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
