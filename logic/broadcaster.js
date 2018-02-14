@@ -28,17 +28,24 @@ var self;
 var __private = {};
 
 /**
+ * Main Broadcaster logic.
  * Initializes variables, sets Broadcast routes and timer based on
  * broadcast interval from config file.
- * @memberof module:transport
+ *
  * @class
- * @classdesc Main Broadcaster logic.
- * @implements {__private.releaseQueue}
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires extend
+ * @requires lodash
+ * @requires helpers/constants
+ * @requires helpers/jobs_queue
+ * @requires helpers/bson
  * @param {Object} broadcasts
  * @param {boolean} force
- * @param {Peers} peers - from logic, Peers instance
- * @param {Transaction} transaction - from logic, Transaction instance
+ * @param {Peers} peers - Peers instance
+ * @param {Transaction} transaction - Transaction instance
  * @param {Object} logger
+ * @todo Add description for the params
  */
 // Constructor
 function Broadcaster(broadcasts, force, peers, transaction, logger) {
@@ -95,9 +102,11 @@ function Broadcaster(broadcasts, force, peers, transaction, logger) {
 // Public methods
 /**
  * Binds input parameters to private variables modules.
+ *
  * @param {Peers} peers
  * @param {Transport} transport
  * @param {Transactions} transactions
+ * @todo Add description for the params
  */
 Broadcaster.prototype.bind = function(peers, transport, transactions) {
 	modules = {
@@ -109,10 +118,11 @@ Broadcaster.prototype.bind = function(peers, transport, transactions) {
 
 /**
  * Calls peers.list function to get peers.
- * @implements {modules.peers.list}
+ *
  * @param {Object} params
  * @param {function} cb
- * @return {setImmediateCallback} err | peers
+ * @returns {SetImmediate} error, peers
+ * @todo Add description for the params
  */
 Broadcaster.prototype.getPeers = function(params, cb) {
 	params.limit = params.limit || self.config.peerLimit;
@@ -139,10 +149,12 @@ Broadcaster.prototype.getPeers = function(params, cb) {
 };
 
 /**
- * Adds new object {params, options} to queue array .
+ * Adds new object {params, options} to queue array.
+ *
  * @param {Object} params
  * @param {Object} options
- * @return {Object[]} queue private variable with new data
+ * @returns {Object[]} Queue private variable with new data
+ * @todo Add description for the params
  */
 Broadcaster.prototype.enqueue = function(params, options) {
 	options.immediate = false;
@@ -151,12 +163,12 @@ Broadcaster.prototype.enqueue = function(params, options) {
 
 /**
  * Gets peers and for each peer create it and broadcast.
- * @implements {getPeers}
- * @implements {library.logic.peers.create}
+ *
  * @param {Object} params
  * @param {Object} options
  * @param {function} cb
- * @return {setImmediateCallback} err | peers
+ * @returns {SetImmediate} error, peers
+ * @todo Add description for the params
  */
 Broadcaster.prototype.broadcast = function(params, options, cb) {
 	options.data.peer = library.logic.peers.me();
@@ -216,9 +228,11 @@ Broadcaster.prototype.broadcast = function(params, options, cb) {
 };
 
 /**
- * Counts relays and valids limit.
+ * Counts relays and valid limit.
+ *
  * @param {Object} object
- * @return {boolean} True if Broadcast relays exhausted
+ * @returns {boolean} true - If broadcast relays exhausted
+ * @todo Add description for the params
  */
 Broadcaster.prototype.maxRelays = function(object) {
 	if (!Number.isInteger(object.relays)) {
@@ -236,10 +250,11 @@ Broadcaster.prototype.maxRelays = function(object) {
 // Private
 /**
  * Filters private queue based on broadcasts.
+ *
  * @private
- * @implements {__private.filterTransaction}
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {SetImmediate} null, boolean|undefined
+ * @todo Add description for the params
  */
 __private.filterQueue = function(cb) {
 	library.logger.debug(`Broadcasts before filtering: ${self.queue.length}`);
@@ -268,12 +283,12 @@ __private.filterQueue = function(cb) {
 
 /**
  * Checks if transaction is in pool or confirm it.
+ *
  * @private
- * @implements {modules.transactions.transactionInPool}
- * @implements {library.logic.transaction.checkConfirmed}
  * @param {transaction} transaction
  * @param {function} cb
- * @return {setImmediateCallback} cb, null, boolean
+ * @returns {SetImmediate} null, boolean
+ * @todo Add description for the params
  */
 __private.filterTransaction = function(transaction, cb) {
 	if (transaction !== undefined) {
@@ -289,9 +304,11 @@ __private.filterTransaction = function(transaction, cb) {
 
 /**
  * Groups broadcasts by api.
+ *
  * @private
  * @param {Object} broadcasts
- * @return {Object[]} squashed routes
+ * @returns {Object[]} Squashed routes
+ * @todo Add description for the params
  */
 __private.squashQueue = function(broadcasts) {
 	var grouped = _.groupBy(broadcasts, broadcast => broadcast.options.api);
@@ -321,13 +338,11 @@ __private.squashQueue = function(broadcasts) {
  * - filterQueue
  * - squashQueue
  * - broadcast
+ *
  * @private
- * @implements {__private.filterQueue}
- * @implements {__private.squashQueue}
- * @implements {getPeers}
- * @implements {broadcast}
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the params
  */
 __private.releaseQueue = function(cb) {
 	library.logger.debug('Releasing enqueued broadcasts');

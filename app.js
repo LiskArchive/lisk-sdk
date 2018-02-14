@@ -15,23 +15,6 @@
 'use strict';
 
 /**
- * A node-style callback as used by {@link logic} and {@link modules}.
- * @see {@link https://nodejs.org/api/errors.html#errors_node_js_style_callbacks}
- * @callback nodeStyleCallback
- * @param {?Error} error - Error, if any, otherwise `null`.
- * @param {Data} data - Data, if there hasn't been an error.
- */
-/**
- * A triggered by setImmediate callback as used by {@link logic}, {@link modules} and {@link helpers}.
- * Parameters formats: (cb, error, data), (cb, error), (cb).
- * @see {@link https://nodejs.org/api/timers.html#timers_setimmediate_callback_args}
- * @callback setImmediateCallback
- * @param {function} cb - Callback function.
- * @param {?Error} [error] - Error, if any, otherwise `null`.
- * @param {Data} [data] - Data, if there hasn't been an error and the function should return data.
- */
-
-/**
  * Main entry point.
  * Loads the lisk modules, the lisk api and run the express server as Domain master.
  * CLI options available.
