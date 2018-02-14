@@ -235,7 +235,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 					lifetime,
 					minimum,
 				})
-				.should.throw('Invalid hex string');
+				.should.throw('Public key must be a valid hex string.');
 		});
 	});
 

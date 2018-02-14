@@ -24,7 +24,18 @@ export const bufferToBigNumberString = bigNumberBuffer =>
 
 export const bufferToHex = buffer => naclInstance.to_hex(buffer);
 
-export const hexToBuffer = hex => Buffer.from(hex, 'hex');
+const hexRegex = /([0-9]|[a-f])/gim;
+export const hexToBuffer = hex => {
+	if (typeof hex !== 'string') {
+		return Buffer.alloc(0);
+	}
+	const matchedHex = hex.match(hexRegex) || [];
+	if (matchedHex.length === 0) {
+		return Buffer.alloc(0);
+	}
+	const evenLength = Math.floor(matchedHex.length / 2) * 2;
+	return Buffer.from(matchedHex.slice(0, evenLength).join(''), 'hex');
+};
 
 export const getFirstEightBytesReversed = publicKeyBytes =>
 	Buffer.from(publicKeyBytes)

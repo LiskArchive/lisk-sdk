@@ -3,6 +3,10 @@
 	"version": "0.4.5",
 	"description": "JavaScript library for sending Lisk transactions from the client or server",
 	"main": "./dist-node/index.js",
+	"engines": {
+		"node": ">=6 <=9",
+		"npm": "=>3 <=5"
+	},
 	"scripts": {
 		"prestart": "./bin/prestart.sh",
 		"start": "./bin/start.sh",

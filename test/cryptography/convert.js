@@ -65,6 +65,22 @@ describe('convert', () => {
 			const buffer = hexToBuffer(defaultHex);
 			return buffer.should.be.eql(defaultBuffer);
 		});
+		it('should create empty Buffer from non-string', () => {
+			const buffer = hexToBuffer(123);
+			return buffer.should.be.eql(Buffer.alloc(0));
+		});
+		it('should create empty Buffer from non hex string', () => {
+			const buffer = hexToBuffer('yKJh');
+			return buffer.should.be.eql(Buffer.alloc(0));
+		});
+		it('should create partial Buffer from partially non hex string', () => {
+			const buffer = hexToBuffer('Abxzzzz');
+			return buffer.should.be.eql(Buffer.from('Ab', 'hex'));
+		});
+		it('should create even numbered Buffer from odd number hex string', () => {
+			const buffer = hexToBuffer('c3a5c3a4c3b6a');
+			return buffer.should.be.eql(Buffer.from('c3a5c3a4c3b6', 'hex'));
+		});
 	});
 
 	describe('#getFirstEightBytesReversed', () => {

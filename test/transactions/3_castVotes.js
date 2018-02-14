@@ -244,7 +244,7 @@ describe('#castVotes transaction', () => {
 					unvotes: unvotePublicKeys,
 					votes: [plusPrependedPublicKey],
 				})
-				.should.throw('Invalid hex string');
+				.should.throw('Public key must be a valid hex string.');
 		});
 	});
 
