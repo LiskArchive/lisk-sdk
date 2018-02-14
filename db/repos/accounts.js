@@ -173,7 +173,7 @@ class AccountsRepository {
 	 * @todo Add description for the return value
 	 */
 	countMemAccounts() {
-		return this.db.one(sql.countMemAccounts, [], a => +a.count);
+		return this.db.one(sql.countMemAccounts, []).then(a => +a.count);
 	}
 
 	/**

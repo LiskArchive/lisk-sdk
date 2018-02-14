@@ -12,13 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+'use strict';
 
-/*
-  DESCRIPTION: ?
-
-  PARAMETERS: ?
-*/
-
-SELECT encode("publicKey", 'hex') AS "publicKey"
-FROM mem_accounts
-WHERE "isDelegate" = 1
+module.exports = {
+	accounts: require('./accounts'),
+	peers: require('./peers'),
+	blocks: require('./blocks'),
+};
