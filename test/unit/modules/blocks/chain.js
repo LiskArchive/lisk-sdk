@@ -20,7 +20,6 @@ var modulesLoader = require('../../../common/modules_loader');
 
 var BlocksChain = rewire('../../../../modules/blocks/chain.js');
 
-
 describe('blocks/chain', () => {
 	var __private;
 	var library;
@@ -75,7 +74,10 @@ describe('blocks/chain', () => {
 		var modulesAccountsStub = sinonSandbox.stub();
 		var modulesBlocksStub = sinonSandbox.stub();
 		var modulesRoundsStub = sinonSandbox.stub();
-		var modulesTransactionsStub = sinonSandbox.stub();
+		var modulesTransactionsStub = {
+			applyUnconfirmed: sinonSandbox.stub(),
+			apply: sinonSandbox.stub(),
+		};
 		modulesStub = {
 			accounts: modulesAccountsStub,
 			blocks: modulesBlocksStub,
@@ -96,7 +98,9 @@ describe('blocks/chain', () => {
 			expect(library.db).to.eql(dbStub);
 			expect(library.genesisblock).to.eql(modulesLoader.scope.genesisblock);
 			expect(library.bus).to.eql(busStub);
-			expect(library.balancesSequence).to.eql(modulesLoader.scope.balancesSequence);
+			expect(library.balancesSequence).to.eql(
+				modulesLoader.scope.balancesSequence
+			);
 			expect(library.logic.block).to.eql(blockStub);
 			expect(library.logic.transaction).to.eql(transactionStub);
 		});
@@ -161,7 +165,11 @@ describe('blocks/chain', () => {
 
 						describe('when fails', () => {
 							beforeEach(() => {
-								blocksChainModule.saveBlock.callsArgWith(1, 'saveBlock-ERR', null);
+								blocksChainModule.saveBlock.callsArgWith(
+									1,
+									'saveBlock-ERR',
+									null
+								);
 							});
 
 							it('should return error', done => {
@@ -232,32 +240,42 @@ describe('blocks/chain', () => {
 					});
 
 					it('should throw error', done => {
-						var block = { id: 1,
-						transactions: [
-							{ id: 1, type: 0 }, { id: 2, type: 1 },
-						] };
-						blocksChainModule.saveBlock(block, err => {
-							expect(err).to.equal('Blocks#saveBlock error');
-							done();
-						}, txStub);
+						var block = {
+							id: 1,
+							transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+						};
+						blocksChainModule.saveBlock(
+							block,
+							err => {
+								expect(err).to.equal('Blocks#saveBlock error');
+								done();
+							},
+							txStub
+						);
 					});
 				});
 
 				describe('when succeeds', () => {
 					beforeEach(() => {
 						txStub.batch.resolves();
-						__private.afterSave = sinonSandbox.stub().callsArgWith(1, null, true);
+						__private.afterSave = sinonSandbox
+							.stub()
+							.callsArgWith(1, null, true);
 					});
 
 					it('should call __private.afterSave', done => {
-						var block = { id: 1,
-						transactions: [
-							{ id: 1, type: 0 }, { id: 2, type: 1 },
-						] };
-						blocksChainModule.saveBlock(block, () => {
-							expect(__private.afterSave.calledOnce).to.be.true;
-							done();
-						}, txStub);
+						var block = {
+							id: 1,
+							transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+						};
+						blocksChainModule.saveBlock(
+							block,
+							() => {
+								expect(__private.afterSave.calledOnce).to.be.true;
+								done();
+							},
+							txStub
+						);
 					});
 				});
 			});
@@ -284,10 +302,10 @@ describe('blocks/chain', () => {
 					});
 
 					it('should throw error', done => {
-						var block = { id: 1,
-						transactions: [
-							{ id: 1, type: 0 }, { id: 2, type: 1 },
-						] };
+						var block = {
+							id: 1,
+							transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+						};
 						blocksChainModule.saveBlock(block, err => {
 							expect(err).to.equal('Blocks#saveBlock error');
 							done();
@@ -297,14 +315,16 @@ describe('blocks/chain', () => {
 				describe('when succeeds', () => {
 					beforeEach(() => {
 						txStub.batch.resolves();
-						__private.afterSave = sinonSandbox.stub().callsArgWith(1, null, true);
+						__private.afterSave = sinonSandbox
+							.stub()
+							.callsArgWith(1, null, true);
 					});
 
 					it('should call __private.afterSave', done => {
-						var block = { id: 1,
-						transactions: [
-							{ id: 1, type: 0 }, { id: 2, type: 1 },
-						] };
+						var block = {
+							id: 1,
+							transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+						};
 						blocksChainModule.saveBlock(block, () => {
 							expect(__private.afterSave.calledOnce).to.be.true;
 							done();
@@ -319,14 +339,17 @@ describe('blocks/chain', () => {
 		afterEach(() => {
 			expect(library.bus.message.calledOnce).to.be.true;
 			expect(library.bus.message.args[0][0]).to.equal('transactionsSaved');
-			expect(library.bus.message.args[0][1]).to.deep.equal([{ id: 1, type: 0 }, { id: 2, type: 1 }]);
+			expect(library.bus.message.args[0][1]).to.deep.equal([
+				{ id: 1, type: 0 },
+				{ id: 2, type: 1 },
+			]);
 		});
 
 		it('should call afterSave for all transactions', done => {
-			var block = { id: 1,
-				transactions: [
-					{ id: 1, type: 0 }, { id: 2, type: 1 },
-				] };
+			var block = {
+				id: 1,
+				transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+			};
 			__private.afterSave(block, () => {
 				expect(library.logic.transaction.afterSave.callCount).to.equal(2);
 				done();
@@ -342,9 +365,7 @@ describe('blocks/chain', () => {
 				});
 
 				afterEach(() => {
-					expect(loggerStub.error.args[0][0]).to.contains(
-						'deleteBlock-ERR'
-					);
+					expect(loggerStub.error.args[0][0]).to.contains('deleteBlock-ERR');
 				});
 
 				it('should return error', done => {
@@ -466,57 +487,95 @@ describe('blocks/chain', () => {
 		});
 	});
 
-	describe('__private', () => {
-		describe('applyTransaction', () => {
-			it('should call modules.transactions.applyUnconfirmed');
-
-			it('should call modules.transactions.applyUnconfirmed with transaction');
-
-			it('should call modules.transactions.applyUnconfirmed with sender');
-
-			it('should call modules.transactions.applyUnconfirmed with callback');
-
-			describe('when modules.transactions.applyUnconfirmed fails', () => {
-				describe('error object', () => {
-					it('should assign message');
-
-					it('should assign transaction');
-
-					it('should assign block');
+	describe('__private.applyTransaction', () => {
+		describe('modules.transactions.applyUnconfirmed', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					modules.transactions.applyUnconfirmed.callsArgWith(
+						2,
+						'applyUnconfirmed-ERR',
+						null
+					);
 				});
-
-				it('should call callback with error object');
+				it('should return error', done => {
+					var block = {
+						id: 1,
+						transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+					};
+					__private.applyTransaction(block, { id: 1, type: 1 }, 'a1', err => {
+						expect(err.message).to.equal('applyUnconfirmed-ERR');
+						expect(err.transaction).to.deep.equal({ id: 1, type: 1 });
+						expect(err.block).to.deep.equal(block);
+						done();
+					});
+				});
 			});
 
-			describe('when modules.transactions.applyUnconfirmed succeeds', () => {
-				it('should call modules.transactions.apply with sender');
-
-				it('should call modules.transactions.apply with transaction');
-
-				it('should call modules.transactions.apply with block');
-
-				it('should call modules.transactions.apply with callback');
-
-				describe('when error is defined in the callback', () => {
-					describe('result object', () => {
-						it('should assign message');
-
-						it('should assign transaction');
-
-						it('should assign block');
-					});
-
-					it('should call callback with result object');
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					modules.transactions.applyUnconfirmed.callsArgWith(2, null, true);
 				});
 
-				it('should call callback');
+				describe('modules.transactions.apply', () => {
+					describe('when fails', () => {
+						beforeEach(() => {
+							modules.transactions.apply.callsArgWith(3, 'apply-ERR', null);
+						});
+
+						it('should return error', done => {
+							var block = {
+								id: 1,
+								transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+							};
+							__private.applyTransaction(
+								block,
+								{ id: 1, type: 1 },
+								'a1',
+								err => {
+									expect(err.message).to.equal(
+										'Failed to apply transaction: 1'
+									);
+									expect(err.transaction).to.deep.equal({ id: 1, type: 1 });
+									expect(err.block).to.deep.equal(block);
+									done();
+								}
+							);
+						});
+					});
+
+					describe('when succeeds', () => {
+						beforeEach(() => {
+							modules.transactions.apply.callsArgWith(3, null, true);
+						});
+
+						afterEach(() => {
+							expect(modules.transactions.applyUnconfirmed.calledOnce).to.be
+								.true;
+							expect(modules.transactions.apply.calledOnce).to.be.true;
+						});
+
+						it('should return immediate', done => {
+							var block = {
+								id: 1,
+								transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+							};
+							__private.applyTransaction(
+								block,
+								{ id: 1, type: 1 },
+								'a1',
+								() => {
+									done();
+								}
+							);
+						});
+					});
+				});
 			});
 		});
 	});
 
 	describe('applyBlock', () => {
 		it('should apply a valid block successfully');
-
 
 		it('should call modules.blocks.isActive');
 
