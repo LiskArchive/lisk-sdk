@@ -87,6 +87,10 @@ describe('convert', () => {
 			const buffer = hexToBuffer('Abxzzab');
 			return buffer.should.be.eql(Buffer.from('Ab', 'hex'));
 		});
+		it('should create even numbered Buffer from odd number hex string with invalid hex', () => {
+			const buffer = hexToBuffer('123xxxx');
+			return buffer.should.be.eql(Buffer.from('12', 'hex'));
+		});
 		it('should create even numbered Buffer from odd number hex string', () => {
 			const buffer = hexToBuffer('c3a5c3a4c3b6a');
 			return buffer.should.be.eql(Buffer.from('c3a5c3a4c3b6', 'hex'));
