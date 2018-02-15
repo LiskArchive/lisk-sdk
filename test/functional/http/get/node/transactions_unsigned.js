@@ -29,7 +29,7 @@ var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/node', () => {
 	describe('/transactions', () => {
-		describe('/unprocessed @unstable', () => {
+		describe('/unsigned', () => {
 			var UnsignedEndpoint = new swaggerEndpoint(
 				'GET /node/transactions/{state}'
 			).addParameters({ state: 'unsigned' });
@@ -41,6 +41,8 @@ describe('GET /api/node', () => {
 			var transactionList = [];
 			var numOfTransactions = 5;
 			var transaction = null;
+
+			var randomMember = randomUtil.account();
 
 			before(() => {
 				// Credit account with some funds
@@ -79,7 +81,7 @@ describe('GET /api/node', () => {
 						transaction = lisk.multisignature.createMultisignature(
 							senderAccount.password,
 							senderAccount.secondPassword,
-							[`+${accountFixtures.existingDelegate.publicKey}`],
+							[`+${randomMember.publicKey}`],
 							1,
 							1
 						);
@@ -93,7 +95,7 @@ describe('GET /api/node', () => {
 
 						var signature = apiHelpers.createSignatureObject(
 							transaction,
-							accountFixtures.existingDelegate
+							randomMember
 						);
 
 						return signatureEndpoint.makeRequest(
@@ -378,7 +380,6 @@ describe('GET /api/node', () => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
 						res.body.data.map(transaction => {
-							// TODO: Unprocessed transactions don't have recipientPublicKey attribute, so matched address
 							expect(transaction.recipientId).to.be.equal(
 								recipientAccount.address
 							);

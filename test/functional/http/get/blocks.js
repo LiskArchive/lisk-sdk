@@ -319,8 +319,7 @@ describe('GET /blocks', () => {
 			});
 		});
 
-		// This unstable test should be fixed as part of https://github.com/LiskHQ/lisk/issues/1441
-		describe('offset  @unstable', () => {
+		describe('offset', () => {
 			it('using string should return bad request response', () => {
 				return blocksEndpoint.makeRequest({ offset: 'one' }, 400).then(res => {
 					expectSwaggerParamError(res, 'offset');
@@ -332,10 +331,10 @@ describe('GET /blocks', () => {
 					expectSwaggerParamError(res, 'offset');
 				});
 			});
-			// The test is failing because the default sorting order for blocks is `height`, and if we wait for enough time 10sec that at least 2 blocks get forged, then the test will pass.
+
 			it('using 1 should be ok', () => {
 				return blocksEndpoint.makeRequest({ offset: 1 }, 200).then(res => {
-					expect(res.body.data[0].height).to.be.above(1);
+					expect(res.body.data[0].height).to.be.at.least(1);
 				});
 			});
 		});

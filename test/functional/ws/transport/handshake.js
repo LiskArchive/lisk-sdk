@@ -225,7 +225,7 @@ describe('handshake', () => {
 			});
 		});
 
-		describe('when not present on master @unstable', () => {
+		describe('when not present on master', () => {
 			var wampClient = new WAMPClient();
 
 			beforeEach(function(done) {
@@ -233,6 +233,7 @@ describe('handshake', () => {
 				wampClient.upgradeToWAMP(clientSocket);
 				setTimeout(() => {
 					validClientSocketOptions.query.state = 1;
+					validClientSocketOptions.query.ip = '127.0.0.1';
 					clientSocket
 						.wampSend('updateMyself', validClientSocketOptions.query)
 						.then(() => {
