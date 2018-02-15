@@ -14,10 +14,10 @@
 
 'use strict';
 
-const _ = require('lodash');
 const rewire = require('rewire');
 const sinon = require('sinon');
 const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
+const System = require('../../../../../modules/system');
 
 const connectRewired = rewire('../../../../../api/ws/rpc/connect');
 
@@ -53,10 +53,13 @@ describe('connect', () => {
 		registerSocketListenersSpy.restore();
 	});
 
+	beforeEach('provide non-mutated peer each time', () => {
+		validPeer = Object.assign({}, prefixedPeer);
+	});
+
 	describe('connect', () => {
 		describe('connectSteps order', () => {
 			beforeEach(() => {
-				validPeer = _.clone(prefixedPeer);
 				connectResult = connectRewired(validPeer);
 			});
 
@@ -91,6 +94,47 @@ describe('connect', () => {
 
 			it('should return passed peer', () => {
 				expect(connectResult).equal(validPeer);
+			});
+		});
+	});
+
+	describe('connectionSteps', () => {
+		let peerAsResult;
+
+		describe('addConnectionOptions', () => {
+			beforeEach(() => {
+				const addConnectionOptions = connectRewired.__get__(
+					'connectSteps.addConnectionOptions'
+				);
+				peerAsResult = addConnectionOptions(validPeer);
+			});
+
+			it('should add connectionOptions field to peer', () => {
+				expect(peerAsResult).to.have.property('connectionOptions');
+			});
+
+			it('should add connectionOptions containing autoConnect = false', () => {
+				expect(peerAsResult).to.have.nested.property(
+					'connectionOptions.autoConnect'
+				).to.be.false;
+			});
+
+			it('should add connectionOptions containing port = [peer.wsPort]', () => {
+				expect(peerAsResult)
+					.to.have.nested.property('connectionOptions.port')
+					.to.equal(validPeer.wsPort);
+			});
+
+			it('should add connectionOptions containing hostname = [peer.ip]', () => {
+				expect(peerAsResult)
+					.to.have.nested.property('connectionOptions.hostname')
+					.to.equal(validPeer.ip);
+			});
+
+			it('should add connectionOptions containing query', () => {
+				expect(peerAsResult)
+					.to.have.nested.property('connectionOptions.query')
+					.to.eql(System.getHeaders());
 			});
 		});
 	});

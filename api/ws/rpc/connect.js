@@ -15,6 +15,7 @@
 'use strict';
 
 const async = require('async');
+const System = require('../../../modules/system');
 
 const connect = peer => {
 	connectSteps.addConnectionOptions(peer);
@@ -31,9 +32,17 @@ const connect = peer => {
 };
 
 const connectSteps = {
-	addConnectionOptions: () => {},
+	addConnectionOptions: peer => {
+		peer.connectionOptions = {
+			autoConnect: false, // Lazy connection establishment
+			port: peer.wsPort,
+			hostname: peer.ip,
+			query: System.getHeaders(),
+		};
+		return peer;
+	},
 
-	addSocket: () => {},
+	addSocket: peer => peer,
 
 	upgradeSocket: () => {},
 
