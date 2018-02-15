@@ -136,6 +136,49 @@ describe('connect', () => {
 					.to.have.nested.property('connectionOptions.query')
 					.to.eql(System.getHeaders());
 			});
+
+			it('should return [peer]', () => {
+				expect(peerAsResult).to.eql(validPeer);
+			});
+		});
+
+		describe('addSocket', () => {
+			let scClientConnectSpy;
+			let validConnectionOptions;
+			before(() => {
+				validConnectionOptions = {
+					validProperty: 'validString',
+				};
+				scClientConnectSpy = sinon.stub(
+					connectRewired.__get__('scClient'),
+					'connect'
+				);
+			});
+			beforeEach(() => {
+				const addSocket = connectRewired.__get__('connectSteps.addSocket');
+				validPeer.connectionOptions = validConnectionOptions;
+				peerAsResult = addSocket(validPeer);
+			});
+			afterEach(() => {
+				scClientConnectSpy.reset();
+			});
+			after(() => {
+				scClientConnectSpy.restore();
+			});
+
+			it('should call scClient.connect', () => {
+				expect(scClientConnectSpy).to.be.calledOnce;
+			});
+
+			it('should call scClient.connect with [peer.connectionOptions]', () => {
+				expect(scClientConnectSpy).to.be.calledWithExactly(
+					validPeer.connectionOptions
+				);
+			});
+
+			it('should return [peer]', () => {
+				expect(peerAsResult).to.eql(validPeer);
+			});
 		});
 	});
 });

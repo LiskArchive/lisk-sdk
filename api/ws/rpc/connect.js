@@ -15,6 +15,7 @@
 'use strict';
 
 const async = require('async');
+const scClient = require('socketcluster-client');
 const System = require('../../../modules/system');
 
 const connect = peer => {
@@ -42,7 +43,10 @@ const connectSteps = {
 		return peer;
 	},
 
-	addSocket: peer => peer,
+	addSocket: peer => {
+		peer.socket = scClient.connect(peer.connectionOptions);
+		return peer;
+	},
 
 	upgradeSocket: () => {},
 
