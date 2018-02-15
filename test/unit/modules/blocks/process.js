@@ -253,31 +253,23 @@ describe('blocks/process', () => {
 	});
 
 	describe('__private.receiveBlock', () => {
-		it('should return error when block is not valid', done => {
-			modules.blocks.verify.processBlock.callsArgWith(
-				3,
-				'verify.processBlock-ERR',
-				null
-			);
-
-			__private.receiveBlock({ id: 'ERR' }, (err, cb) => {
-				expect(err).to.equal('verify.processBlock-ERR');
-				expect(cb).to.be.null;
-				expect(modules.blocks.lastReceipt.update.calledOnce).to.be.true;
-				done();
-			});
+		beforeEach(() => {
+			modules.blocks.verify.processBlock.callsArgWith(3, null, true);
 		});
 
-		it('should return cb when block is valid', done => {
-			modules.blocks.verify.processBlock.callsArgWith(3, null, true);
-
-			__private.receiveBlock(dummyBlock, (err, cb) => {
+		it('should update lastReceipt and call processBlock', done => {
+			__private.receiveBlock(dummyBlock, err => {
 				expect(err).to.be.null;
-				expect(cb).to.be.true;
 				expect(loggerStub.info.args[0]).to.contains(
 					'Received new block id: 4 height: 4 round: 1 slot: 4128723 reward: 100'
 				);
 				expect(modules.blocks.lastReceipt.update.calledOnce).to.be.true;
+				expect(modules.blocks.verify.processBlock.calledOnce).to.be.true;
+				expect(modules.blocks.verify.processBlock.args[0][0]).to.deep.equal(
+					dummyBlock
+				);
+				expect(modules.blocks.verify.processBlock.args[0][1]).to.be.true;
+				expect(modules.blocks.verify.processBlock.args[0][2]).to.be.true;
 				done();
 			});
 		});
@@ -295,34 +287,28 @@ describe('blocks/process', () => {
 
 		describe('Last block stands', () => {
 			afterEach(() => {
-				expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 				expect(
 					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 1)
 				).to.be.true;
+				expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 			});
 
 			it('should return when block.timestamp > lastBlock.timestamp', done => {
-				__private.receiveForkOne(
-					{ timestamp: 2 },
-					{ timestamp: 1 },
-					(err, cb) => {
-						expect(err).to.be.undefined;
-						expect(cb).to.be.undefined;
-						done();
-					}
-				);
+				const block = { timestamp: 2 };
+				const lastBlock = { timestamp: 1 };
+				__private.receiveForkOne(block, lastBlock, err => {
+					expect(err).to.be.undefined;
+					done();
+				});
 			});
 
 			it('should return when timestamps are equals and block.id > lastBlock.id', done => {
-				__private.receiveForkOne(
-					{ timestamp: 1, id: 2 },
-					{ timestamp: 1, id: 1 },
-					(err, cb) => {
-						expect(err).to.be.undefined;
-						expect(cb).to.be.undefined;
-						done();
-					}
-				);
+				const block = { timestamp: 1, id: 2 };
+				const lastBlock = { timestamp: 1, id: 1 };
+				__private.receiveForkOne(block, lastBlock, err => {
+					expect(err).to.be.undefined;
+					done();
+				});
 			});
 		});
 
@@ -346,22 +332,19 @@ describe('blocks/process', () => {
 						library.logic.block.objectNormalize.throws('objectNormalize-ERR');
 					});
 
-					it('should throw error', done => {
-						__private.receiveForkOne(
-							{ timestamp: 1, id: 2 },
-							{ timestamp: 2, id: 1 },
-							(err, cb) => {
-								expect(err.name).to.equal('objectNormalize-ERR');
-								expect(cb).to.be.undefined;
-								expect(loggerStub.error.args[0][0]).to.equal(
-									'Fork recovery failed'
-								);
-								expect(loggerStub.error.args[0][1].name).to.equal(
-									'objectNormalize-ERR'
-								);
-								done();
-							}
-						);
+					it('should call a callback with error', done => {
+						const block = { timestamp: 1, id: 2 };
+						const lastBlock = { timestamp: 2, id: 1 };
+						__private.receiveForkOne(block, lastBlock, err => {
+							expect(err.name).to.equal('objectNormalize-ERR');
+							expect(loggerStub.error.args[0][0]).to.equal(
+								'Fork recovery failed'
+							);
+							expect(loggerStub.error.args[0][1].name).to.equal(
+								'objectNormalize-ERR'
+							);
+							done();
+						});
 					});
 				});
 
@@ -380,22 +363,19 @@ describe('blocks/process', () => {
 								);
 							});
 
-							it('should return error', done => {
-								__private.receiveForkOne(
-									{ timestamp: 1, id: 2 },
-									{ timestamp: 2, id: 1 },
-									(err, cb) => {
-										expect(err).to.equal('validateBlockSlot-ERR');
-										expect(cb).to.be.undefined;
-										expect(loggerStub.error.args[0][0]).to.equal(
-											'Fork recovery failed'
-										);
-										expect(loggerStub.error.args[0][1]).to.equal(
-											'validateBlockSlot-ERR'
-										);
-										done();
-									}
-								);
+							it('should call a callback with error', done => {
+								const block = { timestamp: 1, id: 2 };
+								const lastBlock = { timestamp: 2, id: 1 };
+								__private.receiveForkOne(block, lastBlock, err => {
+									expect(err).to.equal('validateBlockSlot-ERR');
+									expect(loggerStub.error.args[0][0]).to.equal(
+										'Fork recovery failed'
+									);
+									expect(loggerStub.error.args[0][1]).to.equal(
+										'validateBlockSlot-ERR'
+									);
+									done();
+								});
 							});
 						});
 
@@ -414,28 +394,25 @@ describe('blocks/process', () => {
 										});
 									});
 
-									it('should return error', done => {
-										__private.receiveForkOne(
-											{ timestamp: 10, id: 2 },
-											{ timestamp: 20, id: 1 },
-											(err, cb) => {
-												expect(err).to.equal('verifyReceipt-ERR');
-												expect(cb).to.be.undefined;
-												expect(loggerStub.error.args[0][0]).to.equal(
-													'Block 2 verification failed'
-												);
-												expect(loggerStub.error.args[0][1]).to.equal(
-													'verifyReceipt-ERR, ERR2'
-												);
-												expect(loggerStub.error.args[1][0]).to.equal(
-													'Fork recovery failed'
-												);
-												expect(loggerStub.error.args[1][1]).to.equal(
-													'verifyReceipt-ERR'
-												);
-												done();
-											}
-										);
+									it('should call a callback with error', done => {
+										const block = { timestamp: 10, id: 2 };
+										const lastBlock = { timestamp: 20, id: 1 };
+										__private.receiveForkOne(block, lastBlock, err => {
+											expect(err).to.equal('verifyReceipt-ERR');
+											expect(loggerStub.error.args[0][0]).to.equal(
+												'Block 2 verification failed'
+											);
+											expect(loggerStub.error.args[0][1]).to.equal(
+												'verifyReceipt-ERR, ERR2'
+											);
+											expect(loggerStub.error.args[1][0]).to.equal(
+												'Fork recovery failed'
+											);
+											expect(loggerStub.error.args[1][1]).to.equal(
+												'verifyReceipt-ERR'
+											);
+											done();
+										});
 									});
 								});
 								describe('when succeeds', () => {
@@ -457,22 +434,19 @@ describe('blocks/process', () => {
 													.callsArgWith(0, 'deleteLastBlock-ERR-call-2', null);
 											});
 
-											it('should return error', done => {
-												__private.receiveForkOne(
-													{ timestamp: 10, id: 2 },
-													{ timestamp: 20, id: 1 },
-													(err, cb) => {
-														expect(err).to.equal('deleteLastBlock-ERR-call-1');
-														expect(cb).to.be.undefined;
-														expect(loggerStub.error.args[0][0]).to.equal(
-															'Fork recovery failed'
-														);
-														expect(loggerStub.error.args[0][1]).to.equal(
-															'deleteLastBlock-ERR-call-1'
-														);
-														done();
-													}
-												);
+											it('should call a callback with error', done => {
+												const block = { timestamp: 10, id: 2 };
+												const lastBlock = { timestamp: 20, id: 1 };
+												__private.receiveForkOne(block, lastBlock, err => {
+													expect(err).to.equal('deleteLastBlock-ERR-call-1');
+													expect(loggerStub.error.args[0][0]).to.equal(
+														'Fork recovery failed'
+													);
+													expect(loggerStub.error.args[0][1]).to.equal(
+														'deleteLastBlock-ERR-call-1'
+													);
+													done();
+												});
 											});
 										});
 										describe('when succeeds', () => {
@@ -502,24 +476,21 @@ describe('blocks/process', () => {
 															);
 													});
 
-													it('should return error', done => {
-														__private.receiveForkOne(
-															{ timestamp: 10, id: 2 },
-															{ timestamp: 20, id: 1 },
-															(err, cb) => {
-																expect(err).to.equal(
-																	'deleteLastBlock-ERR-call-2'
-																);
-																expect(cb).to.be.undefined;
-																expect(loggerStub.error.args[0][0]).to.equal(
-																	'Fork recovery failed'
-																);
-																expect(loggerStub.error.args[0][1]).to.equal(
-																	'deleteLastBlock-ERR-call-2'
-																);
-																done();
-															}
-														);
+													it('should call a callback with error', done => {
+														const block = { timestamp: 10, id: 2 };
+														const lastBlock = { timestamp: 20, id: 1 };
+														__private.receiveForkOne(block, lastBlock, err => {
+															expect(err).to.equal(
+																'deleteLastBlock-ERR-call-2'
+															);
+															expect(loggerStub.error.args[0][0]).to.equal(
+																'Fork recovery failed'
+															);
+															expect(loggerStub.error.args[0][1]).to.equal(
+																'deleteLastBlock-ERR-call-2'
+															);
+															done();
+														});
 													});
 												});
 												describe('when succeeds', () => {
@@ -544,15 +515,12 @@ describe('blocks/process', () => {
 													});
 
 													it('should return no error', done => {
-														__private.receiveForkOne(
-															{ timestamp: 10, id: 2 },
-															{ timestamp: 20, id: 1 },
-															(err, cb) => {
-																expect(err).to.be.null;
-																expect(cb).to.be.undefined;
-																done();
-															}
-														);
+														const block = { timestamp: 10, id: 2 };
+														const lastBlock = { timestamp: 20, id: 1 };
+														__private.receiveForkOne(block, lastBlock, err => {
+															expect(err).to.be.null;
+															done();
+														});
 													});
 												});
 											});
@@ -582,9 +550,8 @@ describe('blocks/process', () => {
 				__private.receiveForkFive(
 					{ timestamp: 1, id: 2, generatorPublicKey: '1a' },
 					{ timestamp: 1, id: 1, generatorPublicKey: '1a' },
-					(err, cb) => {
+					err => {
 						expect(err).to.be.undefined;
-						expect(cb).to.be.undefined;
 						expect(loggerStub.warn.args[0][0]).to.equal(
 							'Delegate forging on multiple nodes'
 						);
@@ -598,9 +565,8 @@ describe('blocks/process', () => {
 				__private.receiveForkFive(
 					{ timestamp: 1, id: 2, generatorPublicKey: '2a' },
 					{ timestamp: 1, id: 1, generatorPublicKey: '1a' },
-					(err, cb) => {
+					err => {
 						expect(err).to.be.undefined;
-						expect(cb).to.be.undefined;
 						expect(loggerStub.warn.args.length).to.equal(0);
 						done();
 					}
@@ -610,34 +576,28 @@ describe('blocks/process', () => {
 
 		describe('Last block stands', () => {
 			afterEach(() => {
-				expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 				expect(
 					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 5)
 				).to.be.true;
+				expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 			});
 
 			it('should return when block.timestamp > lastBlock.timestamp', done => {
-				__private.receiveForkFive(
-					{ timestamp: 2 },
-					{ timestamp: 1 },
-					(err, cb) => {
-						expect(err).to.be.undefined;
-						expect(cb).to.be.undefined;
-						done();
-					}
-				);
+				const block = { timestamp: 2 };
+				const lastBlock = { timestamp: 1 };
+				__private.receiveForkFive(block, lastBlock, err => {
+					expect(err).to.be.undefined;
+					done();
+				});
 			});
 
 			it('should return when timestamps are equals and block.id > lastBlock.id', done => {
-				__private.receiveForkFive(
-					{ timestamp: 1, id: 2 },
-					{ timestamp: 1, id: 1 },
-					(err, cb) => {
-						expect(err).to.be.undefined;
-						expect(cb).to.be.undefined;
-						done();
-					}
-				);
+				const block = { timestamp: 1, id: 2 };
+				const lastBlock = { timestamp: 1, id: 1 };
+				__private.receiveForkFive(block, lastBlock, err => {
+					expect(err).to.be.undefined;
+					done();
+				});
 			});
 		});
 
@@ -648,10 +608,10 @@ describe('blocks/process', () => {
 			});
 
 			afterEach(() => {
-				expect(loggerStub.info.args[0][0]).to.equal('Last block loses');
 				expect(
 					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 5)
 				).to.be.true;
+				expect(loggerStub.info.args[0][0]).to.equal('Last block loses');
 			});
 
 			describe('library.logic.block.objectNormalize', () => {
@@ -661,21 +621,18 @@ describe('blocks/process', () => {
 					});
 
 					it('should throw error', done => {
-						__private.receiveForkFive(
-							{ timestamp: 1, id: 2 },
-							{ timestamp: 2, id: 1 },
-							(err, cb) => {
-								expect(err.name).to.equal('objectNormalize-ERR');
-								expect(cb).to.be.undefined;
-								expect(loggerStub.error.args[0][0]).to.equal(
-									'Fork recovery failed'
-								);
-								expect(loggerStub.error.args[0][1].name).to.equal(
-									'objectNormalize-ERR'
-								);
-								done();
-							}
-						);
+						const block = { timestamp: 1, id: 2 };
+						const lastBlock = { timestamp: 2, id: 1 };
+						__private.receiveForkFive(block, lastBlock, err => {
+							expect(err.name).to.equal('objectNormalize-ERR');
+							expect(loggerStub.error.args[0][0]).to.equal(
+								'Fork recovery failed'
+							);
+							expect(loggerStub.error.args[0][1].name).to.equal(
+								'objectNormalize-ERR'
+							);
+							done();
+						});
 					});
 				});
 
@@ -697,22 +654,19 @@ describe('blocks/process', () => {
 								);
 							});
 
-							it('should return error', done => {
-								__private.receiveForkFive(
-									{ timestamp: 1, id: 2 },
-									{ timestamp: 2, id: 1 },
-									(err, cb) => {
-										expect(err).to.equal('validateBlockSlot-ERR');
-										expect(cb).to.be.undefined;
-										expect(loggerStub.error.args[0][0]).to.equal(
-											'Fork recovery failed'
-										);
-										expect(loggerStub.error.args[0][1]).to.equal(
-											'validateBlockSlot-ERR'
-										);
-										done();
-									}
-								);
+							it('should call a callback with error', done => {
+								const block = { timestamp: 1, id: 2 };
+								const lastBlock = { timestamp: 2, id: 1 };
+								__private.receiveForkFive(block, lastBlock, err => {
+									expect(err).to.equal('validateBlockSlot-ERR');
+									expect(loggerStub.error.args[0][0]).to.equal(
+										'Fork recovery failed'
+									);
+									expect(loggerStub.error.args[0][1]).to.equal(
+										'validateBlockSlot-ERR'
+									);
+									done();
+								});
 							});
 						});
 
@@ -730,28 +684,25 @@ describe('blocks/process', () => {
 										});
 									});
 
-									it('should return error', done => {
-										__private.receiveForkFive(
-											{ timestamp: 10, id: 2 },
-											{ timestamp: 20, id: 1 },
-											(err, cb) => {
-												expect(err).to.equal('verifyReceipt-ERR');
-												expect(cb).to.be.undefined;
-												expect(loggerStub.error.args[0][0]).to.equal(
-													'Block 2 verification failed'
-												);
-												expect(loggerStub.error.args[0][1]).to.equal(
-													'verifyReceipt-ERR, ERR2'
-												);
-												expect(loggerStub.error.args[1][0]).to.equal(
-													'Fork recovery failed'
-												);
-												expect(loggerStub.error.args[1][1]).to.equal(
-													'verifyReceipt-ERR'
-												);
-												done();
-											}
-										);
+									it('should call a callback with error', done => {
+										const block = { timestamp: 10, id: 2 };
+										const lastBlock = { timestamp: 20, id: 1 };
+										__private.receiveForkFive(block, lastBlock, err => {
+											expect(err).to.equal('verifyReceipt-ERR');
+											expect(loggerStub.error.args[0][0]).to.equal(
+												'Block 2 verification failed'
+											);
+											expect(loggerStub.error.args[0][1]).to.equal(
+												'verifyReceipt-ERR, ERR2'
+											);
+											expect(loggerStub.error.args[1][0]).to.equal(
+												'Fork recovery failed'
+											);
+											expect(loggerStub.error.args[1][1]).to.equal(
+												'verifyReceipt-ERR'
+											);
+											done();
+										});
 									});
 								});
 
@@ -772,22 +723,19 @@ describe('blocks/process', () => {
 												);
 											});
 
-											it('should return error', done => {
-												__private.receiveForkFive(
-													{ timestamp: 10, id: 2 },
-													{ timestamp: 20, id: 1 },
-													(err, cb) => {
-														expect(err).to.equal('deleteLastBlock-ERR');
-														expect(cb).to.be.undefined;
-														expect(loggerStub.error.args[0][0]).to.equal(
-															'Fork recovery failed'
-														);
-														expect(loggerStub.error.args[0][1]).to.equal(
-															'deleteLastBlock-ERR'
-														);
-														done();
-													}
-												);
+											it('should call a callback with error', done => {
+												const block = { timestamp: 10, id: 2 };
+												const lastBlock = { timestamp: 20, id: 1 };
+												__private.receiveForkFive(block, lastBlock, err => {
+													expect(err).to.equal('deleteLastBlock-ERR');
+													expect(loggerStub.error.args[0][0]).to.equal(
+														'Fork recovery failed'
+													);
+													expect(loggerStub.error.args[0][1]).to.equal(
+														'deleteLastBlock-ERR'
+													);
+													done();
+												});
 											});
 										});
 										describe('when succeeds', () => {
@@ -808,22 +756,19 @@ describe('blocks/process', () => {
 														);
 													});
 
-													it('should return error', done => {
-														__private.receiveForkFive(
-															{ timestamp: 10, id: 2 },
-															{ timestamp: 20, id: 1 },
-															(err, cb) => {
-																expect(err).to.equal('receiveBlock-ERR');
-																expect(cb).to.be.undefined;
-																expect(loggerStub.error.args[0][0]).to.equal(
-																	'Fork recovery failed'
-																);
-																expect(loggerStub.error.args[0][1]).to.equal(
-																	'receiveBlock-ERR'
-																);
-																done();
-															}
-														);
+													it('should call a callback with error', done => {
+														const block = { timestamp: 10, id: 2 };
+														const lastBlock = { timestamp: 20, id: 1 };
+														__private.receiveForkFive(block, lastBlock, err => {
+															expect(err).to.equal('receiveBlock-ERR');
+															expect(loggerStub.error.args[0][0]).to.equal(
+																'Fork recovery failed'
+															);
+															expect(loggerStub.error.args[0][1]).to.equal(
+																'receiveBlock-ERR'
+															);
+															done();
+														});
 													});
 												});
 												describe('when succeeds', () => {
@@ -836,15 +781,12 @@ describe('blocks/process', () => {
 													});
 
 													it('should return no error', done => {
-														__private.receiveForkFive(
-															{ timestamp: 10, id: 2 },
-															{ timestamp: 20, id: 1 },
-															(err, cb) => {
-																expect(err).to.be.null;
-																expect(cb).to.be.undefined;
-																done();
-															}
-														);
+														const block = { timestamp: 10, id: 2 };
+														const lastBlock = { timestamp: 20, id: 1 };
+														__private.receiveForkFive(block, lastBlock, err => {
+															expect(err).to.be.null;
+															done();
+														});
 													});
 												});
 											});
@@ -870,7 +812,7 @@ describe('blocks/process', () => {
 					);
 				});
 
-				it('should return error', done => {
+				it('should call a callback with error', done => {
 					blocksProcessModule.getCommonBlock(
 						{ ip: 1, wsPort: 2 },
 						10,
@@ -892,7 +834,7 @@ describe('blocks/process', () => {
 							});
 						});
 
-						it('should return error', done => {
+						it('should call a callback with error', done => {
 							blocksProcessModule.getCommonBlock(
 								{ ip: 1, wsPort: 2 },
 								10,
@@ -945,7 +887,7 @@ describe('blocks/process', () => {
 								modules.transport.poorConsensus.returns(false);
 							});
 
-							it('should return error ', done => {
+							it('should call a callback with error ', done => {
 								blocksProcessModule.getCommonBlock(
 									{ ip: 1, wsPort: 2 },
 									10,
@@ -981,7 +923,7 @@ describe('blocks/process', () => {
 									);
 								});
 
-								it('should return error', done => {
+								it('should call a callback with error', done => {
 									blocksProcessModule.getCommonBlock(
 										{ ip: 1, wsPort: 2 },
 										10,
@@ -1061,7 +1003,7 @@ describe('blocks/process', () => {
 												modules.transport.poorConsensus.returns(false);
 											});
 
-											it('should return error ', done => {
+											it('should call a callback with error ', done => {
 												blocksProcessModule.getCommonBlock(
 													{ ip: 1, wsPort: 2 },
 													10,
@@ -1235,7 +1177,7 @@ describe('blocks/process', () => {
 											);
 										});
 
-										it('should return error', done => {
+										it('should call a callback with error', done => {
 											blocksProcessModule.loadBlocksOffset(
 												100,
 												0,
@@ -1265,7 +1207,7 @@ describe('blocks/process', () => {
 													});
 												});
 
-												it('should return error', done => {
+												it('should call a callback with error', done => {
 													blocksProcessModule.loadBlocksOffset(
 														100,
 														0,
@@ -1304,7 +1246,7 @@ describe('blocks/process', () => {
 															);
 														});
 
-														it('should return error', done => {
+														it('should call a callback with error', done => {
 															blocksProcessModule.loadBlocksOffset(
 																100,
 																0,
@@ -1380,7 +1322,7 @@ describe('blocks/process', () => {
 											);
 										});
 
-										it('should return error', done => {
+										it('should call a callback with error', done => {
 											blocksProcessModule.loadBlocksOffset(
 												100,
 												0,
@@ -1444,7 +1386,7 @@ describe('blocks/process', () => {
 											);
 										});
 
-										it('should return error', done => {
+										it('should call a callback with error', done => {
 											blocksProcessModule.loadBlocksOffset(
 												100,
 												0,
@@ -1519,7 +1461,7 @@ describe('blocks/process', () => {
 							});
 						});
 
-						it('should return error', done => {
+						it('should call a callback with error', done => {
 							blocksProcessModule.loadBlocksFromPeer(
 								{ id: 1, string: 'test' },
 								(err, lastBlock) => {
@@ -1539,7 +1481,7 @@ describe('blocks/process', () => {
 							});
 						});
 
-						it('should return error', done => {
+						it('should call a callback with error', done => {
 							blocksProcessModule.loadBlocksFromPeer(
 								{ id: 1, string: 'test' },
 								(err, lastBlock) => {
@@ -1568,7 +1510,7 @@ describe('blocks/process', () => {
 									library.schema.validate.returns(false);
 								});
 
-								it('should return error', done => {
+								it('should call a callback with error', done => {
 									blocksProcessModule.loadBlocksFromPeer(
 										{ id: 1, string: 'test' },
 										(err, lastBlock) => {
@@ -1682,7 +1624,7 @@ describe('blocks/process', () => {
 																		);
 																	});
 
-																	it('should return error', done => {
+																	it('should call a callback with error', done => {
 																		blocksProcessModule.loadBlocksFromPeer(
 																			{ id: 1, string: 'test' },
 																			(err, lastBlock) => {
@@ -1778,13 +1720,12 @@ describe('blocks/process', () => {
 					);
 				});
 
-				it('should return error', done => {
+				it('should call a callback with error', done => {
 					blocksProcessModule.generateBlock(
 						{ publicKey: '123abc', privateKey: 'aaa' },
 						41287231,
-						(err, cb) => {
+						err => {
 							expect(err).to.equal('Sender not found');
-							expect(cb).to.be.undefined;
 							done();
 						}
 					);
@@ -1794,6 +1735,9 @@ describe('blocks/process', () => {
 			describe('when succeeds', () => {
 				beforeEach(() => {
 					modules.accounts.getAccount.callsArgWith(1, null, true);
+				});
+				afterEach(() => {
+					expect(modules.blocks.verify.processBlock.calledOnce).to.be.true;
 				});
 
 				describe('library.logic.transaction.ready', () => {
@@ -1806,11 +1750,14 @@ describe('blocks/process', () => {
 							blocksProcessModule.generateBlock(
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
-								(err, cb) => {
+								err => {
 									expect(err).to.be.null;
-									expect(cb[0][0].transactions.length).to.equal(0);
 									expect(library.logic.transaction.verify.calledOnce).to.be
 										.false;
+									expect(
+										modules.blocks.verify.processBlock.args[0][0].transactions
+											.length
+									).to.equal(0);
 									done();
 								}
 							);
@@ -1836,9 +1783,12 @@ describe('blocks/process', () => {
 									blocksProcessModule.generateBlock(
 										{ publicKey: '123abc', privateKey: 'aaa' },
 										41287231,
-										(err, cb) => {
+										err => {
 											expect(err).to.be.null;
-											expect(cb[0][0].transactions.length).to.equal(0);
+											expect(
+												modules.blocks.verify.processBlock.args[0][0]
+													.transactions.length
+											).to.equal(0);
 											done();
 										}
 									);
@@ -1854,9 +1804,12 @@ describe('blocks/process', () => {
 									blocksProcessModule.generateBlock(
 										{ publicKey: '123abc', privateKey: 'aaa' },
 										41287231,
-										(err, cb) => {
+										err => {
 											expect(err).to.be.null;
-											expect(cb[0][0].transactions.length).to.equal(2);
+											expect(
+												modules.blocks.verify.processBlock.args[0][0]
+													.transactions.length
+											).to.equal(2);
 											done();
 										}
 									);
@@ -1908,7 +1861,7 @@ describe('blocks/process', () => {
 							);
 						});
 
-						it('should return error', done => {
+						it('should call a callback with error', done => {
 							blocksProcessModule.generateBlock(
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
@@ -1951,13 +1904,12 @@ describe('blocks/process', () => {
 						);
 					});
 
-					it('should return error', done => {
+					it('should call a callback with error', done => {
 						__private.validateBlockSlot(
 							{ height: 10 },
 							{ height: 202 },
-							(err, cb) => {
+							err => {
 								expect(err).to.equal('round-ERR');
-								expect(cb).to.be.undefined;
 								expect(
 									modules.delegates.validateBlockSlotAgainstPreviousRound
 										.calledOnce
@@ -1981,9 +1933,8 @@ describe('blocks/process', () => {
 						__private.validateBlockSlot(
 							{ height: 10 },
 							{ height: 202 },
-							(err, cb) => {
+							err => {
 								expect(err).to.be.null;
-								expect(cb).to.be.undefined;
 								expect(
 									modules.delegates.validateBlockSlotAgainstPreviousRound
 										.calledOnce
@@ -2008,13 +1959,12 @@ describe('blocks/process', () => {
 							);
 						});
 
-						it('should return error', done => {
+						it('should call a callback with error', done => {
 							__private.validateBlockSlot(
 								{ height: 400 },
 								{ height: 200 },
-								(err, cb) => {
+								err => {
 									expect(err).to.equal('round-ERR');
-									expect(cb).to.be.undefined;
 									expect(
 										modules.delegates.validateBlockSlotAgainstPreviousRound
 											.calledOnce
@@ -2038,9 +1988,8 @@ describe('blocks/process', () => {
 							__private.validateBlockSlot(
 								{ height: 400 },
 								{ height: 200 },
-								(err, cb) => {
+								err => {
 									expect(err).to.be.null;
-									expect(cb).to.be.undefined;
 									expect(
 										modules.delegates.validateBlockSlotAgainstPreviousRound
 											.calledOnce
@@ -2064,13 +2013,12 @@ describe('blocks/process', () => {
 							);
 						});
 
-						it('should return error', done => {
+						it('should call a callback with error', done => {
 							__private.validateBlockSlot(
 								{ height: 10 },
 								{ height: 200 },
-								(err, cb) => {
+								err => {
 									expect(err).to.equal('round-ERR');
-									expect(cb).to.be.undefined;
 									expect(modules.delegates.validateBlockSlot.calledOnce).to.be
 										.true;
 									done();
@@ -2088,9 +2036,8 @@ describe('blocks/process', () => {
 							__private.validateBlockSlot(
 								{ height: 10 },
 								{ height: 200 },
-								(err, cb) => {
+								err => {
 									expect(err).to.be.null;
-									expect(cb).to.be.undefined;
 									expect(modules.delegates.validateBlockSlot.calledOnce).to.be
 										.true;
 									done();
