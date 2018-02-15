@@ -176,6 +176,49 @@ describe('connect', () => {
 				);
 			});
 
+			it('should add socket field', () => {
+				expect(peerAsResult).to.have.property('socket');
+			});
+
+			it('should return [peer]', () => {
+				expect(peerAsResult).to.eql(validPeer);
+			});
+		});
+
+		describe('upgradeSocket', () => {
+			let upgradeToWAMPSpy;
+			let validSocket;
+			before(() => {
+				validSocket = {
+					validProperty: 'validString',
+				};
+				upgradeToWAMPSpy = sinon.stub(
+					connectRewired.__get__('wampClient'),
+					'upgradeToWAMP'
+				);
+			});
+			beforeEach(() => {
+				const upgradeSocket = connectRewired.__get__(
+					'connectSteps.upgradeSocket'
+				);
+				validPeer.socket = validSocket;
+				peerAsResult = upgradeSocket(validPeer);
+			});
+			afterEach(() => {
+				upgradeToWAMPSpy.reset();
+			});
+			after(() => {
+				upgradeToWAMPSpy.restore();
+			});
+
+			it('should call scClient.connect', () => {
+				expect(upgradeToWAMPSpy).to.be.calledOnce;
+			});
+
+			it('should call scClient.connect with [peer.connectionOptions]', () => {
+				expect(upgradeToWAMPSpy).to.be.calledWithExactly(validPeer.socket);
+			});
+
 			it('should return [peer]', () => {
 				expect(peerAsResult).to.eql(validPeer);
 			});

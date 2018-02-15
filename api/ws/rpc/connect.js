@@ -16,7 +16,10 @@
 
 const async = require('async');
 const scClient = require('socketcluster-client');
+const WAMPClient = require('wamp-socket-cluster/WAMPClient');
 const System = require('../../../modules/system');
+
+const wampClient = new WAMPClient(1000); // Timeout failed requests after 1 second
 
 const connect = peer => {
 	connectSteps.addConnectionOptions(peer);
@@ -48,7 +51,10 @@ const connectSteps = {
 		return peer;
 	},
 
-	upgradeSocket: () => {},
+	upgradeSocket: peer => {
+		wampClient.upgradeToWAMP(peer.socket);
+		return peer;
+	},
 
 	registerRPC: () => {},
 
