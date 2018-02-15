@@ -35,8 +35,8 @@ Assertion.addProperty('hexString', function handleAssert() {
 	const expected = Buffer.from(actual, 'hex').toString('hex');
 	this.assert(
 		expected === actual,
-		'expected #{this} to be a hexString',
-		'expected #{this} not to be a hexString',
+		'expected #{this} to be a hex string',
+		'expected #{this} not to be a hex string',
 	);
 });
 
@@ -57,23 +57,25 @@ Assertion.addMethod('matchAny', function handleAssert(matcher) {
 	const obj = this._obj;
 
 	new Assertion(obj).to.be.an('array');
-	let result = false;
-	obj.forEach(val => {
-		if (matcher(val)) {
-			result = true;
-		}
-	});
+	const result = obj.some(val => matcher(val));
 	this.assert(
 		result,
 		'expected #{this} to match at least once',
-		'expected #{this} to not to match',
+		'expected #{this} not to match',
 	);
+});
+
+Assertion.addMethod('customError', function handleAssert(error) {
+	const obj = this._obj;
+	new Assertion(obj).to.be.instanceOf(Error);
+	new Assertion(obj.name).to.equal(error.name);
+	new Assertion(obj.message).to.equal(error.message);
 });
 /* eslint-enable no-underscore-dangle */
 
 mochaBDD();
 
-[sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
+[sinonChai, chaiAsPromised].forEach(chai.use);
 
 global.sinon = sinon;
 global.sandbox = sinon.sandbox.create();

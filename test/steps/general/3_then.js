@@ -14,6 +14,7 @@
  *
  */
 import { getFirstQuotedString, getFirstNumber } from '../utils';
+import { ValidationError, FileSystemError } from '../../../src/utils/error';
 
 export function theErrorShouldBeInstanceOfNodesBuiltInError() {
 	const { testError } = this.test.ctx;
@@ -34,29 +35,17 @@ export function itShouldReturnTheResult() {
 export function itShouldThrowValidationError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	testFunction.should.throw().and.is.instanceOf(Error);
-	testFunction.should
-		.throw()
-		.and.has.property('name')
-		.which.equal('ValidationError');
 	return testFunction.should
 		.throw()
-		.and.has.property('message')
-		.which.include(message);
+		.and.be.customError(new ValidationError(message));
 }
 
 export function itShouldThrowFileSystemError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	testFunction.should.throw().and.is.instanceOf(Error);
-	testFunction.should
-		.throw()
-		.and.has.property('name')
-		.which.equal('FileSystemError');
 	return testFunction.should
 		.throw()
-		.and.has.property('message')
-		.which.include(message);
+		.and.be.customError(new FileSystemError(message));
 }
 
 export function itShouldExitWithCode() {
@@ -98,9 +87,7 @@ export function itShouldRejectWithFileSystemErrorAndMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
 	return returnValue.should.be.rejected.then(err => {
-		err.should.be.instanceOf(Error);
-		err.should.have.property('name').which.equal('FileSystemError');
-		return err.should.have.property('message').which.include(message);
+		return err.should.be.customError(new FileSystemError(message));
 	});
 }
 
@@ -108,9 +95,7 @@ export function itShouldRejectWithValidationErrorAndMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
 	return returnValue.should.be.rejected.then(err => {
-		err.should.be.instanceOf(Error);
-		err.should.have.property('name').which.equal('ValidationError');
-		return err.should.have.property('message').which.include(message);
+		return err.should.be.customError(new ValidationError(message));
 	});
 }
 
