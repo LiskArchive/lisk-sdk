@@ -844,22 +844,55 @@ describe('blocks/chain', () => {
 	});
 
 	describe('recoverChain', () => {
-		it('should call logger.warn with warning');
-
-		it('should call self.deleteLastBlock');
-
-		describe('when self.deleteLastBlock fails', () => {
-			it('should call logger.error with "Recovery failed"');
-
-			it('should return callback with error');
+		var deleteLastBlockTemp;
+		beforeEach(() => {
+			deleteLastBlockTemp = blocksChainModule.deleteLastBlock;
+		});
+		afterEach(() => {
+			expect(loggerStub.warn.args[0][0]).to.equal(
+				'Chain comparison failed, starting recovery'
+			);
+			blocksChainModule.deleteLastBlock = deleteLastBlockTemp;
 		});
 
-		describe('when self.deleteLastBlock succeeds', () => {
-			it('should call logger.info with newLastBlock.id');
+		describe('self.deleteLastBlock', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					blocksChainModule.deleteLastBlock = sinonSandbox
+						.stub()
+						.callsArgWith(0, 'deleteLastBlock-ERR', null);
+				});
+				afterEach(() => {
+					expect(loggerStub.error.args[0][0]).to.equal('Recovery failed');
+				});
 
-			it('should call logger.info with "Recovery complete, new last block"');
+				it('should return error', done => {
+					blocksChainModule.recoverChain(err => {
+						expect(err).to.equal('deleteLastBlock-ERR');
+						done();
+					});
+				});
+			});
 
-			it('should call callback with error = null');
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					blocksChainModule.deleteLastBlock = sinonSandbox
+						.stub()
+						.callsArgWith(0, null, { id: 1 });
+				});
+				afterEach(() => {
+					expect(loggerStub.info.args[0][0]).to.equal(
+						'Recovery complete, new last block'
+					);
+					expect(loggerStub.info.args[0][1]).to.equal(1);
+				});
+				it('should call callback with error = null', done => {
+					blocksChainModule.recoverChain(cb => {
+						expect(cb).to.be.null;
+						done();
+					});
+				});
+			});
 		});
 	});
 
