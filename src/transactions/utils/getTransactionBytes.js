@@ -162,9 +162,10 @@ const getTransactionBytes = transaction => {
 	const transactionSenderPublicKey = cryptoModule.hexToBuffer(
 		transaction.senderPublicKey,
 	);
-	const transactionRequesterPublicKey = cryptoModule.hexToBuffer(
-		transaction.requesterPublicKey,
-	);
+
+	const transactionRequesterPublicKey = transaction.requesterPublicKey
+		? cryptoModule.hexToBuffer(transaction.requesterPublicKey)
+		: Buffer.alloc(0);
 
 	const transactionRecipientID = transaction.recipientId
 		? cryptography.bigNumberToBuffer(
@@ -181,12 +182,12 @@ const getTransactionBytes = transaction => {
 	const transactionAssetData = getAssetBytes(transaction);
 
 	const transactionSignature = transaction.signature
-		? Buffer.from(transaction.signature, 'hex')
+		? cryptoModule.hexToBuffer(transaction.signature)
 		: Buffer.alloc(0);
 
-	const transactionSecondSignature = cryptoModule.hexToBuffer(
-		transaction.signSignature,
-	);
+	const transactionSecondSignature = transaction.signSignature
+		? cryptoModule.hexToBuffer(transaction.signSignature)
+		: Buffer.alloc(0);
 
 	return Buffer.concat([
 		transactionType,

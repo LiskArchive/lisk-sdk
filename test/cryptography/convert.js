@@ -65,9 +65,15 @@ describe('convert', () => {
 			const buffer = hexToBuffer(defaultHex);
 			return buffer.should.be.eql(defaultBuffer);
 		});
-		it('should create empty Buffer from non-string', () => {
-			const buffer = hexToBuffer(123);
-			return buffer.should.be.eql(Buffer.alloc(0));
+		it('should throw TypeError with number', () => {
+			return (() => hexToBuffer(123)).should.throw(
+				new TypeError('argument must be string'),
+			);
+		});
+		it('should throw TypeError with object', () => {
+			return (() => hexToBuffer({})).should.throw(
+				new TypeError('argument must be string'),
+			);
 		});
 		it('should create empty Buffer from non hex string', () => {
 			const buffer = hexToBuffer('yKJh');
@@ -75,6 +81,10 @@ describe('convert', () => {
 		});
 		it('should create partial Buffer from partially non hex string', () => {
 			const buffer = hexToBuffer('Abxzzzz');
+			return buffer.should.be.eql(Buffer.from('Ab', 'hex'));
+		});
+		it('should create partial Buffer with only first valid hex string', () => {
+			const buffer = hexToBuffer('Abxzzab');
 			return buffer.should.be.eql(Buffer.from('Ab', 'hex'));
 		});
 		it('should create even numbered Buffer from odd number hex string', () => {
