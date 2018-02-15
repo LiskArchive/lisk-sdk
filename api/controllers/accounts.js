@@ -25,7 +25,7 @@ var modules;
  * Description of the function.
  *
  * @class
- * @memberof api/controllers
+ * @memberof api.controllers
  * @requires lodash
  * @requires helpers/apiError
  * @requires helpers/swagger.generateParamsErrorObject
