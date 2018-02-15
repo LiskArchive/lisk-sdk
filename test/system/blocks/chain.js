@@ -53,18 +53,24 @@ describe('chain', function () {
 			});
 
 			it('should remove block from the database', function (done) {
-				common.getBlocks(library, function (err, blockIds) {
-					expect(blockIds).to.not.include(lastBlock.id);
-					done();
+				library.balancesSequence.add(function (balanceSequenceCb) {
+					common.getBlocks(library, function (err, blockIds) {
+						expect(blockIds).to.not.include(lastBlock.id);
+						balanceSequenceCb();
+						done();
+					});
 				});
 			});
 
 			it('should set the last block to genesisblock', function (done) {
-				common.getBlocks(library, function (err, blockIds) {
-					expect(blockIds.length).to.equal(1);
-					expect(blockIds).to.include(genesisBlock.id);
-					expect(library.modules.blocks.lastBlock.get().id).eql(genesisBlock.id);
-					done();
+				library.balancesSequence.add(function (balanceSequenceCb) {
+					common.getBlocks(library, function (err, blockIds) {
+						expect(blockIds.length).to.equal(1);
+						expect(blockIds).to.include(genesisBlock.id);
+						expect(library.modules.blocks.lastBlock.get().id).eql(genesisBlock.id);
+						balanceSequenceCb();
+						done();
+					});
 				});
 			});
 
