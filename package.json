@@ -35,10 +35,9 @@
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
 		"docs:serve": "./node_modules/.bin/http-server docs/jsdoc/",
 		"precommit": "lint-staged",
-		"prepush": "npm run lint",
 		"check:dependencies": "./node_modules/.bin/snyk protect",
-		"prepublishOnly": "npm run check:dependencies",
-		"postinstall": "npm run check:dependencies"
+		"prepush": "npm run lint && npm run check:dependencies",
+		"prepublishOnly": "npm run check:dependencies"
 	},
 	"dependencies": {
 		"async": "=2.4.1",
