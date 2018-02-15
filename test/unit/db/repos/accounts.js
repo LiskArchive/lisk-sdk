@@ -856,40 +856,6 @@ describe('db', () => {
 						});
 				});
 
-				describe('property names', () => {
-					it('should return "producedBlocks" column if "producedBlocks" is asked', () => {
-						let actualResult;
-
-						return db.accounts.list({}, ['producedBlocks']).then(data => {
-							actualResult = data;
-
-							return db
-								.query(
-									'SELECT producedblocks::bigint AS "producedBlocks" FROM mem_accounts'
-								)
-								.then(result => {
-									expect(actualResult).to.eql(result);
-								});
-						});
-					});
-
-					it('should return "missedBlocks" column if "missedBlocks" is asked', () => {
-						let actualResult;
-
-						return db.accounts.list({}, ['missedBlocks']).then(data => {
-							actualResult = data;
-
-							return db
-								.query(
-									'SELECT missedblocks::bigint AS "missedBlocks" FROM mem_accounts'
-								)
-								.then(result => {
-									expect(actualResult).to.eql(result);
-								});
-						});
-					});
-				});
-
 				describe('dynamic fields', () => {
 					it('should fetch "rank" based on query \'(SELECT m.row_number FROM (SELECT row_number() OVER (ORDER BY r."vote" DESC, r."publicKey" ASC), address FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address FROM mem_accounts AS d WHERE d."isDelegate" = 1) AS r) m WHERE m."address" = "mem_accounts"."address")::int\'', () => {
 						let actualResult;
