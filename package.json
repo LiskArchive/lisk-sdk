@@ -4,7 +4,7 @@
 	"description": "JavaScript library for sending Lisk transactions from the client or server",
 	"main": "./dist-node/index.js",
 	"engines": {
-		"node": ">=6 <=9",
+		"node": ">=6.3 <=9",
 		"npm": ">=3 <=5"
 	},
 	"scripts": {
