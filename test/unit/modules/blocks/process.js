@@ -17,7 +17,6 @@
 
 var rewire = require('rewire');
 var Promise = require('bluebird');
-var modulesLoader = require('../../../common/modules_loader');
 
 var BlocksProcess = rewire('../../../../modules/blocks/process.js');
 
@@ -34,6 +33,9 @@ describe('blocks/process', () => {
 	var transactionStub;
 	var peersStub;
 	var schemaStub;
+	var dbSequenceStub;
+	var sequenceStub;
+	var genesisblockStub;
 	var modulesStub;
 	var definitions;
 
@@ -111,7 +113,20 @@ describe('blocks/process', () => {
 		schemaStub = {
 			validate: sinonSandbox.stub(),
 		};
-
+		dbSequenceStub = {
+			add: (cb, cbp) => {
+				cb(cbp);
+			},
+		};
+		sequenceStub = {
+			add: sinonSandbox.stub(),
+		};
+		genesisblockStub = {
+			block: {
+				id: '6524861224470851795',
+				height: 1,
+			},
+		};
 		blocksProcessModule = new BlocksProcess(
 			loggerStub,
 			blockStub,
@@ -119,9 +134,9 @@ describe('blocks/process', () => {
 			transactionStub,
 			schemaStub,
 			dbStub,
-			modulesLoader.scope.dbSequence,
-			modulesLoader.scope.sequence,
-			modulesLoader.scope.genesisblock
+			dbSequenceStub,
+			sequenceStub,
+			genesisblockStub
 		);
 		library = BlocksProcess.__get__('library');
 		__private = BlocksProcess.__get__('__private');
@@ -212,9 +227,9 @@ describe('blocks/process', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.schema).to.eql(schemaStub);
 			expect(library.db).to.eql(dbStub);
-			expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
-			expect(library.sequence).to.eql(modulesLoader.scope.sequence);
-			expect(library.genesisblock).to.eql(modulesLoader.scope.genesisblock);
+			expect(library.dbSequence).to.eql(dbSequenceStub);
+			expect(library.sequence).to.eql(sequenceStub);
+			expect(library.genesisblock).to.eql(genesisblockStub);
 			expect(library.logic.block).to.eql(blockStub);
 			expect(library.logic.peers).to.eql(peersStub);
 			expect(library.logic.transaction).to.eql(transactionStub);
