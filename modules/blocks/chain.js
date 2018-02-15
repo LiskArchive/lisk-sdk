@@ -587,29 +587,31 @@ Chain.prototype.deleteLastBlock = function (cb) {
 
 	async.waterfall(
 		[
-			function (waterCb) {
+			function popLastBlock (waterCb) {
 				// Delete last block, replace last block with previous block, undo things
 				__private.popLastBlock(lastBlock, function (err, newLastBlock) {
 					if (err) {
 						library.logger.error('Error deleting last block', lastBlock);
 					} else {
 						// Replace last block with previous
-						lastBlock = modules.blocks.lastBlock.set(newLastBlock);
+						modules.blocks.lastBlock.set(newLastBlock);
 					}
-					return setImmediate(waterCb, err, lastBlock);
+					return setImmediate(waterCb, err, newLastBlock);
 				});
 			},
-			function (newLastBlock, waterCb) {
-				modules.transactions.receiveTransactions(
-					lastBlock.transactions.reverse(),
-					false,
-					function (err) {
-						if (err) {
-							library.logger.error('Error receiving transactions after deleting block', err);
-						}
-						return setImmediate(waterCb, null, lastBlock);
+			function receiveTransactionsFromDeletedBlock (newLastBlock, waterCb) {
+				library.balancesSequence.add(function (balanceSequenceCb) {
+					modules.transactions.receiveTransactions(
+						lastBlock.transactions.reverse(),
+						false,
+						balanceSequenceCb
+					);
+				}, function (err) {
+					if (err) {
+						library.logger.error('Error receiving transactions after deleting block', err);
 					}
-				);
+					return setImmediate(waterCb, null, newLastBlock);
+				});
 			}
 		],
 		cb
