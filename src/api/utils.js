@@ -12,41 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	LIVE_PORT,
-	SSL_PORT,
-	TEST_PORT,
-	TESTNET_NETHASH,
-	MAINNET_NETHASH,
-} from 'constants';
+export const toQueryString = obj => {
+	const parts = Object.entries(obj).reduce(
+		(accumulator, [key, value]) => [
+			...accumulator,
+			`${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+		],
+		[],
+	);
 
-export const getDefaultPort = (testnet, ssl) => {
-	if (testnet) {
-		return TEST_PORT;
-	}
-	if (ssl) {
-		return SSL_PORT;
-	}
-	return LIVE_PORT;
+	return parts.join('&');
 };
 
-export const getDefaultHeaders = (port, testnet) => {
-	const commonNethash = {
-		'Content-Type': 'application/json',
-		os: 'lisk-js-api',
-		version: '1.0.0',
-		minVersion: '>=0.5.0',
-		port,
-		Accept: 'application/json',
-	};
-	if (testnet) {
-		return Object.assign({}, commonNethash, {
-			nethash: TESTNET_NETHASH,
-			broadhash: TESTNET_NETHASH,
-		});
+const urlParamRegex = /{[^}]+}/i;
+export const solveURLParams = (url, params) => {
+	if (!params || Object.keys(params).length === 0) {
+		if (url.match(urlParamRegex)) {
+			throw Error('URL is not completely solved');
+		}
+		return url;
 	}
-	return Object.assign({}, commonNethash, {
-		nethash: MAINNET_NETHASH,
-		broadhash: MAINNET_NETHASH,
+	let solvedURL = url;
+	Object.keys(params).forEach(key => {
+		solvedURL = solvedURL.replace(`{${key}}`, params[key]);
 	});
+	if (solvedURL.match(urlParamRegex)) {
+		throw Error('URL is not completely solved');
+	}
+	return encodeURI(solvedURL);
 };

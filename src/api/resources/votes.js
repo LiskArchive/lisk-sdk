@@ -12,18 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import naclFactory from 'js-nacl';
-import api from './api';
-import cryptography from './cryptography';
-import passphrase from './passphrase';
-import * as time from './transactions/utils/time';
-import transaction from './transactions';
 
-global.naclFactory = naclFactory;
+import { GET } from 'constants';
+import apiMethod from '../apiMethod';
+import APIResource from '../apiResource';
 
-global.naclInstance = null;
-naclFactory.instantiate(nacl => {
-	naclInstance = nacl;
-});
+export default class VoteResource extends APIResource {
+	constructor(liskAPI) {
+		super(liskAPI);
+		this.path = '/votes';
 
-export default { cryptography, transaction, api, time, passphrase };
+		this.get = apiMethod({
+			method: GET,
+		}).bind(this);
+	}
+}

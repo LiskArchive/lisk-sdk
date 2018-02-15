@@ -14,72 +14,58 @@
  */
 const utils = require('api/utils');
 
-describe('api utils module', () => {
-	const mainnetHash =
-		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
-	const testnetHash =
-		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
-	const livePort = '8000';
-	const testPort = '7000';
-	const sslPort = '443';
+const defaultURL = 'http://localhost:8080/api/resources';
 
-	describe('#getDefaultPort', () => {
-		it('should return testnet port when testport is true and ssl is false', () => {
-			const port = utils.getDefaultPort(true, false);
-			port.should.be.type('string').and.equal(testPort);
+describe('api utils module', () => {
+	describe('#toQueryString', () => {
+		it('should create a query string from an object', () => {
+			const queryString = utils.toQueryString({
+				key1: 'value1',
+				key2: 'value2',
+				key3: 'value3',
+			});
+			return queryString.should.be.equal('key1=value1&key2=value2&key3=value3');
 		});
-		it('should return testnet port when testport and ssl is true', () => {
-			const port = utils.getDefaultPort(true, true);
-			port.should.be.type('string').and.equal(testPort);
-		});
-		it('should return ssl port', () => {
-			const port = utils.getDefaultPort(false, true);
-			port.should.be.type('string').and.equal(sslPort);
-		});
-		it('should return live port', () => {
-			const port = utils.getDefaultPort(false, false);
-			port.should.be.type('string').and.equal(livePort);
+
+		it('should escape invalid special characters', () => {
+			const queryString = utils.toQueryString({
+				'key:/;?': 'value:/;?',
+			});
+			return queryString.should.be.equal('key%3A%2F%3B%3F=value%3A%2F%3B%3F');
 		});
 	});
 
-	describe('#getDefaultHeaders', () => {
-		it('should return testnet headers', () => {
-			const header = utils.getDefaultHeaders(8080, true);
-			header.should.have.property('Content-Type').and.be.type('string');
-			header.should.have
-				.property('nethash')
-				.and.be.type('string')
-				.and.equal(testnetHash);
-			header.should.have
-				.property('broadhash')
-				.and.be.type('string')
-				.and.equal(testnetHash);
-			header.should.have.property('os').and.be.type('string');
-			header.should.have.property('version').and.be.type('string');
-			header.should.have.property('minVersion').and.be.type('string');
-			return header.should.have
-				.property('port')
-				.and.be.type('number')
-				.and.equal(8080);
+	describe('#solveURLParams', () => {
+		it('should return original URL with no param', () => {
+			const solvedURL = utils.solveURLParams(defaultURL);
+			return solvedURL.should.be.equal(defaultURL);
 		});
-		it('should return mainnet headers', () => {
-			const header = utils.getDefaultHeaders(8080, false);
-			header.should.have.property('Content-Type').and.be.type('string');
-			header.should.have
-				.property('nethash')
-				.and.be.type('string')
-				.and.equal(mainnetHash);
-			header.should.have
-				.property('broadhash')
-				.and.be.type('string')
-				.and.equal(mainnetHash);
-			header.should.have.property('os').and.be.type('string');
-			header.should.have.property('version').and.be.type('string');
-			header.should.have.property('minVersion').and.be.type('string');
-			return header.should.have
-				.property('port')
-				.and.be.type('number')
-				.and.equal(8080);
+
+		it('should throw error if url has variable but no param', () => {
+			const fn = () => utils.solveURLParams(`${defaultURL}/{id}`);
+			return fn.should.throw(Error('URL is not completely solved'));
+		});
+
+		it('should throw error if url has variable but not matching params', () => {
+			const fn = () =>
+				utils.solveURLParams(`${defaultURL}/{id}`, { accountId: '123' });
+			return fn.should.throw(Error('URL is not completely solved'));
+		});
+
+		it('should replace variable with correct id', () => {
+			const solvedURL = utils.solveURLParams(`${defaultURL}/{id}`, {
+				id: '456',
+				accountId: '123',
+			});
+			return solvedURL.should.be.equal(`${defaultURL}/456`);
+		});
+
+		it('should replace variable with correct id and encode special characters', () => {
+			const solvedURL = utils.solveURLParams(`${defaultURL}/{id}`, {
+				id: '456ß1234sd',
+				accountId: '123',
+			});
+			return solvedURL.should.be.equal(`${defaultURL}/456%C3%9F1234sd`);
 		});
 	});
 });

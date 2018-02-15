@@ -12,18 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import naclFactory from 'js-nacl';
-import api from './api';
-import cryptography from './cryptography';
-import passphrase from './passphrase';
-import * as time from './transactions/utils/time';
-import transaction from './transactions';
 
-global.naclFactory = naclFactory;
-
-global.naclInstance = null;
-naclFactory.instantiate(nacl => {
-	naclInstance = nacl;
-});
-
-export default { cryptography, transaction, api, time, passphrase };
+export { default as AccountResource } from './accounts';
+export { default as BlockResource } from './blocks';
+export { default as DappResource } from './dapps';
+export { default as DelegateResource } from './delegates';
+export { default as SignatureResource } from './signatures';
+export { default as TransactionResource } from './transactions';
+export { default as VoterResource } from './voters';
+export { default as VoteResource } from './votes';
