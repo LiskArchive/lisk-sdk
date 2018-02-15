@@ -29,7 +29,7 @@ describe('chain', function () {
 
 		var transactions;
 
-		before('forge a block with 25 transaction', function (done) {
+		before('forge a block with 25 transactions', function (done) {
 			transactions = _.range(25).map(function () {
 				var account = node.randomAccount();
 				return node.lisk.transaction.createTransaction(account.address, 1000000000*100, node.gAccount.password);
@@ -62,7 +62,7 @@ describe('chain', function () {
 				});
 			});
 
-			it('should set the last block to genesisblock', function (done) {
+			it('should set the last block to genesis block', function (done) {
 				library.balancesSequence.add(function (balanceSequenceCb) {
 					common.getBlocks(library, function (err, blockIds) {
 						expect(blockIds.length).to.equal(1);
