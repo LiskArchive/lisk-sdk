@@ -1834,13 +1834,12 @@ describe('blocks/process', () => {
 					library.logic.block.create.throws('block-create-ERR');
 				});
 
-				it('should throws error', done => {
+				it('should call a callback with error', done => {
 					blocksProcessModule.generateBlock(
 						{ publicKey: '123abc', privateKey: 'aaa' },
 						41287231,
-						(err, cb) => {
+						err => {
 							expect(err.name).to.equal('block-create-ERR');
-							expect(cb).to.be.undefined;
 							expect(loggerStub.error.args[0][0]).to.contains(
 								'block-create-ERR'
 							);
@@ -1865,9 +1864,8 @@ describe('blocks/process', () => {
 							blocksProcessModule.generateBlock(
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
-								(err, cb) => {
+								err => {
 									expect(err).to.equal('verify.processBlock-ERR');
-									expect(cb).to.be.null;
 									done();
 								}
 							);
@@ -1879,9 +1877,14 @@ describe('blocks/process', () => {
 							blocksProcessModule.generateBlock(
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
-								(err, cb) => {
+								err => {
 									expect(err).to.be.null;
-									expect(cb[0][0].transactions.length).to.equal(2);
+									expect(modules.blocks.verify.processBlock.calledOnce).to.be
+										.true;
+									expect(
+										modules.blocks.verify.processBlock.args[0][0].transactions
+											.length
+									).to.equal(2);
 									done();
 								}
 							);
