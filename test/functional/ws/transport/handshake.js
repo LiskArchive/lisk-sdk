@@ -86,7 +86,7 @@ describe('handshake', () => {
 		test.timeout(1000);
 	}
 
-	beforeEach(() => {
+	beforeEach(done => {
 		validClientSocketOptions = {
 			protocol: 'http',
 			hostname: '127.0.0.1',
@@ -96,10 +96,11 @@ describe('handshake', () => {
 		connectAbortStub = sinonSandbox.spy();
 		disconnectStub = sinonSandbox.spy();
 		errorStub = sinonSandbox.spy();
+		done();
 	});
 
 	afterEach(() => {
-		disconnect();
+		return disconnect();
 	});
 
 	describe('with invalid headers', () => {
@@ -175,27 +176,30 @@ describe('handshake', () => {
 		before(() => {
 			originalPort = wsServer.options.wsPort;
 			wsServer.options.wsPort = wsServerPort;
-			wsServer.start();
+			return wsServer.start();
 		});
 
-		after(() => {
+		after(done => {
 			wsServer.stop();
 			wsServer.options.wsPort = originalPort;
+			done();
 		});
 
-		beforeEach(() => {
+		beforeEach(done => {
 			/**
 			 * Change of state
 			 * from: not present nonce, not present connectionId, present on master
 			 * to: present nonce, present connectionId, present on master
 			 */
 			validClientSocketOptions.query.nonce = randomstring.generate(16);
+			done();
 		});
 
 		describe('when present on master', () => {
 			describe('when nonce is not present', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					validClientSocketOptions.query.nonce = randomstring.generate(16);
+					done();
 				});
 
 				it('should succeed when connectionId is present', function(done) {
@@ -212,8 +216,9 @@ describe('handshake', () => {
 			});
 
 			describe('when nonce is present', () => {
-				it('should succeed when connectionId is present', () => {
+				it('should succeed when connectionId is present', done => {
 					// Impossible to recreate
+					done();
 				});
 
 				it('should succeed when connectionId is not present', function(done) {
@@ -247,13 +252,13 @@ describe('handshake', () => {
 			});
 
 			afterEach(() => {
-				disconnect();
+				return disconnect();
 			});
 
 			describe('when nonce is not present', () => {
 				beforeEach(() => {
 					validClientSocketOptions.query.nonce = randomstring.generate(16);
-					disconnect();
+					return disconnect();
 				});
 
 				it('should succeed when connectionId is present', function(done) {
@@ -270,7 +275,7 @@ describe('handshake', () => {
 
 			describe('when nonce is present', () => {
 				beforeEach(() => {
-					disconnect();
+					return disconnect();
 				});
 
 				it('should succeed when connectionId is present', function(done) {
