@@ -84,25 +84,27 @@ Signatures.prototype.onBind = function(scope) {
 	__private.assetTypes[transactionTypes.SIGNATURE].bind(scope.accounts);
 };
 
-__private.processPostResult = function(res, cb) {
+__private.processPostResult = function(err, res, cb) {
+	var error = null;
+	var response = null;
+
+	// TODO: Need to improve error handling so that we don't
+	// need to parse the error message to determine the error type.
 	var processingError = /(error|processing)/gi;
 	var badRequestBodyError = /(invalid|signature)/gi;
 
-	if (res.success === false) {
-		if (processingError.exec(res.message).length === 2) {
-			return setImmediate(
-				cb,
-				new ApiError(res.message, apiCodes.PROCESSING_ERROR)
-			);
-		} else if (badRequestBodyError.exec(res.message).length === 2) {
-			return setImmediate(cb, new ApiError(res.message, apiCodes.BAD_REQUEST));
-		}
-		return setImmediate(
-			cb,
-			new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR)
-		);
+	if (err) {
+		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
+	} else if (res.success) {
+		response = { status: 'Signature Accepted' };
+	} else if (processingError.exec(res.message).length === 2) {
+		error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
+	} else if (badRequestBodyError.exec(res.message).length === 2) {
+		error = new ApiError(res.message, apiCodes.BAD_REQUEST);
+	} else {
+		error = new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR);
 	}
-	return setImmediate(cb, null, { status: 'Signature Accepted' });
+	return setImmediate(cb, error, response);
 };
 
 // Shared API
@@ -118,7 +120,7 @@ Signatures.prototype.shared = {
 	 */
 	postSignature(signature, cb) {
 		return modules.transport.shared.postSignature({ signature }, (err, res) => {
-			__private.processPostResult(res, cb);
+			__private.processPostResult(err, res, cb);
 		});
 	},
 
@@ -132,7 +134,7 @@ Signatures.prototype.shared = {
 		return modules.transport.shared.postSignatures(
 			{ signatures },
 			(err, res) => {
-				__private.processPostResult(res, cb);
+				__private.processPostResult(err, res, cb);
 			}
 		);
 	},

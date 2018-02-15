@@ -16,6 +16,7 @@
 
 require('../../functional.js');
 var lisk = require('lisk-js');
+var phases = require('../../common/phases');
 var ws = require('../../../common/ws/communication');
 var randomUtil = require('../../../common/utils/random');
 var normalizeTransactionObject = require('../../../common/helpers/api')
@@ -39,10 +40,13 @@ describe('Posting transaction (type 0)', () => {
 	var transaction;
 	var error;
 	var response;
+	var goodTransactions = [];
+	var badTransactions = [];
 
-	beforeEach(() => {
+	beforeEach(done => {
 		account = randomUtil.account();
 		transaction = randomUtil.transaction();
+		done();
 	});
 
 	describe('when sender has no funds for a transaction in batch', () => {
@@ -63,8 +67,9 @@ describe('Posting transaction (type 0)', () => {
 		// an error message if one of the transactions in the batch fails.
 		// Either the peer acknowledges the receipt of the batch or their don't.
 		it('operation should succeed', () => {
+			badTransactions.push(transaction);
 			expect(error).to.be.null;
-			expect(response).to.have.property('success').to.be.ok;
+			return expect(response).to.have.property('success').to.be.ok;
 		});
 	});
 
@@ -78,8 +83,13 @@ describe('Posting transaction (type 0)', () => {
 		});
 
 		it('operation should succeed', () => {
+			goodTransactions.push(transaction);
 			expect(error).to.be.null;
-			expect(response).to.have.property('success').to.be.ok;
+			return expect(response).to.have.property('success').to.be.ok;
 		});
+	});
+
+	describe('confirmation', () => {
+		phases.confirmation(goodTransactions, badTransactions);
 	});
 });

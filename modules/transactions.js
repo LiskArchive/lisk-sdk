@@ -643,14 +643,10 @@ __private.processPostResult = function(err, res, cb) {
 
 	if (err) {
 		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
-	}
-
-	if (res.success == false) {
-		error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
-	}
-
-	if (res.success == true) {
+	} else if (res.success) {
 		response = 'Transaction(s) accepted';
+	} else {
+		error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
 	}
 
 	setImmediate(cb, error, response);

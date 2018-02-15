@@ -337,12 +337,13 @@ describe('transport', () => {
 						expect(__private.receiveSignature.calledTwice).to.be.true;
 						expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_1)).to
 							.be.true;
-						expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2)).to
-							.be.true;
+						return expect(
+							__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2)
+						).to.be.true;
 					});
 
 					it('should call callback with error null', () => {
-						expect(error).to.equal(null);
+						return expect(error).to.equal(null);
 					});
 				});
 
@@ -374,7 +375,7 @@ describe('transport', () => {
 								SAMPLE_SIGNATURE_1
 							)
 						).to.be.true;
-						expect(
+						return expect(
 							library.logger.debug.calledWith(
 								receiveSignatureError,
 								SAMPLE_SIGNATURE_2
@@ -383,7 +384,7 @@ describe('transport', () => {
 					});
 
 					it('should call callback with error set to null', () => {
-						expect(error).to.equal(null);
+						return expect(error).to.equal(null);
 					});
 				});
 			});
@@ -537,7 +538,7 @@ describe('transport', () => {
 					// If a single transaction within the batch fails, it is not going to
 					// send back an error.
 					it('should call callback with null error', () => {
-						expect(error).to.equal(null);
+						return expect(error).to.equal(null);
 					});
 				});
 
@@ -558,13 +559,13 @@ describe('transport', () => {
 						});
 
 						it('should set transaction.bundled = true', () => {
-							expect(transactions[0])
+							return expect(transactions[0])
 								.to.have.property('bundled')
 								.which.equals(true);
 						});
 
 						it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', () => {
-							expect(
+							return expect(
 								__private.receiveTransaction.calledWith(
 									transactions[0],
 									peerStub,
@@ -574,7 +575,7 @@ describe('transport', () => {
 						});
 
 						it('should call callback with error = null', () => {
-							expect(error).to.equal(null);
+							return expect(error).to.equal(null);
 						});
 					});
 
@@ -600,7 +601,7 @@ describe('transport', () => {
 						});
 
 						it('should call library.logger.debug with error and transaction', () => {
-							expect(
+							return expect(
 								library.logger.debug.calledWith(
 									receiveTransactionError,
 									transactions[0]
@@ -611,7 +612,7 @@ describe('transport', () => {
 						// If a single transaction within the batch fails, it is not going to
 						// send back an error.
 						it('should call callback with null error', () => {
-							expect(error).to.equal(null);
+							return expect(error).to.equal(null);
 						});
 					});
 				});

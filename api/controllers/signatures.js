@@ -49,10 +49,8 @@ SignaturesController.postSignature = function(context, next) {
 				context.statusCode = err.code;
 				delete err.code;
 			}
-
 			return next(err);
 		}
-
 		next(null, {
 			data: { message: data.status },
 			meta: { status: true },
