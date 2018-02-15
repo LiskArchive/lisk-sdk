@@ -27,12 +27,12 @@ export function itShouldSignTheMessageWithThePassphrase() {
 
 export function itShouldResolveToTheResultOfSigningTheMessage() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(cryptoResult);
+	return returnValue.should.eventually.eql(cryptoResult);
 }
 
 export function itShouldResolveToTheResultOfDecryptingThePassphrase() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(cryptoResult);
+	return returnValue.should.eventually.eql(cryptoResult);
 }
 
 export function itShouldDecryptThePassphraseUsingTheIVAndThePassword() {
@@ -46,7 +46,7 @@ export function itShouldDecryptThePassphraseUsingTheIVAndThePassword() {
 
 export function itShouldResolveToTheResultOfEncryptingThePassphraseCombinedWithThePublicKey() {
 	const { returnValue, cryptoResult, publicKey } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(
+	return returnValue.should.eventually.eql(
 		Object.assign({}, cryptoResult, { publicKey }),
 	);
 }
@@ -61,7 +61,7 @@ export function itShouldEncryptThePassphraseUsingThePassword() {
 
 export function itShouldResolveToTheResultOfEncryptingThePassphrase() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(cryptoResult);
+	return returnValue.should.eventually.eql(cryptoResult);
 }
 
 export function itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey() {
@@ -76,7 +76,7 @@ export function itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderP
 
 export function itShouldResolveToTheResultOfDecryptingTheMessage() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(cryptoResult);
+	return returnValue.should.eventually.eql(cryptoResult);
 }
 
 export function itShouldEncryptTheMessageWithThePassphraseForTheRecipient() {
@@ -90,7 +90,7 @@ export function itShouldEncryptTheMessageWithThePassphraseForTheRecipient() {
 
 export function itShouldResolveToTheResultOfEncryptingTheMessage() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(cryptoResult);
+	return returnValue.should.eventually.eql(cryptoResult);
 }
 
 export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
@@ -105,7 +105,7 @@ export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheA
 		publicKey,
 		address,
 	};
-	return returnValue.should.be.eventually.eql(expectedObject);
+	return returnValue.should.eventually.eql(expectedObject);
 }
 
 export function theSignatureShouldBeReturned() {
@@ -215,12 +215,12 @@ export function theDecryptedMessageShouldBeReturned() {
 
 export function itShouldResolveToThePassphrase() {
 	const { returnValue, passphrase } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(passphrase);
+	return returnValue.should.eventually.eql(passphrase);
 }
 
 export function itShouldReturnAnObjectWithThePassphrase() {
 	const { returnValue, passphrase } = this.test.ctx;
-	return returnValue.should.be.eventually.eql({
+	return returnValue.should.eventually.eql({
 		passphrase,
 		secondPassphrase: null,
 		password: null,
@@ -230,7 +230,7 @@ export function itShouldReturnAnObjectWithThePassphrase() {
 
 export function itShouldReturnAnObjectWithTheSecondPassphrase() {
 	const { returnValue, secondPassphrase } = this.test.ctx;
-	return returnValue.should.be.eventually.eql({
+	return returnValue.should.eventually.eql({
 		passphrase: null,
 		secondPassphrase,
 		password: null,
@@ -240,7 +240,7 @@ export function itShouldReturnAnObjectWithTheSecondPassphrase() {
 
 export function itShouldReturnAnObjectWithThePassword() {
 	const { returnValue, password } = this.test.ctx;
-	return returnValue.should.be.eventually.eql({
+	return returnValue.should.eventually.eql({
 		passphrase: null,
 		secondPassphrase: null,
 		password,
@@ -250,7 +250,7 @@ export function itShouldReturnAnObjectWithThePassword() {
 
 export function itShouldReturnAnObjectWithTheData() {
 	const { returnValue, data } = this.test.ctx;
-	return returnValue.should.be.eventually.eql({
+	return returnValue.should.eventually.eql({
 		passphrase: null,
 		secondPassphrase: null,
 		password: null,
@@ -266,7 +266,7 @@ export function itShouldReturnAnObjectWithThePassphraseTheSecondPassphraseThePas
 		password,
 		data,
 	} = this.test.ctx;
-	return returnValue.should.be.eventually.eql({
+	return returnValue.should.eventually.eql({
 		passphrase,
 		secondPassphrase,
 		password,

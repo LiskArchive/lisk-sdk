@@ -113,7 +113,7 @@ export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassph
 
 export function itShouldResolveToTheCreatedTransaction() {
 	const { returnValue, createdTransaction } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(createdTransaction);
+	return returnValue.should.eventually.eql(createdTransaction);
 }
 
 export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndTheDelegateUsername() {

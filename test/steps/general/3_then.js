@@ -56,7 +56,7 @@ export function itShouldExitWithCode() {
 
 export function itShouldResolveToTheErrorObject() {
 	const { returnValue, errorObject } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(errorObject);
+	return returnValue.should.eventually.eql(errorObject);
 }
 
 export async function itShouldResolveToAnObjectWithMessage() {
@@ -112,7 +112,7 @@ export function itShouldRejectWithTheOriginalRejection() {
 
 export function itShouldReturnAnEmptyObject() {
 	const { returnValue } = this.test.ctx;
-	return returnValue.should.be.eventually.eql({});
+	return returnValue.should.eventually.eql({});
 }
 
 export function itShouldReturnTrue() {
@@ -139,12 +139,12 @@ export function itShouldReturnString() {
 
 export function itShouldResolveToTheOptions() {
 	const { options, returnValue } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(options);
+	return returnValue.should.eventually.eql(options);
 }
 
 export function itShouldResolveToTheDataAsAString() {
 	const { returnValue, data } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(data);
+	return returnValue.should.eventually.eql(data);
 }
 
 export function itShouldReturnAnObjectWithError() {
@@ -157,10 +157,10 @@ export function itShouldReturnAnObjectWithError() {
 
 export function itShouldResolveToTheWarrantyInformation() {
 	const { returnValue, warranty } = this.test.ctx;
-	return returnValue.should.be.eventually.eql({ warranty });
+	return returnValue.should.eventually.eql({ warranty });
 }
 
 export function itShouldResolveToTheCopyrightInformation() {
 	const { returnValue, copyright } = this.test.ctx;
-	return returnValue.should.be.eventually.eql({ copyright });
+	return returnValue.should.eventually.eql({ copyright });
 }

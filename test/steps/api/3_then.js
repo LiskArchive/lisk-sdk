@@ -66,7 +66,7 @@ export function itShouldBroadcastTheTransaction() {
 
 export function itShouldResolveToTheAPIResponse() {
 	const { returnValue, apiResponse } = this.test.ctx;
-	return returnValue.should.be.eventually.eql(apiResponse);
+	return returnValue.should.eventually.eql(apiResponse);
 }
 
 export function theLiskAPIInstanceShouldBeALiskJSAPIInstance() {

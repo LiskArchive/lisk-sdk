@@ -27,32 +27,6 @@ process.env.LISKY_CONFIG_DIR =
 	process.env.LISKY_CONFIG_DIR || `${os.homedir()}/.lisky`;
 
 /* eslint-disable no-underscore-dangle */
-Assertion.addProperty('hexString', function handleAssert() {
-	const actual = this._obj;
-
-	new Assertion(actual).to.be.a('string');
-
-	const expected = Buffer.from(actual, 'hex').toString('hex');
-	this.assert(
-		expected === actual,
-		'expected #{this} to be a hex string',
-		'expected #{this} not to be a hex string',
-	);
-});
-
-Assertion.addProperty('integer', function handleAssert() {
-	const actual = this._obj;
-
-	new Assertion(actual).to.be.a('number');
-
-	const expected = parseInt(actual, 10);
-	this.assert(
-		actual === expected,
-		'expected #{this} to be an integer',
-		'expected #{this} not to be an integer',
-	);
-});
-
 Assertion.addMethod('matchAny', function handleAssert(matcher) {
 	const obj = this._obj;
 
