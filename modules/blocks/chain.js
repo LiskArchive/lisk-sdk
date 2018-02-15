@@ -594,9 +594,9 @@ Chain.prototype.deleteLastBlock = function (cb) {
 						library.logger.error('Error deleting last block', lastBlock);
 					} else {
 						// Replace last block with previous
-						lastBlock = modules.blocks.lastBlock.set(newLastBlock);
+						modules.blocks.lastBlock.set(newLastBlock);
 					}
-					return setImmediate(waterCb, err, lastBlock);
+					return setImmediate(waterCb, err, newLastBlock);
 				});
 			},
 			function (newLastBlock, waterCb) {
@@ -607,7 +607,7 @@ Chain.prototype.deleteLastBlock = function (cb) {
 						if (err) {
 							library.logger.error('Error receiving transactions after deleting block', err);
 						}
-						return setImmediate(waterCb, null, lastBlock);
+						return setImmediate(waterCb, null, newLastBlock);
 					}
 				);
 			}
