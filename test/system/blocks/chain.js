@@ -40,10 +40,16 @@ describe('chain', function () {
 		describe('after deleting last block', function () {
 
 			var lastBlock;
+			var receiveTransactionsSpy;
 
 			before(function (done) {
+				receiveTransactionsSpy = sinon.spy(library.modules.transactions, 'receiveTransactions');
 				lastBlock = library.modules.blocks.lastBlock.get();
 				library.modules.blocks.chain.deleteLastBlock(done);
+			});
+
+			after(function () {
+				receiveTransactionsSpy.restore();
 			});
 
 			it('should remove block from the database', function (done) {
@@ -59,6 +65,13 @@ describe('chain', function () {
 					expect(blockIds).to.include(genesisBlock.id);
 					expect(library.modules.blocks.lastBlock.get().id).eql(genesisBlock.id);
 					done();
+				});
+			});
+
+			it('should call modules.transactions.receiveTransactions with the deleted transactions', function () {
+				var reappliedTransactionIds = _.map(receiveTransactionsSpy.args[0][0], 'id');
+				transactions.map(function (transaction) {
+					expect(reappliedTransactionIds).to.contain(transaction.id);
 				});
 			});
 
