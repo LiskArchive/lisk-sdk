@@ -247,7 +247,7 @@ describe('rounds', () => {
 				round = new Round(_.cloneDeep(scope), db);
 				args = {
 					blockId: scope.block.id,
-					producedblocks: 1,
+					producedBlocks: 1,
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
 				};
@@ -271,7 +271,7 @@ describe('rounds', () => {
 				round = new Round(_.cloneDeep(scope), db);
 				args = {
 					blockId: scope.block.id,
-					producedblocks: -1,
+					producedBlocks: -1,
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
 				};

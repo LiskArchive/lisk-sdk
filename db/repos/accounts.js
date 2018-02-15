@@ -41,20 +41,8 @@ const normalFields = [
 	{ name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists },
 	{ name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists },
 	{ name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists },
-	{
-		name: 'producedblocks',
-		cast: 'bigint',
-		def: '0',
-		prop: 'producedBlocks',
-		skip: ifNotExists,
-	},
-	{
-		name: 'missedblocks',
-		cast: 'bigint',
-		def: '0',
-		prop: 'missedBlocks',
-		skip: ifNotExists,
-	},
+	{ name: 'producedBlocks', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'missedBlocks', cast: 'bigint', def: '0', skip: ifNotExists },
 	{ name: 'username', def: null, skip: ifNotExists },
 	{ name: 'u_username', def: null, skip: ifNotExists },
 	{
@@ -150,7 +138,7 @@ class AccountsRepository {
 	 * @todo Add description for the return value
 	 */
 	getDBFields() {
-		return _.map(this.dbFields, field => field.prop || field.name);
+		return this.dbFields.map(f => f.name);
 	}
 
 	/**
@@ -161,8 +149,8 @@ class AccountsRepository {
 	 */
 	getImmutableFields() {
 		return _.difference(
-			_.map(this.cs.insert.columns, field => field.prop || field.name),
-			_.map(this.cs.update.columns, field => field.prop || field.name)
+			this.cs.insert.columns.map(f => f.name),
+			this.cs.update.columns.map(f => f.name)
 		);
 	}
 
@@ -616,15 +604,15 @@ function Selects(columnSet, fields, pgp) {
 
 		// Select all fields if none is provided
 		if (!fields || !fields.length) {
-			fields = _.map(columnSet.columns, column => column.prop || column.name);
+			fields = columnSet.columns.map(c => c.name);
 		}
 
 		const table = columnSet.table;
 		const selectFields = [];
 
 		columnSet.columns.map(column => {
-			if (fields.includes(column.name) || fields.includes(column.prop)) {
-				const propName = column.prop ? column.prop : column.name;
+			if (fields.includes(column.name)) {
+				const propName = column.name;
 
 				if (column.init) {
 					selectFields.push(

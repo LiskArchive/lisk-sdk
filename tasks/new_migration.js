@@ -25,7 +25,7 @@ module.exports = function(grunt) {
 			name: String(name),
 		};
 
-		if (!migration.name.match(/^[a-z]+$/i)) {
+		if (!migration.name.match(/^[a-z_]+$/i)) {
 			grunt.fail.fatal('Invalid migration name');
 		}
 
@@ -34,7 +34,11 @@ module.exports = function(grunt) {
 		grunt.log.write(`Creating migration file: ${migration.filename}`);
 
 		fs.writeFile(
-			path.join(process.cwd(), './db/sql/init/migrations', migration.filename),
+			path.join(
+				process.cwd(),
+				'./db/sql/migrations/updates',
+				migration.filename
+			),
 			'',
 			err => {
 				if (err) {
