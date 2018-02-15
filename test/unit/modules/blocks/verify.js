@@ -212,11 +212,12 @@ describe('blocks/verify', () => {
 		return db.none('DELETE FROM blocks WHERE height > 1');
 	});
 
-	beforeEach(() => {
+	beforeEach(done => {
 		results = {
 			verified: true,
 			errors: [],
 		};
+		done();
 	});
 
 	after(done => {
@@ -226,7 +227,7 @@ describe('blocks/verify', () => {
 	describe('__private', () => {
 		var privateFunctions;
 		var RewiredVerify;
-		before(() => {
+		before(done => {
 			RewiredVerify = rewire('../../../../modules/blocks/verify.js');
 			var verify = new RewiredVerify(
 				library.logger,
@@ -236,17 +237,19 @@ describe('blocks/verify', () => {
 			);
 			verify.onBind(library.modules);
 			privateFunctions = RewiredVerify.__get__('__private');
+			done();
 		});
 
-		beforeEach(() => {
+		beforeEach(done => {
 			results = {
 				verified: true,
 				errors: [],
 			};
+			done();
 		});
 
 		describe('verifySignature', () => {
-			it('should fail when blockSignature property is not a hex string', () => {
+			it('should fail when blockSignature property is not a hex string', done => {
 				var blockSignature = validBlock.blockSignature;
 				validBlock.blockSignature = 'invalidBlockSignature';
 
@@ -260,9 +263,10 @@ describe('blocks/verify', () => {
 				expect(result.errors[1]).to.equal('Failed to verify block signature');
 
 				validBlock.blockSignature = blockSignature;
+				done();
 			});
 
-			it('should fail when blockSignature property is an invalid hex string', () => {
+			it('should fail when blockSignature property is an invalid hex string', done => {
 				var blockSignature = validBlock.blockSignature;
 				validBlock.blockSignature =
 					'bfaaabdc8612e177f1337d225a8a5af18cf2534f9e41b66c114850aa50ca2ea2621c4b2d34c4a8b62ea7d043e854c8ae3891113543f84f437e9d3c9cb24c0e05';
@@ -275,9 +279,10 @@ describe('blocks/verify', () => {
 				expect(result.errors[0]).to.equal('Failed to verify block signature');
 
 				validBlock.blockSignature = blockSignature;
+				done();
 			});
 
-			it('should fail when generatorPublicKey property is not a hex string', () => {
+			it('should fail when generatorPublicKey property is not a hex string', done => {
 				var generatorPublicKey = validBlock.generatorPublicKey;
 				validBlock.generatorPublicKey = 'invalidBlockSignature';
 
@@ -290,9 +295,10 @@ describe('blocks/verify', () => {
 				expect(result.errors[1]).to.equal('Failed to verify block signature');
 
 				validBlock.generatorPublicKey = generatorPublicKey;
+				done();
 			});
 
-			it('should fail when generatorPublicKey property is an invalid hex string', () => {
+			it('should fail when generatorPublicKey property is an invalid hex string', done => {
 				var generatorPublicKey = validBlock.generatorPublicKey;
 				validBlock.generatorPublicKey =
 					'948b8b509579306694c00db2206ddb1517bfeca2b0dc833ec1c0f81e9644871b';
@@ -305,11 +311,12 @@ describe('blocks/verify', () => {
 				expect(result.errors[0]).to.equal('Failed to verify block signature');
 
 				validBlock.generatorPublicKey = generatorPublicKey;
+				done();
 			});
 		});
 
 		describe('verifyPreviousBlock', () => {
-			it('should fail when previousBlock property is missing', () => {
+			it('should fail when previousBlock property is missing', done => {
 				var previousBlock = validBlock.previousBlock;
 				delete validBlock.previousBlock;
 
@@ -321,11 +328,12 @@ describe('blocks/verify', () => {
 				expect(result.errors[0]).to.equal('Invalid previous block');
 
 				validBlock.previousBlock = previousBlock;
+				done();
 			});
 		});
 
 		describe('verifyVersion', () => {
-			it('should fail when block version != 0', () => {
+			it('should fail when block version != 0', done => {
 				var version = validBlock.version;
 				validBlock.version = 1;
 
@@ -337,11 +345,12 @@ describe('blocks/verify', () => {
 				expect(result.errors[0]).to.equal('Invalid block version');
 
 				validBlock.version = version;
+				done();
 			});
 		});
 
 		describe('verifyReward', () => {
-			it('should fail when block reward is invalid', () => {
+			it('should fail when block reward is invalid', done => {
 				validBlock.reward = 99;
 
 				var result = privateFunctions.verifyReward(validBlock, results);
@@ -354,6 +363,7 @@ describe('blocks/verify', () => {
 				);
 
 				validBlock.reward = 0;
+				done();
 			});
 		});
 
@@ -363,7 +373,7 @@ describe('blocks/verify', () => {
 				validBlock.id = 'invalid-block-id';
 
 				expect(validBlock.id).to.equal(blockId);
-				expect(validBlock.id).to.not.equal('invalid-block-id');
+				return expect(validBlock.id).to.not.equal('invalid-block-id');
 			});
 
 			it('should reset block id when block id is an invalid numeric string value', () => {
@@ -371,7 +381,7 @@ describe('blocks/verify', () => {
 				validBlock.id = '11850828211026019526';
 
 				expect(validBlock.id).to.equal(blockId);
-				expect(validBlock.id).to.not.equal('11850828211026019526');
+				return expect(validBlock.id).to.not.equal('11850828211026019526');
 			});
 
 			it('should reset block id when block id is an invalid integer value', () => {
@@ -379,19 +389,19 @@ describe('blocks/verify', () => {
 				validBlock.id = 11850828211026019526;
 
 				expect(validBlock.id).to.equal(blockId);
-				expect(validBlock.id).to.not.equal(11850828211026019526);
+				return expect(validBlock.id).to.not.equal(11850828211026019526);
 			});
 
 			it('should reset block id when block id is a valid integer value', () => {
 				var blockId = '884740302254229983';
 				validBlock.id = 11850828211026019525;
 				expect(validBlock.id).to.equal(blockId);
-				expect(validBlock.id).to.not.equal(11850828211026019525);
+				return expect(validBlock.id).to.not.equal(11850828211026019525);
 			});
 		});
 
 		describe('verifyPayload', () => {
-			it('should fail when payload length greater than maxPayloadLength constant value', () => {
+			it('should fail when payload length greater than maxPayloadLength constant value', done => {
 				var payloadLength = validBlock.payloadLength;
 				validBlock.payloadLength = 1024 * 1024 * 2;
 
@@ -403,9 +413,10 @@ describe('blocks/verify', () => {
 				expect(result.errors[0]).to.equal('Payload length is too long');
 
 				validBlock.payloadLength = payloadLength;
+				done();
 			});
 
-			it('should fail when transactions length is not equal to numberOfTransactions property', () => {
+			it('should fail when transactions length is not equal to numberOfTransactions property', done => {
 				validBlock.numberOfTransactions = validBlock.transactions.length + 1;
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
@@ -418,9 +429,10 @@ describe('blocks/verify', () => {
 				);
 
 				validBlock.numberOfTransactions = validBlock.transactions.length;
+				done();
 			});
 
-			it('should fail when transactions length greater than maxTxsPerBlock constant value', () => {
+			it('should fail when transactions length greater than maxTxsPerBlock constant value', done => {
 				var transactions = validBlock.transactions;
 				validBlock.transactions = new Array(26);
 				validBlock.numberOfTransactions = validBlock.transactions.length;
@@ -438,9 +450,10 @@ describe('blocks/verify', () => {
 
 				validBlock.transactions = transactions;
 				validBlock.numberOfTransactions = transactions.length;
+				done();
 			});
 
-			it('should fail when a transaction is of an unknown type', () => {
+			it('should fail when a transaction is of an unknown type', done => {
 				var transactionType = validBlock.transactions[0].type;
 				validBlock.transactions[0].type = 555;
 
@@ -455,9 +468,10 @@ describe('blocks/verify', () => {
 				expect(result.errors[1]).to.equal('Invalid payload hash');
 
 				validBlock.transactions[0].type = transactionType;
+				done();
 			});
 
-			it('should fail when a transaction is duplicated', () => {
+			it('should fail when a transaction is duplicated', done => {
 				var secondTransaction = validBlock.transactions[1];
 				validBlock.transactions[1] = validBlock.transactions[0];
 
@@ -473,9 +487,10 @@ describe('blocks/verify', () => {
 				expect(result.errors[2]).to.equal('Invalid total amount');
 
 				validBlock.transactions[1] = secondTransaction;
+				done();
 			});
 
-			it('should fail when payload hash is invalid', () => {
+			it('should fail when payload hash is invalid', done => {
 				var payloadHash = validBlock.payloadHash;
 				validBlock.payloadHash = 'invalidPayloadHash';
 
@@ -487,9 +502,10 @@ describe('blocks/verify', () => {
 				expect(result.errors[0]).to.equal('Invalid payload hash');
 
 				validBlock.payloadHash = payloadHash;
+				done();
 			});
 
-			it('should fail when summed transaction amounts do not match totalAmount property', () => {
+			it('should fail when summed transaction amounts do not match totalAmount property', done => {
 				var totalAmount = validBlock.totalAmount;
 				validBlock.totalAmount = 99;
 
@@ -501,9 +517,10 @@ describe('blocks/verify', () => {
 				expect(result.errors[0]).to.equal('Invalid total amount');
 
 				validBlock.totalAmount = totalAmount;
+				done();
 			});
 
-			it('should fail when summed transaction fees do not match totalFee property', () => {
+			it('should fail when summed transaction fees do not match totalFee property', done => {
 				var totalFee = validBlock.totalFee;
 				validBlock.totalFee = 99;
 
@@ -515,11 +532,12 @@ describe('blocks/verify', () => {
 				expect(result.errors[0]).to.equal('Invalid total fee');
 
 				validBlock.totalFee = totalFee;
+				done();
 			});
 		});
 
 		describe('verifyForkOne', () => {
-			it('should fail when previousBlock value is invalid', () => {
+			it('should fail when previousBlock value is invalid', done => {
 				validBlock.previousBlock = '10937893559311260102';
 
 				var result = privateFunctions.verifyForkOne(
@@ -541,11 +559,12 @@ describe('blocks/verify', () => {
 				);
 
 				validBlock.previousBlock = previousBlock;
+				done();
 			});
 		});
 
 		describe('verifyBlockSlot', () => {
-			it('should fail when block timestamp is less than previousBlock timestamp', () => {
+			it('should fail when block timestamp is less than previousBlock timestamp', done => {
 				var timestamp = validBlock.timestamp;
 				validBlock.timestamp = 32578350;
 
@@ -561,6 +580,7 @@ describe('blocks/verify', () => {
 				expect(result.errors[0]).to.equal('Invalid block timestamp');
 
 				validBlock.timestamp = timestamp;
+				done();
 			});
 		});
 
@@ -568,29 +588,32 @@ describe('blocks/verify', () => {
 			var verifyBlockSlotWindow;
 			var result;
 
-			before(() => {
+			before(done => {
 				verifyBlockSlotWindow = RewiredVerify.__get__(
 					'__private.verifyBlockSlotWindow'
 				);
+				done();
 			});
 
-			beforeEach(() => {
+			beforeEach(done => {
 				result = {
 					errors: [],
 				};
+				done();
 			});
 
 			describe('for current slot number', () => {
 				var dummyBlock;
 
-				before(() => {
+				before(done => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(slots.getSlotNumber()),
 					};
+					done();
 				});
 
 				it('should return empty result.errors array', () => {
-					expect(
+					return expect(
 						verifyBlockSlotWindow(dummyBlock, result).errors
 					).to.have.length(0);
 				});
@@ -601,16 +624,17 @@ describe('blocks/verify', () => {
 			} slots in the past`, () => {
 				var dummyBlock;
 
-				before(() => {
+				before(done => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(
 							slots.getSlotNumber() - constants.blockSlotWindow
 						),
 					};
+					done();
 				});
 
 				it('should return empty result.errors array', () => {
-					expect(
+					return expect(
 						verifyBlockSlotWindow(dummyBlock, result).errors
 					).to.have.length(0);
 				});
@@ -619,14 +643,15 @@ describe('blocks/verify', () => {
 			describe('for slot number in the future', () => {
 				var dummyBlock;
 
-				before(() => {
+				before(done => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(slots.getSlotNumber() + 1),
 					};
+					done();
 				});
 
 				it('should call callback with error = Block slot is in the future ', () => {
-					expect(
+					return expect(
 						verifyBlockSlotWindow(dummyBlock, result).errors
 					).to.include.members(['Block slot is in the future']);
 				});
@@ -636,16 +661,17 @@ describe('blocks/verify', () => {
 				1} slots in the past`, () => {
 				var dummyBlock;
 
-				before(() => {
+				before(done => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(
 							slots.getSlotNumber() - (constants.blockSlotWindow + 1)
 						),
 					};
+					done();
 				});
 
 				it('should call callback with error = Block slot is too old', () => {
-					expect(
+					return expect(
 						verifyBlockSlotWindow(dummyBlock, result).errors
 					).to.include.members(['Block slot is too old']);
 				});
@@ -655,12 +681,13 @@ describe('blocks/verify', () => {
 		describe('onBlockchainReady', () => {
 			var onBlockchainReady;
 
-			before(() => {
+			before(done => {
 				RewiredVerify.__set__('library', {
 					db,
 					logger: library.logger,
 				});
 				onBlockchainReady = RewiredVerify.prototype.onBlockchainReady;
+				done();
 			});
 
 			it('should set the __private.lastNBlockIds variable', () => {
@@ -680,8 +707,9 @@ describe('blocks/verify', () => {
 			describe('with lastNBlockIds', () => {
 				var lastNBlockIds;
 
-				before(() => {
+				before(done => {
 					lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
+					done();
 				});
 
 				describe('when onNewBlock function is called once', () => {
@@ -692,11 +720,11 @@ describe('blocks/verify', () => {
 							id: '123123123',
 						};
 
-						RewiredVerify.prototype.onNewBlock(dummyBlock);
+						return RewiredVerify.prototype.onNewBlock(dummyBlock);
 					});
 
 					it('should include block in lastNBlockIds queue', () => {
-						expect(lastNBlockIds).to.include.members([dummyBlock.id]);
+						return expect(lastNBlockIds).to.include.members([dummyBlock.id]);
 					});
 				});
 
@@ -706,7 +734,7 @@ describe('blocks/verify', () => {
 					var blockIds = [];
 
 					before(() => {
-						_.map(_.range(0, constants.blockSlotWindow), () => {
+						return _.map(_.range(0, constants.blockSlotWindow), () => {
 							var randomId = Math.floor(
 								Math.random() * 100000000000
 							).toString();
@@ -720,7 +748,7 @@ describe('blocks/verify', () => {
 					});
 
 					it('should include blockId in lastNBlockIds queue', () => {
-						expect(lastNBlockIds).to.include.members(blockIds);
+						return expect(lastNBlockIds).to.include.members(blockIds);
 					});
 				});
 
@@ -729,7 +757,7 @@ describe('blocks/verify', () => {
 					var recentNBlockIds;
 					var olderThanNBlockIds;
 
-					before(() => {
+					before(done => {
 						var blockIds = [];
 						_.map(_.range(0, constants.blockSlotWindow * 2), () => {
 							var randomId = Math.floor(
@@ -750,13 +778,14 @@ describe('blocks/verify', () => {
 						olderThanNBlockIds = blockIds.filter((value, index) => {
 							return blockIds.length - 1 - index >= constants.blockSlotWindow;
 						});
+						done();
 					});
 
 					it(`should maintain last ${
 						constants.blockSlotWindow
 					} blockIds in lastNBlockIds queue`, () => {
 						expect(lastNBlockIds).to.include.members(recentNBlockIds);
-						expect(lastNBlockIds).to.not.include.members(olderThanNBlockIds);
+						return expect(lastNBlockIds).to.not.include.members(olderThanNBlockIds);
 					});
 				});
 			});
@@ -769,35 +798,38 @@ describe('blocks/verify', () => {
 				errors: [],
 			};
 
-			before(() => {
+			before(done => {
 				verifyAgainstLastNBlockIds = RewiredVerify.__get__(
 					'__private.verifyAgainstLastNBlockIds'
 				);
+				done();
 			});
 
-			afterEach(() => {
+			afterEach(done => {
 				result = {
 					verified: true,
 					errors: [],
 				};
+				done();
 			});
 
 			describe('when __private.lastNBlockIds', () => {
 				var lastNBlockIds;
 
-				before(() => {
+				before(done => {
 					lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
+					done();
 				});
 
 				describe('contains block id', () => {
 					var dummyBlockId = '123123123123';
 
 					before(() => {
-						lastNBlockIds.push(dummyBlockId);
+						return lastNBlockIds.push(dummyBlockId);
 					});
 
 					it('should return result with error = Block already exists in chain', () => {
-						expect(
+						return expect(
 							verifyAgainstLastNBlockIds({ id: dummyBlockId }, result).errors
 						).to.include.members(['Block already exists in chain']);
 					});
@@ -805,7 +837,7 @@ describe('blocks/verify', () => {
 
 				describe('does not contain block id', () => {
 					it('should return result with no errors', () => {
-						expect(
+						return expect(
 							verifyAgainstLastNBlockIds({ id: '1231231234' }, result).errors
 						).to.have.length(0);
 					});
@@ -939,7 +971,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('normalizeBlock validations', () => {
-			before(() => {
+			before(done => {
 				block2 = createBlock(
 					blocks,
 					blockLogic,
@@ -948,6 +980,7 @@ describe('blocks/verify', () => {
 					[genesisBlock.transactions[0]],
 					genesisBlock
 				);
+				done();
 			});
 
 			it('should fail when timestamp property is missing', done => {

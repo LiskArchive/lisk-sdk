@@ -22,7 +22,7 @@ describe('SlaveToMasterSender', () => {
 	var validNonce;
 	var validCb;
 
-	before(() => {
+	before(done => {
 		slaveWAMPServerMock = {
 			worker: {
 				options: {
@@ -36,18 +36,21 @@ describe('SlaveToMasterSender', () => {
 			'sendToMaster'
 		);
 		slaveToMasterSender = new SlaveToMasterSender(slaveWAMPServerMock);
+		done();
 	});
 
-	beforeEach(() => {
+	beforeEach(done => {
 		validNonce = '0123456789ABCDEF';
 		validCb = sinonSandbox.spy();
+		done();
 	});
 
 	describe('constructor', () => {
-		it('should have slaveWAMPServer assigned', () => {
+		it('should have slaveWAMPServer assigned', done => {
 			expect(slaveToMasterSender)
 				.to.have.property('slaveWAMPServer')
 				.to.equal(slaveWAMPServerMock);
+			done();
 		});
 	});
 
@@ -57,7 +60,7 @@ describe('SlaveToMasterSender', () => {
 		var validPeer;
 		var validUpdateType;
 
-		beforeEach(() => {
+		beforeEach(done => {
 			validProcedureName = 'validProcedureName';
 			validUpdateType = 1;
 			validPeer = {
@@ -68,34 +71,39 @@ describe('SlaveToMasterSender', () => {
 				authKey: slaveWAMPServerMock.worker.options.authKey,
 				updateType: validUpdateType,
 			};
+			done();
 		});
 
 		describe('should call sendToMaster with', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				slaveToMasterSender.send(
 					validProcedureName,
 					validUpdateType,
 					validPeer,
 					validCb
 				);
+				done();
 			});
 
-			it('passed procedure as a first argument', () => {
+			it('passed procedure as a first argument', done => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[0]).equal(
 					validProcedureName
 				);
+				done();
 			});
 
-			it('expected payload as a second argument', () => {
+			it('expected payload as a second argument', done => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[1]).eql(
 					expectedPayload
 				);
+				done();
 			});
 
-			it('nonce as a third argument', () => {
+			it('nonce as a third argument', done => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[2]).equal(
 					validNonce
 				);
+				done();
 			});
 		});
 	});
@@ -103,12 +111,13 @@ describe('SlaveToMasterSender', () => {
 	describe('getPeer', () => {
 		var expectedPayload;
 
-		beforeEach(() => {
+		beforeEach(done => {
 			expectedPayload = {
 				query: {
 					nonce: validNonce,
 				},
 			};
+			done();
 		});
 
 		it('should return an error received from master', done => {
@@ -145,26 +154,30 @@ describe('SlaveToMasterSender', () => {
 		});
 
 		describe('should call sendToMaster with', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				slaveToMasterSender.getPeer(validNonce, validCb);
+				done();
 			});
 
-			it('list a first argument', () => {
+			it('list a first argument', done => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[0]).equal(
 					'list'
 				);
+				done();
 			});
 
-			it('expected payload as a second argument', () => {
+			it('expected payload as a second argument', done => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[1]).eql(
 					expectedPayload
 				);
+				done();
 			});
 
-			it('nonce as a third argument', () => {
+			it('nonce as a third argument', done => {
 				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[2]).equal(
 					validNonce
 				);
+				done();
 			});
 		});
 	});

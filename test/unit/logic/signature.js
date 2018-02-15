@@ -114,7 +114,7 @@ describe('signature', () => {
 
 	afterEach(() => {
 		transactionMock.restore();
-		accountsMock.setAccountAndGet.reset();
+		return accountsMock.setAccountAndGet.reset();
 	});
 
 	describe('with transaction and sender objects', () => {
@@ -122,26 +122,28 @@ describe('signature', () => {
 		var rawTransaction;
 		var sender;
 
-		beforeEach(() => {
+		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
 			rawTransaction = _.cloneDeep(rawValidTransaction);
 			sender = _.cloneDeep(validSender);
+			done();
 		});
 
 		describe('constructor', () => {
 			var library;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger);
 				library = Signature.__get__('library');
+				done();
 			});
 
 			it('should attach schema to library variable', () => {
-				expect(library.schema).to.eql(modulesLoader.scope.schema);
+				return expect(library.schema).to.eql(modulesLoader.scope.schema);
 			});
 
 			it('should attach logger to library variable', () => {
-				expect(library.logger).to.eql(modulesLoader.scope.logger);
+				return expect(library.logger).to.eql(modulesLoader.scope.logger);
 			});
 		});
 
@@ -150,7 +152,7 @@ describe('signature', () => {
 				it('should assign accounts', () => {
 					signature.bind(accountsMock);
 					var modules = Signature.__get__('modules');
-					expect(modules).to.eql({
+					return expect(modules).to.eql({
 						accounts: accountsMock,
 					});
 				});
@@ -160,12 +162,13 @@ describe('signature', () => {
 		describe('calculateFee', () => {
 			var fee;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				fee = signature.calculateFee.call(transactionMock, transaction);
+				done();
 			});
 
 			it('should return constants.fees.secondSignature', () => {
-				expect(fee).to.equal(constants.fees.secondSignature);
+				return expect(fee).to.equal(constants.fees.secondSignature);
 			});
 		});
 
@@ -252,22 +255,23 @@ describe('signature', () => {
 				describe('when transaction.asset.signature.publicKey is a number', () => {
 					var validNumber = 1;
 
-					beforeEach(() => {
+					beforeEach(done => {
 						transaction.asset.signature.publicKey = validNumber;
+						done();
 					});
 
 					it('should throw', () => {
-						expect(signature.getBytes.bind(transaction)).to.throw();
+						return expect(signature.getBytes.bind(transaction)).to.throw();
 					});
 				});
 
 				describe('when transaction.asset = undefined', () => {
 					beforeEach(() => {
-						delete transaction.asset;
+						return delete transaction.asset;
 					});
 
 					it('should throw', () => {
-						expect(signature.getBytes.bind(transaction)).to.throw();
+						return expect(signature.getBytes.bind(transaction)).to.throw();
 					});
 				});
 			});
@@ -276,18 +280,19 @@ describe('signature', () => {
 				describe('when transaction.asset.signature.publicKey is defined', () => {
 					var signatureBytes;
 
-					beforeEach(() => {
+					beforeEach(done => {
 						signatureBytes = signature.getBytes(transaction);
+						done();
 					});
 
 					it('should return bytes in hex format', () => {
-						expect(signatureBytes).to.eql(
+						return expect(signatureBytes).to.eql(
 							Buffer.from(transaction.asset.signature.publicKey, 'hex')
 						);
 					});
 
 					it('should return bytes of length 32', () => {
-						expect(signatureBytes.length).to.equal(32);
+						return expect(signatureBytes.length).to.equal(32);
 					});
 				});
 			});
@@ -299,11 +304,11 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet', () => {
-				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+				return expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ address: sender.address })
 					)
@@ -311,7 +316,7 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondSignature = 1', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ secondSignature: 1 })
 					)
@@ -319,7 +324,7 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ u_secondSignature: 0 })
 					)
@@ -327,7 +332,7 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondPublicKey = validTransaction.asset.signature.publicKey', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({
 							secondPublicKey: validTransaction.asset.signature.publicKey,
@@ -343,11 +348,11 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet', () => {
-				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+				return expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ address: sender.address })
 					)
@@ -355,7 +360,7 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondSignature = 0', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ secondSignature: 0 })
 					)
@@ -363,7 +368,7 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ u_secondSignature: 1 })
 					)
@@ -371,7 +376,7 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with secondPublicKey = null', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ secondPublicKey: null })
 					)
@@ -381,8 +386,9 @@ describe('signature', () => {
 
 		describe('applyUnconfirmed', () => {
 			describe('when sender has u_secondSignature', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					sender.u_secondSignature = 'some-second-siganture';
+					done();
 				});
 
 				it('should call callback with error', done => {
@@ -399,8 +405,9 @@ describe('signature', () => {
 			});
 
 			describe('when sender has secondSignature', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					sender.secondSignature = 'some-second-siganture';
+					done();
 				});
 
 				it('should call callback with error', done => {
@@ -421,11 +428,11 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet', () => {
-				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+				return expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ address: sender.address })
 					)
@@ -433,7 +440,7 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ u_secondSignature: 1 })
 					)
@@ -447,11 +454,11 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet', () => {
-				expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
+				return expect(accountsMock.setAccountAndGet.calledOnce).to.be.true;
 			});
 
 			it('should call modules.accounts.setAccountAndGet with address = sender.address', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ address: sender.address })
 					)
@@ -459,7 +466,7 @@ describe('signature', () => {
 			});
 
 			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', () => {
-				expect(
+				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ u_secondSignature: 0 })
 					)
@@ -475,19 +482,19 @@ describe('signature', () => {
 				beforeEach(() => {
 					library = Signature.__get__('library');
 					schemaSpy = sinonSandbox.spy(library.schema, 'validate');
-					signature.objectNormalize(transaction);
+					return signature.objectNormalize(transaction);
 				});
 
 				afterEach(() => {
-					schemaSpy.restore();
+					return schemaSpy.restore();
 				});
 
 				it('call schema validate once', () => {
-					expect(schemaSpy.calledOnce).to.equal(true);
+					return expect(schemaSpy.calledOnce).to.equal(true);
 				});
 
 				it('signature schema', () => {
-					expect(
+					return expect(
 						schemaSpy.calledWithExactly(
 							transaction.asset.signature,
 							Signature.prototype.schema
@@ -506,7 +513,7 @@ describe('signature', () => {
 					nonStrings.forEach(type => {
 						it(`should throw when username type is ${type.description}`, () => {
 							transaction.asset.signature.publicKey = type.input;
-							expect(() => {
+							return expect(() => {
 								signature.objectNormalize(transaction);
 							}).to.throw(
 								`Failed to validate signature schema: Expected type string but found type ${
@@ -523,7 +530,7 @@ describe('signature', () => {
 					nonEmptyStrings.forEach(type => {
 						it(`should throw when username is: ${type.description}`, () => {
 							transaction.asset.signature.publicKey = type.input;
-							expect(() => {
+							return expect(() => {
 								signature.objectNormalize(transaction);
 							}).to.throw(
 								`Failed to validate signature schema: Object didn't pass validation for format publicKey: ${
@@ -537,7 +544,7 @@ describe('signature', () => {
 
 			describe('when library.schema.validate succeeds', () => {
 				it('should return transaction', () => {
-					expect(signature.objectNormalize(transaction)).to.eql(transaction);
+					return expect(signature.objectNormalize(transaction)).to.eql(transaction);
 				});
 			});
 		});
@@ -545,11 +552,11 @@ describe('signature', () => {
 		describe('dbRead', () => {
 			describe('when publicKey is undefined', () => {
 				beforeEach(() => {
-					delete rawTransaction.s_publicKey;
+					return delete rawTransaction.s_publicKey;
 				});
 
 				it('should return null', () => {
-					expect(signature.dbRead(rawTransaction)).to.eql(null);
+					return expect(signature.dbRead(rawTransaction)).to.eql(null);
 				});
 			});
 
@@ -559,13 +566,13 @@ describe('signature', () => {
 				var transactionId = '5197781214824378819';
 
 				it('should return publicKey property', () => {
-					expect(signature.dbRead(rawTransaction).signature.publicKey).to.equal(
+					return expect(signature.dbRead(rawTransaction).signature.publicKey).to.equal(
 						publicKey
 					);
 				});
 
 				it('should return transactionId', () => {
-					expect(
+					return expect(
 						signature.dbRead(rawTransaction).signature.transactionId
 					).to.eql(transactionId);
 				});
@@ -574,13 +581,13 @@ describe('signature', () => {
 
 		describe('ready', () => {
 			it('should return true for single signature transaction', () => {
-				expect(signature.ready(transaction, sender)).to.equal(true);
+				return expect(signature.ready(transaction, sender)).to.equal(true);
 			});
 
 			it('should return false for multi signature transaction with less signatures', () => {
 				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-				expect(signature.ready(transaction, sender)).to.equal(false);
+				return expect(signature.ready(transaction, sender)).to.equal(false);
 			});
 
 			it('should return true for multi signature transaction with at least min signatures', () => {
@@ -592,7 +599,7 @@ describe('signature', () => {
 				transaction.signature = crypto.randomBytes(64).toString('hex');
 				transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
-				expect(signature.ready(transaction, sender)).to.equal(true);
+				return expect(signature.ready(transaction, sender)).to.equal(true);
 			});
 		});
 	});

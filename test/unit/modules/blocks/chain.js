@@ -451,11 +451,12 @@ describe('blocks/chain', () => {
 				accountFixtures.genesis.password
 			);
 			transaction.senderId = accountFixtures.genesis.address;
-			transactions.push(transaction);
+			return transactions.push(transaction);
 		});
 
-		afterEach(() => {
+		afterEach(done => {
 			previousBlock = block;
+			done();
 		});
 
 		it('should apply a valid block successfully', done => {

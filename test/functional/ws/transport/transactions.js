@@ -41,8 +41,9 @@ describe('Posting transaction (type 0)', () => {
 	var badTransactions = [];
 	var account = randomUtil.account();
 
-	beforeEach(() => {
+	beforeEach(done => {
 		transaction = randomUtil.transaction();
+		done();
 	});
 
 	describe('transaction processing', () => {

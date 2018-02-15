@@ -24,98 +24,111 @@ describe('checkIpInList', () => {
 		var spyConsoleError;
 		var checkIpInListResult;
 
-		before(() => {
+		before(done => {
 			validReturnListIsEmpty = true;
 			validList = ['1.2.3.4', '5.6.7.8'];
 			validAddress = '1.2.3.4';
 			spyConsoleError = sinonSandbox.spy(console, 'error');
+			done();
 		});
 
-		beforeEach(() => {
+		beforeEach(done => {
 			checkIpInListResult = checkIpInList(
 				validList,
 				validAddress,
 				validReturnListIsEmpty
 			);
+			done();
 		});
 
-		afterEach(() => {});
-
-		after(() => {});
-
 		describe('when returnListIsEmpty is not a boolean', () => {
-			before(() => {
+			before(done => {
 				validReturnListIsEmpty = null;
+				done();
 			});
 
-			it('should set returnListIsEmpty to true', () => {
+			it('should set returnListIsEmpty to true', done => {
 				expect(checkIpInListResult).to.eq(true);
+				done();
 			});
 		});
 
 		describe('when validList is not an array', () => {
-			before(() => {
+			before(done => {
 				validReturnListIsEmpty = true;
 				validList = null;
+				done();
 			});
 
-			it('should return validReturnListIsEmpty', () => {
+			it('should return validReturnListIsEmpty', done => {
 				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+				done();
 			});
 		});
 
 		describe('when validList is an empty list', () => {
-			before(() => {
+			before(done => {
 				validList = [];
+				done();
 			});
 
-			it('should return validReturnListIsEmpty', () => {
+			it('should return validReturnListIsEmpty', done => {
 				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+				done();
 			});
 		});
 
 		describe('when all the entries in validList are not in the right format', () => {
-			before(() => {
+			before(done => {
 				validList = ['abc', 'shzduvsg'];
+				done();
 			});
 
-			it('should return validReturnListIsEmpty', () => {
+			it('should return validReturnListIsEmpty', done => {
 				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+				done();
 			});
 
-			it('should call console.error with "CheckIpInList:" + error', () => {
+			it('should call console.error with "CheckIpInList:" + error', done => {
 				sinonSandbox.assert.called(spyConsoleError);
+				done();
 			});
 		});
 
 		describe('when some entries in validList are not in the right format', () => {
-			before(() => {
+			before(done => {
 				validList = ['abc', '1.2.3.4'];
+				done();
 			});
 
-			it('should call console.error with "CheckIpInList:" + error', () => {
+			it('should call console.error with "CheckIpInList:" + error', done => {
 				sinonSandbox.assert.called(spyConsoleError);
+				done();
 			});
 		});
 
 		describe('when validList does not contain validAddress', () => {
-			before(() => {
+			before(done => {
 				validList = ['1.2.3.4', '5.6.7.8'];
 				validAddress = '127.0.0.1';
+				done();
 			});
 
-			it('should return validReturnListIsEmpty', () => {
+			it('should return validReturnListIsEmpty', done => {
 				expect(checkIpInListResult).to.eq(false);
+				done();
 			});
 		});
 
 		describe('when validList contains validAddress', () => {
-			before(() => {
+			before(done => {
 				validAddress = '1.2.3.4';
+				done();
 			});
 
-			it('should return validReturnListIsEmpty', () => {
+			it('should return validReturnListIsEmpty', done => {
 				expect(checkIpInListResult).to.eq(true);
+				done();
 			});
 		});
 	});

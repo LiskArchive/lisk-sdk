@@ -64,7 +64,7 @@ describe('loader', () => {
 		});
 
 		after(() => {
-			loadBlockChainStub.restore();
+			return loadBlockChainStub.restore();
 		});
 	});
 
@@ -72,14 +72,15 @@ describe('loader', () => {
 		var HEIGHT_TWO = 2;
 		var getLastBlockStub;
 
-		beforeEach(() => {
+		beforeEach(done => {
 			getLastBlockStub = sinonSandbox
 				.stub(blocksModuleMock.lastBlock, 'get')
 				.returns({ height: HEIGHT_TWO });
+			done();
 		});
 
 		afterEach(() => {
-			getLastBlockStub.restore();
+			return getLastBlockStub.restore();
 		});
 
 		it('should return peers list sorted by height', () => {
@@ -114,7 +115,7 @@ describe('loader', () => {
 				.to.have.property('peers')
 				.to.be.an('array')
 				.to.have.lengthOf(3);
-			expect(
+			return expect(
 				_.isEqualWith(
 					goodPeers.peers,
 					[

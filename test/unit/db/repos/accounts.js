@@ -46,8 +46,9 @@ describe('db', () => {
 		});
 	});
 
-	after(() => {
+	after(done => {
 		dbSandbox.destroy();
+		done();
 	});
 
 	beforeEach(done => {
@@ -66,7 +67,7 @@ describe('db', () => {
 	});
 
 	it('should initialize db.accounts repo', () => {
-		expect(db.accounts).to.be.not.null;
+		return expect(db.accounts).to.be.not.null;
 	});
 
 	describe('AccountsRepository', () => {
@@ -81,7 +82,7 @@ describe('db', () => {
 
 				expect(db.accounts.cs).to.an('object');
 				expect(db.accounts.cs).to.not.empty;
-				expect(db.accounts.cs).to.have.all.keys(['select', 'insert', 'update']);
+				return expect(db.accounts.cs).to.have.all.keys(['select', 'insert', 'update']);
 			});
 		});
 
@@ -90,7 +91,7 @@ describe('db', () => {
 				const dbFields = db.accounts.getDBFields();
 
 				expect(dbFields).to.not.empty;
-				expect(dbFields).to.have.lengthOf(db.accounts.dbFields.length);
+				return expect(dbFields).to.have.lengthOf(db.accounts.dbFields.length);
 			});
 		});
 
@@ -98,7 +99,7 @@ describe('db', () => {
 			it('should return only immutable account fields', () => {
 				const immutableFields = db.accounts.getImmutableFields();
 
-				expect(immutableFields).to.eql(['address', 'virgin']);
+				return expect(immutableFields).to.eql(['address', 'virgin']);
 			});
 		});
 
@@ -107,21 +108,21 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'one');
 				yield db.accounts.countMemAccounts();
 
-				expect(db.one.firstCall.args[0]).to.eql(accountsSQL.countMemAccounts);
+				return expect(db.one.firstCall.args[0]).to.eql(accountsSQL.countMemAccounts);
 			});
 
 			it('should pass no params to the SQL file', function*() {
 				sinonSandbox.spy(db, 'one');
 				yield db.accounts.countMemAccounts();
 
-				expect(db.one.firstCall.args[1]).to.eql([]);
+				return expect(db.one.firstCall.args[1]).to.eql([]);
 			});
 
 			it('should execute only one query', function*() {
 				sinonSandbox.spy(db, 'one');
 				yield db.accounts.countMemAccounts();
 
-				expect(db.one.calledOnce).to.be.true;
+				return expect(db.one.calledOnce).to.be.true;
 			});
 
 			it('should parse the db output and return the integer count', function*() {
@@ -129,7 +130,7 @@ describe('db', () => {
 
 				const count = yield db.accounts.countMemAccounts();
 
-				expect(count).to.eql(1);
+				return expect(count).to.eql(1);
 			});
 
 			it('should throw error if something wrong in the SQL execution', () => {
@@ -144,7 +145,7 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'query');
 				yield db.accounts.updateMemAccounts();
 
-				expect(db.query.firstCall.args[0]).to.eql(
+				return expect(db.query.firstCall.args[0]).to.eql(
 					accountsSQL.updateMemAccounts
 				);
 			});
@@ -153,14 +154,14 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'query');
 				yield db.accounts.updateMemAccounts();
 
-				expect(db.query.firstCall.args[1]).to.eql(undefined);
+				return expect(db.query.firstCall.args[1]).to.eql(undefined);
 			});
 
 			it('should execute only one query', function*() {
 				sinonSandbox.spy(db, 'query');
 				yield db.accounts.updateMemAccounts();
 
-				expect(db.query.calledOnce).to.be.true;
+				return expect(db.query.calledOnce).to.be.true;
 			});
 
 			it('should throw error if something wrong in the SQL execution', () => {
@@ -178,7 +179,7 @@ describe('db', () => {
 					'SELECT count(*) FROM mem_accounts WHERE "isDelegate" <> "u_isDelegate"'
 				);
 
-				expect(result.count).to.be.equal('0');
+				return expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_secondSignature', function*() {
@@ -190,7 +191,7 @@ describe('db', () => {
 					'SELECT count(*) FROM mem_accounts WHERE "secondSignature" <> "u_secondSignature"'
 				);
 
-				expect(result.count).to.be.equal('0');
+				return expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_username', function*() {
@@ -199,7 +200,7 @@ describe('db', () => {
 					'SELECT count(*) FROM mem_accounts WHERE "username" <> "u_username"'
 				);
 
-				expect(result.count).to.be.equal('0');
+				return expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_balance', function*() {
@@ -211,7 +212,7 @@ describe('db', () => {
 					'SELECT count(*) FROM mem_accounts WHERE "balance" <> "u_balance"'
 				);
 
-				expect(result.count).to.be.equal('0');
+				return expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_delegates', function*() {
@@ -223,7 +224,7 @@ describe('db', () => {
 					'SELECT count(*) FROM mem_accounts WHERE "delegates" <> "u_delegates"'
 				);
 
-				expect(result.count).to.be.equal('0');
+				return expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_multisignatures', function*() {
@@ -235,7 +236,7 @@ describe('db', () => {
 					'SELECT count(*) FROM mem_accounts WHERE "multisignatures" <> "u_multisignatures"'
 				);
 
-				expect(result.count).to.be.equal('0');
+				return expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_multimin', function*() {
@@ -247,7 +248,7 @@ describe('db', () => {
 					'SELECT count(*) FROM mem_accounts WHERE "multimin" <> "u_multimin"'
 				);
 
-				expect(result.count).to.be.equal('0');
+				return expect(result.count).to.be.equal('0');
 			});
 
 			it('should update all db.accounts which have different unconfirmed state for u_multilifetime', function*() {
@@ -259,7 +260,7 @@ describe('db', () => {
 					'SELECT count(*) FROM mem_accounts WHERE "multilifetime" <> "u_multilifetime"'
 				);
 
-				expect(result.count).to.be.equal('0');
+				return expect(result.count).to.be.equal('0');
 			});
 		});
 
@@ -268,7 +269,7 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'any');
 				yield db.accounts.getOrphanedMemAccounts();
 
-				expect(db.any.firstCall.args[0]).to.eql(
+				return expect(db.any.firstCall.args[0]).to.eql(
 					accountsSQL.getOrphanedMemAccounts
 				);
 			});
@@ -292,7 +293,7 @@ describe('db', () => {
 				expect(totalAccounts.count).to.above(0);
 
 				expect(orphanAccounts).to.lengthOf(1);
-				expect(orphanAccounts[0].address).to.eql(firstAccount.address);
+				return expect(orphanAccounts[0].address).to.eql(firstAccount.address);
 			});
 
 			it('should yield orphan db.accounts with address, blockId and id attribute', function*() {
@@ -303,7 +304,7 @@ describe('db', () => {
 
 				expect(orphanAccounts).to.lengthOf.above(0);
 
-				orphanAccounts.forEach(orphanAccount => {
+				return orphanAccounts.forEach(orphanAccount => {
 					expect(orphanAccount).to.have.all.keys('address', 'blockId', 'id');
 				});
 			});
@@ -314,14 +315,14 @@ describe('db', () => {
 
 			beforeEach(function*() {
 				delegateAccount = accountFixtures.Account({ isDelegate: true });
-				yield db.accounts.insert(delegateAccount);
+				return yield db.accounts.insert(delegateAccount);
 			});
 
 			it('should use the correct SQL', function*() {
 				sinonSandbox.spy(db, 'any');
 				yield db.accounts.getDelegates();
 
-				expect(db.any.firstCall.args[0]).to.eql(accountsSQL.getDelegates);
+				return expect(db.any.firstCall.args[0]).to.eql(accountsSQL.getDelegates);
 			});
 
 			it('should return db.accounts with isDelegate set to true ', function*() {
@@ -329,13 +330,13 @@ describe('db', () => {
 
 				// Check there are some accounts to test
 				expect(delegates).to.lengthOf(1);
-				expect(delegates[0].publicKey).to.eql(delegateAccount.publicKey);
+				return expect(delegates[0].publicKey).to.eql(delegateAccount.publicKey);
 			});
 
 			it('should only return "publicKey" of delegate db.accounts', function*() {
 				const delegates = yield db.accounts.getDelegates();
 
-				delegates.forEach(delegate => {
+				return delegates.forEach(delegate => {
 					expect(delegate).to.have.all.keys('publicKey');
 				});
 			});
@@ -663,7 +664,7 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'none');
 				yield db.accounts.increment('12L', 'balance', 123);
 
-				expect(db.none.firstCall.args[0]).to.eql(accountsSQL.incrementAccount);
+				return expect(db.none.firstCall.args[0]).to.eql(accountsSQL.incrementAccount);
 			});
 
 			it('should increment account attribute', function*() {
@@ -678,11 +679,11 @@ describe('db', () => {
 					['balance']
 				))[0];
 
-				expect(updatedAccount.balance).to.eql('16000');
+				return expect(updatedAccount.balance).to.eql('16000');
 			});
 
 			it('should throw error if unknown field is provided', function*() {
-				yield expect(db.accounts.increment('12L', 'unknown', 1000)).to
+				return yield expect(db.accounts.increment('12L', 'unknown', 1000)).to
 					.eventually.rejected;
 			});
 		});
@@ -692,7 +693,7 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'none');
 				yield db.accounts.decrement('12L', 'balance', 123);
 
-				expect(db.none.firstCall.args[0]).to.eql(accountsSQL.decrementAccount);
+				return expect(db.none.firstCall.args[0]).to.eql(accountsSQL.decrementAccount);
 			});
 
 			it('should decrement account attribute', function*() {
@@ -707,11 +708,11 @@ describe('db', () => {
 					['balance']
 				))[0];
 
-				expect(updatedAccount.balance).to.eql('14000');
+				return expect(updatedAccount.balance).to.eql('14000');
 			});
 
 			it('should throw error if unknown field is provided', function*() {
-				yield expect(db.accounts.decrement('12L', 'unknown', 1000)).to
+				return yield expect(db.accounts.decrement('12L', 'unknown', 1000)).to
 					.eventually.rejected;
 			});
 		});
@@ -728,7 +729,7 @@ describe('db', () => {
 					'address',
 				]);
 
-				expect(result).to.be.empty;
+				return expect(result).to.be.empty;
 			});
 		});
 
@@ -737,7 +738,7 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'none');
 				yield db.accounts.resetMemTables();
 
-				expect(db.none.firstCall.args[0]).to.eql(accountsSQL.resetMemoryTables);
+				return expect(db.none.firstCall.args[0]).to.eql(accountsSQL.resetMemoryTables);
 			});
 
 			it('should process without any error', () => {
@@ -1084,7 +1085,7 @@ describe('db', () => {
 					const accounts = yield db.accounts.list({ multisig: true });
 
 					expect(accounts).to.lengthOf(1);
-					expect(accounts[0].address).to.eql(account.address);
+					return expect(accounts[0].address).to.eql(account.address);
 				});
 
 				it('should return a multiple accounts if filter.address is provided as array', function*() {
@@ -1099,7 +1100,7 @@ describe('db', () => {
 
 					expect(accounts).to.lengthOf(2);
 					expect(accounts[0].address).to.eql(account1.address);
-					expect(accounts[1].address).to.eql(account2.address);
+					return expect(accounts[1].address).to.eql(account2.address);
 				});
 
 				it('should return valid result if filter.username is provided', () => {
@@ -1127,7 +1128,7 @@ describe('db', () => {
 
 					expect(accounts).to.lengthOf(2);
 					expect(accounts[0].address).to.eql(account1.address);
-					expect(accounts[1].address).to.eql(account2.address);
+					return expect(accounts[1].address).to.eql(account2.address);
 				});
 
 				it('should return valid result with composite conditions if filter.username AND filter.address is provided', () => {
@@ -1211,7 +1212,7 @@ describe('db', () => {
 						);
 
 						expect(accounts).to.lengthOf.above(0);
-						expect(accounts).to.eql(sortedAccounts);
+						return expect(accounts).to.eql(sortedAccounts);
 					});
 
 					it('should fail if unknown sort field is specified', () => {
@@ -1239,7 +1240,7 @@ describe('db', () => {
 						});
 
 						expect(accounts).to.lengthOf(1);
-						expect(accounts[0].address).to.eql(account.address);
+						return expect(accounts[0].address).to.eql(account.address);
 					});
 				});
 
@@ -1293,7 +1294,7 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'none');
 				yield db.accounts.removeDependencies('12L', '12345', 'delegates');
 
-				expect(db.none.firstCall.args[0]).to.eql(
+				return expect(db.none.firstCall.args[0]).to.eql(
 					accountsSQL.removeAccountDependencies
 				);
 			});
@@ -1343,7 +1344,7 @@ describe('db', () => {
 					);
 
 					expect(before.count).to.eql('1');
-					expect(after.count).to.eql('0');
+					return expect(after.count).to.eql('0');
 				});
 			});
 		});
@@ -1383,7 +1384,7 @@ describe('db', () => {
 					);
 
 					expect(before.count).to.eql('0');
-					expect(after.count).to.eql('1');
+					return expect(after.count).to.eql('1');
 				});
 			});
 		});
@@ -1395,7 +1396,7 @@ describe('db', () => {
 
 				sinonSandbox.spy(db, 'none');
 				yield db.accounts.convertToNonVirgin(account.address);
-				expect(db.none.firstCall.args[0]).to.eql(
+				return expect(db.none.firstCall.args[0]).to.eql(
 					accountsSQL.convertToNonVirgin
 				);
 			});
@@ -1413,7 +1414,7 @@ describe('db', () => {
 				yield db.accounts.convertToNonVirgin(account.address);
 				result = yield db.accounts.list({ address: account.address });
 				expect(result[0].address).to.eql(account.address);
-				expect(result[0].virgin).to.eql(false);
+				return expect(result[0].virgin).to.eql(false);
 			});
 		});
 	});

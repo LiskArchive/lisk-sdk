@@ -34,63 +34,73 @@ describe('GET /node', () => {
 		});
 
 		it('should return a result containing nethash = "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"', () => {
-			expect(constantsResponse.nethash).to.be.equal(
+			return expect(constantsResponse.nethash).to.be.equal(
 				'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d'
 			);
 		});
 
 		it('should return a result containing milestone that is a number <= 500000000', () => {
-			expect(parseInt(constantsResponse.milestone)).to.at.most(500000000);
+			return expect(parseInt(constantsResponse.milestone)).to.at.most(
+				500000000
+			);
 		});
 
 		it('should return a result containing reward that is a number <= 500000000', () => {
-			expect(parseInt(constantsResponse.reward)).to.at.most(500000000);
+			return expect(parseInt(constantsResponse.reward)).to.at.most(500000000);
 		});
 
 		it('should return a result containing supply that is a number = 10000000000000000', () => {
-			expect(constantsResponse.supply).to.be.equal('10000000000000000');
+			return expect(constantsResponse.supply).to.be.equal('10000000000000000');
 		});
 
 		it('should return a result containing version = "0.0.1"', () => {
-			expect(constantsResponse)
+			return expect(constantsResponse)
 				.to.have.property('version')
 				.equal('0.0.1');
 		});
 
 		it('should return a result containing fees.send = 10000000', () => {
-			expect(constantsResponse.fees.send).to.be.equal('10000000');
+			return expect(constantsResponse.fees.send).to.be.equal('10000000');
 		});
 
 		it('should return a result containing fees.vote = 100000000', () => {
-			expect(constantsResponse.fees.vote).to.be.equal('100000000');
+			return expect(constantsResponse.fees.vote).to.be.equal('100000000');
 		});
 
 		it('should return a result containing fees.secondSignature = 500000000', () => {
-			expect(constantsResponse.fees.secondSignature).to.be.equal('500000000');
+			return expect(constantsResponse.fees.secondSignature).to.be.equal(
+				'500000000'
+			);
 		});
 
 		it('should return a result containing fees.delegate = 2500000000', () => {
-			expect(constantsResponse.fees.delegate).to.be.equal('2500000000');
+			return expect(constantsResponse.fees.delegate).to.be.equal('2500000000');
 		});
 
 		it('should return a result containing fees.multisignature = 500000000', () => {
-			expect(constantsResponse.fees.multisignature).to.be.equal('500000000');
+			return expect(constantsResponse.fees.multisignature).to.be.equal(
+				'500000000'
+			);
 		});
 
 		it('should return a result containing fees.dappRegistration = 2500000000', () => {
-			expect(constantsResponse.fees.dappRegistration).to.be.equal('2500000000');
+			return expect(constantsResponse.fees.dappRegistration).to.be.equal(
+				'2500000000'
+			);
 		});
 
 		it('should return a result containing fees.dappWithdrawal = 10000000', () => {
-			expect(constantsResponse.fees.dappWithdrawal).to.be.equal('10000000');
+			return expect(constantsResponse.fees.dappWithdrawal).to.be.equal(
+				'10000000'
+			);
 		});
 
 		it('should return a result containing fees.dappDeposit = 10000000', () => {
-			expect(constantsResponse.fees.dappDeposit).to.be.equal('10000000');
+			return expect(constantsResponse.fees.dappDeposit).to.be.equal('10000000');
 		});
 
 		it('should return a result containing fees.data = 10000000', () => {
-			expect(constantsResponse.fees.data).to.be.equal('10000000');
+			return expect(constantsResponse.fees.data).to.be.equal('10000000');
 		});
 	});
 

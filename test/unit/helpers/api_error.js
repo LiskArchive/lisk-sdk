@@ -21,39 +21,45 @@ describe('helpers/apiError', () => {
 	var validErrorMessage;
 	var validErrorCode;
 
-	beforeEach(() => {
+	beforeEach(done => {
 		validErrorMessage = 'Valid error message';
 		validErrorCode = 501;
 		apiError = new ApiError(validErrorMessage, validErrorCode);
+		done();
 	});
 
 	describe('constructor', () => {
-		it('should be an Error instance', () => {
+		it('should be an Error instance', done => {
 			expect(apiError).to.have.instanceOf(Error);
+			done();
 		});
 
-		it('should assign field message = "Valid error message"', () => {
+		it('should assign field message = "Valid error message"', done => {
 			expect(apiError)
 				.to.have.property('message')
 				.equal(validErrorMessage);
+			done();
 		});
 
-		it('should assign field code = 501', () => {
+		it('should assign field code = 501', done => {
 			expect(apiError)
 				.to.have.property('code')
 				.equal(validErrorCode);
+			done();
 		});
 	});
 
 	describe('toJson', () => {
-		it('should return Object type result', () => {
+		it('should return Object type result', done => {
 			expect(apiError.toJson()).to.be.an('Object');
+			done();
 		});
 
-		it('should return result containing message = "Valid error message"', () => {
+		it('should return result containing message = "Valid error message"', done => {
 			expect(apiError.toJson())
 				.to.have.property('message')
 				.equal(validErrorMessage);
+			done();
 		});
 	});
 });
