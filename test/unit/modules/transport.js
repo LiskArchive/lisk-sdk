@@ -184,7 +184,7 @@ describe('transport', () => {
 					.which.is.equal(broadcasterStubRef);
 
 				expect(error).to.equal(null);
-				expect(transportSelf).to.equal(localTransportInstance);
+				return expect(transportSelf).to.equal(localTransportInstance);
 			});
 		});
 	});
@@ -261,12 +261,13 @@ describe('transport', () => {
 
 				it('should call library.logger.debug with "Cannot remove empty peer"', () => {
 					expect(library.logger.debug.called).to.be.true;
-					expect(library.logger.debug.calledWith('Cannot remove empty peer')).to
-						.be.true;
+					return expect(
+						library.logger.debug.calledWith('Cannot remove empty peer')
+					).to.be.true;
 				});
 
 				it('should return false', () => {
-					expect(result).to.be.false;
+					return expect(result).to.be.false;
 				});
 			});
 
@@ -296,11 +297,11 @@ describe('transport', () => {
 				});
 
 				it('should call library.logger.debug', () => {
-					expect(library.logger.debug.called).to.be.true;
+					return expect(library.logger.debug.called).to.be.true;
 				});
 
 				it('should call modules.peers.remove with options.peer', () => {
-					expect(removeSpy.calledWith(peerData)).to.be.true;
+					return expect(removeSpy.calledWith(peerData)).to.be.true;
 				});
 			});
 		});
@@ -320,7 +321,7 @@ describe('transport', () => {
 				});
 
 				it('should call library.schema.validate with empty query.signatures', () => {
-					expect(library.schema.validate.called).to.be.true;
+					return expect(library.schema.validate.called).to.be.true;
 				});
 			});
 
@@ -350,7 +351,7 @@ describe('transport', () => {
 				});
 
 				it('should call library.schema.validate with custom schema.signatures', () => {
-					expect(library.schema.validate.called).to.be.true;
+					return expect(library.schema.validate.called).to.be.true;
 				});
 			});
 
@@ -378,7 +379,7 @@ describe('transport', () => {
 
 				it('should call series callback with error = "Invalid signatures body"', () => {
 					expect(library.schema.validate.called).to.be.true;
-					expect(error).to.equal('Invalid signatures body');
+					return expect(error).to.equal('Invalid signatures body');
 				});
 			});
 
@@ -405,12 +406,13 @@ describe('transport', () => {
 							expect(__private.receiveSignature.calledTwice).to.be.true;
 							expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_1))
 								.to.be.true;
-							expect(__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2))
-								.to.be.true;
+							return expect(
+								__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2)
+							).to.be.true;
 						});
 
 						it('should call callback with error null', () => {
-							expect(error).to.equal(null);
+							return expect(error).to.equal(null);
 						});
 					});
 
@@ -440,12 +442,13 @@ describe('transport', () => {
 							// If any of the __private.receiveSignature calls fail, the whole
 							// receiveSignatures operation should fail immediately.
 							expect(__private.receiveSignature.calledOnce).to.be.true;
-							expect(library.logger.debug.calledWith(error, SAMPLE_SIGNATURE_1))
-								.to.be.true;
+							return expect(
+								library.logger.debug.calledWith(error, SAMPLE_SIGNATURE_1)
+							).to.be.true;
 						});
 
 						it('should call callback with error', () => {
-							expect(error).to.equal(receiveSignatureError);
+							return expect(error).to.equal(receiveSignatureError);
 						});
 					});
 				});
@@ -483,13 +486,14 @@ describe('transport', () => {
 					it('should call library.schema.validate with signature', () => {
 						expect(error).to.equal(undefined);
 						expect(library.schema.validate.calledOnce).to.be.true;
-						expect(library.schema.validate.calledWith(SAMPLE_SIGNATURE_1)).to.be
-							.true;
+						return expect(
+							library.schema.validate.calledWith(SAMPLE_SIGNATURE_1)
+						).to.be.true;
 					});
 
 					it('should call modules.multisignatures.processSignature with signature', () => {
 						expect(error).to.equal(undefined);
-						expect(
+						return expect(
 							modules.multisignatures.processSignature.calledWith(
 								SAMPLE_SIGNATURE_1
 							)
@@ -497,7 +501,7 @@ describe('transport', () => {
 					});
 
 					it('should call callback with error = undefined', () => {
-						expect(error).to.equal(undefined);
+						return expect(error).to.equal(undefined);
 					});
 				});
 
@@ -518,7 +522,7 @@ describe('transport', () => {
 					});
 
 					it('should call callback with error', () => {
-						expect(error).to.equal(
+						return expect(error).to.equal(
 							`Error processing signature: ${processSignatureError}`
 						);
 					});
@@ -543,7 +547,7 @@ describe('transport', () => {
 				});
 
 				it('should call callback with error = "Invalid signature body"', () => {
-					expect(error).to.equal(
+					return expect(error).to.equal(
 						`Invalid signature body ${validateErr.message}`
 					);
 				});
@@ -605,7 +609,7 @@ describe('transport', () => {
 
 				it('should call callback with error = "Invalid transactions body"', () => {
 					// TODO: Check that error is what we expect it to be.
-					expect(library.schema.validate.called).to.be.true;
+					return expect(library.schema.validate.called).to.be.true;
 				});
 			});
 
@@ -623,7 +627,7 @@ describe('transport', () => {
 					// TODO: It doesn't seem that library.schema.validate currently gets called by the __private.receiveTransaction logic.
 					it.skip('should call library.schema.validate with query and definitions.Transaction', () => {
 						expect(error).to.equal(null);
-						expect(
+						return expect(
 							library.schema.validate.calledWith(
 								query,
 								defaultScope.swagger.definitions.Transaction
@@ -645,7 +649,7 @@ describe('transport', () => {
 						});
 
 						it('should call callback with error = "Unable to process transaction. Transaction is undefined."', () => {
-							expect(error).to.equal(
+							return expect(error).to.equal(
 								'Unable to process transaction. Transaction is undefined.'
 							);
 						});
@@ -668,13 +672,13 @@ describe('transport', () => {
 							});
 
 							it('should set transaction.bundled = true', () => {
-								expect(query.transactions[0])
+								return expect(query.transactions[0])
 									.to.have.property('bundled')
 									.which.equals(true);
 							});
 
 							it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', () => {
-								expect(
+								return expect(
 									__private.receiveTransaction.calledWith(
 										query.transactions[0],
 										peerStub,
@@ -684,7 +688,7 @@ describe('transport', () => {
 							});
 
 							it('should call callback with error = null', () => {
-								expect(error).to.equal(null);
+								return expect(error).to.equal(null);
 							});
 						});
 
@@ -710,7 +714,7 @@ describe('transport', () => {
 							});
 
 							it('should call library.logger.debug with error and transaction', () => {
-								expect(
+								return expect(
 									library.logger.debug.calledWith(
 										receiveTransactionError,
 										query.transactions[0]
@@ -719,7 +723,7 @@ describe('transport', () => {
 							});
 
 							it('should call callback with error', () => {
-								expect(error).to.equal(receiveTransactionError);
+								return expect(error).to.equal(receiveTransactionError);
 							});
 						});
 					});
@@ -731,7 +735,7 @@ describe('transport', () => {
 			var transaction;
 			var peerAddressString;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				transaction = {
 					id: '222675625422353767',
 					type: 0,
@@ -776,6 +780,7 @@ describe('transport', () => {
 				modules.transactions.processUnconfirmedTransaction = sinonSandbox
 					.stub()
 					.callsArg(2);
+				done();
 			});
 
 			describe('when transaction and peer are defined', () => {
@@ -791,17 +796,17 @@ describe('transport', () => {
 				});
 
 				it('should call library.logic.transaction.objectNormalize with transaction', () => {
-					expect(
+					return expect(
 						library.logic.transaction.objectNormalize.calledWith(transaction)
 					).to.be.true;
 				});
 
 				it('should call library.balancesSequence.add', () => {
-					expect(library.balancesSequence.add.called).to.be.true;
+					return expect(library.balancesSequence.add.called).to.be.true;
 				});
 
 				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', () => {
-					expect(
+					return expect(
 						modules.transactions.processUnconfirmedTransaction.calledWith(
 							transaction,
 							true
@@ -842,7 +847,7 @@ describe('transport', () => {
 						module: 'transport',
 						transaction,
 					};
-					expect(
+					return expect(
 						library.logger.debug.calledWith(
 							'Transaction normalization failed',
 							errorDetails
@@ -852,12 +857,13 @@ describe('transport', () => {
 
 				it('should call __private.removePeer with peer details object', () => {
 					var peerDetails = { peer: peerStub, code: 'ETRANSACTION' };
-					expect(__private.removePeer.calledWith(peerDetails, extraLogMessage))
-						.to.be.true;
+					return expect(
+						__private.removePeer.calledWith(peerDetails, extraLogMessage)
+					).to.be.true;
 				});
 
 				it('should call callback with error = "Invalid transaction body"', () => {
-					expect(error).to.equal(
+					return expect(error).to.equal(
 						`Invalid transaction body - ${objectNormalizeError}`
 					);
 				});
@@ -876,7 +882,7 @@ describe('transport', () => {
 				});
 
 				it('should call library.logger.debug with "Received transaction " + transaction.id + " from public client"', () => {
-					expect(
+					return expect(
 						library.logger.debug.calledWith(
 							`Received transaction ${transaction.id} from public client`
 						)
@@ -897,7 +903,7 @@ describe('transport', () => {
 				});
 
 				it('should call library.logger.debug with "Received transaction " + transaction.id + " from peer ..."', () => {
-					expect(
+					return expect(
 						library.logger.debug.calledWith(
 							`Received transaction ${
 								transaction.id
@@ -907,7 +913,7 @@ describe('transport', () => {
 				});
 
 				it('should call library.logic.peers.peersManager.getAddress with peer.nonce', () => {
-					expect(
+					return expect(
 						library.logic.peers.peersManager.getAddress.calledWith(
 							peerStub.nonce
 						)
@@ -939,7 +945,7 @@ describe('transport', () => {
 				});
 
 				it('should call library.logger.debug with "Transaction ${transaction.id}" and error string', () => {
-					expect(
+					return expect(
 						library.logger.debug.calledWith(
 							`Transaction ${transaction.id}`,
 							processUnconfirmedTransactionError
@@ -949,13 +955,14 @@ describe('transport', () => {
 
 				describe('when transaction is defined', () => {
 					it('should call library.logger.debug with "Transaction" and transaction as arguments', () => {
-						expect(library.logger.debug.calledWith('Transaction', transaction))
-							.to.be.true;
+						return expect(
+							library.logger.debug.calledWith('Transaction', transaction)
+						).to.be.true;
 					});
 				});
 
 				it('should call callback with err.toString()', () => {
-					expect(error).to.equal(processUnconfirmedTransactionError);
+					return expect(error).to.equal(processUnconfirmedTransactionError);
 				});
 			});
 
@@ -977,11 +984,11 @@ describe('transport', () => {
 				});
 
 				it('should call callback with error = null', () => {
-					expect(error).to.equal(null);
+					return expect(error).to.equal(null);
 				});
 
 				it('should call callback with result = transaction.id', () => {
-					expect(result).to.equal(transaction.id);
+					return expect(result).to.equal(transaction.id);
 				});
 			});
 		});
@@ -1039,7 +1046,7 @@ describe('transport', () => {
 				});
 
 				it('should return false', () => {
-					expect(isPoorConsensusResult).to.be.false;
+					return expect(isPoorConsensusResult).to.be.false;
 				});
 			});
 
@@ -1057,7 +1064,7 @@ describe('transport', () => {
 					});
 
 					it('should return true', () => {
-						expect(isPoorConsensusResult).to.be.true;
+						return expect(isPoorConsensusResult).to.be.true;
 					});
 				});
 
@@ -1069,7 +1076,7 @@ describe('transport', () => {
 					});
 
 					it('should return false', () => {
-						expect(isPoorConsensusResult).to.be.false;
+						return expect(isPoorConsensusResult).to.be.false;
 					});
 				});
 			});
@@ -1092,7 +1099,7 @@ describe('transport', () => {
 			});
 
 			it('should call __private.broadcaster.getPeers with paramsArg and callbackArg as arguments', () => {
-				expect(
+				return expect(
 					__private.broadcaster.getPeers.calledWith(paramsArg, callbackArg)
 				).to.be.true;
 			});
@@ -1139,7 +1146,7 @@ describe('transport', () => {
 					expect(modulesObject).to.have.property('multisignatures');
 					expect(modulesObject).to.have.property('peers');
 					expect(modulesObject).to.have.property('system');
-					expect(modulesObject).to.have.property('transactions');
+					return expect(modulesObject).to.have.property('transactions');
 				});
 			});
 
@@ -1152,12 +1159,14 @@ describe('transport', () => {
 				});
 
 				it('should assign definitions object', () => {
-					expect(definitionsObject).to.equal(defaultScope.swagger.definitions);
+					return expect(definitionsObject).to.equal(
+						defaultScope.swagger.definitions
+					);
 				});
 			});
 
 			it('should call __private.broadcaster.bind with scope.peers, scope.transport and scope.transactions as arguments', () => {
-				expect(
+				return expect(
 					__private.broadcaster.bind.calledWith(
 						defaultScope.peers,
 						defaultScope.transport,
