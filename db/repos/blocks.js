@@ -148,6 +148,9 @@ class BlocksRepository {
 	 */
 	list(params) {
 		// TODO: Must use a result-specific method, not .query
+		if (params.where && !Array.isArray(params.where)) {
+			return Promise.reject(new Error('Invalid parameter "where" provided.'));
+		}
 		return this.db.query(Queries.list(params), params);
 	}
 
