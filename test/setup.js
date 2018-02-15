@@ -49,9 +49,8 @@ Assertion.addProperty('integer', function handleAssert() {
 });
 /* eslint-enable no-underscore-dangle */
 
-[chaiAsPromised, sinonChai].forEach(plugin => chai.use(plugin));
+[sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
 
-global.should = chai.should();
 global.sinon = sinon;
 global.sandbox = sinon.sandbox.create();
 
