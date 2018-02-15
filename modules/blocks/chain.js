@@ -604,14 +604,12 @@ Chain.prototype.deleteLastBlock = function (cb) {
 					modules.transactions.receiveTransactions(
 						lastBlock.transactions.reverse(),
 						false,
-						function (err) {
-							if (err) {
-								library.logger.error('Error receiving transactions after deleting block', err);
-							}
-							return setImmediate(balanceSequenceCb, null, newLastBlock);
-						}
+						balanceSequenceCb
 					);
-				}, function (err, newLastBlock) {
+				}, function (err) {
+					if (err) {
+						library.logger.error('Error receiving transactions after deleting block', err);
+					}
 					return setImmediate(waterCb, null, newLastBlock);
 				});
 			}
