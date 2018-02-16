@@ -16,7 +16,6 @@
 
 var _ = require('lodash');
 var ip = require('ip');
-var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 /**
  * Main peer logic. Creates a peer.
@@ -33,14 +32,6 @@ var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
  */
 // Constructor
 function Peer(peer) {
-	Object.defineProperties(this, {
-		rpc: {
-			get: function() {
-				return wsRPC.getClientRPCStub(this.ip, this.wsPort);
-			}.bind(this),
-		},
-	});
-
 	return this.accept(peer || {});
 }
 
