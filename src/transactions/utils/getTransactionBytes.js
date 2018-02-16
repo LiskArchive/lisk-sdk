@@ -49,7 +49,7 @@ export const getAssetDataForRegisterSecondSignatureTransaction = ({
 }) => {
 	checkRequiredFields(['publicKey'], signature);
 	const { publicKey } = signature;
-	return cryptoModule.hexToBuffer(publicKey);
+	return cryptography.hexToBuffer(publicKey);
 };
 
 export const getAssetDataForRegisterDelegateTransaction = ({ delegate }) => {
@@ -159,12 +159,12 @@ const getTransactionBytes = transaction => {
 		BYTESIZES.TIMESTAMP,
 	);
 
-	const transactionSenderPublicKey = cryptoModule.hexToBuffer(
+	const transactionSenderPublicKey = cryptography.hexToBuffer(
 		transaction.senderPublicKey,
 	);
 
 	const transactionRequesterPublicKey = transaction.requesterPublicKey
-		? cryptoModule.hexToBuffer(transaction.requesterPublicKey)
+		? cryptography.hexToBuffer(transaction.requesterPublicKey)
 		: Buffer.alloc(0);
 
 	const transactionRecipientID = transaction.recipientId
@@ -182,11 +182,11 @@ const getTransactionBytes = transaction => {
 	const transactionAssetData = getAssetBytes(transaction);
 
 	const transactionSignature = transaction.signature
-		? cryptoModule.hexToBuffer(transaction.signature)
+		? cryptography.hexToBuffer(transaction.signature)
 		: Buffer.alloc(0);
 
 	const transactionSecondSignature = transaction.signSignature
-		? cryptoModule.hexToBuffer(transaction.signSignature)
+		? cryptography.hexToBuffer(transaction.signSignature)
 		: Buffer.alloc(0);
 
 	return Buffer.concat([
