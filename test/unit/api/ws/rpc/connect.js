@@ -18,6 +18,7 @@ const rewire = require('rewire');
 const sinon = require('sinon');
 const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
 const System = require('../../../../../modules/system');
+const wsRPC = require('../../../../../api/ws/rpc/ws_rpc').wsRPC;
 
 const connectRewired = rewire('../../../../../api/ws/rpc/connect');
 
@@ -221,6 +222,175 @@ describe('connect', () => {
 
 			it('should return [peer]', () => {
 				expect(peerAsResult).to.eql(validPeer);
+			});
+		});
+
+		describe('registerRPC', () => {
+			let validRPCSocket;
+
+			before(() => {
+				validRPCSocket = {
+					call: sinon.stub(),
+					emit: sinon.stub(),
+				};
+			});
+			beforeEach(() => {
+				const registerRPC = connectRewired.__get__('connectSteps.registerRPC');
+				validRPCSocket.call.reset();
+				validRPCSocket.emit.reset();
+				validPeer.socket = validRPCSocket;
+				peerAsResult = registerRPC(validPeer);
+			});
+
+			describe('when wsRPC.getServer throws', () => {
+				before(() => {
+					wsRPC.getServer = sinon.stub().throws();
+				});
+
+				it('should return peer with rpc = {}', () => {
+					expect(peerAsResult)
+						.to.have.property('rpc')
+						.to.be.an('object').and.to.be.empty;
+				});
+			});
+
+			describe('when wsRPC.getServer returns servers with event and rpc methods', () => {
+				let masterWAMPServerMock;
+				const validRPCProcedureName = 'rpcProcedureA';
+				const validEventProcedureName = 'eventProcedureB';
+
+				before(() => {
+					masterWAMPServerMock = {
+						endpoints: {
+							rpc: {
+								[validRPCProcedureName]: sinon.stub().callsArg(1),
+							},
+							event: {
+								[validEventProcedureName]: sinon.stub(),
+							},
+						},
+					};
+					wsRPC.getServer = sinon.stub().returns(masterWAMPServerMock);
+				});
+
+				it('should return peer with rpc', () => {
+					expect(peerAsResult)
+						.to.have.property('rpc')
+						.to.be.an('object');
+				});
+
+				it('should return peer with rpc methods registered on MasterWAMPServer', () => {
+					expect(peerAsResult)
+						.to.have.nested.property(`rpc.${validRPCProcedureName}`)
+						.to.be.a('function');
+				});
+
+				it('should return peer with emit methods registered on MasterWAMPServer', () => {
+					expect(peerAsResult)
+						.to.have.nested.property(`rpc.${validEventProcedureName}`)
+						.to.be.a('function');
+				});
+
+				describe('when RPC method is being called on peer and succeeds', () => {
+					let validRPCArgument;
+					let validRPCCallback;
+					const validRPCResult = 'valid rpc result';
+					before(() => {
+						validRPCArgument = 'valid string argument';
+						validRPCCallback = sinon.stub();
+					});
+					beforeEach(beforeEachCb => {
+						peerAsResult.socket.call.resolves(validRPCResult);
+						validRPCCallback.reset();
+						peerAsResult.rpc[validRPCProcedureName](
+							validRPCArgument,
+							(...args) => {
+								validRPCCallback(...args);
+								beforeEachCb();
+							}
+						);
+					});
+
+					it('should call peer.socket.call', () => {
+						expect(peerAsResult.socket.call).calledOnce;
+					});
+
+					it('should call peer.socket.call with [validRPCProcedureName] and [validRPCArgument]', () => {
+						expect(peerAsResult.socket.call).calledWith(
+							validRPCProcedureName,
+							validRPCArgument
+						);
+					});
+
+					it('should call RPC callback', () => {
+						expect(validRPCCallback).calledOnce;
+					});
+
+					it('should call RPC callback with error = null and result = [validRPCResult]', () => {
+						expect(validRPCCallback).calledWith(null, validRPCResult);
+					});
+
+					describe('when RPC method is called without an argument', () => {
+						let originalValidRPCArgument;
+						before(() => {
+							originalValidRPCArgument = validRPCArgument;
+							validRPCArgument = null;
+						});
+						after(() => {
+							validRPCArgument = originalValidRPCArgument;
+						});
+						it('should call peer.socket.call with [validRPCProcedureName] and {}', () => {
+							expect(peerAsResult.socket.call).calledWith(
+								validRPCProcedureName,
+								{}
+							);
+						});
+
+						it('should call RPC method callback', () => {
+							expect(validRPCCallback).calledOnce;
+						});
+					});
+
+					describe('when peer.socket.call failed', () => {
+						const validRPCError = 'valid rpc error';
+						beforeEach(beforeEachCb => {
+							validRPCCallback.reset();
+							peerAsResult.socket.call.rejects(validRPCError);
+							peerAsResult.rpc[validRPCProcedureName](
+								validRPCArgument,
+								(...args) => {
+									validRPCCallback(...args);
+									beforeEachCb();
+								}
+							);
+						});
+
+						it('should call RPC method callback with err = [validRPCError]', () => {
+							expect(validRPCCallback)
+								.to.have.nested.property('args.0.0.name')
+								.equal(validRPCError);
+						});
+					});
+				});
+
+				describe('when Emit method is being called on peer', () => {
+					const validEmitArgument = 'valid string argument';
+					beforeEach(beforeEachCb => {
+						peerAsResult.rpc[validEventProcedureName](validEmitArgument);
+						setTimeout(beforeEachCb, 100); // Wait for the procedure to be emitted asynchronously
+					});
+
+					it('should call peer.socket.emit', () => {
+						expect(peerAsResult.socket.emit).calledOnce;
+					});
+
+					it('should call peer.socket.emit with [validEventProcedureName] and [validEmitArgument]', () => {
+						expect(peerAsResult.socket.emit).calledWith(
+							validEventProcedureName,
+							validEmitArgument
+						);
+					});
+				});
 			});
 		});
 	});

@@ -14,10 +14,12 @@
 
 'use strict';
 
+const _ = require('lodash');
 const async = require('async');
 const scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
 const System = require('../../../modules/system');
+const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 
 const wampClient = new WAMPClient(1000); // Timeout failed requests after 1 second
 
@@ -56,7 +58,52 @@ const connectSteps = {
 		return peer;
 	},
 
-	registerRPC: () => {},
+	registerRPC: peer => {
+		// Assemble empty RPC entry
+		peer.rpc = {};
+		let wsServer;
+		try {
+			wsServer = wsRPC.getServer();
+		} catch (wsServerNotInitializedException) {
+			return peer;
+		}
+		// Register RPC methods on peer
+		peer = _.reduce(
+			wsServer.endpoints.rpc,
+			(peerExtendedWithRPC, localHandler, rpcProcedureName) => {
+				peerExtendedWithRPC.rpc[rpcProcedureName] = (data, rpcCallback) => {
+					// Provide default parameters if called with non standard parameter, callback
+					rpcCallback = _.isFunction(rpcCallback)
+						? rpcCallback
+						: _.isFunction(data) ? data : () => {};
+					data = data && !_.isFunction(data) ? data : {};
+					peer.socket
+						.call(rpcProcedureName, data)
+						.then(res => {
+							setImmediate(rpcCallback, null, res);
+						})
+						.catch(err => {
+							setImmediate(rpcCallback, err);
+						});
+				};
+				return peerExtendedWithRPC;
+			},
+			peer
+		);
+
+		// Register Publish methods on peer
+		return _.reduce(
+			wsServer.endpoints.event,
+			(peerExtendedWithPublish, localHandler, eventProcedureName) => {
+				peerExtendedWithPublish.rpc[eventProcedureName] = peer.socket.emit.bind(
+					null,
+					eventProcedureName
+				);
+				return peerExtendedWithPublish;
+			},
+			peer
+		);
+	},
 
 	registerSocketListeners: () => {},
 };
