@@ -71,12 +71,27 @@ describe('blocks/chain', () => {
 		__private = BlocksChain.__get__('__private');
 		// Module
 
-		var modulesAccountsStub = sinonSandbox.stub();
-		var modulesBlocksStub = sinonSandbox.stub();
-		var modulesRoundsStub = sinonSandbox.stub();
+		var modulesAccountsStub = {
+			getAccount: sinonSandbox.stub(),
+		};
+		var modulesBlocksStub = {
+			lastBlock: {
+				get: sinonSandbox.stub(),
+				set: sinonSandbox.stub(),
+			},
+			utils: {
+				loadBlocksPart: sinonSandbox.stub(),
+			},
+		};
+		var modulesRoundsStub = {
+			backwardTick: sinonSandbox.stub(),
+		};
 		var modulesTransactionsStub = {
 			applyUnconfirmed: sinonSandbox.stub(),
 			apply: sinonSandbox.stub(),
+			receiveTransactions: sinonSandbox.stub(),
+			undo: sinonSandbox.stub(),
+			undoUnconfirmed: sinonSandbox.stub(),
 		};
 		modulesStub = {
 			accounts: modulesAccountsStub,
@@ -172,7 +187,7 @@ describe('blocks/chain', () => {
 								);
 							});
 
-							it('should return error', done => {
+							it('should call callback with error', done => {
 								blocksChainModule.saveGenesisBlock(err => {
 									expect(err).to.equal('saveBlock-ERR');
 									done();
@@ -239,7 +254,7 @@ describe('blocks/chain', () => {
 						txStub.batch.rejects('txbatch-ERR');
 					});
 
-					it('should throw error', done => {
+					it('should call callback with error', done => {
 						var block = {
 							id: 1,
 							transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
@@ -301,7 +316,7 @@ describe('blocks/chain', () => {
 						txStub.batch.rejects('txbatch-ERR');
 					});
 
-					it('should throw error', done => {
+					it('should call callback with error', done => {
 						var block = {
 							id: 1,
 							transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
@@ -368,7 +383,7 @@ describe('blocks/chain', () => {
 					expect(loggerStub.error.args[0][0]).to.contains('deleteBlock-ERR');
 				});
 
-				it('should return error', done => {
+				it('should call callback with error', done => {
 					blocksChainModule.deleteBlock(1, err => {
 						expect(err).to.equal('Blocks#deleteBlock error');
 						done();
@@ -403,7 +418,7 @@ describe('blocks/chain', () => {
 					);
 				});
 
-				it('should return error', done => {
+				it('should call callback with error', done => {
 					blocksChainModule.deleteAfterBlock(1, err => {
 						expect(err).to.equal('Blocks#deleteAfterBlock error');
 						done();
@@ -497,7 +512,7 @@ describe('blocks/chain', () => {
 						null
 					);
 				});
-				it('should return error', done => {
+				it('should call callback with error', done => {
 					var block = {
 						id: 1,
 						transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
@@ -522,7 +537,7 @@ describe('blocks/chain', () => {
 							modules.transactions.apply.callsArgWith(3, 'apply-ERR', null);
 						});
 
-						it('should return error', done => {
+						it('should call callback with error', done => {
 							var block = {
 								id: 1,
 								transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
@@ -734,76 +749,96 @@ describe('blocks/chain', () => {
 		it('should call library.logger.debug with blockId');
 	});
 
-	describe('__private', () => {
-		describe('popLastBlock', () => {
-			describe('call library.balancesSequence.add', () => {
-				it('should call modules.blocks.utils.loadBlocksPart');
-
-				it(
-					'should call modules.blocks.utils.loadBlocksPart with { id: oldLastBlock.previousBlock }'
-				);
-
-				describe('when modules.blocks.utils.loadBlocksPart fails', () => {
-					it('should call callback with error');
-				});
-
-				describe('when modules.blocks.utils.loadBlocksPart succeeds', () => {
-					describe('when previousBlock is null', () => {
-						it('should call callback with "previousBlock is null"');
+	describe('__private.popLastBlock', () => {
+		describe('modules.blocks.utils.loadBlocksPart', () => {
+			describe('when fails', () => {
+				describe('returns error', () => {
+					beforeEach(() => {
+						modules.blocks.utils.loadBlocksPart.callsArgWith(1, 'loadBlocksPart-ERR', null);
 					});
 
-					describe('for every oldLastBlock.transactions', () => {
-						it('should call modules.accounts.getAccount');
-
-						it(
-							'should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}'
-						);
-
-						describe('when modules.accounts.getAccount fails', () => {
-							it('should call library.logger.error with error');
-
-							it(
-								'should call library.logger.error "Failed to undo transactions"'
-							);
-
-							it('should call process.exit with 0');
+					it('should call callback with error', done => {
+						__private.popLastBlock({ id: 3, height: 3 }, err => {
+							expect(err).to.equal('loadBlocksPart-ERR');
+							done();
 						});
+					});
+				});
 
-						describe('when modules.accounts.getAccount succeeds', () => {
-							it('should call modules.transactions.undo');
+				describe('returns empty', () => {
+					beforeEach(() => {
+						modules.blocks.utils.loadBlocksPart.callsArgWith(1, null, []);
+					});
+	
+					it('should call callback with error "previousBlock is null"', done => {
+						__private.popLastBlock({ id: 3, height: 3 }, err => {
+							expect(err).to.equal('previousBlock is null');
+							done();
+						});
+					});
+				});
+			});
 
-							it('should call modules.transactions.undo with transaction');
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					modules.blocks.utils.loadBlocksPart.callsArgWith(1, null, [{ id: 2, height: 2 }]);
+				});
 
-							it('should call modules.transactions.undo with oldLastBlock');
-
-							it('should call modules.transactions.undo with sender');
-
-							it('should call modules.transactions.undoUnconfirmed');
-
-							it(
-								'should call modules.transactions.undoUnconfirmed with transaction'
-							);
-
-							it('should call self.deleteBlock');
-
-							it('should call self.deleteBlock with oldLastBlock.id');
-
-							describe('when self.deleteBlock fails', () => {
-								it('should call library.logger.error with error');
-
-								it(
-									'should call library.logger.error with "Failed to delete block"'
-								);
-
-								it('should call process.exit with 0');
+				describe('modules.accounts.getAccount', () => {
+					describe.skip('when fails', () => {
+						beforeEach(() => {
+							modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null);
+							process.exit = sinonSandbox.stub().returns(0);
+						});
+						afterEach(() => {
+							expect(process.exit.calledOnce).to.be.true;
+							expect(loggerStub.error.args[0][0]).to.equal('Failed to undo transactions');
+							expect(loggerStub.error.args[0][1]).to.equal('getAccount-ERR');
+						});
+						it('should return process.exit(0)', done => {
+							__private.popLastBlock({ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] }, () => {
+								done();
 							});
+							expect(process.exit.calledOnce).to.be.true;
+						});
+					});
 
-							describe('when self.deleteBlock succeeds', () => {
-								it('should call callback');
+					describe('when succeeds', () => {
+						beforeEach(() => {
+							modules.accounts.getAccount.callsArgWith(1, null, '12ab');
+							modules.transactions.undo.callsArgWith(3, null, true);
+							modules.transactions.undoUnconfirmed.callsArgWith(1, null, true);
+						});
+						describe('modules.rounds.backwardTick', () => {
+							describe('when fails', () => {
+							});
+							describe('when succeeds', () => {
+								var deleteBlockTemp;
+								beforeEach(() => {
+									modules.rounds.backwardTick.callsArgWith(2, null, true);
+									deleteBlockTemp = blocksChainModule.deleteBlock;
+								});
+								afterEach(() => {
+									blocksChainModule.deleteBlock = deleteBlockTemp;
+								});
+								describe('self.deleteBlock', () => {
+									describe('when fails', () => {
+									});
 
-								it('should call callback with error = null');
+									describe('when succeeds', () => {
+										beforeEach(() => {
+											blocksChainModule.deleteBlock = sinonSandbox.stub().callsArgWith(1, null, true);
+										});
 
-								it('should call callback with result = previousBlock');
+										it('should return previousBlock and no error', done => {
+											__private.popLastBlock({ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] }, (err, previousBlock) => {
+												expect(err).to.be.null;
+												expect(previousBlock).to.deep.equal({ id: 2, height: 2 });
+												done();
+											});
+										});
+									});
+								});
 							});
 						});
 					});
@@ -813,33 +848,34 @@ describe('blocks/chain', () => {
 	});
 
 	describe('deleteLastBlock', () => {
-		it('should call modules.blocks.lastBlock.get');
+		var popLastBlockTemp;
+		before(() => {
+			popLastBlockTemp = __private.popLastBlock;
+		});
 
-		it('should call logger.warn lastBlock');
+		after(() => {
+			__private.popLastBlock = popLastBlockTemp;
+		});
+
+		afterEach(() => {
+			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			expect(loggerStub.warn.args[0][0]).to.equal('Deleting last block');
+		});
 
 		describe('when lastBlock.height = 1', () => {
-			it('should call callback with error "Cannot delete genesis block');
-		});
-
-		it('should call __private.popLastBlock');
-
-		it('should call __private.popLastBlock with lastBlock');
-
-		describe('when __private.popLastBlock fails', () => {
-			it('should call logger.error with "Error deleting last block"');
-
-			it('should call logger.error with lastBlock');
-
-			it('should call callback with error');
-
-			it('should call callback with lastBlock');
-		});
-		describe('when __private.popLastBlock succeeds', () => {
-			it('should replace the lastBlock with the previous one');
-
-			it('should call callback with error = null');
-
-			it('should call callback with result = lastBlock');
+			beforeEach(() => {
+				modules.blocks.lastBlock.get.returns({ id: 1, height: 1 });
+			});
+			it('should call callback with error "Cannot delete genesis block', done => {
+				blocksChainModule.deleteLastBlock(err => {
+					expect(err).to.equal('Cannot delete genesis block');
+					expect(loggerStub.warn.args[0][1]).to.deep.equal({
+						id: 1,
+						height: 1,
+					});
+					done();
+				});
+			});
 		});
 	});
 
@@ -866,7 +902,7 @@ describe('blocks/chain', () => {
 					expect(loggerStub.error.args[0][0]).to.equal('Recovery failed');
 				});
 
-				it('should return error', done => {
+				it('should call callback with error', done => {
 					blocksChainModule.recoverChain(err => {
 						expect(err).to.equal('deleteLastBlock-ERR');
 						done();
@@ -887,8 +923,8 @@ describe('blocks/chain', () => {
 					expect(loggerStub.info.args[0][1]).to.equal(1);
 				});
 				it('should call callback with error = null', done => {
-					blocksChainModule.recoverChain(cb => {
-						expect(cb).to.be.null;
+					blocksChainModule.recoverChain(err => {
+						expect(err).to.be.null;
 						done();
 					});
 				});

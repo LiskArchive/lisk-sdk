@@ -672,27 +672,27 @@ Chain.prototype.deleteLastBlock = function(cb) {
 
 	async.waterfall(
 		[
-			function(seriesCb) {
+			function(waterCb) {
 				// Delete last block, replace last block with previous block, undo things
 				__private.popLastBlock(lastBlock, (err, newLastBlock) => {
 					if (err) {
 						library.logger.error('Error deleting last block', lastBlock);
 					}
-					return setImmediate(seriesCb, err, newLastBlock);
+					return setImmediate(waterCb, err, newLastBlock);
 				});
 			},
-			function(newLastBlock, seriesCb) {
+			function(newLastBlock, waterCb) {
 				// Put transactions back into transaction pool
 				modules.transactions.receiveTransactions(
 					lastBlock.transactions.reverse(),
 					false,
 					err => {
 						if (err) {
-							library.logger.error('Error adding transactions', lastBlock);
+							library.logger.error('Error adding transactions', err);
 						}
 						// Replace last block with previous
 						lastBlock = modules.blocks.lastBlock.set(newLastBlock);
-						return setImmediate(seriesCb, err, lastBlock);
+						return setImmediate(waterCb, null, newLastBlock);
 					}
 				);
 			},
