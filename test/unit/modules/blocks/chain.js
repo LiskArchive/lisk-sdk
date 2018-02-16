@@ -740,13 +740,13 @@ describe('blocks/chain', () => {
 	});
 
 	describe('broadcastReducedBlock', () => {
-		it('should call library.bus.message with "newBlock"');
-
-		it('should call library.bus.message with reducedBlock');
-
-		it('should call library.bus.message with broadcast');
-
-		it('should call library.logger.debug with blockId');
+		it('should call library.bus.message with reducedBlock and broadcast', () => {
+			blocksChainModule.broadcastReducedBlock({ id: 3, hright: 3 }, true);
+			expect(library.bus.message.calledOnce).to.be.true;
+			expect(library.bus.message.args[0][0]).to.equal('broadcastBlock');
+			expect(library.bus.message.args[0][1]).to.deep.equal({ id: 3, hright: 3 });
+			expect(library.bus.message.args[0][2]).to.be.true;
+		});
 	});
 
 	describe('__private.popLastBlock', () => {
