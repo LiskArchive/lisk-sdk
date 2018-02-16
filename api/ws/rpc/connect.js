@@ -18,9 +18,12 @@ const _ = require('lodash');
 const async = require('async');
 const scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
+const peersManager = require('../../../helpers/peers_manager.js');
+const failureCodes = require('../../../api/ws/rpc/failure_codes');
 const System = require('../../../modules/system');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 
+const PeerUpdateError = failureCodes.PeerUpdateError;
 const wampClient = new WAMPClient(1000); // Timeout failed requests after 1 second
 
 const connect = peer => {
@@ -105,7 +108,29 @@ const connectSteps = {
 		);
 	},
 
-	registerSocketListeners: () => {},
+	registerSocketListeners: peer => {
+		// When handshake process will fail - disconnect
+		peer.socket.on('connectionAbort', () => {
+			peer.socket.disconnect(
+				new PeerUpdateError(
+					failureCodes.HANDSHAKE_ERROR,
+					failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]
+				)
+			);
+		});
+
+		// When error on transport layer occurs - disconnect
+		peer.socket.on('error', () => {
+			peer.socket.disconnect();
+		});
+
+		// When WS connection ends - remove peer
+		peer.socket.on('close', () => {
+			peer.socket.disconnect();
+			peersManager.remove(peer);
+		});
+		return peer;
+	},
 };
 
 module.exports = connect;

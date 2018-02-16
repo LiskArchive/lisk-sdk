@@ -393,5 +393,38 @@ describe('connect', () => {
 				});
 			});
 		});
+
+		describe('registerSocketListeners', () => {
+			let validSocket;
+			before(() => {
+				validSocket = {
+					on: sinon.stub(),
+				};
+			});
+			beforeEach(() => {
+				validSocket.on.reset();
+				const registerSocketListeners = connectRewired.__get__(
+					'connectSteps.registerSocketListeners'
+				);
+				validPeer.socket = validSocket;
+				peerAsResult = registerSocketListeners(validPeer);
+			});
+
+			it('should call peer.socket.on with "connectionAbort"', () => {
+				expect(peerAsResult.socket.on).to.be.calledWith('connectionAbort');
+			});
+
+			it('should call peer.socket.on with "error"', () => {
+				expect(peerAsResult.socket.on).to.be.calledWith('error');
+			});
+
+			it('should call peer.socket.on with "close"', () => {
+				expect(peerAsResult.socket.on).to.be.calledWith('close');
+			});
+
+			it('should register 3 event listeners', () => {
+				expect(peerAsResult.socket.on).to.be.calledThrice;
+			});
+		});
 	});
 });
