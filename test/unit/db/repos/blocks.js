@@ -79,8 +79,9 @@ describe('db', () => {
 		});
 	});
 
-	after(() => {
+	after(done => {
 		dbSandbox.destroy();
+		done();
 	});
 
 	beforeEach(done => {
@@ -98,13 +99,14 @@ describe('db', () => {
 			.catch(done);
 	});
 
-	it('should initialize db.blocks repo', () => {
+	it('should initialize db.blocks repo', done => {
 		expect(db.blocks).to.be.not.null;
+		done();
 	});
 
 	describe('AccountsRepository', () => {
 		describe('constructor()', () => {
-			it('should assign param and data members properly', () => {
+			it('should assign param and data members properly', done => {
 				expect(db.blocks.db).to.be.eql(db);
 				expect(db.blocks.pgp).to.be.eql(db.$config.pgp);
 				expect(db.blocks.dbTable).to.be.eql('blocks');
@@ -119,6 +121,8 @@ describe('db', () => {
 				// expect(db.blocks.cs).to.be.an('object');
 				// expect(db.blocks.cs).to.be.not.empty;
 				// expect(db.blocks.cs).to.have.all.keys(['insert']);
+
+				done();
 			});
 		});
 
@@ -129,7 +133,7 @@ describe('db', () => {
 
 				expect(db.any.firstCall.args[0]).to.eql(sql.getGenesisBlock);
 				expect(db.any.firstCall.args[1]).to.eql(undefined);
-				expect(db.any).to.be.calledOnce;
+				return expect(db.any).to.be.calledOnce;
 			});
 
 			it('should return genesis block with correct values', function*() {
@@ -145,7 +149,7 @@ describe('db', () => {
 
 				const payloadHash = genesisBlock[0].payloadHash.toString('hex');
 
-				expect(payloadHash).to.be.eql(__testContext.config.nethash);
+				return expect(payloadHash).to.be.eql(__testContext.config.nethash);
 			});
 		});
 
@@ -156,7 +160,7 @@ describe('db', () => {
 
 				expect(db.query.firstCall.args[0]).to.eql(sql.getGenesisBlockId);
 				expect(db.query.firstCall.args[1]).to.eql(['1111111']);
-				expect(db.query).to.be.calledOnce;
+				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should return block id if block exists for given id', function*() {
@@ -166,14 +170,14 @@ describe('db', () => {
 				expect(block).to.be.not.empty;
 				expect(block).to.be.an('array');
 				expect(block).to.have.lengthOf(1);
-				expect(block[0].id).to.be.eql(genesisBlock.id);
+				return expect(block[0].id).to.be.eql(genesisBlock.id);
 			});
 
 			it('should return empty array if block does not exists for given id', function*() {
 				const block = yield db.blocks.getGenesisBlockId('111111');
 
 				expect(block).to.be.empty;
-				expect(block).to.be.an('array');
+				return expect(block).to.be.an('array');
 			});
 		});
 
@@ -184,7 +188,7 @@ describe('db', () => {
 
 				expect(db.none.firstCall.args[0]).to.eql(sql.deleteBlock);
 				expect(db.none.firstCall.args[1]).to.eql(['1111111']);
-				expect(db.none).to.be.calledOnce;
+				return expect(db.none).to.be.calledOnce;
 			});
 
 			it('should delete a block for given id if it exists', function*() {
@@ -201,7 +205,7 @@ describe('db', () => {
 
 				expect(before.count).to.be.equal('1');
 				expect(status).to.be.null;
-				expect(after.count).to.be.equal('0');
+				return expect(after.count).to.be.equal('0');
 			});
 
 			it('should not throw an error if a block with given id does not exists', () => {
@@ -227,7 +231,7 @@ describe('db', () => {
 					params.start,
 					params.end,
 				]);
-				expect(db.query).to.be.calledOnce;
+				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should throw error if invalid public key is passed', () => {
@@ -252,7 +256,7 @@ describe('db', () => {
 
 				expect(rewards).to.be.not.empty;
 				expect(rewards).to.be.an('array');
-				expect(rewards[0]).to.have.all.keys(
+				return expect(rewards[0]).to.have.all.keys(
 					'delegate',
 					'count',
 					'fees',
@@ -268,14 +272,14 @@ describe('db', () => {
 
 				expect(db.one.firstCall.args[0]).to.eql(sql.count);
 				expect(db.one.firstCall.args[1]).to.eql([]);
-				expect(db.one).to.be.calledOnce;
+				return expect(db.one).to.be.calledOnce;
 			});
 
 			it('should return integer type count of total blocks', function*() {
 				const count = yield db.blocks.count();
 
 				expect(count).to.be.an('number');
-				expect(count).to.be.eql(5); // Number of blocks in seed (db_seed.js#23)
+				return expect(count).to.be.eql(5); // Number of blocks in seed (db_seed.js#23)
 			});
 		});
 
@@ -292,7 +296,7 @@ describe('db', () => {
 
 				expect(db.query.firstCall.args[0]).to.be.a('string');
 				expect(db.query.firstCall.args[1]).to.eql(params);
-				expect(db.query).to.be.calledOnce;
+				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should be rejected with error if where param is not provided as array', () => {
@@ -318,7 +322,7 @@ describe('db', () => {
 
 				expect(blocks).to.be.an('array');
 				expect(blocks).to.have.lengthOf(1);
-				expect(blocks[0]).to.have.all.keys([
+				return expect(blocks[0]).to.have.all.keys([
 					'b_blockSignature',
 					'b_confirmations',
 					'b_generatorPublicKey',
@@ -340,7 +344,7 @@ describe('db', () => {
 				const firstResult = yield db.blocks.list({ limit: 2, offset: 0 });
 				const secondResult = yield db.blocks.list({ limit: 2, offset: 1 });
 
-				expect(firstResult[1]).to.be.eql(secondResult[0]);
+				return expect(firstResult[1]).to.be.eql(secondResult[0]);
 			});
 
 			it('should return valid blocks for single condition', function*() {
@@ -353,7 +357,7 @@ describe('db', () => {
 
 				expect(result.length).to.be.above(0);
 
-				result.forEach(block => {
+				return result.forEach(block => {
 					expect(block.b_id).to.be.eql(genesisBlock.id);
 				});
 			});
@@ -366,7 +370,7 @@ describe('db', () => {
 					offset: 0,
 				});
 
-				expect(result).to.be.empty;
+				return expect(result).to.be.empty;
 			});
 
 			it('should return blocks with valid ascending sorting order ', function*() {
@@ -378,7 +382,7 @@ describe('db', () => {
 				});
 
 				expect(result.length).to.be.above(0);
-				expect(result).to.be.eql(
+				return expect(result).to.be.eql(
 					_(result)
 						.orderBy('b_height', 'asc')
 						.value()
@@ -394,7 +398,7 @@ describe('db', () => {
 				});
 
 				expect(result.length).to.be.above(0);
-				expect(result).to.be.eql(
+				return expect(result).to.be.eql(
 					_(result)
 						.orderBy('b_height', 'desc')
 						.value()
@@ -415,7 +419,7 @@ describe('db', () => {
 
 				expect(db.query.firstCall.args[0]).to.eql(sql.getIdSequence);
 				expect(db.query.firstCall.args[1]).to.eql(params);
-				expect(db.query).to.be.calledOnce;
+				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should be rejected if required param "delegates" is missing', () => {
@@ -454,7 +458,7 @@ describe('db', () => {
 				const sequence = yield db.blocks.getIdSequence(params);
 
 				expect(sequence).to.be.not.empty;
-				expect(sequence).to.be.an('array');
+				return expect(sequence).to.be.an('array');
 			});
 		});
 
@@ -470,7 +474,7 @@ describe('db', () => {
 
 				expect(db.query.firstCall.args[0]).to.eql(sql.getCommonBlock);
 				expect(db.query.firstCall.args[1]).to.eql(params);
-				expect(db.query).to.be.calledOnce;
+				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should be rejected if required param "id" is missing', () => {
@@ -500,7 +504,7 @@ describe('db', () => {
 				expect(commonBlock).to.be.an('array');
 				expect(commonBlock).to.be.lengthOf(1);
 				expect(commonBlock[0]).to.have.all.keys('count');
-				expect(commonBlock[0].count).to.be.eql(1);
+				return expect(commonBlock[0].count).to.be.eql(1);
 			});
 
 			it('should return the count of blocks matching "previousBlock" condition', function*() {
@@ -515,7 +519,7 @@ describe('db', () => {
 				expect(commonBlock).to.be.an('array');
 				expect(commonBlock).to.be.lengthOf(1);
 				expect(commonBlock[0]).to.have.all.keys('count');
-				expect(commonBlock[0].count).to.be.eql(0);
+				return expect(commonBlock[0].count).to.be.eql(0);
 			});
 		});
 
@@ -527,7 +531,7 @@ describe('db', () => {
 
 				expect(db.query.firstCall.args[0]).to.eql(sql.getHeightByLastId);
 				expect(db.query.firstCall.args[1]).to.eql(['11111']);
-				expect(db.query).to.be.calledOnce;
+				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should be fulfilled with empty response if required param "lastId" is missing', () => {
@@ -542,7 +546,7 @@ describe('db', () => {
 				expect(height).to.be.an('array');
 				expect(height).to.be.lengthOf(1);
 				expect(height[0]).to.have.all.keys('height');
-				expect(height[0].height).to.be.eql(genesisBlock.height);
+				return expect(height[0].height).to.be.eql(genesisBlock.height);
 			});
 		});
 
@@ -558,7 +562,7 @@ describe('db', () => {
 				};
 				yield db.blocks.loadBlocksData(params);
 				expect(db.query.firstCall.args[1]).to.eql(params);
-				expect(db.query).to.be.calledOnce;
+				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should be rejected if required param "limit" is missing', () => {
@@ -592,7 +596,7 @@ describe('db', () => {
 				expect(data).to.be.an('array');
 				expect(data).to.be.lengthOf(1);
 				expect(data[0].b_id).to.be.eql(block.id);
-				expect(data[0]).to.have.all.keys(blockListFields);
+				return expect(data[0]).to.have.all.keys(blockListFields);
 			});
 
 			it('should return data for given lastBlock id', function*() {
@@ -606,7 +610,7 @@ describe('db', () => {
 				expect(data).to.be.not.empty;
 				expect(data).to.be.an('array');
 				// There are 5 total blocks in the seed
-				expect(data).to.be.lengthOf(4);
+				return expect(data).to.be.lengthOf(4);
 			});
 
 			it('should use condition limit condition as height if both "id" and "lastId" is not provided', function*() {
@@ -618,7 +622,7 @@ describe('db', () => {
 				expect(data).to.be.not.empty;
 				expect(data).to.be.an('array');
 				// There are 5 total blocks in the seed
-				expect(data).to.be.lengthOf(2);
+				return expect(data).to.be.lengthOf(2);
 			});
 		});
 
@@ -630,7 +634,7 @@ describe('db', () => {
 
 				expect(db.query.firstCall.args[0]).to.eql(sql.loadBlocksOffset);
 				expect(db.query.firstCall.args[1]).to.eql([10, 20]);
-				expect(db.query).to.be.calledOnce;
+				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should not be rejected if param "offset" is missing', () => {
@@ -652,7 +656,7 @@ describe('db', () => {
 				expect(data).to.be.an('array');
 				expect(data[0]).to.have.all.keys(blockListFields);
 
-				data.forEach(block => {
+				return data.forEach(block => {
 					expect(block.b_height).to.be.above(0);
 					expect(block.b_height).to.be.below(5);
 				});
@@ -667,7 +671,7 @@ describe('db', () => {
 
 				expect(db.query.firstCall.args[0]).to.eql(sql.loadLastBlock);
 				expect(db.query.firstCall.args[1]).to.eql(undefined);
-				expect(db.query).to.be.calledOnce;
+				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should return last block with valid data format', function*() {
@@ -679,7 +683,7 @@ describe('db', () => {
 				expect(data[0]).to.have.all.keys(blockListFields);
 
 				// As we only see 5 blocks
-				expect(data[0].b_height).to.be.eql(5);
+				return expect(data[0].b_height).to.be.eql(5);
 			});
 		});
 
@@ -691,7 +695,7 @@ describe('db', () => {
 
 				expect(db.query.firstCall.args[0]).to.eql(sql.loadLastNBlockIds);
 				expect(db.query.firstCall.args[1]).to.eql([1]);
-				expect(db.query).to.be.calledOnce;
+				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should return last block ids', function*() {
@@ -704,7 +708,7 @@ describe('db', () => {
 				expect(data[0]).to.have.all.keys('id');
 
 				// Due to descending order on height genesis block will appear in last
-				expect(data[data.length - 1].id).to.be.eql(genesisBlock.id);
+				return expect(data[data.length - 1].id).to.be.eql(genesisBlock.id);
 			});
 		});
 
@@ -716,7 +720,7 @@ describe('db', () => {
 
 				expect(db.oneOrNone.firstCall.args[0]).to.eql(sql.blockExists);
 				expect(db.oneOrNone.firstCall.args[1]).to.eql(['1111']);
-				expect(db.oneOrNone).to.be.calledOnce;
+				return expect(db.oneOrNone).to.be.calledOnce;
 			});
 
 			it('should return block id if provided id exists', function*() {
@@ -726,13 +730,13 @@ describe('db', () => {
 				expect(data).to.be.not.empty;
 				expect(data).to.be.an('object');
 				expect(data).to.have.all.keys('id');
-				expect(data.id).to.be.eql(genesisBlock.id);
+				return expect(data.id).to.be.eql(genesisBlock.id);
 			});
 
 			it('should return empty response if provided id does not exists', function*() {
 				const data = yield db.blocks.blockExists('111111');
 
-				expect(data).to.be.null;
+				return expect(data).to.be.null;
 			});
 		});
 
@@ -744,7 +748,7 @@ describe('db', () => {
 
 				expect(db.none.firstCall.args[0]).to.eql(sql.deleteAfterBlock);
 				expect(db.none.firstCall.args[1]).to.eql(['1111']);
-				expect(db.none).to.be.calledOnce;
+				return expect(db.none).to.be.calledOnce;
 			});
 
 			it('should delete all blocks having height above given block id', function*() {
@@ -761,13 +765,13 @@ describe('db', () => {
 
 				expect(data).to.be.null;
 				expect(before).to.have.length(5);
-				expect(after).to.have.length(0);
+				return expect(after).to.have.length(0);
 			});
 
 			it('should return empty response if provided id does not exists', function*() {
 				const data = yield db.blocks.deleteAfterBlock('111111');
 
-				expect(data).to.be.null;
+				return expect(data).to.be.null;
 			});
 		});
 
@@ -779,7 +783,7 @@ describe('db', () => {
 
 				expect(db.query.firstCall.args[0]).to.eql(sql.getBlocksForTransport);
 				expect(db.query.firstCall.args[1]).to.eql(['1111']);
-				expect(db.query).to.be.calledOnce;
+				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should get block information for transport with valid format order by height', function*() {
@@ -796,7 +800,7 @@ describe('db', () => {
 					'previousBlock',
 					'timestamp'
 				);
-				expect(data).to.be.eql(
+				return expect(data).to.be.eql(
 					_(data)
 						.orderBy('height', 'desc')
 						.value()
@@ -806,7 +810,7 @@ describe('db', () => {
 			it('should return empty response if provided ids does not exists', function*() {
 				const data = yield db.blocks.getBlocksForTransport('111111');
 
-				expect(data).to.be.empty;
+				return expect(data).to.be.empty;
 			});
 
 			it('should reject with error if required parameter "ids" is missing', () => {
@@ -829,14 +833,14 @@ describe('db', () => {
 				]);
 
 				expect(result).to.be.not.empty;
-				expect(result).to.have.lengthOf(1);
+				return expect(result).to.have.lengthOf(1);
 			});
 
 			it('should throw error if invalid block "id" is not provided', () => {
 				const block = blocksFixtures.Block();
 				delete block.id;
 
-				expect(() => {
+				return expect(() => {
 					db.blocks.save(block);
 				}).to.throw("Property 'id' doesn't exist");
 			});
@@ -845,7 +849,7 @@ describe('db', () => {
 				const block = blocksFixtures.Block();
 				delete block.payloadHash;
 
-				expect(() => {
+				return expect(() => {
 					db.blocks.save(block);
 				}).to.throw('First argument must be a string, Buffer');
 			});
@@ -854,7 +858,7 @@ describe('db', () => {
 				const block = blocksFixtures.Block();
 				delete block.generatorPublicKey;
 
-				expect(() => {
+				return expect(() => {
 					db.blocks.save(block);
 				}).to.throw('First argument must be a string, Buffer');
 			});
@@ -863,7 +867,7 @@ describe('db', () => {
 				const block = blocksFixtures.Block();
 				delete block.blockSignature;
 
-				expect(() => {
+				return expect(() => {
 					db.blocks.save(block);
 				}).to.throw('First argument must be a string, Buffer');
 			});
