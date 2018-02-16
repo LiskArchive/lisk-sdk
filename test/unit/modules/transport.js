@@ -43,6 +43,7 @@ describe('transport', () => {
 	var restoreRewiredTopDeps;
 	var peerStub;
 	var definitions;
+	var transaction;
 
 	const SAMPLE_SIGNATURE_1 = {
 		transactionId: '222675625422353767',
@@ -524,8 +525,30 @@ describe('transport', () => {
 				done();
 			});
 
-			describe('for every transaction in transactions', () => {
-				describe('when transactions argument is undefined', () => {
+			// TODO: The validation logic was moved up into the postTransactions functions
+			describe.skip('when library.schema.validate fails', () => {
+				var validateErr;
+
+				beforeEach(done => {
+					validateErr = new Error('Transaction did not match schema');
+					validateErr.code = 'INVALID_FORMAT';
+					library.schema.validate = sinonSandbox
+						.stub()
+						.callsArgWith(2, [validateErr]);
+
+					__private.receiveTransactions(query, peerStub, '', () => {
+						done();
+					});
+				});
+
+				it('should call callback with error = "Invalid transactions body"', () => {
+					// TODO: Check that error is what we expect it to be.
+					return expect(library.schema.validate.called).to.be.true;
+				});
+			});
+
+			describe('when library.schema.validate succeeds', () => {
+				describe.skip('when called', () => {
 					var error;
 
 					beforeEach(done => {
@@ -620,7 +643,6 @@ describe('transport', () => {
 		});
 
 		describe('receiveTransaction', () => {
-			var transaction;
 			var peerAddressString;
 
 			beforeEach(done => {
@@ -901,6 +923,13 @@ describe('transport', () => {
 							force: false,
 						},
 					},
+					network: {
+						io: {
+							sockets: {
+								emit: sinonSandbox.stub(),
+							},
+						},
+					},
 				};
 
 				modules = {
@@ -909,9 +938,14 @@ describe('transport', () => {
 					},
 				};
 
+				__private = {
+					broadcaster: {},
+				};
+
 				restoreRewiredTransportDeps = TransportModule.__set__({
 					library,
 					modules,
+					__private,
 				});
 
 				done();
@@ -994,16 +1028,7 @@ describe('transport', () => {
 		});
 
 		describe('onBind', () => {
-			var restoreRewiredDeps;
-
 			beforeEach(done => {
-				__private = {
-					broadcaster: {},
-				};
-				restoreRewiredDeps = TransportModule.__set__({
-					__private,
-				});
-
 				// Create a new TransportModule instance.
 				// We want to check that internal variables are being set correctly so we don't
 				// want any stubs to interfere here (e.g. from the top-level beforeEach block).
@@ -1012,11 +1037,6 @@ describe('transport', () => {
 					transportSelf.onBind(defaultScope);
 					done();
 				}, defaultScope);
-			});
-
-			afterEach(done => {
-				restoreRewiredDeps();
-				done();
 			});
 
 			describe('modules', () => {
@@ -1066,52 +1086,108 @@ describe('transport', () => {
 
 		describe('onSignature', () => {
 			describe('when broadcast is defined', () => {
-				it('should call __private.broadcaster.maxRelays');
+				beforeEach(done => {
+					__private.broadcaster = {
+						maxRelays: sinonSandbox.stub().returns(false),
+						enqueue: sinonSandbox.stub(),
+					};
+					transportInstance.onSignature(SAMPLE_SIGNATURE_1, true);
+					done();
+				});
 
-				it('should call __private.broadcaster.maxRelays with signature');
+				it('should call __private.broadcaster.maxRelays with signature', () => {
+					expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
+					return expect(
+						__private.broadcaster.maxRelays.calledWith(SAMPLE_SIGNATURE_1)
+					).to.be.true;
+				});
 
 				describe('when result of __private.broadcaster.maxRelays is false', () => {
-					it('should call __private.broadcaster.enqueue');
+					it('should call __private.broadcaster.enqueue with {} and {api: "postSignatures", data: {signature: signature}} as arguments', () => {
+						expect(__private.broadcaster.enqueue.calledOnce).to.be.true;
+						return expect(
+							__private.broadcaster.enqueue.calledWith(
+								{},
+								{
+									api: 'postSignatures',
+									data: { signature: SAMPLE_SIGNATURE_1 },
+								}
+							)
+						).to.be.true;
+					});
 
-					it('should call __private.broadcaster.enqueue with {}');
-
-					it(
-						'should call __private.broadcaster.enqueue with {api: "postSignature", data: {signature: signature}}'
-					);
-
-					it('should call library.network.io.sockets.emit');
-
-					it(
-						'should call library.network.io.sockets.emit with "signature/change"'
-					);
-
-					it('should call library.network.io.sockets.emit with signature');
+					it('should call library.network.io.sockets.emit with "signature/change" and signature', () => {
+						expect(library.network.io.sockets.emit.calledOnce).to.be.true;
+						return expect(
+							library.network.io.sockets.emit.calledWith(
+								'signature/change',
+								SAMPLE_SIGNATURE_1
+							)
+						).to.be.true;
+					});
 				});
 			});
 		});
 
 		describe('onUnconfirmedTransaction', () => {
-			describe('when broadcast is defined', () => {
-				it('should call __private.broadcaster.maxRelays');
+			beforeEach(done => {
+				transaction = {
+					id: '222675625422353767',
+					type: 0,
+					amount: '100',
+					fee: '10',
+					senderPublicKey:
+						'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+					recipientId: '12668885769632475474L',
+					timestamp: 28227090,
+					asset: {},
+					signature:
+						'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
+				};
+				__private.broadcaster = {
+					maxRelays: sinonSandbox.stub().returns(true),
+					enqueue: sinonSandbox.stub(),
+				};
+				transportInstance.onUnconfirmedTransaction(transaction, true);
+				done();
+			});
 
-				it('should call __private.broadcaster.maxRelays with transaction');
+			describe('when broadcast is defined', () => {
+				it('should call __private.broadcaster.maxRelays with transaction', () => {
+					expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
+					return expect(__private.broadcaster.maxRelays.calledWith(transaction))
+						.to.be.true;
+				});
 
 				describe('when result of __private.broadcaster.maxRelays is false', () => {
-					it('should call __private.broadcaster.enqueue');
+					beforeEach(done => {
+						__private.broadcaster = {
+							maxRelays: sinonSandbox.stub().returns(false),
+							enqueue: sinonSandbox.stub(),
+						};
+						transportInstance.onUnconfirmedTransaction(transaction, true);
+						done();
+					});
 
-					it('should call __private.broadcaster.enqueue with {}');
+					it('should call __private.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction: transaction}}', () => {
+						expect(__private.broadcaster.enqueue.calledOnce).to.be.true;
+						return expect(
+							__private.broadcaster.enqueue.calledWith(
+								{},
+								{ api: 'postTransactions', data: { transaction } }
+							)
+						).to.be.true;
+					});
 
-					it(
-						'should call __private.broadcaster.enqueue with {api: "postTransactions", data: {transaction: transaction}}'
-					);
-
-					it('should call library.network.io.sockets.emit');
-
-					it(
-						'should call library.network.io.sockets.emit with "transactions/change"'
-					);
-
-					it('should call library.network.io.sockets.emit with transaction');
+					it('should call library.network.io.sockets.emit with "transactions/change" and transaction as arguments', () => {
+						expect(library.network.io.sockets.emit.calledOnce).to.be.true;
+						return expect(
+							library.network.io.sockets.emit.calledWith(
+								'transactions/change',
+								transaction
+							)
+						).to.be.true;
+					});
 				});
 			});
 		});
