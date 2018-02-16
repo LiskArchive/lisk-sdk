@@ -24,7 +24,7 @@ import getTransactionBytes, {
 	checkTransaction,
 	checkRequiredFields,
 	isValidValue,
-} from '../../../src/transactions/utils/getTransactionBytes';
+} from 'transactions/utils/getTransactionBytes';
 
 const fixedPoint = 10 ** 8;
 const defaultRecipient = '58191285901858109L';

@@ -23,9 +23,9 @@ import {
 	convertPrivateKeyEd2Curve,
 	bigNumberToBuffer,
 	bufferToBigNumberString,
-} from '../../src/crypto/convert';
+} from 'cryptography/convert';
 
-const hash = require('../../src/crypto/hash');
+const hash = require('cryptography/hash');
 
 describe('convert', () => {
 	// keys for passphrase 'secret';

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { IN_TRANSFER_FEE } from '../constants';
+import { IN_TRANSFER_FEE } from 'constants';
 import { wrapTransactionCreator } from './utils';
 
 const transferIntoDapp = ({ amount, dappId }) => ({

@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../src/crypto';
-import registerMultisignatureAccount from '../../src/transactions/4_registerMultisignatureAccount';
+import cryptography from 'cryptography';
+import registerMultisignatureAccount from 'transactions/4_registerMultisignatureAccount';
 
-const time = require('../../src/transactions/utils/time');
+const time = require('transactions/utils/time');
 
 describe('#registerMultisignatureAccount transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -261,7 +261,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 				.fill()
 				.map(
 					(_, index) =>
-						cryptoModule.getPrivateAndPublicKeyFromPassphrase(index.toString())
+						cryptography.getPrivateAndPublicKeyFromPassphrase(index.toString())
 							.publicKey,
 				);
 		});
