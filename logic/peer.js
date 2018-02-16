@@ -14,8 +14,8 @@
 
 'use strict';
 
-var _ = require('lodash');
-var ip = require('ip');
+const _ = require('lodash');
+const ip = require('ip');
 
 /**
  * Main peer logic. Creates a peer.
@@ -189,7 +189,7 @@ Peer.prototype.update = function(peer) {
  * @todo Add description for the function
  */
 Peer.prototype.object = function() {
-	var copy = {};
+	const copy = {};
 
 	_.each(this.properties, key => {
 		copy[key] = this[key];
