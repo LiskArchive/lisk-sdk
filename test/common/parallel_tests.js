@@ -90,6 +90,8 @@ function parallelTests(tag, suite, section) {
 			'--dir',
 			'test/.coverage-unit',
 			'--include-pid',
+			'--print',
+			'none',
 			'node_modules/.bin/_mocha',
 			test,
 		];
