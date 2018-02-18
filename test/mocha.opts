@@ -1,5 +1,4 @@
---require ./test/setup.js
 --timeout 10000
---reporter spec
----compilers js:babel-register
+--require ./test/setup.js
+--compilers js:babel-register
 --recursive
