@@ -203,7 +203,7 @@ __private.getBlockSlotData = function(slot, height, cb) {
 __private.forge = function(cb) {
 	if (!Object.keys(__private.keypairs).length) {
 		library.logger.debug('No delegates enabled');
-		return __private.loadDelegates(cb);
+		return setImmediate(cb);
 	}
 
 	// When client is not loaded, is syncing or round is ticking
