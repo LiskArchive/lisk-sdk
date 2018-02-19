@@ -23,7 +23,6 @@ const failureCodes = require('../../../api/ws/rpc/failure_codes');
 const System = require('../../../modules/system');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 
-const PeerUpdateError = failureCodes.PeerUpdateError;
 const wampClient = new WAMPClient(1000); // Timeout failed requests after 1 second
 
 const connect = peer => {
@@ -109,16 +108,18 @@ const connectSteps = {
 	},
 
 	registerSocketListeners: peer => {
+		// Unregister all the events just in case
+		peer.socket.off('connectAbort');
+		peer.socket.off('error');
+		peer.socket.off('close');
 		// When handshake process will fail - disconnect
-		peer.socket.on('connectionAbort', () => {
+		// ToDo: Use parameters code and description returned while handshake fails
+		peer.socket.on('connectAbort', () => {
 			peer.socket.disconnect(
-				new PeerUpdateError(
-					failureCodes.HANDSHAKE_ERROR,
-					failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]
-				)
+				failureCodes.HANDSHAKE_ERROR,
+				failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]
 			);
 		});
-
 		// When error on transport layer occurs - disconnect
 		peer.socket.on('error', () => {
 			peer.socket.disconnect();
