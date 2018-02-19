@@ -549,9 +549,9 @@ Transport.prototype.shared = {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	postBlock(query, cb) {
+	postBlock(query) {
 		query = query || {};
-		var block;
+		let block;
 		try {
 			if (query.block) {
 				query.block = bson.deserialize(Buffer.from(query.block));
@@ -566,13 +566,9 @@ Transport.prototype.shared = {
 			});
 
 			__private.removePeer({ peer: query.peer, code: 'EBLOCK' });
-
-			return setImmediate(cb, e.toString());
 		}
 
 		library.bus.message('receiveBlock', block);
-
-		return setImmediate(cb, null, { success: true, blockId: block.id });
 	},
 
 	/**
