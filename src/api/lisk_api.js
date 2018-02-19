@@ -56,6 +56,8 @@ export default class LiskAPI {
 		this.blocks = new resources.BlocksResource(this);
 		this.dapps = new resources.DappsResource(this);
 		this.delegates = new resources.DelegatesResource(this);
+		this.nodes = new resources.NodesResource(this);
+		this.peers = new resources.PeersResource(this);
 		this.signatures = new resources.SignaturesResource(this);
 		this.transactions = new resources.TransactionsResource(this);
 		this.voters = new resources.VotersResource(this);

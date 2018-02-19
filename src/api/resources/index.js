@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 export { default as AccountsResource } from './accounts';
 export { default as BlocksResource } from './blocks';
 export { default as DappsResource } from './dapps';
 export { default as DelegatesResource } from './delegates';
+export { default as NodesResource } from './nodes';
+export { default as PeersResource } from './peers';
 export { default as SignaturesResource } from './signatures';
 export { default as TransactionsResource } from './transactions';
 export { default as VotersResource } from './voters';

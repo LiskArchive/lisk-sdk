@@ -13,12 +13,12 @@
  *
  */
 
-import APIResource from 'api/api_resource';
-import AccountResource from 'api/resources/accounts';
+import APIResource from 'api/apiResource';
+import NodeResource from 'api/resources/nodes';
 
-describe('AccountsResource', () => {
+describe('NodesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/accounts';
+	const path = '/nodes';
 
 	let LiskAPI;
 	let resource;
@@ -31,13 +31,12 @@ describe('AccountsResource', () => {
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new AccountResource(LiskAPI);
-		return Promise.resolve();
+		resource = new NodeResource(LiskAPI);
 	});
 
 	describe('#constructor', () => {
 		it('should throw error without LiskAPI input', () => {
-			return (() => new AccountResource()).should.throw(
+			return (() => new NodeResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});
@@ -46,8 +45,10 @@ describe('AccountsResource', () => {
 			return resource.should.be.instanceOf(APIResource);
 		});
 
-		it('should have correct full path', () => {
-			return resource.resourcePath.should.eql(`${defaultBasePath}/api${path}`);
+		it('should have correcrt full path', () => {
+			return resource.resourcePath.should.eql(
+				`${defaultBasePath}/api${path}`,
+			);
 		});
 
 		it('should set resource path', () => {
@@ -58,9 +59,11 @@ describe('AccountsResource', () => {
 			return resource.should.have.keys(
 				'liskAPI',
 				'path',
-				'get',
-				'getMultisignatureGroup',
-				'getMultisignatureMembership',
+				'getConstants',
+				'getStatus',
+				'getTransactions',
+				'getForgingStatus',
+				'updateForgingStatus',
 			);
 		});
 	});

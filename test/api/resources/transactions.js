@@ -55,13 +55,7 @@ describe('TransactionsResource', () => {
 		});
 
 		it('should have methods', () => {
-			return resource.should.have.keys(
-				'liskAPI',
-				'path',
-				'get',
-				'create',
-				'getUnsignedMultisignature',
-			);
+			return resource.should.have.keys('liskAPI', 'path', 'get', 'create');
 		});
 	});
 });

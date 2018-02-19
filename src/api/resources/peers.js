@@ -14,29 +14,16 @@
  */
 
 import { GET } from 'constants';
-import APIResource from '../api_resource';
-import apiMethod from '../api_method';
+import apiMethod from '../apiMethod';
+import APIResource from '../apiResource';
 
-export default class AccountsResource extends APIResource {
+export default class PeersResource extends APIResource {
 	constructor(liskAPI) {
 		super(liskAPI);
-
-		this.path = '/accounts';
+		this.path = '/peers';
 
 		this.get = apiMethod({
 			method: GET,
-		}).bind(this);
-
-		this.getMultisignatureGroup = apiMethod({
-			method: GET,
-			path: '/{address}/multisignature_groups',
-			urlParams: ['address'],
-		}).bind(this);
-
-		this.getMultisignatureMembership = apiMethod({
-			method: GET,
-			path: '/{address}/multisignature_memberships',
-			urlParams: ['address'],
 		}).bind(this);
 	}
 }
