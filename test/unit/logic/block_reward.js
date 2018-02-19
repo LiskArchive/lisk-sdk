@@ -21,7 +21,12 @@ constants.rewards.distance = 3000000;
 constants.rewards.offset = 1451520;
 
 describe('BlockReward @slow', () => {
-	var blockReward = new BlockReward();
+	var blockReward;
+
+	before(done => {
+		blockReward = new BlockReward();
+		done();
+	});
 
 	describe('returning calcMilestone', () => {
 		it('when height is undefined should throw an error', () => {
