@@ -18,14 +18,13 @@ const _ = require('lodash');
 const async = require('async');
 const scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
-const peersManager = require('../../../helpers/peers_manager.js');
 const failureCodes = require('../../../api/ws/rpc/failure_codes');
 const System = require('../../../modules/system');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 
 const wampClient = new WAMPClient(1000); // Timeout failed requests after 1 second
 
-const connect = peer => {
+const connect = (peer, onDisconnectCb) => {
 	connectSteps.addConnectionOptions(peer);
 	connectSteps.addSocket(peer);
 
@@ -34,7 +33,7 @@ const connect = peer => {
 			connectSteps.upgradeSocket(peer);
 			connectSteps.registerRPC(peer);
 		},
-		() => connectSteps.registerSocketListeners(peer),
+		() => connectSteps.registerSocketListeners(peer, onDisconnectCb),
 	]);
 	return peer;
 };
@@ -107,7 +106,7 @@ const connectSteps = {
 		);
 	},
 
-	registerSocketListeners: peer => {
+	registerSocketListeners: (peer, onDisconnectCb) => {
 		// Unregister all the events just in case
 		peer.socket.off('connectAbort');
 		peer.socket.off('error');
@@ -128,7 +127,7 @@ const connectSteps = {
 		// When WS connection ends - remove peer
 		peer.socket.on('close', () => {
 			peer.socket.disconnect();
-			peersManager.remove(peer);
+			onDisconnectCb();
 		});
 		return peer;
 	},
