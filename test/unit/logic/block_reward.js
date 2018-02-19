@@ -28,7 +28,7 @@ describe('BlockReward @slow', () => {
 		done();
 	});
 
-	describe('returning calcMilestone', () => {
+	describe('calcMilestone', () => {
 		it('when height is undefined should throw an error', () => {
 			return expect(blockReward.calcMilestone).to.throw(/Invalid block height/);
 		});
@@ -142,7 +142,7 @@ describe('BlockReward @slow', () => {
 		});
 	});
 
-	describe('returning calcReward', () => {
+	describe('calcReward', () => {
 		it('when height is undefined should throw an error', () => {
 			return expect(blockReward.calcReward).to.throw(/Invalid block height/);
 		});
@@ -262,7 +262,7 @@ describe('BlockReward @slow', () => {
 		});
 	});
 
-	describe('returning calcSupply', () => {
+	describe('calcSupply', () => {
 		it('when height is undefined should throw an error', () => {
 			return expect(blockReward.calcSupply).to.throw(/Invalid block height/);
 		});
