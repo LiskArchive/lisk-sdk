@@ -90,16 +90,16 @@ __private.processPostResult = function(err, res, cb) {
 
 	// TODO: Need to improve error handling so that we don't
 	// need to parse the error message to determine the error type.
-	var processingError = /(error|processing)/gi;
-	var badRequestBodyError = /(invalid|signature)/gi;
+	var processingError = /^Error processing signature/;
+	var badRequestBodyError = /^Invalid signature body/;
 
 	if (err) {
 		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
 	} else if (res.success) {
 		response = { status: 'Signature Accepted' };
-	} else if (processingError.exec(res.message).length === 2) {
+	} else if (processingError.test(res.message)) {
 		error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
-	} else if (badRequestBodyError.exec(res.message).length === 2) {
+	} else if (badRequestBodyError.test('Invalid signature body')) {
 		error = new ApiError(res.message, apiCodes.BAD_REQUEST);
 	} else {
 		error = new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR);
