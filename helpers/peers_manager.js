@@ -58,7 +58,7 @@ PeersManager.prototype.add = function(peer) {
 		this.nonceToAddressMap[peer.nonce] = peer.string;
 	}
 	// Create client WS connection to peer
-	connect(peer);
+	connect(peer, this.remove.bind(this, peer));
 	return true;
 };
 
