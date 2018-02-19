@@ -123,7 +123,7 @@ describe('blocks/process', () => {
 			var commonBlockValidationError;
 
 			beforeEach(() => {
-				scope.schema.validate(
+				return scope.schema.validate(
 					validCommonBlock,
 					scope.swagger.definitions.CommonBlock,
 					err => {
@@ -133,61 +133,64 @@ describe('blocks/process', () => {
 			});
 
 			describe('when rpc.commonBlock call returns valid result', () => {
-				before(() => {
+				before(done => {
 					validCommonBlock = Object.assign({}, blockHeightTwo);
+					done();
 				});
 
 				it('should return error = null', () => {
-					expect(commonBlockValidationError).to.be.undefined;
+					return expect(commonBlockValidationError).to.be.undefined;
 				});
 			});
 
 			describe('when rpc.commonBlock call returns invalid result', () => {
 				describe('when id = null', () => {
-					before(() => {
+					before(done => {
 						validCommonBlock = Object.assign({}, blockHeightTwo);
 						validCommonBlock.id = null;
+						done();
 					});
 
 					it('should return array of errors', () => {
-						expect(commonBlockValidationError)
+						return expect(commonBlockValidationError)
 							.to.be.an('array')
 							.of.length(1);
 					});
 
 					it('should return error containing message', () => {
-						expect(commonBlockValidationError)
+						return expect(commonBlockValidationError)
 							.to.have.nested.property('0.message')
 							.equal('Expected type string but found type null');
 					});
 
 					it('should return error containing path', () => {
-						expect(commonBlockValidationError)
+						return expect(commonBlockValidationError)
 							.to.have.nested.property('0.path')
 							.equal('#/id');
 					});
 				});
 
 				describe('when previousBlock = null', () => {
-					before(() => {
+					before(done => {
 						validCommonBlock = Object.assign({}, blockHeightTwo);
 						validCommonBlock.previousBlock = null;
+						done();
 					});
 
 					it('should return array of errors', () => {
-						expect(commonBlockValidationError)
+						return expect(commonBlockValidationError)
 							.to.be.an('array')
 							.of.length(1);
 					});
 
 					it('should return error containing message', () => {
-						expect(commonBlockValidationError)
+						return expect(commonBlockValidationError)
 							.to.have.nested.property('0.message')
 							.equal('Expected type string but found type null');
 					});
 
 					it('should return error containing path', () => {
-						expect(commonBlockValidationError)
+						return expect(commonBlockValidationError)
 							.to.have.nested.property('0.path')
 							.equal('#/previousBlock');
 					});
