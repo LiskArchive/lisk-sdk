@@ -483,4 +483,39 @@ describe('block', () => {
 			});
 		});
 	});
+
+	describe('sign', () => {
+		it('should return a signed block using keypair');
+	});
+
+	describe('getBytes', () => {
+		it('should throw error for invalid block');
+		it('should return a buffer for a given block');
+	});
+
+	describe('verifySignature', () => {
+		it('should throw error for invalid block');
+		it('should return verification response for a given block');
+	});
+
+	describe('objectNormalize', () => {
+		it('should throw error for invalid block');
+		it('should validate the block schema');
+	});
+
+	describe('getId', () => {
+		it('should return the id for a given block');
+	});
+
+	describe('getHash', () => {
+		it('should return a hash for a given block');
+	});
+
+	describe('calculateFee', () => {
+		it('should return the constant fee');
+	});
+
+	describe('dbRead', () => {
+		it('should return a valid block');
+	});
 });
