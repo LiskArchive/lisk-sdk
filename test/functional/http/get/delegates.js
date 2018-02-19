@@ -255,6 +255,38 @@ describe('GET /delegates', () => {
 				});
 			});
 
+			it('using unknow numeric string should be ok', () => {
+				return delegatesEndpoint
+					.makeRequest(
+						{
+							search: accountFixtures.genesis.address.slice(
+								0,
+								accountFixtures.genesis.address.length - 1
+							),
+						},
+						200
+					)
+					.then(res => {
+						expect(res.body.data).to.have.length.at.least(0);
+					});
+			});
+
+			it('using existing numeric string should be ok', () => {
+				return delegatesEndpoint
+					.makeRequest(
+						{
+							search: 99,
+						},
+						200
+					)
+					.then(res => {
+						expect(res.body.data).to.have.length.at.least(1);
+						res.body.data.map(d => {
+							expect(/99/.test(d.username)).to.be.true;
+						});
+					});
+			});
+
 			it('using valid search with length=1 should be ok', () => {
 				return delegatesEndpoint.makeRequest({ search: 'g' }, 200);
 			});
