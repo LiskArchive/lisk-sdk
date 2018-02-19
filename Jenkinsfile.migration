@@ -24,15 +24,26 @@ pipeline {
 					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_TO
 				}
 				sh """
+				json_files_copy() {
+					case \$1 in
+						0*)
+							cp test/config.json .
+							cp test/genesisBlock.json .
+							;;
+						*)
+							cp test/data/config.json .
+							cp test/data/genesis_block.json .
+							;;
+					esac
+				}
+
 				dropdb lisk_test || true
 				createdb lisk_test
 				cd "${params.MIGRATE_FROM}"
-				cp test/config.json .
-				cp test/genesis_block.json .
+				json_files_copy "${params.MIGRATE_FROM}"
 				npm install
 				cd "../${params.MIGRATE_TO}"
-				cp test/data/config.json .
-				cp test/data/genesis_block.json .
+				json_files_copy "${params.MIGRATE_TO}"
 				npm install
 				sudo service postgresql restart
 				"""

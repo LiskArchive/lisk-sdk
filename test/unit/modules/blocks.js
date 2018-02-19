@@ -160,7 +160,7 @@ describe('blocks', () => {
 			expect(tracker.log.calledThrice).to.ok;
 			expect(tracker.applied).to.equals(5);
 
-			expect(tracker.applyNext.bind(tracker)).to.throw(
+			return expect(tracker.applyNext.bind(tracker)).to.throw(
 				'Cannot apply transaction over the limit: 5'
 			);
 		});

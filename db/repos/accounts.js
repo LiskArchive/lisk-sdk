@@ -41,20 +41,8 @@ const normalFields = [
 	{ name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists },
 	{ name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists },
 	{ name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists },
-	{
-		name: 'producedblocks',
-		cast: 'bigint',
-		def: '0',
-		prop: 'producedBlocks',
-		skip: ifNotExists,
-	},
-	{
-		name: 'missedblocks',
-		cast: 'bigint',
-		def: '0',
-		prop: 'missedBlocks',
-		skip: ifNotExists,
-	},
+	{ name: 'producedBlocks', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'missedBlocks', cast: 'bigint', def: '0', skip: ifNotExists },
 	{ name: 'username', def: null, skip: ifNotExists },
 	{ name: 'u_username', def: null, skip: ifNotExists },
 	{
@@ -89,14 +77,17 @@ const dynamicFields = [
 const allFields = _.union(normalFields, immutableFields, dynamicFields);
 
 /**
- * Accounts database interaction module.
+ * Accounts database interaction class.
  *
- * @memberof module:accounts
  * @class
- * @param {Database} db - Instance of database object from pg-promise
+ * @memberof db.repos.accounts
+ * @requires bluebird
+ * @requires lodash
+ * @requires db/sql.accounts
+ * @see Parent: {@link db.repos.accounts}
+ * @param {Object} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {AccountsRepository}
+ * @returns {Object} An instance of an AccountsRepository
  */
 class AccountsRepository {
 	constructor(db, pgp) {
@@ -143,37 +134,41 @@ class AccountsRepository {
 	/**
 	 * Get list of all database fields.
 	 *
-	 * @return {array}
+	 * @returns {array}
+	 * @todo Add description for the return value
 	 */
 	getDBFields() {
-		return _.map(this.dbFields, field => field.prop || field.name);
+		return this.dbFields.map(f => f.name);
 	}
 
 	/**
 	 * Get list of all immutable fields.
 	 *
-	 * @return {array}
+	 * @returns {array}
+	 * @todo Add description for the return value
 	 */
 	getImmutableFields() {
 		return _.difference(
-			_.map(this.cs.insert.columns, field => field.prop || field.name),
-			_.map(this.cs.update.columns, field => field.prop || field.name)
+			this.cs.insert.columns.map(f => f.name),
+			this.cs.update.columns.map(f => f.name)
 		);
 	}
 
 	/**
 	 * Counts memory accounts by blocks.
 	 *
-	 * @return {Promise<number>}
+	 * @returns {Promise<number>}
+	 * @todo Add description for the return value
 	 */
 	countMemAccounts() {
-		return this.db.one(sql.countMemAccounts, [], a => +a.count);
+		return this.db.one(sql.countMemAccounts, []).then(a => +a.count);
 	}
 
 	/**
 	 * Update mem_accounts.
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	updateMemAccounts() {
 		return this.db.none(sql.updateMemAccounts);
@@ -182,7 +177,8 @@ class AccountsRepository {
 	/**
 	 * Get orphan mem_accounts.
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	getOrphanedMemAccounts() {
 		return this.db.any(sql.getOrphanedMemAccounts);
@@ -191,7 +187,8 @@ class AccountsRepository {
 	/**
 	 * Get delegates.
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	getDelegates() {
 		return this.db.any(sql.getDelegates);
@@ -203,7 +200,8 @@ class AccountsRepository {
 	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
 	 * @param {Array} conflictingFields - Array of attributes to be tested against conflicts, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#dbFields}
 	 * @param {Object} updateData - Attributes to be updated, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.update}
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	upsert(data, conflictingFields, updateData) {
 		// If single field is specified as conflict field
@@ -253,7 +251,8 @@ class AccountsRepository {
 	 * Create the record in mem_accounts. It is encouraged to use **db.accounts.upsert** instead.
 	 *
 	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	insert(data) {
 		return this.db.none(this.pgp.helpers.insert(data, this.cs.insert));
@@ -264,7 +263,8 @@ class AccountsRepository {
 	 *
 	 * @param {Object} data - Attributes to be inserted, can be any of [AccountsRepository's dbFields property]{@link AccountsRepository#cs.insert}
 	 * @param {string} address - Address of the account to be updated
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	update(address, data) {
 		if (!address) {
@@ -295,7 +295,8 @@ class AccountsRepository {
 	 * @param {string} address - Address of the account to increment
 	 * @param {string} field - Name of the field to increment
 	 * @param {Number} value - Value to be incremented
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	increment(address, field, value) {
 		return this.db.none(sql.incrementAccount, {
@@ -312,7 +313,8 @@ class AccountsRepository {
 	 * @param {string} address - Address of the account to decrement
 	 * @param {string} field - Name of the field to decrement
 	 * @param {Number} value - Value to be decremented
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	decrement(address, field, value) {
 		return this.db.none(sql.decrementAccount, {
@@ -327,7 +329,8 @@ class AccountsRepository {
 	 * Delete an account from mem_accounts.
 	 *
 	 * @param {string} address - Address of the account to be updated
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	remove(address) {
 		const sql = 'DELETE FROM $1:name WHERE $2:name = $3';
@@ -342,7 +345,8 @@ class AccountsRepository {
 	 * - mem_accounts2multisignatures
 	 * - mem_accounts2u_multisignatures
 	 *
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	resetMemTables() {
 		return this.db.none(sql.resetMemoryTables);
@@ -362,7 +366,8 @@ class AccountsRepository {
 	 * @param {string} options.sortField - Sort key
 	 * @param {string} options.sortMethod - Sort method ASC or DESC
 	 * @param {string} options.extraCondition - Extra conditions to be appended to fetch objects. It must be properly formatted
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	list(filters, fields, options) {
 		const pgp = this.pgp;
@@ -489,7 +494,8 @@ class AccountsRepository {
 	 * @param {string} address - Address of the account
 	 * @param {string} dependentId - Dependent address
 	 * @param {string} dependency - Any of [u_]delegates, [u_]multisignatures
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	removeDependencies(address, dependentId, dependency) {
 		if (
@@ -520,7 +526,8 @@ class AccountsRepository {
 	 * @param {string} address - Address of the account
 	 * @param {string} dependentId - Dependent address
 	 * @param {string} dependency - Any of [u_]delegates, [u_]multisignatures
-	 * @return {Promise}
+	 * @returns {Promise}
+	 * @todo Add description for the return value
 	 */
 	insertDependencies(address, dependentId, dependency) {
 		if (
@@ -566,6 +573,17 @@ class AccountsRepository {
 	}
 }
 
+/**
+ * Description of the class.
+ *
+ * @class
+ * @memberof db.repos.accounts
+ * @see Parent: {@link db.repos.accounts}
+ * @param {Object} columnSet
+ * @param {Array} fields
+ * @param {Object} pgp
+ * @todo Add @returns tag
+ */
 // Generate select SQL based on column set definition and conditions
 function Selects(columnSet, fields, pgp) {
 	if (!(this instanceof Selects)) {
@@ -573,6 +591,12 @@ function Selects(columnSet, fields, pgp) {
 	}
 
 	this.rawType = true;
+	/**
+	 * Description of the function.
+	 *
+	 * @todo Add description for the function
+	 * @todo Add @returns tag
+	 */
 	this.toPostgres = () => {
 		const selectSQL = 'SELECT $1:raw FROM $2^';
 		const selectClauseWithName = '$1:name$2:raw AS $3:name';
@@ -580,15 +604,15 @@ function Selects(columnSet, fields, pgp) {
 
 		// Select all fields if none is provided
 		if (!fields || !fields.length) {
-			fields = _.map(columnSet.columns, column => column.prop || column.name);
+			fields = columnSet.columns.map(c => c.name);
 		}
 
 		const table = columnSet.table;
 		const selectFields = [];
 
 		columnSet.columns.map(column => {
-			if (fields.includes(column.name) || fields.includes(column.prop)) {
-				const propName = column.prop ? column.prop : column.name;
+			if (fields.includes(column.name)) {
+				const propName = column.name;
 
 				if (column.init) {
 					selectFields.push(

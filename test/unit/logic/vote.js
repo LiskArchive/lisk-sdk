@@ -225,19 +225,19 @@ describe('vote', () => {
 
 	describe('bind', () => {
 		it('should be okay with correct params', () => {
-			expect(() => {
+			return expect(() => {
 				vote.bind(voteBindings.delegate);
 			}).to.not.throw();
 		});
 
 		after(() => {
-			vote.bind(voteBindings.delegate);
+			return vote.bind(voteBindings.delegate);
 		});
 	});
 
 	describe('calculateFee', () => {
 		it('should return the correct fee', () => {
-			expect(vote.calculateFee()).to.equal(constants.fees.vote);
+			return expect(vote.calculateFee()).to.equal(constants.fees.vote);
 		});
 	});
 
@@ -704,7 +704,7 @@ describe('vote', () => {
 
 	describe('objectNormalize', () => {
 		it('should normalize object for valid transaction', () => {
-			expect(
+			return expect(
 				vote.objectNormalize.call(transactionLogic, validTransaction)
 			).to.eql(validTransaction);
 		});
@@ -712,7 +712,7 @@ describe('vote', () => {
 		it('should throw error for duplicate votes in a transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes.push(transaction.asset.votes[0]);
-			expect(() => {
+			return expect(() => {
 				vote.objectNormalize.call(transactionLogic, transaction);
 			}).to.throw(
 				'Failed to validate vote schema: Array items are not unique (indexes 0 and 3)'
@@ -726,7 +726,7 @@ describe('vote', () => {
 			).map(() => {
 				return `+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`;
 			});
-			expect(() => {
+			return expect(() => {
 				vote.objectNormalize.call(transactionLogic, transaction);
 			}).to.throw(
 				'Failed to validate vote schema: Array is too long (34), maximum 33'
@@ -738,7 +738,7 @@ describe('vote', () => {
 		it('should read votes correct', () => {
 			var rawVotes =
 				'+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f,+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a,+3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135';
-			expect(
+			return expect(
 				vote.dbRead({
 					v_votes: rawVotes,
 				})
@@ -748,7 +748,7 @@ describe('vote', () => {
 		});
 
 		it('should return null if no votes are supplied', () => {
-			expect(
+			return expect(
 				vote.dbRead({
 					v_votes: null,
 				})
@@ -758,14 +758,14 @@ describe('vote', () => {
 
 	describe('ready', () => {
 		it('should return true for single signature transaction', () => {
-			expect(vote.ready(validTransaction, validSender)).to.equal(true);
+			return expect(vote.ready(validTransaction, validSender)).to.equal(true);
 		});
 
 		it('should return false for multi signature transaction with less signatures', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
-			expect(transactionLogic.ready(transaction, vs)).to.equal(false);
+			return expect(transactionLogic.ready(transaction, vs)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', () => {
@@ -778,7 +778,7 @@ describe('vote', () => {
 			transaction.signatures = [
 				transactionLogic.multisign(validKeypair, transaction),
 			];
-			expect(transactionLogic.ready(transaction, vs)).to.equal(true);
+			return expect(transactionLogic.ready(transaction, vs)).to.equal(true);
 		});
 	});
 });

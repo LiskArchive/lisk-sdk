@@ -42,17 +42,27 @@ __private.types = {};
 
 /**
  * Main transaction logic.
- * @memberof module:transactions
+ *
  * @class
- * @classdesc Main transaction logic.
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires bytebuffer
+ * @requires crypto
+ * @requires extend
+ * @requires lodash
+ * @requires helpers/bignum
+ * @requires helpers/constants
+ * @requires helpers/exceptions
+ * @requires helpers/slots
  * @param {Database} db
  * @param {Object} ed
  * @param {ZSchema} schema
  * @param {Object} genesisblock
  * @param {Account} account
  * @param {Object} logger
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} With `this` as data.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error, this
+ * @todo Add description for the params
  */
 // Constructor
 function Transaction(db, ed, schema, genesisblock, account, logger, cb) {
@@ -73,10 +83,12 @@ function Transaction(db, ed, schema, genesisblock, account, logger, cb) {
 // Public methods
 /**
  * Sets private type based on type id after instance object validation.
+ *
  * @param {number} typeId
  * @param {Object} instance
- * @return {Object} instance
- * @throws {string} Invalid instance interface if validations are wrong
+ * @throws {string} If invalid instance interface
+ * @returns {Object}
+ * @todo Add description for the params
  */
 Transaction.prototype.attachAssetType = function(typeId, instance) {
 	if (
@@ -100,12 +112,12 @@ Transaction.prototype.attachAssetType = function(typeId, instance) {
 };
 
 /**
- * Creates a signature
- * @implements {getHash}
- * @implements {scope.ed.sign}
+ * Creates a signature.
+ *
  * @param {Object} keypair - Constains privateKey and publicKey
  * @param {transaction} transaction
- * @return {signature} sign
+ * @returns {signature}
+ * @todo Add description for the params
  */
 Transaction.prototype.sign = function(keypair, transaction) {
 	var hash = this.getHash(transaction);
@@ -114,12 +126,11 @@ Transaction.prototype.sign = function(keypair, transaction) {
 
 /**
  * Creates a signature based on multiple signatures
- * @implements {getBytes}
- * @implements {crypto.createHash}
- * @implements {scope.ed.sign}
+ *
  * @param {Object} keypair - Constains privateKey and publicKey
  * @param {transaction} transaction
- * @return {signature} sign
+ * @returns {signature}
+ * @todo Add description for the params
  */
 Transaction.prototype.multisign = function(keypair, transaction) {
 	var bytes = this.getBytes(transaction, true, true);
@@ -132,10 +143,10 @@ Transaction.prototype.multisign = function(keypair, transaction) {
 
 /**
  * Calculates transaction id based on transaction
- * @implements {bignum}
- * @implements {getHash}
+ *
  * @param {transaction} transaction
- * @return {string} id
+ * @returns {string} Transaction id
+ * @todo Add description for the params
  */
 Transaction.prototype.getId = function(transaction) {
 	var hash = this.getHash(transaction);
@@ -150,10 +161,10 @@ Transaction.prototype.getId = function(transaction) {
 
 /**
  * Creates hash based on transaction bytes.
- * @implements {getBytes}
- * @implements {crypto.createHash}
+ *
  * @param {transaction} transaction
- * @return {hash} sha256 crypto hash
+ * @returns {hash} SHA256 hash
+ * @todo Add description for the params
  */
 Transaction.prototype.getHash = function(transaction) {
 	return crypto
@@ -164,13 +175,14 @@ Transaction.prototype.getHash = function(transaction) {
 
 /**
  * Calls `getBytes` based on transaction type (see privateTypes)
- * @see privateTypes
- * @implements {ByteBuffer}
+ * @see {@link privateTypes}
+ *
  * @param {transaction} transaction
  * @param {boolean} skipSignature
  * @param {boolean} skipSecondSignature
- * @return {!Array} Contents as an ArrayBuffer.
- * @throws {error} If buffer fails.
+ * @throws {Error}
+ * @returns {!Array} Contents as an ArrayBuffer
+ * @todo Add description for the params
  */
 Transaction.prototype.getBytes = function(
 	transaction,
@@ -256,11 +268,13 @@ Transaction.prototype.getBytes = function(
 };
 
 /**
- * Calls `ready` based on transaction type (see privateTypes)
- * @see privateTypes
+ * Calls `ready` based on transaction type (see privateTypes).
+ *
+ * @see {@link privateTypes}
  * @param {transaction} transaction
  * @param {account} sender
- * @return {function|boolean} calls `ready` | false
+ * @returns {function|boolean} Calls `ready()` on sub class | false
+ * @todo Add description for the params
  */
 Transaction.prototype.ready = function(transaction, sender) {
 	if (!__private.types[transaction.type]) {
@@ -279,10 +293,12 @@ Transaction.prototype.ready = function(transaction, sender) {
 };
 
 /**
- * Counts transactions from `trs` table by id
+ * Counts transactions from `trs` table by id.
+ *
  * @param {transaction} transaction
  * @param {function} cb
- * @return {setImmediateCallback} error | row.count
+ * @returns {SetImmediate} error, row.count
+ * @todo Add description for the params
  */
 Transaction.prototype.countById = function(transaction, cb) {
 	self.scope.db.transactions
@@ -295,10 +311,12 @@ Transaction.prototype.countById = function(transaction, cb) {
 };
 
 /**
- * @implements {countById}
+ * Description of the function.
+ *
  * @param {transaction} transaction
  * @param {function} cb
- * @return {setImmediateCallback} error | cb
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 Transaction.prototype.checkConfirmed = function(transaction, cb) {
 	this.countById(transaction, (err, count) => {
@@ -316,12 +334,13 @@ Transaction.prototype.checkConfirmed = function(transaction, cb) {
 
 /**
  * Checks if balance is less than amount for sender.
- * @implements {bignum}
+ *
  * @param {number} amount
  * @param {number} balance
  * @param {transaction} transaction
  * @param {account} sender
  * @returns {Object} With exceeded boolean and error: address, balance
+ * @todo Add description for the params
  */
 Transaction.prototype.checkBalance = function(
 	amount,
@@ -348,14 +367,15 @@ Transaction.prototype.checkBalance = function(
 
 /**
  * Validates parameters.
- * Calls `process` based on transaction type (see privateTypes)
- * @see privateTypes
- * @implements {getId}
+ * Calls `process` based on transaction type (see privateTypes).
+ *
+ * @see {@link privateTypes}
  * @param {transaction} transaction
  * @param {account} sender
  * @param {account} requester
  * @param {function} cb
- * @return {setImmediateCallback} validation errors | transaction
+ * @returns {SetImmediate} error, transaction
+ * @todo Add description for the params
  */
 Transaction.prototype.process = function(
 	transaction,
@@ -418,14 +438,15 @@ Transaction.prototype.process = function(
 
 /**
  * Validates parameters.
- * Calls `process` based on transaction type (see privateTypes)
- * @see privateTypes
- * @implements {getId}
+ * Calls `process` based on transaction type (see privateTypes).
+ *
+ * @see {@link privateTypes}
  * @param {transaction} transaction
  * @param {account} sender
  * @param {account} requester
  * @param {function} cb
- * @return {setImmediateCallback} validation errors | transaction
+ * @returns {SetImmediate} error, transaction
+ * @todo Add description for the params
  */
 Transaction.prototype.verify = function(
 	transaction,
@@ -710,14 +731,14 @@ Transaction.prototype.verify = function(
 };
 
 /**
- * Verifies signature for valid transaction type
- * @implements {getBytes}
- * @implements {verifyBytes}
+ * Verifies signature for valid transaction type.
+ *
  * @param {transaction} transaction
  * @param {publicKey} publicKey
  * @param {signature} signature
- * @return {boolean}
- * @throws {error}
+ * @throws {Error}
+ * @returns {boolean}
+ * @todo Add description for the params
  */
 Transaction.prototype.verifySignature = function(
 	transaction,
@@ -745,14 +766,14 @@ Transaction.prototype.verifySignature = function(
 };
 
 /**
- * Verifies second signature for valid transaction type
- * @implements {getBytes}
- * @implements {verifyBytes}
+ * Verifies second signature for valid transaction type.
+ *
  * @param {transaction} transaction
  * @param {publicKey} publicKey
  * @param {signature} signature
- * @return {boolean}
- * @throws {error}
+ * @throws {Error}
+ * @returns {boolean}
+ * @todo Add description for the params
  */
 Transaction.prototype.verifySecondSignature = function(
 	transaction,
@@ -781,13 +802,13 @@ Transaction.prototype.verifySecondSignature = function(
 
 /**
  * Verifies hash, publicKey and signature.
- * @implements {crypto.createHash}
- * @implements {scope.ed.verify}
+ *
  * @param {Array} bytes
  * @param {publicKey} publicKey
  * @param {signature} signature
- * @return {boolean} verified hash, signature and publicKey
- * @throws {error}
+ * @throws {Error}
+ * @returns {boolean} true - If verified hash, signature and publicKey
+ * @todo Add description for the params
  */
 Transaction.prototype.verifyBytes = function(bytes, publicKey, signature) {
 	var res;
@@ -820,15 +841,14 @@ Transaction.prototype.verifyBytes = function(bytes, publicKey, signature) {
 
 /**
  * Merges account into sender address, Calls `apply` based on transaction type (privateTypes).
- * @see privateTypes
- * @implements {checkBalance}
- * @implements {account.merge}
- * @implements {slots.calcRound}
+ *
+ * @see {@link privateTypes}
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} for errors | cb
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 Transaction.prototype.apply = function(transaction, block, sender, cb, tx) {
 	if (!this.ready(transaction, sender)) {
@@ -898,15 +918,14 @@ Transaction.prototype.apply = function(transaction, block, sender, cb, tx) {
 
 /**
  * Merges account into sender address, Calls `undo` based on transaction type (privateTypes).
- * @see privateTypes
- * @implements {bignum}
- * @implements {account.merge}
- * @implements {slots.calcRound}
+ *
+ * @see {@link privateTypes}
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} for errors | cb
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 Transaction.prototype.undo = function(transaction, block, sender, cb) {
 	var amount = new bignum(transaction.amount.toString());
@@ -960,15 +979,14 @@ Transaction.prototype.undo = function(transaction, block, sender, cb) {
  * unconfirmed balance negative amount.
  * Calls `applyUnconfirmed` based on transaction type (privateTypes). If error merge
  * account with amount.
- * @see privateTypes
- * @implements {bignum}
- * @implements {checkBalance}
- * @implements {account.merge}
+ *
+ * @see {@link privateTypes}
  * @param {transaction} transaction
  * @param {account} sender
  * @param {account} requester
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} for errors | cb
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 Transaction.prototype.applyUnconfirmed = function(
 	transaction,
@@ -1037,13 +1055,13 @@ Transaction.prototype.applyUnconfirmed = function(
  * Merges account into sender address with unconfirmed balance transaction amount.
  * Calls `undoUnconfirmed` based on transaction type (privateTypes). If error merge
  * account with megative amount.
- * @see privateTypes
- * @implements {bignum}
- * @implements {account.merge}
+ *
+ * @see {@link privateTypes}
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} for errors | cb
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 Transaction.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 	var amount = new bignum(transaction.amount.toString());
@@ -1082,10 +1100,12 @@ Transaction.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 
 /**
  * Calls `afterSave` based on transaction type (privateTypes).
- * @see privateTypes
+ *
+ * @see {@link privateTypes}
  * @param {transaction} transaction
  * @param {function} cb
- * @return {setImmediateCallback} error string | cb
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 Transaction.prototype.afterSave = function(transaction, cb) {
 	var tx_type = __private.types[transaction.type];
@@ -1194,11 +1214,12 @@ Transaction.prototype.schema = {
 
 /**
  * Calls `objectNormalize` based on transaction type (privateTypes).
- * @see privateTypes
- * @implements {scope.schema.validate}
+ *
+ * @see {@link privateTypes}
  * @param {transaction} transaction
- * @return {error|transaction} error string | transaction normalized
- * @throws {string} error message
+ * @throws {string}
+ * @returns {error|transaction}
+ * @todo Add description for the params
  */
 Transaction.prototype.objectNormalize = function(transaction) {
 	if (_.isEmpty(transaction)) {
@@ -1252,10 +1273,12 @@ Transaction.prototype.objectNormalize = function(transaction) {
 
 /**
  * Calls `dbRead` based on transaction type (privateTypes) to add tr asset.
- * @see privateTypes
+ *
+ * @see {@link privateTypes}
  * @param {Object} raw
- * @return {null|transaction}
- * @throws {string} Unknown transaction type
+ * @throws {string} If unknown transaction type
+ * @returns {null|transaction}
+ * @todo Add description for the params
  */
 Transaction.prototype.dbRead = function(raw) {
 	if (!raw.t_id) {

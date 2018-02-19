@@ -20,13 +20,16 @@ require('../../helpers/transaction_types');
 var columnSet;
 
 /**
- * InTransfer Transactions database interaction module
- * @memberof module:dapps
+ * InTransfer transactions database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @requires lodash
+ * @requires helpers/transaction_types
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {InTransferTransactionsRepo}
+ * @returns {Object} An instance of a InTransferTransactionsRepo
  */
 function InTransferTransactionsRepo(db, pgp) {
 	this.db = db;
@@ -51,9 +54,11 @@ function InTransferTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save InTransfer transactions
- * @param {Array.<{id: string, asset: {inTransfer: {dappId: string}}}>} transactions
- * @return {Promise}
+ * Save inTransfer transactions.
+ *
+ * @param {Array} transactions
+ * @returns {Promise}
+ * @todo Add description for the params and the return value
  */
 InTransferTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {

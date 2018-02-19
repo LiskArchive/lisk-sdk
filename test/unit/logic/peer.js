@@ -21,8 +21,9 @@ var Peer = require('../../../logic/peer.js');
 describe('peer', () => {
 	var peer;
 
-	beforeEach(() => {
+	beforeEach(done => {
 		peer = new Peer({});
+		done();
 	});
 
 	describe('constructor', () => {
@@ -37,7 +38,7 @@ describe('peer', () => {
 			expect(__peer)
 				.to.have.property('state')
 				.equal(1);
-			expect(__peer)
+			return expect(__peer)
 				.to.have.property('string')
 				.equal('127.0.0.1:4000');
 		});
@@ -50,7 +51,7 @@ describe('peer', () => {
 			['height', 'ip', 'wsPort', 'state'].forEach(property => {
 				expect(__peer[property]).equals(prefixedPeer[property]);
 			});
-			expect(__peer.string).equals(`${prefixedPeer.ip}:${prefixedPeer.wsPort}`);
+			return expect(__peer.string).equals(`${prefixedPeer.ip}:${prefixedPeer.wsPort}`);
 		});
 
 		it('should accept empty peer and set default values', () => {
@@ -59,36 +60,36 @@ describe('peer', () => {
 			expect(__peer.ip).to.be.undefined;
 			expect(__peer.state).to.equal(1);
 			expect(__peer.height).to.be.undefined;
-			expect(__peer.string).to.be.undefined;
+			return expect(__peer.string).to.be.undefined;
 		});
 
 		it('should accept peer with ip as long', () => {
 			var __peer = peer.accept({ ip: ip.toLong(prefixedPeer.ip) });
-			expect(__peer.ip).to.equal(prefixedPeer.ip);
+			return expect(__peer.ip).to.equal(prefixedPeer.ip);
 		});
 	});
 
 	describe('parseInt', () => {
 		it('should always return a number', () => {
 			expect(peer.parseInt('1')).to.equal(1);
-			expect(peer.parseInt(1)).to.equal(1);
+			return expect(peer.parseInt(1)).to.equal(1);
 		});
 
 		it('should return default value when NaN passed', () => {
 			expect(peer.parseInt('not a number', 1)).to.equal(1);
 			expect(peer.parseInt(undefined, 1)).to.equal(1);
-			expect(peer.parseInt(null, 1)).to.equal(1);
+			return expect(peer.parseInt(null, 1)).to.equal(1);
 		});
 	});
 
 	describe('applyHeaders', () => {
 		it('should not apply random values to the peer scope', () => {
 			peer.applyHeaders({ headerA: 'HeaderA' });
-			expect(peer.headerA).to.not.exist;
+			return expect(peer.headerA).to.not.exist;
 		});
 
 		it('should apply defined values as headers', () => {
-			peer.headers.forEach(header => {
+			return peer.headers.forEach(header => {
 				delete peer[header];
 				if (prefixedPeer[header]) {
 					var headers = {};
@@ -100,7 +101,7 @@ describe('peer', () => {
 		});
 
 		it('should not apply nulls or undefined values as headers', () => {
-			peer.headers.forEach(header => {
+			return peer.headers.forEach(header => {
 				delete peer[header];
 				if (
 					prefixedPeer[header] === null ||
@@ -118,27 +119,27 @@ describe('peer', () => {
 			var appliedHeaders = peer.applyHeaders({ wsPort: '4000', height: '1' });
 
 			expect(appliedHeaders.wsPort).to.equal(4000);
-			expect(appliedHeaders.height).to.equal(1);
+			return expect(appliedHeaders.height).to.equal(1);
 		});
 	});
 
 	describe('update', () => {
 		it('should not apply random values to the peer scope', () => {
 			peer.update({ someProp: 'someValue' });
-			expect(peer.someProp).to.not.exist;
+			return expect(peer.someProp).to.not.exist;
 		});
 
 		it('should not apply undefined to the peer scope', () => {
 			peer.update({ someProp: undefined });
-			expect(peer.someProp).to.not.exist;
+			return expect(peer.someProp).to.not.exist;
 		});
 
 		it('should not apply null to the peer scope', () => {
 			peer.update({ someProp: null });
-			expect(peer.someProp).to.not.exist;
+			return expect(peer.someProp).to.not.exist;
 		});
 
-		it('should change state of banned peer', () => {
+		it('should change state of banned peer', done => {
 			var initialState = peer.state;
 			// Ban peer
 			peer.state = 0;
@@ -146,16 +147,7 @@ describe('peer', () => {
 			peer.update({ state: 2 });
 			expect(peer.state).to.equal(2);
 			peer.state = initialState;
-		});
-
-		it('should change state of banned peer', () => {
-			var initialState = peer.state;
-			// Ban peer
-			peer.state = 0;
-			// Try to unban peer
-			peer.update({ state: 2 });
-			expect(peer.state).to.equal(2);
-			peer.state = initialState;
+			done();
 		});
 
 		it('should update defined values', () => {
@@ -170,7 +162,7 @@ describe('peer', () => {
 				0
 			);
 			peer.update(updateData);
-			peer.headers.forEach(header => {
+			return peer.headers.forEach(header => {
 				expect(peer[header]).to.exist.and.equals(updateData[header]);
 			});
 		});
@@ -186,7 +178,7 @@ describe('peer', () => {
 
 			expect(_.isEqual(_.keys(updateImmutableData), peer.immutable)).to.be.ok;
 			peer.update(updateImmutableData);
-			peer.headers.forEach(header => {
+			return peer.headers.forEach(header => {
 				expect(peer[header])
 					.equals(peerBeforeUpdate[header])
 					.and.not.equal(updateImmutableData);
@@ -206,7 +198,7 @@ describe('peer', () => {
 			var peerBeforeUpdate = _.clone(peer);
 			peer.update({ height: (peer.height += 1) });
 			peer.height -= 1;
-			expect(_.isEqual(peer, peerBeforeUpdate)).to.be.ok;
+			return expect(_.isEqual(peer, peerBeforeUpdate)).to.be.ok;
 		});
 	});
 
@@ -214,7 +206,7 @@ describe('peer', () => {
 		it('should create proper copy of peer', () => {
 			var __peer = new Peer(prefixedPeer);
 			var peerCopy = __peer.object();
-			_.keys(prefixedPeer).forEach(property => {
+			return _.keys(prefixedPeer).forEach(property => {
 				if (__peer.properties.indexOf(property) !== -1) {
 					if (typeof prefixedPeer[property] !== 'object') {
 						expect(peerCopy[property]).to.equal(prefixedPeer[property]);
@@ -223,12 +215,13 @@ describe('peer', () => {
 			});
 		});
 
-		it('should always return state', () => {
+		it('should always return state', done => {
 			var initialState = peer.state;
 			peer.update({ state: 'unreadable' });
 			var peerCopy = peer.object();
 			expect(peerCopy.state).to.equal(1);
 			peer.state = initialState;
+			done();
 		});
 	});
 });

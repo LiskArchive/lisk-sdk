@@ -27,13 +27,20 @@ var library;
 var modules;
 
 /**
- * Initializes library.
- * @memberof module:peers
+ * Main peers logic. Initializes library.
+ *
  * @class
- * @classdesc Main peers logic.
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires lodash
+ * @requires api/ws/rpc/failure_codes
+ * @requires logic/peer
+ * @requires modules/system
+ * @requires helpers/peers_manager
  * @param {Object} logger
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} Callback function with `this` as data.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} null, this
+ * @todo Add description for the params
  */
 // Constructor
 function Peers(logger, cb) {
@@ -56,8 +63,10 @@ Peers.prototype.me = function() {
 
 /**
  * Returns a peer instance.
+ *
  * @param {peer} peer
- * @return {peer} peer instance
+ * @returns {peer} Peer instance
+ * @todo Add description for the params
  */
 Peers.prototype.create = function(peer) {
 	if (!(peer instanceof Peer)) {
@@ -68,8 +77,10 @@ Peers.prototype.create = function(peer) {
 
 /**
  * Checks if peer is in peers list.
+ *
  * @param {peer} peer
- * @return {boolean} True if peer is in peers list
+ * @returns {boolean} true - If peer is in peers list
+ * @todo Add description for the params
  */
 Peers.prototype.exists = function(peer) {
 	peer = self.create(peer);
@@ -78,8 +89,10 @@ Peers.prototype.exists = function(peer) {
 
 /**
  * Gets a peer from peers or creates a new one and returns it.
+ *
  * @param {peer} peer
- * @return {peer} peer new or peer from peers
+ * @returns {peer} Found peer or new peer
+ * @todo Add description for the params
  */
 Peers.prototype.get = function(peer) {
 	if (typeof peer === 'string') {
@@ -90,10 +103,12 @@ Peers.prototype.get = function(peer) {
 };
 
 /**
- * Inserts or updates a peer
+ * Inserts or updates a peer.
+ *
  * @param {peer} peer
- * @param {boolean} insertOnly - true to only insert.
- * @return {boolean|number} True if operation is success, error code in other case
+ * @param {boolean} insertOnly - True to only insert
+ * @returns {boolean|number} true - If operation is success, error code in other case
+ * @todo Add description for the params
  */
 Peers.prototype.upsert = function(peer, insertOnly) {
 	// Insert new peer
@@ -188,8 +203,10 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 
 /**
  * Deletes peer from peers list.
+ *
  * @param {peer} peer
- * @return {boolean|number} True if peer exists, error code in other case
+ * @returns {boolean|number} true - If peer exists, error code in other case
+ * @todo Add description for the params
  */
 Peers.prototype.remove = function(peer) {
 	peer = self.create(peer);
@@ -208,9 +225,10 @@ Peers.prototype.remove = function(peer) {
 };
 
 /**
- * Returns private list of peers
+ * Returns private list of peers.
+ *
  * @param {boolean} [normalize] - If true transform list to object
- * @return {peer[]} list of peers
+ * @returns {peer[]} List of peers
  */
 Peers.prototype.list = function(normalize) {
 	if (normalize) {
@@ -226,7 +244,8 @@ Peers.prototype.list = function(normalize) {
 // Public methods
 /**
  * Modules are not required in this file.
- * @param {Object} __modules - Peers module.
+ *
+ * @param {Object} __modules - Peers module
  */
 Peers.prototype.bindModules = function(__modules) {
 	modules = {

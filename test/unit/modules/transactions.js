@@ -270,7 +270,7 @@ describe('transactions', () => {
 		dbStub.transactions.countList.reset();
 		dbStub.transactions.list.reset();
 
-		Object.keys(TransactionTypeMap).forEach(key => {
+		return Object.keys(TransactionTypeMap).forEach(key => {
 			dbStub.transactions[TransactionTypeMap[key]].reset();
 		});
 	});

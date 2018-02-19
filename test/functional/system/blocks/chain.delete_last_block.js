@@ -68,7 +68,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					];
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after account creation', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -95,7 +95,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after forging a block', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -108,7 +108,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should get account data from receipt', done => {
+				it('should get account data from receipt that is a virgin', done => {
 					library.logic.account.get(
 						{ address: testReceipt.address },
 						fieldsToCompare,
@@ -129,7 +129,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					});
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after deleting the last block', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -144,7 +144,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should get account data from receipt', done => {
+				it('should get account data from receipt that has a zero balance', done => {
 					library.logic.account.get(
 						{ address: testReceipt.address },
 						fieldsToCompare,
@@ -158,11 +158,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should forge a block with pool transaction', done => {
+				it('should forge a block with transaction pool', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after forging a block with transaction pool', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -181,7 +181,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should get account data from receipt', done => {
+				it('should get account data from receipt that has a balance', done => {
 					library.logic.account.get(
 						{ address: testReceipt.address },
 						fieldsToCompare,
@@ -239,7 +239,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after forging a block', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -263,7 +263,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					});
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after deleting the last block', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -281,11 +281,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should forge a block with pool transaction', done => {
+				it('should forge a block with transaction pool', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after forging a block with transaction pool', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -365,7 +365,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after forging a block', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -395,7 +395,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					});
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after delete the last block', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -423,7 +423,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after forging a block with transaction pool', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -468,7 +468,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					];
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after account creation', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -490,7 +490,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					localCommon.addTransactionsAndForge(library, [voteTransaction], done);
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after forging a block', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -517,7 +517,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					});
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after deleting the last block', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -534,11 +534,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should forge a block with pool transaction', done => {
+				it('should forge a block with transaction pool', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after forging a block with transaction pool', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -582,7 +582,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					];
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after account creation', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -622,7 +622,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after forging a block', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -674,11 +674,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should forge a block with pool transaction', done => {
+				it('should forge a block with transaction pool', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender', done => {
+				it('should validate account data from sender after forging a block with transaction pool', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
@@ -721,7 +721,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				describe('(type 5) register dapp', () => {
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after account creation', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
@@ -748,7 +748,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						);
 					});
 
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after forging a block', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
@@ -769,7 +769,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						});
 					});
 
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after deleting the last block', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
@@ -784,11 +784,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						);
 					});
 
-					it('should forge a block with pool transaction', done => {
+					it('should forge a block with transaction pool', done => {
 						localCommon.addTransactionsAndForge(library, [], done);
 					});
 
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after forging a block with transaction pool', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
@@ -809,7 +809,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				describe.skip('(type 6) inTransfer dapp', () => {
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after account creation', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
@@ -835,7 +835,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						);
 					});
 
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after forging a block', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
@@ -856,7 +856,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						});
 					});
 
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after deleting the last block', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
@@ -871,11 +871,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						);
 					});
 
-					it('should forge a block with pool transaction', done => {
+					it('should forge a block with transaction pool', done => {
 						localCommon.addTransactionsAndForge(library, [], done);
 					});
 
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after forging a block with transaction pool', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
@@ -896,7 +896,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				describe.skip('(type 7) outTransfer dapp', () => {
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after account creation', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
@@ -927,7 +927,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						);
 					});
 
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after forging a block', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
@@ -948,7 +948,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						});
 					});
 
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after deleting the last block', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,
@@ -963,11 +963,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						);
 					});
 
-					it('should forge a block with pool transaction', done => {
+					it('should forge a block with transaction pool', done => {
 						localCommon.addTransactionsAndForge(library, [], done);
 					});
 
-					it('should validate account data from sender', done => {
+					it('should validate account data from sender after forging a block with transaction pool', done => {
 						library.logic.account.get(
 							{ address: testAccount.address },
 							fieldsToCompare,

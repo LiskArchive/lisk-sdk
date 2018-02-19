@@ -32,11 +32,11 @@ module.exports = function(params) {
 		});
 
 		it('should be able to get blocks list from every peer', () => {
-			expect(nodesBlocks).to.have.lengthOf(params.configurations.length);
+			return expect(nodesBlocks).to.have.lengthOf(params.configurations.length);
 		});
 
 		it('should contain non empty blocks after running functional tests', () => {
-			nodesBlocks.forEach(blocks => {
+			return nodesBlocks.forEach(blocks => {
 				expect(blocks).to.be.an('array').and.not.to.be.empty;
 			});
 		});
@@ -46,16 +46,17 @@ module.exports = function(params) {
 				.map('length')
 				.uniq()
 				.value();
-			expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
+			return expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
 		});
 
-		it('should have all blocks the same at all peers', () => {
+		it('should have all blocks the same at all peers', done => {
 			var patternBlocks = nodesBlocks[0];
 			for (var i = 0; i < patternBlocks.length; i += 1) {
 				for (var j = 1; j < nodesBlocks.length; j += 1) {
 					expect(_.isEqual(nodesBlocks[j][i], patternBlocks[i]));
 				}
 			}
+			done();
 		});
 	});
 };

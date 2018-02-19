@@ -54,8 +54,8 @@ var validSender = {
 	multilifetime: 0,
 	blockId: '8505659485551877884',
 	nameexist: 0,
-	producedblocks: 0,
-	missedblocks: 0,
+	producedBlocks: 0,
+	missedBlocks: 0,
 	fees: 0,
 	rewards: 0,
 	virgin: 0,
@@ -131,23 +131,23 @@ describe('transfer', () => {
 
 	describe('bind', () => {
 		it('should be okay with correct params', () => {
-			expect(() => {
+			return expect(() => {
 				transfer.bind(transferBindings.account);
 			}).to.not.throw();
 		});
 
 		after(() => {
-			transfer.bind(transferBindings.account);
+			return transfer.bind(transferBindings.account);
 		});
 	});
 
 	describe('calculateFee', () => {
 		it('should throw error if given no params', () => {
-			expect(transfer.calculateFee).to.throw();
+			return expect(transfer.calculateFee).to.throw();
 		});
 
 		it('should return the correct fee when data field is not set', () => {
-			expect(
+			return expect(
 				transfer.calculateFee.call(transactionLogic, validTransaction)
 			).to.equal(constants.fees.send);
 		});
@@ -158,7 +158,7 @@ describe('transfer', () => {
 				data: '0',
 			};
 
-			expect(
+			return expect(
 				transfer.calculateFee.call(transactionLogic, transaction)
 			).to.equal(constants.fees.send + constants.fees.data);
 		});
@@ -198,7 +198,7 @@ describe('transfer', () => {
 
 	describe('getBytes', () => {
 		it('should return null for empty asset', () => {
-			expect(transfer.getBytes(validTransaction)).to.eql(null);
+			return expect(transfer.getBytes(validTransaction)).to.eql(null);
 		});
 
 		it('should return bytes of data asset', () => {
@@ -208,7 +208,7 @@ describe('transfer', () => {
 				data,
 			};
 
-			expect(transfer.getBytes(transaction)).to.eql(Buffer.from(data, 'utf8'));
+			return expect(transfer.getBytes(transaction)).to.eql(Buffer.from(data, 'utf8'));
 		});
 
 		it('should be okay for utf-8 data value', () => {
@@ -218,7 +218,7 @@ describe('transfer', () => {
 				data,
 			};
 
-			expect(transfer.getBytes(transaction)).to.eql(Buffer.from(data, 'utf8'));
+			return expect(transfer.getBytes(transaction)).to.eql(Buffer.from(data, 'utf8'));
 		});
 	});
 
@@ -390,7 +390,7 @@ describe('transfer', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.blockId = '9314232245035524467';
 
-			expect(transfer.objectNormalize(transaction)).to.not.have.key('blockId');
+			return expect(transfer.objectNormalize(transaction)).to.not.have.key('blockId');
 		});
 
 		it('should not remove data field', () => {
@@ -399,7 +399,7 @@ describe('transfer', () => {
 				data: '123',
 			};
 
-			expect(transfer.objectNormalize(transaction).asset).to.eql(
+			return expect(transfer.objectNormalize(transaction).asset).to.eql(
 				transaction.asset
 			);
 		});
@@ -410,7 +410,7 @@ describe('transfer', () => {
 				data: null,
 			};
 
-			expect(() => {
+			return expect(() => {
 				transfer.objectNormalize(transaction);
 			}).to.throw(
 				'Failed to validate transfer schema: Expected type string but found type null'
@@ -423,7 +423,7 @@ describe('transfer', () => {
 				data: undefined,
 			};
 
-			expect(() => {
+			return expect(() => {
 				transfer.objectNormalize(transaction);
 			}).to.throw(
 				'Failed to validate transfer schema: Expected type string but found type undefined'
@@ -441,7 +441,7 @@ describe('transfer', () => {
 				data: invalidString,
 			};
 
-			expect(() => {
+			return expect(() => {
 				transfer.objectNormalize(transaction);
 			}).to.throw(
 				`Failed to validate transfer schema: Object didn't pass validation for format additionalData: ${invalidString}`
@@ -459,7 +459,7 @@ describe('transfer', () => {
 				data: invalidString,
 			};
 
-			expect(() => {
+			return expect(() => {
 				transfer.objectNormalize(transaction);
 			}).to.throw(
 				`Failed to validate transfer schema: Object didn't pass validation for format additionalData: ${invalidString}`
@@ -469,7 +469,7 @@ describe('transfer', () => {
 
 	describe('dbRead', () => {
 		it('should return null when data field is not set', () => {
-			expect(transfer.dbRead(rawValidTransaction)).to.eql(null);
+			return expect(transfer.dbRead(rawValidTransaction)).to.eql(null);
 		});
 
 		it('should be okay when data field is set', () => {
@@ -477,7 +477,7 @@ describe('transfer', () => {
 			var data = '123';
 			rawTransaction.tf_data = data;
 
-			expect(transfer.dbRead(rawTransaction)).to.eql({
+			return expect(transfer.dbRead(rawTransaction)).to.eql({
 				data,
 			});
 		});
@@ -485,7 +485,7 @@ describe('transfer', () => {
 
 	describe('ready', () => {
 		it('should return true for single signature transaction', () => {
-			expect(transfer.ready(validTransaction, validSender)).to.equal(true);
+			return expect(transfer.ready(validTransaction, validSender)).to.equal(true);
 		});
 
 		it('should return false for multi signature transaction with less signatures', () => {
@@ -493,7 +493,7 @@ describe('transfer', () => {
 			var vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-			expect(transactionLogic.ready(transaction, vs)).to.equal(false);
+			return expect(transactionLogic.ready(transaction, vs)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', () => {
@@ -508,7 +508,7 @@ describe('transfer', () => {
 				transactionLogic.multisign(validKeypair, transaction),
 			];
 
-			expect(transactionLogic.ready(transaction, vs)).to.equal(true);
+			return expect(transactionLogic.ready(transaction, vs)).to.equal(true);
 		});
 	});
 });

@@ -116,20 +116,20 @@ describe('delegate', () => {
 		};
 
 		delegate = new Delegate(loggerMock, modulesLoader.scope.schema);
-		delegate.bind(accountsMock);
+		return delegate.bind(accountsMock);
 	});
 
 	describe('constructor', () => {
 		it('should attach schema to library variable', () => {
 			var library = Delegate.__get__('library');
-			expect(library)
+			return expect(library)
 				.to.have.property('schema')
 				.equal(modulesLoader.scope.schema);
 		});
 
-		it('should attach schema to library variable', () => {
+		it('should attach logger to library variable', () => {
 			var library = Delegate.__get__('library');
-			expect(library)
+			return expect(library)
 				.to.have.property('logger')
 				.equal(loggerMock);
 		});
@@ -140,7 +140,7 @@ describe('delegate', () => {
 			delegate.bind({});
 			var modules = Delegate.__get__('modules');
 
-			expect(modules).to.eql({
+			return expect(modules).to.eql({
 				accounts: {},
 			});
 		});
@@ -149,7 +149,7 @@ describe('delegate', () => {
 			delegate.bind(accountsMock);
 			var modules = Delegate.__get__('modules');
 
-			expect(modules).to.eql({
+			return expect(modules).to.eql({
 				accounts: accountsMock,
 			});
 		});
@@ -157,7 +157,7 @@ describe('delegate', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee for delegate transaction', () => {
-			expect(delegate.calculateFee(transaction)).to.equal(
+			return expect(delegate.calculateFee(transaction)).to.equal(
 				constants.fees.delegate
 			);
 		});
@@ -277,14 +277,15 @@ describe('delegate', () => {
 		describe('when transaction is valid', () => {
 			var checkConfirmedStub;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				checkConfirmedStub = sinonSandbox
 					.stub(delegate, 'checkConfirmed')
 					.callsArgWith(1, null);
+				done();
 			});
 
 			afterEach(() => {
-				checkConfirmedStub.restore();
+				return checkConfirmedStub.restore();
 			});
 
 			it('should call checkConfirmed with correct transaction', done => {
@@ -338,7 +339,7 @@ describe('delegate', () => {
 							sinonSandbox.match.any
 						)
 						.yields(null, null);
-					accountsMock.getAccount
+					return accountsMock.getAccount
 						.withArgs(
 							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
 							['username'],
@@ -382,7 +383,7 @@ describe('delegate', () => {
 							sinonSandbox.match.any
 						)
 						.yields(null, null);
-					accountsMock.getAccount
+					return accountsMock.getAccount
 						.withArgs(
 							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
 							['username'],
@@ -430,7 +431,7 @@ describe('delegate', () => {
 							sinonSandbox.match.any
 						)
 						.yields(null, accounts.existingDelegate);
-					accountsMock.getAccount
+					return accountsMock.getAccount
 						.withArgs(
 							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
 							['username'],
@@ -474,7 +475,7 @@ describe('delegate', () => {
 							sinonSandbox.match.any
 						)
 						.yields(null, null);
-					accountsMock.getAccount
+					return accountsMock.getAccount
 						.withArgs(
 							{ publicKey: accounts.existingDelegate.publicKey, isDelegate: 1 },
 							['username'],
@@ -503,12 +504,12 @@ describe('delegate', () => {
 		it('should return null when username is empty', () => {
 			delete transaction.asset.delegate.username;
 
-			expect(delegate.getBytes(transaction)).to.eql(null);
+			return expect(delegate.getBytes(transaction)).to.eql(null);
 		});
 
 		it('should return bytes for signature asset', () => {
 			var delegateBytes = delegate.getBytes(transaction);
-			expect(delegateBytes.toString()).to.equal(
+			return expect(delegateBytes.toString()).to.equal(
 				transaction.asset.delegate.username
 			);
 		});
@@ -537,11 +538,11 @@ describe('delegate', () => {
 		});
 
 		it('should call modules.accounts.getAccount twice', () => {
-			expect(accountsMock.getAccount.calledTwice).to.be.true;
+			return expect(accountsMock.getAccount.calledTwice).to.be.true;
 		});
 
 		it('should call modules.accounts.getAccount with checking delegate registration params', () => {
-			expect(
+			return expect(
 				accountsMock.getAccount.calledWith({
 					publicKey: accounts.existingDelegate.publicKey,
 					u_isDelegate: 1,
@@ -550,7 +551,7 @@ describe('delegate', () => {
 		});
 
 		it('should call modules.accounts.getAccount with checking username params', () => {
-			expect(
+			return expect(
 				accountsMock.getAccount.calledWith({
 					u_username: accounts.existingDelegate.delegateName,
 				})
@@ -579,7 +580,7 @@ describe('delegate', () => {
 			});
 
 			it('should call callback with the error', () => {
-				expect(error).to.equal(
+				return expect(error).to.equal(
 					`Username ${accounts.existingDelegate.delegateName} already exists`
 				);
 			});
@@ -607,17 +608,17 @@ describe('delegate', () => {
 			});
 
 			it('should return an error = "Account is already a delegate"', () => {
-				expect(error).to.equal('Account is already a delegate');
+				return expect(error).to.equal('Account is already a delegate');
 			});
 		});
 
 		describe('when publicKey and username does not match any account', () => {
 			it('should not return the error', () => {
-				expect(error).to.be.undefined;
+				return expect(error).to.be.undefined;
 			});
 
 			it('should not return the result', () => {
-				expect(result).to.be.undefined;
+				return expect(result).to.be.undefined;
 			});
 		});
 	});
@@ -626,7 +627,7 @@ describe('delegate', () => {
 		var checkDuplicatesStub;
 		var transactionsExceptionsIndexOfStub;
 
-		beforeEach(() => {
+		beforeEach(done => {
 			checkDuplicatesStub = sinonSandbox
 				.stub(delegate, 'checkDuplicates')
 				.callsArg(3);
@@ -634,11 +635,12 @@ describe('delegate', () => {
 				exceptions.delegates,
 				'indexOf'
 			);
+			done();
 		});
 
 		afterEach(() => {
 			transactionsExceptionsIndexOfStub.restore();
-			checkDuplicatesStub.restore();
+			return checkDuplicatesStub.restore();
 		});
 
 		it('should call checkDuplicates with valid transaction', done => {
@@ -663,11 +665,12 @@ describe('delegate', () => {
 		});
 
 		describe('when checkDuplicates succeeds', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				checkDuplicatesStub.restore();
 				checkDuplicatesStub = sinonSandbox
 					.stub(delegate, 'checkDuplicates')
 					.callsArgWith(3, null);
+				done();
 			});
 
 			it('should call callback with error = undefined', done => {
@@ -678,11 +681,12 @@ describe('delegate', () => {
 		describe('when checkDuplicates fails', () => {
 			var validDelegateRegistrationError = 'Account is already a delegate';
 
-			beforeEach(() => {
+			beforeEach(done => {
 				checkDuplicatesStub.restore();
 				checkDuplicatesStub = sinonSandbox
 					.stub(delegate, 'checkDuplicates')
 					.callsArgWith(3, validDelegateRegistrationError);
+				done();
 			});
 
 			it('should call callback with an error', done => {
@@ -702,13 +706,15 @@ describe('delegate', () => {
 			describe('when transaction is on exceptions list', () => {
 				var originalDelegatesExceptions;
 
-				beforeEach(() => {
+				beforeEach(done => {
 					originalDelegatesExceptions = exceptions.delegates.slice(0); // copy
 					exceptions.delegates = [validTransaction.id];
+					done();
 				});
 
-				afterEach(() => {
+				afterEach(done => {
 					exceptions.delegates = originalDelegatesExceptions;
+					done();
 				});
 
 				it('should call callback with an error = null', done => {
@@ -741,14 +747,15 @@ describe('delegate', () => {
 	describe('checkUnconfirmed', () => {
 		var checkDuplicatesStub;
 
-		beforeEach(() => {
+		beforeEach(done => {
 			checkDuplicatesStub = sinonSandbox
 				.stub(delegate, 'checkDuplicates')
 				.callsArg(3);
+			done();
 		});
 
 		afterEach(() => {
-			checkDuplicatesStub.restore();
+			return checkDuplicatesStub.restore();
 		});
 
 		it('should call checkDuplicates with valid transaction', done => {
@@ -773,11 +780,12 @@ describe('delegate', () => {
 		});
 
 		describe('when delegate is not unconfirmed', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				checkDuplicatesStub.restore();
 				checkDuplicatesStub = sinonSandbox
 					.stub(delegate, 'checkDuplicates')
 					.callsArgWith(3, null);
+				done();
 			});
 
 			it('should not return an error', done => {
@@ -788,11 +796,12 @@ describe('delegate', () => {
 		describe('when delegate is already unconfirmed', () => {
 			var validDelegateRegistrationError = 'Account is already a delegate';
 
-			beforeEach(() => {
+			beforeEach(done => {
 				checkDuplicatesStub.restore();
 				checkDuplicatesStub = sinonSandbox
 					.stub(delegate, 'checkDuplicates')
 					.callsArgWith(3, validDelegateRegistrationError);
+				done();
 			});
 
 			it('should call callback with an error', done => {
@@ -810,7 +819,7 @@ describe('delegate', () => {
 		describe('when username was not registered before', () => {
 			var validConfirmedAccount;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				checkConfirmedStub = sinonSandbox
 					.stub(delegate, 'checkConfirmed')
 					.callsArg(1);
@@ -824,10 +833,11 @@ describe('delegate', () => {
 					u_username: null,
 					username: validTransaction.asset.delegate.username,
 				};
+				done();
 			});
 
 			afterEach(() => {
-				checkConfirmedStub.restore();
+				return checkConfirmedStub.restore();
 			});
 
 			it('should call accounts.setAccountAndGet module with correct parameter', done => {
@@ -841,14 +851,15 @@ describe('delegate', () => {
 		});
 
 		describe('when username is already confirmed', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				checkConfirmedStub = sinonSandbox
 					.stub(delegate, 'checkConfirmed')
 					.callsArgWith(1, 'Username already exists');
+				done();
 			});
 
 			afterEach(() => {
-				checkConfirmedStub.restore();
+				return checkConfirmedStub.restore();
 			});
 
 			it('should not call accounts.setAccountAndGet', done => {
@@ -873,7 +884,7 @@ describe('delegate', () => {
 		describe('when username was not registered before', () => {
 			var validUnconfirmedAccount;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				checkUnconfirmedStub = sinonSandbox
 					.stub(delegate, 'checkUnconfirmed')
 					.callsArg(1);
@@ -886,10 +897,11 @@ describe('delegate', () => {
 					username: null,
 					u_username: validTransaction.asset.delegate.username,
 				};
+				done();
 			});
 
 			afterEach(() => {
-				checkUnconfirmedStub.restore();
+				return checkUnconfirmedStub.restore();
 			});
 
 			it('should call accounts.setAccountAndGet module with correct parameter', done => {
@@ -903,14 +915,15 @@ describe('delegate', () => {
 		});
 
 		describe('when username is already unconfirmed', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				checkUnconfirmedStub = sinonSandbox
 					.stub(delegate, 'checkUnconfirmed')
 					.callsArgWith(1, 'Username already exists');
+				done();
 			});
 
 			afterEach(() => {
-				checkUnconfirmedStub.restore();
+				return checkUnconfirmedStub.restore();
 			});
 
 			it('should not call accounts.setAccountAndGet', done => {
@@ -995,7 +1008,7 @@ describe('delegate', () => {
 					Delegate.prototype.schema
 				)
 			).to.equal(true);
-			schemaSpy.restore();
+			return schemaSpy.restore();
 		});
 
 		describe('when library.schema.validate fails', () => {
@@ -1010,7 +1023,7 @@ describe('delegate', () => {
 				},
 			});
 
-			after(() => {
+			after(done => {
 				describe('schema dynamic tests: delegate', () => {
 					schemaDynamicTest.schema.shouldFailAgainst.nonObject.property(
 						delegate.objectNormalize,
@@ -1026,12 +1039,13 @@ describe('delegate', () => {
 						);
 					});
 				});
+				done();
 			});
 
 			it('should throw error', () => {
 				transaction.asset.delegate.username = '*';
 
-				expect(() => {
+				return expect(() => {
 					delegate.objectNormalize(transaction);
 				}).to.throw(
 					"Failed to validate delegate schema: Object didn't pass validation for format username: "
@@ -1041,7 +1055,7 @@ describe('delegate', () => {
 
 		describe('when library.schema.validate succeeds', () => {
 			it('should return transaction', () => {
-				expect(delegate.objectNormalize(transaction)).to.eql(transaction);
+				return expect(delegate.objectNormalize(transaction)).to.eql(transaction);
 			});
 		});
 	});
@@ -1050,7 +1064,7 @@ describe('delegate', () => {
 		it('should return null when d_username is not set', () => {
 			delete rawTransaction.d_username;
 
-			expect(delegate.dbRead(rawTransaction)).to.eql(null);
+			return expect(delegate.dbRead(rawTransaction)).to.eql(null);
 		});
 
 		it('should return delegate asset for raw transaction passed', () => {
@@ -1060,19 +1074,19 @@ describe('delegate', () => {
 				username: rawValidTransaction.d_username,
 			};
 
-			expect(delegate.dbRead(rawTransaction).delegate).to.eql(expectedAsset);
+			return expect(delegate.dbRead(rawTransaction).delegate).to.eql(expectedAsset);
 		});
 	});
 
 	describe('ready', () => {
 		it('should return true for single signature transasction', () => {
-			expect(delegate.ready(transaction, sender)).to.equal(true);
+			return expect(delegate.ready(transaction, sender)).to.equal(true);
 		});
 
 		it('should return false for multi signature transaction with less signatures', () => {
 			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-			expect(delegate.ready(transaction, sender)).to.equal(false);
+			return expect(delegate.ready(transaction, sender)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with at least min signatures', () => {
@@ -1084,7 +1098,7 @@ describe('delegate', () => {
 			transaction.signature = crypto.randomBytes(64).toString('hex');
 			transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
-			expect(delegate.ready(transaction, sender)).to.equal(true);
+			return expect(delegate.ready(transaction, sender)).to.equal(true);
 		});
 	});
 });

@@ -24,12 +24,13 @@ var socketClusterMock = {
 };
 
 describe('wsRPC', () => {
-	beforeEach(() => {
+	beforeEach(done => {
 		wsRPC.clientsConnectionsMap = {};
+		done();
 	});
 
 	it('should have empty clientsConnectionsMap field', () => {
-		expect(wsRPC)
+		return expect(wsRPC)
 			.to.have.property('clientsConnectionsMap')
 			.to.be.a('object').and.to.be.empty;
 	});
@@ -38,31 +39,31 @@ describe('wsRPC', () => {
 		expect(wsRPC)
 			.to.have.property('wampClient')
 			.and.to.be.a('object');
-		expect(wsRPC.wampClient.constructor.name).equal('WAMPClient');
+		return expect(wsRPC.wampClient.constructor.name).equal('WAMPClient');
 	});
 
 	it('should have scClient field without connections', () => {
 		expect(wsRPC)
 			.to.have.property('scClient')
 			.and.to.be.a('object');
-		expect(wsRPC.scClient)
+		return expect(wsRPC.scClient)
 			.to.have.property('connections')
 			.to.be.a('object').and.to.be.empty;
 	});
 
 	describe('setServer', () => {
 		before(() => {
-			wsRPC.setServer(null);
+			return wsRPC.setServer(null);
 		});
 
 		after(() => {
-			wsRPC.setServer(null);
+			return wsRPC.setServer(null);
 		});
 
 		it('should return server instance after setting it', () => {
 			wsRPC.setServer({ name: 'my ws server' });
 			var wsRPCServer = wsRPC.getServer();
-			expect(wsRPCServer)
+			return expect(wsRPCServer)
 				.to.be.an('object')
 				.eql({ name: 'my ws server' });
 		});
@@ -70,38 +71,38 @@ describe('wsRPC', () => {
 		describe('getter', () => {
 			it('should throw an error when setting server to null', () => {
 				wsRPC.setServer(null);
-				expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
+				return expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
 			});
 
 			it('should throw an error when setting server to 0', () => {
 				wsRPC.setServer(0);
-				expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
+				return expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
 			});
 
 			it('should throw an error when setting server to undefined', () => {
 				wsRPC.setServer(undefined);
-				expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
+				return expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
 			});
 		});
 	});
 
 	describe('getServer', () => {
 		before(() => {
-			wsRPC.setServer(null);
+			return wsRPC.setServer(null);
 		});
 
 		after(() => {
-			wsRPC.setServer(null);
+			return wsRPC.setServer(null);
 		});
 
 		it('should throw an error when WS server has not been initialized', () => {
-			expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
+			return expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
 		});
 
 		it('should return WS server if set before', () => {
 			wsRPC.setServer({ name: 'my ws server' });
 			expect(wsRPC.getServer).not.to.throw;
-			expect(wsRPC.getServer())
+			return expect(wsRPC.getServer())
 				.to.a('object')
 				.eql({ name: 'my ws server' });
 		});
@@ -113,19 +114,20 @@ describe('wsRPC', () => {
 		var validPort = 4000;
 		var validIp = '127.0.0.1';
 
-		beforeEach(() => {
+		beforeEach(done => {
 			initializeNewConnectionStub = sinonSandbox.stub(
 				ClientRPCStub.prototype,
 				'initializeNewConnection'
 			);
+			done();
 		});
 
 		afterEach(() => {
-			initializeNewConnectionStub.restore();
+			return initializeNewConnectionStub.restore();
 		});
 
 		it('should throw error when no arguments specified', () => {
-			expect(wsRPC.getClientRPCStub).to.throw(
+			return expect(wsRPC.getClientRPCStub).to.throw(
 				'RPC client needs ip and port to establish WS connection with: undefined:undefined'
 			);
 		});
@@ -156,19 +158,19 @@ describe('wsRPC', () => {
 
 		it('should not initialize new connection just after getting RPC stub', () => {
 			wsRPC.getClientRPCStub(validIp, validPort);
-			expect(initializeNewConnectionStub.called).to.be.false;
+			return expect(initializeNewConnectionStub.called).to.be.false;
 		});
 
 		it('should add new entry in clientsConnectionsMap after getting stub', () => {
 			wsRPC.getClientRPCStub(validIp, validPort);
-			expect(wsRPC.clientsConnectionsMap)
+			return expect(wsRPC.clientsConnectionsMap)
 				.to.have.property(`${validIp}:${validPort}`)
 				.to.be.an.instanceof(ConnectionState);
 		});
 
 		it('should return empty client stub when no endpoints registered', () => {
 			var rpcStub = wsRPC.getClientRPCStub(validIp, validPort);
-			expect(rpcStub).to.be.a('object').and.to.be.empty;
+			return expect(rpcStub).to.be.a('object').and.to.be.empty;
 		});
 
 		describe('stub', () => {
@@ -191,18 +193,18 @@ describe('wsRPC', () => {
 					socketClusterMock,
 					masterWAMPServerConfig
 				);
-				wsRPC.setServer(masterWAMPServer);
+				return wsRPC.setServer(masterWAMPServer);
 			});
 
 			after(() => {
-				wsRPC.setServer(null);
+				return wsRPC.setServer(null);
 			});
 
 			it('should return client stub with rpc methods registered on MasterWAMPServer', () => {
 				var wsServer = wsRPC.getServer();
 				wsServer.reassignRPCEndpoints(validRPCEndpoint);
 				var rpcStub = wsRPC.getClientRPCStub(validIp, validPort);
-				expect(rpcStub)
+				return expect(rpcStub)
 					.to.have.property('rpcProcedure')
 					.and.to.be.a('function');
 			});
@@ -215,7 +217,7 @@ describe('wsRPC', () => {
 				expect(rpcStub)
 					.to.have.property('eventProcedure')
 					.and.to.be.a('function');
-				expect(rpcStub)
+				return expect(rpcStub)
 					.to.have.property('rpcProcedure')
 					.and.to.be.a('function');
 			});

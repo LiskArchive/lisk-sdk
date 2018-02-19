@@ -233,7 +233,7 @@ describe('loader', () => {
 			});
 		});
 
-		it('should call library.logger.trace');
+		it('should call library.logger.trace after __private.loaded');
 
 		it(
 			'should call library.logger.trace with "Transactions and signatures pulled"'

@@ -472,15 +472,15 @@ describe('integration', function() {
 			});
 
 			it('should have no error', () => {
-				expect(getNetworkStatusError).not.to.exist;
+				return expect(getNetworkStatusError).not.to.exist;
 			});
 
 			it('should have height > 1', () => {
-				expect(networkHeight).to.be.above(1);
+				return expect(networkHeight).to.be.above(1);
 			});
 
 			it('should have average height above 1', () => {
-				expect(networkAverageHeight).to.be.above(1);
+				return expect(networkAverageHeight).to.be.above(1);
 			});
 
 			it('should have different peers heights propagated correctly on peers lists', () => {
@@ -530,7 +530,7 @@ describe('integration', function() {
 			});
 
 			it('should contain non empty blocks after running functional tests', () => {
-				nodesBlocks.forEach(blocks => {
+				return nodesBlocks.forEach(blocks => {
 					expect(blocks).to.be.an('array').and.not.empty;
 				});
 			});
@@ -540,16 +540,17 @@ describe('integration', function() {
 					.map('length')
 					.uniq()
 					.value();
-				expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
+				return expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
 			});
 
-			it('should have all blocks the same at all peers', () => {
+			it('should have all blocks the same at all peers', done => {
 				var patternBlocks = nodesBlocks[0];
 				for (var i = 0; i < patternBlocks.length; i += 1) {
 					for (var j = 1; j < nodesBlocks.length; j += 1) {
 						expect(_.isEqual(nodesBlocks[j][i], patternBlocks[i]));
 					}
 				}
+				done();
 			});
 		});
 
@@ -570,7 +571,7 @@ describe('integration', function() {
 			});
 
 			it('should contain non empty transactions after running functional tests', () => {
-				nodesTransactions.forEach(transactions => {
+				return nodesTransactions.forEach(transactions => {
 					expect(transactions).to.be.an('array').and.not.empty;
 				});
 			});
@@ -580,16 +581,19 @@ describe('integration', function() {
 					.map('length')
 					.uniq()
 					.value();
-				expect(uniquePeersTransactionsNumber).to.have.lengthOf.at.least(1);
+				return expect(uniquePeersTransactionsNumber).to.have.lengthOf.at.least(
+					1
+				);
 			});
 
-			it('should have all transactions the same at all peers', () => {
+			it('should have all transactions the same at all peers', done => {
 				var patternTransactions = nodesTransactions[0];
 				for (var i = 0; i < patternTransactions.length; i += 1) {
 					for (var j = 1; j < nodesTransactions.length; j += 1) {
 						expect(_.isEqual(nodesTransactions[j][i], patternTransactions[i]));
 					}
 				}
+				done();
 			});
 		});
 	});

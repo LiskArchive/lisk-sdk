@@ -20,13 +20,16 @@ require('../../helpers/transaction_types');
 var columnSet;
 
 /**
- * Delegates Transactions database interaction module
- * @memberof module:delegates
+ * Delegates transactions database interaction class.
+ *
  * @class
+ * @memberof db.repos
+ * @requires lodash
+ * @requires helpers/transaction_types
+ * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @constructor
- * @return {DelegateTransactionsRepo}
+ * @returns {Object} An instance of a DelegateTransactionsRepo
  */
 function DelegateTransactionsRepo(db, pgp) {
 	this.db = db;
@@ -51,9 +54,11 @@ function DelegateTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save Dapp transactions
- * @param {Array.<{id: string, asset: {delegate: {username: string}}}>} transactions
- * @return {Promise}
+ * Save dapp transactions.
+ *
+ * @param {Array} transactions
+ * @returns {Promise}
+ * @todo Add description for the params and the return value
  */
 DelegateTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {

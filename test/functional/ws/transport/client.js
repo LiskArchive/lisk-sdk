@@ -28,7 +28,7 @@ describe('ClientRPCStub', () => {
 	var validClientRPCStub;
 	var socketClusterMock;
 
-	before(() => {
+	before(done => {
 		socketClusterMock = {
 			on: sinonSandbox.spy(),
 		};
@@ -41,48 +41,49 @@ describe('ClientRPCStub', () => {
 			validWSServerIp,
 			validWSServerPort
 		);
+		done();
 	});
 
 	describe('should contain remote procedure', () => {
 		it('updatePeer', () => {
-			expect(validClientRPCStub).to.have.property('updatePeer');
+			return expect(validClientRPCStub).to.have.property('updatePeer');
 		});
 
 		it('blocksCommon', () => {
-			expect(validClientRPCStub).to.have.property('blocksCommon');
+			return expect(validClientRPCStub).to.have.property('blocksCommon');
 		});
 
 		it('height', () => {
-			expect(validClientRPCStub).to.have.property('height');
+			return expect(validClientRPCStub).to.have.property('height');
 		});
 
 		it('getTransactions', () => {
-			expect(validClientRPCStub).to.have.property('getTransactions');
+			return expect(validClientRPCStub).to.have.property('getTransactions');
 		});
 
 		it('getSignatures', () => {
-			expect(validClientRPCStub).to.have.property('getSignatures');
+			return expect(validClientRPCStub).to.have.property('getSignatures');
 		});
 
 		it('status', () => {
-			expect(validClientRPCStub).to.have.property('list');
+			return expect(validClientRPCStub).to.have.property('list');
 		});
 
 		it('postBlock', () => {
-			expect(validClientRPCStub).to.have.property('postBlock');
+			return expect(validClientRPCStub).to.have.property('postBlock');
 		});
 
 		it('postSignatures', () => {
-			expect(validClientRPCStub).to.have.property('postSignatures');
+			return expect(validClientRPCStub).to.have.property('postSignatures');
 		});
 
 		it('postTransactions', () => {
-			expect(validClientRPCStub).to.have.property('postTransactions');
+			return expect(validClientRPCStub).to.have.property('postTransactions');
 		});
 	});
 
 	it('should not contain randomProcedure', () => {
-		expect(validClientRPCStub).not.to.have.property('randomProcedure');
+		return expect(validClientRPCStub).not.to.have.property('randomProcedure');
 	});
 
 	describe('RPC call', () => {
@@ -90,7 +91,7 @@ describe('ClientRPCStub', () => {
 
 		beforeEach(() => {
 			validHeaders = WSServer.generatePeerHeaders();
-			System.setHeaders(validHeaders);
+			return System.setHeaders(validHeaders);
 		});
 
 		describe('with valid headers', () => {
@@ -110,12 +111,13 @@ describe('ClientRPCStub', () => {
 		});
 
 		describe('with invalid headers', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				wsRPC.clientsConnectionsMap = {};
 				validClientRPCStub = wsRPC.getClientRPCStub(
 					validWSServerIp,
 					validWSServerPort
 				);
+				done();
 			});
 
 			it('without port should call RPC callback with INVALID_HEADERS error', done => {
@@ -229,13 +231,14 @@ describe('ClientRPCStub', () => {
 
 	describe('when reaching', () => {
 		describe('not reachable server', () => {
-			before(() => {
+			before(done => {
 				var invalisServerIp = '1.1.1.1';
 				var invalisServerPort = 1111;
 				validClientRPCStub = wsRPC.getClientRPCStub(
 					invalisServerIp,
 					invalisServerPort
 				);
+				done();
 			});
 
 			it('should call RPC callback with CONNECTION_TIMEOUT error', done => {
@@ -252,13 +255,14 @@ describe('ClientRPCStub', () => {
 		});
 
 		describe('not existing server', () => {
-			before(() => {
+			before(done => {
 				var validServerIp = '127.0.0.1';
 				var invalisServerPort = 1111;
 				validClientRPCStub = wsRPC.getClientRPCStub(
 					validServerIp,
 					invalisServerPort
 				);
+				done();
 			});
 
 			it('should call RPC callback with HANDSHAKE_ERROR error', done => {
