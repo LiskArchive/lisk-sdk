@@ -198,15 +198,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 
-	// TODO: These test cases broke after removing support for batch HTTP POST
-	// transactions and only allowing a single POST transaction per request.
-	// The issue doesn't appear to be related. Maybe a race condition?
-	// See https://github.com/LiskHQ/lisk/issues/1427
 	describe('validation', () => {
 		it('setting same delegate twice should fail', () => {
-			// TODO: This transaction has the same id as the one from the previous
-			// test case 'using valid params should be ok'. This causes the test
-			// to fail for a different reason than expected.
 			transaction = lisk.delegate.createDelegate(
 				account.password,
 				account.username
