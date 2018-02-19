@@ -26,85 +26,97 @@ describe('BigNumber', () => {
 	var validBufferSeedMpint;
 
 	describe('fromBuffer', () => {
-		before(() => {
+		before(done => {
 			validSeed = '782910138827292261791972728324982';
 			validBufferSeed = Buffer.from('Jpm3GDWJ6Efns5p1Q3Y=', 'base64');
 			validBufferSeedSize2 = Buffer.from('mSYYt4k1R+iz53WadkM=', 'base64');
+			done();
 		});
 
 		describe('when it throws an error', () => {
 			describe('when passed a buffer not divisible by the size option', () => {
-				before(() => {
+				before(done => {
 					validOpts = {
 						size: 3,
 						endian: 'big',
 					};
 					validBuf = validBufferSeed;
+					done();
 				});
 
-				it('should throw RangeError', () => {
+				it('should throw RangeError', done => {
 					expect(() => {
 						bignum.fromBuffer(validBuf, validOpts);
 					}).throws('Buffer length (14) must be a multiple of size (3)');
+					done();
 				});
 			});
 		});
 
 		describe('when it does not throw an error', () => {
-			before(() => {
+			before(done => {
 				validBuf = validBufferSeed;
 				validOpts = {};
+				done();
 			});
 
-			beforeEach(() => {
+			beforeEach(done => {
 				bignumResult = bignum.fromBuffer(validBuf, validOpts);
+				done();
 			});
 
 			describe('when opts does not have a size attribute', () => {
-				it('should set opts to an empty object', () => {
+				it('should set opts to an empty object', done => {
 					expect(bignumResult).to.eql(new bignum(validSeed));
+					done();
 				});
 			});
 
 			describe('when opts have a size attribute', () => {
 				describe('when opts.size = 2 and endian = little', () => {
-					before(() => {
+					before(done => {
 						validOpts = {
 							size: 2,
 							endian: 'little',
 						};
 						validBuf = validBufferSeedSize2;
+						done();
 					});
 
-					it('should equal BUFFER_SEED', () => {
+					it('should equal BUFFER_SEED', done => {
 						expect(bignumResult).to.eql(new bignum(validSeed));
+						done();
 					});
 				});
 
 				describe('when opts.size = 2 and endian = big', () => {
-					before(() => {
+					before(done => {
 						validOpts = {
 							size: 2,
 							endian: 'big',
 						};
 						validBuf = validBufferSeed;
+						done();
 					});
 
-					it('should equal BUFFER_SEED', () => {
+					it('should equal BUFFER_SEED', done => {
 						expect(bignumResult).to.eql(new bignum(validSeed));
+						done();
 					});
 				});
 
 				describe('when endian = big', () => {
-					before(() => {
+					before(done => {
 						validOpts = {
 							endian: 'big',
 						};
 						validBuf = validBufferSeed;
+						done();
 					});
 
-					it('should equal BUFFER_SEED', () => {
+					it('should equal BUFFER_SEED', done => {
 						expect(bignumResult).to.eql(new bignum(validSeed));
+						done();
 					});
 				});
 			});
@@ -112,44 +124,51 @@ describe('BigNumber', () => {
 	});
 
 	describe('toBuffer', () => {
-		before(() => {
+		before(done => {
 			validSeed = '782910138827292261791972728324982';
 			validBufferSeed = Buffer.from('Jpm3GDWJ6Efns5p1Q3Y=', 'base64');
 			validBufferSeedSize2 = Buffer.from('mSYYt4k1R+iz53WadkM=', 'base64');
 			validBufferSeedMpint = Buffer.from('AAAADiaZtxg1iehH57OadUN2', 'base64');
+			done();
 		});
 
 		describe('when it throws an error', () => {
 			describe('when opts equal an unsupported string', () => {
-				before(() => {
+				before(done => {
 					validOpts = 'notmpint';
+					done();
 				});
 
-				beforeEach(() => {
+				beforeEach(done => {
 					bignumResult = new bignum(validSeed);
+					done();
 				});
 
-				it('should throw RangeError', () => {
+				it('should throw RangeError', done => {
 					expect(bignumResult.toBuffer(validOpts)).to.eq(
 						'Unsupported Buffer representation'
 					);
+					done();
 				});
 			});
 
 			describe('when Bignumber is negative', () => {
-				before(() => {
+				before(done => {
 					validOpts = {};
 					validSeed = '-782910138827292261791972728324982';
+					done();
 				});
 
-				beforeEach(() => {
+				beforeEach(done => {
 					bignumResult = new bignum(validSeed);
+					done();
 				});
 
-				it('should throw Error: "Converting negative numbers to Buffers not supported yet', () => {
+				it('should throw Error: "Converting negative numbers to Buffers not supported yet', done => {
 					expect(() => {
 						bignumResult.toBuffer(validOpts);
 					}).throws('Converting negative numbers to Buffers not supported yet');
+					done();
 				});
 			});
 		});
@@ -157,82 +176,98 @@ describe('BigNumber', () => {
 		describe('when it does not throw an error', () => {
 			var toBufferResult;
 
-			before(() => {
+			before(done => {
 				validSeed = '782910138827292261791972728324982';
+				done();
 			});
 
-			beforeEach(() => {
+			beforeEach(done => {
 				bignumResult = new bignum(validSeed);
 				toBufferResult = bignumResult.toBuffer(validOpts);
+				done();
 			});
 
 			describe('when passed no options', () => {
-				before(() => {
+				before(done => {
 					validOpts = null;
+					done();
 				});
 
-				it('should return validBufferSeed', () => {
+				it('should return validBufferSeed', done => {
 					expect(toBufferResult).to.eql(validBufferSeed);
+					done();
 				});
 			});
 
 			describe('when passed size 1 and big endian options', () => {
-				before(() => {
+				before(done => {
 					validOpts = { size: 1, endian: 'big' };
+					done();
 				});
 
-				it('should return validBufferSeed', () => {
+				it('should return validBufferSeed', done => {
 					expect(toBufferResult).to.eql(validBufferSeed);
+					done();
 				});
 			});
 
 			describe('when passed size 2 buffer and little endian', () => {
-				before(() => {
+				before(done => {
 					validOpts = { size: 2, endian: 'little' };
+					done();
 				});
 
-				it('should return validBufferSeedSize2', () => {
+				it('should return validBufferSeedSize2', done => {
 					expect(toBufferResult).to.eql(validBufferSeedSize2);
+					done();
 				});
 			});
 
 			describe('when passed only a size option', () => {
-				before(() => {
+				before(done => {
 					validOpts = { size: 1 };
+					done();
 				});
 
-				it('should return validBufferSeed', () => {
+				it('should return validBufferSeed', done => {
 					expect(toBufferResult).to.eql(validBufferSeed);
+					done();
 				});
 			});
 
 			describe('when passed only big endian option', () => {
-				before(() => {
+				before(done => {
 					validOpts = { endian: 'big' };
+					done();
 				});
 
-				it('should return validBufferSeed', () => {
+				it('should return validBufferSeed', done => {
 					expect(toBufferResult).to.eql(validBufferSeed);
+					done();
 				});
 			});
 
 			describe('when passed only little endian option', () => {
-				before(() => {
+				before(done => {
 					validOpts = { endian: 'little' };
+					done();
 				});
 
-				it('should return validBufferSeed', () => {
+				it('should return validBufferSeed', done => {
 					expect(toBufferResult).to.eql(validBufferSeed);
+					done();
 				});
 			});
 
 			describe('when passed a supported buffer option (mpint)', () => {
-				before(() => {
+				before(done => {
 					validOpts = 'mpint';
+					done();
 				});
 
-				it('should return validBufferSeedMpint', () => {
+				it('should return validBufferSeedMpint', done => {
 					expect(toBufferResult).to.eql(validBufferSeedMpint);
+					done();
 				});
 			});
 		});

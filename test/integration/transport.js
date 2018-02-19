@@ -22,7 +22,7 @@ var scenarios = require('./scenarios');
 describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases', () => {
 	var configurations;
 
-	before(() => {
+	before(done => {
 		utils.http.setVersion('1.0.0');
 		configurations = _.range(10).map(index => {
 			var devConfigCopy = _.cloneDeep(devConfig);
@@ -31,11 +31,12 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 			devConfigCopy.httpPort = 4000 + index;
 			return devConfigCopy;
 		});
+		done();
 	});
 
 	describe('when every peers contains the others on the peers list', () => {
 		before(() => {
-			configurations.forEach(configuration => {
+			return configurations.forEach(configuration => {
 				configuration.peers.list = setup.sync.generatePeers(
 					configurations,
 					setup.sync.SYNC_MODES.ALL_TO_GROUP,
@@ -53,7 +54,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 				);
 				var secrets = _.clone(devConfig.forging.secret);
 
-				configurations.forEach((configuration, index) => {
+				return configurations.forEach((configuration, index) => {
 					configuration.forging.force = false;
 					configuration.forging.secret = secrets.slice(
 						index * secretsMaxLength,
@@ -67,11 +68,12 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					setup.setupNetwork(configurations, done);
 				});
 
-				afterEach(function() {
+				afterEach(function(done) {
 					if (this.currentTest.state === 'failed') {
 						console.warn(`Test failed: ${this.currentTest.title}`);
 						testFailedError = this.currentTest.err;
 					}
+					done();
 				});
 
 				after(done => {

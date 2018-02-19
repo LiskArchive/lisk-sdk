@@ -29,14 +29,22 @@ var __private = {};
 __private.unconfirmedSignatures = {};
 
 /**
- * Initializes library.
- * @memberof module:multisignatures
+ * Main multisignature logic. Initializes library.
+ *
  * @class
- * @classdesc Main multisignature logic.
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires async
+ * @requires bytebuffer
+ * @requires helpers/constants
+ * @requires helpers/diff
+ * @requires helpers/exceptions
+ * @requires helpers/slots
  * @param {ZSchema} schema
  * @param {Object} network
  * @param {Transaction} transaction
  * @param {Object} logger
+ * @todo Add description for the params
  */
 // Constructor
 function Multisignature(schema, network, transaction, account, logger) {
@@ -53,8 +61,10 @@ function Multisignature(schema, network, transaction, account, logger) {
 
 // Public methods
 /**
- * Binds input parameters to private variable modules
+ * Binds input parameters to private variable modules.
+ *
  * @param {Accounts} accounts
+ * @todo Add description for the params
  */
 Multisignature.prototype.bind = function(accounts) {
 	modules = {
@@ -64,9 +74,11 @@ Multisignature.prototype.bind = function(accounts) {
 
 /**
  * Obtains constant fee multisignature and multiply by quantity of signatures.
- * @see {@link module:helpers~constants}
+ *
+ * @see {@link module:helpers/constants}
  * @param {transaction} transaction
- * @returns {number} Quantity of multisignature keysgroup * multisignature fees.
+ * @returns {number} Quantity of multisignature keysgroup * multisignature fees
+ * @todo Add description for the params
  */
 Multisignature.prototype.calculateFee = function(transaction) {
 	return (
@@ -77,12 +89,12 @@ Multisignature.prototype.calculateFee = function(transaction) {
 
 /**
  * Verifies multisignature fields from transaction asset and sender.
- * @implements module:transactions#Transaction~verifySignature
+ *
  * @param {transaction} transaction
  * @param {account} sender
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|transaction} returns error string if invalid parameter |
- * transaction validated.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error, transaction
+ * @todo Add description for the params
  */
 Multisignature.prototype.verify = function(transaction, sender, cb) {
 	if (!transaction.asset || !transaction.asset.multisignature) {
@@ -275,11 +287,13 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 
 /**
  * Returns transaction with setImmediate.
+ *
  * @param {transaction} transaction
  * @param {account} sender
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} Null error
- * @todo check extra parameter sender.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} null
+ * @todo Check extra parameter sender
+ * @todo Add description for the params
  */
 Multisignature.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
@@ -287,10 +301,11 @@ Multisignature.prototype.process = function(transaction, sender, cb) {
 
 /**
  * Returns a buffer with bytes from transaction asset information.
+ *
  * @requires bytebuffer
  * @see {@link https://github.com/dcodeIO/bytebuffer.js/wiki/API}
- * @param {transaction} transaction - Uses multisignature from asset.
- * @returns {!Array} Contents as an ArrayBuffer.
+ * @param {transaction} transaction - Uses multisignature from asset
+ * @returns {!Array} Contents as an ArrayBuffer
  */
 Multisignature.prototype.getBytes = function(transaction) {
 	var keysgroupBuffer = Buffer.from(
@@ -312,12 +327,13 @@ Multisignature.prototype.getBytes = function(transaction) {
 /**
  * Merges transaction data into mem_accounts table.
  * Checks public keys from multisignature and creates accounts.
- * @implements module:accounts#Accounts~setAccountAndGet
- * @param {transaction} transaction - Uses multisignature from asset.
+ *
+ * @param {transaction} transaction - Uses multisignature from asset
  * @param {block} block
  * @param {account} sender
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} for errors
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
 	__private.unconfirmedSignatures[sender.address] = false;
@@ -363,11 +379,13 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
 /**
  * Inverts multisignature signs and merges into sender address.
  * Stores sender address into private unconfirmedSignatures.
- * @param {transaction} transaction - Uses multisignature from asset.
+ *
+ * @param {transaction} transaction - Uses multisignature from asset
  * @param {block} block
  * @param {account} sender
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} For error.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 Multisignature.prototype.undo = function(transaction, block, sender, cb) {
 	var multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
@@ -390,10 +408,12 @@ Multisignature.prototype.undo = function(transaction, block, sender, cb) {
 /**
  * Stores sender address into private unconfirmedSignatures.
  * Merges into sender address transaction asset to unconfirmed fields.
- * @param {transaction} transaction - Uses multisignature from asset.
+ *
+ * @param {transaction} transaction - Uses multisignature from asset
  * @param {account} sender
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} For error.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 Multisignature.prototype.applyUnconfirmed = function(
 	transaction,
@@ -427,10 +447,11 @@ Multisignature.prototype.applyUnconfirmed = function(
  * Inverts multisignature signs and merges into sender address
  * to unconfirmed fields.
  *
- * @param {transaction} transaction - Uses multisignature from asset.
+ * @param {transaction} transaction - Uses multisignature from asset
  * @param {account} sender
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} For error.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
 Multisignature.prototype.undoUnconfirmed = function(
 	transaction,
@@ -485,9 +506,10 @@ Multisignature.prototype.schema = {
 
 /**
  * Validates multisignature schema.
- * @param {transaction} transaction - Uses multisignature from asset.
- * @return {transaction} Transaction validated.
- * @throws {string} Error message.
+ *
+ * @param {transaction} transaction - Uses multisignature from asset
+ * @throws {string}
+ * @returns {transaction} Validated transaction
  */
 Multisignature.prototype.objectNormalize = function(transaction) {
 	var report = library.schema.validate(
@@ -507,9 +529,10 @@ Multisignature.prototype.objectNormalize = function(transaction) {
 
 /**
  * Creates multisignature object based on raw data.
- * @param {Object} raw - Data from database.
- * @return {multisignature} multisignature Object.
- * @todo check if this function is called.
+ *
+ * @param {Object} raw - Data from database
+ * @returns {multisignature} Multisignature object
+ * @todo Check if this function is called
  */
 Multisignature.prototype.dbRead = function(raw) {
 	if (!raw.m_keysgroup) {
@@ -531,9 +554,11 @@ Multisignature.prototype.dbRead = function(raw) {
 
 /**
  * Emits a 'multisignatures/change' socket signal with transaction info.
+ *
  * @param {transaction} transaction
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the params
  */
 Multisignature.prototype.afterSave = function(transaction, cb) {
 	library.network.io.sockets.emit('multisignatures/change', transaction);
@@ -542,9 +567,11 @@ Multisignature.prototype.afterSave = function(transaction, cb) {
 
 /**
  * Evaluates transaction signatures and sender multisignatures.
- * @param {transaction} transaction - signatures.
+ *
+ * @param {transaction} transaction - Signatures
  * @param {account} sender
- * @return {boolean} logic based on transaction signatures and sender multisignatures.
+ * @returns {boolean} true - If transaction is deemed ready
+ * @todo Add description for the params
  */
 Multisignature.prototype.ready = function(transaction, sender) {
 	if (!Array.isArray(transaction.signatures)) {

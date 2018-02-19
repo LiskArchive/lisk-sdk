@@ -25,9 +25,12 @@ exports.Field = Field;
 
 /**
  * Create validator. Options could have properties `forceAsync`, `skipMissed` and `rules`.
- * @memberof module:helpers
+ *
+ * @class
+ * @memberof helpers.validator
  * @param {Object} options
- * @constructor
+ * @see Parent: {@link helpers.validator}
+ * @todo Add description for the params
  */
 function Validator(options) {
 	options = options || {};
@@ -51,32 +54,38 @@ function Validator(options) {
 
 /**
  * Make validation async even if no async rules are used.
+ *
  * @type {boolean}
  */
 Validator.prototype.forceAsync = false;
 
 /**
- * Don't throw error if rule is missed
+ * Don't throw error if rule is missed.
+ *
  * @type {boolean}
  */
 Validator.prototype.skipMissed = false;
 
 /**
- * If rule value is function run it to get value
+ * If rule value is function run it to get value.
+ *
  * @type {boolean}
  */
 Validator.prototype.execRules = true;
 
 /**
  * Issue reporter. Convert issues.
+ *
  * @type {Reporter}
  */
 Validator.prototype.reporter = null;
 
 /**
  * Check whether rule exists.
+ *
  * @param {string} name
  * @returns {boolean}
+ * @todo Add description for the params and the return value
  */
 Validator.prototype.hasRule = function(name) {
 	return name in this.rules;
@@ -84,8 +93,10 @@ Validator.prototype.hasRule = function(name) {
 
 /**
  * Get rule descriptor.
+ *
  * @param {string} name
  * @returns {*}
+ * @todo Add description for the params and the return value
  */
 Validator.prototype.getRule = function(name) {
 	if (name in this.rules === false) {
@@ -95,14 +106,16 @@ Validator.prototype.getRule = function(name) {
 };
 
 /**
- * Validate values with specified rules set
+ * Validate values with specified rules set.
+ *
  * @param {*} value
- * @param {Object} rules Set of rules
- * @param {function} callback Result callback (err:Error,report:Array,output:*)=
- * @returns {Object} report
- * @throws {err} If finish err parameter is true
- * @throws {Error} If callback, async and finished are not valids
- * @todo debug this function and adjust callback function parameter
+ * @param {Object} rules - Set of rules
+ * @param {function} callback - Result callback (err:Error,report:Array,output:*)=
+ * @returns {Object} Report object
+ * @throws {err} If validation not finished
+ * @throws {Error} If callback, async and finished are not valid
+ * @todo Debug this function and adjust callback function parameter
+ * @todo Add description for the first param
  */
 Validator.prototype.validate = function(value, rules, callback) {
 	var self = this;
@@ -161,25 +174,29 @@ Validator.prototype.validate = function(value, rules, callback) {
 };
 
 /**
- * Validator field constructor
+ * Validator field constructor.
+ *
  * @type {Field}
  */
 Validator.prototype.Field = Field;
 
 /**
- * Create field instance
- * @param {string|string[]} path Field path
- * @param {*} value Validated value
- * @param {Object} rules Rule set
- * @param {*=} thisArg This reference for Validation methods. Optional
+ * Create field instance.
+ *
+ * @param {string|string[]} path - Field path
+ * @param {*} value - Validated value
+ * @param {Object} rules - Rule set
+ * @param {*=} thisArg - This reference for Validation methods. Optional
  * @returns {Validator.Field}
+ * @todo Add description for the returns value
  */
 Validator.prototype.createField = function(path, value, rules, thisArg) {
 	return new this.Field(this, path, value, rules, thisArg);
 };
 
 /**
- * Set of validator rule descriptors
+ * Set of validator rule descriptors.
+ *
  * @type {{}}
  */
 Validator.prototype.rules = {};
@@ -195,8 +212,10 @@ Validator.prototype.onEnd = function() {};
 
 /**
  * Add validation rule descriptor to validator rule set.
- * @param {string} name Validator name
- * @param {{validate:function,filter:function}} descriptor Validator descriptor object
+ *
+ * @param {string} name - Validator name
+ * @param {Object} descriptor - Validator descriptor object
+ * @todo Add @throws tag
  */
 Validator.addRule = function(name, descriptor) {
 	if (typeof descriptor !== 'object') {
@@ -215,9 +234,12 @@ Validator.addRule = function(name, descriptor) {
 };
 
 /**
- * Add rule alias
+ * Add rule alias.
+ *
  * @param {string} name
  * @param {string} origin
+ * @todo Add @returns tag
+ * @todo Add description for the params
  */
 Validator.addAlias = function(name, origin) {
 	Object.defineProperty(this.prototype.rules, name, {
@@ -228,9 +250,11 @@ Validator.addAlias = function(name, origin) {
 };
 
 /**
- * Add extra property to Field. It could be
+ * Add extra property to Field.
+ *
  * @param name
  * @param value
+ * @todo Add description for the params
  */
 Validator.fieldProperty = function(name, value) {
 	this.prototype.Field.prototype[name] = value;
@@ -238,6 +262,7 @@ Validator.fieldProperty = function(name, value) {
 
 /**
  * Validator instance options for fast initialization in method validate.
+ *
  * @type {{forceAsync: boolean, skipMissed: boolean}}
  */
 Validator.options = {
@@ -248,12 +273,13 @@ Validator.options = {
 };
 
 /**
- * Validate with fast initialization. Use `options` property for constructor instance;
- * @param {*} value Validated value
- * @param {Object} rules Set of rules
- * @param {Object} customRules Customized rule set. Optional
- * @param {function} callback assign customRules if it is a function
- * @returns {instance} instance
+ * Validate with fast initialization. Use `options` property for constructor instance.
+ *
+ * @param {*} value - Validated value
+ * @param {Object} rules - Set of rules
+ * @param {Object} customRules - Customized rule set. Optional
+ * @param {function} callback - Assign customRules if it is a function
+ * @returns {instance}
  */
 Validator.validate = function(value, rules, customRules, callback) {
 	if (typeof customRules === 'function') {

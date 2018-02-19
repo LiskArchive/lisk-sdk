@@ -20,6 +20,7 @@ var coMocha = require('co-mocha');
 var chai = require('chai');
 var sinon = require('sinon');
 var sinonChai = require('sinon-chai');
+var chaiAsPromised = require('chai-as-promised');
 var supertest = require('supertest');
 var _ = require('lodash');
 
@@ -28,6 +29,7 @@ coMocha(mocha);
 process.env.NODE_ENV = 'test';
 
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 var testContext = {};
 
@@ -40,6 +42,22 @@ if (process.env.SILENT === 'true') {
 } else {
 	testContext.debug = console.info;
 }
+
+if (process.env.LOG_DB_EVENTS === 'true') {
+	testContext.config.db.logEvents = [
+		'connect',
+		'disconnect',
+		'query',
+		'task',
+		'transact',
+		'error',
+	];
+} else {
+	testContext.config.db.logEvents = ['error'];
+}
+
+testContext.consoleLogLevel =
+	process.env.LOG_LEVEL || testContext.consoleLogLevel;
 
 testContext.baseUrl = `http://${testContext.config.address}:${
 	testContext.config.httpPort

@@ -23,21 +23,23 @@ describe('Rules', () => {
 	var removeMock = sinonSandbox.spy();
 	var blockMock = sinonSandbox.spy();
 
-	beforeEach(() => {
+	beforeEach(done => {
 		rules = new Rules(insertMock, removeMock, blockMock);
 		insertMock.reset();
 		removeMock.reset();
 		blockMock.reset();
+		done();
 	});
 
 	describe('constructor', () => {
-		it('should construct set of rules', () => {
+		it('should construct set of rules', done => {
 			expect(rules).to.have.property('rules').not.to.be.empty;
+			done();
 		});
 	});
 
 	describe('rules', () => {
-		it('should have entries for every configuration', () => {
+		it('should have entries for every configuration', done => {
 			expect(rules.rules)
 				.to.have.nested.property('0.true.true.true')
 				.to.be.a('function');
@@ -87,44 +89,51 @@ describe('Rules', () => {
 			expect(rules.rules)
 				.to.have.nested.property('1.false.false.false')
 				.to.be.a('function');
+			done();
 		});
 
 		describe('error codes', () => {
 			var updateType;
 
 			describe('insert', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					updateType = Rules.UPDATES.INSERT;
+					done();
 				});
 
-				it('should return ALREADY_ADDED code when present on master, nonce is present, and present connection id', () => {
+				it('should return ALREADY_ADDED code when present on master, nonce is present, and present connection id', done => {
 					rules.rules[updateType].true.true.true();
 					expect(blockMock.calledWithExactly(failureCodes.ALREADY_ADDED)).to.be
 						.true;
+					done();
 				});
 
-				it('should return DIFFERENT_CONN_ID code when present on master, nonce is not present, and present connection id', () => {
+				it('should return DIFFERENT_CONN_ID code when present on master, nonce is not present, and present connection id', done => {
 					rules.rules[updateType].true.false.true();
 					expect(blockMock.calledWithExactly(failureCodes.DIFFERENT_CONN_ID)).to
 						.be.true;
+					done();
 				});
 			});
 
 			describe('remove', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					updateType = Rules.UPDATES.REMOVE;
+					done();
 				});
 
-				it('should return ALREADY_ADDED code when not present on master, nonce is not present, and not present connection id', () => {
+				it('should return ALREADY_ADDED code when not present on master, nonce is not present, and not present connection id', done => {
 					rules.rules[updateType].false.false.false();
 					expect(blockMock.calledWithExactly(failureCodes.ALREADY_REMOVED)).to
 						.be.true;
+					done();
 				});
 
-				it('should return DIFFERENT_CONN_ID code when present on master, nonce is not present, and present connection id', () => {
+				it('should return DIFFERENT_CONN_ID code when present on master, nonce is not present, and present connection id', done => {
 					rules.rules[updateType].true.false.true();
 					expect(blockMock.calledWithExactly(failureCodes.DIFFERENT_CONN_ID)).to
 						.be.true;
+					done();
 				});
 			});
 		});

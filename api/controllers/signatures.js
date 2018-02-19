@@ -27,7 +27,7 @@ var modules;
  * @requires lodash
  * @requires helpers/apiError
  * @param {Object} scope - App instance
- * @todo: Add description of SignaturesController
+ * @todo Add description of SignaturesController
  */
 function SignaturesController(scope) {
 	modules = scope.modules;
@@ -36,9 +36,9 @@ function SignaturesController(scope) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
  */
 SignaturesController.postSignatures = function(context, next) {
 	var signatures = context.request.swagger.params.signatures.value;
