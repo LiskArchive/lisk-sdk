@@ -186,6 +186,44 @@ describe('account', () => {
 		});
 	});
 
+	describe('getMultiSignature', () => {
+		it('should return account for a given address with requested fields', done => {
+			const filter = { address: validAccount.address };
+			const requestedFields = [
+				'username',
+				'isDelegate',
+				'address',
+				'publicKey',
+			];
+			account.get(filter, requestedFields, (err, res) => {
+				expect(err).to.not.exist;
+				expect(res).to.be.an('object');
+				expect(Object.keys(res).sort()).to.eql(requestedFields.sort());
+				done();
+			});
+		});
+
+		it('should return account for a given address with all the fields', done => {
+			const filter = { address: validAccount.address };
+			account.get(filter, (err, res) => {
+				expect(err).to.not.exist;
+				expect(res).to.be.an('object');
+				expect(Object.keys(res).sort()).to.eql(
+					Object.keys(validAccount).sort()
+				);
+				done();
+			});
+		});
+
+		it('should return null for an invalid account address', done => {
+			account.get({ address: 'this adress does not exist' }, (err, res) => {
+				expect(err).to.not.exist;
+				expect(res).to.equal(null);
+				done();
+			});
+		});
+	});
+
 	describe('get', () => {
 		it('should only fetch requested fields for account', done => {
 			var requestedFields = ['username', 'isDelegate', 'address', 'publicKey'];
