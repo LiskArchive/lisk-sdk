@@ -16,7 +16,6 @@
 'use strict';
 
 var rewire = require('rewire');
-var modulesLoader = require('../../../common/modules_loader');
 
 var BlocksChain = rewire('../../../../modules/blocks/chain.js');
 
@@ -30,6 +29,8 @@ describe('blocks/chain', () => {
 	var blockStub;
 	var transactionStub;
 	var busStub;
+	var balancesSequenceStub;
+	var genesisblockStub;
 	var modulesStub;
 
 	beforeEach(() => {
@@ -57,14 +58,25 @@ describe('blocks/chain', () => {
 		transactionStub = {
 			afterSave: sinonSandbox.stub().callsArgWith(1, null, true),
 		};
+		balancesSequenceStub = {
+			add: (cb, cbp) => {
+				cb(cbp);
+			},
+		};
+		genesisblockStub = {
+			block: {
+				id: '6524861224470851795',
+				height: 1,
+			},
+		};
 		blocksChainModule = new BlocksChain(
 			loggerStub,
 			blockStub,
 			transactionStub,
 			dbStub,
-			modulesLoader.scope.genesisblock,
+			genesisblockStub,
 			busStub,
-			modulesLoader.scope.balancesSequence
+			balancesSequenceStub
 		);
 
 		library = BlocksChain.__get__('library');
@@ -73,6 +85,7 @@ describe('blocks/chain', () => {
 
 		var modulesAccountsStub = {
 			getAccount: sinonSandbox.stub(),
+			setAccountAndGet: sinonSandbox.stub(),
 		};
 		var modulesBlocksStub = {
 			lastBlock: {
@@ -82,9 +95,13 @@ describe('blocks/chain', () => {
 			utils: {
 				loadBlocksPart: sinonSandbox.stub(),
 			},
+			isActive: {
+				set: sinonSandbox.stub(),
+			},
 		};
 		var modulesRoundsStub = {
 			backwardTick: sinonSandbox.stub(),
+			tick: sinonSandbox.stub(),
 		};
 		var modulesTransactionsStub = {
 			applyUnconfirmed: sinonSandbox.stub(),
@@ -92,6 +109,8 @@ describe('blocks/chain', () => {
 			receiveTransactions: sinonSandbox.stub(),
 			undo: sinonSandbox.stub(),
 			undoUnconfirmed: sinonSandbox.stub(),
+			undoUnconfirmedList: sinonSandbox.stub(),
+			removeUnconfirmedTransaction: sinonSandbox.stub(),
 		};
 		modulesStub = {
 			accounts: modulesAccountsStub,
@@ -111,11 +130,9 @@ describe('blocks/chain', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.db).to.eql(dbStub);
-			expect(library.genesisblock).to.eql(modulesLoader.scope.genesisblock);
+			expect(library.genesisblock).to.eql(genesisblockStub);
 			expect(library.bus).to.eql(busStub);
-			expect(library.balancesSequence).to.eql(
-				modulesLoader.scope.balancesSequence
-			);
+			expect(library.balancesSequence).to.eql(balancesSequenceStub);
 			expect(library.logic.block).to.eql(blockStub);
 			expect(library.logic.transaction).to.eql(transactionStub);
 		});
@@ -590,6 +607,39 @@ describe('blocks/chain', () => {
 	});
 
 	describe('applyBlock', () => {
+		describe('modules.transactions.undoUnconfirmedList', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					modules.transactions.undoUnconfirmedList.callsArgWith(0, 'undoUnconfirmedList-ERR', null);
+					library.db.tx.callsArgWith(1, null, true).rejects('undoUnconfirmedList-ERR');
+				});
+				it('should reject with error', done => {
+					blocksChainModule.applyBlock({ id: 5, height: 5 }, true, err => {
+						expect(err.name).to.equal('undoUnconfirmedList-ERR');
+						done();
+					});
+				});
+			});
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					modules.transactions.undoUnconfirmedList.callsArgWith(0, null, true);
+					modules.accounts.setAccountAndGet.callsArgWith(1, null, true);
+					modules.transactions.applyUnconfirmed.callsArgWith(0, 'applyUnconfirmed-ERR', null);
+				});
+				describe('modules.transactions.applyUnconfirmed', () => {
+					describe('when fails', () => {
+						it('should reject with error', done => {
+							blocksChainModule.applyBlock({ id: 5, height: 5 }, true, err => {
+								expect(err.name).to.equal('undoUnconfirmedList-ERR');
+								done();
+							});
+						});
+					});
+					describe('when succeeds', () => {
+					});
+				});
+			});
+		});
 		it('should apply a valid block successfully');
 
 		it('should call modules.blocks.isActive');
@@ -769,7 +819,7 @@ describe('blocks/chain', () => {
 					beforeEach(() => {
 						modules.blocks.utils.loadBlocksPart.callsArgWith(1, null, []);
 					});
-	
+
 					it('should call callback with error "previousBlock is null"', done => {
 						__private.popLastBlock({ id: 3, height: 3 }, err => {
 							expect(err).to.equal('previousBlock is null');
@@ -785,21 +835,20 @@ describe('blocks/chain', () => {
 				});
 
 				describe('modules.accounts.getAccount', () => {
-					describe.skip('when fails', () => {
+					describe('when fails', () => {
 						beforeEach(() => {
 							modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null);
-							process.exit = sinonSandbox.stub().returns(0);
 						});
+
 						afterEach(() => {
-							expect(process.exit.calledOnce).to.be.true;
 							expect(loggerStub.error.args[0][0]).to.equal('Failed to undo transactions');
 							expect(loggerStub.error.args[0][1]).to.equal('getAccount-ERR');
 						});
-						it('should return process.exit(0)', done => {
+
+						it('should call process.exit(0)', done => {
+							process.exit = done;
 							__private.popLastBlock({ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] }, () => {
-								done();
 							});
-							expect(process.exit.calledOnce).to.be.true;
 						});
 					});
 
@@ -811,23 +860,54 @@ describe('blocks/chain', () => {
 						});
 						describe('modules.rounds.backwardTick', () => {
 							describe('when fails', () => {
+								beforeEach(() => {
+									modules.rounds.backwardTick.callsArgWith(2, 'backwardTick-ERR', null);
+								});
+
+								afterEach(() => {
+									expect(loggerStub.error.args[0][0]).to.equal('Failed to perform backwards tick');
+									expect(loggerStub.error.args[0][1]).to.equal('backwardTick-ERR');
+								});
+
+								it('should call process.exit(0)', done => {
+									process.exit = done;
+									__private.popLastBlock({ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] }, () => {
+									});
+								});
 							});
 							describe('when succeeds', () => {
 								var deleteBlockTemp;
 								beforeEach(() => {
 									modules.rounds.backwardTick.callsArgWith(2, null, true);
 									deleteBlockTemp = blocksChainModule.deleteBlock;
+									blocksChainModule.deleteBlock = sinonSandbox.stub();
 								});
+
 								afterEach(() => {
 									blocksChainModule.deleteBlock = deleteBlockTemp;
 								});
+
 								describe('self.deleteBlock', () => {
 									describe('when fails', () => {
+										beforeEach(() => {
+											blocksChainModule.deleteBlock.callsArgWith(1, 'deleteBlock-ERR', null);
+										});
+
+										afterEach(() => {
+											expect(loggerStub.error.args[0][0]).to.equal('Failed to delete block');
+											expect(loggerStub.error.args[0][1]).to.equal('deleteBlock-ERR');
+										});
+
+										it('should call process.exit(0)', done => {
+											process.exit = done;
+											__private.popLastBlock({ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] }, () => {
+											});
+										});
 									});
 
 									describe('when succeeds', () => {
 										beforeEach(() => {
-											blocksChainModule.deleteBlock = sinonSandbox.stub().callsArgWith(1, null, true);
+											blocksChainModule.deleteBlock.callsArgWith(1, null, true);
 										});
 
 										it('should return previousBlock and no error', done => {
