@@ -99,7 +99,7 @@ __private.processPostResult = function(err, res, cb) {
 		response = { status: 'Signature Accepted' };
 	} else if (processingError.test(res.message)) {
 		error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
-	} else if (badRequestBodyError.test('Invalid signature body')) {
+	} else if (badRequestBodyError.test(res.message)) {
 		error = new ApiError(res.message, apiCodes.BAD_REQUEST);
 	} else {
 		error = new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR);
