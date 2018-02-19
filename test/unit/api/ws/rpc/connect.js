@@ -410,8 +410,8 @@ describe('connect', () => {
 				peerAsResult = registerSocketListeners(validPeer);
 			});
 
-			it('should call peer.socket.on with "connectionAbort"', () => {
-				expect(peerAsResult.socket.on).to.be.calledWith('connectionAbort');
+			it('should call peer.socket.on with "connectAbort"', () => {
+				expect(peerAsResult.socket.on).to.be.calledWith('connectAbort');
 			});
 
 			it('should call peer.socket.on with "error"', () => {
