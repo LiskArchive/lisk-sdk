@@ -16,6 +16,7 @@
 
 require('../../functional.js');
 var swaggerSpec = require('../../../common/swagger_spec');
+var randomUtil = require('../../../common/utils/random');
 
 describe('POST /api/transactions (general)', () => {
 	var transactionsEndpoint = new swaggerSpec('POST /transactions');
@@ -26,6 +27,20 @@ describe('POST /api/transactions (general)', () => {
 			.then(res => {
 				expect(res.body.message).to.eql('Parse errors');
 				expect(res.body.errors[0].code).to.be.equal('INVALID_REQUEST_PAYLOAD');
+			});
+	});
+
+	it('should fail on more than one transactions at a time', () => {
+		return transactionsEndpoint
+			.makeRequest(
+				{ transactions: [randomUtil.transaction(), randomUtil.transaction()] },
+				400
+			)
+			.then(res => {
+				expect(res.body.message).to.eql('Validation errors');
+				expect(res.body.errors[0].code).to.be.equal(
+					'INVALID_REQUEST_PARAMETER'
+				);
 			});
 	});
 });
