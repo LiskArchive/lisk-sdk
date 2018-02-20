@@ -15,36 +15,34 @@
 'use strict';
 
 require('../../functional.js');
-var async = require('async');
-var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-var scClient = require('socketcluster-client');
-var prefixedPeer = require('../../../fixtures/peers').randomNormalizedPeer;
-var Rules = require('../../../../api/ws/workers/rules');
-var wsServer = require('../../../common/ws/server');
-var WSServerMaster = require('../../../common/ws/server_master');
+const async = require('async');
+const WAMPServer = require('wamp-socket-cluster/WAMPServer');
+const prefixedPeer = require('../../../fixtures/peers').randomNormalizedPeer;
+const Rules = require('../../../../api/ws/workers/rules');
+const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
+const WsTestClient = require('../../../common/ws/client');
 
 describe('RPC', () => {
-	var clientSocket;
-	var validClientSocketOptions;
-	var wampClient = new WAMPClient();
-	var frozenHeaders = WSServerMaster.generatePeerHeaders({
-		wsPort: wsServer.options.port,
-		nonce: wsServer.validNonce,
-	});
+	let connectedPeer;
 
 	before(done => {
-		validClientSocketOptions = {
-			protocol: 'http',
-			hostname: '127.0.0.1',
-			port: __testContext.config.wsPort,
-			query: _.clone(frozenHeaders),
+		// Setup stub for tested endpoints
+		const RPCEndpoints = {
+			updatePeer: () => {},
+			height: () => {},
+			status: () => {},
+			list: () => {},
+			blocks: () => {},
 		};
-		clientSocket = scClient.connect(validClientSocketOptions);
-		wampClient.upgradeToWAMP(clientSocket);
-		clientSocket.on('connectAbort', done);
-		clientSocket.on('connect', done.bind(null, null));
-		clientSocket.on('disconnect', done);
-		clientSocket.on('error', done);
+		const wampServer = new WAMPServer();
+		wampServer.registerRPCEndpoints(RPCEndpoints);
+		wsRPC.setServer(wampServer);
+
+		// Register client
+		const wsTestClient = new WsTestClient();
+		wsTestClient.start();
+		connectedPeer = wsTestClient.client;
+		done();
 	});
 
 	describe('internal', () => {
@@ -62,71 +60,44 @@ describe('RPC', () => {
 
 			describe('schema', () => {
 				it('should reject empty request', done => {
-					clientSocket
-						.wampSend('updatePeer', undefined)
-						.then(() => {
-							done('should not be here');
-						})
-						.catch(err => {
-							expect(err).to.equal(
-								'Expected type object but found type undefined'
-							);
-							done();
-						});
+					connectedPeer.rpc.updatePeer(undefined, err => {
+						expect(err).to.equal('Missing required property: updateType');
+						done();
+					});
 				});
 
 				it('should reject requests without peer field defined', done => {
 					delete validAcceptRequest.peer;
-					clientSocket
-						.wampSend('updatePeer', validAcceptRequest)
-						.then(() => {
-							done('should not be here');
-						})
-						.catch(err => {
-							expect(err).to.equal('Missing required property: peer');
-							done();
-						});
+					connectedPeer.rpc.updatePeer(validAcceptRequest, err => {
+						expect(err).to.equal('Missing required property: peer');
+						done();
+					});
 				});
 
 				it('should reject requests without authKey field defined', done => {
 					delete validAcceptRequest.authKey;
-					clientSocket
-						.wampSend('updatePeer', validAcceptRequest)
-						.then(() => {
-							done('should not be here');
-						})
-						.catch(err => {
-							expect(err).to.equal('Missing required property: authKey');
-							done();
-						});
+					connectedPeer.rpc.updatePeer(validAcceptRequest, err => {
+						expect(err).to.equal('Missing required property: authKey');
+						done();
+					});
 				});
 
 				it('should reject requests with incorrect authKey', done => {
 					validAcceptRequest.authKey = 'incorrect authKey';
-					clientSocket
-						.wampSend('updatePeer', validAcceptRequest)
-						.then(() => {
-							done('should not be here');
-						})
-						.catch(err => {
-							expect(err).to.equal(
-								'Unable to access internal function - Incorrect authKey'
-							);
-							done();
-						});
+					connectedPeer.rpc.updatePeer(validAcceptRequest, err => {
+						expect(err).to.equal(
+							'Unable to access internal function - Incorrect authKey'
+						);
+						done();
+					});
 				});
 
 				it('should reject requests without updateType', done => {
 					delete validAcceptRequest.updateType;
-					clientSocket
-						.wampSend('updatePeer', validAcceptRequest)
-						.then(() => {
-							done('should not be here');
-						})
-						.catch(err => {
-							expect(err).to.equal('Missing required property: updateType');
-							done();
-						});
+					connectedPeer.rpc.updatePeer(validAcceptRequest, err => {
+						expect(err).to.equal('Missing required property: updateType');
+						done();
+					});
 				});
 
 				it('should reject requests when updateType is not a number', done => {
@@ -135,17 +106,11 @@ describe('RPC', () => {
 						nonNumbers,
 						(nonNumber, index, eachCb) => {
 							validAcceptRequest.updateType = nonNumber;
-							clientSocket
-								.wampSend('updatePeer', validAcceptRequest)
-								.then(() => {
-									eachCb('should not be here');
-								})
-								.catch(err => {
-									expect(err).to.contain(
-										'Expected type integer but found type'
-									);
-									eachCb();
-								});
+
+							connectedPeer.rpc.updatePeer(validAcceptRequest, err => {
+								expect(err).to.contain('Expected type integer but found type');
+								eachCb();
+							});
 						},
 						done
 					);
@@ -153,19 +118,12 @@ describe('RPC', () => {
 
 				it('should reject requests when updateType is greater than 1', done => {
 					validAcceptRequest.updateType = 2;
-					clientSocket
-						.wampSend('updatePeer', validAcceptRequest)
-						.then(() => {
-							done('should not be here');
-						})
-						.catch(err => {
-							expect(err).to.contain(
-								`Value ${
-									validAcceptRequest.updateType
-								} is greater than maximum 1`
-							);
-							done();
-						});
+					connectedPeer.rpc.updatePeer(validAcceptRequest, err => {
+						expect(err).to.contain(
+							`Value ${validAcceptRequest.updateType} is greater than maximum 1`
+						);
+						done();
+					});
 				});
 			});
 		});
@@ -173,107 +131,82 @@ describe('RPC', () => {
 
 	describe('height', () => {
 		it('should return height', done => {
-			clientSocket
-				.wampSend('height')
-				.then(result => {
-					expect(result).to.have.property('success').to.be.ok;
-					expect(result)
-						.to.have.property('height')
-						.that.is.a('number')
-						.at.least(1);
-					done();
-				})
-				.catch(err => {
-					done(err);
-				});
+			connectedPeer.rpc.height('height', (err, result) => {
+				expect(result).to.have.property('success').to.be.ok;
+				expect(result)
+					.to.have.property('height')
+					.that.is.a('number')
+					.at.least(1);
+				done();
+			});
 		});
 	});
 
 	describe('status', () => {
 		it('should return height, broadhash, nonce, os, version and httpPort', done => {
-			clientSocket
-				.wampSend('status')
-				.then(result => {
-					expect(result).to.have.property('success').to.be.ok;
-					expect(result)
-						.to.have.property('broadhash')
-						.that.is.a('string');
-					expect(result)
-						.to.have.property('nonce')
-						.that.is.a('string');
-					expect(result)
-						.to.have.property('os')
-						.that.is.a('string');
-					expect(result)
-						.to.have.property('version')
-						.that.is.a('string');
-					expect(result)
-						.to.have.property('httpPort')
-						.that.is.a('number');
-					expect(result)
-						.to.have.property('height')
-						.that.is.a('number')
-						.at.least(1);
-					done();
-				})
-				.catch(err => {
-					done(err);
-				});
+			connectedPeer.rpc.status((err, result) => {
+				expect(result).to.have.property('success').to.be.ok;
+				expect(result)
+					.to.have.property('broadhash')
+					.that.is.a('string');
+				expect(result)
+					.to.have.property('nonce')
+					.that.is.a('string');
+				expect(result)
+					.to.have.property('os')
+					.that.is.a('string');
+				expect(result)
+					.to.have.property('version')
+					.that.is.a('string');
+				expect(result)
+					.to.have.property('httpPort')
+					.that.is.a('number');
+				expect(result)
+					.to.have.property('height')
+					.that.is.a('number')
+					.at.least(1);
+				done();
+			});
 		});
 	});
 
 	describe('list', () => {
 		it('should return list of peers', done => {
-			clientSocket
-				.wampSend('list')
-				.then(result => {
-					expect(result).to.have.property('success').to.be.ok;
-					expect(result)
-						.to.have.property('peers')
-						.to.be.an('array');
-					done();
-				})
-				.catch(err => {
-					done(err);
-				});
+			connectedPeer.rpc.list((err, result) => {
+				expect(result).to.have.property('success').to.be.ok;
+				expect(result)
+					.to.have.property('peers')
+					.to.be.an('array');
+				done();
+			});
 		});
 
 		it('asking for a list multiple times should be ok', done => {
 			var successfulAsks = 0;
 			/* eslint-disable no-loop-func */
 			for (var i = 0; i < 100; i += 1) {
-				clientSocket
-					.wampSend('list')
-					.then(result => {
-						expect(result).to.have.property('success').to.be.ok;
-						expect(result)
-							.to.have.property('peers')
-							.to.be.an('array');
-						successfulAsks += 1;
-						if (successfulAsks === 100) {
-							done();
-						}
-					})
-					.catch(err => {
-						done(err);
-					});
+				connectedPeer.rpc.list((err, result) => {
+					expect(result).to.have.property('success').to.be.ok;
+					expect(result)
+						.to.have.property('peers')
+						.to.be.an('array');
+					successfulAsks += 1;
+					if (successfulAsks === 100) {
+						done();
+					}
+				});
 			}
 		});
 	});
 
 	describe('blocks', () => {
 		it('should return height and broadhash', done => {
-			clientSocket
-				.wampSend('blocks')
-				.then(result => {
-					expect(result)
-						.to.have.property('blocks')
-						.to.be.an('array');
-					done();
-				})
-				.catch(err => {
-					done(err);
-				});
+			connectedPeer.rpc.blocks((err, result) => {
+				expect(result)
+					.to.have.property('blocks')
+					.to.be.an('array');
+				done();
+			});
 		});
 	});
 });
