@@ -293,6 +293,7 @@ describe('WS transport blocks', () => {
 			});
 		});
 
+		// ToDo: Important! Sending serialized data does not work
 		it('using invalid block schema should fail', done => {
 			var blockSignature = genesisblock.blockSignature;
 			genesisblock.blockSignature = null;
@@ -313,6 +314,7 @@ describe('WS transport blocks', () => {
 			);
 		});
 
+		// ToDo: Important! Sending serialized data does not work
 		it('using valid block schema should be ok', done => {
 			testBlock.transactions.forEach(transaction => {
 				if (transaction.asset && transaction.asset.delegate) {
