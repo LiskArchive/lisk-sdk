@@ -177,64 +177,6 @@ describe('transaction', () => {
 		application.cleanup(done);
 	});
 
-	describe('attachAssetType', () => {
-		it('should attach all transaction types', () => {
-			var appliedLogic;
-			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.VOTE,
-				new Vote()
-			);
-			expect(appliedLogic).to.be.an.instanceof(Vote);
-			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.SEND,
-				new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema)
-			);
-			expect(appliedLogic).to.be.an.instanceof(Transfer);
-			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.DELEGATE,
-				new Delegate()
-			);
-			expect(appliedLogic).to.be.an.instanceof(Delegate);
-			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.SIGNATURE,
-				new Signature()
-			);
-			expect(appliedLogic).to.be.an.instanceof(Signature);
-			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.MULTI,
-				new Multisignature()
-			);
-			expect(appliedLogic).to.be.an.instanceof(Multisignature);
-			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.DAPP,
-				new Dapp()
-			);
-			expect(appliedLogic).to.be.an.instanceof(Dapp);
-			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.IN_TRANSFER,
-				new InTransfer()
-			);
-			expect(appliedLogic).to.be.an.instanceof(InTransfer);
-			appliedLogic = transactionLogic.attachAssetType(
-				transactionTypes.OUT_TRANSFER,
-				new OutTransfer()
-			);
-			expect(appliedLogic).to.be.an.instanceof(OutTransfer);
-			return transactionLogic;
-		});
-
-		it('should throw an error on invalid asset', () => {
-			return expect(() => {
-				var invalidAsset = {};
-				transactionLogic.attachAssetType(-1, invalidAsset);
-			}).to.throw('Invalid instance interface');
-		});
-
-		it('should throw an error with no param', () => {
-			return expect(transactionLogic.attachAssetType).to.throw();
-		});
-	});
-
 	describe('sign', () => {
 		it('should throw an error with no param', () => {
 			return expect(transactionLogic.sign).to.throw();
@@ -336,8 +278,9 @@ describe('transaction', () => {
 			);
 			var transactionBytesFromLiskJs = lisk.crypto.getBytes(validTransaction);
 
-			return expect(transactionBytesFromLogic.equals(transactionBytesFromLiskJs)).to.be
-				.ok;
+			return expect(
+				transactionBytesFromLogic.equals(transactionBytesFromLiskJs)
+			).to.be.ok;
 		});
 
 		it('should skip signature, second signature for getting bytes', () => {
@@ -367,7 +310,9 @@ describe('transaction', () => {
 		});
 
 		it('should return true for valid transaction and sender', () => {
-			return expect(transactionLogic.ready(validTransaction, sender)).to.equal(true);
+			return expect(transactionLogic.ready(validTransaction, sender)).to.equal(
+				true
+			);
 		});
 	});
 
@@ -1229,6 +1174,64 @@ describe('transaction', () => {
 			return expect(transaction.asset)
 				.to.have.property('data')
 				.which.is.equal(rawTransaction.tf_data);
+		});
+	});
+
+	describe('attachAssetType', () => {
+		it('should attach all transaction types', () => {
+			var appliedLogic;
+			appliedLogic = transactionLogic.attachAssetType(
+				transactionTypes.VOTE,
+				new Vote()
+			);
+			expect(appliedLogic).to.be.an.instanceof(Vote);
+			appliedLogic = transactionLogic.attachAssetType(
+				transactionTypes.SEND,
+				new Transfer(modulesLoader.scope.logger, modulesLoader.scope.schema)
+			);
+			expect(appliedLogic).to.be.an.instanceof(Transfer);
+			appliedLogic = transactionLogic.attachAssetType(
+				transactionTypes.DELEGATE,
+				new Delegate()
+			);
+			expect(appliedLogic).to.be.an.instanceof(Delegate);
+			appliedLogic = transactionLogic.attachAssetType(
+				transactionTypes.SIGNATURE,
+				new Signature()
+			);
+			expect(appliedLogic).to.be.an.instanceof(Signature);
+			appliedLogic = transactionLogic.attachAssetType(
+				transactionTypes.MULTI,
+				new Multisignature()
+			);
+			expect(appliedLogic).to.be.an.instanceof(Multisignature);
+			appliedLogic = transactionLogic.attachAssetType(
+				transactionTypes.DAPP,
+				new Dapp()
+			);
+			expect(appliedLogic).to.be.an.instanceof(Dapp);
+			appliedLogic = transactionLogic.attachAssetType(
+				transactionTypes.IN_TRANSFER,
+				new InTransfer()
+			);
+			expect(appliedLogic).to.be.an.instanceof(InTransfer);
+			appliedLogic = transactionLogic.attachAssetType(
+				transactionTypes.OUT_TRANSFER,
+				new OutTransfer()
+			);
+			expect(appliedLogic).to.be.an.instanceof(OutTransfer);
+			return transactionLogic;
+		});
+
+		it('should throw an error on invalid asset', () => {
+			return expect(() => {
+				var invalidAsset = {};
+				transactionLogic.attachAssetType(-1, invalidAsset);
+			}).to.throw('Invalid instance interface');
+		});
+
+		it('should throw an error with no param', () => {
+			return expect(transactionLogic.attachAssetType).to.throw();
 		});
 	});
 });
