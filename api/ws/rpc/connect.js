@@ -42,6 +42,11 @@ const connectSteps = {
 	addConnectionOptions: peer => {
 		peer.connectionOptions = {
 			autoConnect: false, // Lazy connection establishment
+			autoReconnect: false,
+			connectTimeout: 1000,
+			ackTimeout: 1000,
+			pingTimeout: 1000,
+			connectAttempts: 1,
 			port: peer.wsPort,
 			hostname: peer.ip,
 			query: System.getHeaders(),
@@ -106,7 +111,7 @@ const connectSteps = {
 		);
 	},
 
-	registerSocketListeners: (peer, onDisconnectCb) => {
+	registerSocketListeners: (peer, onDisconnectCb = () => {}) => {
 		// Unregister all the events just in case
 		peer.socket.off('connectAbort');
 		peer.socket.off('error');
