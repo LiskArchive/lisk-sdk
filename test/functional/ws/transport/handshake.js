@@ -103,6 +103,9 @@ describe('handshake', () => {
 			hostname: '127.0.0.1',
 			port: testConfig.wsPort,
 			query: Object.assign({}, frozenHeaders),
+			connectTimeout: 1000,
+			ackTimeout: 1000,
+			pingTimeout: 1000,
 		};
 		connectAbortStub = sinonSandbox.spy();
 		disconnectStub = sinonSandbox.spy();
@@ -179,6 +182,39 @@ describe('handshake', () => {
 				expectNotToConnect(this, (err, code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Missing required property: nethash');
+					done();
+				});
+			});
+		});
+	});
+
+	// ToDo: Make the tests passing
+	describe('when reaching', () => {
+		describe('not reachable server', () => {
+			const invalidServerIp = '1.1.1.1';
+			const invalidServerPort = 1111;
+
+			it('should close client WS connection with HANDSHAKE_ERROR', done => {
+				validClientSocketOptions.hostname = invalidServerIp;
+				validClientSocketOptions.port = invalidServerPort;
+				connect();
+				expectNotToConnect(this, (err, code) => {
+					expect(code).equal(4007);
+					done();
+				});
+			});
+		});
+
+		describe('not existing server', () => {
+			const validServerIp = '127.0.0.1';
+			const invalidServerPort = 1111;
+
+			it('should close client WS connection with HANDSHAKE_ERROR', done => {
+				validClientSocketOptions.hostname = validServerIp;
+				validClientSocketOptions.port = invalidServerPort;
+				connect();
+				expectNotToConnect(this, (err, code) => {
+					expect(code).equal(1006);
 					done();
 				});
 			});
