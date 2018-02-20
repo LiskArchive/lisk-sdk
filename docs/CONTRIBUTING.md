@@ -22,6 +22,7 @@ propose changes to this document in a pull request.
 1. [Styleguides](#styleguides)
    1. [Git Commit Messages](#git-commit-messages)
    1. [JavaScript Styleguide](#javascript-styleguide)
+   1. [JSDoc Styleguide](#jsdoc-styleguide)
 
 ## Code of Conduct
 
@@ -249,3 +250,48 @@ These contribution guidelines were inspired by and are based on Atom’s
 contribution guidelines. They were modified for the purposes of this repository.
 https://github.com/atom/atom/blob/master/CONTRIBUTING.md - Copyright (c)
 2011-2017 GitHub Inc. (MIT)
+
+### JSDoc Styleguide
+
+For code documentation, we use [JSDoc](http://usejsdoc.org/).
+You can generate a HTML documentation out of it.
+Navigate to the projects folder and run:
+
+```
+npm run docs:build
+```
+
+To access the documentation via browser, use the following command:
+
+```
+npm run docs:serve
+```
+
+If you add or change code, please always provide or update the corresponding code documentation.
+
+**Always mandatory:** A general description of what the code is doing.
+If tags follow, leave a blank line between the description and the tags.
+
+**Tags to use:**
+
+| Tag          | When to use                                                             |
+| ------------ | ----------------------------------------------------------------------- |
+| `@class`     | Describes the constructor of a class.                                   |
+| `@event`     | Describes an event, that the app is listening to.                       |
+| `@example`   | If convenient, provide an example.                                      |
+| `@func`      | Only if JSDoc does not recognize the code as a function, but it is one. |
+| `@link`      | To add inline links.                                                    |
+| `@memberof`  | To describe child-parent hierarchies.                                   |
+| `@module`    | When a module is exported and it is not a `@class`.                     |
+| `@namespace` | To describe a parent folder or object.                                  |
+| `@param`     | Always when a function expects a param.                                 |
+| `@private`   | For private functions.                                                  |
+| `@property`  | Describes the property of an object.                                    |
+| `@requires`  | Describes the modules required by a class or module.                    |
+| `@returns`   | Always when a function returns something.                               |
+| `@see`       | To add additional information, e.g. about the parent.                   |
+| `@throws`    | When an error can be thrown.                                            |
+| `@todo`      | If there are open todos for the following code.                         |
+| `@typedef`   | To describe custom types.                                               |
+
+For examples please have a look in the code.
