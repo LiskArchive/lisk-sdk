@@ -18,4 +18,5 @@ module.exports = {
 	accounts: require('./accounts'),
 	peers: require('./peers'),
 	blocks: require('./blocks'),
+	forks: require('./forks'),
 };

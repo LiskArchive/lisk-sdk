@@ -22,7 +22,8 @@
 
 SELECT encode("publicKey", 'hex') AS "publicKey",
        username,
-       address
+       address,
+       vote
 FROM mem_accounts
 WHERE
   "isDelegate" = 1

@@ -58,7 +58,7 @@ class DatabaseSeed {
 	}
 
 	static reset(db) {
-		const tables = ['mem_accounts', 'blocks'];
+		const tables = ['mem_accounts', 'blocks', 'forks_stat'];
 		const promises = [];
 
 		tables.forEach(table => {
