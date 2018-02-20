@@ -56,6 +56,15 @@ var validDataForBlock = {
 	transactions: [],
 };
 
+const invalidBlock = {
+	version: '0',
+	totalAmount: 'qwer',
+	totalFee: 'sd#$%',
+	reward: '234',
+};
+
+const blockData = validDataForBlock.previousBlock;
+
 var transactionsByTypes = {};
 transactionsByTypes[transactionTypes.MULTI] = {
 	type: 4,
@@ -485,37 +494,89 @@ describe('block', () => {
 	});
 
 	describe('sign', () => {
-		it('should return a signed block using keypair');
+		it('should return a signed block using keypair', () => {
+			return expect(block.sign(blockData, validKeypair)).to.be.string;
+		});
 	});
 
 	describe('getBytes', () => {
-		it('should throw error for invalid block');
-		it('should return a buffer for a given block');
+		it('should throw error for invalid block', done => {
+			var bytes;
+			try {
+				bytes = block.getBytes(invalidBlock);
+			} catch (e) {
+				expect(e).to.exist;
+				expect(bytes).to.be.undefined;
+			}
+			done();
+		});
+
+		it('should return a buffer for a given block', () => {
+			return expect(block.getBytes(blockData)).to.be.string;
+		});
 	});
 
 	describe('verifySignature', () => {
-		it('should throw error for invalid block');
-		it('should return verification response for a given block');
-	});
+		it('should throw error for invalid block', done => {
+			let res;
+			try {
+				res = block.verifySignature(invalidBlock);
+			} catch (e) {
+				expect(e).to.exist;
+				expect(res).to.be.undefined;
+			}
+			done();
+		});
 
-	describe('objectNormalize', () => {
-		it('should throw error for invalid block');
-		it('should validate the block schema');
+		it('should return verification response for a given block', () => {
+			return expect(block.verifySignature(blockData)).to.be.true;
+		});
 	});
 
 	describe('getId', () => {
-		it('should return the id for a given block');
+		it('should return the id for a given block', () => {
+			return expect(block.getId(blockData)).to.be.string;
+		});
 	});
 
 	describe('getHash', () => {
-		it('should return a hash for a given block');
+		it('should return a hash for a given block', () => {
+			return expect(block.getHash(blockData)).to.be.instanceof(Buffer);
+		});
 	});
 
 	describe('calculateFee', () => {
-		it('should return the constant fee');
+		it('should return the constant fee', () => {
+			return expect(block.calculateFee(blockData)).to.eql(10000000);
+		});
 	});
 
 	describe('dbRead', () => {
-		it('should return a valid block');
+		it('should return raw block data', () => {
+			const rawBlock = {
+				b_version: 0,
+				b_totalAmount: 0,
+				b_totalFee: 0,
+				b_reward: 0,
+				b_payloadHash:
+					'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+				b_timestamp: 41898490,
+				b_numberOfTransactions: 0,
+				b_payloadLength: 0,
+				b_previousBlock: '1087874036928524397',
+				b_generatorPublicKey:
+					'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
+				b_transactions: [],
+				b_blockSignature:
+					'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
+				b_height: 69,
+				b_id: '3920300554926889269',
+				b_relays: 1,
+				b_confirmations: 0,
+			};
+			return expect(block.dbRead(rawBlock))
+				.to.be.an('object')
+				.to.have.property('totalForged');
+		});
 	});
 });
