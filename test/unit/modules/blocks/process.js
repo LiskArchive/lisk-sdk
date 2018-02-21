@@ -555,7 +555,7 @@ describe('blocks/process', () => {
 		});
 
 		describe('Delegate forgin on multiple nodes', () => {
-			it('should warn when delegate forged on more than one node', done => {
+			it('should log warning when generatorPublicKey is the same for block and lastBlock', done => {
 				__private.receiveForkFive(
 					{ timestamp: 1, id: 2, generatorPublicKey: '1a' },
 					{ timestamp: 1, id: 1, generatorPublicKey: '1a' },
@@ -570,7 +570,7 @@ describe('blocks/process', () => {
 				);
 			});
 
-			it('should not warn when delegate forged on only one node', done => {
+			it('should not log warning when generatorPublicKey is different for block and lastBlock', done => {
 				__private.receiveForkFive(
 					{ timestamp: 1, id: 2, generatorPublicKey: '2a' },
 					{ timestamp: 1, id: 1, generatorPublicKey: '1a' },
@@ -591,7 +591,7 @@ describe('blocks/process', () => {
 				return expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 			});
 
-			it('should return when block.timestamp > lastBlock.timestamp', done => {
+			it('should call a callback with no error when block.timestamp > lastBlock.timestamp', done => {
 				const block = { timestamp: 2 };
 				const lastBlock = { timestamp: 1 };
 				__private.receiveForkFive(block, lastBlock, err => {
@@ -600,7 +600,7 @@ describe('blocks/process', () => {
 				});
 			});
 
-			it('should return when timestamps are equals and block.id > lastBlock.id', done => {
+			it('should call a callback with no error when timestamps are equals and block.id > lastBlock.id', done => {
 				const block = { timestamp: 1, id: 2 };
 				const lastBlock = { timestamp: 1, id: 1 };
 				__private.receiveForkFive(block, lastBlock, err => {
@@ -632,7 +632,7 @@ describe('blocks/process', () => {
 						);
 					});
 
-					it('should throw error', done => {
+					it('should call a callback with error', done => {
 						const block = { timestamp: 1, id: 2 };
 						const lastBlock = { timestamp: 2, id: 1 };
 						__private.receiveForkFive(block, lastBlock, err => {
@@ -792,7 +792,7 @@ describe('blocks/process', () => {
 														);
 													});
 
-													it('should return no error', done => {
+													it('should call a callback with no error', done => {
 														const block = { timestamp: 10, id: 2 };
 														const lastBlock = { timestamp: 20, id: 1 };
 														__private.receiveForkFive(block, lastBlock, err => {
@@ -968,7 +968,7 @@ describe('blocks/process', () => {
 											);
 										});
 
-										it('should throw error', done => {
+										it('should call a callback with error', done => {
 											blocksProcessModule.getCommonBlock(
 												{ ip: 1, wsPort: 2 },
 												10,
@@ -1080,7 +1080,7 @@ describe('blocks/process', () => {
 					);
 				});
 
-				it('should throw error', done => {
+				it('should call a callback with error', done => {
 					blocksProcessModule.loadBlocksOffset(
 						100,
 						0,
@@ -1100,7 +1100,7 @@ describe('blocks/process', () => {
 			});
 
 			describe('when succeeds', () => {
-				describe('if returns empty', () => {
+				describe('and query returns empty array', () => {
 					beforeEach(() => {
 						library.db.blocks.loadBlocksOffset.resolves([]);
 						return modules.blocks.utils.readDbRows.returns([]);
@@ -1129,7 +1129,7 @@ describe('blocks/process', () => {
 					});
 				});
 
-				describe('if returns rows', () => {
+				describe('and query returns rows', () => {
 					beforeEach(() => {
 						library.db.blocks.loadBlocksOffset.resolves([dummyBlock]);
 						return modules.blocks.utils.readDbRows.returns([dummyBlock]);
@@ -1153,7 +1153,7 @@ describe('blocks/process', () => {
 								});
 							});
 
-							it('should return immediate', done => {
+							it('should break processing and call a callback with no error', done => {
 								blocksProcessModule.loadBlocksOffset(
 									100,
 									0,
@@ -1297,7 +1297,7 @@ describe('blocks/process', () => {
 															);
 														});
 
-														it('should return lastBlock and no errors', done => {
+														it('should call a callback with lastBlock and no errors', done => {
 															blocksProcessModule.loadBlocksOffset(
 																100,
 																0,
@@ -1562,7 +1562,7 @@ describe('blocks/process', () => {
 											});
 										});
 
-										it('should skip', done => {
+										it('should break processing and call a callback with no error', done => {
 											blocksProcessModule.loadBlocksFromPeer(
 												{ id: 1, string: 'test' },
 												(err, lastBlock) => {
@@ -1585,7 +1585,7 @@ describe('blocks/process', () => {
 													);
 												});
 
-												it('should skip', done => {
+												it('should break processing and call a callback with no error', done => {
 													blocksProcessModule.loadBlocksFromPeer(
 														{ id: 1, string: 'test' },
 														(err, lastBlock) => {
@@ -1729,86 +1729,109 @@ describe('blocks/process', () => {
 	});
 
 	describe('generateBlock', () => {
-		beforeEach(() => {
-			modules.transactions.getUnconfirmedTransactionList.returns([
-				{ id: 1, type: 0 },
-				{ id: 2, type: 1 },
-			]);
-			return modules.blocks.verify.processBlock.callsArgWith(
-				3,
-				null,
-				modules.blocks.verify.processBlock.args
-			);
-		});
-
-		describe('modules.accounts.getAccount', () => {
-			describe('when fails', () => {
+		describe('modules.transactions.getUnconfirmedTransactionList', () => {
+			describe('when query returns empty array', () => {
 				beforeEach(() => {
-					return modules.accounts.getAccount.callsArgWith(
-						1,
-						'accounts.getAccount-ERR',
-						null
+					modules.transactions.getUnconfirmedTransactionList.returns([]);
+					return modules.blocks.verify.processBlock.callsArgWith(
+						3,
+						null,
+						modules.blocks.verify.processBlock.args
 					);
 				});
 
-				it('should call a callback with error', done => {
+				it('should generate block without transactions', done => {
 					blocksProcessModule.generateBlock(
 						{ publicKey: '123abc', privateKey: 'aaa' },
 						41287231,
 						err => {
-							expect(err).to.equal('Sender not found');
+							expect(err).to.be.null;
+							expect(library.logic.transaction.verify.calledOnce).to.be.false;
+							expect(
+								modules.blocks.verify.processBlock.args[0][0].transactions
+									.length
+							).to.equal(0);
 							done();
 						}
 					);
 				});
 			});
 
-			describe('when succeeds', () => {
+			describe('when query returns undefined', () => {
 				beforeEach(() => {
-					return modules.accounts.getAccount.callsArgWith(1, null, true);
-				});
-				afterEach(() => {
-					return expect(modules.blocks.verify.processBlock.calledOnce).to.be
-						.true;
+					modules.transactions.getUnconfirmedTransactionList.returns(undefined);
+					return modules.blocks.verify.processBlock.callsArgWith(
+						3,
+						null,
+						modules.blocks.verify.processBlock.args
+					);
 				});
 
-				describe('library.logic.transaction.ready', () => {
-					describe('when returns false', () => {
+				it('should generate block without transactions', done => {
+					blocksProcessModule.generateBlock(
+						{ publicKey: '123abc', privateKey: 'aaa' },
+						41287231,
+						err => {
+							expect(err).to.be.null;
+							expect(library.logic.transaction.verify.calledOnce).to.be.false;
+							expect(
+								modules.blocks.verify.processBlock.args[0][0].transactions
+									.length
+							).to.equal(0);
+							done();
+						}
+					);
+				});
+			});
+
+			describe('when query returns transactions', () => {
+				beforeEach(() => {
+					modules.transactions.getUnconfirmedTransactionList.returns([
+						{ id: 1, type: 0 },
+						{ id: 2, type: 1 },
+					]);
+					return modules.blocks.verify.processBlock.callsArgWith(
+						3,
+						null,
+						modules.blocks.verify.processBlock.args
+					);
+				});
+
+				describe('modules.accounts.getAccount', () => {
+					describe('when fails', () => {
 						beforeEach(() => {
-							return library.logic.transaction.ready.returns(false);
+							return modules.accounts.getAccount.callsArgWith(
+								1,
+								'accounts.getAccount-ERR',
+								null
+							);
 						});
 
-						it('should generate block without transactions', done => {
+						it('should call a callback with error', done => {
 							blocksProcessModule.generateBlock(
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
 								err => {
-									expect(err).to.be.null;
-									expect(library.logic.transaction.verify.calledOnce).to.be
-										.false;
-									expect(
-										modules.blocks.verify.processBlock.args[0][0].transactions
-											.length
-									).to.equal(0);
+									expect(err).to.equal('Sender not found');
 									done();
 								}
 							);
 						});
 					});
 
-					describe('when returns true', () => {
+					describe('when succeeds', () => {
 						beforeEach(() => {
-							return library.logic.transaction.ready.returns(true);
+							return modules.accounts.getAccount.callsArgWith(1, null, true);
+						});
+						afterEach(() => {
+							return expect(modules.blocks.verify.processBlock.calledOnce).to.be
+								.true;
 						});
 
-						describe('library.logic.transaction.verify', () => {
-							describe('when fails', () => {
+						describe('library.logic.transaction.ready', () => {
+							describe('when returns false', () => {
 								beforeEach(() => {
-									return library.logic.transaction.verify.callsArgWith(
-										2,
-										'transaction.verify-ERR',
-										null
-									);
+									return library.logic.transaction.ready.returns(false);
 								});
 
 								it('should generate block without transactions', done => {
@@ -1817,6 +1840,8 @@ describe('blocks/process', () => {
 										41287231,
 										err => {
 											expect(err).to.be.null;
+											expect(library.logic.transaction.verify.calledOnce).to.be
+												.false;
 											expect(
 												modules.blocks.verify.processBlock.args[0][0]
 													.transactions.length
@@ -1827,21 +1852,128 @@ describe('blocks/process', () => {
 								});
 							});
 
-							describe('when succeeds', () => {
+							describe('when returns true', () => {
 								beforeEach(() => {
-									return library.logic.transaction.verify.callsArgWith(
-										2,
-										null,
-										true
+									return library.logic.transaction.ready.returns(true);
+								});
+
+								describe('library.logic.transaction.verify', () => {
+									describe('when fails', () => {
+										beforeEach(() => {
+											return library.logic.transaction.verify.callsArgWith(
+												2,
+												'transaction.verify-ERR',
+												null
+											);
+										});
+
+										it('should generate block without transactions', done => {
+											blocksProcessModule.generateBlock(
+												{ publicKey: '123abc', privateKey: 'aaa' },
+												41287231,
+												err => {
+													expect(err).to.be.null;
+													expect(
+														modules.blocks.verify.processBlock.args[0][0]
+															.transactions.length
+													).to.equal(0);
+													done();
+												}
+											);
+										});
+									});
+
+									describe('when succeeds', () => {
+										beforeEach(() => {
+											return library.logic.transaction.verify.callsArgWith(
+												2,
+												null,
+												true
+											);
+										});
+
+										it('should generate block with transactions', done => {
+											blocksProcessModule.generateBlock(
+												{ publicKey: '123abc', privateKey: 'aaa' },
+												41287231,
+												err => {
+													expect(err).to.be.null;
+													expect(
+														modules.blocks.verify.processBlock.args[0][0]
+															.transactions.length
+													).to.equal(2);
+													done();
+												}
+											);
+										});
+									});
+								});
+							});
+						});
+					});
+				});
+
+				describe('library.logic.block.create', () => {
+					beforeEach(() => {
+						modules.accounts.getAccount.callsArgWith(1, null, true);
+						library.logic.transaction.ready.returns(true);
+						return library.logic.transaction.verify.callsArgWith(2, null, true);
+					});
+
+					describe('when fails', () => {
+						beforeEach(done => {
+							library.logic.block.create = sinonSandbox.stub();
+							library.logic.block.create.throws('block-create-ERR');
+							done();
+						});
+
+						it('should call a callback with error', done => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								err => {
+									expect(err.name).to.equal('block-create-ERR');
+									expect(loggerStub.error.args[0][0]).to.contains(
+										'block-create-ERR'
+									);
+									done();
+								}
+							);
+						});
+					});
+
+					describe('when succeeds', () => {
+						describe('modules.blocks.verify.processBlock', () => {
+							describe('when fails', () => {
+								beforeEach(() => {
+									return modules.blocks.verify.processBlock.callsArgWith(
+										3,
+										'verify.processBlock-ERR',
+										null
 									);
 								});
 
-								it('should generate block with transactions', done => {
+								it('should call a callback with error', done => {
+									blocksProcessModule.generateBlock(
+										{ publicKey: '123abc', privateKey: 'aaa' },
+										41287231,
+										err => {
+											expect(err).to.equal('verify.processBlock-ERR');
+											done();
+										}
+									);
+								});
+							});
+
+							describe('when succeeds', () => {
+								it('should call modules.blocks.verify.processBlock with proper args', done => {
 									blocksProcessModule.generateBlock(
 										{ publicKey: '123abc', privateKey: 'aaa' },
 										41287231,
 										err => {
 											expect(err).to.be.null;
+											expect(modules.blocks.verify.processBlock.calledOnce).to
+												.be.true;
 											expect(
 												modules.blocks.verify.processBlock.args[0][0]
 													.transactions.length
@@ -1851,80 +1983,6 @@ describe('blocks/process', () => {
 									);
 								});
 							});
-						});
-					});
-				});
-			});
-		});
-
-		describe('library.logic.block.create', () => {
-			beforeEach(() => {
-				modules.accounts.getAccount.callsArgWith(1, null, true);
-				library.logic.transaction.ready.returns(true);
-				return library.logic.transaction.verify.callsArgWith(2, null, true);
-			});
-
-			describe('when fails', () => {
-				beforeEach(done => {
-					library.logic.block.create = sinonSandbox.stub();
-					library.logic.block.create.throws('block-create-ERR');
-					done();
-				});
-
-				it('should call a callback with error', done => {
-					blocksProcessModule.generateBlock(
-						{ publicKey: '123abc', privateKey: 'aaa' },
-						41287231,
-						err => {
-							expect(err.name).to.equal('block-create-ERR');
-							expect(loggerStub.error.args[0][0]).to.contains(
-								'block-create-ERR'
-							);
-							done();
-						}
-					);
-				});
-			});
-
-			describe('when succeeds', () => {
-				describe('modules.blocks.verify.processBlock', () => {
-					describe('when fails', () => {
-						beforeEach(() => {
-							return modules.blocks.verify.processBlock.callsArgWith(
-								3,
-								'verify.processBlock-ERR',
-								null
-							);
-						});
-
-						it('should call a callback with error', done => {
-							blocksProcessModule.generateBlock(
-								{ publicKey: '123abc', privateKey: 'aaa' },
-								41287231,
-								err => {
-									expect(err).to.equal('verify.processBlock-ERR');
-									done();
-								}
-							);
-						});
-					});
-
-					describe('when succeeds', () => {
-						it('should process block', done => {
-							blocksProcessModule.generateBlock(
-								{ publicKey: '123abc', privateKey: 'aaa' },
-								41287231,
-								err => {
-									expect(err).to.be.null;
-									expect(modules.blocks.verify.processBlock.calledOnce).to.be
-										.true;
-									expect(
-										modules.blocks.verify.processBlock.args[0][0].transactions
-											.length
-									).to.equal(2);
-									done();
-								}
-							);
 						});
 					});
 				});
@@ -1969,7 +2027,7 @@ describe('blocks/process', () => {
 						);
 					});
 
-					it('should validate round', done => {
+					it('should call a callback with no error', done => {
 						__private.validateBlockSlot(
 							{ height: 10 },
 							{ height: 202 },
@@ -2024,7 +2082,7 @@ describe('blocks/process', () => {
 							);
 						});
 
-						it('should validate round', done => {
+						it('should call a callback with no error', done => {
 							__private.validateBlockSlot(
 								{ height: 400 },
 								{ height: 200 },
@@ -2076,7 +2134,7 @@ describe('blocks/process', () => {
 							);
 						});
 
-						it('should validate round', done => {
+						it('should call a callback with no error', done => {
 							__private.validateBlockSlot(
 								{ height: 10 },
 								{ height: 200 },
@@ -2226,7 +2284,19 @@ describe('blocks/process', () => {
 				});
 
 				afterEach(() => {
-					return expect(__private.receiveForkOne.calledOnce).to.be.true;
+					expect(__private.receiveForkOne.calledOnce).to.be.true;
+					expect(__private.receiveForkOne.args[0][0]).to.deep.equal({
+						id: 5,
+						previousBlock: '3',
+						height: 3,
+					});
+					expect(__private.receiveForkOne.args[0][1]).to.deep.equal({
+						id: '2',
+						height: 2,
+					});
+					return expect(__private.receiveForkOne.args[0][2]).to.be.an(
+						'function'
+					);
 				});
 
 				it('should call __private.receiveForkOne', done => {
@@ -2257,7 +2327,20 @@ describe('blocks/process', () => {
 				});
 
 				afterEach(() => {
-					return expect(__private.receiveForkFive.calledOnce).to.be.true;
+					expect(__private.receiveForkFive.calledOnce).to.be.true;
+					expect(__private.receiveForkFive.args[0][0]).to.deep.equal({
+						id: 5,
+						previousBlock: '1',
+						height: 2,
+					});
+					expect(__private.receiveForkFive.args[0][1]).to.deep.equal({
+						id: '2',
+						previousBlock: '1',
+						height: 2,
+					});
+					return expect(__private.receiveForkFive.args[0][2]).to.be.an(
+						'function'
+					);
 				});
 
 				it('should call __private.receiveForkFive', done => {
@@ -2284,7 +2367,7 @@ describe('blocks/process', () => {
 					done();
 				});
 
-				it('should skip block, already processed', done => {
+				it('should log debug message and call a callback', done => {
 					library.sequence.add = function(cb) {
 						var fn = Promise.promisify(cb);
 						fn().then(() => {
@@ -2299,7 +2382,7 @@ describe('blocks/process', () => {
 				});
 			});
 
-			describe('otherwise', () => {
+			describe('when block.id !== lastBlock.id', () => {
 				afterEach(() => {
 					return expect(loggerStub.warn.args[0][0]).to.equal(
 						'Discarded block that does not match with current chain: 7 height: 11 round: 1 slot: 544076 generator: a1'
