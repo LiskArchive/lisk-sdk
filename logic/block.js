@@ -14,15 +14,15 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var ByteBuffer = require('bytebuffer');
-var bignum = require('../helpers/bignum.js');
-var constants = require('../helpers/constants.js');
-var transactionTypes = require('../helpers/transaction_types.js');
-var BlockReward = require('./block_reward.js');
+const crypto = require('crypto');
+const ByteBuffer = require('bytebuffer');
+const bignum = require('../helpers/bignum.js');
+const constants = require('../helpers/constants.js');
+const transactionTypes = require('../helpers/transaction_types.js');
+const BlockReward = require('./block_reward.js');
 
 // Private fields
-var __private = {};
+const __private = {};
 
 /**
  * Main Block logic.
@@ -44,18 +44,221 @@ var __private = {};
  * @todo Add description for the params
  */
 // Constructor
-function Block(ed, schema, transaction, cb) {
-	this.scope = {
-		ed,
-		schema,
-		transaction,
-	};
-	__private.blockReward = new BlockReward();
-	if (cb) {
-		return setImmediate(cb, null, this);
+class Block {
+	constructor(ed, schema, transaction, cb) {
+		this.scope = {
+			ed,
+			schema,
+			transaction,
+		};
+		__private.blockReward = new BlockReward();
+		if (cb) {
+			return setImmediate(cb, null, this);
+		}
+	}
+
+	// Public methods
+	/**
+	 * Sorts input data transactions.
+	 * Calculates reward based on previous block data.
+	 * Generates new block.
+	 *
+	 * @param {Object} data
+	 * @returns {block} block
+	 * @todo Add description for the params
+	 */
+	create(data) {
+		const transactions = data.transactions.sort((a, b) => {
+			// Place MULTI transaction after all other transaction types
+			if (
+				a.type === transactionTypes.MULTI &&
+				b.type !== transactionTypes.MULTI
+			) {
+				return 1;
+			}
+			// Place all other transaction types before MULTI transaction
+			if (
+				a.type !== transactionTypes.MULTI &&
+				b.type === transactionTypes.MULTI
+			) {
+				return -1;
+			}
+			// Place depending on type (lower first)
+			if (a.type < b.type) {
+				return -1;
+			}
+			if (a.type > b.type) {
+				return 1;
+			}
+			// Place depending on amount (lower first)
+			if (a.amount < b.amount) {
+				return -1;
+			}
+			if (a.amount > b.amount) {
+				return 1;
+			}
+			return 0;
+		});
+
+		const nextHeight = data.previousBlock ? data.previousBlock.height + 1 : 1;
+
+		const reward = __private.blockReward.calcReward(nextHeight);
+		let totalFee = 0;
+		let totalAmount = 0;
+		let size = 0;
+
+		const blockTransactions = [];
+		const payloadHash = crypto.createHash('sha256');
+
+		for (let i = 0; i < transactions.length; i++) {
+			const transaction = transactions[i];
+			const bytes = this.scope.transaction.getBytes(transaction);
+
+			if (size + bytes.length > constants.maxPayloadLength) {
+				break;
+			}
+
+			size += bytes.length;
+
+			totalFee += transaction.fee;
+			totalAmount += transaction.amount;
+
+			blockTransactions.push(transaction);
+			payloadHash.update(bytes);
+		}
+
+		let block = {
+			version: 0,
+			totalAmount,
+			totalFee,
+			reward,
+			payloadHash: payloadHash.digest().toString('hex'),
+			timestamp: data.timestamp,
+			numberOfTransactions: blockTransactions.length,
+			payloadLength: size,
+			previousBlock: data.previousBlock.id,
+			generatorPublicKey: data.keypair.publicKey.toString('hex'),
+			transactions: blockTransactions,
+		};
+
+		try {
+			block.blockSignature = this.sign(block, data.keypair);
+
+			block = this.objectNormalize(block);
+		} catch (e) {
+			throw e;
+		}
+
+		return block;
+	}
+
+	/**
+	 * Creates a block signature.
+	 *
+	 * @param {block} block
+	 * @param {Object} keypair
+	 * @returns {signature} Block signature
+	 * @todo Add description for the params
+	 */
+	sign(block, keypair) {
+		const hash = this.getHash(block);
+
+		return this.scope.ed.sign(hash, keypair.privateKey).toString('hex');
+	}
+
+	/**
+	 * Creates hash based on block bytes.
+	 *
+	 * @param {block} block
+	 * @returns {hash} SHA256 hash
+	 * @todo Add description for the params
+	 */
+	getHash(block) {
+		return crypto
+			.createHash('sha256')
+			.update(this.getBytes(block))
+			.digest();
+	}
+
+	/**
+	 * Verifies block hash, generator block publicKey and block signature.
+	 *
+	 * @param {block} block
+	 * @throws {Error}
+	 * @returns {boolean} Verified hash, signature and publicKey
+	 * @todo Add description for the params
+	 */
+	verifySignature(block) {
+		const remove = 64;
+		let res;
+
+		try {
+			const data = this.getBytes(block);
+			const data2 = Buffer.alloc(data.length - remove);
+
+			for (let i = 0; i < data2.length; i++) {
+				data2[i] = data[i];
+			}
+			const hash = crypto
+				.createHash('sha256')
+				.update(data2)
+				.digest();
+			const blockSignatureBuffer = Buffer.from(block.blockSignature, 'hex');
+			const generatorPublicKeyBuffer = Buffer.from(
+				block.generatorPublicKey,
+				'hex'
+			);
+			res = this.scope.ed.verify(
+				hash,
+				blockSignatureBuffer || ' ',
+				generatorPublicKeyBuffer || ' '
+			);
+		} catch (e) {
+			throw e;
+		}
+
+		return res;
+	}
+
+	/**
+	 * Description of the function.
+	 *
+	 * @param {block} block
+	 * @throws {string|Error}
+	 * @returns {Object} Normalized block
+	 * @todo Add description for the function and the params
+	 */
+	objectNormalize(block) {
+		for (const i in block) {
+			if (block[i] == null || typeof block[i] === 'undefined') {
+				delete block[i];
+			}
+		}
+
+		const report = this.scope.schema.validate(block, Block.prototype.schema);
+
+		if (!report) {
+			throw `Failed to validate block schema: ${this.scope.schema
+				.getLastErrors()
+				.map(err => err.message)
+				.join(', ')}`;
+		}
+
+		try {
+			for (let i = 0; i < block.transactions.length; i++) {
+				block.transactions[i] = this.scope.transaction.objectNormalize(
+					block.transactions[i]
+				);
+			}
+		} catch (e) {
+			throw e;
+		}
+
+		return block;
 	}
 }
 
+// TODO: TO maintain backward compatibility, the below listed methods have to use prototype otherwise these must be converted to static attributes
 // Private methods
 
 /**
@@ -67,227 +270,18 @@ function Block(ed, schema, transaction, cb) {
  * @todo Add description for the params
  */
 __private.getAddressByPublicKey = function(publicKey) {
-	var publicKeyHash = crypto
+	const publicKeyHash = crypto
 		.createHash('sha256')
 		.update(publicKey, 'hex')
 		.digest();
-	var temp = Buffer.alloc(8);
+	const temp = Buffer.alloc(8);
 
-	for (var i = 0; i < 8; i++) {
+	for (let i = 0; i < 8; i++) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
-	var address = `${bignum.fromBuffer(temp).toString()}L`;
+	const address = `${bignum.fromBuffer(temp).toString()}L`;
 	return address;
-};
-
-// Public methods
-/**
- * Sorts input data transactions.
- * Calculates reward based on previous block data.
- * Generates new block.
- *
- * @param {Object} data
- * @returns {block} block
- * @todo Add description for the params
- */
-Block.prototype.create = function(data) {
-	var transactions = data.transactions.sort((a, b) => {
-		// Place MULTI transaction after all other transaction types
-		if (
-			a.type === transactionTypes.MULTI &&
-			b.type !== transactionTypes.MULTI
-		) {
-			return 1;
-		}
-		// Place all other transaction types before MULTI transaction
-		if (
-			a.type !== transactionTypes.MULTI &&
-			b.type === transactionTypes.MULTI
-		) {
-			return -1;
-		}
-		// Place depending on type (lower first)
-		if (a.type < b.type) {
-			return -1;
-		}
-		if (a.type > b.type) {
-			return 1;
-		}
-		// Place depending on amount (lower first)
-		if (a.amount < b.amount) {
-			return -1;
-		}
-		if (a.amount > b.amount) {
-			return 1;
-		}
-		return 0;
-	});
-
-	var nextHeight = data.previousBlock ? data.previousBlock.height + 1 : 1;
-
-	var reward = __private.blockReward.calcReward(nextHeight);
-	var totalFee = 0;
-	var totalAmount = 0;
-	var size = 0;
-
-	var blockTransactions = [];
-	var payloadHash = crypto.createHash('sha256');
-
-	for (var i = 0; i < transactions.length; i++) {
-		var transaction = transactions[i];
-		var bytes = this.scope.transaction.getBytes(transaction);
-
-		if (size + bytes.length > constants.maxPayloadLength) {
-			break;
-		}
-
-		size += bytes.length;
-
-		totalFee += transaction.fee;
-		totalAmount += transaction.amount;
-
-		blockTransactions.push(transaction);
-		payloadHash.update(bytes);
-	}
-
-	var block = {
-		version: 0,
-		totalAmount,
-		totalFee,
-		reward,
-		payloadHash: payloadHash.digest().toString('hex'),
-		timestamp: data.timestamp,
-		numberOfTransactions: blockTransactions.length,
-		payloadLength: size,
-		previousBlock: data.previousBlock.id,
-		generatorPublicKey: data.keypair.publicKey.toString('hex'),
-		transactions: blockTransactions,
-	};
-
-	try {
-		block.blockSignature = this.sign(block, data.keypair);
-
-		block = this.objectNormalize(block);
-	} catch (e) {
-		throw e;
-	}
-
-	return block;
-};
-
-/**
- * Creates a block signature.
- *
- * @param {block} block
- * @param {Object} keypair
- * @returns {signature} Block signature
- * @todo Add description for the params
- */
-Block.prototype.sign = function(block, keypair) {
-	var hash = this.getHash(block);
-
-	return this.scope.ed.sign(hash, keypair.privateKey).toString('hex');
-};
-
-/**
- * Description of the function.
- *
- * @param {block} block
- * @throws {Error}
- * @returns {!Array} Contents as an ArrayBuffer
- * @todo Add description for the function and the params
- */
-Block.prototype.getBytes = function(block) {
-	var size = 4 + 4 + 8 + 4 + 4 + 8 + 8 + 4 + 4 + 4 + 32 + 32 + 64;
-	var b;
-	var i;
-
-	try {
-		var bb = new ByteBuffer(size, true);
-		bb.writeInt(block.version);
-		bb.writeInt(block.timestamp);
-
-		if (block.previousBlock) {
-			var pb = new bignum(block.previousBlock).toBuffer({ size: '8' });
-
-			for (i = 0; i < 8; i++) {
-				bb.writeByte(pb[i]);
-			}
-		} else {
-			for (i = 0; i < 8; i++) {
-				bb.writeByte(0);
-			}
-		}
-
-		bb.writeInt(block.numberOfTransactions);
-		bb.writeLong(block.totalAmount);
-		bb.writeLong(block.totalFee);
-		bb.writeLong(block.reward);
-
-		bb.writeInt(block.payloadLength);
-
-		var payloadHashBuffer = Buffer.from(block.payloadHash, 'hex');
-		for (i = 0; i < payloadHashBuffer.length; i++) {
-			bb.writeByte(payloadHashBuffer[i]);
-		}
-
-		var generatorPublicKeyBuffer = Buffer.from(block.generatorPublicKey, 'hex');
-		for (i = 0; i < generatorPublicKeyBuffer.length; i++) {
-			bb.writeByte(generatorPublicKeyBuffer[i]);
-		}
-
-		if (block.blockSignature) {
-			var blockSignatureBuffer = Buffer.from(block.blockSignature, 'hex');
-			for (i = 0; i < blockSignatureBuffer.length; i++) {
-				bb.writeByte(blockSignatureBuffer[i]);
-			}
-		}
-
-		bb.flip();
-		b = bb.toBuffer();
-	} catch (e) {
-		throw e;
-	}
-
-	return b;
-};
-
-/**
- * Verifies block hash, generator block publicKey and block signature.
- *
- * @param {block} block
- * @throws {Error}
- * @returns {boolean} Verified hash, signature and publicKey
- * @todo Add description for the params
- */
-Block.prototype.verifySignature = function(block) {
-	var remove = 64;
-	var res;
-
-	try {
-		var data = this.getBytes(block);
-		var data2 = Buffer.alloc(data.length - remove);
-
-		for (var i = 0; i < data2.length; i++) {
-			data2[i] = data[i];
-		}
-		var hash = crypto
-			.createHash('sha256')
-			.update(data2)
-			.digest();
-		var blockSignatureBuffer = Buffer.from(block.blockSignature, 'hex');
-		var generatorPublicKeyBuffer = Buffer.from(block.generatorPublicKey, 'hex');
-		res = this.scope.ed.verify(
-			hash,
-			blockSignatureBuffer || ' ',
-			generatorPublicKeyBuffer || ' '
-		);
-	} catch (e) {
-		throw e;
-	}
-
-	return res;
 };
 
 /**
@@ -387,39 +381,65 @@ Block.prototype.schema = {
  * Description of the function.
  *
  * @param {block} block
- * @throws {string|Error}
- * @returns {Object} Normalized block
+ * @throws {Error}
+ * @returns {!Array} Contents as an ArrayBuffer
  * @todo Add description for the function and the params
  */
-Block.prototype.objectNormalize = function(block) {
-	var i;
-
-	for (i in block) {
-		if (block[i] == null || typeof block[i] === 'undefined') {
-			delete block[i];
-		}
-	}
-
-	var report = this.scope.schema.validate(block, Block.prototype.schema);
-
-	if (!report) {
-		throw `Failed to validate block schema: ${this.scope.schema
-			.getLastErrors()
-			.map(err => err.message)
-			.join(', ')}`;
-	}
+Block.prototype.getBytes = function(block) {
+	const size = 4 + 4 + 8 + 4 + 4 + 8 + 8 + 4 + 4 + 4 + 32 + 32 + 64;
+	let bytes;
 
 	try {
-		for (i = 0; i < block.transactions.length; i++) {
-			block.transactions[i] = this.scope.transaction.objectNormalize(
-				block.transactions[i]
-			);
+		const byteBuffer = new ByteBuffer(size, true);
+		byteBuffer.writeInt(block.version);
+		byteBuffer.writeInt(block.timestamp);
+
+		if (block.previousBlock) {
+			const pb = new bignum(block.previousBlock).toBuffer({ size: '8' });
+
+			for (let i = 0; i < 8; i++) {
+				byteBuffer.writeByte(pb[i]);
+			}
+		} else {
+			for (let i = 0; i < 8; i++) {
+				byteBuffer.writeByte(0);
+			}
 		}
+
+		byteBuffer.writeInt(block.numberOfTransactions);
+		byteBuffer.writeLong(block.totalAmount);
+		byteBuffer.writeLong(block.totalFee);
+		byteBuffer.writeLong(block.reward);
+
+		byteBuffer.writeInt(block.payloadLength);
+
+		const payloadHashBuffer = Buffer.from(block.payloadHash, 'hex');
+		for (let i = 0; i < payloadHashBuffer.length; i++) {
+			byteBuffer.writeByte(payloadHashBuffer[i]);
+		}
+
+		const generatorPublicKeyBuffer = Buffer.from(
+			block.generatorPublicKey,
+			'hex'
+		);
+		for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
+			byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
+		}
+
+		if (block.blockSignature) {
+			const blockSignatureBuffer = Buffer.from(block.blockSignature, 'hex');
+			for (let i = 0; i < blockSignatureBuffer.length; i++) {
+				byteBuffer.writeByte(blockSignatureBuffer[i]);
+			}
+		}
+
+		byteBuffer.flip();
+		bytes = byteBuffer.toBuffer();
 	} catch (e) {
 		throw e;
 	}
 
-	return block;
+	return bytes;
 };
 
 /**
@@ -430,31 +450,17 @@ Block.prototype.objectNormalize = function(block) {
  * @todo Add description for the params
  */
 Block.prototype.getId = function(block) {
-	var hash = crypto
+	const hash = crypto
 		.createHash('sha256')
 		.update(this.getBytes(block))
 		.digest();
-	var temp = Buffer.alloc(8);
-	for (var i = 0; i < 8; i++) {
+	const temp = Buffer.alloc(8);
+	for (let i = 0; i < 8; i++) {
 		temp[i] = hash[7 - i];
 	}
 
-	var id = new bignum.fromBuffer(temp).toString();
+	const id = new bignum.fromBuffer(temp).toString();
 	return id;
-};
-
-/**
- * Creates hash based on block bytes.
- *
- * @param {block} block
- * @returns {hash} SHA256 hash
- * @todo Add description for the params
- */
-Block.prototype.getHash = function(block) {
-	return crypto
-		.createHash('sha256')
-		.update(this.getBytes(block))
-		.digest();
 };
 
 /**
@@ -478,7 +484,7 @@ Block.prototype.dbRead = function(raw) {
 	if (!raw.b_id) {
 		return null;
 	}
-	var block = {
+	const block = {
 		id: raw.b_id,
 		version: parseInt(raw.b_version),
 		timestamp: parseInt(raw.b_timestamp),
