@@ -37,7 +37,7 @@ class MigrationsRepository {
 	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
-		this.inTransaction = db.ctx && db.ctx.inTransaction;
+		this.inTransaction = !!(db.ctx && db.ctx.inTransaction);
 	}
 
 	/**
