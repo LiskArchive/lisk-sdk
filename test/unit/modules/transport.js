@@ -19,6 +19,7 @@ var rewire = require('rewire');
 var chai = require('chai');
 var swaggerHelper = require('../../../helpers/swagger');
 var WSServer = require('../../common/ws/server_master');
+var constants = require('../../../helpers/constants');
 var generateRandomActivePeer = require('../../fixtures/peers')
 	.generateRandomActivePeer;
 
@@ -44,7 +45,7 @@ describe('transport', () => {
 	var modules;
 	var defaultScope;
 	var restoreRewiredTopDeps;
-	var peerStub;
+	var peerMock;
 	var definitions;
 	var transaction;
 	var block;
@@ -128,7 +129,7 @@ describe('transport', () => {
 			},
 		};
 
-		peerStub = {
+		peerMock = {
 			nonce: 'sYHEDBKcScaAAAYg',
 		};
 
@@ -541,7 +542,7 @@ describe('transport', () => {
 						.stub()
 						.callsArgWith(2, [validateErr]);
 
-					__private.receiveTransactions(query, peerStub, '', () => {
+					__private.receiveTransactions(query, peerMock, '', () => {
 						done();
 					});
 				});
@@ -557,7 +558,7 @@ describe('transport', () => {
 					var error;
 
 					beforeEach(done => {
-						__private.receiveTransactions(undefined, peerStub, '', err => {
+						__private.receiveTransactions(query, peerMock, '', err => {
 							error = err;
 							done();
 						});
@@ -575,14 +576,16 @@ describe('transport', () => {
 						var error;
 
 						beforeEach(done => {
-							__private.receiveTransactions(
-								transactions,
-								peerStub,
-								'This is a log message',
-								err => {
-									error = err;
-									done();
-								}
+							query.transactions[0] = undefined;
+							__private.receiveTransactions(query, peerMock, '', err => {
+								error = err;
+								done();
+							});
+						});
+
+						it('should call callback with error = "Unable to process transaction. Transaction is undefined."', () => {
+							return expect(error).to.equal(
+								'Unable to process transaction. Transaction is undefined.'
 							);
 						});
 
@@ -592,15 +595,33 @@ describe('transport', () => {
 								.which.equals(true);
 						});
 
-						it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', () => {
-							return expect(
-								__private.receiveTransaction.calledWith(
-									transactions[0],
-									peerStub,
-									'This is a log message'
-								)
-							).to.be.true;
-						});
+							beforeEach(done => {
+								__private.receiveTransactions(
+									query,
+									peerMock,
+									'This is a log message',
+									err => {
+										error = err;
+										done();
+									}
+								);
+							});
+
+							it('should set transaction.bundled = true', () => {
+								return expect(query.transactions[0])
+									.to.have.property('bundled')
+									.which.equals(true);
+							});
+
+							it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', () => {
+								return expect(
+									__private.receiveTransaction.calledWith(
+										query.transactions[0],
+										peerMock,
+										'This is a log message'
+									)
+								).to.be.true;
+							});
 
 						it('should call callback with error = null', () => {
 							return expect(error).to.equal(null);
@@ -617,16 +638,16 @@ describe('transport', () => {
 								.stub()
 								.callsArgWith(3, receiveTransactionError);
 
-							__private.receiveTransactions(
-								transactions,
-								peerStub,
-								'This is a log message',
-								err => {
-									error = err;
-									done();
-								}
-							);
-						});
+								__private.receiveTransactions(
+									query,
+									peerMock,
+									'This is a log message',
+									err => {
+										error = err;
+										done();
+									}
+								);
+							});
 
 						it('should call library.logger.debug with error and transaction', () => {
 							return expect(
@@ -702,7 +723,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
-						peerStub,
+						peerMock,
 						'This is a log message',
 						() => {
 							done();
@@ -746,7 +767,7 @@ describe('transport', () => {
 
 					__private.receiveTransaction(
 						transaction,
-						peerStub,
+						peerMock,
 						extraLogMessage,
 						err => {
 							error = err;
@@ -771,7 +792,7 @@ describe('transport', () => {
 				});
 
 				it('should call __private.removePeer with peer details object', () => {
-					var peerDetails = { peer: peerStub, code: 'ETRANSACTION' };
+					var peerDetails = { peer: peerMock, code: 'ETRANSACTION' };
 					return expect(
 						__private.removePeer.calledWith(peerDetails, extraLogMessage)
 					).to.be.true;
@@ -809,7 +830,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
-						peerStub,
+						peerMock,
 						'This is a log message',
 						() => {
 							done();
@@ -830,7 +851,7 @@ describe('transport', () => {
 				it('should call library.logic.peers.peersManager.getAddress with peer.nonce', () => {
 					return expect(
 						library.logic.peers.peersManager.getAddress.calledWith(
-							peerStub.nonce
+							peerMock.nonce
 						)
 					).to.be.true;
 				});
@@ -850,7 +871,7 @@ describe('transport', () => {
 
 					__private.receiveTransaction(
 						transaction,
-						peerStub,
+						peerMock,
 						'This is a log message',
 						err => {
 							error = err;
@@ -888,7 +909,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
-						peerStub,
+						peerMock,
 						'This is a log message',
 						(err, res) => {
 							error = err;
@@ -1345,41 +1366,77 @@ describe('transport', () => {
 						});
 
 						describe('when peer.rpc.updateMyself fails', () => {
-							it('should call __private.removePeer');
+							beforeEach(done => {
+								var err = 'RPC failure';
+								peerMock = generateRandomActivePeer();
+								peerMock.rpc = {
+									updateMyself: sinonSandbox.stub().callsArgWith(1, err),
+								};
+								modules.peers.list = sinonSandbox
+									.stub()
+									.callsArgWith(1, null, [peerMock]);
+								__private.removePeer = sinonSandbox.stub();
+								transportInstance.onBroadcastBlock(block, true);
+								done();
+							});
 
-							it(
-								'should call __private.removePeer with {peer: peer, code: "ECOMMUNICATION"}'
-							);
+							it('should call __private.removePeer with {peer: peer, code: "ECOMMUNICATION"}', () => {
+								return expect(
+									__private.removePeer.calledWith({
+										peer: peerMock,
+										code: 'ECOMMUNICATION',
+									})
+								).to.be.true;
+							});
 						});
 
 						describe('when peer.rpc.updateMyself succeeds', () => {
-							it('should call library.logger.debug');
+							beforeEach(done => {
+								peerMock = generateRandomActivePeer();
+								peerMock.rpc = {
+									updateMyself: sinonSandbox.stub().callsArg(1),
+								};
+								modules.peers.list = sinonSandbox
+									.stub()
+									.callsArgWith(1, null, [peerMock]);
+								__private.removePeer = sinonSandbox.stub();
+								transportInstance.onBroadcastBlock(block, true);
+								done();
+							});
 
-							it(
-								'should call __private.removePeer with "Peer notified correctly after update:" + peer.string'
-							);
+							it('should call library.logger.debug', () => {
+								return expect(
+									library.logger.debug.calledWith(
+										'Successfully notified peer about self',
+										peerMock.string
+									)
+								).to.be.true;
+							});
 						});
 					});
 
 					describe('when async.each succeeds', () => {
-						it('should call __private.broadcaster.broadcast');
-
-						it(
-							'should call __private.broadcaster.broadcast with {limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}'
-						);
-
-						it(
-							'should call __private.broadcaster.broadcast with {api: "postBlock", data: {block: block}, immediate: true}'
-						);
+						it('should call __private.broadcaster.broadcast with {limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}', () => {
+							return expect(
+								__private.broadcaster.broadcast.calledWith(
+									{
+										limit: constants.maxPeers,
+										broadhash:
+											'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+									},
+									{ api: 'postBlock', data: { block }, immediate: true }
+								)
+							).to.be.true;
+						});
 					});
 				});
 			});
 
-			it('should call library.network.io.sockets.emit');
-
-			it('should call library.network.io.sockets.emit with "blocks/change"');
-
-			it('should call library.network.io.sockets.emit with block');
+			it('should call library.network.io.sockets.emit with "blocks/change" and block', () => {
+				return expect(
+					library.network.io.sockets.emit.calledWith('blocks/change', block)
+				);
+			});
 		});
 
 		describe('shared', () => {
