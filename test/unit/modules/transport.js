@@ -18,6 +18,9 @@
 var rewire = require('rewire');
 var chai = require('chai');
 var swaggerHelper = require('../../../helpers/swagger');
+var WSServer = require('../../common/ws/server_master');
+var generateRandomActivePeer = require('../../fixtures/peers')
+	.generateRandomActivePeer;
 
 var TransportModule = rewire('../../../modules/transport.js');
 
@@ -44,6 +47,8 @@ describe('transport', () => {
 	var peerStub;
 	var definitions;
 	var transaction;
+	var block;
+	var peersList;
 
 	const SAMPLE_SIGNATURE_1 = {
 		transactionId: '222675625422353767',
@@ -908,6 +913,15 @@ describe('transport', () => {
 		var restoreRewiredTransportDeps;
 
 		beforeEach(done => {
+			peersList = [];
+			for (var i = 0; i < 10; i++) {
+				var peer = generateRandomActivePeer();
+				peer.rpc = {
+					updateMyself: sinonSandbox.stub().callsArg(1),
+				};
+				peersList.push(peer);
+			}
+
 			transportInstance = new TransportModule((err, transportSelf) => {
 				transportSelf.onBind(defaultScope);
 
@@ -930,11 +944,28 @@ describe('transport', () => {
 							},
 						},
 					},
+					logic: {
+						peers: {
+							me: sinonSandbox.stub().returns(WSServer.generatePeerHeaders()),
+						},
+					},
 				};
 
 				modules = {
 					peers: {
 						calculateConsensus: sinonSandbox.stub().returns(100),
+						list: sinonSandbox.stub().callsArgWith(1, null, peersList),
+					},
+					system: {
+						update: sinonSandbox.stub().callsArg(0),
+						getBroadhash: sinonSandbox
+							.stub()
+							.returns(
+								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b'
+							),
+					},
+					loader: {
+						syncing: sinonSandbox.stub().returns(false),
 					},
 				};
 
@@ -1192,53 +1223,126 @@ describe('transport', () => {
 			});
 		});
 
-		describe('onNewBlock', () => {
+		describe('onBroadcastBlock', () => {
 			describe('when broadcast is defined', () => {
-				it('should call modules.system.update');
+				beforeEach(done => {
+					block = {
+						id: '6258354802676165798',
+						height: 123,
+						timestamp: 28227090,
+						generatorPublicKey:
+							'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
+						numberOfTransactions: 15,
+						totalAmount: '150000000',
+						totalFee: '15000000',
+						reward: '50000000',
+						totalForged: '65000000',
+					};
+					__private.broadcaster = {
+						maxRelays: sinonSandbox.stub().returns(false),
+						enqueue: sinonSandbox.stub(),
+						broadcast: sinonSandbox.stub(),
+					};
+					transportInstance.onBroadcastBlock(block, true);
+					done();
+				});
+
+				it('should call modules.system.update', () => {
+					return expect(modules.system.update.calledOnce).to.be.true;
+				});
 
 				describe('when modules.system.update succeeds', () => {
-					it('should call __private.broadcaster.maxRelays');
+					it('should call __private.broadcaster.maxRelays with block', () => {
+						expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
+						return expect(__private.broadcaster.maxRelays.calledWith(block)).to
+							.be.true;
+					});
 
-					it('should call __private.broadcaster.maxRelays with blocks');
+					describe('when __private.broadcaster.maxRelays returns true', () => {
+						beforeEach(done => {
+							__private.broadcaster.maxRelays = sinonSandbox
+								.stub()
+								.returns(true);
+							transportInstance.onBroadcastBlock(block, true);
+							done();
+						});
 
-					describe('when __private.broadcaster.maxRelays with blocks = true', () => {
-						it(
-							'should call library.logger.debug with "Broadcasting block aborted - max block relays exceeded"'
-						);
+						it('should call library.logger.debug with "Broadcasting block aborted - max block relays exceeded"', () => {
+							return expect(
+								library.logger.debug.calledWith(
+									'Broadcasting block aborted - max block relays exceeded'
+								)
+							).to.be.true;
+						});
 					});
 
 					describe('when modules.loader.syncing = true', () => {
-						it(
-							'should call library.logger.debug with "Broadcasting block aborted - blockchain synchronization in progress"'
-						);
+						beforeEach(done => {
+							modules.loader.syncing = sinonSandbox.stub().returns(true);
+							transportInstance.onBroadcastBlock(block, true);
+							done();
+						});
+
+						it('should call library.logger.debug with "Broadcasting block aborted - blockchain synchronization in progress"', () => {
+							return expect(
+								library.logger.debug.calledWith(
+									'Broadcasting block aborted - blockchain synchronization in progress'
+								)
+							).to.be.true;
+						});
 					});
 
-					it('should call modules.peers.list');
-
-					it('should call modules.peers.list with {normalized: false}');
+					it('should call modules.peers.list with {normalized: false}', () => {
+						expect(modules.peers.list.calledOnce).to.be.true;
+						return expect(modules.peers.list.calledWith({ normalized: false }))
+							.to.be.true;
+					});
 
 					describe('when peers = undefined', () => {
-						it(
-							'should call library.logger.debug with "Broadcasting block aborted - active peer list empty"'
-						);
+						beforeEach(done => {
+							modules.peers.list = sinonSandbox
+								.stub()
+								.callsArgWith(1, null, undefined);
+							transportInstance.onBroadcastBlock(block, true);
+							done();
+						});
+
+						it('should call library.logger.debug with "Broadcasting block aborted - active peer list empty"', () => {
+							return expect(
+								library.logger.debug.calledWith(
+									'Broadcasting block aborted - active peer list empty'
+								)
+							).to.be.true;
+						});
 					});
 
 					describe('when peers.length = 0', () => {
-						it(
-							'should call library.logger.debug with "Broadcasting block aborted - active peer list empty"'
-						);
+						beforeEach(done => {
+							modules.peers.list = sinonSandbox
+								.stub()
+								.callsArgWith(1, null, []);
+							transportInstance.onBroadcastBlock(block, true);
+							done();
+						});
+
+						it('should call library.logger.debug with "Broadcasting block aborted - active peer list empty"', () => {
+							return expect(
+								library.logger.debug.calledWith(
+									'Broadcasting block aborted - active peer list empty'
+								)
+							).to.be.true;
+						});
 					});
 
-					it('should call peers.filter');
-
-					it(
-						'should call peers.filter with peer.state === Peer.STATE.CONNECTED'
-					);
-
 					describe('for every filtered peer in peers', () => {
-						it('should call peer.rpc.updateMyself');
-
-						it('should call peer.rpc.updateMyself with library.logic.peers.me');
+						it('should call peer.rpc.updateMyself with the result of library.logic.peers.me()', () => {
+							return peersList.forEach(peer => {
+								expect(peer.rpc.updateMyself.calledOnce).to.be.true;
+								expect(
+									peer.rpc.updateMyself.calledWith(library.logic.peers.me())
+								).to.be.true;
+							});
+						});
 
 						describe('when peer.rpc.updateMyself fails', () => {
 							it('should call __private.removePeer');
