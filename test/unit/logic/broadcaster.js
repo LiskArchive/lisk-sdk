@@ -59,4 +59,21 @@ describe('Broadcaster', () => {
 				.that.is.an('Array');
 		});
 	});
+
+	describe('enqueue', () => {
+		it('should throw error for no params', () => {
+			return expect(() => {
+				broadcaster.enqueue();
+			})
+				.to.throw()
+				.to.be.instanceOf(Error);
+		});
+
+		it('should push params and options to queue', () => {
+			const params = {};
+			const options = {};
+			expect(broadcaster.enqueue(params, options)).to.eql(1);
+			return expect(broadcaster.enqueue(params, options)).to.eql(2);
+		});
+	});
 });
