@@ -169,7 +169,7 @@ describe('GET /api/node', () => {
 					});
 				});
 
-				it('using valid type should be ok', () => {
+				it('using valid type should be ok @unstable', () => {
 					var transactionInCheck = transactionList[0];
 
 					return UnProcessedEndpoint.makeRequest(
