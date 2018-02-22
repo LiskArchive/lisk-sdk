@@ -58,11 +58,11 @@ describe('blocks/process', () => {
 				clearTables: seriesCb => {
 					async.every(
 						[
-							'blocks where height > 1',
-							'trs where "blockId" != \'6524861224470851795\'',
-							"mem_accounts where address in ('2737453412992791987L', '2896019180726908125L')",
+							'blocks WHERE height > 1',
+							'trs WHERE "blockId" != \'6524861224470851795\'',
+							"mem_accounts WHERE address IN ('2737453412992791987L', '2896019180726908125L')",
 							'forks_stat',
-							'votes where "transactionId" = \'17502993173215211070\'',
+							'votes WHERE "transactionId" = \'17502993173215211070\'',
 						],
 						(table, seriesCb) => {
 							clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
