@@ -729,7 +729,7 @@ Chain.prototype.deleteLastBlock = function(cb) {
  * @func recoverChain
  * @param  {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object}   cb.err - Error if occurred
+ * @returns {Object} cb.err - Error if occurred
  */
 Chain.prototype.recoverChain = function(cb) {
 	library.logger.warn('Chain comparison failed, starting recovery');

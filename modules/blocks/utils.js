@@ -71,7 +71,7 @@ function Utils(
  * Normalize blocks and their transactions.
  *
  * @param {Array} rows - Data from full_blocks_list view
- * @returns {Array} blocks - Normalized list of blocks with transactions
+ * @returns {Array} blocks - List of normalized blocks with transactions
  */
 Utils.prototype.readDbRows = function(rows) {
 	var blocks = {};

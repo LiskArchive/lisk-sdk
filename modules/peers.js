@@ -391,7 +391,7 @@ __private.dbSave = function(cb) {
 /**
  * Returns consensus stored by Peers.prototype.calculateConsensus.
  *
- * @returns {number|undefined} Last calculated consensus or null wasn't calculated yet
+ * @returns {number|undefined} Last calculated consensus or null if wasn't calculated yet
  */
 Peers.prototype.getLastConsensus = function() {
 	return self.consensus;

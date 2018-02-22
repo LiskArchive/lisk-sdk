@@ -72,8 +72,8 @@ function API(logger, db, block, schema, dbSequence) {
  * @param {string} filter.sort - Sort order, default: height:desc
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object}   cb.err - Error if occurred
- * @returns {Object}   cb.data - List of normalized blocks
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.data - List of normalized blocks
  */
 __private.list = function(filter, cb) {
 	var params = {};
