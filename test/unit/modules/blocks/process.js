@@ -304,7 +304,7 @@ describe('blocks/process', () => {
 			done();
 		});
 
-		describe('Last block stands', () => {
+		describe('last block stands', () => {
 			afterEach(() => {
 				expect(
 					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 1)
@@ -321,7 +321,7 @@ describe('blocks/process', () => {
 				});
 			});
 
-			it('should return when timestamps are equals and block.id > lastBlock.id', done => {
+			it('should return when timestamps are equal and block.id > lastBlock.id', done => {
 				const block = { timestamp: 1, id: 2 };
 				const lastBlock = { timestamp: 1, id: 1 };
 				__private.receiveForkOne(block, lastBlock, err => {
@@ -331,7 +331,7 @@ describe('blocks/process', () => {
 			});
 		});
 
-		describe('Last block and parent loses', () => {
+		describe('last block and parent loses', () => {
 			beforeEach(done => {
 				__private.validateBlockSlot = sinonSandbox.stub();
 				done();
@@ -572,7 +572,7 @@ describe('blocks/process', () => {
 			done();
 		});
 
-		describe('Delegate forgin on multiple nodes', () => {
+		describe('delegate forging on multiple nodes', () => {
 			it('should log warning when generatorPublicKey is the same for block and lastBlock', done => {
 				__private.receiveForkFive(
 					{ timestamp: 1, id: 2, generatorPublicKey: '1a' },
@@ -601,7 +601,7 @@ describe('blocks/process', () => {
 			});
 		});
 
-		describe('Last block stands', () => {
+		describe('last block stands', () => {
 			afterEach(() => {
 				expect(
 					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 5)
@@ -618,7 +618,7 @@ describe('blocks/process', () => {
 				});
 			});
 
-			it('should call a callback with no error when timestamps are equals and block.id > lastBlock.id', done => {
+			it('should call a callback with no error when timestamps are equal and block.id > lastBlock.id', done => {
 				const block = { timestamp: 1, id: 2 };
 				const lastBlock = { timestamp: 1, id: 1 };
 				__private.receiveForkFive(block, lastBlock, err => {
@@ -628,7 +628,7 @@ describe('blocks/process', () => {
 			});
 		});
 
-		describe('Last block loses', () => {
+		describe('last block loses', () => {
 			beforeEach(done => {
 				__private.validateBlockSlot = sinonSandbox.stub();
 				__private.receiveBlock = sinonSandbox.stub();
@@ -885,7 +885,7 @@ describe('blocks/process', () => {
 						});
 					});
 
-					describe('when comparaison failed', () => {
+					describe('when comparison failed', () => {
 						beforeEach(() => {
 							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
 								ids: 'rpc.blocksCommon-Empty',
@@ -897,7 +897,7 @@ describe('blocks/process', () => {
 							);
 						});
 
-						describe('and consensus is low', () => {
+						describe('when consensus is low', () => {
 							beforeEach(() => {
 								return modules.transport.poorConsensus.returns(true);
 							});
@@ -919,7 +919,7 @@ describe('blocks/process', () => {
 							});
 						});
 
-						describe('and consensus is high', () => {
+						describe('when consensus is high', () => {
 							beforeEach(() => {
 								return modules.transport.poorConsensus.returns(false);
 							});
@@ -1006,7 +1006,7 @@ describe('blocks/process', () => {
 										});
 									});
 
-									describe('when comparaison failed', () => {
+									describe('when comparison failed', () => {
 										beforeEach(() => {
 											library.db.blocks.getCommonBlock.resolves([]);
 											return modules.blocks.chain.recoverChain.callsArgWith(
@@ -1016,7 +1016,7 @@ describe('blocks/process', () => {
 											);
 										});
 
-										describe('and consensus is low', () => {
+										describe('when consensus is low', () => {
 											beforeEach(() => {
 												return modules.transport.poorConsensus.returns(true);
 											});
@@ -1036,7 +1036,7 @@ describe('blocks/process', () => {
 											});
 										});
 
-										describe('and consensus is high', () => {
+										describe('when consensus is high', () => {
 											beforeEach(() => {
 												return modules.transport.poorConsensus.returns(false);
 											});
@@ -1122,7 +1122,7 @@ describe('blocks/process', () => {
 			});
 
 			describe('when succeeds', () => {
-				describe('and query returns empty array', () => {
+				describe('when query returns empty array', () => {
 					beforeEach(() => {
 						library.db.blocks.loadBlocksOffset.resolves([]);
 						return modules.blocks.utils.readDbRows.returns([]);
@@ -1151,7 +1151,7 @@ describe('blocks/process', () => {
 					});
 				});
 
-				describe('and query returns rows', () => {
+				describe('when query returns rows', () => {
 					beforeEach(() => {
 						library.db.blocks.loadBlocksOffset.resolves([dummyBlock]);
 						return modules.blocks.utils.readDbRows.returns([dummyBlock]);
@@ -2415,7 +2415,7 @@ describe('blocks/process', () => {
 					);
 				});
 
-				it('should discard block, it does not match with current chain', done => {
+				it('should discard block, when it does not match with current chain', done => {
 					library.sequence.add = function(cb) {
 						var fn = Promise.promisify(cb);
 						fn().then(() => {
@@ -2459,7 +2459,7 @@ describe('blocks/process', () => {
 			done();
 		});
 
-		it('should set definitions with swagger.definitions', () => {
+		it('should assign definitions with swagger.definitions', () => {
 			return expect(definitions).to.equal(modulesStub.swagger.definitions);
 		});
 
