@@ -1,14 +1,18 @@
-const Broadcaster = require('../../../logic/broadcaster');
+const rewire = require('rewire');
+
+const Broadcaster = rewire('../../../logic/broadcaster');
 
 describe('Broadcaster', () => {
 	const force = true;
 	const params = { limit: 10, broadhash: '123' };
+	const options = { data: { peer: {}, block: {} }, api: 'blocks' };
 	let broadcaster;
 	let broadcasts;
 	let transactionStub;
 	let peersStub;
 	let loggerStub;
 	let modulesStub;
+	let peerList;
 
 	before(done => {
 		broadcasts = {
@@ -17,7 +21,7 @@ describe('Broadcaster', () => {
 		};
 
 		peersStub = {
-			me: sinonSandbox.stub(),
+			me: sinonSandbox.stub().returns(['192.168.10.10']),
 		};
 
 		transactionStub = {
@@ -29,14 +33,25 @@ describe('Broadcaster', () => {
 			error: sinonSandbox.stub(),
 		};
 
+		peerList = [
+			{
+				rpc: {
+					blocks: sinonSandbox
+						.stub()
+						.callsArgWith(1, new Error('err'))
+						.returns(),
+				},
+			},
+		];
+
 		modulesStub = {
 			peers: {
-				list: sinonSandbox.stub(),
+				list: sinonSandbox.stub().callsArgWith(1, null, peerList),
 				getLastConsensus: sinonSandbox.stub(),
 			},
 			transport: {},
 			transactions: {
-				transactionInPool: sinonSandbox.stub(),
+				transactionInPool: sinonSandbox.stub().returns(true),
 			},
 		};
 
@@ -47,7 +62,6 @@ describe('Broadcaster', () => {
 			transactionStub,
 			loggerStub
 		);
-
 		broadcaster.bind(
 			modulesStub.peers,
 			modulesStub.transport,
@@ -57,14 +71,6 @@ describe('Broadcaster', () => {
 	});
 
 	describe('constructor', () => {
-		it('should throw error with no params', () => {
-			return expect(() => {
-				new Broadcaster();
-			})
-				.to.throw()
-				.to.be.instanceOf(Error);
-		});
-
 		it('should return Broadcaster instance', () => {
 			expect(broadcaster).to.be.instanceOf(Broadcaster);
 			expect(broadcaster)
@@ -97,14 +103,51 @@ describe('Broadcaster', () => {
 	});
 
 	describe('getPeers', () => {
-		beforeEach(() => {
-			return modulesStub.peers.list.callsArgWith(1, null, [1]);
-		});
-
 		it('should return peers', done => {
 			broadcaster.getPeers(params, (err, peers) => {
 				expect(err).to.be.null;
 				expect(peers).to.be.an('Array').that.is.not.empty;
+				done();
+			});
+		});
+	});
+
+	describe('broadcast', () => {
+		it('should be able to broadcast block to peers', done => {
+			modulesStub.peers.list.callsArgWith(1, null, peerList);
+			broadcaster.broadcast(params, options, (err, res) => {
+				expect(err).to.be.null;
+				expect(res).to.be.an('object').that.is.not.empty;
+				expect(res).to.deep.equal({ body: null, peer: peerList });
+				done();
+			});
+		});
+
+		it('should throw error for empty peers', done => {
+			const err = new Error('empty peer list');
+			modulesStub.peers.list.callsArgWith(1, err, []);
+			broadcaster.broadcast(params, options, (err, res) => {
+				expect(err).to.be.eql(err);
+				expect(res).to.be.an('object').that.is.not.empty;
+				done();
+			});
+		});
+	});
+
+	describe('maxRelays', () => {
+		it('should return true if exhausted', () => {
+			return expect(broadcaster.maxRelays({ relays: 11 })).to.be.true;
+		});
+
+		it('should return false if max relay is less than relay limit', () => {
+			return expect(broadcaster.maxRelays({ relays: 9 })).to.be.false;
+		});
+	});
+
+	describe('nextRelease', () => {
+		it('should be able to invoke next release', done => {
+			const nextRelease = Broadcaster.__get__('nextRelease');
+			nextRelease(() => {
 				done();
 			});
 		});
