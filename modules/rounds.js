@@ -40,7 +40,7 @@ __private.ticking = false;
  * @requires logic/round
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
- * @returns {setImmediateCallback} Callback function with `self` as data
+ * @returns {setImmediateCallback} cb, null, self
  * @todo Apply node pattern for callbacks: callback always at the end.
  */
 function Rounds(cb, scope) {
@@ -82,7 +82,7 @@ Rounds.prototype.ticking = function() {
  *
  * @param {number} round
  * @param {function} cb
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
  * @todo Add description for the params and the return value
  */
 Rounds.prototype.flush = function(round, cb) {
@@ -365,13 +365,9 @@ Rounds.prototype.cleanup = function(cb) {
  * @private
  * @param {scope} scope
  * @param {function} cb
-<<<<<<< HEAD
  * @param {Object} tx - Database transaction/task object
- * @return {setImmediateCallback}
-=======
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
  * @todo Add description for the params
->>>>>>> :books: Standardize code documentation for modules/rounds
  */
 __private.getOutsiders = function(scope, cb, tx) {
 	scope.roundOutsiders = [];
@@ -413,13 +409,9 @@ __private.getOutsiders = function(scope, cb, tx) {
  * @private
  * @param {number} round
  * @param {function} cb
-<<<<<<< HEAD
  * @param {Object} tx - Database transaction/task object
- * @return {setImmediateCallback}
-=======
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
  * @todo Add description for the params and the return value
->>>>>>> :books: Standardize code documentation for modules/rounds
  */
 __private.sumRound = function(scope, cb, tx) {
 	library.logger.debug('Summing round', scope.round);

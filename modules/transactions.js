@@ -51,7 +51,7 @@ __private.assetTypes = {};
  * @requires logic/transfer
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
- * @returns {setImmediateCallback} Callback function with `self` as data
+ * @returns {setImmediateCallback} cb, null, self
  */
 function Transactions(cb, scope) {
 	library = {
@@ -93,7 +93,7 @@ function Transactions(cb, scope) {
  * @private
  * @param {Object} filter
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error | data: {transactions, count}
+ * @returns {setImmediateCallback} cb, err, {transactions, count}
  * @todo Add description for the params
  */
 __private.list = function(filter, cb) {
@@ -360,7 +360,7 @@ __private.getAssetForIdsBasedOnType = function(ids, type) {
  * @param {int} filters.limit - Limit applied to results
  * @param {int} filters.offset - Offset value for results
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error | data: {transactions, count}
+ * @returns {setImmediateCallback} cb, err, {transactions, count}
  */
 __private.getPooledTransactions = function(method, filters, cb) {
 	var transactions = self[method](true);
@@ -585,7 +585,7 @@ Transactions.prototype.undo = function(transaction, block, sender, cb) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
  * @todo Add description for the params and the return value
  */
 Transactions.prototype.applyUnconfirmed = function(
@@ -630,7 +630,7 @@ Transactions.prototype.applyUnconfirmed = function(
  *
  * @param {transaction} transaction
  * @param {function} cb
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
  * @todo Add description for the params and the return value
  */
 Transactions.prototype.undoUnconfirmed = function(transaction, cb, tx) {
@@ -759,7 +759,7 @@ Transactions.prototype.shared = {
 	 * @param {int} filters.limit - Limit applied to results
 	 * @param {int} filters.offset - Offset value for results
 	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallbackObject}
+	 * @returns {setImmediateCallback} cb
 	 * @todo Add description for the return value
 	 */
 	getTransactions(filters, cb) {

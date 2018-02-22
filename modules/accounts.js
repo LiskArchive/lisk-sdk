@@ -42,7 +42,7 @@ __private.assetTypes = {};
  * @requires logic/vote
  * @param {scope} scope - App instance
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} Callback function with `self` as data
+ * @returns {setImmediateCallback} cb, null, self
  */
 function Accounts(cb, scope) {
 	library = {
@@ -71,7 +71,7 @@ function Accounts(cb, scope) {
  *
  * @param {publicKey} publicKey - PublicKey
  * @throws {string} If address is invalid throws `Invalid public key`
- * @returns {address} Address generated
+ * @returns {address} Generated address
  */
 Accounts.prototype.generateAddressByPublicKey = function(publicKey) {
 	var publicKeyHash = crypto
@@ -127,7 +127,7 @@ Accounts.prototype.getAccounts = function(filter, fields, cb, tx) {
  *
  * @param {Object} data - Contains address or public key to generate address
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} Errors
+ * @returns {setImmediateCallback} cb, err
  * @returns {function} Call to logic.account.get()
  */
 Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
@@ -171,7 +171,7 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
  *
  * @param {Object} data - Contains address and public key
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} For errors wit address and public key
+ * @returns {setImmediateCallback} cb, err
  * @returns {function} Calls to logic.account.merge()
  * @todo improve publicKey validation try/catch
  */
@@ -247,7 +247,7 @@ Accounts.prototype.shared = {
 	 * @param {int} filters.limit - Limit applied to results
 	 * @param {int} filters.offset - Offset value for results
 	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallbackObject}
+	 * @returns {setImmediateCallback} cb
 	 * @todo Add description for the return value
 	 */
 	getAccounts(filters, cb) {

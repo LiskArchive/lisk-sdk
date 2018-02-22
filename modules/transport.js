@@ -49,7 +49,7 @@ __private.messages = {};
  * @requires logic/broadcaster
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
- * @returns {setImmediateCallback} Callback function with `self` as data
+ * @returns {setImmediateCallback} cb, null, self
  */
 function Transport(cb, scope) {
 	library = {
@@ -122,7 +122,7 @@ __private.removePeer = function(options, extraMessage) {
  * @implements {__private.receiveSignature}
  * @param {Array} signatures - Array of signatures
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} cb, err
+ * @returns {setImmediateCallback} cb, err
  */
 __private.receiveSignatures = function(signatures, cb) {
 	async.eachSeries(
@@ -147,7 +147,7 @@ __private.receiveSignatures = function(signatures, cb) {
  * @param {Object} query
  * @param {string} query.signature
  * @param {Object} query.transaction
- * @returns {setImmediateCallback} cb | error messages
+ * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
 __private.receiveSignature = function(query, cb) {
@@ -175,7 +175,7 @@ __private.receiveSignature = function(query, cb) {
  * @param {peer} peer - Peer object
  * @param {string} extraLogMessage - Extra log message
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} cb, err
+ * @returns {setImmediateCallback} cb, err
  */
 __private.receiveTransactions = function(
 	transactions,
@@ -210,7 +210,7 @@ __private.receiveTransactions = function(
  * @param {peer} peer
  * @param {string} extraLogMessage
  * @param {function} cb
- * @returns {setImmediateCallback} cb, error message
+ * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
 __private.receiveTransaction = function(

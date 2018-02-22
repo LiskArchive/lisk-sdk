@@ -53,7 +53,7 @@ __private.retries = 5;
  * @requires logic/peer
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
- * @returns {setImmediateCallback} Callback function with `self` as data.
+ * @returns {setImmediateCallback} cb, null, self
  */
 // Constructor
 function Loader(cb, scope) {
@@ -821,7 +821,7 @@ Loader.prototype.findGoodPeers = function(peers) {
  * Gets a list of "good" peers from network.
  *
  * @param {function} cb
- * @returns {setImmediateCallback} err | __private.network (good peers)
+ * @returns {setImmediateCallback} cb, err, good peers
  * @todo Add description for the params
  */
 Loader.prototype.getNetwork = function(cb) {

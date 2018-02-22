@@ -40,7 +40,7 @@ __private.assetTypes = {};
  * @requires logic/signature
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
- * @returns {setImmediateCallback} Callback function with `self` as data
+ * @returns {setImmediateCallback} cb, null, self
  */
 function Signatures(cb, scope) {
 	library = {
@@ -125,7 +125,7 @@ Signatures.prototype.shared = {
 	 *
 	 * @param {Object.<{transactionId: string, publicKey: string, signature: string}>} - Signature
 	 * @param {function} cb - Callback function
-	 * @return {setImmediateCallback}
+	 * @returns {setImmediateCallback} cb
 	 */
 	postSignature(signature, cb) {
 		return modules.transport.shared.postSignature({ signature }, (err, res) => {
@@ -138,7 +138,7 @@ Signatures.prototype.shared = {
 	 *
 	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures
 	 * @param {function} cb - Callback function
-	 * @return {setImmediateCallback}
+	 * @returns {setImmediateCallback} cb
 	 */
 	postSignatures(signatures, cb) {
 		return modules.transport.shared.postSignatures(

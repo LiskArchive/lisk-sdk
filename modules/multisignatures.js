@@ -44,7 +44,7 @@ __private.assetTypes = {};
  * @requires logic/multisignature
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
- * @returns {setImmediateCallback} Callback function with `self` as data
+ * @returns {setImmediateCallback} cb, null, self
  */
 function Multisignatures(cb, scope) {
 	library = {
@@ -85,7 +85,7 @@ function Multisignatures(cb, scope) {
  *
  * @param {Object} transaction - Contains transaction and signature
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} err messages| cb
+ * @returns {setImmediateCallback} cb, err
  * @todo Add test coverage.
  */
 Multisignatures.prototype.processSignature = function(transaction, cb) {
@@ -349,7 +349,7 @@ Multisignatures.prototype.shared = {
 	 * @param {Object} filters - Filters applied to results
 	 * @param {string} filters.address - Account address
 	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallbackObject}
+	 * @returns {setImmediateCallback} cb
 	 */
 	getGroups(filters, cb) {
 		modules.multisignatures.getGroup(filters.address, (err, group) => {
@@ -365,7 +365,7 @@ Multisignatures.prototype.shared = {
 	 * @param {Object} filters - Filters applied to results.
 	 * @param {string} filters.address - Account address.
 	 * @param {function} cb - Callback function.
-	 * @returns {setImmediateCallbackObject}
+	 * @returns {setImmediateCallback} cb
 	 */
 	getMemberships(filters, cb) {
 		var scope = {};

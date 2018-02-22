@@ -62,7 +62,7 @@ Node.prototype.internal = {
 	 *
 	 * @param {string} publicKey - Public key of delegate
 	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallbackObject}
+	 * @returns {setImmediateCallback} cb
 	 * @todo Add description for the return value
 	 */
 	getForgingStatus(publicKey, cb) {
@@ -93,7 +93,7 @@ Node.prototype.internal = {
 	 * @param {string} publicKey - Public key of a delegate
 	 * @param {string} decryptionKey - Key used to decrypt encrypted passphrase
 	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallbackObject}
+	 * @returns {setImmediateCallback} cb
 	 * @todo Add description for the return value
 	 */
 	toggleForgingStatus(publicKey, decryptionKey, cb) {

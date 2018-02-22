@@ -56,7 +56,7 @@ __private.tmpKeypairs = {};
  * @requires logic/delegate
  * @param {scope} scope - App instance
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} Callback function with `self` as argument
+ * @returns {setImmediateCallback} cb, err, self
  */
 // Constructor
 function Delegates(cb, scope) {
@@ -100,7 +100,7 @@ function Delegates(cb, scope) {
  * @private
  * @param {function} cb - Callback function
  * @param {Object} tx - Database transaction/task object
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
 __private.getKeysSortByVote = function(cb, tx) {
@@ -127,7 +127,7 @@ __private.getKeysSortByVote = function(cb, tx) {
  * @private
  * @param {function} cb - Callback function
  * @param {Object} tx - Database transaction/task object
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
 __private.getDelegatesFromPreviousRound = function(cb, tx) {
@@ -152,7 +152,7 @@ __private.getDelegatesFromPreviousRound = function(cb, tx) {
  * @param {block} block
  * @param {function} source - Source function for get delegates
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error message | cb
+ * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
 __private.validateBlockSlot = function(block, source, cb) {
@@ -183,7 +183,7 @@ __private.validateBlockSlot = function(block, source, cb) {
  * @param {number} slot
  * @param {number} height
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error | cb | object {time, keypair}
+ * @returns {setImmediateCallback} cb, err, {time, keypair}
  * @todo Add description for the params
  */
 __private.getBlockSlotData = function(slot, height, cb) {
@@ -217,7 +217,7 @@ __private.getBlockSlotData = function(slot, height, cb) {
  *
  * @private
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
 __private.forge = function(cb) {
@@ -345,7 +345,7 @@ __private.decryptSecret = function(encryptedSecret, key) {
  * @param {Array} votes
  * @param {string} state - 'confirmed' to delegates, otherwise u_delegates
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb | error messages
+ * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
 __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
@@ -462,7 +462,7 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
  *
  * @private
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
 __private.loadDelegates = function(cb) {
@@ -564,7 +564,7 @@ __private.loadDelegates = function(cb) {
  * @param {publicKey} publicKey - Public key of delegate
  * @param {string} secretKey - Key used to decrypt encrypted passphrase
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
 Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
@@ -654,7 +654,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
  * @param {function} source - Source function for get delegates
  * @param {function} cb - Callback function
  * @param {Object} tx - Database transaction/task object
- * @returns {setImmediateCallback} err | truncated delegate list
+ * @returns {setImmediateCallback} cb, err, truncated delegate list
  * @todo Add description for the params
  */
 Delegates.prototype.generateDelegateList = function(height, source, cb, tx) {
@@ -694,7 +694,7 @@ Delegates.prototype.generateDelegateList = function(height, source, cb, tx) {
  *
  * @param {block} block
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error message | cb
+ * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
 Delegates.prototype.validateBlockSlot = function(block, cb) {
@@ -706,7 +706,7 @@ Delegates.prototype.validateBlockSlot = function(block, cb) {
  *
  * @param {block} block
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error message | cb
+ * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
 Delegates.prototype.validateBlockSlotAgainstPreviousRound = function(
@@ -727,7 +727,7 @@ Delegates.prototype.validateBlockSlotAgainstPreviousRound = function(
  *
  * @param {Object} query
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error| object with delegates ordered, offset, count, limit
+ * @returns {setImmediateCallback} cb, err, object with ordered delegates, offset, count, limit
  * @todo Sort does not affect data? What is the impact?
  */
 Delegates.prototype.getDelegates = function(query, cb) {
@@ -765,7 +765,7 @@ Delegates.prototype.getDelegates = function(query, cb) {
  * @param {int} query.limit - Limit applied to results
  * @param {int} query.offset - Offset value for results
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error| object
+ * @returns {setImmediateCallback} cb, err, object
  */
 Delegates.prototype.getForgers = function(query, cb) {
 	query.limit = query.limit || 10;
@@ -932,7 +932,7 @@ Delegates.prototype.onBlockchainReady = function() {
  * Sets loaded to false.
  *
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} Returns cb
+ * @returns {setImmediateCallback} cb
  */
 Delegates.prototype.cleanup = function(cb) {
 	__private.loaded = false;
@@ -966,7 +966,7 @@ Delegates.prototype.shared = {
 	 * @param {int} filters.limit - Limit applied to results
 	 * @param {int} filters.offset - Offset value for results
 	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallbackObject}
+	 * @returns {setImmediateCallback} cb
 	 * @todo Add description for the return value
 	 */
 	getForgers(filters, cb) {
@@ -1007,7 +1007,7 @@ Delegates.prototype.shared = {
 	 * @param {int} filters.limit - Limit applied to results
 	 * @param {int} filters.offset - Offset value for results
 	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallbackObject}
+	 * @returns {setImmediateCallback} cb
 	 * @todo Add description for the return value
 	 */
 	getDelegates(filters, cb) {

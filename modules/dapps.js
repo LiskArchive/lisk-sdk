@@ -55,7 +55,7 @@ __private.assetTypes = {};
  * @requires helpers/out_transfer
  * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
- * @returns {setImmediateCallback} Callback function with `self` as data.
+ * @returns {setImmediateCallback} cb, null, self
  * @todo Apply node pattern for callbacks: callback always at the end.
  * @todo Add 'use strict';
  */
@@ -116,7 +116,7 @@ function DApps(cb, scope) {
  * @private
  * @param {Object} filter - May contain type, name, category, link, limit, offset, sort.
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb, error | cb, null, application
+ * @returns {setImmediateCallback} cb, err, applications
  */
 __private.list = function(filter, cb) {
 	var params = {};

@@ -49,7 +49,7 @@ __private.isActive = false;
  * @requires modules/blocks/chain
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
- * @returns {setImmediateCallback} Callback function with `self` as data
+ * @returns {setImmediateCallback} cb, err, self
  */
 // Constructor
 function Blocks(cb, scope) {
@@ -240,7 +240,7 @@ Blocks.prototype.onBind = function() {
  *
  * @listens module:app~event:cleanup
  * @param  {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {setImmediateCallback} cb
  */
 Blocks.prototype.cleanup = function(cb) {
 	__private.loaded = false;

@@ -47,7 +47,7 @@ var definitions;
  * @requires logic/peer
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
- * @returns {setImmediateCallback} Callback function with `self` as data
+ * @returns {setImmediateCallback} cb, null, self
  */
 function Peers(cb, scope) {
 	library = {
@@ -78,7 +78,7 @@ function Peers(cb, scope) {
  * @private
  * @param {Object} filter
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} Peers length
+ * @returns {setImmediateCallback} cb, null, peers length
  * @todo Add description for the params
  */
 __private.countByFilter = function(filter, cb) {
@@ -94,7 +94,7 @@ __private.countByFilter = function(filter, cb) {
  * @private
  * @param {Object} filter
  * @param {function} [cb=undefined] cb - Callback function (synchronous function if not passed.
- * @returns {setImmediateCallback|Array<Peer>} Peers
+ * @returns {setImmediateCallback|Array<Peer>} cb, null, peers
  * @todo Add description for the params
  */
 __private.getByFilter = function(filter, cb) {
@@ -461,7 +461,7 @@ Peers.prototype.remove = function(peer) {
  * Discovers peers by getting list and validates them.
  *
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb | error
+ * @returns {setImmediateCallback} cb, err
  */
 Peers.prototype.discover = function(cb) {
 	library.logger.trace('Peers->discover');
@@ -570,7 +570,7 @@ Peers.prototype.discover = function(cb) {
  * Filters peers with private or address or with the same nonce.
  *
  * @param {peer[]} peers
- * @return {peer[]} Filtered list of peers
+ * @returns {peer[]} Filtered list of peers
  * @todo Add description for the params
  */
 Peers.prototype.acceptable = function(peers) {
@@ -602,7 +602,7 @@ Peers.prototype.acceptable = function(peers) {
  *                                               If 1: Return peers with different options.broadhash
  *                                               If not specified: return peers regardless of options.broadhash
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} error | peers, consensus
+ * @returns {setImmediateCallback} cb, err, peers
  */
 Peers.prototype.list = function(options, cb) {
 	var limit = options.limit || constants.maxPeers;
