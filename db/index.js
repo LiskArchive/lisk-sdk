@@ -27,7 +27,7 @@ const repos = require('./repos');
 // TODO: Had to change below from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
 // eslint-disable-next-line prefer-const
 let initOptions = {
-	pgNative: true,
+	pgNative: false,
 	capSQL: true,
 	promiseLib: Promise,
 
