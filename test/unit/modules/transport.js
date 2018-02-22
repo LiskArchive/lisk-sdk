@@ -22,6 +22,7 @@ var WSServer = require('../../common/ws/server_master');
 var constants = require('../../../helpers/constants');
 var generateRandomActivePeer = require('../../fixtures/peers')
 	.generateRandomActivePeer;
+var Block = require('../../fixtures/blocks').Block;
 
 var TransportModule = rewire('../../../modules/transport.js');
 
@@ -50,6 +51,7 @@ describe('transport', () => {
 	var transaction;
 	var block;
 	var peersList;
+	var blocksList;
 
 	const SAMPLE_SIGNATURE_1 = {
 		transactionId: '222675625422353767',
@@ -134,8 +136,9 @@ describe('transport', () => {
 		};
 
 		swaggerHelper.getResolvedSwaggerSpec().then(resolvedSpec => {
+			definitions = resolvedSpec.definitions;
 			defaultScope.swagger = {
-				definitions: resolvedSpec.definitions,
+				definitions,
 			};
 			done();
 		});
@@ -943,6 +946,12 @@ describe('transport', () => {
 				peersList.push(peer);
 			}
 
+			blocksList = [];
+			for (var j = 0; j < 10; j++) {
+				var block = Block();
+				blocksList.push(block);
+			}
+
 			transportInstance = new TransportModule((err, transportSelf) => {
 				transportSelf.onBind(defaultScope);
 
@@ -968,6 +977,11 @@ describe('transport', () => {
 					logic: {
 						peers: {
 							me: sinonSandbox.stub().returns(WSServer.generatePeerHeaders()),
+						},
+					},
+					db: {
+						blocks: {
+							getBlocksForTransport: sinonSandbox.stub().resolves(blocksList),
 						},
 					},
 				};
@@ -1441,81 +1455,134 @@ describe('transport', () => {
 
 		describe('shared', () => {
 			describe('blocksCommon', () => {
+				var error;
+				var query;
+				var validateErr;
+
 				describe('when query is undefined', () => {
-					it('should set query = {}');
+					beforeEach(done => {
+						query = undefined;
+						validateErr = new Error('Transaction did not match schema');
+						validateErr.code = 'INVALID_FORMAT';
+
+						library.schema.validate = sinonSandbox
+							.stub()
+							.callsArgWith(2, [validateErr]);
+
+						transportInstance.shared.blocksCommon(query, err => {
+							error = err;
+							done();
+						});
+					});
+
+					it('should send back error due to schema validation failure', () => {
+						return expect(error).to.equal(`${validateErr.message}: undefined`);
+					});
 				});
 
-				it('should call library.schema.validate');
-
-				it('should call library.schema.validate with query');
-
-				it('should call library.schema.validate with schema.commonBlock');
-
-				describe('when library.schema.validate fails', () => {
-					it('should set err = err[0].message + ": " + err[0].path');
-
-					it('should call library.logger.debug');
-
-					it(
-						'should call library.logger.debug with "Common block request validation failed"'
-					);
-
-					it(
-						'should call library.logger.debug with {err: err.toString(), req: query}'
-					);
-
-					it('should call callback with error');
-				});
-
-				describe('when library.schema.validate succeeds', () => {
-					describe('escapedIds', () => {
-						it('should remove quotes from query.ids');
-
-						it('should separate ids from query.ids by comma');
-
-						it('should remove any non-numeric values from query.ids');
+				describe('when query is specified', () => {
+					beforeEach(done => {
+						query = { ids: '"1","2","3"' };
+						transportInstance.shared.blocksCommon(query, err => {
+							error = err;
+							done();
+						});
 					});
 
-					describe('when escapedIds.length = 0', () => {
-						it('should call library.logger.debug');
-
-						it(
-							'should call library.logger.debug with "Common block request validation failed"'
-						);
-
-						it(
-							'should call library.logger.debug with {err: "ESCAPE", req: query.ids}'
-						);
-
-						it('should call __private.removePeer');
-
-						it(
-							'should call __private.removePeer with {peer: query.peer, code: "ECOMMON"}'
-						);
-
-						it('should call callback with error = "Invalid block id sequence"');
+					it('should call library.schema.validate with query and schema.commonBlock', () => {
+						expect(library.schema.validate.calledOnce).to.be.true;
+						return expect(
+							library.schema.validate.calledWith(
+								query,
+								definitions.WSBlocksCommonRequest
+							)
+						).to.be.true;
 					});
 
-					it('should call library.db.query');
+					describe('when library.schema.validate fails', () => {
+						beforeEach(done => {
+							validateErr = new Error('Transaction did not match schema');
+							validateErr.code = 'INVALID_FORMAT';
 
-					it('should call library.db.query with sql.getCommonBlock');
+							library.schema.validate = sinonSandbox
+								.stub()
+								.callsArgWith(2, [validateErr]);
 
-					it('should call library.db.query with escapedIds');
+							transportInstance.shared.blocksCommon(query, err => {
+								error = err;
+								done();
+							});
+						});
 
-					describe('when library.db.query fails', () => {
-						it('should call library.logger.error with error stack');
+						it('should call library.logger.debug with "Common block request validation failed" and {err: err.toString(), req: query}', () => {
+							expect(library.logger.debug.calledOnce);
+							return expect(
+								library.logger.debug.calledWith(
+									'Common block request validation failed',
+									{ err: validateErr.toString(), req: query }
+								)
+							);
+						});
 
-						it(
-							'should call callback with error = "Failed to get common block"'
-						);
+						it('should call callback with error', () => {
+							return expect(error).to.equal(
+								`${validateErr.message}: undefined`
+							);
+						});
 					});
 
-					describe('when library.db.query succeeds', () => {
-						it('should call callback with error = null');
+					describe('when library.schema.validate succeeds', () => {
+						describe('escapedIds', () => {
+							it('should remove quotes from query.ids');
 
-						it(
-							'should call callback with result  = { success: true, common: rows[0] || null }'
-						);
+							it('should separate ids from query.ids by comma');
+
+							it('should remove any non-numeric values from query.ids');
+						});
+
+						describe('when escapedIds.length = 0', () => {
+							it('should call library.logger.debug');
+
+							it(
+								'should call library.logger.debug with "Common block request validation failed"'
+							);
+
+							it(
+								'should call library.logger.debug with {err: "ESCAPE", req: query.ids}'
+							);
+
+							it('should call __private.removePeer');
+
+							it(
+								'should call __private.removePeer with {peer: query.peer, code: "ECOMMON"}'
+							);
+
+							it(
+								'should call callback with error = "Invalid block id sequence"'
+							);
+						});
+
+						it('should call library.db.query');
+
+						it('should call library.db.query with sql.getCommonBlock');
+
+						it('should call library.db.query with escapedIds');
+
+						describe('when library.db.query fails', () => {
+							it('should call library.logger.error with error stack');
+
+							it(
+								'should call callback with error = "Failed to get common block"'
+							);
+						});
+
+						describe('when library.db.query succeeds', () => {
+							it('should call callback with error = null');
+
+							it(
+								'should call callback with result  = { success: true, common: rows[0] || null }'
+							);
+						});
 					});
 				});
 			});
