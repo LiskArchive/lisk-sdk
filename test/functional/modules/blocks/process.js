@@ -138,7 +138,7 @@ describe('blocks/process', () => {
 					done();
 				});
 
-				it('should return error = null', () => {
+				it('should return undefined error', () => {
 					return expect(commonBlockValidationError).to.be.undefined;
 				});
 			});
@@ -200,7 +200,7 @@ describe('blocks/process', () => {
 	});
 
 	describe('loadBlocksOffset({verify: true}) - no errors', () => {
-		it('should load block 2 from database: block without transactions', done => {
+		it('should load block 2 from db: block without transactions', done => {
 			blocks.lastBlock.set(genesisBlock);
 			blocksProcess.loadBlocksOffset(1, 2, true, (err, loadedBlock) => {
 				if (err) {
@@ -213,7 +213,7 @@ describe('blocks/process', () => {
 			});
 		});
 
-		it('should load block 3 from database: block with transactions', done => {
+		it('should load block 3 from db: block with transactions', done => {
 			blocksProcess.loadBlocksOffset(1, 3, true, (err, loadedBlock) => {
 				if (err) {
 					return done(err);
