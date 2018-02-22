@@ -136,7 +136,7 @@ Signatures.prototype.shared = {
 	/**
 	 * Post signatures for transactions.
 	 *
-	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - List of signatures
+	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures
 	 * @param {function} cb - Callback function
 	 * @return {setImmediateCallback}
 	 */
