@@ -123,9 +123,6 @@ TransactionsController.postTransaction = function(context, next) {
 
 			return next(err);
 		}
-		if (err) {
-			return next(err);
-		}
 
 		next(null, {
 			data: { message: data },
