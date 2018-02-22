@@ -34,7 +34,7 @@ __private.loaded = false;
 __private.messages = {};
 
 /**
- * Main Transport methods. Initializes library with scope content and generates a Broadcaster instance.
+ * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
  *
  * @class
  * @memberof modules

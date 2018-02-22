@@ -34,8 +34,7 @@ __private.assetTypes = {};
 
 /**
  * Main transactions methods. Initializes library with scope content and generates a Transfer instance
- * and a TransactionPool instance.
- * Calls logic.transaction.attachAssetType().
+ * and a TransactionPool instance. Calls logic.transaction.attachAssetType().
  *
  * @class
  * @memberof modules
@@ -291,6 +290,7 @@ function groupTransactionIdsByType(rawTransactions) {
 
 	return _.assign.apply(null, transactionIdsByType);
 }
+
 /**
  * Description of getAssetForIds.
  *
@@ -509,7 +509,7 @@ Transactions.prototype.getMergedTransactionList = function(reverse, limit) {
 };
 
 /**
- * Removes transaction from unconfirmed, queued and multisignature.
+ * Removes transaction from unconfirmed, queued and multisignature queues.
  *
  * @param {string} id - Transaction id
  * @returns {function} Calls transactionPool.removeUnconfirmedTransaction
@@ -520,8 +520,7 @@ Transactions.prototype.removeUnconfirmedTransaction = function(id) {
 };
 
 /**
- * Checks kind of unconfirmed transaction and process it, resets queue
- * if limit reached.
+ * Checks kind of unconfirmed transaction and process it, resets queue if limit reached.
  *
  * @param {transaction} transaction
  * @param {Object} broadcast - Broadcast flag
@@ -626,7 +625,7 @@ Transactions.prototype.applyUnconfirmed = function(
 };
 
 /**
- * Validates account and Undoes unconfirmed transaction.
+ * Validates account and undoes unconfirmed transaction.
  *
  * @param {transaction} transaction
  * @param {function} cb - Callback function
@@ -691,8 +690,7 @@ Transactions.prototype.isLoaded = function() {
 
 // Events
 /**
- * Bounds scope to private transactionPool and modules
- * to private Transfer instance.
+ * Bounds scope to private transactionPool and modules to private Transfer instance.
  *
  * @param {scope} scope - Loaded modules
  */

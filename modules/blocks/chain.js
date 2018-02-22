@@ -24,7 +24,7 @@ var self;
 var __private = {};
 
 /**
- *  Main Chain logic. Allows set information. Initializes library.
+ * Main chain logic. Allows set information. Initializes library.
  *
  * @class
  * @memberof modules.blocks

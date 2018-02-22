@@ -28,7 +28,7 @@ var __private = {};
 var rcRegExp = /[a-z]+$/;
 
 /**
- * Main System methods. Initializes library with scope content and private variables:
+ * Main system methods. Initializes library with scope content and private variables:
  * - os
  * - version
  * - port

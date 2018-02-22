@@ -54,7 +54,7 @@ function API(logger, db, block, schema, dbSequence) {
 }
 
 /**
- * Get filtered list of blocks (without transactions)
+ * Get filtered list of blocks (without transactions).
  *
  * @private
  * @func list

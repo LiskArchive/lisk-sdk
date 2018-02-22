@@ -950,7 +950,7 @@ Delegates.prototype.isLoaded = function() {
 
 // Shared API
 /**
- * Description of the member
+ * Description of the member.
  *
  * @property {function} getForgers - Search forgers based on the query parameters passed
  * @property {function} getDelegates - Search accounts based on the query parameters passed

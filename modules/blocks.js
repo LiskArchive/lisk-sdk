@@ -35,7 +35,7 @@ __private.cleanup = false;
 __private.isActive = false;
 
 /**
- * Main Blocks methods. Initializes submodules with scope content.
+ * Main blocks methods. Initializes submodules with scope content.
  * Calls submodules.chain.saveGenesisBlock.
  *
  * @class

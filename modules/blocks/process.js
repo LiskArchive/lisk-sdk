@@ -27,7 +27,7 @@ var self;
 var __private = {};
 
 /**
- * Main Process logic. Allows process blocks. Initializes library.
+ * Main process logic. Allows process blocks. Initializes library.
  *
  * @class
  * @memberof modules.blocks
@@ -544,8 +544,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 };
 
 /**
- * Generate new block,
- * see: loader.loadBlockChain (private).
+ * Generate new block, see: loader.loadBlockChain (private).
  *
  * @param {Object} keypair - Pair of private and public keys, see: helpers.ed.makeKeypair
  * @param {number} timestamp - Slot time, see: helpers.slots.getSlotTime

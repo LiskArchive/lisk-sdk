@@ -25,7 +25,7 @@ var blockReward;
 var loaded;
 
 /**
- * Main System methods. Initializes library with scope content and private variables:
+ * Main node methods. Initializes library with scope content and private variables:
  * - library
  * - blockReward
  *
@@ -113,7 +113,7 @@ Node.prototype.internal = {
 
 // Public methods
 /**
- * Description of the member
+ * Description of the member.
  *
  * @property {function} getConstants
  * @property {function} getStatus

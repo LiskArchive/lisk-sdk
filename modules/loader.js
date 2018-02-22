@@ -40,7 +40,7 @@ __private.syncInterval = 10000;
 __private.retries = 5;
 
 /**
- * Main Loader methods. Initializes library with scope content.
+ * Main loader methods. Initializes library with scope content.
  * Calls private function initialize.
  *
  * @class
@@ -451,7 +451,7 @@ __private.loadBlockChain = function() {
 	}
 
 	/**
-	 * Description of reload.
+	 * Description of checkMemTables.
 	 *
 	 * @todo Add @returns and @param tags
 	 * @todo Add description for the function
@@ -469,7 +469,7 @@ __private.loadBlockChain = function() {
 	}
 
 	/**
-	 * Description of load.
+	 * Description of matchGenesisBlock.
 	 *
 	 * @todo Add @throws and @param tags
 	 * @todo Add description for the function
@@ -491,7 +491,7 @@ __private.loadBlockChain = function() {
 	}
 
 	/**
-	 * Description of reload.
+	 * Description of verifySnapshot.
 	 *
 	 * @todo Add @returns and @param tags
 	 * @todo Add description for the function

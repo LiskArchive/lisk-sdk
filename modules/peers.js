@@ -73,7 +73,7 @@ function Peers(cb, scope) {
 
 // Private methods
 /**
- * Returns peers length after get them by filter.
+ * Returns peers length after getting them by filter.
  *
  * @private
  * @param {Object} filter
@@ -113,7 +113,7 @@ __private.getByFilter = function(filter, cb) {
 	var offset = filter.offset ? Math.abs(filter.offset) : 0;
 
 	/**
-	 * Sorting peers.
+	 * Sorts peers.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
@@ -139,7 +139,7 @@ __private.getByFilter = function(filter, cb) {
 	};
 
 	/**
-	 * Randomizing peers (using Fisher-Yates-Durstenfeld shuffle algorithm).
+	 * Shuffles peers (using Fisher-Yates-Durstenfeld shuffle algorithm).
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag

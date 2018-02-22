@@ -24,7 +24,7 @@ var self;
 var __private = {};
 
 /**
- * Main Utils logic. Allows utils functions for blocks. Initializes library.
+ * Main utils logic. Allows utils functions for blocks. Initializes library.
  *
  * @class
  * @memberof modules.blocks
@@ -146,8 +146,7 @@ Utils.prototype.loadBlocksPart = function(filter, cb) {
 };
 
 /**
- * Loads full normalized last block from database,
- * see: loader.loadBlockChain (private).
+ * Loads full normalized last block from database, see: loader.loadBlockChain (private).
  *
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
@@ -261,8 +260,7 @@ Utils.prototype.getIdSequence = function(height, cb) {
 };
 
 /**
- * Generates a list of full blocks for another node upon sync request from that node,
- * see: modules.transport.internal.blocks.
+ * Generates a list of full blocks for another node upon sync request from that node, see: modules.transport.internal.blocks.
  *
  * @param {Object} filter - Filter options
  * @param {Object} filter.limit - Limit blocks to amount

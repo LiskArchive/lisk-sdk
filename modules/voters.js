@@ -26,7 +26,7 @@ var library;
 var loaded = false;
 
 /**
- * Main System methods. Initializes library with scope content and private variables:
+ * Main voters methods. Initializes library with scope content and private variables:
  * - library
  *
  * @class
