@@ -339,7 +339,7 @@ Multisignatures.prototype.isLoaded = function() {
 
 // Shared API
 /**
- * @todo Implement API comments with apidoc.
+ * @todo Implement API comments with apidoc
  * @see {@link http://apidocjs.com/}
  */
 Multisignatures.prototype.shared = {

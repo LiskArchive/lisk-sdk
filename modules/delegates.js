@@ -955,7 +955,7 @@ Delegates.prototype.isLoaded = function() {
  * @property {function} getForgers - Search forgers based on the query parameters passed
  * @property {function} getDelegates - Search accounts based on the query parameters passed
  * @todo Add description for getGenesis function
- * @todo Implement API comments with apidoc.
+ * @todo Implement API comments with apidoc
  * @see {@link http://apidocjs.com/}
  */
 Delegates.prototype.shared = {

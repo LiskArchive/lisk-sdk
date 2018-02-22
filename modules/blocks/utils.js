@@ -323,7 +323,7 @@ Utils.prototype.getBlockProgressLogger = function(
 	msg
 ) {
 	/**
-	 * Description of the class
+	 * Description of the class.
 	 *
 	 * @class
 	 * @todo Add @param tags

@@ -41,7 +41,7 @@ __private.ticking = false;
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
- * @todo Apply node pattern for callbacks: callback always at the end.
+ * @todo Apply node pattern for callbacks: callback always at the end
  */
 function Rounds(cb, scope) {
 	library = {

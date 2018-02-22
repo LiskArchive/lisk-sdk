@@ -113,8 +113,8 @@ __private.receiveBlock = function(block, cb) {
  *
  * @private
  * @func receiveBlock
- * @param {Object} block Received block
- * @param {function} cb Callback function
+ * @param {Object} block - Received block
+ * @param {function} cb - Callback function
  */
 __private.receiveForkOne = function(block, lastBlock, cb) {
 	var tmp_block = _.clone(block);
