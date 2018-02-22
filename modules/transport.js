@@ -106,11 +106,12 @@ __private.removePeer = function(options, extraMessage) {
 
 /**
  * Validates signatures body and for each signature calls receiveSignature.
+ *
  * @private
  * @implements {library.schema.validate}
  * @implements {__private.receiveSignature}
- * @param {Array} signatures A list of signature objects
- * @param {function} cb
+ * @param {Array} signatures - List of signatures
+ * @param {function} cb - Callback function
  * @return {setImmediateCallback} cb, err
  */
 __private.receiveSignatures = function(signatures, cb) {
@@ -155,15 +156,15 @@ __private.receiveSignature = function(query, cb) {
 };
 
 /**
- * Validates transactions with schema and calls receiveTransaction for each
- * transaction.
+ * Validates transactions with schema and calls receiveTransaction for each transaction.
+ *
  * @private
  * @implements {library.schema.validate}
  * @implements {__private.receiveTransaction}
  * @param {Array} transactions - List of transactions
- * @param {peer} peer
- * @param {string} extraLogMessage
- * @param {function} cb
+ * @param {peer} peer - Peer object
+ * @param {string} extraLogMessage - Extra log message
+ * @param {function} cb - Callback function
  * @return {setImmediateCallback} cb, err
  */
 __private.receiveTransactions = function(

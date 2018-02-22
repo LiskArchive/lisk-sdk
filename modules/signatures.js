@@ -113,9 +113,10 @@ __private.processPostResult = function(err, res, cb) {
  */
 Signatures.prototype.shared = {
 	/**
-	 * Post signatures for transactions.
-	 * @param {Object.<{transactionId: string, publicKey: string, signature: string}>} signature.
-	 * @param {function} cb - Callback function.
+	 * Post signature for a transaction.
+	 *
+	 * @param {Object.<{transactionId: string, publicKey: string, signature: string}>} - Signature
+	 * @param {function} cb - Callback function
 	 * @return {setImmediateCallback}
 	 */
 	postSignature(signature, cb) {
@@ -126,8 +127,9 @@ Signatures.prototype.shared = {
 
 	/**
 	 * Post signatures for transactions.
-	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures.
-	 * @param {function} cb - Callback function.
+	 *
+	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - List of signatures
+	 * @param {function} cb - Callback function
 	 * @return {setImmediateCallback}
 	 */
 	postSignatures(signatures, cb) {
