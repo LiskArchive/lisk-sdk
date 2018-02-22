@@ -420,7 +420,9 @@ Transactions.prototype.transactionInPool = function(id) {
 };
 
 /**
- * @param {string} id
+ * Gets unconfirmed transaction from pool.
+ *
+ * @param {string} id - Transaction id
  * @returns {function} Calls transactionPool.getUnconfirmedTransaction
  * @todo Add description for the function and the params
  */
@@ -429,7 +431,9 @@ Transactions.prototype.getUnconfirmedTransaction = function(id) {
 };
 
 /**
- * @param {string} id
+ * Gets queued transaction from pool.
+ *
+ * @param {string} id - Transaction id
  * @returns {function} Calls transactionPool.getQueuedTransaction
  * @todo Add description for the function and the params
  */
@@ -438,7 +442,9 @@ Transactions.prototype.getQueuedTransaction = function(id) {
 };
 
 /**
- * @param {string} id
+ * Gets multisignature transaction from pool.
+ *
+ * @param {string} id - Transaction id
  * @returns {function} Calls transactionPool.getMultisignatureTransaction
  * @todo Add description for the function and the params
  */
@@ -708,6 +714,14 @@ Transactions.prototype.onBind = function(scope) {
 	__private.assetTypes[transactionTypes.SEND].bind(scope.accounts);
 };
 
+/**
+ * Processes posted transaction result object.
+ *
+ * @param {Error} err - Error object
+ * @param {Object} res - Result object
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, error, response
+ */
 __private.processPostResult = function(err, res, cb) {
 	var error = null;
 	var response = null;
@@ -844,6 +858,13 @@ Transactions.prototype.shared = {
 		);
 	},
 
+	/**
+	 * Description of postTransaction.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	postTransaction(transaction, cb) {
 		return modules.transport.shared.postTransaction(
 			{ transaction },
@@ -853,6 +874,13 @@ Transactions.prototype.shared = {
 		);
 	},
 
+	/**
+	 * Description of postTransactions.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	postTransactions(transactions, cb) {
 		return modules.transport.shared.postTransactions(
 			{ transactions },
