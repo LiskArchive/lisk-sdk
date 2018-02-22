@@ -694,8 +694,8 @@ describe('rounds', () => {
 				});
 
 				it('should not call mergeAccountAndGet', () => {
-					return expect(round.scope.modules.accounts.mergeAccountAndGet.called).to.be
-						.false;
+					return expect(round.scope.modules.accounts.mergeAccountAndGet.called)
+						.to.be.false;
 				});
 			});
 
@@ -710,8 +710,8 @@ describe('rounds', () => {
 				});
 
 				it('should not call mergeAccountAndGet', () => {
-					return expect(round.scope.modules.accounts.mergeAccountAndGet.called).to.be
-						.false;
+					return expect(round.scope.modules.accounts.mergeAccountAndGet.called)
+						.to.be.false;
 				});
 
 				it('should return t object', () => {

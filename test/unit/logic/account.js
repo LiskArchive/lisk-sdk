@@ -99,7 +99,9 @@ describe('account', () => {
 		});
 
 		it('should attach schema to scope variable', () => {
-			return expect(accountLogic.scope.schema).to.eql(modulesLoader.scope.schema);
+			return expect(accountLogic.scope.schema).to.eql(
+				modulesLoader.scope.schema
+			);
 		});
 
 		it('should attach db to scope variable', () => {
@@ -240,9 +242,9 @@ describe('account', () => {
 		it('when voterBalance = totalSupply, it should return 100', () => {
 			var totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
 			var votersBalance = totalSupply;
-			return expect(account.calculateApproval(votersBalance, totalSupply)).to.equal(
-				100
-			);
+			return expect(
+				account.calculateApproval(votersBalance, totalSupply)
+			).to.equal(100);
 		});
 
 		it('when voterBalance = 50 and total supply = 100, it should return 50', () => {

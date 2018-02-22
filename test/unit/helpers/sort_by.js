@@ -36,7 +36,9 @@ describe('SortBy', () => {
 			});
 
 			it('should return {address: 1} (default sort type) when sortQuery contains member of validSortFieldsArray', () => {
-				return expect(SortBy.sortQueryToJsonSqlFormat('address', validSortFieldsArray))
+				return expect(
+					SortBy.sortQueryToJsonSqlFormat('address', validSortFieldsArray)
+				)
 					.to.be.an('object')
 					.eql({ address: 1 });
 			});
@@ -74,7 +76,10 @@ describe('SortBy', () => {
 		describe('sort', () => {
 			describe('when given as string', () => {
 				it('should return empty object when sort is empty string', () => {
-					return expect(SortBy.sortBy('')).to.eql({ sortField: '', sortMethod: '' });
+					return expect(SortBy.sortBy('')).to.eql({
+						sortField: '',
+						sortMethod: '',
+					});
 				});
 
 				it('should return ASC as default sort type if only key is provided', () => {
@@ -121,7 +126,10 @@ describe('SortBy', () => {
 
 			describe('when given as object', () => {
 				it('should return object with empty values when sort is empty object', () => {
-					return expect(SortBy.sortBy({})).to.eql({ sortField: '', sortMethod: '' });
+					return expect(SortBy.sortBy({})).to.eql({
+						sortField: '',
+						sortMethod: '',
+					});
 				});
 
 				it('should return valid sort object if a valid object given', () => {

@@ -15,22 +15,18 @@
 'use strict';
 
 require('../../functional.js');
-var randomUtil = require('../../../common/utils/random');
 var swaggerSpec = require('../../../common/swagger_spec');
-var expectSwaggerParamError = require('../../../common/helpers/api')
-	.expectSwaggerParamError;
+var randomUtil = require('../../../common/utils/random');
 
 describe('POST /api/transactions (general)', () => {
 	var transactionsEndpoint = new swaggerSpec('POST /transactions');
 
-	it('should fail if empty transactions posted', () => {
+	it('should fail if null transaction posted', () => {
 		return transactionsEndpoint
-			.makeRequest({ transactions: [] }, 400)
+			.makeRequest({ transaction: null }, 400)
 			.then(res => {
-				expectSwaggerParamError(res, 'transactions');
-				expect(res.body.errors[0].errors[0].code).to.be.equal(
-					'ARRAY_LENGTH_SHORT'
-				);
+				expect(res.body.message).to.eql('Parse errors');
+				expect(res.body.errors[0].code).to.be.equal('INVALID_REQUEST_PAYLOAD');
 			});
 	});
 
@@ -41,9 +37,9 @@ describe('POST /api/transactions (general)', () => {
 				400
 			)
 			.then(res => {
-				expectSwaggerParamError(res, 'transactions');
-				expect(res.body.errors[0].errors[0].code).to.be.equal(
-					'ARRAY_LENGTH_LONG'
+				expect(res.body.message).to.eql('Validation errors');
+				expect(res.body.errors[0].code).to.be.equal(
+					'INVALID_REQUEST_PARAMETER'
 				);
 			});
 	});

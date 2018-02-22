@@ -51,7 +51,9 @@ describe('peer', () => {
 			['height', 'ip', 'wsPort', 'state'].forEach(property => {
 				expect(__peer[property]).equals(prefixedPeer[property]);
 			});
-			return expect(__peer.string).equals(`${prefixedPeer.ip}:${prefixedPeer.wsPort}`);
+			return expect(__peer.string).equals(
+				`${prefixedPeer.ip}:${prefixedPeer.wsPort}`
+			);
 		});
 
 		it('should accept empty peer and set default values', () => {

@@ -1055,7 +1055,9 @@ describe('delegate', () => {
 
 		describe('when library.schema.validate succeeds', () => {
 			it('should return transaction', () => {
-				return expect(delegate.objectNormalize(transaction)).to.eql(transaction);
+				return expect(delegate.objectNormalize(transaction)).to.eql(
+					transaction
+				);
 			});
 		});
 	});
@@ -1074,7 +1076,9 @@ describe('delegate', () => {
 				username: rawValidTransaction.d_username,
 			};
 
-			return expect(delegate.dbRead(rawTransaction).delegate).to.eql(expectedAsset);
+			return expect(delegate.dbRead(rawTransaction).delegate).to.eql(
+				expectedAsset
+			);
 		});
 	});
 
