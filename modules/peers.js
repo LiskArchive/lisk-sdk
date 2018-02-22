@@ -32,15 +32,23 @@ var __private = {};
 var definitions;
 
 /**
- * Initializes library with scope content.
- * @memberof module:peers
+ * Main peers methods. Initializes library with scope content.
+ *
  * @class
- * @classdesc Main peers methods.
- * @param {function} cb - Callback function.
- * @param {scope} scope - App instance.
- * @return {setImmediateCallback} Callback function with `self` as data.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires async
+ * @requires lodash
+ * @requires ip
+ * @requires pg-promise
+ * @requires api/ws/rpc/failure_codes
+ * @requires helpers/constants
+ * @requires helpers/jobs_queue
+ * @requires logic/peer
+ * @param {function} cb - Callback function
+ * @param {scope} scope - App instance
+ * @returns {setImmediateCallback} cb, null, self
  */
-// Constructor
 function Peers(cb, scope) {
 	library = {
 		logger: scope.logger,
@@ -65,11 +73,13 @@ function Peers(cb, scope) {
 
 // Private methods
 /**
- * Returns peers lenght after get them by filter.
+ * Returns peers length after getting them by filter.
+ *
  * @private
  * @param {Object} filter
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} peers length
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, null, peers length
+ * @todo Add description for the params
  */
 __private.countByFilter = function(filter, cb) {
 	filter.normalized = false;
@@ -80,10 +90,12 @@ __private.countByFilter = function(filter, cb) {
 
 /**
  * Gets randomly ordered list of peers by filter.
+ *
  * @private
  * @param {Object} filter
  * @param {function} [cb=undefined] cb - Callback function (synchronous function if not passed.
- * @returns {setImmediateCallback|Array<Peer>} peers
+ * @returns {setImmediateCallback|Array<Peer>} cb, null, peers
+ * @todo Add description for the params
  */
 __private.getByFilter = function(filter, cb) {
 	var allowedFields = [
@@ -100,7 +112,13 @@ __private.getByFilter = function(filter, cb) {
 	var limit = filter.limit ? Math.abs(filter.limit) : null;
 	var offset = filter.offset ? Math.abs(filter.offset) : 0;
 
-	// Sorting peers
+	/**
+	 * Sorts peers.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	var sortPeers = function(field, asc) {
 		return function(a, b) {
 			var sort_res =
@@ -120,7 +138,13 @@ __private.getByFilter = function(filter, cb) {
 		};
 	};
 
-	// Randomizing peers (using Fisher-Yates-Durstenfeld shuffle algorithm)
+	/**
+	 * Shuffles peers (using Fisher-Yates-Durstenfeld shuffle algorithm).
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	var shuffle = function(array) {
 		var m = array.length;
 		var t;
@@ -185,6 +209,13 @@ __private.getByFilter = function(filter, cb) {
 	return setImmediate(cb, null, peers);
 };
 
+/**
+ * Description of getMatched.
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
+ */
 __private.getMatched = function(test, peers) {
 	peers = peers || library.logic.peers.list();
 
@@ -194,6 +225,13 @@ __private.getMatched = function(test, peers) {
 	return peers.filter(peer => peer[key] === value);
 };
 
+/**
+ * Description of updatePeerStatus.
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
+ */
 __private.updatePeerStatus = function(err, status, peer) {
 	if (err) {
 		if (err.code === failureCodes.INCOMPATIBLE_NONCE) {
@@ -221,8 +259,9 @@ __private.updatePeerStatus = function(err, status, peer) {
 
 /**
  * Pings to every member of peers list.
+ *
  * @private
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb
  */
 __private.insertSeeds = function(cb) {
@@ -256,9 +295,9 @@ __private.insertSeeds = function(cb) {
 /**
  * Loads peers from database and checks every peer state and updated time.
  * Pings when checks are true.
- * @implements library.db
+ *
  * @private
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb
  */
 __private.dbLoad = function(cb) {
@@ -317,11 +356,10 @@ __private.dbLoad = function(cb) {
 };
 
 /**
- * Inserts list of peers into `peers` table
+ * Inserts list of peers into `peers` table.
  *
- * @implements library.db
  * @private
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb
  */
 __private.dbSave = function(cb) {
@@ -351,8 +389,9 @@ __private.dbSave = function(cb) {
 };
 
 /**
- * Returns consensus stored by Peers.prototype.calculateConsensus
- * @returns {number|undefined} - Last calculated consensus or null wasn't calculated yet
+ * Returns consensus stored by Peers.prototype.calculateConsensus.
+ *
+ * @returns {number|undefined} Last calculated consensus or null if wasn't calculated yet
  */
 Peers.prototype.getLastConsensus = function() {
 	return self.consensus;
@@ -360,9 +399,10 @@ Peers.prototype.getLastConsensus = function() {
 
 /**
  * Calculates consensus for as a ratio active to matched peers.
- * @param {Array<Peer>}[active=peers list] active - Active peers (with connected state).
- * @param {Array<Peer>}[matched=matching active peers] matched - Peers with same as system broadhash.
- * @returns {number} - Consensus or undefined if config.forging.force = true.
+ *
+ * @param {Array<Peer>}[active=peers list] active - Active peers (with connected state)
+ * @param {Array<Peer>}[matched=matching active peers] matched - Peers with same as system broadhash
+ * @returns {number} Consensus or undefined if config.forging.force = true
  */
 Peers.prototype.calculateConsensus = function(active, matched) {
 	active =
@@ -382,9 +422,11 @@ Peers.prototype.calculateConsensus = function(active, matched) {
 // Public methods
 /**
  * Updates peer in peers list.
+ *
  * @param {peer} peer
- * @return {boolean|number} Calls peers.upsert
+ * @returns {boolean|number} Calls peers.upsert
  * @todo rename this function to activePeer or similar
+ * @todo Add description for the params
  */
 Peers.prototype.update = function(peer) {
 	return library.logic.peers.upsert(peer, false);
@@ -392,9 +434,10 @@ Peers.prototype.update = function(peer) {
 
 /**
  * Removes peer from peers list if it is not a peer from config file list.
- * @implements logic.peers.remove
+ *
  * @param {Peer} peer
- * @return {boolean|number} Calls peers.remove
+ * @returns {boolean|number} Calls peers.remove
+ * @todo Add description for the params
  */
 Peers.prototype.remove = function(peer) {
 	var frozenPeer = _.find(
@@ -416,11 +459,20 @@ Peers.prototype.remove = function(peer) {
 
 /**
  * Discovers peers by getting list and validates them.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb | error
+ *
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err
  */
 Peers.prototype.discover = function(cb) {
 	library.logger.trace('Peers->discover');
+
+	/**
+	 * Description of getFromRandomPeer.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	function getFromRandomPeer(waterCb) {
 		self.list(
 			{
@@ -445,12 +497,26 @@ Peers.prototype.discover = function(cb) {
 		);
 	}
 
+	/**
+	 * Description of validatePeersList.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	function validatePeersList(result, waterCb) {
 		library.schema.validate(result, definitions.PeersList, err =>
 			setImmediate(waterCb, err, result.peers)
 		);
 	}
 
+	/**
+	 * Description of pickPeers.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	function pickPeers(peers, waterCb) {
 		var picked = self.acceptable(peers);
 		library.logger.debug(
@@ -459,6 +525,13 @@ Peers.prototype.discover = function(cb) {
 		return setImmediate(waterCb, null, picked);
 	}
 
+	/**
+	 * Description of updatePeers.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	function updatePeers(peers, waterCb) {
 		async.each(
 			peers,
@@ -495,8 +568,10 @@ Peers.prototype.discover = function(cb) {
 
 /**
  * Filters peers with private or address or with the same nonce.
+ *
  * @param {peer[]} peers
- * @return {peer[]} Filtered list of peers
+ * @returns {peer[]} Filtered list of peers
+ * @todo Add description for the params
  */
 Peers.prototype.acceptable = function(peers) {
 	return _(peers)
@@ -517,16 +592,17 @@ Peers.prototype.acceptable = function(peers) {
 
 /**
  * Gets peers list and calculated consensus.
+ *
  * @param {Object} options
- * @param {number} [options.limit=constants.maxPeers] - Maximum number of peers to get.
- * @param {string} [options.broadhash=null] - Broadhash to match peers by.
- * @param {string} [options.normalized=undefined] - Return peers in normalized (json) form.
- * @param {Array} [options.allowedStates=[2]] - Allowed peer states.
+ * @param {number} [options.limit=constants.maxPeers] - Maximum number of peers to get
+ * @param {string} [options.broadhash=null] - Broadhash to match peers by
+ * @param {string} [options.normalized=undefined] - Return peers in normalized (json) form
+ * @param {Array} [options.allowedStates=[2]] - Allowed peer states
  * @param {number} [options.attempt=undefined] - If 0: Return peers with equal options.broadhash
  *                                               If 1: Return peers with different options.broadhash
  *                                               If not specified: return peers regardless of options.broadhash
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} error | peers, consensus
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err, peers
  */
 Peers.prototype.list = function(options, cb) {
 	var limit = options.limit || constants.maxPeers;
@@ -536,6 +612,13 @@ Peers.prototype.list = function(options, cb) {
 		options.attempt === 0 || options.attempt === 1 ? [options.attempt] : [1, 0];
 	var attemptsDescriptions = ['matched broadhash', 'unmatched broadhash'];
 
+	/**
+	 * Description of randomList.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	function randomList(peers, cb) {
 		// Get full peers list (random)
 		__private.getByFilter(
@@ -602,8 +685,10 @@ Peers.prototype.list = function(options, cb) {
 
 // Events
 /**
- * assigns scope to modules variable
+ * Assigns scope to modules variable.
+ *
  * @param {modules} scope
+ * @todo Add description for the params
  */
 Peers.prototype.onBind = function(scope) {
 	modules = {
@@ -643,9 +728,20 @@ Peers.prototype.onBlockchainReady = function() {
  */
 Peers.prototype.onPeersReady = function() {
 	library.logger.trace('Peers ready');
+	/**
+	 * Description of peersDiscoveryAndUpdate.
+	 *
+	 * @todo Add @param tags
+	 */
 	function peersDiscoveryAndUpdate(cb) {
 		async.series(
 			{
+				/**
+				 * Description of randomList.
+				 *
+				 * @todo Add @param tags
+				 * @todo Add @returns tag
+				 */
 				discoverPeers(seriesCb) {
 					library.logger.trace('Discovering new peers...');
 					self.discover(err => {
@@ -655,6 +751,13 @@ Peers.prototype.onPeersReady = function() {
 						return setImmediate(seriesCb);
 					});
 				},
+
+				/**
+				 * Description of updatePeers.
+				 *
+				 * @todo Add @param tags
+				 * @todo Add @returns tag
+				 */
 				updatePeers(seriesCb) {
 					var updated = 0;
 					var peers = library.logic.peers.list();
@@ -706,7 +809,8 @@ Peers.prototype.onPeersReady = function() {
 
 /**
  * Export peers to database.
- * @param {function} cb - Callback function.
+ *
+ * @param {function} cb - Callback function
  */
 Peers.prototype.cleanup = function(cb) {
 	// Save peers on exit
@@ -715,20 +819,25 @@ Peers.prototype.cleanup = function(cb) {
 
 /**
  * Checks if `modules` is loaded.
- * @return {boolean} True if `modules` is loaded.
+ *
+ * @returns {boolean} True if `modules` is loaded
  */
 Peers.prototype.isLoaded = function() {
 	return !!modules;
 };
 
-// Shared API
 /**
+ * Shared API.
+ *
+ * @property {function} getPeers - Utility method to get peers
+ * @property {function} getPeersCount
+ * @todo Add description for getPeersCount function
  * @todo implement API comments with apidoc.
  * @see {@link http://apidocjs.com/}
  */
 Peers.prototype.shared = {
 	/**
-	 * Utility method to get peers
+	 * Utility method to get peers.
 	 *
 	 * @param {Object} parameters - Object of all parameters
 	 * @param {string} parameters.ip - IP of the peer
@@ -743,13 +852,19 @@ Peers.prototype.shared = {
 	 * @param {int} parameters.offset - Page start from
 	 * @param {string} parameters.sort - Sort key
 	 * @param {function} cb - Callback function
-	 * @return {Array.<Object>}
+	 * @returns {Array.<Object>}
+	 * @todo Add description for the return value
 	 */
 	getPeers(parameters, cb) {
 		parameters.normalized = true;
 		return setImmediate(cb, null, __private.getByFilter(parameters));
 	},
 
+	/**
+	 * Description for getPeersCount.
+	 *
+	 * @todo Add description for the function
+	 */
 	getPeersCount() {
 		return library.logic.peers.list(true).length;
 	},

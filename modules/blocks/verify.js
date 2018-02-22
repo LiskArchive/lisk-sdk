@@ -29,6 +29,22 @@ var __private = {};
 
 __private.lastNBlockIds = [];
 
+/**
+ * Description of the class.
+ *
+ * @class
+ * @memberof modules.blocks
+ * @see Parent: {@link modules.blocks}
+ * @requires async
+ * @requires crypto
+ * @requires lodash
+ * @requires helpers/constants
+ * @requires helpers/exceptions
+ * @requires helpers/slots
+ * @requires logic/block_reward
+ * @todo Add @param tags
+ * @todo Add description for the class
+ */
 function Verify(logger, block, transaction, db) {
 	library = {
 		logger,
@@ -45,17 +61,16 @@ function Verify(logger, block, transaction, db) {
 }
 
 /**
- * Check transaction - perform transaction validation when processing block
+ * Check transaction - perform transaction validation when processing block.
  * FIXME: Some checks are probably redundant, see: logic.transactionPool
  *
  * @private
- * @async
- * @method checkTransaction
- * @param  {Object}   block Block object
- * @param  {Object}   transaction Transaction object
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
+ * @func checkTransaction
+ * @param {Object} block - Block object
+ * @param {Object} transaction - Transaction object
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
  */
 __private.checkTransaction = function(block, transaction, cb) {
 	async.waterfall(
@@ -109,13 +124,13 @@ __private.checkTransaction = function(block, transaction, cb) {
 };
 
 /**
- * Set height according to the given last block
+ * Set height according to the given last block.
  *
  * @private
- * @method setHeight
- * @param  {Object}  block Target block
- * @param  {Object}  lastBlock Last block
- * @return {Object}  block Target block
+ * @func setHeight
+ * @param {Object} block - Target block
+ * @param {Object} lastBlock - Last block
+ * @returns {Object} block - Target block
  */
 __private.setHeight = function(block, lastBlock) {
 	block.height = lastBlock.height + 1;
@@ -124,15 +139,15 @@ __private.setHeight = function(block, lastBlock) {
 };
 
 /**
- * Verify block signature
+ * Verify block signature.
  *
  * @private
- * @method verifySignature
- * @param  {Object}  block Target block
- * @param  {Object}  result Verification results
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @func verifySignature
+ * @param {Object} block - Target block
+ * @param {Object} result - Verification results
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifySignature = function(block, result) {
 	var valid;
@@ -151,15 +166,15 @@ __private.verifySignature = function(block, result) {
 };
 
 /**
- * Verify previous block
+ * Verify previous block.
  *
  * @private
- * @method verifyPreviousBlock
- * @param  {Object}  block Target block
- * @param  {Object}  result Verification results
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @func verifyPreviousBlock
+ * @param {Object} block - Target block
+ * @param {Object} result - Verification results
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyPreviousBlock = function(block, result) {
 	if (!block.previousBlock && block.height !== 1) {
@@ -170,15 +185,15 @@ __private.verifyPreviousBlock = function(block, result) {
 };
 
 /**
- * Verify block is not one of the last {constants.blockSlotWindow} saved blocks
+ * Verify block is not one of the last {constants.blockSlotWindow} saved blocks.
  *
  * @private
- * @method verifyAgainstLastNBlockIds
- * @param  {Object}  block Target block
- * @param  {Object}  result Verification results
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @func verifyAgainstLastNBlockIds
+ * @param {Object} block - Target block
+ * @param {Object} result - Verification results
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyAgainstLastNBlockIds = function(block, result) {
 	if (__private.lastNBlockIds.indexOf(block.id) !== -1) {
@@ -189,15 +204,15 @@ __private.verifyAgainstLastNBlockIds = function(block, result) {
 };
 
 /**
- * Verify block version
+ * Verify block version.
  *
  * @private
- * @method verifyVersion
- * @param  {Object}  block Target block
- * @param  {Object}  result Verification results
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @func verifyVersion
+ * @param {Object} block - Target block
+ * @param {Object} result - Verification results
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyVersion = function(block, result) {
 	if (block.version > 0) {
@@ -208,15 +223,15 @@ __private.verifyVersion = function(block, result) {
 };
 
 /**
- * Verify block reward
+ * Verify block reward.
  *
  * @private
- * @method verifyReward
- * @param  {Object}  block Target block
- * @param  {Object}  result Verification results
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @func verifyReward
+ * @param {Object} block - Target block
+ * @param {Object} result - Verification results
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyReward = function(block, result) {
 	var expectedReward = __private.blockReward.calcReward(block.height);
@@ -237,15 +252,15 @@ __private.verifyReward = function(block, result) {
 };
 
 /**
- * Verify block id
+ * Verify block id.
  *
  * @private
- * @method verifyId
- * @param  {Object}  block Target block
- * @param  {Object}  result Verification results
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @func verifyId
+ * @param {Object} block - Target block
+ * @param {Object} result - Verification results
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyId = function(block, result) {
 	try {
@@ -260,15 +275,15 @@ __private.verifyId = function(block, result) {
 };
 
 /**
- * Verify block payload (transactions)
+ * Verify block payload (transactions).
  *
  * @private
- * @method verifyPayload
- * @param  {Object}  block Target block
- * @param  {Object}  result Verification results
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @func verifyPayload
+ * @param {Object} block - Target block
+ * @param {Object} result - Verification results
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyPayload = function(block, result) {
 	if (block.payloadLength > constants.maxPayloadLength) {
@@ -330,16 +345,16 @@ __private.verifyPayload = function(block, result) {
 };
 
 /**
- * Verify block for fork cause one
+ * Verify block for fork cause one.
  *
  * @private
- * @method verifyForkOne
- * @param  {Object}  block Target block
- * @param  {Object}  lastBlock Last block
- * @param  {Object}  result Verification results
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @func verifyForkOne
+ * @param {Object} block - Target block
+ * @param {Object} lastBlock - Last block
+ * @param {Object} result - Verification results
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyForkOne = function(block, lastBlock, result) {
 	if (block.previousBlock && block.previousBlock !== lastBlock.id) {
@@ -358,16 +373,16 @@ __private.verifyForkOne = function(block, lastBlock, result) {
 };
 
 /**
- * Verify block slot according to timestamp
+ * Verify block slot according to timestamp.
  *
  * @private
- * @method verifyBlockSlot
- * @param  {Object}  block Target block
- * @param  {Object}  lastBlock Last block
- * @param  {Object}  result Verification results
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @func verifyBlockSlot
+ * @param {Object} block - Target block
+ * @param {Object} lastBlock - Last block
+ * @param {Object} result - Verification results
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyBlockSlot = function(block, lastBlock, result) {
 	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
@@ -384,14 +399,14 @@ __private.verifyBlockSlot = function(block, lastBlock, result) {
 };
 
 /**
- * Verify block slot window according to application time
+ * Verify block slot window according to application time.
  *
  * @private
- * @method verifyBlockSlotWindow
- * @param  {Object}  block Target block
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @func verifyBlockSlotWindow
+ * @param {Object} block - Target block
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyBlockSlotWindow = function(block, result) {
 	var currentApplicationSlot = slots.getSlotNumber();
@@ -411,14 +426,12 @@ __private.verifyBlockSlotWindow = function(block, result) {
 };
 
 /**
- * Verify block before fork detection and return all possible errors related to block
+ * Verify block before fork detection and return all possible errors related to block.
  *
- * @public
- * @method verifyReceipt
- * @param  {Object}  block Full block
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @param {Object} block - Full block
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 Verify.prototype.verifyReceipt = function(block) {
 	var lastBlock = modules.blocks.lastBlock.get();
@@ -444,8 +457,6 @@ Verify.prototype.verifyReceipt = function(block) {
 
 /**
  * Loads last {constants.blockSlotWindow} blocks from the database into memory. Called when application triggeres blockchainReady event.
- *
- * @method onBlockchainReady
  */
 Verify.prototype.onBlockchainReady = function() {
 	return library.db.blocks
@@ -464,8 +475,9 @@ Verify.prototype.onBlockchainReady = function() {
 /**
  * Maintains __private.lastNBlock variable - a queue of fixed length (constants.blockSlotWindow). Called when application triggers newBlock event.
  *
- * @method onNewBlock
+ * @func onNewBlock
  * @param {block} block
+ * @todo Add description for the params
  */
 Verify.prototype.onNewBlock = function(block) {
 	__private.lastNBlockIds.push(block.id);
@@ -475,14 +487,12 @@ Verify.prototype.onNewBlock = function(block) {
 };
 
 /**
- * Verify block before processing and return all possible errors related to block
+ * Verify block before processing and return all possible errors related to block.
  *
- * @public
- * @method verifyBlock
- * @param  {Object}  block Full block
- * @return {Object}  result Verification results
- * @return {boolean} result.verified Indicator that verification passed
- * @return {Array}   result.errors Array of validation errors
+ * @param {Object} block - Full block
+ * @returns {Object} result - Verification results
+ * @returns {boolean} result.verified - Indicator that verification passed
+ * @returns {Array} result.errors - Array of validation errors
  */
 Verify.prototype.verifyBlock = function(block) {
 	var lastBlock = modules.blocks.lastBlock.get();
@@ -509,8 +519,9 @@ Verify.prototype.verifyBlock = function(block) {
 
 /**
  * Adds default properties to block.
- * @param {Object} block Block object reduced
- * @return {Object} Block object completed
+ *
+ * @param {Object} block - Block object reduced
+ * @returns {Object} Block object completed
  */
 Verify.prototype.addBlockProperties = function(block) {
 	if (block.version === undefined) {
@@ -543,8 +554,9 @@ Verify.prototype.addBlockProperties = function(block) {
 
 /**
  * Deletes default properties from block.
- * @param {Object} block Block object completed
- * @return {Object} Block object reduced
+ *
+ * @param {Object} block - Block object completed
+ * @returns {Object} Block object reduced
  */
 Verify.prototype.deleteBlockProperties = function(block) {
 	var reducedBlock = JSON.parse(JSON.stringify(block));
@@ -574,20 +586,17 @@ Verify.prototype.deleteBlockProperties = function(block) {
 };
 
 /**
- * Main function to process a block
+ * Main function to process a block:
  * - Verify the block looks ok
  * - Verify the block is compatible with database state (DATABASE readonly)
  * - Apply the block to database if both verifications are ok
  *
- * @async
- * @public
- * @method processBlock
- * @param  {Object}   block Full block
- * @param  {boolean}  broadcast Indicator that block needs to be broadcasted
- * @param  {function} cb Callback function
- * @param  {boolean}  saveBlock Indicator that block needs to be saved to database
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
+ * @param {Object} block - Full block
+ * @param {boolean} broadcast - Indicator that block needs to be broadcasted
+ * @param {function} cb - Callback function
+ * @param {boolean} saveBlock - Indicator that block needs to be saved to database
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
  */
 Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 	if (modules.blocks.isCleaning.get()) {
@@ -699,12 +708,13 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 };
 
 /**
- * Handle modules initialization
+ * Handle modules initialization:
  * - accounts
  * - blocks
  * - delegates
  * - transactions
- * @param {modules} scope Exposed modules
+ *
+ * @param {Object} scope - Exposed modules
  */
 Verify.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Verify: Shared modules bind.');
