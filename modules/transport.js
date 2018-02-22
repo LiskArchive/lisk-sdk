@@ -93,7 +93,7 @@ function Transport(cb, scope) {
  *
  * @private
  * @param {Object} options - Contains code and peer
- * @param {string} extraMessage
+ * @param {string} extraMessage - Extra message
  * @todo Add description for the params
  * @todo Add @returns tag
  */
@@ -208,8 +208,8 @@ __private.receiveTransactions = function(
  * @private
  * @param {transaction} transaction
  * @param {peer} peer
- * @param {string} extraLogMessage
- * @param {function} cb
+ * @param {string} extraLogMessage - Extra log message
+ * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
@@ -288,7 +288,7 @@ Transport.prototype.poorConsensus = function() {
  * Calls getPeers method from Broadcaster class.
  *
  * @param {Object} params
- * @param {function} cb
+ * @param {function} cb - Callback function
  * @returns {Broadcaster.getPeers} Calls getPeers
  * @todo Add description for the params
  */
@@ -425,7 +425,7 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 /**
  * Sets loaded to false.
  *
- * @param {function} cb
+ * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb
  * @todo Add description for the params
  */
@@ -775,7 +775,7 @@ Transport.prototype.shared = {
  * Validation of all internal requests.
  *
  * @param {Object} query
- * @param {string} query.authKey - Key shared between master and slave processes. Not shared with the rest of network.
+ * @param {string} query.authKey - Key shared between master and slave processes. Not shared with the rest of network
  * @param {Object} query.peer - Peer to update
  * @param {number} query.updateType - 0 (insert) or 1 (remove)
  * @param {function} cb
@@ -803,7 +803,7 @@ Transport.prototype.internal = {
 	 *
 	 * @param {Object} query
 	 * @param {Object} query.peer
-	 * @param {string} query.authKey - signed peer data with in hex format
+	 * @param {string} query.authKey - Signed peer data with in hex format
 	 * @param {number} query.updateType - 0 (insert) or 1 (remove)
 	 * @param {function} cb
 	 * @todo Add description for the params

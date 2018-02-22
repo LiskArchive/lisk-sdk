@@ -69,7 +69,7 @@ function Accounts(cb, scope) {
 /**
  * Generates address based on public key.
  *
- * @param {publicKey} publicKey - PublicKey
+ * @param {publicKey} publicKey - Public key
  * @throws {string} If address is invalid throws `Invalid public key`
  * @returns {address} Generated address
  */
@@ -96,7 +96,7 @@ Accounts.prototype.generateAddressByPublicKey = function(publicKey) {
 /**
  * Gets account information, calls logic.account.get().
  *
- * @param {Object} filter - Contains publicKey
+ * @param {Object} filter - Contains public key
  * @param {function} fields - Fields to get
  * @param {function} cb - Callback function
  */

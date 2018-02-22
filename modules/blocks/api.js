@@ -58,19 +58,19 @@ function API(logger, db, block, schema, dbSequence) {
  *
  * @private
  * @func list
- * @param  {Object}   filter - Conditions to filter with
- * @param  {string}   filter.id - Block id
- * @param  {string}   filter.generatorPublicKey - Public key of delegate who generates the block
- * @param  {number}   filter.numberOfTransactions - Number of transactions
- * @param  {string}   filter.previousBlock - Previous block ID
- * @param  {number}   filter.height - Block height
- * @param  {number}   filter.totalAmount - Total amount of block's transactions
- * @param  {number}   filter.totalFee - Block total fees
- * @param  {number}   filter.reward - Block reward
- * @param  {number}   filter.limit - Limit of blocks to retrieve, default: 100, max: 100
- * @param  {number}   filter.offset - Offset from where to start
- * @param  {string}   filter.sort - Sort order, default: height:desc
- * @param  {function} cb - Callback function
+ * @param {Object} filter - Conditions to filter with
+ * @param {string} filter.id - Block id
+ * @param {string} filter.generatorPublicKey - Public key of delegate who generates the block
+ * @param {number} filter.numberOfTransactions - Number of transactions
+ * @param {string} filter.previousBlock - Previous block ID
+ * @param {number} filter.height - Block height
+ * @param {number} filter.totalAmount - Total amount of block's transactions
+ * @param {number} filter.totalFee - Block total fees
+ * @param {number} filter.reward - Block reward
+ * @param {number} filter.limit - Limit of blocks to retrieve, default: 100, max: 100
+ * @param {number} filter.offset - Offset from where to start
+ * @param {string} filter.sort - Sort order, default: height:desc
+ * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object}   cb.err - Error if occurred
  * @returns {Object}   cb.data - List of normalized blocks

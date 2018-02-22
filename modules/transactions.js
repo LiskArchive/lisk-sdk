@@ -411,7 +411,7 @@ __private.getPooledTransactions = function(method, filters, cb) {
 /**
  * Check if transaction is in pool.
  *
- * @param {string} id
+ * @param {string} id - Transaction id
  * @returns {function} Calls transactionPool.transactionInPool
  * @todo Add description for the params
  */
@@ -449,8 +449,8 @@ Transactions.prototype.getMultisignatureTransaction = function(id) {
 /**
  * Gets unconfirmed transactions based on limit and reverse option.
  *
- * @param {boolean} reverse
- * @param {number} limit
+ * @param {boolean} reverse - Reverse order of results
+ * @param {number} limit - Limit applied to results
  * @returns {function} Calls transactionPool.getUnconfirmedTransactionList
  * @todo Add description for the params
  */
@@ -467,8 +467,8 @@ Transactions.prototype.getUnconfirmedTransactionList = function(
 /**
  * Gets queued transactions based on limit and reverse option.
  *
- * @param {boolean} reverse
- * @param {number} limit
+ * @param {boolean} reverse - Reverse order of results
+ * @param {number} limit - Limit applied to results
  * @returns {function} Calls transactionPool.getQueuedTransactionList
  * @todo Add description for the params
  */
@@ -499,8 +499,8 @@ Transactions.prototype.getMultisignatureTransactionList = function(
 /**
  * Gets unconfirmed, multisignature and queued transactions based on limit and reverse option.
  *
- * @param {boolean} reverse
- * @param {number} limit
+ * @param {boolean} reverse - Reverse order of results
+ * @param {number} limit - Limit applied to results
  * @returns {function} Calls transactionPool.getMergedTransactionList
  * @todo Add description for the params
  */
@@ -511,7 +511,7 @@ Transactions.prototype.getMergedTransactionList = function(reverse, limit) {
 /**
  * Removes transaction from unconfirmed, queued and multisignature.
  *
- * @param {string} id
+ * @param {string} id - Transaction id
  * @returns {function} Calls transactionPool.removeUnconfirmedTransaction
  * @todo Add description for the params
  */
@@ -524,7 +524,7 @@ Transactions.prototype.removeUnconfirmedTransaction = function(id) {
  * if limit reached.
  *
  * @param {transaction} transaction
- * @param {Object} broadcast
+ * @param {Object} broadcast - Broadcast flag
  * @param {function} cb - Callback function
  * @returns {function} Calls transactionPool.processUnconfirmedTransaction
  * @todo Add description for the params
@@ -629,7 +629,7 @@ Transactions.prototype.applyUnconfirmed = function(
  * Validates account and Undoes unconfirmed transaction.
  *
  * @param {transaction} transaction
- * @param {function} cb
+ * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb
  * @todo Add description for the params and the return value
  */
@@ -651,8 +651,8 @@ Transactions.prototype.undoUnconfirmed = function(transaction, cb, tx) {
 /**
  * Receives transactions.
  *
- * @param {transaction[]} transactions
- * @param {Object} broadcast
+ * @param {transaction[]} transactions - Array of transactions
+ * @param {Object} broadcast - Broadcast flag
  * @param {function} cb - Callback function
  * @returns {function} Calls transactionPool.receiveTransactions
  * @todo Add description for the params
