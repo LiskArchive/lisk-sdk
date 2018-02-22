@@ -239,7 +239,7 @@ Blocks.prototype.onBind = function() {
  * Handle node shutdown request.
  *
  * @listens module:app~event:cleanup
- * @param  {function} cb - Callback function
+ * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb
  */
 Blocks.prototype.cleanup = function(cb) {

@@ -173,7 +173,7 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err
  * @returns {function} Calls to logic.account.merge()
- * @todo improve publicKey validation try/catch
+ * @todo Improve publicKey validation try/catch
  */
 Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
 	var address = data.address || null;
