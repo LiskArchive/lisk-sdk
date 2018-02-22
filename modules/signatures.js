@@ -84,42 +84,59 @@ Signatures.prototype.onBind = function(scope) {
 	__private.assetTypes[transactionTypes.SIGNATURE].bind(scope.accounts);
 };
 
+__private.processPostResult = function(err, res, cb) {
+	var error = null;
+	var response = null;
+
+	// TODO: Need to improve error handling so that we don't
+	// need to parse the error message to determine the error type.
+	var processingError = /^Error processing signature/;
+	var badRequestBodyError = /^Invalid signature body/;
+
+	if (err) {
+		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
+	} else if (res.success) {
+		response = { status: 'Signature Accepted' };
+	} else if (processingError.test(res.message)) {
+		error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
+	} else if (badRequestBodyError.test(res.message)) {
+		error = new ApiError(res.message, apiCodes.BAD_REQUEST);
+	} else {
+		error = new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR);
+	}
+	return setImmediate(cb, error, response);
+};
+
 // Shared API
 /**
  * Public methods, accessible via API
  */
 Signatures.prototype.shared = {
 	/**
+	 * Post signature for a transaction.
+	 *
+	 * @param {Object.<{transactionId: string, publicKey: string, signature: string}>} - Signature
+	 * @param {function} cb - Callback function
+	 * @return {setImmediateCallback}
+	 */
+	postSignature(signature, cb) {
+		return modules.transport.shared.postSignature({ signature }, (err, res) => {
+			__private.processPostResult(err, res, cb);
+		});
+	},
+
+	/**
 	 * Post signatures for transactions.
-	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures.
-	 * @param {function} cb - Callback function.
+	 *
+	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - List of signatures
+	 * @param {function} cb - Callback function
 	 * @return {setImmediateCallback}
 	 */
 	postSignatures(signatures, cb) {
 		return modules.transport.shared.postSignatures(
 			{ signatures },
 			(err, res) => {
-				var processingError = /(error|processing)/gi;
-				var badRequestBodyError = /(invalid|signature)/gi;
-
-				if (res.success === false) {
-					if (processingError.exec(res.message).length === 2) {
-						return setImmediate(
-							cb,
-							new ApiError(res.message, apiCodes.PROCESSING_ERROR)
-						);
-					} else if (badRequestBodyError.exec(res.message).length === 2) {
-						return setImmediate(
-							cb,
-							new ApiError(res.message, apiCodes.BAD_REQUEST)
-						);
-					}
-					return setImmediate(
-						cb,
-						new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR)
-					);
-				}
-				return setImmediate(cb, null, { status: 'Signature Accepted' });
+				__private.processPostResult(err, res, cb);
 			}
 		);
 	},
