@@ -65,32 +65,39 @@ describe('convert', () => {
 			const buffer = hexToBuffer(defaultHex);
 			return buffer.should.be.eql(defaultBuffer);
 		});
+
 		it('should throw TypeError with number', () => {
-			return (() => hexToBuffer(123)).should.throw(
-				new TypeError('argument must be string'),
-			);
+			return hexToBuffer
+				.bind(null, 123)
+				.should.throw(TypeError, { message: 'Argument must be a string.' });
 		});
+
 		it('should throw TypeError with object', () => {
-			return (() => hexToBuffer({})).should.throw(
-				new TypeError('argument must be string'),
-			);
+			return hexToBuffer
+				.bind(null, {})
+				.should.throw(TypeError, { message: 'Argument must be a string.' });
 		});
+
 		it('should create empty Buffer from non hex string', () => {
 			const buffer = hexToBuffer('yKJh');
 			return buffer.should.be.eql(Buffer.alloc(0));
 		});
+
 		it('should create partial Buffer from partially non hex string', () => {
 			const buffer = hexToBuffer('Abxzzzz');
 			return buffer.should.be.eql(Buffer.from('Ab', 'hex'));
 		});
+
 		it('should create partial Buffer with only first valid hex string', () => {
 			const buffer = hexToBuffer('Abxzzab');
 			return buffer.should.be.eql(Buffer.from('Ab', 'hex'));
 		});
+
 		it('should create even numbered Buffer from odd number hex string with invalid hex', () => {
 			const buffer = hexToBuffer('123xxxx');
 			return buffer.should.be.eql(Buffer.from('12', 'hex'));
 		});
+
 		it('should create even numbered Buffer from odd number hex string', () => {
 			const buffer = hexToBuffer('c3a5c3a4c3b6a');
 			return buffer.should.be.eql(Buffer.from('c3a5c3a4c3b6', 'hex'));

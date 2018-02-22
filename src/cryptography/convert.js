@@ -27,7 +27,7 @@ export const bufferToHex = buffer => naclInstance.to_hex(buffer);
 const hexRegex = /^[0-9a-f]+/i;
 export const hexToBuffer = hex => {
 	if (typeof hex !== 'string') {
-		throw new TypeError('Argument must be a string');
+		throw new TypeError('Argument must be a string.');
 	}
 	const matchedHex = (hex.match(hexRegex) || [])[0];
 	if (!matchedHex) {
