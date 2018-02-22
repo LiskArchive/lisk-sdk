@@ -15,6 +15,7 @@
 'use strict';
 
 const path = require('path');
+const Promise = require('bluebird');
 const fs = require('fs-extra');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const fixtures = require('../../../fixtures');
@@ -40,6 +41,11 @@ describe('db', () => {
 
 	after(done => {
 		dbSandbox.destroy();
+		done();
+	});
+
+	afterEach(done => {
+		sinonSandbox.restore();
 		done();
 	});
 
@@ -161,6 +167,188 @@ describe('db', () => {
 				expect(total.count).to.be.above(0);
 				expect(before.count).to.be.eql(0);
 				return expect(after.count).to.be.eql(1);
+			});
+
+			it('should copy mem_accounts2delegates to mem_accounts2u_delegates', function*() {
+				const account = fixtures.accounts.Account();
+				yield db.accounts.insert(account);
+				const data = fixtures.accounts.Dependent({
+					accountId: account.address,
+				});
+
+				yield db.query(
+					db.$config.pgp.helpers.insert(data, null, {
+						table: 'mem_accounts2delegates',
+					})
+				);
+				yield db.migrations.applyRuntime();
+
+				const result = yield db.query('SELECT * FROM mem_accounts2u_delegates');
+
+				expect(result).to.have.lengthOf(1);
+				return expect(result[0]).to.be.eql(data);
+			});
+
+			it('should copy mem_accounts2multisignatures to mem_accounts2u_multisignatures', function*() {
+				const account = fixtures.accounts.Account();
+				yield db.accounts.insert(account);
+				const data = fixtures.accounts.Dependent({
+					accountId: account.address,
+				});
+
+				yield db.query(
+					db.$config.pgp.helpers.insert(data, null, {
+						table: 'mem_accounts2multisignatures',
+					})
+				);
+				yield db.migrations.applyRuntime();
+
+				const result = yield db.query(
+					'SELECT * FROM mem_accounts2u_multisignatures'
+				);
+
+				expect(result).to.have.lengthOf(1);
+				return expect(result[0]).to.be.eql(data);
+			});
+		});
+
+		describe('createMemoryTables()', () => {
+			it('should use the correct SQL while in transaction context', function*() {
+				return yield db.tx(function*(t) {
+					sinonSandbox.spy(t, 'none');
+
+					yield t.migrations.createMemoryTables();
+
+					return expect(t.none.firstCall.args[0]).to.be.eql(
+						migrationsSQL.memoryTables
+					);
+				});
+			});
+
+			it('should start a transaction context if no transaction exists', function*() {
+				sinonSandbox.spy(db, 'tx');
+
+				yield db.migrations.createMemoryTables();
+
+				expect(db.tx.firstCall.args[0]).to.be.eql('createMemoryTables');
+				return expect(db.tx.firstCall.args[1]).to.be.a('function');
+			});
+		});
+
+		describe('readPending()', () => {
+			let files;
+			let fileIds;
+
+			beforeEach(function*() {
+				files = yield fs.readdir(path.join(sqlRoot, 'migrations', 'updates'));
+				fileIds = files.map(f => f.match(/(\d+)_(.+).sql/)[1]).sort();
+				return fileIds;
+			});
+
+			it('should resolve with list of pending files if there exists any', function*() {
+				const pending = (yield db.migrations.readPending(fileIds[0])).map(
+					f => f.id
+				);
+
+				fileIds.splice(0, 1);
+				return expect(pending).to.be.eql(fileIds);
+			});
+
+			it('should resolve with empty array if there is no pending migration', function*() {
+				const pending = yield db.migrations.readPending(
+					fileIds[fileIds.length - 1]
+				);
+
+				return expect(pending).to.be.empty;
+			});
+
+			it('should resolve the list in correct format', function*() {
+				const pending = yield db.migrations.readPending(fileIds[0]);
+
+				expect(pending).to.be.an('array');
+				expect(pending[0]).to.have.all.keys('id', 'name', 'path', 'file');
+				return expect(pending[0].file).to.be.instanceOf(
+					db.$config.pgp.QueryFile
+				);
+			});
+		});
+
+		describe('applyAll()', () => {
+			let files;
+			let fileIds;
+			let fileNames;
+			let updates;
+
+			beforeEach(() => {
+				return fs
+					.readdir(path.join(sqlRoot, 'migrations', 'updates'))
+					.then(result => {
+						files = result;
+						fileIds = files.map(f => f.match(/(\d+)_(.+).sql/)[1]).sort();
+						fileNames = files.map(f => f.match(/(\d+)_(.+).sql/)[2]);
+
+						return db.migrations.readPending(fileIds[0]);
+					})
+					.then(_updates => {
+						updates = _updates;
+					});
+			});
+
+			it('should apply all pending migrations in a transaction', () => {
+				const t2 = {
+					none: sinonSandbox.stub().resolves(true),
+				};
+
+				const t1 = {
+					migrations: {
+						getLastId: sinonSandbox.stub().resolves(true),
+						hasMigrations: sinonSandbox.stub().resolves(fileIds[0]),
+						applyRuntime: sinonSandbox.stub().resolves(true),
+						readPending: sinonSandbox.stub().resolves(updates),
+					},
+					tx: sinonSandbox.stub().callsArgWith(1, t2),
+				};
+
+				// Since sinon can only call a callback or resolve to promise
+				// but pg-promise db.tx is mix, it accepts a callback and returns a promise
+				// and there is no way in sinon to resolve to to value return of a callacbk
+				// so have to hack it by delaying the execution of resolve untill callback perform
+				sinonSandbox
+					.stub(db, 'tx')
+					.callsArgWith(1, t1)
+					.resolves(Promise.delay(2000));
+
+				return db.migrations.applyAll().then(() => {
+					expect(db.tx).to.be.calledOnce;
+					expect(db.tx.firstCall.args[0]).to.be.eql('applyAll');
+
+					expect(t1.migrations.hasMigrations).to.be.calledOnce;
+					expect(t1.tx).to.have.callCount(updates.length);
+					updates.forEach((u, index) => {
+						expect(t1.tx.getCalls()[index].args[0]).to.be.eql(
+							`update:${u.name}`
+						);
+						expect(t1.tx.getCalls()[index].args[1]).to.be.a('function');
+					});
+
+					expect(t2.none).to.have.callCount(updates.length * 2);
+					updates.forEach((u, index) => {
+						expect(t2.none.getCalls()[index]).to.be.calledWithExactly(u.file);
+						expect(
+							t2.none.getCalls()[updates.length + index]
+						).to.be.calledWithExactly(migrationsSQL.add, u);
+					});
+				});
+			});
+
+			it('should update migrations table with corresponding file ids and names', function*() {
+				const result = yield db.query('SELECT * FROM migrations');
+
+				expect(result).to.be.not.empty;
+				return result.forEach((r, index) => {
+					expect(r.id).to.be.eql(fileIds[index]);
+					expect(r.name).to.be.eql(fileNames[index]);
+				});
 			});
 		});
 	});
