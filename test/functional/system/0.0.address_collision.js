@@ -32,11 +32,13 @@ describe('system test (type 0) - address collision', () => {
 		10 * normalizer,
 		collision.passphrases[0]
 	);
+
 	var secondTransaction = lisk.transaction.createTransaction(
 		accountFixtures.genesis.address,
 		10 * normalizer,
 		collision.passphrases[1]
 	);
+
 	var firstTransactionWithData = lisk.transaction.createTransaction(
 		accountFixtures.genesis.address,
 		10 * normalizer,
@@ -44,6 +46,7 @@ describe('system test (type 0) - address collision', () => {
 		null,
 		'addtional data from 1'
 	);
+
 	var secondTransactionWithData = lisk.transaction.createTransaction(
 		accountFixtures.genesis.address,
 		10 * normalizer,
