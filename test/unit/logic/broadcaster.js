@@ -2,11 +2,13 @@ const Broadcaster = require('../../../logic/broadcaster');
 
 describe('Broadcaster', () => {
 	const force = true;
+	const params = { limit: 10, broadhash: '123' };
 	let broadcaster;
 	let broadcasts;
 	let transactionStub;
 	let peersStub;
 	let loggerStub;
+	let modulesStub;
 
 	before(done => {
 		broadcasts = {
@@ -27,12 +29,29 @@ describe('Broadcaster', () => {
 			error: sinonSandbox.stub(),
 		};
 
+		modulesStub = {
+			peers: {
+				list: sinonSandbox.stub(),
+				getLastConsensus: sinonSandbox.stub(),
+			},
+			transport: {},
+			transactions: {
+				transactionInPool: sinonSandbox.stub(),
+			},
+		};
+
 		broadcaster = new Broadcaster(
 			broadcasts,
 			force,
 			peersStub,
 			transactionStub,
 			loggerStub
+		);
+
+		broadcaster.bind(
+			modulesStub.peers,
+			modulesStub.transport,
+			modulesStub.transaction
 		);
 		done();
 	});
@@ -74,6 +93,20 @@ describe('Broadcaster', () => {
 			const options = {};
 			expect(broadcaster.enqueue(params, options)).to.eql(1);
 			return expect(broadcaster.enqueue(params, options)).to.eql(2);
+		});
+	});
+
+	describe('getPeers', () => {
+		beforeEach(() => {
+			return modulesStub.peers.list.callsArgWith(1, null, [1]);
+		});
+
+		it('should return peers', done => {
+			broadcaster.getPeers(params, (err, peers) => {
+				expect(err).to.be.null;
+				expect(peers).to.be.an('Array').that.is.not.empty;
+				done();
+			});
 		});
 	});
 });
