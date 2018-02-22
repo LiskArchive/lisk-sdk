@@ -63,7 +63,9 @@ describe('blocks/process', () => {
 			applyHeaders: sinonSandbox.stub(),
 			string: 'ip:wsPort',
 		};
+
 		dummyCommonBlock = { id: '3', previousBlock: '2', height: '3' };
+
 		peerStub.rpc.blocksCommon
 			.withArgs(sinonSandbox.match({ ids: 'ERR' }))
 			.callsArgWith(1, 'rpc.blocksCommon-ERR', null)
@@ -97,6 +99,7 @@ describe('blocks/process', () => {
 			},
 			applyHeaders: peerStub.applyHeaders,
 		};
+
 		transactionStub = {
 			ready: sinonSandbox.stub(),
 			verify: sinonSandbox.stub(),
@@ -113,20 +116,24 @@ describe('blocks/process', () => {
 		schemaStub = {
 			validate: sinonSandbox.stub(),
 		};
+
 		dbSequenceStub = {
 			add: (cb, cbp) => {
 				cb(cbp);
 			},
 		};
+
 		sequenceStub = {
 			add: sinonSandbox.stub(),
 		};
+
 		genesisblockStub = {
 			block: {
 				id: '6524861224470851795',
 				height: 1,
 			},
 		};
+
 		blocksProcessModule = new BlocksProcess(
 			loggerStub,
 			blockStub,
@@ -138,8 +145,10 @@ describe('blocks/process', () => {
 			sequenceStub,
 			genesisblockStub
 		);
+
 		library = BlocksProcess.__get__('library');
 		__private = BlocksProcess.__get__('__private');
+
 		// Modules
 		dummyBlock = {
 			id: '4',
@@ -151,6 +160,7 @@ describe('blocks/process', () => {
 		var modulesAccountsStub = {
 			getAccount: sinonSandbox.stub(),
 		};
+
 		var modulesBlocksStub = {
 			lastReceipt: {
 				update: sinonSandbox.stub(),
@@ -190,15 +200,19 @@ describe('blocks/process', () => {
 		var modulesLoaderStub = {
 			syncing: sinonSandbox.stub(),
 		};
+
 		var modulesRoundsStub = {
 			ticking: sinonSandbox.stub(),
 		};
+
 		var modulesTransactionsStub = {
 			getUnconfirmedTransactionList: sinonSandbox.stub(),
 		};
+
 		var modulesTransportStub = {
 			poorConsensus: sinonSandbox.stub(),
 		};
+
 		var swaggerDefinitionsStub = sinonSandbox.stub();
 
 		modulesStub = {
@@ -213,6 +227,7 @@ describe('blocks/process', () => {
 				definitions: swaggerDefinitionsStub,
 			},
 		};
+
 		blocksProcessModule.onBind(modulesStub);
 		modules = BlocksProcess.__get__('modules');
 		definitions = BlocksProcess.__get__('definitions');
@@ -422,6 +437,7 @@ describe('blocks/process', () => {
 										});
 									});
 								});
+
 								describe('when succeeds', () => {
 									describe('modules.blocks.chain.deleteLastBlock (first call)', () => {
 										describe('when fails', () => {
@@ -456,6 +472,7 @@ describe('blocks/process', () => {
 												});
 											});
 										});
+
 										describe('when succeeds', () => {
 											describe('modules.blocks.chain.deleteLastBlock (second call)', () => {
 												describe('when fails', () => {
@@ -500,6 +517,7 @@ describe('blocks/process', () => {
 														});
 													});
 												});
+
 												describe('when succeeds', () => {
 													beforeEach(() => {
 														library.logic.block.objectNormalize.returns({
@@ -750,6 +768,7 @@ describe('blocks/process', () => {
 												});
 											});
 										});
+
 										describe('when succeeds', () => {
 											beforeEach(() => {
 												return modules.blocks.chain.deleteLastBlock.callsArgWith(
@@ -758,6 +777,7 @@ describe('blocks/process', () => {
 													'delete block ok'
 												);
 											});
+
 											describe('__private.receiveBlock', () => {
 												describe('when fails', () => {
 													beforeEach(() => {
@@ -783,6 +803,7 @@ describe('blocks/process', () => {
 														});
 													});
 												});
+
 												describe('when succeeds', () => {
 													beforeEach(() => {
 														return __private.receiveBlock.callsArgWith(
@@ -929,6 +950,7 @@ describe('blocks/process', () => {
 								ids: 'OK',
 							});
 						});
+
 						describe('library.schema.validate', () => {
 							describe('when fails', () => {
 								beforeEach(() => {
@@ -1519,6 +1541,7 @@ describe('blocks/process', () => {
 						});
 					});
 				});
+
 				describe('when succeeds', () => {
 					beforeEach(() => {
 						return modules.blocks.lastBlock.get.returns({
@@ -1576,6 +1599,7 @@ describe('blocks/process', () => {
 											);
 										});
 									});
+
 									describe('when receives blocks', () => {
 										describe('modules.blocks.utils.readDbRows', () => {
 											describe('when fails', () => {
@@ -1637,6 +1661,7 @@ describe('blocks/process', () => {
 															);
 														});
 													});
+
 													describe('when returns false', () => {
 														beforeEach(() => {
 															return modules.blocks.isCleaning.get.returns(
@@ -1682,6 +1707,7 @@ describe('blocks/process', () => {
 																		);
 																	});
 																});
+
 																describe('when succeeds', () => {
 																	beforeEach(() => {
 																		return modules.blocks.verify.processBlock.callsArgWith(
