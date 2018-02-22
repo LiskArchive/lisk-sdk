@@ -57,6 +57,7 @@ describe('blocks/chain', () => {
 		};
 		transactionStub = {
 			afterSave: sinonSandbox.stub().callsArgWith(1, null, true),
+			undoUnconfirmed: sinonSandbox.stub(),
 		};
 		balancesSequenceStub = {
 			add: (cb, cbp) => {
@@ -607,180 +608,598 @@ describe('blocks/chain', () => {
 	});
 
 	describe('applyBlock', () => {
-		describe('modules.transactions.undoUnconfirmedList', () => {
-			describe('when fails', () => {
-				beforeEach(() => {
-					modules.transactions.undoUnconfirmedList.callsArgWith(0, 'undoUnconfirmedList-ERR', null);
-					library.db.tx.callsArgWith(1, null, true).rejects('undoUnconfirmedList-ERR');
-				});
-				it('should reject with error', done => {
-					blocksChainModule.applyBlock({ id: 5, height: 5 }, true, err => {
-						expect(err.name).to.equal('undoUnconfirmedList-ERR');
-						done();
+		var saveBlockTemp;
+		beforeEach(done => {
+			saveBlockTemp = blocksChainModule.saveBlock;
+			blocksChainModule.saveBlock = sinonSandbox
+				.stub()
+				.callsArgWith(1, null, true);
+			modules.rounds.tick.callsArgWith(1, null, true);
+			process.emit = sinonSandbox.stub();
+			library.db.tx = (desc, tx) => {
+				return tx();
+			};
+			done();
+		});
+		afterEach(done => {
+			blocksChainModule.saveBlock = saveBlockTemp;
+			expect(modules.blocks.isActive.set.calledTwice).to.be.true;
+			done();
+		});
+		describe('undoUnconfirmedListStep', () => {
+			beforeEach(() => {
+				// applyUnconfirmedStep
+				modules.accounts.setAccountAndGet.callsArgWith(1, null, 'sender1');
+				modules.transactions.applyUnconfirmed.callsArgWith(2, null, null);
+				// applyConfirmedStep
+				modules.accounts.getAccount.callsArgWith(1, null, 'sender1');
+			});
+			describe('modules.transactions.undoUnconfirmedList', () => {
+				describe('when fails', () => {
+					beforeEach(() => {
+						modules.transactions.undoUnconfirmedList.callsArgWith(
+							0,
+							'undoUnconfirmedList-ERR',
+							null
+						);
+					});
+					it('should call a callback with error', done => {
+						blocksChainModule.applyBlock({ id: 5, height: 5 }, true, err => {
+							expect(err).to.equal('Failed to undo unconfirmed list');
+							done();
+						});
 					});
 				});
 			});
-			describe('when succeeds', () => {
+			describe('when succeeds', () => {});
+		});
+		describe('applyUnconfirmedStep', () => {
+			beforeEach(() => {
+				modules.transactions.undoUnconfirmedList.callsArgWith(0, null, true);
+			});
+			describe('when block.transactions is undefined', () => {
 				beforeEach(() => {
 					modules.transactions.undoUnconfirmedList.callsArgWith(0, null, true);
-					modules.accounts.setAccountAndGet.callsArgWith(1, null, true);
-					modules.transactions.applyUnconfirmed.callsArgWith(0, 'applyUnconfirmed-ERR', null);
+					modules.accounts.setAccountAndGet.callsArgWith(1, null, 'sender1');
+					modules.transactions.applyUnconfirmed.callsArgWith(2, null, true);
+				});
+				it('should call a callback with error', done => {
+					blocksChainModule.applyBlock(
+						{ id: 6, height: 6, transactions: undefined },
+						true,
+						err => {
+							expect(err.message).to.equal(
+								'expecting an array or an iterable object but got [object Null]'
+							);
+							done();
+						}
+					);
+				});
+			});
+			describe('modules.accounts.setAccountAndGet', () => {
+				beforeEach(() => {
+					modules.accounts.setAccountAndGet.callsArgWith(1, null, 'sender1');
 				});
 				describe('modules.transactions.applyUnconfirmed', () => {
 					describe('when fails', () => {
-						it('should reject with error', done => {
-							blocksChainModule.applyBlock({ id: 5, height: 5 }, true, err => {
-								expect(err.name).to.equal('undoUnconfirmedList-ERR');
-								done();
-							});
+						beforeEach(() => {
+							modules.transactions.applyUnconfirmed
+								.onCall(0)
+								.callsArgWith(2, null, true);
+							modules.transactions.applyUnconfirmed
+								.onCall(1)
+								.callsArgWith(2, 'applyUnconfirmed-ERR', null);
 						});
-					});
-					describe('when succeeds', () => {
-					});
-				});
-			});
-		});
-		it('should apply a valid block successfully');
-
-		it('should call modules.blocks.isActive');
-
-		it('should call modules.blocks.isActive with true');
-
-		it('should call modules.transactions.undoUnconfirmedList');
-
-		describe('when modules.transactions.undoUnconfirmedList fails', () => {
-			it('should call logger.error with error');
-
-			it('should return process.exit with 0');
-		});
-
-		describe('when modules.transactions.undoUnconfirmedList succeeds', () => {
-			describe('for every block.transactions', () => {
-				it('should call modules.accounts.setAccountAndGet');
-
-				it(
-					'should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}'
-				);
-
-				it('should call modules.transactions.applyUnconfirmed');
-
-				it(
-					'should call modules.transactions.applyUnconfirmed with transaction'
-				);
-
-				it('should call modules.transactions.applyUnconfirmed with sender');
-
-				describe('when modules.transactions.applyUnconfirmed fails', () => {
-					it('should call library.logger.error with error');
-
-					describe('for every block.transactions', () => {
-						it('should call modules.accounts.getAccount');
-
-						it(
-							'should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}'
-						);
-
-						describe('when modules.accounts.getAccount fails', () => {
-							it('should call callback with error');
-						});
-
-						describe('when modules.accounts.getAccount succeeds', () => {
-							describe('and transaction.id was already applied', () => {
-								it('should call library.logic.transaction.undoUnconfirmed');
-
-								it(
-									'should call library.logic.transaction.undoUnconfirmed with transaction'
-								);
-
-								it(
-									'should call library.logic.transaction.undoUnconfirmed with sender'
-								);
-							});
-						});
-					});
-				});
-
-				describe('for every block.transactions', () => {
-					it('should call modules.accounts.getAccount');
-
-					it(
-						'should call modules.accounts.getAccount with {publicKey: transaction.senderPublicKey}'
-					);
-
-					describe('when modules.accounts.getAccount fails', () => {
-						it('should call library.logger.error with error');
-
-						it('should call process.exit with 0');
-					});
-
-					describe('when modules.accounts.getAccount succeeds', () => {
-						it('should call modules.transactions.apply');
-
-						it('should call modules.transactions.apply with transaction');
-
-						it('should call modules.transactions.apply with block');
-
-						it('should call modules.transactions.apply with sender');
-
-						describe('when modules.transactions.apply fails', () => {
-							it('should call library.logger.error with error');
-
-							it('should call process.exit with 0');
-						});
-
-						describe('when modules.transactions.apply succeeds', () => {
-							it(
-								'should call modules.transactions.removeUnconfirmedTransaction'
-							);
-
-							it(
-								'should call modules.transactions.removeUnconfirmedTransaction with transaction.id'
-							);
-
-							it('should call modules.blocks.lastBlock.set');
-
-							it('should call modules.blocks.lastBlock.set with block');
-
-							describe('when saveBlock is defined', () => {
-								it('should call self.saveBlock with block');
-
-								describe('when self.saveBlock fails', () => {
-									it('should call logger.error with message');
-
-									it('should call logger.error with "Block"');
-
-									it('should call logger.error with block');
-
-									it('should call process.exit with 0');
-								});
-
-								describe('when self.saveBlock succeeds', () => {
-									it('should call library.logger.debug');
-								});
-
-								it('should call modules.transactions.applyUnconfirmedIds');
-
-								it(
-									'should call modules.transactions.applyUnconfirmedIds with unconfirmedTransactionIds'
-								);
-
-								describe('when modules.transactions.applyUnconfirmedIds fails', () => {
-									describe('when error = "Snapshot finished"', () => {
-										it('should call logger.info with error');
-
-										it('should call process.emit with "SIGTERM"');
+						describe('catch', () => {
+							describe('modules.accounts.getAccount', () => {
+								describe('when fails', () => {
+									beforeEach(() => {
+										modules.accounts.getAccount
+											.onCall(0)
+											.callsArgWith(1, 'getAccount-ERR', null)
+											.callsArgWith(1, null, 'sender1');
+										modules.transactions.apply.callsArgWith(3, null, true);
 									});
-
-									it('should call callback with error');
+									it('should call a callback with error', done => {
+										blocksChainModule.applyBlock(
+											{
+												id: 5,
+												height: 5,
+												transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+											},
+											true,
+											err => {
+												expect(err).to.equal('getAccount-ERR');
+												done();
+											}
+										);
+									});
 								});
-
-								describe('when modules.transactions.applyUnconfirmedIds succeeds', () => {
-									it('should return series callback with error = undefined');
-
-									it('should return series callback with result = undefined');
+								describe('when succeeds', () => {
+									beforeEach(() => {
+										modules.accounts.getAccount.callsArgWith(
+											1,
+											null,
+											'sender1'
+										);
+									});
+									describe('library.logic.transaction.undoUnconfirmed', () => {
+										describe('when fails', () => {
+											beforeEach(() => {
+												library.logic.transaction.undoUnconfirmed.callsArgWith(
+													2,
+													'undoUnconfirmed-ERR',
+													null
+												);
+											});
+											it('should call a callback with error', done => {
+												blocksChainModule.applyBlock(
+													{
+														id: 5,
+														height: 5,
+														transactions: [
+															{ id: 1, type: 0 },
+															{ id: 2, type: 1 },
+														],
+													},
+													true,
+													err => {
+														expect(err).to.equal('undoUnconfirmed-ERR');
+														done();
+													}
+												);
+											});
+										});
+										describe('when succeeds', () => {
+											describe('applyConfirmedStep', () => {
+												describe('when block.transactions is empty', () => {
+													beforeEach(() => {
+														modules.transactions.undoUnconfirmedList.callsArgWith(
+															0,
+															null,
+															true
+														);
+														modules.accounts.setAccountAndGet.callsArgWith(
+															1,
+															null,
+															'sender1'
+														);
+													});
+													it('should call a callback with no error', done => {
+														blocksChainModule.applyBlock(
+															{ id: 6, height: 6, transactions: [] },
+															true,
+															err => {
+																expect(err).to.be.null;
+																done();
+															}
+														);
+													});
+												});
+												describe('when block.transactions is not empty', () => {
+													beforeEach(() => {
+														modules.transactions.undoUnconfirmedList.callsArgWith(
+															0,
+															null,
+															true
+														);
+														modules.accounts.setAccountAndGet.callsArgWith(
+															1,
+															null,
+															'sender1'
+														);
+														modules.transactions.applyUnconfirmed
+															.onCall(1)
+															.callsArgWith(2, null, true);
+													});
+													describe('modules.accounts.getAccount', () => {
+														describe('when fails', () => {
+															beforeEach(() => {
+																modules.accounts.getAccount.callsArgWith(
+																	1,
+																	'getAccount-ERR',
+																	null
+																);
+															});
+															it('should call a callback with error', done => {
+																blocksChainModule.applyBlock(
+																	{
+																		id: 5,
+																		height: 5,
+																		transactions: [
+																			{ id: 1, type: 0 },
+																			{ id: 2, type: 1 },
+																		],
+																	},
+																	true,
+																	err => {
+																		expect(err).to.equal(
+																			'Failed to apply transaction: 1 - getAccount-ERR'
+																		);
+																		done();
+																	}
+																);
+															});
+														});
+														describe('when succeeds', () => {
+															beforeEach(() => {
+																modules.accounts.getAccount.callsArgWith(
+																	1,
+																	null,
+																	'sender1'
+																);
+															});
+															describe('modules.transactions.apply', () => {
+																describe('when fails', () => {
+																	beforeEach(() => {
+																		modules.transactions.apply.callsArgWith(
+																			3,
+																			'apply-ERR',
+																			null
+																		);
+																	});
+																	it('should call a callback with error', done => {
+																		blocksChainModule.applyBlock(
+																			{
+																				id: 5,
+																				height: 5,
+																				transactions: [
+																					{ id: 1, type: 0 },
+																					{ id: 2, type: 1 },
+																				],
+																			},
+																			true,
+																			err => {
+																				expect(err).to.equal(
+																					'Failed to apply transaction: 1 - apply-ERR'
+																				);
+																				done();
+																			}
+																		);
+																	});
+																});
+																describe('when succeeds', () => {
+																	beforeEach(() => {
+																		modules.transactions.apply.callsArgWith(
+																			3,
+																			null,
+																			true
+																		);
+																	});
+																	describe('saveBlockStep', () => {
+																		afterEach(() => {
+																			expect(
+																				modules.blocks.lastBlock.set.calledOnce
+																			).to.be.true;
+																			expect(
+																				modules.blocks.lastBlock.set.args[0][0]
+																			).to.deep.equal({
+																				id: 5,
+																				height: 5,
+																				transactions: [
+																					{ id: 1, type: 0 },
+																					{ id: 2, type: 1 },
+																				],
+																			});
+																		});
+																		describe('when saveBlock is true', () => {
+																			describe('when self.saveBlock fails', () => {
+																				beforeEach(() => {
+																					blocksChainModule.saveBlock.callsArgWith(
+																						1,
+																						'saveBlock-ERR',
+																						null
+																					);
+																				});
+																				afterEach(() => {
+																					expect(
+																						loggerStub.error.args[0][0]
+																					).to.contains(
+																						'Failed to save block...'
+																					);
+																					expect(
+																						loggerStub.error.args[0][1]
+																					).to.contains('saveBlock-ERR');
+																					expect(
+																						loggerStub.error.args[1][0]
+																					).to.equal('Block');
+																					expect(
+																						loggerStub.error.args[1][1]
+																					).to.deep.equal({
+																						id: 5,
+																						height: 5,
+																						transactions: [
+																							{ id: 1, type: 0 },
+																							{ id: 2, type: 1 },
+																						],
+																					});
+																					expect(
+																						blocksChainModule.saveBlock
+																							.args[0][0]
+																					).to.deep.equal({
+																						id: 5,
+																						height: 5,
+																						transactions: [
+																							{ id: 1, type: 0 },
+																							{ id: 2, type: 1 },
+																						],
+																					});
+																				});
+																				it('should call a callback with error', done => {
+																					blocksChainModule.applyBlock(
+																						{
+																							id: 5,
+																							height: 5,
+																							transactions: [
+																								{ id: 1, type: 0 },
+																								{ id: 2, type: 1 },
+																							],
+																						},
+																						true,
+																						err => {
+																							expect(err).to.equal(
+																								'saveBlock-ERR'
+																							);
+																							done();
+																						}
+																					);
+																				});
+																			});
+																			describe('when self.saveBlock succeeds', () => {
+																				beforeEach(() => {
+																					blocksChainModule.saveBlock.callsArgWith(
+																						1,
+																						null,
+																						true
+																					);
+																				});
+																				afterEach(() => {
+																					expect(
+																						loggerStub.debug.args[0][0]
+																					).to.contains(
+																						'Block applied correctly with 2 transactions'
+																					);
+																					expect(
+																						blocksChainModule.saveBlock
+																							.args[0][0]
+																					).to.deep.equal({
+																						id: 5,
+																						height: 5,
+																						transactions: [
+																							{ id: 1, type: 0 },
+																							{ id: 2, type: 1 },
+																						],
+																					});
+																					expect(library.bus.message.calledOnce)
+																						.to.be.true;
+																					expect(
+																						library.bus.message.args[0][0]
+																					).to.deep.equal('newBlock');
+																					expect(
+																						library.bus.message.args[0][1]
+																					).to.deep.equal({
+																						id: 5,
+																						height: 5,
+																						transactions: [
+																							{ id: 1, type: 0 },
+																							{ id: 2, type: 1 },
+																						],
+																					});
+																				});
+																				describe('modules.rounds.tick', () => {
+																					describe('when fails', () => {
+																						beforeEach(() => {
+																							modules.rounds.tick.callsArgWith(
+																								1,
+																								'tick-ERR',
+																								null
+																							);
+																						});
+																						it('should call a callback with error', done => {
+																							blocksChainModule.applyBlock(
+																								{
+																									id: 5,
+																									height: 5,
+																									transactions: [
+																										{ id: 1, type: 0 },
+																										{ id: 2, type: 1 },
+																									],
+																								},
+																								true,
+																								err => {
+																									expect(err).to.equal(
+																										'tick-ERR'
+																									);
+																									done();
+																								}
+																							);
+																						});
+																					});
+																					describe('when Snapshot finished', () => {
+																						beforeEach(() => {
+																							modules.rounds.tick.callsArgWith(
+																								1,
+																								'Snapshot finished',
+																								null
+																							);
+																						});
+																						afterEach(() => {
+																							expect(
+																								loggerStub.info.args[0][0]
+																							).to.equal('Snapshot finished');
+																							expect(process.emit.calledOnce).to
+																								.be.true;
+																						});
+																						it('should emit SIGTERM and call a callback with error', done => {
+																							blocksChainModule.applyBlock(
+																								{
+																									id: 5,
+																									height: 5,
+																									transactions: [
+																										{ id: 1, type: 0 },
+																										{ id: 2, type: 1 },
+																									],
+																								},
+																								true,
+																								err => {
+																									expect(err).to.equal(
+																										'Snapshot finished'
+																									);
+																									done();
+																								}
+																							);
+																						});
+																					});
+																					describe('when succeeds', () => {
+																						beforeEach(() => {
+																							modules.rounds.tick.callsArgWith(
+																								1,
+																								null,
+																								true
+																							);
+																						});
+																						it('should call a callback with no error', done => {
+																							blocksChainModule.applyBlock(
+																								{
+																									id: 5,
+																									height: 5,
+																									transactions: [
+																										{ id: 1, type: 0 },
+																										{ id: 2, type: 1 },
+																									],
+																								},
+																								true,
+																								err => {
+																									expect(err).to.be.null;
+																									done();
+																								}
+																							);
+																						});
+																					});
+																				});
+																			});
+																		});
+																		describe('when saveBlock is false', () => {
+																			afterEach(() => {
+																				expect(library.bus.message.calledOnce)
+																					.to.be.true;
+																				expect(
+																					library.bus.message.args[0][0]
+																				).to.deep.equal('newBlock');
+																				expect(
+																					library.bus.message.args[0][1]
+																				).to.deep.equal({
+																					id: 5,
+																					height: 5,
+																					transactions: [
+																						{ id: 1, type: 0 },
+																						{ id: 2, type: 1 },
+																					],
+																				});
+																			});
+																			describe('modules.rounds.tick', () => {
+																				describe('when fails', () => {
+																					beforeEach(() => {
+																						modules.rounds.tick.callsArgWith(
+																							1,
+																							'tick-ERR',
+																							null
+																						);
+																					});
+																					it('should call a callback with error', done => {
+																						blocksChainModule.applyBlock(
+																							{
+																								id: 5,
+																								height: 5,
+																								transactions: [
+																									{ id: 1, type: 0 },
+																									{ id: 2, type: 1 },
+																								],
+																							},
+																							false,
+																							err => {
+																								expect(err).to.equal(
+																									'tick-ERR'
+																								);
+																								done();
+																							}
+																						);
+																					});
+																				});
+																				describe('when Snapshot finished', () => {
+																					beforeEach(() => {
+																						modules.rounds.tick.callsArgWith(
+																							1,
+																							'Snapshot finished',
+																							null
+																						);
+																						process.emit = sinonSandbox.stub();
+																					});
+																					afterEach(() => {
+																						expect(
+																							loggerStub.info.args[0][0]
+																						).to.equal('Snapshot finished');
+																						expect(process.emit.calledOnce).to
+																							.be.true;
+																					});
+																					it('should emit SIGTERM and call a callback with error', done => {
+																						blocksChainModule.applyBlock(
+																							{
+																								id: 5,
+																								height: 5,
+																								transactions: [
+																									{ id: 1, type: 0 },
+																									{ id: 2, type: 1 },
+																								],
+																							},
+																							false,
+																							err => {
+																								expect(err).to.equal(
+																									'Snapshot finished'
+																								);
+																								done();
+																							}
+																						);
+																					});
+																				});
+																				describe('when succeeds', () => {
+																					beforeEach(() => {
+																						modules.rounds.tick.callsArgWith(
+																							1,
+																							null,
+																							true
+																						);
+																					});
+																					it('should call a callback with no error', done => {
+																						blocksChainModule.applyBlock(
+																							{
+																								id: 5,
+																								height: 5,
+																								transactions: [
+																									{ id: 1, type: 0 },
+																									{ id: 2, type: 1 },
+																								],
+																							},
+																							false,
+																							err => {
+																								expect(err).to.be.null;
+																								done();
+																							}
+																						);
+																					});
+																				});
+																			});
+																		});
+																	});
+																});
+															});
+														});
+													});
+												});
+											});
+										});
+									});
 								});
-
-								it('should call modules.blocks.isActive.set with false');
 							});
 						});
 					});
@@ -794,7 +1213,10 @@ describe('blocks/chain', () => {
 			blocksChainModule.broadcastReducedBlock({ id: 3, hright: 3 }, true);
 			expect(library.bus.message.calledOnce).to.be.true;
 			expect(library.bus.message.args[0][0]).to.equal('broadcastBlock');
-			expect(library.bus.message.args[0][1]).to.deep.equal({ id: 3, hright: 3 });
+			expect(library.bus.message.args[0][1]).to.deep.equal({
+				id: 3,
+				hright: 3,
+			});
 			expect(library.bus.message.args[0][2]).to.be.true;
 		});
 	});
@@ -804,7 +1226,11 @@ describe('blocks/chain', () => {
 			describe('when fails', () => {
 				describe('returns error', () => {
 					beforeEach(() => {
-						modules.blocks.utils.loadBlocksPart.callsArgWith(1, 'loadBlocksPart-ERR', null);
+						modules.blocks.utils.loadBlocksPart.callsArgWith(
+							1,
+							'loadBlocksPart-ERR',
+							null
+						);
 					});
 
 					it('should call callback with error', done => {
@@ -831,24 +1257,38 @@ describe('blocks/chain', () => {
 
 			describe('when succeeds', () => {
 				beforeEach(() => {
-					modules.blocks.utils.loadBlocksPart.callsArgWith(1, null, [{ id: 2, height: 2 }]);
+					modules.blocks.utils.loadBlocksPart.callsArgWith(1, null, [
+						{ id: 2, height: 2 },
+					]);
 				});
 
 				describe('modules.accounts.getAccount', () => {
 					describe('when fails', () => {
 						beforeEach(() => {
-							modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null);
+							return modules.accounts.getAccount.callsArgWith(
+								1,
+								'getAccount-ERR',
+								null
+							);
 						});
 
 						afterEach(() => {
-							expect(loggerStub.error.args[0][0]).to.equal('Failed to undo transactions');
-							expect(loggerStub.error.args[0][1]).to.equal('getAccount-ERR');
+							expect(loggerStub.error.args[0][0]).to.equal(
+								'Failed to undo transactions'
+							);
+							return expect(loggerStub.error.args[0][1]).to.equal(
+								'getAccount-ERR'
+							);
 						});
 
 						it('should call process.exit(0)', done => {
 							process.exit = done;
-							__private.popLastBlock({ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] }, () => {
-							});
+							__private.popLastBlock(
+								{ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] },
+								() => {
+									done();
+								}
+							);
 						});
 					});
 
@@ -861,18 +1301,30 @@ describe('blocks/chain', () => {
 						describe('modules.rounds.backwardTick', () => {
 							describe('when fails', () => {
 								beforeEach(() => {
-									modules.rounds.backwardTick.callsArgWith(2, 'backwardTick-ERR', null);
+									modules.rounds.backwardTick.callsArgWith(
+										2,
+										'backwardTick-ERR',
+										null
+									);
 								});
 
 								afterEach(() => {
-									expect(loggerStub.error.args[0][0]).to.equal('Failed to perform backwards tick');
-									expect(loggerStub.error.args[0][1]).to.equal('backwardTick-ERR');
+									expect(loggerStub.error.args[0][0]).to.equal(
+										'Failed to perform backwards tick'
+									);
+									expect(loggerStub.error.args[0][1]).to.equal(
+										'backwardTick-ERR'
+									);
 								});
 
 								it('should call process.exit(0)', done => {
 									process.exit = done;
-									__private.popLastBlock({ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] }, () => {
-									});
+									__private.popLastBlock(
+										{ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] },
+										() => {
+											done();
+										}
+									);
 								});
 							});
 							describe('when succeeds', () => {
@@ -890,18 +1342,34 @@ describe('blocks/chain', () => {
 								describe('self.deleteBlock', () => {
 									describe('when fails', () => {
 										beforeEach(() => {
-											blocksChainModule.deleteBlock.callsArgWith(1, 'deleteBlock-ERR', null);
+											blocksChainModule.deleteBlock.callsArgWith(
+												1,
+												'deleteBlock-ERR',
+												null
+											);
 										});
 
 										afterEach(() => {
-											expect(loggerStub.error.args[0][0]).to.equal('Failed to delete block');
-											expect(loggerStub.error.args[0][1]).to.equal('deleteBlock-ERR');
+											expect(loggerStub.error.args[0][0]).to.equal(
+												'Failed to delete block'
+											);
+											expect(loggerStub.error.args[0][1]).to.equal(
+												'deleteBlock-ERR'
+											);
 										});
 
 										it('should call process.exit(0)', done => {
 											process.exit = done;
-											__private.popLastBlock({ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] }, () => {
-											});
+											__private.popLastBlock(
+												{
+													id: 3,
+													height: 3,
+													transactions: [{ id: 7, type: 0 }],
+												},
+												() => {
+													done();
+												}
+											);
 										});
 									});
 
@@ -911,11 +1379,21 @@ describe('blocks/chain', () => {
 										});
 
 										it('should return previousBlock and no error', done => {
-											__private.popLastBlock({ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] }, (err, previousBlock) => {
-												expect(err).to.be.null;
-												expect(previousBlock).to.deep.equal({ id: 2, height: 2 });
-												done();
-											});
+											__private.popLastBlock(
+												{
+													id: 3,
+													height: 3,
+													transactions: [{ id: 7, type: 0 }],
+												},
+												(err, previousBlock) => {
+													expect(err).to.be.null;
+													expect(previousBlock).to.deep.equal({
+														id: 2,
+														height: 2,
+													});
+													done();
+												}
+											);
 										});
 									});
 								});

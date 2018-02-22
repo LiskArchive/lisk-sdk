@@ -316,11 +316,9 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 				if (err) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error('Failed to undo unconfirmed list', err);
-					var errObj = new Error('Failed to undo unconfirmed list');
-					reject(errObj);
-				} else {
-					return setImmediate(resolve);
+					return setImmediate(reject, 'Failed to undo unconfirmed list');
 				}
+				return setImmediate(resolve);
 			}, tx);
 		});
 	};
@@ -352,7 +350,6 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 									}
 
 									appliedTransactions[transaction.id] = transaction;
-
 									return setImmediate(resolve);
 								},
 								tx
@@ -417,8 +414,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 								].join(' ');
 								library.logger.error(err);
 								library.logger.error('Transaction', transaction);
-
-								reject(err);
+								return setImmediate(reject, err);
 							}
 							// DATABASE: write
 							modules.transactions.apply(
@@ -436,8 +432,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 										].join(' ');
 										library.logger.error(err);
 										library.logger.error('Transaction', transaction);
-
-										reject(err);
+										return setImmediate(reject, err);
 									}
 									// Transaction applied, removed from the unconfirmed list
 									modules.transactions.removeUnconfirmedTransaction(
@@ -467,8 +462,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 							// Fatal error, memory tables will be inconsistent
 							library.logger.error('Failed to save block...', err);
 							library.logger.error('Block', block);
-							var errObj = new Error('Failed to save block');
-							reject(errObj);
+							return reject(err);
 						}
 
 						library.logger.debug(
