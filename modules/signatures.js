@@ -116,6 +116,7 @@ __private.processPostResult = function(err, res, cb) {
 /**
  * Public methods, accessible via API.
  *
+ * @property {function} postSignature - Post signature for transaction
  * @property {function} postSignatures - Post signatures for transactions
  */
 Signatures.prototype.shared = {
