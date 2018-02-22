@@ -71,17 +71,23 @@ describe('wsRPC', () => {
 		describe('getter', () => {
 			it('should throw an error when setting server to null', () => {
 				wsRPC.setServer(null);
-				return expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
+				return expect(wsRPC.getServer).to.throw(
+					'WS server has not been initialized!'
+				);
 			});
 
 			it('should throw an error when setting server to 0', () => {
 				wsRPC.setServer(0);
-				return expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
+				return expect(wsRPC.getServer).to.throw(
+					'WS server has not been initialized!'
+				);
 			});
 
 			it('should throw an error when setting server to undefined', () => {
 				wsRPC.setServer(undefined);
-				return expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
+				return expect(wsRPC.getServer).to.throw(
+					'WS server has not been initialized!'
+				);
 			});
 		});
 	});
@@ -96,7 +102,9 @@ describe('wsRPC', () => {
 		});
 
 		it('should throw an error when WS server has not been initialized', () => {
-			return expect(wsRPC.getServer).to.throw('WS server has not been initialized!');
+			return expect(wsRPC.getServer).to.throw(
+				'WS server has not been initialized!'
+			);
 		});
 
 		it('should return WS server if set before', () => {

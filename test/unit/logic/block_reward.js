@@ -239,15 +239,21 @@ describe('BlockReward @slow', () => {
 		});
 
 		it('when height == (milestoneFour * 1000) should return 100000000', () => {
-			return expect(blockReward.calcReward(13451520 * 1000)).to.equal(100000000);
+			return expect(blockReward.calcReward(13451520 * 1000)).to.equal(
+				100000000
+			);
 		});
 
 		it('when height == (milestoneFour * 10000) should return 100000000', () => {
-			return expect(blockReward.calcReward(13451520 * 10000)).to.equal(100000000);
+			return expect(blockReward.calcReward(13451520 * 10000)).to.equal(
+				100000000
+			);
 		});
 
 		it('when height == (milestoneFour * 100000) should return 100000000', () => {
-			return expect(blockReward.calcReward(13451520 * 100000)).to.equal(100000000);
+			return expect(blockReward.calcReward(13451520 * 100000)).to.equal(
+				100000000
+			);
 		});
 	});
 
@@ -265,87 +271,129 @@ describe('BlockReward @slow', () => {
 		});
 
 		it('when height == (offset - 1) should return 10000000000000000', () => {
-			return expect(blockReward.calcSupply(1451519)).to.equal(10000000000000000);
+			return expect(blockReward.calcSupply(1451519)).to.equal(
+				10000000000000000
+			);
 		});
 
 		it('when height == (offset) should return 10000000500000000', () => {
-			return expect(blockReward.calcSupply(1451520)).to.equal(10000000500000000);
+			return expect(blockReward.calcSupply(1451520)).to.equal(
+				10000000500000000
+			);
 		});
 
 		it('when height == (offset + 1) should return 10000001000000000', () => {
-			return expect(blockReward.calcSupply(1451521)).to.equal(10000001000000000);
+			return expect(blockReward.calcSupply(1451521)).to.equal(
+				10000001000000000
+			);
 		});
 
 		it('when height == (offset + 2) should return 10000001500000000', () => {
-			return expect(blockReward.calcSupply(1451522)).to.equal(10000001500000000);
+			return expect(blockReward.calcSupply(1451522)).to.equal(
+				10000001500000000
+			);
 		});
 
 		it('when height == (distance) should return 10774240500000000', () => {
-			return expect(blockReward.calcSupply(3000000)).to.equal(10774240500000000);
+			return expect(blockReward.calcSupply(3000000)).to.equal(
+				10774240500000000
+			);
 		});
 
 		it('when height == (distance + 1) should return 10774241000000000', () => {
-			return expect(blockReward.calcSupply(3000001)).to.equal(10774241000000000);
+			return expect(blockReward.calcSupply(3000001)).to.equal(
+				10774241000000000
+			);
 		});
 
 		it('when height == (distance + 2) should return 10774241500000000', () => {
-			return expect(blockReward.calcSupply(3000002)).to.equal(10774241500000000);
+			return expect(blockReward.calcSupply(3000002)).to.equal(
+				10774241500000000
+			);
 		});
 
 		it('when height == (milestoneOne - 1) should return 11500000000000000', () => {
-			return expect(blockReward.calcSupply(4451519)).to.equal(11500000000000000);
+			return expect(blockReward.calcSupply(4451519)).to.equal(
+				11500000000000000
+			);
 		});
 
 		it('when height == (milestoneOne) should return 11500000400000000', () => {
-			return expect(blockReward.calcSupply(4451520)).to.equal(11500000400000000);
+			return expect(blockReward.calcSupply(4451520)).to.equal(
+				11500000400000000
+			);
 		});
 
 		it('when height == (milestoneOne + 1) should return 11500000800000000', () => {
-			return expect(blockReward.calcSupply(4451521)).to.equal(11500000800000000);
+			return expect(blockReward.calcSupply(4451521)).to.equal(
+				11500000800000000
+			);
 		});
 
 		it('when height == (milestoneTwo - 1) should return 12700000000000000', () => {
-			return expect(blockReward.calcSupply(7451519)).to.equal(12700000000000000);
+			return expect(blockReward.calcSupply(7451519)).to.equal(
+				12700000000000000
+			);
 		});
 
 		it('when height == (milestoneTwo) should return 12700000300000000', () => {
-			return expect(blockReward.calcSupply(7451520)).to.equal(12700000300000000);
+			return expect(blockReward.calcSupply(7451520)).to.equal(
+				12700000300000000
+			);
 		});
 
 		it('when height == (milestoneTwo + 1) should return 12700000600000000', () => {
-			return expect(blockReward.calcSupply(7451521)).to.equal(12700000600000000);
+			return expect(blockReward.calcSupply(7451521)).to.equal(
+				12700000600000000
+			);
 		});
 
 		it('when height == (milestoneThree - 1) should return 13600000000000000', () => {
-			return expect(blockReward.calcSupply(10451519)).to.equal(13600000000000000);
+			return expect(blockReward.calcSupply(10451519)).to.equal(
+				13600000000000000
+			);
 		});
 
 		it('when height == (milestoneThree) should return 13600000200000000', () => {
-			return expect(blockReward.calcSupply(10451520)).to.equal(13600000200000000);
+			return expect(blockReward.calcSupply(10451520)).to.equal(
+				13600000200000000
+			);
 		});
 
 		it('when height == (milestoneThree + 1) should return 13600000400000000', () => {
-			return expect(blockReward.calcSupply(10451521)).to.equal(13600000400000000);
+			return expect(blockReward.calcSupply(10451521)).to.equal(
+				13600000400000000
+			);
 		});
 
 		it('when height == (milestoneFour - 1) should return 14200000000000000', () => {
-			return expect(blockReward.calcSupply(13451519)).to.equal(14200000000000000);
+			return expect(blockReward.calcSupply(13451519)).to.equal(
+				14200000000000000
+			);
 		});
 
 		it('when height == (milestoneFour) should return 14200000100000000', () => {
-			return expect(blockReward.calcSupply(13451520)).to.equal(14200000100000000);
+			return expect(blockReward.calcSupply(13451520)).to.equal(
+				14200000100000000
+			);
 		});
 
 		it('when height == (milestoneFour + 1) should return 14200000200000000', () => {
-			return expect(blockReward.calcSupply(13451521)).to.equal(14200000200000000);
+			return expect(blockReward.calcSupply(13451521)).to.equal(
+				14200000200000000
+			);
 		});
 
 		it('when height == (milestoneFour * 2) should return 15545152100000000', () => {
-			return expect(blockReward.calcSupply(13451520 * 2)).to.equal(15545152100000000);
+			return expect(blockReward.calcSupply(13451520 * 2)).to.equal(
+				15545152100000000
+			);
 		});
 
 		it('when height == (milestoneFour * 10) should return 26306368100000000', () => {
-			return expect(blockReward.calcSupply(13451520 * 10)).to.equal(26306368100000000);
+			return expect(blockReward.calcSupply(13451520 * 10)).to.equal(
+				26306368100000000
+			);
 		});
 
 		it('when height == (milestoneFour * 100) should return 147370048100000000', () => {

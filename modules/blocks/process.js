@@ -422,7 +422,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 									if (err) {
 										return setImmediate(cb, err);
 									}
-									// Apply block - broadcast: false, saveBlock: false
+									// Apply block - saveBlock: false
 									modules.blocks.chain.applyBlock(block, false, err => {
 										setImmediate(cb, err);
 									});
@@ -433,15 +433,10 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 								setImmediate(cb, err);
 							});
 						} else {
-							// Apply block - broadcast: false, saveBlock: false
-							modules.blocks.chain.applyBlock(
-								block,
-								false,
-								err => {
-									setImmediate(cb, err);
-								},
-								false
-							);
+							// Apply block - saveBlock: false
+							modules.blocks.chain.applyBlock(block, false, err => {
+								setImmediate(cb, err);
+							});
 						}
 					},
 					err => setImmediate(cb, err, modules.blocks.lastBlock.get())
@@ -588,8 +583,10 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 					// Check transaction depends on type
 					if (library.logic.transaction.ready(transaction, sender)) {
 						// Verify transaction
-						library.logic.transaction.verify(transaction, sender, () => {
-							ready.push(transaction);
+						library.logic.transaction.verify(transaction, sender, err => {
+							if (!err) {
+								ready.push(transaction);
+							}
 							return setImmediate(cb);
 						});
 					} else {
@@ -598,7 +595,10 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 				}
 			);
 		},
-		() => {
+		err => {
+			if (err) {
+				return setImmediate(cb, err);
+			}
 			var block;
 
 			try {
@@ -672,7 +672,7 @@ Process.prototype.onReceiveBlock = function(block) {
 			modules.rounds.ticking()
 		) {
 			library.logger.debug('Client not ready to receive block', block.id);
-			return;
+			return setImmediate(cb);
 		}
 
 		// Get the last block

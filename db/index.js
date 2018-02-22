@@ -64,7 +64,7 @@ module.exports.connect = (config, logger) => {
 	try {
 		monitor.detach();
 	} catch (ex) {
-		logger.log('database connect exception - ', ex);
+		logger.log('Database connect exception -', ex);
 	}
 
 	monitor.attach(initOptions, config.logEvents);
@@ -96,6 +96,6 @@ module.exports.disconnect = logger => {
 	try {
 		monitor.detach();
 	} catch (ex) {
-		logger.log('database disconnect exception - ', ex);
+		logger.log('Database disconnect exception -', ex);
 	}
 };
