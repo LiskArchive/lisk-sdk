@@ -34,15 +34,23 @@ __private.loaded = false;
 __private.messages = {};
 
 /**
- * Initializes library with scope content and generates a Broadcaster instance.
- * @memberof module:transport
+ * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
+ *
  * @class
- * @classdesc Main Transport methods.
- * @param {function} cb - Callback function.
- * @param {scope} scope - App instance.
- * @return {setImmediateCallback} Callback function with `self` as data.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires async
+ * @requires api/ws/rpc/failure_codes
+ * @requires api/ws/rpc/failure_codes
+ * @requires api/ws/workers/rules
+ * @requires api/ws/rpc/ws_rpc
+ * @requires helpers/bson
+ * @requires helpers/constants
+ * @requires logic/broadcaster
+ * @param {function} cb - Callback function
+ * @param {scope} scope - App instance
+ * @returns {setImmediateCallback} cb, null, self
  */
-// Constructor
 function Transport(cb, scope) {
 	library = {
 		logger: scope.logger,
@@ -82,10 +90,12 @@ function Transport(cb, scope) {
 
 /**
  * Removes a peer based on ip and port.
+ *
  * @private
- * @implements {modules.peers.remove}
  * @param {Object} options - Contains code and peer
- * @param {string} extraMessage
+ * @param {string} extraMessage - Extra message
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 __private.removePeer = function(options, extraMessage) {
 	if (!options.peer) {
@@ -110,9 +120,9 @@ __private.removePeer = function(options, extraMessage) {
  * @private
  * @implements {library.schema.validate}
  * @implements {__private.receiveSignature}
- * @param {Array} signatures - List of signatures
+ * @param {Array} signatures - Array of signatures
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} cb, err
+ * @returns {setImmediateCallback} cb, err
  */
 __private.receiveSignatures = function(signatures, cb) {
 	async.eachSeries(
@@ -132,13 +142,13 @@ __private.receiveSignatures = function(signatures, cb) {
 
 /**
  * Validates signature with schema and calls processSignature.
+ *
  * @private
- * @implements {library.schema.validate}
- * @implements {modules.multisignatures.processSignature}
  * @param {Object} query
  * @param {string} query.signature
  * @param {Object} query.transaction
- * @return {setImmediateCallback} cb | error messages
+ * @returns {setImmediateCallback} cb, err
+ * @todo Add description for the params
  */
 __private.receiveSignature = function(query, cb) {
 	library.schema.validate(query, definitions.Signature, err => {
@@ -161,11 +171,11 @@ __private.receiveSignature = function(query, cb) {
  * @private
  * @implements {library.schema.validate}
  * @implements {__private.receiveTransaction}
- * @param {Array} transactions - List of transactions
+ * @param {Array} transactions - Array of transactions
  * @param {peer} peer - Peer object
  * @param {string} extraLogMessage - Extra log message
  * @param {function} cb - Callback function
- * @return {setImmediateCallback} cb, err
+ * @returns {setImmediateCallback} cb, err
  */
 __private.receiveTransactions = function(
 	transactions,
@@ -194,16 +204,14 @@ __private.receiveTransactions = function(
  * Normalizes transaction and remove peer if it fails.
  * Calls balancesSequence.add to receive transaction and
  * processUnconfirmedTransaction to confirm it.
+ *
  * @private
- * @implements {library.logic.transaction.objectNormalize}
- * @implements {__private.removePeer}
- * @implements {library.balancesSequence.add}
- * @implements {modules.transactions.processUnconfirmedTransaction}
  * @param {transaction} transaction
  * @param {peer} peer
- * @param {string} extraLogMessage
- * @param {function} cb
- * @return {setImmediateCallback} cb, error message
+ * @param {string} extraLogMessage - Extra log message
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err
+ * @todo Add description for the params
  */
 __private.receiveTransaction = function(
 	transaction,
@@ -265,7 +273,9 @@ __private.receiveTransaction = function(
 /**
  * Returns true if broadcaster consensus is less than minBroadhashConsensus.
  * Returns false if library.config.forging.force is true.
- * @return {boolean}
+ *
+ * @returns {boolean}
+ * @todo Add description for the return value
  */
 Transport.prototype.poorConsensus = function() {
 	if (library.config.forging.force) {
@@ -276,10 +286,11 @@ Transport.prototype.poorConsensus = function() {
 
 /**
  * Calls getPeers method from Broadcaster class.
- * @implements {Broadcaster.getPeers}
+ *
  * @param {Object} params
- * @param {function} cb
- * @return {Broadcaster.getPeers} calls getPeers
+ * @param {function} cb - Callback function
+ * @returns {Broadcaster.getPeers} Calls getPeers
+ * @todo Add description for the params
  */
 Transport.prototype.getPeers = function(params, cb) {
 	return __private.broadcaster.getPeers(params, cb);
@@ -288,8 +299,8 @@ Transport.prototype.getPeers = function(params, cb) {
 // Events
 /**
  * Bounds scope to private broadcaster amd initialize headers.
- * @implements {broadcaster.bind}
- * @param {modules} scope - Loaded modules.
+ *
+ * @param {modules} scope - Loaded modules
  */
 Transport.prototype.onBind = function(scope) {
 	modules = {
@@ -308,7 +319,7 @@ Transport.prototype.onBind = function(scope) {
 };
 
 /**
- * Sets private variable loaded to true
+ * Sets private variable loaded to true.
  */
 Transport.prototype.onBlockchainReady = function() {
 	__private.loaded = true;
@@ -316,12 +327,11 @@ Transport.prototype.onBlockchainReady = function() {
 
 /**
  * Calls enqueue signatures and emits a 'signature/change' socket message.
- * @implements {Broadcaster.maxRelays}
- * @implements {Broadcaster.enqueue}
- * @implements {library.network.io.sockets.emit}
+ *
  * @param {signature} signature
  * @param {Object} broadcast
  * @emits signature/change
+ * @todo Add description for the params
  */
 Transport.prototype.onSignature = function(signature, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(signature)) {
@@ -335,12 +345,11 @@ Transport.prototype.onSignature = function(signature, broadcast) {
 
 /**
  * Calls enqueue transactions and emits a 'transactions/change' socket message.
- * @implements {Broadcaster.maxRelays}
- * @implements {Broadcaster.enqueue}
- * @implements {library.network.io.sockets.emit}
+ *
  * @param {transaction} transaction
  * @param {Object} broadcast
  * @emits transactions/change
+ * @todo Add description for the params
  */
 Transport.prototype.onUnconfirmedTransaction = function(
 	transaction,
@@ -357,13 +366,11 @@ Transport.prototype.onUnconfirmedTransaction = function(
 
 /**
  * Calls broadcast blocks and emits a 'blocks/change' socket message.
- * @implements {modules.system.getBroadhash}
- * @implements {Broadcaster.maxRelays}
- * @implements {Broadcaster.broadcast}
- * @implements {library.network.io.sockets.emit}
+ *
  * @param {block} block
  * @param {Object} broadcast
  * @emits blocks/change
+ * @todo Add description for the params
  */
 Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	if (broadcast) {
@@ -417,8 +424,10 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 
 /**
  * Sets loaded to false.
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ *
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the params
  */
 Transport.prototype.cleanup = function(cb) {
 	__private.loaded = false;
@@ -427,7 +436,9 @@ Transport.prototype.cleanup = function(cb) {
 
 /**
  * Returns true if modules are loaded and private variable loaded is true.
- * @return {boolean}
+ *
+ * @returns {boolean}
+ * @todo Add description for the return value
  */
 Transport.prototype.isLoaded = function() {
 	return modules && __private.loaded;
@@ -435,10 +446,28 @@ Transport.prototype.isLoaded = function() {
 
 // Internal API
 /**
- * @todo implement API comments with apidoc.
+ * @property {function} blocksCommon
+ * @property {function} blocks
+ * @property {function} postBlock
+ * @property {function} list
+ * @property {function} height
+ * @property {function} status
+ * @property {function} postSignatures
+ * @property {function} getSignatures
+ * @property {function} getTransactions
+ * @property {function} postTransactions
+ * @todo Add description for the functions
+ * @todo Implement API comments with apidoc.
  * @see {@link http://apidocjs.com/}
  */
 Transport.prototype.shared = {
+	/**
+	 * Description of blocksCommon.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	blocksCommon(query, cb) {
 		query = query || {};
 		return library.schema.validate(
@@ -486,6 +515,12 @@ Transport.prototype.shared = {
 		);
 	},
 
+	/**
+	 * Description of blocks.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add description of the function
+	 */
 	blocks(query, cb) {
 		// Get 34 blocks with all data (joins) from provided block id
 		// According to maxium payload of 58150 bytes per block with every transaction being a vote
@@ -507,6 +542,13 @@ Transport.prototype.shared = {
 		);
 	},
 
+	/**
+	 * Description of postBlock.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	postBlock(query, cb) {
 		query = query || {};
 		var block;
@@ -533,6 +575,13 @@ Transport.prototype.shared = {
 		return setImmediate(cb, null, { success: true, blockId: block.id });
 	},
 
+	/**
+	 * Description of list.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	list(req, cb) {
 		req = req || {};
 		var peersFinder = !req.query
@@ -547,6 +596,13 @@ Transport.prototype.shared = {
 		);
 	},
 
+	/**
+	 * Description of height.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	height(req, cb) {
 		return setImmediate(cb, null, {
 			success: true,
@@ -554,6 +610,13 @@ Transport.prototype.shared = {
 		});
 	},
 
+	/**
+	 * Description of status.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	status(req, cb) {
 		var headers = modules.system.headers();
 		return setImmediate(cb, null, {
@@ -567,6 +630,13 @@ Transport.prototype.shared = {
 		});
 	},
 
+	/**
+	 * Description of postSignature.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	postSignature(query, cb) {
 		__private.receiveSignature(query.signature, err => {
 			if (err) {
@@ -576,6 +646,13 @@ Transport.prototype.shared = {
 		});
 	},
 
+	/**
+	 * Description of postSignatures.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	postSignatures(query, cb) {
 		library.schema.validate(query, definitions.WSSignaturesList, err => {
 			if (err) {
@@ -593,6 +670,13 @@ Transport.prototype.shared = {
 		});
 	},
 
+	/**
+	 * Description of getSignatures.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	getSignatures(req, cb) {
 		var transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
@@ -615,6 +699,13 @@ Transport.prototype.shared = {
 		);
 	},
 
+	/**
+	 * Description of getTransactions.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	getTransactions(query, cb) {
 		var transactions = modules.transactions.getMergedTransactionList(
 			true,
@@ -626,6 +717,13 @@ Transport.prototype.shared = {
 		});
 	},
 
+	/**
+	 * Description of postTransaction.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	postTransaction(query, cb) {
 		__private.receiveTransaction(
 			query.transaction,
@@ -643,6 +741,13 @@ Transport.prototype.shared = {
 		);
 	},
 
+	/**
+	 * Description of postTransactions.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	postTransactions(query, cb) {
 		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {
@@ -667,12 +772,15 @@ Transport.prototype.shared = {
 };
 
 /**
- * Validation of all internal requests
+ * Validation of all internal requests.
+ *
  * @param {Object} query
- * @param {string} query.authKey - key shared between master and slave processes. Not shared with the rest of network.
- * @param {Object} query.peer - peer to update
+ * @param {string} query.authKey - Key shared between master and slave processes. Not shared with the rest of network
+ * @param {Object} query.peer - Peer to update
  * @param {number} query.updateType - 0 (insert) or 1 (remove)
  * @param {function} cb
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 __private.checkInternalAccess = function(query, cb) {
 	library.schema.validate(query, definitions.WSAccessObject, err => {
@@ -691,12 +799,15 @@ __private.checkInternalAccess = function(query, cb) {
 
 Transport.prototype.internal = {
 	/**
-	 * Inserts or updates a peer on peers list
+	 * Inserts or updates a peer on peers list.
+	 *
 	 * @param {Object} query
 	 * @param {Object} query.peer
-	 * @param {string} query.authKey - signed peer data with in hex format
+	 * @param {string} query.authKey - Signed peer data with in hex format
 	 * @param {number} query.updateType - 0 (insert) or 1 (remove)
 	 * @param {function} cb
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
 	 */
 	updatePeer(query, cb) {
 		__private.checkInternalAccess(query, err => {

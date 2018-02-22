@@ -26,14 +26,20 @@ var library;
 var loaded = false;
 
 /**
- * Initializes library with scope content and private variables:
+ * Main voters methods. Initializes library with scope content and private variables:
  * - library
+ *
  * @class
- * @classdesc Main System methods.
- * @param {setImmediateCallback} cb - Callback function.
- * @param {scope} scope - App instance.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires async
+ * @requires lodash
+ * @requires helpers/api_codes
+ * @requires helpers/api_error
+ * @requires helpers/constants
+ * @param {setImmediateCallback} cb - Callback function
+ * @param {scope} scope - App instance
  */
-// Constructor
 function Voters(cb, scope) {
 	library = {
 		db: scope.db,
@@ -43,6 +49,13 @@ function Voters(cb, scope) {
 	setImmediate(cb, null, this);
 }
 
+/**
+ * Description of getDelegate.
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
+ */
 var getDelegate = function(query, cb) {
 	var dbQuery = _.assign({}, query, { sort: {} });
 
@@ -57,7 +70,11 @@ var getDelegate = function(query, cb) {
 };
 
 /**
- * Voters
+ * Description of getVotersForDelegates.
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
  */
 var getVotersForDelegates = function(filters, delegate, cb) {
 	if (!delegate) {
@@ -82,6 +99,13 @@ var getVotersForDelegates = function(filters, delegate, cb) {
 		});
 };
 
+/**
+ * Description of populateVoters.
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
+ */
 var populateVoters = function(sort, addresses, cb) {
 	modules.accounts.getAccounts(
 		{ address: addresses, sort },
@@ -90,6 +114,13 @@ var populateVoters = function(sort, addresses, cb) {
 	);
 };
 
+/**
+ * Description of getVotersCountForDelegates.
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
+ */
 var getVotersCountForDelegates = function(delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
@@ -108,7 +139,11 @@ var getVotersCountForDelegates = function(delegate, cb) {
 };
 
 /**
- * Votes
+ * Description of getVotesCountForDelegates.
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
  */
 var getVotesCountForDelegates = function(delegate, cb) {
 	if (!delegate) {
@@ -127,6 +162,13 @@ var getVotesCountForDelegates = function(delegate, cb) {
 		});
 };
 
+/**
+ * Description of getVotesForDelegates.
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
+ */
 var getVotesForDelegates = function(filters, delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
@@ -152,6 +194,13 @@ var getVotesForDelegates = function(filters, delegate, cb) {
 		});
 };
 
+/**
+ * Description of populateVotes.
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
+ */
 var populateVotes = function(sort, addresses, cb) {
 	modules.accounts.getAccounts(
 		{ address: addresses, sort },
@@ -161,7 +210,11 @@ var populateVotes = function(sort, addresses, cb) {
 };
 
 /**
- * @return {boolean}
+ * Description of isLoaded.
+ *
+ * @returns {boolean}
+ * @todo Add @param tags
+ * @todo Add description of the function and the return value
  */
 Voters.prototype.isLoaded = function() {
 	return loaded;
@@ -171,15 +224,16 @@ Voters.prototype.isLoaded = function() {
 Voters.prototype.shared = {
 	/**
 	 * Gets a delegate and their voters.
-	 * @param {Object} filters - Filters applied to results.
-	 * @param {string} filters.username - Username associated to account.
-	 * @param {string} filters.address - Account address.
-	 * @param {string} filters.publicKey - Public key associated to account.
-	 * @param {string} filters.secondPublicKey - Second public key associated to account.
-	 * @param {string} filters.sort - Field to sort results by.
-	 * @param {int} filters.limit - Limit applied to results.
-	 * @param {int} filters.offset - Offset value for results.
-	 * @param {function} cb - Callback function.
+	 *
+	 * @param {Object} filters - Filters applied to results
+	 * @param {string} filters.username - Username associated to account
+	 * @param {string} filters.address - Account address
+	 * @param {string} filters.publicKey - Public key associated to account
+	 * @param {string} filters.secondPublicKey - Second public key associated to account
+	 * @param {string} filters.sort - Field to sort results by
+	 * @param {int} filters.limit - Limit applied to results
+	 * @param {int} filters.offset - Offset value for results
+	 * @param {function} cb - Callback function
 	 */
 	getVoters(filters, cb) {
 		async.autoInject(
@@ -210,15 +264,16 @@ Voters.prototype.shared = {
 
 	/**
 	 * Gets a delegate and their votes.
-	 * @param {Object} filters - Filters applied to results.
-	 * @param {string} filters.username - Username associated to account.
-	 * @param {string} filters.address - Account address.
-	 * @param {string} filters.publicKey - Public key associated to account.
-	 * @param {string} filters.secondPublicKey - Second public key associated to account.
-	 * @param {string} filters.sort - Field to sort results by.
-	 * @param {int} filters.limit - Limit applied to results.
-	 * @param {int} filters.offset - Offset value for results.
-	 * @param {function} cb - Callback function.
+	 *
+	 * @param {Object} filters - Filters applied to results
+	 * @param {string} filters.username - Username associated to account
+	 * @param {string} filters.address - Account address
+	 * @param {string} filters.publicKey - Public key associated to account
+	 * @param {string} filters.secondPublicKey - Second public key associated to account
+	 * @param {string} filters.sort - Field to sort results by
+	 * @param {int} filters.limit - Limit applied to results
+	 * @param {int} filters.offset - Offset value for results
+	 * @param {function} cb - Callback function
 	 */
 	getVotes(filters, cb) {
 		async.autoInject(
@@ -250,7 +305,8 @@ Voters.prototype.shared = {
 // Events
 /**
  * Assigns used modules to modules variable.
- * @param {modules} scope - Loaded modules.
+ *
+ * @param {modules} scope - Loaded modules
  */
 Voters.prototype.onBind = function(scope) {
 	modules = {
