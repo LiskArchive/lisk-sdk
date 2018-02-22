@@ -36,6 +36,7 @@
 		"docs:serve": "./node_modules/.bin/http-server docs/jsdoc/",
 		"precommit": "lint-staged",
 		"check:dependencies": "./node_modules/.bin/snyk protect",
+		"prepush": "npm run lint && npm run check:dependencies",
 		"prepublishOnly": "npm run check:dependencies"
 	},
 	"dependencies": {
