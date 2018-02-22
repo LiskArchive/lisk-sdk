@@ -630,6 +630,13 @@ Transport.prototype.shared = {
 		});
 	},
 
+	/**
+	 * Description of postSignature.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	postSignature(query, cb) {
 		__private.receiveSignature(query.signature, err => {
 			if (err) {
@@ -639,6 +646,13 @@ Transport.prototype.shared = {
 		});
 	},
 
+	/**
+	 * Description of postSignatures.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	postSignatures(query, cb) {
 		library.schema.validate(query, definitions.WSSignaturesList, err => {
 			if (err) {
@@ -703,6 +717,13 @@ Transport.prototype.shared = {
 		});
 	},
 
+	/**
+	 * Description of postTransaction.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	postTransaction(query, cb) {
 		__private.receiveTransaction(
 			query.transaction,
@@ -720,6 +741,13 @@ Transport.prototype.shared = {
 		);
 	},
 
+	/**
+	 * Description of postTransactions.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	postTransactions(query, cb) {
 		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {
