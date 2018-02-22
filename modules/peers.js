@@ -73,7 +73,7 @@ function Peers(cb, scope) {
 
 // Private methods
 /**
- * Returns peers lenght after get them by filter.
+ * Returns peers length after get them by filter.
  *
  * @private
  * @param {Object} filter
