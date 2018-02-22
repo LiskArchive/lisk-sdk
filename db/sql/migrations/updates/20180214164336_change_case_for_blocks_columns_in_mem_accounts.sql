@@ -14,13 +14,10 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Change the producedblocks case to producedBlocks
 
-  PARAMETERS:
-    - change - can be either '+ 1' or '- 1'
-    - outsiders - array of something?
+  PARAMETERS: None
 */
 
-UPDATE mem_accounts
-SET "missedBlocks" = "missedBlocks" ${change:raw}
-WHERE address IN (${outsiders:csv})
+ALTER TABLE mem_accounts RENAME COLUMN producedblocks TO "producedBlocks";
+ALTER TABLE mem_accounts RENAME COLUMN missedblocks TO "missedBlocks";

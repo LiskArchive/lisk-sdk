@@ -96,17 +96,20 @@ describe('system test (type 4) - effect of multisignature registration on memory
 						return row.dependentId;
 					}
 				);
-				expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
+				return expect(signKeysInDb).to.include(
+					signer1.publicKey,
+					signer2.publicKey
+				);
 			});
 
 			it('should set multimin field set on mem_accounts', () => {
-				expect(accountRow.mem_accounts.multimin).to.eql(
+				return expect(accountRow.mem_accounts.multimin).to.eql(
 					multisigTransaction.asset.multisignature.min
 				);
 			});
 
 			it('should set multilifetime field set on mem_accounts', () => {
-				expect(accountRow.mem_accounts.multilifetime).to.eql(
+				return expect(accountRow.mem_accounts.multilifetime).to.eql(
 					multisigTransaction.asset.multisignature.lifetime
 				);
 			});
@@ -118,17 +121,20 @@ describe('system test (type 4) - effect of multisignature registration on memory
 						return row.dependentId;
 					}
 				);
-				expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
+				return expect(signKeysInDb).to.include(
+					signer1.publicKey,
+					signer2.publicKey
+				);
 			});
 
 			it('should set u_multimin field set on mem_accounts', () => {
-				expect(accountRow.mem_accounts.u_multimin).to.eql(
+				return expect(accountRow.mem_accounts.u_multimin).to.eql(
 					multisigTransaction.asset.multisignature.min
 				);
 			});
 
 			it('should set u_multilifetime field set on mem_accounts', () => {
-				expect(accountRow.mem_accounts.u_multilifetime).to.eql(
+				return expect(accountRow.mem_accounts.u_multilifetime).to.eql(
 					multisigTransaction.asset.multisignature.lifetime
 				);
 			});
@@ -149,39 +155,39 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			});
 
 			it('should have multisignatures field set on account', () => {
-				expect(account.multisignatures).to.include(
+				return expect(account.multisignatures).to.include(
 					signer1.publicKey,
 					signer2.publicKey
 				);
 			});
 
 			it('should have multimin field set on account', () => {
-				expect(account.multimin).to.eql(
+				return expect(account.multimin).to.eql(
 					multisigTransaction.asset.multisignature.min
 				);
 			});
 
 			it('should have multilifetime field set on account', () => {
-				expect(account.multilifetime).to.eql(
+				return expect(account.multilifetime).to.eql(
 					multisigTransaction.asset.multisignature.lifetime
 				);
 			});
 
 			it('should have u_multisignatures field set on account', () => {
-				expect(account.u_multisignatures).to.include(
+				return expect(account.u_multisignatures).to.include(
 					signer1.publicKey,
 					signer2.publicKey
 				);
 			});
 
 			it('should have u_multimin field set on account', () => {
-				expect(account.u_multimin).to.eql(
+				return expect(account.u_multimin).to.eql(
 					multisigTransaction.asset.multisignature.min
 				);
 			});
 
 			it('should have u_multilifetime field set on account', () => {
-				expect(account.u_multilifetime).to.eql(
+				return expect(account.u_multilifetime).to.eql(
 					multisigTransaction.asset.multisignature.lifetime
 				);
 			});
@@ -208,27 +214,27 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				);
 
 				it('should have no rows in mem_accounts2multisignatures', () => {
-					expect(accountRow.mem_accounts2multisignatures).to.eql([]);
+					return expect(accountRow.mem_accounts2multisignatures).to.eql([]);
 				});
 
 				it('should have multimin field set to 0 on mem_accounts', () => {
-					expect(accountRow.mem_accounts.multimin).to.eql(0);
+					return expect(accountRow.mem_accounts.multimin).to.eql(0);
 				});
 
 				it('should have multilifetime field set to 0 on mem_accounts', () => {
-					expect(accountRow.mem_accounts.multilifetime).to.eql(0);
+					return expect(accountRow.mem_accounts.multilifetime).to.eql(0);
 				});
 
 				it('should have no rows in mem_accounts2u_multisignatures', () => {
-					expect(accountRow.mem_accounts2u_multisignatures).to.eql([]);
+					return expect(accountRow.mem_accounts2u_multisignatures).to.eql([]);
 				});
 
 				it('should have u_multimin field set to 0 on mem_accounts', () => {
-					expect(accountRow.mem_accounts.u_multimin).to.eql(0);
+					return expect(accountRow.mem_accounts.u_multimin).to.eql(0);
 				});
 
 				it('should have multilifetime field to 0 on mem_accounts', () => {
-					expect(accountRow.mem_accounts.u_multilifetime).to.eql(0);
+					return expect(accountRow.mem_accounts.u_multilifetime).to.eql(0);
 				});
 			});
 
@@ -247,27 +253,27 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				});
 
 				it('should set multisignatures field to null on account', () => {
-					expect(account.multisignatures).to.be.null;
+					return expect(account.multisignatures).to.be.null;
 				});
 
 				it('should set multimin field to 0 on account', () => {
-					expect(account.multimin).to.eql(0);
+					return expect(account.multimin).to.eql(0);
 				});
 
 				it('should set multilifetime field to 0 on account', () => {
-					expect(account.multilifetime).to.eql(0);
+					return expect(account.multilifetime).to.eql(0);
 				});
 
 				it('should set u_multisignatures field to null on account', () => {
-					expect(account.u_multisignatures).to.be.null;
+					return expect(account.u_multisignatures).to.be.null;
 				});
 
 				it('should set u_multimin field to null on account', () => {
-					expect(account.u_multimin).to.eql(0);
+					return expect(account.u_multimin).to.eql(0);
 				});
 
 				it('should set u_multilifetime field to null on account', () => {
-					expect(account.u_multilifetime).to.eql(0);
+					return expect(account.u_multilifetime).to.eql(0);
 				});
 			});
 		});
@@ -318,15 +324,15 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			);
 
 			it('should have no rows in mem_accounts2multisignatures', () => {
-				expect(accountRow.mem_accounts2multisignatures).to.eql([]);
+				return expect(accountRow.mem_accounts2multisignatures).to.eql([]);
 			});
 
 			it('should have multimin field set to 0 on mem_accounts', () => {
-				expect(accountRow.mem_accounts.multimin).to.eql(0);
+				return expect(accountRow.mem_accounts.multimin).to.eql(0);
 			});
 
 			it('should have multilifetime field set to 0 on mem_accounts', () => {
-				expect(accountRow.mem_accounts.multilifetime).to.eql(0);
+				return expect(accountRow.mem_accounts.multilifetime).to.eql(0);
 			});
 
 			it('should include rows in mem_accounts2u_multisignatures', () => {
@@ -336,17 +342,20 @@ describe('system test (type 4) - effect of multisignature registration on memory
 						return row.dependentId;
 					}
 				);
-				expect(signKeysInDb).to.include(signer1.publicKey, signer2.publicKey);
+				return expect(signKeysInDb).to.include(
+					signer1.publicKey,
+					signer2.publicKey
+				);
 			});
 
 			it('should set u_multimin field set on mem_accounts', () => {
-				expect(accountRow.mem_accounts.u_multimin).to.eql(
+				return expect(accountRow.mem_accounts.u_multimin).to.eql(
 					multisigTransaction.asset.multisignature.min
 				);
 			});
 
 			it('should set u_multilifetime field set on mem_accounts', () => {
-				expect(accountRow.mem_accounts.u_multilifetime).to.eql(
+				return expect(accountRow.mem_accounts.u_multilifetime).to.eql(
 					multisigTransaction.asset.multisignature.lifetime
 				);
 			});
@@ -367,20 +376,20 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			});
 
 			it('should have u_multisignatures field set on account', () => {
-				expect(account.u_multisignatures).to.include(
+				return expect(account.u_multisignatures).to.include(
 					signer1.publicKey,
 					signer2.publicKey
 				);
 			});
 
 			it('should have multimin field set on account', () => {
-				expect(account.u_multimin).to.eql(
+				return expect(account.u_multimin).to.eql(
 					multisigTransaction.asset.multisignature.min
 				);
 			});
 
 			it('should have multilifetime field set on account', () => {
-				expect(account.u_multilifetime).to.eql(
+				return expect(account.u_multilifetime).to.eql(
 					multisigTransaction.asset.multisignature.lifetime
 				);
 			});

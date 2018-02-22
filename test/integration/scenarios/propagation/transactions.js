@@ -36,7 +36,7 @@ module.exports = function(params) {
 		});
 
 		it('should contain non empty transactions after running functional tests', () => {
-			nodesTransactions.forEach(transactions => {
+			return nodesTransactions.forEach(transactions => {
 				expect(transactions).to.be.an('array').and.not.empty;
 			});
 		});
@@ -46,16 +46,17 @@ module.exports = function(params) {
 				.map('length')
 				.uniq()
 				.value();
-			expect(uniquePeersTransactionsNumber).to.have.lengthOf.at.least(1);
+			return expect(uniquePeersTransactionsNumber).to.have.lengthOf.at.least(1);
 		});
 
-		it('should have all transactions the same at all peers', () => {
+		it('should have all transactions the same at all peers', done => {
 			var patternTransactions = nodesTransactions[0];
 			for (var i = 0; i < patternTransactions.length; i += 1) {
 				for (var j = 1; j < nodesTransactions.length; j += 1) {
 					expect(_.isEqual(nodesTransactions[j][i], patternTransactions[i]));
 				}
 			}
+			done();
 		});
 	});
 };

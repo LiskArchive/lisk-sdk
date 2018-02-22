@@ -76,6 +76,9 @@ AccountsController.getAccounts = function(context, next) {
 					account.delegate.producedBlocks
 				);
 			}
+			if (_.isNull(account.publicKey)) {
+				account.publicKey = '';
+			}
 			if (_.isNull(account.secondPublicKey)) {
 				account.secondPublicKey = '';
 			}

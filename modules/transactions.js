@@ -710,6 +710,21 @@ Transactions.prototype.onBind = function(scope) {
 	__private.assetTypes[transactionTypes.SEND].bind(scope.accounts);
 };
 
+__private.processPostResult = function(err, res, cb) {
+	var error = null;
+	var response = null;
+
+	if (err) {
+		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
+	} else if (res.success) {
+		response = 'Transaction(s) accepted';
+	} else {
+		error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
+	}
+
+	setImmediate(cb, error, response);
+};
+
 // Shared API
 /**
  * Public methods, accessible via API.
@@ -831,33 +846,20 @@ Transactions.prototype.shared = {
 		);
 	},
 
-	/**
-	 * Description of postTransactions.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
+	postTransaction(transaction, cb) {
+		return modules.transport.shared.postTransaction(
+			{ transaction },
+			(err, res) => {
+				__private.processPostResult(err, res, cb);
+			}
+		);
+	},
+
 	postTransactions(transactions, cb) {
 		return modules.transport.shared.postTransactions(
 			{ transactions },
 			(err, res) => {
-				var error = null;
-				var response = null;
-
-				if (err) {
-					error = new ApiError(err, apiCodes.PROCESSING_ERROR);
-				}
-
-				if (res.success == false) {
-					error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
-				}
-
-				if (res.success == true) {
-					response = 'Transaction(s) accepted';
-				}
-
-				setImmediate(cb, error, response);
+				__private.processPostResult(err, res, cb);
 			}
 		);
 	},

@@ -21,7 +21,7 @@ This sections provides details on what you need install on your system in order 
 
     ```
     sudo apt-get update
-    sudo apt-get install -y python build-essential curl automake autoconf libtool
+    sudo apt-get install -y python build-essential curl automake autoconf libtool libpq5 libpq-dev
     ```
 
   * MacOS 10.12-10.13 (Sierra/High Sierra):
