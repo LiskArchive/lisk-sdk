@@ -87,7 +87,7 @@ describe('db', () => {
 	beforeEach(done => {
 		seeder
 			.seed(db)
-			.then(() => done(null))
+			.then(() => done())
 			.catch(done);
 	});
 
@@ -104,7 +104,7 @@ describe('db', () => {
 		done();
 	});
 
-	describe('AccountsRepository', () => {
+	describe('BlocksRepository', () => {
 		describe('constructor()', () => {
 			it('should assign param and data members properly', done => {
 				expect(db.blocks.db).to.be.eql(db);
@@ -220,8 +220,8 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'query');
 				const params = {
 					generatorPublicKey: 'afafafafaf',
-					start: (+new Date() / 1000).toFixed(0),
-					end: (+new Date() / 1000).toFixed(0),
+					start: (+new Date() / 1000).toFixed(),
+					end: (+new Date() / 1000).toFixed(),
 				};
 				yield db.blocks.aggregateBlocksReward(params);
 
@@ -238,8 +238,8 @@ describe('db', () => {
 				return expect(
 					db.blocks.aggregateBlocksReward({
 						generatorPublicKey: 'xxxxxxxxx',
-						start: (+new Date() / 1000).toFixed(0),
-						end: (+new Date() / 1000).toFixed(0),
+						start: (+new Date() / 1000).toFixed(),
+						end: (+new Date() / 1000).toFixed(),
 					})
 				).to.be.eventually.rejectedWith('invalid hexadecimal digit: "x"');
 			});
@@ -250,8 +250,8 @@ describe('db', () => {
 				);
 				const rewards = yield db.blocks.aggregateBlocksReward({
 					generatorPublicKey: account.publicKey,
-					start: (+new Date('2017.01.01') / 1000).toFixed(0),
-					end: (+new Date() / 1000).toFixed(0),
+					start: (+new Date('2017.01.01') / 1000).toFixed(),
+					end: (+new Date() / 1000).toFixed(),
 				});
 
 				expect(rewards).to.be.not.empty;
@@ -362,7 +362,7 @@ describe('db', () => {
 				});
 			});
 
-			it('should return valid blocks with composite conditions', function*() {
+			it('should return valid blocks with composing conditions with AND', function*() {
 				const genesisBlock = blocksFixtures.GenesisBlock();
 				const result = yield db.blocks.list({
 					where: [`b_id = '${genesisBlock.id}'`, 'b_height = 2'],
@@ -507,7 +507,7 @@ describe('db', () => {
 				return expect(commonBlock[0].count).to.be.eql(1);
 			});
 
-			it('should return the count of blocks matching "previousBlock" condition', function*() {
+			it('should return the count of blocks matching "previousBlock", "id" and "height" condition', function*() {
 				const params = {
 					id: blocksFixtures.GenesisBlock().id,
 					height: 1,
@@ -538,7 +538,7 @@ describe('db', () => {
 				return expect(db.blocks.getHeightByLastId()).to.be.eventually.eql([]);
 			});
 
-			it('should correct height of the given block id', function*() {
+			it('should resolved with correct height of the given block id', function*() {
 				const genesisBlock = blocksFixtures.GenesisBlock();
 				const height = yield db.blocks.getHeightByLastId(genesisBlock.id);
 
@@ -609,7 +609,7 @@ describe('db', () => {
 
 				expect(data).to.be.not.empty;
 				expect(data).to.be.an('array');
-				// There are 5 total blocks in the seed
+				// There are 5 total blocks in the seed and we are skipping one by lastId
 				return expect(data).to.be.lengthOf(4);
 			});
 
@@ -621,7 +621,7 @@ describe('db', () => {
 
 				expect(data).to.be.not.empty;
 				expect(data).to.be.an('array');
-				// There are 5 total blocks in the seed
+				// There are 5 total blocks in the seed and we are skipping one by height=1
 				return expect(data).to.be.lengthOf(2);
 			});
 		});
@@ -751,7 +751,7 @@ describe('db', () => {
 				return expect(db.none).to.be.calledOnce;
 			});
 
-			it('should delete all blocks having height above given block id', function*() {
+			it('should delete all blocks with height above or equal to given block id', function*() {
 				const genesisBlock = blocksFixtures.GenesisBlock();
 				const before = yield db.query(
 					'SELECT height FROM blocks WHERE height >= $1',
