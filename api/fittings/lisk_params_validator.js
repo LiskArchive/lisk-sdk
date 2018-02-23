@@ -21,12 +21,12 @@ var debug = require('debug')('swagger:lisk:params_validator');
  * Description of the function.
  *
  * @func create_params_validator
- * @memberof api/fittings
+ * @memberof api.fittings
  * @requires debug
  * @requires lodash
  * @param {Object} fittingDef
  * @param {Object} bagpipes
- * @returns {function} {@link api/fittings.lisk_params_validator}
+ * @returns {function} {@link api.fittings.lisk_params_validator}
  * @todo Add description for the function and the params
  */
 module.exports = function create() {
@@ -34,7 +34,7 @@ module.exports = function create() {
 	 * Description of the function.
 	 *
 	 * @func lisk_params_validator
-	 * @memberof api/fittings
+	 * @memberof api.fittings
 	 * @param {Object} context
 	 * @param {function} cb
 	 * @todo Add description for the function and the params
