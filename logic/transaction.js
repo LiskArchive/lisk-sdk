@@ -121,7 +121,7 @@ class Transaction {
 	getId(transaction) {
 		const hash = this.getHash(transaction);
 		const temp = Buffer.alloc(8);
-		for (var i = 0; i < 8; i++) {
+		for (let i = 0; i < 8; i++) {
 			temp[i] = hash[7 - i];
 		}
 
@@ -159,7 +159,7 @@ class Transaction {
 			throw `Unknown transaction type ${transaction.type}`;
 		}
 
-		let bb;
+		let byteBuffer;
 
 		try {
 			const assetBytes = __private.types[transaction.type].getBytes.call(
@@ -169,18 +169,20 @@ class Transaction {
 				skipSecondSignature
 			);
 			const assetSize = assetBytes ? assetBytes.length : 0;
-			let i;
 
-			bb = new ByteBuffer(1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + assetSize, true);
-			bb.writeByte(transaction.type);
-			bb.writeInt(transaction.timestamp);
+			byteBuffer = new ByteBuffer(
+				1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + assetSize,
+				true
+			);
+			byteBuffer.writeByte(transaction.type);
+			byteBuffer.writeInt(transaction.timestamp);
 
 			const senderPublicKeyBuffer = Buffer.from(
 				transaction.senderPublicKey,
 				'hex'
 			);
-			for (i = 0; i < senderPublicKeyBuffer.length; i++) {
-				bb.writeByte(senderPublicKeyBuffer[i]);
+			for (let i = 0; i < senderPublicKeyBuffer.length; i++) {
+				byteBuffer.writeByte(senderPublicKeyBuffer[i]);
 			}
 
 			if (transaction.requesterPublicKey) {
@@ -188,8 +190,8 @@ class Transaction {
 					transaction.requesterPublicKey,
 					'hex'
 				);
-				for (i = 0; i < requesterPublicKey.length; i++) {
-					bb.writeByte(requesterPublicKey[i]);
+				for (let i = 0; i < requesterPublicKey.length; i++) {
+					byteBuffer.writeByte(requesterPublicKey[i]);
 				}
 			}
 
@@ -197,27 +199,27 @@ class Transaction {
 				let recipient = transaction.recipientId.slice(0, -1);
 				recipient = new bignum(recipient).toBuffer({ size: 8 });
 
-				for (i = 0; i < 8; i++) {
-					bb.writeByte(recipient[i] || 0);
+				for (let i = 0; i < 8; i++) {
+					byteBuffer.writeByte(recipient[i] || 0);
 				}
 			} else {
-				for (i = 0; i < 8; i++) {
-					bb.writeByte(0);
+				for (let i = 0; i < 8; i++) {
+					byteBuffer.writeByte(0);
 				}
 			}
 
-			bb.writeLong(transaction.amount);
+			byteBuffer.writeLong(transaction.amount);
 
 			if (assetSize > 0) {
-				for (i = 0; i < assetSize; i++) {
-					bb.writeByte(assetBytes[i]);
+				for (let i = 0; i < assetSize; i++) {
+					byteBuffer.writeByte(assetBytes[i]);
 				}
 			}
 
 			if (!skipSignature && transaction.signature) {
 				const signatureBuffer = Buffer.from(transaction.signature, 'hex');
-				for (i = 0; i < signatureBuffer.length; i++) {
-					bb.writeByte(signatureBuffer[i]);
+				for (let i = 0; i < signatureBuffer.length; i++) {
+					byteBuffer.writeByte(signatureBuffer[i]);
 				}
 			}
 
@@ -226,17 +228,17 @@ class Transaction {
 					transaction.signSignature,
 					'hex'
 				);
-				for (i = 0; i < signSignatureBuffer.length; i++) {
-					bb.writeByte(signSignatureBuffer[i]);
+				for (let i = 0; i < signSignatureBuffer.length; i++) {
+					byteBuffer.writeByte(signSignatureBuffer[i]);
 				}
 			}
 
-			bb.flip();
+			byteBuffer.flip();
 		} catch (e) {
 			throw e;
 		}
 
-		return bb.toBuffer();
+		return byteBuffer.toBuffer();
 	}
 
 	/**
@@ -515,7 +517,7 @@ class Transaction {
 				transaction.asset.multisignature.keysgroup
 			) {
 				for (
-					var i = 0;
+					let i = 0;
 					i < transaction.asset.multisignature.keysgroup.length;
 					i++
 				) {
@@ -608,10 +610,10 @@ class Transaction {
 
 		// Verify multisignatures
 		if (transaction.signatures) {
-			for (var d = 0; d < transaction.signatures.length; d++) {
+			for (let d = 0; d < transaction.signatures.length; d++) {
 				valid = false;
 
-				for (var s = 0; s < multisignatures.length; s++) {
+				for (let s = 0; s < multisignatures.length; s++) {
 					if (
 						transaction.requesterPublicKey &&
 						multisignatures[s] === transaction.requesterPublicKey
@@ -715,16 +717,12 @@ class Transaction {
 			return false;
 		}
 
-		let res;
-
 		try {
 			const bytes = this.getBytes(transaction, true, true);
-			res = this.verifyBytes(bytes, publicKey, signature);
+			return this.verifyBytes(bytes, publicKey, signature);
 		} catch (e) {
 			throw e;
 		}
-
-		return res;
 	}
 
 	/**
@@ -746,16 +744,12 @@ class Transaction {
 			return false;
 		}
 
-		let res;
-
 		try {
 			const bytes = this.getBytes(transaction, false, true);
-			res = this.verifyBytes(bytes, publicKey, signature);
+			return this.verifyBytes(bytes, publicKey, signature);
 		} catch (e) {
 			throw e;
 		}
-
-		return res;
 	}
 
 	/**
@@ -769,12 +763,10 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	verifyBytes(bytes, publicKey, signature) {
-		let res;
-
 		try {
 			const data2 = Buffer.alloc(bytes.length);
 
-			for (var i = 0; i < data2.length; i++) {
+			for (let i = 0; i < data2.length; i++) {
 				data2[i] = bytes[i];
 			}
 
@@ -785,7 +777,7 @@ class Transaction {
 			const signatureBuffer = Buffer.from(signature, 'hex');
 			const publicKeyBuffer = Buffer.from(publicKey, 'hex');
 
-			res = this.scope.ed.verify(
+			return this.scope.ed.verify(
 				hash,
 				signatureBuffer || ' ',
 				publicKeyBuffer || ' '
@@ -793,8 +785,6 @@ class Transaction {
 		} catch (e) {
 			throw e;
 		}
-
-		return res;
 	}
 
 	/**
@@ -1065,12 +1055,12 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	afterSave(transaction, cb) {
-		const tx_type = __private.types[transaction.type];
+		const transactionType = __private.types[transaction.type];
 
-		if (!tx_type) {
+		if (!transactionType) {
 			return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
-		} else if (typeof tx_type.afterSave === 'function') {
-			return tx_type.afterSave.call(this, transaction, cb);
+		} else if (typeof transactionType.afterSave === 'function') {
+			return transactionType.afterSave.call(this, transaction, cb);
 		}
 		return setImmediate(cb);
 	}
@@ -1092,7 +1082,7 @@ class Transaction {
 			throw `Unknown transaction type ${transaction.type}`;
 		}
 
-		for (var i in transaction) {
+		for (const i in transaction) {
 			if (
 				transaction[i] === null ||
 				typeof transaction[i] === 'undefined' ||
