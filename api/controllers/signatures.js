@@ -23,7 +23,7 @@ var modules;
  * Description of the function.
  *
  * @class
- * @memberof api/controllers
+ * @memberof api.controllers
  * @requires lodash
  * @requires helpers/apiError
  * @param {Object} scope - App instance
@@ -40,19 +40,17 @@ function SignaturesController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-SignaturesController.postSignatures = function(context, next) {
-	var signatures = context.request.swagger.params.signatures.value;
+SignaturesController.postSignature = function(context, next) {
+	var signature = context.request.swagger.params.signature.value;
 
-	modules.signatures.shared.postSignatures(signatures, (err, data) => {
+	modules.signatures.shared.postSignature(signature, (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = err.code;
 				delete err.code;
 			}
-
 			return next(err);
 		}
-
 		next(null, {
 			data: { message: data.status },
 			meta: { status: true },

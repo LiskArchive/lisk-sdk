@@ -336,8 +336,9 @@ describe('transaction', () => {
 			);
 			var transactionBytesFromLiskJs = lisk.crypto.getBytes(validTransaction);
 
-			return expect(transactionBytesFromLogic.equals(transactionBytesFromLiskJs)).to.be
-				.ok;
+			return expect(
+				transactionBytesFromLogic.equals(transactionBytesFromLiskJs)
+			).to.be.ok;
 		});
 
 		it('should skip signature, second signature for getting bytes', () => {
@@ -367,7 +368,9 @@ describe('transaction', () => {
 		});
 
 		it('should return true for valid transaction and sender', () => {
-			return expect(transactionLogic.ready(validTransaction, sender)).to.equal(true);
+			return expect(transactionLogic.ready(validTransaction, sender)).to.equal(
+				true
+			);
 		});
 	});
 

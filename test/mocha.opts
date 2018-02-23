@@ -1,4 +1,4 @@
 --timeout 1200s
 --exit
---reporter min
+--colors
 --require ./test/setup.js

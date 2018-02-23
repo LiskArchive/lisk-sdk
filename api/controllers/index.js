@@ -1,3 +1,5 @@
 /**
- * @namespace api/controllers
+ * @namespace controllers
+ * @memberof api
+ * @see Parent: {@link api}
  */

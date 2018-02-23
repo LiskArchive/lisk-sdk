@@ -22,13 +22,13 @@ var CORS = require('cors');
  * Description of the function.
  *
  * @func create_cors
- * @memberof api/fittings
+ * @memberof api.fittings
  * @requires cors
  * @requires debug
  * @requires lodash
  * @param {Object} fittingDef
  * @param {Object} bagpipes
- * @returns {function} {@link api/fittings.lisk_cors}
+ * @returns {function} {@link api.fittings.lisk_cors}
  * @todo Add description for the function and the params
  */
 module.exports = function create(fittingDef) {
@@ -41,7 +41,7 @@ module.exports = function create(fittingDef) {
 	 * Description of the function.
 	 *
 	 * @func lisk_cors
-	 * @memberof api/fittings
+	 * @memberof api.fittings
 	 * @param {Object} context
 	 * @param {function} cb
 	 * @todo Add description for the function and the params

@@ -33,7 +33,7 @@ var shared = {};
 __private.assetTypes = {};
 
 /**
- * Initializes library with scope content and generates instances for:
+ * Main dapps methods. Initializes library with scope content and generates instances for:
  * - DApp
  * - InTransfer
  * - OutTransfer
@@ -41,13 +41,22 @@ __private.assetTypes = {};
  * Calls logic.transaction.attachAssetType().
  *
  * Listens for an `exit` signal.
- * @memberof module:dapps
+ *
  * @class
- * @classdesc Main dapps methods.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires helpers/api_codes
+ * @requires helpers/api_error
+ * @requires helpers/dapp_categories
+ * @requires helpers/sort_by
+ * @requires helpers/transaction_types
+ * @requires logic/dapp
+ * @requires helpers/in_transfer
+ * @requires helpers/out_transfer
  * @param {function} cb - Callback function.
  * @param {scope} scope - App instance.
- * @return {setImmediateCallback} Callback function with `self` as data.
- * @todo Apply node pattern for callbacks: callback always at the end.
+ * @returns {setImmediateCallback} cb, null, self
+ * @todo Apply node pattern for callbacks: callback always at the end
  * @todo Add 'use strict';
  */
 // Constructor
@@ -91,6 +100,7 @@ function DApps(cb, scope) {
 
 	/**
 	 * Receives an 'exit' signal and calls stopDApp for each launched application.
+	 *
 	 * @listens exit
 	 */
 	process.on('exit', () => {});
@@ -101,11 +111,12 @@ function DApps(cb, scope) {
 // Private methods
 /**
  * Gets applications based on a given filter object.
+ *
+ * @func list
  * @private
- * @implements {library.db.query}
  * @param {Object} filter - May contain type, name, category, link, limit, offset, sort.
  * @param {function} cb - Callback function.
- * @return {setImmediateCallback} cb, error | cb, null, application
+ * @returns {setImmediateCallback} cb, err, applications
  */
 __private.list = function(filter, cb) {
 	var params = {};
@@ -189,8 +200,8 @@ __private.list = function(filter, cb) {
 /**
  * Bounds used scope modules to private modules variable and sets params
  * to private Dapp, InTransfer and OutTransfer instances.
- * @implements module:transactions#Transfer~bind
- * @param {modules} scope - Loaded modules.
+ *
+ * @param {Object} scope - Loaded modules
  */
 DApps.prototype.onBind = function(scope) {
 	modules = {
@@ -215,7 +226,8 @@ DApps.prototype.onBind = function(scope) {
 
 /**
  * Checks if `modules` is loaded.
- * @return {boolean} True if `modules` is loaded.
+ *
+ * @returns {boolean} True if `modules` is loaded.
  */
 DApps.prototype.isLoaded = function() {
 	return !!modules;
@@ -225,6 +237,10 @@ DApps.prototype.isLoaded = function() {
  * Internal & Shared
  * - DApps.prototype.internal
  * - shared.
+ *
+ * @property {function} getDapps - Utility method to get dapps
+ * @property {function} getGenesis
+ * @todo Add description for getGenesis function
  * @todo Implement API comments with apidoc.
  * @see {@link http://apidocjs.com/}
  */
@@ -232,14 +248,15 @@ DApps.prototype.shared = {
 	/**
 	 * Utility method to get dapps.
 	 *
-	 * @param {Object} parameters - Object of all parameters.
-	 * @param {string} parameters.transactionId - Registration transaction ID to query.
-	 * @param {string} parameters.name - Name to query - Fuzzy search.
-	 * @param {string} parameters.sort - Sort field.
-	 * @param {int} parameters.limit - Limit applied to results.
-	 * @param {int} parameters.offset - Offset value for results.
-	 * @param {function} cb - Callback function.
-	 * @return {Array.<Object>}
+	 * @param {Object} parameters - Object of all parameters
+	 * @param {string} parameters.transactionId - Registration transaction ID to query
+	 * @param {string} parameters.name - Name to query - Fuzzy search
+	 * @param {string} parameters.sort - Sort field
+	 * @param {int} parameters.limit - Limit applied to results
+	 * @param {int} parameters.offset - Offset value for results
+	 * @param {function} cb - Callback function
+	 * @returns {Array.<Object>}
+	 * @todo Add description for the return value
 	 */
 	getDapps(parameters, cb) {
 		__private.list(parameters, (err, dapps) => {
@@ -255,6 +272,13 @@ DApps.prototype.shared = {
 };
 
 // Shared API
+/**
+ * Description of getGenesis.
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
+ */
 shared.getGenesis = function(req, cb, tx) {
 	(tx || library.db).dapps
 		.getGenesis(req.dappid)

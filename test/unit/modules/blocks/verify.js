@@ -785,7 +785,9 @@ describe('blocks/verify', () => {
 						constants.blockSlotWindow
 					} blockIds in lastNBlockIds queue`, () => {
 						expect(lastNBlockIds).to.include.members(recentNBlockIds);
-						return expect(lastNBlockIds).to.not.include.members(olderThanNBlockIds);
+						return expect(lastNBlockIds).to.not.include.members(
+							olderThanNBlockIds
+						);
 					});
 				});
 			});
@@ -864,11 +866,11 @@ describe('blocks/verify', () => {
 		it('should clear database', done => {
 			async.every(
 				[
-					'blocks where height > 1',
-					'trs where "blockId" != \'6524861224470851795\'',
-					"mem_accounts where address in ('2737453412992791987L', '2896019180726908125L')",
+					'blocks WHERE height > 1',
+					'trs WHERE "blockId" != \'6524861224470851795\'',
+					"mem_accounts WHERE address IN ('2737453412992791987L', '2896019180726908125L')",
 					'forks_stat',
-					'votes where "transactionId" = \'17502993173215211070\'',
+					'votes WHERE "transactionId" = \'17502993173215211070\'',
 				],
 				(table, seriesCb) => {
 					clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
@@ -942,7 +944,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	// Receives a block from network, save it locally.
+	// Receives a block from network, save it locally
 	describe('processBlock() for invalid block {broadcast: false, saveBlock: true}', () => {
 		var invalidBlock2;
 

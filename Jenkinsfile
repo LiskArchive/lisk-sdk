@@ -155,7 +155,10 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 
 	properties([
 		parameters([
-			string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow tests, change this value to jenkins-extensive.', )
+			string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow tests, change this value to jenkins-extensive.', ),
+			string(name: 'LOG_LEVEL', defaultValue: 'error', description: 'To get desired build log output change the log level', ),
+			string(name: 'LOG_DB_EVENTS', defaultValue: 'false', description: 'To get detailed info on db events log.', ),
+			string(name: 'SILENT', defaultValue: 'true', description: 'To turn off test debug logs.', )
 		 ])
 	])
 
