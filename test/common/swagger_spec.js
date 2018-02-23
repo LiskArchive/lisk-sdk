@@ -275,5 +275,5 @@ SwaggerTestSpec.prototype.getPath = function() {
  * @return {SwaggerTestSpec}
  */
 module.exports = function(method, path, responseCode) {
-	return new SwaggerTestSpec(method, method, responseCode);
+	return new SwaggerTestSpec(method, path, responseCode);
 };
