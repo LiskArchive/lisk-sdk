@@ -407,7 +407,7 @@ describe('db', () => {
 				});
 			});
 
-			it('should return valid blocks with composing conditions with AND', function*() {
+			it('should return valid response with composite conditions joining with AND', function*() {
 				const genesisBlock = blocksFixtures.GenesisBlock();
 				const result = yield db.blocks.list({
 					where: [`b_id = '${genesisBlock.id}'`, 'b_height = 2'],
