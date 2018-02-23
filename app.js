@@ -79,10 +79,13 @@ var swaggerHelper = require('./helpers/swagger');
  * @todo Add description for nonce and ready
  */
 
+// Define workers_controller path
 var workersControllerPath = path.join(__dirname, 'workers_controller');
 
+// Begin reading from stdin
 process.stdin.resume();
 
+// Read build version from file
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
 
 /**
@@ -152,6 +155,11 @@ var logger = new Logger({
 	filename: appConfig.logFileName,
 });
 
+/**
+ * Db logger instance.
+ *
+ * @memberof! app
+ */
 var dbLogger = null;
 
 if (
@@ -174,6 +182,7 @@ try {
 	logger.debug('Cannot get last git commit', err.message);
 }
 
+// Domain error handler
 d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
 	process.exit(0);
