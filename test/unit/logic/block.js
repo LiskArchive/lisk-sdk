@@ -579,11 +579,9 @@ describe('block', () => {
 		});
 
 		it('should return the id for a given block', () => {
-			return expect(block.getId(blockData)).to.be.string;
-		});
-
-		it('should return specific block id for a given block data', () => {
-			return expect(block.getId(blockData)).to.eql('3920300554926889269');
+			return expect(block.getId(blockData))
+				.to.be.a('string')
+				.which.is.equal(blockData.id);
 		});
 	});
 
