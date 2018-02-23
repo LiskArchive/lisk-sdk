@@ -73,6 +73,10 @@ describe('Broadcaster', () => {
 		done();
 	});
 
+	after(() => {
+		return sinonSandbox.restore();
+	});
+
 	describe('constructor', () => {
 		it('should return Broadcaster instance', () => {
 			expect(broadcaster).to.be.instanceOf(Broadcaster);
