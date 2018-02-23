@@ -16,7 +16,7 @@
 
 const randomstring = require('randomstring');
 const stampit = require('stampit');
-const gensisData = require('../data/genesis_block');
+const genesisBlock = require('../data/genesis_block');
 
 const Block = stampit({
 	props: {
@@ -53,11 +53,11 @@ const Block = stampit({
 
 const GenesisBlock = stampit(Block, {
 	init({ generatorPublicKey }) {
-		this.id = gensisData.id;
+		this.id = genesisBlock.id;
 		this.generatorPublicKey =
-			generatorPublicKey || gensisData.generatorPublicKey;
-		this.blockSignature = gensisData.blockSignature;
-		this.payloadHash = gensisData.payloadHash;
+			generatorPublicKey || genesisBlock.generatorPublicKey;
+		this.blockSignature = genesisBlock.blockSignature;
+		this.payloadHash = genesisBlock.payloadHash;
 		this.previousBlock = null;
 		this.height = 1;
 		this.numberOfTransactions = 0;
