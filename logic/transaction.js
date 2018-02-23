@@ -479,7 +479,7 @@ class Transaction {
 			].join(' ');
 
 			if (exceptions.senderPublicKey.indexOf(transaction.id) > -1) {
-				this.scope.logger.debug(err);
+				this.scope.logger.error(err);
 				this.scope.logger.debug(JSON.stringify(transaction));
 			} else {
 				return setImmediate(cb, err);
@@ -564,7 +564,7 @@ class Transaction {
 			err = 'Failed to verify signature';
 
 			if (exceptions.signatures.indexOf(transaction.id) > -1) {
-				this.scope.logger.debug(err);
+				this.scope.logger.error(err);
 				this.scope.logger.debug(JSON.stringify(transaction));
 				valid = true;
 				err = null;
@@ -826,6 +826,7 @@ class Transaction {
 			blockId: block.id,
 			round: slots.calcRound(block.height),
 		});
+
 		this.scope.account.merge(
 			sender.address,
 			{
@@ -846,8 +847,8 @@ class Transaction {
 					transaction,
 					block,
 					sender,
-					err => {
-						if (err) {
+					txApplyErr => {
+						if (txApplyErr) {
 							this.scope.account.merge(
 								sender.address,
 								{
@@ -855,7 +856,7 @@ class Transaction {
 									blockId: block.id,
 									round: slots.calcRound(block.height),
 								},
-								err => setImmediate(cb, err),
+								accountMergeErr => setImmediate(cb, accountMergeErr),
 								tx
 							);
 						} else {
@@ -890,6 +891,7 @@ class Transaction {
 			blockId: block.id,
 			round: slots.calcRound(block.height),
 		});
+
 		this.scope.account.merge(
 			sender.address,
 			{
@@ -907,8 +909,8 @@ class Transaction {
 					transaction,
 					block,
 					sender,
-					err => {
-						if (err) {
+					txUndoErr => {
+						if (txUndoErr) {
 							this.scope.account.merge(
 								sender.address,
 								{
@@ -916,7 +918,7 @@ class Transaction {
 									blockId: block.id,
 									round: slots.calcRound(block.height),
 								},
-								err => setImmediate(cb, err)
+								accountMergeErr => setImmediate(cb, accountMergeErr)
 							);
 						} else {
 							return setImmediate(cb);
@@ -1026,12 +1028,12 @@ class Transaction {
 					this,
 					transaction,
 					sender,
-					err => {
-						if (err) {
+					txUndoErr => {
+						if (txUndoErr) {
 							this.scope.account.merge(
 								sender.address,
 								{ u_balance: -amount },
-								err2 => setImmediate(cb, err2 || err),
+								accountMergeErr => setImmediate(cb, accountMergeErr || err),
 								tx
 							);
 						} else {
