@@ -44,8 +44,8 @@ CREATE TABLE IF NOT EXISTS "mem_accounts"(
   "blockId" VARCHAR(20),
   "nameexist" SMALLINT DEFAULT 0,
   "u_nameexist" SMALLINT DEFAULT 0,
-  "producedblocks" int DEFAULT 0,
-  "missedblocks" int DEFAULT 0,
+  "producedBlocks" int DEFAULT 0,
+  "missedBlocks" int DEFAULT 0,
   "fees" BIGINT DEFAULT 0,
   "rewards" BIGINT DEFAULT 0,
   "virgin" SMALLINT DEFAULT 1

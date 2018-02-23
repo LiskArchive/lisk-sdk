@@ -51,11 +51,11 @@ function PeersUpdateRules(slaveWAMPServer) {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
- * @param {string} connectionId - Description of the param
- * @param {function} cb - Description of the param
- * @todo: Add description of the functions and its parameters
- * @todo: Add returns-tag
+ * @param {Object} peer
+ * @param {string} connectionId
+ * @param {function} cb
+ * @todo Add description for the function and the params
+ * @todo Add @returns tag
  */
 PeersUpdateRules.prototype.insert = function(peer, connectionId, cb) {
 	try {
@@ -89,11 +89,11 @@ PeersUpdateRules.prototype.insert = function(peer, connectionId, cb) {
 /**
  * Description of the function.
  *
- * @param {Object} peer - Description of the param
- * @param {string} connectionId - Description of the param
- * @param {function} cb - Description of the param
- * @todo: Add description of the functions and its parameters
- * @todo: Add returns-tag
+ * @param {Object} peer
+ * @param {string} connectionId
+ * @param {function} cb
+ * @todo Add description for the function and the params
+ * @todo Add @returns tag
  */
 PeersUpdateRules.prototype.remove = function(peer, connectionId, cb) {
 	try {
@@ -122,12 +122,12 @@ PeersUpdateRules.prototype.remove = function(peer, connectionId, cb) {
 /**
  * Description of the function.
  *
- * @param {number} code - Description of the param
- * @param {Object} peer - Description of the param
- * @param {string} connectionId - Description of the param
- * @param {function} cb - Description of the param
- * @todo: Add description of the functions and its parameters
- * @todo: Add returns-tag
+ * @param {number} code
+ * @param {Object} peer
+ * @param {string} connectionId
+ * @param {function} cb
+ * @todo Add description for the function and the params
+ * @todo Add @returns tag
  */
 PeersUpdateRules.prototype.block = function(code, peer, connectionId, cb) {
 	return setImmediate(
@@ -144,12 +144,12 @@ PeersUpdateRules.prototype.internal = {
 	 * Description of the function.
 	 *
 	 * @memberof api.ws.workers.PeersUpdateRules
-	 * @param {number} updateType - Description of the param
-	 * @param {Object} peer - Description of the param
-	 * @param {string} connectionId - Description of the param
-	 * @param {function} cb - Description of the param
-	 * @todo: Add description of the functions and its parameters
-	 * @todo: Add returns-tag
+	 * @param {number} updateType
+	 * @param {Object} peer
+	 * @param {string} connectionId
+	 * @param {function} cb
+	 * @todo Add description for the function and the params
+	 * @todo Add @returns tag
 	 */
 	update(updateType, peer, connectionId, cb) {
 		self.slaveToMasterSender.getPeer(peer.nonce, (err, onMasterPresence) => {
@@ -185,13 +185,13 @@ PeersUpdateRules.prototype.external = {
 	 * Description of the function.
 	 *
 	 * @memberof api.ws.workers.PeersUpdateRules
-	 * @param {Object} request - peer object with extra requests fields added by SlaveWAMPServer
-	 * @param {Object} request.data - peer's data
-	 * @param {string} request.socketId - connection id
-	 * @param {string} request.workerId - worker id
-	 * @param {function} cb - Description of the param
-	 * @todo: Add description of the functions and its parameters
-	 * @todo: Add returns-tag
+	 * @param {Object} request - Peer object with extra requests fields added by SlaveWAMPServer
+	 * @param {Object} request.data - Peer data
+	 * @param {string} request.socketId - Connection id
+	 * @param {string} request.workerId - Worker id
+	 * @param {function} cb
+	 * @todo Add description for the function and the params
+	 * @todo Add @returns tag
 	 */
 	update(request, cb) {
 		z_schema.validate(request, definitions.WSPeerUpdateRequest, err => {

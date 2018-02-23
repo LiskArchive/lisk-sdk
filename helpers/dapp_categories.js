@@ -15,16 +15,21 @@
 'use strict';
 
 /**
- * @typedef {Object} dappCategory
- * - 0: Education
- * - 1: Entertainment
- * - 2: Finance
- * - 3:	Games
- * - 4: Miscellaneous
- * - 5:	Networking
- * - 6:	Science
- * - 7: Social
- * - 8:	Utilities
+ * Description of the namespace.
+ *
+ * @namespace dapp_categories
+ * @memberof helpers
+ * @see Parent: {@link helpers}
+ * @property {number} Education
+ * @property {number} Entertainment
+ * @property {number} Finance
+ * @property {number} Games
+ * @property {number} Miscellaneous
+ * @property {number} Networking
+ * @property {number} Science
+ * @property {number} Social
+ * @property {number} Utilities
+ * @todo Add description for the namespace and the properties
  */
 module.exports = {
 	Education: 0,

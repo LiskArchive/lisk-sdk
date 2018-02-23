@@ -31,7 +31,7 @@ var modules;
  * @requires helpers/swagger.generateParamsErrorObject
  * @requires helpers/swagger.invalidParams
  * @param {Object} scope - App instance
- * @todo: Add description of TransactionsController
+ * @todo Add description of TransactionsController
  */
 function TransactionsController(scope) {
 	modules = scope.modules;
@@ -40,9 +40,9 @@ function TransactionsController(scope) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
  */
 TransactionsController.getTransactions = function(context, next) {
 	var invalidParams = swaggerHelper.invalidParams(context.request);
@@ -107,23 +107,20 @@ TransactionsController.getTransactions = function(context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} context - Description of the param
- * @param {function} next - Description of the param
- * @todo: Add description of the function and its parameters
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
  */
-TransactionsController.postTransactions = function(context, next) {
-	var transactions = context.request.swagger.params.transactions.value;
+TransactionsController.postTransaction = function(context, next) {
+	var transaction = context.request.swagger.params.transaction.value;
 
-	modules.transactions.shared.postTransactions(transactions, (err, data) => {
+	modules.transactions.shared.postTransaction(transaction, (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = err.code;
 				delete err.code;
 			}
 
-			return next(err);
-		}
-		if (err) {
 			return next(err);
 		}
 

@@ -12,17 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+/**
+ * @namespace db
+ * @property {module:db} db
+ */
+
 'use strict';
 
 const Promise = require('bluebird');
 const monitor = require('pg-monitor');
-let pgp = require('pg-promise');
+const pgpLib = require('pg-promise');
 const repos = require('./repos');
 
-// TODO: Had to change it from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
+// TODO: Had to change below from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
 // eslint-disable-next-line prefer-const
 let initOptions = {
-	pgNative: true,
+	pgNative: false,
 	capSQL: true,
 	promiseLib: Promise,
 
@@ -35,22 +40,38 @@ let initOptions = {
 	},
 };
 
-pgp = pgp(initOptions);
+const pgp = pgpLib(initOptions);
 
 /**
- * Connects to the database
- * @requires pg-promise
+ * @module db
+ * @requires bluebird
  * @requires pg-monitor
+ * @requires pg-promise
+ * @requires db/repos/*
+ * @see Parent: {@link db}
+ */
+
+/**
+ * Initialized root of pg-promise library, to give access to its complete API.
+ *
+ * @property {Object} pgp
+ */
+module.exports.pgp = pgp;
+
+/**
+ * Connects to the database.
+ *
  * @function connect
  * @param {Object} config
  * @param {function} logger
- * @return {Promise<pg-promise.Database>}
+ * @returns {Promise}
+ * @todo Add description for the params and the return value
  */
 module.exports.connect = (config, logger) => {
 	try {
 		monitor.detach();
 	} catch (ex) {
-		logger.log('database connect exception - ', ex);
+		logger.log('Database connect exception -', ex);
 	}
 
 	monitor.attach(initOptions, config.logEvents);
@@ -72,13 +93,16 @@ module.exports.connect = (config, logger) => {
 
 /**
  * Detaches pg-monitor. Should be invoked after connect.
+ *
+ * @function disconnect
  * @param {Object} logger
+ * @todo Add description for the params
  */
 module.exports.disconnect = logger => {
 	logger = logger || console;
 	try {
 		monitor.detach();
 	} catch (ex) {
-		logger.log('database disconnect exception - ', ex);
+		logger.log('Database disconnect exception -', ex);
 	}
 };

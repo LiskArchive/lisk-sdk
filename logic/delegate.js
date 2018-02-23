@@ -24,12 +24,17 @@ var library;
 var self;
 
 /**
- * Initializes library.
- * @memberof module:delegates
+ * Main delegate logic. Initializes library.
+ *
  * @class
- * @classdesc Main delegate logic.
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires async
+ * @requires helpers/constants
+ * @requires helpers/exceptions
  * @param {logger} logger
  * @param {ZSchema} schema
+ * @todo Add description for the params
  */
 function Delegate(logger, schema) {
 	self = this;
@@ -42,7 +47,9 @@ function Delegate(logger, schema) {
 // Public methods
 /**
  * Binds input parameters to private variables modules.
+ *
  * @param {Accounts} accounts
+ * @todo Add description for the params
  */
 Delegate.prototype.bind = function(accounts) {
 	modules = {
@@ -52,9 +59,10 @@ Delegate.prototype.bind = function(accounts) {
 
 /**
  * Obtains constant fee delegate.
- * @see {@link module:helpers/constants}
+ *
+ * @see {@link helpers/constants}
  * @returns {number} constants.fees.delegate
- * @todo Delete unused transaction, sender parameters.
+ * @todo Delete unused transaction, sender parameters
  */
 Delegate.prototype.calculateFee = function() {
 	return constants.fees.delegate;
@@ -62,11 +70,12 @@ Delegate.prototype.calculateFee = function() {
 
 /**
  * Verifies fields from transaction and sender, calls modules.accounts.getAccount().
- * @implements module:accounts#Account~getAccount
+ *
  * @param {transaction} transaction
  * @param {account} sender
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|Object} Returns error if invalid parameter | transaction validated.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate|Object} error, transaction
+ * @todo Add description for the params
  */
 Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 	if (transaction.recipientId) {
@@ -131,11 +140,13 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 
 /**
  * Returns transaction with setImmediate.
+ *
  * @param {transaction} transaction
  * @param {account} sender
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} Null error
- * @todo Delete unused sender parameter.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} null
+ * @todo Delete unused sender parameter
+ * @todo Add description for the params
  */
 Delegate.prototype.process = function(transaction, sender, cb) {
 	return setImmediate(cb, null, transaction);
@@ -143,9 +154,11 @@ Delegate.prototype.process = function(transaction, sender, cb) {
 
 /**
  * Validates delegate username and returns buffer.
+ *
  * @param {transaction} transaction
- * @returns {null|string} Returns null if no delegate| buffer.
- * @throws {error} If buffer fails.
+ * @returns {null|string}
+ * @throws {Error}
+ * @todo Add description for the params
  */
 Delegate.prototype.getBytes = function(transaction) {
 	if (!transaction.asset.delegate.username) {
@@ -165,10 +178,12 @@ Delegate.prototype.getBytes = function(transaction) {
 
 /**
  * Calls cb with error when account already exists.
+ *
  * @param {transaction} transaction
- * @param {string} username - Key to check transaction with (username / u_username).
- * @param {string} isDelegate - Key to check transaction with (isDelegate / u_isDelegate).
- * @param {function} cb - Callback function.
+ * @param {string} username - Key to check transaction with (username / u_username)
+ * @param {string} isDelegate - Key to check transaction with (isDelegate / u_isDelegate)
+ * @param {function} cb - Callback function
+ * @todo Add description for the params
  */
 Delegate.prototype.checkDuplicates = function(
 	transaction,
@@ -211,8 +226,10 @@ Delegate.prototype.checkDuplicates = function(
 
 /**
  * Checks if confirmed delegate is already registered.
+ *
  * @param {transaction} transaction
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
+ * @todo Add description for the params
  */
 Delegate.prototype.checkConfirmed = function(transaction, cb, tx) {
 	self.checkDuplicates(
@@ -233,8 +250,10 @@ Delegate.prototype.checkConfirmed = function(transaction, cb, tx) {
 
 /**
  * Checks if unconfirmed delegate is already registered.
+ *
  * @param {transaction} transaction
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
+ * @todo Add description for the params
  */
 Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
 	self.checkDuplicates(
@@ -248,12 +267,13 @@ Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
 
 /**
  * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with username.
- * @implements module:accounts#Accounts~setAccountAndGet
+ *
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
- * @param {function} cb - Callback function.
- * @todo Delete unused block parameter.
+ * @param {function} cb - Callback function
+ * @todo Delete unused block parameter
+ * @todo Add description for the params
  */
 Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
 	var data = {
@@ -281,12 +301,13 @@ Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
 
 /**
  * Checks transaction delegate and no nameexist and calls modules.accounts.setAccountAndGet() with u_username.
- * @implements module:accounts#Accounts~setAccountAndGet
+ *
  * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
- * @param {function} cb - Callback function.
- * @todo Delete unused block parameter.
+ * @param {function} cb - Callback function
+ * @todo Delete unused block parameter
+ * @todo Add description for the params
  */
 Delegate.prototype.undo = function(transaction, block, sender, cb) {
 	var data = {
@@ -303,10 +324,11 @@ Delegate.prototype.undo = function(transaction, block, sender, cb) {
 
 /**
  * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with u_username.
- * @implements module:accounts#Accounts~setAccountAndGet
+ *
  * @param {transaction} transaction
  * @param {account} sender
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
+ * @todo Add description for the params
  */
 Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 	var data = {
@@ -333,10 +355,11 @@ Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 
 /**
  * Checks transaction delegate and calls modules.accounts.setAccountAndGet() with username and u_username both null.
- * @implements module:accounts#Accounts~setAccountAndGet
+ *
  * @param {transaction} transaction
  * @param {account} sender
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
+ * @todo Add description for the params
  */
 Delegate.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 	var data = {
@@ -364,9 +387,11 @@ Delegate.prototype.schema = {
 
 /**
  * Validates transaction delegate schema.
+ *
  * @param {transaction} transaction
- * @returns {err|transaction} Error message if fails validation | input parameter.
- * @throws {string} Failed to validate delegate schema.
+ * @returns {error|transaction}
+ * @throws {string} If delegate schema is invalid
+ * @todo Add description for the params
  */
 Delegate.prototype.objectNormalize = function(transaction) {
 	var report = library.schema.validate(
@@ -386,8 +411,9 @@ Delegate.prototype.objectNormalize = function(transaction) {
 
 /**
  * Creates delegate Object based on raw data.
- * @param {Object} raw - Contains d_username, t_senderPK, t_senderId.
- * @returns {null|Object} Null if no d_username, otherwise created delegate object.
+ *
+ * @param {Object} raw - Contains d_username, t_senderPK, t_senderId
+ * @returns {null|Object} null - If no d_username, otherwise created delegate object
  */
 Delegate.prototype.dbRead = function(raw) {
 	if (!raw.d_username) {
@@ -404,9 +430,11 @@ Delegate.prototype.dbRead = function(raw) {
 
 /**
  * Checks if transaction has enough signatures to be confirmed.
+ *
  * @param {transaction} transaction
  * @param {account} sender
- * @return {boolean} True if transaction signatures greather than sender multimin, or there are no sender multisignatures.
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
+ * @todo Add description for the params
  */
 Delegate.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {

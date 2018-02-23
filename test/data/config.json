@@ -4,9 +4,9 @@
 	"address": "0.0.0.0",
 	"version": "0.0.1",
 	"minVersion": ">=0.0.0",
-	"fileLogLevel": "debug",
+	"fileLogLevel": "error",
 	"logFileName": "logs/lisk.log",
-	"consoleLogLevel": "info",
+	"consoleLogLevel": "none",
 	"trustProxy": false,
 	"topAccounts": false,
 	"cacheEnabled": true,
@@ -21,14 +21,7 @@
 		"max": 9,
 		"poolIdleTimeout": 30000,
 		"reapIntervalMillis": 1000,
-		"logEvents": [
-			"connect",
-			"disconnect",
-			"query",
-			"task",
-			"transact",
-			"error"
-		],
+		"logEvents": ["error"],
 		"logFileName": "logs/lisk_db.log"
 	},
 	"redis": {

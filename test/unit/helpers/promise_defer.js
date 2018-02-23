@@ -21,7 +21,7 @@ describe('PromiseDefer', () => {
 	var RESOLVED = 'resolved';
 	var REJECTED = 'rejected';
 
-	beforeEach(() => {
+	beforeEach(done => {
 		promiseDefer = PromiseDefer();
 		promiseDefer.promise
 			.then(input => {
@@ -32,6 +32,7 @@ describe('PromiseDefer', () => {
 				expect(input.message).to.equal(REJECTED);
 				input.done();
 			});
+		done();
 	});
 
 	describe('when it fails', () => {

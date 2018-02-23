@@ -40,7 +40,7 @@ describe('GET /peers', () => {
 
 	after(() => {
 		wsServer1.stop();
-		wsServer2.stop();
+		return wsServer2.stop();
 	});
 
 	var paramSet = {

@@ -39,9 +39,10 @@ describe('peers', () => {
 		});
 	});
 
-	beforeEach(() => {
+	beforeEach(done => {
 		peersModuleMock.acceptable = sinonSandbox.stub().returnsArg(0);
 		validPeer = _.assign({}, prefixedPeer);
+		done();
 	});
 
 	function removeAll() {
@@ -91,25 +92,27 @@ describe('peers', () => {
 		it('should always return Peer instance', () => {
 			expect(peers.create()).to.be.an.instanceof(Peer);
 			expect(peers.create(validPeer)).to.be.an.instanceof(Peer);
-			expect(peers.create(new Peer(validPeer))).to.be.an.instanceof(Peer);
+			return expect(peers.create(new Peer(validPeer))).to.be.an.instanceof(
+				Peer
+			);
 		});
 	});
 
 	describe('list', () => {
 		beforeEach(() => {
-			removeAll();
+			return removeAll();
 		});
 
 		it('should list peers as Peer instances', () => {
 			peers.upsert(validPeer);
-			peers.list().forEach(peer => {
+			return peers.list().forEach(peer => {
 				expect(peer).to.be.an.instanceof(Peer);
 			});
 		});
 
 		it('should list peers with rpc', () => {
 			peers.upsert(validPeer);
-			peers.list().forEach(peer => {
+			return peers.list().forEach(peer => {
 				expect(peer).have.property('rpc');
 			});
 		});
@@ -117,14 +120,14 @@ describe('peers', () => {
 		describe('when normalized', () => {
 			it('should list peers as objects when normalized', () => {
 				peers.upsert(validPeer);
-				peers.list(true).forEach(peer => {
+				return peers.list(true).forEach(peer => {
 					expect(peer).to.be.an('object');
 				});
 			});
 
 			it('should not contain rpc property when normalized', () => {
 				peers.upsert(validPeer);
-				peers.list(true).forEach(peer => {
+				return peers.list(true).forEach(peer => {
 					expect(peer).not.to.have.property('rpc');
 				});
 			});
@@ -133,12 +136,12 @@ describe('peers', () => {
 
 	describe('upsert', () => {
 		beforeEach(() => {
-			removeAll();
+			return removeAll();
 		});
 
 		it('should insert new peers', () => {
 			peers.upsert(validPeer);
-			expect(peers.list().length).equal(1);
+			return expect(peers.list().length).equal(1);
 		});
 
 		it('should update height of existing peer', () => {
@@ -155,7 +158,7 @@ describe('peers', () => {
 			var updated = list[0];
 			expect(list.length).equal(1);
 			expect(arePeersEqual(updated, modifiedPeer)).to.be.ok;
-			expect(arePeersEqual(updated, validPeer)).to.be.not.ok;
+			return expect(arePeersEqual(updated, validPeer)).to.be.not.ok;
 		});
 
 		it('should not update height with insertOnly param', () => {
@@ -172,7 +175,7 @@ describe('peers', () => {
 			var updated = list[0];
 			expect(list.length).equal(1);
 			expect(arePeersEqual(updated, modifiedPeer)).to.be.not.ok;
-			expect(arePeersEqual(updated, validPeer)).to.be.ok;
+			return expect(arePeersEqual(updated, validPeer)).to.be.ok;
 		});
 
 		it('should insert peer with different ports', () => {
@@ -189,7 +192,7 @@ describe('peers', () => {
 			var demandedPorts = _.map([validPeer, differentPortPeer], 'wsPort');
 			var listPorts = _.map(list, 'wsPort');
 
-			expect(_.isEqual(demandedPorts.sort(), listPorts.sort())).to.be.ok;
+			return expect(_.isEqual(demandedPorts.sort(), listPorts.sort())).to.be.ok;
 		});
 
 		it('should insert peer with different ips', () => {
@@ -208,19 +211,19 @@ describe('peers', () => {
 			var demandedIps = _.map([validPeer, differentIpPeer], 'ip');
 			var listIps = _.map(list, 'ip');
 
-			expect(_.isEqual(demandedIps.sort(), listIps.sort())).to.be.ok;
+			return expect(_.isEqual(demandedIps.sort(), listIps.sort())).to.be.ok;
 		});
 
 		describe('should fail with valid error code', () => {
 			it('INSERT_ONLY_FAILURE when insertOnly flag is present and peer already exists', () => {
 				peers.upsert(validPeer);
-				expect(peers.upsert(validPeer, true)).to.equal(
+				return expect(peers.upsert(validPeer, true)).to.equal(
 					failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE
 				);
 			});
 
 			it('INVALID_PEER when called with invalid peer', () => {
-				expect(peers.upsert({})).to.equal(
+				return expect(peers.upsert({})).to.equal(
 					failureCodes.ON_MASTER.UPDATE.INVALID_PEER
 				);
 			});
@@ -228,7 +231,7 @@ describe('peers', () => {
 			it('NOT_ACCEPTED when called with the same as node nonce', () => {
 				peersModuleMock.acceptable = sinonSandbox.stub().returns([]);
 				validPeer.nonce = validNodeNonce;
-				expect(peers.upsert(validPeer)).to.equal(
+				return expect(peers.upsert(validPeer)).to.equal(
 					failureCodes.ON_MASTER.INSERT.NOT_ACCEPTED
 				);
 			});
@@ -237,11 +240,11 @@ describe('peers', () => {
 
 	describe('exists', () => {
 		beforeEach(() => {
-			removeAll();
+			return removeAll();
 		});
 
 		it('should return false if peer is not on the list', () => {
-			expect(
+			return expect(
 				peers.exists({
 					ip: '41.41.41.41',
 					wsPort: '4444',
@@ -254,13 +257,13 @@ describe('peers', () => {
 			peers.upsert(validPeer);
 			var list = peers.list(true);
 			expect(list.length).equal(1);
-			expect(peers.exists(validPeer)).to.be.ok;
+			return expect(peers.exists(validPeer)).to.be.ok;
 		});
 
 		it.skip('should return true if peer with same nonce is on the list', () => {
 			var list = peers.list(true);
 			expect(list.length).equal(1);
-			expect(
+			return expect(
 				peers.exists({
 					ip: validPeer.ip,
 					wsPort: validPeer.wsPort,
@@ -273,36 +276,37 @@ describe('peers', () => {
 			peers.upsert(validPeer);
 			var list = peers.list(true);
 			expect(list.length).equal(1);
-			expect(peers.exists({ ip: validPeer.ip, wsPort: validPeer.wsPort })).to.be
-				.ok;
+			return expect(
+				peers.exists({ ip: validPeer.ip, wsPort: validPeer.wsPort })
+			).to.be.ok;
 		});
 	});
 
 	describe('get', () => {
 		beforeEach(() => {
-			removeAll();
+			return removeAll();
 		});
 
 		it('should return inserted peer', () => {
 			peers.upsert(validPeer);
 			var insertedPeer = peers.get(validPeer);
-			expect(arePeersEqual(insertedPeer, validPeer)).to.be.ok;
+			return expect(arePeersEqual(insertedPeer, validPeer)).to.be.ok;
 		});
 
 		it('should return inserted peer by address', () => {
 			peers.upsert(validPeer);
 			var insertedPeer = peers.get(`${validPeer.ip}:${validPeer.wsPort}`);
-			expect(arePeersEqual(insertedPeer, validPeer)).to.be.ok;
+			return expect(arePeersEqual(insertedPeer, validPeer)).to.be.ok;
 		});
 
 		it('should return undefined if peer is not inserted', () => {
-			expect(peers.get(validPeer)).to.be.undefined;
+			return expect(peers.get(validPeer)).to.be.undefined;
 		});
 	});
 
 	describe('remove', () => {
 		beforeEach(() => {
-			removeAll();
+			return removeAll();
 		});
 
 		it('should remove added peer', () => {
@@ -310,7 +314,7 @@ describe('peers', () => {
 			expect(peers.list().length).equal(1);
 			var result = peers.remove(validPeer);
 			expect(result).to.be.ok;
-			expect(peers.list().length).equal(0);
+			return expect(peers.list().length).equal(0);
 		});
 
 		it('should return an error when trying to remove a non-existent peer', () => {
@@ -318,7 +322,7 @@ describe('peers', () => {
 			expect(result)
 				.to.be.a('number')
 				.equal(failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST);
-			expect(peers.list().length).equal(0);
+			return expect(peers.list().length).equal(0);
 		});
 	});
 });

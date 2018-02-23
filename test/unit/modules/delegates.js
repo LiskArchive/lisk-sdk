@@ -66,18 +66,20 @@ describe('delegates', () => {
 				},
 			];
 
-			before(() => {
+			before(done => {
 				loadDelegates = library.rewiredModules.delegates.__get__(
 					'__private.loadDelegates'
 				);
 				config = library.rewiredModules.delegates.__get__('library.config');
 				__private = library.rewiredModules.delegates.__get__('__private');
+				done();
 			});
 
-			beforeEach(() => {
+			beforeEach(done => {
 				__private.keypairs = {};
 				config.forging.force = true;
 				config.forging.secret = [];
+				done();
 			});
 
 			it('should not load any delegates when forging.force is false', done => {

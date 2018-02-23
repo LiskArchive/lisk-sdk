@@ -26,14 +26,22 @@ var __private = {};
 
 /**
  * Main Block logic.
- * @memberof module:blocks
+ *
  * @class
- * @classdesc Main Block logic.
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires bytebuffer
+ * @requires crypto
+ * @requires helpers/bignum
+ * @requires helpers/constants
+ * @requires helpers/transaction_types
+ * @requires logic/block_reward
  * @param {Object} ed
  * @param {ZSchema} schema
  * @param {Transaction} transaction
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} With `this` as data.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error, this
+ * @todo Add description for the params
  */
 // Constructor
 function Block(ed, schema, transaction, cb) {
@@ -49,18 +57,14 @@ function Block(ed, schema, transaction, cb) {
 }
 
 // Private methods
-/**
- * Creates a blockReward instance.
- * @private
- */
 
 /**
- * Gets address by public
+ * Gets address by public.
+ *
  * @private
- * @implements {crypto.createHash}
- * @implements {bignum.fromBuffer}
  * @param {publicKey} publicKey
- * @return {address} address
+ * @returns {address} address
+ * @todo Add description for the params
  */
 __private.getAddressByPublicKey = function(publicKey) {
 	var publicKeyHash = crypto
@@ -82,13 +86,10 @@ __private.getAddressByPublicKey = function(publicKey) {
  * Sorts input data transactions.
  * Calculates reward based on previous block data.
  * Generates new block.
- * @implements {BlockReward.calcReward}
- * @implements {crypto.createHash}
- * @implements {scope.transaction.getBytes}
- * @implements {Block.sign}
- * @implements {Block.objectNormalize}
+ *
  * @param {Object} data
  * @returns {block} block
+ * @todo Add description for the params
  */
 Block.prototype.create = function(data) {
 	var transactions = data.transactions.sort((a, b) => {
@@ -177,11 +178,11 @@ Block.prototype.create = function(data) {
 
 /**
  * Creates a block signature.
- * @implements {Block.getHash}
- * @implements {scope.ed.sign}
+ *
  * @param {block} block
  * @param {Object} keypair
- * @returns {signature} block signature
+ * @returns {signature} Block signature
+ * @todo Add description for the params
  */
 Block.prototype.sign = function(block, keypair) {
 	var hash = this.getHash(block);
@@ -190,11 +191,12 @@ Block.prototype.sign = function(block, keypair) {
 };
 
 /**
- * @implements {ByteBuffer}
- * @implements {bignum}
+ * Description of the function.
+ *
  * @param {block} block
- * @return {!Array} Contents as an ArrayBuffer
- * @throws {error} If buffer fails
+ * @throws {Error}
+ * @returns {!Array} Contents as an ArrayBuffer
+ * @todo Add description for the function and the params
  */
 Block.prototype.getBytes = function(block) {
 	var size = 4 + 4 + 8 + 4 + 4 + 8 + 8 + 4 + 4 + 4 + 32 + 32 + 64;
@@ -253,12 +255,11 @@ Block.prototype.getBytes = function(block) {
 
 /**
  * Verifies block hash, generator block publicKey and block signature.
- * @implements {Block.getBytes}
- * @implements {crypto.createHash}
- * @implements {scope.ed.verify}
+ *
  * @param {block} block
- * @return {boolean} verified hash, signature and publicKey
- * @throws {error} catch error
+ * @throws {Error}
+ * @returns {boolean} Verified hash, signature and publicKey
+ * @todo Add description for the params
  */
 Block.prototype.verifySignature = function(block) {
 	var remove = 64;
@@ -383,11 +384,12 @@ Block.prototype.schema = {
 };
 
 /**
- * @implements {scope.schema.validate}
- * @implements {scope.transaction.objectNormalize}
+ * Description of the function.
+ *
  * @param {block} block
- * @return {error|transaction} error string | block normalized
- * @throws {string|error} error message | catch error
+ * @throws {string|Error}
+ * @returns {Object} Normalized block
+ * @todo Add description for the function and the params
  */
 Block.prototype.objectNormalize = function(block) {
 	var i;
@@ -422,11 +424,10 @@ Block.prototype.objectNormalize = function(block) {
 
 /**
  * Calculates block id based on block.
- * @implements {crypto.createHash}
- * @implements {Block.getBytes}
- * @implements {bignum.fromBuffer}
+ *
  * @param {block} block
- * @return {string} id string
+ * @returns {string} Block id
+ * @todo Add description for the params
  */
 Block.prototype.getId = function(block) {
 	var hash = crypto
@@ -444,10 +445,10 @@ Block.prototype.getId = function(block) {
 
 /**
  * Creates hash based on block bytes.
- * @implements {Block.getBytes}
- * @implements {crypto.createHash}
+ *
  * @param {block} block
- * @return {hash} sha256 crypto hash
+ * @returns {hash} SHA256 hash
+ * @todo Add description for the params
  */
 Block.prototype.getHash = function(block) {
 	return crypto
@@ -458,8 +459,9 @@ Block.prototype.getHash = function(block) {
 
 /**
  * Returns send fees from constants.
- * @return {number} fee
- * @todo delete unused input parameter
+ *
+ * @returns {number} Transaction fee
+ * @todo Delete unused param
  */
 Block.prototype.calculateFee = function() {
 	return constants.fees.send;
@@ -467,9 +469,10 @@ Block.prototype.calculateFee = function() {
 
 /**
  * Creates block object based on raw data.
- * @implements {bignum}
+ *
  * @param {Object} raw
- * @return {null|block} blcok object
+ * @returns {null|block} Block object
+ * @todo Add description for the params
  */
 Block.prototype.dbRead = function(raw) {
 	if (!raw.b_id) {

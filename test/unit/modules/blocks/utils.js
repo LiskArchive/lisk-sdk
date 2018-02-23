@@ -59,7 +59,7 @@ describe('blocks/utils', () => {
 	var library;
 	var modules;
 
-	beforeEach(() => {
+	beforeEach(done => {
 		dbStub = {
 			blocks: {
 				getIdSequence: sinonSandbox.stub().resolves(),
@@ -139,10 +139,11 @@ describe('blocks/utils', () => {
 
 		library = BlocksUtils.__get__('library');
 		modules = BlocksUtils.__get__('modules');
+		done();
 	});
 
 	afterEach(() => {
-		sinonSandbox.reset();
+		return sinonSandbox.reset();
 	});
 
 	describe('constructor', () => {
@@ -152,23 +153,23 @@ describe('blocks/utils', () => {
 			expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
 			expect(library.logic.account).to.eql(accountMock);
 			expect(library.logic.block).to.eql(blockMock);
-			expect(library.logic.transaction).to.eql(transactionMock);
+			return expect(library.logic.transaction).to.eql(transactionMock);
 		});
 
 		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."', () => {
-			expect(loggerStub.trace.args[0][0]).to.equal(
+			return expect(loggerStub.trace.args[0][0]).to.equal(
 				'Blocks->Utils: Submodule initialized.'
 			);
 		});
 
 		it('should return self', () => {
 			expect(blocksUtilsModule).to.be.an('object');
-			expect(blocksUtilsModule.readDbRows).to.be.a('function');
+			return expect(blocksUtilsModule.readDbRows).to.be.a('function');
 		});
 	});
 
 	describe('readDbRows', () => {
-		it('should call library.logic.block.dbRead with each block', () => {
+		it('should call library.logic.block.dbRead with each block', done => {
 			library.logic.block.dbRead = sinonSandbox.spy();
 
 			blocksUtilsModule.readDbRows(fullBlocksListRows);
@@ -177,9 +178,10 @@ describe('blocks/utils', () => {
 				expect(library.logic.block.dbRead).to.have.callCount(4);
 				expect(library.logic.block.dbRead).to.have.been.calledWith(block);
 			}
+			done();
 		});
 
-		it('should call library.logic.transaction.dbRead with each block', () => {
+		it('should call library.logic.transaction.dbRead with each block', done => {
 			library.logic.transaction.dbRead = sinonSandbox.spy();
 
 			blocksUtilsModule.readDbRows(fullBlocksListRows);
@@ -188,10 +190,11 @@ describe('blocks/utils', () => {
 				expect(library.logic.transaction.dbRead).to.have.callCount(4);
 				expect(library.logic.transaction.dbRead).to.have.been.calledWith(block);
 			}
+			done();
 		});
 
 		it('should read an empty array', () => {
-			expect(blocksUtilsModule.readDbRows([])).to.be.an('array');
+			return expect(blocksUtilsModule.readDbRows([])).to.be.an('array');
 		});
 
 		describe('with 2 blocks each containing 2 transactions', () => {
@@ -199,7 +202,7 @@ describe('blocks/utils', () => {
 
 			beforeEach(() => {
 				blocks = blocksUtilsModule.readDbRows(fullBlocksListRows);
-				expect(blocks).to.be.an('array');
+				return expect(blocks).to.be.an('array');
 			});
 
 			it('should read the rows correctly', () => {
@@ -225,7 +228,7 @@ describe('blocks/utils', () => {
 				expect(blocks[1].transactions[0].type).to.equal(2);
 				expect(blocks[1].transactions[1]).to.be.an('object');
 				expect(blocks[1].transactions[1].id).to.equal('3502881310841638511');
-				expect(blocks[1].transactions[1].type).to.equal(3);
+				return expect(blocks[1].transactions[1].type).to.equal(3);
 			});
 		});
 
@@ -252,7 +255,7 @@ describe('blocks/utils', () => {
 			expect(blockObject).to.be.an('array');
 			expect(blockObject[0]).to.be.an('object');
 			expect(blockObject[0].id).to.equal('6524861224470851795');
-			expect(blockObject[0].generationSignature).to.equal(
+			return expect(blockObject[0].generationSignature).to.equal(
 				'0000000000000000000000000000000000000000000000000000000000000000'
 			);
 		});
@@ -642,19 +645,19 @@ describe('blocks/utils', () => {
 				'Test tracker'
 			);
 			expect(testTracker.target).to.eql(1);
-			expect(testTracker.step).to.eql(1);
+			return expect(testTracker.step).to.eql(1);
 		});
 
 		it('should return valid log information when call applyNext()', () => {
 			testTracker.applyNext();
 			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
-			expect(loggerStub.info.args[0][1]).to.equal(
+			return expect(loggerStub.info.args[0][1]).to.equal(
 				'100.0 %: applied 1 of 1 transactions'
 			);
 		});
 
 		it('should throw error when times applied >= transactionsCount', () => {
-			expect(() => {
+			return expect(() => {
 				testTracker.applyNext();
 			}).to.throw('Cannot apply transaction over the limit: 1');
 		});
@@ -663,7 +666,7 @@ describe('blocks/utils', () => {
 			testTracker.reset();
 			testTracker.applyNext();
 			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
-			expect(loggerStub.info.args[0][1]).to.equal(
+			return expect(loggerStub.info.args[0][1]).to.equal(
 				'100.0 %: applied 1 of 1 transactions'
 			);
 		});
@@ -742,21 +745,21 @@ describe('blocks/utils', () => {
 	describe('onBind', () => {
 		beforeEach(() => {
 			loggerStub.trace.reset();
-			blocksUtilsModule.onBind(modulesStub);
+			return blocksUtilsModule.onBind(modulesStub);
 		});
 
 		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', () => {
-			expect(loggerStub.trace.args[0][0]).to.equal(
+			return expect(loggerStub.trace.args[0][0]).to.equal(
 				'Blocks->Utils: Shared modules bind.'
 			);
 		});
 
 		it('should create a modules object { blocks: scope.blocks }', () => {
-			expect(modules.blocks).to.equal(modulesStub.blocks);
+			return expect(modules.blocks).to.equal(modulesStub.blocks);
 		});
 
 		it('should set __private.loaded to true', () => {
-			expect(__private.loaded).to.be.true;
+			return expect(__private.loaded).to.be.true;
 		});
 	});
 });

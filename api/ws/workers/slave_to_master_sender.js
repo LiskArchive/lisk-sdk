@@ -29,11 +29,11 @@ function SlaveToMasterSender(slaveWAMPServer) {
 /**
  * Sends requests to main process with SocketCluster authKey attached.
  *
- * @param {string} procedureName - Description of the param
- * @param {number} updateType - Description of the param
- * @param {Object} peer - Description of the param
- * @param {function} cb - Description of the param
- * @todo: Add descriptions for the parameters
+ * @param {string} procedureName
+ * @param {number} updateType
+ * @param {Object} peer
+ * @param {function} cb
+ * @todo Add description for the params
  */
 SlaveToMasterSender.prototype.send = function(
 	procedureName,
@@ -56,9 +56,9 @@ SlaveToMasterSender.prototype.send = function(
 /**
  * Description of the function.
  *
- * @param {string} nonce - Description of the param
- * @param {function} cb - Description of the param
- * @todo: Add description of the function and its parameters
+ * @param {string} nonce
+ * @param {function} cb
+ * @todo Add description for the function and the params
  */
 SlaveToMasterSender.prototype.getPeer = function(nonce, cb) {
 	this.slaveWAMPServer.sendToMaster(

@@ -115,15 +115,15 @@ module.exports = function(params) {
 				});
 
 				it('should have no error', () => {
-					expect(getNetworkStatusError).not.to.exist;
+					return expect(getNetworkStatusError).not.to.exist;
 				});
 
 				it('should have height > 1', () => {
-					expect(networkHeight).to.be.above(1);
+					return expect(networkHeight).to.be.above(1);
 				});
 
 				it('should have average height above 1', () => {
-					expect(networkAverageHeight).to.be.above(1);
+					return expect(networkAverageHeight).to.be.above(1);
 				});
 
 				it('should have different peers heights propagated correctly on peers lists', () => {

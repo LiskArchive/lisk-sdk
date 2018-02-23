@@ -36,46 +36,56 @@ function postTransaction(transaction, cb) {
 }
 
 describe('Posting transaction (type 0)', () => {
+	var account;
 	var transaction;
+	var error;
+	var response;
 	var goodTransactions = [];
 	var badTransactions = [];
-	var account = randomUtil.account();
 
-	beforeEach(() => {
+	beforeEach(done => {
+		account = randomUtil.account();
 		transaction = randomUtil.transaction();
+		done();
 	});
 
-	describe('transaction processing', () => {
-		it('when sender has no funds should fail', done => {
-			var transaction = lisk.transaction.createTransaction(
+	describe('when sender has no funds for a transaction in batch', () => {
+		beforeEach(done => {
+			transaction = lisk.transaction.createTransaction(
 				'1L',
 				1,
 				account.password
 			);
-
 			postTransaction(transaction, (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.have.property('success').to.be.not.ok;
-				expect(res)
-					.to.have.property('message')
-					.to.equal(
-						`Account does not have enough LSK: ${account.address} balance: 0`
-					);
-				badTransactions.push(transaction);
+				error = err;
+				response = res;
 				done();
 			});
 		});
 
-		it('when sender has funds should be ok', done => {
+		// For peer-to-peer communiation, the peer does not need to send back
+		// an error message if one of the transactions in the batch fails.
+		// Either the peer acknowledges the receipt of the batch or their don't.
+		it('operation should succeed', () => {
+			badTransactions.push(transaction);
+			expect(error).to.be.null;
+			return expect(response).to.have.property('success').to.be.ok;
+		});
+	});
+
+	describe('when sender has funds for a transaction in batch', () => {
+		beforeEach(done => {
 			postTransaction(transaction, (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.have.property('success').to.be.ok;
-				expect(res)
-					.to.have.property('transactionId')
-					.to.equal(transaction.id);
-				goodTransactions.push(transaction);
+				error = err;
+				response = res;
 				done();
 			});
+		});
+
+		it('operation should succeed', () => {
+			goodTransactions.push(transaction);
+			expect(error).to.be.null;
+			return expect(response).to.have.property('success').to.be.ok;
 		});
 	});
 

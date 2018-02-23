@@ -28,7 +28,7 @@ describe('z_schema.express', () => {
 	var validErr = null;
 	var validValid = true;
 
-	before(() => {
+	before(done => {
 		validIssues = validErr
 			? `${validErr[0].message}: ${validErr[0].path}`
 			: null;
@@ -42,9 +42,10 @@ describe('z_schema.express', () => {
 		validReq = {};
 		validRes = null;
 		validNextCb = sinonSandbox.spy();
+		done();
 	});
 
-	beforeEach(() => {
+	beforeEach(done => {
 		zSchemaExpressResultFunction = z_schema_express(validZSchema);
 		zSchemaExpressResultFunction(validReq, validRes, validNextCb);
 		reqSanitizeFunctionResult = validReq.sanitize(
@@ -52,18 +53,19 @@ describe('z_schema.express', () => {
 			'schema',
 			validNextCb
 		);
+		done();
 	});
 
 	afterEach(() => {
-		validNextCb.reset();
+		return validNextCb.reset();
 	});
 
 	it('should add a sanitize function to the request-object', () => {
-		expect(validReq.sanitize).to.be.a('function');
+		return expect(validReq.sanitize).to.be.a('function');
 	});
 
 	it('should call callback', () => {
-		expect(validNextCb.calledOnce).to.be.true;
+		return expect(validNextCb.calledOnce).to.be.true;
 	});
 
 	describe('sanitize', () => {
@@ -75,11 +77,11 @@ describe('z_schema.express', () => {
 					isValid: false,
 					issues: validErr,
 				};
-				validZSchema.validate.returns(validObject);
+				return validZSchema.validate.returns(validObject);
 			});
 
 			it('should return invalid object', () => {
-				expect(reqSanitizeFunctionResult).to.eq(validObject);
+				return expect(reqSanitizeFunctionResult).to.eq(validObject);
 			});
 		});
 
@@ -91,11 +93,11 @@ describe('z_schema.express', () => {
 					isValid: validValid,
 					issues: validIssues,
 				};
-				validZSchema.validate.returns(validObject);
+				return validZSchema.validate.returns(validObject);
 			});
 
 			it('should return valid object', () => {
-				expect(reqSanitizeFunctionResult).to.eq(validObject);
+				return expect(reqSanitizeFunctionResult).to.eq(validObject);
 			});
 		});
 	});

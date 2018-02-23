@@ -77,31 +77,33 @@ describe('rounds', () => {
 		var scope;
 
 		describe('when calling with required properties', () => {
-			before(() => {
+			before(done => {
 				scope = _.cloneDeep(validScope);
 				round = new Round(_.cloneDeep(scope), db);
+				done();
 			});
 
 			it('should return Round instance', () => {
-				expect(round).to.be.instanceof(Round);
+				return expect(round).to.be.instanceof(Round);
 			});
 
 			it('should set scope', () => {
-				expect(round.scope).to.deep.equal(scope);
+				return expect(round.scope).to.deep.equal(scope);
 			});
 
 			it('should set t', () => {
-				expect(round.t).to.deep.equal(db);
+				return expect(round.t).to.deep.equal(db);
 			});
 		});
 
 		describe('when calling with missing properties', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				scope = _.cloneDeep(validScope);
+				done();
 			});
 
 			describe.skip('library', () => {
-				it('should throw', () => {
+				it('should throw', done => {
 					var property = 'library';
 					delete scope[property];
 					try {
@@ -111,11 +113,12 @@ describe('rounds', () => {
 							`Missing required scope property: ${property}`
 						);
 					}
+					done();
 				});
 			});
 
 			describe.skip('modules', () => {
-				it('should throw', () => {
+				it('should throw', done => {
 					var property = 'modules';
 					delete scope[property];
 					try {
@@ -125,11 +128,12 @@ describe('rounds', () => {
 							`Missing required scope property: ${property}`
 						);
 					}
+					done();
 				});
 			});
 
 			describe.skip('block', () => {
-				it('should throw', () => {
+				it('should throw', done => {
 					var property = 'block';
 					delete scope[property];
 					try {
@@ -139,11 +143,12 @@ describe('rounds', () => {
 							`Missing required scope property: ${property}`
 						);
 					}
+					done();
 				});
 			});
 
 			describe('round', () => {
-				it('should throw', () => {
+				it('should throw', done => {
 					var property = 'round';
 					delete scope[property];
 					try {
@@ -153,11 +158,12 @@ describe('rounds', () => {
 							`Missing required scope property: ${property}`
 						);
 					}
+					done();
 				});
 			});
 
 			describe('backwards', () => {
-				it('should throw', () => {
+				it('should throw', done => {
 					var property = 'backwards';
 					delete scope[property];
 					try {
@@ -167,17 +173,19 @@ describe('rounds', () => {
 							`Missing required scope property: ${property}`
 						);
 					}
+					done();
 				});
 			});
 
 			describe('when finish round', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					// Set finishRound, so now we need additional properties
 					scope.finishRound = true;
+					done();
 				});
 
 				describe('roundFees', () => {
-					it('should throw', () => {
+					it('should throw', done => {
 						var property = 'roundFees';
 						delete scope[property];
 						try {
@@ -187,11 +195,12 @@ describe('rounds', () => {
 								`Missing required scope property: ${property}`
 							);
 						}
+						done();
 					});
 				});
 
 				describe('roundRewards', () => {
-					it('should throw', () => {
+					it('should throw', done => {
 						var property = 'roundRewards';
 						delete scope[property];
 						try {
@@ -201,11 +210,12 @@ describe('rounds', () => {
 								`Missing required scope property: ${property}`
 							);
 						}
+						done();
 					});
 				});
 
 				describe('roundDelegates', () => {
-					it('should throw', () => {
+					it('should throw', done => {
 						var property = 'roundDelegates';
 						delete scope[property];
 						try {
@@ -215,11 +225,12 @@ describe('rounds', () => {
 								`Missing required scope property: ${property}`
 							);
 						}
+						done();
 					});
 				});
 
 				describe('roundOutsiders', () => {
-					it('should throw', () => {
+					it('should throw', done => {
 						var property = 'roundOutsiders';
 						delete scope[property];
 						try {
@@ -229,6 +240,7 @@ describe('rounds', () => {
 								`Missing required scope property: ${property}`
 							);
 						}
+						done();
 					});
 				});
 			});
@@ -247,7 +259,7 @@ describe('rounds', () => {
 				round = new Round(_.cloneDeep(scope), db);
 				args = {
 					blockId: scope.block.id,
-					producedblocks: 1,
+					producedBlocks: 1,
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
 				};
@@ -256,7 +268,7 @@ describe('rounds', () => {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with proper params', () => {
-				expect(
+				return expect(
 					round.scope.modules.accounts.mergeAccountAndGet
 				).to.be.calledWith(args);
 			});
@@ -271,7 +283,7 @@ describe('rounds', () => {
 				round = new Round(_.cloneDeep(scope), db);
 				args = {
 					blockId: scope.block.id,
-					producedblocks: -1,
+					producedBlocks: -1,
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
 				};
@@ -280,7 +292,7 @@ describe('rounds', () => {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with proper params', () => {
-				expect(
+				return expect(
 					round.scope.modules.accounts.mergeAccountAndGet
 				).to.be.calledWith(args);
 			});
@@ -293,19 +305,20 @@ describe('rounds', () => {
 		var res;
 
 		describe('when there are no outsiders', () => {
-			before(() => {
+			before(done => {
 				scope = _.cloneDeep(validScope);
 				res = round.updateMissedBlocks();
+				done();
 			});
 
 			it('should return t object', () => {
 				expect(res).to.not.be.instanceOf(Promise);
-				expect(res).to.deep.equal(db);
+				return expect(res).to.deep.equal(db);
 			});
 		});
 
 		describe('when there are outsiders', () => {
-			before(() => {
+			before(done => {
 				scope = _.cloneDeep(validScope);
 				scope.roundOutsiders = ['abc'];
 				round = new Round(_.cloneDeep(scope), db);
@@ -314,10 +327,11 @@ describe('rounds', () => {
 					.withArgs(scope.backwards, scope.roundOutsiders)
 					.resolves('success');
 				res = round.updateMissedBlocks();
+				done();
 			});
 
 			it('should return promise', () => {
-				expect(isPromise(res)).to.be.true;
+				return expect(isPromise(res)).to.be.true;
 			});
 
 			it('query should be called with proper args', () => {
@@ -335,15 +349,16 @@ describe('rounds', () => {
 		var res;
 		var scope;
 
-		before(() => {
+		before(done => {
 			scope = _.cloneDeep(validScope);
 			stub = sinonSandbox.stub(db.rounds, 'getVotes');
 			stub.withArgs(scope.round).resolves('success');
 			res = round.getVotes();
+			done();
 		});
 
 		it('should return promise', () => {
-			expect(isPromise(res)).to.be.true;
+			return expect(isPromise(res)).to.be.true;
 		});
 
 		it('query should be called with proper args', () => {
@@ -392,19 +407,19 @@ describe('rounds', () => {
 			});
 
 			it('should return promise', () => {
-				expect(isPromise(res)).to.be.true;
+				return expect(isPromise(res)).to.be.true;
 			});
 
 			it('getVotes query should be called with proper args', () => {
-				expect(getVotes_stub.calledWith(scope.round)).to.be.true;
+				return expect(getVotes_stub.calledWith(scope.round)).to.be.true;
 			});
 
 			it('updateVotes should be called twice', () => {
-				expect(updateVotes_stub.calledTwice).to.be.true;
+				return expect(updateVotes_stub.calledTwice).to.be.true;
 			});
 
 			it('updateVotes query should be called with proper args', () => {
-				expect(
+				return expect(
 					updateVotes_stub.alwaysCalledWith(delegate.address, delegate.amount)
 				).to.be.true;
 			});
@@ -447,15 +462,15 @@ describe('rounds', () => {
 			});
 
 			it('should return promise', () => {
-				expect(isPromise(res)).to.be.true;
+				return expect(isPromise(res)).to.be.true;
 			});
 
 			it('getVotes query should be called with proper args', () => {
-				expect(getVotes_stub.calledWith(scope.round)).to.be.true;
+				return expect(getVotes_stub.calledWith(scope.round)).to.be.true;
 			});
 
 			it('updateVotes should be not called', () => {
-				expect(updateVotes_stub.called).to.be.false;
+				return expect(updateVotes_stub.called).to.be.false;
 			});
 		});
 	});
@@ -466,31 +481,33 @@ describe('rounds', () => {
 		var scope;
 
 		describe('when going forward', () => {
-			before(() => {
+			before(done => {
 				scope = _.cloneDeep(validScope);
 				scope.backwards = false;
 				round = new Round(_.cloneDeep(scope), db);
+				done();
 			});
 
 			it('should return t object', () => {
 				var res = round.markBlockId();
 				expect(isPromise(res)).to.be.false;
-				expect(res).to.deep.equal(db);
+				return expect(res).to.deep.equal(db);
 			});
 		});
 
 		describe('when going backwards', () => {
-			before(() => {
+			before(done => {
 				scope = _.cloneDeep(validScope);
 				scope.backwards = true;
 				updateBlockId_stub = sinonSandbox.stub(db.rounds, 'updateBlockId');
 				updateBlockId_stub.withArgs(scope.block.id, '0').resolves('success');
 				round = new Round(_.cloneDeep(scope), db);
 				res = round.markBlockId();
+				done();
 			});
 
 			it('should return promise', () => {
-				expect(isPromise(res)).to.be.true;
+				return expect(isPromise(res)).to.be.true;
 			});
 
 			it('updateBlockId query should be called with proper args', () => {
@@ -506,14 +523,15 @@ describe('rounds', () => {
 		var stub;
 		var res;
 
-		before(() => {
+		before(done => {
 			stub = sinonSandbox.stub(db.rounds, 'flush');
 			stub.withArgs(validScope.round).resolves('success');
 			res = round.flushRound();
+			done();
 		});
 
 		it('should return promise', () => {
-			expect(isPromise(res)).to.be.true;
+			return expect(isPromise(res)).to.be.true;
 		});
 
 		it('query should be called with proper args', () => {
@@ -528,14 +546,15 @@ describe('rounds', () => {
 		var stub;
 		var res;
 
-		before(() => {
+		before(done => {
 			stub = sinonSandbox.stub(db.rounds, 'truncateBlocks');
 			stub.withArgs(validScope.block.height).resolves('success');
 			res = round.truncateBlocks();
+			done();
 		});
 
 		it('should return promise', () => {
-			expect(isPromise(res)).to.be.true;
+			return expect(isPromise(res)).to.be.true;
 		});
 
 		it('query should be called with proper args', () => {
@@ -549,16 +568,17 @@ describe('rounds', () => {
 	describe('restoreRoundSnapshot', () => {
 		var res;
 
-		before(() => {
+		before(done => {
 			sinonSandbox
 				.stub(db.rounds, 'restoreRoundSnapshot')
 				.withArgs()
 				.resolves('success');
 			res = round.restoreRoundSnapshot();
+			done();
 		});
 
 		it('should return promise', () => {
-			expect(isPromise(res)).to.be.true;
+			return expect(isPromise(res)).to.be.true;
 		});
 
 		it('query should be called with no args', () => {
@@ -573,14 +593,15 @@ describe('rounds', () => {
 		var stub;
 		var res;
 
-		before(() => {
+		before(done => {
 			stub = sinonSandbox.stub(db.rounds, 'restoreVotesSnapshot');
 			stub.withArgs().resolves('success');
 			res = round.restoreVotesSnapshot();
+			done();
 		});
 
 		it('should return promise', () => {
-			expect(isPromise(res)).to.be.true;
+			return expect(isPromise(res)).to.be.true;
 		});
 
 		it('query should be called with no args', () => {
@@ -595,14 +616,15 @@ describe('rounds', () => {
 		var stub;
 		var res;
 
-		before(() => {
+		before(done => {
 			stub = sinonSandbox.stub(db.rounds, 'deleteRoundRewards');
 			stub.withArgs(validScope.round).resolves('success');
 			res = round.deleteRoundRewards();
+			done();
 		});
 
 		it('should return promise', () => {
-			expect(isPromise(res)).to.be.true;
+			return expect(isPromise(res)).to.be.true;
 		});
 
 		it('query should be called with no args', () => {
@@ -656,44 +678,46 @@ describe('rounds', () => {
 
 		describe.skip('with no delegates', () => {
 			describe('forward', () => {
-				before(() => {
+				before(done => {
 					scope = _.cloneDeep(validScope);
 					scope.backwards = false;
 					scope.roundDelegates = [];
 					round = new Round(_.cloneDeep(scope), db);
 					res = round.applyRound();
+					done();
 				});
 
 				it('should return t object', () => {
 					var res = round.markBlockId();
 					expect(isPromise(res)).to.be.false;
-					expect(res).to.deep.equal(db);
+					return expect(res).to.deep.equal(db);
 				});
 
 				it('should not call mergeAccountAndGet', () => {
-					expect(round.scope.modules.accounts.mergeAccountAndGet.called).to.be
-						.false;
+					return expect(round.scope.modules.accounts.mergeAccountAndGet.called)
+						.to.be.false;
 				});
 			});
 
 			describe('backwards', () => {
-				before(() => {
+				before(done => {
 					scope = _.cloneDeep(validScope);
 					scope.backwards = true;
 					scope.roundDelegates = [];
 					round = new Round(_.cloneDeep(scope), db);
 					res = round.applyRound();
+					done();
 				});
 
 				it('should not call mergeAccountAndGet', () => {
-					expect(round.scope.modules.accounts.mergeAccountAndGet.called).to.be
-						.false;
+					return expect(round.scope.modules.accounts.mergeAccountAndGet.called)
+						.to.be.false;
 				});
 
 				it('should return t object', () => {
 					var res = round.markBlockId();
 					expect(isPromise(res)).to.be.false;
-					expect(res).to.deep.equal(db);
+					return expect(res).to.deep.equal(db);
 				});
 			});
 		});
@@ -703,9 +727,10 @@ describe('rounds', () => {
 				var forwardResults = [];
 				var backwardsResults = [];
 
-				before(() => {
+				before(done => {
 					validScope.roundDelegates = [genesisBlock.generatorPublicKey];
 					validScope.roundFees = slots.delegates; // 1 LSK fee per delegate, no remaining fees
+					done();
 				});
 
 				describe('forward', () => {
@@ -761,18 +786,18 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call mergeAccountAndGet another time (for apply remaining fees)', () => {
-						expect(
+						return expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
 
 					it('should call insertRoundRewards with proper args', () => {
-						expect(insertRoundRewards_stub).to.have.been.calledWith(
+						return expect(insertRoundRewards_stub).to.have.been.calledWith(
 							validScope.block.timestamp,
 							forwardResults[0].fees.toString(),
 							forwardResults[0].rewards.toString(),
@@ -835,48 +860,49 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call mergeAccountAndGet another time (for apply remaining fees)', () => {
-						expect(
+						return expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
 
 					it('should not call insertRoundRewards', () => {
-						expect(insertRoundRewards_stub).to.have.not.been.called;
+						return expect(insertRoundRewards_stub).to.have.not.been.called;
 					});
 				});
 
 				describe('consistency checks for each delegate', () => {
 					var result;
 
-					before(() => {
+					before(done => {
 						result = sumChanges(forwardResults, backwardsResults);
+						done();
 					});
 
 					it('balance should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.balance).to.equal(0);
 						});
 					});
 
 					it('u_balance should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.u_balance).to.equal(0);
 						});
 					});
 
 					it('fees should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.fees).to.equal(0);
 						});
 					});
 
 					it('rewards should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.rewards).to.equal(0);
 						});
 					});
@@ -887,9 +913,10 @@ describe('rounds', () => {
 				var forwardResults = [];
 				var backwardsResults = [];
 
-				before(() => {
+				before(done => {
 					validScope.roundDelegates = [genesisBlock.generatorPublicKey];
 					validScope.roundFees = 100; // 0 LSK fee per delegate, 100 remaining fees
+					done();
 				});
 
 				describe('forward', () => {
@@ -945,8 +972,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
@@ -973,18 +1000,18 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call mergeAccountAndGet another time (completed)', () => {
-						expect(
+						return expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
 
 					it('should call insertRoundRewards with proper args', () => {
-						expect(insertRoundRewards_stub).to.have.been.calledWith(
+						return expect(insertRoundRewards_stub).to.have.been.calledWith(
 							validScope.block.timestamp,
 							(forwardResults[0].fees + forwardResults[1].fees).toString(),
 							forwardResults[0].rewards.toString(),
@@ -1047,8 +1074,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
@@ -1075,48 +1102,49 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call mergeAccountAndGet another time (completed)', () => {
-						expect(
+						return expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
 
 					it('should not call insertRoundRewards', () => {
-						expect(insertRoundRewards_stub).to.have.not.been.called;
+						return expect(insertRoundRewards_stub).to.have.not.been.called;
 					});
 				});
 
 				describe('consistency checks for each delegate', () => {
 					var result;
 
-					before(() => {
+					before(done => {
 						result = sumChanges(forwardResults, backwardsResults);
+						done();
 					});
 
 					it('balance should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.balance).to.equal(0);
 						});
 					});
 
 					it('u_balance should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.u_balance).to.equal(0);
 						});
 					});
 
 					it('fees should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.fees).to.equal(0);
 						});
 					});
 
 					it('rewards should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.rewards).to.equal(0);
 						});
 					});
@@ -1129,7 +1157,7 @@ describe('rounds', () => {
 				var forwardResults = [];
 				var backwardsResults = [];
 
-				before(() => {
+				before(done => {
 					validScope.roundDelegates = [
 						'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 						'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
@@ -1137,6 +1165,7 @@ describe('rounds', () => {
 					];
 					validScope.roundRewards = [1, 2, 3];
 					validScope.roundFees = slots.delegates; // 1 LSK fee per delegate, no remaining fees
+					done();
 				});
 
 				describe('forward', () => {
@@ -1192,8 +1221,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
@@ -1225,8 +1254,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
@@ -1258,12 +1287,12 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call mergeAccountAndGet another time (for applying remaining fees)', () => {
-						expect(
+						return expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
@@ -1283,7 +1312,7 @@ describe('rounds', () => {
 							validScope.round,
 							forwardResults[1].publicKey
 						);
-						expect(insertRoundRewards_stub).to.have.been.calledWith(
+						return expect(insertRoundRewards_stub).to.have.been.calledWith(
 							validScope.block.timestamp,
 							forwardResults[2].fees.toString(),
 							forwardResults[2].rewards.toString(),
@@ -1346,8 +1375,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
@@ -1379,8 +1408,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
@@ -1412,48 +1441,49 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call mergeAccountAndGet another time (for applying remaining fees)', () => {
-						expect(
+						return expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
 
 					it('should not call insertRoundRewards', () => {
-						expect(insertRoundRewards_stub).to.have.not.been.called;
+						return expect(insertRoundRewards_stub).to.have.not.been.called;
 					});
 				});
 
 				describe('consistency checks for each delegate', () => {
 					var result;
 
-					before(() => {
+					before(done => {
 						result = sumChanges(forwardResults, backwardsResults);
+						done();
 					});
 
 					it('balance should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.balance).to.equal(0);
 						});
 					});
 
 					it('u_balance should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.u_balance).to.equal(0);
 						});
 					});
 
 					it('fees should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.fees).to.equal(0);
 						});
 					});
 
 					it('rewards should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.rewards).to.equal(0);
 						});
 					});
@@ -1464,7 +1494,7 @@ describe('rounds', () => {
 				var forwardResults = [];
 				var backwardsResults = [];
 
-				before(() => {
+				before(done => {
 					validScope.roundDelegates = [
 						'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 						'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
@@ -1472,6 +1502,7 @@ describe('rounds', () => {
 					];
 					validScope.roundRewards = [1, 2, 3];
 					validScope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
+					done();
 				});
 
 				describe('forward', () => {
@@ -1527,8 +1558,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
@@ -1560,8 +1591,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
@@ -1593,8 +1624,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
@@ -1619,12 +1650,12 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call mergeAccountAndGet another time (completed)', () => {
-						expect(
+						return expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
@@ -1644,7 +1675,7 @@ describe('rounds', () => {
 							validScope.round,
 							forwardResults[1].publicKey
 						);
-						expect(insertRoundRewards_stub).to.have.been.calledWith(
+						return expect(insertRoundRewards_stub).to.have.been.calledWith(
 							validScope.block.timestamp,
 							(forwardResults[2].fees + forwardResults[3].fees).toString(),
 							forwardResults[2].rewards.toString(),
@@ -1707,8 +1738,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
@@ -1740,8 +1771,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
@@ -1773,8 +1804,8 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
@@ -1799,48 +1830,49 @@ describe('rounds', () => {
 						var result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
-						expect(result).to.deep.equal(args);
 						called++;
+						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call mergeAccountAndGet another time (completed)', () => {
-						expect(
+						return expect(
 							round.scope.modules.accounts.mergeAccountAndGet.callCount
 						).to.equal(called);
 					});
 
 					it('should not call insertRoundRewards', () => {
-						expect(insertRoundRewards_stub).to.have.not.been.called;
+						return expect(insertRoundRewards_stub).to.have.not.been.called;
 					});
 				});
 
 				describe('consistency checks for each delegate', () => {
 					var result;
 
-					before(() => {
+					before(done => {
 						result = sumChanges(forwardResults, backwardsResults);
+						done();
 					});
 
 					it('balance should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.balance).to.equal(0);
 						});
 					});
 
 					it('u_balance should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.u_balance).to.equal(0);
 						});
 					});
 
 					it('fees should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.fees).to.equal(0);
 						});
 					});
 
 					it('rewards should sum to 0', () => {
-						_.each(result, res => {
+						return _.each(result, res => {
 							expect(res.rewards).to.equal(0);
 						});
 					});
@@ -1895,29 +1927,29 @@ describe('rounds', () => {
 		});
 
 		it('should return promise', () => {
-			expect(isPromise(res)).to.be.true;
+			return expect(isPromise(res)).to.be.true;
 		});
 
 		it('query getVotes should be called twice', () => {
 			// 2x updateVotes which calls 1x getVotes
-			expect(getVotes_stub.callCount).to.equal(2);
+			return expect(getVotes_stub.callCount).to.equal(2);
 		});
 
 		it('query updateVotes should be called twice', () => {
-			expect(updateVotes_stub.callCount).to.equal(2);
+			return expect(updateVotes_stub.callCount).to.equal(2);
 		});
 
 		it('query updateMissedBlocks should be called once', () => {
-			expect(roundOutsiders_stub.callCount).to.equal(1);
+			return expect(roundOutsiders_stub.callCount).to.equal(1);
 		});
 
 		it('query flushRound should be called twice', () => {
-			expect(flush_stub.callCount).to.equal(2);
+			return expect(flush_stub.callCount).to.equal(2);
 		});
 
 		it('modules.accounts.mergeAccountAndGet should be called 4 times', () => {
 			// 3x delegates + 1x remaining fees
-			expect(
+			return expect(
 				round.scope.modules.accounts.mergeAccountAndGet.callCount
 			).to.equal(4);
 		});
@@ -1981,43 +2013,43 @@ describe('rounds', () => {
 		});
 
 		it('should return promise', () => {
-			expect(isPromise(res)).to.be.true;
+			return expect(isPromise(res)).to.be.true;
 		});
 
 		it('query getVotes should be called twice', () => {
 			// 2x updateVotes which calls 1x getVotes
-			expect(getVotes_stub.callCount).to.equal(2);
+			return expect(getVotes_stub.callCount).to.equal(2);
 		});
 
 		it('query updateVotes should be called twice', () => {
-			expect(updateVotes_stub.callCount).to.equal(2);
+			return expect(updateVotes_stub.callCount).to.equal(2);
 		});
 
 		it('query updateMissedBlocks should be called once', () => {
-			expect(roundOutsiders_stub.callCount).to.equal(1);
+			return expect(roundOutsiders_stub.callCount).to.equal(1);
 		});
 
 		it('query flushRound should be called twice', () => {
-			expect(flush_stub.callCount).to.equal(2);
+			return expect(flush_stub.callCount).to.equal(2);
 		});
 
 		it('modules.accounts.mergeAccountAndGet should be called 4 times', () => {
 			// 3x delegates + 1x remaining fees
-			expect(
+			return expect(
 				round.scope.modules.accounts.mergeAccountAndGet.callCount
 			).to.equal(4);
 		});
 
 		it('query restoreRoundSnapshot should be called once', () => {
-			expect(restoreRoundSnapshot_stub.callCount).to.equal(1);
+			return expect(restoreRoundSnapshot_stub.callCount).to.equal(1);
 		});
 
 		it('query restoreVotesSnapshot should be called once', () => {
-			expect(restoreVotesSnapshot_stub.callCount).to.equal(1);
+			return expect(restoreVotesSnapshot_stub.callCount).to.equal(1);
 		});
 
 		it('query deleteRoundRewards should be called once', () => {
-			expect(deleteRoundRewards_stub.callCount).to.equal(1);
+			return expect(deleteRoundRewards_stub.callCount).to.equal(1);
 		});
 	});
 });

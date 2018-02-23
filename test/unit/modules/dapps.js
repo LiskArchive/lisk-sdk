@@ -48,9 +48,7 @@ describe('dapps', () => {
 					it('should call sql.list with category filter in where');
 
 					it('should call db.query with category param');
-				});
 
-				describe('when filter.category is a valid dapp category', () => {
 					it('should return the error message');
 
 					it('should not call db.query');
