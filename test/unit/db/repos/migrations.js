@@ -262,7 +262,7 @@ describe('db', () => {
 				return expect(pending).to.be.empty;
 			});
 
-			it('should resolve the list in correct format', function*() {
+			it('should resolve with the list in correct format', function*() {
 				const pending = yield db.migrations.readPending(fileIds[0]);
 
 				expect(pending).to.be.an('array');
@@ -311,8 +311,8 @@ describe('db', () => {
 
 				// Since sinon can only call a callback or resolve to promise
 				// but pg-promise db.tx is mix, it accepts a callback and returns a promise
-				// and there is no way in sinon to resolve to to value return of a callacbk
-				// so have to hack it by delaying the execution of resolve untill callback perform
+				// and there is no way in sinon to resolve to to value return of a callback
+				// so have to hack it by delaying the execution of resolve until callback is called
 				sinonSandbox
 					.stub(db, 'tx')
 					.callsArgWith(1, t1)
