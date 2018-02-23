@@ -303,7 +303,7 @@ describe('block', () => {
 	var transactionStub;
 	var transactions = [];
 
-	before(() => {
+	before(done => {
 		transactionStub = {
 			getBytes: sinonSandbox.stub(),
 			objectNormalize: sinonSandbox.stub(),
@@ -314,12 +314,14 @@ describe('block', () => {
 			modulesLoader.scope.schema,
 			transactionStub
 		);
+		done();
 	});
 
 	describe('with valid block and data', () => {
-		beforeEach(() => {
+		beforeEach(done => {
 			data = _.cloneDeep(validDataForBlock);
 			transactions = _.values(transactionsByTypes);
+			done();
 		});
 
 		describe('create', () => {
@@ -333,13 +335,13 @@ describe('block', () => {
 				transactionStub.getBytes.returns(
 					Buffer.from('dummy transaction bytes')
 				);
-				transactionStub.objectNormalize.returnsArg(0);
+				return transactionStub.objectNormalize.returnsArg(0);
 			});
 
 			after(() => {
 				blockNormalizeStub.reset();
 				transactionStub.getBytes.reset();
-				transactionStub.objectNormalize.reset();
+				return transactionStub.objectNormalize.reset();
 			});
 
 			describe('when one of all transaction types are present', () => {
@@ -347,19 +349,20 @@ describe('block', () => {
 				var transactionsOrder;
 				var correctOrder = [0, 1, 2, 3, 5, 6, 7, 4];
 
-				beforeEach(() => {
+				beforeEach(done => {
 					data.transactions = transactions;
 					generatedBlock = block.create(data);
 					transactionsOrder = generatedBlock.transactions.map(trs => {
 						return trs.type;
 					});
+					done();
 				});
 
 				it('should sort transactions in the correct order', () => {
 					expect(generatedBlock.transactions.length).to.equal(
 						data.transactions.length
 					);
-					expect(transactionsOrder).to.eql(correctOrder);
+					return expect(transactionsOrder).to.eql(correctOrder);
 				});
 			});
 
@@ -385,7 +388,7 @@ describe('block', () => {
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(() => {
+					beforeEach(done => {
 						multipleMultisigTx = Array(...Array(5)).map(() => {
 							return transactionsByTypes[transactionTypes.MULTI];
 						});
@@ -394,6 +397,7 @@ describe('block', () => {
 						transactionsOrder = generatedBlock.transactions.map(trs => {
 							return trs.type;
 						});
+						done();
 					});
 
 					it('should sort transactions in the correct order', () => {
@@ -403,7 +407,7 @@ describe('block', () => {
 						expect(
 							expectedOrderOfTransactions(generatedBlock.transactions)
 						).to.equal(true);
-						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
+						return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 					});
 				});
 
@@ -412,7 +416,7 @@ describe('block', () => {
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(() => {
+					beforeEach(done => {
 						multipleMultisigTx = Array(...Array(5)).map(() => {
 							return transactionsByTypes[transactionTypes.MULTI];
 						});
@@ -423,6 +427,7 @@ describe('block', () => {
 						transactionsOrder = generatedBlock.transactions.map(trs => {
 							return trs.type;
 						});
+						done();
 					});
 
 					it('should sort transactions in the correct order', () => {
@@ -432,7 +437,7 @@ describe('block', () => {
 						expect(
 							expectedOrderOfTransactions(generatedBlock.transactions)
 						).to.equal(true);
-						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
+						return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 					});
 				});
 
@@ -441,7 +446,7 @@ describe('block', () => {
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(() => {
+					beforeEach(done => {
 						multipleMultisigTx = Array(...Array(5)).map(() => {
 							return transactionsByTypes[transactionTypes.MULTI];
 						});
@@ -450,6 +455,7 @@ describe('block', () => {
 						transactionsOrder = generatedBlock.transactions.map(trs => {
 							return trs.type;
 						});
+						done();
 					});
 
 					it('should sort transactions in the correct order', () => {
@@ -459,7 +465,7 @@ describe('block', () => {
 						expect(
 							expectedOrderOfTransactions(generatedBlock.transactions)
 						).to.equal(true);
-						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
+						return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 					});
 				});
 
@@ -468,7 +474,7 @@ describe('block', () => {
 					var generatedBlock;
 					var transactionsOrder;
 
-					beforeEach(() => {
+					beforeEach(done => {
 						multipleMultisigTx = Array(...Array(5)).map(() => {
 							return transactionsByTypes[transactionTypes.MULTI];
 						});
@@ -479,6 +485,7 @@ describe('block', () => {
 						transactionsOrder = generatedBlock.transactions.map(trs => {
 							return trs.type;
 						});
+						done();
 					});
 
 					it('should sort transactions in the correct order', () => {
@@ -488,7 +495,7 @@ describe('block', () => {
 						expect(
 							expectedOrderOfTransactions(generatedBlock.transactions)
 						).to.equal(true);
-						expect(transactionsOrder).to.eql(correctOrderOfTransactions);
+						return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 					});
 				});
 			});

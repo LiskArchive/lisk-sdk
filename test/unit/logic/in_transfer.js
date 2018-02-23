@@ -105,7 +105,7 @@ describe('inTransfer', () => {
 	var sender;
 	var dummyBlock;
 
-	beforeEach(() => {
+	beforeEach(done => {
 		dbStub = {
 			dapps: {
 				countByTransactionId: sinonSandbox.stub().resolves(),
@@ -143,25 +143,27 @@ describe('inTransfer', () => {
 			id: '9314232245035524467',
 			height: 1,
 		};
+		done();
 	});
 
 	describe('constructor', () => {
 		describe('library', () => {
 			var library;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				new InTransfer(dbStub, modulesLoader.scope.schema);
 				library = InTransfer.__get__('library');
+				done();
 			});
 
 			it('should assign db', () => {
-				expect(library)
+				return expect(library)
 					.to.have.property('db')
 					.eql(dbStub);
 			});
 
 			it('should assign schema', () => {
-				expect(library)
+				return expect(library)
 					.to.have.property('schema')
 					.eql(modulesLoader.scope.schema);
 			});
@@ -172,40 +174,41 @@ describe('inTransfer', () => {
 		var modules;
 		var shared;
 
-		beforeEach(() => {
+		beforeEach(done => {
 			inTransfer.bind(accountsStub, blocksStub, sharedStub);
 			modules = InTransfer.__get__('modules');
 			shared = InTransfer.__get__('shared');
+			done();
 		});
 
 		describe('modules', () => {
 			it('should assign accounts', () => {
-				expect(modules)
+				return expect(modules)
 					.to.have.property('accounts')
 					.eql(accountsStub);
 			});
 
 			it('should assign blocks', () => {
-				expect(modules)
+				return expect(modules)
 					.to.have.property('blocks')
 					.eql(blocksStub);
 			});
 		});
 
 		it('should assign shared', () => {
-			expect(shared).to.eql(sharedStub);
+			return expect(shared).to.eql(sharedStub);
 		});
 	});
 
 	describe('calculateFee', () => {
 		it('should return constants.fees.send', () => {
-			expect(inTransfer.calculateFee(trs)).to.equal(constants.fees.send);
+			return expect(inTransfer.calculateFee(trs)).to.equal(constants.fees.send);
 		});
 	});
 
 	describe('verify', () => {
 		beforeEach(() => {
-			inTransfer.bind(accountsStub, blocksStub, sharedStub);
+			return inTransfer.bind(accountsStub, blocksStub, sharedStub);
 		});
 
 		describe('when trs.recipientId exists', () => {
@@ -287,10 +290,11 @@ describe('inTransfer', () => {
 		});
 
 		describe('when library.db.one fails', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				dbStub.dapps.countByTransactionId = sinonSandbox
 					.stub()
 					.rejects('Rejection error');
+				done();
 			});
 
 			it('should call callback with error', done => {
@@ -303,8 +307,9 @@ describe('inTransfer', () => {
 
 		describe('when library.db.one succeeds', () => {
 			describe('when dapp does not exist', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves(0);
+					done();
 				});
 
 				it('should call callback with error = "Transaction type 6 is frozen"', done => {
@@ -316,8 +321,9 @@ describe('inTransfer', () => {
 			});
 
 			describe('when dapp exists', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					dbStub.dapps.countByTransactionId = sinonSandbox.stub().resolves(1);
+					done();
 				});
 
 				it('should call callback with error = "Transaction type 6 is frozen"', done => {
@@ -355,28 +361,29 @@ describe('inTransfer', () => {
 
 	describe('getBytes', () => {
 		describe('when trs.asset.inTransfer.dappId = undefined', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				trs.asset.inTransfer.dappId = undefined;
+				done();
 			});
 
 			it('should throw', () => {
-				expect(inTransfer.getBytes.bind(null, trs)).to.throw;
+				return expect(inTransfer.getBytes.bind(null, trs)).to.throw;
 			});
 		});
 
 		describe('when trs.asset.inTransfer.dappId is a valid dapp id', () => {
 			it('should not throw', () => {
-				expect(inTransfer.getBytes.bind(null, trs)).not.to.throw;
+				return expect(inTransfer.getBytes.bind(null, trs)).not.to.throw;
 			});
 
 			it('should get bytes of valid transaction', () => {
-				expect(inTransfer.getBytes(trs).toString('utf8')).to.equal(
+				return expect(inTransfer.getBytes(trs).toString('utf8')).to.equal(
 					validTransaction.asset.inTransfer.dappId
 				);
 			});
 
 			it('should return result as a Buffer type', () => {
-				expect(inTransfer.getBytes(trs)).to.be.instanceOf(Buffer);
+				return expect(inTransfer.getBytes(trs)).to.be.instanceOf(Buffer);
 			});
 		});
 	});
@@ -387,11 +394,11 @@ describe('inTransfer', () => {
 		});
 
 		it('should call shared.getGenesis', () => {
-			expect(sharedStub.getGenesis.calledOnce).to.be.true;
+			return expect(sharedStub.getGenesis.calledOnce).to.be.true;
 		});
 
 		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}', () => {
-			expect(
+			return expect(
 				sharedStub.getGenesis.calledWith({
 					dappid: trs.asset.inTransfer.dappId,
 				})
@@ -399,30 +406,32 @@ describe('inTransfer', () => {
 		});
 
 		describe('when shared.getGenesis fails', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				sharedStub.getGenesis = sinonSandbox
 					.stub()
 					.callsArgWith(1, 'getGenesis error');
+				done();
 			});
 
 			it('should call callback with error', () => {
-				inTransfer.apply(trs, dummyBlock, sender, err => {
+				return inTransfer.apply(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				});
 			});
 		});
 
 		describe('when shared.getGenesis succeeds', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				sharedStub.getGenesis = sinonSandbox.stub().callsArg(1);
+				done();
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', () => {
-				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true;
+				return expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId', () => {
-				expect(
+				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ address: validGetGensisResult.authorId })
 					)
@@ -430,7 +439,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with balance = trs.amount', () => {
-				expect(
+				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ balance: trs.amount })
 					)
@@ -438,7 +447,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with u_balance = trs.amount', () => {
-				expect(
+				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: trs.amount })
 					)
@@ -446,7 +455,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', () => {
-				expect(
+				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ blockId: dummyBlock.id })
 					)
@@ -454,7 +463,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', () => {
-				expect(
+				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ round: slots.calcRound(dummyBlock.height) })
 					)
@@ -463,14 +472,15 @@ describe('inTransfer', () => {
 		});
 
 		describe('when modules.accounts.mergeAccountAndGet fails', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				accountsStub.mergeAccountAndGet = sinonSandbox
 					.stub()
 					.callsArgWith(1, 'mergeAccountAndGet error');
+				done();
 			});
 
 			it('should call callback with error', () => {
-				inTransfer.apply(trs, dummyBlock, sender, err => {
+				return inTransfer.apply(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				});
 			});
@@ -478,13 +488,13 @@ describe('inTransfer', () => {
 
 		describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 			it('should call callback with error = undefined', () => {
-				inTransfer.apply(trs, dummyBlock, sender, err => {
+				return inTransfer.apply(trs, dummyBlock, sender, err => {
 					expect(err).to.be.undefined;
 				});
 			});
 
 			it('should call callback with result = undefined', () => {
-				inTransfer.apply(trs, dummyBlock, sender, (err, res) => {
+				return inTransfer.apply(trs, dummyBlock, sender, (err, res) => {
 					expect(res).to.be.undefined;
 				});
 			});
@@ -497,11 +507,11 @@ describe('inTransfer', () => {
 		});
 
 		it('should call shared.getGenesis', () => {
-			expect(sharedStub.getGenesis.calledOnce).to.be.true;
+			return expect(sharedStub.getGenesis.calledOnce).to.be.true;
 		});
 
 		it('should call shared.getGenesis with {dappid: trs.asset.inTransfer.dappId}', () => {
-			expect(
+			return expect(
 				sharedStub.getGenesis.calledWith({
 					dappid: trs.asset.inTransfer.dappId,
 				})
@@ -509,30 +519,32 @@ describe('inTransfer', () => {
 		});
 
 		describe('when shared.getGenesis fails', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				sharedStub.getGenesis = sinonSandbox
 					.stub()
 					.callsArgWith(1, 'getGenesis error');
+				done();
 			});
 
 			it('should call callback with error', () => {
-				inTransfer.undo(trs, dummyBlock, sender, err => {
+				return inTransfer.undo(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				});
 			});
 		});
 
 		describe('when shared.getGenesis succeeds', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				sharedStub.getGenesis = sinonSandbox.stub().callsArg(1);
+				done();
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet', () => {
-				expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true;
+				return expect(accountsStub.mergeAccountAndGet.calledOnce).to.be.true;
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with address = dapp.authorId', () => {
-				expect(
+				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ address: validGetGensisResult.authorId })
 					)
@@ -540,7 +552,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with balance = -trs.amount', () => {
-				expect(
+				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ balance: -trs.amount })
 					)
@@ -548,7 +560,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with u_balance = -trs.amount', () => {
-				expect(
+				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: -trs.amount })
 					)
@@ -556,7 +568,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', () => {
-				expect(
+				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ blockId: dummyBlock.id })
 					)
@@ -564,7 +576,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', () => {
-				expect(
+				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ round: slots.calcRound(dummyBlock.height) })
 					)
@@ -573,14 +585,15 @@ describe('inTransfer', () => {
 		});
 
 		describe('when modules.accounts.mergeAccountAndGet fails', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				accountsStub.mergeAccountAndGet = sinonSandbox
 					.stub()
 					.callsArgWith(1, 'mergeAccountAndGet error');
+				done();
 			});
 
 			it('should call callback with error', () => {
-				inTransfer.undo(trs, dummyBlock, sender, err => {
+				return inTransfer.undo(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				});
 			});
@@ -588,13 +601,13 @@ describe('inTransfer', () => {
 
 		describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 			it('should call callback with error = undefined', () => {
-				inTransfer.undo(trs, dummyBlock, sender, err => {
+				return inTransfer.undo(trs, dummyBlock, sender, err => {
 					expect(err).to.be.undefined;
 				});
 			});
 
 			it('should call callback with result = undefined', () => {
-				inTransfer.undo(trs, dummyBlock, sender, (err, res) => {
+				return inTransfer.undo(trs, dummyBlock, sender, (err, res) => {
 					expect(res).to.be.undefined;
 				});
 			});
@@ -637,28 +650,29 @@ describe('inTransfer', () => {
 		var library;
 		var schemaSpy;
 
-		beforeEach(() => {
+		beforeEach(done => {
 			library = InTransfer.__get__('library');
 			schemaSpy = sinonSandbox.spy(library.schema, 'validate');
+			done();
 		});
 
 		afterEach(() => {
-			schemaSpy.restore();
+			return schemaSpy.restore();
 		});
 
 		it('should call library.schema.validate', () => {
 			inTransfer.objectNormalize(trs);
-			expect(schemaSpy.calledOnce).to.be.true;
+			return expect(schemaSpy.calledOnce).to.be.true;
 		});
 
 		it('should call library.schema.validate with trs.asset.inTransfer', () => {
 			inTransfer.objectNormalize(trs);
-			expect(schemaSpy.calledWith(trs.asset.inTransfer)).to.be.true;
+			return expect(schemaSpy.calledWith(trs.asset.inTransfer)).to.be.true;
 		});
 
 		it('should call library.schema.validate InTransfer.prototype.schema', () => {
 			inTransfer.objectNormalize(trs);
-			expect(schemaSpy.args[0][1]).to.eql(InTransfer.prototype.schema);
+			return expect(schemaSpy.args[0][1]).to.eql(InTransfer.prototype.schema);
 		});
 
 		describe('when transaction.asset.inTransfer is invalid object argument', () => {
@@ -666,7 +680,7 @@ describe('inTransfer', () => {
 				it(`should throw for transaction.asset.inTransfer = ${
 					nonObject.description
 				}`, () => {
-					expect(
+					return expect(
 						inTransfer.objectNormalize.bind(null, nonObject.input)
 					).to.throw();
 				});
@@ -679,14 +693,14 @@ describe('inTransfer', () => {
 					nonString.description
 				}`, () => {
 					trs.asset.inTransfer.dappId = nonString.input;
-					expect(inTransfer.objectNormalize.bind(null, trs)).to.throw();
+					return expect(inTransfer.objectNormalize.bind(null, trs)).to.throw();
 				});
 			});
 		});
 
 		describe('when when transaction.asset.inTransfer is valid', () => {
 			it('should return transaction', () => {
-				expect(inTransfer.objectNormalize(trs)).to.eql(trs);
+				return expect(inTransfer.objectNormalize(trs)).to.eql(trs);
 			});
 		});
 	});
@@ -694,21 +708,21 @@ describe('inTransfer', () => {
 	describe('dbRead', () => {
 		describe('when raw.in_dappId does not exist', () => {
 			beforeEach(() => {
-				delete rawTrs.in_dappId;
+				return delete rawTrs.in_dappId;
 			});
 
 			it('should return null', () => {
-				expect(inTransfer.dbRead(rawTrs)).to.eql(null);
+				return expect(inTransfer.dbRead(rawTrs)).to.eql(null);
 			});
 		});
 
 		describe('when raw.in_dappId exists', () => {
 			it('should return result containing inTransfer', () => {
-				expect(inTransfer.dbRead(rawTrs)).to.have.property('inTransfer');
+				return expect(inTransfer.dbRead(rawTrs)).to.have.property('inTransfer');
 			});
 
 			it('should return result containing inTransfer.dappId = raw.dapp_id', () => {
-				expect(inTransfer.dbRead(rawTrs))
+				return expect(inTransfer.dbRead(rawTrs))
 					.to.have.nested.property('inTransfer.dappId')
 					.equal(rawTrs.in_dappId);
 			});
@@ -717,13 +731,13 @@ describe('inTransfer', () => {
 
 	describe('afterSave', () => {
 		it('should call callback with error = undefined', () => {
-			inTransfer.afterSave(trs, err => {
+			return inTransfer.afterSave(trs, err => {
 				expect(err).to.be.undefined;
 			});
 		});
 
 		it('should call callback with result = undefined', () => {
-			inTransfer.afterSave(trs, (err, res) => {
+			return inTransfer.afterSave(trs, (err, res) => {
 				expect(res).to.be.undefined;
 			});
 		});
@@ -731,13 +745,13 @@ describe('inTransfer', () => {
 
 	describe('ready', () => {
 		it('should return true for single signature trs', () => {
-			expect(inTransfer.ready(trs, sender)).to.equal(true);
+			return expect(inTransfer.ready(trs, sender)).to.equal(true);
 		});
 
 		it('should return false for multi signature transaction with less signatures', () => {
 			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-			expect(inTransfer.ready(trs, sender)).to.equal(false);
+			return expect(inTransfer.ready(trs, sender)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', () => {
@@ -749,7 +763,7 @@ describe('inTransfer', () => {
 			trs.signature = crypto.randomBytes(64).toString('hex');
 			trs.signatures = [crypto.randomBytes(64).toString('hex')];
 
-			expect(inTransfer.ready(trs, sender)).to.equal(true);
+			return expect(inTransfer.ready(trs, sender)).to.equal(true);
 		});
 	});
 });

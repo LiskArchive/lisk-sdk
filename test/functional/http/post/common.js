@@ -26,7 +26,7 @@ function invalidAssets(option, badTransactions) {
 	describe('using invalid asset values', () => {
 		var transaction;
 
-		beforeEach(() => {
+		beforeEach(done => {
 			switch (option) {
 				case 'signature':
 					transaction = lisk.signature.createSignature(
@@ -80,6 +80,7 @@ function invalidAssets(option, badTransactions) {
 					break;
 				// no default
 			}
+			done();
 		});
 
 		describe('without option', () => {

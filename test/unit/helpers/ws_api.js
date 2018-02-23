@@ -48,11 +48,12 @@ describe('handshake', () => {
 	});
 
 	describe('compatibility', () => {
-		beforeEach(() => {
+		beforeEach(done => {
 			validHeaders = WSServerMaster.generatePeerHeaders({
 				version: minVersion,
 				nonce: validPeerNonce,
 			});
+			done();
 		});
 
 		it('should return an error when nonce is identical to server', done => {
@@ -105,7 +106,7 @@ describe('handshake', () => {
 		});
 	});
 
-	after(() => {
+	after(done => {
 		validHeaders = WSServerMaster.generatePeerHeaders({
 			version: minVersion,
 			nonce: '0123456789ABCDEF',
@@ -114,8 +115,9 @@ describe('handshake', () => {
 		describe('schema tests', () => {
 			var headers;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				headers = _.cloneDeep(validHeaders);
+				done();
 			});
 
 			describe('handshake', () => {
@@ -328,5 +330,6 @@ describe('handshake', () => {
 				});
 			});
 		});
+		done();
 	});
 });

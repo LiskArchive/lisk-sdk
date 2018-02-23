@@ -40,17 +40,16 @@ function forge(library, cb) {
 		);
 	}
 
-	var transactionPool = library.rewiredModules.transactions.__get__(
-		'__private.transactionPool'
-	);
 	var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
 
 	async.waterfall(
 		[
-			transactionPool.fillPool,
-			function(cb) {
+			function(seriesCb) {
+				fillPool(library, seriesCb);
+			},
+			function(seriesCb) {
 				getNextForger(null, delegatePublicKey => {
-					cb(null, delegatePublicKey);
+					seriesCb(null, delegatePublicKey);
 				});
 			},
 			function(delegate, seriesCb) {
@@ -88,6 +87,13 @@ function forge(library, cb) {
 			cb(err);
 		}
 	);
+}
+
+function fillPool(library, cb) {
+	var transactionPool = library.rewiredModules.transactions.__get__(
+		'__private.transactionPool'
+	);
+	transactionPool.fillPool(cb);
 }
 
 function addTransaction(library, transaction, cb) {
@@ -154,6 +160,15 @@ function getTransactionFromModule(library, filter, cb) {
 	library.modules.transactions.shared.getTransactions(filter, (err, res) => {
 		cb(err, res);
 	});
+}
+
+function getUnconfirmedTransactionFromModule(library, filter, cb) {
+	library.modules.transactions.shared.getUnconfirmedTransactions(
+		filter,
+		(err, res) => {
+			cb(err, res);
+		}
+	);
 }
 
 function beforeBlock(type, cb) {
@@ -256,10 +271,12 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 
 module.exports = {
 	forge,
+	fillPool,
 	addTransaction,
 	addTransactionsAndForge,
 	getAccountFromDb,
 	getTransactionFromModule,
+	getUnconfirmedTransactionFromModule,
 	beforeBlock,
 	loadTransactionType,
 };

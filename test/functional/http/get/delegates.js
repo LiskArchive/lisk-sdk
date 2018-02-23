@@ -531,13 +531,13 @@ describe('GET /delegates', () => {
 			});
 
 			it('lastBlockSlot should be less or equal to currentSlot', () => {
-				expect(forgersData.meta.lastBlockSlot).to.be.at.most(
+				return expect(forgersData.meta.lastBlockSlot).to.be.at.most(
 					forgersData.meta.currentSlot
 				);
 			});
 
 			it('every forger nextSlot should be greater than currentSlot', () => {
-				forgersData.data.forEach(forger => {
+				return forgersData.data.forEach(forger => {
 					expect(forgersData.meta.currentSlot).to.be.at.most(forger.nextSlot);
 				});
 			});

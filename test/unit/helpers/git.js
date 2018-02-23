@@ -23,18 +23,21 @@ describe('git', () => {
 			var validErrorMessage = 'Not a git repository';
 			var spawnSyncStub;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				spawnSyncStub = sinonSandbox
 					.stub(childProcess, 'spawnSync')
 					.returns({ stderr: validErrorMessage });
+				done();
 			});
 
-			afterEach(() => {
+			afterEach(done => {
 				spawnSyncStub.restore();
+				done();
 			});
 
-			it('should throw an error', () => {
+			it('should throw an error', done => {
 				expect(git.getLastCommit).throws(Error, validErrorMessage);
+				done();
 			});
 		});
 
@@ -42,18 +45,21 @@ describe('git', () => {
 			var validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
 			var spawnSyncStub;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				spawnSyncStub = sinonSandbox
 					.stub(childProcess, 'spawnSync')
 					.returns({ stderr: '', stdout: validCommitHash });
+				done();
 			});
 
-			afterEach(() => {
+			afterEach(done => {
 				spawnSyncStub.restore();
+				done();
 			});
 
-			it('should return a commit hash', () => {
+			it('should return a commit hash', done => {
 				expect(git.getLastCommit()).equal(validCommitHash);
+				done();
 			});
 		});
 	});

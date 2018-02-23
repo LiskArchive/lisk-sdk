@@ -29,28 +29,30 @@ describe('helpers/jobsQueue', () => {
 		describe('should throw an erorr', () => {
 			var validFunction;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				validFunction = sinonSandbox.spy();
+				done();
 			});
 
-			afterEach(() => {
+			afterEach(done => {
 				expect(validFunction.notCalled).to.be.true;
+				done();
 			});
 
 			it('should throw an error when trying to pass job that is not a function', () => {
-				expect(() => {
+				return expect(() => {
 					jobsQueue.register('test_job', 'test', recallInterval);
 				}).to.throw('Syntax error - invalid parameters supplied');
 			});
 
 			it('should throw an error when trying to pass name that is not a string', () => {
-				expect(() => {
+				return expect(() => {
 					jobsQueue.register(123, validFunction, recallInterval);
 				}).to.throw('Syntax error - invalid parameters supplied');
 			});
 
 			it('should throw an error when trying to pass time that is not integer', () => {
-				expect(() => {
+				return expect(() => {
 					jobsQueue.register('test_job', validFunction, 0.22);
 				}).to.throw('Syntax error - invalid parameters supplied');
 			});
@@ -109,13 +111,15 @@ describe('helpers/jobsQueue', () => {
 
 			var clock;
 
-			before(() => {
+			before(done => {
 				clock = sinonSandbox.useFakeTimers();
+				done();
 			});
 
-			after(() => {
+			after(done => {
 				jobsQueue.jobs = {};
 				clock.restore();
+				done();
 			});
 
 			it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', () => {
@@ -125,7 +129,7 @@ describe('helpers/jobsQueue', () => {
 				expect(Object.keys(jobsQueue.jobs))
 					.to.be.an('array')
 					.and.lengthOf(1);
-				testExecution(job, name, spy);
+				return testExecution(job, name, spy);
 			});
 
 			it('should register second new job correctly and call properly (job exec: 10s, job recall: 1s)', () => {
@@ -137,7 +141,7 @@ describe('helpers/jobsQueue', () => {
 				expect(Object.keys(jobsQueue.jobs))
 					.to.be.an('array')
 					.and.lengthOf(2);
-				testExecution(job, name, spy);
+				return testExecution(job, name, spy);
 			});
 
 			it('should register third new job correctly call properly (job exec: 2s, job recall: 10s)', () => {
@@ -150,7 +154,7 @@ describe('helpers/jobsQueue', () => {
 				expect(Object.keys(jobsQueue.jobs))
 					.to.be.an('array')
 					.and.lengthOf(3);
-				testExecution(job, name, spy);
+				return testExecution(job, name, spy);
 			});
 
 			it('should throw an error immediately when trying to register same job twice', () => {
@@ -162,7 +166,7 @@ describe('helpers/jobsQueue', () => {
 					.and.lengthOf(4);
 				testExecution(job, name, spy);
 
-				expect(() => {
+				return expect(() => {
 					jobsQueue.register('job4', dummyFunction, recallInterval);
 				}).to.throw('Synchronous job job4 already registered');
 			});
@@ -181,7 +185,7 @@ describe('helpers/jobsQueue', () => {
 					.and.lengthOf(5);
 				testExecution(job, name, spy);
 				// Instances still should be the same
-				expect(jobsQueuePeers).to.equal(jobsQueue);
+				return expect(jobsQueuePeers).to.equal(jobsQueue);
 			});
 		});
 	});

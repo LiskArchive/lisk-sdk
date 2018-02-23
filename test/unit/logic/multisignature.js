@@ -72,19 +72,19 @@ describe('multisignature', () => {
 			accountMock,
 			modulesLoader.logger
 		);
-		multisignature.bind(accountsMock);
+		return multisignature.bind(accountsMock);
 	});
 
 	afterEach(() => {
 		accountMock.merge.reset();
 		accountsMock.generateAddressByPublicKey.reset();
-		accountsMock.setAccountAndGet.reset();
+		return accountsMock.setAccountAndGet.reset();
 	});
 
 	describe('constructor', () => {
 		var library;
 
-		beforeEach(() => {
+		beforeEach(done => {
 			new Multisignature(
 				modulesLoader.scope.schema,
 				modulesLoader.scope.network,
@@ -93,26 +93,27 @@ describe('multisignature', () => {
 				modulesLoader.logger
 			);
 			library = Multisignature.__get__('library');
+			done();
 		});
 
 		it('should attach schema to library variable', () => {
-			expect(library.schema).to.eql(modulesLoader.scope.schema);
+			return expect(library.schema).to.eql(modulesLoader.scope.schema);
 		});
 
 		it('should attach network to library variable', () => {
-			expect(library.network).to.eql(modulesLoader.scope.network);
+			return expect(library.network).to.eql(modulesLoader.scope.network);
 		});
 
 		it('should attach logger to library variable', () => {
-			expect(library.logger).to.eql(modulesLoader.logger);
+			return expect(library.logger).to.eql(modulesLoader.logger);
 		});
 
 		it('should attach logic.transaction to library variable', () => {
-			expect(library.logic.transaction).to.eql(transactionMock);
+			return expect(library.logic.transaction).to.eql(transactionMock);
 		});
 
 		it('should attach account to library variable', () => {
-			expect(library.logic.account).to.eql(accountMock);
+			return expect(library.logic.account).to.eql(accountMock);
 		});
 	});
 
@@ -122,7 +123,7 @@ describe('multisignature', () => {
 				multisignature.bind(accountsMock);
 				var modules = Multisignature.__get__('modules');
 
-				expect(modules).to.eql({
+				return expect(modules).to.eql({
 					accounts: accountsMock,
 				});
 			});
@@ -134,9 +135,9 @@ describe('multisignature', () => {
 			transaction.asset.multisignature.keysgroup = [
 				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`,
 			];
-			expect(multisignature.calculateFee(transaction).toString()).to.equal(
-				'1000000000'
-			);
+			return expect(
+				multisignature.calculateFee(transaction).toString()
+			).to.equal('1000000000');
 		});
 
 		it('should return correct fee based on formula for 4 keysgroup', () => {
@@ -144,9 +145,9 @@ describe('multisignature', () => {
 				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
 			);
 
-			expect(multisignature.calculateFee(transaction).toString()).to.equal(
-				'2500000000'
-			);
+			return expect(
+				multisignature.calculateFee(transaction).toString()
+			).to.equal('2500000000');
 		});
 
 		it('should return correct fee based on formula for 8 keysgroup', () => {
@@ -154,9 +155,9 @@ describe('multisignature', () => {
 				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
 			);
 
-			expect(multisignature.calculateFee(transaction).toString()).to.equal(
-				'4500000000'
-			);
+			return expect(
+				multisignature.calculateFee(transaction).toString()
+			).to.equal('4500000000');
 		});
 
 		it('should return correct fee based on formula for 16 keysgroup', () => {
@@ -164,9 +165,9 @@ describe('multisignature', () => {
 				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
 			);
 
-			expect(multisignature.calculateFee(transaction).toString()).to.equal(
-				'8500000000'
-			);
+			return expect(
+				multisignature.calculateFee(transaction).toString()
+			).to.equal('8500000000');
 		});
 	});
 
@@ -283,11 +284,12 @@ describe('multisignature', () => {
 		});
 
 		describe('when min = 15', () => {
-			before(() => {
+			before(done => {
 				transaction.asset.multisignature.min = 15;
 				transaction.asset.keysgroup = _.map(new Array(16), () => {
 					return `+${randomUtil.account().publicKey}`;
 				});
+				done();
 			});
 
 			it('should call callback with error = null', done => {
@@ -452,18 +454,23 @@ describe('multisignature', () => {
 
 	describe('getBytes', () => {
 		describe('when transaction.asset.multisignature.keysgroup is undefined', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				transaction.asset.multisignature.keysgroup = undefined;
+				done();
 			});
 
 			it('should throw', () => {
-				expect(multisignature.getBytes.bind(null, transaction)).to.throw();
+				return expect(
+					multisignature.getBytes.bind(null, transaction)
+				).to.throw();
 			});
 		});
 
 		describe('when transaction.asset.multisignature.keysgroup is a valid keysgroup', () => {
 			it('should not throw', () => {
-				expect(multisignature.getBytes.bind(null, transaction)).not.to.throw();
+				return expect(
+					multisignature.getBytes.bind(null, transaction)
+				).not.to.throw();
 			});
 
 			it('should get bytes of valid transaction', () => {
@@ -471,11 +478,13 @@ describe('multisignature', () => {
 				expect(bytes.toString('utf8')).to.equal(
 					'\u0002\u0002+bd6d0388dcc0b07ab2035689c60a78d3ebb27901c5a5ed9a07262eab1a2e9bd2+addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9'
 				);
-				expect(bytes.length).to.equal(132);
+				return expect(bytes.length).to.equal(132);
 			});
 
 			it('should return result as a Buffer type', () => {
-				expect(multisignature.getBytes(transaction)).to.be.instanceOf(Buffer);
+				return expect(multisignature.getBytes(transaction)).to.be.instanceOf(
+					Buffer
+				);
 			});
 		});
 	});
@@ -490,17 +499,17 @@ describe('multisignature', () => {
 			var unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
 			);
-			expect(unconfirmedSignatures)
+			return expect(unconfirmedSignatures)
 				.to.contain.property(sender.address)
 				.equal(false);
 		});
 
 		it('should call library.logic.account.merge', () => {
-			expect(accountMock.merge.calledOnce).to.be.true;
+			return expect(accountMock.merge.calledOnce).to.be.true;
 		});
 
 		it('should call library.logic.account.merge with sender.address', () => {
-			expect(accountMock.merge.calledWith(sender.address)).to.be.true;
+			return expect(accountMock.merge.calledWith(sender.address)).to.be.true;
 		});
 
 		it('should call library.logic.account.merge with expected params', () => {
@@ -511,16 +520,17 @@ describe('multisignature', () => {
 				blockId: dummyBlock.id,
 				round: slots.calcRound(dummyBlock.height),
 			};
-			expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
+			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
 		describe('when library.logic.account.merge fails', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
+				done();
 			});
 
 			it('should call callback with error', () => {
-				multisignature.apply(transaction, dummyBlock, sender, err => {
+				return multisignature.apply(transaction, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				});
 			});
@@ -530,13 +540,13 @@ describe('multisignature', () => {
 			describe('for every keysgroup member', () => {
 				validTransaction.asset.multisignature.keysgroup.forEach(member => {
 					it('should call modules.accounts.generateAddressByPublicKey', () => {
-						expect(accountsMock.generateAddressByPublicKey.callCount).to.equal(
-							validTransaction.asset.multisignature.keysgroup.length
-						);
+						return expect(
+							accountsMock.generateAddressByPublicKey.callCount
+						).to.equal(validTransaction.asset.multisignature.keysgroup.length);
 					});
 
 					it('should call modules.accounts.generateAddressByPublicKey with member.substring(1)', () => {
-						expect(
+						return expect(
 							accountsMock.generateAddressByPublicKey.calledWith(
 								member.substring(1)
 							)
@@ -547,19 +557,20 @@ describe('multisignature', () => {
 						var key;
 						var address;
 
-						beforeEach(() => {
+						beforeEach(done => {
 							key = member.substring(1);
 							address = accountsMock.generateAddressByPublicKey(key);
+							done();
 						});
 
 						it('should call library.logic.account.setAccountAndGet', () => {
-							expect(accountsMock.setAccountAndGet.callCount).to.equal(
+							return expect(accountsMock.setAccountAndGet.callCount).to.equal(
 								validTransaction.asset.multisignature.keysgroup.length
 							);
 						});
 
 						it('should call library.logic.account.setAccountAndGet with {address: address}', () => {
-							expect(
+							return expect(
 								accountsMock.setAccountAndGet.calledWith(
 									sinonSandbox.match({ address })
 								)
@@ -567,7 +578,7 @@ describe('multisignature', () => {
 						});
 
 						it('should call library.logic.account.setAccountAndGet with sender.address', () => {
-							expect(
+							return expect(
 								accountsMock.setAccountAndGet.calledWith(
 									sinonSandbox.match({ publicKey: key })
 								)
@@ -575,28 +586,39 @@ describe('multisignature', () => {
 						});
 
 						describe('when modules.accounts.setAccountAndGet fails', () => {
-							beforeEach(() => {
+							beforeEach(done => {
 								accountsMock.setAccountAndGet = sinonSandbox
 									.stub()
 									.callsArgWith(1, 'mergeAccountAndGet error');
+								done();
 							});
 
 							it('should call callback with error', () => {
-								multisignature.apply(transaction, dummyBlock, sender, err => {
-									expect(err).not.to.be.empty;
-								});
+								return multisignature.apply(
+									transaction,
+									dummyBlock,
+									sender,
+									err => {
+										expect(err).not.to.be.empty;
+									}
+								);
 							});
 						});
 
 						describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 							it('should call callback with error = null', () => {
-								multisignature.apply(transaction, dummyBlock, sender, err => {
-									expect(err).to.be.null;
-								});
+								return multisignature.apply(
+									transaction,
+									dummyBlock,
+									sender,
+									err => {
+										expect(err).to.be.null;
+									}
+								);
 							});
 
 							it('should call callback with result = undefined', () => {
-								multisignature.apply(
+								return multisignature.apply(
 									transaction,
 									dummyBlock,
 									sender,
@@ -626,17 +648,17 @@ describe('multisignature', () => {
 			var unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
 			);
-			expect(unconfirmedSignatures)
+			return expect(unconfirmedSignatures)
 				.to.contain.property(sender.address)
 				.equal(true);
 		});
 
 		it('should call library.logic.account.merge', () => {
-			expect(accountMock.merge.calledOnce).to.be.true;
+			return expect(accountMock.merge.calledOnce).to.be.true;
 		});
 
 		it('should call library.logic.account.merge with sender.address', () => {
-			expect(accountMock.merge.calledWith(sender.address)).to.be.true;
+			return expect(accountMock.merge.calledWith(sender.address)).to.be.true;
 		});
 
 		it('should call library.logic.account.merge with expected params', () => {
@@ -649,16 +671,17 @@ describe('multisignature', () => {
 				blockId: dummyBlock.id,
 				round: slots.calcRound(dummyBlock.height),
 			};
-			expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
+			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
 		describe('when library.logic.account.merge fails', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
+				done();
 			});
 
 			it('should call callback with error', () => {
-				multisignature.undo(transaction, dummyBlock, sender, err => {
+				return multisignature.undo(transaction, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				});
 			});
@@ -666,15 +689,20 @@ describe('multisignature', () => {
 
 		describe('when library.logic.account.merge succeeds', () => {
 			it('should call callback with error = null', () => {
-				multisignature.apply(transaction, dummyBlock, sender, err => {
+				return multisignature.apply(transaction, dummyBlock, sender, err => {
 					expect(err).to.be.null;
 				});
 			});
 
 			it('should call callback with result = undefined', () => {
-				multisignature.apply(transaction, dummyBlock, sender, (err, res) => {
-					expect(res).to.be.undefined;
-				});
+				return multisignature.apply(
+					transaction,
+					dummyBlock,
+					sender,
+					(err, res) => {
+						expect(res).to.be.undefined;
+					}
+				);
 			});
 		});
 		/* eslint-enable */
@@ -682,11 +710,12 @@ describe('multisignature', () => {
 
 	describe('applyUnconfirmed', () => {
 		describe('when transaction is pending for confirmation', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				var unconfirmedSignatures = Multisignature.__get__(
 					'__private.unconfirmedSignatures'
 				);
 				unconfirmedSignatures[sender.address] = true;
+				done();
 			});
 
 			it('should call callback with error = "Signature on this account is pending confirmation"', done => {
@@ -700,11 +729,12 @@ describe('multisignature', () => {
 		});
 
 		describe('when transaction is not pending confirmation', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				var unconfirmedSignatures = Multisignature.__get__(
 					'__private.unconfirmedSignatures'
 				);
 				unconfirmedSignatures[sender.address] = false;
+				done();
 			});
 
 			it('should set __private.unconfirmedSignatures[sender.address] = true', done => {
@@ -747,11 +777,11 @@ describe('multisignature', () => {
 
 			describe('when library.logic.account.merge fails', () => {
 				beforeEach(() => {
-					accountMock.merge.callsArgWith(2, 'merge error');
+					return accountMock.merge.callsArgWith(2, 'merge error');
 				});
 
 				afterEach(() => {
-					accountMock.merge.reset();
+					return accountMock.merge.reset();
 				});
 
 				it('should call callback with error = merge error', done => {
@@ -791,17 +821,17 @@ describe('multisignature', () => {
 			var unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
 			);
-			expect(unconfirmedSignatures)
+			return expect(unconfirmedSignatures)
 				.to.contain.property(sender.address)
 				.equal(false);
 		});
 
 		it('should call library.logic.account.merge', () => {
-			expect(accountMock.merge.calledOnce).to.be.true;
+			return expect(accountMock.merge.calledOnce).to.be.true;
 		});
 
 		it('should call library.logic.account.merge with sender.address', () => {
-			expect(accountMock.merge.calledWith(sender.address)).to.be.true;
+			return expect(accountMock.merge.calledWith(sender.address)).to.be.true;
 		});
 
 		it('should call library.logic.account.merge with expected params', () => {
@@ -812,16 +842,17 @@ describe('multisignature', () => {
 				u_multimin: -transaction.asset.multisignature.min,
 				u_multilifetime: -transaction.asset.multisignature.lifetime,
 			};
-			expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
+			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
 		});
 
 		describe('when library.logic.account.merge fails', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				accountMock.merge = sinonSandbox.stub().callsArgWith(2, 'merge error');
+				done();
 			});
 
 			it('should call callback with error', () => {
-				multisignature.undo(transaction, dummyBlock, sender, err => {
+				return multisignature.undo(transaction, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				});
 			});
@@ -829,15 +860,20 @@ describe('multisignature', () => {
 
 		describe('when library.logic.account.merge succeeds', () => {
 			it('should call callback with error = null', () => {
-				multisignature.apply(transaction, dummyBlock, sender, err => {
+				return multisignature.apply(transaction, dummyBlock, sender, err => {
 					expect(err).to.be.null;
 				});
 			});
 
 			it('should call callback with result = undefined', () => {
-				multisignature.apply(transaction, dummyBlock, sender, (err, res) => {
-					expect(res).to.be.undefined;
-				});
+				return multisignature.apply(
+					transaction,
+					dummyBlock,
+					sender,
+					(err, res) => {
+						expect(res).to.be.undefined;
+					}
+				);
 			});
 		});
 	});
@@ -855,7 +891,7 @@ describe('multisignature', () => {
 				);
 				transaction.asset.multisignature.min = min;
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Expected type integer but found type string'
@@ -873,7 +909,7 @@ describe('multisignature', () => {
 				);
 				transaction.asset.multisignature.min = min;
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value -1 is less than minimum 1'
@@ -890,7 +926,7 @@ describe('multisignature', () => {
 					min
 				);
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 0 is less than minimum 1'
@@ -907,7 +943,7 @@ describe('multisignature', () => {
 					min
 				);
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 16 is greater than maximum 15'
@@ -925,7 +961,7 @@ describe('multisignature', () => {
 				);
 				transaction.asset.multisignature.min = min;
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 1.7976931348623157e+308 is greater than maximum 15'
@@ -945,7 +981,7 @@ describe('multisignature', () => {
 				);
 				transaction.asset.multisignature.lifetime = lifetime;
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Expected type integer but found type string'
@@ -962,7 +998,7 @@ describe('multisignature', () => {
 					2
 				);
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 0 is less than minimum 1'
@@ -979,7 +1015,7 @@ describe('multisignature', () => {
 					2
 				);
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 73 is greater than maximum 72'
@@ -997,7 +1033,7 @@ describe('multisignature', () => {
 				);
 				transaction.asset.multisignature.lifetime = lifetime;
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 1.7976931348623157e+308 is greater than maximum 72'
@@ -1016,7 +1052,7 @@ describe('multisignature', () => {
 				);
 				transaction.asset.multisignature.keysgroup = '';
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Expected type array but found type string'
@@ -1033,7 +1069,7 @@ describe('multisignature', () => {
 					2
 				);
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Array is too short (0), minimum 1'
@@ -1054,7 +1090,7 @@ describe('multisignature', () => {
 					2
 				);
 
-				expect(() => {
+				return expect(() => {
 					multisignature.objectNormalize(transaction);
 				}).to.throw(
 					'Failed to validate multisignature schema: Array is too long (16), maximum 15'
@@ -1073,7 +1109,9 @@ describe('multisignature', () => {
 				2
 			);
 
-			expect(multisignature.objectNormalize(transaction)).to.eql(transaction);
+			return expect(multisignature.objectNormalize(transaction)).to.eql(
+				transaction
+			);
 		});
 
 		it('should use the correct format to validate against', () => {
@@ -1087,13 +1125,13 @@ describe('multisignature', () => {
 					Multisignature.prototype.schema
 				)
 			).to.equal(true);
-			schemaSpy.restore();
+			return schemaSpy.restore();
 		});
 
 		it('should return error asset schema is invalid', () => {
 			transaction.asset.multisignature.min = -1;
 
-			expect(() => {
+			return expect(() => {
 				multisignature.objectNormalize(transaction);
 			}).to.throw(
 				'Failed to validate multisignature schema: Value -1 is less than minimum 1'
@@ -1101,59 +1139,63 @@ describe('multisignature', () => {
 		});
 
 		it('should return transaction when asset is valid', () => {
-			expect(multisignature.objectNormalize(transaction)).to.eql(transaction);
+			return expect(multisignature.objectNormalize(transaction)).to.eql(
+				transaction
+			);
 		});
 	});
 
 	describe('dbRead', () => {
 		describe('when raw.m_keysgroup does not exist', () => {
 			beforeEach(() => {
-				delete rawTransaction.m_keysgroup;
+				return delete rawTransaction.m_keysgroup;
 			});
 
 			it('should return null', () => {
-				expect(multisignature.dbRead(rawTransaction)).to.eql(null);
+				return expect(multisignature.dbRead(rawTransaction)).to.eql(null);
 			});
 		});
 
 		describe('when raw.m_keysgroup exists', () => {
 			it('should return result containing multisignature', () => {
-				expect(multisignature.dbRead(rawTransaction)).to.have.property(
+				return expect(multisignature.dbRead(rawTransaction)).to.have.property(
 					'multisignature'
 				);
 			});
 
 			it('should return result containing multisignature.min = raw.m_min', () => {
-				expect(multisignature.dbRead(rawTransaction))
+				return expect(multisignature.dbRead(rawTransaction))
 					.to.have.nested.property('multisignature.min')
 					.equal(rawTransaction.m_min);
 			});
 
 			it('should return result containing multisignature.lifetime = raw.lifetime', () => {
-				expect(multisignature.dbRead(rawTransaction))
+				return expect(multisignature.dbRead(rawTransaction))
 					.to.have.nested.property('multisignature.lifetime')
 					.equal(rawTransaction.m_lifetime);
 			});
 
 			describe('when raw.m_keysgroup is not a string', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					rawTransaction.m_keysgroup = {};
+					done();
 				});
 
 				it('should return result containing multisignature.keysgroup = []', () => {
-					expect(multisignature.dbRead(rawTransaction))
+					return expect(multisignature.dbRead(rawTransaction))
 						.to.have.nested.property('multisignature.keysgroup')
 						.eql([]);
 				});
 			});
 
 			describe('when raw.m_keysgroup = "a,b,c"', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					rawTransaction.m_keysgroup = 'a,b,c';
+					done();
 				});
 
 				it('should return result containing multisignature.keysgroup = ["a", "b", "c"]', () => {
-					expect(multisignature.dbRead(rawTransaction))
+					return expect(multisignature.dbRead(rawTransaction))
 						.to.have.nested.property('multisignature.keysgroup')
 						.eql(['a', 'b', 'c']);
 				});
@@ -1163,13 +1205,13 @@ describe('multisignature', () => {
 
 	describe('ready', () => {
 		it('should return true for single signature transaction', () => {
-			expect(multisignature.ready(transaction, sender)).to.equal(true);
+			return expect(multisignature.ready(transaction, sender)).to.equal(true);
 		});
 
 		it('should return false for multi signature transaction with less signatures', () => {
 			sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-			expect(multisignature.ready(transaction, sender)).to.equal(false);
+			return expect(multisignature.ready(transaction, sender)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', () => {
@@ -1181,7 +1223,7 @@ describe('multisignature', () => {
 			transaction.signature = crypto.randomBytes(64).toString('hex');
 			transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
-			expect(multisignature.ready(transaction, sender)).to.equal(true);
+			return expect(multisignature.ready(transaction, sender)).to.equal(true);
 		});
 	});
 });

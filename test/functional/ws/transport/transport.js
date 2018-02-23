@@ -51,12 +51,13 @@ describe('RPC', () => {
 		describe('updatePeer', () => {
 			var validAcceptRequest;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				validAcceptRequest = {
 					authKey: 'authentication key',
 					peer: prefixedPeer,
 					updateType: Rules.UPDATES.INSERT,
 				};
+				done();
 			});
 
 			describe('schema', () => {

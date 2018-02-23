@@ -37,7 +37,7 @@ describe('dapp', () => {
 	var rawTransaction;
 	var sender;
 
-	beforeEach(() => {
+	beforeEach(done => {
 		dbStub = {
 			dapps: {
 				countByTransactionId: sinonSandbox.stub(),
@@ -53,26 +53,28 @@ describe('dapp', () => {
 			modulesLoader.scope.schema,
 			modulesLoader.scope.network
 		);
+		done();
 	});
 
 	afterEach(() => {
-		Object.keys(dbStub.dapps).forEach(key => {
+		return Object.keys(dbStub.dapps).forEach(key => {
 			dbStub.dapps[key].reset();
 		});
 	});
 
 	describe('with dummy data', () => {
-		beforeEach(() => {
+		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
 			rawTransaction = _.cloneDeep(rawValidTransaction);
 			sender = _.cloneDeep(validSender);
+			done();
 		});
 
 		describe('constructor', () => {
 			describe('private library object', () => {
 				var library;
 
-				beforeEach(() => {
+				beforeEach(done => {
 					new Dapp(
 						dbStub,
 						modulesLoader.scope.logger,
@@ -80,35 +82,36 @@ describe('dapp', () => {
 						modulesLoader.scope.network
 					);
 					library = Dapp.__get__('library');
+					done();
 				});
 
 				it('should be updated with db stub object', () => {
-					expect(library.db).to.eql(dbStub);
+					return expect(library.db).to.eql(dbStub);
 				});
 
 				it('should be loaded schema from modulesLoader', () => {
-					expect(library.schema).to.eql(modulesLoader.scope.schema);
+					return expect(library.schema).to.eql(modulesLoader.scope.schema);
 				});
 
 				it('should be loaded logger from modulesLoader', () => {
-					expect(library.logger).to.eql(modulesLoader.scope.logger);
+					return expect(library.logger).to.eql(modulesLoader.scope.logger);
 				});
 
 				it('should be loaded network from modulesLoader', () => {
-					expect(library.network).to.eql(modulesLoader.scope.network);
+					return expect(library.network).to.eql(modulesLoader.scope.network);
 				});
 			});
 		});
 
 		describe('bind', () => {
 			it('should be okay with empty params', () => {
-				dapp.bind();
+				return dapp.bind();
 			});
 		});
 
 		describe('calculateFee', () => {
 			it('should return constants.fees.dappRegistration', () => {
-				expect(dapp.calculateFee(transaction)).to.equal(
+				return expect(dapp.calculateFee(transaction)).to.equal(
 					constants.fees.dappRegistration
 				);
 			});
@@ -329,12 +332,13 @@ describe('dapp', () => {
 				describe('when dbStub resolves with application', () => {
 					var dappParams;
 
-					beforeEach(() => {
+					beforeEach(done => {
 						dappParams = {
 							name: transaction.asset.dapp.name,
 							link: transaction.asset.dapp.link || null,
 							transactionId: transaction.id,
 						};
+						done();
 					});
 
 					// TODO: Some of the code these tests are testing is redundant. We should review and refactor it.
@@ -391,7 +395,7 @@ describe('dapp', () => {
 
 			describe('when transaction is valid', () => {
 				beforeEach(() => {
-					dbStub.dapps.getExisting
+					return dbStub.dapps.getExisting
 						.withArgs({
 							name: transaction.asset.dapp.name,
 							link: transaction.asset.dapp.link || null,
@@ -443,48 +447,51 @@ describe('dapp', () => {
 
 		describe('getBytes', () => {
 			describe('when transaction.asset.dapp = undefined', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					transaction.asset.dapp = undefined;
+					done();
 				});
 
 				it('should throw', () => {
-					expect(dapp.getBytes.bind(null, transaction)).to.throw();
+					return expect(dapp.getBytes.bind(null, transaction)).to.throw();
 				});
 			});
 
 			describe('when transaction.asset.dapp.category = undefined', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					transaction.asset.dapp.category = undefined;
+					done();
 				});
 
 				it('should throw', () => {
-					expect(dapp.getBytes.bind(null, transaction)).to.throw();
+					return expect(dapp.getBytes.bind(null, transaction)).to.throw();
 				});
 			});
 
 			describe('when transaction.asset.dapp.type = undefined', () => {
-				beforeEach(() => {
+				beforeEach(done => {
 					transaction.asset.dapp.type = undefined;
+					done();
 				});
 
 				it('should throw', () => {
-					expect(dapp.getBytes.bind(null, transaction)).to.throw();
+					return expect(dapp.getBytes.bind(null, transaction)).to.throw();
 				});
 			});
 
 			describe('when transaction.asset.dapp is a valid asset', () => {
 				it('should not throw', () => {
-					expect(dapp.getBytes.bind(null, transaction)).not.to.throw();
+					return expect(dapp.getBytes.bind(null, transaction)).not.to.throw();
 				});
 
 				it('should get bytes of valid transaction', () => {
-					expect(dapp.getBytes(transaction).toString('hex')).to.equal(
+					return expect(dapp.getBytes(transaction).toString('hex')).to.equal(
 						'414f37657a42313143674364555a69356f38597a784341746f524c41364669687474703a2f2f7777772e6c69736b2e696f2f414f37657a42313143674364555a69356f38597a784341746f524c413646692e7a69700100000002000000'
 					);
 				});
 
 				it('should return result as a Buffer type', () => {
-					expect(dapp.getBytes(transaction)).to.be.instanceOf(Buffer);
+					return expect(dapp.getBytes(transaction)).to.be.instanceOf(Buffer);
 				});
 			});
 		});
@@ -498,9 +505,10 @@ describe('dapp', () => {
 			var unconfirmedNames;
 			var unconfirmedLinks;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
 				unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
+				done();
 			});
 
 			it('should update private unconfirmed name variable', done => {
@@ -537,7 +545,7 @@ describe('dapp', () => {
 					var dappNames = {};
 					dappNames[transaction.asset.dapp.name] = true;
 					Dapp.__set__('__private.unconfirmedNames', dappNames);
-					Dapp.__set__('__private.unconfirmedLinks', {});
+					return Dapp.__set__('__private.unconfirmedLinks', {});
 				});
 
 				it('should call callback with error', done => {
@@ -553,7 +561,7 @@ describe('dapp', () => {
 					var dappLinks = {};
 					dappLinks[transaction.asset.dapp.link] = true;
 					Dapp.__set__('__private.unconfirmedLinks', dappLinks);
-					Dapp.__set__('__private.unconfirmedNames', {});
+					return Dapp.__set__('__private.unconfirmedNames', {});
 				});
 
 				it('should call callback with error', done => {
@@ -568,13 +576,14 @@ describe('dapp', () => {
 				var unconfirmedNames;
 				var unconfirmedLinks;
 
-				beforeEach(() => {
+				beforeEach(done => {
 					var dappNames = {};
 					var dappLinks = {};
 					Dapp.__set__('__private.unconfirmedLinks', dappLinks);
 					Dapp.__set__('__private.unconfirmedNames', dappNames);
 					unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
 					unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
+					done();
 				});
 
 				it('should update unconfirmed name private variable', done => {
@@ -607,13 +616,14 @@ describe('dapp', () => {
 			var unconfirmedNames;
 			var unconfirmedLinks;
 
-			beforeEach(() => {
+			beforeEach(done => {
 				var dappNames = {};
 				var dappLinks = {};
 				Dapp.__set__('__private.unconfirmedLinks', dappLinks);
 				Dapp.__set__('__private.unconfirmedNames', dappNames);
 				unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
 				unconfirmedLinks = Dapp.__get__('__private.unconfirmedLinks');
+				done();
 			});
 
 			it('should delete unconfirmed name private variable', done => {
@@ -644,21 +654,24 @@ describe('dapp', () => {
 					dummpyNullProperty: null,
 				};
 
-				beforeEach(() => {
+				beforeEach(done => {
 					transaction.asset.dapp = _.assign(
 						transaction.asset.dapp,
 						invalidProperties
 					);
+					done();
 				});
 
 				it('should remove undefined properties', () => {
 					transaction = dapp.objectNormalize(transaction);
-					expect(transaction).to.not.have.property('dummyUndefinedProperty');
+					return expect(transaction).to.not.have.property(
+						'dummyUndefinedProperty'
+					);
 				});
 
 				it('should remove null properties', () => {
 					transaction = dapp.objectNormalize(transaction);
-					expect(transaction).to.not.have.property('dummpyNullProperty');
+					return expect(transaction).to.not.have.property('dummpyNullProperty');
 				});
 			});
 
@@ -666,19 +679,20 @@ describe('dapp', () => {
 				var library;
 				var schemaSpy;
 
-				beforeEach(() => {
+				beforeEach(done => {
 					library = Dapp.__get__('library');
 					schemaSpy = sinonSandbox.spy(library.schema, 'validate');
+					done();
 				});
 
 				afterEach(() => {
-					schemaSpy.restore();
+					return schemaSpy.restore();
 				});
 
 				it('should use the correct format to validate against', () => {
 					dapp.objectNormalize(transaction);
 					expect(schemaSpy.calledOnce).to.equal(true);
-					expect(
+					return expect(
 						schemaSpy.calledWithExactly(
 							transaction.asset.dapp,
 							Dapp.prototype.schema
@@ -704,7 +718,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.category = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type integer but found type ${
 									type.expectation
 								}`
@@ -715,21 +731,25 @@ describe('dapp', () => {
 					otherTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.category = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					invalidCategoriesNumber.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.category = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					validCategories.forEach(input => {
 						it(`should not throw error for valid value: ${input}`, () => {
 							transaction.asset.dapp.category = input;
-							dapp.objectNormalize(transaction);
+							return dapp.objectNormalize(transaction);
 						});
 					});
 				});
@@ -755,7 +775,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.name = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type string but found type ${
 									type.expectation
 								}`
@@ -766,21 +788,27 @@ describe('dapp', () => {
 					otherTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.name = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					invalidNames.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.name = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					validNames.forEach(input => {
 						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.name = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).not.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).not.throw();
 						});
 					});
 				});
@@ -803,7 +831,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.description = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type string but found type ${
 									type.expectation
 								}`
@@ -814,14 +844,16 @@ describe('dapp', () => {
 					invalidDescriptions.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.description = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					validDescriptions.forEach(input => {
 						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.description = input;
-							expect(
+							return expect(
 								dapp.objectNormalize.bind(null, transaction)
 							).to.not.throw();
 						});
@@ -851,7 +883,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.tags = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type string but found type ${
 									type.expectation
 								}`
@@ -862,14 +896,16 @@ describe('dapp', () => {
 					invalidTags.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.tags = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					validTags.forEach(input => {
 						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.tags = input;
-							expect(
+							return expect(
 								dapp.objectNormalize.bind(null, transaction)
 							).to.not.throw();
 						});
@@ -894,7 +930,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.type = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type integer but found type ${
 									type.expectation
 								}`
@@ -905,21 +943,25 @@ describe('dapp', () => {
 					otherTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.type = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					invalidTypes.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.type = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					validTypes.forEach(input => {
 						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.type = input;
-							expect(
+							return expect(
 								dapp.objectNormalize.bind(null, transaction)
 							).to.not.throw();
 						});
@@ -946,7 +988,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.link = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type string but found type ${
 									type.expectation
 								}`
@@ -957,14 +1001,16 @@ describe('dapp', () => {
 					invalidLinks.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.link = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					validLinks.forEach(input => {
 						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.link = input;
-							expect(
+							return expect(
 								dapp.objectNormalize.bind(null, transaction)
 							).to.not.throw();
 						});
@@ -991,7 +1037,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.icon = type.input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type string but found type ${
 									type.expectation
 								}`
@@ -1002,14 +1050,16 @@ describe('dapp', () => {
 					invalidIcons.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.icon = input;
-							expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					validIcons.forEach(input => {
 						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.icon = input;
-							expect(
+							return expect(
 								dapp.objectNormalize.bind(null, transaction)
 							).to.not.throw();
 						});
@@ -1018,64 +1068,64 @@ describe('dapp', () => {
 			});
 
 			it('should return transaction when asset is valid', () => {
-				expect(dapp.objectNormalize(transaction)).to.eql(transaction);
+				return expect(dapp.objectNormalize(transaction)).to.eql(transaction);
 			});
 		});
 
 		describe('dbRead', () => {
 			describe('when rawTransaction.dapp_name does not exist', () => {
 				beforeEach(() => {
-					delete rawTransaction.dapp_name;
+					return delete rawTransaction.dapp_name;
 				});
 
 				it('should return null', () => {
-					expect(dapp.dbRead(rawTransaction)).to.eql(null);
+					return expect(dapp.dbRead(rawTransaction)).to.eql(null);
 				});
 			});
 
 			describe('when rawTransaction.dapp_name exists', () => {
 				it('should return result containing dapp property', () => {
-					expect(dapp.dbRead(rawTransaction)).to.have.property('dapp');
+					return expect(dapp.dbRead(rawTransaction)).to.have.property('dapp');
 				});
 
 				it('should return result containing nested dapp_category property', () => {
-					expect(dapp.dbRead(rawTransaction))
+					return expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.category')
 						.to.equal(rawTransaction.dapp_category);
 				});
 
 				it('should return result containing nested dapp_description property', () => {
-					expect(dapp.dbRead(rawTransaction))
+					return expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.description')
 						.to.eql(rawTransaction.dapp_description);
 				});
 
 				it('should return result containing nested dapp.icon property', () => {
-					expect(dapp.dbRead(rawTransaction))
+					return expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.icon')
 						.to.eql(rawTransaction.dapp_icon);
 				});
 
 				it('should return result containing nested dapp.link property', () => {
-					expect(dapp.dbRead(rawTransaction))
+					return expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.link')
 						.to.eql(rawTransaction.dapp_link);
 				});
 
 				it('should return result containing nested dapp.name property', () => {
-					expect(dapp.dbRead(rawTransaction))
+					return expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.name')
 						.to.eql(rawTransaction.dapp_name);
 				});
 
 				it('should return result containing nested dapp.tags property', () => {
-					expect(dapp.dbRead(rawTransaction))
+					return expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.tags')
 						.to.eql(rawTransaction.dapp_tags);
 				});
 
 				it('should return result containing nested dapp.type property', () => {
-					expect(dapp.dbRead(rawTransaction))
+					return expect(dapp.dbRead(rawTransaction))
 						.to.have.nested.property('dapp.type')
 						.to.eql(rawTransaction.dapp_type);
 				});
@@ -1084,13 +1134,13 @@ describe('dapp', () => {
 
 		describe('ready', () => {
 			it('should return true for single signature transaction', () => {
-				expect(dapp.ready(transaction, sender)).to.equal(true);
+				return expect(dapp.ready(transaction, sender)).to.equal(true);
 			});
 
 			it('should return false for multi signature transaction with less signatures', () => {
 				sender.multisignatures = [validKeypair.publicKey.toString('hex')];
 
-				expect(dapp.ready(transaction, sender)).to.equal(false);
+				return expect(dapp.ready(transaction, sender)).to.equal(false);
 			});
 
 			it('should return true for multi signature transaction with alteast min signatures', () => {
@@ -1102,7 +1152,7 @@ describe('dapp', () => {
 				transaction.signature = crypto.randomBytes(64).toString('hex');
 				transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
-				expect(dapp.ready(transaction, sender)).to.equal(true);
+				return expect(dapp.ready(transaction, sender)).to.equal(true);
 			});
 		});
 	});

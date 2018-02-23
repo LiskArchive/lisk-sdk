@@ -67,8 +67,9 @@ describe('node', () => {
 	describe('internal', () => {
 		var node_module;
 
-		before(() => {
+		before(done => {
 			node_module = library.modules.node;
+			done();
 		});
 
 		function updateForgingStatus(testDelegate, action, cb) {
@@ -97,8 +98,9 @@ describe('node', () => {
 		describe('toggleForgingStatus', () => {
 			var defaultKey;
 
-			before(() => {
+			before(done => {
 				defaultKey = library.config.forging.defaultKey;
+				done();
 			});
 
 			it('should return error with invalid key', done => {

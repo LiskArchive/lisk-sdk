@@ -218,8 +218,8 @@
 			"blockId",
 			"nameexist",
 			"u_nameexist",
-			"producedblocks",
-			"missedblocks",
+			"producedBlocks",
+			"missedBlocks",
 			"fees",
 			"rewards",
 			"virgin"
@@ -251,8 +251,8 @@
 				"blockId": "9230558580356301042",
 				"nameexist": 0,
 				"u_nameexist": 0,
-				"producedblocks": 0,
-				"missedblocks": 0,
+				"producedBlocks": 0,
+				"missedBlocks": 0,
 				"fees": "0",
 				"rewards": "0",
 				"virgin": 0
@@ -283,8 +283,8 @@
 				"blockId": "9230558580356301042",
 				"nameexist": 0,
 				"u_nameexist": 0,
-				"producedblocks": 0,
-				"missedblocks": 0,
+				"producedBlocks": 0,
+				"missedBlocks": 0,
 				"fees": "0",
 				"rewards": "0",
 				"virgin": 0
