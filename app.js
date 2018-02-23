@@ -14,13 +14,6 @@
 
 'use strict';
 
-/**
- * Main entry point.
- * Loads the lisk modules, the lisk api and run the express server as Domain master.
- * CLI options available.
- * @module app
- */
-
 var path = require('path');
 var fs = require('fs');
 var d = require('domain').create();
@@ -38,14 +31,67 @@ var swagger = require('./config/swagger');
 // eslint-disable-next-line import/order
 var swaggerHelper = require('./helpers/swagger');
 
+/**
+ * Main application entry point.
+ *
+ * @namespace app
+ * @requires async
+ * @requires domain.create
+ * @requires extend
+ * @requires fs
+ * @requires socketcluster
+ * @requires genesis_block.json
+ * @requires logger.js
+ * @requires api/ws/rpc/ws_rpc.wsRPC
+ * @requires helpers/config
+ * @requires helpers/git
+ * @requires helpers/http_api
+ * @requires {@link helpers.Sequence}
+ * @requires helpers/swagger
+ * @requires config/swagger
+ */
+
+/**
+ * Handles app instance (acts as global variable, passed as parameter).
+ *
+ * @global
+ * @typedef {Object} scope
+ * @property {Object} api
+ * @property {undefined} balancesSequence
+ * @property {string} build
+ * @property {Object} bus
+ * @property {Object} config
+ * @property {undefined} connect
+ * @property {Object} db
+ * @property {function} dbSequence
+ * @property {Object} ed
+ * @property {Object} genesisblock
+ * @property {string} lastCommit
+ * @property {Object} listen
+ * @property {Object} logger
+ * @property {Object} logic
+ * @property {Object} modules
+ * @property {Object} network
+ * @property {string} nonce
+ * @property {undefined} ready
+ * @property {Object} schema
+ * @property {Object} sequence
+ * @todo Add description for nonce and ready
+ */
+
+// Define workers_controller path
 var workersControllerPath = path.join(__dirname, 'workers_controller');
 
+// Begin reading from stdin
 process.stdin.resume();
 
+// Read build version from file
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
 
 /**
- * @property {string} - Hash of last git commit.
+ * Hash of the last git commit.
+ *
+ * @memberof! app
  */
 var lastCommit = '';
 
@@ -56,21 +102,20 @@ if (typeof gc !== 'undefined') {
 }
 
 /**
- * @property {Object} - The default list of configuration options. Can be updated by CLI.
+ * Default list of configuration options. Can be overridden by CLI.
+ *
+ * @memberof! app
  * @default 'config.json'
  */
 var appConfig = AppConfig(require('./package.json'));
 
-// Define top endpoint availability
+// Define availability of top accounts endpoint
 process.env.TOP = appConfig.topAccounts;
 
 /**
- * The config object to handle lisk modules and lisk api.
- * It loads `modules` and `api` folders content.
- * Also contains db configuration from config.json.
- * @property {Object} db - Config values for database.
- * @property {Object} modules - `modules` folder content.
- * @property {Object} api - `api/http` folder content.
+ * Application config object.
+ *
+ * @memberof! app
  */
 var config = {
 	root: path.dirname(__filename),
@@ -100,9 +145,9 @@ var config = {
 };
 
 /**
- * Logger holder so we can log with custom functionality.
- * The Object is initialized here and pass to others as parameter.
- * @property {Object} - Logger instance.
+ * Application logger instance.
+ *
+ * @memberof! app
  */
 var logger = new Logger({
 	echo: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
@@ -110,6 +155,11 @@ var logger = new Logger({
 	filename: appConfig.logFileName,
 });
 
+/**
+ * Db logger instance.
+ *
+ * @memberof! app
+ */
 var dbLogger = null;
 
 if (
@@ -125,34 +175,31 @@ if (
 	});
 }
 
-// Trying to get last git commit
+// Try to get the last git commit
 try {
 	lastCommit = git.getLastCommit();
 } catch (err) {
 	logger.debug('Cannot get last git commit', err.message);
 }
 
-/**
- * Creates the express server and loads all the Modules and logic.
- * @property {Object} - Domain instance.
- */
-
+// Domain error handler
 d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
 	process.exit(0);
 });
 
-// runs domain
+// Run domain
 d.run(() => {
 	var modules = [];
 	async.auto(
 		{
 			/**
-			 * Loads `payloadHash`.
-			 * Then updates config.json with new random  password.
-			 * @method config
-			 * @param {nodeStyleCallback} cb - Callback function with the mutated `appConfig`.
-			 * @throws {Error} If failed to assign nethash from genesis block.
+			 * Attempts to determine nethash from genesis block.
+			 *
+			 * @func config
+			 * @memberof! app
+			 * @param {function} cb - Callback function
+			 * @throws {Error} If unable to assign nethash from genesis block
 			 */
 			config(cb) {
 				try {
@@ -176,9 +223,11 @@ d.run(() => {
 			},
 
 			/**
-			 * Returns hash of last git commit.
-			 * @method lastCommit
-			 * @param {nodeStyleCallback} cb - Callback function with Hash of last git commit.
+			 * Returns hash of the last git commit.
+			 *
+			 * @func lastCommit
+			 * @memberof! app
+			 * @param {function} cb - Callback function
 			 */
 			lastCommit(cb) {
 				cb(null, lastCommit);
@@ -194,16 +243,16 @@ d.run(() => {
 				cb(null, swaggerHelper.getValidator());
 			},
 
-			/**
-			 * Once config is completed, creates app, http & https servers & sockets with express.
-			 * @method network
-			 * @param {Object} scope - The results from current execution,
-			 * at leats will contain the required elements.
-			 * @param {nodeStyleCallback} cb - Callback function with created Object:
-			 * `{express, app, server, io, https, https_io}`.
-			 */
 			network: [
 				'config',
+				/**
+				 * Initalizes express, middleware, socket.io.
+				 *
+				 * @func network[1]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 */
 				function(scope, cb) {
 					var express = require('express');
 					var app = express();
@@ -211,7 +260,7 @@ d.run(() => {
 					if (appConfig.coverage) {
 						var im = require('istanbul-middleware');
 						logger.debug(
-							'Hook loader for coverage - do not use in production environment!'
+							'Hook loader for coverage - Do not use in production environment!'
 						);
 						im.hookLoader(__dirname);
 						app.use('/coverage', im.createHandler());
@@ -262,6 +311,15 @@ d.run(() => {
 				'connect',
 				'logger',
 				'network',
+				/**
+				 * Description of the function.
+				 *
+				 * @func webSocket[4]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 * @todo Add description for the function and its params
+				 */
 				function(scope, cb) {
 					var webSocketConfig = {
 						workers: scope.config.wsWorkers,
@@ -284,7 +342,6 @@ d.run(() => {
 					if (scope.config.ssl.enabled) {
 						extend(webSocketConfig, {
 							protocol: 'https',
-							// This is the same as the object provided to Node.js's https server
 							protocolOptions: {
 								key: fs.readFileSync(scope.config.ssl.options.key),
 								cert: fs.readFileSync(scope.config.ssl.options.cert),
@@ -317,6 +374,15 @@ d.run(() => {
 
 			dbSequence: [
 				'logger',
+				/**
+				 * Description of the function.
+				 *
+				 * @func dbSequence[1]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 * @todo Add description for the function and its params
+				 */
 				function(scope, cb) {
 					var sequence = new Sequence({
 						onWarning(current) {
@@ -329,6 +395,15 @@ d.run(() => {
 
 			sequence: [
 				'logger',
+				/**
+				 * Description of the function.
+				 *
+				 * @func sequence[1]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 * @todo Add description for the function and its params
+				 */
 				function(scope, cb) {
 					var sequence = new Sequence({
 						onWarning(current) {
@@ -341,6 +416,15 @@ d.run(() => {
 
 			balancesSequence: [
 				'logger',
+				/**
+				 * Description of the function.
+				 *
+				 * @func balancesSequence[1]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 * @todo Add description for the function and its params
+				 */
 				function(scope, cb) {
 					var sequence = new Sequence({
 						onWarning(current) {
@@ -351,20 +435,19 @@ d.run(() => {
 				},
 			],
 
-			/**
-			 * Once config, genesisblock, logger, build and network are completed,
-			 * adds configuration to `network.app`.
-			 * @method connect
-			 * @param {Object} scope - The results from current execution,
-			 * at leats will contain the required elements.
-			 * @param {function} cb - Callback function.
-			 */
 			connect: [
 				'config',
 				'genesisblock',
 				'logger',
 				'build',
 				'network',
+				/**
+				 * Description of the function.
+				 *
+				 * @func connect[5]
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 */
 				function(scope, cb) {
 					var bodyParser = require('body-parser');
 					var methodOverride = require('method-override');
@@ -415,6 +498,7 @@ d.run(() => {
 								) {
 									return value;
 								}
+
 								return parseInt(value);
 							},
 						})
@@ -428,10 +512,11 @@ d.run(() => {
 						httpApi.middleware.logClientConnections.bind(null, scope.logger)
 					);
 
-					/* Instruct browser to deny display of <frame>, <iframe> regardless of origin.
-			 *
-			 * RFC -> https://tools.ietf.org/html/rfc7034
-			 */
+					/**
+					 * Instruct browser to deny display of <frame>, <iframe> regardless of origin.
+					 *
+					 * RFC -> https://tools.ietf.org/html/rfc7034
+					 */
 					scope.network.app.use(
 						httpApi.middleware.attachResponseHeader.bind(
 							null,
@@ -439,12 +524,14 @@ d.run(() => {
 							'DENY'
 						)
 					);
-					/* Set Content-Security-Policy headers.
-			 *
-			 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
-			 *
-			 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
-			 */
+
+					/**
+					 * Set Content-Security-Policy headers.
+					 *
+					 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
+					 *
+					 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
+					 */
 					scope.network.app.use(
 						httpApi.middleware.attachResponseHeader.bind(
 							null,
@@ -466,17 +553,43 @@ d.run(() => {
 				'modules',
 				'logger',
 				'cache',
+				/**
+				 * Description of the function.
+				 *
+				 * @func swagger[4]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 * @todo Add description for the function and its params
+				 */
 				function(scope, cb) {
 					swagger(scope.network.app, config, scope.logger, scope, cb);
 				},
 			],
 
+			/**
+			 * Description of the function.
+			 *
+			 * @func ed
+			 * @memberof! app
+			 * @param {function} cb - Callback function
+			 * @todo Add description for the function and its params
+			 */
 			ed(cb) {
 				cb(null, require('./helpers/ed.js'));
 			},
 
 			bus: [
 				'ed',
+				/**
+				 * Description of the function.
+				 *
+				 * @func bus[1]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 * @todo Add description for the function and its params
+				 */
 				function(scope, cb) {
 					var changeCase = require('change-case');
 					var bus = function() {
@@ -507,6 +620,14 @@ d.run(() => {
 					cb(null, new bus());
 				},
 			],
+
+			/**
+			 * Description of the function.
+			 *
+			 * @memberof! app
+			 * @param {function} cb - Callback function
+			 * @todo Add description for the function and its params
+			 */
 			db(cb) {
 				var db = require('./db');
 				db
@@ -514,27 +635,32 @@ d.run(() => {
 					.then(db => cb(null, db))
 					.catch(err => cb(err));
 			},
+
 			/**
-			 * It tries to connect with redis server based on config. provided in config.json file
+			 * Description of the function.
+			 *
+			 * @memberof! app
 			 * @param {function} cb
+			 * @todo Add description for the params
 			 */
 			cache(cb) {
 				var cache = require('./helpers/cache.js');
 				cache.connect(config.cacheEnabled, config.cache, logger, cb);
 			},
-			/**
-			 * Once db, bus, schema and genesisblock are completed,
-			 * loads transaction, block, account and peers from logic folder.
-			 * @method logic
-			 * @param {Object} scope - The results from current execution,
-			 * at leats will contain the required elements.
-			 * @param {function} cb - Callback function.
-			 */
+
 			logic: [
 				'db',
 				'bus',
 				'schema',
 				'genesisblock',
+				/**
+				 * Description of the function.
+				 *
+				 * @func logic[4]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 */
 				function(scope, cb) {
 					var Transaction = require('./logic/transaction.js');
 					var Block = require('./logic/block.js');
@@ -617,15 +743,7 @@ d.run(() => {
 					);
 				},
 			],
-			/**
-			 * Once network, connect, config, logger, bus, sequence,
-			 * dbSequence, balancesSequence, db and logic are completed,
-			 * loads modules from `modules` folder using `config.modules`.
-			 * @method modules
-			 * @param {Object} scope - The results from current execution,
-			 * at leats will contain the required elements.
-			 * @param {nodeStyleCallback} cb - Callback function with resulted load.
-			 */
+
 			modules: [
 				'network',
 				'connect',
@@ -639,6 +757,13 @@ d.run(() => {
 				'db',
 				'logic',
 				'cache',
+				/**
+				 * Description of the function.
+				 *
+				 * @func modules[12]
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 */
 				function(scope, cb) {
 					var tasks = {};
 
@@ -669,19 +794,18 @@ d.run(() => {
 				},
 			],
 
-			/**
-			 * Loads api from `api` folder using `config.api`, once modules, logger and
-			 * network are completed.
-			 * @method api
-			 * @param {Object} scope - The results from current execution,
-			 * at leats will contain the required elements.
-			 * @param {function} cb - Callback function.
-			 */
 			api: [
 				'modules',
 				'logger',
 				'network',
 				'webSocket',
+				/**
+				 * Description of the function.
+				 *
+				 * @func api[4]
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 */
 				function(scope, cb) {
 					Object.keys(config.api).forEach(moduleName => {
 						Object.keys(config.api[moduleName]).forEach(protocol => {
@@ -716,6 +840,15 @@ d.run(() => {
 				'modules',
 				'bus',
 				'logic',
+				/**
+				 * Description of the function.
+				 *
+				 * @func ready[4]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 * @todo Add description for the function and its params
+				 */
 				function(scope, cb) {
 					scope.modules.swagger = scope.swagger;
 
@@ -727,16 +860,16 @@ d.run(() => {
 				},
 			],
 
-			/**
-			 * Once 'ready' is completed, binds and listens for connections on the
-			 * specified host and port for `scope.network.server`.
-			 * @method listen
-			 * @param {Object} scope - The results from current execution,
-			 * at leats will contain the required elements.
-			 * @param {nodeStyleCallback} cb - Callback function with `scope.network`.
-			 */
 			listen: [
 				'ready',
+				/**
+				 * Description of the function.
+				 *
+				 * @func listen[1]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 */
 				function(scope, cb) {
 					scope.network.server.listen(
 						scope.config.httpPort,
@@ -776,42 +909,9 @@ d.run(() => {
 			if (err) {
 				logger.fatal(err);
 			} else {
-				/**
-				 * Handles app instance (acts as global variable, passed as parameter).
-				 * @global
-				 * @typedef {Object} scope
-				 * @property {Object} api - Undefined.
-				 * @property {undefined} balancesSequence - Sequence function, sequence Array.
-				 * @property {string} build - Empty.
-				 * @property {Object} bus - Message function, bus constructor.
-				 * @property {Object} config - Configuration.
-				 * @property {undefined} connect - Undefined.
-				 * @property {Object} db - Database constructor, database functions.
-				 * @property {function} dbSequence - Database function.
-				 * @property {Object} ed - Crypto functions from lisk node-sodium.
-				 * @property {Object} genesisblock - Block information.
-				 * @property {string} lastCommit - Hash transaction.
-				 * @property {Object} listen - Network information.
-				 * @property {Object} logger - Log functions.
-				 * @property {Object} logic - several logic functions and objects.
-				 * @property {Object} modules - Several modules functions.
-				 * @property {Object} network - Several network functions.
-				 * @property {string} nonce
-				 * @property {undefined} ready
-				 * @property {Object} schema - ZSchema with objects.
-				 * @property {Object} sequence - Sequence function, sequence Array.
-				 * @todo logic repeats: bus, ed, genesisblock, logger, schema.
-				 * @todo description for nonce and ready
-				 */
 				scope.logger.info('Modules ready and launched');
-				/**
-				 * Event reporting a cleanup.
-				 * @event cleanup
-				 */
-				/**
-				 * Receives a 'cleanup' signal and cleans all modules.
-				 * @listens cleanup
-				 */
+
+				// Receives a 'cleanup' signal and cleans all modules
 				process.once('cleanup', () => {
 					scope.logger.info('Cleaning up...');
 					scope.socketCluster.destroy();
@@ -835,51 +935,15 @@ d.run(() => {
 					);
 				});
 
-				/**
-				 * Event reporting a SIGTERM.
-				 * @event SIGTERM
-				 */
-				/**
-				 * Receives a 'SIGTERM' signal and emits a cleanup.
-				 * @listens SIGTERM
-				 */
 				process.once('SIGTERM', () => {
-					/**
-					 * emits cleanup once 'SIGTERM'.
-					 * @emits cleanup
-					 */
 					process.emit('cleanup');
 				});
 
-				/**
-				 * Event reporting an exit.
-				 * @event exit
-				 */
-				/**
-				 * Receives an 'exit' signal and emits a cleanup.
-				 * @listens exit
-				 */
 				process.once('exit', () => {
-					/**
-					 * emits cleanup once 'exit'.
-					 * @emits cleanup
-					 */
 					process.emit('cleanup');
 				});
 
-				/**
-				 * Event reporting a SIGINT.
-				 * @event SIGINT
-				 */
-				/**
-				 * Receives a 'SIGINT' signal and emits a cleanup.
-				 * @listens SIGINT
-				 */
 				process.once('SIGINT', () => {
-					/**
-					 * emits cleanup once 'SIGINT'.
-					 * @emits cleanup
-					 */
 					process.emit('cleanup');
 				});
 			}
@@ -887,20 +951,8 @@ d.run(() => {
 	);
 });
 
-/**
- * Event reporting an uncaughtException.
- * @event uncaughtException
- */
-/**
- * Receives a 'uncaughtException' signal and emits a cleanup.
- * @listens uncaughtException
- */
 process.on('uncaughtException', err => {
 	// Handle error safely
 	logger.fatal('System error', { message: err.message, stack: err.stack });
-	/**
-	 * emits cleanup once 'uncaughtException'.
-	 * @emits cleanup
-	 */
 	process.emit('cleanup');
 });

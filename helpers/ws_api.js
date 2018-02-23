@@ -44,15 +44,18 @@ var z_schema = swaggerHelper.getValidator();
  * and setup router.
  *
  * @namespace middleware
- * @see Parent: {@link helpers.ws_api}
  * @memberof module:helpers/ws_api
+ * @see Parent: {@link module:helpers/ws_api}
  */
 var middleware = {
 	/**
-	 * Description of the function.
+	 * Description of the class.
 	 *
+	 * @class Handshake
+	 * @memberof module:helpers/ws_api.middleware
+	 * @see Parent: {@link module:helpers/ws_api.middleware}
 	 * @param {Object} system
-	 * @todo Add description for the function and the params
+	 * @todo Add description for the class and the params
 	 * @todo Add @returns tag
 	 */
 	// eslint-disable-next-line object-shorthand

@@ -30,14 +30,14 @@ var defaults = {
  * Description of the function.
  *
  * @func create_request_limit
- * @memberof api/fittings
+ * @memberof api.fittings
  * @requires debug
  * @requires express-rate-limit
  * @requires helpers/swagger_module_registry.getConfig
  * @requires lodash
  * @param {Object} fittingDef
  * @param {Object} bagpipes
- * @returns {function} {@link api/fittings.lisk_request_limit}
+ * @returns {function} {@link api.fittings.lisk_request_limit}
  * @todo Add description for the function and the params
  */
 module.exports = function create(fittingDef) {
@@ -68,10 +68,10 @@ module.exports = function create(fittingDef) {
 	 * Description of the function.
 	 *
 	 * @func lisk_request_limit
-	 * @memberof api/fittings
+	 * @memberof api.fittings
 	 * @param {Object} context
 	 * @param {function} cb
-	 * @returns {function} {@link api/fittings.lisk_request_limit}
+	 * @returns {function} {@link api.fittings.lisk_request_limit}
 	 * @todo Add description for the function and the params
 	 */
 	function lisk_request_limit(context, cb) {

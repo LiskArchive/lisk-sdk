@@ -354,7 +354,7 @@ describe('GET /api/node', () => {
 				});
 			});
 
-			describe('offset', () => {
+			describe('offset @unstable', () => {
 				it('using offset="one" should fail', () => {
 					return UnProcessedEndpoint.makeRequest({ offset: 'one' }, 400).then(
 						res => {
