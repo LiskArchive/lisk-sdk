@@ -66,7 +66,6 @@
 		"js-yaml": "=3.10.0",
 		"json-refs": "=3.0.3",
 		"json-schema": "=0.2.3",
-		"json-sql": "LiskHQ/json-sql#6aa525c580f49c9a00e1814721e76764a4c9e0bb",
 		"lodash": "=4.17.4",
 		"method-override": "=2.3.10",
 		"pg-monitor": "=0.8.5",
