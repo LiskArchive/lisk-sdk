@@ -21,12 +21,12 @@ var debug = require('debug')('swagger:lisk:error_handler');
  * Description of the function.
  *
  * @func create_error_handler
- * @memberof api/fittings
+ * @memberof api.fittings
  * @requires debug
  * @requires util
  * @param {Object} fittingDef
  * @param {Object} bagpipes
- * @returns {function} {@link api/fittings.lisk_error_handler}
+ * @returns {function} {@link api.fittings.lisk_error_handler}
  * @todo Add description for the function and the params
  */
 module.exports = function create(fittingDef) {
@@ -36,7 +36,7 @@ module.exports = function create(fittingDef) {
 	 * Description of the function.
 	 *
 	 * @func lisk_error_handler
-	 * @memberof api/fittings
+	 * @memberof api.fittings
 	 * @param {Object} context
 	 * @param {function} cb
 	 * @todo Add description for the function and the params

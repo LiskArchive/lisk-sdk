@@ -33,12 +33,20 @@ class DatabaseSeed {
 	static seedBlocks(db, accounts) {
 		let block;
 		const blocks = [];
-		accounts.forEach(account => {
-			block = fixtures.blocks.Block({
-				id: account.blockId,
-				previousBlock: block ? block.id : null,
-				height: blocks.length + 1,
-			});
+		accounts.forEach((account, index) => {
+			if (index === 0) {
+				block = fixtures.blocks.GenesisBlock({
+					generatorPublicKey: account.publicKey,
+				});
+			} else {
+				block = fixtures.blocks.Block({
+					id: account.blockId,
+					generatorPublicKey: account.publicKey,
+					previousBlock: block ? block.id : null,
+					height: blocks.length + 1,
+				});
+			}
+
 			blocks.push(block);
 		});
 
