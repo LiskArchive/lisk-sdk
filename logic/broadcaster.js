@@ -20,6 +20,7 @@ const _ = require('lodash');
 const constants = require('../helpers/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const bson = require('../helpers/bson.js');
+const LiskError = require('../helpers/errors/lisk_error');
 
 // Private fields
 let modules;
@@ -50,44 +51,53 @@ const __private = {};
 // Constructor
 class Broadcaster {
 	constructor(broadcasts, force, peers, transaction, logger) {
-		library = {
-			logger,
-			logic: {
-				peers,
-				transaction,
-			},
-			config: {
-				broadcasts,
-				forging: {
-					force,
+		try {
+			library = {
+				logger,
+				logic: {
+					peers,
+					transaction,
 				},
-			},
-		};
-		self = this;
+				config: {
+					broadcasts,
+					forging: {
+						force,
+					},
+				},
+			};
 
-		self.queue = [];
-		self.config = library.config.broadcasts;
-		self.config.peerLimit = constants.maxPeers;
+			self = this;
 
-		// Broadcast routes
-		self.routes = [
-			{
-				path: 'postTransactions',
-				collection: 'transactions',
-				object: 'transaction',
-			},
-			{
-				path: 'postSignatures',
-				collection: 'signatures',
-				object: 'signature',
-			},
-		];
+			self.queue = [];
+			self.config = library.config.broadcasts;
+			self.config.peerLimit = constants.maxPeers;
+			// The below config parallelLimit, relayLimit was missing
+			// so we need to see if it was missing and add specific numbers
+			self.config.parallelLimit = 10;
+			self.config.relayLimit = 10;
 
-		jobsQueue.register(
-			'broadcasterNextRelease',
-			nextRelease,
-			self.config.broadcastInterval
-		);
+			// Broadcast routes
+			self.routes = [
+				{
+					path: 'postTransactions',
+					collection: 'transactions',
+					object: 'transaction',
+				},
+				{
+					path: 'postSignatures',
+					collection: 'signatures',
+					object: 'signature',
+				},
+			];
+
+			jobsQueue.register(
+				'broadcasterNextRelease',
+				nextRelease,
+				self.config.broadcastInterval
+			);
+		} catch (err) {
+			throw new LiskError('Broadcaster:constructor', err);
+		}
 	}
 
 	/**
@@ -99,8 +109,12 @@ class Broadcaster {
 	 * @todo Add description for the params
 	 */
 	enqueue(params, options) {
-		options.immediate = false;
-		return this.queue.push({ params, options });
+		try {
+			options.immediate = false;
+			return this.queue.push({ params, options });
+		} catch (err) {
+			throw new LiskError('Broadcaster:enqueue', err);
+		}
 	}
 
 	/**
@@ -117,7 +131,6 @@ class Broadcaster {
 		params.normalized = false;
 
 		const originalLimit = params.limit;
-
 		modules.peers.list(params, (err, peers) => {
 			if (err) {
 				return setImmediate(cb, err);
@@ -155,12 +168,12 @@ class Broadcaster {
 			[
 				function getPeers(waterCb) {
 					if (!params.peers) {
-						return this.getPeers(params, waterCb);
+						return self.getPeers(params, waterCb);
 					}
 					return setImmediate(waterCb, null, params.peers);
 				},
 				function sendToPeer(peers, waterCb) {
-					library.logger.debug('Begin broadcast', options);
+					library.logger.info('Begin broadcast', options);
 
 					if (options.data.block) {
 						try {
@@ -171,16 +184,16 @@ class Broadcaster {
 						}
 					}
 
-					if (params.limit === this.config.peerLimit) {
-						peers = peers.slice(0, this.config.broadcastLimit);
+					if (params.limit === self.config.peerLimit) {
+						peers = peers.slice(0, self.config.broadcastLimit);
 					}
 					async.eachLimit(
 						peers,
-						this.config.parallelLimit,
+						self.config.parallelLimit,
 						(peer, eachLimitCb) => {
 							peer.rpc[options.api](options.data, err => {
 								if (err) {
-									library.logger.debug(
+									library.logger.error(
 										`Failed to broadcast to peer: ${peer.string}`,
 										err
 									);
@@ -189,7 +202,7 @@ class Broadcaster {
 							});
 						},
 						err => {
-							library.logger.debug('End broadcast');
+							library.logger.info('End broadcast');
 							return setImmediate(waterCb, err, peers);
 						}
 					);
@@ -202,39 +215,29 @@ class Broadcaster {
 			}
 		);
 	}
-
-	/**
-	 * Counts relays and valid limit.
-	 *
-	 * @param {Object} object
-	 * @returns {boolean} true - If broadcast relays exhausted
-	 * @todo Add description for the params
-	 */
-	maxRelays(object) {
-		if (!Number.isInteger(object.relays)) {
-			object.relays = 0; // First broadcast
-		}
-
-		if (Math.abs(object.relays) >= this.config.relayLimit) {
-			library.logger.debug('Broadcast relays exhausted', object);
-			return true;
-		}
-		object.relays++; // Next broadcast
-		return false;
-	}
-}
-
-// Broadcaster timer
-function nextRelease(cb) {
-	__private.releaseQueue(err => {
-		if (err) {
-			library.logger.log('Broadcaster timer', err);
-		}
-		return setImmediate(cb);
-	});
 }
 
 // Public methods
+/**
+ * Counts relays and valid limit.
+ *
+ * @param {Object} object
+ * @returns {boolean} true - If broadcast relays exhausted
+ * @todo Add description for the params
+ */
+Broadcaster.prototype.maxRelays = function(object) {
+	if (!Number.isInteger(object.relays)) {
+		object.relays = 0; // First broadcast
+	}
+
+	if (Math.abs(object.relays) >= self.config.relayLimit) {
+		library.logger.info('Broadcast relays exhausted', object);
+		return true;
+	}
+	object.relays++; // Next broadcast
+	return false;
+};
+
 /**
  * Binds input parameters to private variables modules.
  *
@@ -251,6 +254,16 @@ Broadcaster.prototype.bind = function(peers, transport, transactions) {
 	};
 };
 
+// Broadcaster timer
+function nextRelease(cb) {
+	__private.releaseQueue(err => {
+		if (err) {
+			library.logger.info('Broadcaster timer', err);
+		}
+		return setImmediate(cb);
+	});
+}
+
 // Private
 /**
  * Filters private queue based on broadcasts.
@@ -261,7 +274,7 @@ Broadcaster.prototype.bind = function(peers, transport, transactions) {
  * @todo Add description for the params
  */
 __private.filterQueue = function(cb) {
-	library.logger.debug(`Broadcasts before filtering: ${self.queue.length}`);
+	library.logger.info(`Broadcasts before filtering: ${self.queue.length}`);
 
 	async.filter(
 		self.queue,
@@ -279,7 +292,7 @@ __private.filterQueue = function(cb) {
 		(err, broadcasts) => {
 			self.queue = broadcasts;
 
-			library.logger.debug(`Broadcasts after filtering: ${self.queue.length}`);
+			library.logger.info(`Broadcasts after filtering: ${self.queue.length}`);
 			return setImmediate(cb);
 		}
 	);
@@ -316,7 +329,6 @@ __private.filterTransaction = function(transaction, cb) {
  */
 __private.squashQueue = function(broadcasts) {
 	const grouped = _.groupBy(broadcasts, broadcast => broadcast.options.api);
-
 	const squashed = [];
 
 	self.routes.forEach(route => {
@@ -349,10 +361,10 @@ __private.squashQueue = function(broadcasts) {
  * @todo Add description for the params
  */
 __private.releaseQueue = function(cb) {
-	library.logger.debug('Releasing enqueued broadcasts');
+	library.logger.info('Releasing enqueued broadcasts');
 
 	if (!self.queue.length) {
-		library.logger.debug('Queue empty');
+		library.logger.info('Queue empty');
 		return setImmediate(cb);
 	}
 
@@ -386,9 +398,9 @@ __private.releaseQueue = function(cb) {
 		],
 		(err, broadcasts) => {
 			if (err) {
-				library.logger.debug('Failed to release broadcast queue', err);
+				library.logger.error('Failed to release broadcast queue', err);
 			} else {
-				library.logger.debug(`Broadcasts released: ${broadcasts.length}`);
+				library.logger.info(`Broadcasts released: ${broadcasts.length}`);
 			}
 			return setImmediate(cb);
 		}
