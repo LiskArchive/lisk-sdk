@@ -359,10 +359,6 @@ class Transaction {
 			return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
 		}
 
-		// if (!this.ready(trs, sender)) {
-		// 	return setImmediate(cb, 'Transaction is not ready: ' + trs.id);
-		// }
-
 		// Check sender
 		if (!sender) {
 			return setImmediate(cb, 'Missing sender');
