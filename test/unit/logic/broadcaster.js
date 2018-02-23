@@ -223,4 +223,13 @@ describe('Broadcaster', () => {
 			]);
 		});
 	});
+
+	describe('releaseQueue', () => {
+		it('should release enqueued broadcasts', done => {
+			const releaseQueue = Broadcaster.__get__('__private.releaseQueue');
+			releaseQueue(() => {
+				done();
+			});
+		});
+	});
 });
