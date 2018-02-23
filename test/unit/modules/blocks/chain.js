@@ -83,7 +83,9 @@ describe('blocks/chain', () => {
 		library = BlocksChain.__get__('library');
 		__private = BlocksChain.__get__('__private');
 		// Module
-
+		const tracker = {
+			applyNext: sinonSandbox.stub(),
+		};
 		var modulesAccountsStub = {
 			getAccount: sinonSandbox.stub(),
 			setAccountAndGet: sinonSandbox.stub(),
@@ -95,6 +97,7 @@ describe('blocks/chain', () => {
 			},
 			utils: {
 				loadBlocksPart: sinonSandbox.stub(),
+				getBlockProgressLogger: sinonSandbox.stub().returns(tracker),
 			},
 			isActive: {
 				set: sinonSandbox.stub(),
@@ -461,61 +464,156 @@ describe('blocks/chain', () => {
 	});
 
 	describe('applyGenesisBlock', () => {
-		it('should sort transactions after type');
-
-		it('should call modules.blocks.utils.getBlockProgressLogger');
-
-		it(
-			'should call modules.blocks.utils.getBlockProgressLogger with block.transactions.length'
-		);
-
-		it(
-			'should call modules.blocks.utils.getBlockProgressLogger with block.transactions.length / 100'
-		);
-
-		it(
-			'should call modules.blocks.utils.getBlockProgressLogger with "Genesis block loading"'
-		);
-
-		describe('for every block.transactions', () => {
-			it('should call modules.accounts.setAccountAndGet');
-
-			it(
-				'should call modules.accounts.setAccountAndGet with {publicKey: transaction.senderPublicKey}'
-			);
-
-			describe('when modules.accounts.setAccountAndGet fails', () => {
-				describe('error object', () => {
-					it('should assign message');
-
-					it('should assign transaction');
-
-					it('should assign block');
+		let applyTransactionTemp;
+		beforeEach(() => {
+			modules.rounds.tick.callsArgWith(1, null, true);
+			applyTransactionTemp = __private.applyTransaction;
+			__private.applyTransaction = sinonSandbox.stub();
+		});
+		afterEach(() => {
+			__private.applyTransaction = applyTransactionTemp;
+		});
+		describe('when block.transactions is empty', () => {
+			afterEach(() => {
+				expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
+					.true;
+				expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+				expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal({
+					id: 1,
+					height: 1,
+					transactions: [],
 				});
-
-				it('should call process.exit with 0');
+				expect(modules.rounds.tick.args[0][0]).to.deep.equal({
+					id: 1,
+					height: 1,
+					transactions: [],
+				});
 			});
-
-			describe('when modules.accounts.setAccountAndGet succeeds', () => {
-				it('should call __private.applyTransaction');
-
-				it('should call __private.applyTransaction with block');
-
-				it('should call __private.applyTransaction with transaction');
-
-				it('should call __private.applyTransaction with sender');
-
-				it('should call __private.applyTransaction with callback');
-
-				it('should call tracker.applyNext');
+			it('modules.rouds.tick should call a callback', done => {
+				blocksChainModule.applyGenesisBlock(
+					{ id: 1, height: 1, transactions: [] },
+					() => {
+						done();
+					}
+				);
 			});
-
-			describe('after loop through block.transactions', () => {
-				it('should set genesis block as last block');
-
-				it('should call callback with error = undefined');
-
-				it('should call callback with result = undefined');
+		});
+		describe('when block.transactions is not empty', () => {
+			describe('modules.accounts.setAccountAndGet', () => {
+				describe('when fails', () => {
+					beforeEach(() => {
+						modules.accounts.setAccountAndGet.callsArgWith(
+							1,
+							'setAccountAndGet-ERR',
+							true
+						);
+					});
+					afterEach(() => {
+						expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
+							.true;
+					});
+					it('should return process.exit(0)', done => {
+						process.exit = done;
+						blocksChainModule.applyGenesisBlock(
+							{
+								id: 1,
+								height: 1,
+								transactions: [
+									{ id: 5, type: 3 },
+									{ id: 6, type: 2 },
+									{ id: 7, type: 1 },
+								],
+							},
+							() => {
+								done();
+							}
+						);
+					});
+				});
+				describe('when succeeds', () => {
+					beforeEach(() => {
+						modules.accounts.setAccountAndGet.callsArgWith(1, null, true);
+					});
+					describe('__private.applyTransaction', () => {
+						describe('when fails', () => {
+							beforeEach(() => {
+								__private.applyTransaction.callsArgWith(
+									3,
+									'applyTransaction-ERR',
+									null
+								);
+							});
+							afterEach(() => {
+								expect(modules.blocks.utils.getBlockProgressLogger.calledOnce)
+									.to.be.true;
+								expect(__private.applyTransaction.callCount).to.equal(1);
+							});
+							it('should return process.exit(0)', done => {
+								process.exit = done;
+								blocksChainModule.applyGenesisBlock(
+									{
+										id: 1,
+										height: 1,
+										transactions: [
+											{ id: 5, type: 3 },
+											{ id: 6, type: 2 },
+											{ id: 7, type: 1 },
+										],
+									},
+									err => {
+										expect(err).to.equal('applyTransaction-ERR');
+										done();
+									}
+								);
+							});
+						});
+						describe('when succeeds', () => {
+							beforeEach(() => {
+								__private.applyTransaction.callsArgWith(3, null, true);
+							});
+							afterEach(() => {
+								expect(modules.blocks.utils.getBlockProgressLogger.calledOnce)
+									.to.be.true;
+								expect(__private.applyTransaction.callCount).to.equal(3);
+								expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+								expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal({
+									id: 1,
+									height: 1,
+									transactions: [
+										{ id: 6, type: 2 },
+										{ id: 7, type: 1 },
+										{ id: 5, type: 3 },
+									],
+								});
+								expect(modules.rounds.tick.args[0][0]).to.deep.equal({
+									id: 1,
+									height: 1,
+									transactions: [
+										{ id: 6, type: 2 },
+										{ id: 7, type: 1 },
+										{ id: 5, type: 3 },
+									],
+								});
+							});
+							it('modules.rouds.tick should call a callback', done => {
+								blocksChainModule.applyGenesisBlock(
+									{
+										id: 1,
+										height: 1,
+										transactions: [
+											{ id: 5, type: 3 },
+											{ id: 6, type: 2 },
+											{ id: 7, type: 1 },
+										],
+									},
+									() => {
+										done();
+									}
+								);
+							});
+						});
+					});
+				});
 			});
 		});
 	});
