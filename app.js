@@ -476,6 +476,7 @@ d.run(() => {
 						'address',
 						'recipientId',
 						'senderId',
+						'search',
 					];
 
 					scope.network.app.use(
