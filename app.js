@@ -86,7 +86,7 @@ process.stdin.resume();
 var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
 
 /**
- * Hash of last git commit.
+ * Hash of the last git commit.
  *
  * @memberof! app
  */
@@ -99,14 +99,14 @@ if (typeof gc !== 'undefined') {
 }
 
 /**
- * The default list of configuration options. Can be updated by CLI.
+ * Default list of configuration options. Can be overridden by CLI.
  *
  * @memberof! app
  * @default 'config.json'
  */
 var appConfig = AppConfig(require('./package.json'));
 
-// Define top endpoint availability
+// Define availability of top accounts endpoint
 process.env.TOP = appConfig.topAccounts;
 
 /**
@@ -167,7 +167,7 @@ if (
 	});
 }
 
-// Trying to get last git commit
+// Try to get the last git commit
 try {
 	lastCommit = git.getLastCommit();
 } catch (err) {
@@ -179,19 +179,18 @@ d.on('error', err => {
 	process.exit(0);
 });
 
-// runs domain
+// Run domain
 d.run(() => {
 	var modules = [];
 	async.auto(
 		{
 			/**
-			 * Loads `payloadHash`.
-			 * Then updates config.json with new random  password.
+			 * Attempts to determine nethash from genesis block.
 			 *
 			 * @func config
 			 * @memberof! app
-			 * @param {nodeStyleCallback} cb - Callback function with the mutated `appConfig`
-			 * @throws {Error} If failed to assign nethash from genesis block
+			 * @param {function} cb - Callback function
+			 * @throws {Error} If unable to assign nethash from genesis block
 			 */
 			config(cb) {
 				try {
@@ -215,7 +214,7 @@ d.run(() => {
 			},
 
 			/**
-			 * Returns hash of last git commit.
+			 * Returns hash of the last git commit.
 			 *
 			 * @func lastCommit
 			 * @memberof! app
@@ -309,7 +308,7 @@ d.run(() => {
 				 * @func webSocket[4]
 				 * @memberof! app
 				 * @param {Object} scope
-				 * @param {nodeStyleCallback} cb
+				 * @param {function} cb - Callback function
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
@@ -372,7 +371,7 @@ d.run(() => {
 				 * @func dbSequence[1]
 				 * @memberof! app
 				 * @param {Object} scope
-				 * @param {nodeStyleCallback} cb
+				 * @param {function} cb - Callback function
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
@@ -393,7 +392,7 @@ d.run(() => {
 				 * @func sequence[1]
 				 * @memberof! app
 				 * @param {Object} scope
-				 * @param {nodeStyleCallback} cb
+				 * @param {function} cb - Callback function
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
@@ -414,7 +413,7 @@ d.run(() => {
 				 * @func balancesSequence[1]
 				 * @memberof! app
 				 * @param {Object} scope
-				 * @param {nodeStyleCallback} cb
+				 * @param {function} cb - Callback function
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
@@ -502,10 +501,11 @@ d.run(() => {
 						httpApi.middleware.logClientConnections.bind(null, scope.logger)
 					);
 
-					/* Instruct browser to deny display of <frame>, <iframe> regardless of origin.
-			 *
-			 * RFC -> https://tools.ietf.org/html/rfc7034
-			 */
+					/**
+					 * Instruct browser to deny display of <frame>, <iframe> regardless of origin.
+					 *
+					 * RFC -> https://tools.ietf.org/html/rfc7034
+					 */
 					scope.network.app.use(
 						httpApi.middleware.attachResponseHeader.bind(
 							null,
@@ -513,12 +513,14 @@ d.run(() => {
 							'DENY'
 						)
 					);
-					/* Set Content-Security-Policy headers.
-			 *
-			 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
-			 *
-			 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
-			 */
+
+					/**
+					 * Set Content-Security-Policy headers.
+					 *
+					 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
+					 *
+					 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
+					 */
 					scope.network.app.use(
 						httpApi.middleware.attachResponseHeader.bind(
 							null,
@@ -546,7 +548,7 @@ d.run(() => {
 				 * @func swagger[4]
 				 * @memberof! app
 				 * @param {Object} scope
-				 * @param {nodeStyleCallback} cb
+				 * @param {function} cb - Callback function
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
@@ -559,7 +561,7 @@ d.run(() => {
 			 *
 			 * @func ed
 			 * @memberof! app
-			 * @param {nodeStyleCallback} cb
+			 * @param {function} cb - Callback function
 			 * @todo Add description for the function and its params
 			 */
 			ed(cb) {
@@ -574,7 +576,7 @@ d.run(() => {
 				 * @func bus[1]
 				 * @memberof! app
 				 * @param {Object} scope
-				 * @param {nodeStyleCallback} cb
+				 * @param {function} cb - Callback function
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
@@ -612,7 +614,7 @@ d.run(() => {
 			 * Description of the function.
 			 *
 			 * @memberof! app
-			 * @param {nodeStyleCallback} cb
+			 * @param {function} cb - Callback function
 			 * @todo Add description for the function and its params
 			 */
 			db(cb) {
@@ -833,7 +835,7 @@ d.run(() => {
 				 * @func ready[4]
 				 * @memberof! app
 				 * @param {Object} scope
-				 * @param {nodeStyleCallback} cb
+				 * @param {function} cb - Callback function
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
@@ -898,7 +900,7 @@ d.run(() => {
 			} else {
 				scope.logger.info('Modules ready and launched');
 
-				// Receives a 'cleanup' signal and cleans all modules.
+				// Receives a 'cleanup' signal and cleans all modules
 				process.once('cleanup', () => {
 					scope.logger.info('Cleaning up...');
 					scope.socketCluster.destroy();
