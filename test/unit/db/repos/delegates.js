@@ -157,26 +157,6 @@ describe('db', () => {
 					account2.publicKey
 				);
 			});
-
-			it('should return list sorted list of delegates by asc vote and desc public key ', function*() {
-				const account1 = accountFixtures.Account({ isDelegate: true });
-				const account2 = accountFixtures.Account({ isDelegate: true });
-				const account3 = accountFixtures.Account({ isDelegate: true });
-
-				yield db.accounts.insert(account1);
-				yield db.accounts.insert(account2);
-				yield db.accounts.insert(account3);
-
-				const result = yield db.delegates.getDelegatesByPublicKeys([
-					account1.publicKey,
-					account2.publicKey,
-					account3.publicKey,
-				]);
-
-				return expect(result).to.be.eql(
-					_.orderBy(result, ['vote', 'publicKey'], ['asc', 'desc'])
-				);
-			});
 		});
 
 		describe('countDuplicatedDelegates()', () => {
