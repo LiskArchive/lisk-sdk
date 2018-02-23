@@ -1444,12 +1444,12 @@ describe('transport', () => {
 						});
 					});
 				});
-			});
 
-			it('should call library.network.io.sockets.emit with "blocks/change" and block', () => {
-				return expect(
-					library.network.io.sockets.emit.calledWith('blocks/change', block)
-				);
+				it('should call library.network.io.sockets.emit with "blocks/change" and block', () => {
+					return expect(
+						library.network.io.sockets.emit.calledWith('blocks/change', block)
+					).to.be.true;
+				});
 			});
 		});
 
@@ -1515,13 +1515,13 @@ describe('transport', () => {
 						});
 
 						it('should call library.logger.debug with "Common block request validation failed" and {err: err.toString(), req: query}', () => {
-							expect(library.logger.debug.calledOnce);
+							expect(library.logger.debug.calledOnce).to.be.true;
 							return expect(
 								library.logger.debug.calledWith(
 									'Common block request validation failed',
-									{ err: validateErr.toString(), req: query }
+									{ err: `${validateErr.message}: undefined`, req: query }
 								)
-							);
+							).to.be.true;
 						});
 
 						it('should call callback with error', () => {
@@ -1532,56 +1532,40 @@ describe('transport', () => {
 					});
 
 					describe('when library.schema.validate succeeds', () => {
-						describe('escapedIds', () => {
-							it('should remove quotes from query.ids');
-
-							it('should separate ids from query.ids by comma');
-
-							it('should remove any non-numeric values from query.ids');
-						});
-
 						describe('when escapedIds.length = 0', () => {
-							it('should call library.logger.debug');
+							beforeEach(done => {
+								// All ids will be filtered out because they are non-numeric.
+								query = { ids: '"abc","def","ghi"' };
+								__private.removePeer = sinonSandbox.stub();
+								transportInstance.shared.blocksCommon(query, err => {
+									error = err;
+									done();
+								});
+							});
 
-							it(
-								'should call library.logger.debug with "Common block request validation failed"'
-							);
+							it('should call library.logger.debug with "Common block request validation failed" and {err: "ESCAPE", req: query.ids}', () => {
+								expect(library.logger.debug.calledOnce).to.be.true;
+								return expect(
+									library.logger.debug.calledWith(
+										'Common block request validation failed',
+										{ err: 'ESCAPE', req: query.ids }
+									)
+								).to.be.true;
+							});
 
-							it(
-								'should call library.logger.debug with {err: "ESCAPE", req: query.ids}'
-							);
+							it('should call __private.removePeer with {peer: query.peer, code: "ECOMMON"}', () => {
+								expect(__private.removePeer.calledOnce).to.be.true;
+								return expect(
+									__private.removePeer.calledWith({
+										peer: query.peer,
+										code: 'ECOMMON',
+									})
+								).to.be.true;
+							});
 
-							it('should call __private.removePeer');
-
-							it(
-								'should call __private.removePeer with {peer: query.peer, code: "ECOMMON"}'
-							);
-
-							it(
-								'should call callback with error = "Invalid block id sequence"'
-							);
-						});
-
-						it('should call library.db.query');
-
-						it('should call library.db.query with sql.getCommonBlock');
-
-						it('should call library.db.query with escapedIds');
-
-						describe('when library.db.query fails', () => {
-							it('should call library.logger.error with error stack');
-
-							it(
-								'should call callback with error = "Failed to get common block"'
-							);
-						});
-
-						describe('when library.db.query succeeds', () => {
-							it('should call callback with error = null');
-
-							it(
-								'should call callback with result  = { success: true, common: rows[0] || null }'
-							);
+							it('should call callback with error = "Invalid block id sequence"', () => {
+								return expect(error).to.be.equal('Invalid block id sequence');
+							});
 						});
 					});
 				});
