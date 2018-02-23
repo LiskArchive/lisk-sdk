@@ -843,8 +843,8 @@ class Transaction {
 					transaction,
 					block,
 					sender,
-					txApplyErr => {
-						if (txApplyErr) {
+					err => {
+						if (err) {
 							this.scope.account.merge(
 								sender.address,
 								{
@@ -852,7 +852,7 @@ class Transaction {
 									blockId: block.id,
 									round: slots.calcRound(block.height),
 								},
-								accountMergeErr => setImmediate(cb, accountMergeErr),
+								err => setImmediate(cb, err),
 								tx
 							);
 						} else {
@@ -905,8 +905,8 @@ class Transaction {
 					transaction,
 					block,
 					sender,
-					txUndoErr => {
-						if (txUndoErr) {
+					err => {
+						if (err) {
 							this.scope.account.merge(
 								sender.address,
 								{
@@ -914,7 +914,7 @@ class Transaction {
 									blockId: block.id,
 									round: slots.calcRound(block.height),
 								},
-								accountMergeErr => setImmediate(cb, accountMergeErr)
+								err => setImmediate(cb, err)
 							);
 						} else {
 							return setImmediate(cb);
@@ -1024,12 +1024,12 @@ class Transaction {
 					this,
 					transaction,
 					sender,
-					txUndoErr => {
-						if (txUndoErr) {
+					err => {
+						if (err) {
 							this.scope.account.merge(
 								sender.address,
 								{ u_balance: -amount },
-								accountMergeErr => setImmediate(cb, accountMergeErr || err),
+								err2 => setImmediate(cb, err2 || err),
 								tx
 							);
 						} else {
