@@ -260,7 +260,7 @@ d.run(() => {
 					if (appConfig.coverage) {
 						var im = require('istanbul-middleware');
 						logger.debug(
-							'Hook loader for coverage - do not use in production environment!'
+							'Hook loader for coverage - Do not use in production environment!'
 						);
 						im.hookLoader(__dirname);
 						app.use('/coverage', im.createHandler());
@@ -497,6 +497,7 @@ d.run(() => {
 								) {
 									return value;
 								}
+
 								return parseInt(value);
 							},
 						})
