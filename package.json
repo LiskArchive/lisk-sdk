@@ -52,7 +52,6 @@
 		"compression": "=1.7.1",
 		"cors": "=2.8.3",
 		"debug": "=3.1.0",
-		"decompress-zip": "LiskHQ/decompress-zip#f46b0a3",
 		"ejs": "=2.5.6",
 		"express": "=4.16.0",
 		"express-domain-middleware": "=0.1.0",
