@@ -174,7 +174,7 @@ describe('db', () => {
 				return expect(db.dapps.getExisting(params)).to.be.eventually.eql([]);
 			});
 
-			it('should be resolved with proper response if dapp name matches', function*() {
+			it('should be resolved with proper data if dapp name matches', function*() {
 				const dapp = (yield seeder.seedDapps(db, 1))[0];
 				const result = yield db.dapps.getExisting({
 					name: dapp.asset.dapp.name,
@@ -189,7 +189,7 @@ describe('db', () => {
 				return expect(result[0].link).to.be.eql(dapp.asset.dapp.link);
 			});
 
-			it('should be resolved with proper response if dapp link matches', function*() {
+			it('should be resolved with proper data if dapp link matches', function*() {
 				const dapp = (yield seeder.seedDapps(db, 1))[0];
 				const result = yield db.dapps.getExisting({
 					name: 'Unknown',
@@ -216,8 +216,8 @@ describe('db', () => {
 			});
 		});
 
-		describe('list()', () => {
-			it('should use pass correct params to inline sql', function*() {
+		describe('list(params)', () => {
+			it('should pass correct params to inline sql', function*() {
 				sinonSandbox.spy(db, 'query');
 				const params = {
 					limit: 10,
@@ -229,7 +229,7 @@ describe('db', () => {
 				return expect(db.query.firstCall.args[1]).to.be.eql(params);
 			});
 
-			it('should rejected with error if required param "limit" is not passed', () => {
+			it('should be rejected with error if required param "limit" is not passed', () => {
 				return expect(
 					db.dapps.list({
 						// limit: 10,
@@ -238,7 +238,7 @@ describe('db', () => {
 				).to.be.rejectedWith("Property 'limit' doesn't exist.");
 			});
 
-			it('should rejected with error if required param "offset" is not passed', () => {
+			it('should be rejected with error if required param "offset" is not passed', () => {
 				return expect(
 					db.dapps.list({
 						limit: 10,
@@ -256,7 +256,7 @@ describe('db', () => {
 				).to.be.fulfilled;
 			});
 
-			it('should resolve with proper response', function*() {
+			it('should resolve with proper data', function*() {
 				const dapp = (yield seeder.seedDapps(db, 1))[0];
 				const result = yield db.dapps.list({ limit: 10, offset: 0 });
 
@@ -277,7 +277,7 @@ describe('db', () => {
 				return expect(result[0].link).to.eql(dapp.asset.dapp.link);
 			});
 
-			it('should resolved with filtered results if param "where" is provided', function*() {
+			it('should be resolved with filtered results if param "where" is provided', function*() {
 				yield seeder.seedDapps(db, 1);
 				const result = yield db.dapps.list({
 					limit: 10,
@@ -288,7 +288,7 @@ describe('db', () => {
 				return expect(result).to.be.empty;
 			});
 
-			it('should resolved with ascending results if "sortField" and "sortMethod=ASC" is provided', function*() {
+			it('should be resolved with ascending results if "sortField" and "sortMethod=ASC" are provided', function*() {
 				yield seeder.seedDapps(db, 5);
 				const result = yield db.dapps.list({
 					limit: 10,
@@ -301,7 +301,7 @@ describe('db', () => {
 				return expect(result).to.be.eql(_.orderBy(result, 'name'));
 			});
 
-			it('should resolved with descending results if "sortField" and "sortMethod=DESC" is provided', function*() {
+			it('should be resolved with descending results if "sortField" and "sortMethod=DESC" are provided', function*() {
 				yield seeder.seedDapps(db, 5);
 				const result = yield db.dapps.list({
 					limit: 10,
@@ -334,7 +334,7 @@ describe('db', () => {
 				return expect(db.query.firstCall.args[1]).to.be.eql(['11111']);
 			});
 
-			it('should resolve with proper response for a valid transaction id', function*() {
+			it('should resolve with proper data for a valid transaction id', function*() {
 				const dapp = (yield seeder.seedDapps(db, 1))[0];
 				const result = yield db.dapps.getGenesis(dapp.id);
 
