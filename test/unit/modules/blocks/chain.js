@@ -1515,12 +1515,12 @@ describe('blocks/chain', () => {
 
 	describe('broadcastReducedBlock', () => {
 		it('should call library.bus.message with reducedBlock and broadcast', () => {
-			blocksChainModule.broadcastReducedBlock({ id: 3, hright: 3 }, true);
+			blocksChainModule.broadcastReducedBlock({ id: 3, height: 3 }, true);
 			expect(library.bus.message.calledOnce).to.be.true;
 			expect(library.bus.message.args[0][0]).to.equal('broadcastBlock');
 			expect(library.bus.message.args[0][1]).to.deep.equal({
 				id: 3,
-				hright: 3,
+				height: 3,
 			});
 			return expect(library.bus.message.args[0][2]).to.be.true;
 		});
@@ -1529,7 +1529,7 @@ describe('blocks/chain', () => {
 	describe('__private.popLastBlock', () => {
 		describe('modules.blocks.utils.loadBlocksPart', () => {
 			describe('when fails', () => {
-				describe('returns error', () => {
+				describe('if returns error', () => {
 					beforeEach(() => {
 						return modules.blocks.utils.loadBlocksPart.callsArgWith(
 							1,
@@ -1538,7 +1538,7 @@ describe('blocks/chain', () => {
 						);
 					});
 
-					it('should call a callback with error', done => {
+					it('should call a callback with returned error', done => {
 						__private.popLastBlock({ id: 3, height: 3 }, err => {
 							expect(err).to.equal('loadBlocksPart-ERR');
 							done();
@@ -1546,7 +1546,7 @@ describe('blocks/chain', () => {
 					});
 				});
 
-				describe('returns empty', () => {
+				describe('if returns empty', () => {
 					beforeEach(() => {
 						return modules.blocks.utils.loadBlocksPart.callsArgWith(
 							1,
@@ -1570,149 +1570,258 @@ describe('blocks/chain', () => {
 						{ id: 2, height: 2 },
 					]);
 				});
-
-				describe('modules.accounts.getAccount', () => {
-					describe('when fails', () => {
-						beforeEach(() => {
-							return modules.accounts.getAccount.callsArgWith(
-								1,
-								'getAccount-ERR',
-								null
-							);
-						});
-
-						afterEach(() => {
-							expect(loggerStub.error.args[0][0]).to.equal(
-								'Failed to undo transactions'
-							);
-							return expect(loggerStub.error.args[0][1]).to.equal(
-								'getAccount-ERR'
-							);
-						});
-
-						it('should call process.exit(0)', done => {
-							process.exit = done;
-							__private.popLastBlock(
-								{ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] },
-								() => {
-									done();
-								}
-							);
-						});
-					});
-
-					describe('when succeeds', () => {
-						beforeEach(() => {
-							modules.accounts.getAccount.callsArgWith(1, null, '12ab');
-							modules.transactions.undo.callsArgWith(3, null, true);
-							return modules.transactions.undoUnconfirmed.callsArgWith(
-								1,
-								null,
-								true
-							);
-						});
-						describe('modules.rounds.backwardTick', () => {
-							describe('when fails', () => {
-								beforeEach(() => {
-									return modules.rounds.backwardTick.callsArgWith(
-										2,
-										'backwardTick-ERR',
-										null
-									);
-								});
-
-								afterEach(() => {
-									expect(loggerStub.error.args[0][0]).to.equal(
-										'Failed to perform backwards tick'
-									);
-									return expect(loggerStub.error.args[0][1]).to.equal(
-										'backwardTick-ERR'
-									);
-								});
-
-								it('should call process.exit(0)', done => {
-									process.exit = done;
-									__private.popLastBlock(
-										{ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] },
-										() => {
-											done();
-										}
-									);
-								});
+				describe('when oldLastBlock.transactions is empty', () => {
+					describe('modules.rounds.backwardTick', () => {
+						describe('when fails', () => {
+							beforeEach(() => {
+								return modules.rounds.backwardTick.callsArgWith(
+									2,
+									'backwardTick-ERR',
+									null
+								);
 							});
-							describe('when succeeds', () => {
-								var deleteBlockTemp;
-								beforeEach(done => {
-									modules.rounds.backwardTick.callsArgWith(2, null, true);
-									deleteBlockTemp = blocksChainModule.deleteBlock;
-									blocksChainModule.deleteBlock = sinonSandbox.stub();
-									done();
-								});
 
-								afterEach(done => {
-									blocksChainModule.deleteBlock = deleteBlockTemp;
-									done();
-								});
+							afterEach(() => {
+								expect(loggerStub.error.args[0][0]).to.equal(
+									'Failed to perform backwards tick'
+								);
+								return expect(loggerStub.error.args[0][1]).to.equal(
+									'backwardTick-ERR'
+								);
+							});
 
-								describe('self.deleteBlock', () => {
-									describe('when fails', () => {
-										beforeEach(() => {
-											return blocksChainModule.deleteBlock.callsArgWith(
-												1,
-												'deleteBlock-ERR',
-												null
-											);
-										});
+							it('should return process.exit(0)', done => {
+								process.exit = done;
+								__private.popLastBlock(
+									{ id: 3, height: 3, transactions: [] },
+									() => {
+										done();
+									}
+								);
+							});
+						});
+						describe('when succeeds', () => {
+							var deleteBlockTemp;
+							beforeEach(done => {
+								modules.rounds.backwardTick.callsArgWith(2, null, true);
+								deleteBlockTemp = blocksChainModule.deleteBlock;
+								blocksChainModule.deleteBlock = sinonSandbox.stub();
+								done();
+							});
 
-										afterEach(() => {
-											expect(loggerStub.error.args[0][0]).to.equal(
-												'Failed to delete block'
-											);
-											return expect(loggerStub.error.args[0][1]).to.equal(
-												'deleteBlock-ERR'
-											);
-										});
+							afterEach(done => {
+								blocksChainModule.deleteBlock = deleteBlockTemp;
+								done();
+							});
 
-										it('should call process.exit(0)', done => {
-											process.exit = done;
-											__private.popLastBlock(
-												{
-													id: 3,
-													height: 3,
-													transactions: [{ id: 7, type: 0 }],
-												},
-												() => {
-													done();
-												}
-											);
-										});
+							describe('self.deleteBlock', () => {
+								describe('when fails', () => {
+									beforeEach(() => {
+										return blocksChainModule.deleteBlock.callsArgWith(
+											1,
+											'deleteBlock-ERR',
+											null
+										);
 									});
 
-									describe('when succeeds', () => {
-										beforeEach(() => {
-											return blocksChainModule.deleteBlock.callsArgWith(
-												1,
-												null,
-												true
-											);
+									afterEach(() => {
+										expect(loggerStub.error.args[0][0]).to.equal(
+											'Failed to delete block'
+										);
+										return expect(loggerStub.error.args[0][1]).to.equal(
+											'deleteBlock-ERR'
+										);
+									});
+
+									it('should call process.exit(0)', done => {
+										process.exit = done;
+										__private.popLastBlock(
+											{
+												id: 3,
+												height: 3,
+												transactions: [],
+											},
+											() => {
+												done();
+											}
+										);
+									});
+								});
+
+								describe('when succeeds', () => {
+									beforeEach(() => {
+										return blocksChainModule.deleteBlock.callsArgWith(
+											1,
+											null,
+											true
+										);
+									});
+
+									it('should return previousBlock and no error', done => {
+										__private.popLastBlock(
+											{
+												id: 3,
+												height: 3,
+												transactions: [],
+											},
+											(err, previousBlock) => {
+												expect(err).to.be.null;
+												expect(previousBlock).to.deep.equal({
+													id: 2,
+													height: 2,
+												});
+												done();
+											}
+										);
+									});
+								});
+							});
+						});
+					});
+				});
+				describe('when oldLastBlock.transactions is not empty', () => {
+					describe('modules.accounts.getAccount', () => {
+						describe('when fails', () => {
+							beforeEach(() => {
+								return modules.accounts.getAccount.callsArgWith(
+									1,
+									'getAccount-ERR',
+									null
+								);
+							});
+							afterEach(() => {
+								expect(loggerStub.error.args[0][0]).to.equal(
+									'Failed to undo transactions'
+								);
+								return expect(loggerStub.error.args[0][1]).to.equal(
+									'getAccount-ERR'
+								);
+							});
+							it('should return process.exit(0)', done => {
+								process.exit = done;
+								__private.popLastBlock(
+									{ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] },
+									() => {
+										done();
+									}
+								);
+							});
+						});
+						describe('when succeeds', () => {
+							beforeEach(() => {
+								modules.accounts.getAccount.callsArgWith(1, null, '12ab');
+								modules.transactions.undo.callsArgWith(3, null, true);
+								return modules.transactions.undoUnconfirmed.callsArgWith(
+									1,
+									null,
+									true
+								);
+							});
+							afterEach(() => {
+								return expect(modules.transactions.undoUnconfirmed.calledOnce)
+									.to.be.true;
+							});
+							describe('modules.rounds.backwardTick', () => {
+								describe('when fails', () => {
+									beforeEach(() => {
+										return modules.rounds.backwardTick.callsArgWith(
+											2,
+											'backwardTick-ERR',
+											null
+										);
+									});
+									afterEach(() => {
+										expect(loggerStub.error.args[0][0]).to.equal(
+											'Failed to perform backwards tick'
+										);
+										return expect(loggerStub.error.args[0][1]).to.equal(
+											'backwardTick-ERR'
+										);
+									});
+									it('should return process.exit(0)', done => {
+										process.exit = done;
+										__private.popLastBlock(
+											{ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] },
+											() => {
+												done();
+											}
+										);
+									});
+								});
+								describe('when succeeds', () => {
+									var deleteBlockTemp;
+									beforeEach(done => {
+										modules.rounds.backwardTick.callsArgWith(2, null, true);
+										deleteBlockTemp = blocksChainModule.deleteBlock;
+										blocksChainModule.deleteBlock = sinonSandbox.stub();
+										done();
+									});
+
+									afterEach(done => {
+										blocksChainModule.deleteBlock = deleteBlockTemp;
+										done();
+									});
+
+									describe('self.deleteBlock', () => {
+										describe('when fails', () => {
+											beforeEach(() => {
+												return blocksChainModule.deleteBlock.callsArgWith(
+													1,
+													'deleteBlock-ERR',
+													null
+												);
+											});
+
+											afterEach(() => {
+												expect(loggerStub.error.args[0][0]).to.equal(
+													'Failed to delete block'
+												);
+												return expect(loggerStub.error.args[0][1]).to.equal(
+													'deleteBlock-ERR'
+												);
+											});
+
+											it('should return process.exit(0)', done => {
+												process.exit = done;
+												__private.popLastBlock(
+													{
+														id: 3,
+														height: 3,
+														transactions: [{ id: 7, type: 0 }],
+													},
+													() => {
+														done();
+													}
+												);
+											});
 										});
 
-										it('should return previousBlock and no error', done => {
-											__private.popLastBlock(
-												{
-													id: 3,
-													height: 3,
-													transactions: [{ id: 7, type: 0 }],
-												},
-												(err, previousBlock) => {
-													expect(err).to.be.null;
-													expect(previousBlock).to.deep.equal({
-														id: 2,
-														height: 2,
-													});
-													done();
-												}
-											);
+										describe('when succeeds', () => {
+											beforeEach(() => {
+												return blocksChainModule.deleteBlock.callsArgWith(
+													1,
+													null,
+													true
+												);
+											});
+
+											it('should call a callback with previousBlock and no error', done => {
+												__private.popLastBlock(
+													{
+														id: 3,
+														height: 3,
+														transactions: [{ id: 7, type: 0 }],
+													},
+													(err, previousBlock) => {
+														expect(err).to.be.null;
+														expect(previousBlock).to.deep.equal({
+															id: 2,
+															height: 2,
+														});
+														done();
+													}
+												);
+											});
 										});
 									});
 								});
