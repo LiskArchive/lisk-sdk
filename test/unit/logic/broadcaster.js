@@ -25,7 +25,10 @@ describe('Broadcaster', () => {
 		};
 
 		transactionStub = {
-			checkConfirmed: sinonSandbox.stub(),
+			checkConfirmed: sinonSandbox
+				.stub()
+				.callsArgWith(1)
+				.returns(null, true),
 		};
 
 		loggerStub = {
@@ -51,7 +54,7 @@ describe('Broadcaster', () => {
 			},
 			transport: {},
 			transactions: {
-				transactionInPool: sinonSandbox.stub().returns(true),
+				transactionInPool: sinonSandbox.stub().returns(false),
 			},
 		};
 
@@ -65,7 +68,7 @@ describe('Broadcaster', () => {
 		broadcaster.bind(
 			modulesStub.peers,
 			modulesStub.transport,
-			modulesStub.transaction
+			modulesStub.transactions
 		);
 		done();
 	});
@@ -150,6 +153,74 @@ describe('Broadcaster', () => {
 			nextRelease(() => {
 				done();
 			});
+		});
+	});
+
+	describe('filterQueue', () => {
+		it('should be able to filter the queue', done => {
+			const filterQueue = Broadcaster.__get__('__private.filterQueue');
+			filterQueue(() => {
+				done();
+			});
+		});
+	});
+
+	describe('filterTransaction', () => {
+		it('should return false if transaction is undefined', done => {
+			const filterTransaction = Broadcaster.__get__(
+				'__private.filterTransaction'
+			);
+			filterTransaction(undefined, (err, status) => {
+				expect(err).to.be.null;
+				expect(status).to.be.false;
+				done();
+			});
+		});
+
+		it('should return false if transaction is not in pool', done => {
+			const filterTransaction = Broadcaster.__get__(
+				'__private.filterTransaction'
+			);
+			modulesStub.transactions.transactionInPool.returns(false);
+			filterTransaction({ id: '123' }, (err, status) => {
+				expect(err).to.be.null;
+				expect(status).to.be.true;
+				done();
+			});
+		});
+
+		it('should return true if transaction is in pool', done => {
+			const filterTransaction = Broadcaster.__get__(
+				'__private.filterTransaction'
+			);
+			modulesStub.transactions.transactionInPool.returns(true);
+			filterTransaction({ id: '123' }, (err, status) => {
+				expect(err).to.be.null;
+				expect(status).to.be.true;
+				done();
+			});
+		});
+	});
+
+	describe('squashQueue', () => {
+		it('should be able to squash the queue', () => {
+			const squashQueue = Broadcaster.__get__('__private.squashQueue');
+			const broadcasts = {
+				broadcast: {
+					options: { api: 'postTransactions', data: { peer: {}, block: {} } },
+				},
+			};
+			return expect(squashQueue(broadcasts)).to.eql([
+				{
+					immediate: false,
+					options: {
+						api: 'postTransactions',
+						data: {
+							transactions: [],
+						},
+					},
+				},
+			]);
 		});
 	});
 });
