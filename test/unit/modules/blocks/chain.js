@@ -1837,6 +1837,7 @@ describe('blocks/chain', () => {
 		var popLastBlockTemp;
 		beforeEach(done => {
 			popLastBlockTemp = __private.popLastBlock;
+			__private.popLastBlock = sinonSandbox.stub();
 			done();
 		});
 
@@ -1859,6 +1860,105 @@ describe('blocks/chain', () => {
 						height: 1,
 					});
 					done();
+				});
+			});
+		});
+		describe('when lastBlock.height != 1', () => {
+			beforeEach(() => {
+				return modules.blocks.lastBlock.get.returns({
+					id: 3,
+					height: 3,
+					transactions: [{ id: 7, type: 0 }, { id: 6, type: 0 }],
+				});
+			});
+			describe('__private.popLastBlock', () => {
+				describe('when fails', () => {
+					beforeEach(() => {
+						return __private.popLastBlock.callsArgWith(
+							1,
+							'popLastBlock-ERR',
+							true
+						);
+					});
+					it('should call a callback with error', done => {
+						blocksChainModule.deleteLastBlock(err => {
+							expect(err).to.equal('popLastBlock-ERR');
+							expect(loggerStub.error.args[0][0]).to.equal(
+								'Error deleting last block'
+							);
+							expect(loggerStub.error.args[0][1]).to.deep.equal({
+								id: 3,
+								height: 3,
+								transactions: [{ id: 7, type: 0 }, { id: 6, type: 0 }],
+							});
+							done();
+						});
+					});
+				});
+				describe('when succeeds', () => {
+					beforeEach(() => {
+						return __private.popLastBlock.callsArgWith(1, null, {
+							id: 2,
+							height: 2,
+							transactions: [{ id: 5, type: 0 }, { id: 4, type: 0 }],
+						});
+					});
+					describe('modules.transactions.receiveTransactions', () => {
+						describe('when fails', () => {
+							beforeEach(() => {
+								return modules.transactions.receiveTransactions.callsArgWith(
+									2,
+									'receiveTransactions-ERR',
+									true
+								);
+							});
+							afterEach(() => {
+								expect(loggerStub.error.args[0][0]).to.equal(
+									'Error adding transactions'
+								);
+								expect(loggerStub.error.args[0][1]).to.deep.equal(
+									'receiveTransactions-ERR'
+								);
+								return expect(modules.blocks.lastBlock.set.calledOnce).to.be
+									.true;
+							});
+							it('should call a callback with no error', done => {
+								blocksChainModule.deleteLastBlock((err, newLastBlock) => {
+									expect(err).to.be.null;
+									expect(newLastBlock).to.deep.equal({
+										id: 2,
+										height: 2,
+										transactions: [{ id: 5, type: 0 }, { id: 4, type: 0 }],
+									});
+									done();
+								});
+							});
+						});
+						describe('when succeeds', () => {
+							beforeEach(() => {
+								return modules.transactions.receiveTransactions.callsArgWith(
+									2,
+									null,
+									true
+								);
+							});
+							afterEach(() => {
+								return expect(modules.blocks.lastBlock.set.calledOnce).to.be
+									.true;
+							});
+							it('should call a callback with no error', done => {
+								blocksChainModule.deleteLastBlock((err, newLastBlock) => {
+									expect(err).to.be.null;
+									expect(newLastBlock).to.deep.equal({
+										id: 2,
+										height: 2,
+										transactions: [{ id: 5, type: 0 }, { id: 4, type: 0 }],
+									});
+									done();
+								});
+							});
+						});
+					});
 				});
 			});
 		});
