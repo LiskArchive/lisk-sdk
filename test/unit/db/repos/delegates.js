@@ -146,12 +146,7 @@ describe('db', () => {
 
 				expect(result).to.be.not.empty;
 				expect(result).to.have.lengthOf(2);
-				expect(result[0]).to.have.all.keys(
-					'publicKey',
-					'username',
-					'address',
-					'vote'
-				);
+				expect(result[0]).to.have.all.keys('publicKey', 'username', 'address');
 				expect(result.map(r => r.publicKey)).to.include(account1.publicKey);
 				return expect(result.map(r => r.publicKey)).to.include(
 					account2.publicKey
