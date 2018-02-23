@@ -16,6 +16,7 @@
 
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const blocksFixtures = require('../../../fixtures').blocks;
+const accountsFixtures = require('../../../fixtures').accounts;
 const sql = require('../../../../db/sql').blocks;
 const seeder = require('../../../common/db_seed');
 
@@ -242,6 +243,50 @@ describe('db', () => {
 						end: (+new Date() / 1000).toFixed(),
 					})
 				).to.be.eventually.rejectedWith('invalid hexadecimal digit: "x"');
+			});
+
+			it('should return empty data set if a valid but non existing key is passed', function*() {
+				const account = accountsFixtures.Account();
+				const rewards = yield db.blocks.aggregateBlocksReward({
+					generatorPublicKey: account.publicKey,
+					start: (+new Date() / 1000).toFixed(),
+					end: (+new Date() / 1000).toFixed(),
+				});
+				expect(rewards).to.be.not.empty;
+				expect(rewards).to.be.an('array');
+				expect(rewards[0]).to.have.all.keys(
+					'delegate',
+					'count',
+					'fees',
+					'rewards'
+				);
+				expect(rewards[0].count).to.be.eql('0');
+				expect(rewards[0].delegate).to.be.null;
+				expect(rewards[0].fees).to.be.null;
+				return expect(rewards[0].rewards).to.be.null;
+			});
+
+			it('should return empty data set if a valid public key of a non-delegate account is passed', function*() {
+				const account = accountsFixtures.Account({ isDelegate: false });
+				yield db.accounts.insert(account);
+
+				const rewards = yield db.blocks.aggregateBlocksReward({
+					generatorPublicKey: account.publicKey,
+					start: (+new Date() / 1000).toFixed(),
+					end: (+new Date() / 1000).toFixed(),
+				});
+				expect(rewards).to.be.not.empty;
+				expect(rewards).to.be.an('array');
+				expect(rewards[0]).to.have.all.keys(
+					'delegate',
+					'count',
+					'fees',
+					'rewards'
+				);
+				expect(rewards[0].count).to.be.eql('0');
+				expect(rewards[0].delegate).to.be.null;
+				expect(rewards[0].fees).to.be.null;
+				return expect(rewards[0].rewards).to.be.null;
 			});
 
 			it('should aggregate rewards and response in valid format', function*() {
