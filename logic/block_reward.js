@@ -16,6 +16,8 @@
 
 const constants = require('../helpers/constants.js');
 
+// Private fields
+const __private = {};
 /**
  * Main BlockReward logic.
  * Initializes variables:
@@ -41,24 +43,6 @@ class BlockReward {
 		this.rewardOffset = Math.floor(constants.rewards.offset);
 	}
 
-	// Private methods
-	/**
-	 * Returns absolute value from number.
-	 *
-	 * @private
-	 * @param {number} height
-	 * @returns {number}
-	 * @throws If block height invalid
-	 * @todo Add description for the params and the return value
-	 */
-	static parseHeight(height) {
-		if (isNaN(height)) {
-			throw 'Invalid block height';
-		} else {
-			return Math.abs(height);
-		}
-	}
-
 	// Public methods
 	/**
 	 * Description of the function.
@@ -68,7 +52,7 @@ class BlockReward {
 	 * @todo Add description for the function, params and the return value
 	 */
 	calcMilestone(height) {
-		height = BlockReward.parseHeight(height);
+		height = __private.parseHeight(height);
 
 		const location = Math.trunc((height - this.rewardOffset) / this.distance);
 		const lastMile = this.milestones[this.milestones.length - 1];
@@ -87,7 +71,7 @@ class BlockReward {
 	 * @todo Add description for the function, params and the return value
 	 */
 	calcReward(height) {
-		height = BlockReward.parseHeight(height);
+		height = __private.parseHeight(height);
 
 		if (height < this.rewardOffset) {
 			return 0;
@@ -103,7 +87,7 @@ class BlockReward {
 	 * @todo Add description for the function, params and the return value
 	 */
 	calcSupply(height) {
-		height = BlockReward.parseHeight(height);
+		height = __private.parseHeight(height);
 
 		if (height < this.rewardOffset) {
 			// Rewards not started yet
@@ -120,7 +104,7 @@ class BlockReward {
 		// Remove offset from height
 		height -= this.rewardOffset - 1;
 
-		for (var i = 0; i < this.milestones.length; i++) {
+		for (let i = 0; i < this.milestones.length; i++) {
 			if (milestone >= i) {
 				multiplier = this.milestones[i];
 
@@ -151,6 +135,24 @@ class BlockReward {
 		return supply;
 	}
 }
+
+// Private methods
+/**
+ * Returns absolute value from number.
+ *
+ * @private
+ * @param {number} height
+ * @returns {number}
+ * @throws If block height invalid
+ * @todo Add description for the params and the return value
+ */
+__private.parseHeight = function(height) {
+	if (isNaN(height)) {
+		throw 'Invalid block height';
+	} else {
+		return Math.abs(height);
+	}
+};
 
 // Export
 module.exports = BlockReward;

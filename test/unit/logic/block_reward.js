@@ -430,7 +430,7 @@ describe('BlockReward @slow', () => {
 				it('should be ok', done => {
 					let supply = blockReward.calcSupply(1);
 
-					for (var i = 1; i < 1451520; i++) {
+					for (let i = 1; i < 1451520; i++) {
 						supply = blockReward.calcSupply(i);
 						expect(supply).to.equal(constants.totalAmount);
 					}
