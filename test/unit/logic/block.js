@@ -14,23 +14,25 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var rewire = require('rewire');
-var ed = require('../../../helpers/ed');
-var modulesLoader = require('../../common/modules_loader');
-var transactionTypes = require('../../../helpers/transaction_types.js');
+const crypto = require('crypto');
+const rewire = require('rewire');
+const ed = require('../../../helpers/ed');
+const modulesLoader = require('../../common/modules_loader');
+const transactionTypes = require('../../../helpers/transaction_types.js');
+const constants = require('../../../helpers/constants.js');
 
-var Block = rewire('../../../logic/block.js');
+const Block = rewire('../../../logic/block.js');
 
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(
+const validPassword =
+	'robust weapon course unknown head trial pencil latin acid';
+const validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
 		.update(validPassword, 'utf8')
 		.digest()
 );
 
-var validDataForBlock = {
+const validDataForBlock = {
 	keypair: validKeypair,
 	timestamp: 41898500,
 	previousBlock: {
@@ -65,7 +67,7 @@ const invalidBlock = {
 
 const blockData = validDataForBlock.previousBlock;
 
-var transactionsByTypes = {};
+const transactionsByTypes = {};
 transactionsByTypes[transactionTypes.MULTI] = {
 	type: 4,
 	amount: 0,
@@ -272,9 +274,9 @@ transactionsByTypes[transactionTypes.OUT_TRANSFER] = {
 };
 
 function expectedOrderOfTransactions(sortedTransactions) {
-	var sorted = true;
+	let sorted = true;
 
-	for (var i = 0; i < sortedTransactions.length - 1; i++) {
+	for (let i = 0; i < sortedTransactions.length - 1; i++) {
 		// Transactions should always be in ascending order of types unless next transaction is MULTI
 		if (
 			sortedTransactions[i].type > sortedTransactions[i + 1].type &&
@@ -307,10 +309,10 @@ function expectedOrderOfTransactions(sortedTransactions) {
 }
 
 describe('block', () => {
-	var block;
-	var data;
-	var transactionStub;
-	var transactions = [];
+	let block;
+	let data;
+	let transactionStub;
+	let transactions = [];
 
 	before(done => {
 		transactionStub = {
@@ -333,7 +335,7 @@ describe('block', () => {
 	});
 
 	describe('create', () => {
-		var blockNormalizeStub;
+		let blockNormalizeStub;
 
 		before(() => {
 			blockNormalizeStub = sinonSandbox
@@ -351,9 +353,9 @@ describe('block', () => {
 		});
 
 		describe('when one of all transaction types are present', () => {
-			var generatedBlock;
-			var transactionsOrder;
-			var correctOrder = [0, 1, 2, 3, 5, 6, 7, 4];
+			let generatedBlock;
+			let transactionsOrder;
+			const correctOrder = [0, 1, 2, 3, 5, 6, 7, 4];
 
 			beforeEach(done => {
 				data.transactions = transactions;
@@ -365,22 +367,34 @@ describe('block', () => {
 			});
 
 			it('should sort transactions in the correct order', () => {
-				expect(generatedBlock.transactions.length).to.equal(
-					data.transactions.length
-				);
 				return expect(transactionsOrder).to.eql(correctOrder);
 			});
 		});
 
 		describe('when there are multiple multisignature transactions', () => {
-			var correctOrderOfTransactions = [0, 1, 2, 3, 5, 6, 7, 4, 4, 4, 4, 4, 4];
+			const correctOrderOfTransactions = [
+				0,
+				1,
+				2,
+				3,
+				5,
+				6,
+				7,
+				4,
+				4,
+				4,
+				4,
+				4,
+				4,
+			];
 
 			describe('in the beginning', () => {
-				var multipleMultisigTx;
-				var generatedBlock;
-				var transactionsOrder;
+				let multipleMultisigTx;
+				let generatedBlock;
+				let transactionsOrder;
 
 				beforeEach(done => {
+					// create 6 multisignature transaction
 					multipleMultisigTx = Array(...Array(5)).map(() => {
 						return transactionsByTypes[transactionTypes.MULTI];
 					});
@@ -393,9 +407,6 @@ describe('block', () => {
 				});
 
 				it('should sort transactions in the correct order', () => {
-					expect(generatedBlock.transactions.length).to.equal(
-						data.transactions.length
-					);
 					expect(
 						expectedOrderOfTransactions(generatedBlock.transactions)
 					).to.equal(true);
@@ -404,9 +415,9 @@ describe('block', () => {
 			});
 
 			describe('at the middle', () => {
-				var multipleMultisigTx;
-				var generatedBlock;
-				var transactionsOrder;
+				let multipleMultisigTx;
+				let generatedBlock;
+				let transactionsOrder;
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(() => {
@@ -434,9 +445,9 @@ describe('block', () => {
 			});
 
 			describe('at the end', () => {
-				var multipleMultisigTx;
-				var generatedBlock;
-				var transactionsOrder;
+				let multipleMultisigTx;
+				let generatedBlock;
+				let transactionsOrder;
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(() => {
@@ -462,11 +473,12 @@ describe('block', () => {
 			});
 
 			describe('shuffled', () => {
-				var multipleMultisigTx;
-				var generatedBlock;
-				var transactionsOrder;
+				let multipleMultisigTx;
+				let generatedBlock;
+				let transactionsOrder;
 
 				beforeEach(done => {
+					// create 6 multisignature transaction
 					multipleMultisigTx = Array(...Array(5)).map(() => {
 						return transactionsByTypes[transactionTypes.MULTI];
 					});
@@ -481,9 +493,6 @@ describe('block', () => {
 				});
 
 				it('should sort transactions in the correct order', () => {
-					expect(generatedBlock.transactions.length).to.equal(
-						data.transactions.length
-					);
 					expect(
 						expectedOrderOfTransactions(generatedBlock.transactions)
 					).to.equal(true);
@@ -494,38 +503,67 @@ describe('block', () => {
 	});
 
 	describe('sign', () => {
-		it('should return a signed block using keypair', () => {
+		it('should throw error for empty block and validKeypair', () => {
+			return expect(() => {
+				block.sign({}, validKeypair);
+			}).to.throw();
+		});
+
+		it('should throw error for invalid key pair and valid blockData', () => {
+			return expect(() => {
+				block.sign(blockData, 'this is invalid key pair');
+			}).to.throw();
+		});
+
+		it('should throw error for a block with unknown fields', () => {
+			const unknowBlock = {
+				verson: 0,
+				totlFee: '&**&^&',
+				rewrd: 'g@n!a',
+			};
+
+			return expect(() => {
+				block.sign(unknowBlock, 'this is invalid key pair');
+			}).to.throw();
+		});
+
+		it('should return a signed block using valid keypair', () => {
 			return expect(block.sign(blockData, validKeypair)).to.be.string;
 		});
 	});
 
 	describe('getBytes', () => {
-		it('should throw error for invalid block', done => {
-			var bytes;
-			try {
-				bytes = block.getBytes(invalidBlock);
-			} catch (e) {
-				expect(e).to.exist;
-				expect(bytes).to.be.undefined;
-			}
-			done();
+		it('should throw error for invalid block', () => {
+			return expect(() => {
+				block.getBytes(invalidBlock);
+			}).to.throw();
 		});
 
 		it('should return a buffer for a given block', () => {
-			return expect(block.getBytes(blockData)).to.be.string;
+			return expect(block.getBytes(blockData)).to.be.instanceof(Buffer);
+		});
+
+		it('should return same bytes for a given block', () => {
+			const bytes1 = block.getBytes(blockData);
+			const bytes2 = block.getBytes(blockData);
+			return expect(bytes1).to.deep.equal(bytes2);
+		});
+
+		it('should return different bytes for different blocks', () => {
+			const bytes1 = block.getBytes(blockData);
+			const blockDataCopy = Object.assign({}, blockData);
+			blockDataCopy.height = 100;
+			blockDataCopy.generatorPublicKey = 'this is some key';
+			const bytes2 = block.getBytes(blockDataCopy);
+			return expect(bytes1).to.not.deep.equal(bytes2);
 		});
 	});
 
 	describe('verifySignature', () => {
-		it('should throw error for invalid block', done => {
-			let res;
-			try {
-				res = block.verifySignature(invalidBlock);
-			} catch (e) {
-				expect(e).to.exist;
-				expect(res).to.be.undefined;
-			}
-			done();
+		it('should throw error for invalid block', () => {
+			return expect(() => {
+				block.verifySignature(invalidBlock);
+			}).to.throw();
 		});
 
 		it('should return verification response for a given block', () => {
@@ -534,12 +572,28 @@ describe('block', () => {
 	});
 
 	describe('getId', () => {
+		it('should throw an error for empty block', () => {
+			return expect(() => {
+				block.getId({});
+			}).to.throw();
+		});
+
 		it('should return the id for a given block', () => {
 			return expect(block.getId(blockData)).to.be.string;
+		});
+
+		it('should return specific block id for a given block data', () => {
+			return expect(block.getId(blockData)).to.eql('3920300554926889269');
 		});
 	});
 
 	describe('getHash', () => {
+		it('should throw error for invalid block', () => {
+			return expect(() => {
+				block.getHash(invalidBlock);
+			}).to.throw();
+		});
+
 		it('should return a hash for a given block', () => {
 			return expect(block.getHash(blockData)).to.be.instanceof(Buffer);
 		});
@@ -547,11 +601,17 @@ describe('block', () => {
 
 	describe('calculateFee', () => {
 		it('should return the constant fee', () => {
-			return expect(block.calculateFee(blockData)).to.eql(10000000);
+			return expect(block.calculateFee(blockData)).to.eql(constants.fees.send);
 		});
 	});
 
 	describe('dbRead', () => {
+		it('should throw error for null values', () => {
+			return expect(() => {
+				block.dbRead(null);
+			}).to.throw();
+		});
+
 		it('should return raw block data', () => {
 			const rawBlock = {
 				b_version: 0,
@@ -574,9 +634,25 @@ describe('block', () => {
 				b_relays: 1,
 				b_confirmations: 0,
 			};
-			return expect(block.dbRead(rawBlock))
-				.to.be.an('object')
-				.to.have.property('totalForged');
+
+			return expect(block.dbRead(rawBlock)).to.contain.keys(
+				'id',
+				'version',
+				'timestamp',
+				'height',
+				'previousBlock',
+				'numberOfTransactions',
+				'totalAmount',
+				'totalFee',
+				'reward',
+				'payloadLength',
+				'payloadHash',
+				'generatorPublicKey',
+				'generatorId',
+				'blockSignature',
+				'confirmations',
+				'totalForged'
+			);
 		});
 	});
 });
