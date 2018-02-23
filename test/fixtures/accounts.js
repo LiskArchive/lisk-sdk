@@ -88,7 +88,7 @@ const Account = stampit({
 		this.blockId =
 			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
 
-		this.vote = randomstring.generate({ charset: 'numeric', length: 5 });
+		this.vote = randomstring.generate({ charset: '123456789', length: 5 });
 
 		if (this.isDelegate) {
 			this.virgin = false;
