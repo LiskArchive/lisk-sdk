@@ -339,6 +339,9 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 					modules.accounts.setAccountAndGet(
 						{ publicKey: transaction.senderPublicKey },
 						(err, sender) => {
+							if (err) {
+								return setImmediate(reject, err);
+							}
 							// DATABASE: write
 							modules.transactions.applyUnconfirmed(
 								transaction,
