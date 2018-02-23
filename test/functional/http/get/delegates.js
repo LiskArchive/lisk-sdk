@@ -255,7 +255,7 @@ describe('GET /delegates', () => {
 				});
 			});
 
-			it('using unknow numeric string should be ok', () => {
+			it('using unknown numeric string should be ok', () => {
 				return delegatesEndpoint
 					.makeRequest(
 						{
