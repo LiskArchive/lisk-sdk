@@ -18,16 +18,15 @@
 		"node": "=6.12.3",
 		"npm": "=3.10.10"
 	},
-	"main": "./dist/index.js",
-	"engines": {
-		"node": "=6.12.3",
-		"npm": "=3.10.10"
-	},
 	"directories": {
 		"bin": "./bin"
 	},
 	"scripts": {
 		"start": "babel-node src/index.js",
+		"format":
+			"prettier --write \"./*.{js,json,md}\" \"{docs,src,test}{,/**}/*.{js,json,md}\"",
+		"lint": "eslint .",
+		"lint:fix": "npm run lint -- --fix",
 		"test":
 			"if [ -z $JENKINS_HOME ]; then npm run test:local; else npm run test:ci; fi",
 		"test:local": "NODE_ENV=test nyc mocha test/specs",
@@ -44,14 +43,23 @@
 			"npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
 		"cover:test":
 			"NODE_ENV=test nyc  --include \"test/**\" --exclude \"**/node_modules/** coverage/**\" mocha test/specs",
-		"lint": "eslint .",
-		"lint:fix": "npm run lint -- --fix",
-		"format": "prettier --write \"{bin,src,test}{,/**}/*.js\"",
 		"prebuild": "if test -d dist; then rm -r dist; fi",
 		"build": "babel src -d dist",
 		"precommit": "lint-staged && npm run lint",
 		"prepush": "npm run lint && npm test",
-		"prepublishOnly": "npm run build"
+		"prepublishOnly":
+			"rm -r ./node_modules && npm install && npm run prepush && npm run build"
+	},
+	"dependencies": {
+		"babel-polyfill": "=6.26.0",
+		"bip39": "=2.4.0",
+		"chalk": "=2.3.0",
+		"cli-table2": "=0.2.0",
+		"lisk-js": "LiskHQ/lisk-js#1.0.0-dev-lisky",
+		"lockfile": "=1.0.3",
+		"semver": "=5.5.0",
+		"strip-ansi": "=4.0.0",
+		"vorpal": "LiskHQ/vorpal#master"
 	},
 	"devDependencies": {
 		"babel-cli": "=6.26.0",
@@ -73,16 +81,5 @@
 		"should": "=13.1.3",
 		"should-sinon": "=0.0.6",
 		"sinon": "=4.1.2"
-	},
-	"dependencies": {
-		"babel-polyfill": "=6.26.0",
-		"bip39": "=2.4.0",
-		"chalk": "=2.3.0",
-		"cli-table2": "=0.2.0",
-		"lisk-js": "LiskHQ/lisk-js#1.0.0-dev-lisky",
-		"lockfile": "=1.0.3",
-		"semver": "=5.5.0",
-		"strip-ansi": "=4.0.0",
-		"vorpal": "LiskHQ/vorpal#master"
 	}
 }
