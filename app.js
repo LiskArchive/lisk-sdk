@@ -32,9 +32,7 @@ var swagger = require('./config/swagger');
 var swaggerHelper = require('./helpers/swagger');
 
 /**
- * Main entry point.
- * Loads the lisk modules, the lisk api and run the express server as Domain master.
- * CLI options available.
+ * Main application entry point.
  *
  * @namespace app
  * @requires async
@@ -58,28 +56,27 @@ var swaggerHelper = require('./helpers/swagger');
  *
  * @global
  * @typedef {Object} scope
- * @property {Object} api - Undefined
- * @property {undefined} balancesSequence - Sequence function, sequence Array
- * @property {string} build - Empty
- * @property {Object} bus - Message function, bus constructor
- * @property {Object} config - Configuration
- * @property {undefined} connect - Undefined
- * @property {Object} db - Database constructor, database functions
- * @property {function} dbSequence - Database function
- * @property {Object} ed - Crypto functions from lisk node-sodium
- * @property {Object} genesisblock - Block information
- * @property {string} lastCommit - Hash transaction
- * @property {Object} listen - Network information
- * @property {Object} logger - Log functions
- * @property {Object} logic - several logic functions and objects
- * @property {Object} modules - Several modules functions
- * @property {Object} network - Several network functions
+ * @property {Object} api
+ * @property {undefined} balancesSequence
+ * @property {string} build
+ * @property {Object} bus
+ * @property {Object} config
+ * @property {undefined} connect
+ * @property {Object} db
+ * @property {function} dbSequence
+ * @property {Object} ed
+ * @property {Object} genesisblock
+ * @property {string} lastCommit
+ * @property {Object} listen
+ * @property {Object} logger
+ * @property {Object} logic
+ * @property {Object} modules
+ * @property {Object} network
  * @property {string} nonce
  * @property {undefined} ready
- * @property {Object} schema - ZSchema with objects
- * @property {Object} sequence - Sequence function, sequence Array
- * @todo logic repeats: bus, ed, genesisblock, logger, schema.
- * @todo description for nonce and ready
+ * @property {Object} schema
+ * @property {Object} sequence
+ * @todo Add description for nonce and ready
  */
 
 var workersControllerPath = path.join(__dirname, 'workers_controller');
@@ -113,9 +110,7 @@ var appConfig = AppConfig(require('./package.json'));
 process.env.TOP = appConfig.topAccounts;
 
 /**
- * The config object to handle lisk modules and lisk api.
- * It loads `modules` and `api` folders content.
- * Also contains db configuration from config.json.
+ * Application config object.
  *
  * @memberof! app
  */
@@ -147,11 +142,9 @@ var config = {
 };
 
 /**
- * Logger holder so we can log with custom functionality.
- * The Object is initialized here and pass to others as parameter.
+ * Application logger instance.
  *
  * @memberof! app
- * @property {Object} - Logger instance
  */
 var logger = new Logger({
 	echo: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
@@ -180,13 +173,6 @@ try {
 } catch (err) {
 	logger.debug('Cannot get last git commit', err.message);
 }
-
-/**
- * Creates the express server and loads all the Modules and logic.
- *
- * @memberof! app
- * @property {Object} - Domain instance
- */
 
 d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
@@ -233,7 +219,7 @@ d.run(() => {
 			 *
 			 * @func lastCommit
 			 * @memberof! app
-			 * @param {nodeStyleCallback} cb - Callback function with Hash of last git commit
+			 * @param {function} cb - Callback function
 			 */
 			lastCommit(cb) {
 				cb(null, lastCommit);
@@ -252,13 +238,12 @@ d.run(() => {
 			network: [
 				'config',
 				/**
-				 * Once config is completed, creates app, http & https servers & sockets with express.
+				 * Initalizes express, middleware, socket.io.
 				 *
 				 * @func network[1]
 				 * @memberof! app
-				 * @param {Object} scope - The results from current execution, leats will contain the required elements.
-				 * @param {nodeStyleCallback} cb - Callback function with created Object:
-				 * `{express, app, server, io, https, https_io}`
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
 					var express = require('express');
@@ -349,7 +334,6 @@ d.run(() => {
 					if (scope.config.ssl.enabled) {
 						extend(webSocketConfig, {
 							protocol: 'https',
-							// This is the same as the object provided to Node.js's https server
 							protocolOptions: {
 								key: fs.readFileSync(scope.config.ssl.options.key),
 								cert: fs.readFileSync(scope.config.ssl.options.cert),
@@ -450,12 +434,10 @@ d.run(() => {
 				'build',
 				'network',
 				/**
-				 * Once config, genesisblock, logger, build and network are completed,
-				 * adds configuration to `network.app`.
+				 * Description of the function.
 				 *
 				 * @func connect[5]
-				 * @param {Object} scope - The results from current execution,
-				 * at leats will contain the required elements
+				 * @param {Object} scope
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
@@ -642,7 +624,7 @@ d.run(() => {
 			},
 
 			/**
-			 * It tries to connect with redis server based on config. provided in config.json file.
+			 * Description of the function.
 			 *
 			 * @memberof! app
 			 * @param {function} cb
@@ -659,13 +641,11 @@ d.run(() => {
 				'schema',
 				'genesisblock',
 				/**
-				 * Once db, bus, schema and genesisblock are completed,
-				 * loads transaction, block, account and peers from logic folder.
+				 * Description of the function.
 				 *
 				 * @func logic[4]
 				 * @memberof! app
-				 * @param {Object} scope - The results from current execution,
-				 * at least will contain the required elements
+				 * @param {Object} scope
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
@@ -765,14 +745,11 @@ d.run(() => {
 				'logic',
 				'cache',
 				/**
-				 * Once network, connect, config, logger, bus, sequence,
-				 * dbSequence, balancesSequence, db and logic are completed,
-				 * loads modules from `modules` folder using `config.modules`.
+				 * Description of the function.
 				 *
 				 * @func modules[12]
-				 * @param {Object} scope - The results from current execution,
-				 * at leats will contain the required elements
-				 * @param {nodeStyleCallback} cb - Callback function with resulted load
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
 					var tasks = {};
@@ -810,12 +787,10 @@ d.run(() => {
 				'network',
 				'webSocket',
 				/**
-				 * Loads api from `api` folder using `config.api`, once modules, logger and
-				 * network are completed.
+				 * Description of the function.
 				 *
 				 * @func api[4]
-				 * @param {Object} scope - The results from current execution,
-				 * at leats will contain the required elements
+				 * @param {Object} scope
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
@@ -875,14 +850,12 @@ d.run(() => {
 			listen: [
 				'ready',
 				/**
-				 * Once 'ready' is completed, binds and listens for connections on the
-				 * specified host and port for `scope.network.server`.
+				 * Description of the function.
 				 *
 				 * @func listen[1]
 				 * @memberof! app
-				 * @param {Object} scope - The results from current execution,
-				 * at leats will contain the required elements.
-				 * @param {nodeStyleCallback} cb - Callback function with `scope.network`.
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
 					scope.network.server.listen(
