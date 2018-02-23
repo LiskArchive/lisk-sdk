@@ -12,14 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const utils = require('api/utils');
+import { toQueryString, solveURLParams } from 'api/utils';
 
-const defaultURL = 'http://localhost:8080/api/resources';
+const defaultBaseURL = 'http://localhost:8080';
+const path = '/resources';
+const defaultURL = `${defaultBaseURL}/api${path}`;
 
 describe('api utils module', () => {
 	describe('#toQueryString', () => {
 		it('should create a query string from an object', () => {
-			const queryString = utils.toQueryString({
+			const queryString = toQueryString({
 				key1: 'value1',
 				key2: 'value2',
 				key3: 'value3',
@@ -28,7 +30,7 @@ describe('api utils module', () => {
 		});
 
 		it('should escape invalid special characters', () => {
-			const queryString = utils.toQueryString({
+			const queryString = toQueryString({
 				'key:/;?': 'value:/;?',
 			});
 			return queryString.should.be.equal('key%3A%2F%3B%3F=value%3A%2F%3B%3F');
@@ -37,31 +39,40 @@ describe('api utils module', () => {
 
 	describe('#solveURLParams', () => {
 		it('should return original URL with no param', () => {
-			const solvedURL = utils.solveURLParams(defaultURL);
+			const solvedURL = solveURLParams(defaultURL);
 			return solvedURL.should.be.equal(defaultURL);
 		});
 
 		it('should throw error if url has variable but no param', () => {
-			const fn = () => utils.solveURLParams(`${defaultURL}/{id}`);
-			return fn.should.throw(Error('URL is not completely solved'));
+			return solveURLParams
+				.bind(null, `${defaultURL}/{id}`)
+				.should.throw(Error('URL is not completely solved'));
 		});
 
 		it('should throw error if url has variable but not matching params', () => {
-			const fn = () =>
-				utils.solveURLParams(`${defaultURL}/{id}`, { accountId: '123' });
-			return fn.should.throw(Error('URL is not completely solved'));
+			return solveURLParams
+				.bind(null, `${defaultURL}/{id}`, { accountId: '123' })
+				.should.throw(Error('URL is not completely solved'));
 		});
 
 		it('should replace variable with correct id', () => {
-			const solvedURL = utils.solveURLParams(`${defaultURL}/{id}`, {
+			const solvedURL = solveURLParams(`${defaultURL}/{id}`, {
 				id: '456',
 				accountId: '123',
 			});
 			return solvedURL.should.be.equal(`${defaultURL}/456`);
 		});
 
+		it('should replace multiple variables with correct id and accountId', () => {
+			const solvedURL = solveURLParams(`${defaultURL}/{accountId}/{id}`, {
+				id: '456',
+				accountId: '123',
+			});
+			return solvedURL.should.be.equal(`${defaultURL}/123/456`);
+		});
+
 		it('should replace variable with correct id and encode special characters', () => {
-			const solvedURL = utils.solveURLParams(`${defaultURL}/{id}`, {
+			const solvedURL = solveURLParams(`${defaultURL}/{id}`, {
 				id: '456ß1234sd',
 				accountId: '123',
 			});

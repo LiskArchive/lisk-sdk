@@ -29,7 +29,7 @@ export default class APIResource {
 	}
 
 	get resourcePath() {
-		return `${this.liskAPI.fullURL}/api${this.path}`;
+		return `${this.liskAPI.nodeFullURL}/api${this.path}`;
 	}
 
 	request(req, retry) {

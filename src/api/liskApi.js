@@ -32,12 +32,9 @@ const commonHeaders = {
 export default class LiskAPI {
 	constructor(providedOptions) {
 		const options = Object.assign({}, config.options, providedOptions);
-		this.ssl = options.ssl !== undefined ? options.ssl : true;
-		this.testnet = options.testnet || false;
-		const nethash =
-			options.headers && options.headers.nethash
-				? options.headers.nethash
-				: null;
+		this.ssl = options.ssl !== false;
+		this.testnet = options.testnet === true;
+		const nethash = options.headers.nethash ? options.headers.nethash : null;
 
 		this.defaultNodes = [...(options.nodes || config.nodes.mainnet)];
 		this.defaultTestnetNodes = [...(options.nodes || config.nodes.testnet)];
@@ -47,21 +44,19 @@ export default class LiskAPI {
 			options.port === '' || options.port
 				? options.port
 				: this.getDefaultPort();
-		this.randomizeNodes =
-			options.randomizeNodes !== undefined ? options.randomizeNodes : true;
+		this.randomizeNodes = options.randomizeNodes !== false;
 		this.providedNode = options.node || null;
 		this.node = options.node || this.selectNewNode();
 		this.headers = this.getDefaultHeaders(nethash);
 
-		// API Resource definition
-		this.accounts = new resources.AccountResource(this);
-		this.blocks = new resources.BlockResource(this);
-		this.dapps = new resources.DappResource(this);
-		this.delegates = new resources.DelegateResource(this);
-		this.signatures = new resources.SignatureResource(this);
-		this.transactions = new resources.TransactionResource(this);
-		this.voters = new resources.VoterResource(this);
-		this.votes = new resources.VoteResource(this);
+		this.accounts = new resources.AccountsResource(this);
+		this.blocks = new resources.BlocksResource(this);
+		this.dapps = new resources.DappsResource(this);
+		this.delegates = new resources.DelegatesResource(this);
+		this.signatures = new resources.SignaturesResource(this);
+		this.transactions = new resources.TransactionsResource(this);
+		this.voters = new resources.VotersResource(this);
+		this.votes = new resources.VotesResource(this);
 	}
 
 	get allNodes() {
@@ -79,16 +74,13 @@ export default class LiskAPI {
 		return this.defaultNodes;
 	}
 
-	get urlPrefix() {
-		if (this.ssl) {
-			return 'https';
-		}
-		return 'http';
+	get urlProtocol() {
+		return this.ssl ? 'https' : 'http';
 	}
 
-	get fullURL() {
+	get nodeFullURL() {
 		const nodeUrl = this.port ? `${this.node}:${this.port}` : this.node;
-		return `${this.urlPrefix}://${nodeUrl}`;
+		return `${this.urlProtocol}://${nodeUrl}`;
 	}
 
 	getDefaultHeaders(providedNethash) {
@@ -116,7 +108,7 @@ export default class LiskAPI {
 	getRandomNode() {
 		const nodes = this.currentNodes.filter(node => !this.isBanned(node));
 
-		if (!nodes.length || nodes.length === 0) {
+		if (nodes.length === 0) {
 			throw new Error(
 				'Cannot get random node: all relevant nodes have been banned.',
 			);

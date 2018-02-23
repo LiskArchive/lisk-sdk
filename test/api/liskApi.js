@@ -201,7 +201,6 @@ describe('Lisk API module', () => {
 					testnet: false,
 					ssl: true,
 				});
-				LSK.testnet = false;
 				return LSK.currentNodes.should.be.eql(defaultSSLNodes);
 			});
 		});
@@ -217,33 +216,37 @@ describe('Lisk API module', () => {
 			});
 
 			it('should return default mainnet nodes if testnet is not set to true', () => {
-				LSK = new LiskAPI({ nodes: defaultNodes, testnet: false, ssl: false });
+				LSK = new LiskAPI({
+					nodes: defaultNodes,
+					testnet: false,
+					ssl: false,
+				});
 				return LSK.currentNodes.should.be.eql(defaultNodes);
 			});
 		});
 	});
 
-	describe('get urlPrefix', () => {
+	describe('get urlProtocol', () => {
 		it('should return https if ssl is true', () => {
 			LSK.ssl = true;
-			return LSK.urlPrefix.should.be.equal('https');
+			return LSK.urlProtocol.should.be.equal('https');
 		});
 
-		it('should return https if ssl is false', () => {
+		it('should return http if ssl is false', () => {
 			LSK.ssl = false;
-			return LSK.urlPrefix.should.be.equal('http');
+			return LSK.urlProtocol.should.be.equal('http');
 		});
 	});
 
-	describe('get fullURL', () => {
+	describe('get nodeFullURL', () => {
 		it('should return with set port', () => {
 			LSK = new LiskAPI({ port: '8080', node: localNode });
-			return LSK.fullURL.should.be.equal('https://localhost:8080');
+			return LSK.nodeFullURL.should.be.equal('https://localhost:8080');
 		});
 
-		it('should return default port if it is not set', () => {
+		it('should not include port in the URL if port is not set', () => {
 			LSK = new LiskAPI({ port: '', node: localNode });
-			return LSK.fullURL.should.be.equal('https://localhost');
+			return LSK.nodeFullURL.should.be.equal('https://localhost');
 		});
 	});
 
@@ -268,14 +271,12 @@ describe('Lisk API module', () => {
 		});
 
 		it('should throw an error if all relevant nodes are banned', () => {
-			try {
-				defaultNodes.forEach(() => LSK.banActiveNodeAndSelect());
-			} catch (error) {
-				// Nothing
-			}
-			return (() => LSK.getRandomNode()).should.throw(
-				'Cannot get random node: all relevant nodes have been banned.',
-			);
+			LSK.bannedNodes = [...defaultNodes];
+			return LSK.getRandomNode
+				.bind(LSK)
+				.should.throw(
+					'Cannot get random node: all relevant nodes have been banned.',
+				);
 		});
 
 		it('should return a node', () => {
@@ -304,7 +305,6 @@ describe('Lisk API module', () => {
 		describe('if a node was provided in the options', () => {
 			beforeEach(() => {
 				LSK.providedNode = customNode;
-				LSK.bannedNodes = [];
 			});
 			describe('if randomizeNodes is set to false', () => {
 				beforeEach(() => {
@@ -402,18 +402,21 @@ describe('Lisk API module', () => {
 				.returns(defaultSelectedNode);
 		});
 
-		it('should add current node to banned nodes', () => {
+		it('should call ban current node', () => {
 			LSK.banActiveNodeAndSelect();
-			selectNewNodeStub.should.be.calledOnce();
 			return LSK.isBanned(node).should.be.true();
 		});
 
-		it('should not duplicate a banned node', () => {
+		it('should call selectNewNode when the node is banned', () => {
+			LSK.banActiveNodeAndSelect();
+			return selectNewNodeStub.should.be.calledOnce();
+		});
+
+		it('should not call selectNewNode when the node is not banned', () => {
 			const bannedNodes = [node];
 			LSK.bannedNodes = bannedNodes;
 			LSK.banActiveNodeAndSelect();
-			selectNewNodeStub.should.not.be.called();
-			return LSK.bannedNodes.should.be.eql(bannedNodes);
+			return selectNewNodeStub.should.not.be.called();
 		});
 	});
 
@@ -422,7 +425,7 @@ describe('Lisk API module', () => {
 
 		beforeEach(() => {
 			nodesStub = sandbox.stub(LSK, 'currentNodes');
-			nodesStub.get(() => [].concat(defaultNodes));
+			nodesStub.get(() => [...defaultNodes]);
 		});
 
 		describe('with randomized nodes', () => {
@@ -456,16 +459,16 @@ describe('Lisk API module', () => {
 	});
 
 	describe('#getDefaultHeaders', () => {
-		it('should provide default mainnet nethash values with ssl', () => {
+		it('should provide default header values', () => {
 			return LSK.getDefaultHeaders().should.eql(defaultHeaders);
 		});
 
-		it('should provide default testnet nethash values', () => {
+		it('should provide default testnet header values', () => {
 			LSK.port = testPort;
 			return LSK.getDefaultHeaders(testnetHash).should.eql(testnetHeaders);
 		});
 
-		it('should get values for a custom nethash', () => {
+		it('should get values for custom headers', () => {
 			return LSK.getDefaultHeaders('123').should.be.eql(customHeaders);
 		});
 	});
@@ -478,21 +481,17 @@ describe('Lisk API module', () => {
 		});
 
 		it('should show the current node', () => {
-			nodes.should.have.property('current').equal(LSK.node);
+			return nodes.should.have.property('current').equal(LSK.node);
 		});
 
 		it('should list 2 default nodes', () => {
-			nodes.should.have.property('default').have.length(2);
-			return nodes.default.forEach(node => {
-				node.should.be.type('string');
-			});
+			return nodes.should.have.property('default').and.eql([...defaultNodes]);
 		});
 
 		it('should list 2 testnet node', () => {
-			nodes.should.have.property('testnet').have.length(2);
-			return nodes.testnet.forEach(node => {
-				node.should.be.type('string');
-			});
+			return nodes.should.have
+				.property('testnet')
+				.and.eql([...defaultTestnetNodes]);
 		});
 	});
 
@@ -504,94 +503,118 @@ describe('Lisk API module', () => {
 				.returns(defaultSelectedNode);
 		});
 
-		describe('to true', () => {
+		describe('when testnet is initially true', () => {
 			beforeEach(() => {
-				LSK.setTestnet(false);
+				LSK.testnet = true;
 			});
-
-			it('should set testnet to true', () => {
-				LSK.setTestnet(true);
-				return LSK.should.have.property('testnet').and.be.true();
-			});
-
-			it('should set port to 7000', () => {
-				LSK.setTestnet(true);
-				return LSK.should.have.property('port').and.be.equal(testPort);
-			});
-
-			it('should select a node', () => {
-				const callCount = selectNewNodeStub.callCount;
-				LSK.setTestnet(true);
-				return selectNewNodeStub.should.have.callCount(callCount + 1);
-			});
-		});
-
-		describe('to false', () => {
-			beforeEach(() => {
-				LSK.setTestnet(true);
-			});
-
-			it('should set testnet to false', () => {
-				LSK.setTestnet(false);
-				return LSK.should.have.property('testnet').and.be.false();
-			});
-
-			it('should set port to 443', () => {
-				LSK.ssl = true;
-				LSK.setTestnet(false);
-				return LSK.should.have.property('port').and.be.equal(sslPort);
-			});
-
-			it('should set port to live port', () => {
-				LSK.ssl = false;
-				LSK.setTestnet(false);
-				return LSK.should.have.property('port').and.be.equal(livePort);
-			});
-
-			it('should select a node', () => {
-				const callCount = selectNewNodeStub.callCount;
-				LSK.setTestnet(false);
-				return selectNewNodeStub.should.have.callCount(callCount + 1);
-			});
-		});
-
-		describe('banned nodes', () => {
-			beforeEach(() => {
-				defaultBannedNodes.forEach(() => LSK.banActiveNodeAndSelect());
-			});
-
-			describe('when initially on mainnet', () => {
-				it('should reset banned nodes when switching from mainnet to testnet', () => {
+			describe('to true', () => {
+				it('should not call selectNewNode', () => {
 					LSK.setTestnet(true);
-					return defaultNodes.every(node =>
-						LSK.isBanned(node).should.be.false(),
-					);
+					selectNewNodeStub.should.not.be.called();
 				});
 
-				it('should not reset banned nodes when switching from mainnet to mainnet', () => {
-					const bannedNodes = defaultNodes.filter(node => LSK.isBanned(node));
+				it('should have testnet set to true', () => {
+					LSK.setTestnet(true);
+					return LSK.should.have.property('testnet').and.be.true();
+				});
+
+				it('should not change bannedNodes', () => {
+					LSK.bannedNodes = [...defaultBannedNodes];
+					LSK.setTestnet(true);
+					return LSK.should.have
+						.property('bannedNodes')
+						.and.eql(defaultBannedNodes);
+				});
+			});
+
+			describe('to false', () => {
+				it('should set testnet to false', () => {
 					LSK.setTestnet(false);
-					return bannedNodes.every(node => LSK.isBanned(node).should.be.true());
+					return LSK.should.have.property('testnet').and.be.false();
+				});
+
+				it('should reset banned nodes', () => {
+					LSK.bannedNodes = [...defaultNodes];
+					LSK.setTestnet(false);
+					return LSK.bannedNodes.should.eql([]);
+				});
+
+				it('should set port to 443', () => {
+					LSK.ssl = true;
+					LSK.setTestnet(false);
+					return LSK.should.have.property('port').and.be.equal(sslPort);
+				});
+
+				it('should set port to live port', () => {
+					LSK.ssl = false;
+					LSK.setTestnet(false);
+					return LSK.should.have.property('port').and.be.equal(livePort);
+				});
+
+				it('should select a node', () => {
+					const callCount = selectNewNodeStub.callCount;
+					LSK.setTestnet(false);
+					return selectNewNodeStub.should.have.callCount(callCount + 1);
 				});
 			});
+		});
 
-			describe('when initially on testnet', () => {
-				beforeEach(() => {
+		describe('when testnet is initially false', () => {
+			beforeEach(() => {
+				LSK.testnet = false;
+			});
+			describe('to true', () => {
+				it('should set testnet to true', () => {
 					LSK.setTestnet(true);
-					defaultBannedNodes.forEach(() => LSK.banActiveNodeAndSelect());
+					return LSK.should.have.property('testnet').and.be.true();
 				});
 
-				it('should reset banned nodes when switching from testnet to mainnet', () => {
-					LSK.testnet = false;
-					return defaultNodes.every(node =>
-						LSK.isBanned(node).should.be.false(),
-					);
+				it('should reset banned nodes', () => {
+					LSK.bannedNodes = [...defaultNodes];
+					LSK.setTestnet(true);
+					return LSK.bannedNodes.should.eql([]);
 				});
 
-				it('should not reset banned nodes when switching from testnet to testnet', () => {
-					const bannedNodes = defaultNodes.filter(node => LSK.isBanned(node));
-					LSK.testnet = true;
-					return bannedNodes.every(node => LSK.isBanned(node).should.be.true());
+				it('should set port to 7000 when ssl is true', () => {
+					LSK.ssl = true;
+					LSK.setTestnet(true);
+					return LSK.should.have.property('port').and.be.equal(testPort);
+				});
+
+				it('should set port to 7000 when ssl is false', () => {
+					LSK.ssl = false;
+					LSK.setTestnet(true);
+					return LSK.should.have.property('port').and.be.equal(testPort);
+				});
+
+				it('should select a node', () => {
+					const callCount = selectNewNodeStub.callCount;
+					LSK.setTestnet(true);
+					return selectNewNodeStub.should.have.callCount(callCount + 1);
+				});
+			});
+			describe('to false', () => {
+				it('should not call selectNewNode', () => {
+					LSK.setTestnet(false);
+					selectNewNodeStub.should.not.be.called();
+				});
+
+				it('should not call selectNewNode', () => {
+					LSK.setTestnet(false);
+					selectNewNodeStub.should.not.be.called();
+				});
+
+				it('should have testnet set to true', () => {
+					LSK.setTestnet(false);
+					return LSK.should.have.property('testnet').and.be.false();
+				});
+
+				it('should not change bannedNodes', () => {
+					LSK.bannedNodes = [...defaultBannedNodes];
+					LSK.setTestnet(false);
+					return LSK.should.have
+						.property('bannedNodes')
+						.and.eql(defaultBannedNodes);
 				});
 			});
 		});
@@ -607,7 +630,7 @@ describe('Lisk API module', () => {
 
 		describe('when ssl is initially true', () => {
 			beforeEach(() => {
-				LSK.setSSL(true);
+				LSK.ssl = true;
 			});
 
 			describe('when set to true', () => {
@@ -617,7 +640,7 @@ describe('Lisk API module', () => {
 				});
 
 				it('should not change bannedNodes', () => {
-					LSK.bannedNodes = [].concat(defaultBannedNodes);
+					LSK.bannedNodes = [...defaultBannedNodes];
 					LSK.setSSL(true);
 					return LSK.should.have
 						.property('bannedNodes')
@@ -633,7 +656,7 @@ describe('Lisk API module', () => {
 
 			describe('when set to false', () => {
 				beforeEach(() => {
-					LSK.setSSL(true);
+					LSK.ssl = true;
 				});
 				it('should set port to ssl port', () => {
 					LSK.setSSL(false);
@@ -667,7 +690,7 @@ describe('Lisk API module', () => {
 
 		describe('when ssl is initially false', () => {
 			beforeEach(() => {
-				LSK.setSSL(false);
+				LSK.ssl = false;
 			});
 
 			describe('when set to true', () => {
@@ -681,7 +704,7 @@ describe('Lisk API module', () => {
 					return LSK.should.have.property('port').and.be.equal(sslPort);
 				});
 
-				it('should set port to test port', () => {
+				it('should set port to ssl port even though testnet is true', () => {
 					LSK.testnet = true;
 					LSK.setSSL(true);
 					return LSK.should.have.property('port').and.be.equal(sslPort);
@@ -709,7 +732,7 @@ describe('Lisk API module', () => {
 				});
 
 				it('should not change bannedNodes', () => {
-					LSK.bannedNodes = [].concat(defaultBannedNodes);
+					LSK.bannedNodes = [...defaultBannedNodes];
 					LSK.setSSL(false);
 					return LSK.should.have
 						.property('bannedNodes')

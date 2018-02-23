@@ -13,11 +13,11 @@
  *
  */
 
-export { default as AccountResource } from './accounts';
-export { default as BlockResource } from './blocks';
-export { default as DappResource } from './dapps';
-export { default as DelegateResource } from './delegates';
-export { default as SignatureResource } from './signatures';
-export { default as TransactionResource } from './transactions';
-export { default as VoterResource } from './voters';
-export { default as VoteResource } from './votes';
+export { default as AccountsResource } from './accounts';
+export { default as BlocksResource } from './blocks';
+export { default as DappsResource } from './dapps';
+export { default as DelegatesResource } from './delegates';
+export { default as SignaturesResource } from './signatures';
+export { default as TransactionsResource } from './transactions';
+export { default as VotersResource } from './voters';
+export { default as VotesResource } from './votes';

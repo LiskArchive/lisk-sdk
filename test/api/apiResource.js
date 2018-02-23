@@ -17,7 +17,7 @@ import APIResource from 'api/apiResource';
 
 const popsicle = require('popsicle');
 
-describe('api resource module', () => {
+describe('API resource module', () => {
 	const GET = 'GET';
 	const defaultBasePath = 'http://localhost:1234';
 	const defaultResourcePath = '/resources';
@@ -30,7 +30,7 @@ describe('api resource module', () => {
 		minVersion: '>=0.5.0',
 		port: '443',
 	};
-	const defaultError = Error('network error');
+	const defaultError = new Error('network error');
 	const defaultRequest = {
 		method: GET,
 		url: defaultFullPath,
@@ -47,8 +47,8 @@ describe('api resource module', () => {
 
 	beforeEach(() => {
 		LiskAPI = {
-			headers: defaultHeaders,
-			fullURL: defaultBasePath,
+			headers: Object.assign({}, defaultHeaders),
+			nodeFullURL: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
@@ -63,28 +63,28 @@ describe('api resource module', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should create API resource instance', () => {
+		it('should create an API resource instance', () => {
 			return resource.should.be.instanceOf(APIResource);
 		});
 
-		it('should throw error without input', () => {
+		it('should throw an error without an input', () => {
 			return (() => new APIResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});
 	});
 
-	describe('#getHeaders', () => {
+	describe('get headers', () => {
 		it('should return header set to liskAPI', () => {
-			return resource.headers.should.equal(defaultHeaders);
+			return resource.headers.should.eql(defaultHeaders);
 		});
 	});
 
-	describe('#getResourcePath', () => {
-		it('should return resource full path', () => {
+	describe('get resourcePath', () => {
+		it("should return the resource's full path", () => {
 			return resource.resourcePath.should.equal(`${defaultBasePath}/api`);
 		});
-		it('should return resource full path with set path', () => {
+		it("should return the resource's full path with set path", () => {
 			resource.path = defaultResourcePath;
 			return resource.resourcePath.should.equal(
 				`${defaultBasePath}/api${defaultResourcePath}`,
@@ -101,7 +101,7 @@ describe('api resource module', () => {
 			});
 		});
 
-		it('should request api without calling retry', () => {
+		it('should make a request to API without calling retry', () => {
 			return resource.request(defaultRequest, false).then(res => {
 				popsicleStub.should.be.calledOnce();
 				handleRetrySpy.should.not.be.called();
@@ -109,7 +109,7 @@ describe('api resource module', () => {
 			});
 		});
 
-		it('should request api without calling retry if it successes', () => {
+		it('should make a request to API without calling retry when it successes', () => {
 			return resource.request(defaultRequest, true).then(res => {
 				popsicleStub.should.be.calledOnce();
 				handleRetrySpy.should.not.be.called();
@@ -117,7 +117,7 @@ describe('api resource module', () => {
 			});
 		});
 
-		it('should request api with calling retry if it fails', () => {
+		it('should make a request to API with calling retry when it fails', () => {
 			popsicleStub.returns({
 				use: () => Promise.reject(defaultError),
 			});
@@ -149,7 +149,7 @@ describe('api resource module', () => {
 				clock.restore();
 			});
 
-			it('should call ban active node when randomizeNodes is true', () => {
+			it('should call banActiveNode when randomizeNodes is true', () => {
 				LiskAPI.randomizeNodes = true;
 				const req = resource.handleRetry(defaultError, defaultRequest);
 				clock.tick(1000);

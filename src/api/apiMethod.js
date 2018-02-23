@@ -14,62 +14,66 @@
  */
 
 import { GET } from 'constants';
-import * as utils from './utils';
+import { solveURLParams, toQueryString } from './utils';
 
 // Bind to resource class
-const apiMethod = params => {
-	const spec = params || {};
-	const method = spec.method || GET;
-	const path = spec.path || '';
-	const urlParams = spec.urlParams || [];
-	const validator = spec.validator || null;
-	const defaultData = spec.defaultData || {};
-	const retry = spec.retry || false;
+const apiMethod = (params = {}) => {
+	const {
+		method = GET,
+		path = '',
+		urlParams = [],
+		validator = null,
+		defaultData = {},
+		retry = false,
+	} = params;
 
 	return function apiHandler(...args) {
-		// this refers to resource class
-		const self = this;
-		let fullURL = self.resourcePath + path;
-		const headers = self.headers;
-		// if urlParams is set, replace variable within URL
-		if (urlParams.length > 0) {
-			if (args.length < urlParams.length) {
-				return Promise.reject(Error('Arguments must include Params defined.'));
-			}
-			const urlData = {};
-			urlParams.forEach(param => {
-				urlData[param] = args.shift();
-			});
-			fullURL = utils.solveURLParams(fullURL, urlData);
+		if (urlParams.length > 0 && args.length < urlParams.length) {
+			return Promise.reject(
+				new Error(
+					'Arguments must include Params defined. Required: ',
+					urlParams.toString(),
+				),
+			);
 		}
-		// last argument is data
-		// # same as length of urlParams is the arguments, and the last one is data(body or query)
+
 		const data = Object.assign(
 			{},
 			defaultData,
-			args.length > 0 && typeof args[0] === 'object' ? args[0] : {},
+			args.length > urlParams.length &&
+			typeof args[urlParams.length] === 'object'
+				? args[urlParams.length]
+				: {},
 		);
 
-		if (validator && data) {
+		if (validator) {
 			try {
 				validator(data);
 			} catch (err) {
 				return Promise.reject(err);
 			}
 		}
+
+		const urlData = urlParams.reduce(
+			(accumulator, param, i) =>
+				Object.assign({}, accumulator, { [param]: args[i] }),
+			{},
+		);
+
 		const requestData = {
 			method,
-			url: fullURL,
-			headers,
+			url: solveURLParams(`${this.resourcePath}${path}`, urlData),
+			headers: this.headers,
 		};
-		if (Object.keys(data).length !== 0) {
+
+		if (Object.keys(data).length > 0) {
 			if (method === GET) {
-				requestData.url += `?${utils.toQueryString(data)}`;
+				requestData.url += `?${toQueryString(data)}`;
 			} else {
 				requestData.body = data;
 			}
 		}
-		return self.request(requestData, retry);
+		return this.request(requestData, retry);
 	};
 };
 

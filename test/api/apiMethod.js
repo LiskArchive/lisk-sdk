@@ -15,13 +15,16 @@
 
 import apiMethod from 'api/apiMethod';
 
-describe('api method module', () => {
+describe('API method module', () => {
 	const GET = 'GET';
 	const POST = 'POST';
 	const defaultBasePath = 'http://localhost:1234/api';
-	const defaultResourcePath = '/resources';
-	const defaultFullPath = `${defaultBasePath}${defaultResourcePath}`;
-	const errorArgumentNumber = Error('Arguments must include Params defined.');
+	const defaultresourcePath = '/resources';
+	const defaultFullPath = `${defaultBasePath}${defaultresourcePath}`;
+	const errorArgumentNumber = new Error(
+		'Arguments must include Params defined.',
+	);
+	const validationError = new Error('no data');
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
 		nethash: 'mainnetHash',
@@ -30,29 +33,27 @@ describe('api method module', () => {
 		minVersion: '>=0.5.0',
 		port: '443',
 	};
-	let Resource;
+	let resource;
 	let requestResult;
-	let requestStub;
+	let requestSpy;
+	let handler;
 
 	beforeEach(() => {
-		Resource = {
-			path: defaultResourcePath,
+		requestResult = { success: true, sendRequest: true };
+		resource = {
+			path: defaultresourcePath,
 			resourcePath: defaultFullPath,
 			headers: defaultHeaders,
-			request: () => {},
+			request: () => Promise.resolve(requestResult),
 			handleRetry: () => {},
 		};
-		requestResult = { success: true, sendRequest: true };
-		requestStub = sandbox
-			.stub(Resource, 'request')
-			.resolves(Object.assign({}, requestResult));
+		requestSpy = sandbox.spy(resource, 'request');
 	});
 
 	describe('#apiMethod', () => {
 		describe('when no parameters are passed', () => {
-			let handler;
 			beforeEach(() => {
-				handler = apiMethod().bind(Resource);
+				handler = apiMethod().bind(resource);
 			});
 
 			it('should return function', () => {
@@ -61,8 +62,8 @@ describe('api method module', () => {
 
 			it('should request GET with default URL', () => {
 				return handler().then(() => {
-					requestStub.should.be.calledOnce();
-					return requestStub.should.be.calledWithExactly(
+					requestSpy.should.be.calledOnce();
+					return requestSpy.should.be.calledWithExactly(
 						{
 							method: GET,
 							url: defaultFullPath,
@@ -75,7 +76,6 @@ describe('api method module', () => {
 		});
 
 		describe('when initialized with POST / parameters', () => {
-			let handler;
 			beforeEach(() => {
 				handler = apiMethod({
 					method: POST,
@@ -83,14 +83,14 @@ describe('api method module', () => {
 					urlParams: ['related', 'id'],
 					validator: data => {
 						if (!data.needed) {
-							throw Error('no data');
+							throw validationError;
 						}
 					},
 					defaultData: {
 						sort: 'id',
 					},
 					retry: true,
-				}).bind(Resource);
+				}).bind(resource);
 			});
 
 			it('should return function', () => {
@@ -102,19 +102,19 @@ describe('api method module', () => {
 			});
 
 			it('should be rejected with error without enough param', () => {
-				return handler().should.be.rejectedWith(errorArgumentNumber);
+				return handler('r-123').should.be.rejectedWith(errorArgumentNumber);
 			});
 
 			it('should be rejected with no data', () => {
 				return handler('r-123', 'id-123').should.be.rejectedWith(
-					Error('no data'),
+					validationError,
 				);
 			});
 
-			it('should be request with the given data', () => {
+			it('should call request with the given data', () => {
 				return handler('r-123', 'id-123', { needed: true }).then(() => {
-					requestStub.should.be.calledOnce();
-					return requestStub.should.be.calledWithExactly(
+					requestSpy.should.be.calledOnce();
+					return requestSpy.should.be.calledWithExactly(
 						{
 							method: POST,
 							url: `${defaultFullPath}/r-123/ids/id-123`,
@@ -131,7 +131,6 @@ describe('api method module', () => {
 		});
 
 		describe('when initialized with GET / parameters', () => {
-			let handler;
 			beforeEach(() => {
 				handler = apiMethod({
 					method: GET,
@@ -139,16 +138,16 @@ describe('api method module', () => {
 					urlParams: ['related', 'id'],
 					validator: data => {
 						if (!data.needed) {
-							throw Error('no data');
+							throw validationError;
 						}
 					},
 					defaultData: {
 						sort: 'id',
 					},
-				}).bind(Resource);
+				}).bind(resource);
 			});
 
-			it('should return function', () => {
+			it('should return a function', () => {
 				return handler.should.be.type('function');
 			});
 
@@ -157,19 +156,19 @@ describe('api method module', () => {
 			});
 
 			it('should be rejected with error without enough param', () => {
-				return handler().should.be.rejectedWith(errorArgumentNumber);
+				return handler('r-123').should.be.rejectedWith(errorArgumentNumber);
 			});
 
 			it('should be rejected with no data', () => {
 				return handler('r-123', 'id-123').should.be.rejectedWith(
-					Error('no data'),
+					validationError,
 				);
 			});
 
 			it('should be request with the given data', () => {
 				return handler('r-123', 'id-123', { needed: true }).then(() => {
-					requestStub.should.be.calledOnce();
-					return requestStub.should.be.calledWithExactly(
+					requestSpy.should.be.calledOnce();
+					return requestSpy.should.be.calledWithExactly(
 						{
 							method: GET,
 							url: `${defaultFullPath}/r-123/ids/id-123?sort=id&needed=true`,

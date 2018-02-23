@@ -13,7 +13,7 @@
  *
  */
 import naclFactory from 'js-nacl';
-import api from './api';
+import API from './api';
 import cryptography from './cryptography';
 import passphrase from './passphrase';
 import * as time from './transactions/utils/time';
@@ -26,4 +26,4 @@ naclFactory.instantiate(nacl => {
 	naclInstance = nacl;
 });
 
-export default { cryptography, transaction, api, time, passphrase };
+export default { cryptography, transaction, API, time, passphrase };

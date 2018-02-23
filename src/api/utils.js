@@ -24,20 +24,22 @@ export const toQueryString = obj => {
 	return parts.join('&');
 };
 
-const urlParamRegex = /{[^}]+}/i;
-export const solveURLParams = (url, params) => {
-	if (!params || Object.keys(params).length === 0) {
+const urlParamRegex = /{[^}]+}/;
+export const solveURLParams = (url, params = {}) => {
+	if (Object.keys(params).length === 0) {
 		if (url.match(urlParamRegex)) {
-			throw Error('URL is not completely solved');
+			throw new Error('URL is not completely solved');
 		}
 		return url;
 	}
-	let solvedURL = url;
-	Object.keys(params).forEach(key => {
-		solvedURL = solvedURL.replace(`{${key}}`, params[key]);
-	});
+	const solvedURL = Object.keys(params).reduce(
+		(accumulator, key) => accumulator.replace(`{${key}}`, params[key]),
+		url,
+	);
+
 	if (solvedURL.match(urlParamRegex)) {
-		throw Error('URL is not completely solved');
+		throw new Error('URL is not completely solved');
 	}
+
 	return encodeURI(solvedURL);
 };

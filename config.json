@@ -18,7 +18,7 @@
 		"randomizeNodes": true,
 		"node": null,
 		"port": null,
-		"headers": null,
+		"headers": {},
 		"bannedNodes": []
 	}
 }

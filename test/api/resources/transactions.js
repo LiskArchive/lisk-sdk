@@ -18,7 +18,7 @@ import TransactionResource from 'api/resources/transactions';
 
 describe('TransactionResouce', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const defaultPath = '/transactions';
+	const path = '/transactions';
 
 	let LiskAPI;
 	let resource;
@@ -26,7 +26,7 @@ describe('TransactionResouce', () => {
 	beforeEach(() => {
 		LiskAPI = {
 			headers: {},
-			fullURL: defaultBasePath,
+			nodeFullURL: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
@@ -45,14 +45,12 @@ describe('TransactionResouce', () => {
 			return resource.should.be.instanceOf(APIResource);
 		});
 
-		it('should have correcrt full path', () => {
-			return resource.resourcePath.should.eql(
-				`${defaultBasePath}/api${defaultPath}`,
-			);
+		it('should have correct full path', () => {
+			return resource.resourcePath.should.eql(`${defaultBasePath}/api${path}`);
 		});
 
 		it('should set resource path', () => {
-			return resource.path.should.equal(defaultPath);
+			return resource.path.should.equal(path);
 		});
 
 		it('should have methods', () => {

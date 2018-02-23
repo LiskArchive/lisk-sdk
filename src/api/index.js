@@ -13,38 +13,6 @@
  *
  */
 
-/*
-api({}).accounts.get(query);
-api({}).accounts.getMultiSignitureGroup(address);
-api({}).accounts.getMultiSignitureMembership(address);
-
-api({}).blocks.get(query);
-
-api({}).dapps.get();
-
-api({}).delegates.get(query);
-api({}).delegates.getForgers(query);
-api({}).delegates.getForgingStatus(address, query);
-
-api({}).nodes.getConstants();
-api({}).nodes.getStatus();
-api({}).nodes.getForgingStatus(query);
-api({}).nodes.createForgingStatus(body);
-
-api({}).peers.get(query);
-
-api({}).queues.get(state, query);
-
-api({}).signatures.create(body);
-
-api({}).transactions.get(query);
-api({}).transactions.create(body);
-
-api({}).votes.get(query);
-api({}).voters.get(query);
-
-*/
-
-import * as liskAPI from './liskApi';
+import liskAPI from './liskApi';
 
 export default liskAPI;
