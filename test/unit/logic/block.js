@@ -352,7 +352,7 @@ describe('block', () => {
 			return transactionStub.objectNormalize.reset();
 		});
 
-		describe('when one of all transaction types are present', () => {
+		describe('when each of all supported', () => {
 			let generatedBlock;
 			let transactionsOrder;
 			const correctOrder = [0, 1, 2, 3, 5, 6, 7, 4];
@@ -434,9 +434,6 @@ describe('block', () => {
 				});
 
 				it('should sort transactions in the correct order', () => {
-					expect(generatedBlock.transactions.length).to.equal(
-						data.transactions.length
-					);
 					expect(
 						expectedOrderOfTransactions(generatedBlock.transactions)
 					).to.equal(true);
@@ -462,9 +459,6 @@ describe('block', () => {
 				});
 
 				it('should sort transactions in the correct order', () => {
-					expect(generatedBlock.transactions.length).to.equal(
-						data.transactions.length
-					);
 					expect(
 						expectedOrderOfTransactions(generatedBlock.transactions)
 					).to.equal(true);
