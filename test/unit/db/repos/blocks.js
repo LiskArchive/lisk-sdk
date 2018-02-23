@@ -155,7 +155,7 @@ describe('db', () => {
 		});
 
 		describe('getGenesisBlockId()', () => {
-			it('should use the correct SQL file with one parameters', function*() {
+			it('should use the correct SQL file with one parameter', function*() {
 				sinonSandbox.spy(db, 'query');
 				yield db.blocks.getGenesisBlockId('1111111');
 
@@ -174,7 +174,7 @@ describe('db', () => {
 				return expect(block[0].id).to.be.eql(genesisBlock.id);
 			});
 
-			it('should return empty array if block does not exists for given id', function*() {
+			it('should return empty array if block does not exist for given id', function*() {
 				const block = yield db.blocks.getGenesisBlockId('111111');
 
 				expect(block).to.be.empty;
@@ -183,7 +183,7 @@ describe('db', () => {
 		});
 
 		describe('deleteBlock()', () => {
-			it('should use the correct SQL file with one parameters', function*() {
+			it('should use the correct SQL file with one parameter', function*() {
 				sinonSandbox.spy(db, 'none');
 				yield db.blocks.deleteBlock('1111111');
 
@@ -209,7 +209,7 @@ describe('db', () => {
 				return expect(after.count).to.be.equal('0');
 			});
 
-			it('should not throw an error if a block with given id does not exists', () => {
+			it('should not throw an error if a block with given id does not exist', () => {
 				return expect(db.blocks.deleteBlock('111111')).to.be.eventually.equal(
 					null
 				);
@@ -245,7 +245,7 @@ describe('db', () => {
 				).to.be.eventually.rejectedWith('invalid hexadecimal digit: "x"');
 			});
 
-			it('should return empty data set if a valid but non existing key is passed', function*() {
+			it('should return empty data set if a valid but non existant key is passed', function*() {
 				const account = accountsFixtures.Account();
 				const rewards = yield db.blocks.aggregateBlocksReward({
 					generatorPublicKey: account.publicKey,
@@ -778,7 +778,7 @@ describe('db', () => {
 				return expect(data.id).to.be.eql(genesisBlock.id);
 			});
 
-			it('should return empty response if provided id does not exists', function*() {
+			it('should return empty response if provided id does not exist', function*() {
 				const data = yield db.blocks.blockExists('111111');
 
 				return expect(data).to.be.null;
@@ -813,7 +813,7 @@ describe('db', () => {
 				return expect(after).to.have.length(0);
 			});
 
-			it('should return empty response if provided id does not exists', function*() {
+			it('should return empty response if provided id does not exist', function*() {
 				const data = yield db.blocks.deleteAfterBlock('111111');
 
 				return expect(data).to.be.null;
@@ -852,7 +852,7 @@ describe('db', () => {
 				);
 			});
 
-			it('should return empty response if provided ids does not exists', function*() {
+			it('should return empty response if provided ids do not exist', function*() {
 				const data = yield db.blocks.getBlocksForTransport('111111');
 
 				return expect(data).to.be.empty;
@@ -890,7 +890,7 @@ describe('db', () => {
 				}).to.throw("Property 'id' doesn't exist");
 			});
 
-			it('should throw error invalid block "payloadHash" is provided', () => {
+			it('should throw error if invalid block "payloadHash" is provided', () => {
 				const block = blocksFixtures.Block();
 				delete block.payloadHash;
 
@@ -899,7 +899,7 @@ describe('db', () => {
 				}).to.throw('First argument must be a string, Buffer');
 			});
 
-			it('should throw error invalid block "generatorPublicKey" is provided', () => {
+			it('should throw error if invalid block "generatorPublicKey" is provided', () => {
 				const block = blocksFixtures.Block();
 				delete block.generatorPublicKey;
 
@@ -908,7 +908,7 @@ describe('db', () => {
 				}).to.throw('First argument must be a string, Buffer');
 			});
 
-			it('should throw error invalid block "blockSignature" is provided', () => {
+			it('should throw error if invalid block "blockSignature" is provided', () => {
 				const block = blocksFixtures.Block();
 				delete block.blockSignature;
 
