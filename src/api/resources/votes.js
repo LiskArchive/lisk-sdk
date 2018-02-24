@@ -17,7 +17,7 @@ import { GET } from 'constants';
 import apiMethod from '../apiMethod';
 import APIResource from '../apiResource';
 
-export default class VoteResource extends APIResource {
+export default class VotesResource extends APIResource {
 	constructor(liskAPI) {
 		super(liskAPI);
 		this.path = '/votes';

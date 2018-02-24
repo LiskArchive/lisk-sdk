@@ -31,8 +31,7 @@ const apiMethod = (params = {}) => {
 		if (urlParams.length > 0 && args.length < urlParams.length) {
 			return Promise.reject(
 				new Error(
-					'Arguments must include Params defined. Required: ',
-					urlParams.toString(),
+					`This endpoint must be supplied with the following parameters:${urlParams.toString()}`,
 				),
 			);
 		}

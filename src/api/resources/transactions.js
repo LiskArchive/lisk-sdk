@@ -17,7 +17,7 @@ import { GET, POST } from 'constants';
 import apiMethod from '../apiMethod';
 import APIResource from '../apiResource';
 
-export default class TransactionResource extends APIResource {
+export default class TransactionsResource extends APIResource {
 	constructor(liskAPI) {
 		super(liskAPI);
 		this.path = '/transactions';

@@ -34,7 +34,10 @@ export default class LiskAPI {
 		const options = Object.assign({}, config.options, providedOptions);
 		this.ssl = options.ssl !== false;
 		this.testnet = options.testnet === true;
-		const nethash = options.headers.nethash ? options.headers.nethash : null;
+		const nethash =
+			options.headers && options.headers.nethash
+				? options.headers.nethash
+				: null;
 
 		this.defaultNodes = [...(options.nodes || config.nodes.mainnet)];
 		this.defaultTestnetNodes = [...(options.nodes || config.nodes.testnet)];

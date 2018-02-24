@@ -32,8 +32,8 @@ export const solveURLParams = (url, params = {}) => {
 		}
 		return url;
 	}
-	const solvedURL = Object.keys(params).reduce(
-		(accumulator, key) => accumulator.replace(`{${key}}`, params[key]),
+	const solvedURL = Object.entries(params).reduce(
+		(accumulator, [key, value]) => accumulator.replace(`{${key}}`, value),
 		url,
 	);
 

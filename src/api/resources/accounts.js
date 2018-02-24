@@ -17,7 +17,7 @@ import { GET } from 'constants';
 import APIResource from '../apiResource';
 import apiMethod from '../apiMethod';
 
-export default class AccountResource extends APIResource {
+export default class AccountsResource extends APIResource {
 	constructor(liskAPI) {
 		super(liskAPI);
 

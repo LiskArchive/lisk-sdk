@@ -17,7 +17,7 @@ import { POST } from 'constants';
 import apiMethod from '../apiMethod';
 import APIResource from '../apiResource';
 
-export default class SignatureResource extends APIResource {
+export default class SignaturesResource extends APIResource {
 	constructor(liskAPI) {
 		super(liskAPI);
 		this.path = '/signatures';

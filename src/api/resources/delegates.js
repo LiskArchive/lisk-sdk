@@ -17,7 +17,7 @@ import { GET } from 'constants';
 import apiMethod from '../apiMethod';
 import APIResource from '../apiResource';
 
-export default class DelegateResource extends APIResource {
+export default class DelegatesResource extends APIResource {
 	constructor(liskAPI) {
 		super(liskAPI);
 		this.path = '/delegates';

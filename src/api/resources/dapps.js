@@ -17,7 +17,7 @@ import { GET } from 'constants';
 import apiMethod from '../apiMethod';
 import APIResource from '../apiResource';
 
-export default class DappResource extends APIResource {
+export default class DappsResource extends APIResource {
 	constructor(liskAPI) {
 		super(liskAPI);
 		this.path = '/dapps';
