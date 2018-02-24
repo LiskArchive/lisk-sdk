@@ -237,6 +237,11 @@ describe('transport', () => {
 					logger: {
 						debug: sinonSandbox.spy(),
 					},
+					logic: {
+						transaction: {
+							objectNormalize: sinonSandbox.stub(),
+						},
+					},
 				};
 
 				modules = {
@@ -534,48 +539,9 @@ describe('transport', () => {
 				done();
 			});
 
-			// TODO: The validation logic was moved up into the postTransactions functions
-			describe.skip('when library.schema.validate fails', () => {
-				var validateErr;
-
-				beforeEach(done => {
-					validateErr = new Error('Transaction did not match schema');
-					validateErr.code = 'INVALID_FORMAT';
-					library.schema.validate = sinonSandbox
-						.stub()
-						.callsArgWith(2, [validateErr]);
-
-					__private.receiveTransactions(query, peerMock, '', () => {
-						done();
-					});
-				});
-
-				it('should call callback with error = "Invalid transactions body"', () => {
-					// TODO: Check that error is what we expect it to be.
-					return expect(library.schema.validate.called).to.be.true;
-				});
-			});
-
 			describe('when library.schema.validate succeeds', () => {
-				describe.skip('when called', () => {
-					var error;
-
-					beforeEach(done => {
-						__private.receiveTransactions(query, peerMock, '', err => {
-							error = err;
-							done();
-						});
-					});
-
-					// If a single transaction within the batch fails, it is not going to
-					// send back an error.
-					it('should call callback with null error', () => {
-						return expect(error).to.equal(null);
-					});
-				});
-
-				describe('when transaction is defined', () => {
-					describe('when call __private.receiveTransaction succeeds', () => {
+				describe('for every transaction in transactions', () => {
+					describe('when transaction is undefined', () => {
 						var error;
 
 						beforeEach(done => {
@@ -1001,6 +967,13 @@ describe('transport', () => {
 					},
 					loader: {
 						syncing: sinonSandbox.stub().returns(false),
+					},
+					blocks: {
+						utils: {
+							loadBlocksData: sinonSandbox
+								.stub()
+								.callsArgWith(1, null, blocksList),
+						},
 					},
 				};
 
@@ -1572,18 +1545,78 @@ describe('transport', () => {
 			});
 
 			describe('blocks', () => {
+				var error;
+				var result;
+				var query;
+
 				describe('when query is undefined', () => {
-					it('should set query = {}');
+					beforeEach(done => {
+						query = undefined;
+
+						modules.blocks.utils.loadBlocksData = sinonSandbox
+							.stub()
+							.callsArgWith(1, null, []);
+
+						transportInstance.shared.blocks(query, (err, res) => {
+							error = err;
+							result = res;
+							done();
+						});
+					});
+
+					it('should send back empty blocks', () => {
+						expect(error).to.equal(null);
+						return expect(result)
+							.to.have.property('blocks')
+							.which.is.an('array').that.is.empty;
+					});
 				});
 
-				it(
-					'should call modules.blocks.utils.loadBlocksData with { limit: 34,lastId: query.lastBlockId }'
-				);
+				describe('when query is defined', () => {
+					beforeEach(done => {
+						query = {
+							lastBlockId: '6258354802676165798',
+						};
 
-				describe('when modules.blocks.utils.loadBlocksData fails', () => {
-					it(
-						'should call callback with error = null and result = { blocks: [] }'
-					);
+						transportInstance.shared.blocks(query, (err, res) => {
+							error = err;
+							result = res;
+							done();
+						});
+					});
+
+					it('should call modules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', () => {
+						return expect(
+							modules.blocks.utils.loadBlocksData.calledWith({
+								limit: 34,
+								lastId: query.lastBlockId,
+							})
+						).to.be.true;
+					});
+
+					describe('when modules.blocks.utils.loadBlocksData fails', () => {
+						var loadBlockFailed;
+
+						beforeEach(done => {
+							loadBlockFailed = new Error('Failed to load blocks...');
+							modules.blocks.utils.loadBlocksData = sinonSandbox
+								.stub()
+								.callsArgWith(1, loadBlockFailed);
+
+							transportInstance.shared.blocks(query, (err, res) => {
+								error = err;
+								result = res;
+								done();
+							});
+						});
+
+						it('should call callback with error = null and result = { blocks: [] }', () => {
+							expect(error).to.be.equal(null);
+							return expect(result)
+								.to.have.property('blocks')
+								.which.is.an('array').that.is.empty;
+						});
+					});
 				});
 			});
 
@@ -1733,20 +1766,24 @@ describe('transport', () => {
 
 			describe('postTransactions', () => {
 				describe('when query.transactions is defined', () => {
-					it(
-						'should call __private.receiveTransactions with query and query.peer and query.extraLogMessage'
-					);
+					describe('when library.schema.validate fails', () => {});
 
-					describe('when __private.receiveTransactions fails', () => {
+					describe('when library.schema.validate succeeds', () => {
 						it(
-							'should call callback with error = null and result = {success: false, message: err}'
+							'should call __private.receiveTransactions with query and query.peer and query.extraLogMessage'
 						);
-					});
 
-					describe('when __private.receiveTransactions succeeds', () => {
-						it(
-							'should call callback with error = null and result = {success: true}'
-						);
+						describe('when __private.receiveTransactions fails', () => {
+							it(
+								'should call callback with error = null and result = {success: false, message: err}'
+							);
+						});
+
+						describe('when __private.receiveTransactions succeeds', () => {
+							it(
+								'should call callback with error = null and result = {success: true}'
+							);
+						});
 					});
 				});
 
