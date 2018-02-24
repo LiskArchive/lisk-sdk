@@ -16,7 +16,7 @@
 import APIResource from 'api/apiResource';
 import AccountResource from 'api/resources/accounts';
 
-describe('AccountResouce', () => {
+describe('AccountsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/accounts';
 

@@ -16,7 +16,7 @@
 import APIResource from 'api/apiResource';
 import VoterResource from 'api/resources/voters';
 
-describe('VoterResouce', () => {
+describe('VotersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/voters';
 

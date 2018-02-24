@@ -16,7 +16,7 @@
 import APIResource from 'api/apiResource';
 import TransactionResource from 'api/resources/transactions';
 
-describe('TransactionResouce', () => {
+describe('TransactionsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/transactions';
 

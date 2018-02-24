@@ -21,10 +21,6 @@ describe('API method module', () => {
 	const defaultBasePath = 'http://localhost:1234/api';
 	const defaultresourcePath = '/resources';
 	const defaultFullPath = `${defaultBasePath}${defaultresourcePath}`;
-	const errorArgumentNumber = new Error(
-		'Arguments must include Params defined.',
-	);
-	const validationError = new Error('no data');
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
 		nethash: 'mainnetHash',
@@ -35,8 +31,9 @@ describe('API method module', () => {
 	};
 	let resource;
 	let requestResult;
-	let requestSpy;
 	let handler;
+	let errorArgumentNumber;
+	let validationError;
 
 	beforeEach(() => {
 		requestResult = { success: true, sendRequest: true };
@@ -44,10 +41,10 @@ describe('API method module', () => {
 			path: defaultresourcePath,
 			resourcePath: defaultFullPath,
 			headers: defaultHeaders,
-			request: () => Promise.resolve(requestResult),
+			request: sandbox.stub().resolves(requestResult),
 			handleRetry: () => {},
 		};
-		requestSpy = sandbox.spy(resource, 'request');
+		validationError = new Error('No data');
 	});
 
 	describe('#apiMethod', () => {
@@ -62,8 +59,8 @@ describe('API method module', () => {
 
 			it('should request GET with default URL', () => {
 				return handler().then(() => {
-					requestSpy.should.be.calledOnce();
-					return requestSpy.should.be.calledWithExactly(
+					resource.request.should.be.calledOnce();
+					return resource.request.should.be.calledWithExactly(
 						{
 							method: GET,
 							url: defaultFullPath,
@@ -91,6 +88,9 @@ describe('API method module', () => {
 					},
 					retry: true,
 				}).bind(resource);
+				errorArgumentNumber = new Error(
+					'This endpoint must be supplied with the following parameters: related,id',
+				);
 			});
 
 			it('should return function', () => {
@@ -113,8 +113,8 @@ describe('API method module', () => {
 
 			it('should call request with the given data', () => {
 				return handler('r-123', 'id-123', { needed: true }).then(() => {
-					requestSpy.should.be.calledOnce();
-					return requestSpy.should.be.calledWithExactly(
+					resource.request.should.be.calledOnce();
+					return resource.request.should.be.calledWithExactly(
 						{
 							method: POST,
 							url: `${defaultFullPath}/r-123/ids/id-123`,
@@ -145,17 +145,20 @@ describe('API method module', () => {
 						sort: 'id',
 					},
 				}).bind(resource);
+				errorArgumentNumber = new Error(
+					'This endpoint must be supplied with the following parameters: related,id',
+				);
 			});
 
 			it('should return a function', () => {
 				return handler.should.be.type('function');
 			});
 
-			it('should be rejected with error without param', () => {
+			it('should be rejected with error without parameters', () => {
 				return handler().should.be.rejectedWith(errorArgumentNumber);
 			});
 
-			it('should be rejected with error without enough param', () => {
+			it('should be rejected with error without enough parameters', () => {
 				return handler('r-123').should.be.rejectedWith(errorArgumentNumber);
 			});
 
@@ -167,8 +170,8 @@ describe('API method module', () => {
 
 			it('should be request with the given data', () => {
 				return handler('r-123', 'id-123', { needed: true }).then(() => {
-					requestSpy.should.be.calledOnce();
-					return requestSpy.should.be.calledWithExactly(
+					resource.request.should.be.calledOnce();
+					return resource.request.should.be.calledWithExactly(
 						{
 							method: GET,
 							url: `${defaultFullPath}/r-123/ids/id-123?sort=id&needed=true`,

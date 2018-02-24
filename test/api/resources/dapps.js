@@ -16,7 +16,7 @@
 import APIResource from 'api/apiResource';
 import DappResource from 'api/resources/dapps';
 
-describe('DappResouce', () => {
+describe('DappsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/dapps';
 

@@ -16,7 +16,7 @@
 import APIResource from 'api/apiResource';
 import DelegateResource from 'api/resources/delegates';
 
-describe('DelegateResouce', () => {
+describe('DelegatesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/delegates';
 

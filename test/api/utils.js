@@ -14,11 +14,9 @@
  */
 import { toQueryString, solveURLParams } from 'api/utils';
 
-const defaultBaseURL = 'http://localhost:8080';
-const path = '/resources';
-const defaultURL = `${defaultBaseURL}/api${path}`;
-
 describe('api utils module', () => {
+	const defaultURL = 'http://localhost:8080/api/resources';
+
 	describe('#toQueryString', () => {
 		it('should create a query string from an object', () => {
 			const queryString = toQueryString({

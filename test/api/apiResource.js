@@ -42,8 +42,6 @@ describe('API resource module', () => {
 	};
 	let resource;
 	let LiskAPI;
-	let banActiveNodeAndSelectStub;
-	let handleRetrySpy;
 
 	beforeEach(() => {
 		LiskAPI = {
@@ -51,15 +49,9 @@ describe('API resource module', () => {
 			nodeFullURL: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
-			banActiveNodeAndSelect: () => {},
+			banActiveNodeAndSelect: sandbox.stub(),
 		};
-
-		banActiveNodeAndSelectStub = sandbox.stub(
-			LiskAPI,
-			'banActiveNodeAndSelect',
-		);
 		resource = new APIResource(LiskAPI);
-		handleRetrySpy = sandbox.spy(resource, 'handleRetry');
 	});
 
 	describe('#constructor', () => {
@@ -81,10 +73,11 @@ describe('API resource module', () => {
 	});
 
 	describe('get resourcePath', () => {
-		it("should return the resource's full path", () => {
+		it('should return the resource’s full path', () => {
 			return resource.resourcePath.should.equal(`${defaultBasePath}/api`);
 		});
-		it("should return the resource's full path with set path", () => {
+
+		it('should return the resource’s full path with set path', () => {
 			resource.path = defaultResourcePath;
 			return resource.resourcePath.should.equal(
 				`${defaultBasePath}/api${defaultResourcePath}`,
@@ -94,17 +87,19 @@ describe('API resource module', () => {
 
 	describe('#request', () => {
 		let popsicleStub;
+		let handleRetryStub;
 
 		beforeEach(() => {
 			popsicleStub = sandbox.stub(popsicle, 'request').returns({
 				use: () => Promise.resolve(sendRequestResult),
 			});
+			handleRetryStub = sandbox.stub(resource, 'handleRetry');
 		});
 
 		it('should make a request to API without calling retry', () => {
 			return resource.request(defaultRequest, false).then(res => {
 				popsicleStub.should.be.calledOnce();
-				handleRetrySpy.should.not.be.called();
+				handleRetryStub.should.not.be.called();
 				return res.should.eql(sendRequestResult.body);
 			});
 		});
@@ -112,7 +107,7 @@ describe('API resource module', () => {
 		it('should make a request to API without calling retry when it successes', () => {
 			return resource.request(defaultRequest, true).then(res => {
 				popsicleStub.should.be.calledOnce();
-				handleRetrySpy.should.not.be.called();
+				handleRetryStub.should.not.be.called();
 				return res.should.eql(sendRequestResult.body);
 			});
 		});
@@ -123,7 +118,7 @@ describe('API resource module', () => {
 			});
 			return resource.request(defaultRequest, true).catch(err => {
 				popsicleStub.should.be.calledOnce();
-				handleRetrySpy.should.be.calledOnce();
+				handleRetryStub.should.be.calledOnce();
 				return err.should.eql(defaultError);
 			});
 		});
@@ -153,8 +148,8 @@ describe('API resource module', () => {
 				LiskAPI.randomizeNodes = true;
 				const req = resource.handleRetry(defaultError, defaultRequest);
 				clock.tick(1000);
-				req.then(res => {
-					banActiveNodeAndSelectStub.should.be.calledOnce();
+				return req.then(res => {
+					LiskAPI.banActiveNodeAndSelect.should.be.calledOnce();
 					requestStub.should.be.calledWith(defaultRequest, true);
 					return res.should.be.eql(sendRequestResult.body);
 				});
@@ -164,13 +159,14 @@ describe('API resource module', () => {
 				LiskAPI.randomizeNodes = false;
 				const req = resource.handleRetry(defaultError, defaultRequest);
 				clock.tick(1000);
-				req.then(res => {
-					banActiveNodeAndSelectStub.should.not.be.called();
+				return req.then(res => {
+					LiskAPI.banActiveNodeAndSelect.should.not.be.called();
 					requestStub.should.be.calledWith(defaultRequest, true);
 					return res.should.be.eql(sendRequestResult.body);
 				});
 			});
 		});
+
 		describe('when there is no available node', () => {
 			beforeEach(() => {
 				LiskAPI.hasAvailableNodes = () => false;
@@ -178,7 +174,7 @@ describe('API resource module', () => {
 
 			it('should resolve with failure response', () => {
 				const req = resource.handleRetry(defaultError, defaultRequest);
-				req.then(res => {
+				return req.then(res => {
 					res.success.should.be.false();
 					res.error.should.eql(defaultError);
 					return res.message.should.equal(

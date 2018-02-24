@@ -16,7 +16,7 @@
 import APIResource from 'api/apiResource';
 import BlockResource from 'api/resources/blocks';
 
-describe('BlockResouce', () => {
+describe('BlocksResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/blocks';
 

@@ -340,7 +340,7 @@ describe('Lisk API module', () => {
 
 		describe('if a node was not provided in the options', () => {
 			beforeEach(() => {
-				LSK.providedNode = undefined;
+				LSK.providedNode = null;
 			});
 
 			describe('if randomizeNodes is set to false', () => {
@@ -484,14 +484,12 @@ describe('Lisk API module', () => {
 			return nodes.should.have.property('current').equal(LSK.node);
 		});
 
-		it('should list 2 default nodes', () => {
-			return nodes.should.have.property('default').and.eql([...defaultNodes]);
+		it('should list all default nodes', () => {
+			return nodes.should.have.property('default').and.eql(defaultNodes);
 		});
 
-		it('should list 2 testnet node', () => {
-			return nodes.should.have
-				.property('testnet')
-				.and.eql([...defaultTestnetNodes]);
+		it('should list all testnet nodes', () => {
+			return nodes.should.have.property('testnet').and.eql(defaultTestnetNodes);
 		});
 	});
 
@@ -655,18 +653,18 @@ describe('Lisk API module', () => {
 			});
 
 			describe('when set to false', () => {
-				beforeEach(() => {
-					LSK.ssl = true;
-				});
-				it('should set port to ssl port', () => {
+				it('should set port to live port when testnet is false', () => {
+					LSK.testnet = false;
 					LSK.setSSL(false);
 					return LSK.should.have.property('port').and.be.equal(livePort);
 				});
-				it('should set port to test port', () => {
+
+				it('should set port to test port when testnet is true', () => {
 					LSK.testnet = true;
 					LSK.setSSL(false);
 					return LSK.should.have.property('port').and.be.equal(testPort);
 				});
+
 				it('should have ssl set to false', () => {
 					LSK.setSSL(false);
 					return LSK.should.have.property('ssl').and.be.false();

@@ -16,7 +16,7 @@
 import APIResource from 'api/apiResource';
 import SignatureResource from 'api/resources/signatures';
 
-describe('SignatureResouce', () => {
+describe('SignaturesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/signatures';
 
