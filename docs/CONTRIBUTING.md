@@ -137,7 +137,8 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
   * :house: `:house:` when performing chores
   * :new: `:new:` when adding a new dependency
   * :arrow_up: `:arrow_up:` when upgrading a dependency
-  * :arrow_down: `:arrow_down:` when downgrading a dependency \* :back: `:back:` when reverting changes
+  * :arrow_down: `:arrow_down:` when downgrading a dependency
+  * :back: `:back:` when reverting changes
 
 ### JavaScript Styleguide
 
