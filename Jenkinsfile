@@ -8,16 +8,25 @@ pipeline {
 		}
 		stage('Run lint') {
 			steps {
-				sh 'npm run lint'
+				ansiColor('xterm') {
+					sh 'npm run lint'
+				}
+			}
+		}
+		stage('Build') {
+			steps {
+				sh 'npm run build'
 			}
 		}
 		stage('Run tests') {
 			steps {
-				sh 'LISKY_CONFIG_DIR=$WORKSPACE/.lisky npm run test'
-				sh '''
-				cp ~/.coveralls.yml-lisky .coveralls.yml
-				npm run cover
-				'''
+				ansiColor('xterm') {
+					sh 'LISKY_CONFIG_DIR=$WORKSPACE/.lisky npm run test'
+					sh '''
+					cp ~/.coveralls.yml-lisky .coveralls.yml
+					npm run cover
+					'''
+				}
 			}
 		}
 	}
