@@ -40,7 +40,9 @@ describe('blocks/verify', () => {
 			debug: sinonSandbox.spy(),
 		};
 		dbStub = sinonSandbox.stub();
-		logicBlockStub = sinonSandbox.stub();
+		logicBlockStub = {
+			verifySignature: sinonSandbox.stub(),
+		};
 		logicTransactionStub = {
 			getId: sinonSandbox.stub(),
 			checkConfirmed: sinonSandbox.stub(),
@@ -325,6 +327,56 @@ describe('blocks/verify', () => {
 				).to.deep.equal({
 					id: '6',
 					height: 6,
+				});
+			});
+		});
+	});
+
+	describe('__private.verifySignature', () => {
+		describe('library.logic.block.verifySignature', () => {
+			describe('when fails', () => {
+				describe('if throws error', () => {
+					beforeEach(() => {
+						return library.logic.block.verifySignature.throws(
+							'verifySignature-ERR'
+						);
+					});
+					it('should return error', () => {
+						const verifySignature = __private.verifySignature(
+							{ id: 6 },
+							{ errors: [] }
+						);
+						expect(verifySignature.errors[0]).to.equal('verifySignature-ERR');
+						return expect(verifySignature.errors[1]).to.equal(
+							'Failed to verify block signature'
+						);
+					});
+				});
+				describe('if is not valid', () => {
+					beforeEach(() => {
+						return library.logic.block.verifySignature.returns(false);
+					});
+					it('should return error', () => {
+						const verifySignature = __private.verifySignature(
+							{ id: 6 },
+							{ errors: [] }
+						);
+						return expect(verifySignature.errors[0]).to.equal(
+							'Failed to verify block signature'
+						);
+					});
+				});
+			});
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					return library.logic.block.verifySignature.returns(true);
+				});
+				it('should return no error', () => {
+					const verifySignature = __private.verifySignature(
+						{ id: 6 },
+						{ errors: [] }
+					);
+					return expect(verifySignature.errors.length).to.equal(0);
 				});
 			});
 		});
