@@ -394,7 +394,7 @@ describe('block', () => {
 				let transactionsOrder;
 
 				beforeEach(done => {
-					// create 6 multisignature transaction
+					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() => {
 						return transactionsByTypes[transactionTypes.MULTI];
 					});
@@ -472,7 +472,7 @@ describe('block', () => {
 				let transactionsOrder;
 
 				beforeEach(done => {
-					// create 6 multisignature transaction
+					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() => {
 						return transactionsByTypes[transactionTypes.MULTI];
 					});

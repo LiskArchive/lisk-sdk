@@ -258,7 +258,7 @@ class Block {
 	}
 }
 
-// TODO: TO maintain backward compatibility, the below listed methods have to use prototype otherwise these must be converted to static attributes
+// TODO: To maintain backward compatibility, the below listed methods have to use prototype otherwise these must be converted to static attributes
 // Private methods
 
 /**
