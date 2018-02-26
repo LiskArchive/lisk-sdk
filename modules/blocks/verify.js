@@ -203,8 +203,12 @@ __private.verifyPreviousBlock = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyAgainstLastNBlockIds = function(block, result) {
-	if (__private.lastNBlockIds.indexOf(block.id) !== -1) {
-		result.errors.push('Block already exists in chain');
+	try {
+		if (__private.lastNBlockIds.indexOf(block.id) !== -1) {
+			result.errors.push('Block already exists in chain');
+		}
+	} catch (e) {
+		result.errors.push(e.toString());
 	}
 
 	return result;
