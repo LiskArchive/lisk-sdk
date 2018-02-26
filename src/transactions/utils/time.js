@@ -13,7 +13,7 @@
  *
  */
 
-import { EPOCH_TIME_MILLISECONDS } from '../../constants';
+import { EPOCH_TIME_MILLISECONDS } from 'constants';
 
 export const getTimeFromBlockchainEpoch = givenTimestamp => {
 	const startingPoint = givenTimestamp || new Date().getTime();

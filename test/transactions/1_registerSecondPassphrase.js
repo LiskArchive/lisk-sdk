@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import registerSecondPassphrase from '../../src/transactions/1_registerSecondPassphrase';
+import registerSecondPassphrase from 'transactions/1_registerSecondPassphrase';
 
-const time = require('../../src/transactions/utils/time');
+const time = require('transactions/utils/time');
 
 describe('#registerSecondPassphrase transaction', () => {
 	const fixedPoint = 10 ** 8;

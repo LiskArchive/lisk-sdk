@@ -32,7 +32,7 @@ import {
 	validatePublicKey,
 	validatePublicKeys,
 	wrapTransactionCreator,
-} from '../../../src/transactions/utils';
+} from 'transactions/utils';
 
 describe('transaction utils', () => {
 	describe('exports', () => {

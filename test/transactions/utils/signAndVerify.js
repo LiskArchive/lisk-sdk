@@ -16,11 +16,11 @@ import {
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
-} from '../../../src/transactions/utils';
+} from 'transactions/utils';
 
-import cryptoModule from '../../../src/crypto';
+import cryptography from 'cryptography';
 
-const getTransactionHash = require('../../../src/transactions/utils/getTransactionHash');
+const getTransactionHash = require('transactions/utils/getTransactionHash');
 
 describe('signAndVerify transaction utils', () => {
 	const defaultPassphrase =
@@ -55,10 +55,10 @@ describe('signAndVerify transaction utils', () => {
 		};
 
 		cryptoSignDataStub = sandbox
-			.stub(cryptoModule, 'signData')
+			.stub(cryptography, 'signData')
 			.returns(defaultSignature);
 		cryptoVerifyDataStub = sandbox
-			.stub(cryptoModule, 'verifyData')
+			.stub(cryptography, 'verifyData')
 			.returns(true);
 		getTransactionHashStub = sandbox
 			.stub(getTransactionHash, 'default')

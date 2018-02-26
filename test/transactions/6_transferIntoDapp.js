@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transferIntoDapp from '../../src/transactions/6_transferIntoDapp';
+import transferIntoDapp from 'transactions/6_transferIntoDapp';
 
-const time = require('../../src/transactions/utils/time');
+const time = require('transactions/utils/time');
 
 describe('#transferIntoDapp transaction', () => {
 	const fixedPoint = 10 ** 8;

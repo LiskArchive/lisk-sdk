@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../crypto';
+import bignum from 'browserify-bignum';
+import cryptography from 'cryptography';
 
 export const isValidValue = value => ![undefined, false, NaN].includes(value);
 
@@ -167,14 +168,16 @@ const getTransactionBytes = transaction => {
 		: Buffer.alloc(0);
 
 	const transactionRecipientID = transaction.recipientId
-		? cryptoModule.bigNumberToBuffer(
+		? cryptography.bigNumberToBuffer(
 				transaction.recipientId.slice(0, -1),
 				BYTESIZES.RECIPIENT_ID,
 			)
 		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
-	const transactionAmount = Buffer.alloc(BYTESIZES.AMOUNT);
-	transactionAmount.writeInt32LE(transaction.amount, 0, BYTESIZES.AMOUNT);
+	const transactionAmount = bignum(transaction.amount).toBuffer({
+		endian: 'little',
+		size: BYTESIZES.AMOUNT,
+	});
 
 	const transactionAssetData = getAssetBytes(transaction);
 

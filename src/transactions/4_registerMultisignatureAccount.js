@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { MULTISIGNATURE_FEE } from '../constants';
+import { MULTISIGNATURE_FEE } from 'constants';
 import {
 	prependPlusToPublicKeys,
 	validateKeysgroup,

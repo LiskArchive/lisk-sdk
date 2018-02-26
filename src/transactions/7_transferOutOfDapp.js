@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { OUT_TRANSFER_FEE } from '../constants';
+import { OUT_TRANSFER_FEE } from 'constants';
 import { wrapTransactionCreator } from './utils';
 
 const transferOutOfDapp = ({ amount, dappId, transactionId, recipientId }) => ({

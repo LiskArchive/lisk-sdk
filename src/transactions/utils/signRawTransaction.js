@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import crypto from '../../crypto';
+import cryptography from 'cryptography';
 import { getTimeWithOffset } from './time';
 import prepareTransaction from './prepareTransaction';
 
@@ -22,11 +22,13 @@ export default function signRawTransaction({
 	secondPassphrase,
 	timeOffset,
 }) {
-	const { publicKey, address } = crypto.getAddressAndPublicKeyFromPassphrase(
-		passphrase,
-	);
+	const {
+		publicKey,
+		address,
+	} = cryptography.getAddressAndPublicKeyFromPassphrase(passphrase);
 	const senderSecondPublicKey = secondPassphrase
-		? crypto.getPrivateAndPublicKeyFromPassphrase(secondPassphrase).publicKey
+		? cryptography.getPrivateAndPublicKeyFromPassphrase(secondPassphrase)
+				.publicKey
 		: null;
 
 	const propertiesToAdd = {

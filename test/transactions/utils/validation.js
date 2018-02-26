@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../../../src/crypto';
+import cryptography from 'cryptography';
 import {
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
-} from '../../../src/transactions/utils/validation';
+} from 'transactions/utils/validation';
 
 describe('public key validation', () => {
 	describe('#validatePublicKey', () => {
@@ -145,7 +145,7 @@ describe('public key validation', () => {
 					.fill()
 					.map(
 						(_, index) =>
-							cryptoModule.getPrivateAndPublicKeyFromPassphrase(
+							cryptography.getPrivateAndPublicKeyFromPassphrase(
 								index.toString(),
 							).publicKey,
 					);

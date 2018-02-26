@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import registerDelegate from '../../src/transactions/2_registerDelegate';
+import registerDelegate from 'transactions/2_registerDelegate';
 
-const time = require('../../src/transactions/utils/time');
+const time = require('transactions/utils/time');
 
 describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;
