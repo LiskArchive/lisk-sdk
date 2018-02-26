@@ -42,8 +42,7 @@ class MigrationsRepository {
 	/**
 	 * Verifies presence of the 'migrations' OID named relation.
 	 *
-	 * @returns {Promise<boolean>}
-	 * Promise object that resolves with a boolean.
+	 * @returns {Promise<boolean>} Promise object that resolves with a boolean.
 	 */
 	hasMigrations() {
 		return this.db.proc(
@@ -66,8 +65,7 @@ class MigrationsRepository {
 	/**
 	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
 	 *
-	 * @returns {Promise<null>}
-	 * Returns a Promise object that resolves with `null`.
+	 * @returns {Promise<null>} Promise object that resolves with `null`.
 	 */
 	applyRuntime() {
 		// Use a transaction only when not in one:
@@ -77,8 +75,7 @@ class MigrationsRepository {
 	/**
 	 * Executes 'migrations/memoryTables.sql' file, to create and configure all memory tables.
 	 *
-	 * @returns {Promise<null>}
-	 * Returns a Promise object that resolves with `null`.
+	 * @returns {Promise<null>} Promise object that resolves with `null`.
 	 */
 	createMemoryTables() {
 		// Use a transaction only when not in one:
@@ -129,8 +126,7 @@ class MigrationsRepository {
 	 * Applies a cumulative update: all pending migrations + runtime.
 	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
 	 *
-	 * @returns {Promise}
-	 * Returns a Promise object that resolves with `undefined`.
+	 * @returns {Promise} Promise object that resolves with `undefined`.
 	 */
 	applyAll() {
 		return this.db.tx('migrations:applyAll', function*(t1) {

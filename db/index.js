@@ -38,7 +38,7 @@ let initOptions = {
 		});
 	},
 	receive: (/* data, result, e */) => {
-		// can log result.duration when available and/or necessary,
+		// Can log result.duration when available and/or necessary,
 		// to analyze performance of individual queries;
 		// API: http://vitaly-t.github.io/pg-promise/global.html#event:receive
 	},
