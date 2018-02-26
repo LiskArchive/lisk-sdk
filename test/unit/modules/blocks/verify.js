@@ -290,4 +290,43 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('__private.setHeight', () => {
+		const dummyBlock = {
+			id: '6',
+			height: 4,
+		};
+		const dummyLastBlock = {
+			id: '5',
+			height: 5,
+		};
+		describe('when fails', () => {
+			describe('when block is undefined', () => {
+				it('should return error', () => {
+					const blockError = __private.setHeight(undefined, dummyLastBlock);
+					return expect(blockError.message).to.equal(
+						"Cannot set property 'height' of undefined"
+					);
+				});
+			});
+			describe('when lastBlock is undefined', () => {
+				it('should return error', () => {
+					const blockError = __private.setHeight(dummyBlock, undefined);
+					return expect(blockError.message).to.equal(
+						"Cannot read property 'height' of undefined"
+					);
+				});
+			});
+		});
+		describe('when succeeds', () => {
+			it('should return block with increased height based on last block', () => {
+				return expect(
+					__private.setHeight(dummyBlock, dummyLastBlock)
+				).to.deep.equal({
+					id: '6',
+					height: 6,
+				});
+			});
+		});
+	});
 });
