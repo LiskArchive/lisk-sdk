@@ -17,9 +17,11 @@
 const Promise = require('bluebird');
 const fixtures = require('../fixtures');
 
+let accounts = [];
+let blocks = [];
+
 class DatabaseSeed {
 	static seedAccounts(db) {
-		const accounts = [];
 		for (let i = 0; i < 5; i++) {
 			accounts.push(fixtures.accounts.Account());
 		}
@@ -32,7 +34,7 @@ class DatabaseSeed {
 
 	static seedBlocks(db, accounts) {
 		let block;
-		const blocks = [];
+
 		accounts.forEach((account, index) => {
 			if (index === 0) {
 				block = fixtures.blocks.GenesisBlock({
@@ -59,6 +61,57 @@ class DatabaseSeed {
 			.then(() => blocks);
 	}
 
+	static seedDapps(db, count = 1) {
+		const trs = [];
+
+		for (let i = 0; i < count; i++) {
+			trs.push(
+				fixtures.transactions.Transaction({ blockId: blocks[0].id, type: 5 })
+			);
+		}
+
+		return db.tx('db:seed:dapps', t => {
+			return t.transactions.save(trs).then(() => trs);
+		});
+	}
+
+	static seedOutTransfer(db, dapp, inTransfer, count = 1) {
+		const trs = [];
+
+		for (let i = 0; i < count; i++) {
+			trs.push(
+				fixtures.transactions.Transaction({
+					blockId: blocks[0].id,
+					type: 7,
+					dapp,
+					inTransfer,
+				})
+			);
+		}
+
+		return db.tx('db:seed:outtransfer', t => {
+			return t.transactions.save(trs).then(() => trs);
+		});
+	}
+
+	static seedInTransfer(db, dapp, count = 1) {
+		const trs = [];
+
+		for (let i = 0; i < count; i++) {
+			trs.push(
+				fixtures.transactions.Transaction({
+					blockId: blocks[0].id,
+					type: 6,
+					dapp,
+				})
+			);
+		}
+
+		return db.tx('db:seed:intransfer', t => {
+			return t.transactions.save(trs).then(() => trs);
+		});
+	}
+
 	static seed(db) {
 		return this.seedAccounts(db).then(accounts =>
 			this.seedBlocks(db, accounts)
@@ -66,16 +119,28 @@ class DatabaseSeed {
 	}
 
 	static reset(db) {
-		const tables = ['mem_accounts', 'blocks'];
+		const tables = [
+			'mem_accounts',
+			'blocks',
+			'forks_stat',
+			'dapps',
+			'intransfer',
+			'outtransfer',
+		];
 		const promises = [];
 
 		tables.forEach(table => {
 			promises.push(db.query(`TRUNCATE TABLE "${table}" CASCADE`));
 		});
 
-		return db.task('db:seed:reset', t => {
-			return t.batch(promises);
-		});
+		return db
+			.task('db:seed:reset', t => {
+				return t.batch(promises);
+			})
+			.then(() => {
+				accounts = [];
+				blocks = [];
+			});
 	}
 }
 

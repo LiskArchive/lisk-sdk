@@ -54,7 +54,7 @@ const Account = stampit({
 		secondPublicKey: null,
 		balance: '0',
 		u_balance: '0',
-		vote: '10000000000000000',
+		vote: '',
 		rate: '0',
 		delegates: null,
 		u_delegates: null,
@@ -88,6 +88,8 @@ const Account = stampit({
 		this.blockId =
 			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
 
+		this.vote = randomstring.generate({ charset: '123456789', length: 5 });
+
 		if (this.isDelegate) {
 			this.virgin = false;
 		}
@@ -100,7 +102,19 @@ const Delegate = stampit(Account, {
 	},
 });
 
+const Dependent = stampit({
+	init({ accountId, dependentId }) {
+		this.accountId = accountId;
+		this.dependentId =
+			dependentId ||
+			randomstring
+				.generate({ charset: '0123456789ABCDE', length: 32 })
+				.toLowerCase();
+	},
+});
+
 accounts.Account = Account;
 accounts.Delegate = Delegate;
+accounts.Dependent = Dependent;
 
 module.exports = accounts;
