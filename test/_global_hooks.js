@@ -1,6 +1,7 @@
 import lockfile from 'lockfile';
 
-afterEach(function globalAfterEach() {
+/* eslint-disable mocha/no-top-level-hooks */
+afterEach(function globalAfterEach(done) {
 	const { vorpal } = this.test.ctx;
 	// See https://github.com/dthree/vorpal/issues/230
 	// istanbul ignore next
@@ -9,9 +10,11 @@ afterEach(function globalAfterEach() {
 	}
 
 	sandbox.restore();
+	done();
 });
 
-after(() => {
+after(done => {
 	const configLockfilePath = `${process.env.LISKY_CONFIG_DIR}/config.lock`;
-	lockfile.unlock(configLockfilePath);
+	lockfile.unlock(configLockfilePath, done);
 });
+/* eslint-enable mocha/no-top-level-hooks */
