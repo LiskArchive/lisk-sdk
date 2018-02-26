@@ -510,19 +510,21 @@ describe('block', () => {
 		});
 
 		it('should throw error for a block with unknown fields', () => {
-			const unknowBlock = {
+			const unknownBlock = {
 				verson: 0,
 				totlFee: '&**&^&',
 				rewrd: 'g@n!a',
 			};
 
 			return expect(() => {
-				block.sign(unknowBlock, 'this is invalid key pair');
+				block.sign(unknownBlock, 'this is invalid key pair');
 			}).to.throw();
 		});
 
-		it('should return a signed block using valid keypair', () => {
-			return expect(block.sign(blockData, validKeypair)).to.be.string;
+		it('should return valid signature when sign block using valid keypair', () => {
+			const signature = block.sign(blockData, validKeypair);
+			expect(signature).to.be.a('string');
+			return expect(signature).to.have.length.of(128);
 		});
 	});
 
@@ -534,7 +536,7 @@ describe('block', () => {
 		});
 
 		it('should return a buffer for a given block', () => {
-			return expect(block.getBytes(blockData)).to.be.instanceof(Buffer);
+			return expect(block.getBytes(blockData)).to.be.an.instanceof(Buffer);
 		});
 
 		it('should return same bytes for a given block', () => {
@@ -587,7 +589,7 @@ describe('block', () => {
 		});
 
 		it('should return a hash for a given block', () => {
-			return expect(block.getHash(blockData)).to.be.instanceof(Buffer);
+			return expect(block.getHash(blockData)).to.be.an.instanceof(Buffer);
 		});
 	});
 
