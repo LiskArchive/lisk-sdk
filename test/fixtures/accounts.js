@@ -54,7 +54,7 @@ const Account = stampit({
 		secondPublicKey: null,
 		balance: '0',
 		u_balance: '0',
-		vote: '10000000000000000',
+		vote: '',
 		rate: '0',
 		delegates: null,
 		u_delegates: null,
@@ -87,6 +87,8 @@ const Account = stampit({
 				.toLowerCase();
 		this.blockId =
 			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
+
+		this.vote = randomstring.generate({ charset: '123456789', length: 5 });
 
 		if (this.isDelegate) {
 			this.virgin = false;

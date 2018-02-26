@@ -33,14 +33,19 @@ var wsServer = null;
  * @requires socketcluster-client
  * @requires wamp-socket-cluster/WAMPClient
  * @requires wamp-socket-cluster/MasterWAMPServe
- * @requires api/ws/rpc/failureCodes
- * @requires helpers/promiseDefer
+ * @requires api/ws/rpc/failure_codes
+ * @requires {@link helpers.PromiseDefer}
  * @requires modules/system
  * @todo Add description for the module
  */
 
 /**
- * @alias module:api/ws/rpc/wsRPC
+ * Description of the namespace.
+ *
+ * @namespace wsRPC
+ * @memberof module:api/ws/rpc/ws_rpc
+ * @see Parent: {@link module:api/ws/rpc/ws_rpc}
+ * @todo Add description for the namespace
  */
 var wsRPC = {
 	clientsConnectionsMap: {},
@@ -50,6 +55,7 @@ var wsRPC = {
 	/**
 	 * Description of the function.
 	 *
+	 * @memberof module:api/ws/rpc/ws_rpc.wsRPC
 	 * @param {Object} __wsServer
 	 * @todo Add description for the function and the params
 	 */
@@ -60,6 +66,7 @@ var wsRPC = {
 	/**
 	 * Description of the function.
 	 *
+	 * @memberof module:api/ws/rpc/ws_rpc.wsRPC
 	 * @throws {Error} If WS server has not been initialized yet
 	 * @returns {MasterWAMPServer} wsServer
 	 * @todo Add description for the function
@@ -73,6 +80,7 @@ var wsRPC = {
 	/**
 	 * Description of the function.
 	 *
+	 * @memberof module:api/ws/rpc/ws_rpc.wsRPC
 	 * @param {string} ip
 	 * @param {number} port
 	 * @returns {Object} Map where keys are all procedures registered
@@ -102,6 +110,7 @@ var wsRPC = {
 	/**
 	 * Description of the function.
 	 *
+	 * @memberof module:api/ws/rpc/ws_rpc.wsRPC
 	 * @throws {Error} If WS server has not been initialized yet
 	 * @returns {Object} wsServer
 	 * @todo Add description for the function
@@ -125,7 +134,8 @@ ConnectionState.STATUS = {
  * Description of the function.
  *
  * @class
- * @memberof module:api/ws/rpc/wsRPC
+ * @memberof module:api/ws/rpc/ws_rpc
+ * @see Parent: {@link api/ws/rpc/ws_rpc}
  * @param {string} ip
  * @param {number} port
  * @todo Add description for the function and the params
@@ -141,7 +151,7 @@ function ConnectionState(ip, port) {
 /**
  * Description of the function.
  *
- * @memberof module:api/ws/rpc/wsRPC.ConnectionState
+ * @memberof module:api/ws/rpc/ws_rpc.ConnectionState
  * @param {string} ip
  * @param {number} port
  * @todo Add description for the function and the params
@@ -154,7 +164,7 @@ ConnectionState.prototype.reconnect = function() {
 /**
  * Description of the function.
  *
- * @memberof module:api/ws/rpc/wsRPC.ConnectionState
+ * @memberof module:api/ws/rpc/ws_rpc.ConnectionState
  * @param {string} ip
  * @param {number} port
  * @todo Add description for the function and the params
@@ -167,7 +177,7 @@ ConnectionState.prototype.reject = function(reason) {
 /**
  * Description of the function.
  *
- * @memberof module:api/ws/rpc/wsRPC.ConnectionState
+ * @memberof module:api/ws/rpc/ws_rpc.ConnectionState
  * @param {string} ip
  * @param {number} port
  * @todo Add description for the function and the params
@@ -181,7 +191,8 @@ ConnectionState.prototype.resolve = function(socket) {
  * The stub of all RPC methods registered on WS server.
  *
  * @class ClientRPCStub
- * @memberof module:api/ws/rpc/wsRPC
+ * @memberof module:api/ws/rpc/ws_rpc
+ * @see Parent: {@link api/ws/rpc/ws_rpc}
  * @param {Object} connectionState
  * @example
  * // methodA registered on WS server can be called by a client by simply:
@@ -212,7 +223,7 @@ var ClientRPCStub = function(connectionState) {
 /**
  * Description of the function.
  *
- * @memberof module:api/ws/rpc/wsRPC.ClientRPCStub
+ * @memberof module:api/ws/rpc/ws_rpc.ClientRPCStub
  * @param {Object} connectionState
  * @todo Add description for the function and the params
  * @todo Document this as an instance method (not static)
@@ -254,7 +265,7 @@ ClientRPCStub.prototype.initializeNewConnection = function(connectionState) {
 /**
  * Description of the function.
  *
- * @memberof module:api/ws/rpc/wsRPC.ClientRPCStub
+ * @memberof module:api/ws/rpc/ws_rpc.ClientRPCStub
  * @param {Object} connectionState
  * @returns {function} To be called with procedure, to be then called with optional argument and/or callback
  * @todo Add description for the function and the params
