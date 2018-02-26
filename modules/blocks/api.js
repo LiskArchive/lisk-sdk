@@ -23,16 +23,20 @@ var self;
 var __private = {};
 var modules; // eslint-disable-line no-unused-vars
 /**
- * Initializes library.
- * @memberof module:blocks
+ * Main API logic. Allows get information. Initializes library.
+ *
  * @class
- * @classdesc Main API logic.
- * Allows get information.
+ * @memberof modules.blocks
+ * @see Parent: {@link modules.blocks}
+ * @requires helpers/api_codes
+ * @requires helpers/api_error
+ * @requires helpers/sort_by.sortBy
  * @param {Object} logger
  * @param {Database} db
  * @param {Block} block
  * @param {ZSchema} schema
  * @param {Sequence} dbSequence
+ * @todo Add description for the params
  */
 function API(logger, db, block, schema, dbSequence) {
 	library = {
@@ -50,27 +54,26 @@ function API(logger, db, block, schema, dbSequence) {
 }
 
 /**
- * Get filtered list of blocks (without transactions)
+ * Get filtered list of blocks (without transactions).
  *
  * @private
- * @async
- * @method list
- * @param  {Object}   filter Conditions to filter with
- * @param  {string}   filter.id Block id
- * @param  {string}   filter.generatorPublicKey Public key of delegate who generates the block
- * @param  {number}   filter.numberOfTransactions Number of transactions
- * @param  {string}   filter.previousBlock Previous block ID
- * @param  {number}   filter.height Block height
- * @param  {number}   filter.totalAmount Total amount of block's transactions
- * @param  {number}   filter.totalFee Block total fees
- * @param  {number}   filter.reward Block reward
- * @param  {number}   filter.limit Limit of blocks to retrieve, default: 100, max: 100
- * @param  {number}   filter.offset Offset from where to start
- * @param  {string}   filter.sort Sort order, default: height:desc
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- * @return {Object}   cb.data List of normalized blocks
+ * @func list
+ * @param {Object} filter - Conditions to filter with
+ * @param {string} filter.id - Block id
+ * @param {string} filter.generatorPublicKey - Public key of delegate who generates the block
+ * @param {number} filter.numberOfTransactions - Number of transactions
+ * @param {string} filter.previousBlock - Previous block ID
+ * @param {number} filter.height - Block height
+ * @param {number} filter.totalAmount - Total amount of block's transactions
+ * @param {number} filter.totalFee - Block total fees
+ * @param {number} filter.reward - Block reward
+ * @param {number} filter.limit - Limit of blocks to retrieve, default: 100, max: 100
+ * @param {number} filter.offset - Offset from where to start
+ * @param {string} filter.sort - Sort order, default: height:desc
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.data - List of normalized blocks
  */
 __private.list = function(filter, cb) {
 	var params = {};
@@ -172,6 +175,13 @@ __private.list = function(filter, cb) {
 		});
 };
 
+/**
+ * Description of the function.
+ *
+ * @returns {Immediate}
+ * @todo Add @param tags
+ * @todo Add description for the function and return value
+ */
 API.prototype.getBlocks = function(filters, cb) {
 	if (!__private.loaded) {
 		return setImmediate(cb, 'Blockchain is loading');
@@ -195,7 +205,8 @@ API.prototype.getBlocks = function(filters, cb) {
  * Handle modules initialization:
  * - blocks
  * - system
- * @param {modules} scope Exposed modules
+ *
+ * @param {Object} scope - Exposed modules
  */
 API.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->API: Shared modules bind.');
