@@ -1836,8 +1836,37 @@ describe('transport', () => {
 			});
 
 			describe('status', () => {
+				var headers;
+
+				beforeEach(done => {
+					headers = {
+						height: 123,
+						broadhash: '258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
+						nonce: 'sYHEDBKcScaAAAYg',
+						httpPort: 8000,
+						version: 'v0.8.0',
+						os: 'debian'
+					};
+					req = {};
+					modules.system.headers = sinonSandbox.stub().returns(headers);
+					transportInstance.shared.status(req, (err, res) => {
+						error = err;
+						result = res;
+						done();
+					});
+				});
+
 				it(
-					'should call callback with error = null and result = {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash(), nonce: modules.system.getNonce()}'
+					'should call callback with error = null and result = {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash(), nonce: modules.system.getNonce()}',
+					() => {
+						expect(error).to.be.equal(null);
+						expect(result).to.have.property('success').which.equals(true);
+						expect(result).to.have.property('height').which.equals(headers.height);
+						expect(result).to.have.property('broadhash').which.equals(headers.broadhash);
+						expect(result).to.have.property('httpPort').which.equals(headers.httpPort);
+						expect(result).to.have.property('version').which.equals(headers.version);
+						return expect(result).to.have.property('os').which.equals(headers.os);
+					}
 				);
 			});
 
