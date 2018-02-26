@@ -15,7 +15,7 @@
 import {
 	prependPlusToPublicKeys,
 	prependMinusToPublicKeys,
-} from '../../../src/transactions/utils/format';
+} from 'transactions/utils/format';
 
 describe('format', () => {
 	describe('#prependPlusToPublicKeys', () => {

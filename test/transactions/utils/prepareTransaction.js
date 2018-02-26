@@ -1,4 +1,4 @@
-import prepareTransaction from '../../../src/transactions/utils/prepareTransaction';
+import prepareTransaction from 'transactions/utils/prepareTransaction';
 
 describe('#prepareTransaction', () => {
 	const passphrase = 'secret';

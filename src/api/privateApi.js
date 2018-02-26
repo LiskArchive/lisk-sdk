@@ -13,7 +13,7 @@
  *
  */
 import * as popsicle from 'popsicle';
-import { GET } from '../constants';
+import { GET } from 'constants';
 import * as utils from './utils';
 
 export function getNodes() {

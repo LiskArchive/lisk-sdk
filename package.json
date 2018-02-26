@@ -8,6 +8,7 @@
 		"start": "./bin/start.sh",
 		"test": "nyc mocha test --recursive",
 		"test:watch": "chokidar \"./(src|test)/**/*.js\" -c \"mocha test --recursive\" --initial",
+		"test:node": "npm run build:check && BABEL_ENV=buildcheck mocha test --recursive",
 		"test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
 		"cover": "nyc report --reporter=lcov",
 		"eslint": "grunt eslint",
@@ -41,6 +42,7 @@
 	"devDependencies": {
 		"babel-cli": "=6.24.1",
 		"babel-plugin-istanbul": "=4.1.4",
+		"babel-plugin-module-resolver": "=3.0.0",
 		"babel-plugin-rewire": "=1.1.0",
 		"babel-plugin-transform-runtime": "=6.23.0",
 		"babel-preset-env": "=1.6.0",
