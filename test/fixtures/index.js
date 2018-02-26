@@ -18,4 +18,6 @@ module.exports = {
 	accounts: require('./accounts'),
 	peers: require('./peers'),
 	blocks: require('./blocks'),
+	dapps: require('./dapps'),
+	transactions: require('./transactions'),
 };
