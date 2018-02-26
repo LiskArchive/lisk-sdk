@@ -77,20 +77,22 @@ describe('blocks/api', () => {
 
 		describe('library', () => {
 			it('should assign logger', () => {
-				expect(library.logger).to.eql(modulesLoader.scope.logger);
+				return expect(library.logger).to.eql(modulesLoader.scope.logger);
 			});
 
 			it('should assign db', () => {
-				expect(library.db).to.eql(dbStub);
+				return expect(library.db).to.eql(dbStub);
 			});
 
 			it('should assign dbSequence', () => {
-				expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
+				return expect(library.dbSequence).to.eql(
+					modulesLoader.scope.dbSequence
+				);
 			});
 
 			describe('should assign logic', () => {
 				it('should assign block', () => {
-					expect(library.logic.block).to.eql(blockStub);
+					return expect(library.logic.block).to.eql(blockStub);
 				});
 			});
 		});
@@ -98,8 +100,9 @@ describe('blocks/api', () => {
 
 	describe('__private', () => {
 		describe('list', () => {
-			afterEach(() => {
+			afterEach(done => {
 				dbStub.blocks.list = sinonSandbox.stub().resolves([]);
+				done();
 			});
 
 			describe('filters with where clauses', () => {
@@ -292,8 +295,9 @@ describe('blocks/api', () => {
 
 	describe('getBlocks', () => {
 		describe('when __private.loaded = false', () => {
-			before(() => {
+			before(done => {
 				__private.loaded = false;
+				done();
 			});
 
 			it('should call callback with error', done => {
@@ -325,7 +329,7 @@ describe('blocks/api', () => {
 		var modules;
 		var modulesStub;
 
-		before(() => {
+		before(done => {
 			modulesStub = {
 				blocks: sinonSandbox.stub(),
 				system: sinonSandbox.stub(),
@@ -335,19 +339,20 @@ describe('blocks/api', () => {
 
 			blocksApiModule.onBind(modulesStub);
 			modules = BlocksApi.__get__('modules');
+			done();
 		});
 
 		it('should set __private.loaded = true', () => {
-			expect(__private.loaded).to.be.true;
+			return expect(__private.loaded).to.be.true;
 		});
 
 		describe('modules', () => {
 			it('should assign blocks', () => {
-				expect(modules.blocks).to.equal(modulesStub.blocks);
+				return expect(modules.blocks).to.equal(modulesStub.blocks);
 			});
 
 			it('should assign system', () => {
-				expect(modules.system).to.equal(modulesStub.system);
+				return expect(modules.system).to.equal(modulesStub.system);
 			});
 		});
 	});

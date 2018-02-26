@@ -24,11 +24,14 @@ var self;
 var __private = {};
 
 /**
- * Initializes library.
- * @memberof module:blocks
+ * Main utils logic. Allows utils functions for blocks. Initializes library.
+ *
  * @class
- * @classdesc Main Utils logic.
- * Allows utils functions for blocks.
+ * @memberof modules.blocks
+ * @see Parent: {@link modules.blocks}
+ * @requires lodash
+ * @requires helpers/constants
+ * @requires helpers/transaction_types
  * @param {Object} logger
  * @param {Account} account
  * @param {Block} block
@@ -36,6 +39,7 @@ var __private = {};
  * @param {Database} db
  * @param {Sequence} dbSequence
  * @param {Object} genesisblock
+ * @todo Add description for the params
  */
 function Utils(
 	logger,
@@ -64,11 +68,10 @@ function Utils(
 }
 
 /**
- * Normalize blocks and their transactions
+ * Normalize blocks and their transactions.
  *
- * @method readDbRows
  * @param {Array} rows - Data from full_blocks_list view
- * @return {Array} Of normalized blocks with transactions
+ * @returns {Array} blocks - List of normalized blocks with transactions
  */
 Utils.prototype.readDbRows = function(rows) {
 	var blocks = {};
@@ -119,18 +122,15 @@ Utils.prototype.readDbRows = function(rows) {
 };
 
 /**
- * Loads full blocks from database and normalize them
+ * Loads full blocks from database and normalize them.
  *
- * @async
- * @public
- * @method loadBlocksPart
- * @param  {Object}   filter Filter options
- * @param  {Object}   filter.limit Limit blocks to amount
- * @param  {Object}   filter.lastId ID of block to begin with
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- * @return {Object}   cb.rows List of normalized blocks
+ * @param {Object} filter - Filter options
+ * @param {Object} filter.limit - Limit blocks to amount
+ * @param {Object} filter.lastId - ID of block to begin with
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.rows - List of normalized blocks
  */
 Utils.prototype.loadBlocksPart = function(filter, cb) {
 	self.loadBlocksData(filter, (err, rows) => {
@@ -146,16 +146,12 @@ Utils.prototype.loadBlocksPart = function(filter, cb) {
 };
 
 /**
- * Loads full normalized last block from database
- * see: loader.loadBlockChain (private)
+ * Loads full normalized last block from database, see: loader.loadBlockChain (private).
  *
- * @async
- * @public
- * @method loadLastBlock
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error message if error occurred
- * @return {Object}   cb.block Full normalized last block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error message if error occurred
+ * @returns {Object} cb.block - Full normalized last block
  */
 Utils.prototype.loadLastBlock = function(cb) {
 	library.dbSequence.add(cb => {
@@ -194,18 +190,15 @@ Utils.prototype.loadLastBlock = function(cb) {
 };
 
 /**
- * Get blocks IDs sequence - last block ID, IDs of first blocks of last 5 rounds, genesis block ID
+ * Get blocks IDs sequence - last block ID, IDs of first blocks of last 5 rounds, genesis block ID.
  *
- * @private
- * @async
- * @method getIdSequence
- * @param  {number}   height Block height
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- * @return {Object}   cb.res Result
- * @return {string}   cb.res.firstHeight Height of last block
- * @return {string}   cb.res.ids Comma separated list of blocks IDs
+ * @param {number} height - Block height
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.res - Result
+ * @returns {string} cb.res.firstHeight - Height of last block
+ * @returns {string} cb.res.ids - Comma separated list of blocks IDs
  */
 Utils.prototype.getIdSequence = function(height, cb) {
 	var lastBlock = modules.blocks.lastBlock.get();
@@ -267,19 +260,15 @@ Utils.prototype.getIdSequence = function(height, cb) {
 };
 
 /**
- * Generates a list of full blocks for another node upon sync request from that node
- * see: modules.transport.internal.blocks
+ * Generates a list of full blocks for another node upon sync request from that node, see: modules.transport.internal.blocks.
  *
- * @async
- * @public
- * @method loadBlocksData
- * @param  {Object}   filter Filter options
- * @param  {Object}   filter.limit Limit blocks to amount
- * @param  {Object}   filter.lastId ID of block to begin with
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- * @return {Object}   cb.rows List of blocks
+ * @param {Object} filter - Filter options
+ * @param {Object} filter.limit - Limit blocks to amount
+ * @param {Object} filter.lastId - ID of block to begin with
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.rows - List of blocks
  */
 Utils.prototype.loadBlocksData = function(filter, cb) {
 	var params = { limit: filter.limit || 1 };
@@ -320,33 +309,39 @@ Utils.prototype.loadBlocksData = function(filter, cb) {
 };
 
 /**
- * Creates logger for tracking applied transactions of block
+ * Creates logger for tracking applied transactions of block.
  *
- * @method getBlockProgressLogger
- * @param  {number} transactionsCount
- * @param  {number} logsFrequency
- * @param  {string} msg
- * @return {BlockProgressLogger}
+ * @param {number} transactionsCount
+ * @param {number} logsFrequency
+ * @param {string} msg
+ * @returns {BlockProgressLogger}
+ * @todo Add description for the params and return value
  */
 Utils.prototype.getBlockProgressLogger = function(
 	transactionsCount,
 	logsFrequency,
 	msg
 ) {
+	/**
+	 * Description of the class.
+	 *
+	 * @class
+	 * @todo Add @param tags
+	 */
 	function BlockProgressLogger(transactionsCount, logsFrequency, msg) {
 		this.target = transactionsCount;
 		this.step = Math.floor(transactionsCount / logsFrequency);
 		this.applied = 0;
 
 		/**
-		 * Resets applied transactions
+		 * Resets applied transactions.
 		 */
 		this.reset = function() {
 			this.applied = 0;
 		};
 
 		/**
-		 * Increments applied transactions and logs the progress
+		 * Increments applied transactions and logs the progress,
 		 * - For the first and last transaction
 		 * - With given frequency
 		 */
@@ -367,7 +362,7 @@ Utils.prototype.getBlockProgressLogger = function(
 		};
 
 		/**
-		 * Logs the progress
+		 * Logs the progress.
 		 */
 		this.log = function() {
 			library.logger.info(
@@ -383,22 +378,19 @@ Utils.prototype.getBlockProgressLogger = function(
 };
 
 /**
- * Get block rewards of delegate for time period
+ * Get block rewards of delegate for time period.
  *
- * @public
- * @async
- * @method aggregateBlocksReward
- * @param  {Object}   filter
- * @param  {string}   filter.address Delegate address
- * @param  {number}   [filter.start] Start timestamp
- * @param  {number}   [filter.end] End timestamp
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- * @return {Object}   cb.data Rewards data
- * @return {number}   cb.data.fees Round fees
- * @return {number}   cb.data.rewards Blocks rewards
- * @return {number}   cb.data.count Blocks count
+ * @param {Object} filter
+ * @param {string} filter.address - Delegate address
+ * @param {number} [filter.start] - Start timestamp
+ * @param {number} [filter.end] - End timestamp
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.data - Rewards data
+ * @returns {number} cb.data.fees - Round fees
+ * @returns {number} cb.data.rewards - Blocks rewards
+ * @returns {number} cb.data.count - Blocks count
  */
 Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 	var params = {};
@@ -450,7 +442,8 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 /**
  * Handle modules initialization:
  * - blocks
- * @param {modules} scope Exposed modules
+ *
+ * @param {modules} scope - Exposed modules
  */
 Utils.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Utils: Shared modules bind.');

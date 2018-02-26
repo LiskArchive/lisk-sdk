@@ -26,8 +26,6 @@ describe('system', () => {
 
 			it('should assign config.wsPort');
 
-			it('should assign config.version');
-
 			it('should assign config.nethash');
 
 			it('should assign config.minVersion');

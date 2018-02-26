@@ -22,7 +22,7 @@ describe('lisk_request_limit', () => {
 	var limit_fititng;
 	var next;
 
-	beforeEach(() => {
+	beforeEach(done => {
 		context = {
 			request: httpMocks.createRequest(),
 			response: null,
@@ -30,23 +30,27 @@ describe('lisk_request_limit', () => {
 		context.response = httpMocks.createResponse({ req: context.request });
 		limit_fititng = fitting();
 		next = sinonSandbox.spy();
+		done();
 	});
 
-	it('should be a factory function that names 2 arguments', () => {
+	it('should be a factory function that names 2 arguments', done => {
 		expect(fitting).to.be.a('function');
 		expect(fitting).to.have.length(1);
+		done();
 	});
 
-	it('should create a middleware accepting 2 arguments', () => {
+	it('should create a middleware accepting 2 arguments', done => {
 		expect(limit_fititng).to.be.a('function');
 		expect(limit_fititng).to.have.length(2);
+		done();
 	});
 
-	it('should set limits to default if not provided config', () => {
+	it('should set limits to default if not provided config', done => {
 		expect(limit_fititng.limits).to.be.eql(limit_fititng.defaults);
+		done();
 	});
 
-	it('should set limits to override if provided by config', () => {
+	it('should set limits to override if provided by config', done => {
 		var limits = {
 			max: 10,
 			delayMs: 0,
@@ -55,9 +59,10 @@ describe('lisk_request_limit', () => {
 		};
 		limit_fititng = fitting({ limits });
 		expect(limit_fititng.limits).to.be.eql(limits);
+		done();
 	});
 
-	it('should limit the number of request to 5 if limits.max = 5', () => {
+	it('should limit the number of request to 5 if limits.max = 5', done => {
 		var limits = {
 			max: 5,
 			delayMs: 0,
@@ -74,6 +79,7 @@ describe('lisk_request_limit', () => {
 		}
 
 		expect(next).to.have.callCount(limits.max);
+		done();
 	});
 
 	it('should limit the number of request to 5 every 2 seconds if limits.max = 5 and limits.windowMs = 2000', done => {
@@ -114,7 +120,7 @@ describe('lisk_request_limit', () => {
 		}, 2000);
 	});
 
-	it('should respect limit for different IPs explicitly', () => {
+	it('should respect limit for different IPs explicitly', done => {
 		var context2 = {
 			request: httpMocks.createRequest(),
 			response: null,
@@ -140,5 +146,6 @@ describe('lisk_request_limit', () => {
 
 		expect(next).to.have.callCount(limits.max);
 		expect(next2).to.have.callCount(limits.max);
+		done();
 	});
 });

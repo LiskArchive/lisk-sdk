@@ -43,8 +43,8 @@ var validAccount = {
 	blockId: '10352824351134264746',
 	nameexist: 0,
 	u_nameexist: 0,
-	producedblocks: 27,
-	missedblocks: 1,
+	producedBlocks: 27,
+	missedBlocks: 1,
 	fees: '231386135',
 	rewards: '0',
 	virgin: 1,
@@ -73,7 +73,7 @@ describe('accounts', () => {
 
 	describe('constructor', () => {
 		it('should throw with no params', () => {
-			expect(() => {
+			return expect(() => {
 				new AccountModule();
 			}).to.throw();
 		});
@@ -81,7 +81,7 @@ describe('accounts', () => {
 
 	describe('generateAddressByPublicKey', () => {
 		it('should generate correct address for the publicKey provided', () => {
-			expect(
+			return expect(
 				accounts.generateAddressByPublicKey(validAccount.publicKey)
 			).to.equal(validAccount.address);
 		});
@@ -90,7 +90,7 @@ describe('accounts', () => {
 		it.skip('should throw error for invalid publicKey', () => {
 			var invalidPublicKey = 'invalidPublicKey';
 
-			expect(() => {
+			return expect(() => {
 				accounts.generateAddressByPublicKey(invalidPublicKey);
 			}).to.throw('Invalid public key: ', invalidPublicKey);
 		});
@@ -150,13 +150,13 @@ describe('accounts', () => {
 
 	describe('onBind', () => {
 		it('should throw error with empty params', () => {
-			expect(accounts.onBind).to.throw();
+			return expect(accounts.onBind).to.throw();
 		});
 	});
 
 	describe('isLoaded', () => {
 		it('should return true when modules are loaded', () => {
-			expect(accounts.isLoaded).to.be.ok;
+			return expect(accounts.isLoaded).to.be.ok;
 		});
 	});
 

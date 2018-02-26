@@ -261,7 +261,7 @@ describe('onReceiveBlock()', () => {
 					var lastBlock;
 					var block;
 
-					beforeEach(() => {
+					beforeEach(done => {
 						lastBlock = library.modules.blocks.lastBlock.get();
 						var slot = slots.getSlotNumber();
 						var nonDelegateKeypair = getKeypair(
@@ -273,6 +273,7 @@ describe('onReceiveBlock()', () => {
 							nonDelegateKeypair,
 							lastBlock
 						);
+						done();
 					});
 
 					it('should not add block to blockchain', done => {
@@ -410,8 +411,9 @@ describe('onReceiveBlock()', () => {
 			describe('when block height is mutated', () => {
 				var mutatedHeight;
 
-				beforeEach(() => {
+				beforeEach(done => {
 					mutatedHeight = lastBlock.height + 1;
+					done();
 				});
 
 				describe('when received block is from previous round (101 blocks back)', () => {
@@ -421,7 +423,7 @@ describe('onReceiveBlock()', () => {
 						blockFromPreviousRound =
 							forgedBlocks[forgedBlocks.length - constants.activeDelegates];
 						blockFromPreviousRound.height = mutatedHeight;
-						library.modules.blocks.process.onReceiveBlock(
+						return library.modules.blocks.process.onReceiveBlock(
 							blockFromPreviousRound
 						);
 					});
@@ -449,7 +451,9 @@ describe('onReceiveBlock()', () => {
 								forgedBlocks.length - (constants.blockSlotWindow - 1)
 							];
 						inSlotsWindowBlock.height = mutatedHeight;
-						library.modules.blocks.process.onReceiveBlock(inSlotsWindowBlock);
+						return library.modules.blocks.process.onReceiveBlock(
+							inSlotsWindowBlock
+						);
 					});
 
 					it('should reject received block', done => {
@@ -476,7 +480,9 @@ describe('onReceiveBlock()', () => {
 								forgedBlocks.length - (constants.blockSlotWindow + 2)
 							];
 						outOfSlotWindowBlock.height = mutatedHeight;
-						library.modules.blocks.process.onReceiveBlock(outOfSlotWindowBlock);
+						return library.modules.blocks.process.onReceiveBlock(
+							outOfSlotWindowBlock
+						);
 					});
 
 					it('should reject received block', done => {
@@ -554,8 +560,9 @@ describe('onReceiveBlock()', () => {
 				describe('when timestamp is greater than last block', () => {
 					var timestamp;
 
-					beforeEach(() => {
+					beforeEach(done => {
 						timestamp = lastBlock.timestamp + 1;
+						done();
 					});
 
 					it('should reject received block', done => {
@@ -581,12 +588,13 @@ describe('onReceiveBlock()', () => {
 					});
 
 					describe('when delegate slot is invalid', () => {
-						beforeEach(() => {
+						beforeEach(done => {
 							keypair = getKeypair(
 								_.find(genesisDelegates, value => {
 									return value.publicKey != lastBlock.generatorPublicKey;
 								}).publicKey
 							);
+							done();
 						});
 
 						it('should reject received block', done => {
@@ -617,8 +625,9 @@ describe('onReceiveBlock()', () => {
 				describe('when timestamp is lower than last block', () => {
 					var timestamp;
 
-					beforeEach(() => {
+					beforeEach(done => {
 						timestamp = lastBlock.timestamp - 1;
+						done();
 					});
 
 					describe('when block slot is invalid', () => {
@@ -678,7 +687,7 @@ describe('onReceiveBlock()', () => {
 
 					describe('when generator publicKey and timestamp is different', () => {
 						describe('when timestamp is inside slot window', () => {
-							beforeEach(() => {
+							beforeEach(done => {
 								// Slot and generatorPublicKey belongs to delegate who forged second last block
 								slot = slots.getSlotNumber(secondLastBlock.timestamp);
 								timestamp = slots.getSlotTime(slot);
@@ -689,6 +698,7 @@ describe('onReceiveBlock()', () => {
 										);
 									}).secret
 								);
+								done();
 							});
 
 							it('should reject received block and delete last block', done => {
@@ -844,13 +854,14 @@ describe('onReceiveBlock()', () => {
 				describe('after new round', () => {
 					var blockFromPreviousRound;
 
-					beforeEach(() => {
+					beforeEach(done => {
 						blockFromPreviousRound = createBlock(
 							[],
 							slots.getSlotTime(slot),
 							keypair,
 							secondLastBlock
 						);
+						done();
 					});
 
 					it('should delete last block and save received block (from previous round)', done => {
@@ -899,7 +910,7 @@ describe('onReceiveBlock()', () => {
 			describe('when block does not match blockchain', () => {
 				var differentChainBlock;
 
-				beforeEach(() => {
+				beforeEach(done => {
 					var dummyLastBlock = {
 						height: 11,
 						id: '14723131253653198332',
@@ -912,6 +923,7 @@ describe('onReceiveBlock()', () => {
 						keypair,
 						dummyLastBlock
 					);
+					done();
 				});
 
 				it('should reject received block', done => {

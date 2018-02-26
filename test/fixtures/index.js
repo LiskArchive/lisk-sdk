@@ -11,8 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/**
- * Functional Module `transactions`
- *
- * @module transactions
- */
+
+'use strict';
+
+module.exports = {
+	accounts: require('./accounts'),
+	peers: require('./peers'),
+	blocks: require('./blocks'),
+};

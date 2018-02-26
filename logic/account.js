@@ -651,8 +651,8 @@ class Account {
  * @property {string} blockId
  * @property {boolean} nameexist
  * @property {boolean} u_nameexist
- * @property {number} producedblocks
- * @property {number} missedblocks
+ * @property {number} producedBlocks
+ * @property {number} missedBlocks
  * @property {number} fees
  * @property {number} rewards
  * @property {boolean} virgin

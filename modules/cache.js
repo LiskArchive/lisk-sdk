@@ -26,9 +26,15 @@ var cacheEnabled;
 
 /**
  * Cache module.
- * @constructor
+ *
+ * @class
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires async
+ * @requires helpers/transaction_types
  * @param {function} cb
  * @param {Object} scope
+ * @todo Add description for the params
  */
 function Cache(cb, scope) {
 	self = this;
@@ -40,7 +46,9 @@ function Cache(cb, scope) {
 
 /**
  * Gets redis connection status.
- * @returns {boolean} status
+ *
+ * @returns {boolean}
+ * @todo Add description for the return value
  */
 Cache.prototype.isConnected = function() {
 	// Use client.ready because this variable is updated on client connection
@@ -49,7 +57,9 @@ Cache.prototype.isConnected = function() {
 
 /**
  * Gets caching readiness and the redis connection status.
- * @returns {boolean} status
+ *
+ * @returns {boolean}
+ * @todo Add description for the return value
  */
 Cache.prototype.isReady = function() {
 	return cacheReady && self.isConnected();
@@ -57,9 +67,12 @@ Cache.prototype.isReady = function() {
 
 /**
  * Gets json value for a key from redis.
+ *
  * @param {string} key
  * @param {function} cb
  * @returns {function} cb
+ * @returns {boolean}
+ * @todo Add description for the params and the return value
  */
 Cache.prototype.getJsonForKey = function(key, cb) {
 	logger.debug(
@@ -81,9 +94,12 @@ Cache.prototype.getJsonForKey = function(key, cb) {
 
 /**
  * Sets json value for a key in redis.
+ *
  * @param {string} key
  * @param {Object} value
  * @param {function} cb
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 Cache.prototype.setJsonForKey = function(key, value, cb) {
 	cb =
@@ -107,7 +123,10 @@ Cache.prototype.setJsonForKey = function(key, value, cb) {
 
 /**
  * Deletes json value for a key in redis.
+ *
  * @param {string} key
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 Cache.prototype.deleteJsonForKey = function(key, cb) {
 	logger.debug(
@@ -126,8 +145,11 @@ Cache.prototype.deleteJsonForKey = function(key, cb) {
 
 /**
  * Scans keys with provided pattern in redis db and deletes the entries that match.
+ *
  * @param {string} pattern
  * @param {function} cb
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 Cache.prototype.removeByPattern = function(pattern, cb) {
 	if (!self.isConnected()) {
@@ -157,7 +179,10 @@ Cache.prototype.removeByPattern = function(pattern, cb) {
 
 /**
  * Removes all entries from redis db.
+ *
  * @param {function} cb
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 Cache.prototype.flushDb = function(cb) {
 	logger.debug('Cache - Flush database');
@@ -169,7 +194,10 @@ Cache.prototype.flushDb = function(cb) {
 
 /**
  * Quits established redis connection upon process exit.
+ *
  * @param {function} cb
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 Cache.prototype.cleanup = function(cb) {
 	logger.debug('Cache - Clean up database');
@@ -178,7 +206,10 @@ Cache.prototype.cleanup = function(cb) {
 
 /**
  * Quits established redis connection.
+ *
  * @param {function} cb
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 Cache.prototype.quit = function(cb) {
 	logger.debug('Cache - Quit database');
@@ -191,9 +222,12 @@ Cache.prototype.quit = function(cb) {
 
 /**
  * Clears all cache entries upon new block.
+ *
  * @param {Block} block
  * @param {Broadcast} broadcast
  * @param {function} cb
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 Cache.prototype.onNewBlock = function(block, cb) {
 	cb = cb || function() {};
@@ -235,8 +269,11 @@ Cache.prototype.onNewBlock = function(block, cb) {
 
 /**
  * Clears all cache entries upon round finish.
+ *
  * @param {Object} round - Current round.
  * @param {function} cb
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 Cache.prototype.onFinishRound = function(round, cb) {
 	cb = cb || function() {};
@@ -272,8 +309,11 @@ Cache.prototype.onFinishRound = function(round, cb) {
 
 /**
  * Clears all cache entries if there is a delegate type transaction after transactions saved.
+ *
  * @param {transactions[]} transactions
  * @param {function} cb
+ * @todo Add description for the params
+ * @todo Add @returns tag
  */
 Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 	cb = cb || function() {};

@@ -78,16 +78,16 @@ describe('rounds', () => {
 		});
 
 		it('should return Rounds instance', () => {
-			expect(rounds).to.be.instanceof(Rounds);
+			return expect(rounds).to.be.instanceof(Rounds);
 		});
 
 		it('should set library to scope', () => {
-			expect(get('library')).to.deep.equal(validScope);
+			return expect(get('library')).to.deep.equal(validScope);
 		});
 
 		it('should set self object', () => {
 			var self = Rounds.__get__('self');
-			expect(self).to.deep.equal(rounds);
+			return expect(self).to.deep.equal(rounds);
 		});
 	});
 
@@ -98,7 +98,7 @@ describe('rounds', () => {
 			var value = 'abc';
 			set(variable, value);
 			expect(get(variable)).to.equal(value);
-			set(variable, backup);
+			return set(variable, backup);
 		});
 	});
 
@@ -109,7 +109,7 @@ describe('rounds', () => {
 			var value = 'abc';
 			set(variable, value);
 			expect(get(variable)).to.equal(value);
-			set(variable, backup);
+			return set(variable, backup);
 		});
 	});
 
@@ -120,11 +120,11 @@ describe('rounds', () => {
 		before(() => {
 			stub = sinon.stub(db.rounds, 'flush');
 			stub.withArgs(true).resolves('success');
-			stub.withArgs(false).rejects('fail');
+			return stub.withArgs(false).rejects('fail');
 		});
 
 		after(() => {
-			stub.restore();
+			return stub.restore();
 		});
 
 		describe('when flush query is successful', () => {
@@ -136,15 +136,15 @@ describe('rounds', () => {
 			});
 
 			after(() => {
-				stub.resetHistory();
+				return stub.resetHistory();
 			});
 
 			it('should call a callback when no error', () => {
-				expect(error).to.not.exist;
+				return expect(error).to.not.exist;
 			});
 
 			it('flush query should be called once', () => {
-				expect(stub.calledOnce).to.be.true;
+				return expect(stub.calledOnce).to.be.true;
 			});
 		});
 
@@ -157,15 +157,15 @@ describe('rounds', () => {
 			});
 
 			after(() => {
-				stub.resetHistory();
+				return stub.resetHistory();
 			});
 
 			it('should call a callback with error = Rounds#flush error', () => {
-				expect(error).to.equal('Rounds#flush error');
+				return expect(error).to.equal('Rounds#flush error');
 			});
 
 			it('flush query should be called once', () => {
-				expect(stub.calledOnce).to.be.true;
+				return expect(stub.calledOnce).to.be.true;
 			});
 		});
 	});
@@ -177,7 +177,7 @@ describe('rounds', () => {
 			var value = 'abc';
 			rounds.setSnapshotRound(value);
 			expect(get(variable)).to.equal(value);
-			set(variable, backup);
+			return set(variable, backup);
 		});
 	});
 
@@ -192,7 +192,7 @@ describe('rounds', () => {
 			};
 			rounds.onBind(value);
 			expect(get(variable)).to.deep.equal(value);
-			set(variable, backup);
+			return set(variable, backup);
 		});
 	});
 
@@ -204,7 +204,7 @@ describe('rounds', () => {
 			set(variable, value);
 			rounds.onBlockchainReady();
 			expect(get(variable)).to.equal(true);
-			set(variable, backup);
+			return set(variable, backup);
 		});
 	});
 
@@ -219,7 +219,7 @@ describe('rounds', () => {
 					number: round,
 				})
 			).to.be.true;
-			validScope.network.io.sockets.emit.reset();
+			return validScope.network.io.sockets.emit.reset();
 		});
 	});
 
@@ -240,8 +240,9 @@ describe('rounds', () => {
 	describe('__private.getOutsiders', () => {
 		var getOutsiders;
 
-		before(() => {
+		before(done => {
 			getOutsiders = get('__private.getOutsiders');
+			done();
 		});
 
 		describe('when scope.block.height = 1', () => {
@@ -275,16 +276,17 @@ describe('rounds', () => {
 							},
 						},
 					};
-					rounds.onBind(modules);
+					return rounds.onBind(modules);
 				});
 
 				describe('when all delegates are on list (no outsiders)', () => {
 					var initialScope;
 
-					before(() => {
+					before(done => {
 						scope.roundDelegates = ['delegate1', 'delegate2', 'delegate3'];
 						scope.roundOutsiders = [];
 						initialScope = _.cloneDeep(scope);
+						done();
 					});
 
 					it('should call a callback', done => {
@@ -295,7 +297,7 @@ describe('rounds', () => {
 					});
 
 					it('should not modify scope.roundOutsiders', () => {
-						expect(scope.roundOutsiders).to.deep.equal(
+						return expect(scope.roundOutsiders).to.deep.equal(
 							initialScope.roundOutsiders
 						);
 					});
@@ -304,10 +306,11 @@ describe('rounds', () => {
 				describe('when 1 delegates is not on list (outsider)', () => {
 					var initialScope;
 
-					before(() => {
+					before(done => {
 						scope.roundDelegates = ['delegate2', 'delegate3'];
 						scope.roundOutsiders = [];
 						initialScope = _.cloneDeep(scope);
+						done();
 					});
 
 					it('should call a callback', done => {
@@ -319,7 +322,7 @@ describe('rounds', () => {
 
 					it('should add 1 outsider scope.roundOutsiders', () => {
 						initialScope.roundOutsiders.push('delegate');
-						expect(scope.roundOutsiders).to.deep.equal(
+						return expect(scope.roundOutsiders).to.deep.equal(
 							initialScope.roundOutsiders
 						);
 					});
@@ -328,10 +331,11 @@ describe('rounds', () => {
 				describe('when 2 delegates are not on list (outsiders)', () => {
 					var initialScope;
 
-					before(() => {
+					before(done => {
 						scope.roundDelegates = ['delegate3'];
 						scope.roundOutsiders = [];
 						initialScope = _.cloneDeep(scope);
+						done();
 					});
 
 					it('should call a callback', done => {
@@ -344,7 +348,7 @@ describe('rounds', () => {
 					it('should add 2 outsiders to scope.roundOutsiders', () => {
 						initialScope.roundOutsiders.push('delegate');
 						initialScope.roundOutsiders.push('delegate');
-						expect(scope.roundOutsiders).to.deep.equal(
+						return expect(scope.roundOutsiders).to.deep.equal(
 							initialScope.roundOutsiders
 						);
 					});
@@ -361,7 +365,7 @@ describe('rounds', () => {
 							},
 						},
 					};
-					rounds.onBind(modules);
+					return rounds.onBind(modules);
 				});
 
 				it('should call a callback with error', done => {
@@ -379,12 +383,13 @@ describe('rounds', () => {
 		var stub;
 		var scope = { round: 1 };
 
-		before(() => {
+		before(done => {
 			sumRound = get('__private.sumRound');
+			done();
 		});
 
 		describe('when summedRound query is successful', () => {
-			before(() => {
+			before(done => {
 				var rows = [
 					{
 						rewards: [1.001, 2, 3],
@@ -393,10 +398,11 @@ describe('rounds', () => {
 					},
 				];
 				stub = sinon.stub(db.rounds, 'summedRound').resolves(rows);
+				done();
 			});
 
 			after(() => {
-				stub.restore();
+				return stub.restore();
 			});
 
 			it('should call a callback', done => {
@@ -408,15 +414,15 @@ describe('rounds', () => {
 			});
 
 			it('should set scope.roundFees correctly', () => {
-				expect(scope.roundFees).to.equal(100);
+				return expect(scope.roundFees).to.equal(100);
 			});
 
 			it('should set scope.roundRewards correctly', () => {
-				expect(scope.roundRewards).to.deep.equal([1, 2, 3]);
+				return expect(scope.roundRewards).to.deep.equal([1, 2, 3]);
 			});
 
 			it('should set scope.roundDelegates', () => {
-				expect(scope.roundDelegates).to.deep.equal([
+				return expect(scope.roundDelegates).to.deep.equal([
 					'delegate1',
 					'delegate2',
 					'delegate3',
@@ -425,12 +431,13 @@ describe('rounds', () => {
 		});
 
 		describe('when summedRound query fails', () => {
-			before(() => {
+			before(done => {
 				stub = sinon.stub(db.rounds, 'summedRound').rejects('fail');
+				done();
 			});
 
 			after(() => {
-				stub.restore();
+				return stub.restore();
 			});
 
 			it('should call a callback with error = fail', done => {
@@ -477,13 +484,13 @@ describe('rounds', () => {
 
 			// Set more stubs
 			set('__private.sumRound', sumRound_stub);
-			set('__private.getOutsiders', getOutsiders_stub);
+			return set('__private.getOutsiders', getOutsiders_stub);
 		});
 
 		describe('testing branches', () => {
 			describe('scope properties', () => {
 				after(() => {
-					resetStubsHistory();
+					return resetStubsHistory();
 				});
 
 				describe('finishRound', () => {
@@ -594,7 +601,7 @@ describe('rounds', () => {
 
 			before(() => {
 				bus = get('library.bus.message');
-				bus.reset();
+				return bus.reset();
 			});
 
 			describe('when true', () => {
@@ -609,29 +616,30 @@ describe('rounds', () => {
 
 				after(() => {
 					resetStubsHistory();
-					bus.reset();
+					return bus.reset();
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {
-					expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
+					return expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.land should be called once', () => {
-					expect(land_stub.calledOnce).to.be.true;
+					return expect(land_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.sumRound should be called once', () => {
-					expect(sumRound_stub.calledOnce).to.be.true;
+					return expect(sumRound_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.getOutsiders should be called once', () => {
-					expect(getOutsiders_stub.calledOnce).to.be.true;
+					return expect(getOutsiders_stub.calledOnce).to.be.true;
 				});
 
 				it('library.bus.message should be called once with proper params', () => {
 					var bus = get('library.bus.message');
 					expect(bus.calledOnce).to.be.true;
-					expect(bus.calledWith('finishRound', roundScope.round)).to.be.true;
+					return expect(bus.calledWith('finishRound', roundScope.round)).to.be
+						.true;
 				});
 			});
 
@@ -647,28 +655,28 @@ describe('rounds', () => {
 
 				after(() => {
 					resetStubsHistory();
-					bus.reset();
+					return bus.reset();
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {
-					expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
+					return expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.land should be not called', () => {
-					expect(land_stub.called).to.be.false;
+					return expect(land_stub.called).to.be.false;
 				});
 
 				it('scope.sumRound should be not called', () => {
-					expect(sumRound_stub.called).to.be.false;
+					return expect(sumRound_stub.called).to.be.false;
 				});
 
 				it('scope.getOutsiders should be not called', () => {
-					expect(getOutsiders_stub.called).to.be.false;
+					return expect(getOutsiders_stub.called).to.be.false;
 				});
 
 				it('library.bus.message should be not called', () => {
 					var bus = get('library.bus.message');
-					expect(bus.called).to.be.false;
+					return expect(bus.called).to.be.false;
 				});
 			});
 		});
@@ -692,19 +700,19 @@ describe('rounds', () => {
 				});
 
 				after(() => {
-					resetStubsHistory();
+					return resetStubsHistory();
 				});
 
 				it('should return with error = Snapshot finished', () => {
-					expect(res).to.equal('Snapshot finished');
+					return expect(res).to.equal('Snapshot finished');
 				});
 
 				it('should set scope.finishSnapshot to true', () => {
-					expect(roundScope.finishSnapshot).to.be.true;
+					return expect(roundScope.finishSnapshot).to.be.true;
 				});
 
 				it('scope.truncateBlocks should be called once', () => {
-					expect(truncateBlocks_stub.calledOnce).to.be.true;
+					return expect(truncateBlocks_stub.calledOnce).to.be.true;
 				});
 			});
 
@@ -726,19 +734,19 @@ describe('rounds', () => {
 				});
 
 				after(() => {
-					resetStubsHistory();
+					return resetStubsHistory();
 				});
 
 				it('should return with no error', () => {
-					expect(res).to.not.exist;
+					return expect(res).to.not.exist;
 				});
 
 				it('should not set scope.finishSnapshot', () => {
-					expect(roundScope.finishSnapshot).to.equal(undefined);
+					return expect(roundScope.finishSnapshot).to.equal(undefined);
 				});
 
 				it('scope.truncateBlocks should not be called', () => {
-					expect(truncateBlocks_stub.called).to.be.false;
+					return expect(truncateBlocks_stub.called).to.be.false;
 				});
 			});
 		});
@@ -786,27 +794,27 @@ describe('rounds', () => {
 					});
 
 					after(() => {
-						clearStubs();
+						return clearStubs();
 					});
 
 					it('should result with no error', () => {
-						expect(res).to.not.exist;
+						return expect(res).to.not.exist;
 					});
 
 					it('clearRoundSnapshot query should be called once', () => {
-						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
+						return expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('performRoundSnapshot query should be called once', () => {
-						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+						return expect(performRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('clearVotesSnapshot query should be called once', () => {
-						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
+						return expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('performVotesSnapshot query should be called once', () => {
-						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+						return expect(performVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 				});
 
@@ -844,28 +852,28 @@ describe('rounds', () => {
 					});
 
 					after(() => {
-						clearStubs();
+						return clearStubs();
 					});
 
 					it('should result with BatchError and first error = fail', () => {
 						expect(res.name).to.equal('BatchError');
-						expect(res.first.name).to.equal('clearRoundSnapshot');
+						return expect(res.first.name).to.equal('clearRoundSnapshot');
 					});
 
 					it('clearRoundSnapshot query should be called once', () => {
-						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
+						return expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('performRoundSnapshot query should be called once', () => {
-						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+						return expect(performRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('clearVotesSnapshot query should be called once', () => {
-						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
+						return expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('performVotesSnapshot query should be called once', () => {
-						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+						return expect(performVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 				});
 
@@ -903,28 +911,28 @@ describe('rounds', () => {
 					});
 
 					after(() => {
-						clearStubs();
+						return clearStubs();
 					});
 
 					it('should result with BatchError and first error = fail', () => {
 						expect(res.name).to.equal('BatchError');
-						expect(res.first.name).to.equal('performRoundSnapshot');
+						return expect(res.first.name).to.equal('performRoundSnapshot');
 					});
 
 					it('clearRoundSnapshot query should be called once', () => {
-						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
+						return expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('performRoundSnapshot query should be called once', () => {
-						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+						return expect(performRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('clearVotesSnapshot query should be called once', () => {
-						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
+						return expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('performVotesSnapshot query should be called once', () => {
-						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+						return expect(performVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 				});
 
@@ -962,28 +970,28 @@ describe('rounds', () => {
 					});
 
 					after(() => {
-						clearStubs();
+						return clearStubs();
 					});
 
 					it('should result with BatchError and first error = fail', () => {
 						expect(res.name).to.equal('BatchError');
-						expect(res.first.name).to.equal('clearVotesSnapshot');
+						return expect(res.first.name).to.equal('clearVotesSnapshot');
 					});
 
 					it('clearRoundSnapshot query should be called once', () => {
-						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
+						return expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('performRoundSnapshot query should be called once', () => {
-						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+						return expect(performRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('clearVotesSnapshot query should be called once', () => {
-						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
+						return expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('performVotesSnapshot query should be called once', () => {
-						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+						return expect(performVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 				});
 
@@ -1021,28 +1029,28 @@ describe('rounds', () => {
 					});
 
 					after(() => {
-						clearStubs();
+						return clearStubs();
 					});
 
 					it('should result with BatchError and first error = fail', () => {
 						expect(res.name).to.equal('BatchError');
-						expect(res.first.name).to.equal('performVotesSnapshot');
+						return expect(res.first.name).to.equal('performVotesSnapshot');
 					});
 
 					it('clearRoundSnapshot query should be called once', () => {
-						expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
+						return expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('performRoundSnapshot query should be called once', () => {
-						expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+						return expect(performRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('clearVotesSnapshot query should be called once', () => {
-						expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
+						return expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
 					it('performVotesSnapshot query should be called once', () => {
-						expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+						return expect(performVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 				});
 			});
@@ -1057,23 +1065,23 @@ describe('rounds', () => {
 				});
 
 				after(() => {
-					resetStubsHistory();
+					return resetStubsHistory();
 				});
 
 				it('clearRoundSnapshot query should be not called', () => {
-					expect(clearRoundSnapshot_stub.calledOnce).to.be.false;
+					return expect(clearRoundSnapshot_stub.calledOnce).to.be.false;
 				});
 
 				it('performRoundSnapshot query should be not called', () => {
-					expect(performRoundSnapshot_stub.calledOnce).to.be.false;
+					return expect(performRoundSnapshot_stub.calledOnce).to.be.false;
 				});
 
 				it('clearVotesSnapshot query should be not called', () => {
-					expect(clearVotesSnapshot_stub.calledOnce).to.be.false;
+					return expect(clearVotesSnapshot_stub.calledOnce).to.be.false;
 				});
 
 				it('performVotesSnapshot query should be not called', () => {
-					expect(performVotesSnapshot_stub.calledOnce).to.be.false;
+					return expect(performVotesSnapshot_stub.calledOnce).to.be.false;
 				});
 			});
 		});
@@ -1111,13 +1119,13 @@ describe('rounds', () => {
 
 			// Set more stubs
 			set('__private.sumRound', sumRound_stub);
-			set('__private.getOutsiders', getOutsiders_stub);
+			return set('__private.getOutsiders', getOutsiders_stub);
 		});
 
 		describe('testing branches', () => {
 			describe('scope properties', () => {
 				after(() => {
-					resetStubsHistory();
+					return resetStubsHistory();
 				});
 
 				describe('finishRound', () => {
@@ -1185,27 +1193,27 @@ describe('rounds', () => {
 				});
 
 				after(() => {
-					resetStubsHistory();
+					return resetStubsHistory();
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {
-					expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
+					return expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.backwardLand should be called once', () => {
-					expect(backwardLand_stub.calledOnce).to.be.true;
+					return expect(backwardLand_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.markBlockId should be called once', () => {
-					expect(markBlockId_stub.calledOnce).to.be.true;
+					return expect(markBlockId_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.sumRound should be called once', () => {
-					expect(sumRound_stub.calledOnce).to.be.true;
+					return expect(sumRound_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.getOutsiders should be called once', () => {
-					expect(getOutsiders_stub.calledOnce).to.be.true;
+					return expect(getOutsiders_stub.calledOnce).to.be.true;
 				});
 			});
 
@@ -1221,27 +1229,27 @@ describe('rounds', () => {
 				});
 
 				after(() => {
-					resetStubsHistory();
+					return resetStubsHistory();
 				});
 
 				it('scope.mergeBlockGenerator should be called once', () => {
-					expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
+					return expect(mergeBlockGenerator_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.backwardLand should be not called', () => {
-					expect(backwardLand_stub.called).to.be.false;
+					return expect(backwardLand_stub.called).to.be.false;
 				});
 
 				it('scope.markBlockId should be called once', () => {
-					expect(markBlockId_stub.calledOnce).to.be.true;
+					return expect(markBlockId_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.sumRound should be not called', () => {
-					expect(sumRound_stub.called).to.be.false;
+					return expect(sumRound_stub.called).to.be.false;
 				});
 
 				it('scope.getOutsiders should be not called', () => {
-					expect(getOutsiders_stub.called).to.be.false;
+					return expect(getOutsiders_stub.called).to.be.false;
 				});
 			});
 		});

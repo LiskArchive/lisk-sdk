@@ -96,7 +96,7 @@ Round.prototype.mergeBlockGenerator = function() {
 		self.scope.modules.accounts.mergeAccountAndGet(
 			{
 				publicKey: self.scope.block.generatorPublicKey,
-				producedblocks: self.scope.backwards ? -1 : 1,
+				producedBlocks: self.scope.backwards ? -1 : 1,
 				blockId: self.scope.block.id,
 				round: self.scope.round,
 			},

@@ -38,14 +38,25 @@ __private.keypairs = {};
 __private.tmpKeypairs = {};
 
 /**
- * Initializes library with scope content and generates a Delegate instance.
+ * Main delegates methods. Initializes library with scope content and generates a Delegate instance.
  * Calls logic.transaction.attachAssetType().
- * @memberof module:delegates
+ *
  * @class
- * @classdesc Main delegates methods.
- * @param {scope} scope - App instance.
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} Callback function with `self` as argument.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires async
+ * @requires crypto
+ * @requires lodash
+ * @requires helpers/api_codes
+ * @requires helpers/api_error
+ * @requires helpers/constants
+ * @requires helpers/jobs_queue
+ * @requires helpers/slots
+ * @requires logic/block_reward
+ * @requires logic/delegate
+ * @param {scope} scope - App instance
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err, self
  */
 // Constructor
 function Delegates(cb, scope) {
@@ -85,10 +96,12 @@ function Delegates(cb, scope) {
 
 /**
  * Gets delegate public keys sorted by vote descending.
+ *
  * @private
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
  * @param {Object} tx - Database transaction/task object
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the return value
  */
 __private.getKeysSortByVote = function(cb, tx) {
 	modules.accounts.getAccounts(
@@ -110,10 +123,12 @@ __private.getKeysSortByVote = function(cb, tx) {
 
 /**
  * Gets delegate public keys from previous round, sorted by vote descending.
+ *
  * @private
- * @param {function} cb - Callback function.
+ * @param {function} cb - Callback function
  * @param {Object} tx - Database transaction/task object
- * @returns {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the return value
  */
 __private.getDelegatesFromPreviousRound = function(cb, tx) {
 	(tx || library.db).rounds
@@ -133,10 +148,12 @@ __private.getDelegatesFromPreviousRound = function(cb, tx) {
 
 /**
  * Generates delegate list and checks if block generator publicKey matches delegate id.
+ *
  * @param {block} block
  * @param {function} source - Source function for get delegates
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} error message | cb
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err
+ * @todo Add description for the params
  */
 __private.validateBlockSlot = function(block, source, cb) {
 	self.generateDelegateList(block.height, source, (err, activeDelegates) => {
@@ -161,11 +178,13 @@ __private.validateBlockSlot = function(block, source, cb) {
 
 /**
  * Gets slot time and keypair.
+ *
  * @private
  * @param {number} slot
  * @param {number} height
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} error | cb | object {time, keypair}
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err, {time, keypair}
+ * @todo Add description for the params
  */
 __private.getBlockSlotData = function(slot, height, cb) {
 	self.generateDelegateList(height, null, (err, activeDelegates) => {
@@ -195,15 +214,16 @@ __private.getBlockSlotData = function(slot, height, cb) {
 /**
  * Gets peers, checks consensus and generates new block, once delegates
  * are enabled, client is ready to forge and is the correct slot.
- * @implements slots.calcRound
+ *
  * @private
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback}
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the return value
  */
 __private.forge = function(cb) {
 	if (!Object.keys(__private.keypairs).length) {
 		library.logger.debug('No delegates enabled');
-		return __private.loadDelegates(cb);
+		return setImmediate(cb);
 	}
 
 	// When client is not loaded, is syncing or round is ticking
@@ -301,11 +321,13 @@ __private.forge = function(cb) {
 
 /**
  * Returns the decrypted secret by deciphering encrypted secret with the key provided using aes-256-cbc algorithm.
+ *
  * @private
  * @param {string} encryptedSecret
  * @param {string} key
- * @returns {string} decryptedSecret
  * @throws {error} If unable to decrypt using key.
+ * @returns {string} decryptedSecret
+ * @todo Add description for the params
  */
 __private.decryptSecret = function(encryptedSecret, key) {
 	var decipher = crypto.createDecipher('aes-256-cbc', key);
@@ -317,13 +339,14 @@ __private.decryptSecret = function(encryptedSecret, key) {
 /**
  * Checks each vote integrity and controls total votes don't exceed active delegates.
  * Calls modules.accounts.getAccount() to validate delegate account and votes accounts.
+ *
  * @private
- * @implements module:accounts#Account#getAccount
  * @param {publicKey} publicKey
  * @param {Array} votes
- * @param {string} state - 'confirmed' to delegates, otherwise u_delegates.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} cb | error messages
+ * @param {string} state - 'confirmed' to delegates, otherwise u_delegates
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err
+ * @todo Add description for the params
  */
 __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 	if (!Array.isArray(votes)) {
@@ -436,9 +459,11 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 
 /**
  * Loads delegates from config and stores in private `keypairs`.
+ *
  * @private
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback}
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the return value
  */
 __private.loadDelegates = function(cb) {
 	var secretsList = library.config.forging.secret;
@@ -535,10 +560,12 @@ __private.loadDelegates = function(cb) {
 // Public methods
 /**
  * Updates the forging status of an account, valid actions are enable and disable.
- * @param {publicKey} publicKey - Public key of delegate.
- * @param {string} secretKey - Key used to decrypt encrypted passphrase.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback}
+ *
+ * @param {publicKey} publicKey - Public key of delegate
+ * @param {string} secretKey - Key used to decrypt encrypted passphrase
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the return value
  */
 Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 	var actionEnable = false;
@@ -622,12 +649,13 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 
 /**
  * Gets delegate list based on input function by vote and changes order.
- * @implements slots.calcRound
+ *
  * @param {number} height
- * @param {function} source - Source function for get delegates.
- * @param {function} cb - Callback function.
+ * @param {function} source - Source function for get delegates
+ * @param {function} cb - Callback function
  * @param {Object} tx - Database transaction/task object
- * @returns {setImmediateCallback} err | truncated delegate list
+ * @returns {setImmediateCallback} cb, err, truncated delegate list
+ * @todo Add description for the params
  */
 Delegates.prototype.generateDelegateList = function(height, source, cb, tx) {
 	// Set default function for getting delegates
@@ -663,9 +691,11 @@ Delegates.prototype.generateDelegateList = function(height, source, cb, tx) {
 
 /**
  * Generates delegate list and checks if block generator public key matches delegate id.
+ *
  * @param {block} block
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} error message | cb
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err
+ * @todo Add description for the params
  */
 Delegates.prototype.validateBlockSlot = function(block, cb) {
 	__private.validateBlockSlot(block, __private.getKeysSortByVote, cb);
@@ -673,9 +703,11 @@ Delegates.prototype.validateBlockSlot = function(block, cb) {
 
 /**
  * Generates delegate list and checks if block generator public key matches delegate id - against previous round.
+ *
  * @param {block} block
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} error message | cb
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err
+ * @todo Add description for the params
  */
 Delegates.prototype.validateBlockSlotAgainstPreviousRound = function(
 	block,
@@ -692,9 +724,10 @@ Delegates.prototype.validateBlockSlotAgainstPreviousRound = function(
  * Gets a list of delegates:
  * - Calculating individual rate, rank, approval, productivity.
  * - Sorting based on query parameter.
+ *
  * @param {Object} query
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} error| object with delegates ordered, offset, count, limit.
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err, object with ordered delegates, offset, count, limit
  * @todo Sort does not affect data? What is the impact?
  */
 Delegates.prototype.getDelegates = function(query, cb) {
@@ -727,12 +760,12 @@ Delegates.prototype.getDelegates = function(query, cb) {
 
 /**
  * Gets a list forgers based on query parameters.
- * @implements modules.blocks.lastBlock.get
- * @param {Object} query - Query object.
- * @param {int} query.limit - Limit applied to results.
- * @param {int} query.offset - Offset value for results.
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} error| object
+ *
+ * @param {Object} query - Query object
+ * @param {int} query.limit - Limit applied to results
+ * @param {int} query.offset - Offset value for results
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err, object
  */
 Delegates.prototype.getForgers = function(query, cb) {
 	query.limit = query.limit || 10;
@@ -777,10 +810,13 @@ Delegates.prototype.getForgers = function(query, cb) {
 };
 
 /**
+ * Description of checkConfirmedDelegates.
+ *
  * @param {publicKey} publicKey
  * @param {Array} votes
  * @param {function} cb
- * @return {function} Calls checkDelegates() with 'confirmed' state.
+ * @returns {function} Calls checkDelegates() with 'confirmed' state
+ * @todo Add description for the params
  */
 Delegates.prototype.checkConfirmedDelegates = function(
 	publicKey,
@@ -792,10 +828,13 @@ Delegates.prototype.checkConfirmedDelegates = function(
 };
 
 /**
+ * Description of checkUnconfirmedDelegates.
+ *
  * @param {publicKey} publicKey
  * @param {Array} votes
  * @param {function} cb
- * @return {function} Calls checkDelegates() with 'unconfirmed' state.
+ * @returns {function} Calls checkDelegates() with 'unconfirmed' state
+ * @todo Add description for the params
  */
 Delegates.prototype.checkUnconfirmedDelegates = function(
 	publicKey,
@@ -808,8 +847,10 @@ Delegates.prototype.checkUnconfirmedDelegates = function(
 
 /**
  * Inserts a fork into 'forks_stat' table and emits a 'delegates/fork' socket signal with fork data: cause + block.
+ *
  * @param {block} block
  * @param {string} cause
+ * @todo Add description for the params
  */
 Delegates.prototype.fork = function(block, cause) {
 	library.logger.info('Fork', {
@@ -839,7 +880,8 @@ Delegates.prototype.fork = function(block, cause) {
 
 /**
  * Get an object of key pairs for delegates enabled for forging.
- * @return {object} Of delegate key pairs.
+ *
+ * @returns {object} Of delegate key pairs
  */
 Delegates.prototype.getForgersKeyPairs = function() {
 	return __private.keypairs;
@@ -848,8 +890,8 @@ Delegates.prototype.getForgersKeyPairs = function() {
 // Events
 /**
  * Calls Delegate.bind() with scope.
- * @implements module:delegates#Delegate~bind
- * @param {modules} scope - Loaded modules.
+ *
+ * @param {modules} scope - Loaded modules
  */
 Delegates.prototype.onBind = function(scope) {
 	modules = {
@@ -868,17 +910,15 @@ Delegates.prototype.onBind = function(scope) {
 
 /**
  * Loads delegates.
- * @implements module:transactions#Transactions~fillPool
  */
 Delegates.prototype.onBlockchainReady = function() {
 	__private.loaded = true;
 
 	__private.loadDelegates(err => {
+		if (err) {
+			library.logger.error('Failed to load delegates', err);
+		}
 		function nextForge(cb) {
-			if (err) {
-				library.logger.error('Failed to load delegates', err);
-			}
-
 			async.series([__private.forge, modules.transactions.fillPool], () =>
 				setImmediate(cb)
 			);
@@ -890,8 +930,9 @@ Delegates.prototype.onBlockchainReady = function() {
 
 /**
  * Sets loaded to false.
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} Returns cb.
+ *
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb
  */
 Delegates.prototype.cleanup = function(cb) {
 	__private.loaded = false;
@@ -900,7 +941,8 @@ Delegates.prototype.cleanup = function(cb) {
 
 /**
  * Checks if `modules` is loaded.
- * @return {boolean} True if `modules` is loaded.
+ *
+ * @returns {boolean} True if `modules` is loaded
  */
 Delegates.prototype.isLoaded = function() {
 	return !!modules;
@@ -908,17 +950,24 @@ Delegates.prototype.isLoaded = function() {
 
 // Shared API
 /**
- * @todo Implement API comments with apidoc.
+ * Description of the member.
+ *
+ * @property {function} getForgers - Search forgers based on the query parameters passed
+ * @property {function} getDelegates - Search accounts based on the query parameters passed
+ * @todo Add description for getGenesis function
+ * @todo Implement API comments with apidoc
  * @see {@link http://apidocjs.com/}
  */
 Delegates.prototype.shared = {
 	/**
 	 * Search forgers based on the query parameters passed.
-	 * @param {Object} filters - Filters applied to results.
-	 * @param {int} filters.limit - Limit applied to results.
-	 * @param {int} filters.offset - Offset value for results.
-	 * @param {function} cb - Callback function.
-	 * @returns {setImmediateCallbackObject}
+	 *
+	 * @param {Object} filters - Filters applied to results
+	 * @param {int} filters.limit - Limit applied to results
+	 * @param {int} filters.offset - Offset value for results
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb
+	 * @todo Add description for the return value
 	 */
 	getForgers(filters, cb) {
 		var lastBlock = modules.blocks.lastBlock.get();
@@ -946,18 +995,20 @@ Delegates.prototype.shared = {
 
 	/**
 	 * Search accounts based on the query parameters passed.
-	 * @param {Object} filters - Filters applied to results.
-	 * @param {string} filters.address - Account address.
-	 * @param {string} filters.publicKey - Public key associated to account.
-	 * @param {string} filters.secondPublicKey - Second public key associated to account.
-	 * @param {string} filters.username - Username associated to account.
-	 * @param {string} filters.sort - Field to sort results by.
-	 * @param {string} filters.search - Field to sort results by.
-	 * @param {string} filters.rank - Field to sort results by.
-	 * @param {int} filters.limit - Limit applied to results.
-	 * @param {int} filters.offset - Offset value for results.
-	 * @param {function} cb - Callback function.
-	 * @returns {setImmediateCallbackObject}
+	 *
+	 * @param {Object} filters - Filters applied to results
+	 * @param {string} filters.address - Account address
+	 * @param {string} filters.publicKey - Public key associated to account
+	 * @param {string} filters.secondPublicKey - Second public key associated to account
+	 * @param {string} filters.username - Username associated to account
+	 * @param {string} filters.sort - Field to sort results by
+	 * @param {string} filters.search - Field to sort results by
+	 * @param {string} filters.rank - Field to sort results by
+	 * @param {int} filters.limit - Limit applied to results
+	 * @param {int} filters.offset - Offset value for results
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb
+	 * @todo Add description for the return value
 	 */
 	getDelegates(filters, cb) {
 		modules.delegates.getDelegates(filters, (err, delegates) => {

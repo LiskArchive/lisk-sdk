@@ -76,7 +76,7 @@ const Account = stampit({
 	init({ isDelegate, username, u_username, address, publicKey, blockId }) {
 		this.isDelegate = isDelegate || this.isDelegate;
 		this.username = username || randomstring.generate(10).toLowerCase();
-		this.u_username = u_username || randomstring.generate(10).toLowerCase();
+		this.u_username = u_username || null;
 		this.address =
 			address ||
 			`${randomstring.generate({ charset: 'numeric', length: 20 })}L`;

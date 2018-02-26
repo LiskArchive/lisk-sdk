@@ -255,6 +255,38 @@ describe('GET /delegates', () => {
 				});
 			});
 
+			it('using unknown numeric string should be ok', () => {
+				return delegatesEndpoint
+					.makeRequest(
+						{
+							search: accountFixtures.genesis.address.slice(
+								0,
+								accountFixtures.genesis.address.length - 1
+							),
+						},
+						200
+					)
+					.then(res => {
+						expect(res.body.data).to.have.length.at.least(0);
+					});
+			});
+
+			it('using existing numeric string should be ok', () => {
+				return delegatesEndpoint
+					.makeRequest(
+						{
+							search: 99,
+						},
+						200
+					)
+					.then(res => {
+						expect(res.body.data).to.have.length.at.least(1);
+						res.body.data.map(d => {
+							expect(/99/.test(d.username)).to.be.true;
+						});
+					});
+			});
+
 			it('using valid search with length=1 should be ok', () => {
 				return delegatesEndpoint.makeRequest({ search: 'g' }, 200);
 			});
@@ -531,13 +563,13 @@ describe('GET /delegates', () => {
 			});
 
 			it('lastBlockSlot should be less or equal to currentSlot', () => {
-				expect(forgersData.meta.lastBlockSlot).to.be.at.most(
+				return expect(forgersData.meta.lastBlockSlot).to.be.at.most(
 					forgersData.meta.currentSlot
 				);
 			});
 
 			it('every forger nextSlot should be greater than currentSlot', () => {
-				forgersData.data.forEach(forger => {
+				return forgersData.data.forEach(forger => {
 					expect(forgersData.meta.currentSlot).to.be.at.most(forger.nextSlot);
 				});
 			});

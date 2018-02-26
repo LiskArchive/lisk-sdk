@@ -22,5 +22,5 @@
 */
 
 UPDATE mem_accounts
-SET missedblocks = missedblocks ${change:raw}
+SET "missedBlocks" = "missedBlocks" ${change:raw}
 WHERE address IN (${outsiders:csv})

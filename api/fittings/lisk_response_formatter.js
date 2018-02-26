@@ -21,12 +21,12 @@ var _ = require('lodash');
  * Description of the function.
  *
  * @func create_response_formatter
- * @memberof api/fittings
+ * @memberof api.fittings
  * @requires debug
  * @requires lodash
  * @param {Object} fittingDef
  * @param {Object} bagpipes
- * @returns {function} {@link api/fittings.lisk_response_formatter}
+ * @returns {function} {@link api.fittings.lisk_response_formatter}
  * @todo Add description for the function and the params
  */
 module.exports = function create() {
@@ -34,7 +34,7 @@ module.exports = function create() {
 	 * Description of the function.
 	 *
 	 * @func lisk_response_formatter
-	 * @memberof api/fittings
+	 * @memberof api.fittings
 	 * @param {Object} context
 	 * @param {function} next
 	 * @todo Add description for the function and the params
