@@ -166,8 +166,8 @@ describe('httpApi', () => {
 					done();
 				});
 
-				it('should call console.trace with error', done => {
-					expect(spyConsoleTrace.calledOnce).to.be.true;
+				it('should call logger.trace with error', done => {
+					expect(loggerMock.trace.calledWith(validError)).to.be.true;
 					done();
 				});
 

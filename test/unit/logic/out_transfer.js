@@ -478,17 +478,22 @@ describe('outTransfer', () => {
 
 			describe('when transaction.asset.outTransfer.transactionId is valid transaction id', () => {
 				it('should not throw', () => {
-					return expect(outTransfer.getBytes.bind(null, transaction)).not.to.throw;
+					return expect(outTransfer.getBytes.bind(null, transaction)).not.to
+						.throw;
 				});
 
 				it('should get bytes of valid transaction', () => {
-					return expect(outTransfer.getBytes(transaction).toString('hex')).to.equal(
+					return expect(
+						outTransfer.getBytes(transaction).toString('hex')
+					).to.equal(
 						'343136333731333037383236363532343230393134313434333533313632323737313338383231'
 					);
 				});
 
 				it('should return result as a Buffer type', () => {
-					return expect(outTransfer.getBytes(transaction)).to.be.instanceOf(Buffer);
+					return expect(outTransfer.getBytes(transaction)).to.be.instanceOf(
+						Buffer
+					);
 				});
 			});
 		});
@@ -608,9 +613,14 @@ describe('outTransfer', () => {
 				});
 
 				it('should call callback with result = undefined', () => {
-					return outTransfer.apply(transaction, dummyBlock, sender, (err, res) => {
-						expect(res).to.be.undefined;
-					});
+					return outTransfer.apply(
+						transaction,
+						dummyBlock,
+						sender,
+						(err, res) => {
+							expect(res).to.be.undefined;
+						}
+					);
 				});
 			});
 		});
@@ -815,7 +825,8 @@ describe('outTransfer', () => {
 
 		it('should call library.schema.validate with transaction.asset.outTransfer', () => {
 			outTransfer.objectNormalize(transaction);
-			return expect(schemaSpy.calledWith(transaction.asset.outTransfer)).to.be.true;
+			return expect(schemaSpy.calledWith(transaction.asset.outTransfer)).to.be
+				.true;
 		});
 
 		it('should call library.schema.validate outTransfer.prototype.schema', () => {
@@ -863,7 +874,9 @@ describe('outTransfer', () => {
 
 		describe('when when transaction.asset.outTransfer is valid', () => {
 			it('should return transaction', () => {
-				return expect(outTransfer.objectNormalize(transaction)).to.eql(transaction);
+				return expect(outTransfer.objectNormalize(transaction)).to.eql(
+					transaction
+				);
 			});
 		});
 	});

@@ -40,13 +40,14 @@ var checkIpInList = require('./check_ip_in_list');
  * and setup router.
  *
  * @namespace middleware
- * @see Parent: {@link helpers.http_api}
+ * @see Parent: {@link module:helpers/http_api}
  * @memberof module:helpers/http_api
  */
 var middleware = {
 	/**
 	 * Adds CORS header to all requests.
 	 *
+	 * @memberof module:helpers/http_api.middleware
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next
@@ -65,6 +66,7 @@ var middleware = {
 	/**
 	 * Logs all api errors.
 	 *
+	 * @memberof module:helpers/http_api.middleware
 	 * @param {Logger} logger
 	 * @param {Error} err
 	 * @param {Object} req
@@ -77,16 +79,34 @@ var middleware = {
 		if (!err) {
 			return next();
 		}
-		logger.error(`API error ${req.url}`, err.message);
-		console.trace(err);
-		res
-			.status(500)
-			.send({ success: false, error: `API error: ${err.message}` });
+		if (err.status === 400 && err.name === 'SyntaxError') {
+			// Express JSON body-parser throws an error with status === 400 if the
+			// payload cannot be parsed to valid JSON, in this case we want to send
+			// a response with status code 400.
+			res.status(400).send({
+				message: 'Parse errors',
+				errors: [
+					{
+						code: 'INVALID_REQUEST_PAYLOAD',
+						name: 'payload',
+						in: 'query',
+						message: err.message,
+					},
+				],
+			});
+		} else {
+			logger.error(`API error ${req.url}`, err.message);
+			logger.trace(err);
+			res
+				.status(500)
+				.send({ success: false, error: `API error: ${err.message}` });
+		}
 	},
 
 	/**
 	 * Logs api client connections.
 	 *
+	 * @memberof module:helpers/http_api.middleware
 	 * @param {Logger} logger
 	 * @param {Object} req
 	 * @param {Object} res
@@ -104,6 +124,7 @@ var middleware = {
 	/**
 	 * Resends error msg when blockchain is not loaded.
 	 *
+	 * @memberof module:helpers/http_api.middleware
 	 * @param {function} isLoaded
 	 * @param {Object} req
 	 * @param {Object} res
@@ -121,6 +142,7 @@ var middleware = {
 	/**
 	 * Resends error if API endpoint doesn't exists.
 	 *
+	 * @memberof module:helpers/http_api.middleware
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next
@@ -136,6 +158,7 @@ var middleware = {
 	/**
 	 * Uses req.sanitize for particular endpoint.
 	 *
+	 * @memberof module:helpers/http_api.middleware
 	 * @param {string} property
 	 * @param {Object} schema
 	 * @param {function} cb
@@ -157,6 +180,7 @@ var middleware = {
 	/**
 	 * Attachs header to response.
 	 *
+	 * @memberof module:helpers/http_api.middleware
 	 * @param {string} headerKey
 	 * @param {string} headerValue
 	 * @param {Object} req
@@ -173,6 +197,7 @@ var middleware = {
 	/**
 	 * Applies rules of public / internal API described in config.json.
 	 *
+	 * @memberof module:helpers/http_api.middleware
 	 * @param {Object} config
 	 * @param {Object} req
 	 * @param {Object} res
@@ -197,6 +222,7 @@ var middleware = {
 		/**
 		 * Description of the function.
 		 *
+		 * @private
 		 * @param {boolean} apiAllowed
 		 * @param {boolean} isEnabled
 		 * @todo Add description for the function and the params
@@ -216,6 +242,7 @@ var middleware = {
 	/**
 	 * Passes getter for headers and assign then to response.
 	 *
+	 * @memberof module:helpers/http_api.middleware
 	 * @param {function} getHeaders
 	 * @param {Object} req
 	 * @param {Object} res
@@ -232,6 +259,7 @@ var middleware = {
 	 * Lookup cache, and reply with cached response if it's a hit.
 	 * If it's a miss, forward the request but cache the response if it's a success.
 	 *
+	 * @memberof module:helpers/http_api.middleware
 	 * @param {Object} req
 	 * @param {Object} res
 	 * @param {function} next

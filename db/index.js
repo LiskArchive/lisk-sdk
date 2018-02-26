@@ -21,13 +21,13 @@
 
 const Promise = require('bluebird');
 const monitor = require('pg-monitor');
-let pgp = require('pg-promise');
+const pgpLib = require('pg-promise');
 const repos = require('./repos');
 
-// TODO: Had to change it from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
+// TODO: Had to change below from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
 // eslint-disable-next-line prefer-const
 let initOptions = {
-	pgNative: true,
+	pgNative: false,
 	capSQL: true,
 	promiseLib: Promise,
 
@@ -40,7 +40,7 @@ let initOptions = {
 	},
 };
 
-pgp = pgp(initOptions);
+const pgp = pgpLib(initOptions);
 
 /**
  * @module db
@@ -50,6 +50,13 @@ pgp = pgp(initOptions);
  * @requires db/repos/*
  * @see Parent: {@link db}
  */
+
+/**
+ * Initialized root of pg-promise library, to give access to its complete API.
+ *
+ * @property {Object} pgp
+ */
+module.exports.pgp = pgp;
 
 /**
  * Connects to the database.
@@ -64,7 +71,7 @@ module.exports.connect = (config, logger) => {
 	try {
 		monitor.detach();
 	} catch (ex) {
-		logger.log('database connect exception - ', ex);
+		logger.log('Database connect exception -', ex);
 	}
 
 	monitor.attach(initOptions, config.logEvents);
@@ -96,6 +103,6 @@ module.exports.disconnect = logger => {
 	try {
 		monitor.detach();
 	} catch (ex) {
-		logger.log('database disconnect exception - ', ex);
+		logger.log('Database disconnect exception -', ex);
 	}
 };

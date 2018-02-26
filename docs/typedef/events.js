@@ -11,8 +11,39 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 /**
- * Core Module `rounds`
+ * Event reporting an uncaughtException.
  *
- * @module rounds
+ * @event uncaughtException
+ */
+
+/**
+ * Event reporting an unhandledRejection.
+ *
+ * @event unhandledRejection
+ */
+
+/**
+ * Event reporting a cleanup.
+ *
+ * @event cleanup
+ */
+
+/**
+ * Event reporting a SIGTERM.
+ *
+ * @event SIGTERM
+ */
+
+/**
+ * Event reporting an exit.
+ *
+ * @event exit
+ */
+
+/**
+ * Event reporting a SIGINT.
+ *
+ * @event SIGINT
  */
