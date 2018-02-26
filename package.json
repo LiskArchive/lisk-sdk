@@ -66,6 +66,8 @@
 		"babel-plugin-istanbul": "=4.1.5",
 		"babel-preset-env": "=1.6.1",
 		"babel-register": "=6.26.0",
+		"chai": "=4.1.2",
+		"chai-as-promised": "=7.1.1",
 		"coveralls": "=3.0.0",
 		"eslint": "=4.11.0",
 		"eslint-config-airbnb-base": "=12.1.0",
@@ -78,8 +80,7 @@
 		"mocha-bdd": "=0.1.2",
 		"nyc": "=11.3.0",
 		"prettier": "=1.9.2",
-		"should": "=13.1.3",
-		"should-sinon": "=0.0.6",
-		"sinon": "=4.1.2"
+		"sinon": "=4.1.2",
+		"sinon-chai": "=2.14.0"
 	}
 }

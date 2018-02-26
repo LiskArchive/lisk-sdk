@@ -99,8 +99,8 @@ export function itShouldHaveAFunctionForCreatingATypeTransaction() {
 		transactionType,
 	);
 	return transactionsObject.should.have
-		.key(transactionFunctionName)
-		.and.be.type('function');
+		.property(transactionFunctionName)
+		.and.be.a('function');
 }
 
 export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase() {
@@ -113,7 +113,7 @@ export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassph
 
 export function itShouldResolveToTheCreatedTransaction() {
 	const { returnValue, createdTransaction } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(createdTransaction);
+	return returnValue.should.eventually.equal(createdTransaction);
 }
 
 export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndTheDelegateUsername() {

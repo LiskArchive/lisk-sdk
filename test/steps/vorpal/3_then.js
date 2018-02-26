@@ -69,7 +69,7 @@ export function theVorpalCommandInstanceShouldHaveThePrettyOption() {
 export function theVorpalInstanceShouldHaveTheCommand() {
 	const { vorpal, command } = this.test.ctx;
 	const commandInstance = getCommandInstance(vorpal, command);
-	return commandInstance.should.be.ok();
+	return commandInstance.should.be.ok;
 }
 
 export function aUIParentShouldBeSet() {

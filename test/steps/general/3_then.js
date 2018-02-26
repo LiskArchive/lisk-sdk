@@ -14,7 +14,7 @@
  *
  */
 import { getFirstQuotedString, getFirstNumber } from '../utils';
-import { FileSystemError, ValidationError } from '../../../src/utils/error';
+import { ValidationError, FileSystemError } from '../../../src/utils/error';
 
 export function theErrorShouldBeInstanceOfNodesBuiltInError() {
 	const { testError } = this.test.ctx;
@@ -35,13 +35,17 @@ export function itShouldReturnTheResult() {
 export function itShouldThrowValidationError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return testFunction.should.throw(new ValidationError(message));
+	return testFunction.should
+		.throw()
+		.and.be.customError(new ValidationError(message));
 }
 
 export function itShouldThrowFileSystemError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return testFunction.should.throw(new FileSystemError(message));
+	return testFunction.should
+		.throw()
+		.and.be.customError(new FileSystemError(message));
 }
 
 export function itShouldExitWithCode() {
@@ -52,7 +56,7 @@ export function itShouldExitWithCode() {
 
 export function itShouldResolveToTheErrorObject() {
 	const { returnValue, errorObject } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(errorObject);
+	return returnValue.should.eventually.eql(errorObject);
 }
 
 export async function itShouldResolveToAnObjectWithMessage() {
@@ -82,13 +86,17 @@ export function itShouldRejectWithTheErrorMessage() {
 export function itShouldRejectWithFileSystemErrorAndMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return returnValue.should.be.rejectedWith(new FileSystemError(message));
+	return returnValue.should.be.rejected.then(err =>
+		err.should.be.customError(new FileSystemError(message)),
+	);
 }
 
 export function itShouldRejectWithValidationErrorAndMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return returnValue.should.be.rejectedWith(new ValidationError(message));
+	return returnValue.should.be.rejected.then(err =>
+		err.should.be.customError(new ValidationError(message)),
+	);
 }
 
 export function itShouldRejectWithMessage() {
@@ -104,22 +112,22 @@ export function itShouldRejectWithTheOriginalRejection() {
 
 export function itShouldReturnAnEmptyObject() {
 	const { returnValue } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith({});
+	return returnValue.should.eventually.eql({});
 }
 
 export function itShouldReturnTrue() {
 	const { returnValue } = this.test.ctx;
-	return returnValue.should.be.true();
+	return returnValue.should.be.true;
 }
 
 export function itShouldReturnFalse() {
 	const { returnValue } = this.test.ctx;
-	return returnValue.should.be.false();
+	return returnValue.should.be.false;
 }
 
 export function itShouldReturnNull() {
 	const { returnValue } = this.test.ctx;
-	return should(returnValue).be.null();
+	return should.equal(returnValue, null);
 }
 
 export function itShouldReturnString() {
@@ -131,12 +139,12 @@ export function itShouldReturnString() {
 
 export function itShouldResolveToTheOptions() {
 	const { options, returnValue } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(options);
+	return returnValue.should.eventually.equal(options);
 }
 
 export function itShouldResolveToTheDataAsAString() {
 	const { returnValue, data } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(data);
+	return returnValue.should.eventually.equal(data);
 }
 
 export function itShouldReturnAnObjectWithError() {
@@ -149,10 +157,10 @@ export function itShouldReturnAnObjectWithError() {
 
 export function itShouldResolveToTheWarrantyInformation() {
 	const { returnValue, warranty } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith({ warranty });
+	return returnValue.should.eventually.eql({ warranty });
 }
 
 export function itShouldResolveToTheCopyrightInformation() {
 	const { returnValue, copyright } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith({ copyright });
+	return returnValue.should.eventually.eql({ copyright });
 }
