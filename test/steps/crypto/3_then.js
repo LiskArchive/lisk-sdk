@@ -27,12 +27,12 @@ export function itShouldSignTheMessageWithThePassphrase() {
 
 export function itShouldResolveToTheResultOfSigningTheMessage() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return returnValue.should.eventually.eql(cryptoResult);
+	return returnValue.should.eventually.equal(cryptoResult);
 }
 
 export function itShouldResolveToTheResultOfDecryptingThePassphrase() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return returnValue.should.eventually.eql(cryptoResult);
+	return returnValue.should.eventually.equal(cryptoResult);
 }
 
 export function itShouldDecryptThePassphraseUsingTheIVAndThePassword() {
@@ -61,7 +61,7 @@ export function itShouldEncryptThePassphraseUsingThePassword() {
 
 export function itShouldResolveToTheResultOfEncryptingThePassphrase() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return returnValue.should.eventually.eql(cryptoResult);
+	return returnValue.should.eventually.equal(cryptoResult);
 }
 
 export function itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey() {
@@ -76,7 +76,7 @@ export function itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderP
 
 export function itShouldResolveToTheResultOfDecryptingTheMessage() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return returnValue.should.eventually.eql(cryptoResult);
+	return returnValue.should.eventually.equal(cryptoResult);
 }
 
 export function itShouldEncryptTheMessageWithThePassphraseForTheRecipient() {
@@ -90,7 +90,7 @@ export function itShouldEncryptTheMessageWithThePassphraseForTheRecipient() {
 
 export function itShouldResolveToTheResultOfEncryptingTheMessage() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return returnValue.should.eventually.eql(cryptoResult);
+	return returnValue.should.eventually.equal(cryptoResult);
 }
 
 export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
@@ -110,7 +110,7 @@ export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheA
 
 export function theSignatureShouldBeReturned() {
 	const { returnValue, signature } = this.test.ctx;
-	return returnValue.should.be.eql(signature);
+	return returnValue.should.be.equal(signature);
 }
 
 export function liskJSCryptoShouldBeUsedToSignTheMessage() {
@@ -146,7 +146,7 @@ export function liskJSCryptoShouldBeUsedToGetTheKeysForThePassphrase() {
 
 export function theKeysShouldBeReturned() {
 	const { returnValue, keys } = this.test.ctx;
-	return returnValue.should.eql(keys);
+	return returnValue.should.equal(keys);
 }
 
 export function theErrorResponseShouldBeHandled() {
@@ -164,7 +164,7 @@ export function liskJSCryptoShouldBeUsedToGetTheEncryptedPassphraseAndIV() {
 
 export function theEncryptedPassphraseAndIVShouldBeReturned() {
 	const { returnValue, cipherAndIv } = this.test.ctx;
-	return returnValue.should.eql(cipherAndIv);
+	return returnValue.should.equal(cipherAndIv);
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheDecryptedPassphrase() {
@@ -191,7 +191,7 @@ export function liskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce() {
 
 export function theEncryptedMessageAndNonceShouldBeReturned() {
 	const { returnValue, cipherAndNonce } = this.test.ctx;
-	return returnValue.should.eql(cipherAndNonce);
+	return returnValue.should.equal(cipherAndNonce);
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheDecryptedMessage() {
@@ -215,7 +215,7 @@ export function theDecryptedMessageShouldBeReturned() {
 
 export function itShouldResolveToThePassphrase() {
 	const { returnValue, passphrase } = this.test.ctx;
-	return returnValue.should.eventually.eql(passphrase);
+	return returnValue.should.eventually.equal(passphrase);
 }
 
 export function itShouldReturnAnObjectWithThePassphrase() {

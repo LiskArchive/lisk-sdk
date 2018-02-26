@@ -242,9 +242,7 @@ export function itShouldGetTheSecondPassphraseWithASinglePrompt() {
 	const secondPassphraseArgs = inputUtils.getPassphrase.args.filter(
 		args => args[2].displayName === 'your second secret passphrase',
 	)[0];
-	return secondPassphraseArgs[2].should.have
-		.property('shouldRepeat')
-		.not.be.ok;
+	return secondPassphraseArgs[2].should.have.property('shouldRepeat').not.be.ok;
 }
 
 export function itShouldGetTheSecondPassphraseWithARepeatedPrompt() {
@@ -258,9 +256,7 @@ export function itShouldGetThePassphraseWithASinglePrompt() {
 	const firstPassphraseArgs = inputUtils.getPassphrase.args.filter(
 		args => !args[2] || !args[2].displayName,
 	)[0];
-	return firstPassphraseArgs[2].should.have
-		.property('shouldRepeat')
-		.not.be.ok;
+	return firstPassphraseArgs[2].should.have.property('shouldRepeat').not.be.ok;
 }
 
 export function itShouldGetThePassphraseWithARepeatedPrompt() {

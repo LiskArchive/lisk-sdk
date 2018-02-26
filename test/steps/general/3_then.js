@@ -86,17 +86,17 @@ export function itShouldRejectWithTheErrorMessage() {
 export function itShouldRejectWithFileSystemErrorAndMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return returnValue.should.be.rejected.then(err => {
-		return err.should.be.customError(new FileSystemError(message));
-	});
+	return returnValue.should.be.rejected.then(err =>
+		err.should.be.customError(new FileSystemError(message)),
+	);
 }
 
 export function itShouldRejectWithValidationErrorAndMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return returnValue.should.be.rejected.then(err => {
-		return err.should.be.customError(new ValidationError(message));
-	});
+	return returnValue.should.be.rejected.then(err =>
+		err.should.be.customError(new ValidationError(message)),
+	);
 }
 
 export function itShouldRejectWithMessage() {
@@ -139,12 +139,12 @@ export function itShouldReturnString() {
 
 export function itShouldResolveToTheOptions() {
 	const { options, returnValue } = this.test.ctx;
-	return returnValue.should.eventually.eql(options);
+	return returnValue.should.eventually.equal(options);
 }
 
 export function itShouldResolveToTheDataAsAString() {
 	const { returnValue, data } = this.test.ctx;
-	return returnValue.should.eventually.eql(data);
+	return returnValue.should.eventually.equal(data);
 }
 
 export function itShouldReturnAnObjectWithError() {

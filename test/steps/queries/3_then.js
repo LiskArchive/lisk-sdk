@@ -17,7 +17,7 @@ import { getFirstQuotedString } from '../utils';
 
 export function itShouldResolveToTheResultOfSendingTheRequest() {
 	const { returnValue, sendRequestResult } = this.test.ctx;
-	return returnValue.should.eventually.eql(sendRequestResult);
+	return returnValue.should.eventually.equal(sendRequestResult);
 }
 
 export function theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient() {
@@ -33,7 +33,7 @@ export function theQueryInstanceShouldHaveAHandlerFor() {
 
 export function itShouldResolveToTheResultOfTheQuery() {
 	const { returnValue, queryResult } = this.test.ctx;
-	return returnValue.should.eventually.eql(queryResult);
+	return returnValue.should.eventually.equal(queryResult);
 }
 
 export function itShouldResolveToAnArrayOfQueryResults() {

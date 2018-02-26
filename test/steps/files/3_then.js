@@ -69,5 +69,5 @@ export function theConfigFileShouldNotBeWritten() {
 
 export function itShouldResolveToTheFirstLineOfTheFile() {
 	const { returnValue, passphrase } = this.test.ctx;
-	return returnValue.should.eventually.eql(passphrase);
+	return returnValue.should.eventually.equal(passphrase);
 }
