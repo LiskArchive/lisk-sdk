@@ -381,4 +381,59 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('__private.verifyPreviousBlock', () => {
+		describe('when fails', () => {
+			describe('if block is undefined', () => {
+				it('should return error', () => {
+					const verifyPreviousBlock = __private.verifyPreviousBlock(undefined, {
+						errors: [],
+					});
+					return expect(verifyPreviousBlock.errors[0]).to.equal(
+						"TypeError: Cannot read property 'previousBlock' of undefined"
+					);
+				});
+			});
+			describe('if block.previousBlock is not defined and height !== 1', () => {
+				it('should return error', () => {
+					const verifyPreviousBlock = __private.verifyPreviousBlock(
+						{ id: 6, height: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyPreviousBlock.errors[0]).to.equal(
+						'Invalid previous block'
+					);
+				});
+			});
+		});
+		describe('when succeeds', () => {
+			describe('if block.previousBlock is not defined and height === 1', () => {
+				it('should return no error', () => {
+					const verifyPreviousBlock = __private.verifyPreviousBlock(
+						{ id: 6, height: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyPreviousBlock.errors.length).to.equal(0);
+				});
+			});
+			describe('if block.previousBlock is defined and block.height !== 1', () => {
+				it('should return no error', () => {
+					const verifyPreviousBlock = __private.verifyPreviousBlock(
+						{ id: 6, previousBlock: 5, height: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyPreviousBlock.errors.length).to.equal(0);
+				});
+			});
+			describe('if block.previousBlock is defined and block.height === 1', () => {
+				it('should return no error', () => {
+					const verifyPreviousBlock = __private.verifyPreviousBlock(
+						{ id: 6, previousBlock: 5, height: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyPreviousBlock.errors.length).to.equal(0);
+				});
+			});
+		});
+	});
 });
