@@ -436,4 +436,50 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('__private.verifyAgainstLastNBlockIds', () => {
+		let lastNBlockIdsTemp;
+		beforeEach(done => {
+			lastNBlockIdsTemp = __private.lastNBlockIds;
+			__private.lastNBlockIds = [1, 2, 3, 4];
+			done();
+		});
+		afterEach(done => {
+			__private.lastNBlockIds = lastNBlockIdsTemp;
+			done();
+		});
+		describe('fails', () => {
+			describe('when block is undefined', () => {
+				it('should return error', () => {
+					const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
+						undefined,
+						{ errors: [] }
+					);
+					return expect(verifyAgainstLastNBlockIds.errors[0]).to.equal(
+						"TypeError: Cannot read property 'id' of undefined"
+					);
+				});
+			});
+			describe('when block is in list', () => {
+				it('should return error', () => {
+					const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
+						{ id: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyAgainstLastNBlockIds.errors[0]).to.equal(
+						'Block already exists in chain'
+					);
+				});
+			});
+		});
+		describe('when succeeds', () => {
+			it('should return no error', () => {
+				const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
+					{ id: 5 },
+					{ errors: [] }
+				);
+				return expect(verifyAgainstLastNBlockIds.errors.length).to.equal(0);
+			});
+		});
+	});
 });
