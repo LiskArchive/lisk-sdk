@@ -27,7 +27,6 @@ const repos = require('./repos');
 // TODO: Had to change below from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
 // eslint-disable-next-line prefer-const
 let initOptions = {
-	pgNative: false,
 	capSQL: true,
 	promiseLib: Promise,
 
@@ -37,6 +36,11 @@ let initOptions = {
 		Object.keys(repos).forEach(repoName => {
 			object[repoName] = new repos[repoName](object, pgp);
 		});
+	},
+	receive: (/* data, result, e */) => {
+		// Can log result.duration when available and/or necessary,
+		// to analyze performance of individual queries;
+		// API: http://vitaly-t.github.io/pg-promise/global.html#event:receive
 	},
 };
 
@@ -68,10 +72,8 @@ module.exports.pgp = pgp;
  * @todo Add description for the params and the return value
  */
 module.exports.connect = (config, logger) => {
-	try {
+	if (monitor.isAttached()) {
 		monitor.detach();
-	} catch (ex) {
-		logger.log('Database connect exception -', ex);
 	}
 
 	monitor.attach(initOptions, config.logEvents);
@@ -98,11 +100,8 @@ module.exports.connect = (config, logger) => {
  * @param {Object} logger
  * @todo Add description for the params
  */
-module.exports.disconnect = logger => {
-	logger = logger || console;
-	try {
+module.exports.disconnect = (/* logger */) => {
+	if (monitor.isAttached()) {
 		monitor.detach();
-	} catch (ex) {
-		logger.log('Database disconnect exception -', ex);
 	}
 };

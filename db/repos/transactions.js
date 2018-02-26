@@ -279,12 +279,7 @@ class TransactionsRepository {
 			);
 		});
 
-		// In order to avoid nested transactions, and thus SAVEPOINT-s,
-		// we check when there is a transaction on this level or above:
-		if (this.db.ctx && this.db.ctx.inTransaction) {
-			return this.db.batch(batch);
-		}
-		return this.db.tx(tx => tx.batch(batch));
+		return this.db.txIf('transactions:save', t => t.batch(batch));
 	}
 }
 

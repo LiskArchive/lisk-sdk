@@ -16,7 +16,6 @@
 
 const path = require('path');
 const fs = require('fs-extra');
-const Promise = require('bluebird');
 const sql = require('../sql').migrations;
 const { sqlRoot } = require('../sql/config');
 
@@ -38,14 +37,12 @@ class MigrationsRepository {
 	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
-		this.inTransaction = !!(db.ctx && db.ctx.inTransaction);
 	}
 
 	/**
 	 * Verifies presence of the 'migrations' OID named relation.
 	 *
-	 * @returns {Promise<boolean>}
-	 * @todo Add description for the return value
+	 * @returns {Promise<boolean>} Promise object that resolves with a boolean.
 	 */
 	hasMigrations() {
 		return this.db.proc(
@@ -59,7 +56,7 @@ class MigrationsRepository {
 	 * Gets id of the last migration record, or 0, if none exist.
 	 *
 	 * @returns {Promise<number>}
-	 * @todo Add description for the return value
+	 * Promise object that resolves with either 0 or id of the last migration record.
 	 */
 	getLastId() {
 		return this.db.oneOrNone(sql.getLastId, [], a => (a ? +a.id : 0));
@@ -68,35 +65,31 @@ class MigrationsRepository {
 	/**
 	 * Executes 'migrations/runtime.sql' file, to set peers clock to null and state to 1.
 	 *
-	 * @returns {Promise<null>}
-	 * @todo Add description for the return value
+	 * @returns {Promise<null>} Promise object that resolves with `null`.
 	 */
 	applyRuntime() {
-		// Must use a transaction here when not in one:
-		const job = t => t.none(sql.runtime);
-		return this.inTransaction ? job(this.db) : this.db.tx('applyRuntime', job);
+		// Use a transaction only when not in one:
+		return this.db.txIf('migrations:applyRuntime', t => t.none(sql.runtime));
 	}
 
 	/**
 	 * Executes 'migrations/memoryTables.sql' file, to create and configure all memory tables.
 	 *
-	 * @returns {Promise<null>}
-	 * @todo Add description for the return value
+	 * @returns {Promise<null>} Promise object that resolves with `null`.
 	 */
 	createMemoryTables() {
-		// Must use a transaction here when not in one:
-		const job = t => t.none(sql.memoryTables);
-		return this.inTransaction
-			? job(this.db)
-			: this.db.tx('createMemoryTables', job);
+		// Use a transaction only when not in one:
+		return this.db.txIf('migrations:createMemoryTables', t =>
+			t.none(sql.memoryTables)
+		);
 	}
 
 	/**
 	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
 	 *
 	 * @param {number} lastMigrationId
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
+	 * @returns {Promise<Array<Object>>}
+	 * Promise object that resolves with an array of objects `{id, name, path, file}`.
 	 */
 	readPending(lastMigrationId) {
 		const updatesPath = path.join(sqlRoot, 'migrations/updates');
@@ -133,25 +126,23 @@ class MigrationsRepository {
 	 * Applies a cumulative update: all pending migrations + runtime.
 	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
 	 *
-	 * @returns {Promise}
-	 * @todo Add description for the return value
+	 * @returns {Promise} Promise object that resolves with `undefined`.
 	 */
 	applyAll() {
-		return this.db.tx('applyAll', t1 =>
-			t1.migrations
-				.hasMigrations()
-				.then(hasMigrations => (hasMigrations ? t1.migrations.getLastId() : 0))
-				.then(lastId => t1.migrations.readPending(lastId))
-				.then(updates =>
-					Promise.mapSeries(updates, u => {
-						const tag = `update:${u.name}`;
-						return t1.tx(tag, t2 =>
-							t2.none(u.file).then(() => t2.none(sql.add, u))
-						);
-					})
-				)
-				.then(() => t1.migrations.applyRuntime())
-		);
+		return this.db.tx('migrations:applyAll', function*(t1) {
+			const hasMigrations = yield t1.migrations.hasMigrations();
+			const lastId = hasMigrations ? yield t1.migrations.getLastId() : 0;
+			const updates = yield t1.migrations.readPending(lastId);
+			for (let i = 0; i < updates.length; i++) {
+				const u = updates[i];
+				const tag = `update:${u.name}`;
+				yield t1.tx(tag, function*(t2) {
+					yield t2.none(u.file);
+					yield t2.none(sql.add, u);
+				});
+			}
+			yield t1.migrations.applyRuntime();
+		});
 	}
 }
 
