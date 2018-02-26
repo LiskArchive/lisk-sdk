@@ -133,8 +133,11 @@ __private.checkTransaction = function(block, transaction, cb) {
  * @returns {Object} block - Target block
  */
 __private.setHeight = function(block, lastBlock) {
-	block.height = lastBlock.height + 1;
-
+	try {
+		block.height = lastBlock.height + 1;
+	} catch (err) {
+		return err;
+	}
 	return block;
 };
 
