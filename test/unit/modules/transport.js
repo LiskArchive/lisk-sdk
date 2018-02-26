@@ -1434,6 +1434,7 @@ describe('transport', () => {
 			var error;
 			var result;
 			var query;
+			var req;
 
 			describe('blocksCommon', () => {
 				var validateErr;
@@ -1697,8 +1698,6 @@ describe('transport', () => {
 			});
 
 			describe('list', () => {
-				var req;
-
 				describe('when req is undefined', () => {
 					beforeEach(done => {
 						req = undefined;
@@ -1813,8 +1812,26 @@ describe('transport', () => {
 			});
 
 			describe('height', () => {
+				var currentHeight;
+
+				beforeEach(done => {
+					currentHeight = 12345;
+					req = {};
+					modules.system.getHeight = sinonSandbox.stub().returns(currentHeight);
+					transportInstance.shared.height(req, (err, res) => {
+						error = err;
+						result = res;
+						done();
+					});
+				});
+
 				it(
-					'should call callback with error = null and result = {success: true, height: modules.system.getHeight()}'
+					'should call callback with error = null and result = {success: true, height: modules.system.getHeight()}',
+					() => {
+						expect(error).to.be.equal(null);
+						expect(result).to.have.property('success').which.is.equal(true);
+						return expect(result).to.have.property('height').which.is.equal(currentHeight);
+					}
 				);
 			});
 
