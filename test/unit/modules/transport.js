@@ -1697,31 +1697,119 @@ describe('transport', () => {
 			});
 
 			describe('list', () => {
+				var req;
+
 				describe('when req is undefined', () => {
-					it('should set req = {}');
-				});
-
-				describe('peersFinder', () => {
-					describe('when req.query is undefined', () => {
-						it('should set peerFinder = modules.peers.list');
+					beforeEach(done => {
+						req = undefined;
+						modules.peers.list = sinonSandbox.stub().callsArgWith(1, null, []);
+						transportInstance.shared.list(req, (err, res) => {
+							error = err;
+							result = res;
+							done();
+						});
 					});
 
-					describe('when req.query is defined', () => {
-						it('should set peerFinder = modules.peers.shared.getPeers');
+					it('should invoke callback with empty result', () => {
+						expect(modules.peers.list.calledOnce).to.be.true;
+						expect(modules.peers.list.calledWith({ limit: constants.maxPeers }))
+							.to.be.true;
+						expect(error).to.equal(null);
+						expect(result)
+							.to.have.property('success')
+							.which.is.equal(true);
+						return expect(result)
+							.to.have.property('peers')
+							.which.is.an('array').that.is.empty;
 					});
 				});
 
-				it(
-					'should call peersFinder with Object.assign({}, {limit: constants.maxPeers}, req.query)'
-				);
+				describe('when req is specified', () => {
+					beforeEach(done => {
+						req = {
+							query: {
+								limit: peersList.length,
+							},
+						};
+						modules.peers.shared = {
+							getPeers: sinonSandbox.stub().callsArgWith(1, null, peersList),
+						};
+						modules.peers.list = sinonSandbox
+							.stub()
+							.callsArgWith(1, null, peersList);
+						transportInstance.shared.list(req, (err, res) => {
+							error = err;
+							result = res;
+							done();
+						});
+					});
 
-				describe('when peersFinder fails', () => {
-					it('should set peers to []');
+					it(
+						'should call the correct peersFinder function with the sanitized query as argument',
+						() => {
+							expect(error).to.equal(null);
+							expect(
+								modules.peers.shared.getPeers.calledWith({
+									limit: peersList.length,
+								})
+							).to.be.true;
+							return expect(
+								modules.peers.list.called
+							).to.be.false;
+						}
+					);
+
+					describe('when peersFinder fails', () => {
+						var failedToFindPeerError = 'Failed to find peer ...';
+
+						beforeEach(done => {
+							req = {
+								query: {
+									limit: peersList.length,
+								},
+							};
+							modules.peers.shared = {
+								getPeers: sinonSandbox.stub().callsArgWith(1, failedToFindPeerError),
+							};
+							modules.peers.list = sinonSandbox
+								.stub()
+								.callsArgWith(1, failedToFindPeerError);
+							transportInstance.shared.list(req, (err, res) => {
+								error = err;
+								result = res;
+								done();
+							});
+						});
+
+						it(
+							'should invoke the callback with empty peers list and success set to false',
+							() => {
+								expect(error).to.equal(null);
+								expect(result).to.have.property('peers').which.is.an('array').that.is.empty;
+								expect(result).to.have.property('success').which.is.equal(false);
+								expect(
+									modules.peers.shared.getPeers.calledWith({
+										limit: peersList.length,
+									})
+								).to.be.true;
+								return expect(
+									modules.peers.list.called
+								).to.be.false;
+							}
+						);
+					});
+
+					it(
+						'should return callback with error = null and result = {success: true, peers: peers}',
+						() => {
+							expect(error).to.be.equal(null);
+							expect(result)
+								.to.have.property('success').which.equals(true);
+							return expect(result)
+								.to.have.property('peers').which.is.an('array').that.is.not.empty;
+						}
+					);
 				});
-
-				it(
-					'should return callback with error = null and result = {success: !err, peers: peers}'
-				);
 			});
 
 			describe('height', () => {
