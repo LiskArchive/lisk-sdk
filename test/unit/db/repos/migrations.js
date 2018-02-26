@@ -309,10 +309,13 @@ describe('db', () => {
 					tx: sinonSandbox.stub().callsArgWith(1, t2),
 				};
 
-				// Since sinon can only call a callback or resolve to promise
-				// but pg-promise db.tx is mix, it accepts a callback and returns a promise
-				// and there is no way in sinon to resolve to to value return of a callback
-				// so have to hack it by delaying the execution of resolve until callback is called
+				/**
+				 * Delay the execution of resolve until callback is called.
+				 *
+				 * Because sinon can only call a callback or resolve to a promise,
+				 * while pg-promise db.tx accepts a callback and returns a promise, and
+				 * there is no way in sinon to resolve to the value returned by a callback.
+				 */
 				sinonSandbox
 					.stub(db, 'tx')
 					.callsArgWith(1, t1)
