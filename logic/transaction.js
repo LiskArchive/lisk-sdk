@@ -108,6 +108,7 @@ class Transaction {
 			.createHash('sha256')
 			.update(bytes)
 			.digest();
+
 		return this.scope.ed.sign(hash, keypair.privateKey).toString('hex');
 	}
 
@@ -835,7 +836,7 @@ class Transaction {
 					return setImmediate(cb, err);
 				}
 				/**
-				 * calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
+				 * Calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
 				 * DApp, InTransfer or OutTransfer.
 				 */
 				__private.types[transaction.type].apply.call(
@@ -927,9 +928,8 @@ class Transaction {
 
 	/**
 	 * Checks unconfirmed sender balance. Merges account into sender address with
-	 * unconfirmed balance negative amount.
-	 * Calls `applyUnconfirmed` based on transaction type (privateTypes). If error merge
-	 * account with amount.
+	 * unconfirmed balance negative amount. Calls `applyUnconfirmed` based on
+	 * transaction type (privateTypes). If error merge account with amount.
 	 *
 	 * @see {@link privateTypes}
 	 * @param {transaction} transaction
@@ -1135,6 +1135,7 @@ class Transaction {
 		if (!raw.t_id) {
 			return null;
 		}
+
 		const transaction = {
 			id: raw.t_id,
 			height: raw.b_height,
@@ -1169,7 +1170,7 @@ class Transaction {
 	}
 }
 
-// TODO: TO maintain backward compatibility, have to use prototype otherwise these must be converted to static attributes
+// TODO: To maintain backward compatibility, have to use prototype otherwise these must be converted to static attributes
 /**
  * Sets private type based on type id after instance object validation.
  *
