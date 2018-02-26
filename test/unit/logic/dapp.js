@@ -664,7 +664,9 @@ describe('dapp', () => {
 
 				it('should remove undefined properties', () => {
 					transaction = dapp.objectNormalize(transaction);
-					return expect(transaction).to.not.have.property('dummyUndefinedProperty');
+					return expect(transaction).to.not.have.property(
+						'dummyUndefinedProperty'
+					);
 				});
 
 				it('should remove null properties', () => {
@@ -716,7 +718,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.category = type.input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type integer but found type ${
 									type.expectation
 								}`
@@ -727,14 +731,18 @@ describe('dapp', () => {
 					otherTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.category = type.input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					invalidCategoriesNumber.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.category = input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
@@ -767,7 +775,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.name = type.input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type string but found type ${
 									type.expectation
 								}`
@@ -778,21 +788,27 @@ describe('dapp', () => {
 					otherTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.name = type.input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					invalidNames.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.name = input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					validNames.forEach(input => {
 						it(`should not throw error for value: ${input}`, () => {
 							transaction.asset.dapp.name = input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).not.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).not.throw();
 						});
 					});
 				});
@@ -815,7 +831,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.description = type.input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type string but found type ${
 									type.expectation
 								}`
@@ -826,7 +844,9 @@ describe('dapp', () => {
 					invalidDescriptions.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.description = input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
@@ -863,7 +883,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.tags = type.input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type string but found type ${
 									type.expectation
 								}`
@@ -874,7 +896,9 @@ describe('dapp', () => {
 					invalidTags.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.tags = input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
@@ -906,7 +930,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.type = type.input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type integer but found type ${
 									type.expectation
 								}`
@@ -917,14 +943,18 @@ describe('dapp', () => {
 					otherTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.type = type.input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
 					invalidTypes.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.type = input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
@@ -958,7 +988,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.link = type.input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type string but found type ${
 									type.expectation
 								}`
@@ -969,7 +1001,9 @@ describe('dapp', () => {
 					invalidLinks.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.link = input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 
@@ -1003,7 +1037,9 @@ describe('dapp', () => {
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
 							transaction.asset.dapp.icon = type.input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw(
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw(
 								`Failed to validate dapp schema: Expected type string but found type ${
 									type.expectation
 								}`
@@ -1014,7 +1050,9 @@ describe('dapp', () => {
 					invalidIcons.forEach(input => {
 						it(`should throw error for value: ${input}`, () => {
 							transaction.asset.dapp.icon = input;
-							return expect(dapp.objectNormalize.bind(null, transaction)).to.throw();
+							return expect(
+								dapp.objectNormalize.bind(null, transaction)
+							).to.throw();
 						});
 					});
 

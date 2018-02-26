@@ -105,7 +105,9 @@ describe('transactionPool', () => {
 	describe('initialize', () => {
 		describe('lists', () => {
 			it('unconfirmed should be initialized', () => {
-				return expect(transactionPool.unconfirmed).to.deep.equal(freshListState);
+				return expect(transactionPool.unconfirmed).to.deep.equal(
+					freshListState
+				);
 			});
 
 			it('bundled should be initialized', () => {
@@ -117,7 +119,9 @@ describe('transactionPool', () => {
 			});
 
 			it('multisignature should be initialized', () => {
-				return expect(transactionPool.multisignature).to.deep.equal(freshListState);
+				return expect(transactionPool.multisignature).to.deep.equal(
+					freshListState
+				);
 			});
 		});
 
@@ -188,13 +192,14 @@ describe('transactionPool', () => {
 
 						describe('__private.processVerifyTransaction', () => {
 							it('should be called once', () => {
-								return expect(dummyProcessVerifyTransaction.calledOnce).to.be.true;
+								return expect(dummyProcessVerifyTransaction.calledOnce).to.be
+									.true;
 							});
 
 							it('should be called with transaction as parameter', () => {
-								return expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(
-									validTransaction
-								);
+								return expect(
+									dummyProcessVerifyTransaction.args[0][0]
+								).to.deep.equal(validTransaction);
 							});
 						});
 
@@ -283,13 +288,14 @@ describe('transactionPool', () => {
 
 						describe('__private.processVerifyTransaction', () => {
 							it('should be called onece', () => {
-								return expect(dummyProcessVerifyTransaction.calledOnce).to.be.true;
+								return expect(dummyProcessVerifyTransaction.calledOnce).to.be
+									.true;
 							});
 
 							it('should be called with transaction as parameter', () => {
-								return expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(
-									badTransaction
-								);
+								return expect(
+									dummyProcessVerifyTransaction.args[0][0]
+								).to.deep.equal(badTransaction);
 							});
 						});
 
@@ -361,13 +367,14 @@ describe('transactionPool', () => {
 
 						describe('__private.processVerifyTransaction', () => {
 							it('should be called onece', () => {
-								return expect(dummyProcessVerifyTransaction.calledOnce).to.be.true;
+								return expect(dummyProcessVerifyTransaction.calledOnce).to.be
+									.true;
 							});
 
 							it('should be called with transaction as parameter', () => {
-								return expect(dummyProcessVerifyTransaction.args[0][0]).to.deep.equal(
-									badTransaction
-								);
+								return expect(
+									dummyProcessVerifyTransaction.args[0][0]
+								).to.deep.equal(badTransaction);
 							});
 						});
 

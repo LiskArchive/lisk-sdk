@@ -28,7 +28,7 @@ var __private = {};
 var rcRegExp = /[a-z]+$/;
 
 /**
- * Initializes library with scope content and private variables:
+ * Main system methods. Initializes library with scope content and private variables:
  * - os
  * - version
  * - port
@@ -37,13 +37,15 @@ var rcRegExp = /[a-z]+$/;
  * - broadhash
  * - minVersion
  * - nonce
+ *
  * @class
- * @classdesc Main System methods.
- * @implements {os}
- * @param {setImmediateCallback} cb - Callback function.
- * @param {scope} scope - App instance.
+ * @requires async
+ * @requires crypto
+ * @requires os
+ * @requires semver
+ * @param {setImmediateCallback} cb - Callback function
+ * @param {scope} scope - App instance
  */
-// Constructor
 function System(cb, scope) {
 	library = {
 		logger: scope.logger,
@@ -85,16 +87,20 @@ function System(cb, scope) {
 // Public methods
 
 /**
- * Sets the entire __private variable
+ * Sets the entire __private variable.
+ *
  * @param {Object} headers
+ * @todo Add description for the params
  */
 System.setHeaders = function(headers) {
 	__private = headers;
 };
 
 /**
- * Returns all headers from __private variable
+ * Returns all headers from __private variable.
+ *
  * @returns {*} __private
+ * @todo Add description for the return value
  */
 System.getHeaders = function() {
 	return __private;
@@ -102,66 +108,81 @@ System.getHeaders = function() {
 
 /**
  * Returns private variables object content.
- * @return {Object}
+ *
+ * @returns {Object}
+ * @todo Add description for the return value
  */
 System.prototype.headers = function() {
 	return __private;
 };
 
 /**
- * Gets private variable `os`
- * @return {string}
+ * Gets private variable `os`.
+ *
+ * @returns {string}
+ * @todo Add description for the return value
  */
 System.prototype.getOS = function() {
 	return __private.os;
 };
 
 /**
- * Gets private variable `version`
- * @return {string}
+ * Gets private variable `version`.
+ *
+ * @returns {string}
+ * @todo Add description for the return value
  */
 System.prototype.getVersion = function() {
 	return __private.version;
 };
 
 /**
- * Gets private variable `port`
- * @return {number}
+ * Gets private variable `port`.
+ *
+ * @returns {number}
+ * @todo Add description for the return value
  */
 System.prototype.getPort = function() {
 	return __private.wsPort;
 };
 
 /**
- * Gets private variable `height`
- * @return {number}
+ * Gets private variable `height`.
+ *
+ * @returns {number}
+ * @todo Add description for the return value
  */
 System.prototype.getHeight = function() {
 	return __private.height;
 };
 
 /**
- * Gets private variable `nethash`
- * @return {string} hash
+ * Gets private variable `nethash`.
+ *
+ * @returns {string} hash
+ * @todo Add description for the return value
  */
 System.prototype.getNethash = function() {
 	return __private.nethash;
 };
 
 /**
- * Gets private variable `nonce`
- * @return {string} nonce
+ * Gets private variable `nonce`.
+ *
+ * @returns {string} nonce
+ * @todo Add description for the return value
  */
 System.prototype.getNonce = function() {
 	return __private.nonce;
 };
 
 /**
- * Invokes cb with broadhash
+ * Invokes cb with broadhash.
+ *
  * @param {function} cb
- * @callback broadhashCallback
  * @param {Error} err
  * @param {string} broadhash
+ * @todo Add description for the params
  */
 System.prototype.getBroadhash = function(cb) {
 	if (typeof cb !== 'function') {
@@ -189,8 +210,10 @@ System.prototype.getBroadhash = function(cb) {
 };
 
 /**
- * Gets private variable `minVersion`
- * @return {string}
+ * Gets private variable `minVersion`.
+ *
+ * @returns {string}
+ * @todo Add description for the return value
  */
 System.prototype.getMinVersion = function() {
 	return __private.minVersion;
@@ -198,8 +221,10 @@ System.prototype.getMinVersion = function() {
 
 /**
  * Checks nethash (network) compatibility.
+ *
  * @param {string} nethash
  * @returns {boolean}
+ * @todo Add description for the params and the return value
  */
 System.prototype.networkCompatible = function(nethash) {
 	return __private.nethash === nethash;
@@ -207,9 +232,10 @@ System.prototype.networkCompatible = function(nethash) {
 
 /**
  * Checks version compatibility from input param against private values.
- * @implements {semver}
+ *
  * @param {string} version
- * @return {boolean}
+ * @returns {boolean}
+ * @todo Add description for the params and the return value
  */
 System.prototype.versionCompatible = function(version) {
 	var versionChar;
@@ -235,8 +261,10 @@ System.prototype.versionCompatible = function(version) {
 
 /**
  * Checks nonce (unique app id) compatibility- compatible when different than given.
+ *
  * @param nonce
  * @returns {boolean}
+ * @todo Add description for the params and the return value
  */
 System.prototype.nonceCompatible = function(nonce) {
 	return nonce && __private.nonce !== nonce;
@@ -244,11 +272,9 @@ System.prototype.nonceCompatible = function(nonce) {
 
 /**
  * Updates private broadhash and height values.
- * @implements {async.series}
- * @implements {System.getBroadhash}
- * @implements {modules.blocks.lastBlock.get}
- * @param {function} cb Callback function
- * @return {setImmediateCallback} cb, err
+ *
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err
  */
 System.prototype.update = function(cb) {
 	async.series(
@@ -277,7 +303,8 @@ System.prototype.update = function(cb) {
 // Events
 /**
  * Assigns used modules to modules variable.
- * @param {modules} scope - Loaded modules.
+ *
+ * @param {modules} scope - Loaded modules
  */
 System.prototype.onBind = function(scope) {
 	modules = {

@@ -14,11 +14,10 @@
 
 'use strict';
 
-var constants = require('../helpers/constants.js');
+const constants = require('../helpers/constants.js');
 
 // Private fields
-var __private = {};
-
+const __private = {};
 /**
  * Main BlockReward logic.
  * Initializes variables:
@@ -32,15 +31,109 @@ var __private = {};
  * @requires helpers/constants
  */
 // Constructor
-function BlockReward() {
-	// Array of milestones
-	this.milestones = constants.rewards.milestones;
+class BlockReward {
+	constructor() {
+		// Array of milestones
+		this.milestones = constants.rewards.milestones;
 
-	// Distance between each milestone
-	this.distance = Math.floor(constants.rewards.distance);
+		// Distance between each milestone
+		this.distance = Math.floor(constants.rewards.distance);
 
-	// Start rewards at block (n)
-	this.rewardOffset = Math.floor(constants.rewards.offset);
+		// Start rewards at block (n)
+		this.rewardOffset = Math.floor(constants.rewards.offset);
+	}
+
+	// Public methods
+	/**
+	 * Description of the function.
+	 *
+	 * @param {number} height
+	 * @returns {number}
+	 * @todo Add description for the function, params and the return value
+	 */
+	calcMilestone(height) {
+		height = __private.parseHeight(height);
+
+		const location = Math.trunc((height - this.rewardOffset) / this.distance);
+		const lastMile = this.milestones[this.milestones.length - 1];
+
+		if (location > this.milestones.length - 1) {
+			return this.milestones.lastIndexOf(lastMile);
+		}
+		return location;
+	}
+
+	/**
+	 * Description of the function.
+	 *
+	 * @param {number} height
+	 * @returns {number}
+	 * @todo Add description for the function, params and the return value
+	 */
+	calcReward(height) {
+		height = __private.parseHeight(height);
+
+		if (height < this.rewardOffset) {
+			return 0;
+		}
+		return this.milestones[this.calcMilestone(height)];
+	}
+
+	/**
+	 * Description of the function.
+	 *
+	 * @param {number} height
+	 * @returns {number}
+	 * @todo Add description for the function, params and the return value
+	 */
+	calcSupply(height) {
+		height = __private.parseHeight(height);
+
+		if (height < this.rewardOffset) {
+			// Rewards not started yet
+			return constants.totalAmount;
+		}
+
+		const milestone = this.calcMilestone(height);
+		let supply = constants.totalAmount;
+		const rewards = [];
+
+		let amount = 0;
+		let multiplier = 0;
+
+		// Remove offset from height
+		height -= this.rewardOffset - 1;
+
+		for (let i = 0; i < this.milestones.length; i++) {
+			if (milestone >= i) {
+				multiplier = this.milestones[i];
+
+				if (height < this.distance) {
+					// Measure this.distance thus far
+					amount = height % this.distance;
+				} else {
+					amount = this.distance; // Assign completed milestone
+					height -= this.distance; // Deduct from total height
+
+					// After last milestone
+					if (height > 0 && i === this.milestones.length - 1) {
+						amount += height;
+					}
+				}
+
+				rewards.push([amount, multiplier]);
+			} else {
+				break; // Milestone out of bounds
+			}
+		}
+
+		for (let i = 0; i < rewards.length; i++) {
+			const reward = rewards[i];
+			supply += reward[0] * reward[1];
+		}
+
+		return supply;
+	}
 }
 
 // Private methods
@@ -59,98 +152,6 @@ __private.parseHeight = function(height) {
 	} else {
 		return Math.abs(height);
 	}
-};
-
-// Public methods
-/**
- * Description of the function.
- *
- * @param {number} height
- * @returns {number}
- * @todo Add description for the function, params and the return value
- */
-BlockReward.prototype.calcMilestone = function(height) {
-	height = __private.parseHeight(height);
-
-	var location = Math.trunc((height - this.rewardOffset) / this.distance);
-	var lastMile = this.milestones[this.milestones.length - 1];
-
-	if (location > this.milestones.length - 1) {
-		return this.milestones.lastIndexOf(lastMile);
-	}
-	return location;
-};
-
-/**
- * Description of the function.
- *
- * @param {number} height
- * @returns {number}
- * @todo Add description for the function, params and the return value
- */
-BlockReward.prototype.calcReward = function(height) {
-	height = __private.parseHeight(height);
-
-	if (height < this.rewardOffset) {
-		return 0;
-	}
-	return this.milestones[this.calcMilestone(height)];
-};
-
-/**
- * Description of the function.
- *
- * @param {number} height
- * @returns {number}
- * @todo Add description for the function, params and the return value
- */
-BlockReward.prototype.calcSupply = function(height) {
-	height = __private.parseHeight(height);
-
-	if (height < this.rewardOffset) {
-		// Rewards not started yet
-		return constants.totalAmount;
-	}
-
-	var milestone = this.calcMilestone(height);
-	var supply = constants.totalAmount;
-	var rewards = [];
-
-	var amount = 0;
-	var multiplier = 0;
-
-	// Remove offset from height
-	height -= this.rewardOffset - 1;
-
-	for (var i = 0; i < this.milestones.length; i++) {
-		if (milestone >= i) {
-			multiplier = this.milestones[i];
-
-			if (height < this.distance) {
-				// Measure this.distance thus far
-				amount = height % this.distance;
-			} else {
-				amount = this.distance; // Assign completed milestone
-				height -= this.distance; // Deduct from total height
-
-				// After last milestone
-				if (height > 0 && i === this.milestones.length - 1) {
-					amount += height;
-				}
-			}
-
-			rewards.push([amount, multiplier]);
-		} else {
-			break; // Milestone out of bounds
-		}
-	}
-
-	for (let i = 0; i < rewards.length; i++) {
-		var reward = rewards[i];
-		supply += reward[0] * reward[1];
-	}
-
-	return supply;
 };
 
 // Export

@@ -92,7 +92,9 @@ describe('peers', () => {
 		it('should always return Peer instance', () => {
 			expect(peers.create()).to.be.an.instanceof(Peer);
 			expect(peers.create(validPeer)).to.be.an.instanceof(Peer);
-			return expect(peers.create(new Peer(validPeer))).to.be.an.instanceof(Peer);
+			return expect(peers.create(new Peer(validPeer))).to.be.an.instanceof(
+				Peer
+			);
 		});
 	});
 
@@ -274,8 +276,9 @@ describe('peers', () => {
 			peers.upsert(validPeer);
 			var list = peers.list(true);
 			expect(list.length).equal(1);
-			return expect(peers.exists({ ip: validPeer.ip, wsPort: validPeer.wsPort })).to.be
-				.ok;
+			return expect(
+				peers.exists({ ip: validPeer.ip, wsPort: validPeer.wsPort })
+			).to.be.ok;
 		});
 	});
 
