@@ -47,7 +47,7 @@ describe('wsRPC', () => {
 			.to.have.property('scClient')
 			.and.to.be.a('object');
 		return expect(wsRPC.scClient)
-			.to.have.property('connections')
+			.to.have.property('clients')
 			.to.be.a('object').and.to.be.empty;
 	});
 
