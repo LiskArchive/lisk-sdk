@@ -180,8 +180,12 @@ __private.verifySignature = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyPreviousBlock = function(block, result) {
-	if (!block.previousBlock && block.height !== 1) {
-		result.errors.push('Invalid previous block');
+	try {
+		if (!block.previousBlock && block.height !== 1) {
+			result.errors.push('Invalid previous block');
+		}
+	} catch (e) {
+		result.errors.push(e.toString());
 	}
 
 	return result;
