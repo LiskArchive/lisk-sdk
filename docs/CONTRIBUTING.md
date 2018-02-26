@@ -59,9 +59,8 @@ In case you've never submitted a pull request (PR) via GitHub before, please rea
 1. Add tests to the code you have contributed! All new code must come with complete test coverage. See [here](test/README.md) for a guide to the testing approach we’re using.
 1. End all files with a newline. In general, your code should conform to the rules listed in the `.editorconfig` file. There are plugins for most editors/IDEs to do this for you automatically. Update the README for the changes that adhere to your new code.
 1. Ensure the test and linting suite passes (`npm run prepush` runs both). Follow the [JavaScript](https://github.com/airbnb/javascript) styleguide from Airbnb with the [lisk extension](https://github.com/LiskHQ/eslint-config-lisk-base).
-1. Submit a pull request via GitHub. Include issue numbers in the PR title, at the end with: ```Description - Closes #IssueNumber```.
-1. Check that Jenkins CI tests pass (pull request turns green).
-First time contributors will need to wait for a trusted team member to start Jenkins CI on a Pull Request.
+1. Submit a pull request via GitHub. Include issue numbers in the PR title, at the end with: `Description - Closes #IssueNumber`.
+1. Check that Jenkins CI tests pass (pull request turns green). First time contributors will need to wait for a trusted team member to start Jenkins CI on a Pull Request.
 
 ### Reporting Bugs
 
@@ -101,7 +100,7 @@ Provide more context by answering these questions:
 
 This section guides you through submitting an enhancement suggestion for Lisky, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion :pencil: and find related suggestions :mag_right:.
 
- When you are creating an enhancement suggestion, please include as many details as possible. Fill in [the template](ISSUE_TEMPLATE.md), including the steps that you imagine you would take if the feature you're requesting existed.
+When you are creating an enhancement suggestion, please include as many details as possible. Fill in [the template](ISSUE_TEMPLATE.md), including the steps that you imagine you would take if the feature you're requesting existed.
 
 #### How Do I Submit A (Good) Enhancement Suggestion?
 
@@ -125,21 +124,20 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally after the first line
 * Consider starting the commit message with an applicable emoji:
-	* :seedling: `:seedling:` when adding a new feature
-	* :bug: `:bug:` when fixing a bug
-	* :books: `:books:` when adding or updating documentation
-	* :nail_care: `:nail_care:` when making changes to code style (e.g. lint settings)
-	* :recycle: `:recycle:` when refactoring code
-	* :fire: `:fire:` when removing code or files (including dependencies)
-	* :racehorse: `:racehorse:` when improving performance
-	* :white_check_mark: `:white_check_mark:` when adding or updating tests
-	* :construction_worker: `:construction_worker:` when updating the build process
-	* :bowtie: `:bowtie:` when updating CI
-	* :house: `:house:` when performing chores
-	* :new: `:new:` when adding a new dependency
-	* :arrow_up: `:arrow_up:` when upgrading a dependency
-	* :arrow_down: `:arrow_down:` when downgrading a dependency
-	* :back: `:back:` when reverting changes
+  * :seedling: `:seedling:` when adding a new feature
+  * :bug: `:bug:` when fixing a bug
+  * :books: `:books:` when adding or updating documentation
+  * :nail_care: `:nail_care:` when making changes to code style (e.g. lint settings)
+  * :recycle: `:recycle:` when refactoring code
+  * :fire: `:fire:` when removing code or files (including dependencies)
+  * :racehorse: `:racehorse:` when improving performance
+  * :white_check_mark: `:white_check_mark:` when adding or updating tests
+  * :construction_worker: `:construction_worker:` when updating the build process
+  * :bowtie: `:bowtie:` when updating CI
+  * :house: `:house:` when performing chores
+  * :new: `:new:` when adding a new dependency
+  * :arrow_up: `:arrow_up:` when upgrading a dependency
+  * :arrow_down: `:arrow_down:` when downgrading a dependency \* :back: `:back:` when reverting changes
 
 ### JavaScript Styleguide
 
