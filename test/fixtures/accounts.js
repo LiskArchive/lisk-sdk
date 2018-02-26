@@ -102,7 +102,19 @@ const Delegate = stampit(Account, {
 	},
 });
 
+const Dependent = stampit({
+	init({ accountId, dependentId }) {
+		this.accountId = accountId;
+		this.dependentId =
+			dependentId ||
+			randomstring
+				.generate({ charset: '0123456789ABCDE', length: 32 })
+				.toLowerCase();
+	},
+});
+
 accounts.Account = Account;
 accounts.Delegate = Delegate;
+accounts.Dependent = Dependent;
 
 module.exports = accounts;
