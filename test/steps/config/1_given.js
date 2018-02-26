@@ -14,7 +14,7 @@
  *
  */
 import lockfile from 'lockfile';
-import defaultConfig from '../../../defaultConfig.json';
+import defaultConfig from '../../../default_config.json';
 import * as currentConfig from '../../../src/utils/config';
 import { getFirstBoolean, getBooleans } from '../utils';
 

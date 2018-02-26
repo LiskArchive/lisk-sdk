@@ -14,7 +14,7 @@
  *
  */
 import lisk from 'lisk-js';
-import cryptoInstance from '../../../src/utils/cryptoModule';
+import cryptoInstance from '../../../src/utils/crypto_module';
 import { getFirstQuotedString } from '../utils';
 
 export function itShouldSignTheMessageWithThePassphrase() {

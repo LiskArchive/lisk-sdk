@@ -13,25 +13,25 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as broadcastSignature from '../../src/commands/broadcastSignature';
-import * as broadcastTransaction from '../../src/commands/broadcastTransaction';
-import * as createAccount from '../../src/commands/createAccount';
-import * as createTransactionRegisterDelegate from '../../src/commands/createTransactionRegisterDelegate';
-import * as createTransactionCastVotes from '../../src/commands/createTransactionCastVotes';
-import * as createTransactionRegisterMultisignatureAccount from '../../src/commands/createTransactionRegisterMultisignatureAccount';
-import * as createTransactionRegisterSecondPassphrase from '../../src/commands/createTransactionRegisterSecondPassphrase';
-import * as createTransactionTransfer from '../../src/commands/createTransactionTransfer';
-import * as decryptMessage from '../../src/commands/decryptMessage';
-import * as decryptPassphrase from '../../src/commands/decryptPassphrase';
-import * as encryptMessage from '../../src/commands/encryptMessage';
-import * as encryptPassphrase from '../../src/commands/encryptPassphrase';
+import * as broadcastSignature from '../../src/commands/broadcast_signature';
+import * as broadcastTransaction from '../../src/commands/broadcast_transaction';
+import * as createAccount from '../../src/commands/create_account';
+import * as createTransactionRegisterDelegate from '../../src/commands/create_transaction_register_delegate';
+import * as createTransactionCastVotes from '../../src/commands/create_transaction_cast_votes';
+import * as createTransactionRegisterMultisignatureAccount from '../../src/commands/create_transaction_register_multisignature_account';
+import * as createTransactionRegisterSecondPassphrase from '../../src/commands/create_transaction_register_second_passphrase';
+import * as createTransactionTransfer from '../../src/commands/create_transaction_transfer';
+import * as decryptMessage from '../../src/commands/decrypt_message';
+import * as decryptPassphrase from '../../src/commands/decrypt_passphrase';
+import * as encryptMessage from '../../src/commands/encrypt_message';
+import * as encryptPassphrase from '../../src/commands/encrypt_passphrase';
 import * as config from '../../src/commands/config';
 import * as get from '../../src/commands/get';
 import * as list from '../../src/commands/list';
 import * as set from '../../src/commands/set';
-import * as showCopyright from '../../src/commands/showCopyright';
-import * as showWarranty from '../../src/commands/showWarranty';
-import * as signMessage from '../../src/commands/signMessage';
+import * as showCopyright from '../../src/commands/show_copyright';
+import * as showWarranty from '../../src/commands/show_warranty';
+import * as signMessage from '../../src/commands/sign_message';
 
 export const DEFAULT_ERROR_MESSAGE = "Cannot read property 'length' of null";
 

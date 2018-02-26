@@ -14,7 +14,7 @@
  *
  */
 import lisk from 'lisk-js';
-import cryptoInstance from '../../../src/utils/cryptoModule';
+import cryptoInstance from '../../../src/utils/crypto_module';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { getFirstQuotedString, getQuotedStrings } from '../utils';
 

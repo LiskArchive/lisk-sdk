@@ -16,7 +16,7 @@
 import os from 'os';
 import fs from 'fs';
 import lockfile from 'lockfile';
-import defaultConfig from '../../defaultConfig.json';
+import defaultConfig from '../../default_config.json';
 import { readJSONSync, writeJSONSync } from './fs';
 import { logWarning, logError } from './print';
 

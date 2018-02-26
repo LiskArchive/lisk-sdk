@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../utils/cryptoModule';
+import cryptoModule from '../utils/crypto_module';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';

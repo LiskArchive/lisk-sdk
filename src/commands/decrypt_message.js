@@ -13,31 +13,36 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../utils/cryptoModule';
+import cryptoModule from '../utils/crypto_module';
 import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
 
-const description = `Encrypts a message for a given recipient public key using your secret passphrase.
+const description = `Decrypts a previously encrypted message from a given sender public key for a known nonce using your secret passphrase.
 
-	Example: encrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 'Hello world'
+	Example: decrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
 `;
 
-const processInputs = (recipient, message) => ({ passphrase, data }) =>
-	cryptoModule.encryptMessage({
-		message: message || data,
+const processInputs = (nonce, senderPublicKey, message) => ({
+	passphrase,
+	data,
+}) =>
+	cryptoModule.decryptMessage({
+		cipher: message || data,
+		nonce,
 		passphrase,
-		recipient,
+		senderPublicKey,
 	});
 
 export const actionCreator = vorpal => async ({
-	recipient,
 	message,
+	nonce,
+	senderPublicKey,
 	options,
 }) => {
-	const messageSource = options.message;
 	const passphraseSource = options.passphrase;
+	const messageSource = options.message;
 
 	if (!message && !messageSource) {
 		throw new ValidationError('No message was provided.');
@@ -46,22 +51,21 @@ export const actionCreator = vorpal => async ({
 	return getInputsFromSources(vorpal, {
 		passphrase: {
 			source: passphraseSource,
-			repeatPrompt: true,
 		},
 		data: message
 			? null
 			: {
 					source: messageSource,
 				},
-	}).then(processInputs(recipient, message));
+	}).then(processInputs(nonce, senderPublicKey, message));
 };
 
-const encryptMessage = createCommand({
-	command: 'encrypt message <recipient> [message]',
+const decryptMessage = createCommand({
+	command: 'decrypt message <senderPublicKey> <nonce> [message]',
 	description,
 	actionCreator,
 	options: [commonOptions.passphrase, commonOptions.message],
-	errorPrefix: 'Could not encrypt message',
+	errorPrefix: 'Could not decrypt message',
 });
 
-export default encryptMessage;
+export default decryptMessage;
