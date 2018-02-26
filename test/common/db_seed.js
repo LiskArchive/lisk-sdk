@@ -122,6 +122,7 @@ class DatabaseSeed {
 		const tables = [
 			'mem_accounts',
 			'blocks',
+			'forks_stat',
 			'dapps',
 			'intransfer',
 			'outtransfer',

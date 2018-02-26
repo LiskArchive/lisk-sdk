@@ -27,5 +27,3 @@ FROM mem_accounts
 WHERE
   "isDelegate" = 1
   AND encode("publicKey", 'hex') IN (${publicKeys:csv})
-ORDER BY vote ASC,
-         "publicKey" DESC
