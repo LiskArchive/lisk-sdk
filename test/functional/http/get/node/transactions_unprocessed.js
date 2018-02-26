@@ -169,7 +169,7 @@ describe('GET /api/node', () => {
 					});
 				});
 
-				it('using valid type should be ok', () => {
+				it('using valid type should be ok @unstable', () => {
 					var transactionInCheck = transactionList[0];
 
 					return UnProcessedEndpoint.makeRequest(
@@ -354,7 +354,7 @@ describe('GET /api/node', () => {
 				});
 			});
 
-			describe('offset', () => {
+			describe('offset @unstable', () => {
 				it('using offset="one" should fail', () => {
 					return UnProcessedEndpoint.makeRequest({ offset: 'one' }, 400).then(
 						res => {

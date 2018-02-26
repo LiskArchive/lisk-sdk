@@ -22,13 +22,13 @@ var compression = require('compression');
  * Description of the function.
  *
  * @func create_compression
- * @memberof api/fittings
+ * @memberof api.fittings
  * @requires compression
  * @requires debug
  * @requires lodash
  * @param {Object} fittingDef
  * @param {Object} bagpipes
- * @returns {function} {@link api/fittings.lisk_compression}
+ * @returns {function} {@link api.fittings.lisk_compression}
  * @todo Add description for the function and the params
  */
 module.exports = function create(fittingDef) {
@@ -41,7 +41,7 @@ module.exports = function create(fittingDef) {
 	 * Description of the function.
 	 *
 	 * @func lisk_compression
-	 * @memberof api/fittings
+	 * @memberof api.fittings
 	 * @param {Object} context
 	 * @param {function} cb
 	 * @todo Add description for the function and the params

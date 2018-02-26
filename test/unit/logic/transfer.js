@@ -208,7 +208,9 @@ describe('transfer', () => {
 				data,
 			};
 
-			return expect(transfer.getBytes(transaction)).to.eql(Buffer.from(data, 'utf8'));
+			return expect(transfer.getBytes(transaction)).to.eql(
+				Buffer.from(data, 'utf8')
+			);
 		});
 
 		it('should be okay for utf-8 data value', () => {
@@ -218,7 +220,9 @@ describe('transfer', () => {
 				data,
 			};
 
-			return expect(transfer.getBytes(transaction)).to.eql(Buffer.from(data, 'utf8'));
+			return expect(transfer.getBytes(transaction)).to.eql(
+				Buffer.from(data, 'utf8')
+			);
 		});
 	});
 
@@ -390,7 +394,9 @@ describe('transfer', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.blockId = '9314232245035524467';
 
-			return expect(transfer.objectNormalize(transaction)).to.not.have.key('blockId');
+			return expect(transfer.objectNormalize(transaction)).to.not.have.key(
+				'blockId'
+			);
 		});
 
 		it('should not remove data field', () => {
@@ -485,7 +491,9 @@ describe('transfer', () => {
 
 	describe('ready', () => {
 		it('should return true for single signature transaction', () => {
-			return expect(transfer.ready(validTransaction, validSender)).to.equal(true);
+			return expect(transfer.ready(validTransaction, validSender)).to.equal(
+				true
+			);
 		});
 
 		it('should return false for multi signature transaction with less signatures', () => {

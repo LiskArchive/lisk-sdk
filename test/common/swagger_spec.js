@@ -144,7 +144,10 @@ SwaggerTestSpec.prototype.addParameters = function(parameters) {
 SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 	var query = {};
 	var post = {};
-	var headers = { Accept: 'application/json' };
+	var headers = {
+		Accept: 'application/json',
+		'Content-Type': 'application/json',
+	};
 	var formData = false;
 	var self = this;
 	var callPath = self.getPath();
@@ -272,5 +275,5 @@ SwaggerTestSpec.prototype.getPath = function() {
  * @return {SwaggerTestSpec}
  */
 module.exports = function(method, path, responseCode) {
-	return new SwaggerTestSpec(method, method, responseCode);
+	return new SwaggerTestSpec(method, path, responseCode);
 };

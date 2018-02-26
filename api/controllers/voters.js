@@ -28,7 +28,7 @@ var modules;
  * Description of the function.
  *
  * @class
- * @memberof api/controllers
+ * @memberof api.controllers
  * @requires lodash
  * @requires helpers/apiCodes.NOT_FOUND
  * @requires helpers/apiError

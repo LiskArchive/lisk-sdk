@@ -25,11 +25,13 @@ describe('PeersManager', () => {
 		});
 
 		it('should have empty addressToNonceMap map after initialization', () => {
-			return expect(peersManager).to.have.property('addressToNonceMap').to.be.empty;
+			return expect(peersManager).to.have.property('addressToNonceMap').to.be
+				.empty;
 		});
 
 		it('should have empty nonceToConnectionIdMap map after initialization', () => {
-			return expect(peersManager).to.have.property('nonceToAddressMap').to.be.empty;
+			return expect(peersManager).to.have.property('nonceToAddressMap').to.be
+				.empty;
 		});
 	});
 
@@ -181,7 +183,8 @@ describe('PeersManager', () => {
 				peersManager.remove(validPeer);
 				expect(peersManager).to.have.property('peers').to.be.empty;
 				expect(peersManager).to.have.property('addressToNonceMap').to.be.empty;
-				return expect(peersManager).to.have.property('nonceToAddressMap').to.be.empty;
+				return expect(peersManager).to.have.property('nonceToAddressMap').to.be
+					.empty;
 			});
 
 			it('should remove previously added valid entry', () => {
@@ -192,7 +195,8 @@ describe('PeersManager', () => {
 				peersManager.remove(validPeer);
 				expect(peersManager).to.have.property('peers').to.be.empty;
 				expect(peersManager).to.have.property('addressToNonceMap').to.be.empty;
-				return expect(peersManager).to.have.property('nonceToAddressMap').to.be.empty;
+				return expect(peersManager).to.have.property('nonceToAddressMap').to.be
+					.empty;
 			});
 		});
 
@@ -264,12 +268,15 @@ describe('PeersManager', () => {
 			});
 
 			it('should return undefined when asking of not existing entry', () => {
-				return expect(peersManager.getByAddress(validPeer.string)).to.be.undefined;
+				return expect(peersManager.getByAddress(validPeer.string)).to.be
+					.undefined;
 			});
 
 			it('should return previously added peer when asking with valid nonce', () => {
 				peersManager.add(validPeer);
-				return expect(peersManager.getByAddress(validPeer.string)).eql(validPeer);
+				return expect(peersManager.getByAddress(validPeer.string)).eql(
+					validPeer
+				);
 			});
 		});
 	});

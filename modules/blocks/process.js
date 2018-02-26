@@ -27,11 +27,16 @@ var self;
 var __private = {};
 
 /**
- * Initializes library.
- * @memberof module:blocks
+ * Main process logic. Allows process blocks. Initializes library.
+ *
  * @class
- * @classdesc Main Process logic.
- * Allows process blocks.
+ * @memberof modules.blocks
+ * @see Parent: {@link modules.blocks}
+ * @requires async
+ * @requires lodash
+ * @requires helpers/constants
+ * @requires helpers/slots
+ * @requires logic/peer
  * @param {Object} logger
  * @param {Block} block
  * @param {Peers} peers
@@ -41,6 +46,7 @@ var __private = {};
  * @param {Sequence} dbSequence
  * @param {Sequence} sequence
  * @param {Object} genesisblock
+ * @todo Add description for the params
  */
 function Process(
 	logger,
@@ -73,13 +79,12 @@ function Process(
 }
 
 /**
- * Receive block - logs info about received block, updates last receipt, processes block
+ * Receive block - logs info about received block, updates last receipt, processes block.
  *
  * @private
- * @async
- * @method receiveBlock
- * @param {Object}   block Full normalized block
- * @param {function} cb Callback function
+ * @func receiveBlock
+ * @param {Object} block - Full normalized block
+ * @param {function} cb - Callback function
  */
 __private.receiveBlock = function(block, cb) {
 	library.logger.info(
@@ -104,13 +109,12 @@ __private.receiveBlock = function(block, cb) {
 };
 
 /**
- * Receive block detected as fork cause 1: Consecutive height but different previous block id
+ * Receive block detected as fork cause 1: Consecutive height but different previous block id.
  *
  * @private
- * @async
- * @method receiveBlock
- * @param {Object}   block Received block
- * @param {function} cb Callback function
+ * @func receiveBlock
+ * @param {Object} block - Received block
+ * @param {function} cb - Callback function
  */
 __private.receiveForkOne = function(block, lastBlock, cb) {
 	var tmp_block = _.clone(block);
@@ -169,13 +173,12 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 };
 
 /**
- * Receive block detected as fork cause 5: Same height and previous block id, but different block id
+ * Receive block detected as fork cause 5: Same height and previous block id, but different block id.
  *
  * @private
- * @async
  * @method receiveBlock
- * @param {Object}   block Received block
- * @param {function} cb Callback function
+ * @param {Object} block - Received block
+ * @param {function} cb - Callback function
  */
 __private.receiveForkFive = function(block, lastBlock, cb) {
 	var tmp_block = _.clone(block);
@@ -247,18 +250,15 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 };
 
 /**
- * Performs chain comparison with remote peer
- * WARNING: Can trigger chain recovery
+ * Performs chain comparison with remote peer.
+ * WARNING: Can trigger chain recovery.
  *
- * @async
- * @public
- * @method getCommonBlock
- * @param  {Peer}     peer Peer to perform chain comparison with
- * @param  {number}   height Block height
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- * @return {Object}   cb.res Result object
+ * @param {Peer} peer - Peer to perform chain comparison with
+ * @param {number} height - Block height
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.res - Result object
  */
 Process.prototype.getCommonBlock = function(peer, height, cb) {
 	var comparisionFailed = false;
@@ -347,19 +347,16 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 };
 
 /**
- * Loads full blocks from database, used when rebuilding blockchain, snapshotting
- * see: loader.loadBlockChain (private)
+ * Loads full blocks from database, used when rebuilding blockchain, snapshotting,
+ * see: loader.loadBlockChain (private).
  *
- * @async
- * @public
- * @method loadBlocksOffset
- * @param  {number}   limit Limit amount of blocks
- * @param  {number}   offset Offset to start at
- * @param  {boolean}  verify Indicator that block needs to be verified
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- * @return {Object}   cb.lastBlock Current last block
+ * @param {number} limit - Limit amount of blocks
+ * @param {number} offset - Offset to start at
+ * @param {boolean} verify - Indicator that block needs to be verified
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.lastBlock - Current last block
  */
 Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 	// Calculate limit if offset is supplied
@@ -422,7 +419,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 									if (err) {
 										return setImmediate(cb, err);
 									}
-									// Apply block - broadcast: false, saveBlock: false
+									// Apply block - saveBlock: false
 									modules.blocks.chain.applyBlock(block, false, err => {
 										setImmediate(cb, err);
 									});
@@ -433,15 +430,10 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 								setImmediate(cb, err);
 							});
 						} else {
-							// Apply block - broadcast: false, saveBlock: false
-							modules.blocks.chain.applyBlock(
-								block,
-								false,
-								err => {
-									setImmediate(cb, err);
-								},
-								false
-							);
+							// Apply block - saveBlock: false
+							modules.blocks.chain.applyBlock(block, false, err => {
+								setImmediate(cb, err);
+							});
 						}
 					},
 					err => setImmediate(cb, err, modules.blocks.lastBlock.get())
@@ -458,16 +450,13 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 };
 
 /**
- * Ask remote peer for blocks and process them
+ * Ask remote peer for blocks and process them.
  *
- * @async
- * @public
- * @method loadBlocksFromPeer
- * @param  {Peer}     peer Peer to perform chain comparison with
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- * @return {Object}   cb.lastValidBlock Normalized new last block
+ * @param {Peer} peer - Peer to perform chain comparison with
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.lastValidBlock - Normalized new last block
  */
 Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 	var lastValidBlock = modules.blocks.lastBlock.get();
@@ -555,17 +544,13 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 };
 
 /**
- * Generate new block
- * see: loader.loadBlockChain (private)
+ * Generate new block, see: loader.loadBlockChain (private).
  *
- * @async
- * @public
- * @method generateBlock
- * @param  {Object}   keypair Pair of private and public keys, see: helpers.ed.makeKeypair
- * @param  {number}   timestamp Slot time, see: helpers.slots.getSlotTime
- * @param  {function} cb Callback function
- * @return {function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error message if error occurred
+ * @param {Object} keypair - Pair of private and public keys, see: helpers.ed.makeKeypair
+ * @param {number} timestamp - Slot time, see: helpers.slots.getSlotTime
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error message if error occurred
  */
 Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	// Get transactions that will be included in block
@@ -588,8 +573,10 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 					// Check transaction depends on type
 					if (library.logic.transaction.ready(transaction, sender)) {
 						// Verify transaction
-						library.logic.transaction.verify(transaction, sender, () => {
-							ready.push(transaction);
+						library.logic.transaction.verify(transaction, sender, err => {
+							if (!err) {
+								ready.push(transaction);
+							}
 							return setImmediate(cb);
 						});
 					} else {
@@ -598,7 +585,10 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 				}
 			);
 		},
-		() => {
+		err => {
+			if (err) {
+				return setImmediate(cb, err);
+			}
 			var block;
 
 			try {
@@ -624,10 +614,9 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
  * Validate if block generator is valid delegate.
  *
  * @private
- * @async
- * @method validateBlockSlot
- * @param {Object}   block - Current normalized block
- * @param {Object}   lastBlock - Last normalized block
+ * @func validateBlockSlot
+ * @param {Object} block - Current normalized block
+ * @param {Object} lastBlock - Last normalized block
  * @param {Function} cb - Callback function
  */
 __private.validateBlockSlot = function(block, lastBlock, cb) {
@@ -651,13 +640,11 @@ __private.validateBlockSlot = function(block, lastBlock, cb) {
 };
 
 /**
- * Handle newly received block
+ * Handle newly received block.
  *
- * @public
- * @method  onReceiveBlock
- * @implements slots.calcRound
  * @listens module:transport~event:receiveBlock
- * @param   {block} block New block
+ * @param {block} block - New block
+ * @todo Add @returns tag
  */
 Process.prototype.onReceiveBlock = function(block) {
 	var lastBlock;
@@ -672,7 +659,7 @@ Process.prototype.onReceiveBlock = function(block) {
 			modules.rounds.ticking()
 		) {
 			library.logger.debug('Client not ready to receive block', block.id);
-			return;
+			return setImmediate(cb);
 		}
 
 		// Get the last block
@@ -732,7 +719,8 @@ Process.prototype.onReceiveBlock = function(block) {
  * - rounds
  * - transactions
  * - transport
- * @param {modules} scope Exposed modules
+ *
+ * @param {modules} scope - Exposed modules
  */
 Process.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Process: Shared modules bind.');

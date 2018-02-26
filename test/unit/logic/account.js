@@ -14,14 +14,14 @@
 
 'use strict';
 
-var rewire = require('rewire');
-var constants = require('../../../helpers/constants.js');
-var application = require('../../common/application.js');
-var modulesLoader = require('../../common/modules_loader');
+const rewire = require('rewire');
+const constants = require('../../../helpers/constants.js');
+const application = require('../../common/application.js');
+const modulesLoader = require('../../common/modules_loader');
 
-var Account = rewire('../../../logic/account.js');
+const Account = rewire('../../../logic/account.js');
 
-var validAccount = {
+const validAccount = {
 	username: 'genesis_100',
 	isDelegate: 1,
 	u_isDelegate: 0,
@@ -57,8 +57,8 @@ var validAccount = {
 };
 
 describe('account', () => {
-	var account;
-	var accountLogic;
+	let account;
+	let accountLogic;
 
 	before(done => {
 		application.init(
@@ -74,9 +74,9 @@ describe('account', () => {
 		application.cleanup(done);
 	});
 
-	describe('Account constructor', () => {
-		var library;
-		var dbStub;
+	describe('constructor', () => {
+		let library;
+		let dbStub;
 
 		before(done => {
 			dbStub = {
@@ -99,7 +99,9 @@ describe('account', () => {
 		});
 
 		it('should attach schema to scope variable', () => {
-			return expect(accountLogic.scope.schema).to.eql(modulesLoader.scope.schema);
+			return expect(accountLogic.scope.schema).to.eql(
+				modulesLoader.scope.schema
+			);
 		});
 
 		it('should attach db to scope variable', () => {
@@ -122,7 +124,7 @@ describe('account', () => {
 	});
 
 	describe('objectNormalize', () => {
-		it('should be okay for a valid account object', () => {
+		it('should validate account schema', () => {
 			return expect(account.objectNormalize(validAccount)).to.be.an('object');
 		});
 	});
@@ -163,14 +165,14 @@ describe('account', () => {
 
 	describe('toDB', () => {
 		it('should normalize address and transform publicKey and secondPublicKey to Buffer hex', done => {
-			var raw = {
+			const raw = {
 				address: '16313739661670634666l',
 				publicKey:
 					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 				secondPublicKey:
 					'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 			};
-			var toDBRes = _.cloneDeep(raw);
+			const toDBRes = _.cloneDeep(raw);
 
 			account.toDB(toDBRes);
 			expect(toDBRes.address).to.equal(raw.address.toUpperCase());
@@ -184,9 +186,51 @@ describe('account', () => {
 		});
 	});
 
+	describe('getMultiSignature', () => {
+		it('should return account for a given address with requested fields', done => {
+			const filter = { address: validAccount.address };
+			const requestedFields = [
+				'username',
+				'isDelegate',
+				'address',
+				'publicKey',
+			];
+			account.getMultiSignature(filter, requestedFields, (err, res) => {
+				expect(err).to.not.exist;
+				expect(res).to.be.null;
+				done();
+			});
+		});
+
+		it('should return account for a given address with all the fields', done => {
+			const filter = { address: validAccount.address };
+			account.getMultiSignature(filter, (err, res) => {
+				expect(err).to.not.exist;
+				expect(res).to.be.null;
+				done();
+			});
+		});
+
+		it('should return null for an invalid account address', done => {
+			account.getMultiSignature(
+				{ address: 'this adress does not exist' },
+				(err, res) => {
+					expect(err).to.not.exist;
+					expect(res).to.equal(null);
+					done();
+				}
+			);
+		});
+	});
+
 	describe('get', () => {
-		it('should only get requested fields for account', done => {
-			var requestedFields = ['username', 'isDelegate', 'address', 'publicKey'];
+		it('should only fetch requested fields for account', done => {
+			const requestedFields = [
+				'username',
+				'isDelegate',
+				'address',
+				'publicKey',
+			];
 
 			account.get(
 				{ address: validAccount.address },
@@ -200,7 +244,7 @@ describe('account', () => {
 			);
 		});
 
-		it('should get all fields if fields parameters is not set', done => {
+		it('should fetch all fields for undefined fields parameter', done => {
 			account.get({ address: validAccount.address }, (err, res) => {
 				expect(err).to.not.exist;
 				expect(Object.keys(res).sort()).to.eql(
@@ -218,7 +262,7 @@ describe('account', () => {
 			});
 		});
 
-		it('should get the correct account against address', done => {
+		it('should fetch the correct account against valid account address', done => {
 			account.get({ address: validAccount.address }, (err, res) => {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('object');
@@ -232,65 +276,8 @@ describe('account', () => {
 		});
 	});
 
-	describe('calculateApproval', () => {
-		it('when voterBalance = 0 and totalSupply = 0, it should return 0', () => {
-			return expect(account.calculateApproval(0, 0)).to.equal(0);
-		});
-
-		it('when voterBalance = totalSupply, it should return 100', () => {
-			var totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-			var votersBalance = totalSupply;
-			return expect(account.calculateApproval(votersBalance, totalSupply)).to.equal(
-				100
-			);
-		});
-
-		it('when voterBalance = 50 and total supply = 100, it should return 50', () => {
-			return expect(account.calculateApproval(50, 100)).to.equal(50);
-		});
-
-		it('with random values, it should return approval between 0 and 100', () => {
-			// So total supply is never 0
-			var totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-			var votersBalance = Math.floor(Math.random() * totalSupply);
-			return expect(account.calculateApproval(votersBalance, totalSupply))
-				.to.be.least(0)
-				.and.be.at.most(100);
-		});
-	});
-
-	describe('calculateProductivity', () => {
-		it('when missedBlocks = 0 and producedBlocks = 0, it should return 0', () => {
-			return expect(account.calculateProductivity(0, 0)).to.equal(0);
-		});
-
-		it('when missedBlocks = producedBlocks, it should return 50', () => {
-			var producedBlocks = Math.floor(Math.random() * 1000000000);
-			var missedBlocks = producedBlocks;
-			return expect(
-				account.calculateProductivity(producedBlocks, missedBlocks)
-			).to.equal(50);
-		});
-
-		it('when missedBlocks = 5 and producedBlocks = 15, it should return 75', () => {
-			var missedBlocks = 5;
-			var producedBlocks = 15;
-			return expect(
-				account.calculateProductivity(producedBlocks, missedBlocks)
-			).to.equal(75);
-		});
-
-		it('with random values, it should return approval between 0 and 100', () => {
-			var missedBlocks = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-			var producedBlocks = Math.floor(Math.random() * missedBlocks);
-			return expect(account.calculateProductivity(producedBlocks, missedBlocks))
-				.to.be.least(0)
-				.and.be.at.most(100);
-		});
-	});
-
 	describe('getAll', () => {
-		var allAccounts;
+		let allAccounts;
 
 		before(done => {
 			// Use high limit to be sure that we grab all accounts
@@ -301,7 +288,7 @@ describe('account', () => {
 		});
 
 		it('should remove any non-existent fields and return result', done => {
-			var fields = ['address', 'username', 'non-existent-field'];
+			const fields = ['address', 'username', 'non-existent-field'];
 
 			account.getAll({ address: validAccount.address }, fields, (err, res) => {
 				expect(err).to.not.exist;
@@ -314,7 +301,12 @@ describe('account', () => {
 		});
 
 		it('should only get requested fields for account', done => {
-			var requestedFields = ['username', 'isDelegate', 'address', 'publicKey'];
+			const requestedFields = [
+				'username',
+				'isDelegate',
+				'address',
+				'publicKey',
+			];
 
 			account.get(
 				{ address: validAccount.address },
@@ -377,7 +369,7 @@ describe('account', () => {
 		});
 
 		it('should use default limit when limit below 1', done => {
-			var sortedUsernames = _.sortBy(allAccounts, 'username')
+			const sortedUsernames = _.sortBy(allAccounts, 'username')
 				.map(v => {
 					return { username: v.username };
 				})
@@ -398,7 +390,7 @@ describe('account', () => {
 		});
 
 		it('should use default limit and ignore offset when offset below 1', done => {
-			var sortedUsernames = _.sortBy(allAccounts, 'username')
+			const sortedUsernames = _.sortBy(allAccounts, 'username')
 				.map(v => {
 					return { username: v.username };
 				})
@@ -557,6 +549,63 @@ describe('account', () => {
 		});
 	});
 
+	describe('calculateApproval', () => {
+		it('when voterBalance = 0 and totalSupply = 0, it should return 0', () => {
+			return expect(account.calculateApproval(0, 0)).to.equal(0);
+		});
+
+		it('when voterBalance = totalSupply, it should return 100', () => {
+			const totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+			const votersBalance = totalSupply;
+			return expect(
+				account.calculateApproval(votersBalance, totalSupply)
+			).to.equal(100);
+		});
+
+		it('when voterBalance = 50 and total supply = 100, it should return 50', () => {
+			return expect(account.calculateApproval(50, 100)).to.equal(50);
+		});
+
+		it('with random values, it should return approval between 0 and 100', () => {
+			// So total supply is never 0
+			const totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+			const votersBalance = Math.floor(Math.random() * totalSupply);
+			return expect(account.calculateApproval(votersBalance, totalSupply))
+				.to.be.least(0)
+				.and.be.at.most(100);
+		});
+	});
+
+	describe('calculateProductivity', () => {
+		it('when missedBlocks = 0 and producedBlocks = 0, it should return 0', () => {
+			return expect(account.calculateProductivity(0, 0)).to.equal(0);
+		});
+
+		it('when missedBlocks = producedBlocks, it should return 50', () => {
+			const producedBlocks = Math.floor(Math.random() * 1000000000);
+			const missedBlocks = producedBlocks;
+			return expect(
+				account.calculateProductivity(producedBlocks, missedBlocks)
+			).to.equal(50);
+		});
+
+		it('when missedBlocks = 5 and producedBlocks = 15, it should return 75', () => {
+			const missedBlocks = 5;
+			const producedBlocks = 15;
+			return expect(
+				account.calculateProductivity(producedBlocks, missedBlocks)
+			).to.equal(75);
+		});
+
+		it('with random values, it should return approval between 0 and 100', () => {
+			const missedBlocks = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+			const producedBlocks = Math.floor(Math.random() * missedBlocks);
+			return expect(account.calculateProductivity(producedBlocks, missedBlocks))
+				.to.be.least(0)
+				.and.be.at.most(100);
+		});
+	});
+
 	describe('set', () => {
 		it('should insert an account', done => {
 			account.set('123L', { u_username: 'test_set_insert' }, (err, res) => {
@@ -602,6 +651,13 @@ describe('account', () => {
 					done();
 				}
 			);
+		});
+
+		it('should throw error when a numeric field receives non numeric value', done => {
+			account.merge(validAccount.address, { balance: 'Not a Number' }, err => {
+				expect(err).to.equal('Encountered insane number: Not a Number');
+				done();
+			});
 		});
 
 		describe('verify public key', () => {
@@ -662,13 +718,6 @@ describe('account', () => {
 						done();
 					}
 				);
-			});
-		});
-
-		it('should throw error when a numeric field receives non numeric value', done => {
-			account.merge(validAccount.address, { balance: 'Not a Number' }, err => {
-				expect(err).to.equal('Encountered insane number: Not a Number');
-				done();
 			});
 		});
 	});

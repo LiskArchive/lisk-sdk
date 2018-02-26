@@ -82,7 +82,11 @@ describe('db', () => {
 
 				expect(db.accounts.cs).to.an('object');
 				expect(db.accounts.cs).to.not.empty;
-				return expect(db.accounts.cs).to.have.all.keys(['select', 'insert', 'update']);
+				return expect(db.accounts.cs).to.have.all.keys([
+					'select',
+					'insert',
+					'update',
+				]);
 			});
 		});
 
@@ -108,7 +112,9 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'one');
 				yield db.accounts.countMemAccounts();
 
-				return expect(db.one.firstCall.args[0]).to.eql(accountsSQL.countMemAccounts);
+				return expect(db.one.firstCall.args[0]).to.eql(
+					accountsSQL.countMemAccounts
+				);
 			});
 
 			it('should pass no params to the SQL file', function*() {
@@ -322,7 +328,9 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'any');
 				yield db.accounts.getDelegates();
 
-				return expect(db.any.firstCall.args[0]).to.eql(accountsSQL.getDelegates);
+				return expect(db.any.firstCall.args[0]).to.eql(
+					accountsSQL.getDelegates
+				);
 			});
 
 			it('should return db.accounts with isDelegate set to true ', function*() {
@@ -664,7 +672,9 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'none');
 				yield db.accounts.increment('12L', 'balance', 123);
 
-				return expect(db.none.firstCall.args[0]).to.eql(accountsSQL.incrementAccount);
+				return expect(db.none.firstCall.args[0]).to.eql(
+					accountsSQL.incrementAccount
+				);
 			});
 
 			it('should increment account attribute', function*() {
@@ -693,7 +703,9 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'none');
 				yield db.accounts.decrement('12L', 'balance', 123);
 
-				return expect(db.none.firstCall.args[0]).to.eql(accountsSQL.decrementAccount);
+				return expect(db.none.firstCall.args[0]).to.eql(
+					accountsSQL.decrementAccount
+				);
 			});
 
 			it('should decrement account attribute', function*() {
@@ -738,7 +750,9 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'none');
 				yield db.accounts.resetMemTables();
 
-				return expect(db.none.firstCall.args[0]).to.eql(accountsSQL.resetMemoryTables);
+				return expect(db.none.firstCall.args[0]).to.eql(
+					accountsSQL.resetMemoryTables
+				);
 			});
 
 			it('should process without any error', () => {

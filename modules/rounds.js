@@ -29,16 +29,20 @@ __private.loaded = false;
 __private.ticking = false;
 
 /**
- * Initializes library with scope.
- * @memberof module:rounds
+ * Main rounds methods. Initializes library with scope.
+ *
  * @class
- * @classdesc Main rounds methods.
- * @param {function} cb - Callback function.
- * @param {scope} scope - App instance.
- * @return {setImmediateCallback} Callback function with `self` as data.
- * @todo Apply node pattern for callbacks: callback always at the end.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires async
+ * @requires helpers/constants
+ * @requires helpers/slots
+ * @requires logic/round
+ * @param {function} cb - Callback function
+ * @param {scope} scope - App instance
+ * @returns {setImmediateCallback} cb, null, self
+ * @todo Apply node pattern for callbacks: callback always at the end
  */
-// Constructor
 function Rounds(cb, scope) {
 	library = {
 		logger: scope.logger,
@@ -58,14 +62,16 @@ function Rounds(cb, scope) {
 
 // Public methods
 /**
- * @return {boolean} __private.loaded
+ * @returns {boolean} __private.loaded
+ * @todo Add description of the function
  */
 Rounds.prototype.loaded = function() {
 	return __private.loaded;
 };
 
 /**
- * @return {boolean} __private.ticking
+ * @returns {boolean} __private.ticking
+ * @todo Add description of the function
  */
 Rounds.prototype.ticking = function() {
 	return __private.ticking;
@@ -73,10 +79,11 @@ Rounds.prototype.ticking = function() {
 
 /**
  * Deletes from `mem_round` table records based on round.
- * @implements {library.db.rounds.flush}
+ *
  * @param {number} round
  * @param {function} cb
- * @return {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the params and the return value
  */
 Rounds.prototype.flush = function(round, cb) {
 	library.db.rounds
@@ -90,16 +97,11 @@ Rounds.prototype.flush = function(round, cb) {
 
 /**
  * Performs backward tick on round.
- * @implements {slots.calcRound}
- * @implements {__private.getOutsiders}
- * @implements {Round.mergeBlockGenerator}
- * @implements {Round.markBlockId}
- * @implements {Round.land}
- * @implements {library.db.tx}
- * @param {block} block - Current block.
- * @param {block} previousBlock - Previous block.
- * @param {function} done - Callback function.
- * @return {function} Calling done with error if any.
+ *
+ * @param {block} block - Current block
+ * @param {block} previousBlock - Previous block
+ * @param {function} done - Callback function
+ * @returns {function} Calling done with error if any
  */
 Rounds.prototype.backwardTick = function(block, previousBlock, done) {
 	var round = slots.calcRound(block.height);
@@ -119,6 +121,13 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done) {
 		(prevRound === round && nextRound !== round) ||
 		(block.height === 1 || block.height === 101);
 
+	/**
+	 * Description of BackwardTick.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
 	function BackwardTick(t) {
 		var promised = new Round(scope, t);
 
@@ -173,6 +182,7 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done) {
 
 /**
  * Sets up round snapshotting.
+ *
  * @param {number} round - Target round.
  */
 Rounds.prototype.setSnapshotRound = function(round) {
@@ -181,16 +191,11 @@ Rounds.prototype.setSnapshotRound = function(round) {
 
 /**
  * Performs forward tick on round.
- * @implements {slots.calcRound}
- * @implements {Round.mergeBlockGenerator}
- * @implements {Round.land}
- * @implements {library.bus.message}
- * @implements {Round.truncateBlocks}
- * @implements {__private.getOutsiders}
- * @param {block} block - Current block.
- * @param {function} done - Callback function.
+ *
+ * @param {block} block - Current block
+ * @param {function} done - Callback function
  * @param {Object} tx - Database transaction/task object
- * @return {function} Calling done with error if any.
+ * @returns {function} Calling done with error if any
  */
 Rounds.prototype.tick = function(block, done, tx) {
 	var round = slots.calcRound(block.height);
@@ -213,6 +218,14 @@ Rounds.prototype.tick = function(block, done, tx) {
 	scope.finishRound =
 		round !== nextRound || (block.height === 1 || block.height === 101);
 
+	/**
+	 * Description of Tick.
+	 *
+	 * @class
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the class
+	 */
 	function Tick(t) {
 		var promised = new Round(scope, t);
 
@@ -301,7 +314,8 @@ Rounds.prototype.tick = function(block, done, tx) {
 // Events
 /**
  * Assigns modules to private variable `modules`.
- * @param {modules} scope - Loaded modules.
+ *
+ * @param {modules} scope - Loaded modules
  */
 Rounds.prototype.onBind = function(scope) {
 	modules = {
@@ -312,9 +326,8 @@ Rounds.prototype.onBind = function(scope) {
 };
 
 /**
- * Sets private variable loaded to true,
- * @public
- * @method onBlockchainReady
+ * Sets private variable loaded to true.
+ *
  * @listens module:loader~event:blockchainReady
  */
 Rounds.prototype.onBlockchainReady = function() {
@@ -323,9 +336,10 @@ Rounds.prototype.onBlockchainReady = function() {
 
 /**
  * Emits a 'rounds/change' socket message.
- * @implements {library.network.io.sockets.emit}
+ *
  * @param {number} round
  * @emits rounds/change
+ * @todo Add description for the params
  */
 Rounds.prototype.onFinishRound = function(round) {
 	library.network.io.sockets.emit('rounds/change', { number: round });
@@ -333,8 +347,10 @@ Rounds.prototype.onFinishRound = function(round) {
 
 /**
  * Sets private variable `loaded` to false.
+ *
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the params
  */
 Rounds.prototype.cleanup = function(cb) {
 	__private.loaded = false;
@@ -345,13 +361,13 @@ Rounds.prototype.cleanup = function(cb) {
 /**
  * Generates outsiders array and pushes to param scope variable.
  * Obtains delegate list and for each delegate generate address.
+ *
  * @private
- * @implements {modules.delegates.generateDelegateList}
- * @implements {modules.accounts.generateAddressByPublicKey}
  * @param {scope} scope
  * @param {function} cb
  * @param {Object} tx - Database transaction/task object
- * @return {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the params
  */
 __private.getOutsiders = function(scope, cb, tx) {
 	scope.roundOutsiders = [];
@@ -389,12 +405,13 @@ __private.getOutsiders = function(scope, cb, tx) {
 /**
  * Gets rows from `round_blocks` and calculates rewards.
  * Loads into scope variable fees, rewards and delegates.
+ *
  * @private
- * @implements {library.db.query}
  * @param {number} round
  * @param {function} cb
  * @param {Object} tx - Database transaction/task object
- * @return {setImmediateCallback}
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the params and the return value
  */
 __private.sumRound = function(scope, cb, tx) {
 	library.logger.debug('Summing round', scope.round);
