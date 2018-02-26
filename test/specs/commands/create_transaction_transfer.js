@@ -333,10 +333,6 @@ describe('create transaction transfer command', () => {
 												when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
 												() => {
 													Then(
-														'it should create a transfer transaction using the address and the amount',
-														then.itShouldCreateATransferTransactionUsingTheAddressAndTheAmount,
-													);
-													Then(
 														'it should resolve to the created transaction',
 														then.itShouldResolveToTheCreatedTransaction,
 													);

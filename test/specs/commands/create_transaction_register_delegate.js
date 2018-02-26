@@ -273,10 +273,6 @@ describe('create transaction register delegate command', () => {
 												when.theActionIsCalledWithTheDelegateUsernameAndTheOptions,
 												() => {
 													Then(
-														'it should create a register delegate transaction using the passphrase, the second passphrase and the delegate username',
-														then.itShouldCreateARegisterDelegateTransactionUsingTheDelegateUsername,
-													);
-													Then(
 														'it should resolve to the created transaction',
 														then.itShouldResolveToTheCreatedTransaction,
 													);

@@ -223,10 +223,6 @@ describe('create transaction register second passphrase command', () => {
 														when.theActionIsCalledWithTheOptions,
 														() => {
 															Then(
-																'it should create a register second passphrase transaction using the second passphrase',
-																then.itShouldCreateARegisterSecondPassphraseTransactionUsingTheSecondPassphrase,
-															);
-															Then(
 																'it should resolve to the created transaction',
 																then.itShouldResolveToTheCreatedTransaction,
 															);

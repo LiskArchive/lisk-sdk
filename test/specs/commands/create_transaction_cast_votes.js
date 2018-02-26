@@ -822,10 +822,6 @@ describe('create transaction cast votes', () => {
 											when.theActionIsCalledWithTheOptions,
 											() => {
 												Then(
-													'it should create a cast votes transaction with the passphrase and the public keys prepended with a plus',
-													then.itShouldCreateACastVotesTransactionWithThePublicKeysPrependedWithAPlus,
-												);
-												Then(
 													'it should resolve to the created transaction',
 													then.itShouldResolveToTheCreatedTransaction,
 												);

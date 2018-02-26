@@ -437,10 +437,6 @@ describe('create transaction register multisignature account command', () => {
 																when.theActionIsCalledWithTheKeysgroupTheLifetimeTheMinimumNumberOfSignaturesAndTheOptions,
 																() => {
 																	Then(
-																		'it should create a register multisignature account transaction using the keysgroup, the lifetime and the minimum number of signatures',
-																		then.itShouldCreateARegisterMultisignatureAccountTransactionUsingTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures,
-																	);
-																	Then(
 																		'it should resolve to the created transaction',
 																		then.itShouldResolveToTheCreatedTransaction,
 																	);
