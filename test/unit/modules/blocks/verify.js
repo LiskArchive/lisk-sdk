@@ -826,4 +826,81 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('__private.verifyForkOne', () => {
+		let verifyForkOne;
+		let block;
+		let lastBlock;
+		describe('fails', () => {
+			describe('when block is undefined', () => {
+				it('should return error', () => {
+					block = undefined;
+					lastBlock = { id: 5 };
+					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyForkOne.errors[0]).to.equal(
+						"TypeError: Cannot read property 'previousBlock' of undefined"
+					);
+				});
+			});
+			describe('when lastBlock is undefined', () => {
+				it('should return error', () => {
+					block = { previousBlock: 6 };
+					lastBlock = undefined;
+					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyForkOne.errors[0]).to.equal(
+						"TypeError: Cannot read property 'id' of undefined"
+					);
+				});
+			});
+			describe('when block.previousBlock && block.previousBlock !== lastBlock.id', () => {
+				afterEach(() => {
+					expect(modules.delegates.fork.calledOnce).to.be.true;
+					expect(modules.delegates.fork.args[0][0]).to.deep.equal(block);
+					return expect(modules.delegates.fork.args[0][1]).to.equal(1);
+				});
+				it('should return error', () => {
+					block = { previousBlock: 4 };
+					lastBlock = { id: 5 };
+					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyForkOne.errors[0]).to.equal(
+						'Invalid previous block: 4 expected: 5'
+					);
+				});
+			});
+		});
+		describe('succeeds', () => {
+			describe('when block.previousBlock is undefined', () => {
+				afterEach(() => {
+					return expect(modules.delegates.fork.calledOnce).to.be.false;
+				});
+				it('should return no error', () => {
+					block = { id: 6 };
+					lastBlock = { id: 5 };
+					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyForkOne.errors.length).to.equal(0);
+				});
+			});
+			describe('when block.previousBlock === lastBlock.id', () => {
+				afterEach(() => {
+					return expect(modules.delegates.fork.calledOnce).to.be.false;
+				});
+				it('should return no error', () => {
+					block = { previousBlock: 5 };
+					lastBlock = { id: 5 };
+					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyForkOne.errors.length).to.equal(0);
+				});
+			});
+		});
+	});
 });
