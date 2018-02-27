@@ -189,11 +189,17 @@ describe('public key validation', () => {
 	});
 
 	describe('#validateAddress', () => {
-		describe('Given a valid address', () => {
-			const address = '13133549779353512613L';
+		describe('Given valid addresses', () => {
+			const addresses = [
+				'13133549779353512613L',
+				'18446744073709551615L',
+				'1L',
+			];
 
 			it('should return true', () => {
-				return validateAddress(address).should.be.equal(true);
+				return addresses.forEach(address => {
+					return validateAddress(address).should.be.true();
+				});
 			});
 		});
 
@@ -221,6 +227,16 @@ describe('public key validation', () => {
 			const address = '1234567890';
 			const error =
 				'Address format does not match requirements. Expected "L" at the end.';
+
+			it('should throw', () => {
+				return validateAddress.bind(null, address).should.throw(error);
+			});
+		});
+
+		describe('Given an address that is out of range', () => {
+			const address = '18446744073709551616L';
+			const error =
+				'Address length does not match requirements. Address out of maximum range.';
 
 			it('should throw', () => {
 				return validateAddress.bind(null, address).should.throw(error);

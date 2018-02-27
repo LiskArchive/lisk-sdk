@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import bignum from 'browserify-bignum';
 import { bufferToHex, hexToBuffer } from 'cryptography/convert';
 
 export const validatePublicKey = publicKey => {
@@ -48,7 +49,6 @@ export const validateKeysgroup = keysgroup => {
 	return validatePublicKeys(keysgroup);
 };
 
-// Specification: https://github.com/LiskHQ/lisk/blob/1.0.0/logic/account.js#L373
 export const validateAddress = address => {
 	if (address.length < 2 || address.length > 22) {
 		throw new Error(
@@ -61,5 +61,17 @@ export const validateAddress = address => {
 			'Address format does not match requirements. Expected "L" at the end.',
 		);
 	}
+
+	const addressAsBignum = bignum(address.slice(0, -1));
+	const biggestAddress = bignum
+		.fromBuffer(Buffer.from([255, 255, 255, 255, 255, 255, 255, 255]))
+		.plus(1);
+
+	if (addressAsBignum.gt(biggestAddress)) {
+		throw new Error(
+			'Address length does not match requirements. Address out of maximum range.',
+		);
+	}
+
 	return true;
 };
