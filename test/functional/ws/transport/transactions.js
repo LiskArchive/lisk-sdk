@@ -16,31 +16,44 @@
 
 require('../../functional.js');
 const lisk = require('lisk-js');
+const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const phases = require('../../common/phases');
-const ws = require('../../../common/ws/communication');
 const randomUtil = require('../../../common/utils/random');
 const normalizeTransactionObject = require('../../../common/helpers/api')
 	.normalizeTransactionObject;
-
-function postTransaction(transaction, cb) {
-	transaction = normalizeTransactionObject(transaction);
-
-	ws.call(
-		'postTransactions',
-		{
-			transactions: [transaction],
-		},
-		() => {},
-		true
-	);
-	cb();
-}
+const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
+const WsTestClient = require('../../../common/ws/client');
 
 describe('Posting transaction (type 0)', () => {
 	let transaction;
 	const goodTransactions = [];
 	const badTransactions = [];
 	const account = randomUtil.account();
+	let wsTestClient;
+
+	function postTransaction(transaction, cb) {
+		transaction = normalizeTransactionObject(transaction);
+		wsTestClient.client.rpc.postTransactions(
+			{
+				peer: wsTestClient.headers,
+				transactions: [transaction],
+			},
+			cb
+		);
+	}
+
+	before('establish client WS connection to server', done => {
+		// Setup stub for post transactions endpoint
+		const wampServer = new WAMPServer();
+		wampServer.registerRPCEndpoints({
+			postTransactions: () => {},
+		});
+		wsRPC.setServer(wampServer);
+		// Register client
+		wsTestClient = new WsTestClient();
+		wsTestClient.start();
+		done();
+	});
 
 	beforeEach(done => {
 		transaction = randomUtil.transaction();
@@ -49,23 +62,35 @@ describe('Posting transaction (type 0)', () => {
 
 	describe('transaction processing', () => {
 		it('when sender has no funds should fail', done => {
-			transaction = lisk.transaction.createTransaction(
+			var transaction = lisk.transaction.createTransaction(
 				'1L',
 				1,
 				account.password
 			);
 
-			postTransaction(transaction, () => {
+			postTransaction(transaction, (err, res) => {
+				expect(err).to.be.null;
+				expect(res).to.have.property('success').to.be.not.ok;
+				expect(res)
+					.to.have.property('message')
+					.to.equal(
+						`Account does not have enough LSK: ${account.address} balance: 0`
+					);
+				badTransactions.push(transaction);
 				done();
 			});
-			badTransactions.push(transaction);
 		});
 
 		it('when sender has funds should be ok', done => {
-			postTransaction(transaction, () => {
+			postTransaction(transaction, (err, res) => {
+				expect(err).to.be.null;
+				expect(res).to.have.property('success').to.be.ok;
+				expect(res)
+					.to.have.property('transactionId')
+					.to.equal(transaction.id);
+				goodTransactions.push(transaction);
 				done();
 			});
-			goodTransactions.push(transaction);
 		});
 	});
 
