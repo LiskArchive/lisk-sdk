@@ -308,59 +308,63 @@ __private.verifyId = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyPayload = function(block, result) {
-	if (block.payloadLength > constants.maxPayloadLength) {
-		result.errors.push('Payload length is too long');
-	}
-
-	if (block.transactions.length !== block.numberOfTransactions) {
-		result.errors.push(
-			'Included transactions do not match block transactions count'
-		);
-	}
-
-	if (block.transactions.length > constants.maxTxsPerBlock) {
-		result.errors.push('Number of transactions exceeds maximum per block');
-	}
-
-	var totalAmount = 0;
-	var totalFee = 0;
-	var payloadHash = crypto.createHash('sha256');
-	var appliedTransactions = {};
-
-	for (var i in block.transactions) {
-		var transaction = block.transactions[i];
-		var bytes;
-
-		try {
-			bytes = library.logic.transaction.getBytes(transaction);
-		} catch (e) {
-			result.errors.push(e.toString());
+	try {
+		if (block.payloadLength > constants.maxPayloadLength) {
+			result.errors.push('Payload length is too long');
 		}
 
-		if (appliedTransactions[transaction.id]) {
+		if (block.transactions.length !== block.numberOfTransactions) {
 			result.errors.push(
-				`Encountered duplicate transaction: ${transaction.id}`
+				'Included transactions do not match block transactions count'
 			);
 		}
 
-		appliedTransactions[transaction.id] = transaction;
-		if (bytes) {
-			payloadHash.update(bytes);
+		if (block.transactions.length > constants.maxTxsPerBlock) {
+			result.errors.push('Number of transactions exceeds maximum per block');
 		}
-		totalAmount += transaction.amount;
-		totalFee += transaction.fee;
-	}
 
-	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
-		result.errors.push('Invalid payload hash');
-	}
+		var totalAmount = 0;
+		var totalFee = 0;
+		var payloadHash = crypto.createHash('sha256');
+		var appliedTransactions = {};
 
-	if (totalAmount !== block.totalAmount) {
-		result.errors.push('Invalid total amount');
-	}
+		for (var i in block.transactions) {
+			var transaction = block.transactions[i];
+			var bytes;
 
-	if (totalFee !== block.totalFee) {
-		result.errors.push('Invalid total fee');
+			try {
+				bytes = library.logic.transaction.getBytes(transaction);
+			} catch (e) {
+				result.errors.push(e.toString());
+			}
+
+			if (appliedTransactions[transaction.id]) {
+				result.errors.push(
+					`Encountered duplicate transaction: ${transaction.id}`
+				);
+			}
+
+			appliedTransactions[transaction.id] = transaction;
+			if (bytes) {
+				payloadHash.update(bytes);
+			}
+			totalAmount += transaction.amount;
+			totalFee += transaction.fee;
+		}
+
+		if (payloadHash.digest().toString('hex') !== block.payloadHash) {
+			result.errors.push('Invalid payload hash');
+		}
+
+		if (totalAmount !== block.totalAmount) {
+			result.errors.push('Invalid total amount');
+		}
+
+		if (totalFee !== block.totalFee) {
+			result.errors.push('Invalid total fee');
+		}
+	} catch (e) {
+		result.errors.push(e.toString());
 	}
 
 	return result;
