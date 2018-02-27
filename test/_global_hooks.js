@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-top-level-hooks */
 import lockfile from 'lockfile';
 
 afterEach(function globalAfterEach() {
@@ -8,10 +9,10 @@ afterEach(function globalAfterEach() {
 		vorpal.ui.removeAllListeners();
 	}
 
-	sandbox.restore();
+	return sandbox.restore();
 });
 
 after(() => {
 	const configLockfilePath = `${process.env.LISKY_CONFIG_DIR}/config.lock`;
-	lockfile.unlock(configLockfilePath);
+	return lockfile.unlockSync(configLockfilePath);
 });

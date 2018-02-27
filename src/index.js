@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import chalk from 'chalk';
 import 'babel-polyfill';
 import fs from 'fs';
 import path from 'path';
+import chalk from 'chalk';
 import vorpal from 'vorpal';
 import { version } from '../package.json';
 import config from './utils/config';
