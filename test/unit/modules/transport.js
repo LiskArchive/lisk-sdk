@@ -77,6 +77,20 @@ describe('transport', () => {
 		// sure that they are fresh every time; that way each test case can modify
 		// stubs without affecting other test cases.
 
+		transaction = {
+			id: '222675625422353767',
+			type: 0,
+			amount: '100',
+			fee: '10',
+			senderPublicKey:
+				'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+			recipientId: '12668885769632475474L',
+			timestamp: 28227090,
+			asset: {},
+			signature:
+				'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
+		};
+
 		transactionsList = [
 			{
 				id: '222675625422353767',
@@ -672,20 +686,6 @@ describe('transport', () => {
 			var peerAddressString;
 
 			beforeEach(done => {
-				transaction = {
-					id: '222675625422353767',
-					type: 0,
-					amount: '100',
-					fee: '10',
-					senderPublicKey:
-						'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-					recipientId: '12668885769632475474L',
-					timestamp: 28227090,
-					asset: {},
-					signature:
-						'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-				};
-
 				sinonSandbox
 					.stub(balancesSequenceStub, 'add')
 					.callsFake((callback, doneCallback) => {
