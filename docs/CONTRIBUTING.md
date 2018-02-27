@@ -22,7 +22,7 @@ propose changes to this document in a pull request.
 1. [Styleguides](#styleguides)
    1. [Git Commit Messages](#git-commit-messages)
    1. [JavaScript Styleguide](#javascript-styleguide)
-   1. [Code documentation Styleguide](#code-documentation-styleguide)
+   1. [Code Documentation Styleguide](#code-documentation-styleguide)
 
 ## Code of Conduct
 
@@ -246,7 +246,7 @@ On Lisk we are using [Prettier](https://prettier.io/) and
 some opinions not covered by Prettier’s formatting concerns. You can get more
 details here: https://github.com/LiskHQ/eslint-config-lisk-base
 
-### Code documentation Styleguide
+### Code Documentation Styleguide
 
 For code documentation, we use [JSDoc](http://usejsdoc.org/).
 With JSDoc you can generate a static HTML documentation site.
