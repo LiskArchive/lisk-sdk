@@ -15,18 +15,18 @@
 'use strict';
 
 require('../../functional.js');
-var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-var failureCodes = require('../../../../api/ws/rpc/failure_codes');
-var wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
-var transport = require('../../../../api/ws/transport');
-var System = require('../../../../modules/system');
-var WSServer = require('../../../common/ws/server_master');
+const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+const failureCodes = require('../../../../api/ws/rpc/failure_codes');
+const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
+const transport = require('../../../../api/ws/transport');
+const System = require('../../../../modules/system');
+const WSServer = require('../../../common/ws/server_master');
 
-describe('ClientRPCStub', () => {
-	var validWSServerIp = '127.0.0.1';
-	var validWSServerPort = 5000;
-	var validClientRPCStub;
-	var socketClusterMock;
+describe('RPC Client', () => {
+	const validWSServerIp = '127.0.0.1';
+	const validWSServerPort = 5000;
+	let validClientRPCStub;
+	let socketClusterMock;
 
 	before(done => {
 		socketClusterMock = {
@@ -34,7 +34,7 @@ describe('ClientRPCStub', () => {
 		};
 		wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
 		// Register RPC
-		var transportModuleMock = { internal: {}, shared: {} };
+		const transportModuleMock = { internal: {}, shared: {} };
 		transport(transportModuleMock);
 		// Now ClientRPCStub should contain all methods names
 		validClientRPCStub = wsRPC.getClientRPCStub(
@@ -87,7 +87,7 @@ describe('ClientRPCStub', () => {
 	});
 
 	describe('RPC call', () => {
-		var validHeaders;
+		let validHeaders;
 
 		beforeEach(() => {
 			validHeaders = WSServer.generatePeerHeaders();
@@ -232,11 +232,11 @@ describe('ClientRPCStub', () => {
 	describe('when reaching', () => {
 		describe('not reachable server', () => {
 			before(done => {
-				var invalisServerIp = '1.1.1.1';
-				var invalisServerPort = 1111;
+				const invalidServerIp = '1.1.1.1';
+				const invalidServerPort = 1111;
 				validClientRPCStub = wsRPC.getClientRPCStub(
-					invalisServerIp,
-					invalisServerPort
+					invalidServerIp,
+					invalidServerPort
 				);
 				done();
 			});
@@ -256,11 +256,11 @@ describe('ClientRPCStub', () => {
 
 		describe('not existing server', () => {
 			before(done => {
-				var validServerIp = '127.0.0.1';
-				var invalisServerPort = 1111;
+				const validServerIp = '127.0.0.1';
+				const invalidServerPort = 1111;
 				validClientRPCStub = wsRPC.getClientRPCStub(
 					validServerIp,
-					invalisServerPort
+					invalidServerPort
 				);
 				done();
 			});
