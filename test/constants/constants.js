@@ -26,6 +26,7 @@ import {
 	EPOCH_TIME,
 	EPOCH_TIME_SECONDS,
 	EPOCH_TIME_MILLISECONDS,
+	MAX_ADDRESS_NUMBER,
 } from 'constants';
 
 describe('constants', () => {
@@ -79,5 +80,9 @@ describe('constants', () => {
 
 	it('EPOCH_TIME_MILLISECONDS should be an integer', () => {
 		return EPOCH_TIME_MILLISECONDS.should.be.an.integer();
+	});
+
+	it('MAX_ADDRESS_NUMBER should be a string', () => {
+		return MAX_ADDRESS_NUMBER.should.be.type('string');
 	});
 });

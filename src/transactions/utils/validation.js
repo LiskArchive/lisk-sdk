@@ -14,6 +14,7 @@
  */
 import bignum from 'browserify-bignum';
 import { bufferToHex, hexToBuffer } from 'cryptography/convert';
+import { MAX_ADDRESS_NUMBER } from 'constants';
 
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = hexToBuffer(publicKey);
@@ -63,9 +64,8 @@ export const validateAddress = address => {
 	}
 
 	const addressAsBignum = bignum(address.slice(0, -1));
-	const biggestAddress = bignum.fromBuffer(Buffer.from(new Array(8).fill(255)));
 
-	if (addressAsBignum.cmp(biggestAddress) > 0) {
+	if (addressAsBignum.cmp(bignum(MAX_ADDRESS_NUMBER)) > 0) {
 		throw new Error(
 			'Address format does not match requirements. Address out of maximum range.',
 		);
