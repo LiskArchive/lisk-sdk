@@ -25,7 +25,7 @@ var modules;
  * Description of the function.
  *
  * @class
- * @memberof api/controllers
+ * @memberof api.controllers
  * @requires lodash
  * @requires helpers/apiError
  * @requires helpers/swagger.generateParamsErrorObject
@@ -111,19 +111,16 @@ TransactionsController.getTransactions = function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-TransactionsController.postTransactions = function(context, next) {
-	var transactions = context.request.swagger.params.transactions.value;
+TransactionsController.postTransaction = function(context, next) {
+	var transaction = context.request.swagger.params.transaction.value;
 
-	modules.transactions.shared.postTransactions(transactions, (err, data) => {
+	modules.transactions.shared.postTransaction(transaction, (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = err.code;
 				delete err.code;
 			}
 
-			return next(err);
-		}
-		if (err) {
 			return next(err);
 		}
 

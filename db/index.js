@@ -21,13 +21,12 @@
 
 const Promise = require('bluebird');
 const monitor = require('pg-monitor');
-let pgp = require('pg-promise');
+const pgpLib = require('pg-promise');
 const repos = require('./repos');
 
-// TODO: Had to change it from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
+// TODO: Had to change below from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
 // eslint-disable-next-line prefer-const
 let initOptions = {
-	pgNative: true,
 	capSQL: true,
 	promiseLib: Promise,
 
@@ -38,9 +37,14 @@ let initOptions = {
 			object[repoName] = new repos[repoName](object, pgp);
 		});
 	},
+	receive: (/* data, result, e */) => {
+		// Can log result.duration when available and/or necessary,
+		// to analyze performance of individual queries;
+		// API: http://vitaly-t.github.io/pg-promise/global.html#event:receive
+	},
 };
 
-pgp = pgp(initOptions);
+const pgp = pgpLib(initOptions);
 
 /**
  * @module db
@@ -52,6 +56,13 @@ pgp = pgp(initOptions);
  */
 
 /**
+ * Initialized root of pg-promise library, to give access to its complete API.
+ *
+ * @property {Object} pgp
+ */
+module.exports.pgp = pgp;
+
+/**
  * Connects to the database.
  *
  * @function connect
@@ -61,10 +72,8 @@ pgp = pgp(initOptions);
  * @todo Add description for the params and the return value
  */
 module.exports.connect = (config, logger) => {
-	try {
+	if (monitor.isAttached()) {
 		monitor.detach();
-	} catch (ex) {
-		logger.log('database connect exception - ', ex);
 	}
 
 	monitor.attach(initOptions, config.logEvents);
@@ -91,11 +100,8 @@ module.exports.connect = (config, logger) => {
  * @param {Object} logger
  * @todo Add description for the params
  */
-module.exports.disconnect = logger => {
-	logger = logger || console;
-	try {
+module.exports.disconnect = (/* logger */) => {
+	if (monitor.isAttached()) {
 		monitor.detach();
-	} catch (ex) {
-		logger.log('database disconnect exception - ', ex);
 	}
 };

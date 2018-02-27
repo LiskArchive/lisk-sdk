@@ -544,7 +544,9 @@ describe('signature', () => {
 
 			describe('when library.schema.validate succeeds', () => {
 				it('should return transaction', () => {
-					return expect(signature.objectNormalize(transaction)).to.eql(transaction);
+					return expect(signature.objectNormalize(transaction)).to.eql(
+						transaction
+					);
 				});
 			});
 		});
@@ -566,9 +568,9 @@ describe('signature', () => {
 				var transactionId = '5197781214824378819';
 
 				it('should return publicKey property', () => {
-					return expect(signature.dbRead(rawTransaction).signature.publicKey).to.equal(
-						publicKey
-					);
+					return expect(
+						signature.dbRead(rawTransaction).signature.publicKey
+					).to.equal(publicKey);
 				});
 
 				it('should return transactionId', () => {

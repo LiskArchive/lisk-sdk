@@ -33,8 +33,9 @@ describe('RoundChanges', () => {
 			var roundChanges = new RoundChanges(validScope);
 
 			expect(roundChanges.roundFees).equal(validScope.roundFees);
-			return expect(_.isEqual(roundChanges.roundRewards, validScope.roundRewards)).to
-				.be.ok;
+			return expect(
+				_.isEqual(roundChanges.roundRewards, validScope.roundRewards)
+			).to.be.ok;
 		});
 
 		it('should floor fees value', () => {
