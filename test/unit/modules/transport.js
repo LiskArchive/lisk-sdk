@@ -53,6 +53,7 @@ describe('transport', () => {
 	var peersList;
 	var blocksList;
 	var transactionsList;
+	var multisignatureTransactionsList;
 	var error;
 
 	const SAMPLE_SIGNATURE_1 = {
@@ -102,6 +103,40 @@ describe('transport', () => {
 				asset: {},
 				signature:
 					'1231d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c567',
+			},
+		];
+
+		multisignatureTransactionsList = [
+			{
+				id: '222675625422353767',
+				type: 0,
+				amount: '100',
+				fee: '10',
+				senderPublicKey:
+					'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+				recipientId: '12668885769632475474L',
+				timestamp: 28227090,
+				asset: {},
+				signatures:
+					[
+						'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
+					],
+			},
+			{
+				id: '332675625422353892',
+				type: 0,
+				amount: '1000',
+				fee: '10',
+				senderPublicKey:
+					'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+				recipientId: '12668885769632475474L',
+				timestamp: 28227090,
+				asset: {},
+				signatures:
+					[
+						'1231d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c567',
+						'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
+					],
 			},
 		];
 
@@ -1990,24 +2025,78 @@ describe('transport', () => {
 			});
 
 			describe('getSignatures', () => {
-				it(
-					'should call modules.transactions.getMultisignatureTransactionList with true and constants.maxSharedTxs'
-				);
+				var req;
 
-				describe('for every transaction', () => {
-					describe('when trs.signatures are defined', () => {
-						describe('and trs.signatures.length is defined', () => {
-							describe('signature', () => {
-								it('should assign transaction: trs.id');
-
-								it('should assign signatures: trs.signatures');
-							});
-						});
+				beforeEach(done => {
+					req = {};
+					modules.transactions.getMultisignatureTransactionList = sinonSandbox.stub()
+						.returns(multisignatureTransactionsList);
+					transportInstance.shared.getSignatures(req, (err, res) => {
+						error = err;
+						result = res;
+						done();
 					});
 				});
 
-				it(
-					'should call callback with error = null and result = {success: true, signatures: signatures}'
+				it('should call modules.transactions.getMultisignatureTransactionList with true and constants.maxSharedTxs', () => {
+					return expect(
+						modules.transactions.getMultisignatureTransactionList.calledWith(
+							true,
+							constants.maxSharedTxs
+						)
+					).to.be.true;
+				});
+
+				describe(
+					'when all transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature transactions',
+					() => {
+						it(
+							'should call callback with error = null and result = {success: true, signatures: signatures} where signatures contains all transactions',
+							() => {
+								expect(error).to.equal(null);
+								expect(result).to.have.property('success').which.equals(true);
+								return expect(result).to.have.property('signatures').which.is.an('array').that.has.property('length').which.equals(2);
+							}
+						);
+					}
+				);
+
+				describe(
+					'when some transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature registration transactions',
+					() => {
+						beforeEach(done => {
+							req = {};
+							// Make it so that the first transaction in the list is a multisignature registration transaction.
+							multisignatureTransactionsList[0] = {
+								id: '222675625422353767',
+								type: 4,
+								amount: '150000000',
+								fee: '1000000',
+								senderPublicKey: '2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+								recipientId: '12668885769632475474L',
+								timestamp: 28227090,
+								asset: {},
+								signature: '2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
+							};
+
+							modules.transactions.getMultisignatureTransactionList = sinonSandbox.stub()
+								.returns(multisignatureTransactionsList);
+							transportInstance.shared.getSignatures(req, (err, res) => {
+								error = err;
+								result = res;
+								done();
+							});
+						});
+
+						it(
+							'should call callback with error = null and result = {success: true, signatures: signatures} where signatures does not contain multisignature registration transactions',
+							() => {
+								expect(error).to.equal(null);
+								expect(result).to.have.property('success').which.equals(true);
+								return expect(result).to.have.property('signatures').which.is.an('array').that.has.property('length').which.equals(1);
+							}
+						);
+					}
 				);
 			});
 
