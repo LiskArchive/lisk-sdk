@@ -482,4 +482,35 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('__private.verifyVersion', () => {
+		let verifyVersion;
+		describe('fails', () => {
+			describe('when block is undefined', () => {
+				it('should return error', () => {
+					verifyVersion = __private.verifyVersion(undefined, { errors: [] });
+					return expect(verifyVersion.errors[0]).to.equal(
+						"TypeError: Cannot read property 'version' of undefined"
+					);
+				});
+			});
+			describe('when block version > 0', () => {
+				it('should return error', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0]).to.equal(
+						'Invalid block version'
+					);
+				});
+			});
+		});
+		describe('when succeeds', () => {
+			it('should return no error', () => {
+				verifyVersion = __private.verifyVersion({ version: 0 }, { errors: [] });
+				return expect(verifyVersion.errors.length).to.equal(0);
+			});
+		});
+	});
 });
