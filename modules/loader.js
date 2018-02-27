@@ -40,14 +40,20 @@ __private.syncInterval = 10000;
 __private.retries = 5;
 
 /**
- * Initializes library with scope content.
+ * Main loader methods. Initializes library with scope content.
  * Calls private function initialize.
- * @memberof module:loader
+ *
  * @class
- * @classdesc Main Loader methods.
- * @param {function} cb - Callback function.
- * @param {scope} scope - App instance.
- * @return {setImmediateCallback} Callback function with `self` as data.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires async
+ * @requires helpers/constants
+ * @requires helpers/jobs_queue
+ * @requires helpers/slots
+ * @requires logic/peer
+ * @param {function} cb - Callback function
+ * @param {scope} scope - App instance
+ * @returns {setImmediateCallback} cb, null, self
  */
 // Constructor
 function Loader(cb, scope) {
@@ -84,6 +90,7 @@ function Loader(cb, scope) {
 // Private methods
 /**
  * Sets private network object with height 0 and peers empty array.
+ *
  * @private
  */
 __private.initialize = function() {
@@ -97,11 +104,11 @@ __private.initialize = function() {
  * Cancels timers based on input parameter and private variable syncIntervalId
  * or Sync trigger by sending a socket signal with 'loader/sync' and setting
  * next sync with 1000 milliseconds.
+ *
  * @private
- * @implements {library.network.io.sockets.emit}
- * @implements {modules.blocks.lastBlock.get}
  * @param {boolean} turnOn
  * @emits loader/sync
+ * @todo Add description for the params
  */
 __private.syncTrigger = function(turnOn) {
 	if (turnOn === false && __private.syncIntervalId) {
@@ -124,17 +131,20 @@ __private.syncTrigger = function(turnOn) {
 
 /**
  * Syncs timer trigger.
+ *
  * @private
- * @implements {modules.blocks.lastReceipt.get}
- * @implements {modules.blocks.lastReceipt.isStale}
- * @implements {Loader.syncing}
- * @implements {library.sequence.add}
- * @implements {async.retry}
- * @implements {__private.initialize}
+ * @todo Add @returns tag
  */
 __private.syncTimer = function() {
 	library.logger.trace('Setting sync timer');
 
+	/**
+	 * Description of nextSync.
+	 *
+	 * @param {function} cb
+	 * @todo Add description for the params
+	 * @todo Add @returns tag
+	 */
 	function nextSync(cb) {
 		library.logger.trace('Sync timer trigger', {
 			loaded: __private.loaded,
@@ -169,14 +179,11 @@ __private.syncTimer = function() {
 /**
  * Gets a random peer and loads signatures from network.
  * Processes each signature from peer.
+ *
  * @private
- * @implements {Loader.getNetwork}
- * @implements {library.schema.validate}
- * @implements {library.sequence.add}
- * @implements {async.eachSeries}
- * @implements {modules.multisignatures.processSignature}
  * @param {function} cb
- * @return {setImmediateCallback} cb, err
+ * @returns {setImmediateCallback} cb, err
+ * @todo Add description for the params
  */
 __private.loadSignatures = function(cb) {
 	async.waterfall(
@@ -235,16 +242,11 @@ __private.loadSignatures = function(cb) {
  * Gets a random peer and loads transactions from network:
  * - Validates each transaction from peer and remove peer if invalid.
  * - Calls processUnconfirmedTransaction for each transaction.
+ *
  * @private
- * @implements {Loader.getNetwork}
- * @implements {library.schema.validate}
- * @implements {async.eachSeries}
- * @implements {library.logic.transaction.objectNormalize}
- * @implements {modules.peers.remove}
- * @implements {library.balancesSequence.add}
- * @implements {modules.transactions.processUnconfirmedTransaction}
  * @param {function} cb
- * @return {setImmediateCallback} cb, err
+ * @returns {setImmediateCallback} cb, err
+ * @todo Add description for the params
  * @todo Missing error propagation when calling balancesSequence.add
  */
 __private.loadTransactions = function(cb) {
@@ -355,23 +357,23 @@ __private.loadTransactions = function(cb) {
  *  - Calls block to load block. When blockchain ready emits a bus message.
  * 5. Detects orphaned blocks in `mem_accounts` and gets delegates.
  * 6. Loads last block and emits a bus message blockchain is ready.
+ *
  * @private
- * @implements {library.db.task}
- * @implements {slots.calcRound}
- * @implements {library.bus.message}
- * @implements {library.logic.account.resetMemTables}
- * @implements {async.until}
- * @implements {modules.blocks.loadBlocksOffset}
- * @implements {modules.blocks.deleteAfterBlock}
- * @implements {modules.blocks.loadLastBlock}
  * @emits exit
  * @throws {string} On failure to match genesis block with database.
+ * @todo Add @returns tag
  */
 __private.loadBlockChain = function() {
 	var offset = 0;
 	var limit = Number(library.config.loading.loadPerIteration) || 1000;
 	var verify = Boolean(library.config.loading.verifyOnLoading);
 
+	/**
+	 * Description of load.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add description for the function
+	 */
 	function load(count) {
 		verify = true;
 		__private.total = count;
@@ -433,6 +435,12 @@ __private.loadBlockChain = function() {
 		);
 	}
 
+	/**
+	 * Description of reload.
+	 *
+	 * @todo Add @returns and @param tags
+	 * @todo Add description for the function
+	 */
 	function reload(count, message) {
 		if (message) {
 			library.logger.warn(message);
@@ -442,6 +450,12 @@ __private.loadBlockChain = function() {
 		return load(count);
 	}
 
+	/**
+	 * Description of checkMemTables.
+	 *
+	 * @todo Add @returns and @param tags
+	 * @todo Add description for the function
+	 */
 	function checkMemTables(t) {
 		var promises = [
 			t.blocks.count(),
@@ -454,6 +468,12 @@ __private.loadBlockChain = function() {
 		return t.batch(promises);
 	}
 
+	/**
+	 * Description of matchGenesisBlock.
+	 *
+	 * @todo Add @throws and @param tags
+	 * @todo Add description for the function
+	 */
 	function matchGenesisBlock(row) {
 		if (row) {
 			var matched =
@@ -470,6 +490,12 @@ __private.loadBlockChain = function() {
 		}
 	}
 
+	/**
+	 * Description of verifySnapshot.
+	 *
+	 * @todo Add @returns and @param tags
+	 * @todo Add description for the function
+	 */
 	function verifySnapshot(count, round) {
 		if (
 			library.config.loading.snapshot !== undefined ||
@@ -585,14 +611,11 @@ __private.loadBlockChain = function() {
 
 /**
  * Loads blocks from network.
+ *
  * @private
- * @implements {Loader.getNetwork}
- * @implements {async.whilst}
- * @implements {modules.blocks.lastBlock.get}
- * @implements {modules.blocks.loadBlocksFromPeer}
- * @implements {modules.blocks.getCommonBlock}
  * @param {function} cb
- * @return {setImmediateCallback} cb, err
+ * @returns {setImmediateCallback} cb, err
+ * @todo Add description for the params
  */
 __private.loadBlocksFromNetwork = function(cb) {
 	var errorCount = 0;
@@ -630,6 +653,12 @@ __private.loadBlocksFromNetwork = function(cb) {
 					);
 				}
 
+				/**
+				 * Description of getCommonBlock.
+				 *
+				 * @todo Add @returns and @param tags
+				 * @todo Add description for the function
+				 */
 				function getCommonBlock(cb) {
 					library.logger.info(`Looking for common block with: ${peer.string}`);
 					modules.blocks.process.getCommonBlock(
@@ -683,13 +712,11 @@ __private.loadBlocksFromNetwork = function(cb) {
  * - Performs sync operation: loads blocks from network, updates system.
  * - Establishes broadhash consensus after sync.
  * - Applies unconfirmed transactions.
+ *
  * @private
- * @implements {async.series}
- * @implements {modules.transport.getPeers}
- * @implements {__private.loadBlocksFromNetwork}
- * @implements {modules.system.update}
  * @param {function} cb
- * @todo Check err actions.
+ * @todo Check err actions
+ * @todo Add description for the params
  */
 __private.sync = function(cb) {
 	library.logger.info('Starting sync');
@@ -735,11 +762,11 @@ __private.sync = function(cb) {
 
 /**
  * Establishes a list of "good" peers.
+ *
  * @private
- * @implements {modules.blocks.lastBlock.get}
- * @implements {library.logic.peers.create}
  * @param {array<Peer>} peers
- * @return {Object} {height number, peers array}
+ * @returns {Object} height number, peers array
+ * @todo Add description for the params
  */
 Loader.prototype.findGoodPeers = function(peers) {
 	var lastBlockHeight = modules.blocks.lastBlock.get().height;
@@ -792,11 +819,10 @@ Loader.prototype.findGoodPeers = function(peers) {
 // Public methods
 /**
  * Gets a list of "good" peers from network.
- * @implements {modules.blocks.lastBlock.get}
- * @implements {modules.peers.list}
- * @implements {__private.findGoodPeers}
+ *
  * @param {function} cb
- * @return {setImmediateCallback} err | __private.network (good peers)
+ * @returns {setImmediateCallback} cb, err, good peers
+ * @todo Add description for the params
  */
 Loader.prototype.getNetwork = function(cb) {
 	modules.peers.list({ normalized: false }, (err, peers) => {
@@ -815,7 +841,8 @@ Loader.prototype.getNetwork = function(cb) {
 
 /**
  * Checks if private variable syncIntervalId has value.
- * @return {boolean} True if syncIntervalId has value.
+ *
+ * @returns {boolean} True if syncIntervalId has value
  */
 Loader.prototype.syncing = function() {
 	return !!__private.syncIntervalId;
@@ -823,7 +850,8 @@ Loader.prototype.syncing = function() {
 
 /**
  * Checks if `modules` is loaded.
- * @return {boolean} True if `modules` is loaded.
+ *
+ * @returns {boolean} True if `modules` is loaded
  */
 Loader.prototype.isLoaded = function() {
 	return !!modules;
@@ -831,7 +859,8 @@ Loader.prototype.isLoaded = function() {
 
 /**
  * Checks private variable loaded.
- * @return {boolean} False if not loaded.
+ *
+ * @returns {boolean} False if not loaded
  */
 Loader.prototype.loaded = function() {
 	return !!__private.loaded;
@@ -840,13 +869,8 @@ Loader.prototype.loaded = function() {
 // Events
 /**
  * Pulls Transactions and signatures.
- * @implements {__private.syncTimer}
- * @implements {async.series}
- * @implements {async.retry}
- * @implements {__private.loadTransactions}
- * @implements {__private.loadSignatures}
- * @implements {__private.initialize}
- * @return {function} Calling __private.syncTimer()
+ *
+ * @returns {function} Calling __private.syncTimer()
  */
 Loader.prototype.onPeersReady = function() {
 	library.logger.trace('Peers ready', { module: 'loader' });
@@ -892,8 +916,10 @@ Loader.prototype.onPeersReady = function() {
 
 /**
  * Assigns needed modules from scope to private modules variable.
+ *
  * @param {modules} scope
- * @return {function} Calling __private.loadBlockChain.
+ * @returns {function} Calling __private.loadBlockChain
+ * @todo Add description for the params
  */
 Loader.prototype.onBind = function(scope) {
 	modules = {
@@ -920,8 +946,10 @@ Loader.prototype.onBlockchainReady = function() {
 
 /**
  * Sets private variable loaded to false.
+ *
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {setImmediateCallback} cb
+ * @todo Add description for the params
  */
 Loader.prototype.cleanup = function(cb) {
 	__private.loaded = false;

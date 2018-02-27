@@ -98,10 +98,7 @@ describe('GET /api/node', () => {
 							randomMember
 						);
 
-						return signatureEndpoint.makeRequest(
-							{ signatures: [signature] },
-							200
-						);
+						return signatureEndpoint.makeRequest({ signature }, 200);
 					})
 					.then(res => {
 						expect(res.body.data.message).to.be.equal('Signature Accepted');

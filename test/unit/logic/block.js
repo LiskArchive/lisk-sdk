@@ -14,23 +14,25 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var rewire = require('rewire');
-var ed = require('../../../helpers/ed');
-var modulesLoader = require('../../common/modules_loader');
-var transactionTypes = require('../../../helpers/transaction_types.js');
+const crypto = require('crypto');
+const rewire = require('rewire');
+const ed = require('../../../helpers/ed');
+const modulesLoader = require('../../common/modules_loader');
+const transactionTypes = require('../../../helpers/transaction_types.js');
+const constants = require('../../../helpers/constants.js');
 
-var Block = rewire('../../../logic/block.js');
+const Block = rewire('../../../logic/block.js');
 
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(
+const validPassword =
+	'robust weapon course unknown head trial pencil latin acid';
+const validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
 		.update(validPassword, 'utf8')
 		.digest()
 );
 
-var validDataForBlock = {
+const validDataForBlock = {
 	keypair: validKeypair,
 	timestamp: 41898500,
 	previousBlock: {
@@ -56,7 +58,16 @@ var validDataForBlock = {
 	transactions: [],
 };
 
-var transactionsByTypes = {};
+const invalidBlock = {
+	version: '0',
+	totalAmount: 'qwer',
+	totalFee: 'sd#$%',
+	reward: '234',
+};
+
+const blockData = validDataForBlock.previousBlock;
+
+const transactionsByTypes = {};
 transactionsByTypes[transactionTypes.MULTI] = {
 	type: 4,
 	amount: 0,
@@ -263,9 +274,9 @@ transactionsByTypes[transactionTypes.OUT_TRANSFER] = {
 };
 
 function expectedOrderOfTransactions(sortedTransactions) {
-	var sorted = true;
+	let sorted = true;
 
-	for (var i = 0; i < sortedTransactions.length - 1; i++) {
+	for (let i = 0; i < sortedTransactions.length - 1; i++) {
 		// Transactions should always be in ascending order of types unless next transaction is MULTI
 		if (
 			sortedTransactions[i].type > sortedTransactions[i + 1].type &&
@@ -298,10 +309,10 @@ function expectedOrderOfTransactions(sortedTransactions) {
 }
 
 describe('block', () => {
-	var block;
-	var data;
-	var transactionStub;
-	var transactions = [];
+	let block;
+	let data;
+	let transactionStub;
+	let transactions = [];
 
 	before(done => {
 		transactionStub = {
@@ -317,39 +328,103 @@ describe('block', () => {
 		done();
 	});
 
-	describe('with valid block and data', () => {
-		beforeEach(done => {
-			data = _.cloneDeep(validDataForBlock);
-			transactions = _.values(transactionsByTypes);
-			done();
+	beforeEach(done => {
+		data = _.cloneDeep(validDataForBlock);
+		transactions = _.values(transactionsByTypes);
+		done();
+	});
+
+	describe('create', () => {
+		let blockNormalizeStub;
+
+		before(() => {
+			blockNormalizeStub = sinonSandbox
+				.stub(block, 'objectNormalize')
+				.returnsArg(0);
+
+			transactionStub.getBytes.returns(Buffer.from('dummy transaction bytes'));
+			return transactionStub.objectNormalize.returnsArg(0);
 		});
 
-		describe('create', () => {
-			var blockNormalizeStub;
+		after(() => {
+			blockNormalizeStub.reset();
+			transactionStub.getBytes.reset();
+			return transactionStub.objectNormalize.reset();
+		});
 
-			before(() => {
-				blockNormalizeStub = sinonSandbox
-					.stub(block, 'objectNormalize')
-					.returnsArg(0);
+		describe('when each of all supported', () => {
+			let generatedBlock;
+			let transactionsOrder;
+			const correctOrder = [0, 1, 2, 3, 5, 6, 7, 4];
 
-				transactionStub.getBytes.returns(
-					Buffer.from('dummy transaction bytes')
-				);
-				return transactionStub.objectNormalize.returnsArg(0);
+			beforeEach(done => {
+				data.transactions = transactions;
+				generatedBlock = block.create(data);
+				transactionsOrder = generatedBlock.transactions.map(trs => {
+					return trs.type;
+				});
+				done();
 			});
 
-			after(() => {
-				blockNormalizeStub.reset();
-				transactionStub.getBytes.reset();
-				return transactionStub.objectNormalize.reset();
+			it('should sort transactions in the correct order', () => {
+				return expect(transactionsOrder).to.eql(correctOrder);
 			});
+		});
 
-			describe('when one of all transaction types are present', () => {
-				var generatedBlock;
-				var transactionsOrder;
-				var correctOrder = [0, 1, 2, 3, 5, 6, 7, 4];
+		describe('when there are multiple multisignature transactions', () => {
+			const correctOrderOfTransactions = [
+				0,
+				1,
+				2,
+				3,
+				5,
+				6,
+				7,
+				4,
+				4,
+				4,
+				4,
+				4,
+				4,
+			];
+
+			describe('in the beginning', () => {
+				let multipleMultisigTx;
+				let generatedBlock;
+				let transactionsOrder;
 
 				beforeEach(done => {
+					// Create 6 multisignature transactions
+					multipleMultisigTx = Array(...Array(5)).map(() => {
+						return transactionsByTypes[transactionTypes.MULTI];
+					});
+					data.transactions = multipleMultisigTx.concat(transactions);
+					generatedBlock = block.create(data);
+					transactionsOrder = generatedBlock.transactions.map(trs => {
+						return trs.type;
+					});
+					done();
+				});
+
+				it('should sort transactions in the correct order', () => {
+					expect(
+						expectedOrderOfTransactions(generatedBlock.transactions)
+					).to.equal(true);
+					return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
+				});
+			});
+
+			describe('at the middle', () => {
+				let multipleMultisigTx;
+				let generatedBlock;
+				let transactionsOrder;
+
+				beforeEach(done => {
+					multipleMultisigTx = Array(...Array(5)).map(() => {
+						return transactionsByTypes[transactionTypes.MULTI];
+					});
+					// Add multisig transactions after the 3rd transaction in array
+					transactions.splice(...[3, 0].concat(multipleMultisigTx));
 					data.transactions = transactions;
 					generatedBlock = block.create(data);
 					transactionsOrder = generatedBlock.transactions.map(trs => {
@@ -359,146 +434,219 @@ describe('block', () => {
 				});
 
 				it('should sort transactions in the correct order', () => {
-					expect(generatedBlock.transactions.length).to.equal(
-						data.transactions.length
+					expect(
+						expectedOrderOfTransactions(generatedBlock.transactions)
+					).to.equal(true);
+					return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
+				});
+			});
+
+			describe('at the end', () => {
+				let multipleMultisigTx;
+				let generatedBlock;
+				let transactionsOrder;
+
+				beforeEach(done => {
+					multipleMultisigTx = Array(...Array(5)).map(() => {
+						return transactionsByTypes[transactionTypes.MULTI];
+					});
+					data.transactions = transactions.concat(multipleMultisigTx);
+					generatedBlock = block.create(data);
+					transactionsOrder = generatedBlock.transactions.map(trs => {
+						return trs.type;
+					});
+					done();
+				});
+
+				it('should sort transactions in the correct order', () => {
+					expect(
+						expectedOrderOfTransactions(generatedBlock.transactions)
+					).to.equal(true);
+					return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
+				});
+			});
+
+			describe('shuffled', () => {
+				let multipleMultisigTx;
+				let generatedBlock;
+				let transactionsOrder;
+
+				beforeEach(done => {
+					// Create 6 multisignature transactions
+					multipleMultisigTx = Array(...Array(5)).map(() => {
+						return transactionsByTypes[transactionTypes.MULTI];
+					});
+					data.transactions = _.shuffle(
+						transactions.concat(multipleMultisigTx)
 					);
-					return expect(transactionsOrder).to.eql(correctOrder);
+					generatedBlock = block.create(data);
+					transactionsOrder = generatedBlock.transactions.map(trs => {
+						return trs.type;
+					});
+					done();
+				});
+
+				it('should sort transactions in the correct order', () => {
+					expect(
+						expectedOrderOfTransactions(generatedBlock.transactions)
+					).to.equal(true);
+					return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 				});
 			});
+		});
+	});
 
-			describe('when there are multiple multisignature transactions', () => {
-				var correctOrderOfTransactions = [
-					0,
-					1,
-					2,
-					3,
-					5,
-					6,
-					7,
-					4,
-					4,
-					4,
-					4,
-					4,
-					4,
-				];
+	describe('sign', () => {
+		it('should throw error for empty block and validKeypair', () => {
+			return expect(() => {
+				block.sign({}, validKeypair);
+			}).to.throw();
+		});
 
-				describe('in the beginning', () => {
-					var multipleMultisigTx;
-					var generatedBlock;
-					var transactionsOrder;
+		it('should throw error for invalid key pair and valid blockData', () => {
+			return expect(() => {
+				block.sign(blockData, 'this is invalid key pair');
+			}).to.throw();
+		});
 
-					beforeEach(done => {
-						multipleMultisigTx = Array(...Array(5)).map(() => {
-							return transactionsByTypes[transactionTypes.MULTI];
-						});
-						data.transactions = multipleMultisigTx.concat(transactions);
-						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(trs => {
-							return trs.type;
-						});
-						done();
-					});
+		it('should throw error for a block with unknown fields', () => {
+			const unknownBlock = {
+				verson: 0,
+				totlFee: '&**&^&',
+				rewrd: 'g@n!a',
+			};
 
-					it('should sort transactions in the correct order', () => {
-						expect(generatedBlock.transactions.length).to.equal(
-							data.transactions.length
-						);
-						expect(
-							expectedOrderOfTransactions(generatedBlock.transactions)
-						).to.equal(true);
-						return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
-					});
-				});
+			return expect(() => {
+				block.sign(unknownBlock, 'this is invalid key pair');
+			}).to.throw();
+		});
 
-				describe('at the middle', () => {
-					var multipleMultisigTx;
-					var generatedBlock;
-					var transactionsOrder;
+		it('should return valid signature when sign block using valid keypair', () => {
+			const signature = block.sign(blockData, validKeypair);
+			expect(signature).to.be.a('string');
+			return expect(signature).to.have.length.of(128);
+		});
+	});
 
-					beforeEach(done => {
-						multipleMultisigTx = Array(...Array(5)).map(() => {
-							return transactionsByTypes[transactionTypes.MULTI];
-						});
-						// Add multisig transactions after the 3rd transaction in array
-						transactions.splice(...[3, 0].concat(multipleMultisigTx));
-						data.transactions = transactions;
-						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(trs => {
-							return trs.type;
-						});
-						done();
-					});
+	describe('getBytes', () => {
+		it('should throw error for invalid block', () => {
+			return expect(() => {
+				block.getBytes(invalidBlock);
+			}).to.throw();
+		});
 
-					it('should sort transactions in the correct order', () => {
-						expect(generatedBlock.transactions.length).to.equal(
-							data.transactions.length
-						);
-						expect(
-							expectedOrderOfTransactions(generatedBlock.transactions)
-						).to.equal(true);
-						return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
-					});
-				});
+		it('should return a buffer for a given block', () => {
+			return expect(block.getBytes(blockData)).to.be.an.instanceof(Buffer);
+		});
 
-				describe('at the end', () => {
-					var multipleMultisigTx;
-					var generatedBlock;
-					var transactionsOrder;
+		it('should return same bytes for a given block', () => {
+			const bytes1 = block.getBytes(blockData);
+			const bytes2 = block.getBytes(blockData);
+			return expect(bytes1).to.deep.equal(bytes2);
+		});
 
-					beforeEach(done => {
-						multipleMultisigTx = Array(...Array(5)).map(() => {
-							return transactionsByTypes[transactionTypes.MULTI];
-						});
-						data.transactions = transactions.concat(multipleMultisigTx);
-						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(trs => {
-							return trs.type;
-						});
-						done();
-					});
+		it('should return different bytes for different blocks', () => {
+			const bytes1 = block.getBytes(blockData);
+			const blockDataCopy = Object.assign({}, blockData);
+			blockDataCopy.height = 100;
+			blockDataCopy.generatorPublicKey = 'this is some key';
+			const bytes2 = block.getBytes(blockDataCopy);
+			return expect(bytes1).to.not.deep.equal(bytes2);
+		});
+	});
 
-					it('should sort transactions in the correct order', () => {
-						expect(generatedBlock.transactions.length).to.equal(
-							data.transactions.length
-						);
-						expect(
-							expectedOrderOfTransactions(generatedBlock.transactions)
-						).to.equal(true);
-						return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
-					});
-				});
+	describe('verifySignature', () => {
+		it('should throw error for invalid block', () => {
+			return expect(() => {
+				block.verifySignature(invalidBlock);
+			}).to.throw();
+		});
 
-				describe('shuffled', () => {
-					var multipleMultisigTx;
-					var generatedBlock;
-					var transactionsOrder;
+		it('should return verification response for a given block', () => {
+			return expect(block.verifySignature(blockData)).to.be.true;
+		});
+	});
 
-					beforeEach(done => {
-						multipleMultisigTx = Array(...Array(5)).map(() => {
-							return transactionsByTypes[transactionTypes.MULTI];
-						});
-						data.transactions = _.shuffle(
-							transactions.concat(multipleMultisigTx)
-						);
-						generatedBlock = block.create(data);
-						transactionsOrder = generatedBlock.transactions.map(trs => {
-							return trs.type;
-						});
-						done();
-					});
+	describe('getId', () => {
+		it('should throw an error for empty block', () => {
+			return expect(() => {
+				block.getId({});
+			}).to.throw();
+		});
 
-					it('should sort transactions in the correct order', () => {
-						expect(generatedBlock.transactions.length).to.equal(
-							data.transactions.length
-						);
-						expect(
-							expectedOrderOfTransactions(generatedBlock.transactions)
-						).to.equal(true);
-						return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
-					});
-				});
-			});
+		it('should return the id for a given block', () => {
+			return expect(block.getId(blockData))
+				.to.be.a('string')
+				.which.is.equal(blockData.id);
+		});
+	});
+
+	describe('getHash', () => {
+		it('should throw error for invalid block', () => {
+			return expect(() => {
+				block.getHash(invalidBlock);
+			}).to.throw();
+		});
+
+		it('should return a hash for a given block', () => {
+			return expect(block.getHash(blockData)).to.be.an.instanceof(Buffer);
+		});
+	});
+
+	describe('calculateFee', () => {
+		it('should return the constant fee', () => {
+			return expect(block.calculateFee(blockData)).to.eql(constants.fees.send);
+		});
+	});
+
+	describe('dbRead', () => {
+		it('should throw error for null values', () => {
+			return expect(() => {
+				block.dbRead(null);
+			}).to.throw();
+		});
+
+		it('should return raw block data', () => {
+			const rawBlock = {
+				b_version: 0,
+				b_totalAmount: 0,
+				b_totalFee: 0,
+				b_reward: 0,
+				b_payloadHash:
+					'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+				b_timestamp: 41898490,
+				b_numberOfTransactions: 0,
+				b_payloadLength: 0,
+				b_previousBlock: '1087874036928524397',
+				b_generatorPublicKey:
+					'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
+				b_transactions: [],
+				b_blockSignature:
+					'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
+				b_height: 69,
+				b_id: '3920300554926889269',
+				b_relays: 1,
+				b_confirmations: 0,
+			};
+
+			return expect(block.dbRead(rawBlock)).to.contain.keys(
+				'id',
+				'version',
+				'timestamp',
+				'height',
+				'previousBlock',
+				'numberOfTransactions',
+				'totalAmount',
+				'totalFee',
+				'reward',
+				'payloadLength',
+				'payloadHash',
+				'generatorPublicKey',
+				'generatorId',
+				'blockSignature',
+				'confirmations',
+				'totalForged'
+			);
 		});
 	});
 });

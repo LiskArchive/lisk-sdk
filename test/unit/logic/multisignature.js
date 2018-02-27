@@ -135,9 +135,9 @@ describe('multisignature', () => {
 			transaction.asset.multisignature.keysgroup = [
 				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`,
 			];
-			return expect(multisignature.calculateFee(transaction).toString()).to.equal(
-				'1000000000'
-			);
+			return expect(
+				multisignature.calculateFee(transaction).toString()
+			).to.equal('1000000000');
 		});
 
 		it('should return correct fee based on formula for 4 keysgroup', () => {
@@ -145,9 +145,9 @@ describe('multisignature', () => {
 				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
 			);
 
-			return expect(multisignature.calculateFee(transaction).toString()).to.equal(
-				'2500000000'
-			);
+			return expect(
+				multisignature.calculateFee(transaction).toString()
+			).to.equal('2500000000');
 		});
 
 		it('should return correct fee based on formula for 8 keysgroup', () => {
@@ -155,9 +155,9 @@ describe('multisignature', () => {
 				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
 			);
 
-			return expect(multisignature.calculateFee(transaction).toString()).to.equal(
-				'4500000000'
-			);
+			return expect(
+				multisignature.calculateFee(transaction).toString()
+			).to.equal('4500000000');
 		});
 
 		it('should return correct fee based on formula for 16 keysgroup', () => {
@@ -165,9 +165,9 @@ describe('multisignature', () => {
 				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
 			);
 
-			return expect(multisignature.calculateFee(transaction).toString()).to.equal(
-				'8500000000'
-			);
+			return expect(
+				multisignature.calculateFee(transaction).toString()
+			).to.equal('8500000000');
 		});
 	});
 
@@ -460,13 +460,17 @@ describe('multisignature', () => {
 			});
 
 			it('should throw', () => {
-				return expect(multisignature.getBytes.bind(null, transaction)).to.throw();
+				return expect(
+					multisignature.getBytes.bind(null, transaction)
+				).to.throw();
 			});
 		});
 
 		describe('when transaction.asset.multisignature.keysgroup is a valid keysgroup', () => {
 			it('should not throw', () => {
-				return expect(multisignature.getBytes.bind(null, transaction)).not.to.throw();
+				return expect(
+					multisignature.getBytes.bind(null, transaction)
+				).not.to.throw();
 			});
 
 			it('should get bytes of valid transaction', () => {
@@ -478,7 +482,9 @@ describe('multisignature', () => {
 			});
 
 			it('should return result as a Buffer type', () => {
-				return expect(multisignature.getBytes(transaction)).to.be.instanceOf(Buffer);
+				return expect(multisignature.getBytes(transaction)).to.be.instanceOf(
+					Buffer
+				);
 			});
 		});
 	});
@@ -534,9 +540,9 @@ describe('multisignature', () => {
 			describe('for every keysgroup member', () => {
 				validTransaction.asset.multisignature.keysgroup.forEach(member => {
 					it('should call modules.accounts.generateAddressByPublicKey', () => {
-						return expect(accountsMock.generateAddressByPublicKey.callCount).to.equal(
-							validTransaction.asset.multisignature.keysgroup.length
-						);
+						return expect(
+							accountsMock.generateAddressByPublicKey.callCount
+						).to.equal(validTransaction.asset.multisignature.keysgroup.length);
 					});
 
 					it('should call modules.accounts.generateAddressByPublicKey with member.substring(1)', () => {
@@ -588,17 +594,27 @@ describe('multisignature', () => {
 							});
 
 							it('should call callback with error', () => {
-								return multisignature.apply(transaction, dummyBlock, sender, err => {
-									expect(err).not.to.be.empty;
-								});
+								return multisignature.apply(
+									transaction,
+									dummyBlock,
+									sender,
+									err => {
+										expect(err).not.to.be.empty;
+									}
+								);
 							});
 						});
 
 						describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 							it('should call callback with error = null', () => {
-								return multisignature.apply(transaction, dummyBlock, sender, err => {
-									expect(err).to.be.null;
-								});
+								return multisignature.apply(
+									transaction,
+									dummyBlock,
+									sender,
+									err => {
+										expect(err).to.be.null;
+									}
+								);
 							});
 
 							it('should call callback with result = undefined', () => {
@@ -679,9 +695,14 @@ describe('multisignature', () => {
 			});
 
 			it('should call callback with result = undefined', () => {
-				return multisignature.apply(transaction, dummyBlock, sender, (err, res) => {
-					expect(res).to.be.undefined;
-				});
+				return multisignature.apply(
+					transaction,
+					dummyBlock,
+					sender,
+					(err, res) => {
+						expect(res).to.be.undefined;
+					}
+				);
 			});
 		});
 		/* eslint-enable */
@@ -845,9 +866,14 @@ describe('multisignature', () => {
 			});
 
 			it('should call callback with result = undefined', () => {
-				return multisignature.apply(transaction, dummyBlock, sender, (err, res) => {
-					expect(res).to.be.undefined;
-				});
+				return multisignature.apply(
+					transaction,
+					dummyBlock,
+					sender,
+					(err, res) => {
+						expect(res).to.be.undefined;
+					}
+				);
 			});
 		});
 	});
@@ -1083,7 +1109,9 @@ describe('multisignature', () => {
 				2
 			);
 
-			return expect(multisignature.objectNormalize(transaction)).to.eql(transaction);
+			return expect(multisignature.objectNormalize(transaction)).to.eql(
+				transaction
+			);
 		});
 
 		it('should use the correct format to validate against', () => {
@@ -1111,7 +1139,9 @@ describe('multisignature', () => {
 		});
 
 		it('should return transaction when asset is valid', () => {
-			return expect(multisignature.objectNormalize(transaction)).to.eql(transaction);
+			return expect(multisignature.objectNormalize(transaction)).to.eql(
+				transaction
+			);
 		});
 	});
 
