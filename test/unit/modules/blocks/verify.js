@@ -42,6 +42,7 @@ describe('blocks/verify', () => {
 		dbStub = sinonSandbox.stub();
 		logicBlockStub = {
 			verifySignature: sinonSandbox.stub(),
+			getId: sinonSandbox.stub(),
 		};
 		logicTransactionStub = {
 			getId: sinonSandbox.stub(),
@@ -632,6 +633,38 @@ describe('blocks/verify', () => {
 						);
 						return expect(verifyReward.errors.length).to.equal(0);
 					});
+				});
+			});
+		});
+	});
+
+	describe('__private.verifyId', () => {
+		let verifyId;
+		describe('when block is undefined', () => {
+			it('should return error', () => {
+				verifyId = __private.verifyId(undefined, { errors: [] });
+				return expect(verifyId.errors[0]).to.equal(
+					"TypeError: Cannot set property 'id' of undefined"
+				);
+			});
+		});
+		describe('library.logic.block.getId', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					return library.logic.block.getId.throws('getId-ERR');
+				});
+				it('should return error', () => {
+					verifyId = __private.verifyId({ id: 5 }, { errors: [] });
+					return expect(verifyId.errors[0]).to.equal('getId-ERR');
+				});
+			});
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					return library.logic.block.getId.returns(5);
+				});
+				it('should return no error', () => {
+					verifyId = __private.verifyId({ id: 5 }, { errors: [] });
+					return expect(verifyId.errors.length).to.equal(0);
 				});
 			});
 		});
