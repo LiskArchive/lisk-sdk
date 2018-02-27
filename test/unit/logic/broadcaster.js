@@ -155,6 +155,7 @@ describe('Broadcaster', () => {
 		it('should be able to invoke next release', done => {
 			const nextRelease = Broadcaster.__get__('nextRelease');
 			nextRelease(() => {
+				expect(loggerStub.error.called).to.be.true;
 				done();
 			});
 		});
@@ -164,6 +165,7 @@ describe('Broadcaster', () => {
 		it('should be able to filter the queue', done => {
 			const filterQueue = Broadcaster.__get__('__private.filterQueue');
 			filterQueue(() => {
+				expect(loggerStub.info.called).to.be.true;
 				done();
 			});
 		});
@@ -232,6 +234,7 @@ describe('Broadcaster', () => {
 		it('should release enqueued broadcasts', done => {
 			const releaseQueue = Broadcaster.__get__('__private.releaseQueue');
 			releaseQueue(() => {
+				expect(loggerStub.info.called).to.be.true;
 				done();
 			});
 		});
