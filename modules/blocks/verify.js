@@ -226,8 +226,12 @@ __private.verifyAgainstLastNBlockIds = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyVersion = function(block, result) {
-	if (block.version > 0) {
-		result.errors.push('Invalid block version');
+	try {
+		if (block.version > 0) {
+			result.errors.push('Invalid block version');
+		}
+	} catch (e) {
+		result.errors.push(e.toString());
 	}
 
 	return result;
