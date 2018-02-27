@@ -2,7 +2,6 @@
 	"env": {
 		"mocha": true
 	},
-	"plugins": ["mocha"],
 	"globals": {
 		"Given": true,
 		"When": true,
