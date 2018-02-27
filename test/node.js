@@ -5,6 +5,7 @@ var node = {};
 
 var slots = require('../helpers/slots.js');
 var async = require('async');
+var randomstring = require('randomstring');
 var strftime = require('strftime').utc();
 
 // Requires
@@ -80,15 +81,18 @@ node.LISK = Math.floor(Math.random() * (100000 * 100000000)) + 1;
 
 // Returns a random delegate name
 node.randomDelegateName = function () {
-	var size = node.randomNumber(1, 20); // Min. delegate name size is 1, Max. delegate name is 20
-	var delegateName = '';
-	var possible = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var randomLetter = randomstring.generate({
+		length: 1,
+		charset: 'alphabetic',
+		capitalization: 'lowercase'
+	});
+	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	var username = randomstring.generate({
+		length: 19,
+		charset: custom
+	});
 
-	for (var i = 0; i < size; i++) {
-		delegateName += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-
-	return delegateName;
+	return randomLetter.concat(username);
 };
 
 // Returns a random property from the given object

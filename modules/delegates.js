@@ -25,6 +25,7 @@ __private.loaded = false;
 __private.blockReward = new BlockReward();
 __private.keypairs = {};
 __private.tmpKeypairs = {};
+__private.forgeInterval = 1000;
 
 /**
  * Initializes library with scope content and generates a Delegate instance.
@@ -61,7 +62,7 @@ function Delegates (cb, scope) {
 	self = this;
 
 	__private.assetTypes[transactionTypes.DELEGATE] = library.logic.transaction.attachAssetType(
-		transactionTypes.DELEGATE, 
+		transactionTypes.DELEGATE,
 		new Delegate(
 			scope.logger,
 			scope.schema
@@ -76,7 +77,7 @@ function Delegates (cb, scope) {
  * Gets delegate public keys sorted by vote descending.
  * @private
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} 
+ * @returns {setImmediateCallback}
  */
 __private.getKeysSortByVote = function (cb) {
 	modules.accounts.getAccounts({
@@ -97,7 +98,7 @@ __private.getKeysSortByVote = function (cb) {
  * Gets delegate public keys from previous round, sorted by vote descending.
  * @private
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} 
+ * @returns {setImmediateCallback}
  */
 __private.getDelegatesFromPreviousRound = function (cb) {
 	library.db.query(sql.getDelegatesSnapshot, {limit: slots.delegates}).then(function (rows) {
@@ -169,11 +170,11 @@ __private.getBlockSlotData = function (slot, height, cb) {
 };
 
 /**
- * Gets peers, checks consensus and generates new block, once delegates 
+ * Gets peers, checks consensus and generates new block, once delegates
  * are enabled, client is ready to forge and is the correct slot.
  * @private
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} 
+ * @returns {setImmediateCallback}
  */
 __private.forge = function (cb) {
 	if (!Object.keys(__private.keypairs).length) {
@@ -207,26 +208,20 @@ __private.forge = function (cb) {
 			return setImmediate(cb);
 		}
 
-		library.sequence.add(function (cb) {
-			async.series({
-				getPeers: function (seriesCb) {
-					return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
-				},
-				checkBroadhash: function (seriesCb) {
-					if (modules.transport.poorConsensus()) {
-						return setImmediate(seriesCb, ['Inadequate broadhash consensus', modules.transport.consensus(), '%'].join(' '));
-					} else {
-						return setImmediate(seriesCb);
-					}
-				}
-			}, function (err) {
-				if (err) {
-					library.logger.warn(err);
-					return setImmediate(cb, err);
+		async.series({
+			getPeers: function (seriesCb) {
+				return modules.transport.getPeers({limit: constants.maxPeers}, seriesCb);
+			},
+			checkBroadhash: function (seriesCb) {
+				if (modules.transport.poorConsensus()) {
+					return setImmediate(seriesCb, ['Inadequate broadhash consensus', modules.transport.consensus(), '%'].join(' '));
 				} else {
-					return modules.blocks.process.generateBlock(currentBlockData.keypair, currentBlockData.time, cb);
+					return setImmediate(seriesCb);
 				}
-			});
+			},
+			generateBlock: function (seriesCb) {
+				return modules.blocks.process.generateBlock(currentBlockData.keypair, currentBlockData.time, seriesCb);
+			}
 		}, function (err) {
 			if (err) {
 				library.logger.error('Failed to generate block within delegate slot', err);
@@ -338,7 +333,7 @@ __private.checkDelegates = function (publicKey, votes, state, cb) {
  * Loads delegates from config and stores in private `keypairs`.
  * @private
  * @param {function} cb - Callback function.
- * @returns {setImmediateCallback} 
+ * @returns {setImmediateCallback}
  */
 __private.loadDelegates = function (cb) {
 	var secrets;
@@ -584,29 +579,33 @@ Delegates.prototype.onBind = function (scope) {
 	);
 };
 
+__private.nextForge = function (sequenceCb) {
+	async.series([
+		__private.forge,
+		modules.transactions.fillPool
+	], sequenceCb);
+};
+
+__private.logLoadDelegatesError = function (err, cb) {
+	library.logger.error('Failed to load delegates', err);
+	return setImmediate(cb);
+};
+
 /**
  * Loads delegates.
  * @implements module:transactions#Transactions~fillPool
  */
 Delegates.prototype.onBlockchainReady = function () {
 	__private.loaded = true;
-
 	__private.loadDelegates(function (err) {
-
-		function nextForge (cb) {
-			if (err) {
-				library.logger.error('Failed to load delegates', err);
-			}
-
-			async.series([
-				__private.forge,
-				modules.transactions.fillPool
-			], function () {
-				return setImmediate(cb);
-			});
+		if (err) {
+			jobsQueue.register('logLoadDelegatesError', function (jobsQueueCb) {
+				__private.logLoadDelegatesError(err, jobsQueueCb);
+			}, __private.forgeInterval);
 		}
-
-		jobsQueue.register('delegatesNextForge', nextForge, 1000);
+		jobsQueue.register('delegatesNextForge', function (jobsQueueCb) {
+			library.sequence.add(__private.nextForge, jobsQueueCb);
+		}, __private.forgeInterval);
 	});
 };
 

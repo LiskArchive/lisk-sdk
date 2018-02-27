@@ -380,9 +380,9 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 					// Rewind any already applied unconfirmed transactions.
 					// Leaves the database state as per the previous block.
 					async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
-						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (err, sender) {
-							if (err) {
-								return setImmediate(eachSeriesCb, err);
+						modules.accounts.getAccount({publicKey: transaction.senderPublicKey}, function (accountError, sender) {
+							if (accountError) {
+								return setImmediate(eachSeriesCb, accountError);
 							}
 							// The transaction has been applied?
 							if (appliedTransactions[transaction.id]) {
@@ -392,7 +392,14 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 								return setImmediate(eachSeriesCb);
 							}
 						});
-					}, function (err) {
+					}, function (seriesError) {
+						if (seriesError) {
+							// Fatal error, memory tables will be inconsistent
+							library.logger.error('Failed to undo unconfirmed block transactions list', seriesError);
+
+							return process.exit(0);
+						}
+
 						return setImmediate(seriesCb, err);
 					});
 				} else {
@@ -578,16 +585,37 @@ Chain.prototype.deleteLastBlock = function (cb) {
 		return setImmediate(cb, 'Cannot delete genesis block');
 	}
 
-	// Delete last block, replace last block with previous block, undo things
-	__private.popLastBlock(lastBlock, function (err, newLastBlock) {
-		if (err) {
-			library.logger.error('Error deleting last block', lastBlock);
-		} else {
-			// Replace last block with previous
-			lastBlock = modules.blocks.lastBlock.set(newLastBlock);
-		}
-		return setImmediate(cb, err, lastBlock);
-	});
+	async.waterfall(
+		[
+			function popLastBlock (waterCb) {
+				// Delete last block, replace last block with previous block, undo things
+				__private.popLastBlock(lastBlock, function (err, newLastBlock) {
+					if (err) {
+						library.logger.error('Error deleting last block', lastBlock);
+					} else {
+						// Replace last block with previous
+						modules.blocks.lastBlock.set(newLastBlock);
+					}
+					return setImmediate(waterCb, err, newLastBlock);
+				});
+			},
+			function receiveTransactionsFromDeletedBlock (newLastBlock, waterCb) {
+				library.balancesSequence.add(function (balanceSequenceCb) {
+					modules.transactions.receiveTransactions(
+						lastBlock.transactions.reverse(),
+						false,
+						balanceSequenceCb
+					);
+				}, function (err) {
+					if (err) {
+						library.logger.error('Error receiving transactions after deleting block', err);
+					}
+					return setImmediate(waterCb, null, newLastBlock);
+				});
+			}
+		],
+		cb
+	);
 };
 
 /**

@@ -16,6 +16,8 @@ var TransactionPool = rewire('../../../logic/transactionPool.js');
 // Create fresh instance of jobsQueue
 var jobsQueue = rewire('../../../helpers/jobsQueue.js');
 
+var Sequence = require('../../../helpers/sequence.js');
+
 describe('transactionPool', function () {
 
 	var transactionPool;
@@ -23,6 +25,7 @@ describe('transactionPool', function () {
 	var dummyProcessVerifyTransaction;
 	var dummyApplyUnconfirmed;
 	var dummyUndoUnconfirmed;
+	var balancesSequence;
 
 	// Init fake logger
 	var logger = {
@@ -58,13 +61,16 @@ describe('transactionPool', function () {
 		// Use fresh instance of jobsQueue inside transaction pool
 		TransactionPool.__set__('jobsQueue', jobsQueue);
 
+		balancesSequence = new Sequence();
+
 		// Init test subject
 		transactionPool = new TransactionPool(
 			config.broadcasts.broadcastInterval,
 			config.broadcasts.releaseLimit,
 			sinon.spy(), // transaction
 			sinon.spy(), // bus
-			logger // logger
+			logger, // logger
+			balancesSequence
 		);
 
 		// Bind fake modules
@@ -513,7 +519,7 @@ describe('transactionPool', function () {
 						after(resetStates);
 					});
 
-					describe('that results with error on modules.transactions.undoUnconfirme', function () {
+					describe('that results with error on modules.transactions.undoUnconfirmed', function () {
 
 						var badTransaction = {id: 'badTx'};
 						var transactions = [ badTransaction ];
@@ -593,6 +599,101 @@ describe('transactionPool', function () {
 						after(resetStates);
 					});
 				});
+			});
+		});
+	});
+
+	describe('transactionInPool', function () {
+
+		afterEach(function () {
+			resetStates();
+		});
+
+		describe('when transaction is in pool', function () {
+
+			var tx = '123';
+
+			describe('unconfirmed list', function () {
+
+				describe('with index 0', function () {
+
+					it('should return true', function () {
+						transactionPool.unconfirmed.index[tx] = 0;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', function () {
+
+					it('should return true', function () {
+						transactionPool.unconfirmed.index[tx] = 1;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('bundled list', function () {
+
+				describe('with index 0', function () {
+
+					it('should return true', function () {
+						transactionPool.bundled.index[tx] = 0;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', function () {
+
+					it('should return true', function () {
+						transactionPool.bundled.index[tx] = 1;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('queued list', function () {
+
+				describe('with index 0', function () {
+
+					it('should return true', function () {
+						transactionPool.queued.index[tx] = 0;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', function () {
+
+					it('should return true', function () {
+						transactionPool.queued.index[tx] = 1;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('multisignature list', function () {
+
+				describe('with index 0', function () {
+
+					it('should return true', function () {
+						transactionPool.multisignature.index[tx] = 0;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', function () {
+
+					it('should return true', function () {
+						transactionPool.multisignature.index[tx] = 1;
+						expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+		});
+
+		describe('when transaction is not in pool', function () {
+
+			it('should return false', function () {
+				expect(transactionPool.transactionInPool('123')).to.equal(false);
 			});
 		});
 	});

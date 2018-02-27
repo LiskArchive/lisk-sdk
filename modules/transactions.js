@@ -54,7 +54,8 @@ function Transactions (cb, scope) {
 		scope.config.broadcasts.releaseLimit,
 		scope.logic.transaction,
 		scope.bus,
-		scope.logger
+		scope.logger,
+		scope.balancesSequence
 	);
 
 	__private.assetTypes[transactionTypes.SEND] = library.logic.transaction.attachAssetType(
