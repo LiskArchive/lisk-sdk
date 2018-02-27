@@ -2190,44 +2190,86 @@ describe('transport', () => {
 			});
 
 			describe('postTransactions', () => {
-				describe('when query.transactions is defined', () => {
-					describe('when library.schema.validate fails', () => {});
+				describe('when library.schema.validate succeeds', () => {
+					beforeEach(done => {
+						query = {
+							transactions: transactionsList,
+							peer: peerMock,
+							extraLogMessage: 'This is a log message',
+						};
+						__private.receiveTransactions = sinonSandbox.stub().callsArgWith(3, null, transaction.id);
+						transportInstance.shared.postTransactions(query, (err, res) => {
+							error = err;
+							result = res;
+							done();
+						});
+					});
 
-					describe('when library.schema.validate succeeds', () => {
-						it(
-							'should call __private.receiveTransactions with query and query.peer and query.extraLogMessage'
-						);
+					it('should call __private.receiveTransactions with query.transaction, query.peer and query.extraLogMessage as arguments', () => {
+						return expect(__private.receiveTransactions.calledWith(query.transactions, query.peer, query.extraLogMessage))
+							.to.be.true;
+					});
 
-						describe('when __private.receiveTransactions fails', () => {
-							it(
-								'should call callback with error = null and result = {success: false, message: err}'
-							);
+					describe('when __private.receiveTransactions succeeds', () => {
+						it('should invoke callback with object { success: true }', () => {
+							expect(error).to.equal(null);
+							return expect(result)
+								.to.have.property('success')
+								.which.is.equal(true);
+						});
+					});
+
+					describe('when __private.receiveTransactions fails', () => {
+						var receiveTransactionsError = 'Invalid transaction body ...';
+
+						beforeEach(done => {
+							__private.receiveTransactions = sinonSandbox
+								.stub()
+								.callsArgWith(3, receiveTransactionsError);
+							transportInstance.shared.postTransactions(query, (err, res) => {
+								error = err;
+								result = res;
+								done();
+							});
 						});
 
-						describe('when __private.receiveTransactions succeeds', () => {
-							it(
-								'should call callback with error = null and result = {success: true}'
-							);
+						it('should invoke callback with object { success: false, message: err }', () => {
+							expect(error).to.equal(null);
+							expect(result)
+								.to.have.property('success')
+								.which.is.equal(false);
+							return expect(result)
+								.to.have.property('message')
+								.which.is.equal(receiveTransactionsError);
 						});
 					});
 				});
 
-				describe('when query.transactions is undefined', () => {
+				describe('when library.schema.validate fails', () => {
+					var validateErr;
+
+					beforeEach(done => {
+						validateErr = new Error('Transaction did not match schema');
+						validateErr.code = 'INVALID_FORMAT';
+
+						library.schema.validate = sinonSandbox
+							.stub()
+							.callsArgWith(2, validateErr);
+						transportInstance.shared.postTransactions(query, (err, res) => {
+							error = err;
+							result = res;
+							done();
+						});
+					});
+
 					it(
-						'should call __private.receiveTransaction with query.transaction and query.peer and query.extraLogMessage'
+						'should invoke callback with error = null and result = {success: false, message: message}',
+						() => {
+							expect(error).to.equal(null);
+							expect(result).to.have.property('success').which.equals(false);
+							return expect(result).to.have.property('message').which.is.a('string');
+						}
 					);
-
-					describe('when __private.receiveTransaction fails', () => {
-						it(
-							'should call callback with error = null and result = {success: false,  message: err}'
-						);
-					});
-
-					describe('when __private.receiveTransaction succeeds', () => {
-						it(
-							'should call callback with error = null and result = {success: true, transactionId: id}'
-						);
-					});
 				});
 			});
 		});
