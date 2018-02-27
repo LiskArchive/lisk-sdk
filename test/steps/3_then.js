@@ -14,7 +14,7 @@
  *
  */
 export * from './api/3_then';
-export * from './childProcesses/3_then';
+export * from './child_processes/3_then';
 export * from './config/3_then';
 export * from './crypto/3_then';
 export * from './domain/3_then';

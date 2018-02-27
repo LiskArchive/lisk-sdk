@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../utils/crypto_module';
+import cryptography from '../utils/cryptography';
 import { createCommand } from '../utils/helpers';
 import { createMnemonicPassphrase } from '../utils/mnemonic';
 
@@ -24,8 +24,8 @@ const description = `Returns a randomly-generated mnemonic passphrase with its c
 
 export const actionCreator = () => async () => {
 	const passphrase = createMnemonicPassphrase();
-	const { publicKey } = cryptoModule.getKeys(passphrase);
-	const { address } = cryptoModule.getAddressFromPublicKey(publicKey);
+	const { publicKey } = cryptography.getKeys(passphrase);
+	const { address } = cryptography.getAddressFromPublicKey(publicKey);
 
 	return {
 		passphrase,

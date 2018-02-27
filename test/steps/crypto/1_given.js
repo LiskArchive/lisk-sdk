@@ -14,7 +14,7 @@
  *
  */
 import lisk from 'lisk-js';
-import cryptoInstance from '../../../src/utils/crypto_module';
+import cryptography from '../../../src/utils/cryptography';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { getFirstQuotedString, getQuotedStrings } from '../utils';
 
@@ -24,7 +24,7 @@ export function theMessageUnderThePassphraseHasSignature() {
 }
 
 export function aCryptoInstance() {
-	this.test.ctx.cryptoInstance = cryptoInstance;
+	this.test.ctx.cryptography = cryptography;
 }
 
 export function aCryptoInstanceHasBeenInitialised() {
@@ -40,10 +40,10 @@ export function aCryptoInstanceHasBeenInitialised() {
 		'getKeys',
 		'getAddressFromPublicKey',
 		'signMessage',
-	].forEach(methodName => cryptoInstance[methodName].returns(cryptoResult));
+	].forEach(methodName => cryptography[methodName].returns(cryptoResult));
 
 	this.test.ctx.cryptoResult = cryptoResult;
-	this.test.ctx.cryptoInstance = cryptoInstance;
+	this.test.ctx.cryptography = cryptography;
 }
 
 export function aSenderPublicKey() {
@@ -79,7 +79,7 @@ export function aSecondPassphrase() {
 
 export function aPassphraseWithPublicKey() {
 	const [passphrase, publicKey] = getQuotedStrings(this.test.parent.title);
-	cryptoInstance.getKeys.returns({ publicKey });
+	cryptography.getKeys.returns({ publicKey });
 
 	this.test.ctx.passphrase = passphrase;
 	this.test.ctx.publicKey = publicKey;
@@ -104,14 +104,14 @@ export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
 		lisk.crypto.getAddressFromPublicKey.returns(address);
 	}
 
-	if (typeof cryptoInstance.getKeys.returns === 'function') {
-		cryptoInstance.getKeys.returns(keys);
+	if (typeof cryptography.getKeys.returns === 'function') {
+		cryptography.getKeys.returns(keys);
 	}
-	if (typeof cryptoInstance.decryptPassphrase.returns === 'function') {
-		cryptoInstance.decryptPassphrase.returns({ passphrase });
+	if (typeof cryptography.decryptPassphrase.returns === 'function') {
+		cryptography.decryptPassphrase.returns({ passphrase });
 	}
-	if (typeof cryptoInstance.getAddressFromPublicKey.returns === 'function') {
-		cryptoInstance.getAddressFromPublicKey.returns({ address });
+	if (typeof cryptography.getAddressFromPublicKey.returns === 'function') {
+		cryptography.getAddressFromPublicKey.returns({ address });
 	}
 
 	this.test.ctx.passphrase = passphrase;

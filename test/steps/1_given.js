@@ -14,7 +14,7 @@
  *
  */
 export * from './api/1_given';
-export * from './childProcesses/1_given';
+export * from './child_processes/1_given';
 export * from './config/1_given';
 export * from './crypto/1_given';
 export * from './domain/1_given';

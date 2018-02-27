@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../utils/crypto_module';
+import cryptography from '../utils/cryptography';
 import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
@@ -25,7 +25,7 @@ const description = `Sign a message using your secret passphrase.
 `;
 
 const processInputs = message => ({ passphrase, data }) =>
-	cryptoModule.signMessage({
+	cryptography.signMessage({
 		message: message || data,
 		passphrase,
 	});

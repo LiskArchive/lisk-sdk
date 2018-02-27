@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../utils/crypto_module';
+import cryptography from '../utils/cryptography';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
@@ -29,10 +29,10 @@ const outputPublicKeyOption = [
 ];
 
 const processInputs = outputPublicKey => ({ passphrase, password }) => {
-	const cipherAndIv = cryptoModule.encryptPassphrase({ passphrase, password });
+	const cipherAndIv = cryptography.encryptPassphrase({ passphrase, password });
 	return outputPublicKey
 		? Object.assign({}, cipherAndIv, {
-				publicKey: cryptoModule.getKeys(passphrase).publicKey,
+				publicKey: cryptography.getKeys(passphrase).publicKey,
 			})
 		: cipherAndIv;
 };
