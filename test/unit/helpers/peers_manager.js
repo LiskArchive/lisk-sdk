@@ -288,17 +288,22 @@ describe('PeersManager', () => {
 			describe('when [peersManagerA] adds data', () => {
 				let validPeer;
 
-				beforeEach(() => {
+				beforeEach(done => {
 					validPeer = new Peer(prefixedPeer);
 					peersManagerA.add(validPeer);
+					done();
 				});
 
 				it('should be reflected in [peersManagerA]', () => {
-					expect(peersManagerA.getByAddress(validPeer.string)).eql(validPeer);
+					return expect(peersManagerA.getByAddress(validPeer.string)).eql(
+						validPeer
+					);
 				});
 
 				it('should be reflected in [peersManagerB]', () => {
-					expect(peersManagerB.getByAddress(validPeer.string)).eql(validPeer);
+					return expect(peersManagerB.getByAddress(validPeer.string)).eql(
+						validPeer
+					);
 				});
 			});
 		});
