@@ -131,7 +131,7 @@ export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheA
 		publicKey,
 		address,
 	};
-	return returnValue.should.eventually.eql(expectedObject);
+	return expect(returnValue).to.eventually.eql(expectedObject);
 }
 ```
 
