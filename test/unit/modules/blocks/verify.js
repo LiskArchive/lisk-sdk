@@ -984,4 +984,68 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('__private.verifyBlockSlotWindow', () => {
+		let verifyBlockSlotWindow;
+		let slots;
+		let slotsTemp;
+
+		beforeEach(done => {
+			slots = BlocksVerify.__get__('slots');
+			slotsTemp = slots;
+			slots.getSlotNumber = input => {
+				return input === undefined ? 100 : input;
+			};
+			done();
+		});
+		afterEach(done => {
+			slots = slotsTemp;
+			done();
+		});
+		describe('fails', () => {
+			describe('when block is undefined', () => {
+				it('should return error', () => {
+					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(undefined, {
+						errors: [],
+					});
+					return expect(verifyBlockSlotWindow.errors[0]).to.equal(
+						"TypeError: Cannot read property 'timestamp' of undefined"
+					);
+				});
+			});
+			describe('when currentApplicationSlot - blockSlot > constants.blockSlotWindow', () => {
+				it('should return error', () => {
+					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
+						{ timestamp: 10 },
+						{ errors: [] }
+					);
+					return expect(verifyBlockSlotWindow.errors[0]).to.equal(
+						'Block slot is too old'
+					);
+				});
+			});
+			describe('currentApplicationSlot < blockSlot', () => {
+				it('should return error', () => {
+					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
+						{ timestamp: 110 },
+						{ errors: [] }
+					);
+					return expect(verifyBlockSlotWindow.errors[0]).to.equal(
+						'Block slot is in the future'
+					);
+				});
+			});
+		});
+		describe('when succeeds', () => {
+			it('should return no error', () => {
+				verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
+					{ timestamp: 101 },
+					{ errors: [] }
+				);
+				return expect(verifyBlockSlotWindow.errors[0]).to.equal(
+					'Block slot is in the future'
+				);
+			});
+		});
+	});
 });
