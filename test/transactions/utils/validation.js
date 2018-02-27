@@ -236,7 +236,7 @@ describe('public key validation', () => {
 		describe('Given an address that is out of range', () => {
 			const address = '18446744073709551616L';
 			const error =
-				'Address length does not match requirements. Address out of maximum range.';
+				'Address format does not match requirements. Address out of maximum range.';
 
 			it('should throw', () => {
 				return validateAddress.bind(null, address).should.throw(error);

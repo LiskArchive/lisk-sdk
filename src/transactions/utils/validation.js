@@ -63,13 +63,11 @@ export const validateAddress = address => {
 	}
 
 	const addressAsBignum = bignum(address.slice(0, -1));
-	const biggestAddress = bignum
-		.fromBuffer(Buffer.from([255, 255, 255, 255, 255, 255, 255, 255]))
-		.plus(1);
+	const biggestAddress = bignum.fromBuffer(Buffer.from(new Array(8).fill(255)));
 
-	if (addressAsBignum.gt(biggestAddress)) {
+	if (addressAsBignum.cmp(biggestAddress) > 0) {
 		throw new Error(
-			'Address length does not match requirements. Address out of maximum range.',
+			'Address format does not match requirements. Address out of maximum range.',
 		);
 	}
 
