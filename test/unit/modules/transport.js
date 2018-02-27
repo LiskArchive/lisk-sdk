@@ -2131,6 +2131,64 @@ describe('transport', () => {
 				);
 			});
 
+			describe('postTransaction', () => {
+				beforeEach(done => {
+					query = {
+						transaction,
+						peer: peerMock,
+						extraLogMessage: 'This is a log message',
+					};
+					__private.receiveTransaction = sinonSandbox.stub().callsArgWith(3, null, transaction.id);
+					transportInstance.shared.postTransaction(query, (err, res) => {
+						error = err;
+						result = res;
+						done();
+					});
+				});
+
+				it('should call __private.receiveTransaction with query.transaction, query.peer and query.extraLogMessage as arguments', () => {
+					return expect(__private.receiveTransaction.calledWith(query.transaction, query.peer, query.extraLogMessage))
+						.to.be.true;
+				});
+
+				describe('when __private.receiveTransaction succeeds', () => {
+					it('should invoke callback with object { success: true, transactionId: id }', () => {
+						expect(error).to.equal(null);
+						expect(result)
+							.to.have.property('transactionId')
+							.which.is.a('string');
+						return expect(result)
+							.to.have.property('success')
+							.which.is.equal(true);
+					});
+				});
+
+				describe('when __private.receiveTransaction fails', () => {
+					var receiveTransactionError = 'Invalid transaction body ...';
+
+					beforeEach(done => {
+						__private.receiveTransaction = sinonSandbox
+							.stub()
+							.callsArgWith(3, receiveTransactionError);
+						transportInstance.shared.postTransaction(query, (err, res) => {
+							error = err;
+							result = res;
+							done();
+						});
+					});
+
+					it('should invoke callback with object { success: false, message: err }', () => {
+						expect(error).to.equal(null);
+						expect(result)
+							.to.have.property('success')
+							.which.is.equal(false);
+						return expect(result)
+							.to.have.property('message')
+							.which.is.equal(receiveTransactionError);
+					});
+				});
+			});
+
 			describe('postTransactions', () => {
 				describe('when query.transactions is defined', () => {
 					describe('when library.schema.validate fails', () => {});
