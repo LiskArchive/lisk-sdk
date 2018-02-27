@@ -22,7 +22,8 @@ const failureCodes = require('../../../api/ws/rpc/failure_codes');
 const System = require('../../../modules/system');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 
-const wampClient = new WAMPClient(1000); // Timeout failed requests after 1 second
+const TIMEOUT = 2000;
+const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 
 const connect = (peer, onDisconnectCb) => {
 	connectSteps.addConnectionOptions(peer);
@@ -43,9 +44,9 @@ const connectSteps = {
 		peer.connectionOptions = {
 			autoConnect: false, // Lazy connection establishment
 			autoReconnect: false,
-			connectTimeout: 1000,
-			ackTimeout: 1000,
-			pingTimeout: 1000,
+			connectTimeout: TIMEOUT,
+			ackTimeout: TIMEOUT,
+			pingTimeout: TIMEOUT,
 			connectAttempts: 1,
 			port: peer.wsPort,
 			hostname: peer.ip,
