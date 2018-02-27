@@ -48,6 +48,7 @@ describe('transport', () => {
 	var restoreRewiredTopDeps;
 	var peerMock;
 	var definitions;
+	var wsRPC;
 	var transaction;
 	var block;
 	var peersList;
@@ -71,6 +72,8 @@ describe('transport', () => {
 		signature:
 			'61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595',
 	};
+
+	const SAMPLE_AUTH_KEY = 'testkey123';
 
 	beforeEach(done => {
 		// Recreate all the stubs and default structures before each test case to make
@@ -334,10 +337,15 @@ describe('transport', () => {
 
 				definitions = {};
 
+				wsRPC = {
+					getServerAuthKey: sinonSandbox.stub().returns(SAMPLE_AUTH_KEY),
+				};
+
 				restoreRewiredDeps = TransportModule.__set__({
 					library,
 					modules,
 					definitions,
+					wsRPC,
 				});
 
 				done();
@@ -556,7 +564,7 @@ describe('transport', () => {
 				var validateErr;
 
 				beforeEach(done => {
-					validateErr = new Error('Transaction did not match schema');
+					validateErr = new Error('Signature did not match schema');
 					validateErr.code = 'INVALID_FORMAT';
 					library.schema.validate = sinonSandbox
 						.stub()
@@ -922,6 +930,78 @@ describe('transport', () => {
 
 				it('should call callback with result = transaction.id', () => {
 					return expect(result).to.equal(transaction.id);
+				});
+			});
+		});
+
+		describe('__private.checkInternalAccess', () => {
+			var query;
+			var result;
+
+			beforeEach(done => {
+				query = {
+					authKey: SAMPLE_AUTH_KEY,
+				};
+				__private.checkInternalAccess(query, (err, res) => {
+					error = err;
+					result = res;
+					done();
+				});
+			});
+
+			it(
+				'should call library.schema.validate with query and definitions.WSAccessObject',
+				() => {
+					return expect(library.schema.validate.calledWith(query, definitions.WSAccessObject)).to.be.true;
+				}
+			);
+
+			describe('when library.schema.validate succeeds', () => {
+				describe('when query.authKey != wsRPC.getServerAuthKey()', () => {
+					beforeEach(done => {
+						query = {
+							authKey: SAMPLE_AUTH_KEY,
+						};
+						wsRPC.getServerAuthKey = sinonSandbox.stub().returns('differentauthkey789');
+						__private.checkInternalAccess(query, err => {
+							error = err;
+							done();
+						});
+					});
+
+					it(
+						'should call callback with error = "Unable to access internal function - Incorrect authKey"',
+						() => {
+							return expect(error).to.equal('Unable to access internal function - Incorrect authKey');
+						}
+					);
+				});
+
+				it('should call callback with error = null and result = undefined', () => {
+					expect(error).to.equal(null);
+					return expect(result).to.equal(undefined);
+				});
+			});
+
+			describe('when library.schema.validate fails', () => {
+				var validateErr;
+
+				beforeEach(done => {
+					validateErr = new Error('Query did not match schema');
+					validateErr.code = 'INVALID_FORMAT';
+
+					query = {
+						authKey: SAMPLE_AUTH_KEY,
+					};
+					library.schema.validate = sinonSandbox.stub().callsArgWith(2, [validateErr]);
+					__private.checkInternalAccess(query, err => {
+						error = err;
+						done();
+					});
+				});
+
+				it('should call callback with error = err[0].message', () => {
+					return expect(error).to.equal(validateErr.message);
 				});
 			});
 		});
@@ -1480,7 +1560,7 @@ describe('transport', () => {
 				describe('when query is undefined', () => {
 					beforeEach(done => {
 						query = undefined;
-						validateErr = new Error('Transaction did not match schema');
+						validateErr = new Error('Query did not match schema');
 						validateErr.code = 'INVALID_FORMAT';
 
 						library.schema.validate = sinonSandbox
@@ -1519,7 +1599,7 @@ describe('transport', () => {
 
 					describe('when library.schema.validate fails', () => {
 						beforeEach(done => {
-							validateErr = new Error('Transaction did not match schema');
+							validateErr = new Error('Query did not match schema');
 							validateErr.code = 'INVALID_FORMAT';
 
 							library.schema.validate = sinonSandbox
@@ -2249,12 +2329,12 @@ describe('transport', () => {
 					var validateErr;
 
 					beforeEach(done => {
-						validateErr = new Error('Transaction did not match schema');
+						validateErr = new Error('Transaction query did not match schema');
 						validateErr.code = 'INVALID_FORMAT';
 
 						library.schema.validate = sinonSandbox
 							.stub()
-							.callsArgWith(2, validateErr);
+							.callsArgWith(2, [validateErr]);
 						transportInstance.shared.postTransactions(query, (err, res) => {
 							error = err;
 							result = res;
@@ -2272,26 +2352,6 @@ describe('transport', () => {
 					);
 				});
 			});
-		});
-	});
-
-	describe('__private.checkInternalAccess', () => {
-		it(
-			'should call library.schema.validate with query and schema.internalAccess'
-		);
-
-		describe('when library.schema.validate fails', () => {
-			it('should call callback with error = err[0].message');
-		});
-
-		describe('when library.schema.validate succeeds', () => {
-			describe('when query.authKey != wsRPC.getServerAuthKey()', () => {
-				it(
-					'should call callback with error = "Unable to access internal function - Incorrect authKey"'
-				);
-			});
-
-			it('should call callback with error = null and result = undefined');
 		});
 	});
 
