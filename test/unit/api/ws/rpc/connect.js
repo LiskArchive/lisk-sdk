@@ -31,7 +31,7 @@ describe('connect', () => {
 	let registerRPCSpy;
 	let registerSocketListenersSpy;
 
-	before('spy on connectSteps', () => {
+	before('spy on connectSteps', done => {
 		const connectionSteps = connectRewired.__get__('connectSteps');
 		addConnectionOptionsSpySpy = sinon.spy(
 			connectionSteps,
@@ -44,29 +44,34 @@ describe('connect', () => {
 			connectionSteps,
 			'registerSocketListeners'
 		);
+		done();
 	});
 
-	after('restore spies on connectSteps', () => {
+	after('restore spies on connectSteps', done => {
 		addConnectionOptionsSpySpy.restore();
 		addSocketSpy.restore();
 		upgradeSocketSpy.restore();
 		registerRPCSpy.restore();
 		registerSocketListenersSpy.restore();
+		done();
 	});
 
-	beforeEach('provide non-mutated peer each time', () => {
+	beforeEach('provide non-mutated peer each time', done => {
 		validPeer = Object.assign({}, prefixedPeer);
+		done();
 	});
 
 	describe('connect', () => {
 		describe('connectSteps order', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				connectResult = connectRewired(validPeer);
+				done();
 			});
 
-			afterEach(() => {
+			afterEach(done => {
 				addConnectionOptionsSpySpy.reset();
 				addSocketSpy.reset();
+				done();
 			});
 
 			it('should call all connectSteps', () => {
@@ -74,27 +79,30 @@ describe('connect', () => {
 				expect(addSocketSpy).to.be.calledOnce;
 				expect(upgradeSocketSpy).to.be.calledOnce;
 				expect(registerRPCSpy).to.be.calledOnce;
-				expect(registerSocketListenersSpy).to.be.calledOnce;
+				return expect(registerSocketListenersSpy).to.be.calledOnce;
 			});
 
 			it('should call addSocket after addConnectionOptions', () => {
-				sinon.assert.callOrder(addConnectionOptionsSpySpy, addSocketSpy);
+				return sinon.assert.callOrder(addConnectionOptionsSpySpy, addSocketSpy);
 			});
 
 			it('should call upgradeSocketSpy after addSocket', () => {
-				sinon.assert.callOrder(addSocketSpy, upgradeSocketSpy);
+				return sinon.assert.callOrder(addSocketSpy, upgradeSocketSpy);
 			});
 
 			it('should call registerRPCSpy after upgradeSocketSpy', () => {
-				sinon.assert.callOrder(upgradeSocketSpy, registerSocketListenersSpy);
+				return sinon.assert.callOrder(
+					upgradeSocketSpy,
+					registerSocketListenersSpy
+				);
 			});
 
 			it('should call registerSocketListenersSpy after addSocket', () => {
-				sinon.assert.callOrder(addSocketSpy, registerSocketListenersSpy);
+				return sinon.assert.callOrder(addSocketSpy, registerSocketListenersSpy);
 			});
 
 			it('should return passed peer', () => {
-				expect(connectResult).equal(validPeer);
+				return expect(connectResult).equal(validPeer);
 			});
 		});
 	});
@@ -103,50 +111,51 @@ describe('connect', () => {
 		let peerAsResult;
 
 		describe('addConnectionOptions', () => {
-			beforeEach(() => {
+			beforeEach(done => {
 				const addConnectionOptions = connectRewired.__get__(
 					'connectSteps.addConnectionOptions'
 				);
 				peerAsResult = addConnectionOptions(validPeer);
+				done();
 			});
 
 			it('should add connectionOptions field to peer', () => {
-				expect(peerAsResult).to.have.property('connectionOptions');
+				return expect(peerAsResult).to.have.property('connectionOptions');
 			});
 
 			it('should add connectionOptions containing autoConnect = false', () => {
-				expect(peerAsResult).to.have.nested.property(
+				return expect(peerAsResult).to.have.nested.property(
 					'connectionOptions.autoConnect'
 				).to.be.false;
 			});
 
 			it('should add connectionOptions containing port = [peer.wsPort]', () => {
-				expect(peerAsResult)
+				return expect(peerAsResult)
 					.to.have.nested.property('connectionOptions.port')
 					.to.equal(validPeer.wsPort);
 			});
 
 			it('should add connectionOptions containing hostname = [peer.ip]', () => {
-				expect(peerAsResult)
+				return expect(peerAsResult)
 					.to.have.nested.property('connectionOptions.hostname')
 					.to.equal(validPeer.ip);
 			});
 
 			it('should add connectionOptions containing query', () => {
-				expect(peerAsResult)
+				return expect(peerAsResult)
 					.to.have.nested.property('connectionOptions.query')
 					.to.eql(System.getHeaders());
 			});
 
 			it('should return [peer]', () => {
-				expect(peerAsResult).to.eql(validPeer);
+				return expect(peerAsResult).to.eql(validPeer);
 			});
 		});
 
 		describe('addSocket', () => {
 			let scClientConnectSpy;
 			let validConnectionOptions;
-			before(() => {
+			before(done => {
 				validConnectionOptions = {
 					validProperty: 'validString',
 				};
@@ -154,42 +163,46 @@ describe('connect', () => {
 					connectRewired.__get__('scClient'),
 					'connect'
 				);
+				done();
 			});
-			beforeEach(() => {
+			beforeEach(done => {
 				const addSocket = connectRewired.__get__('connectSteps.addSocket');
 				validPeer.connectionOptions = validConnectionOptions;
 				peerAsResult = addSocket(validPeer);
+				done();
 			});
-			afterEach(() => {
+			afterEach(done => {
 				scClientConnectSpy.reset();
+				done();
 			});
-			after(() => {
+			after(done => {
 				scClientConnectSpy.restore();
+				done();
 			});
 
 			it('should call scClient.connect', () => {
-				expect(scClientConnectSpy).to.be.calledOnce;
+				return expect(scClientConnectSpy).to.be.calledOnce;
 			});
 
 			it('should call scClient.connect with [peer.connectionOptions]', () => {
-				expect(scClientConnectSpy).to.be.calledWithExactly(
+				return expect(scClientConnectSpy).to.be.calledWithExactly(
 					validPeer.connectionOptions
 				);
 			});
 
 			it('should add socket field', () => {
-				expect(peerAsResult).to.have.property('socket');
+				return expect(peerAsResult).to.have.property('socket');
 			});
 
 			it('should return [peer]', () => {
-				expect(peerAsResult).to.eql(validPeer);
+				return expect(peerAsResult).to.eql(validPeer);
 			});
 		});
 
 		describe('upgradeSocket', () => {
 			let upgradeToWAMPSpy;
 			let validSocket;
-			before(() => {
+			before(done => {
 				validSocket = {
 					validProperty: 'validString',
 				};
@@ -197,58 +210,67 @@ describe('connect', () => {
 					connectRewired.__get__('wampClient'),
 					'upgradeToWAMP'
 				);
+				done();
 			});
-			beforeEach(() => {
+			beforeEach(done => {
 				const upgradeSocket = connectRewired.__get__(
 					'connectSteps.upgradeSocket'
 				);
 				validPeer.socket = validSocket;
 				peerAsResult = upgradeSocket(validPeer);
+				done();
 			});
-			afterEach(() => {
+			afterEach(done => {
 				upgradeToWAMPSpy.reset();
+				done();
 			});
-			after(() => {
+			after(done => {
 				upgradeToWAMPSpy.restore();
+				done();
 			});
 
 			it('should call scClient.connect', () => {
-				expect(upgradeToWAMPSpy).to.be.calledOnce;
+				return expect(upgradeToWAMPSpy).to.be.calledOnce;
 			});
 
 			it('should call scClient.connect with [peer.connectionOptions]', () => {
-				expect(upgradeToWAMPSpy).to.be.calledWithExactly(validPeer.socket);
+				return expect(upgradeToWAMPSpy).to.be.calledWithExactly(
+					validPeer.socket
+				);
 			});
 
 			it('should return [peer]', () => {
-				expect(peerAsResult).to.eql(validPeer);
+				return expect(peerAsResult).to.eql(validPeer);
 			});
 		});
 
 		describe('registerRPC', () => {
 			let validRPCSocket;
 
-			before(() => {
+			before(done => {
 				validRPCSocket = {
 					call: sinon.stub(),
 					emit: sinon.stub(),
 				};
+				done();
 			});
-			beforeEach(() => {
+			beforeEach(done => {
 				const registerRPC = connectRewired.__get__('connectSteps.registerRPC');
 				validRPCSocket.call.reset();
 				validRPCSocket.emit.reset();
 				validPeer.socket = validRPCSocket;
 				peerAsResult = registerRPC(validPeer);
+				done();
 			});
 
 			describe('when wsRPC.getServer throws', () => {
-				before(() => {
+				before(done => {
 					wsRPC.getServer = sinon.stub().throws();
+					done();
 				});
 
 				it('should return peer with rpc = {}', () => {
-					expect(peerAsResult)
+					return expect(peerAsResult)
 						.to.have.property('rpc')
 						.to.be.an('object').and.to.be.empty;
 				});
@@ -259,7 +281,7 @@ describe('connect', () => {
 				const validRPCProcedureName = 'rpcProcedureA';
 				const validEventProcedureName = 'eventProcedureB';
 
-				before(() => {
+				before(done => {
 					masterWAMPServerMock = {
 						endpoints: {
 							rpc: {
@@ -271,22 +293,23 @@ describe('connect', () => {
 						},
 					};
 					wsRPC.getServer = sinon.stub().returns(masterWAMPServerMock);
+					done();
 				});
 
 				it('should return peer with rpc', () => {
-					expect(peerAsResult)
+					return expect(peerAsResult)
 						.to.have.property('rpc')
 						.to.be.an('object');
 				});
 
 				it('should return peer with rpc methods registered on MasterWAMPServer', () => {
-					expect(peerAsResult)
+					return expect(peerAsResult)
 						.to.have.nested.property(`rpc.${validRPCProcedureName}`)
 						.to.be.a('function');
 				});
 
 				it('should return peer with emit methods registered on MasterWAMPServer', () => {
-					expect(peerAsResult)
+					return expect(peerAsResult)
 						.to.have.nested.property(`rpc.${validEventProcedureName}`)
 						.to.be.a('function');
 				});
@@ -295,9 +318,10 @@ describe('connect', () => {
 					let validRPCArgument;
 					let validRPCCallback;
 					const validRPCResult = 'valid rpc result';
-					before(() => {
+					before(done => {
 						validRPCArgument = 'valid string argument';
 						validRPCCallback = sinon.stub();
+						done();
 					});
 					beforeEach(beforeEachCb => {
 						peerAsResult.socket.call.resolves(validRPCResult);
@@ -312,42 +336,44 @@ describe('connect', () => {
 					});
 
 					it('should call peer.socket.call', () => {
-						expect(peerAsResult.socket.call).calledOnce;
+						return expect(peerAsResult.socket.call).calledOnce;
 					});
 
 					it('should call peer.socket.call with [validRPCProcedureName] and [validRPCArgument]', () => {
-						expect(peerAsResult.socket.call).calledWith(
+						return expect(peerAsResult.socket.call).calledWith(
 							validRPCProcedureName,
 							validRPCArgument
 						);
 					});
 
 					it('should call RPC callback', () => {
-						expect(validRPCCallback).calledOnce;
+						return expect(validRPCCallback).calledOnce;
 					});
 
 					it('should call RPC callback with error = null and result = [validRPCResult]', () => {
-						expect(validRPCCallback).calledWith(null, validRPCResult);
+						return expect(validRPCCallback).calledWith(null, validRPCResult);
 					});
 
 					describe('when RPC method is called without an argument', () => {
 						let originalValidRPCArgument;
-						before(() => {
+						before(done => {
 							originalValidRPCArgument = validRPCArgument;
 							validRPCArgument = null;
+							done();
 						});
-						after(() => {
+						after(done => {
 							validRPCArgument = originalValidRPCArgument;
+							done();
 						});
 						it('should call peer.socket.call with [validRPCProcedureName] and {}', () => {
-							expect(peerAsResult.socket.call).calledWith(
+							return expect(peerAsResult.socket.call).calledWith(
 								validRPCProcedureName,
 								{}
 							);
 						});
 
 						it('should call RPC method callback', () => {
-							expect(validRPCCallback).calledOnce;
+							return expect(validRPCCallback).calledOnce;
 						});
 					});
 
@@ -366,7 +392,7 @@ describe('connect', () => {
 						});
 
 						it('should call RPC method callback with err = [validRPCError]', () => {
-							expect(validRPCCallback)
+							return expect(validRPCCallback)
 								.to.have.nested.property('args.0.0.name')
 								.equal(validRPCError);
 						});
@@ -381,11 +407,11 @@ describe('connect', () => {
 					});
 
 					it('should call peer.socket.emit', () => {
-						expect(peerAsResult.socket.emit).calledOnce;
+						return expect(peerAsResult.socket.emit).calledOnce;
 					});
 
 					it('should call peer.socket.emit with [validEventProcedureName] and [validEmitArgument]', () => {
-						expect(peerAsResult.socket.emit).calledWith(
+						return expect(peerAsResult.socket.emit).calledWith(
 							validEventProcedureName,
 							validEmitArgument
 						);
@@ -396,34 +422,36 @@ describe('connect', () => {
 
 		describe('registerSocketListeners', () => {
 			let validSocket;
-			before(() => {
+			before(done => {
 				validSocket = {
 					on: sinon.stub(),
 				};
+				done();
 			});
-			beforeEach(() => {
+			beforeEach(done => {
 				validSocket.on.reset();
 				const registerSocketListeners = connectRewired.__get__(
 					'connectSteps.registerSocketListeners'
 				);
 				validPeer.socket = validSocket;
 				peerAsResult = registerSocketListeners(validPeer);
+				done();
 			});
 
 			it('should call peer.socket.on with "connectAbort"', () => {
-				expect(peerAsResult.socket.on).to.be.calledWith('connectAbort');
+				return expect(peerAsResult.socket.on).to.be.calledWith('connectAbort');
 			});
 
 			it('should call peer.socket.on with "error"', () => {
-				expect(peerAsResult.socket.on).to.be.calledWith('error');
+				return expect(peerAsResult.socket.on).to.be.calledWith('error');
 			});
 
 			it('should call peer.socket.on with "close"', () => {
-				expect(peerAsResult.socket.on).to.be.calledWith('close');
+				return expect(peerAsResult.socket.on).to.be.calledWith('close');
 			});
 
 			it('should register 3 event listeners', () => {
-				expect(peerAsResult.socket.on).to.be.calledThrice;
+				return expect(peerAsResult.socket.on).to.be.calledThrice;
 			});
 		});
 	});
