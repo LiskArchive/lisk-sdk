@@ -17,27 +17,31 @@ import { getFirstQuotedString } from '../utils';
 
 export function itShouldResolveToTheResultOfSendingTheRequest() {
 	const { returnValue, sendRequestResult } = this.test.ctx;
-	return returnValue.should.eventually.equal(sendRequestResult);
+	return expect(returnValue).to.eventually.equal(sendRequestResult);
 }
 
 export function theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient() {
 	const { queryInstance, liskAPIInstance } = this.test.ctx;
-	return queryInstance.should.have.property('client').equal(liskAPIInstance);
+	return expect(queryInstance)
+		.to.have.property('client')
+		.equal(liskAPIInstance);
 }
 
 export function theQueryInstanceShouldHaveAHandlerFor() {
 	const { queryInstance } = this.test.ctx;
 	const item = getFirstQuotedString(this.test.title);
-	return queryInstance.handlers.should.have.property(item).be.a('function');
+	return expect(queryInstance.handlers)
+		.to.have.property(item)
+		.be.a('function');
 }
 
 export function itShouldResolveToTheResultOfTheQuery() {
 	const { returnValue, queryResult } = this.test.ctx;
-	return returnValue.should.eventually.equal(queryResult);
+	return expect(returnValue).to.eventually.equal(queryResult);
 }
 
 export function itShouldResolveToAnArrayOfQueryResults() {
 	const { returnValue, inputs, queryResult } = this.test.ctx;
 	const arrayOfQueryResults = inputs.map(() => queryResult);
-	return returnValue.should.eventually.eql(arrayOfQueryResults);
+	return expect(returnValue).to.eventually.eql(arrayOfQueryResults);
 }

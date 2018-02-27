@@ -18,23 +18,23 @@ import { getFirstBoolean } from '../utils';
 
 export function itShouldNotSetTheLiskAPIInstanceTestnetSetting() {
 	const { liskAPIInstance } = this.test.ctx;
-	return liskAPIInstance.setTestnet.should.not.be.called;
+	return expect(liskAPIInstance.setTestnet).not.to.be.called;
 }
 
 export function itShouldSetTheLiskAPIInstanceTestnetSettingTo() {
 	const { liskAPIInstance } = this.test.ctx;
 	const setting = getFirstBoolean(this.test.title);
-	return liskAPIInstance.setTestnet.firstCall.should.be.calledWith(setting);
+	return expect(liskAPIInstance.setTestnet.firstCall).to.be.calledWith(setting);
 }
 
 export function itShouldSetTheLiskAPIInstanceTestnetSettingBackToTheOriginalSetting() {
 	const { liskAPIInstance } = this.test.ctx;
-	return liskAPIInstance.setTestnet.secondCall.should.be.calledWith(false);
+	return expect(liskAPIInstance.setTestnet.secondCall).to.be.calledWith(false);
 }
 
 export function itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters() {
 	const { liskAPIInstance, endpoint, parameters } = this.test.ctx;
-	return liskAPIInstance.sendRequest.should.be.calledWithExactly(
+	return expect(liskAPIInstance.sendRequest).to.be.calledWithExactly(
 		endpoint,
 		parameters,
 	);
@@ -42,43 +42,43 @@ export function itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingThe
 
 export function itShouldNotBroadcastTheSignature() {
 	const { liskAPIInstance } = this.test.ctx;
-	return liskAPIInstance.broadcastSignatures.should.not.be.called;
+	return expect(liskAPIInstance.broadcastSignatures).not.to.be.called;
 }
 
 export function itShouldBroadcastTheSignature() {
 	const { liskAPIInstance, signature } = this.test.ctx;
-	return liskAPIInstance.broadcastSignatures.should.be.calledWithExactly([
+	return expect(liskAPIInstance.broadcastSignatures).to.be.calledWithExactly([
 		JSON.parse(signature),
 	]);
 }
 
 export function itShouldNotBroadcastTheTransaction() {
 	const { liskAPIInstance } = this.test.ctx;
-	return liskAPIInstance.broadcastTransaction.should.not.be.called;
+	return expect(liskAPIInstance.broadcastTransaction).not.to.be.called;
 }
 
 export function itShouldBroadcastTheTransaction() {
 	const { liskAPIInstance, transaction } = this.test.ctx;
-	return liskAPIInstance.broadcastTransaction.should.be.calledWithExactly(
+	return expect(liskAPIInstance.broadcastTransaction).to.be.calledWithExactly(
 		JSON.parse(transaction),
 	);
 }
 
 export function itShouldResolveToTheAPIResponse() {
 	const { returnValue, apiResponse } = this.test.ctx;
-	return returnValue.should.eventually.eql(apiResponse);
+	return expect(returnValue).to.eventually.eql(apiResponse);
 }
 
 export function theLiskAPIInstanceShouldBeALiskJSAPIInstance() {
 	const { liskAPIInstance } = this.test.ctx;
-	return liskAPIInstance.should.be.instanceOf(lisk.api);
+	return expect(liskAPIInstance).to.be.instanceOf(lisk.api);
 }
 
 export function theLiskAPIInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID() {
 	const { blockId, liskAPIInstance } = this.test.ctx;
 	const route = 'blocks/get';
 	const options = { id: blockId };
-	return liskAPIInstance.sendRequest.should.be.calledWithExactly(
+	return expect(liskAPIInstance.sendRequest).to.be.calledWithExactly(
 		route,
 		options,
 	);
@@ -88,7 +88,7 @@ export function theLiskAPIInstanceShouldSendARequestToTheAccountsAPIEndpointWith
 	const { address, liskAPIInstance } = this.test.ctx;
 	const route = 'accounts';
 	const options = { address };
-	return liskAPIInstance.sendRequest.should.be.calledWithExactly(
+	return expect(liskAPIInstance.sendRequest).to.be.calledWithExactly(
 		route,
 		options,
 	);
@@ -98,7 +98,7 @@ export function theLiskAPIInstanceShouldSendARequestToTheTransactionsGetAPIEndpo
 	const { transactionId, liskAPIInstance } = this.test.ctx;
 	const route = 'transactions/get';
 	const options = { id: transactionId };
-	return liskAPIInstance.sendRequest.should.be.calledWithExactly(
+	return expect(liskAPIInstance.sendRequest).to.be.calledWithExactly(
 		route,
 		options,
 	);
@@ -108,7 +108,7 @@ export function theLiskAPIInstanceShouldSendARequestToTheDelegatesGetAPIEndpoint
 	const { delegateUsername, liskAPIInstance } = this.test.ctx;
 	const route = 'delegates/get';
 	const options = { username: delegateUsername };
-	return liskAPIInstance.sendRequest.should.be.calledWithExactly(
+	return expect(liskAPIInstance.sendRequest).to.be.calledWithExactly(
 		route,
 		options,
 	);

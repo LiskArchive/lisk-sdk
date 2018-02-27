@@ -7,7 +7,7 @@
 		"When": true,
 		"Then": true,
 		"sandbox": true,
-		"should": true,
+		"expect": true,
 		"sinon": true
 	},
 	"rules": {
