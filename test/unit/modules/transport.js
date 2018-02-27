@@ -52,6 +52,7 @@ describe('transport', () => {
 	var block;
 	var peersList;
 	var blocksList;
+	var transactionsList;
 	var error;
 
 	const SAMPLE_SIGNATURE_1 = {
@@ -74,6 +75,35 @@ describe('transport', () => {
 		// Recreate all the stubs and default structures before each test case to make
 		// sure that they are fresh every time; that way each test case can modify
 		// stubs without affecting other test cases.
+
+		transactionsList = [
+			{
+				id: '222675625422353767',
+				type: 0,
+				amount: '100',
+				fee: '10',
+				senderPublicKey:
+					'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+				recipientId: '12668885769632475474L',
+				timestamp: 28227090,
+				asset: {},
+				signature:
+					'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
+			},
+			{
+				id: '332675625422353892',
+				type: 0,
+				amount: '1000',
+				fee: '10',
+				senderPublicKey:
+					'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+				recipientId: '12668885769632475474L',
+				timestamp: 28227090,
+				asset: {},
+				signature:
+					'1231d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c567',
+			},
+		];
 
 		dbStub = {
 			query: sinonSandbox.spy(),
@@ -498,8 +528,6 @@ describe('transport', () => {
 		});
 
 		describe('receiveTransactions', () => {
-			var transactions;
-
 			beforeEach(done => {
 				library.schema = {
 					validate: sinonSandbox.stub().callsArg(2),
@@ -510,22 +538,6 @@ describe('transport', () => {
 				modules.peers = {
 					remove: sinonSandbox.stub().returns(true),
 				};
-
-				transactions = [
-					{
-						id: '222675625422353767',
-						type: 0,
-						amount: '100',
-						fee: '10',
-						senderPublicKey:
-							'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-						recipientId: '12668885769632475474L',
-						timestamp: 28227090,
-						asset: {},
-						signature:
-							'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-					},
-				];
 
 				__private.receiveTransaction = sinonSandbox.stub().callsArg(3);
 
@@ -551,7 +563,7 @@ describe('transport', () => {
 					describe('when all transactions are specified', () => {
 						beforeEach(done => {
 							__private.receiveTransactions(
-								transactions,
+								transactionsList,
 								peerMock,
 								'This is a log message',
 								err => {
@@ -562,7 +574,7 @@ describe('transport', () => {
 						});
 
 						it('should set transaction.bundled = true', () => {
-							return expect(transactions[0])
+							return expect(transactionsList[0])
 								.to.have.property('bundled')
 								.which.equals(true);
 						});
@@ -570,7 +582,7 @@ describe('transport', () => {
 						it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', () => {
 							return expect(
 								__private.receiveTransaction.calledWith(
-									transactions[0],
+									transactionsList[0],
 									peerMock,
 									'This is a log message'
 								)
@@ -592,7 +604,7 @@ describe('transport', () => {
 								.callsArgWith(3, receiveTransactionError);
 
 							__private.receiveTransactions(
-								transactions,
+								transactionsList,
 								peerMock,
 								'This is a log message',
 								err => {
@@ -606,7 +618,7 @@ describe('transport', () => {
 							return expect(
 								library.logger.debug.calledWith(
 									receiveTransactionError,
-									transactions[0]
+									transactionsList[0]
 								)
 							).to.be.true;
 						});
@@ -958,6 +970,11 @@ describe('transport', () => {
 								.stub()
 								.callsArgWith(1, null, blocksList),
 						},
+					},
+					transactions: {
+						getMultisignatureTransactionList: sinonSandbox
+							.stub()
+							.returns(transactionsList),
 					},
 				};
 
