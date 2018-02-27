@@ -126,6 +126,7 @@ class DatabaseSeed {
 			'dapps',
 			'intransfer',
 			'outtransfer',
+			'peers',
 		];
 		const promises = [];
 
