@@ -249,18 +249,25 @@ __private.verifyVersion = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyReward = function(block, result) {
-	var expectedReward = __private.blockReward.calcReward(block.height);
+	try {
+		var expectedReward = __private.blockReward.calcReward(block.height);
 
-	if (
-		block.height !== 1 &&
-		expectedReward !== block.reward &&
-		exceptions.blockRewards.indexOf(block.id) === -1
-	) {
-		result.errors.push(
-			['Invalid block reward:', block.reward, 'expected:', expectedReward].join(
-				' '
-			)
-		);
+		if (
+			block.height !== 1 &&
+			expectedReward !== block.reward &&
+			exceptions.blockRewards.indexOf(block.id) === -1
+		) {
+			result.errors.push(
+				[
+					'Invalid block reward:',
+					block.reward,
+					'expected:',
+					expectedReward,
+				].join(' ')
+			);
+		}
+	} catch (e) {
+		result.errors.push(e.toString());
 	}
 
 	return result;
