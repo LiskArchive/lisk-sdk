@@ -48,6 +48,7 @@ describe('blocks/verify', () => {
 			getId: sinonSandbox.stub(),
 			checkConfirmed: sinonSandbox.stub(),
 			verify: sinonSandbox.stub(),
+			getBytes: sinonSandbox.stub(),
 		};
 
 		blocksVerifyModule = new BlocksVerify(
@@ -666,6 +667,162 @@ describe('blocks/verify', () => {
 					verifyId = __private.verifyId({ id: 5 }, { errors: [] });
 					return expect(verifyId.errors.length).to.equal(0);
 				});
+			});
+		});
+	});
+
+	describe('__private.verifyPayload', () => {
+		let verifyPayload;
+		const dummyBlock = {
+			payloadLength: 2,
+			numberOfTransactions: 2,
+			payloadHash:
+				'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+			totalAmount: 10,
+			totalFee: 2,
+			transactions: [
+				{
+					amount: 5,
+					fee: 1,
+					id: 1,
+				},
+				{
+					amount: 5,
+					fee: 1,
+					id: 2,
+				},
+			],
+		};
+		describe('fails', () => {
+			afterEach(() => {
+				return expect(verifyPayload.errors)
+					.to.be.an('array')
+					.with.lengthOf(1);
+			});
+			describe('when block is undefined', () => {
+				it('should return error', () => {
+					verifyPayload = __private.verifyPayload(undefined, { errors: [] });
+					return expect(verifyPayload.errors[0]).to.equal(
+						"TypeError: Cannot read property 'payloadLength' of undefined"
+					);
+				});
+			});
+			describe('when payload lenght is too long', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.payloadLength = 1048577;
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Payload length is too long'
+					);
+				});
+			});
+			describe('when transactions do not match block transactions count', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.numberOfTransactions = 4;
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Included transactions do not match block transactions count'
+					);
+				});
+			});
+			describe('when number of transactions exceeds maximum per block', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.numberOfTransactions = 32;
+					dummyBlockERR.transactions = dummyBlockERR.transactions.concat(
+						new Array(30)
+					);
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Number of transactions exceeds maximum per block'
+					);
+				});
+			});
+			describe('library.logic.transaction.getBytes fails', () => {
+				describe('when throws error', () => {
+					beforeEach(() => {
+						return library.logic.transaction.getBytes
+							.onCall(0)
+							.throws('getBytes-ERR')
+							.onCall(1)
+							.returns(0);
+					});
+					it('should return error', () => {
+						verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
+						return expect(verifyPayload.errors[0]).to.equal('getBytes-ERR');
+					});
+				});
+				describe('when returns invalid bytes', () => {
+					beforeEach(() => {
+						return library.logic.transaction.getBytes.returns('abc');
+					});
+					it('should return error', () => {
+						verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
+						return expect(verifyPayload.errors[0]).to.equal(
+							'Invalid payload hash'
+						);
+					});
+				});
+			});
+			describe('when encountered duplicate transaction', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.transactions[1].id = 1;
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Encountered duplicate transaction: 1'
+					);
+				});
+			});
+			describe('when payload hash is invalid', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.payloadHash = 'abc';
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Invalid payload hash'
+					);
+				});
+			});
+			describe('when total amount is invalid', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.totalAmount = 1;
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Invalid total amount'
+					);
+				});
+			});
+			describe('when total fee is invalid', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.totalFee = 1;
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal('Invalid total fee');
+				});
+			});
+		});
+		describe('when succeeds', () => {
+			it('should return no error', () => {
+				verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
+				return expect(verifyPayload.errors.length).to.equal(0);
 			});
 		});
 	});
