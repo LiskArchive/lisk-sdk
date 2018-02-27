@@ -443,17 +443,21 @@ __private.verifyBlockSlot = function(block, lastBlock, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyBlockSlotWindow = function(block, result) {
-	var currentApplicationSlot = slots.getSlotNumber();
-	var blockSlot = slots.getSlotNumber(block.timestamp);
+	try {
+		var currentApplicationSlot = slots.getSlotNumber();
+		var blockSlot = slots.getSlotNumber(block.timestamp);
 
-	// Reject block if it's slot is older than constants.blockSlotWindow
-	if (currentApplicationSlot - blockSlot > constants.blockSlotWindow) {
-		result.errors.push('Block slot is too old');
-	}
+		// Reject block if it's slot is older than constants.blockSlotWindow
+		if (currentApplicationSlot - blockSlot > constants.blockSlotWindow) {
+			result.errors.push('Block slot is too old');
+		}
 
-	// Reject block if it's slot is in the future
-	if (currentApplicationSlot < blockSlot) {
-		result.errors.push('Block slot is in the future');
+		// Reject block if it's slot is in the future
+		if (currentApplicationSlot < blockSlot) {
+			result.errors.push('Block slot is in the future');
+		}
+	} catch (e) {
+		result.errors.push(e.toString());
 	}
 
 	return result;
