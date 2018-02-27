@@ -15,7 +15,7 @@
 'use strict';
 
 const disconnect = peer => {
-	if (peer.socket && typeof peer.socket.disconnect === 'function') {
+	if (peer.socket) {
 		peer.socket.disconnect();
 	}
 	return peer;
