@@ -1,7 +1,7 @@
+/* eslint-disable mocha/no-top-level-hooks */
 import lockfile from 'lockfile';
 
-/* eslint-disable mocha/no-top-level-hooks */
-afterEach(function globalAfterEach(done) {
+afterEach(function globalAfterEach() {
 	const { vorpal } = this.test.ctx;
 	// See https://github.com/dthree/vorpal/issues/230
 	// istanbul ignore next
@@ -9,12 +9,10 @@ afterEach(function globalAfterEach(done) {
 		vorpal.ui.removeAllListeners();
 	}
 
-	sandbox.restore();
-	done();
+	return sandbox.restore();
 });
 
 after(done => {
 	const configLockfilePath = `${process.env.LISKY_CONFIG_DIR}/config.lock`;
 	lockfile.unlock(configLockfilePath, done);
 });
-/* eslint-enable mocha/no-top-level-hooks */
