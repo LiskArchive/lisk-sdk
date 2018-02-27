@@ -13,7 +13,7 @@ This document provides guidelines for contributing such tests.
 
 ## Specifications
 
-A specification consists of a suite of nested steps. Specifications should be written using language which is neutral with regard to test implementation. Here’s an abridged example from `test/specs/utils/cryptoModule.js`:
+A specification consists of a suite of nested steps. Specifications should be written using language which is neutral with regard to test implementation. Here’s an abridged example from `test/specs/utils/cryptography.js`:
 
 ```js
 import { setUpCommandCreateAccount } from '../../steps/setup';
