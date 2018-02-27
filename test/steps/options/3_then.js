@@ -15,20 +15,20 @@
  */
 export function itShouldDeleteTheJsonOption() {
 	const { options } = this.test.ctx;
-	options.should.not.have.property('json');
+	expect(options).not.to.have.property('json');
 }
 
 export function itShouldDeleteTheTableOption() {
 	const { options } = this.test.ctx;
-	options.should.not.have.property('table');
+	expect(options).not.to.have.property('table');
 }
 
 export function itShouldNotDeleteTheJsonOption() {
 	const { options } = this.test.ctx;
-	options.should.have.property('json');
+	expect(options).to.have.property('json');
 }
 
 export function itShouldNotDeleteTheTableOption() {
 	const { options } = this.test.ctx;
-	options.should.have.property('table');
+	expect(options).to.have.property('table');
 }

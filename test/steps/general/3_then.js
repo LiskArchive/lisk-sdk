@@ -18,149 +18,153 @@ import { ValidationError, FileSystemError } from '../../../src/utils/error';
 
 export function theErrorShouldBeInstanceOfNodesBuiltInError() {
 	const { testError } = this.test.ctx;
-	return testError.should.be.instanceOf(Error);
+	return expect(testError).to.be.instanceOf(Error);
 }
 
 export function theErrorShouldHaveTheName() {
 	const { testError: { name } } = this.test.ctx;
 	const errorName = getFirstQuotedString(this.test.title);
-	return name.should.be.equal(errorName);
+	return expect(name).to.equal(errorName);
 }
 
 export function itShouldReturnTheResult() {
 	const { returnValue, result } = this.test.ctx;
-	return returnValue.should.equal(result);
+	return expect(returnValue).to.equal(result);
 }
 
 export function itShouldThrowValidationError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return testFunction.should
-		.throw()
+	return expect(testFunction)
+		.to.throw()
 		.and.be.customError(new ValidationError(message));
 }
 
 export function itShouldThrowFileSystemError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return testFunction.should
-		.throw()
+	return expect(testFunction)
+		.to.throw()
 		.and.be.customError(new FileSystemError(message));
 }
 
 export function itShouldExitWithCode() {
 	const { exit } = this.test.ctx;
 	const code = getFirstNumber(this.test.title);
-	return exit.should.be.calledWithExactly(code);
+	return expect(exit).to.be.calledWithExactly(code);
 }
 
 export function itShouldResolveToTheErrorObject() {
 	const { returnValue, errorObject } = this.test.ctx;
-	return returnValue.should.eventually.eql(errorObject);
+	return expect(returnValue).to.eventually.eql(errorObject);
 }
 
 export async function itShouldResolveToAnObjectWithMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
 	const result = await returnValue;
-	return result.should.have.property('message').equal(message);
+	return expect(result)
+		.to.have.property('message')
+		.equal(message);
 }
 
 export async function itShouldResolveToAnObjectWithWarning() {
 	const { returnValue } = this.test.ctx;
 	const warning = getFirstQuotedString(this.test.title);
 	const result = await returnValue;
-	return result.should.have.property('warning').equal(warning);
+	return expect(result)
+		.to.have.property('warning')
+		.equal(warning);
 }
 
 export function theProcessShouldExitWithErrorCode() {
 	const errorCode = parseInt(getFirstQuotedString(this.test.title), 10);
-	return process.exit.should.be.calledWithExactly(errorCode);
+	return expect(process.exit).to.be.calledWithExactly(errorCode);
 }
 
 export function itShouldRejectWithTheErrorMessage() {
 	const { returnValue, errorMessage } = this.test.ctx;
-	return returnValue.should.be.rejectedWith(errorMessage);
+	return expect(returnValue).to.be.rejectedWith(errorMessage);
 }
 
 export function itShouldRejectWithFileSystemErrorAndMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return returnValue.should.be.rejected.then(err =>
-		err.should.be.customError(new FileSystemError(message)),
+	return expect(returnValue).to.be.rejected.then(err =>
+		expect(err).to.be.customError(new FileSystemError(message)),
 	);
 }
 
 export function itShouldRejectWithValidationErrorAndMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return returnValue.should.be.rejected.then(err =>
-		err.should.be.customError(new ValidationError(message)),
+	return expect(returnValue).to.be.rejected.then(err =>
+		expect(err).to.be.customError(new ValidationError(message)),
 	);
 }
 
 export function itShouldRejectWithMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
-	return returnValue.should.be.rejectedWith(message);
+	return expect(returnValue).to.be.rejectedWith(message);
 }
 
 export function itShouldRejectWithTheOriginalRejection() {
 	const { returnValue, rejection } = this.test.ctx;
-	return returnValue.should.be.rejectedWith(rejection);
+	return expect(returnValue).to.be.rejectedWith(rejection);
 }
 
 export function itShouldReturnAnEmptyObject() {
 	const { returnValue } = this.test.ctx;
-	return returnValue.should.eventually.eql({});
+	return expect(returnValue).to.eventually.eql({});
 }
 
 export function itShouldReturnTrue() {
 	const { returnValue } = this.test.ctx;
-	return returnValue.should.be.true;
+	return expect(returnValue).to.be.true;
 }
 
 export function itShouldReturnFalse() {
 	const { returnValue } = this.test.ctx;
-	return returnValue.should.be.false;
+	return expect(returnValue).to.be.false;
 }
 
 export function itShouldReturnNull() {
 	const { returnValue } = this.test.ctx;
-	return should.equal(returnValue, null);
+	return expect(returnValue).to.be.null;
 }
 
 export function itShouldReturnString() {
 	const { returnValue } = this.test.ctx;
 	const expectedString = getFirstQuotedString(this.test.title);
 
-	return returnValue.should.equal(expectedString);
+	return expect(returnValue).to.equal(expectedString);
 }
 
 export function itShouldResolveToTheOptions() {
 	const { options, returnValue } = this.test.ctx;
-	return returnValue.should.eventually.equal(options);
+	return expect(returnValue).to.eventually.equal(options);
 }
 
 export function itShouldResolveToTheDataAsAString() {
 	const { returnValue, data } = this.test.ctx;
-	return returnValue.should.eventually.equal(data);
+	return expect(returnValue).to.eventually.equal(data);
 }
 
 export function itShouldReturnAnObjectWithError() {
 	const { returnValue } = this.test.ctx;
 	const error = getFirstQuotedString(this.test.title);
-	return returnValue.should.eql({
+	return expect(returnValue).to.eql({
 		error,
 	});
 }
 
 export function itShouldResolveToTheWarrantyInformation() {
 	const { returnValue, warranty } = this.test.ctx;
-	return returnValue.should.eventually.eql({ warranty });
+	return expect(returnValue).to.eventually.eql({ warranty });
 }
 
 export function itShouldResolveToTheCopyrightInformation() {
 	const { returnValue, copyright } = this.test.ctx;
-	return returnValue.should.eventually.eql({ copyright });
+	return expect(returnValue).to.eventually.eql({ copyright });
 }
