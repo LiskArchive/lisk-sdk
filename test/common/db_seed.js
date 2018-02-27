@@ -126,6 +126,10 @@ class DatabaseSeed {
 			'dapps',
 			'intransfer',
 			'outtransfer',
+			'mem_accounts2multisignatures',
+			'mem_accounts2u_multisignatures',
+			'mem_accounts2delegates',
+			'mem_accounts2u_delegates',
 		];
 		const promises = [];
 
