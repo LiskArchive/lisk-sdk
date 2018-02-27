@@ -415,14 +415,18 @@ __private.verifyForkOne = function(block, lastBlock, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyBlockSlot = function(block, lastBlock, result) {
-	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
-	var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
+	try {
+		var blockSlotNumber = slots.getSlotNumber(block.timestamp);
+		var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
-	if (
-		blockSlotNumber > slots.getSlotNumber() ||
-		blockSlotNumber <= lastBlockSlotNumber
-	) {
-		result.errors.push('Invalid block timestamp');
+		if (
+			blockSlotNumber > slots.getSlotNumber() ||
+			blockSlotNumber <= lastBlockSlotNumber
+		) {
+			result.errors.push('Invalid block timestamp');
+		}
+	} catch (e) {
+		result.errors.push(e.toString());
 	}
 
 	return result;
