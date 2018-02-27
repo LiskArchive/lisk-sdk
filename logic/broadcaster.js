@@ -50,53 +50,49 @@ const __private = {};
 // Constructor
 class Broadcaster {
 	constructor(broadcasts, force, peers, transaction, logger) {
-		try {
-			library = {
-				logger,
-				logic: {
-					peers,
-					transaction,
+		library = {
+			logger,
+			logic: {
+				peers,
+				transaction,
+			},
+			config: {
+				broadcasts,
+				forging: {
+					force,
 				},
-				config: {
-					broadcasts,
-					forging: {
-						force,
-					},
-				},
-			};
+			},
+		};
 
-			self = this;
+		self = this;
 
-			self.queue = [];
-			self.config = library.config.broadcasts;
-			self.config.peerLimit = constants.maxPeers;
-			// The below config parallelLimit, relayLimit was missing
-			// so we need to see if it was missing and add specific numbers
-			self.config.parallelLimit = 10;
-			self.config.relayLimit = 10;
+		self.queue = [];
+		self.config = library.config.broadcasts;
+		self.config.peerLimit = constants.maxPeers;
+		// The below config parallelLimit, relayLimit was missing
+		// so we need to see if it was missing and add specific numbers
+		self.config.parallelLimit = 10;
+		self.config.relayLimit = 10;
 
-			// Broadcast routes
-			self.routes = [
-				{
-					path: 'postTransactions',
-					collection: 'transactions',
-					object: 'transaction',
-				},
-				{
-					path: 'postSignatures',
-					collection: 'signatures',
-					object: 'signature',
-				},
-			];
+		// Broadcast routes
+		self.routes = [
+			{
+				path: 'postTransactions',
+				collection: 'transactions',
+				object: 'transaction',
+			},
+			{
+				path: 'postSignatures',
+				collection: 'signatures',
+				object: 'signature',
+			},
+		];
 
-			jobsQueue.register(
-				'broadcasterNextRelease',
-				nextRelease,
-				self.config.broadcastInterval
-			);
-		} catch (err) {
-			throw new Error('Broadcaster:constructor', err);
-		}
+		jobsQueue.register(
+			'broadcasterNextRelease',
+			nextRelease,
+			self.config.broadcastInterval
+		);
 	}
 
 	/**
