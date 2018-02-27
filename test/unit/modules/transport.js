@@ -1010,6 +1010,9 @@ describe('transport', () => {
 						getMultisignatureTransactionList: sinonSandbox
 							.stub()
 							.returns(transactionsList),
+						getMergedTransactionList: sinonSandbox
+							.stub()
+							.returns(transactionsList),
 					},
 				};
 
@@ -2101,12 +2104,30 @@ describe('transport', () => {
 			});
 
 			describe('getTransactions', () => {
+				beforeEach(done => {
+					query = {};
+					transportInstance.shared.getTransactions(query, (err, res) => {
+						error = err;
+						result = res;
+						done();
+					});
+				});
+
 				it(
-					'should call modules.transactions.getMergedTransactionList with true and constants.maxSharedTxs'
+					'should call modules.transactions.getMergedTransactionList with true and constants.maxSharedTxs',
+					() => {
+						return expect(modules.transactions.getMergedTransactionList.calledWith(true, constants.maxSharedTxs)).to.be.true;
+					}
 				);
 
 				it(
-					'should call callback with error = null and result = {success: true, transactions: transactions}'
+					'should call callback with error = null and result = {success: true, transactions: transactions}',
+					() => {
+						expect(error).to.equal(null);
+						expect(result).to.have.property('success').which.is.equal(true);
+						return expect(result).to.have.property('transactions')
+							.which.is.an('array').that.has.property('length').which.equals(2);
+					}
 				);
 			});
 
