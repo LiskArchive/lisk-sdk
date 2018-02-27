@@ -131,7 +131,6 @@ const connectSteps = {
 
 		// When WS connection ends - remove peer
 		peer.socket.on('close', () => {
-			peer.socket.disconnect();
 			onDisconnectCb();
 		});
 		return peer;
