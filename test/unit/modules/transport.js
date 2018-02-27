@@ -1876,36 +1876,115 @@ describe('transport', () => {
 				});
 			});
 
-			describe('postSignatures', () => {
-				describe('when query.signatures is defined', () => {
-					it('should call __private.receiveSignatures with query');
-
-					describe('when __private.receiveSignatures fails', () => {
-						it(
-							'should call callback with error = null and result = {success: false, message: err}'
-						);
-					});
-
-					describe('when __private.receiveSignatures succeeds', () => {
-						it(
-							'should call callback with error = null and result = {success: true}'
-						);
+			describe('postSignature', () => {
+				beforeEach(done => {
+					query = {
+						signature: SAMPLE_SIGNATURE_1,
+					};
+					__private.receiveSignature = sinonSandbox.stub().callsArg(1);
+					transportInstance.shared.postSignature(query, (err, res) => {
+						error = err;
+						result = res;
+						done();
 					});
 				});
 
-				describe('when query.signatures is undefined', () => {
-					it('should call __private.receiveSignature with query.signature');
+				it('should call __private.receiveSignature with query.signature as argument', () => {
+					return expect(__private.receiveSignature.calledWith(query.signature))
+						.to.be.true;
+				});
 
-					describe('when __private.receiveSignature fails', () => {
-						it(
-							'should call callback with error = null and result = {success: false, message: err}'
-						);
+				describe('when __private.receiveSignature succeeds', () => {
+					it('should invoke callback with object { success: true }', () => {
+						expect(error).to.equal(null);
+						return expect(result)
+							.to.have.property('success')
+							.which.is.equal(true);
+					});
+				});
+
+				describe('when __private.receiveSignature fails', () => {
+					var receiveSignatureError = 'Invalid signature body ...';
+
+					beforeEach(done => {
+						query = {
+							signature: SAMPLE_SIGNATURE_1,
+						};
+						__private.receiveSignature = sinonSandbox
+							.stub()
+							.callsArgWith(1, receiveSignatureError);
+						transportInstance.shared.postSignature(query, (err, res) => {
+							error = err;
+							result = res;
+							done();
+						});
 					});
 
-					describe('when __private.receiveSignature succeeds', () => {
-						it(
-							'should call callback with error = null and result = {success: true}'
-						);
+					it('should invoke callback with object { success: false, message: err }', () => {
+						expect(error).to.equal(null);
+						expect(result)
+							.to.have.property('success')
+							.which.is.equal(false);
+						return expect(result)
+							.to.have.property('message')
+							.which.is.equal(receiveSignatureError);
+					});
+				});
+			});
+
+			describe('postSignatures', () => {
+				beforeEach(done => {
+					query = {
+						signatures: [SAMPLE_SIGNATURE_1],
+					};
+					__private.receiveSignatures = sinonSandbox.stub().callsArg(1);
+					transportInstance.shared.postSignatures(query, (err, res) => {
+						error = err;
+						result = res;
+						done();
+					});
+				});
+
+				it('should call __private.receiveSignatures with query.signatures as argument', () => {
+					return expect(
+						__private.receiveSignatures.calledWith(query.signatures)
+					).to.be.true;
+				});
+
+				describe('when __private.receiveSignatures succeeds', () => {
+					it('should invoke callback with object { success: true }', () => {
+						expect(error).to.equal(null);
+						return expect(result)
+							.to.have.property('success')
+							.which.is.equal(true);
+					});
+				});
+
+				describe('when __private.receiveSignatures fails', () => {
+					var receiveSignaturesError = 'Invalid signature body ...';
+
+					beforeEach(done => {
+						query = {
+							signatures: [SAMPLE_SIGNATURE_1],
+						};
+						__private.receiveSignatures = sinonSandbox
+							.stub()
+							.callsArgWith(1, receiveSignaturesError);
+						transportInstance.shared.postSignatures(query, (err, res) => {
+							error = err;
+							result = res;
+							done();
+						});
+					});
+
+					it('should invoke callback with object { success: false, message: err }', () => {
+						expect(error).to.equal(null);
+						expect(result)
+							.to.have.property('success')
+							.which.is.equal(false);
+						return expect(result)
+							.to.have.property('message')
+							.which.is.equal(receiveSignaturesError);
 					});
 				});
 			});
