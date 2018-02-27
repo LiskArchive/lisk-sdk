@@ -15,27 +15,79 @@
  */
 import Table from 'cli-table2';
 
+const chars = {
+	top: '═',
+	'top-mid': '╤',
+	'top-left': '╔',
+	'top-right': '╗',
+	bottom: '═',
+	'bottom-mid': '╧',
+	'bottom-left': '╚',
+	'bottom-right': '╝',
+	left: '║',
+	'left-mid': '╟',
+	mid: '─',
+	'mid-mid': '┼',
+	right: '║',
+	'right-mid': '╢',
+	middle: '│',
+};
+
+const getNestedValue = data => keyString =>
+	keyString.split('.').reduce((obj, key) => obj[key], data);
+
 const addValuesToTable = (table, data) => {
-	const valuesToPush = table.options.head.map(key => data[key]);
+	const nestedValues = table.options.head.map(getNestedValue(data));
+	const valuesToPush = nestedValues.map(
+		value => (Array.isArray(value) ? value.join('\n') : value),
+	);
 	return valuesToPush.length && table.push(valuesToPush);
 };
 
 const reduceKeys = (keys, row) => {
-	const newKeys = Object.keys(row)
-		.filter(key =>
-			!keys.includes(key)
-			&& row[key] !== undefined
-			&& !(row[key] instanceof Error),
-		);
+	const newKeys = Object.keys(row).filter(
+		key =>
+			!keys.includes(key) &&
+			row[key] !== undefined &&
+			!(row[key] instanceof Error),
+	);
 	return keys.concat(newKeys);
 };
 
-export default function tablify(data) {
+const getKeys = data =>
+	Object.entries(data)
+		.map(
+			([parentKey, value]) =>
+				Object.prototype.toString.call(value) === '[object Object]'
+					? getKeys(value).reduce(
+							(nestedKeys, childKey) => [
+								...nestedKeys,
+								`${parentKey}.${childKey}`,
+							],
+							[],
+						)
+					: [parentKey],
+		)
+		.reduce(
+			(flattenedKeys, keysToBeFlattened) => [
+				...flattenedKeys,
+				...keysToBeFlattened,
+			],
+			[],
+		);
+
+const tablify = data => {
 	const dataIsArray = Array.isArray(data);
-	const head = dataIsArray
-		? data.reduce(reduceKeys, [])
-		: Object.keys(data);
-	const table = new Table({ head });
+	const head = dataIsArray ? data.reduce(reduceKeys, []) : getKeys(data);
+
+	const table = new Table({
+		head,
+		chars,
+		style: {
+			head: ['cyan'],
+			border: [],
+		},
+	});
 
 	if (dataIsArray) {
 		data.map(addValuesToTable.bind(null, table));
@@ -44,4 +96,6 @@ export default function tablify(data) {
 	}
 
 	return table;
-}
+};
+
+export default tablify;

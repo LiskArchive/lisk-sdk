@@ -13,22 +13,28 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import os from 'os';
-import fse from 'fs-extra';
-import config from '../utils/env';
-import liskInstance from '../utils/liskInstance';
 import { CONFIG_VARIABLES } from '../utils/constants';
+import config, { configFilePath } from '../utils/config';
+import { FileSystemError, ValidationError } from '../utils/error';
+import { writeJSONSync } from '../utils/fs';
+import { createCommand } from '../utils/helpers';
+import liskAPIInstance from '../utils/api';
 
-const configFilePath = `${os.homedir()}/.lisky/config.json`;
+const description = `Sets configuration <variable> to <value>. Variables available: json, name, testnet. Configuration is persisted in \`${configFilePath}\`.
 
-const writeConfigToFile = (vorpal, newConfig) => {
+	Examples:
+	- set json true
+	- set name my_custom_lisky
+`;
+
+const WRITE_FAIL_WARNING =
+	'Config file could not be written: your changes will not be persisted.';
+
+const writeConfigToFile = newConfig => {
 	try {
-		fse.writeJsonSync(configFilePath, newConfig, {
-			spaces: '\t',
-		});
+		writeJSONSync(configFilePath, newConfig);
 		return true;
 	} catch (e) {
-		vorpal.log(`WARNING: Could not write to \`${configFilePath}\`. Your configuration will not be persisted.`);
 		return false;
 	}
 };
@@ -44,43 +50,65 @@ const setNestedConfigProperty = newValue => (obj, pathComponent, i, path) => {
 	return obj[pathComponent];
 };
 
-const setBoolean = (variable, path) => (vorpal, value) => {
-	if (!checkBoolean(value)) {
-		return `Cannot set ${variable} to ${value}.`;
+const attemptWriteToFile = (variable, value) => {
+	const writeSuccess = writeConfigToFile(config);
+
+	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
+		throw new FileSystemError(WRITE_FAIL_WARNING);
 	}
 
-	const newValue = (value === 'true');
+	const result = {
+		message: `Successfully set ${variable} to ${value}.`,
+	};
+
+	if (!writeSuccess) {
+		result.warning = WRITE_FAIL_WARNING;
+	}
+
+	return result;
+};
+
+const setBoolean = (variable, path) => value => {
+	if (!checkBoolean(value)) {
+		throw new ValidationError('Value must be a boolean.');
+	}
+
+	const newValue = value === 'true';
 	path.reduce(setNestedConfigProperty(newValue), config);
 
 	if (variable === 'testnet') {
-		liskInstance.setTestnet(newValue);
+		liskAPIInstance.setTestnet(newValue);
 	}
 
-	const writeSuccess = writeConfigToFile(vorpal, config);
+	return attemptWriteToFile(variable, value);
+};
 
-	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
-		return `Could not set ${variable} to ${value}.`;
-	}
-	return `Successfully set ${variable} to ${value}.`;
+const setString = (variable, path) => value => {
+	path.reduce(setNestedConfigProperty(value), config);
+	return attemptWriteToFile(variable, value);
 };
 
 const handlers = {
-	json: setBoolean('json output', ['json']),
+	json: setBoolean('json', ['json']),
+	name: setString('name', ['name']),
+	pretty: setBoolean('pretty', ['pretty']),
 	testnet: setBoolean('testnet', ['liskJS', 'testnet']),
 };
 
-const set = vorpal => ({ variable, value }) => {
-	const returnValue = CONFIG_VARIABLES.includes(variable)
-		? handlers[variable](vorpal, value)
-		: 'Unsupported variable name.';
+export const actionCreator = () => async ({ variable, value }) => {
+	if (!CONFIG_VARIABLES.includes(variable)) {
+		throw new ValidationError('Unsupported variable name.');
+	}
 
-	return Promise.resolve(vorpal.activeCommand.log(returnValue));
+	return handlers[variable](value);
 };
 
-export default function setCommand(vorpal) {
-	vorpal
-		.command('set <variable> <value>')
-		.description(`Set configuration <variable> to <value>. Configuration is persisted in \`${configFilePath}\`.`)
-		.autocomplete(CONFIG_VARIABLES)
-		.action(set(vorpal));
-}
+const set = createCommand({
+	command: 'set <variable> <value>',
+	autocomplete: CONFIG_VARIABLES,
+	description,
+	actionCreator,
+	errorPrefix: 'Could not set config variable',
+});
+
+export default set;

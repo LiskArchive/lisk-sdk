@@ -4,7 +4,8 @@ Lisky allows you to communicate with a remote or local node and carry out Lisk-r
 
 [![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisky/development)](https://jenkins.lisk.io/job/lisky/job/development/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
-[![GitHub release](https://img.shields.io/badge/version-0.1.3-blue.svg)](#)
+<a href="https://david-dm.org/LiskHQ/lisky"><img src="https://david-dm.org/LiskHQ/lisky.svg" alt="Dependency Status"></a>
+<a href="https://david-dm.org/LiskHQ/lisky/?type=dev"><img src="https://david-dm.org/LiskHQ/lisky/dev-status.svg" alt="devDependency Status"></a>
 
 ## Prerequisites
 
@@ -29,6 +30,7 @@ $ git clone https://github.com/LiskHQ/lisky.git
 $ cd lisky
 $ npm install
 ```
+
 Before running the executable you will need to build Lisky:
 
 ```sh
@@ -60,7 +62,6 @@ $ npm link
 ```
 
 This will also add `lisky` to your PATH, but you won't have to repeat the process if you pull or create a new build. Be aware that any previous globally installed lisky version will get overridden with this local version.
-
 
 ## Usage
 
@@ -112,28 +113,27 @@ $ lisky get delegate lightcurve --json
 
 Configuration is stored in a config file placed in the user's home directory (run `help set` to see the exact location). If this is unavailable a default configuration is used. The following settings can be updated (and will be persisted if possible):
 
-| Command | Description |
-| --- | --- |
-| <code>set json true&#124;false</code> | Sets default to json output (true) or text output (false) |
-| <code>set testnet true&#124;false</code> | Set default to testnet (true) or mainnet (false) |
-
+| Command                                  | Description                                               |
+| ---------------------------------------- | --------------------------------------------------------- |
+| <code>set json true&#124;false</code>    | Sets default to JSON output (true) or text output (false) |
+| <code>set testnet true&#124;false</code> | Set default to testnet (true) or mainnet (false)          |
 
 ## Documentation
 
 Further information can be found on our documentation site:
 
-- [Introduction](https://docs.lisk.io/v1.3/docs/lisky-introduction)
-- [Pre-Installation](https://docs.lisk.io/v1.3/docs/lisky-pre-installation)
-- [Installation](https://docs.lisk.io/v1.3/docs/lisky-installation)
-    - [Install-from-NPM](https://docs.lisk.io/v1.3/docs/lisky-installation-npm)
-    - [Install-from-Source](https://docs.lisk.io/v1.3/docs/lisky-installation-source)
-- [Upgrading](https://docs.lisk.io/v1.3/docs/lisky-upgrading)
-    - [Upgrading-from-NPM](https://docs.lisk.io/v1.3/docs/lisky-upgrading-npm)
-    - [Upgrading-from-Source](https://docs.lisk.io/v1.3/docs/lisky-upgrading-source)
-- [Usage](https://docs.lisk.io/v1.3/docs/lisky-usage)
-    - [Configuration](https://docs.lisk.io/v1.3/docs/lisky-usage-configuration)
-    - [Usage](https://docs.lisk.io/v1.3/docs/lisky-usage-interactive-and-noninteractive)
-    - [Commands](https://docs.lisk.io/v1.3/docs/lisky-usage-commands)
+* [Introduction](https://docs.lisk.io/v1.3/docs/lisky-introduction)
+* [Pre-Installation](https://docs.lisk.io/v1.3/docs/lisky-pre-installation)
+* [Installation](https://docs.lisk.io/v1.3/docs/lisky-installation)
+  * [Install-from-NPM](https://docs.lisk.io/v1.3/docs/lisky-installation-npm)
+  * [Install-from-Source](https://docs.lisk.io/v1.3/docs/lisky-installation-source)
+* [Upgrading](https://docs.lisk.io/v1.3/docs/lisky-upgrading)
+  * [Upgrading-from-NPM](https://docs.lisk.io/v1.3/docs/lisky-upgrading-npm)
+  * [Upgrading-from-Source](https://docs.lisk.io/v1.3/docs/lisky-upgrading-source)
+* [Usage](https://docs.lisk.io/v1.3/docs/lisky-usage)
+  * [Configuration](https://docs.lisk.io/v1.3/docs/lisky-usage-configuration)
+  * [Usage](https://docs.lisk.io/v1.3/docs/lisky-usage-interactive-and-noninteractive)
+  * [Commands](https://docs.lisk.io/v1.3/docs/lisky-usage-commands)
 
 ## Get Involved
 
@@ -151,8 +151,8 @@ $ npm test
 
 ## Authors
 
-- Tobias Schwarz <tobias@lightcurve.io>
-- Will Clark <will@lightcurve.io>
+* Tobias Schwarz <mailto:tobias@lightcurve.io>
+* Will Clark <mailto:will@lightcurve.io>
 
 ## License
 

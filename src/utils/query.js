@@ -13,27 +13,68 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from './liskInstance';
+import liskAPIInstance from './api';
 
 class Query {
 	constructor() {
-		this.client = lisk;
+		this.client = liskAPIInstance;
+		this.handlers = {
+			account: (account, options) => this.getAccount(account, options),
+			block: (block, options) => this.getBlock(block, options),
+			delegate: (delegate, options) => this.getDelegate(delegate, options),
+			transaction: (transaction, options) =>
+				this.getTransaction(transaction, options),
+		};
+
+		this.testnetCache = null;
 	}
 
-	isBlockQuery(input) {
-		return this.client.sendRequest('blocks/get', { id: input });
+	cacheTestnetSetting() {
+		this.testnetCache = this.client.testnet;
 	}
 
-	isAccountQuery(input) {
-		return this.client.sendRequest('accounts', { address: input });
+	resetTestnetSetting() {
+		this.client.setTestnet(this.testnetCache);
+		this.testnetCache = null;
 	}
 
-	isTransactionQuery(input) {
-		return this.client.sendRequest('transactions/get', { id: input });
+	sendRequest(endpoint, parameters, { testnet } = {}) {
+		const overrideTestnetSetting =
+			typeof testnet === 'boolean' && this.client.testnet !== testnet;
+
+		const handleSuccess = async result => {
+			if (overrideTestnetSetting) this.resetTestnetSetting();
+			return result;
+		};
+		const handleFailure = async result => {
+			if (overrideTestnetSetting) this.resetTestnetSetting();
+			throw result;
+		};
+
+		if (overrideTestnetSetting) {
+			this.cacheTestnetSetting();
+			this.client.setTestnet(testnet);
+		}
+
+		return this.client
+			.sendRequest(endpoint, parameters)
+			.then(handleSuccess, handleFailure);
 	}
 
-	isDelegateQuery(input) {
-		return this.client.sendRequest('delegates/get', { username: input });
+	getBlock(input, options) {
+		return this.sendRequest('blocks/get', { id: input }, options);
+	}
+
+	getAccount(input, options) {
+		return this.sendRequest('accounts', { address: input }, options);
+	}
+
+	getTransaction(input, options) {
+		return this.sendRequest('transactions/get', { id: input }, options);
+	}
+
+	getDelegate(input, options) {
+		return this.sendRequest('delegates/get', { username: input }, options);
 	}
 }
 

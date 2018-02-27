@@ -13,23 +13,43 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import os from 'os';
 import 'babel-polyfill';
-import should from 'should';
+import chai, { Assertion } from 'chai';
+import 'chai/register-expect';
+import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
 import sinon from 'sinon';
-import '../src/utils/env';
+import mochaBDD from 'mocha-bdd';
 
 process.env.NODE_ENV = 'test';
+process.env.LISKY_CONFIG_DIR =
+	process.env.LISKY_CONFIG_DIR || `${os.homedir()}/.lisky`;
 
-should.use((_, Assertion) => {
-	Assertion.add('hexString', function hexString() {
-		this.params = {
-			operator: 'to be hex string',
-		};
-		(Buffer.from(this.obj, 'hex').toString('hex'))
-			.should.equal(this.obj);
-	});
+/* eslint-disable no-underscore-dangle */
+Assertion.addMethod('matchAny', function handleAssert(matcher) {
+	const obj = this._obj;
+
+	new Assertion(obj).to.be.an('array');
+	const result = obj.some(val => matcher(val));
+	this.assert(
+		result,
+		'expected #{this} to match at least once',
+		'expected #{this} not to match',
+	);
 });
 
-// See https://github.com/shouldjs/should.js/issues/41
-Object.defineProperty(global, 'should', { value: should });
+Assertion.addMethod('customError', function handleAssert(error) {
+	const obj = this._obj;
+	new Assertion(obj).to.be.instanceOf(Error);
+	new Assertion(obj.name).to.equal(error.name);
+	new Assertion(obj.message).to.equal(error.message);
+});
+/* eslint-enable no-underscore-dangle */
+
+mochaBDD();
+
+[sinonChai, chaiAsPromised].forEach(chai.use);
+
 global.sinon = sinon;
+global.sandbox = sinon.sandbox.create();

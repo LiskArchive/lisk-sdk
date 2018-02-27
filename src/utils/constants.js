@@ -13,7 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const COMMAND_TYPES = ['account', 'address', 'block', 'delegate', 'transaction'];
+export const COMMAND_TYPES = [
+	'account',
+	'address',
+	'block',
+	'delegate',
+	'transaction',
+];
 
 export const SINGULARS = {
 	accounts: 'account',
@@ -23,4 +29,4 @@ export const SINGULARS = {
 	transactions: 'transaction',
 };
 
-export const CONFIG_VARIABLES = ['json', 'testnet'];
+export const CONFIG_VARIABLES = ['json', 'name', 'pretty', 'testnet'];

@@ -14,12 +14,69 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-var lisky;
+var os = require('os');
+var lockfile = require('lockfile');
+var semver = require('semver');
 
-process.env.NON_INTERACTIVE_MODE = !(process.argv[1].endsWith('lisky') && process.argv.length === 2);
+var packageJSON = require('../package.json');
+
+var configLockfilePath;
+var lisky;
+var execFile;
+var firstCommandWords;
+var nonInteractiveLiskyArg = process.argv[1];
+var nonInteractiveCommandArg = process.argv[2];
+var nonInteractiveOptions;
+var commandArgIsFilePath = false;
+
+process.env.LISKY_CONFIG_DIR = process.env.LISKY_CONFIG_DIR || `${os.homedir()}/.lisky`;
+configLockfilePath = `${process.env.LISKY_CONFIG_DIR}/config.lock`;
+
+process.env.NON_INTERACTIVE_MODE = !(nonInteractiveLiskyArg.endsWith('lisky') && process.argv.length === 2);
+
+function exit(code) {
+	process.exit(code || 0);
+}
+
+if (!semver.satisfies(process.version, packageJSON.engines.node)) {
+	console.error('\x1b[31m', `ERROR: Requires Node.js version ${semver.clean(packageJSON.engines.node)}, but was started with version ${semver.clean(process.version)}.`, '\x1b[0m');
+	exit();
+}
+
+// eslint-disable-next-line default-case
+switch (process.argv[2]) {
+case 'clean':
+	console.warn('\x1b[33m', 'WARNING: Attempting to remove configuration lockfile. I hope you know what you’re doing.', '\x1b[0m');
+	lockfile.unlockSync(configLockfilePath);
+	exit();
+	break;
+case '--version':
+case '-v':
+	console.info(packageJSON.version);
+	exit();
+	break;
+default:
+	// continue...
+}
 
 lisky = require('../dist').default;
+execFile = require('../dist/execFile').default;
 
-module.exports = process.env.NON_INTERACTIVE_MODE === 'true'
-	? lisky.parse(process.argv)
-	: lisky;
+// eslint-disable-next-line no-underscore-dangle
+firstCommandWords = lisky.commands.map(c => c._name.split(' ')[0]);
+
+if (firstCommandWords.indexOf(nonInteractiveCommandArg) === -1) {
+	commandArgIsFilePath = true;
+	try {
+		nonInteractiveOptions = process.argv.slice(3);
+		execFile(lisky, nonInteractiveCommandArg, nonInteractiveOptions, exit);
+	} catch (error) {
+		commandArgIsFilePath = false;
+	}
+}
+
+if (!commandArgIsFilePath) {
+	module.exports = process.env.NON_INTERACTIVE_MODE === 'true'
+		? (lisky.parse(process.argv))
+		: lisky;
+}

@@ -13,56 +13,48 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import config from '../utils/env';
+import { COMMAND_TYPES, SINGULARS } from '../utils/constants';
+import { ValidationError } from '../utils/error';
+import { createCommand, deAlias, processQueryResult } from '../utils/helpers';
 import commonOptions from '../utils/options';
 import query from '../utils/query';
-import { printResult } from '../utils/print';
-import {
-	COMMAND_TYPES,
-	SINGULARS,
-} from '../utils/constants';
-import {
-	deAlias,
-	shouldUseJsonOutput,
-} from '../utils/helpers';
 
-const handlers = {
-	addresses: address => query.isAccountQuery(address),
-	accounts: accounts => query.isAccountQuery(accounts),
-	blocks: blocks => query.isBlockQuery(blocks),
-	delegates: delegates => query.isDelegateQuery(delegates),
-	transactions: transactions => query.isTransactionQuery(transactions),
+const description = `Gets an array of information from the blockchain. Types available: accounts, addresses, blocks, delegates, transactions.
+
+	Examples:
+	- list delegates lightcurve tosch
+	- list blocks 5510510593472232540 16450842638530591789
+`;
+
+export const actionCreator = () => async ({
+	type,
+	inputs,
+	options: { testnet },
+}) => {
+	const singularType = Object.keys(SINGULARS).includes(type)
+		? SINGULARS[type]
+		: type;
+
+	if (!COMMAND_TYPES.includes(singularType)) {
+		throw new ValidationError('Unsupported type.');
+	}
+
+	const queries = inputs.map(input =>
+		query.handlers[deAlias(singularType)](input, { testnet }),
+	);
+
+	return Promise.all(queries).then(results =>
+		results.map(processQueryResult(singularType)),
+	);
 };
 
-const processResults = (useJsonOutput, vorpal, type, results) => {
-	const resultsToPrint = results.map(result => (
-		result.error
-			? result
-			: result[type]
-	));
-	return printResult(vorpal, { json: useJsonOutput })(resultsToPrint);
-};
+const list = createCommand({
+	command: 'list <type> <inputs...>',
+	autocomplete: COMMAND_TYPES,
+	description,
+	actionCreator,
+	options: [commonOptions.testnet],
+	errorPrefix: 'Could not list',
+});
 
-const list = vorpal => ({ type, variadic, options }) => {
-	const singularType = SINGULARS[type];
-	const useJsonOutput = shouldUseJsonOutput(config, options);
-
-	const makeCalls = () => variadic.map(input => handlers[type](input));
-
-	return COMMAND_TYPES.includes(singularType)
-		? Promise.all(makeCalls())
-			.then(processResults.bind(null, useJsonOutput, vorpal, deAlias(singularType)))
-			.catch(e => e)
-		: Promise.resolve(vorpal.activeCommand.log('Unsupported type.'));
-};
-
-export default function listCommand(vorpal) {
-	vorpal
-		.command('list <type> <variadic...>')
-		.option(...commonOptions.json)
-		.option(...commonOptions.noJson)
-		.description('Get information from <type> with parameters <input, input, ...>.  \n Types available: accounts, addresses, blocks, delegates, transactions \n E.g. list delegates lightcurve tosch \n E.g. list blocks 5510510593472232540 16450842638530591789')
-		.description('Get information from <type> with parameters <input, input, ...>.\n  Types available: accounts, addresses, blocks, delegates, transactions\n  Example: list delegates lightcurve tosch\n  Example: list blocks 5510510593472232540 16450842638530591789')
-		.autocomplete(COMMAND_TYPES)
-		.action(list(vorpal));
-}
+export default list;

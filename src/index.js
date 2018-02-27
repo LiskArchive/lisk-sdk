@@ -13,48 +13,53 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import chalk from 'chalk';
 import 'babel-polyfill';
+import fs from 'fs';
 import path from 'path';
-import fse from 'fs-extra';
 import vorpal from 'vorpal';
 import { version } from '../package.json';
-import config from './utils/env';
+import config from './utils/config';
 
+const name = config.name || 'lisky';
 const lisky = vorpal();
 
 const commandsDir = path.join(__dirname, 'commands');
 
-fse.readdirSync(commandsDir).forEach((command) => {
+fs.readdirSync(commandsDir).forEach(command => {
 	const commandPath = path.join(commandsDir, command);
 	// eslint-disable-next-line global-require, import/no-dynamic-require
 	const commandModule = require(commandPath);
 	lisky.use(commandModule.default);
 });
 
-const logo = `
+const copyright = chalk.dim(`Lisky  Copyright (C) 2017  Lisk Foundation
+This program comes with ABSOLUTELY NO WARRANTY; for details type \`show w\`.
+This is free software, and you are welcome to redistribute it under certain conditions; type \`show c\` for details.
+`);
+
+const logo = chalk.rgb(36, 117, 185)(`
  _ _     _
 | (_)___| | ___   _
 | | / __| |/ / | | |
 | | \\__ \\   <| |_| |
 |_|_|___/_|\\_\\\\__, |
               |___/
-`;
+`);
 
 const message = `
-Running v${version}. Copyright (C) 2017 Lisk Foundation
+Running v${version}.
 Type \`help\` to get started.
 `;
-const intro = `${logo}${message}`;
+const intro = `${copyright}${logo}${message}`;
 
-lisky
-	.delimiter('lisky>')
-	.history('lisky');
+lisky.delimiter(`${name}>`).history(name);
 
 if (process.env.NON_INTERACTIVE_MODE !== 'true') {
 	lisky.log(intro).show();
 }
 
 lisky.find('help').alias('?');
-lisky.find('exit').description(`Exits ${config.name}.`);
+lisky.find('exit').description(`Exits ${name}.`);
 
 export default lisky;

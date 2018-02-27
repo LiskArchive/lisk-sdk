@@ -1,51 +1,50 @@
-node('lisky-01'){
-  lock(resource: "lisky-01", inversePrecedence: true) {
-    stage ('Prepare Workspace') {
-      deleteDir()
-      checkout scm
-    }
-
-    stage ('Build Dependencies') {
-      try {
-        sh '''#!/bin/bash
-        # Install Deps
-        npm install --verbose
-        cp ~/.coveralls.yml-lisky .coveralls.yml
-        '''
-      } catch (err) {
-        currentBuild.result = 'FAILURE'
-        error('Stopping build, installation failed')
-      }
-    }
-
-    stage ('Run Eslint') {
-      try {
-        sh '''#!/bin/bash
-        # Run Eslint
-        grunt eslint
-        '''
-      } catch (err) {
-        currentBuild.result = 'FAILURE'
-        error('Stopping build, tests failed')
-      }
-    }
-
-    stage ('Run tests') {
-      try {
-        sh '''#!/bin/bash
-        # Run Tests
-        npm run test
-        '''
-      } catch (err) {
-        currentBuild.result = 'FAILURE'
-        error('Stopping build, tests failed')
-      }
-    }
-
-    stage ('Set milestone') {
-      milestone 1
-      deleteDir()
-      currentBuild.result = 'SUCCESS'
-    }
-  }
+pipeline {
+	agent { node { label 'lisky' } }
+	stages {
+		stage('Install dependencies') {
+			steps {
+				sh 'npm install --verbose'
+			}
+		}
+		stage('Run lint') {
+			steps {
+				ansiColor('xterm') {
+					sh 'npm run lint'
+				}
+			}
+		}
+		stage('Build') {
+			steps {
+				sh 'npm run build'
+			}
+		}
+		stage('Run tests') {
+			steps {
+				ansiColor('xterm') {
+					sh 'LISKY_CONFIG_DIR=$WORKSPACE/.lisky npm run test'
+					sh '''
+					cp ~/.coveralls.yml-lisky .coveralls.yml
+					npm run cover
+					'''
+				}
+			}
+		}
+	}
+	post {
+		success {
+			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build passed.', status: 'SUCCESS'
+			dir('node_modules') {
+				deleteDir()
+			}
+		}
+		failure {
+			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build failed.', status: 'FAILURE'
+		}
+		aborted {
+			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build was aborted.', status: 'ERROR'
+		}
+		always {
+			sh 'rm -f $WORKSPACE/.lisky/config.lock'
+		}
+	}
 }

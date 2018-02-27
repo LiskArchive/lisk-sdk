@@ -13,14 +13,51 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import chalk from 'chalk';
+import stripANSI from 'strip-ansi';
+import config from './config';
+import { shouldUseJSONOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 
-// eslint-disable-next-line import/prefer-default-export
-export const printResult = (vorpal, { json } = {}) => (result) => {
-	const output = json
-		? JSON.stringify(result)
-		: tablify(result).toString();
+const removeANSI = result =>
+	Object.entries(result).reduce(
+		(strippedResult, [key, value]) =>
+			Object.assign({}, strippedResult, { [key]: stripANSI(value) }),
+		{},
+	);
 
-	vorpal.activeCommand.log(output);
-	return result;
+export const printResult = (vorpal, options = {}) =>
+	function print(result) {
+		const useJSONOutput = shouldUseJSONOutput(config, options);
+		const prettifyOutput = shouldUsePrettyOutput(config, options);
+		const resultToPrint = useJSONOutput ? removeANSI(result) : result;
+
+		const output = useJSONOutput
+			? JSON.stringify(resultToPrint, null, prettifyOutput ? '\t' : null)
+			: tablify(resultToPrint).toString();
+
+		const logger = this && this.log ? this : vorpal;
+		logger.log(output);
+	};
+
+// TODO: Include commented placeholders when we support Node 8
+const PLACEHOLDERS = [
+	'%s',
+	'%d',
+	// '%i',
+	// '%f',
+	'%j',
+	// '%o',
+	// '%O',
+];
+
+const wrapLogFunction = (fn, colour) => (...args) => {
+	const colourArg = arg => chalk[colour](arg);
+	const isPlaceholderPresent = placeholder => args[0].includes(placeholder);
+	return PLACEHOLDERS.some(isPlaceholderPresent)
+		? fn(colourArg(args[0]), ...args.slice(1))
+		: fn(...args.map(colourArg));
 };
+
+export const logWarning = wrapLogFunction(console.warn, 'yellow');
+export const logError = wrapLogFunction(console.error, 'red');
