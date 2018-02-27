@@ -12,7 +12,7 @@ afterEach(function globalAfterEach() {
 	return sandbox.restore();
 });
 
-after(done => {
+after(() => {
 	const configLockfilePath = `${process.env.LISKY_CONFIG_DIR}/config.lock`;
-	lockfile.unlock(configLockfilePath, done);
+	return lockfile.unlockSync(configLockfilePath);
 });
