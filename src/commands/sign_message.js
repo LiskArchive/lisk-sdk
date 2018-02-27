@@ -13,36 +13,26 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../utils/cryptoModule';
+import cryptography from '../utils/cryptography';
 import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
 
-const description = `Decrypts a previously encrypted message from a given sender public key for a known nonce using your secret passphrase.
+const description = `Sign a message using your secret passphrase.
 
-	Example: decrypt message bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228
+	Example: sign message 'Hello world'
 `;
 
-const processInputs = (nonce, senderPublicKey, message) => ({
-	passphrase,
-	data,
-}) =>
-	cryptoModule.decryptMessage({
-		cipher: message || data,
-		nonce,
+const processInputs = message => ({ passphrase, data }) =>
+	cryptography.signMessage({
+		message: message || data,
 		passphrase,
-		senderPublicKey,
 	});
 
-export const actionCreator = vorpal => async ({
-	message,
-	nonce,
-	senderPublicKey,
-	options,
-}) => {
-	const passphraseSource = options.passphrase;
+export const actionCreator = vorpal => async ({ message, options }) => {
 	const messageSource = options.message;
+	const passphraseSource = options.passphrase;
 
 	if (!message && !messageSource) {
 		throw new ValidationError('No message was provided.');
@@ -51,21 +41,22 @@ export const actionCreator = vorpal => async ({
 	return getInputsFromSources(vorpal, {
 		passphrase: {
 			source: passphraseSource,
+			repeatPrompt: true,
 		},
 		data: message
 			? null
 			: {
 					source: messageSource,
 				},
-	}).then(processInputs(nonce, senderPublicKey, message));
+	}).then(processInputs(message));
 };
 
-const decryptMessage = createCommand({
-	command: 'decrypt message <senderPublicKey> <nonce> [message]',
+const signMessage = createCommand({
+	command: 'sign message [message]',
 	description,
 	actionCreator,
 	options: [commonOptions.passphrase, commonOptions.message],
-	errorPrefix: 'Could not decrypt message',
+	errorPrefix: 'Could not sign message',
 });
 
-export default decryptMessage;
+export default signMessage;

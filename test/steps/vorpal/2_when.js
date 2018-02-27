@@ -14,7 +14,7 @@
  *
  */
 import { wrapActionCreator, createCommand } from '../../../src/utils/helpers';
-import execFile from '../../../src/execFile';
+import execFile from '../../../src/exec_file';
 import { getFirstQuotedString } from '../utils';
 
 export function theActionIsCalledWithTheSignatureAndTheStringifiedErrorObjectViaVorpalStdIn() {

@@ -14,12 +14,12 @@
  *
  */
 import lisk from 'lisk-js';
-import cryptoInstance from '../../../src/utils/cryptoModule';
+import cryptography from '../../../src/utils/cryptography';
 import { getFirstQuotedString } from '../utils';
 
 export function itShouldSignTheMessageWithThePassphrase() {
 	const { message, passphrase } = this.test.ctx;
-	return cryptoInstance.signMessage.should.be.calledWithExactly({
+	return cryptography.signMessage.should.be.calledWithExactly({
 		message,
 		passphrase,
 	});
@@ -37,7 +37,7 @@ export function itShouldResolveToTheResultOfDecryptingThePassphrase() {
 
 export function itShouldDecryptThePassphraseUsingTheIVAndThePassword() {
 	const { cipherAndIv: { cipher, iv }, password } = this.test.ctx;
-	return cryptoInstance.decryptPassphrase.should.be.calledWithExactly({
+	return cryptography.decryptPassphrase.should.be.calledWithExactly({
 		cipher,
 		iv,
 		password,
@@ -53,7 +53,7 @@ export function itShouldResolveToTheResultOfEncryptingThePassphraseCombinedWithT
 
 export function itShouldEncryptThePassphraseUsingThePassword() {
 	const { passphrase, password } = this.test.ctx;
-	return cryptoInstance.encryptPassphrase.should.be.calledWithExactly({
+	return cryptography.encryptPassphrase.should.be.calledWithExactly({
 		passphrase,
 		password,
 	});
@@ -66,7 +66,7 @@ export function itShouldResolveToTheResultOfEncryptingThePassphrase() {
 
 export function itShouldDecryptTheMessageUsingTheNonceThePassphraseAndTheSenderPublicKey() {
 	const { message, nonce, passphrase, senderPublicKey } = this.test.ctx;
-	return cryptoInstance.decryptMessage.should.be.calledWithExactly({
+	return cryptography.decryptMessage.should.be.calledWithExactly({
 		cipher: message,
 		nonce,
 		passphrase,
@@ -81,7 +81,7 @@ export function itShouldResolveToTheResultOfDecryptingTheMessage() {
 
 export function itShouldEncryptTheMessageWithThePassphraseForTheRecipient() {
 	const { message, passphrase, recipient } = this.test.ctx;
-	return cryptoInstance.encryptMessage.should.be.calledWithExactly({
+	return cryptography.encryptMessage.should.be.calledWithExactly({
 		message,
 		passphrase,
 		recipient,
@@ -129,13 +129,13 @@ export function liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey() {
 }
 
 export function theCryptoInstanceShouldHaveName() {
-	const { cryptoInstance: crypto } = this.test.ctx;
+	const { cryptography: crypto } = this.test.ctx;
 	const name = getFirstQuotedString(this.test.title);
 	return crypto.constructor.should.have.property('name').equal(name);
 }
 
 export function theCryptoInstanceShouldHaveLiskJSAsAProperty() {
-	const { cryptoInstance: crypto } = this.test.ctx;
+	const { cryptography: crypto } = this.test.ctx;
 	return crypto.should.have.property('liskCrypto').equal(lisk.crypto);
 }
 

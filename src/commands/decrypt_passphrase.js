@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../utils/cryptoModule';
+import cryptography from '../utils/cryptography';
 import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources, { getFirstLineFromString } from '../utils/input';
@@ -34,7 +34,7 @@ const passphraseOptionDescription = `Specifies a source for providing an encrypt
 `;
 
 const processInputs = (iv, passphrase) => ({ password, data }) =>
-	cryptoModule.decryptPassphrase({
+	cryptography.decryptPassphrase({
 		cipher: passphrase || getFirstLineFromString(data),
 		iv,
 		password,

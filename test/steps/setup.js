@@ -19,7 +19,7 @@ import readline from 'readline';
 import lockfile from 'lockfile';
 import lisk from 'lisk-js';
 import liskAPIInstance from '../../src/utils/api';
-import cryptoInstance from '../../src/utils/cryptoModule';
+import cryptography from '../../src/utils/cryptography';
 import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
 import * as input from '../../src/utils/input';
@@ -117,7 +117,7 @@ const setUpCryptoStubs = () => {
 		'getKeys',
 		'getAddressFromPublicKey',
 		'signMessage',
-	].forEach(methodName => sandbox.stub(cryptoInstance, methodName));
+	].forEach(methodName => sandbox.stub(cryptography, methodName));
 };
 
 const setUpHelperStubs = () => {
