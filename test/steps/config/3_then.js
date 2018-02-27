@@ -19,7 +19,9 @@ import { logError, logWarning } from '../../../src/utils/print';
 export function itShouldUpdateTheConfigVariableToTheValue() {
 	const { config, value } = this.test.ctx;
 	const variable = getFirstQuotedString(this.test.title);
-	return config.should.have.property(variable).equal(value);
+	return expect(config)
+		.to.have.property(variable)
+		.equal(value);
 }
 
 export function itShouldUpdateTheConfigNestedVariableToBoolean() {
@@ -30,54 +32,56 @@ export function itShouldUpdateTheConfigNestedVariableToBoolean() {
 		(currentObject, nextKey) => currentObject[nextKey],
 		config,
 	);
-	return value.should.equal(boolean);
+	return expect(value).to.equal(boolean);
 }
 
 export function itShouldUpdateTheConfigVariableToBoolean() {
 	const { config } = this.test.ctx;
 	const variable = getFirstQuotedString(this.test.title);
 	const boolean = getFirstBoolean(this.test.title);
-	return config.should.have.property(variable).equal(boolean);
+	return expect(config)
+		.to.have.property(variable)
+		.equal(boolean);
 }
 
 export function itShouldResolveToTheConfig() {
 	const { returnValue, config } = this.test.ctx;
-	return returnValue.should.eventually.eql(config);
+	return expect(returnValue).to.eventually.eql(config);
 }
 
 export function theDefaultConfigShouldBeExported() {
 	const { config, defaultConfig } = this.test.ctx;
-	return config.should.eql(defaultConfig);
+	return expect(config).to.eql(defaultConfig);
 }
 
 export function theUsersConfigShouldBeExported() {
 	const { config, userConfig } = this.test.ctx;
-	return config.should.eql(userConfig);
+	return expect(config).to.eql(userConfig);
 }
 
 export function theUserShouldBeWarnedThatTheConfigWillNotBePersisted() {
-	return logWarning.should.be.calledWithMatch(
+	return expect(logWarning).to.be.calledWithMatch(
 		/Your configuration will not be persisted\./,
 	);
 }
 
 export function theUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect() {
 	const { filePath } = this.test.ctx;
-	return logError.should.be.calledWithExactly(
+	return expect(logError).to.be.calledWithExactly(
 		`Could not read config file. Please check permissions for ${filePath} or delete the file so we can create a new one from defaults.`,
 	);
 }
 
 export function theUserShouldBeInformedThatTheConfigFileIsNotValidJSON() {
 	const { filePath } = this.test.ctx;
-	return logError.should.be.calledWithExactly(
+	return expect(logError).to.be.calledWithExactly(
 		`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`,
 	);
 }
 
 export function theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath() {
 	const path = getFirstQuotedString(this.test.title);
-	return logError.should.be.calledWithExactly(
+	return expect(logError).to.be.calledWithExactly(
 		`Config lockfile at ${path} found. Are you running Lisky in another process?`,
 	);
 }

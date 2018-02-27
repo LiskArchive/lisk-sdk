@@ -23,7 +23,7 @@ import {
 export function itShouldCreateACastVotesTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAMinus() {
 	const { passphrase, secondPassphrase, unvotePublicKeys } = this.test.ctx;
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
-	return transactions.castVotes.should.be.calledWithExactly({
+	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase,
 		delegates: unvotes,
 		secondPassphrase,
@@ -33,7 +33,7 @@ export function itShouldCreateACastVotesTransactionWithThePassphraseTheSecondPas
 export function itShouldCreateACastVotesTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAPlus() {
 	const { passphrase, secondPassphrase, votePublicKeys } = this.test.ctx;
 	const votes = prependPlusToPublicKeys(votePublicKeys);
-	return transactions.castVotes.should.be.calledWithExactly({
+	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase,
 		delegates: votes,
 		secondPassphrase,
@@ -45,7 +45,7 @@ export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicK
 	const votes = prependPlusToPublicKeys(votePublicKeys);
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
 	const allVotes = [...votes, ...unvotes];
-	return transactions.castVotes.should.be.calledWithExactly({
+	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase,
 		delegates: allVotes,
 		secondPassphrase: null,
@@ -55,7 +55,7 @@ export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicK
 export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublicKeysPrependedWithAMinus() {
 	const { passphrase, unvotePublicKeys } = this.test.ctx;
 	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
-	return transactions.castVotes.should.be.calledWithExactly({
+	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase,
 		delegates: unvotes,
 		secondPassphrase: null,
@@ -65,7 +65,7 @@ export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublic
 export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublicKeysPrependedWithAPlus() {
 	const { passphrase, votePublicKeys } = this.test.ctx;
 	const votes = prependPlusToPublicKeys(votePublicKeys);
-	return transactions.castVotes.should.be.calledWithExactly({
+	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase,
 		delegates: votes,
 		secondPassphrase: null,
@@ -74,7 +74,7 @@ export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublic
 
 export function itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase() {
 	const { passphrase, secondPassphrase, address, amount } = this.test.ctx;
-	return transactions.transfer.should.be.calledWithExactly({
+	return expect(transactions.transfer).to.be.calledWithExactly({
 		recipientId: address,
 		amount,
 		passphrase,
@@ -84,7 +84,7 @@ export function itShouldCreateATransferTransactionUsingTheAddressTheAmountThePas
 
 export function itShouldCreateATransferTransactionUsingTheAddressTheAmountAndThePassphrase() {
 	const { passphrase, address, amount } = this.test.ctx;
-	return transactions.transfer.should.be.calledWithExactly({
+	return expect(transactions.transfer).to.be.calledWithExactly({
 		recipientId: address,
 		amount,
 		passphrase,
@@ -98,14 +98,14 @@ export function itShouldHaveAFunctionForCreatingATypeTransaction() {
 	const transactionFunctionName = getTransactionCreatorFunctionNameByType(
 		transactionType,
 	);
-	return transactionsObject.should.have
-		.property(transactionFunctionName)
+	return expect(transactionsObject)
+		.to.have.property(transactionFunctionName)
 		.and.be.a('function');
 }
 
 export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
-	return transactions.registerSecondPassphrase.should.be.calledWithExactly({
+	return expect(transactions.registerSecondPassphrase).to.be.calledWithExactly({
 		passphrase,
 		secondPassphrase,
 	});
@@ -113,12 +113,12 @@ export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassph
 
 export function itShouldResolveToTheCreatedTransaction() {
 	const { returnValue, createdTransaction } = this.test.ctx;
-	return returnValue.should.eventually.equal(createdTransaction);
+	return expect(returnValue).to.eventually.equal(createdTransaction);
 }
 
 export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndTheDelegateUsername() {
 	const { passphrase, delegateUsername } = this.test.ctx;
-	return transactions.registerDelegate.should.be.calledWithExactly({
+	return expect(transactions.registerDelegate).to.be.calledWithExactly({
 		passphrase,
 		username: delegateUsername,
 		secondPassphrase: null,
@@ -127,7 +127,7 @@ export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndT
 
 export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheSecondPassphraseAndTheDelegateUsername() {
 	const { passphrase, secondPassphrase, delegateUsername } = this.test.ctx;
-	return transactions.registerDelegate.should.be.calledWithExactly({
+	return expect(transactions.registerDelegate).to.be.calledWithExactly({
 		passphrase,
 		username: delegateUsername,
 		secondPassphrase,
@@ -145,7 +145,7 @@ export function itShouldCreateARegisterMultisignatureAccountTransactionUsingTheP
 	const publicKeysWithPlus = keysgroup.map(publicKey => {
 		return `+${publicKey}`;
 	});
-	return transactions.registerMultisignature.should.be.calledWithExactly({
+	return expect(transactions.registerMultisignature).to.be.calledWithExactly({
 		passphrase,
 		secondPassphrase,
 		keysgroup: publicKeysWithPlus,
@@ -159,7 +159,7 @@ export function itShouldCreateARegisterMultisignatureAccountTransactionUsingTheP
 	const publicKeysWithPlus = keysgroup.map(publicKey => {
 		return `+${publicKey}`;
 	});
-	return transactions.registerMultisignature.should.be.calledWithExactly({
+	return expect(transactions.registerMultisignature).to.be.calledWithExactly({
 		passphrase,
 		secondPassphrase: null,
 		keysgroup: publicKeysWithPlus,
