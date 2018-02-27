@@ -25,7 +25,7 @@ const WsTestClient = require('../../../common/ws/client');
 describe('WS transport blocks', () => {
 	let connectedPeer;
 
-	before('establish client WS connection to server', () => {
+	before('establish client WS connection to server', done => {
 		// Setup stub for blocks endpoints
 		const blocksRelatedRPCEndpoints = {
 			blocks: () => {},
@@ -40,6 +40,7 @@ describe('WS transport blocks', () => {
 		const wsTestClient = new WsTestClient();
 		wsTestClient.start();
 		connectedPeer = wsTestClient.client;
+		done();
 	});
 
 	var testBlock = {
