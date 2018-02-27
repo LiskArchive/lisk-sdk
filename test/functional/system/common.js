@@ -64,6 +64,21 @@ function createValidBlock(library, transactions, cb) {
 	});
 }
 
+function getBlocks(library, cb) {
+	library.sequence.add(sequenceCb => {
+		library.db
+			.query('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
+			.then(rows => {
+				sequenceCb();
+				cb(null, _.map(rows, 'id'));
+			})
+			.catch(err => {
+				__testContext.debug(err.stack);
+				cb(err);
+			});
+	});
+}
+
 function forge(library, cb) {
 	function getNextForger(offset, cb) {
 		offset = !offset ? 1 : offset;
@@ -327,6 +342,7 @@ module.exports = {
 	addTransactionToUnconfirmedQueue,
 	addTransactionsAndForge,
 	createValidBlock,
+	getBlocks,
 	getAccountFromDb,
 	getTransactionFromModule,
 	getUnconfirmedTransactionFromModule,
