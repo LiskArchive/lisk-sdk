@@ -21,24 +21,26 @@ const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
 describe('disconnect', () => {
 	let validPeer;
 
-	beforeEach('provide non-mutated peer each time', () => {
+	beforeEach('provide non-mutated peer each time', done => {
 		validPeer = Object.assign({}, prefixedPeer);
+		done();
 	});
 
 	it('should return passed peer', () => {
-		expect(disconnect(validPeer)).equal(validPeer);
+		return expect(disconnect(validPeer)).equal(validPeer);
 	});
 
 	describe('when peer contains socket with disconnect function', () => {
-		beforeEach(() => {
+		beforeEach(done => {
 			validPeer.socket = {
 				disconnect: sinon.spy(),
 			};
+			done();
 		});
 
 		it('should call peer.socket.disconnect', () => {
 			disconnect(validPeer);
-			expect(validPeer.socket.disconnect).calledOnce;
+			return expect(validPeer.socket.disconnect).calledOnce;
 		});
 	});
 });
