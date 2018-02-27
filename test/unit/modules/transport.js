@@ -52,6 +52,7 @@ describe('transport', () => {
 	var block;
 	var peersList;
 	var blocksList;
+	var error;
 
 	const SAMPLE_SIGNATURE_1 = {
 		transactionId: '222675625422353767',
@@ -152,7 +153,6 @@ describe('transport', () => {
 	describe('constructor', () => {
 		describe('library', () => {
 			var localTransportInstance;
-			var error;
 			var transportSelf;
 
 			beforeEach(done => {
@@ -335,8 +335,6 @@ describe('transport', () => {
 		describe('receiveSignatures', () => {
 			describe('for every signature in signatures', () => {
 				describe('when __private.receiveSignature succeeds', () => {
-					var error;
-
 					beforeEach(done => {
 						__private.receiveSignature = sinonSandbox.stub().callsArg(1);
 						__private.receiveSignatures(
@@ -362,8 +360,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when __private.receiveSignature fails', () => {
-					var error;
+				describe('when a call to __private.receiveSignature fails', () => {
 					var receiveSignatureError;
 
 					beforeEach(done => {
@@ -420,8 +417,6 @@ describe('transport', () => {
 
 			describe('when library.schema.validate succeeds', () => {
 				describe('when modules.multisignatures.processSignature succeeds', () => {
-					var error;
-
 					beforeEach(done => {
 						modules.multisignatures.processSignature = sinonSandbox
 							.stub()
@@ -456,7 +451,6 @@ describe('transport', () => {
 				});
 
 				describe('when modules.multisignatures.processSignature fails', () => {
-					var error;
 					var processSignatureError;
 
 					beforeEach(done => {
@@ -480,7 +474,6 @@ describe('transport', () => {
 			});
 
 			describe('when library.schema.validate fails', () => {
-				var error;
 				var validateErr;
 
 				beforeEach(done => {
@@ -541,20 +534,30 @@ describe('transport', () => {
 
 			describe('when library.schema.validate succeeds', () => {
 				describe('for every transaction in transactions', () => {
-					describe('when transaction is undefined', () => {
-						var error;
-
+					describe('when a transaction is undefined', () => {
 						beforeEach(done => {
-							query.transactions[0] = undefined;
-							__private.receiveTransactions(query, peerMock, '', err => {
+							__private.receiveTransactions([undefined], peerMock, '', err => {
 								error = err;
 								done();
 							});
 						});
 
-						it('should call callback with error = "Unable to process transaction. Transaction is undefined."', () => {
-							return expect(error).to.equal(
-								'Unable to process transaction. Transaction is undefined.'
+						// Batch/plural receiveTransactions never fails since it is used for broadcasts.
+						it('should call callback with error = null', () => {
+							return expect(error).to.equal(null);
+						});
+					});
+
+					describe('when all transactions are specified', () => {
+						beforeEach(done => {
+							__private.receiveTransactions(
+								transactions,
+								peerMock,
+								'This is a log message',
+								err => {
+									error = err;
+									done();
+								}
 							);
 						});
 
@@ -564,41 +567,22 @@ describe('transport', () => {
 								.which.equals(true);
 						});
 
-							beforeEach(done => {
-								__private.receiveTransactions(
-									query,
+						it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', () => {
+							return expect(
+								__private.receiveTransaction.calledWith(
+									transactions[0],
 									peerMock,
-									'This is a log message',
-									err => {
-										error = err;
-										done();
-									}
-								);
-							});
-
-							it('should set transaction.bundled = true', () => {
-								return expect(query.transactions[0])
-									.to.have.property('bundled')
-									.which.equals(true);
-							});
-
-							it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', () => {
-								return expect(
-									__private.receiveTransaction.calledWith(
-										query.transactions[0],
-										peerMock,
-										'This is a log message'
-									)
-								).to.be.true;
-							});
+									'This is a log message'
+								)
+							).to.be.true;
+						});
 
 						it('should call callback with error = null', () => {
 							return expect(error).to.equal(null);
 						});
 					});
 
-					describe('when call __private.receiveTransaction fails', () => {
-						var error;
+					describe('when a call to __private.receiveTransaction fails', () => {
 						var receiveTransactionError;
 
 						beforeEach(done => {
@@ -607,16 +591,16 @@ describe('transport', () => {
 								.stub()
 								.callsArgWith(3, receiveTransactionError);
 
-								__private.receiveTransactions(
-									query,
-									peerMock,
-									'This is a log message',
-									err => {
-										error = err;
-										done();
-									}
-								);
-							});
+							__private.receiveTransactions(
+								transactions,
+								peerMock,
+								'This is a log message',
+								err => {
+									error = err;
+									done();
+								}
+							);
+						});
 
 						it('should call library.logger.debug with error and transaction', () => {
 							return expect(
@@ -721,7 +705,6 @@ describe('transport', () => {
 			});
 
 			describe('when library.logic.transaction.objectNormalize throws', () => {
-				var error;
 				var extraLogMessage;
 				var objectNormalizeError;
 
@@ -827,7 +810,6 @@ describe('transport', () => {
 			});
 
 			describe('when modules.transactions.processUnconfirmedTransaction fails', () => {
-				var error;
 				var processUnconfirmedTransactionError;
 
 				beforeEach(done => {
@@ -872,7 +854,6 @@ describe('transport', () => {
 			});
 
 			describe('when modules.transactions.processUnconfirmedTransaction succeeds', () => {
-				var error;
 				var result;
 
 				beforeEach(done => {
@@ -1153,7 +1134,7 @@ describe('transport', () => {
 								{},
 								{
 									api: 'postSignatures',
-									data: { signature: SAMPLE_SIGNATURE_1 },
+									data: { signatures: [SAMPLE_SIGNATURE_1] },
 								}
 							)
 						).to.be.true;
@@ -1217,7 +1198,10 @@ describe('transport', () => {
 						return expect(
 							__private.broadcaster.enqueue.calledWith(
 								{},
-								{ api: 'postTransactions', data: { transaction } }
+								{
+									api: 'postTransactions',
+									data: { transactions: [transaction] },
+								}
 							)
 						).to.be.true;
 					});
@@ -1431,7 +1415,6 @@ describe('transport', () => {
 		});
 
 		describe('shared', () => {
-			var error;
 			var result;
 			var query;
 			var req;
@@ -1743,20 +1726,15 @@ describe('transport', () => {
 						});
 					});
 
-					it(
-						'should call the correct peersFinder function with the sanitized query as argument',
-						() => {
-							expect(error).to.equal(null);
-							expect(
-								modules.peers.shared.getPeers.calledWith({
-									limit: peersList.length,
-								})
-							).to.be.true;
-							return expect(
-								modules.peers.list.called
-							).to.be.false;
-						}
-					);
+					it('should call the correct peersFinder function with the sanitized query as argument', () => {
+						expect(error).to.equal(null);
+						expect(
+							modules.peers.shared.getPeers.calledWith({
+								limit: peersList.length,
+							})
+						).to.be.true;
+						return expect(modules.peers.list.called).to.be.false;
+					});
 
 					describe('when peersFinder fails', () => {
 						var failedToFindPeerError = 'Failed to find peer ...';
@@ -1768,7 +1746,9 @@ describe('transport', () => {
 								},
 							};
 							modules.peers.shared = {
-								getPeers: sinonSandbox.stub().callsArgWith(1, failedToFindPeerError),
+								getPeers: sinonSandbox
+									.stub()
+									.callsArgWith(1, failedToFindPeerError),
 							};
 							modules.peers.list = sinonSandbox
 								.stub()
@@ -1780,34 +1760,32 @@ describe('transport', () => {
 							});
 						});
 
-						it(
-							'should invoke the callback with empty peers list and success set to false',
-							() => {
-								expect(error).to.equal(null);
-								expect(result).to.have.property('peers').which.is.an('array').that.is.empty;
-								expect(result).to.have.property('success').which.is.equal(false);
-								expect(
-									modules.peers.shared.getPeers.calledWith({
-										limit: peersList.length,
-									})
-								).to.be.true;
-								return expect(
-									modules.peers.list.called
-								).to.be.false;
-							}
-						);
+						it('should invoke the callback with empty peers list and success set to false', () => {
+							expect(error).to.equal(null);
+							expect(result)
+								.to.have.property('peers')
+								.which.is.an('array').that.is.empty;
+							expect(result)
+								.to.have.property('success')
+								.which.is.equal(false);
+							expect(
+								modules.peers.shared.getPeers.calledWith({
+									limit: peersList.length,
+								})
+							).to.be.true;
+							return expect(modules.peers.list.called).to.be.false;
+						});
 					});
 
-					it(
-						'should return callback with error = null and result = {success: true, peers: peers}',
-						() => {
-							expect(error).to.be.equal(null);
-							expect(result)
-								.to.have.property('success').which.equals(true);
-							return expect(result)
-								.to.have.property('peers').which.is.an('array').that.is.not.empty;
-						}
-					);
+					it('should return callback with error = null and result = {success: true, peers: peers}', () => {
+						expect(error).to.be.equal(null);
+						expect(result)
+							.to.have.property('success')
+							.which.equals(true);
+						return expect(result)
+							.to.have.property('peers')
+							.which.is.an('array').that.is.not.empty;
+					});
 				});
 			});
 
@@ -1825,14 +1803,15 @@ describe('transport', () => {
 					});
 				});
 
-				it(
-					'should call callback with error = null and result = {success: true, height: modules.system.getHeight()}',
-					() => {
-						expect(error).to.be.equal(null);
-						expect(result).to.have.property('success').which.is.equal(true);
-						return expect(result).to.have.property('height').which.is.equal(currentHeight);
-					}
-				);
+				it('should call callback with error = null and result = {success: true, height: modules.system.getHeight()}', () => {
+					expect(error).to.be.equal(null);
+					expect(result)
+						.to.have.property('success')
+						.which.is.equal(true);
+					return expect(result)
+						.to.have.property('height')
+						.which.is.equal(currentHeight);
+				});
 			});
 
 			describe('status', () => {
@@ -1841,11 +1820,12 @@ describe('transport', () => {
 				beforeEach(done => {
 					headers = {
 						height: 123,
-						broadhash: '258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
+						broadhash:
+							'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
 						nonce: 'sYHEDBKcScaAAAYg',
 						httpPort: 8000,
 						version: 'v0.8.0',
-						os: 'debian'
+						os: 'debian',
 					};
 					req = {};
 					modules.system.headers = sinonSandbox.stub().returns(headers);
@@ -1856,18 +1836,27 @@ describe('transport', () => {
 					});
 				});
 
-				it(
-					'should call callback with error = null and result = {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash(), nonce: modules.system.getNonce()}',
-					() => {
-						expect(error).to.be.equal(null);
-						expect(result).to.have.property('success').which.equals(true);
-						expect(result).to.have.property('height').which.equals(headers.height);
-						expect(result).to.have.property('broadhash').which.equals(headers.broadhash);
-						expect(result).to.have.property('httpPort').which.equals(headers.httpPort);
-						expect(result).to.have.property('version').which.equals(headers.version);
-						return expect(result).to.have.property('os').which.equals(headers.os);
-					}
-				);
+				it('should call callback with error = null and result = {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash(), nonce: modules.system.getNonce()}', () => {
+					expect(error).to.be.equal(null);
+					expect(result)
+						.to.have.property('success')
+						.which.equals(true);
+					expect(result)
+						.to.have.property('height')
+						.which.equals(headers.height);
+					expect(result)
+						.to.have.property('broadhash')
+						.which.equals(headers.broadhash);
+					expect(result)
+						.to.have.property('httpPort')
+						.which.equals(headers.httpPort);
+					expect(result)
+						.to.have.property('version')
+						.which.equals(headers.version);
+					return expect(result)
+						.to.have.property('os')
+						.which.equals(headers.os);
+				});
 			});
 
 			describe('postSignatures', () => {
