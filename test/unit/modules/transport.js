@@ -23,6 +23,7 @@ var constants = require('../../../helpers/constants');
 var generateRandomActivePeer = require('../../fixtures/peers')
 	.generateRandomActivePeer;
 var Block = require('../../fixtures/blocks').Block;
+var Rules = require('../../../api/ws/workers/rules');
 
 var TransportModule = rewire('../../../modules/transport.js');
 
@@ -1067,6 +1068,8 @@ describe('transport', () => {
 					peers: {
 						calculateConsensus: sinonSandbox.stub().returns(100),
 						list: sinonSandbox.stub().callsArgWith(1, null, peersList),
+						update: sinonSandbox.stub().returns(true),
+						remove: sinonSandbox.stub().returns(true),
 					},
 					system: {
 						update: sinonSandbox.stub().callsArg(0),
@@ -1099,6 +1102,7 @@ describe('transport', () => {
 				__private = {
 					broadcaster: {},
 					removePeer: sinonSandbox.stub(),
+					checkInternalAccess: sinonSandbox.stub().callsArg(1),
 				};
 
 				restoreRewiredTransportDeps = TransportModule.__set__({
@@ -1549,7 +1553,7 @@ describe('transport', () => {
 			});
 		});
 
-		describe('shared', () => {
+		describe('Transport.prototype.shared', () => {
 			var result;
 			var query;
 			var req;
@@ -2353,35 +2357,105 @@ describe('transport', () => {
 				});
 			});
 		});
-	});
 
-	describe('Transport.prototype.internal', () => {
-		describe('updatePeer', () => {
-			it('should call __private.checkInternalAccess with query');
+		describe('Transport.prototype.internal', () => {
+			var query;
 
-			describe('when __private.checkInternalAccess fails', () => {
-				it('should call callback wit error = err');
-			});
-
-			describe('when __private.checkInternalAccess succeeds', () => {
-				describe('updateResult', () => {
-					describe('when query.updateType = 0 (insert)', () => {
-						it('should call modules.peers.update with query.peer');
-					});
-
-					describe('when query.updateType = 1 (remove)', () => {
-						it('should call modules.peers.remove with query.peer');
+			describe('updatePeer', () => {
+				beforeEach(done => {
+					query = {
+						updateType: Rules.UPDATES.INSERT,
+						peer: peerMock,
+					};
+					transportInstance.internal.updatePeer(query, err => {
+						error = err;
+						done();
 					});
 				});
 
-				describe('when updateResult = false', () => {
-					it(
-						'should call callback with error = new PeerUpdateError(updateResult, failureCodes.errorMessages[updateResult])'
-					);
+				it('should call __private.checkInternalAccess with query', () => {
+					return expect(__private.checkInternalAccess.calledWith(query)).to.be.true;
 				});
 
-				describe('when updateResult = true', () => {
-					it('should call callback with error = null');
+				describe('when __private.checkInternalAccess fails', () => {
+					var validateErr;
+
+					beforeEach(done => {
+						validateErr = 'Query did not match schema';
+						query = {
+							updateType: Rules.UPDATES.INSERT,
+							peer: peerMock,
+						};
+						__private.checkInternalAccess = sinonSandbox.stub().callsArgWith(1, validateErr);
+						transportInstance.internal.updatePeer(query, err => {
+							error = err;
+							done();
+						});
+					});
+
+					it('should call callback wit error = err', () => {
+						return expect(error).to.equal(validateErr);
+					});
+				});
+
+				describe('when __private.checkInternalAccess succeeds', () => {
+					describe('updateResult', () => {
+						describe('when query.updateType = 0 (insert)', () => {
+							it('should call modules.peers.update with query.peer', () => {
+								return expect(modules.peers.update.calledWith(query.peer)).to.be.true;
+							});
+						});
+
+						describe('when query.updateType = 1 (remove)', () => {
+							beforeEach(done => {
+								query = {
+									updateType: Rules.UPDATES.REMOVE,
+									peer: peerMock,
+								};
+								// modules.peers.remove = sinonSandbox.stub().returns(true);
+								__private.checkInternalAccess = sinonSandbox.stub().callsArg(1);
+								transportInstance.internal.updatePeer(query, err => {
+									error = err;
+									done();
+								});
+							});
+
+							it('should call modules.peers.remove with query.peer', () => {
+								return expect(modules.peers.remove.calledWith(query.peer)).to.be.true;
+							});
+						});
+					});
+
+					describe('when updateResult !== true', () => {
+						var errorCode = 1234;
+						beforeEach(done => {
+							query = {
+								updateType: Rules.UPDATES.REMOVE,
+								peer: peerMock,
+							};
+							modules.peers.remove = sinonSandbox.stub().returns(errorCode);
+							__private.checkInternalAccess = sinonSandbox.stub().callsArg(1);
+							transportInstance.internal.updatePeer(query, err => {
+								error = err;
+								done();
+							});
+						});
+
+						it(
+							'should call callback with error = new PeerUpdateError(updateResult, failureCodes.errorMessages[updateResult])',
+							() => {
+								expect(error).to.have.property('code').which.equals(errorCode);
+								expect(error).to.have.property('message');
+								return expect(error).to.have.property('description');
+							}
+						);
+					});
+
+					describe('when updateResult = true', () => {
+						it('should call callback with error = null', () => {
+							return expect(error).to.equal(null);
+						});
+					});
 				});
 			});
 		});
