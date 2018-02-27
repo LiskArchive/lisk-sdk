@@ -20,7 +20,6 @@ const _ = require('lodash');
 const constants = require('../helpers/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const bson = require('../helpers/bson.js');
-const LiskError = require('../helpers/errors/lisk_error');
 
 // Private fields
 let modules;
@@ -96,7 +95,7 @@ class Broadcaster {
 				self.config.broadcastInterval
 			);
 		} catch (err) {
-			throw new LiskError('Broadcaster:constructor', err);
+			throw new Error('Broadcaster:constructor', err);
 		}
 	}
 
@@ -113,7 +112,7 @@ class Broadcaster {
 			options.immediate = false;
 			return this.queue.push({ params, options });
 		} catch (err) {
-			throw new LiskError('Broadcaster:enqueue', err);
+			throw new Error('Broadcaster:enqueue', err);
 		}
 	}
 
