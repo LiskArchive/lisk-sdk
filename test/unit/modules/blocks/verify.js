@@ -903,4 +903,85 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('__private.verifyBlockSlot', () => {
+		let verifyBlockSlot;
+		let block;
+		let lastBlock;
+		let slots;
+		let slotsTemp;
+
+		beforeEach(done => {
+			slots = BlocksVerify.__get__('slots');
+			slotsTemp = slots;
+			slots.getSlotNumber = input => {
+				return input === undefined ? 4 : input;
+			};
+			done();
+		});
+		afterEach(done => {
+			slots = slotsTemp;
+			done();
+		});
+		describe('fails', () => {
+			describe('when block is undefined', () => {
+				it('should return error', () => {
+					block = undefined;
+					lastBlock = { timestamp: 5 };
+					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyBlockSlot.errors[0]).to.equal(
+						"TypeError: Cannot read property 'timestamp' of undefined"
+					);
+				});
+			});
+			describe('when lastBlock is undefined', () => {
+				it('should return error', () => {
+					block = { timestamp: 5 };
+					lastBlock = undefined;
+					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyBlockSlot.errors[0]).to.equal(
+						"TypeError: Cannot read property 'timestamp' of undefined"
+					);
+				});
+			});
+			describe('when blockSlotNumber > slots.getSlotNumber()', () => {
+				it('should return error', () => {
+					block = { timestamp: 5 };
+					lastBlock = { timestamp: 5 };
+					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyBlockSlot.errors[0]).to.equal(
+						'Invalid block timestamp'
+					);
+				});
+			});
+			describe('when blockSlotNumber <= lastBlockSlotNumber', () => {
+				it('should return error', () => {
+					block = { timestamp: 3 };
+					lastBlock = { timestamp: 3 };
+					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyBlockSlot.errors[0]).to.equal(
+						'Invalid block timestamp'
+					);
+				});
+			});
+		});
+		describe('when succeeds', () => {
+			it('should return no error', () => {
+				block = { timestamp: 4 };
+				lastBlock = { timestamp: 3 };
+				verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
+					errors: [],
+				});
+				return expect(verifyBlockSlot.errors.length).to.equal(0);
+			});
+		});
+	});
 });
