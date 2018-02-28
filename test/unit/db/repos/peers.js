@@ -77,6 +77,7 @@ describe('db', () => {
 			it('should return list of peers', function*() {
 				const peers = [];
 
+				// Prepare some fixture data to seed the database
 				for (let i = 0; i < 5; i++) {
 					const peer = peersFixtures.DBPeer();
 					const peer2 = Object.assign({}, peer);
@@ -115,6 +116,7 @@ describe('db', () => {
 			});
 
 			it('should clear all peers and resolve with empty response', function*() {
+				// Prepare some fixture data to seed the database
 				for (let i = 0; i < 5; i++) {
 					const peer = peersFixtures.DBPeer();
 					peer.broadhash = Buffer.from(peer.broadhash, 'hex');
