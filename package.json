@@ -27,7 +27,6 @@
 	"scripts": {
 		"prestart": "./bin/prestart.sh",
 		"start": "./bin/start.sh",
-		"clean": "rm -rf ./node_modules ./dist-browser/lisk-js.js ./dist-browser/lisk-js.min.js ./dist-node",
 		"format": "prettier --write \"browsertest/{setup,runTests}.js\" \"{cypress/integration,src,test}/**/*.js\"",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
