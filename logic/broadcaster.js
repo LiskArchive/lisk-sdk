@@ -69,10 +69,6 @@ class Broadcaster {
 		self.queue = [];
 		self.config = library.config.broadcasts;
 		self.config.peerLimit = constants.maxPeers;
-		// The below config parallelLimit, relayLimit was missing
-		// so we need to see if it was missing and add specific numbers
-		self.config.parallelLimit = 10;
-		self.config.relayLimit = 10;
 
 		// Broadcast routes
 		self.routes = [
