@@ -58,12 +58,14 @@ describe('Posting transaction (type 0)', () => {
 			postTransaction(transaction, () => {
 				done();
 			});
+			badTransactions.push(transaction);
 		});
 
 		it('when sender has funds should be ok', done => {
 			postTransaction(transaction, () => {
 				done();
 			});
+			goodTransactions.push(transaction);
 		});
 	});
 
