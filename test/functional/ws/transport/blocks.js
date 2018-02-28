@@ -24,6 +24,7 @@ const WsTestClient = require('../../../common/ws/client');
 
 describe('WS transport blocks', () => {
 	let connectedPeer;
+	let connectedPeerHeaders;
 
 	before('establish client WS connection to server', done => {
 		// Setup stub for blocks endpoints
@@ -40,6 +41,9 @@ describe('WS transport blocks', () => {
 		const wsTestClient = new WsTestClient();
 		wsTestClient.start();
 		connectedPeer = wsTestClient.client;
+		connectedPeerHeaders = Object.assign({}, wsTestClient.headers, {
+			ip: '127.0.0.1',
+		});
 		done();
 	});
 
@@ -282,16 +286,33 @@ describe('WS transport blocks', () => {
 	});
 
 	describe('postBlock', () => {
-		it('using no block should fail', done => {
+		it('using no arguments should fail', done => {
 			connectedPeer.rpc.postBlock((err, res) => {
 				__testContext.debug(
 					'> Error / Response:'.grey,
 					JSON.stringify(err),
 					JSON.stringify(res)
 				);
-				expect(err).to.contain('Failed to validate block schema');
+				expect(err).to.contain('RPC response timeout exceeded');
 				done();
 			});
+		});
+
+		it('using no block arguments should fail', done => {
+			connectedPeer.rpc.postBlock(
+				{
+					peer: connectedPeerHeaders,
+				},
+				(err, res) => {
+					__testContext.debug(
+						'> Error / Response:'.grey,
+						JSON.stringify(err),
+						JSON.stringify(res)
+					);
+					expect(err).to.contain('RPC response timeout exceeded');
+					done();
+				}
+			);
 		});
 
 		// ToDo: Important! Sending serialized data does not work
@@ -308,14 +329,35 @@ describe('WS transport blocks', () => {
 						JSON.stringify(err),
 						JSON.stringify(res)
 					);
-					expect(err).to.contain('Failed to validate block schema');
+					expect(err).to.contain('RPC response timeout exceeded');
 					genesisblock.blockSignature = blockSignature;
 					done();
 				}
 			);
 		});
 
-		// ToDo: Important! Sending serialized data does not work
+		it('using valid block schema but no peer should fail', done => {
+			testBlock.transactions.forEach(transaction => {
+				if (transaction.asset && transaction.asset.delegate) {
+					transaction.asset.delegate.publicKey = transaction.senderPublicKey;
+				}
+			});
+			connectedPeer.rpc.postBlock(
+				{
+					block: bson.serialize(testBlock),
+				},
+				(err, res) => {
+					__testContext.debug(
+						'> Error / Response:'.grey,
+						JSON.stringify(err),
+						JSON.stringify(res)
+					);
+					expect(err).to.contain('RPC response timeout exceeded');
+					done();
+				}
+			);
+		});
+
 		it('using valid block schema should be ok', done => {
 			testBlock.transactions.forEach(transaction => {
 				if (transaction.asset && transaction.asset.delegate) {
@@ -323,7 +365,10 @@ describe('WS transport blocks', () => {
 				}
 			});
 			connectedPeer.rpc.postBlock(
-				{ block: bson.serialize(testBlock) },
+				{
+					block: bson.serialize(testBlock),
+					peer: connectedPeerHeaders,
+				},
 				(err, res) => {
 					__testContext.debug(
 						'> Error / Response:'.grey,
