@@ -770,7 +770,7 @@ Peers.prototype.onPeersReady = function() {
 								peer.state > 0 &&
 								(!peer.updated || Date.now() - peer.updated > 3000)
 							) {
-								library.logger.trace('Updating peer', peer);
+								library.logger.trace('Updating peer', peer.object());
 								peer.rpc.status((err, status) => {
 									__private.updatePeerStatus(err, status, peer);
 									if (!err) {
