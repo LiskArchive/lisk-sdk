@@ -174,30 +174,22 @@ __private.receiveSignature = function(query, cb) {
  * @param {Array} transactions - Array of transactions
  * @param {peer} peer - Peer object
  * @param {string} extraLogMessage - Extra log message
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
  */
 __private.receiveTransactions = function(
-	transactions,
+	transactions = [],
 	peer,
-	extraLogMessage,
-	cb
+	extraLogMessage
 ) {
-	async.eachSeries(
-		transactions,
-		(transaction, eachSeriesCb) => {
-			if (transaction) {
-				transaction.bundled = true;
+	transactions.forEach(transaction => {
+		if (transaction) {
+			transaction.bundled = true;
+		}
+		__private.receiveTransaction(transaction, peer, extraLogMessage, err => {
+			if (err) {
+				library.logger.debug(err, transaction);
 			}
-			__private.receiveTransaction(transaction, peer, extraLogMessage, err => {
-				if (err) {
-					library.logger.debug(err, transaction);
-				}
-				return setImmediate(eachSeriesCb);
-			});
-		},
-		err => setImmediate(cb, err)
-	);
+		});
+	});
 };
 
 /**
@@ -744,24 +736,15 @@ Transport.prototype.shared = {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	postTransactions(query, cb) {
+	postTransactions(query) {
 		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {
-				return setImmediate(cb, null, {
-					success: false,
-					message: 'Invalid transactions body',
-				});
+				library.logger.debug('Invalid transactions body', err);
 			}
 			__private.receiveTransactions(
 				query.transactions,
 				query.peer,
-				query.extraLogMessage,
-				err => {
-					if (err) {
-						return setImmediate(cb, null, { success: false, message: err });
-					}
-					return setImmediate(cb, null, { success: true });
-				}
+				query.extraLogMessage
 			);
 		});
 	},
