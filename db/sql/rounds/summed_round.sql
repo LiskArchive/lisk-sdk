@@ -16,7 +16,9 @@
 /*
   DESCRIPTION: ?
 
-  PARAMETERS: ?
+  PARAMETERS:
+  	$1 - activeDelegates - Number of active delegates
+  	$2 - round - Round number
 */
 
 SELECT sum(r.fee)::bigint AS fees, array_agg(r.reward) AS rewards, array_agg(r.pk) AS delegates

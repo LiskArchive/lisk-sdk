@@ -21,6 +21,14 @@ let accounts = [];
 let blocks = [];
 
 class DatabaseSeed {
+	static getBlocks() {
+		return blocks;
+	}
+
+	static getAccounts() {
+		return accounts;
+	}
+
 	static seedAccounts(db) {
 		for (let i = 0; i < 5; i++) {
 			accounts.push(fixtures.accounts.Account());
@@ -126,6 +134,8 @@ class DatabaseSeed {
 			'dapps',
 			'intransfer',
 			'outtransfer',
+			'mem_round',
+			'rounds_rewards',
 		];
 		const promises = [];
 
