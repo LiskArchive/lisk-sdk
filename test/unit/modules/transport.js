@@ -320,17 +320,13 @@ describe('transport', () => {
 		describe('receiveSignatures', () => {
 			describe('for every signature in signatures', () => {
 				describe('when __private.receiveSignature succeeds', () => {
-					var error;
-
 					beforeEach(done => {
 						__private.receiveSignature = sinonSandbox.stub().callsArg(1);
-						__private.receiveSignatures(
-							[SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
-							err => {
-								error = err;
-								done();
-							}
-						);
+						__private.receiveSignatures([
+							SAMPLE_SIGNATURE_1,
+							SAMPLE_SIGNATURE_2,
+						]);
+						done();
 					});
 
 					it('should call __private.receiveSignature with signature', () => {
@@ -341,14 +337,9 @@ describe('transport', () => {
 							__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2)
 						).to.be.true;
 					});
-
-					it('should call callback with error null', () => {
-						return expect(error).to.equal(null);
-					});
 				});
 
 				describe('when __private.receiveSignature fails', () => {
-					var error;
 					var receiveSignatureError;
 
 					beforeEach(done => {
@@ -356,13 +347,11 @@ describe('transport', () => {
 						__private.receiveSignature = sinonSandbox
 							.stub()
 							.callsArgWith(1, receiveSignatureError);
-						__private.receiveSignatures(
-							[SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
-							err => {
-								error = err;
-								done();
-							}
-						);
+						__private.receiveSignatures([
+							SAMPLE_SIGNATURE_1,
+							SAMPLE_SIGNATURE_2,
+						]);
+						done();
 					});
 
 					it('should call library.logger.debug with err and signature', () => {
@@ -381,10 +370,6 @@ describe('transport', () => {
 								SAMPLE_SIGNATURE_2
 							)
 						).to.be.true;
-					});
-
-					it('should call callback with error set to null', () => {
-						return expect(error).to.equal(null);
 					});
 				});
 			});

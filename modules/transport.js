@@ -118,26 +118,17 @@ __private.removePeer = function(options, extraMessage) {
  * Validates signatures body and for each signature calls receiveSignature.
  *
  * @private
- * @implements {library.schema.validate}
  * @implements {__private.receiveSignature}
  * @param {Array} signatures - Array of signatures
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
  */
-__private.receiveSignatures = function(signatures, cb) {
-	async.eachSeries(
-		signatures,
-		(signature, eachSeriesCb) => {
-			__private.receiveSignature(signature, err => {
-				if (err) {
-					library.logger.debug(err, signature);
-				}
-
-				return setImmediate(eachSeriesCb);
-			});
-		},
-		err => setImmediate(cb, err)
-	);
+__private.receiveSignatures = function(signatures = []) {
+	signatures.forEach(signature => {
+		__private.receiveSignature(signature, err => {
+			if (err) {
+				library.logger.debug(err, signature);
+			}
+		});
+	});
 };
 
 /**
@@ -641,20 +632,12 @@ Transport.prototype.shared = {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	postSignatures(query, cb) {
+	postSignatures(query) {
 		library.schema.validate(query, definitions.WSSignaturesList, err => {
 			if (err) {
-				return setImmediate(cb, null, {
-					success: false,
-					message: 'Invalid signatures body',
-				});
+				return library.logger.debug('Invalid signatures body', err);
 			}
-			__private.receiveSignatures(query.signatures, err => {
-				if (err) {
-					return setImmediate(cb, null, { success: false, message: err });
-				}
-				return setImmediate(cb, null, { success: true });
-			});
+			__private.receiveSignatures(query.signatures);
 		});
 	},
 
@@ -739,7 +722,7 @@ Transport.prototype.shared = {
 	postTransactions(query) {
 		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {
-				library.logger.debug('Invalid transactions body', err);
+				return library.logger.debug('Invalid transactions body', err);
 			}
 			__private.receiveTransactions(
 				query.transactions,
