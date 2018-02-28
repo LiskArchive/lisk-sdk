@@ -60,7 +60,7 @@ default:
 }
 
 lisky = require('../dist').default;
-execFile = require('../dist/execFile').default;
+execFile = require('../dist/exec_file').default;
 
 // eslint-disable-next-line no-underscore-dangle
 firstCommandWords = lisky.commands.map(c => c._name.split(' ')[0]);
