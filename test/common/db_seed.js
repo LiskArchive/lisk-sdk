@@ -22,6 +22,7 @@ let blocks = [];
 
 class DatabaseSeed {
 	static seedAccounts(db) {
+		// Prepare some fixture data to seed the database
 		for (let i = 0; i < 5; i++) {
 			accounts.push(fixtures.accounts.Account());
 		}
@@ -35,6 +36,7 @@ class DatabaseSeed {
 	static seedBlocks(db, accounts) {
 		let block;
 
+		// Seed one block per account
 		accounts.forEach((account, index) => {
 			if (index === 0) {
 				block = fixtures.blocks.GenesisBlock({

@@ -86,6 +86,7 @@ describe('db', () => {
 				const account = accountFixtures.Account();
 				yield db.accounts.insert(account);
 
+				// Prepare some fixture data to seed the database
 				for (let i = 0; i < 5; i++) {
 					const dependent = accountFixtures.Dependent({
 						accountId: account.address,
@@ -131,6 +132,7 @@ describe('db', () => {
 				const account = accountFixtures.Account();
 				yield db.accounts.insert(account);
 
+				// Prepare some fixture data to seed the database
 				for (let i = 0; i < 5; i++) {
 					const groupAccount = accountFixtures.Account();
 					yield db.accounts.insert(groupAccount);
