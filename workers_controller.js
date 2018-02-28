@@ -96,22 +96,25 @@ SCWorker.create({
 				],
 			},
 			(err, scope) => {
-				scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE, (req, next) => {
-					scope.handshake(extractHeaders(req), (err, peer) => {
-						if (err) {
-							// Set a custom property on the HTTP request object; we will check this property and handle
-							// this issue later.
-							// Because of WebSocket protocol handshake restrictions, we can't call next(err) here because the
-							// error will not be passed to the client. So we can attach the error to the request and disconnect later during the SC 'handshake' event.
-							req.failedHeadersValidationError = err;
-						} else {
-							req.peerObject = peer.object();
-						}
-						// Pass through the WebSocket MIDDLEWARE_HANDSHAKE successfully, but
-						// we will handle the req.failedQueryValidation error later inside scServer.on('handshake', handler);
-						next();
-					});
-				});
+				scServer.addMiddleware(
+					scServer.MIDDLEWARE_HANDSHAKE_WS,
+					(req, next) => {
+						scope.handshake(extractHeaders(req), (err, peer) => {
+							if (err) {
+								// Set a custom property on the HTTP request object; we will check this property and handle
+								// this issue later.
+								// Because of WebSocket protocol handshake restrictions, we can't call next(err) here because the
+								// error will not be passed to the client. So we can attach the error to the request and disconnect later during the SC 'handshake' event.
+								req.failedHeadersValidationError = err;
+							} else {
+								req.peerObject = peer.object();
+							}
+							// Pass through the WebSocket MIDDLEWARE_HANDSHAKE_WS successfully, but
+							// we will handle the req.failedQueryValidation error later inside scServer.on('handshake', handler);
+							next();
+						});
+					}
+				);
 
 				scServer.on('handshake', socket => {
 					// We can access the HTTP request (which instantiated the WebSocket connection) using socket.request
