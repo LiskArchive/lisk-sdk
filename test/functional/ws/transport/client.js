@@ -17,7 +17,6 @@
 require('../../functional.js');
 const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 const connect = require('../../../../api/ws/rpc/connect');
-const failureCodes = require('../../../../api/ws/rpc/failure_codes');
 const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
 const transport = require('../../../../api/ws/transport');
 const System = require('../../../../modules/system');
@@ -28,8 +27,6 @@ describe('RPC Client', () => {
 	const validWSServerPort = 5000;
 	let validClientRPCStub;
 	let socketClusterMock;
-	let connectionClosedErrorCode;
-	let connectionClosedErrorDescription;
 
 	function reconnect(ip = validWSServerIp, wsPort = validWSServerPort) {
 		validClientRPCStub = connect({ ip, wsPort }).rpc;
@@ -145,18 +142,6 @@ describe('RPC Client', () => {
 				it('should call rpc.status with err = null', done => {
 					validClientRPCStub.status(err => {
 						expect(err).to.be.null;
-						done();
-					});
-				});
-
-				it('should close client connection with description = "Expected type integer but found type not-a-number"', done => {
-					validClientRPCStub.status(() => {
-						expect(connectionClosedErrorCode).equal(
-							failureCodes.INVALID_HEADERS
-						);
-						expect(connectionClosedErrorDescription).equal(
-							'Expected type integer but found type not-a-number'
-						);
 						done();
 					});
 				});
