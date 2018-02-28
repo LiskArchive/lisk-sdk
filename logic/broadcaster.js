@@ -96,23 +96,6 @@ class Broadcaster {
 	}
 
 	/**
-	 * Adds new object {params, options} to queue array.
-	 *
-	 * @param {Object} params
-	 * @param {Object} options
-	 * @returns {Object[]} Queue private variable with new data
-	 * @todo Add description for the params
-	 */
-	enqueue(params, options) {
-		try {
-			options.immediate = false;
-			return this.queue.push({ params, options });
-		} catch (err) {
-			throw new Error('Broadcaster:enqueue', err);
-		}
-	}
-
-	/**
 	 * Calls peers.list function to get peers.
 	 *
 	 * @param {Object} params
@@ -175,13 +158,14 @@ class Broadcaster {
 							options.data.block = bson.serialize(options.data.block);
 						} catch (err) {
 							library.logger.error('Broadcast serialization failed:', err);
-							return setImmediate(cb, err);
+							return setImmediate(waterCb, err);
 						}
 					}
 
 					if (params.limit === self.config.peerLimit) {
 						peers = peers.slice(0, self.config.broadcastLimit);
 					}
+
 					async.eachLimit(
 						peers,
 						self.config.parallelLimit,
@@ -193,7 +177,7 @@ class Broadcaster {
 										err
 									);
 								}
-								return setImmediate(eachLimitCb);
+								return setImmediate(eachLimitCb, err, []);
 							});
 						},
 						err => {
@@ -214,6 +198,19 @@ class Broadcaster {
 
 // Public methods
 /**
+ * Adds new object {params, options} to queue array.
+ *
+ * @param {Object} params
+ * @param {Object} options
+ * @returns {Object[]} Queue private variable with new data
+ * @todo Add description for the params
+ */
+Broadcaster.prototype.enqueue = function(params, options) {
+	options.immediate = false;
+	return self.queue.push({ params, options });
+};
+
+/**
  * Counts relays and valid limit.
  *
  * @param {Object} object
@@ -226,7 +223,7 @@ Broadcaster.prototype.maxRelays = function(object) {
 	}
 
 	if (Math.abs(object.relays) >= self.config.relayLimit) {
-		library.logger.info('Broadcast relays exhausted', object);
+		library.logger.debug('Broadcast relays exhausted', object);
 		return true;
 	}
 	object.relays++; // Next broadcast
@@ -269,7 +266,7 @@ function nextRelease(cb) {
  * @todo Add description for the params
  */
 __private.filterQueue = function(cb) {
-	library.logger.info(`Broadcasts before filtering: ${self.queue.length}`);
+	library.logger.debug(`Broadcasts before filtering: ${self.queue.length}`);
 
 	async.filter(
 		self.queue,
@@ -287,7 +284,7 @@ __private.filterQueue = function(cb) {
 		(err, broadcasts) => {
 			self.queue = broadcasts;
 
-			library.logger.info(`Broadcasts after filtering: ${self.queue.length}`);
+			library.logger.debug(`Broadcasts after filtering: ${self.queue.length}`);
 			return setImmediate(cb);
 		}
 	);
