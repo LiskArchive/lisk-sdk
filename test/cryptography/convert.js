@@ -78,29 +78,34 @@ describe('convert', () => {
 				.should.throw(TypeError, { message: 'Argument must be a string.' });
 		});
 
-		it('should create empty Buffer from non hex string', () => {
-			const buffer = hexToBuffer('yKJh');
-			return buffer.should.be.eql(Buffer.alloc(0));
+		it('should throw TypeError with non hex string', () => {
+			return hexToBuffer.bind(null, 'yKJj').should.throw(TypeError, {
+				message: 'Argument must be a valid hex string.',
+			});
 		});
 
-		it('should create partial Buffer from partially non hex string', () => {
-			const buffer = hexToBuffer('Abxzzzz');
-			return buffer.should.be.eql(Buffer.from('Ab', 'hex'));
+		it('should throw TypeError with partially correct hex string', () => {
+			return hexToBuffer.bind(null, 'Abxzzzz').should.throw(TypeError, {
+				message: 'Argument must be a valid hex string.',
+			});
 		});
 
-		it('should create partial Buffer with only first valid hex string', () => {
-			const buffer = hexToBuffer('Abxzzab');
-			return buffer.should.be.eql(Buffer.from('Ab', 'hex'));
+		it('should throw TypeError with odd number of string with partially correct hex string', () => {
+			return hexToBuffer.bind(null, 'Abxzzab').should.throw(TypeError, {
+				message: 'Argument must be a valid hex string.',
+			});
 		});
 
-		it('should create even numbered Buffer from odd number hex string with invalid hex', () => {
-			const buffer = hexToBuffer('123xxxx');
-			return buffer.should.be.eql(Buffer.from('12', 'hex'));
+		it('should throw TypeError with odd number hex string with invalid hex', () => {
+			return hexToBuffer.bind(null, '123xxxx').should.throw(TypeError, {
+				message: 'Argument must be a valid hex string.',
+			});
 		});
 
-		it('should create even numbered Buffer from odd number hex string', () => {
-			const buffer = hexToBuffer('c3a5c3a4c3b6a');
-			return buffer.should.be.eql(Buffer.from('c3a5c3a4c3b6', 'hex'));
+		it('should throw TypeError with odd number of hex string', () => {
+			return hexToBuffer.bind(null, 'c3a5c3a4c3b6a').should.throw(TypeError, {
+				message: 'Argument must have a valid length of hex string.',
+			});
 		});
 	});
 

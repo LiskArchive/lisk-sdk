@@ -269,7 +269,7 @@ describe('encrypt', () => {
 				)}gg`;
 				return decryptPassphraseWithPassword
 					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
-					.should.throw('Tag must be a hex string.');
+					.should.throw('Argument must be a valid hex string.');
 			});
 
 			it('should inform the user if the tag has been altered', () => {

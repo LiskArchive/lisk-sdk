@@ -30,11 +30,13 @@ export const hexToBuffer = hex => {
 		throw new TypeError('Argument must be a string.');
 	}
 	const matchedHex = (hex.match(hexRegex) || [])[0];
-	if (!matchedHex) {
-		return Buffer.alloc(0);
+	if (!matchedHex || matchedHex.length !== hex.length) {
+		throw new TypeError('Argument must be a valid hex string.');
 	}
-	const evenLength = Math.floor(matchedHex.length / 2) * 2;
-	return Buffer.from(matchedHex.slice(0, evenLength), 'hex');
+	if (matchedHex.length % 2 !== 0) {
+		throw new TypeError('Argument must have a valid length of hex string.');
+	}
+	return Buffer.from(matchedHex, 'hex');
 };
 
 export const getFirstEightBytesReversed = publicKeyBytes =>

@@ -13,20 +13,16 @@
  *
  */
 import bignum from 'browserify-bignum';
-import { bufferToHex, hexToBuffer } from 'cryptography/convert';
+import { hexToBuffer } from 'cryptography/convert';
 import { MAX_ADDRESS_NUMBER } from 'constants';
 
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = hexToBuffer(publicKey);
-	if (bufferToHex(publicKeyBuffer) !== publicKey) {
-		throw new Error('Public key must be a valid hex string.');
-	}
 	if (publicKeyBuffer.length !== 32) {
 		throw new Error(
 			`Public key ${publicKey} length differs from the expected 32 bytes for a public key.`,
 		);
 	}
-
 	return true;
 };
 
