@@ -534,12 +534,12 @@ Transport.prototype.shared = {
 	 */
 	postBlock(query) {
 		query = query || {};
-		library.schema.validate(query, definitions.WSBlockBroadcast, err => {
+		library.schema.validate(query, definitions.WSBlocksBroadcast, err => {
 			if (err || !query.block.base64) {
 				return library.logger.debug(
 					'Received post block broadcast request in unexpected format',
 					{
-						err: err.toString(),
+						err,
 						module: 'transport',
 						query,
 					}
