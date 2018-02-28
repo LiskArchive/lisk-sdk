@@ -198,23 +198,14 @@ Broadcaster.prototype.broadcast = function(params, options, cb) {
 				if (params.limit === self.config.peerLimit) {
 					peers = peers.slice(0, self.config.broadcastLimit);
 				}
+
 				async.eachLimit(
 					peers,
 					self.config.parallelLimit,
-					(peer, eachLimitCb) => {
-						peer.rpc[options.api](options.data, err => {
-							if (err) {
-								library.logger.debug(
-									`Failed to broadcast to peer: ${peer.string}`,
-									err
-								);
-							}
-							return setImmediate(eachLimitCb);
-						});
-					},
-					err => {
+					peer => peer.rpc[options.api](options.data),
+					() => {
 						library.logger.debug('End broadcast');
-						return setImmediate(waterCb, err, peers);
+						return setImmediate(waterCb, null, peers);
 					}
 				);
 			},
