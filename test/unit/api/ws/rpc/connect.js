@@ -424,6 +424,7 @@ describe('connect', () => {
 			let validSocket;
 			before(done => {
 				validSocket = {
+					off: sinon.stub(),
 					on: sinon.stub(),
 				};
 				done();
