@@ -152,7 +152,6 @@ class Broadcaster {
 				},
 				function sendToPeer(peers, waterCb) {
 					library.logger.info('Begin broadcast', options);
-
 					if (options.data.block) {
 						try {
 							options.data.block = bson.serialize(options.data.block);
@@ -177,7 +176,7 @@ class Broadcaster {
 										err
 									);
 								}
-								return setImmediate(eachLimitCb, err, []);
+								return setImmediate(eachLimitCb, err);
 							});
 						},
 						err => {

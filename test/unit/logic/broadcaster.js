@@ -13,8 +13,29 @@ describe('Broadcaster', () => {
 	let loggerStub;
 	let modulesStub;
 	let peerList;
+	let jobsQueue;
+	let library;
+	const transactionData = {
+		id: '16140284222734558289',
+		rowId: 133,
+		blockId: '1462190441827192029',
+		type: 0,
+		timestamp: 33363661,
+		senderPublicKey:
+			'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+		senderId: '16313739661670634666L',
+		recipientId: '5649948960790668770L',
+		amount: 8067474861277,
+		fee: 10000000,
+		signature:
+			'7ff5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008',
+		signSignature: null,
+		requesterPublicKey: null,
+		signatures: null,
+		asset: {},
+	};
 
-	before(done => {
+	beforeEach(done => {
 		broadcasts = {
 			broadcastInterval: 10000,
 			releaseLimit: 10,
@@ -34,6 +55,7 @@ describe('Broadcaster', () => {
 		loggerStub = {
 			info: sinonSandbox.stub(),
 			error: sinonSandbox.stub(),
+			debug: sinonSandbox.stub(),
 		};
 
 		peerList = [
@@ -41,7 +63,7 @@ describe('Broadcaster', () => {
 				rpc: {
 					blocks: sinonSandbox
 						.stub()
-						.callsArgWith(1, new Error('err'))
+						.callsArgWith(1, null)
 						.returns(),
 				},
 			},
@@ -50,13 +72,17 @@ describe('Broadcaster', () => {
 		modulesStub = {
 			peers: {
 				list: sinonSandbox.stub().callsArgWith(1, null, peerList),
-				getLastConsensus: sinonSandbox.stub(),
+				getLastConsensus: sinonSandbox.stub().returns(101),
 			},
 			transport: {},
 			transactions: {
 				transactionInPool: sinonSandbox.stub().returns(false),
 			},
 		};
+
+		jobsQueue = Broadcaster.__get__('jobsQueue');
+
+		jobsQueue.register = sinonSandbox.stub();
 
 		broadcaster = new Broadcaster(
 			broadcasts,
@@ -65,19 +91,33 @@ describe('Broadcaster', () => {
 			transactionStub,
 			loggerStub
 		);
+
 		broadcaster.bind(
 			modulesStub.peers,
 			modulesStub.transport,
 			modulesStub.transactions
 		);
+
+		library = Broadcaster.__get__('library');
+
 		done();
 	});
 
-	after(() => {
+	afterEach(() => {
 		return sinonSandbox.restore();
 	});
 
 	describe('constructor', () => {
+		it('should load libraries', () => {
+			expect(library.logger).to.deep.eql(loggerStub);
+			expect(library.logic.peers).to.deep.eql(peersStub);
+			expect(library.config).to.deep.eql({
+				broadcasts,
+				forging: { force: true },
+			});
+			return expect(library.logic.transaction).to.deep.eql(transactionStub);
+		});
+
 		it('should return Broadcaster instance', () => {
 			expect(broadcaster).to.be.instanceOf(Broadcaster);
 			expect(broadcaster)
@@ -89,6 +129,117 @@ describe('Broadcaster', () => {
 			return expect(broadcaster)
 				.to.have.property('routes')
 				.that.is.an('Array');
+		});
+
+		it('should register jobsQueue', () => {
+			const nextRelease = Broadcaster.__get__('nextRelease');
+			expect(jobsQueue.register.calledOnce).to.be.true;
+			return expect(jobsQueue.register).calledWith(
+				'broadcasterNextRelease',
+				nextRelease,
+				broadcasts.broadcastInterval
+			);
+		});
+	});
+
+	describe('getPeers', () => {
+		it('should return error when getting peers list', done => {
+			modulesStub.peers.list.callsArgWith(1, new Error('getPeers failed'));
+			broadcaster.getPeers(params, (err, peers) => {
+				expect(err).to.be.not.null;
+				expect(err.message).to.deep.eql('getPeers failed');
+				expect(loggerStub.info.called).to.be.false;
+				expect(peers).to.be.undefined;
+				done();
+			});
+		});
+
+		it('should return peers for default params', done => {
+			broadcaster.getPeers({}, (err, peers) => {
+				expect(err).to.be.null;
+				expect(peers).to.be.an('Array').that.is.not.empty;
+				expect(peers).to.deep.eql(peerList);
+				expect(modulesStub.peers.list.called).to.be.true;
+				expect(modulesStub.peers.list.args[0][0]).to.not.eql(params);
+				done();
+			});
+		});
+
+		it('should return peer list for a given params', done => {
+			broadcaster.getPeers(params, (err, peers) => {
+				expect(err).to.be.null;
+				expect(peers).to.be.an('Array').that.is.not.empty;
+				expect(peers).to.deep.eql(peerList);
+				expect(modulesStub.peers.list.calledOnce).to.be.true;
+				expect(loggerStub.info.called).to.be.false;
+				done();
+			});
+		});
+
+		it('should reach consensus', done => {
+			const peerParams = _.cloneDeep(params);
+			peerParams.limit = 100;
+			broadcaster.getPeers(peerParams, () => {
+				expect(modulesStub.peers.list.calledOnce).to.be.true;
+				expect(modulesStub.peers.list.args[0][0]).to.deep.eql(peerParams);
+				expect(modulesStub.peers.list.args[0][1]).to.be.a('function');
+				expect(loggerStub.info.calledOnce).to.be.true;
+				expect(loggerStub.info.args[0][0]).to.eql(
+					'Broadhash consensus now 101 %'
+				);
+				done();
+			});
+		});
+	});
+
+	describe('broadcast', () => {
+		it('should throw error for empty peers', done => {
+			const err = new Error('empty peer list');
+			modulesStub.peers.list.callsArgWith(1, err, []);
+			broadcaster.broadcast(params, options, (err, res) => {
+				expect(err).to.be.eql(err);
+				expect(res).to.be.an('object').that.is.not.empty;
+				done();
+			});
+		});
+
+		it('should return error when failed to send to peer', done => {
+			modulesStub.peers.list.callsArgWith(1, null, peerList);
+			peerList[0].rpc.blocks.callsArgWith(1, 'Failed to broadcast to peer');
+			broadcaster.broadcast(params, options, err => {
+				expect(err).to.eql('Failed to broadcast to peer');
+				done();
+			});
+		});
+
+		it('should return existing peers in params', done => {
+			params.peers = [];
+			modulesStub.peers.list.callsArgWith(1, null, []);
+			broadcaster.broadcast(params, options, (err, res) => {
+				expect(err).to.be.null;
+				expect(res).to.be.an('object').that.is.not.empty;
+				expect(res).to.deep.equal({ body: null, peer: [] });
+				done();
+			});
+		});
+
+		it('should be able to broadcast block to peers', done => {
+			params.peers = peerList;
+			options.data.block = {};
+			peerList[0].rpc.blocks.callsArgWith(1, null, peerList);
+			expect(options.data.block).to.be.an('object');
+			broadcaster.broadcast(params, options, (err, res) => {
+				expect(err).to.be.null;
+				expect(res).to.be.an('object').that.is.not.empty;
+				expect(res).to.deep.equal({ body: null, peer: peerList });
+				expect(options.data.block).to.be.instanceOf(Buffer);
+				expect(peerList[0].rpc.blocks.called).to.be.true;
+				expect(peerList[0].rpc.blocks.args[0][0].peer).to.eql(peersStub.me());
+				expect(peerList[0].rpc.blocks.args[0][0].block).to.be.instanceOf(
+					Buffer
+				);
+				done();
+			});
 		});
 	});
 
@@ -109,38 +260,6 @@ describe('Broadcaster', () => {
 		});
 	});
 
-	describe('getPeers', () => {
-		it('should return peers', done => {
-			broadcaster.getPeers(params, (err, peers) => {
-				expect(err).to.be.null;
-				expect(peers).to.be.an('Array').that.is.not.empty;
-				done();
-			});
-		});
-	});
-
-	describe('broadcast', () => {
-		it('should be able to broadcast block to peers', done => {
-			modulesStub.peers.list.callsArgWith(1, null, peerList);
-			broadcaster.broadcast(params, options, (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.be.an('object').that.is.not.empty;
-				expect(res).to.deep.equal({ body: null, peer: peerList });
-				done();
-			});
-		});
-
-		it('should throw error for empty peers', done => {
-			const err = new Error('empty peer list');
-			modulesStub.peers.list.callsArgWith(1, err, []);
-			broadcaster.broadcast(params, options, (err, res) => {
-				expect(err).to.be.eql(err);
-				expect(res).to.be.an('object').that.is.not.empty;
-				done();
-			});
-		});
-	});
-
 	describe('maxRelays', () => {
 		it('should return true if exhausted', () => {
 			return expect(broadcaster.maxRelays({ relays: 11 })).to.be.true;
@@ -152,30 +271,80 @@ describe('Broadcaster', () => {
 	});
 
 	describe('nextRelease', () => {
+		let nextRelease;
+		let releaseQueue;
+		beforeEach(done => {
+			nextRelease = Broadcaster.__get__('nextRelease');
+			releaseQueue = Broadcaster.__get__('__private.releaseQueue');
+			done();
+		});
+
+		afterEach(done => {
+			Broadcaster.__set__('__private.releaseQueue', releaseQueue);
+			done();
+		});
+
 		it('should be able to invoke next release', done => {
-			const nextRelease = Broadcaster.__get__('nextRelease');
+			const releaseQueueSpy = sinonSandbox.stub().callsArgWith(0, null);
+			Broadcaster.__set__('__private.releaseQueue', releaseQueueSpy);
 			nextRelease(() => {
-				expect(loggerStub.error.called).to.be.true;
+				expect(releaseQueueSpy.calledOnce).to.be.true;
+				done();
+			});
+		});
+
+		it('should log err when failed to release', done => {
+			const releaseQueueSpy = sinonSandbox
+				.stub()
+				.callsArgWith(0, 'release error');
+			Broadcaster.__set__('__private.releaseQueue', releaseQueueSpy);
+			nextRelease(() => {
+				expect(loggerStub.info.args[0][0]).to.eql('Broadcaster timer');
+				expect(loggerStub.info.args[0][1]).to.eql('release error');
+				expect(releaseQueueSpy.calledOnce).to.be.true;
 				done();
 			});
 		});
 	});
 
 	describe('filterQueue', () => {
-		it('should be able to filter the queue', done => {
-			const filterQueue = Broadcaster.__get__('__private.filterQueue');
+		let filterQueue;
+		beforeEach(done => {
+			filterQueue = Broadcaster.__get__('__private.filterQueue');
+			options.data.transaction = [transactionData];
+			broadcaster.enqueue(params, options);
+			done();
+		});
+
+		it('should return empty queue when option immediate is set to true', done => {
+			options.immediate = true;
 			filterQueue(() => {
-				expect(loggerStub.info.called).to.be.true;
+				expect(broadcaster.queue)
+					.to.be.an('Array')
+					.to.eql([]);
+				done();
+			});
+		});
+
+		it('should be able to filter the transactions in pool', done => {
+			modulesStub.transactions.transactionInPool.returns(true);
+			filterQueue(() => {
+				expect(broadcaster.queue[0].options.data.transaction)
+					.to.be.an('Array')
+					.to.eql([transactionData]);
 				done();
 			});
 		});
 	});
 
 	describe('filterTransaction', () => {
+		let filterTransaction;
+		beforeEach(done => {
+			filterTransaction = Broadcaster.__get__('__private.filterTransaction');
+			done();
+		});
+
 		it('should return false if transaction is undefined', done => {
-			const filterTransaction = Broadcaster.__get__(
-				'__private.filterTransaction'
-			);
 			filterTransaction(undefined, (err, status) => {
 				expect(err).to.be.null;
 				expect(status).to.be.false;
@@ -184,9 +353,6 @@ describe('Broadcaster', () => {
 		});
 
 		it('should return false if transaction is not in pool', done => {
-			const filterTransaction = Broadcaster.__get__(
-				'__private.filterTransaction'
-			);
 			modulesStub.transactions.transactionInPool.returns(false);
 			filterTransaction({ id: '123' }, (err, status) => {
 				expect(err).to.be.null;
@@ -196,9 +362,6 @@ describe('Broadcaster', () => {
 		});
 
 		it('should return true if transaction is in pool', done => {
-			const filterTransaction = Broadcaster.__get__(
-				'__private.filterTransaction'
-			);
 			modulesStub.transactions.transactionInPool.returns(true);
 			filterTransaction({ id: '123' }, (err, status) => {
 				expect(err).to.be.null;
