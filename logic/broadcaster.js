@@ -147,13 +147,14 @@ class Broadcaster {
 					return setImmediate(waterCb, null, params.peers);
 				},
 				function sendToPeer(peers, waterCb) {
-					library.logger.info('Begin broadcast', options);
+					library.logger.debug('Begin broadcast', options);
+
 					if (options.data.block) {
 						try {
 							options.data.block = bson.serialize(options.data.block);
 						} catch (err) {
 							library.logger.error('Broadcast serialization failed:', err);
-							return setImmediate(waterCb, err);
+							return setImmediate(cb, err);
 						}
 					}
 
@@ -164,20 +165,10 @@ class Broadcaster {
 					async.eachLimit(
 						peers,
 						self.config.parallelLimit,
-						(peer, eachLimitCb) => {
-							peer.rpc[options.api](options.data, err => {
-								if (err) {
-									library.logger.error(
-										`Failed to broadcast to peer: ${peer.string}`,
-										err
-									);
-								}
-								return setImmediate(eachLimitCb, err);
-							});
-						},
-						err => {
-							library.logger.info('End broadcast');
-							return setImmediate(waterCb, err, peers);
+						peer => peer.rpc[options.api](options.data),
+						() => {
+							library.logger.debug('End broadcast');
+							return setImmediate(waterCb, null, peers);
 						}
 					);
 				},

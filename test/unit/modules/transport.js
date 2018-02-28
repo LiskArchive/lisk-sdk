@@ -320,17 +320,13 @@ describe('transport', () => {
 		describe('receiveSignatures', () => {
 			describe('for every signature in signatures', () => {
 				describe('when __private.receiveSignature succeeds', () => {
-					var error;
-
 					beforeEach(done => {
 						__private.receiveSignature = sinonSandbox.stub().callsArg(1);
-						__private.receiveSignatures(
-							[SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
-							err => {
-								error = err;
-								done();
-							}
-						);
+						__private.receiveSignatures([
+							SAMPLE_SIGNATURE_1,
+							SAMPLE_SIGNATURE_2,
+						]);
+						done();
 					});
 
 					it('should call __private.receiveSignature with signature', () => {
@@ -341,14 +337,9 @@ describe('transport', () => {
 							__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2)
 						).to.be.true;
 					});
-
-					it('should call callback with error null', () => {
-						return expect(error).to.equal(null);
-					});
 				});
 
 				describe('when __private.receiveSignature fails', () => {
-					var error;
 					var receiveSignatureError;
 
 					beforeEach(done => {
@@ -356,13 +347,11 @@ describe('transport', () => {
 						__private.receiveSignature = sinonSandbox
 							.stub()
 							.callsArgWith(1, receiveSignatureError);
-						__private.receiveSignatures(
-							[SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
-							err => {
-								error = err;
-								done();
-							}
-						);
+						__private.receiveSignatures([
+							SAMPLE_SIGNATURE_1,
+							SAMPLE_SIGNATURE_2,
+						]);
+						done();
 					});
 
 					it('should call library.logger.debug with err and signature', () => {
@@ -381,10 +370,6 @@ describe('transport', () => {
 								SAMPLE_SIGNATURE_2
 							)
 						).to.be.true;
-					});
-
-					it('should call callback with error set to null', () => {
-						return expect(error).to.equal(null);
 					});
 				});
 			});
@@ -526,36 +511,27 @@ describe('transport', () => {
 
 			describe('for every transaction in transactions', () => {
 				describe('when transactions argument is undefined', () => {
-					var error;
-
 					beforeEach(done => {
-						__private.receiveTransactions(undefined, peerStub, '', err => {
-							error = err;
-							done();
-						});
+						__private.receiveTransactions(undefined, peerStub, '');
+						done();
 					});
 
 					// If a single transaction within the batch fails, it is not going to
 					// send back an error.
-					it('should call callback with null error', () => {
-						return expect(error).to.equal(null);
+					it('should should not call __private.receiveTransaction', () => {
+						return expect(__private.receiveTransaction.notCalled).to.be.true;
 					});
 				});
 
 				describe('when transaction is defined', () => {
 					describe('when call __private.receiveTransaction succeeds', () => {
-						var error;
-
 						beforeEach(done => {
 							__private.receiveTransactions(
 								transactions,
 								peerStub,
-								'This is a log message',
-								err => {
-									error = err;
-									done();
-								}
+								'This is a log message'
 							);
+							done();
 						});
 
 						it('should set transaction.bundled = true', () => {
@@ -573,14 +549,9 @@ describe('transport', () => {
 								)
 							).to.be.true;
 						});
-
-						it('should call callback with error = null', () => {
-							return expect(error).to.equal(null);
-						});
 					});
 
 					describe('when call __private.receiveTransaction fails', () => {
-						var error;
 						var receiveTransactionError;
 
 						beforeEach(done => {
@@ -592,12 +563,9 @@ describe('transport', () => {
 							__private.receiveTransactions(
 								transactions,
 								peerStub,
-								'This is a log message',
-								err => {
-									error = err;
-									done();
-								}
+								'This is a log message'
 							);
+							done();
 						});
 
 						it('should call library.logger.debug with error and transaction', () => {
@@ -607,12 +575,6 @@ describe('transport', () => {
 									transactions[0]
 								)
 							).to.be.true;
-						});
-
-						// If a single transaction within the batch fails, it is not going to
-						// send back an error.
-						it('should call callback with null error', () => {
-							return expect(error).to.equal(null);
 						});
 					});
 				});
