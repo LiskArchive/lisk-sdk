@@ -66,10 +66,7 @@ describe('Broadcaster', () => {
 		peerList = [
 			{
 				rpc: {
-					blocks: sinonSandbox
-						.stub()
-						.callsArgWith(1, null)
-						.returns(),
+					blocks: sinonSandbox.stub(),
 				},
 			},
 		];
@@ -224,7 +221,7 @@ describe('Broadcaster', () => {
 	/* eslint-disable mocha/no-skipped-tests */
 	// Tests failing after changes made in https://github.com/LiskHQ/lisk/commit/1292bd60db540ce182c1f14e179795eb78ec0a4b
 	// Needs futher investigation, skipping tests for now.
-	describe.skip('broadcast', () => {
+	describe('broadcast', () => {
 		beforeEach(done => {
 			broadcaster.getPeers = sinonSandbox
 				.stub()
@@ -253,7 +250,7 @@ describe('Broadcaster', () => {
 			});
 		});
 
-		it('should be able to get peers', done => {
+		it('should be able to get peers for broadcast', done => {
 			broadcaster.broadcast(params, options, (err, res) => {
 				expect(err).to.be.null;
 				expect(res).to.be.an('object').that.is.not.empty;
@@ -277,21 +274,9 @@ describe('Broadcaster', () => {
 			});
 		});
 
-		it('should return error when failed to send to peer', done => {
-			peerList[0].rpc.blocks.callsArgWith(1, 'Failed to broadcast to peer');
-			broadcaster.broadcast(params, options, err => {
-				expect(err).to.eql('Failed to broadcast to peer');
-				expect(loggerStub.error.args[0][0]).to.eql(
-					'Failed to broadcast to peer: undefined'
-				);
-				done();
-			});
-		});
-
 		it('should be able to broadcast block to peers', done => {
 			params.peers = peerList;
 			options.data.block = {};
-			peerList[0].rpc.blocks.callsArgWith(1, null, peerList);
 			expect(options.data.block).to.be.an('object');
 			broadcaster.broadcast(params, options, (err, res) => {
 				expect(err).to.be.null;
