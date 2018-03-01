@@ -1212,4 +1212,91 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('verifyBlock', () => {
+		let privateTemp;
+		let verifyReceipt;
+		const dummyBlock = { id: 5 };
+		const dummylastBlock = { id: 4 };
+		beforeEach(done => {
+			modules.blocks.lastBlock.get.returns(dummylastBlock);
+			privateTemp = __private;
+			__private.setHeight = sinonSandbox.stub().returns(dummyBlock);
+			__private.verifySignature = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyPreviousBlock = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyVersion = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyReward = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyId = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyPayload = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyForkOne = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyBlockSlot = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			done();
+		});
+		afterEach(done => {
+			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			expect(__private.setHeight).to.have.been.calledWith(
+				dummyBlock,
+				dummylastBlock
+			);
+			expect(__private.verifySignature).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyPreviousBlock).to.have.been.calledWith(
+				dummyBlock,
+				{ verified: false, errors: [] }
+			);
+			expect(__private.verifyVersion).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyReward).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyId).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyPayload).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyForkOne).to.have.been.calledWith(
+				dummyBlock,
+				dummylastBlock,
+				{ verified: false, errors: [] }
+			);
+			expect(__private.verifyBlockSlot).to.have.been.calledWith(
+				dummyBlock,
+				dummylastBlock,
+				{ verified: false, errors: [] }
+			);
+			__private = privateTemp;
+			done();
+		});
+		it('should call private functions with correct parameters', () => {
+			verifyReceipt = blocksVerifyModule.verifyBlock(dummyBlock);
+			return expect(verifyReceipt).to.deep.equal({
+				verified: true,
+				errors: [],
+			});
+		});
+	});
 });
