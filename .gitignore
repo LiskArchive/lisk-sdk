@@ -60,7 +60,3 @@ dist-node
 browsertest/package.json
 browsertest/browsertest.js
 browsertest/browsertest.min.js
-
-# lock files (supported package manager is npm 3)
-package-lock.json
-yarn.lock
