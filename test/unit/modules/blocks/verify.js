@@ -1774,4 +1774,50 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('__private.checkExists', () => {
+		const dummyBlock = { id: 1 };
+		describe('library.db.blocks.blockExists', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					return library.db.blocks.blockExists.rejects('blockExists-ERR');
+				});
+				afterEach(() => {
+					return expect(loggerStub.error.args[0][0].name).to.equal(
+						'blockExists-ERR'
+					);
+				});
+				it('should call a callback with error', done => {
+					__private.checkExists(dummyBlock, err => {
+						expect(err).to.equal('Block#blockExists error');
+						done();
+					});
+				});
+			});
+			describe('when succeeds', () => {
+				describe('if rows is true', () => {
+					beforeEach(() => {
+						return library.db.blocks.blockExists.resolves(true);
+					});
+					it('should call a callback with error', done => {
+						__private.checkExists(dummyBlock, err => {
+							expect(err).to.be.equal('Block 1 already exists');
+							done();
+						});
+					});
+				});
+				describe('if rows is false', () => {
+					beforeEach(() => {
+						return library.db.blocks.blockExists.resolves(false);
+					});
+					it('should call a callback with no error', done => {
+						__private.checkExists(dummyBlock, err => {
+							expect(err).to.be.undefined;
+							done();
+						});
+					});
+				});
+			});
+		});
+	});
 });
