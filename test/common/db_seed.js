@@ -23,6 +23,14 @@ let blocks = [];
 const numSeedRecords = 5;
 
 class DatabaseSeed {
+	static getBlocks() {
+		return blocks;
+	}
+
+	static getAccounts() {
+		return accounts;
+	}
+
 	static seedAccounts(db) {
 		// Prepare some fixture data to seed the database
 		for (let i = 0; i < numSeedRecords; i++) {
@@ -134,6 +142,8 @@ class DatabaseSeed {
 			'mem_accounts2u_multisignatures',
 			'mem_accounts2delegates',
 			'mem_accounts2u_delegates',
+			'mem_round',
+			'rounds_rewards',
 			'peers',
 		];
 		const promises = [];
