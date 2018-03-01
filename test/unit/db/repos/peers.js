@@ -185,7 +185,7 @@ describe('db', () => {
 			describe('required attributes', () => {
 				const peer = peersFixtures.DBPeer();
 
-				// broadhash is a default value null
+				// Broadhash has default value of null
 				delete peer.broadhash;
 
 				Object.keys(peer).forEach(attr => {
