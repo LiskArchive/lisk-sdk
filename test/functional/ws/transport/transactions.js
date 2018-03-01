@@ -15,11 +15,11 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
-var phases = require('../../common/phases');
-var ws = require('../../../common/ws/communication');
-var randomUtil = require('../../../common/utils/random');
-var normalizeTransactionObject = require('../../../common/helpers/api')
+const lisk = require('lisk-js');
+const phases = require('../../common/phases');
+const ws = require('../../../common/ws/communication');
+const randomUtil = require('../../../common/utils/random');
+const normalizeTransactionObject = require('../../../common/helpers/api')
 	.normalizeTransactionObject;
 
 function postTransaction(transaction, cb) {
@@ -30,62 +30,42 @@ function postTransaction(transaction, cb) {
 		{
 			transactions: [transaction],
 		},
-		cb,
+		() => {},
 		true
 	);
+	cb();
 }
 
 describe('Posting transaction (type 0)', () => {
-	var account;
-	var transaction;
-	var error;
-	var response;
-	var goodTransactions = [];
-	var badTransactions = [];
+	let transaction;
+	const goodTransactions = [];
+	const badTransactions = [];
+	const account = randomUtil.account();
 
 	beforeEach(done => {
-		account = randomUtil.account();
 		transaction = randomUtil.transaction();
 		done();
 	});
 
-	describe('when sender has no funds for a transaction in batch', () => {
-		beforeEach(done => {
+	describe('transaction processing', () => {
+		it('when sender has no funds should fail', done => {
 			transaction = lisk.transaction.createTransaction(
 				'1L',
 				1,
 				account.password
 			);
-			postTransaction(transaction, (err, res) => {
-				error = err;
-				response = res;
+
+			postTransaction(transaction, () => {
 				done();
 			});
-		});
-
-		// For peer-to-peer communiation, the peer does not need to send back
-		// an error message if one of the transactions in the batch fails.
-		// Either the peer acknowledges the receipt of the batch or their don't.
-		it('operation should succeed', () => {
 			badTransactions.push(transaction);
-			expect(error).to.be.null;
-			return expect(response).to.have.property('success').to.be.ok;
 		});
-	});
 
-	describe('when sender has funds for a transaction in batch', () => {
-		beforeEach(done => {
-			postTransaction(transaction, (err, res) => {
-				error = err;
-				response = res;
+		it('when sender has funds should be ok', done => {
+			postTransaction(transaction, () => {
 				done();
 			});
-		});
-
-		it('operation should succeed', () => {
 			goodTransactions.push(transaction);
-			expect(error).to.be.null;
-			return expect(response).to.have.property('success').to.be.ok;
 		});
 	});
 
