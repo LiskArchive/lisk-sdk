@@ -103,10 +103,9 @@ const connectSteps = {
 		return _.reduce(
 			wsServer.endpoints.event,
 			(peerExtendedWithPublish, localHandler, eventProcedureName) => {
-				peerExtendedWithPublish.rpc[eventProcedureName] = peer.socket.emit.bind(
-					null,
-					eventProcedureName
-				);
+				peerExtendedWithPublish.rpc[eventProcedureName] = data => {
+					peer.socket.emit(eventProcedureName, data);
+				};
 				return peerExtendedWithPublish;
 			},
 			peer
