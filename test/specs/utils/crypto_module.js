@@ -174,103 +174,103 @@ describe('Crypto class', () => {
 							});
 						});
 					});
-					describe('#verifyMessage', () => {
-						Given(
-							'a message "Hello World" with a public key "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and a signature "2a3ca127efcf7b2bf62ac8c3b1f5acf6997cab62ba9fde3567d188edcbacbc5dc8177fb88d03a8691ce03348f569b121bca9e7a3c43bf5c056382f35ff843c09"',
-							given.aMessageWithAPublicKeyAndASignature,
-							() => {
-								When(
-									'no error occurs attempting to verify the message using the public key and the signature',
-									when.noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
-									() => {
-										Then(
-											'lisk-js crypto should be used to verify the message',
-											then.liskJSCryptoShouldBeUsedToVerifyTheMessage,
-										);
-										Then(
-											'the the message should be verified',
-											then.theMessageVerificationShouldBeReturned,
-										);
-									},
-								);
-								When(
-									'an error occurs attempting to verify the message using the public key and the signature',
-									when.anErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
-									() => {
-										Then(
-											'the error response should be handled',
-											then.theErrorResponseShouldBeHandled,
-										);
-									},
-								);
-							},
-						);
-					});
+				});
+				describe('#verifyMessage', () => {
 					Given(
-						'a recipient passphrase "polar save winner any focus slide runway ghost finish invite regret laugh" with private key "08595f178e7470ad2cbe054b29f60311a0f808be969cde6c274819580a428dcd31919b459d28b1c611afb4db3de95c5769f4891c3f771c7dbcb53a45c452cc25" and public key "31919b459d28b1c611afb4db3de95c5769f4891c3f771c7dbcb53a45c452cc25"',
-						given.aRecipientPassphraseWithPrivateKeyAndPublicKey,
+						'a message "Hello World" with a public key "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and a signature "2a3ca127efcf7b2bf62ac8c3b1f5acf6997cab62ba9fde3567d188edcbacbc5dc8177fb88d03a8691ce03348f569b121bca9e7a3c43bf5c056382f35ff843c09"',
+						given.aMessageWithAPublicKeyAndASignature,
 						() => {
-							Given(
-								'an encrypted message "76778326f67b338032e888c6d9482f76ae27662716778d5d6816ef4f" with a nonce "b0601b8e58302d329d9b6e7e7fc70c929a159bb12d793a48"',
-								given.anEncryptedMessageWithANonce,
+							When(
+								'no error occurs attempting to verify the message using the public key and the signature',
+								when.noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
 								() => {
-									describe('#encryptMessage', () => {
-										When(
-											'no error occurs attempting to encrypt the message for the recipient using the passphrase',
-											when.noErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase,
-											() => {
-												Then(
-													'lisk-js crypto should be used to get the encrypted message and nonce',
-													then.liskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce,
-												);
-												Then(
-													'the encrypted message and nonce should be returned',
-													then.theEncryptedMessageAndNonceShouldBeReturned,
-												);
-											},
-										);
-										When(
-											'an error occurs attempting to encrypt the message for the recipient using the passphrase',
-											when.anErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase,
-											() => {
-												Then(
-													'the error response should be handled',
-													then.theErrorResponseShouldBeHandled,
-												);
-											},
-										);
-									});
-									describe('#decryptMessage', () => {
-										When(
-											'no error occurs attempting to decrypt the message using the recipient passphrase and sender public key',
-											when.noErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey,
-											() => {
-												Then(
-													'lisk-js crypto should be used to get the decrypted message',
-													then.liskJSCryptoShouldBeUsedToGetTheDecryptedMessage,
-												);
-												Then(
-													'the decrypted message should be returned',
-													then.theDecryptedMessageShouldBeReturned,
-												);
-											},
-										);
-										When(
-											'an error occurs attempting to decrypt the message using the recipient passphrase and sender public key',
-											when.anErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey,
-											() => {
-												Then(
-													'the error response should be handled',
-													then.theErrorResponseShouldBeHandled,
-												);
-											},
-										);
-									});
+									Then(
+										'lisk-js crypto should be used to verify the message',
+										then.liskJSCryptoShouldBeUsedToVerifyTheMessage,
+									);
+									Then(
+										'the the message verification should be returned',
+										then.theMessageVerificationShouldBeReturned,
+									);
+								},
+							);
+							When(
+								'an error occurs attempting to verify the message using the public key and the signature',
+								when.anErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
+								() => {
+									Then(
+										'the error response should be handled',
+										then.theErrorResponseShouldBeHandled,
+									);
 								},
 							);
 						},
 					);
 				});
+				Given(
+					'a recipient passphrase "polar save winner any focus slide runway ghost finish invite regret laugh" with private key "08595f178e7470ad2cbe054b29f60311a0f808be969cde6c274819580a428dcd31919b459d28b1c611afb4db3de95c5769f4891c3f771c7dbcb53a45c452cc25" and public key "31919b459d28b1c611afb4db3de95c5769f4891c3f771c7dbcb53a45c452cc25"',
+					given.aRecipientPassphraseWithPrivateKeyAndPublicKey,
+					() => {
+						Given(
+							'an encrypted message "76778326f67b338032e888c6d9482f76ae27662716778d5d6816ef4f" with a nonce "b0601b8e58302d329d9b6e7e7fc70c929a159bb12d793a48"',
+							given.anEncryptedMessageWithANonce,
+							() => {
+								describe('#encryptMessage', () => {
+									When(
+										'no error occurs attempting to encrypt the message for the recipient using the passphrase',
+										when.noErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase,
+										() => {
+											Then(
+												'lisk-js crypto should be used to get the encrypted message and nonce',
+												then.liskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce,
+											);
+											Then(
+												'the encrypted message and nonce should be returned',
+												then.theEncryptedMessageAndNonceShouldBeReturned,
+											);
+										},
+									);
+									When(
+										'an error occurs attempting to encrypt the message for the recipient using the passphrase',
+										when.anErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase,
+										() => {
+											Then(
+												'the error response should be handled',
+												then.theErrorResponseShouldBeHandled,
+											);
+										},
+									);
+								});
+								describe('#decryptMessage', () => {
+									When(
+										'no error occurs attempting to decrypt the message using the recipient passphrase and sender public key',
+										when.noErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey,
+										() => {
+											Then(
+												'lisk-js crypto should be used to get the decrypted message',
+												then.liskJSCryptoShouldBeUsedToGetTheDecryptedMessage,
+											);
+											Then(
+												'the decrypted message should be returned',
+												then.theDecryptedMessageShouldBeReturned,
+											);
+										},
+									);
+									When(
+										'an error occurs attempting to decrypt the message using the recipient passphrase and sender public key',
+										when.anErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey,
+										() => {
+											Then(
+												'the error response should be handled',
+												then.theErrorResponseShouldBeHandled,
+											);
+										},
+									);
+								});
+							},
+						);
+					},
+				);
 			},
 		);
 	});

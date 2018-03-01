@@ -98,6 +98,10 @@ describe('verify message command', () => {
 															when.theActionIsCalledWithTheOptionsThePublicKeyAndTheSignature,
 															() => {
 																Then(
+																	'it should get the inputs from sources using the message source',
+																	then.itShouldGetTheInputsFromSourcesUsingTheMessageSource,
+																);
+																Then(
 																	'it should reject with the error message',
 																	then.itShouldRejectWithTheErrorMessage,
 																);
