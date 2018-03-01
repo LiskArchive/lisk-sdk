@@ -19,6 +19,8 @@ const peersFixtures = require('../../../fixtures').peers;
 const peersSQL = require('../../../../db/sql').peers;
 const seeder = require('../../../common/db_seed');
 
+const numSeedRecords = 5;
+
 let db;
 let dbSandbox;
 
@@ -78,7 +80,7 @@ describe('db', () => {
 				const peers = [];
 
 				// Prepare some fixture data to seed the database
-				for (let i = 0; i < 5; i++) {
+				for (let i = 0; i < numSeedRecords; i++) {
 					const peer = peersFixtures.DBPeer();
 					const peer2 = Object.assign({}, peer);
 					peer2.broadhash = Buffer.from(peer2.broadhash, 'hex');
@@ -91,7 +93,7 @@ describe('db', () => {
 				const result = yield db.peers.list();
 
 				expect(result).to.be.not.empty;
-				expect(result).to.have.lengthOf(5);
+				expect(result).to.have.lengthOf(numSeedRecords);
 				expect(result[0]).to.have.all.keys(
 					'ip',
 					'wsPort',
