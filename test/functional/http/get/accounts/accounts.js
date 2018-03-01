@@ -49,14 +49,14 @@ describe('GET /accounts', () => {
 					});
 			});
 
-			it('using known lowercase address should be ok', () => {
+			it('using known lowercase address should fail', () => {
 				return accountsEndpoint
 					.makeRequest(
 						{ address: accountFixtures.genesis.address.toLowerCase() },
-						200
+						400
 					)
 					.then(res => {
-						expect(res.body.data).to.have.length(1);
+						expectSwaggerParamError(res, 'address');
 					});
 			});
 

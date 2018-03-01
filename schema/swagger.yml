@@ -123,6 +123,7 @@ paths:
           description: Address of account
           type: string
           format: address
+          pattern: '^[0-9]+L$'
           required: true
           minLength: 2
           maxLength: 22
@@ -166,6 +167,7 @@ paths:
           description: Address of account
           type: string
           format: address
+          pattern: '^[0-9]+L$'
           required: true
           minLength: 2
           maxLength: 22
@@ -623,6 +625,7 @@ paths:
           required: true
           type: string
           format: address
+          pattern: '^[0-9]+L$'
         - $ref: '#/parameters/fromTimestamp'
         - $ref: '#/parameters/toTimestamp'
       responses:
@@ -1020,6 +1023,7 @@ parameters:
     required: false
     type: string
     format: address
+    pattern: '^[0-9]+L$'
     minLength: 2
     maxLength: 22
   publicKey:
@@ -1064,6 +1068,7 @@ parameters:
     description: Recipient address to query
     type: string
     format: address
+    pattern: '^[0-9]+L$'
     minLength: 1
     maxLength: 22
   recipientPublicKey:
@@ -1079,6 +1084,7 @@ parameters:
     description: Sender address to query
     type: string
     format: address
+    pattern: '^[0-9]+L$'
     minLength: 1
     maxLength: 22
   senderPublicKey:
@@ -1697,6 +1703,7 @@ definitions:
       generatorAddress:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       generatorPublicKey:
         type: string
@@ -1848,6 +1855,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 6251001604903637008L
       nextSlot:
         type: number
@@ -2248,6 +2256,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       publicKey:
         type: string
@@ -2269,6 +2278,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       publicKey:
         type: string
@@ -2301,6 +2311,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       publicKey:
         type: string
@@ -2424,6 +2435,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       balance:
         type: string
@@ -2443,6 +2455,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       publicKey:
         description: Public key to query
@@ -2466,6 +2479,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       balance:
         type: string
@@ -2501,6 +2515,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       publicKey:
         description: Public key to query
