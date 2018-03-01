@@ -150,7 +150,7 @@ export const checkTransaction = transaction => {
 };
 
 const getTransactionBytes = transaction => {
-		checkTransaction(transaction);
+	checkTransaction(transaction);
 
 	const {
 		type,
@@ -167,9 +167,9 @@ const getTransactionBytes = transaction => {
 	const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 	transactionTimestamp.writeIntLE(timestamp, 0, BYTESIZES.TIMESTAMP);
 
-	const transactionSenderPublicKey = Buffer.from(senderPublicKey, 'hex');
+	const transactionSenderPublicKey = cryptography.hexToBuffer(senderPublicKey);
 	const transactionRequesterPublicKey = requesterPublicKey
-		? Buffer.from(requesterPublicKey, 'hex')
+		? cryptography.hexToBuffer(requesterPublicKey)
 		: Buffer.alloc(0);
 
 	const transactionRecipientID = recipientId
@@ -187,11 +187,11 @@ const getTransactionBytes = transaction => {
 	const transactionAssetData = getAssetBytes(transaction);
 
 	const transactionSignature = signature
-		? Buffer.from(signature, 'hex')
+		? cryptography.hexToBuffer(signature)
 		: Buffer.alloc(0);
 
 	const transactionSecondSignature = signSignature
-		? Buffer.from(signSignature, 'hex')
+		? cryptography.hexToBuffer(signSignature)
 		: Buffer.alloc(0);
 
 	return Buffer.concat([
