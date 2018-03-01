@@ -624,7 +624,7 @@ Verify.prototype.deleteBlockProperties = function(block) {
 };
 
 /**
- * Add block properties.
+ * Adds block properties.
  *
  * @private
  * @func addBlockProperties
@@ -642,6 +642,26 @@ __private.addBlockProperties = function(block, broadcast, cb) {
 		} catch (err) {
 			return setImmediate(cb, err);
 		}
+	}
+
+	return setImmediate(cb);
+};
+
+/**
+ * Validates block schema.
+ *
+ * @private
+ * @func normalizeBlock
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.normalizeBlock = function(block, cb) {
+	try {
+		block = library.logic.block.objectNormalize(block);
+	} catch (err) {
+		return setImmediate(cb, err);
 	}
 
 	return setImmediate(cb);
@@ -675,13 +695,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				__private.addBlockProperties(block, broadcast, seriesCb);
 			},
 			normalizeBlock(seriesCb) {
-				try {
-					block = library.logic.block.objectNormalize(block);
-				} catch (err) {
-					return setImmediate(seriesCb, err);
-				}
-
-				return setImmediate(seriesCb);
+				__private.normalizeBlock(block, seriesCb);
 			},
 			verifyBlock(seriesCb) {
 				// Sanity check of the block, if values are coherent
