@@ -16,8 +16,7 @@
 
 require('../../functional.js');
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
-let genesisblock = require('../../../data/genesis_block.json');
-const verify = require('../../../../modules/blocks/verify');
+const genesisblock = require('../../../data/genesis_block.json');
 const bson = require('../../../../helpers/bson');
 const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
 const WsTestClient = require('../../../common/ws/client');
@@ -28,13 +27,14 @@ describe('WS transport blocks', () => {
 
 	before('establish client WS connection to server', done => {
 		// Setup stub for blocks endpoints
-		const blocksRelatedRPCEndpoints = {
+		const wampServer = new WAMPServer();
+		wampServer.registerRPCEndpoints({
 			blocks: () => {},
 			blocksCommon: () => {},
+		});
+		wampServer.registerEventEndpoints({
 			postBlock: () => {},
-		};
-		const wampServer = new WAMPServer();
-		wampServer.registerRPCEndpoints(blocksRelatedRPCEndpoints);
+		});
 		wsRPC.setServer(wampServer);
 
 		// Register client
@@ -286,101 +286,17 @@ describe('WS transport blocks', () => {
 	});
 
 	describe('postBlock', () => {
-		it('using no arguments should fail', done => {
-			connectedPeer.rpc.postBlock((err, res) => {
-				__testContext.debug(
-					'> Error / Response:'.grey,
-					JSON.stringify(err),
-					JSON.stringify(res)
-				);
-				expect(err).to.contain('RPC response timeout exceeded');
-				done();
-			});
-		});
-
-		it('using no block arguments should fail', done => {
-			connectedPeer.rpc.postBlock(
-				{
-					peer: connectedPeerHeaders,
-				},
-				(err, res) => {
-					__testContext.debug(
-						'> Error / Response:'.grey,
-						JSON.stringify(err),
-						JSON.stringify(res)
-					);
-					expect(err).to.contain('RPC response timeout exceeded');
-					done();
-				}
-			);
-		});
-
-		// ToDo: Important! Sending serialized data does not work
-		it('using invalid block schema should fail', done => {
-			var blockSignature = genesisblock.blockSignature;
-			genesisblock.blockSignature = null;
-			genesisblock = verify.prototype.deleteBlockProperties(genesisblock);
-
-			connectedPeer.rpc.postBlock(
-				{ block: bson.serialize(genesisblock) },
-				(err, res) => {
-					__testContext.debug(
-						'> Error / Response:'.grey,
-						JSON.stringify(err),
-						JSON.stringify(res)
-					);
-					expect(err).to.contain('RPC response timeout exceeded');
-					genesisblock.blockSignature = blockSignature;
-					done();
-				}
-			);
-		});
-
-		it('using valid block schema but no peer should fail', done => {
+		it('should broadcast valid block', done => {
 			testBlock.transactions.forEach(transaction => {
 				if (transaction.asset && transaction.asset.delegate) {
 					transaction.asset.delegate.publicKey = transaction.senderPublicKey;
 				}
 			});
-			connectedPeer.rpc.postBlock(
-				{
-					block: bson.serialize(testBlock),
-				},
-				(err, res) => {
-					__testContext.debug(
-						'> Error / Response:'.grey,
-						JSON.stringify(err),
-						JSON.stringify(res)
-					);
-					expect(err).to.contain('RPC response timeout exceeded');
-					done();
-				}
-			);
-		});
-
-		it('using valid block schema should be ok', done => {
-			testBlock.transactions.forEach(transaction => {
-				if (transaction.asset && transaction.asset.delegate) {
-					transaction.asset.delegate.publicKey = transaction.senderPublicKey;
-				}
+			connectedPeer.rpc.postBlock({
+				block: bson.serialize(testBlock),
+				peer: connectedPeerHeaders,
 			});
-			connectedPeer.rpc.postBlock(
-				{
-					block: bson.serialize(testBlock),
-					peer: connectedPeerHeaders,
-				},
-				(err, res) => {
-					__testContext.debug(
-						'> Error / Response:'.grey,
-						JSON.stringify(err),
-						JSON.stringify(res)
-					);
-					expect(res)
-						.to.have.property('blockId')
-						.to.equal('2807833455815592401');
-					done();
-				}
-			);
+			done();
 		});
 	});
 });
