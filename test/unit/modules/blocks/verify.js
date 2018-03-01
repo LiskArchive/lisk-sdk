@@ -1299,4 +1299,104 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('addBlockProperties', () => {
+		let dummyBlockReturned;
+		const dummyBlock = {
+			id: 1,
+			version: 0,
+			numberOfTransactions: 0,
+			transactions: [],
+			totalAmount: 0,
+			totalFee: 0,
+			payloadLength: 0,
+			reward: 0,
+		};
+		afterEach(() => {
+			return expect(dummyBlockReturned).to.deep.equal(dummyBlock);
+		});
+		describe('when block.version === undefined', () => {
+			it('should add version = 0', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.version;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+		describe('when block.numberOfTransactions === undefined', () => {
+			describe('and block.transactions === undefined', () => {
+				it('should add numberOfTransactions = 0', () => {
+					const dummyBlockReduced = _.cloneDeep(dummyBlock);
+					delete dummyBlockReduced.numberOfTransactions;
+					delete dummyBlockReduced.transactions;
+					dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+						dummyBlockReduced
+					);
+					return dummyBlockReturned;
+				});
+			});
+			describe('and block.transactions !== undefined', () => {
+				it('should add numberOfTransactions = block.transactions.length', () => {
+					const dummyBlockReduced = _.cloneDeep(dummyBlock);
+					delete dummyBlockReduced.numberOfTransactions;
+					dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+						dummyBlockReduced
+					);
+					return dummyBlockReturned;
+				});
+			});
+		});
+		describe('when block.totalAmount === undefined', () => {
+			it('should add totalAmount = 0', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.totalAmount;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+		describe('when block.totalFee === undefined', () => {
+			it('should add totalFee = 0', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.totalFee;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+		describe('when block.payloadLength === undefined', () => {
+			it('should add payloadLength = 0', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.payloadLength;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+		describe('when block.reward === undefined', () => {
+			it('should add reward = 0', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.reward;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+		describe('when block.transactions === undefined', () => {
+			it('should add transactions = []', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.transactions;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+	});
 });
