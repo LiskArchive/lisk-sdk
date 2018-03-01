@@ -289,11 +289,11 @@ describe('db', () => {
 				});
 			});
 
-			it('should resolved without any error if no round number is provided', () => {
+			it('should resolve without any error if no round number is provided', () => {
 				return expect(db.rounds.getVotes()).to.be.fulfilled;
 			});
 
-			it('should resolved without any error if unnown round number is provided', () => {
+			it('should resolve without any error if unnown round number is provided', () => {
 				return expect(db.rounds.getVotes(1234)).to.be.fulfilled;
 			});
 		});
@@ -322,11 +322,11 @@ describe('db', () => {
 				);
 			});
 
-			it('should resolved without error if parameter "address" is not provided', () => {
+			it('should resolve without error if parameter "address" is not provided', () => {
 				return expect(db.rounds.updateVotes(null, '123')).to.be.fulfilled;
 			});
 
-			it('should resolved without error if parameter "amount" is not provided', () => {
+			it('should resolve without error if parameter "amount" is not provided', () => {
 				return expect(db.rounds.updateVotes('123L')).to.be.fulfilled;
 			});
 		});
@@ -353,11 +353,11 @@ describe('db', () => {
 				return expect(result.blockId).to.be.eql('12345678');
 			});
 
-			it('should resolved without error if parameter "newId" is not provided', () => {
+			it('should resolve without error if parameter "newId" is not provided', () => {
 				return expect(db.rounds.updateBlockId(null, '123')).to.be.fulfilled;
 			});
 
-			it('should resolved without error if parameter "oldId" is not provided', () => {
+			it('should resolve without error if parameter "oldId" is not provided', () => {
 				return expect(db.rounds.updateBlockId('123L')).to.be.fulfilled;
 			});
 		});
