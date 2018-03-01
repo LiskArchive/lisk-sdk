@@ -668,6 +668,31 @@ __private.normalizeBlock = function(block, cb) {
 };
 
 /**
+ * Verifies block.
+ *
+ * @private
+ * @func verifyBlock
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.verifyBlock = function(block, cb) {
+	// Sanity check of the block, if values are coherent
+	// No access to database
+	var result = self.verifyBlock(block);
+
+	if (!result.verified) {
+		library.logger.error(
+			['Block', block.id, 'verification failed'].join(' '),
+			result.errors[0]
+		);
+		return setImmediate(cb, result.errors[0]);
+	}
+	return setImmediate(cb);
+};
+
+/**
  * Main function to process a block:
  * - Verify the block looks ok
  * - Verify the block is compatible with database state (DATABASE readonly)
@@ -698,18 +723,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				__private.normalizeBlock(block, seriesCb);
 			},
 			verifyBlock(seriesCb) {
-				// Sanity check of the block, if values are coherent
-				// No access to database
-				var result = self.verifyBlock(block);
-
-				if (!result.verified) {
-					library.logger.error(
-						['Block', block.id, 'verification failed'].join(' '),
-						result.errors[0]
-					);
-					return setImmediate(seriesCb, result.errors[0]);
-				}
-				return setImmediate(seriesCb);
+				__private.verifyBlock(block, seriesCb);
 			},
 			broadcastBlock(seriesCb) {
 				if (broadcast) {
