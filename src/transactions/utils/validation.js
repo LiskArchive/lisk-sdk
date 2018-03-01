@@ -12,19 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { bufferToHex, hexToBuffer } from 'cryptography/convert';
+import bignum from 'browserify-bignum';
+import { hexToBuffer } from 'cryptography/convert';
+import { MAX_ADDRESS_NUMBER } from 'constants';
 
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = hexToBuffer(publicKey);
-	if (bufferToHex(publicKeyBuffer) !== publicKey) {
-		throw new Error('Public key must be a valid hex string.');
-	}
 	if (publicKeyBuffer.length !== 32) {
 		throw new Error(
 			`Public key ${publicKey} length differs from the expected 32 bytes for a public key.`,
 		);
 	}
-
 	return true;
 };
 
@@ -46,4 +44,28 @@ export const validateKeysgroup = keysgroup => {
 		throw new Error('Expected between 1 and 16 public keys in the keysgroup.');
 	}
 	return validatePublicKeys(keysgroup);
+};
+
+export const validateAddress = address => {
+	if (address.length < 2 || address.length > 22) {
+		throw new Error(
+			'Address length does not match requirements. Expected between 2 and 22 characters.',
+		);
+	}
+
+	if (address[address.length - 1] !== 'L') {
+		throw new Error(
+			'Address format does not match requirements. Expected "L" at the end.',
+		);
+	}
+
+	const addressAsBignum = bignum(address.slice(0, -1));
+
+	if (addressAsBignum.cmp(bignum(MAX_ADDRESS_NUMBER)) > 0) {
+		throw new Error(
+			'Address format does not match requirements. Address out of maximum range.',
+		);
+	}
+
+	return true;
 };

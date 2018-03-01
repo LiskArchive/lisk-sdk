@@ -125,9 +125,6 @@ const encryptAES256GCMWithPassword = (plainText, password) => {
 
 const getTagBuffer = tag => {
 	const tagBuffer = hexToBuffer(tag);
-	if (bufferToHex(tagBuffer) !== tag) {
-		throw new Error('Tag must be a hex string.');
-	}
 	if (tagBuffer.length !== 16) {
 		throw new Error('Tag must be 16 bytes.');
 	}

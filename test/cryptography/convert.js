@@ -65,6 +65,48 @@ describe('convert', () => {
 			const buffer = hexToBuffer(defaultHex);
 			return buffer.should.be.eql(defaultBuffer);
 		});
+
+		it('should throw TypeError with number', () => {
+			return hexToBuffer
+				.bind(null, 123)
+				.should.throw(TypeError, { message: 'Argument must be a string.' });
+		});
+
+		it('should throw TypeError with object', () => {
+			return hexToBuffer
+				.bind(null, {})
+				.should.throw(TypeError, { message: 'Argument must be a string.' });
+		});
+
+		it('should throw TypeError with non hex string', () => {
+			return hexToBuffer.bind(null, 'yKJj').should.throw(TypeError, {
+				message: 'Argument must be a valid hex string.',
+			});
+		});
+
+		it('should throw TypeError with partially correct hex string', () => {
+			return hexToBuffer.bind(null, 'Abxzzzz').should.throw(TypeError, {
+				message: 'Argument must be a valid hex string.',
+			});
+		});
+
+		it('should throw TypeError with odd number of string with partially correct hex string', () => {
+			return hexToBuffer.bind(null, 'Abxzzab').should.throw(TypeError, {
+				message: 'Argument must be a valid hex string.',
+			});
+		});
+
+		it('should throw TypeError with odd number hex string with invalid hex', () => {
+			return hexToBuffer.bind(null, '123xxxx').should.throw(TypeError, {
+				message: 'Argument must be a valid hex string.',
+			});
+		});
+
+		it('should throw TypeError with odd number of hex string', () => {
+			return hexToBuffer.bind(null, 'c3a5c3a4c3b6a').should.throw(TypeError, {
+				message: 'Argument must have a valid length of hex string.',
+			});
+		});
 	});
 
 	describe('#getFirstEightBytesReversed', () => {

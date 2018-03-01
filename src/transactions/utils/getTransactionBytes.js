@@ -49,7 +49,7 @@ export const getAssetDataForRegisterSecondSignatureTransaction = ({
 }) => {
 	checkRequiredFields(['publicKey'], signature);
 	const { publicKey } = signature;
-	return Buffer.from(publicKey, 'hex');
+	return cryptography.hexToBuffer(publicKey);
 };
 
 export const getAssetDataForRegisterDelegateTransaction = ({ delegate }) => {
@@ -150,7 +150,7 @@ export const checkTransaction = transaction => {
 };
 
 const getTransactionBytes = transaction => {
-	checkTransaction(transaction);
+		checkTransaction(transaction);
 
 	const {
 		type,
