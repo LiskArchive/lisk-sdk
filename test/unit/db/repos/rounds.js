@@ -411,7 +411,7 @@ describe('db', () => {
 				return expect(db.none).to.be.calledOnce;
 			});
 
-			it('should drop the round snapshot table if it exits', function*() {
+			it('should drop the round snapshot table if it exists', function*() {
 				// Make sure the table exists
 				yield db.query('CREATE TABLE mem_round_snapshot AS TABLE mem_round');
 
@@ -579,7 +579,7 @@ describe('db', () => {
 				return expect(db.none).to.be.calledOnce;
 			});
 
-			it('should drop the votes snapshot table if it exits', function*() {
+			it('should drop the votes snapshot table if it exists', function*() {
 				// Make sure the table exists
 				yield db.query('CREATE TABLE mem_votes_snapshot AS TABLE mem_accounts');
 
