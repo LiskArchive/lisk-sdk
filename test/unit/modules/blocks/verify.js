@@ -1183,4 +1183,33 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('onNewBlock', () => {
+		describe('when __private.lastNBlockIds.length > constants.blockSlotWindow', () => {
+			beforeEach(done => {
+				__private.lastNBlockIds = [1, 2, 3, 4, 5, 6];
+				done();
+			});
+			afterEach(() => {
+				expect(__private.lastNBlockIds).to.deep.equal([2, 3, 4, 5, 6, 7]);
+				return expect();
+			});
+			it('should add new id to the end of lastNBlockIds array and delete first one', () => {
+				return blocksVerifyModule.onNewBlock({ id: 7 });
+			});
+		});
+		describe('when __private.lastNBlockIds.length <= constants.blockSlotWindow', () => {
+			beforeEach(done => {
+				__private.lastNBlockIds = [1, 2, 3, 4];
+				done();
+			});
+			afterEach(() => {
+				expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4, 5]);
+				return expect();
+			});
+			it('should add new id to the end of lastNBlockIds array', () => {
+				return blocksVerifyModule.onNewBlock({ id: 5 });
+			});
+		});
+	});
 });
