@@ -20,9 +20,12 @@ const fixtures = require('../fixtures');
 let accounts = [];
 let blocks = [];
 
+const numSeedRecords = 5;
+
 class DatabaseSeed {
 	static seedAccounts(db) {
-		for (let i = 0; i < 5; i++) {
+		// Prepare some fixture data to seed the database
+		for (let i = 0; i < numSeedRecords; i++) {
 			accounts.push(fixtures.accounts.Account());
 		}
 		return db
@@ -35,6 +38,7 @@ class DatabaseSeed {
 	static seedBlocks(db, accounts) {
 		let block;
 
+		// Seed one block per account
 		accounts.forEach((account, index) => {
 			if (index === 0) {
 				block = fixtures.blocks.GenesisBlock({
@@ -127,6 +131,10 @@ class DatabaseSeed {
 			'intransfer',
 			'outtransfer',
 			'peers',
+			'mem_accounts2multisignatures',
+			'mem_accounts2u_multisignatures',
+			'mem_accounts2delegates',
+			'mem_accounts2u_delegates',
 		];
 		const promises = [];
 
