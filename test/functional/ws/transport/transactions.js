@@ -31,21 +31,18 @@ describe('Posting transaction (type 0)', () => {
 	const account = randomUtil.account();
 	let wsTestClient;
 
-	function postTransaction(transaction, cb) {
+	function postTransaction(transaction) {
 		transaction = normalizeTransactionObject(transaction);
-		wsTestClient.client.rpc.postTransactions(
-			{
-				peer: wsTestClient.headers,
-				transactions: [transaction],
-			},
-			cb
-		);
+		wsTestClient.client.rpc.postTransactions({
+			peer: wsTestClient.headers,
+			transactions: [transaction],
+		});
 	}
 
 	before('establish client WS connection to server', done => {
 		// Setup stub for post transactions endpoint
 		const wampServer = new WAMPServer();
-		wampServer.registerRPCEndpoints({
+		wampServer.registerEventEndpoints({
 			postTransactions: () => {},
 		});
 		wsRPC.setServer(wampServer);
@@ -61,30 +58,22 @@ describe('Posting transaction (type 0)', () => {
 	});
 
 	describe('transaction processing', () => {
-		it('when sender has no funds should fail', done => {
-			var transaction = lisk.transaction.createTransaction(
+		it('when sender has no funds should broadcast transaction but not confirm', done => {
+			transaction = lisk.transaction.createTransaction(
 				'1L',
 				1,
 				account.password
 			);
 
-			postTransaction(transaction, err => {
-				expect(err).to.equal('RPC response timeout exceeded');
-				done();
-			});
+			postTransaction(transaction);
 			badTransactions.push(transaction);
+			done();
 		});
 
-		it('when sender has funds should be ok', done => {
-			postTransaction(transaction, (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.have.property('success').to.be.ok;
-				expect(res)
-					.to.have.property('transactionId')
-					.to.equal(transaction.id);
-				goodTransactions.push(transaction);
-				done();
-			});
+		it('when sender has funds should broadcast transaction and confirm', done => {
+			postTransaction(transaction);
+			goodTransactions.push(transaction);
+			done();
 		});
 	});
 
