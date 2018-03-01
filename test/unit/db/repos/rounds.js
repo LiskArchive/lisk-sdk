@@ -412,7 +412,7 @@ describe('db', () => {
 			});
 
 			it('should drop the round snapshot table if it exits', function*() {
-				// Make sure the table exits
+				// Make sure the table exists
 				yield db.query('CREATE TABLE mem_round_snapshot AS TABLE mem_round');
 
 				// Check if table "mem_round_snapshot" exists
@@ -580,7 +580,7 @@ describe('db', () => {
 			});
 
 			it('should drop the votes snapshot table if it exits', function*() {
-				// Make sure the table exits
+				// Make sure the table exists
 				yield db.query('CREATE TABLE mem_votes_snapshot AS TABLE mem_accounts');
 
 				// Check if table "mem_round_snapshot" exists
