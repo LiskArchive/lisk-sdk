@@ -47,14 +47,15 @@ describe('db', () => {
 		});
 
 		describe('constructor()', () => {
-			it('should assign param and data members properly', () => {
-				expect(db.votes.db).to.be.eql(db);
-				expect(db.votes.pgp).to.be.eql(db.$config.pgp);
-				expect(db.votes.sortFields).to.an('array');
-				expect(db.votes.sortFields[0]).to.eql('username');
-				expect(db.votes.sortFields[1]).to.eql('address');
-
-				return expect(db.votes.sortFields[2]).to.eql('publicKey');
+			it('should assign parameters and data members properly', () => {
+				expect(db.votes.db).to.eql(db);
+				expect(db.votes.pgp).to.eql(db.$config.pgp);
+				expect(db.votes.sortFields).to.be.an('array');
+				return expect(db.votes.sortFields).to.eql([
+					'username',
+					'address',
+					'publicKey',
+				]);
 			});
 		});
 
@@ -112,9 +113,7 @@ describe('db', () => {
 						accountId: account.address,
 					});
 					yield db.query(
-						db.$config.pgp.helpers.insert(vote, null, {
-							table: 'mem_accounts2delegates',
-						})
+						db.$config.pgp.helpers.insert(vote, null, 'mem_accounts2delegates')
 					);
 					votes.push(vote);
 				}
@@ -131,7 +130,7 @@ describe('db', () => {
 					offset: 1,
 				});
 
-				return expect(firstResult[1]).to.be.eql(secondResult[0]);
+				return expect(firstResult[1]).to.eql(secondResult[0]);
 			});
 
 			it('should return the all vote objects for a specific address', function*() {
@@ -144,9 +143,7 @@ describe('db', () => {
 						accountId: account.address,
 					});
 					yield db.query(
-						db.$config.pgp.helpers.insert(vote, null, {
-							table: 'mem_accounts2delegates',
-						})
+						db.$config.pgp.helpers.insert(vote, null, 'mem_accounts2delegates')
 					);
 					votes.push(vote);
 				}
@@ -158,8 +155,8 @@ describe('db', () => {
 				});
 
 				// Check there are some votes to test
-				expect(result).to.lengthOf(rowCount);
-				return expect(result.map(r => r.dependentId)).to.be.eql(
+				expect(result).to.have.lengthOf(rowCount);
+				return expect(result.map(r => r.dependentId)).to.eql(
 					votes.map(v => v.dependentId)
 				);
 			});
@@ -192,17 +189,14 @@ describe('db', () => {
 						accountId: account.address,
 					});
 					yield db.query(
-						db.$config.pgp.helpers.insert(vote, null, {
-							table: 'mem_accounts2delegates',
-						})
+						db.$config.pgp.helpers.insert(vote, null, 'mem_accounts2delegates')
 					);
 					votes.push(vote);
 				}
 
 				const result = yield db.votes.count(account.address);
 
-				expect(result).to.be.an('number');
-				return expect(result).to.be.eql(rowCount); // Number of blocks in seed (db_seed.js#23)
+				return expect(result).to.eql(rowCount);
 			});
 		});
 	});
