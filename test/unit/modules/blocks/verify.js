@@ -1647,4 +1647,56 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('__private.verifyBlock', () => {
+		let verifyBlockTemp;
+		const dummyBlock = { id: 1 };
+		beforeEach(done => {
+			verifyBlockTemp = blocksVerifyModule.verifyBlock;
+			blocksVerifyModule.verifyBlock = sinonSandbox.stub();
+			done();
+		});
+		afterEach(done => {
+			blocksVerifyModule.addBlockProperties = verifyBlockTemp;
+			done();
+		});
+		describe('self.verifyBlock', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					return blocksVerifyModule.verifyBlock.returns({
+						verified: false,
+						errors: ['verifyBlock-ERR'],
+					});
+				});
+				afterEach(() => {
+					expect(loggerStub.error.args[0][0]).to.be.equal(
+						'Block 1 verification failed'
+					);
+					return expect(loggerStub.error.args[0][1]).to.be.equal(
+						'verifyBlock-ERR'
+					);
+				});
+				it('should call a callback with error', done => {
+					__private.verifyBlock(dummyBlock, err => {
+						expect(err).to.equal('verifyBlock-ERR');
+						done();
+					});
+				});
+			});
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					return blocksVerifyModule.verifyBlock.returns({
+						verified: true,
+						errors: [],
+					});
+				});
+				it('should call a callback with no error', done => {
+					__private.verifyBlock(dummyBlock, err => {
+						expect(err).to.be.undefined;
+						done();
+					});
+				});
+			});
+		});
+	});
 });
