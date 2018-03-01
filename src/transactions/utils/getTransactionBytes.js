@@ -150,6 +150,8 @@ export const checkTransaction = transaction => {
 };
 
 const getTransactionBytes = transaction => {
+	checkTransaction(transaction);
+
 	const {
 		type,
 		timestamp,
@@ -161,8 +163,6 @@ const getTransactionBytes = transaction => {
 		signSignature,
 	} = transaction;
 
-	checkTransaction(transaction);
-
 	const transactionType = Buffer.alloc(BYTESIZES.TYPE, type);
 	const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 	transactionTimestamp.writeIntLE(timestamp, 0, BYTESIZES.TIMESTAMP);
@@ -173,7 +173,7 @@ const getTransactionBytes = transaction => {
 		: Buffer.alloc(0);
 
 	const transactionRecipientID = recipientId
-		? cryptoModule.bigNumberToBuffer(
+		? cryptography.bigNumberToBuffer(
 				recipientId.slice(0, -1),
 				BYTESIZES.RECIPIENT_ID,
 			)
