@@ -814,13 +814,17 @@ describe('create transaction cast votes', () => {
 							given.aPublicKeyThatShouldBeVotedFor,
 							() => {
 								Given(
-									'an options object with signature set to false and votes set to "1234567812345678123456781234567812345678123456781234567812345678" ',
+									'an options object with signature set to false and votes set to "1234567812345678123456781234567812345678123456781234567812345678"',
 									given.anOptionsObjectWithSignatureSetToAndVotesSetTo,
 									() => {
 										When(
 											'the action is called with the options',
 											when.theActionIsCalledWithTheOptions,
 											() => {
+												Then(
+													'it should create a cast votes transaction with the the public keys prepended with a plus',
+													then.itShouldCreateACastVotesTransactionWithThePublicKeysPrependedWithAPlus,
+												);
 												Then(
 													'it should resolve to the created transaction',
 													then.itShouldResolveToTheCreatedTransaction,

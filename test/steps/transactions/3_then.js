@@ -55,7 +55,7 @@ export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicK
 export function itShouldCreateACastVotesTransactionWithThePublicKeysPrependedWithAPlus() {
 	const { votePublicKeys } = this.test.ctx;
 	const votes = prependPlusToPublicKeys(votePublicKeys);
-	return transactions.castVotes.should.be.calledWithExactly({
+	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase: null,
 		delegates: votes,
 		secondPassphrase: null,
