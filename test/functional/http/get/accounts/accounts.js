@@ -50,10 +50,14 @@ describe('GET /accounts', () => {
 			});
 
 			it('using known lowercase address should be ok', () => {
-				return accountsEndpoint.makeRequest(
-					{ address: accountFixtures.genesis.address.toLowerCase() },
-					200
-				);
+				return accountsEndpoint
+					.makeRequest(
+						{ address: accountFixtures.genesis.address.toLowerCase() },
+						200
+					)
+					.then(res => {
+						expect(res.body.data).to.have.length(1);
+					});
 			});
 
 			it('using unknown address should return empty result', () => {
