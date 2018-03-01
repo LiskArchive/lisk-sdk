@@ -534,24 +534,33 @@ Transport.prototype.shared = {
 	 */
 	postBlock(query) {
 		query = query || {};
-		let block;
-		try {
-			if (query.block) {
-				query.block = bson.deserialize(Buffer.from(query.block));
-				block = modules.blocks.verify.addBlockProperties(query.block);
+		library.schema.validate(query, definitions.WSBlockBroadcast, err => {
+			if (err || !query.block.base64) {
+				return library.logger.debug(
+					'Received post block broadcast request in unexpected format',
+					{
+						err: err.toString(),
+						module: 'transport',
+						query,
+					}
+				);
 			}
-			block = library.logic.block.objectNormalize(block);
-		} catch (e) {
-			library.logger.debug('Block normalization failed', {
-				err: e.toString(),
-				module: 'transport',
-				block: query.block,
-			});
+			let block;
+			try {
+				query.block = bson.deserialize(Buffer.from(query.block.data, 'base64'));
+				block = modules.blocks.verify.addBlockProperties(query.block);
+				block = library.logic.block.objectNormalize(block);
+			} catch (e) {
+				library.logger.debug('Block normalization failed', {
+					err: e.toString(),
+					module: 'transport',
+					block: query.block,
+				});
 
-			__private.removePeer({ peer: query.peer, code: 'EBLOCK' });
-		}
-
-		library.bus.message('receiveBlock', block);
+				__private.removePeer({ peer: query.peer, code: 'EBLOCK' });
+			}
+			library.bus.message('receiveBlock', block);
+		});
 	},
 
 	/**

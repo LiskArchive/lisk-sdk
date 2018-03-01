@@ -2677,3 +2677,27 @@ definitions:
         maxItems: 100
         items:
           type: object
+
+  WSBlocksBroadcast:
+    x-private: true
+    type: object
+    required:
+      - block
+      - peer
+    properties:
+      block:
+        type: object
+        required:
+          - base64
+          - data
+        properties:
+          base64:
+            description: If data is in Base64 format
+            type: boolean
+            example: true
+          data:
+            description: Block data in Base64 string format
+            type: string
+            example: 'ZwIAAAJpZAAUAAAAMjgwNzgzMzQ1N...'
+      peer:
+        $ref: '#/definitions/Peer'
