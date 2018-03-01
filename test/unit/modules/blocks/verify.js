@@ -1614,4 +1614,37 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('__private.normalizeBlock', () => {
+		const dummyBlock = { id: 1 };
+		describe('library.logic.block.objectNormalize', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					return library.logic.block.objectNormalize.throws(
+						'objectNormalize-ERR'
+					);
+				});
+				it('should call a callback with error', done => {
+					__private.normalizeBlock(dummyBlock, err => {
+						expect(err.name).to.equal('objectNormalize-ERR');
+						done();
+					});
+				});
+			});
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					return library.logic.block.objectNormalize.returns({
+						id: 1,
+						version: 0,
+					});
+				});
+				it('should call a callback with no error', done => {
+					__private.normalizeBlock(dummyBlock, err => {
+						expect(err).to.be.undefined;
+						done();
+					});
+				});
+			});
+		});
+	});
 });
