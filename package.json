@@ -44,7 +44,6 @@
 		"bignumber.js": "=4.0.2",
 		"bluebird": "=3.5.1",
 		"body-parser": "=1.18.2",
-		"bson": "=1.0.4",
 		"bytebuffer": "=5.0.1",
 		"change-case": "=3.0.1",
 		"colors": "=1.1.2",
