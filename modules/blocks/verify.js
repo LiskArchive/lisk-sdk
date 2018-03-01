@@ -624,6 +624,30 @@ Verify.prototype.deleteBlockProperties = function(block) {
 };
 
 /**
+ * Add block properties.
+ *
+ * @private
+ * @func addBlockProperties
+ * @param {Object} block - Full block
+ * @param {boolean} broadcast - Indicator that block needs to be broadcasted
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.addBlockProperties = function(block, broadcast, cb) {
+	if (!broadcast) {
+		try {
+			// Set default properties
+			block = self.addBlockProperties(block);
+		} catch (err) {
+			return setImmediate(cb, err);
+		}
+	}
+
+	return setImmediate(cb);
+};
+
+/**
  * Main function to process a block:
  * - Verify the block looks ok
  * - Verify the block is compatible with database state (DATABASE readonly)
@@ -648,16 +672,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 	async.series(
 		{
 			addBlockProperties(seriesCb) {
-				if (!broadcast) {
-					try {
-						// Set default properties
-						block = self.addBlockProperties(block);
-					} catch (err) {
-						return setImmediate(seriesCb, err);
-					}
-				}
-
-				return setImmediate(seriesCb);
+				__private.addBlockProperties(block, broadcast, seriesCb);
 			},
 			normalizeBlock(seriesCb) {
 				try {
