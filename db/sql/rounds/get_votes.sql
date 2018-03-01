@@ -21,7 +21,7 @@
 
 SELECT
 	delegate,
-	sum(amount) as amount
+	sum(amount) AS amount
 FROM mem_round
 WHERE round = ${round}::bigint
 GROUP BY delegate
