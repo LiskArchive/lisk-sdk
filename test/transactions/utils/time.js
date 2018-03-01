@@ -23,7 +23,10 @@ describe('time module', () => {
 	let clock;
 
 	before(() => {
-		clock = sinon.useFakeTimers(nowRealTime, 'Date');
+		clock = sinon.useFakeTimers({
+			now: nowRealTime,
+			toFake: ['Date'],
+		});
 	});
 
 	after(() => {
