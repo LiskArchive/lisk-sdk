@@ -199,15 +199,11 @@ Broadcaster.prototype.broadcast = function(params, options, cb) {
 					peers = peers.slice(0, self.config.broadcastLimit);
 				}
 
-				async.eachLimit(
-					peers,
-					self.config.parallelLimit,
-					peer => peer.rpc[options.api](options.data),
-					() => {
-						library.logger.debug('End broadcast');
-						return setImmediate(waterCb, null, peers);
-					}
-				);
+				peers
+					.slice(0, self.config.peerLimit)
+					.map(peer => peer.rpc[options.api](options.data));
+				library.logger.debug('End broadcast');
+				return setImmediate(waterCb, null, peers);
 			},
 		],
 		(err, peers) => {
