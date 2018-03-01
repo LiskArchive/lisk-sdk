@@ -20,21 +20,23 @@ import { getFirstQuotedString } from '../utils';
 export function theMessageVerificationShouldBeReturned() {
 	const { returnValue } = this.test.ctx;
 	const verification = { verified: true };
-	return returnValue.should.eql(verification);
+	return expect(returnValue).to.be.eql(verification);
 }
 
 export function liskJSCryptoShouldBeUsedToVerifyTheMessage() {
 	const { message, publicKey, signature } = this.test.ctx;
-	return lisk.crypto.verifyMessageWithPublicKey.should.be.calledWithExactly({
-		publicKey,
-		signature,
-		message,
-	});
+	return expect(lisk.crypto.verifyMessageWithPublicKey).to.be.calledWithExactly(
+		{
+			publicKey,
+			signature,
+			message,
+		},
+	);
 }
 
 export function itShouldResolveToTheResultOfVerifyingTheMessage() {
 	const { returnValue, cryptoResult } = this.test.ctx;
-	return returnValue.should.be.fulfilledWith(cryptoResult);
+	return expect(returnValue).to.eventually.equal(cryptoResult);
 }
 
 export function itShouldSignTheMessageWithThePassphrase() {

@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptoModule from '../utils/cryptoModule';
+import cryptography from '../utils/cryptography';
 import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
@@ -25,7 +25,7 @@ const description = `Verify a message using the public key, the signature and th
 `;
 
 const processInputs = (publicKey, signature, message) => ({ data }) =>
-	cryptoModule.verifyMessage({
+	cryptography.verifyMessage({
 		publicKey,
 		signature,
 		message: message || data,

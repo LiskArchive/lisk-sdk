@@ -118,6 +118,7 @@ const setUpCryptoStubs = () => {
 		'getKeys',
 		'getAddressFromPublicKey',
 		'signMessage',
+		'verifyMessage',
 	].forEach(methodName => sandbox.stub(cryptography, methodName));
 };
 

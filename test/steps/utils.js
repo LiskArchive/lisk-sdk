@@ -32,6 +32,7 @@ import * as set from '../../src/commands/set';
 import * as showCopyright from '../../src/commands/show_copyright';
 import * as showWarranty from '../../src/commands/show_warranty';
 import * as signMessage from '../../src/commands/sign_message';
+import * as verifyMessage from '../../src/commands/verify_message';
 
 export const DEFAULT_ERROR_MESSAGE = "Cannot read property 'length' of null";
 
