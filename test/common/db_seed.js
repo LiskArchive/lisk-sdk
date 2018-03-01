@@ -140,6 +140,7 @@ class DatabaseSeed {
 			'outtransfer',
 			'mem_round',
 			'rounds_rewards',
+			'peers',
 			'mem_accounts2multisignatures',
 			'mem_accounts2u_multisignatures',
 			'mem_accounts2delegates',

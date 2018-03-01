@@ -42,7 +42,7 @@ const Transaction = stampit({
 		asset: null,
 	},
 
-	init({ id, blockId, type, asset, dapp, inTransfer }) {
+	init({ id, blockId, type, asset, dapp, inTransfer, votes }) {
 		this.id = id || randomstring.generate({ length: 20, charset: 'numeric' });
 		this.blockId =
 			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
@@ -51,6 +51,10 @@ const Transaction = stampit({
 		this.type = type || 0;
 
 		switch (this.type) {
+			case 3:
+				this.asset.votes = votes || [];
+				break;
+
 			case 5:
 				this.asset.dapp = Dapps.Dapp({ transactionId: this.id });
 				break;
