@@ -68,17 +68,11 @@ describe('Posting transaction (type 0)', () => {
 				account.password
 			);
 
-			postTransaction(transaction, (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.have.property('success').to.be.not.ok;
-				expect(res)
-					.to.have.property('message')
-					.to.equal(
-						`Account does not have enough LSK: ${account.address} balance: 0`
-					);
-				badTransactions.push(transaction);
+			postTransaction(transaction, err => {
+				expect(err).to.equal('RPC response timeout exceeded');
 				done();
 			});
+			badTransactions.push(transaction);
 		});
 
 		it('when sender has funds should be ok', done => {
