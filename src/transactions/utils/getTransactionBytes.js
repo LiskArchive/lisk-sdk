@@ -165,18 +165,11 @@ const getTransactionBytes = transaction => {
 
 	const transactionType = Buffer.alloc(BYTESIZES.TYPE, type);
 	const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-	transactionTimestamp.writeIntLE(
-		transaction.timestamp,
-		0,
-		BYTESIZES.TIMESTAMP,
-	);
+	transactionTimestamp.writeIntLE(timestamp, 0, BYTESIZES.TIMESTAMP);
 
-	const transactionSenderPublicKey = cryptography.hexToBuffer(
-		transaction.senderPublicKey,
-	);
-
-	const transactionRequesterPublicKey = transaction.requesterPublicKey
-		? cryptography.hexToBuffer(transaction.requesterPublicKey)
+	const transactionSenderPublicKey = cryptography.hexToBuffer(senderPublicKey);
+	const transactionRequesterPublicKey = requesterPublicKey
+		? cryptography.hexToBuffer(requesterPublicKey)
 		: Buffer.alloc(0);
 
 	const transactionRecipientID = recipientId
@@ -193,12 +186,12 @@ const getTransactionBytes = transaction => {
 
 	const transactionAssetData = getAssetBytes(transaction);
 
-	const transactionSignature = transaction.signature
-		? cryptography.hexToBuffer(transaction.signature)
+	const transactionSignature = signature
+		? cryptography.hexToBuffer(signature)
 		: Buffer.alloc(0);
 
-	const transactionSecondSignature = transaction.signSignature
-		? cryptography.hexToBuffer(transaction.signSignature)
+	const transactionSecondSignature = signSignature
+		? cryptography.hexToBuffer(signSignature)
 		: Buffer.alloc(0);
 
 	return Buffer.concat([
