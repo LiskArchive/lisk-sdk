@@ -150,6 +150,8 @@ export const checkTransaction = transaction => {
 };
 
 const getTransactionBytes = transaction => {
+	checkTransaction(transaction);
+
 	const {
 		type,
 		timestamp,
@@ -160,8 +162,6 @@ const getTransactionBytes = transaction => {
 		signature,
 		signSignature,
 	} = transaction;
-
-	checkTransaction(transaction);
 
 	const transactionType = Buffer.alloc(BYTESIZES.TYPE, type);
 	const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
@@ -179,9 +179,9 @@ const getTransactionBytes = transaction => {
 		? cryptography.hexToBuffer(transaction.requesterPublicKey)
 		: Buffer.alloc(0);
 
-	const transactionRecipientID = transaction.recipientId
+	const transactionRecipientID = recipientId
 		? cryptography.bigNumberToBuffer(
-				transaction.recipientId.slice(0, -1),
+				recipientId.slice(0, -1),
 				BYTESIZES.RECIPIENT_ID,
 			)
 		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
