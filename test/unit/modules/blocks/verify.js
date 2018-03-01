@@ -1657,7 +1657,7 @@ describe('blocks/verify', () => {
 			done();
 		});
 		afterEach(done => {
-			blocksVerifyModule.addBlockProperties = verifyBlockTemp;
+			blocksVerifyModule.verifyBlock = verifyBlockTemp;
 			done();
 		});
 		describe('self.verifyBlock', () => {
@@ -1695,6 +1695,81 @@ describe('blocks/verify', () => {
 						expect(err).to.be.undefined;
 						done();
 					});
+				});
+			});
+		});
+	});
+
+	describe('__private.broadcastBlock', () => {
+		let broadcastReducedBlockTemp;
+		let deleteBlockPropertiesTemp;
+		const dummyBlock = { id: 1, version: 0 };
+		const dummyBlockReduced = { id: 1 };
+		beforeEach(done => {
+			broadcastReducedBlockTemp = blocksVerifyModule.broadcastReducedBlock;
+			deleteBlockPropertiesTemp = blocksVerifyModule.deleteBlockProperties;
+			blocksVerifyModule.broadcastReducedBlock = sinonSandbox.stub();
+			blocksVerifyModule.deleteBlockProperties = sinonSandbox
+				.stub()
+				.returns(dummyBlock);
+			done();
+		});
+		afterEach(done => {
+			blocksVerifyModule.broadcastReducedBlock = broadcastReducedBlockTemp;
+			blocksVerifyModule.deleteBlockProperties = deleteBlockPropertiesTemp;
+			done();
+		});
+		describe('when broadcast is true', () => {
+			describe('self.deleteBlockProperties', () => {
+				describe('when fails', () => {
+					beforeEach(() => {
+						return blocksVerifyModule.deleteBlockProperties.throws(
+							'deleteBlockProperties-ERR'
+						);
+					});
+					afterEach(() => {
+						return expect(modules.blocks.chain.broadcastReducedBlock.calledOnce)
+							.to.be.false;
+					});
+					it('should call a callback with error', done => {
+						__private.broadcastBlock(dummyBlock, true, err => {
+							expect(err.name).to.equal('deleteBlockProperties-ERR');
+							done();
+						});
+					});
+				});
+				describe('when succeeds', () => {
+					beforeEach(() => {
+						return blocksVerifyModule.deleteBlockProperties.returns(
+							dummyBlockReduced
+						);
+					});
+					afterEach(() => {
+						expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to.be
+							.true;
+						return expect(
+							modules.blocks.chain.broadcastReducedBlock
+						).to.have.been.calledWith(dummyBlockReduced, true);
+					});
+					it('should call a callback with no error', done => {
+						__private.broadcastBlock(dummyBlock, true, err => {
+							expect(err).to.be.undefined;
+							done();
+						});
+					});
+				});
+			});
+		});
+		describe('when broadcast is false', () => {
+			afterEach(() => {
+				expect(blocksVerifyModule.deleteBlockProperties.calledOnce).to.be.false;
+				return expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to
+					.be.false;
+			});
+			it('should call a callback with no error', done => {
+				__private.broadcastBlock(dummyBlock, false, err => {
+					expect(err).to.be.undefined;
+					done();
 				});
 			});
 		});
