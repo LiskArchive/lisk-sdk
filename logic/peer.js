@@ -61,11 +61,14 @@ Peer.prototype.properties = [
 	'height',
 	'clock',
 	'updated',
+	'string',
 	'nonce',
 	'httpPort',
 ];
 
 Peer.prototype.immutable = ['ip', 'wsPort', 'httpPort', 'string'];
+
+Peer.prototype.connectionProperties = ['rpc', 'socket', 'connectionOptions'];
 
 Peer.prototype.headers = ['os', 'version', 'broadhash', 'height', 'nonce'];
 

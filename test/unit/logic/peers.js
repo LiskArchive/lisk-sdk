@@ -58,7 +58,7 @@ describe('peers', () => {
 			return _.keys(peer).every(property => {
 				return (
 					Peer.prototype.properties
-						.concat(['string', 'rpc'])
+						.concat(Peer.prototype.connectionProperties)
 						.indexOf(property) !== -1
 				);
 			});
