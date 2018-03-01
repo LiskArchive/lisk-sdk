@@ -19,7 +19,6 @@ const extend = require('extend');
 const _ = require('lodash');
 const constants = require('../helpers/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
-const bson = require('../helpers/bson.js');
 
 // Private fields
 let modules;
@@ -39,7 +38,6 @@ const __private = {};
  * @requires lodash
  * @requires helpers/constants
  * @requires helpers/jobs_queue
- * @requires helpers/bson
  * @param {Object} broadcasts
  * @param {boolean} force
  * @param {Peers} peers - Peers instance
@@ -148,15 +146,6 @@ class Broadcaster {
 				},
 				function sendToPeer(peers, waterCb) {
 					library.logger.debug('Begin broadcast', options);
-
-					if (options.data.block) {
-						try {
-							options.data.block = bson.serialize(options.data.block);
-						} catch (err) {
-							library.logger.error('Broadcast serialization failed:', err);
-							return setImmediate(cb, err);
-						}
-					}
 
 					if (params.limit === self.config.peerLimit) {
 						peers = peers.slice(0, self.config.broadcastLimit);
