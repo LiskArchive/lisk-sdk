@@ -368,7 +368,10 @@ describe('db', () => {
 				yield db.rounds.summedRound('1', '2');
 
 				expect(db.query.firstCall.args[0]).to.eql(roundsSQL.summedRound);
-				expect(db.query.firstCall.args[1]).to.eql(['2', '1']);
+				expect(db.query.firstCall.args[1]).to.eql({
+					round: '1',
+					activeDelegates: '2',
+				});
 				return expect(db.query).to.be.calledOnce;
 			});
 

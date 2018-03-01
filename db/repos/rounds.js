@@ -130,7 +130,7 @@ class RoundsRepository {
 	 */
 	summedRound(round, activeDelegates) {
 		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.summedRound, [activeDelegates, round]);
+		return this.db.query(sql.summedRound, { round, activeDelegates });
 	}
 
 	/**
