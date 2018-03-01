@@ -132,19 +132,19 @@ class DatabaseSeed {
 
 	static reset(db) {
 		const tables = [
-			'mem_accounts',
 			'blocks',
-			'forks_stat',
 			'dapps',
+			'forks_stat',
 			'intransfer',
 			'outtransfer',
-			'mem_round',
-			'rounds_rewards',
-			'peers',
+			'mem_accounts',
 			'mem_accounts2multisignatures',
 			'mem_accounts2u_multisignatures',
 			'mem_accounts2delegates',
 			'mem_accounts2u_delegates',
+			'mem_round',
+			'rounds_rewards',
+			'peers',
 		];
 		const promises = [];
 
