@@ -52,7 +52,7 @@ const Transaction = stampit({
 
 		switch (this.type) {
 			case 2:
-				this.asset.delegate.username = delegateName || '';
+				this.asset.delegate.username = delegateName || 'DummyDelegate';
 				break;
 
 			case 5:
