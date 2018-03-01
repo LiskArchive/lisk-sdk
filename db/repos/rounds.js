@@ -92,7 +92,7 @@ class RoundsRepository {
 	 */
 	getVotes(round) {
 		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getVotes, [round]);
+		return this.db.query(sql.getVotes, { round });
 	}
 
 	// TODO: Move usage of RoundsRepository#updateVotes to db/votes

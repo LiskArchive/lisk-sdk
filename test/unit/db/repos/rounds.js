@@ -21,6 +21,8 @@ const accountsFixtures = require('../../../fixtures').accounts;
 const roundsSQL = require('../../../../db/sql').rounds;
 const seeder = require('../../../common/db_seed');
 
+const numSeedRecords = 5;
+
 let db;
 let dbSandbox;
 
@@ -162,7 +164,7 @@ describe('db', () => {
 				const after = yield db.query('SELECT * FROM blocks');
 
 				// Assuming that we seed 5 blocks
-				expect(before).to.have.lengthOf(5);
+				expect(before).to.have.lengthOf(numSeedRecords);
 
 				// Truncation does not resolve to any result
 				expect(result).to.be.eql(null);
@@ -248,7 +250,7 @@ describe('db', () => {
 				yield db.rounds.getVotes('1');
 
 				expect(db.query.firstCall.args[0]).to.eql(roundsSQL.getVotes);
-				expect(db.query.firstCall.args[1]).to.eql(['1']);
+				expect(db.query.firstCall.args[1]).to.eql({ round: '1' });
 				return expect(db.query).to.be.calledOnce;
 			});
 
