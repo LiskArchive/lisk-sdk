@@ -20,10 +20,12 @@ const fixtures = require('../fixtures');
 let accounts = [];
 let blocks = [];
 
+const numSeedRecords = 5;
+
 class DatabaseSeed {
 	static seedAccounts(db) {
 		// Prepare some fixture data to seed the database
-		for (let i = 0; i < 5; i++) {
+		for (let i = 0; i < numSeedRecords; i++) {
 			accounts.push(fixtures.accounts.Account());
 		}
 		return db

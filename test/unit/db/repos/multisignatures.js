@@ -19,6 +19,8 @@ const accountFixtures = require('../../../fixtures').accounts;
 const multisignaturesSQL = require('../../../../db/sql').multisignatures;
 const seeder = require('../../../common/db_seed');
 
+const numSeedRecords = 5;
+
 let db;
 let dbSandbox;
 
@@ -87,7 +89,7 @@ describe('db', () => {
 				yield db.accounts.insert(account);
 
 				// Prepare some fixture data to seed the database
-				for (let i = 0; i < 5; i++) {
+				for (let i = 0; i < numSeedRecords; i++) {
 					const dependent = accountFixtures.Dependent({
 						accountId: account.address,
 					});
@@ -105,7 +107,7 @@ describe('db', () => {
 
 				expect(result).to.be.not.empty;
 				expect(result).to.be.an('array');
-				expect(result).to.have.lengthOf(5);
+				expect(result).to.have.lengthOf(numSeedRecords);
 				return expect(result).to.be.eql(members.map(m => m.dependentId));
 			});
 
@@ -133,7 +135,7 @@ describe('db', () => {
 				yield db.accounts.insert(account);
 
 				// Prepare some fixture data to seed the database
-				for (let i = 0; i < 5; i++) {
+				for (let i = 0; i < numSeedRecords; i++) {
 					const groupAccount = accountFixtures.Account();
 					yield db.accounts.insert(groupAccount);
 					yield db.accounts.insertDependencies(
@@ -148,7 +150,7 @@ describe('db', () => {
 
 				expect(result).to.be.not.empty;
 				expect(result).to.be.an('array');
-				expect(result).to.have.lengthOf(5);
+				expect(result).to.have.lengthOf(numSeedRecords);
 				return expect(result).to.be.eql(groups.map(g => g.address));
 			});
 
