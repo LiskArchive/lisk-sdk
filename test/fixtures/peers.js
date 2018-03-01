@@ -58,9 +58,28 @@ const Peer = stampit({
 		this.httpPort = `4${faker.random.number({ max: 999, min: 100 })}`;
 		this.version = faker.system.semver();
 
-		this.broadhash = broadhash || randomstring.generate(64);
+		this.broadhash =
+			broadhash ||
+			randomstring.generate({
+				charset: 'hex',
+				length: 64,
+				capitalization: 'lowercase',
+			});
 		this.state = state || 2; // Connected Peer
 		this.nonce = nonce || randomstring.generate(16);
+	},
+});
+
+const DBPeer = stampit(Peer, {
+	props: {
+		clock: '',
+	},
+	init() {
+		this.clock = (+new Date() / 1000).toFixed();
+		delete this.dappid;
+		delete this.httpPort;
+		delete this.nonce;
+		this.wsPort = parseInt(this.wsPort);
 	},
 });
 
@@ -68,4 +87,5 @@ module.exports = {
 	randomNormalizedPeer: NormalizedPeer(),
 	generateRandomActivePeer: Peer, // For backward compatibility
 	Peer,
+	DBPeer,
 };
