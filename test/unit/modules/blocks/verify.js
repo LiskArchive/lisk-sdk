@@ -42,11 +42,13 @@ describe('blocks/verify', () => {
 		dbStub = {
 			blocks: {
 				loadLastNBlockIds: sinonSandbox.stub(),
+				blockExists: sinonSandbox.stub(),
 			},
 		};
 		logicBlockStub = {
 			verifySignature: sinonSandbox.stub(),
 			getId: sinonSandbox.stub(),
+			objectNormalize: sinonSandbox.stub(),
 		};
 		logicTransactionStub = {
 			getId: sinonSandbox.stub(),
@@ -68,6 +70,7 @@ describe('blocks/verify', () => {
 		// Modules
 		const modulesAccountsStub = {
 			getAccount: sinonSandbox.stub(),
+			validateBlockSlot: sinonSandbox.stub(),
 		};
 		const modulesDelegatesStub = {
 			fork: sinonSandbox.stub(),
@@ -79,6 +82,13 @@ describe('blocks/verify', () => {
 		const modulesBlocksStub = {
 			lastBlock: {
 				get: sinonSandbox.stub(),
+			},
+			isCleaning: {
+				get: sinonSandbox.stub(),
+			},
+			chain: {
+				broadcastReducedBlock: sinonSandbox.stub(),
+				applyBlock: sinonSandbox.stub(),
 			},
 		};
 		modulesStub = {
@@ -1542,6 +1552,65 @@ describe('blocks/verify', () => {
 					dummyBlockCompleted
 				);
 				return dummyBlockReduced;
+			});
+		});
+	});
+
+	describe('__private.addBlockProperties', () => {
+		let addBlockPropertiesTemp;
+		const dummyBlock = { id: 1 };
+		beforeEach(done => {
+			addBlockPropertiesTemp = blocksVerifyModule.addBlockProperties;
+			blocksVerifyModule.addBlockProperties = sinonSandbox.stub();
+			done();
+		});
+		afterEach(done => {
+			blocksVerifyModule.addBlockProperties = addBlockPropertiesTemp;
+			done();
+		});
+		describe('when broadcast is false', () => {
+			describe('self.addBlockProperties', () => {
+				describe('when fails', () => {
+					beforeEach(() => {
+						return blocksVerifyModule.addBlockProperties.throws(
+							'addBlockProperties-ERR'
+						);
+					});
+					it('should call a callback with error', done => {
+						__private.addBlockProperties(dummyBlock, false, err => {
+							expect(err.name).to.equal('addBlockProperties-ERR');
+							done();
+						});
+					});
+				});
+				describe('when succeeds', () => {
+					beforeEach(() => {
+						return blocksVerifyModule.addBlockProperties.returns({
+							id: 1,
+							version: 0,
+						});
+					});
+					it('should call a callback with no error', done => {
+						__private.addBlockProperties(dummyBlock, false, err => {
+							expect(err).to.be.undefined;
+							done();
+						});
+					});
+				});
+			});
+		});
+		describe('when broadcast is true', () => {
+			beforeEach(() => {
+				return blocksVerifyModule.addBlockProperties.returns({
+					id: 1,
+					version: 0,
+				});
+			});
+			it('should call a callback with no error', done => {
+				__private.addBlockProperties(dummyBlock, true, err => {
+					expect(err).to.be.undefined;
+					done();
+				});
 			});
 		});
 	});
