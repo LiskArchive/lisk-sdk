@@ -39,7 +39,11 @@ describe('blocks/verify', () => {
 			warn: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
 		};
-		dbStub = sinonSandbox.stub();
+		dbStub = {
+			blocks: {
+				loadLastNBlockIds: sinonSandbox.stub(),
+			},
+		};
 		logicBlockStub = {
 			verifySignature: sinonSandbox.stub(),
 			getId: sinonSandbox.stub(),
@@ -1136,6 +1140,46 @@ describe('blocks/verify', () => {
 			return expect(verifyReceipt).to.deep.equal({
 				verified: true,
 				errors: [],
+			});
+		});
+	});
+
+	describe('onBlockchainReady', () => {
+		describe('library.db.blocks.loadLastNBlockIds', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					return library.db.blocks.loadLastNBlockIds.rejects(
+						'loadLastNBlockIds-ERR'
+					);
+				});
+				afterEach(() => {
+					expect(loggerStub.error.args[0][0]).to.equal(
+						'Unable to load last 5 block ids'
+					);
+					return expect(loggerStub.error.args[1][0].name).to.equal(
+						'loadLastNBlockIds-ERR'
+					);
+				});
+				it('should log error', () => {
+					return blocksVerifyModule.onBlockchainReady();
+				});
+			});
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					return library.db.blocks.loadLastNBlockIds.resolves([
+						{ id: 1 },
+						{ id: 2 },
+						{ id: 3 },
+						{ id: 4 },
+					]);
+				});
+				afterEach(() => {
+					expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4]);
+					return expect(loggerStub.error.args.length).to.equal(0);
+				});
+				it('should log error', () => {
+					return blocksVerifyModule.onBlockchainReady();
+				});
 			});
 		});
 	});
