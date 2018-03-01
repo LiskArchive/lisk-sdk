@@ -50,10 +50,11 @@ describe('db', () => {
 				expect(db.votes.db).to.be.eql(db);
 				expect(db.votes.pgp).to.be.eql(db.$config.pgp);
 				expect(db.votes.sortFields).to.an('array');
-				expect(db.votes.sortFields[0]).to.eql('username');
-				expect(db.votes.sortFields[1]).to.eql('address');
-
-				return expect(db.votes.sortFields[2]).to.eql('publicKey');
+				return expect(db.votes.sortFields).to.be.eql([
+					'username',
+					'address',
+					'publicKey',
+				]);
 			});
 		});
 
@@ -161,14 +162,10 @@ describe('db', () => {
 					dependentId: delegate.publicKey,
 				});
 				yield db.query(
-					db.$config.pgp.helpers.insert(vote1, null, {
-						table: 'mem_accounts2delegates',
-					})
+					db.$config.pgp.helpers.insert(vote1, null, 'mem_accounts2delegates')
 				);
 				yield db.query(
-					db.$config.pgp.helpers.insert(vote2, null, {
-						table: 'mem_accounts2delegates',
-					})
+					db.$config.pgp.helpers.insert(vote2, null, 'mem_accounts2delegates')
 				);
 
 				const result = yield db.voters.list({
@@ -218,19 +215,14 @@ describe('db', () => {
 					dependentId: delegate.publicKey,
 				});
 				yield db.query(
-					db.$config.pgp.helpers.insert(vote1, null, {
-						table: 'mem_accounts2delegates',
-					})
+					db.$config.pgp.helpers.insert(vote1, null, 'mem_accounts2delegates')
 				);
 				yield db.query(
-					db.$config.pgp.helpers.insert(vote2, null, {
-						table: 'mem_accounts2delegates',
-					})
+					db.$config.pgp.helpers.insert(vote2, null, 'mem_accounts2delegates')
 				);
 
 				const result = yield db.voters.count(delegate.publicKey);
 
-				expect(result).to.be.an('number');
 				return expect(result).to.be.eql(2);
 			});
 		});
