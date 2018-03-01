@@ -135,10 +135,9 @@ describe('transport', () => {
 				recipientId: '12668885769632475474L',
 				timestamp: 28227090,
 				asset: {},
-				signatures:
-					[
-						'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-					],
+				signatures: [
+					'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
+				],
 			},
 			{
 				id: '332675625422353892',
@@ -150,11 +149,10 @@ describe('transport', () => {
 				recipientId: '12668885769632475474L',
 				timestamp: 28227090,
 				asset: {},
-				signatures:
-					[
-						'1231d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c567',
-						'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-					],
+				signatures: [
+					'1231d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c567',
+					'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
+				],
 			},
 		];
 
@@ -425,13 +423,11 @@ describe('transport', () => {
 				describe('when __private.receiveSignature succeeds', () => {
 					beforeEach(done => {
 						__private.receiveSignature = sinonSandbox.stub().callsArg(1);
-						__private.receiveSignatures(
-							[SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
-							err => {
-								error = err;
-								done();
-							}
-						);
+						__private.receiveSignatures([
+							SAMPLE_SIGNATURE_1,
+							SAMPLE_SIGNATURE_2,
+						]);
+						done();
 					});
 
 					it('should call __private.receiveSignature with signature', () => {
@@ -442,13 +438,9 @@ describe('transport', () => {
 							__private.receiveSignature.calledWith(SAMPLE_SIGNATURE_2)
 						).to.be.true;
 					});
-
-					it('should call callback with error null', () => {
-						return expect(error).to.equal(null);
-					});
 				});
 
-				describe('when a call to __private.receiveSignature fails', () => {
+				describe('when __private.receiveSignature fails', () => {
 					var receiveSignatureError;
 
 					beforeEach(done => {
@@ -456,13 +448,11 @@ describe('transport', () => {
 						__private.receiveSignature = sinonSandbox
 							.stub()
 							.callsArgWith(1, receiveSignatureError);
-						__private.receiveSignatures(
-							[SAMPLE_SIGNATURE_1, SAMPLE_SIGNATURE_2],
-							err => {
-								error = err;
-								done();
-							}
-						);
+						__private.receiveSignatures([
+							SAMPLE_SIGNATURE_1,
+							SAMPLE_SIGNATURE_2,
+						]);
+						done();
 					});
 
 					it('should call library.logger.debug with err and signature', () => {
@@ -481,10 +471,6 @@ describe('transport', () => {
 								SAMPLE_SIGNATURE_2
 							)
 						).to.be.true;
-					});
-
-					it('should call callback with error set to null', () => {
-						return expect(error).to.equal(null);
 					});
 				});
 			});
@@ -602,33 +588,29 @@ describe('transport', () => {
 				done();
 			});
 
-			describe('when library.schema.validate succeeds', () => {
-				describe('for every transaction in transactions', () => {
-					describe('when a transaction is undefined', () => {
-						beforeEach(done => {
-							__private.receiveTransactions([undefined], peerMock, '', err => {
-								error = err;
-								done();
-							});
-						});
+			describe('when transactions argument is undefined', () => {
+				beforeEach(done => {
+					__private.receiveTransactions(undefined, peerMock, '');
+					done();
+				});
 
-						// Batch/plural receiveTransactions never fails since it is used for broadcasts.
-						it('should call callback with error = null', () => {
-							return expect(error).to.equal(null);
-						});
-					});
+				// If a single transaction within the batch fails, it is not going to
+				// send back an error.
+				it('should should not call __private.receiveTransaction', () => {
+					return expect(__private.receiveTransaction.notCalled).to.be.true;
+				});
+			});
 
-					describe('when all transactions are specified', () => {
+			describe('for every transaction in transactions', () => {
+				describe('when transaction is defined', () => {
+					describe('when call __private.receiveTransaction succeeds', () => {
 						beforeEach(done => {
 							__private.receiveTransactions(
 								transactionsList,
 								peerMock,
-								'This is a log message',
-								err => {
-									error = err;
-									done();
-								}
+								'This is a log message'
 							);
+							done();
 						});
 
 						it('should set transaction.bundled = true', () => {
@@ -646,13 +628,9 @@ describe('transport', () => {
 								)
 							).to.be.true;
 						});
-
-						it('should call callback with error = null', () => {
-							return expect(error).to.equal(null);
-						});
 					});
 
-					describe('when a call to __private.receiveTransaction fails', () => {
+					describe('when call __private.receiveTransaction fails', () => {
 						var receiveTransactionError;
 
 						beforeEach(done => {
@@ -664,12 +642,9 @@ describe('transport', () => {
 							__private.receiveTransactions(
 								transactionsList,
 								peerMock,
-								'This is a log message',
-								err => {
-									error = err;
-									done();
-								}
+								'This is a log message'
 							);
+							done();
 						});
 
 						it('should call library.logger.debug with error and transaction', () => {
@@ -679,12 +654,6 @@ describe('transport', () => {
 									transactionsList[0]
 								)
 							).to.be.true;
-						});
-
-						// If a single transaction within the batch fails, it is not going to
-						// send back an error.
-						it('should call callback with null error', () => {
-							return expect(error).to.equal(null);
 						});
 					});
 				});
@@ -950,12 +919,11 @@ describe('transport', () => {
 				});
 			});
 
-			it(
-				'should call library.schema.validate with query and definitions.WSAccessObject',
-				() => {
-					return expect(library.schema.validate.calledWith(query, definitions.WSAccessObject)).to.be.true;
-				}
-			);
+			it('should call library.schema.validate with query and definitions.WSAccessObject', () => {
+				return expect(
+					library.schema.validate.calledWith(query, definitions.WSAccessObject)
+				).to.be.true;
+			});
 
 			describe('when library.schema.validate succeeds', () => {
 				describe('when query.authKey != wsRPC.getServerAuthKey()', () => {
@@ -963,19 +931,20 @@ describe('transport', () => {
 						query = {
 							authKey: SAMPLE_AUTH_KEY,
 						};
-						wsRPC.getServerAuthKey = sinonSandbox.stub().returns('differentauthkey789');
+						wsRPC.getServerAuthKey = sinonSandbox
+							.stub()
+							.returns('differentauthkey789');
 						__private.checkInternalAccess(query, err => {
 							error = err;
 							done();
 						});
 					});
 
-					it(
-						'should call callback with error = "Unable to access internal function - Incorrect authKey"',
-						() => {
-							return expect(error).to.equal('Unable to access internal function - Incorrect authKey');
-						}
-					);
+					it('should call callback with error = "Unable to access internal function - Incorrect authKey"', () => {
+						return expect(error).to.equal(
+							'Unable to access internal function - Incorrect authKey'
+						);
+					});
 				});
 
 				it('should call callback with error = null and result = undefined', () => {
@@ -994,7 +963,9 @@ describe('transport', () => {
 					query = {
 						authKey: SAMPLE_AUTH_KEY,
 					};
-					library.schema.validate = sinonSandbox.stub().callsArgWith(2, [validateErr]);
+					library.schema.validate = sinonSandbox
+						.stub()
+						.callsArgWith(2, [validateErr]);
 					__private.checkInternalAccess(query, err => {
 						error = err;
 						done();
@@ -1752,37 +1723,11 @@ describe('transport', () => {
 					done();
 				});
 
-				describe('when query is undefined', () => {
-					var validationError = 'Failed to validate block schema: ...';
-
-					beforeEach(done => {
-						query = undefined;
-
-						library.logic.block.objectNormalize = sinonSandbox
-							.stub()
-							.throws(validationError);
-
-						transportInstance.shared.postBlock(query, (err, res) => {
-							error = err;
-							result = res;
-							done();
-						});
-					});
-
-					it('should pass back error in callback', () => {
-						expect(error).to.equal(validationError);
-						return expect(result).to.equal(undefined);
-					});
-				});
-
 				// TODO: Implement tests once modifications to block serialization have been made.
 				describe.skip('when query is specified', () => {
 					beforeEach(done => {
-						transportInstance.shared.postBlock(query, (err, res) => {
-							error = err;
-							result = res;
-							done();
-						});
+						transportInstance.shared.postBlock(query);
+						done();
 					});
 
 					describe('when it throws', () => {
@@ -2055,58 +2000,47 @@ describe('transport', () => {
 			});
 
 			describe('postSignatures', () => {
-				beforeEach(done => {
-					query = {
-						signatures: [SAMPLE_SIGNATURE_1],
-					};
-					__private.receiveSignatures = sinonSandbox.stub().callsArg(1);
-					transportInstance.shared.postSignatures(query, (err, res) => {
-						error = err;
-						result = res;
+				describe('when library.schema.validate succeeds', () => {
+					beforeEach(done => {
+						query = {
+							signatures: [SAMPLE_SIGNATURE_1],
+						};
+						__private.receiveSignatures = sinonSandbox.stub();
+						transportInstance.shared.postSignatures(query);
 						done();
 					});
-				});
 
-				it('should call __private.receiveSignatures with query.signatures as argument', () => {
-					return expect(
-						__private.receiveSignatures.calledWith(query.signatures)
-					).to.be.true;
-				});
-
-				describe('when __private.receiveSignatures succeeds', () => {
-					it('should invoke callback with object { success: true }', () => {
-						expect(error).to.equal(null);
-						return expect(result)
-							.to.have.property('success')
-							.which.is.equal(true);
+					it('should call __private.receiveSignatures with query.signatures as argument', () => {
+						return expect(
+							__private.receiveSignatures.calledWith(query.signatures)
+						).to.be.true;
 					});
 				});
-
-				describe('when __private.receiveSignatures fails', () => {
-					var receiveSignaturesError = 'Invalid signature body ...';
+				describe('when library.schema.validate fails', () => {
+					var validateErr;
 
 					beforeEach(done => {
 						query = {
 							signatures: [SAMPLE_SIGNATURE_1],
 						};
-						__private.receiveSignatures = sinonSandbox
+						validateErr = new Error('Transaction query did not match schema');
+						validateErr.code = 'INVALID_FORMAT';
+
+						library.schema.validate = sinonSandbox
 							.stub()
-							.callsArgWith(1, receiveSignaturesError);
-						transportInstance.shared.postSignatures(query, (err, res) => {
-							error = err;
-							result = res;
-							done();
-						});
+							.callsArgWith(2, validateErr);
+						__private.receiveSignatures = sinonSandbox.stub();
+						transportInstance.shared.postSignatures(query);
+						done();
 					});
 
-					it('should invoke callback with object { success: false, message: err }', () => {
-						expect(error).to.equal(null);
-						expect(result)
-							.to.have.property('success')
-							.which.is.equal(false);
-						return expect(result)
-							.to.have.property('message')
-							.which.is.equal(receiveSignaturesError);
+					it('should call library.logger.debug with "Invalid signatures body" and err as arguments', () => {
+						return expect(
+							library.logger.debug.calledWith(
+								'Invalid signatures body',
+								validateErr
+							)
+						).to.be.true;
 					});
 				});
 			});
@@ -2116,7 +2050,8 @@ describe('transport', () => {
 
 				beforeEach(done => {
 					req = {};
-					modules.transactions.getMultisignatureTransactionList = sinonSandbox.stub()
+					modules.transactions.getMultisignatureTransactionList = sinonSandbox
+						.stub()
 						.returns(multisignatureTransactionsList);
 					transportInstance.shared.getSignatures(req, (err, res) => {
 						error = err;
@@ -2134,57 +2069,60 @@ describe('transport', () => {
 					).to.be.true;
 				});
 
-				describe(
-					'when all transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature transactions',
-					() => {
-						it(
-							'should call callback with error = null and result = {success: true, signatures: signatures} where signatures contains all transactions',
-							() => {
-								expect(error).to.equal(null);
-								expect(result).to.have.property('success').which.equals(true);
-								return expect(result).to.have.property('signatures').which.is.an('array').that.has.property('length').which.equals(2);
-							}
-						);
-					}
-				);
+				describe('when all transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature transactions', () => {
+					it('should call callback with error = null and result = {success: true, signatures: signatures} where signatures contains all transactions', () => {
+						expect(error).to.equal(null);
+						expect(result)
+							.to.have.property('success')
+							.which.equals(true);
+						return expect(result)
+							.to.have.property('signatures')
+							.which.is.an('array')
+							.that.has.property('length')
+							.which.equals(2);
+					});
+				});
 
-				describe(
-					'when some transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature registration transactions',
-					() => {
-						beforeEach(done => {
-							req = {};
-							// Make it so that the first transaction in the list is a multisignature registration transaction.
-							multisignatureTransactionsList[0] = {
-								id: '222675625422353767',
-								type: 4,
-								amount: '150000000',
-								fee: '1000000',
-								senderPublicKey: '2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-								recipientId: '12668885769632475474L',
-								timestamp: 28227090,
-								asset: {},
-								signature: '2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-							};
+				describe('when some transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature registration transactions', () => {
+					beforeEach(done => {
+						req = {};
+						// Make it so that the first transaction in the list is a multisignature registration transaction.
+						multisignatureTransactionsList[0] = {
+							id: '222675625422353767',
+							type: 4,
+							amount: '150000000',
+							fee: '1000000',
+							senderPublicKey:
+								'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+							recipientId: '12668885769632475474L',
+							timestamp: 28227090,
+							asset: {},
+							signature:
+								'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
+						};
 
-							modules.transactions.getMultisignatureTransactionList = sinonSandbox.stub()
-								.returns(multisignatureTransactionsList);
-							transportInstance.shared.getSignatures(req, (err, res) => {
-								error = err;
-								result = res;
-								done();
-							});
+						modules.transactions.getMultisignatureTransactionList = sinonSandbox
+							.stub()
+							.returns(multisignatureTransactionsList);
+						transportInstance.shared.getSignatures(req, (err, res) => {
+							error = err;
+							result = res;
+							done();
 						});
+					});
 
-						it(
-							'should call callback with error = null and result = {success: true, signatures: signatures} where signatures does not contain multisignature registration transactions',
-							() => {
-								expect(error).to.equal(null);
-								expect(result).to.have.property('success').which.equals(true);
-								return expect(result).to.have.property('signatures').which.is.an('array').that.has.property('length').which.equals(1);
-							}
-						);
-					}
-				);
+					it('should call callback with error = null and result = {success: true, signatures: signatures} where signatures does not contain multisignature registration transactions', () => {
+						expect(error).to.equal(null);
+						expect(result)
+							.to.have.property('success')
+							.which.equals(true);
+						return expect(result)
+							.to.have.property('signatures')
+							.which.is.an('array')
+							.that.has.property('length')
+							.which.equals(1);
+					});
+				});
 			});
 
 			describe('getTransactions', () => {
@@ -2197,22 +2135,26 @@ describe('transport', () => {
 					});
 				});
 
-				it(
-					'should call modules.transactions.getMergedTransactionList with true and constants.maxSharedTxs',
-					() => {
-						return expect(modules.transactions.getMergedTransactionList.calledWith(true, constants.maxSharedTxs)).to.be.true;
-					}
-				);
+				it('should call modules.transactions.getMergedTransactionList with true and constants.maxSharedTxs', () => {
+					return expect(
+						modules.transactions.getMergedTransactionList.calledWith(
+							true,
+							constants.maxSharedTxs
+						)
+					).to.be.true;
+				});
 
-				it(
-					'should call callback with error = null and result = {success: true, transactions: transactions}',
-					() => {
-						expect(error).to.equal(null);
-						expect(result).to.have.property('success').which.is.equal(true);
-						return expect(result).to.have.property('transactions')
-							.which.is.an('array').that.has.property('length').which.equals(2);
-					}
-				);
+				it('should call callback with error = null and result = {success: true, transactions: transactions}', () => {
+					expect(error).to.equal(null);
+					expect(result)
+						.to.have.property('success')
+						.which.is.equal(true);
+					return expect(result)
+						.to.have.property('transactions')
+						.which.is.an('array')
+						.that.has.property('length')
+						.which.equals(2);
+				});
 			});
 
 			describe('postTransaction', () => {
@@ -2222,7 +2164,9 @@ describe('transport', () => {
 						peer: peerMock,
 						extraLogMessage: 'This is a log message',
 					};
-					__private.receiveTransaction = sinonSandbox.stub().callsArgWith(3, null, transaction.id);
+					__private.receiveTransaction = sinonSandbox
+						.stub()
+						.callsArgWith(3, null, transaction.id);
 					transportInstance.shared.postTransaction(query, (err, res) => {
 						error = err;
 						result = res;
@@ -2231,8 +2175,13 @@ describe('transport', () => {
 				});
 
 				it('should call __private.receiveTransaction with query.transaction, query.peer and query.extraLogMessage as arguments', () => {
-					return expect(__private.receiveTransaction.calledWith(query.transaction, query.peer, query.extraLogMessage))
-						.to.be.true;
+					return expect(
+						__private.receiveTransaction.calledWith(
+							query.transaction,
+							query.peer,
+							query.extraLogMessage
+						)
+					).to.be.true;
 				});
 
 				describe('when __private.receiveTransaction succeeds', () => {
@@ -2281,51 +2230,19 @@ describe('transport', () => {
 							peer: peerMock,
 							extraLogMessage: 'This is a log message',
 						};
-						__private.receiveTransactions = sinonSandbox.stub().callsArgWith(3, null, transaction.id);
-						transportInstance.shared.postTransactions(query, (err, res) => {
-							error = err;
-							result = res;
-							done();
-						});
+						__private.receiveTransactions = sinonSandbox.stub();
+						transportInstance.shared.postTransactions(query);
+						done();
 					});
 
 					it('should call __private.receiveTransactions with query.transaction, query.peer and query.extraLogMessage as arguments', () => {
-						return expect(__private.receiveTransactions.calledWith(query.transactions, query.peer, query.extraLogMessage))
-							.to.be.true;
-					});
-
-					describe('when __private.receiveTransactions succeeds', () => {
-						it('should invoke callback with object { success: true }', () => {
-							expect(error).to.equal(null);
-							return expect(result)
-								.to.have.property('success')
-								.which.is.equal(true);
-						});
-					});
-
-					describe('when __private.receiveTransactions fails', () => {
-						var receiveTransactionsError = 'Invalid transaction body ...';
-
-						beforeEach(done => {
-							__private.receiveTransactions = sinonSandbox
-								.stub()
-								.callsArgWith(3, receiveTransactionsError);
-							transportInstance.shared.postTransactions(query, (err, res) => {
-								error = err;
-								result = res;
-								done();
-							});
-						});
-
-						it('should invoke callback with object { success: false, message: err }', () => {
-							expect(error).to.equal(null);
-							expect(result)
-								.to.have.property('success')
-								.which.is.equal(false);
-							return expect(result)
-								.to.have.property('message')
-								.which.is.equal(receiveTransactionsError);
-						});
+						return expect(
+							__private.receiveTransactions.calledWith(
+								query.transactions,
+								query.peer,
+								query.extraLogMessage
+							)
+						).to.be.true;
 					});
 				});
 
@@ -2339,21 +2256,19 @@ describe('transport', () => {
 						library.schema.validate = sinonSandbox
 							.stub()
 							.callsArgWith(2, [validateErr]);
-						transportInstance.shared.postTransactions(query, (err, res) => {
-							error = err;
-							result = res;
-							done();
-						});
+						transportInstance.shared.postTransactions(query);
+						done();
 					});
 
-					it(
-						'should invoke callback with error = null and result = {success: false, message: message}',
-						() => {
-							expect(error).to.equal(null);
-							expect(result).to.have.property('success').which.equals(false);
-							return expect(result).to.have.property('message').which.is.a('string');
-						}
-					);
+					it('should invoke callback with error = null and result = {success: false, message: message}', () => {
+						expect(error).to.equal(null);
+						expect(result)
+							.to.have.property('success')
+							.which.equals(false);
+						return expect(result)
+							.to.have.property('message')
+							.which.is.a('string');
+					});
 				});
 			});
 		});
@@ -2374,7 +2289,8 @@ describe('transport', () => {
 				});
 
 				it('should call __private.checkInternalAccess with query', () => {
-					return expect(__private.checkInternalAccess.calledWith(query)).to.be.true;
+					return expect(__private.checkInternalAccess.calledWith(query)).to.be
+						.true;
 				});
 
 				describe('when __private.checkInternalAccess fails', () => {
@@ -2386,7 +2302,9 @@ describe('transport', () => {
 							updateType: Rules.UPDATES.INSERT,
 							peer: peerMock,
 						};
-						__private.checkInternalAccess = sinonSandbox.stub().callsArgWith(1, validateErr);
+						__private.checkInternalAccess = sinonSandbox
+							.stub()
+							.callsArgWith(1, validateErr);
 						transportInstance.internal.updatePeer(query, err => {
 							error = err;
 							done();
@@ -2402,7 +2320,8 @@ describe('transport', () => {
 					describe('updateResult', () => {
 						describe('when query.updateType = 0 (insert)', () => {
 							it('should call modules.peers.update with query.peer', () => {
-								return expect(modules.peers.update.calledWith(query.peer)).to.be.true;
+								return expect(modules.peers.update.calledWith(query.peer)).to.be
+									.true;
 							});
 						});
 
@@ -2421,7 +2340,8 @@ describe('transport', () => {
 							});
 
 							it('should call modules.peers.remove with query.peer', () => {
-								return expect(modules.peers.remove.calledWith(query.peer)).to.be.true;
+								return expect(modules.peers.remove.calledWith(query.peer)).to.be
+									.true;
 							});
 						});
 					});
@@ -2441,14 +2361,13 @@ describe('transport', () => {
 							});
 						});
 
-						it(
-							'should call callback with error = new PeerUpdateError(updateResult, failureCodes.errorMessages[updateResult])',
-							() => {
-								expect(error).to.have.property('code').which.equals(errorCode);
-								expect(error).to.have.property('message');
-								return expect(error).to.have.property('description');
-							}
-						);
+						it('should call callback with error = new PeerUpdateError(updateResult, failureCodes.errorMessages[updateResult])', () => {
+							expect(error)
+								.to.have.property('code')
+								.which.equals(errorCode);
+							expect(error).to.have.property('message');
+							return expect(error).to.have.property('description');
+						});
 					});
 
 					describe('when updateResult = true', () => {
