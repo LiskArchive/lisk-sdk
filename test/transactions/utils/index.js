@@ -37,11 +37,11 @@ import {
 describe('transaction utils', () => {
 	describe('exports', () => {
 		it('should have checkPublicKeysForDuplicates', () => {
-			return checkPublicKeysForDuplicates.should.be.type('function');
+			return checkPublicKeysForDuplicates.should.be.a('function');
 		});
 
 		it('should have getAddressAndPublicKeyFromRecipientData', () => {
-			return getAddressAndPublicKeyFromRecipientData.should.be.type('function');
+			return getAddressAndPublicKeyFromRecipientData.should.be.a('function');
 		});
 
 		it('should have getTimeFromBlockchainEpoch', () => {
@@ -69,15 +69,15 @@ describe('transaction utils', () => {
 		});
 
 		it('should have prependMinusToPublicKeys', () => {
-			return prependMinusToPublicKeys.should.be.type('function');
+			return prependMinusToPublicKeys.should.be.a('function');
 		});
 
 		it('should have prependPlusToPublicKeys', () => {
-			return prependPlusToPublicKeys.should.be.type('function');
+			return prependPlusToPublicKeys.should.be.a('function');
 		});
 
 		it('should have signRawTransaction', () => {
-			return signRawTransaction.should.be.type('function');
+			return signRawTransaction.should.be.a('function');
 		});
 
 		it('should have signTransaction', () => {
@@ -93,23 +93,23 @@ describe('transaction utils', () => {
 		});
 
 		it('should have validateAddress', () => {
-			return validateAddress.should.be.type('function');
+			return validateAddress.should.be.a('function');
 		});
 
 		it('should have validateKeysgroup', () => {
-			return validateKeysgroup.should.be.type('function');
+			return validateKeysgroup.should.be.a('function');
 		});
 
 		it('should have validatePublicKey', () => {
-			return validatePublicKey.should.be.type('function');
+			return validatePublicKey.should.be.a('function');
 		});
 
 		it('should have validatePublicKeys', () => {
-			return validatePublicKeys.should.be.type('function');
+			return validatePublicKeys.should.be.a('function');
 		});
 
 		it('should have wrapTransactionCreator', () => {
-			return wrapTransactionCreator.should.be.type('function');
+			return wrapTransactionCreator.should.be.a('function');
 		});
 	});
 });

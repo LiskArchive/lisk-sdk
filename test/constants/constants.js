@@ -83,6 +83,6 @@ describe('constants', () => {
 	});
 
 	it('MAX_ADDRESS_NUMBER should be a string', () => {
-		return MAX_ADDRESS_NUMBER.should.be.type('string');
+		return MAX_ADDRESS_NUMBER.should.be.a('string');
 	});
 });

@@ -198,7 +198,7 @@ describe('public key validation', () => {
 
 			it('should return true', () => {
 				return addresses.forEach(address => {
-					return validateAddress(address).should.be.true();
+					return validateAddress(address).should.be.true;
 				});
 			});
 		});
