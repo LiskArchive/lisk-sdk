@@ -14,14 +14,14 @@
 
 'use strict';
 
-var constants = require('../helpers/constants.js');
-var slots = require('../helpers/slots.js');
-var milestones = require('../helpers/milestones.js');
+const constants = require('../helpers/constants.js');
+const slots = require('../helpers/slots.js');
+const milestones = require('../helpers/milestones.js');
 
 // Private fields
-var modules;
-var library;
-var __private = {};
+let modules;
+let library;
+const __private = {};
 
 __private.unconfirmedOutTansfers = {};
 
@@ -37,12 +37,14 @@ __private.unconfirmedOutTansfers = {};
  * @todo Add description for the params
  */
 // Constructor
-function OutTransfer(db, schema, logger) {
-	library = {
-		db,
-		schema,
-		logger,
-	};
+class OutTransfer {
+	constructor(db, schema, logger) {
+		library = {
+			db,
+			schema,
+			logger,
+		};
+	}
 }
 
 // Public methods
@@ -78,7 +80,7 @@ OutTransfer.prototype.calculateFee = function() {
  * @todo Add description for the params
  */
 OutTransfer.prototype.verify = function(transaction, sender, cb) {
-	var lastBlock = modules.blocks.lastBlock.get();
+	const lastBlock = modules.blocks.lastBlock.get();
 	if (lastBlock.height >= milestones.disableDappTransfers) {
 		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
 	}
@@ -170,21 +172,17 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
  * @todo Check type and description of the return value
  */
 OutTransfer.prototype.getBytes = function(transaction) {
-	var buf;
-
 	try {
-		buf = Buffer.from([]);
-		var dappIdBuf = Buffer.from(transaction.asset.outTransfer.dappId, 'utf8');
-		var transactionIdBuff = Buffer.from(
+		const buf = Buffer.from([]);
+		const dappIdBuf = Buffer.from(transaction.asset.outTransfer.dappId, 'utf8');
+		const transactionIdBuff = Buffer.from(
 			transaction.asset.outTransfer.transactionId,
 			'utf8'
 		);
-		buf = Buffer.concat([buf, dappIdBuf, transactionIdBuff]);
+		return Buffer.concat([buf, dappIdBuf, transactionIdBuff]);
 	} catch (e) {
 		throw e;
 	}
-
-	return buf;
 };
 
 /**
@@ -325,7 +323,7 @@ OutTransfer.prototype.schema = {
  * @todo Add description for the params
  */
 OutTransfer.prototype.objectNormalize = function(transaction) {
-	var report = library.schema.validate(
+	const report = library.schema.validate(
 		transaction.asset.outTransfer,
 		OutTransfer.prototype.schema
 	);
@@ -351,7 +349,7 @@ OutTransfer.prototype.dbRead = function(raw) {
 	if (!raw.ot_dappId) {
 		return null;
 	}
-	var outTransfer = {
+	const outTransfer = {
 		dappId: raw.ot_dappId,
 		transactionId: raw.ot_outTransactionId,
 	};
