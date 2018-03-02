@@ -20,6 +20,7 @@ var expect = require('chai').expect;
 var sinon = require('sinon');
 // Load config file - global (one from test directory)
 var config = require('../../../config.json');
+var Sequence = require('../../../helpers/sequence.js');
 
 // Instantiate test subject
 var TransactionPool = rewire('../../../logic/transaction_pool.js');
@@ -33,6 +34,7 @@ describe('transactionPool', () => {
 	var dummyProcessVerifyTransaction;
 	var dummyApplyUnconfirmed;
 	var dummyUndoUnconfirmed;
+	var balancesSequence;
 	var freshListState = { transactions: [], index: {} };
 
 	// Init fake logger
@@ -83,7 +85,7 @@ describe('transactionPool', () => {
 	before(done => {
 		// Use fresh instance of jobsQueue inside transaction pool
 		TransactionPool.__set__('jobsQueue', jobsQueue);
-
+		balancesSequence = new Sequence();
 		// Init test subject
 		transactionPool = new TransactionPool(
 			config.broadcasts.broadcastInterval,
@@ -91,7 +93,7 @@ describe('transactionPool', () => {
 			sinon.spy(), // transaction
 			sinon.spy(), // bus
 			logger, // logger
-			{ add: sinon.spy() }
+			balancesSequence
 		);
 
 		// Bind fake modules
@@ -554,7 +556,7 @@ describe('transactionPool', () => {
 						after(resetStates);
 					});
 
-					describe('that results with error on modules.transactions.undoUnconfirme', () => {
+					describe('that results with error on modules.transactions.undoUnconfirmed', () => {
 						var badTransaction = { id: 'badTx' };
 						var transactions = [badTransaction];
 						var error = 'undo error';
