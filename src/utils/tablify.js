@@ -33,14 +33,26 @@ const chars = {
 	middle: '│',
 };
 
+const cyclicObjectMessage = 'Cyclic object cannot be displayed.';
+
 const getNestedValue = data => keyString =>
 	keyString.split('.').reduce((obj, key) => obj[key], data);
 
 const addValuesToTable = (table, data) => {
 	const nestedValues = table.options.head.map(getNestedValue(data));
-	const valuesToPush = nestedValues.map(
-		value => (Array.isArray(value) ? value.join('\n') : value),
-	);
+	const valuesToPush = nestedValues.map(value => {
+		if (Array.isArray(value)) {
+			return value.join('\n');
+		}
+		if (value && typeof value === 'object') {
+			try {
+				return JSON.stringify(value);
+			} catch (e) {
+				return cyclicObjectMessage;
+			}
+		}
+		return value;
+	});
 	return valuesToPush.length && table.push(valuesToPush);
 };
 
@@ -54,12 +66,13 @@ const reduceKeys = (keys, row) => {
 	return keys.concat(newKeys);
 };
 
-const getKeys = data =>
+const getKeys = (data, limit = 3, loop = 1) =>
 	Object.entries(data)
 		.map(
 			([parentKey, value]) =>
-				Object.prototype.toString.call(value) === '[object Object]'
-					? getKeys(value).reduce(
+				Object.prototype.toString.call(value) === '[object Object]' &&
+				loop < limit
+					? getKeys(value, limit, loop + 1).reduce(
 							(nestedKeys, childKey) => [
 								...nestedKeys,
 								`${parentKey}.${childKey}`,

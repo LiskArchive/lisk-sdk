@@ -41,6 +41,26 @@ describe('Query class', () => {
 				then.theQueryInstanceShouldHaveAHandlerFor,
 			);
 			describe('#sendRequest', () => {
+				When(
+					'the query instance sends a request and the lisk API instance returns the success response',
+					when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceReturnsTheSuccessResponse,
+					() => {
+						Then(
+							'it should resolve to the result of sending the request',
+							then.itShouldResolveToTheResultOfSendingTheRequest,
+						);
+					},
+				);
+				When(
+					'the query instance sends a request and the lisk API instance returns the fail response',
+					when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceReturnsTheFailResponse,
+					() => {
+						Then(
+							'it should reject with the error message',
+							then.itShouldRejectWithTheErrorMessage,
+						);
+					},
+				);
 				Given('an endpoint "delegates/get"', given.anEndpoint, () => {
 					Given('a parameters object', given.aParametersObject, () => {
 						Given(
