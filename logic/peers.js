@@ -213,13 +213,13 @@ Peers.prototype.remove = function(peer) {
 	// Remove peer if exists
 	if (self.exists(peer)) {
 		library.logger.info('Removed peer', peer.string);
-		library.logger.debug('Removed peer', { peer });
+		library.logger.debug('Removed peer', { peer: peer.object() });
 		self.peersManager.remove(peer);
 		return true;
 	}
 	library.logger.debug('Failed to remove peer', {
 		err: 'AREMOVED',
-		peer,
+		peer: peer.object(),
 	});
 	return failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST;
 };

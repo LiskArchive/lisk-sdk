@@ -14,9 +14,8 @@
 
 'use strict';
 
-var _ = require('lodash');
-var ip = require('ip');
-var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
+const _ = require('lodash');
+const ip = require('ip');
 
 /**
  * Main peer logic. Creates a peer.
@@ -33,14 +32,6 @@ var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
  */
 // Constructor
 function Peer(peer) {
-	Object.defineProperties(this, {
-		rpc: {
-			get: function() {
-				return wsRPC.getClientRPCStub(this.ip, this.wsPort);
-			}.bind(this),
-		},
-	});
-
 	return this.accept(peer || {});
 }
 
@@ -75,6 +66,8 @@ Peer.prototype.properties = [
 ];
 
 Peer.prototype.immutable = ['ip', 'wsPort', 'httpPort', 'string'];
+
+Peer.prototype.connectionProperties = ['rpc', 'socket', 'connectionOptions'];
 
 Peer.prototype.headers = ['os', 'version', 'broadhash', 'height', 'nonce'];
 
@@ -198,7 +191,7 @@ Peer.prototype.update = function(peer) {
  * @todo Add description for the function
  */
 Peer.prototype.object = function() {
-	var copy = {};
+	const copy = {};
 
 	_.each(this.properties, key => {
 		copy[key] = this[key];
