@@ -14,13 +14,13 @@
 
 'use strict';
 
-var constants = require('../helpers/constants.js');
-var bignum = require('../helpers/bignum.js');
-var slots = require('../helpers/slots.js');
+const constants = require('../helpers/constants.js');
+const bignum = require('../helpers/bignum.js');
+const slots = require('../helpers/slots.js');
 
 // Private fields
-var modules;
-var library;
+let modules;
+let library;
 
 /**
  * Main transfer logic.
@@ -35,12 +35,13 @@ var library;
  * @param {Object} schema
  * @todo Add description for the params
  */
-// Constructor
-function Transfer(logger, schema) {
-	library = {
-		logger,
-		schema,
-	};
+class Transfer {
+	constructor(logger, schema) {
+		library = {
+			logger,
+			schema,
+		};
+	}
 }
 
 // Public methods
@@ -65,7 +66,7 @@ Transfer.prototype.bind = function(accounts) {
  * @todo Add description for the params
  */
 Transfer.prototype.calculateFee = function(transaction) {
-	var fee = new bignum(constants.fees.send);
+	let fee = new bignum(constants.fees.send);
 	if (transaction.asset && transaction.asset.data) {
 		fee = fee.plus(constants.fees.data);
 	}
@@ -116,18 +117,13 @@ Transfer.prototype.process = function(transaction, sender, cb) {
  * @todo Add description for the params
  */
 Transfer.prototype.getBytes = function(transaction) {
-	var buf;
-
 	try {
-		buf =
-			transaction.asset && transaction.asset.data
-				? Buffer.from(transaction.asset.data, 'utf8')
-				: null;
+		return transaction.asset && transaction.asset.data
+			? Buffer.from(transaction.asset.data, 'utf8')
+			: null;
 	} catch (ex) {
 		throw ex;
 	}
-
-	return buf;
 };
 
 /**
@@ -255,7 +251,7 @@ Transfer.prototype.objectNormalize = function(transaction) {
 		return transaction;
 	}
 
-	var report = library.schema.validate(
+	const report = library.schema.validate(
 		transaction.asset,
 		Transfer.prototype.schema
 	);
