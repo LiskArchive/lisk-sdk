@@ -43,17 +43,19 @@ __private.unconfirmedAscii = {};
  * @param {Object} network
  * @todo Add description for the params
  */
-// Constructor
-function DApp(db, logger, schema, network) {
-	library = {
-		db,
-		logger,
-		schema,
-		network,
-	};
+class DApp {
+	constructor(db, logger, schema, network) {
+		library = {
+			db,
+			logger,
+			schema,
+			network,
+		};
+	}
 }
 
 // Public methods
+// TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
 /**
  * Binds scope.modules to private variable modules.
  */
