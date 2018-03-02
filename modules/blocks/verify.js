@@ -772,6 +772,27 @@ __private.validateBlockSlot = function(block, cb) {
 };
 
 /**
+ * Checks transactions in block.
+ *
+ * @private
+ * @func checkTransactions
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.checkTransactions = function(block, cb) {
+	// Check against the mem_* tables that we can perform the transactions included in the block
+	async.eachSeries(
+		block.transactions,
+		(transaction, eachSeriesCb) => {
+			__private.checkTransaction(block, transaction, eachSeriesCb);
+		},
+		err => setImmediate(cb, err)
+	);
+};
+
+/**
  * Main function to process a block:
  * - Verify the block looks ok
  * - Verify the block is compatible with database state (DATABASE readonly)
@@ -814,14 +835,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				__private.validateBlockSlot(block, seriesCb);
 			},
 			checkTransactions(seriesCb) {
-				// Check against the mem_* tables that we can perform the transactions included in the block
-				async.eachSeries(
-					block.transactions,
-					(transaction, eachSeriesCb) => {
-						__private.checkTransaction(block, transaction, eachSeriesCb);
-					},
-					err => setImmediate(seriesCb, err)
-				);
+				__private.checkTransactions(block, seriesCb);
 			},
 		},
 		err => {
