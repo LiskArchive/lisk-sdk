@@ -1865,4 +1865,65 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('__private.checkTransactions', () => {
+		let checkTransactionTemp;
+		let dummyBlock;
+		beforeEach(done => {
+			checkTransactionTemp = __private.checkTransaction;
+			__private.checkTransaction = sinonSandbox.stub();
+			done();
+		});
+		afterEach(done => {
+			__private.checkTransaction = checkTransactionTemp;
+			done();
+		});
+		describe('when block.transactions is empty', () => {
+			afterEach(() => {
+				return expect(__private.checkTransaction.called).to.be.false;
+			});
+			it('should call a callback with no error', done => {
+				dummyBlock = { id: 1, transactions: [] };
+				__private.checkTransactions(dummyBlock, err => {
+					expect(err).to.be.null;
+					done();
+				});
+			});
+		});
+		describe('when block.transactions is not empty', () => {
+			afterEach(() => {
+				return expect(__private.checkTransaction.called).to.be.true;
+			});
+			describe('__private.checkTransaction', () => {
+				describe('when fails', () => {
+					beforeEach(() => {
+						return __private.checkTransaction.callsArgWith(
+							2,
+							'checkTransaction-ERR',
+							null
+						);
+					});
+					it('should call a callback with error', done => {
+						dummyBlock = { id: 1, transactions: [{ id: 1 }] };
+						__private.checkTransactions(dummyBlock, err => {
+							expect(err).to.equal('checkTransaction-ERR');
+							done();
+						});
+					});
+				});
+				describe('when succeeds', () => {
+					beforeEach(() => {
+						return __private.checkTransaction.callsArgWith(2, null, true);
+					});
+					it('should call a callback with no error', done => {
+						dummyBlock = { id: 1, transactions: [{ id: 1 }] };
+						__private.checkTransactions(dummyBlock, err => {
+							expect(err).to.be.null;
+							done();
+						});
+					});
+				});
+			});
+		});
+	});
 });
