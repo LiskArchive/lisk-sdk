@@ -21,4 +21,5 @@ module.exports = {
 	forks: require('./forks'),
 	dapps: require('./dapps'),
 	transactions: require('./transactions'),
+	rounds: require('./rounds'),
 };

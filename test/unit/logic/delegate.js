@@ -219,7 +219,7 @@ describe('delegate', () => {
 				});
 			});
 
-			it('should call callback with error if username is not lower case', done => {
+			it('should call callback with error if username is not lowercase', done => {
 				transaction.asset.delegate.username = 'UiOjKl';
 
 				delegate.verify(transaction, sender, err => {

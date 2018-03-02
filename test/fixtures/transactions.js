@@ -42,7 +42,7 @@ const Transaction = stampit({
 		asset: null,
 	},
 
-	init({ id, blockId, type, asset, dapp, inTransfer }) {
+	init({ id, blockId, type, asset, dapp, inTransfer, delegateName, votes }) {
 		this.id = id || randomstring.generate({ length: 20, charset: 'numeric' });
 		this.blockId =
 			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
@@ -51,6 +51,14 @@ const Transaction = stampit({
 		this.type = type || 0;
 
 		switch (this.type) {
+			case 2:
+				this.asset.delegate.username = delegateName || 'DummyDelegate';
+				break;
+
+			case 3:
+				this.asset.votes = votes || [];
+				break;
+
 			case 5:
 				this.asset.dapp = Dapps.Dapp({ transactionId: this.id });
 				break;
@@ -69,6 +77,7 @@ const Transaction = stampit({
 					outTransactionId: this.id,
 				});
 				break;
+
 			default:
 				break;
 		}

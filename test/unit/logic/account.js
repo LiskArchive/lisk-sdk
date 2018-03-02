@@ -423,17 +423,12 @@ describe('account', () => {
 			});
 		});
 
-		it('should fetch correct result using address as filter when its in lower case', done => {
+		it('should not fetch result using address as filter when its in lowercase', done => {
 			account.getAll(
 				{ address: validAccount.address.toLowerCase() },
 				(err, res) => {
 					expect(err).to.not.exist;
-					expect(res.length).to.equal(1);
-					expect(res[0].username).to.equal(validAccount.username);
-					expect(res[0].isDelegate).to.equal(!!validAccount.isDelegate);
-					expect(res[0].address).to.equal(validAccount.address);
-					expect(res[0].publicKey).to.equal(validAccount.publicKey);
-					expect(res[0].delegates).to.equal(validAccount.delegates);
+					expect(res.length).to.equal(0);
 					done();
 				}
 			);

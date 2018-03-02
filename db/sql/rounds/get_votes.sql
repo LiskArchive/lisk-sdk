@@ -19,6 +19,9 @@
   PARAMETERS: ?
 */
 
-SELECT d.delegate, d.amount
-FROM (SELECT m.delegate, sum(m.amount) AS amount, round FROM mem_round m GROUP BY m.delegate, m.round) AS d
-WHERE round = $1::bigint
+SELECT
+	delegate,
+	sum(amount) AS amount
+FROM mem_round
+WHERE round = ${round}::bigint
+GROUP BY delegate
