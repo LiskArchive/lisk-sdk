@@ -109,21 +109,27 @@ describe('verify message command', () => {
 														);
 													},
 												);
-												When(
-													'the action is called with the options, the public key and the signature',
-													when.theActionIsCalledWithTheOptionsThePublicKeyAndTheSignature,
+												Given(
+													'the message can be retreived from its source',
+													given.theMessageCanBeRetrievedFromItsSource,
 													() => {
-														Then(
-															'it should get the inputs from sources using the Vorpal instance',
-															then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance,
-														);
-														Then(
-															'it should get the inputs from sources using the message source',
-															then.itShouldGetTheInputsFromSourcesUsingTheMessageSource,
-														);
-														Then(
-															'it should resolve to the result of verifying the message',
-															then.itShouldResolveToTheResultOfVerifyingTheMessage,
+														When(
+															'the action is called with the options, the public key and the signature',
+															when.theActionIsCalledWithTheOptionsThePublicKeyAndTheSignature,
+															() => {
+																Then(
+																	'it should get the inputs from sources using the Vorpal instance',
+																	then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance,
+																);
+																Then(
+																	'it should get the inputs from sources using the message source',
+																	then.itShouldGetTheInputsFromSourcesUsingTheMessageSource,
+																);
+																Then(
+																	'it should resolve to the result of verifying the message',
+																	then.itShouldResolveToTheResultOfVerifyingTheMessage,
+																);
+															},
 														);
 													},
 												);

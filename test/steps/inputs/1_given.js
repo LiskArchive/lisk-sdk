@@ -125,6 +125,16 @@ export function thePassphraseAndPasswordCanBeRetrievedFromTheirSources() {
 	});
 }
 
+export function theMessageCanBeRetrievedFromItsSource() {
+	const { message } = this.test.ctx;
+	getInputsFromSources.resolves({
+		passphrase: null,
+		secondPassphrase: null,
+		password: null,
+		data: message,
+	});
+}
+
 export function thePassphraseAndMessageCanBeRetrievedFromTheirSources() {
 	const { passphrase, message } = this.test.ctx;
 	getInputsFromSources.resolves({
