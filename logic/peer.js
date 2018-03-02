@@ -41,7 +41,7 @@ class Peer {
 				}.bind(this),
 			},
 		});
-		this.accept(peer || {});
+		return this.accept(peer || {});
 	}
 
 	/**
