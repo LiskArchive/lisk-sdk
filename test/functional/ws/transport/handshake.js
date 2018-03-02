@@ -25,11 +25,7 @@ var WSServerMaster = require('../../../common/ws/server_master');
 
 describe('handshake', () => {
 	var wsServerPort = 9999;
-	var frozenHeaders = WSServerMaster.generatePeerHeaders({
-		ip: '127.0.0.1',
-		wsPort: wsServerPort,
-		nonce: wsServer.validNonce,
-	});
+	var frozenHeaders = WSServerMaster.generatePeerHeaders();
 	var validClientSocketOptions;
 	var clientSocket;
 
@@ -64,15 +60,20 @@ describe('handshake', () => {
 		}
 	}
 
+	function turnListenersOff(socket, listeners) {
+		listeners.forEach(listener => socket.off(listener));
+	}
+
 	function expectNotToConnect(test, cb) {
 		const closeHandler = function(...args) {
 			// Prevent from calling done() multiple times
+			turnListenersOff(clientSocket, ['close', 'connect']);
 			clientSocket.off('close', closeHandler);
 			return cb(null, ...args);
 		};
 		const connectHandler = () => {
 			// Prevent from calling done() multiple times
-			clientSocket.off('connect', connectHandler);
+			turnListenersOff(clientSocket, ['close', 'connect']);
 			return cb('Socket should not connect but it did');
 		};
 		clientSocket.on('close', closeHandler);
@@ -82,13 +83,13 @@ describe('handshake', () => {
 
 	function expectConnect(test, cb) {
 		const closeHandler = function(code, description) {
-			clientSocket.off('close', closeHandler);
+			turnListenersOff(clientSocket, ['close', 'connect']);
 			return cb(
 				`socket should stay connected but was closed due to: ${code}: ${description}`
 			);
 		};
 		const connectedHandler = function() {
-			clientSocket.off('connect', connectedHandler);
+			turnListenersOff(clientSocket, ['close', 'connect']);
 			return cb(null);
 		};
 		clientSocket.on('connect', connectedHandler);
@@ -188,7 +189,7 @@ describe('handshake', () => {
 	});
 
 	// ToDo: Make the tests passing
-	describe.skip('when reaching', () => {
+	describe('when reaching', () => {
 		describe('not reachable server', () => {
 			const invalidServerIp = '1.1.1.1';
 			const invalidServerPort = 1111;
