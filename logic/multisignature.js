@@ -14,17 +14,17 @@
 
 'use strict';
 
-var async = require('async');
-var ByteBuffer = require('bytebuffer');
-var constants = require('../helpers/constants.js');
-var Diff = require('../helpers/diff.js');
-var exceptions = require('../helpers/exceptions.js');
-var slots = require('../helpers/slots.js');
+const async = require('async');
+const ByteBuffer = require('bytebuffer');
+const constants = require('../helpers/constants.js');
+const Diff = require('../helpers/diff.js');
+const exceptions = require('../helpers/exceptions.js');
+const slots = require('../helpers/slots.js');
 
 // Private fields
-var modules;
-var library;
-var __private = {};
+let modules;
+let library;
+const __private = {};
 
 __private.unconfirmedSignatures = {};
 
@@ -47,18 +47,21 @@ __private.unconfirmedSignatures = {};
  * @todo Add description for the params
  */
 // Constructor
-function Multisignature(schema, network, transaction, account, logger) {
-	library = {
-		schema,
-		network,
-		logger,
-		logic: {
-			transaction,
-			account,
-		},
-	};
+class Multisignature {
+	constructor(schema, network, transaction, account, logger) {
+		library = {
+			schema,
+			network,
+			logger,
+			logic: {
+				transaction,
+				account,
+			},
+		};
+	}
 }
 
+// TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
 // Public methods
 /**
  * Binds input parameters to private variable modules.
@@ -136,7 +139,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 		transaction.asset.multisignature.min >
 		transaction.asset.multisignature.keysgroup.length
 	) {
-		var err =
+		const err =
 			'Invalid multisignature min. Must be less than or equal to keysgroup size';
 
 		if (exceptions.multisignatures.indexOf(transaction.id) > -1) {
@@ -171,14 +174,14 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 	if (this.ready(transaction, sender)) {
 		try {
 			for (
-				var s = 0;
+				let s = 0;
 				s < transaction.asset.multisignature.keysgroup.length;
 				s++
 			) {
-				var valid = false;
+				let valid = false;
 
 				if (transaction.signatures) {
-					for (var d = 0; d < transaction.signatures.length && !valid; d++) {
+					for (let d = 0; d < transaction.signatures.length && !valid; d++) {
 						if (
 							transaction.asset.multisignature.keysgroup[s][0] !== '-' &&
 							transaction.asset.multisignature.keysgroup[s][0] !== '+'
@@ -228,8 +231,8 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 				return setImmediate(cb, 'Invalid member in keysgroup');
 			}
 
-			var math = key[0];
-			var publicKey = key.slice(1);
+			const math = key[0];
+			const publicKey = key.slice(1);
 
 			if (math !== '+') {
 				return setImmediate(
@@ -239,7 +242,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 			}
 
 			try {
-				var b = Buffer.from(publicKey, 'hex');
+				const b = Buffer.from(publicKey, 'hex');
 				if (b.length !== 32) {
 					return setImmediate(
 						cb,
@@ -261,7 +264,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 				return setImmediate(cb, err);
 			}
 
-			var keysgroup = transaction.asset.multisignature.keysgroup.reduce(
+			const keysgroup = transaction.asset.multisignature.keysgroup.reduce(
 				(p, c) => {
 					if (p.indexOf(c) < 0) {
 						p.push(c);
@@ -308,15 +311,15 @@ Multisignature.prototype.process = function(transaction, sender, cb) {
  * @returns {!Array} Contents as an ArrayBuffer
  */
 Multisignature.prototype.getBytes = function(transaction) {
-	var keysgroupBuffer = Buffer.from(
+	const keysgroupBuffer = Buffer.from(
 		transaction.asset.multisignature.keysgroup.join(''),
 		'utf8'
 	);
 
-	var bb = new ByteBuffer(1 + 1 + keysgroupBuffer.length, true);
+	const bb = new ByteBuffer(1 + 1 + keysgroupBuffer.length, true);
 	bb.writeByte(transaction.asset.multisignature.min);
 	bb.writeByte(transaction.asset.multisignature.lifetime);
-	for (var i = 0; i < keysgroupBuffer.length; i++) {
+	for (let i = 0; i < keysgroupBuffer.length; i++) {
 		bb.writeByte(keysgroupBuffer[i]);
 	}
 	bb.flip();
@@ -356,8 +359,8 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
 			async.eachSeries(
 				transaction.asset.multisignature.keysgroup,
 				(transaction, cb) => {
-					var key = transaction.substring(1);
-					var address = modules.accounts.generateAddressByPublicKey(key);
+					const key = transaction.substring(1);
+					const address = modules.accounts.generateAddressByPublicKey(key);
 
 					// Create accounts
 					modules.accounts.setAccountAndGet(
@@ -388,7 +391,7 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @todo Add description for the params
  */
 Multisignature.prototype.undo = function(transaction, block, sender, cb) {
-	var multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
+	const multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
@@ -459,7 +462,7 @@ Multisignature.prototype.undoUnconfirmed = function(
 	cb,
 	tx
 ) {
-	var multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
+	const multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
 	__private.unconfirmedSignatures[sender.address] = false;
 
@@ -512,7 +515,7 @@ Multisignature.prototype.schema = {
  * @returns {transaction} Validated transaction
  */
 Multisignature.prototype.objectNormalize = function(transaction) {
-	var report = library.schema.validate(
+	const report = library.schema.validate(
 		transaction.asset.multisignature,
 		Multisignature.prototype.schema
 	);
@@ -538,7 +541,7 @@ Multisignature.prototype.dbRead = function(raw) {
 	if (!raw.m_keysgroup) {
 		return null;
 	}
-	var multisignature = {
+	const multisignature = {
 		min: raw.m_min,
 		lifetime: raw.m_lifetime,
 	};
