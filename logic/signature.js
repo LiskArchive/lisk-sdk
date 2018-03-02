@@ -14,12 +14,12 @@
 
 'use strict';
 
-var ByteBuffer = require('bytebuffer');
-var constants = require('../helpers/constants.js');
+const ByteBuffer = require('bytebuffer');
+const constants = require('../helpers/constants.js');
 
 // Private fields
-var modules;
-var library;
+let modules;
+let library;
 
 /**
  * Main signature logic. Initializes library.
@@ -34,13 +34,16 @@ var library;
  * @todo Add description for the params
  */
 // Constructor
-function Signature(schema, logger) {
-	library = {
-		schema,
-		logger,
-	};
+class Signature {
+	constructor(schema, logger) {
+		library = {
+			schema,
+			logger,
+		};
+	}
 }
 
+// TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
 /**
  * Binds input parameters to private variable modules.
  *
@@ -120,24 +123,22 @@ Signature.prototype.process = function(transaction, sender, cb) {
  * @todo Check if this function is called
  */
 Signature.prototype.getBytes = function(transaction) {
-	var bb;
-
 	try {
-		bb = new ByteBuffer(32, true);
-		var publicKeyBuffer = Buffer.from(
+		const bb = new ByteBuffer(32, true);
+		const publicKeyBuffer = Buffer.from(
 			transaction.asset.signature.publicKey,
 			'hex'
 		);
 
-		for (var i = 0; i < publicKeyBuffer.length; i++) {
+		for (let i = 0; i < publicKeyBuffer.length; i++) {
 			bb.writeByte(publicKeyBuffer[i]);
 		}
 
 		bb.flip();
+		return bb.toBuffer();
 	} catch (e) {
 		throw e;
 	}
-	return bb.toBuffer();
 };
 
 /**
@@ -245,7 +246,7 @@ Signature.prototype.schema = {
  * @returns {transaction} Validated transaction
  */
 Signature.prototype.objectNormalize = function(transaction) {
-	var report = library.schema.validate(
+	const report = library.schema.validate(
 		transaction.asset.signature,
 		Signature.prototype.schema
 	);
@@ -271,7 +272,7 @@ Signature.prototype.dbRead = function(raw) {
 	if (!raw.s_publicKey) {
 		return null;
 	}
-	var signature = {
+	const signature = {
 		transactionId: raw.t_id,
 		publicKey: raw.s_publicKey,
 	};
