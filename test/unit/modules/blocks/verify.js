@@ -1926,4 +1926,119 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('processBlock', () => {
+		let privateTemp;
+		const dummyBlock = { id: 5 };
+		let broadcast;
+		let saveBlock;
+		beforeEach(done => {
+			privateTemp = __private;
+			__private.addBlockProperties = sinonSandbox
+				.stub()
+				.callsArgWith(2, null, true);
+			__private.normalizeBlock = sinonSandbox
+				.stub()
+				.callsArgWith(1, null, true);
+			__private.verifyBlock = sinonSandbox.stub().callsArgWith(1, null, true);
+			__private.broadcastBlock = sinonSandbox
+				.stub()
+				.callsArgWith(2, null, true);
+			__private.checkExists = sinonSandbox.stub().callsArgWith(1, null, true);
+			__private.validateBlockSlot = sinonSandbox
+				.stub()
+				.callsArgWith(1, null, true);
+			__private.checkTransactions = sinonSandbox
+				.stub()
+				.callsArgWith(1, null, true);
+			modules.blocks.chain.applyBlock.callsArgWith(2, null, true);
+			done();
+		});
+		afterEach(done => {
+			expect(modules.blocks.isCleaning.get.calledOnce).to.be.true;
+			expect(__private.addBlockProperties).to.have.been.calledWith(
+				dummyBlock,
+				broadcast
+			);
+			expect(__private.normalizeBlock).to.have.been.calledWith(dummyBlock);
+			expect(__private.verifyBlock).to.have.been.calledWith(dummyBlock);
+			expect(__private.broadcastBlock).to.have.been.calledWith(
+				dummyBlock,
+				broadcast
+			);
+			expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
+			expect(__private.validateBlockSlot).to.have.been.calledWith(dummyBlock);
+			expect(__private.checkTransactions).to.have.been.calledWith(dummyBlock);
+			expect(modules.blocks.chain.applyBlock).to.have.been.calledWith(
+				dummyBlock,
+				saveBlock
+			);
+			__private = privateTemp;
+			done();
+		});
+		describe('when broadcast is true', () => {
+			describe('when saveBlock is true', () => {
+				it('should call private functions with correct parameters', done => {
+					broadcast = true;
+					saveBlock = true;
+					blocksVerifyModule.processBlock(
+						dummyBlock,
+						broadcast,
+						saveBlock,
+						err => {
+							expect(err).to.be.null;
+							done();
+						}
+					);
+				});
+			});
+			describe('when saveBlock is false', () => {
+				it('should call private functions with correct parameters', done => {
+					broadcast = true;
+					saveBlock = false;
+					blocksVerifyModule.processBlock(
+						dummyBlock,
+						broadcast,
+						saveBlock,
+						err => {
+							expect(err).to.be.null;
+							done();
+						}
+					);
+				});
+			});
+		});
+		describe('when broadcast is false', () => {
+			describe('when saveBlock is true', () => {
+				it('should call private functions with correct parameters', done => {
+					broadcast = false;
+					saveBlock = true;
+					blocksVerifyModule.processBlock(
+						dummyBlock,
+						broadcast,
+						saveBlock,
+						err => {
+							expect(err).to.be.null;
+							done();
+						}
+					);
+				});
+			});
+			describe('when saveBlock is false', () => {
+				it('should call private functions with correct parameters', done => {
+					broadcast = false;
+					saveBlock = false;
+					blocksVerifyModule.processBlock(
+						dummyBlock,
+						broadcast,
+						saveBlock,
+						err => {
+							expect(err).to.be.null;
+							done();
+						}
+					);
+				});
+			});
+		});
+	});
 });
