@@ -188,7 +188,7 @@ describe('handshake', () => {
 		});
 	});
 
-	// ToDo: Redesign the following tests
+	// TODO: Redesign the following tests
 	// eslint-disable-next-line mocha/no-skipped-tests
 	describe.skip('when reaching', () => {
 		describe('not reachable server', () => {

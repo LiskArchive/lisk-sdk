@@ -130,7 +130,7 @@ describe('RPC Client', () => {
 				});
 			});
 
-			// ToDo: Throws "Unable to find resolving function for procedure status with signature ..." error
+			// TODO: Throws "Unable to find resolving function for procedure status with signature ..." error
 			describe('with valid port as string', () => {
 				beforeEach(done => {
 					validHeaders.wsPort = validHeaders.wsPort.toString();
