@@ -59,6 +59,7 @@ describe('peers', () => {
 				return (
 					Peer.prototype.properties
 						.concat(Peer.prototype.connectionProperties)
+						.concat(['string'])
 						.indexOf(property) !== -1
 				);
 			});

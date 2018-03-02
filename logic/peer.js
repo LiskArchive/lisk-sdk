@@ -61,7 +61,6 @@ Peer.prototype.properties = [
 	'height',
 	'clock',
 	'updated',
-	'string',
 	'nonce',
 	'httpPort',
 ];
