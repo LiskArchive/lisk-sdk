@@ -54,7 +54,7 @@ describe('SignaturesResource', () => {
 		});
 
 		it('should have methods', () => {
-			return resource.should.have.keys('path', 'create');
+			return resource.should.have.keys('liskAPI', 'path', 'create');
 		});
 	});
 });

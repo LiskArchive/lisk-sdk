@@ -54,7 +54,7 @@ describe('VotesResource', () => {
 		});
 
 		it('should have methods', () => {
-			return resource.should.have.keys('path', 'get');
+			return resource.should.have.keys('liskAPI', 'path', 'get');
 		});
 	});
 });

@@ -44,13 +44,13 @@ describe('api utils module', () => {
 		it('should throw error if url has variable but no param', () => {
 			return solveURLParams
 				.bind(null, `${defaultURL}/{id}`)
-				.should.throw(Error('URL is not completely solved'));
+				.should.throw(Error, 'URL is not completely solved');
 		});
 
 		it('should throw error if url has variable but not matching params', () => {
 			return solveURLParams
 				.bind(null, `${defaultURL}/{id}`, { accountId: '123' })
-				.should.throw(Error('URL is not completely solved'));
+				.should.throw(Error, 'URL is not completely solved');
 		});
 
 		it('should replace variable with correct id', () => {

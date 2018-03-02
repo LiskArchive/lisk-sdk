@@ -54,7 +54,7 @@ describe('DelegatesResource', () => {
 		});
 
 		it('should have methods', () => {
-			return resource.should.have.keys('path', 'get', 'getStandby');
+			return resource.should.have.keys('liskAPI', 'path', 'get', 'getStandby');
 		});
 	});
 });

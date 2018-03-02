@@ -29,10 +29,11 @@ describe('API method module', () => {
 		minVersion: '>=0.5.0',
 		port: '443',
 	};
+	const errorArgumentNumber =
+		'This endpoint must be supplied with the following parameters: related,id';
 	let resource;
 	let requestResult;
 	let handler;
-	let errorArgumentNumber;
 	let validationError;
 
 	beforeEach(() => {
@@ -54,12 +55,12 @@ describe('API method module', () => {
 			});
 
 			it('should return function', () => {
-				return handler.should.be.type('function');
+				return handler.should.be.a('function');
 			});
 
 			it('should request GET with default URL', () => {
 				return handler().then(() => {
-					resource.request.should.be.calledOnce();
+					resource.request.should.be.calledOnce;
 					return resource.request.should.be.calledWithExactly(
 						{
 							method: GET,
@@ -88,21 +89,21 @@ describe('API method module', () => {
 					},
 					retry: true,
 				}).bind(resource);
-				errorArgumentNumber = new Error(
-					'This endpoint must be supplied with the following parameters: related,id',
-				);
 			});
 
 			it('should return function', () => {
-				return handler.should.be.type('function');
+				return handler.should.be.a('function');
 			});
 
 			it('should be rejected with error without param', () => {
-				return handler().should.be.rejectedWith(errorArgumentNumber);
+				return handler().should.be.rejectedWith(Error, errorArgumentNumber);
 			});
 
 			it('should be rejected with error without enough param', () => {
-				return handler('r-123').should.be.rejectedWith(errorArgumentNumber);
+				return handler('r-123').should.be.rejectedWith(
+					Error,
+					errorArgumentNumber,
+				);
 			});
 
 			it('should be rejected with no data', () => {
@@ -113,7 +114,7 @@ describe('API method module', () => {
 
 			it('should call request with the given data', () => {
 				return handler('r-123', 'id-123', { needed: true }).then(() => {
-					resource.request.should.be.calledOnce();
+					resource.request.should.be.calledOnce;
 					return resource.request.should.be.calledWithExactly(
 						{
 							method: POST,
@@ -145,21 +146,21 @@ describe('API method module', () => {
 						sort: 'id',
 					},
 				}).bind(resource);
-				errorArgumentNumber = new Error(
-					'This endpoint must be supplied with the following parameters: related,id',
-				);
 			});
 
 			it('should return a function', () => {
-				return handler.should.be.type('function');
+				return handler.should.be.a('function');
 			});
 
 			it('should be rejected with error without parameters', () => {
-				return handler().should.be.rejectedWith(errorArgumentNumber);
+				return handler().should.be.rejectedWith(Error, errorArgumentNumber);
 			});
 
 			it('should be rejected with error without enough parameters', () => {
-				return handler('r-123').should.be.rejectedWith(errorArgumentNumber);
+				return handler('r-123').should.be.rejectedWith(
+					Error,
+					errorArgumentNumber,
+				);
 			});
 
 			it('should be rejected with no data', () => {
@@ -170,7 +171,7 @@ describe('API method module', () => {
 
 			it('should be request with the given data', () => {
 				return handler('r-123', 'id-123', { needed: true }).then(() => {
-					resource.request.should.be.calledOnce();
+					resource.request.should.be.calledOnce;
 					return resource.request.should.be.calledWithExactly(
 						{
 							method: GET,

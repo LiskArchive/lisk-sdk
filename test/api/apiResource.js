@@ -98,16 +98,16 @@ describe('API resource module', () => {
 
 		it('should make a request to API without calling retry', () => {
 			return resource.request(defaultRequest, false).then(res => {
-				popsicleStub.should.be.calledOnce();
-				handleRetryStub.should.not.be.called();
+				popsicleStub.should.be.calledOnce;
+				handleRetryStub.should.not.be.called;
 				return res.should.eql(sendRequestResult.body);
 			});
 		});
 
 		it('should make a request to API without calling retry when it successes', () => {
 			return resource.request(defaultRequest, true).then(res => {
-				popsicleStub.should.be.calledOnce();
-				handleRetryStub.should.not.be.called();
+				popsicleStub.should.be.calledOnce;
+				handleRetryStub.should.not.be.called;
 				return res.should.eql(sendRequestResult.body);
 			});
 		});
@@ -117,8 +117,8 @@ describe('API resource module', () => {
 				use: () => Promise.reject(defaultError),
 			});
 			return resource.request(defaultRequest, true).catch(err => {
-				popsicleStub.should.be.calledOnce();
-				handleRetryStub.should.be.calledOnce();
+				popsicleStub.should.be.calledOnce;
+				handleRetryStub.should.be.calledOnce;
 				return err.should.eql(defaultError);
 			});
 		});
@@ -149,7 +149,7 @@ describe('API resource module', () => {
 				const req = resource.handleRetry(defaultError, defaultRequest);
 				clock.tick(1000);
 				return req.then(res => {
-					LiskAPI.banActiveNodeAndSelect.should.be.calledOnce();
+					LiskAPI.banActiveNodeAndSelect.should.be.calledOnce;
 					requestStub.should.be.calledWith(defaultRequest, true);
 					return res.should.be.eql(sendRequestResult.body);
 				});
@@ -160,7 +160,7 @@ describe('API resource module', () => {
 				const req = resource.handleRetry(defaultError, defaultRequest);
 				clock.tick(1000);
 				return req.then(res => {
-					LiskAPI.banActiveNodeAndSelect.should.not.be.called();
+					LiskAPI.banActiveNodeAndSelect.should.not.be.called;
 					requestStub.should.be.calledWith(defaultRequest, true);
 					return res.should.be.eql(sendRequestResult.body);
 				});
@@ -175,7 +175,7 @@ describe('API resource module', () => {
 			it('should resolve with failure response', () => {
 				const req = resource.handleRetry(defaultError, defaultRequest);
 				return req.then(res => {
-					res.success.should.be.false();
+					res.success.should.be.false;
 					res.error.should.eql(defaultError);
 					return res.message.should.equal(
 						'Could not create an HTTP request to any known nodes.',

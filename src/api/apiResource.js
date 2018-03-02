@@ -46,13 +46,11 @@ export default class APIResource {
 
 	handleRetry(error, req) {
 		if (this.liskAPI.hasAvailableNodes()) {
-			return new Promise((resolve, reject) => {
-				setTimeout(() => {
-					if (this.liskAPI.randomizeNodes) {
-						this.liskAPI.banActiveNodeAndSelect();
-					}
-					this.request(req, true).then(resolve, reject);
-				}, 1000);
+			return new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+				if (this.liskAPI.randomizeNodes) {
+					this.liskAPI.banActiveNodeAndSelect();
+				}
+				return this.request(req, true);
 			});
 		}
 		return Promise.resolve({
