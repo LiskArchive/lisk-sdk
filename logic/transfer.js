@@ -44,6 +44,7 @@ class Transfer {
 	}
 }
 
+// TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
 // Public methods
 /**
  * Binds input parameters to private variable modules.

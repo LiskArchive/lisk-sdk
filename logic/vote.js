@@ -109,6 +109,7 @@ class Vote {
 	}
 }
 
+// TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
 // Public methods
 /**
  * Binds module content to private object modules.
