@@ -316,15 +316,15 @@ Multisignature.prototype.getBytes = function(transaction) {
 		'utf8'
 	);
 
-	const bb = new ByteBuffer(1 + 1 + keysgroupBuffer.length, true);
-	bb.writeByte(transaction.asset.multisignature.min);
-	bb.writeByte(transaction.asset.multisignature.lifetime);
+	const byteBuffer = new ByteBuffer(1 + 1 + keysgroupBuffer.length, true);
+	byteBuffer.writeByte(transaction.asset.multisignature.min);
+	byteBuffer.writeByte(transaction.asset.multisignature.lifetime);
 	for (let i = 0; i < keysgroupBuffer.length; i++) {
-		bb.writeByte(keysgroupBuffer[i]);
+		byteBuffer.writeByte(keysgroupBuffer[i]);
 	}
-	bb.flip();
+	byteBuffer.flip();
 
-	return bb.toBuffer();
+	return byteBuffer.toBuffer();
 };
 
 /**

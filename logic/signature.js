@@ -124,18 +124,18 @@ Signature.prototype.process = function(transaction, sender, cb) {
  */
 Signature.prototype.getBytes = function(transaction) {
 	try {
-		const bb = new ByteBuffer(32, true);
+		const byteBuffer = new ByteBuffer(32, true);
 		const publicKeyBuffer = Buffer.from(
 			transaction.asset.signature.publicKey,
 			'hex'
 		);
 
 		for (let i = 0; i < publicKeyBuffer.length; i++) {
-			bb.writeByte(publicKeyBuffer[i]);
+			byteBuffer.writeByte(publicKeyBuffer[i]);
 		}
 
-		bb.flip();
-		return bb.toBuffer();
+		byteBuffer.flip();
+		return byteBuffer.toBuffer();
 	} catch (e) {
 		throw e;
 	}

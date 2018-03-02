@@ -285,12 +285,12 @@ DApp.prototype.getBytes = function(transaction) {
 			]);
 		}
 
-		const bb = new ByteBuffer(4 + 4, true);
-		bb.writeInt(transaction.asset.dapp.type);
-		bb.writeInt(transaction.asset.dapp.category);
-		bb.flip();
+		const byteBuffer = new ByteBuffer(4 + 4, true);
+		byteBuffer.writeInt(transaction.asset.dapp.type);
+		byteBuffer.writeInt(transaction.asset.dapp.category);
+		byteBuffer.flip();
 
-		buf = Buffer.concat([buf, bb.toBuffer()]);
+		buf = Buffer.concat([buf, byteBuffer.toBuffer()]);
 	} catch (e) {
 		throw e;
 	}
