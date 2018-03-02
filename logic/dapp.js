@@ -14,14 +14,14 @@
 
 'use strict';
 
-var valid_url = require('valid-url');
-var ByteBuffer = require('bytebuffer');
-var constants = require('../helpers/constants.js');
-var dappCategories = require('../helpers/dapp_categories.js');
+const valid_url = require('valid-url');
+const ByteBuffer = require('bytebuffer');
+const constants = require('../helpers/constants.js');
+const dappCategories = require('../helpers/dapp_categories.js');
 
 // Private fields
-var library;
-var __private = {};
+let library;
+const __private = {};
 
 __private.unconfirmedNames = {};
 __private.unconfirmedLinks = {};
@@ -79,8 +79,6 @@ DApp.prototype.calculateFee = function() {
  * @todo Add description for the params
  */
 DApp.prototype.verify = function(transaction, sender, cb, tx) {
-	var i;
-
 	if (transaction.recipientId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
@@ -100,8 +98,8 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid application category');
 	}
 
-	var foundCategory = false;
-	for (i in dappCategories) {
+	let foundCategory = false;
+	for (const i in dappCategories) {
 		if (dappCategories[i] === transaction.asset.dapp.category) {
 			foundCategory = true;
 			break;
@@ -117,7 +115,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 			return setImmediate(cb, 'Invalid application icon link');
 		}
 
-		var length = transaction.asset.dapp.icon.length;
+		const length = transaction.asset.dapp.icon.length;
 
 		if (
 			transaction.asset.dapp.icon.indexOf('.png') !== length - 4 &&
@@ -176,11 +174,11 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 	}
 
 	if (transaction.asset.dapp.tags) {
-		var tags = transaction.asset.dapp.tags.split(',');
+		let tags = transaction.asset.dapp.tags.split(',');
 
 		tags = tags.map(tag => tag.trim()).sort();
 
-		for (i = 0; i < tags.length - 1; i++) {
+		for (let i = 0; i < tags.length - 1; i++) {
 			if (tags[i + 1] === tags[i]) {
 				return setImmediate(
 					cb,
@@ -197,7 +195,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 			transactionId: transaction.id,
 		})
 		.then(rows => {
-			var dapp = rows[0];
+			const dapp = rows[0];
 
 			if (dapp) {
 				if (dapp.name === transaction.asset.dapp.name) {
@@ -251,15 +249,15 @@ DApp.prototype.process = function(transaction, sender, cb) {
  * @todo Check type and description of the return value
  */
 DApp.prototype.getBytes = function(transaction) {
-	var buf;
+	let buf;
 
 	try {
 		buf = Buffer.from([]);
-		var nameBuf = Buffer.from(transaction.asset.dapp.name, 'utf8');
+		const nameBuf = Buffer.from(transaction.asset.dapp.name, 'utf8');
 		buf = Buffer.concat([buf, nameBuf]);
 
 		if (transaction.asset.dapp.description) {
-			var descriptionBuf = Buffer.from(
+			const descriptionBuf = Buffer.from(
 				transaction.asset.dapp.description,
 				'utf8'
 			);
@@ -267,7 +265,7 @@ DApp.prototype.getBytes = function(transaction) {
 		}
 
 		if (transaction.asset.dapp.tags) {
-			var tagsBuf = Buffer.from(transaction.asset.dapp.tags, 'utf8');
+			const tagsBuf = Buffer.from(transaction.asset.dapp.tags, 'utf8');
 			buf = Buffer.concat([buf, tagsBuf]);
 		}
 
@@ -285,7 +283,7 @@ DApp.prototype.getBytes = function(transaction) {
 			]);
 		}
 
-		var bb = new ByteBuffer(4 + 4, true);
+		const bb = new ByteBuffer(4 + 4, true);
 		bb.writeInt(transaction.asset.dapp.type);
 		bb.writeInt(transaction.asset.dapp.category);
 		bb.flip();
@@ -435,7 +433,7 @@ DApp.prototype.schema = {
  * @todo Add description for the params
  */
 DApp.prototype.objectNormalize = function(transaction) {
-	for (var i in transaction.asset.dapp) {
+	for (const i in transaction.asset.dapp) {
 		if (
 			transaction.asset.dapp[i] === null ||
 			typeof transaction.asset.dapp[i] === 'undefined'
@@ -444,7 +442,7 @@ DApp.prototype.objectNormalize = function(transaction) {
 		}
 	}
 
-	var report = library.schema.validate(
+	const report = library.schema.validate(
 		transaction.asset.dapp,
 		DApp.prototype.schema
 	);
@@ -470,7 +468,7 @@ DApp.prototype.dbRead = function(raw) {
 	if (!raw.dapp_name) {
 		return null;
 	}
-	var dapp = {
+	const dapp = {
 		name: raw.dapp_name,
 		description: raw.dapp_description,
 		tags: raw.dapp_tags,
