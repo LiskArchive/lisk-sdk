@@ -2041,4 +2041,31 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('onBind', () => {
+		beforeEach(done => {
+			loggerStub.trace.reset();
+			__private.loaded = false;
+			blocksVerifyModule.onBind(modulesStub);
+			done();
+		});
+
+		it('should call library.logger.trace with "Blocks->Verify: Shared modules bind."', () => {
+			return expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Verify: Shared modules bind.'
+			);
+		});
+
+		it('should assign params to modules', done => {
+			expect(modules.accounts).to.equal(modulesStub.accounts);
+			expect(modules.blocks).to.equal(modulesStub.blocks);
+			expect(modules.delegates).to.equal(modulesStub.delegates);
+			expect(modules.transactions).to.equal(modulesStub.transactions);
+			done();
+		});
+
+		it('should set __private.loaded to true', () => {
+			return expect(__private.loaded).to.be.true;
+		});
+	});
 });
