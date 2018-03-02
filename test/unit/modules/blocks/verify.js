@@ -74,6 +74,7 @@ describe('blocks/verify', () => {
 		};
 		const modulesDelegatesStub = {
 			fork: sinonSandbox.stub(),
+			validateBlockSlot: sinonSandbox.stub(),
 		};
 		const modulesTransactionsStub = {
 			undoUnconfirmed: sinonSandbox.stub(),
@@ -1815,6 +1816,50 @@ describe('blocks/verify', () => {
 							expect(err).to.be.undefined;
 							done();
 						});
+					});
+				});
+			});
+		});
+	});
+
+	describe('__private.validateBlockSlot', () => {
+		const dummyBlock = { id: 1 };
+		describe('modules.delegates.validateBlockSlot', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					return modules.delegates.validateBlockSlot.callsArgWith(
+						1,
+						'validateBlockSlot-ERR',
+						null
+					);
+				});
+				afterEach(() => {
+					expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
+					return expect(modules.delegates.fork).calledWith(dummyBlock, 3);
+				});
+				it('should call a callback with error', done => {
+					__private.validateBlockSlot(dummyBlock, err => {
+						expect(err).to.equal('validateBlockSlot-ERR');
+						done();
+					});
+				});
+			});
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					return modules.delegates.validateBlockSlot.callsArgWith(
+						1,
+						null,
+						true
+					);
+				});
+				afterEach(() => {
+					expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
+					return expect(modules.delegates.fork.calledOnce).to.be.false;
+				});
+				it('should call a callback with no error', done => {
+					__private.validateBlockSlot(dummyBlock, err => {
+						expect(err).to.be.undefined;
+						done();
 					});
 				});
 			});
