@@ -61,7 +61,7 @@ const normalFields = [
 
 // Only used in SELECT and INSERT queries
 const immutableFields = [
-	{ name: 'address', mod: ':raw', init: () => 'upper(address)' },
+	{ name: 'address' },
 	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
 ];
 
@@ -125,7 +125,7 @@ class AccountsRepository {
 			]);
 
 			cs.insert = cs.update.merge([
-				{ name: 'address', mod: ':raw', init: c => `upper('${c.value}')` },
+				{ name: 'address' },
 				{ name: 'virgin', cast: 'int', def: 1, skip: ifNotExists },
 			]);
 		}

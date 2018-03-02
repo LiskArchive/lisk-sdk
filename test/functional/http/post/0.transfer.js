@@ -48,6 +48,21 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 	});
 
 	describe('transaction processing', () => {
+		it('with lowercase recipientId should fail', () => {
+			transaction = randomUtil.transaction();
+			transaction.recipientId = transaction.recipientId.toLowerCase();
+			transaction.signature = crypto.randomBytes(64).toString('hex');
+			transaction.id = lisk.crypto.getId(transaction);
+
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal('Failed to verify signature');
+				badTransactions.push(transaction);
+			});
+		});
+
 		it('with invalid signature should fail', () => {
 			transaction = randomUtil.transaction();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
