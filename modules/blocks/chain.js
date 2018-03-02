@@ -297,6 +297,27 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 };
 
 /**
+ * Calls undoUnconfirmedList from modules transactions.
+ *
+ * @private
+ * @func undoUnconfirmedListStep
+ * @param {function} tx - Postgres transaction
+ * @returns {Promise<reject|resolve>} new Promise. Resolve if ok, reject if error ocurred
+ */
+__private.undoUnconfirmedListStep = function(tx) {
+	return new Promise((resolve, reject) => {
+		modules.transactions.undoUnconfirmedList(err => {
+			if (err) {
+				// Fatal error, memory tables will be inconsistent
+				library.logger.error('Failed to undo unconfirmed list', err);
+				return setImmediate(reject, 'Failed to undo unconfirmed list');
+			}
+			return setImmediate(resolve);
+		}, tx);
+	});
+};
+
+/**
  * Description of the function.
  *
  * @param  {Object}   block - Full normalized genesis block
@@ -308,19 +329,6 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 	// Transactions to rewind in case of error.
 	var appliedTransactions = {};
-
-	var undoUnconfirmedListStep = function(tx) {
-		return new Promise((resolve, reject) => {
-			modules.transactions.undoUnconfirmedList(err => {
-				if (err) {
-					// Fatal error, memory tables will be inconsistent
-					library.logger.error('Failed to undo unconfirmed list', err);
-					return setImmediate(reject, 'Failed to undo unconfirmed list');
-				}
-				return setImmediate(resolve);
-			}, tx);
-		});
-	};
 
 	/**
 	 * Apply transactions to unconfirmed mem_accounts fields.
@@ -536,7 +544,8 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 		.tx('Chain:applyBlock', tx => {
 			modules.blocks.isActive.set(true);
 
-			return undoUnconfirmedListStep(tx)
+			return __private
+				.undoUnconfirmedListStep(tx)
 				.then(() => applyUnconfirmedStep(tx))
 				.then(() => applyConfirmedStep(tx))
 				.then(() => saveBlockStep(tx));
