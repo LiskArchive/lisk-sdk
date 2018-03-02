@@ -108,15 +108,13 @@ describe('encrypt', () => {
 		it('should encrypt a message', () => {
 			return encryptedMessage.should.have
 				.property('encryptedMessage')
-				.be.hexString()
-				.with.length(68);
+				.be.hexString.with.length(68);
 		});
 
 		it('should output the nonce', () => {
 			return encryptedMessage.should.have
 				.property('nonce')
-				.be.hexString()
-				.with.length(48);
+				.be.hexString.with.length(48);
 		});
 	});
 
@@ -182,28 +180,25 @@ describe('encrypt', () => {
 			});
 
 			it('should encrypt a passphrase', () => {
-				return cipher.should.have.property('cipher').and.be.hexString();
+				return cipher.should.have.property('cipher').and.be.hexString;
 			});
 
 			it('should output the IV', () => {
 				return cipher.should.have
 					.property('iv')
-					.and.be.hexString()
-					.and.have.length(32);
+					.and.be.hexString.and.have.length(32);
 			});
 
 			it('should output the salt', () => {
 				return cipher.should.have
 					.property('salt')
-					.and.be.hexString()
-					.and.have.length(32);
+					.and.be.hexString.and.have.length(32);
 			});
 
 			it('should output the tag', () => {
 				return cipher.should.have
 					.property('tag')
-					.and.be.hexString()
-					.and.have.length(32);
+					.and.be.hexString.and.have.length(32);
 			});
 
 			it('should output the current version of LiskJS', () => {

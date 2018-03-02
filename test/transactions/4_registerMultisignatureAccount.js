@@ -67,7 +67,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 		});
 
 		it('should create a register multisignature transaction', () => {
-			return registerMultisignatureTransaction.should.be.ok();
+			return registerMultisignatureTransaction.should.be.ok;
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
@@ -89,66 +89,64 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 		describe('returned register multisignature transaction', () => {
 			it('should be an object', () => {
-				return registerMultisignatureTransaction.should.be.type('object');
+				return registerMultisignatureTransaction.should.be.an('object');
 			});
 
 			it('should have id string', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('id')
-					.and.be.type('string');
+					.and.be.a('string');
 			});
 
 			it('should have type number equal to 4', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('type')
-					.and.be.type('number')
+					.and.be.a('number')
 					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 0', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('amount')
-					.and.be.type('string')
+					.and.be.a('string')
 					.and.equal(amount);
 			});
 
 			it('should have fee string equal to 15 LSK', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('fee')
-					.and.be.type('string')
+					.and.be.a('string')
 					.and.equal(fee);
 			});
 
 			it('should have recipientId string equal to null', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('recipientId')
-					.and.be.null();
+				return registerMultisignatureTransaction.should.have.property(
+					'recipientId',
+				).and.be.null;
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('senderPublicKey')
-					.and.be.hexString()
-					.and.equal(keys.publicKey);
+					.and.be.hexString.and.equal(keys.publicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 				return registerMultisignatureTransaction.should.have
 					.property('timestamp')
-					.and.be.type('number')
+					.and.be.a('number')
 					.and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('signature')
-					.and.be.hexString();
+				return registerMultisignatureTransaction.should.have.property(
+					'signature',
+				).and.be.hexString;
 			});
 
 			it('should have asset', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('asset')
-					.and.not.be.empty();
+				return registerMultisignatureTransaction.should.have.property('asset')
+					.and.not.be.empty;
 			});
 
 			it('should not have a second signature', () => {
@@ -161,20 +159,20 @@ describe('#registerMultisignatureAccount transaction', () => {
 				it('should be object', () => {
 					return registerMultisignatureTransaction.asset.should.have
 						.property('multisignature')
-						.and.be.type('object');
+						.and.be.an('object');
 				});
 
 				it('should have a min number equal to provided minimum', () => {
 					return registerMultisignatureTransaction.asset.multisignature.should.have
 						.property('min')
-						.and.be.type('number')
+						.and.be.a('number')
 						.and.be.equal(minimum);
 				});
 
 				it('should have a lifetime number equal to provided lifetime', () => {
 					return registerMultisignatureTransaction.asset.multisignature.should.have
 						.property('lifetime')
-						.and.be.type('number')
+						.and.be.a('number')
 						.and.be.equal(lifetime);
 				});
 
@@ -203,9 +201,9 @@ describe('#registerMultisignatureAccount transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			return registerMultisignatureTransaction.should.have
-				.property('signSignature')
-				.and.be.hexString();
+			return registerMultisignatureTransaction.should.have.property(
+				'signSignature',
+			).and.be.hexString;
 		});
 	});
 
@@ -348,10 +346,9 @@ describe('#registerMultisignatureAccount transaction', () => {
 			});
 
 			it('should have the asset with the multisignature with the min, lifetime and keysgroup', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('asset')
-					.with.property('multisignature')
-					.with.properties('min', 'lifetime', 'keysgroup');
+				return registerMultisignatureTransaction.should.have.nested
+					.property('asset.multisignature')
+					.with.all.keys('min', 'lifetime', 'keysgroup');
 			});
 
 			it('should not have the signature', () => {

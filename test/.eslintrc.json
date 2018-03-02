@@ -9,7 +9,8 @@
 		"sinon": true
 	},
 	"rules": {
-		"arrow-body-style": "off"
+		"arrow-body-style": "off",
+		"no-unused-expressions": "off"
 	},
 	"settings": {
 		"import/resolver": {

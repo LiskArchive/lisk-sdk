@@ -41,6 +41,9 @@
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"test:node": "npm run build:check && BABEL_ENV=buildcheck mocha test --recursive",
+		"test:watch": "npm test -- --watch",
+		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"test:node": "npm run build:check && BABEL_ENV=buildcheck mocha test --recursive",
 		"test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
 		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
@@ -51,7 +54,7 @@
 		"postbuild:browsertest": "rm -r browsertest/src browsertest/test",
 		"prebuild:node": "rm -r dist-node/* || mkdir dist-node | echo",
 		"build:node": "npm run babel",
-		"prebuild:browser": "rm ./dist-browser/lisk-js.js ./dist-browser/lisk-js.min.js  | echo",
+		"prebuild:browser": "rm ./dist-browser/lisk-js.js ./dist-browser/lisk-js.min.js | echo",
 		"build:browser": "npm run babel && npm run browserify && npm run uglify",
 		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
 		"build": "npm run babel && npm run browserify && npm run uglify",
@@ -79,6 +82,8 @@
 		"babel-plugin-transform-runtime": "=6.23.0",
 		"babel-preset-env": "=1.6.0",
 		"browserify": "=16.0.0",
+		"chai": "=4.1.2",
+		"chai-as-promised": "=7.1.1",
 		"coveralls": "=3.0.0",
 		"cypress": "=2.0.2",
 		"eslint": "=4.16.0",
@@ -93,9 +98,8 @@
 		"nyc": "=11.3.0",
 		"prettier": "=1.8.2",
 		"rewireify": "=0.2.5",
-		"should": "=11.2.1",
-		"should-sinon": "=0.0.6",
 		"sinon": "=4.1.2",
-		"uglify-js": "=3.3.10"
+		"sinon-chai": "=2.14.0",
+		"uglify-es": "=3.3.9"
 	}
 }

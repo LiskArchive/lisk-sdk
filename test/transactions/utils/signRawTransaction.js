@@ -296,7 +296,7 @@ describe('#signRawTransaction', () => {
 			});
 
 			it('should sign the transaction', () => {
-				signedTransaction.should.be.ok();
+				signedTransaction.should.be.ok;
 			});
 
 			it('should have the updated senderPublicKey', () => {
