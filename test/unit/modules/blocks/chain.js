@@ -736,6 +736,49 @@ describe('blocks/chain', () => {
 		});
 	});
 
+	describe('__private.undoUnconfirmedListStep', () => {
+		describe('modules.transactions.undoUnconfirmedList', () => {
+			describe('when fails', () => {
+				beforeEach(() => {
+					return modules.transactions.undoUnconfirmedList.callsArgWith(
+						0,
+						'undoUnconfirmedList-ERR',
+						null
+					);
+				});
+				afterEach(() => {
+					expect(loggerStub.error.args[0][0]).to.be.equal(
+						'Failed to undo unconfirmed list'
+					);
+					return expect(loggerStub.error.args[0][1]).to.be.equal(
+						'undoUnconfirmedList-ERR'
+					);
+				});
+				it('should return rejected promise with error', done => {
+					__private.undoUnconfirmedListStep(dbStub.tx).catch(err => {
+						expect(err).to.equal('Failed to undo unconfirmed list');
+						done();
+					});
+				});
+			});
+			describe('when succeeds', () => {
+				beforeEach(() => {
+					return modules.transactions.undoUnconfirmedList.callsArgWith(
+						0,
+						null,
+						true
+					);
+				});
+				it('should return resolved promise with no error', done => {
+					__private.undoUnconfirmedListStep(dbStub.tx).then(resolve => {
+						expect(resolve).to.be.undefined;
+						done();
+					});
+				});
+			});
+		});
+	});
+
 	describe('applyBlock', () => {
 		var saveBlockTemp;
 		beforeEach(done => {
