@@ -218,9 +218,6 @@ describe('Broadcaster', () => {
 		});
 	});
 
-	/* eslint-disable mocha/no-skipped-tests */
-	// Tests failing after changes made in https://github.com/LiskHQ/lisk/commit/1292bd60db540ce182c1f14e179795eb78ec0a4b
-	// Needs futher investigation, skipping tests for now.
 	describe('broadcast', () => {
 		beforeEach(done => {
 			broadcaster.getPeers = sinonSandbox
@@ -292,7 +289,6 @@ describe('Broadcaster', () => {
 			});
 		});
 	});
-	/* eslint-enable */
 
 	describe('enqueue', () => {
 		it('should throw error for no params', () => {
