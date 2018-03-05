@@ -202,7 +202,7 @@ __private.loadSignatures = function(cb) {
 				library.logger.log(`Loading signatures from: ${peer.string}`);
 				peer.rpc.getSignatures((err, res) => {
 					if (err) {
-						peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
+						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
 					library.schema.validate(res, definitions.WSSignaturesResponse, err =>
@@ -266,7 +266,7 @@ __private.loadTransactions = function(cb) {
 				library.logger.log(`Loading transactions from: ${peer.string}`);
 				peer.rpc.getTransactions((err, res) => {
 					if (err) {
-						peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
+						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
 					library.schema.validate(
