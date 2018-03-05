@@ -1897,7 +1897,7 @@ describe('transport', () => {
 					return expect(error).to.be.equal(null);
 				});
 
-				it('should call callback with result = {success: true, height: modules.system.getHeight()}', () => {
+				it('should call callback with result = {success: true, height: currentHeight}', () => {
 					expect(result)
 						.to.have.property('success')
 						.which.is.equal(true);
@@ -2368,7 +2368,7 @@ describe('transport', () => {
 					});
 
 					describe('when updateResult !== true', () => {
-						var errorCode = 1234;
+						var errorCode = 4102;
 						beforeEach(done => {
 							query = {
 								updateType: Rules.UPDATES.REMOVE,
@@ -2382,11 +2382,11 @@ describe('transport', () => {
 							});
 						});
 
-						it('should call callback with error = new PeerUpdateError(updateResult, failureCodes.errorMessages[updateResult])', () => {
+						it('should call callback with error = new PeerUpdateError(updateResult, "Request is made on the wrong network")', () => {
 							expect(error)
 								.to.have.property('code')
 								.which.equals(errorCode);
-							expect(error).to.have.property('message');
+							expect(error).to.have.property('message').which.equals('Request is made on the wrong network');
 							return expect(error).to.have.property('description');
 						});
 					});
