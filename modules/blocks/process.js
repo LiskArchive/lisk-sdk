@@ -17,7 +17,6 @@
 var _ = require('lodash');
 var async = require('async');
 var constants = require('../../helpers/constants.js');
-var Peer = require('../../logic/peer.js');
 var slots = require('../../helpers/slots.js');
 
 var modules;
