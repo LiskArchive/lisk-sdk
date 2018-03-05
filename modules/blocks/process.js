@@ -470,7 +470,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 			(err, res) => {
 				err = err || res.error;
 				if (err) {
-					peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
+					modules.peers.remove(peer);
 					return setImmediate(seriesCb, err);
 				}
 				return setImmediate(seriesCb, null, res.blocks);
@@ -729,6 +729,7 @@ Process.prototype.onBind = function(scope) {
 		blocks: scope.blocks,
 		delegates: scope.delegates,
 		loader: scope.loader,
+		peers: scope.peers,
 		rounds: scope.rounds,
 		transactions: scope.transactions,
 		transport: scope.transport,
