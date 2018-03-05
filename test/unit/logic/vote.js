@@ -522,6 +522,40 @@ describe('vote', () => {
 		});
 	});
 
+	describe('getBytes', () => {
+		it('should return null for empty asset', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset = {};
+			return expect(vote.getBytes(transaction)).to.eql(null);
+		});
+
+		it('should return bytes of data asset', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			var data = {
+				votes: [
+					'-9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+				],
+			};
+			transaction.asset = data;
+
+			return expect(vote.getBytes(transaction)).to.eql(
+				Buffer.from(data.votes[0], 'utf8')
+			);
+		});
+
+		it('should be okay for utf-8 data value', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			var data = {
+				votes: ['Zu¨¨¨¨ka Ωlaå'],
+			};
+			transaction.asset = data;
+
+			return expect(vote.getBytes(transaction)).to.eql(
+				Buffer.from(data.votes[0], 'utf8')
+			);
+		});
+	});
+
 	describe('apply', () => {
 		it('should remove votes for delegates', done => {
 			var transaction = _.clone(validTransaction);
