@@ -24,7 +24,7 @@ export function theMessageVerificationShouldBeReturned() {
 }
 
 export function liskJSCryptoShouldBeUsedToVerifyTheMessage() {
-	const { message, publicKey, signature } = this.test.ctx;
+	const { message, keys: { publicKey }, signature } = this.test.ctx;
 	return expect(lisk.crypto.verifyMessageWithPublicKey).to.be.calledWithExactly(
 		{
 			publicKey,

@@ -32,7 +32,12 @@ export function anErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndThe
 }
 
 export function noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature() {
-	const { cryptography, message, publicKey, signature } = this.test.ctx;
+	const {
+		cryptography,
+		message,
+		keys: { publicKey },
+		signature,
+	} = this.test.ctx;
 	const verifyReturnMessage = true;
 
 	lisk.crypto.verifyMessageWithPublicKey.returns(verifyReturnMessage);

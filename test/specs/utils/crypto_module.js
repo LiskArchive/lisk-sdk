@@ -148,64 +148,69 @@ describe('Crypto class', () => {
 				});
 				Given('a message "Hello Lisker"', given.aMessage, () => {
 					describe('#signMessage', () => {
-						describe('Given the message under the passphrase has signature "1fef64a0bc78019a04ba9735cf94c1403683908f4a42ed500cf5d65f1cd5be16971838bfd810f4ab2a5526ee7de82ad9f971ee500771db02d983237f65fa9f01"', () => {
-							beforeEach(given.theMessageUnderThePassphraseHasSignature);
-							describe('When no error occurs attempting to sign the message using the passphrase', () => {
-								beforeEach(
+						Given(
+							'the message under the passphrase has signature "1fef64a0bc78019a04ba9735cf94c1403683908f4a42ed500cf5d65f1cd5be16971838bfd810f4ab2a5526ee7de82ad9f971ee500771db02d983237f65fa9f01"',
+							given.theMessageUnderThePassphraseHasSignature,
+							() => {
+								When(
+									'no error occurs attempting to sign the message using the passphrase',
 									when.noErrorOccursAttemptingToSignTheMessageUsingThePassphrase,
+									() => {
+										it(
+											'Then lisk-js crypto should be used to sign the message',
+											then.liskJSCryptoShouldBeUsedToSignTheMessage,
+										);
+										it(
+											'Then the signature should be returned',
+											then.theSignatureShouldBeReturned,
+										);
+									},
 								);
-								it(
-									'Then lisk-js crypto should be used to sign the message',
-									then.liskJSCryptoShouldBeUsedToSignTheMessage,
-								);
-								it(
-									'Then the signature should be returned',
-									then.theSignatureShouldBeReturned,
-								);
-							});
-							describe('When an error occurs attempting to sign the message using the passphrase', () => {
-								beforeEach(
+								When(
+									'an error occurs attempting to sign the message using the passphrase',
 									when.anErrorOccursAttemptingToSignTheMessageUsingThePassphrase,
+									() => {
+										it(
+											'Then the error response should be handled',
+											then.theErrorResponseShouldBeHandled,
+										);
+									},
 								);
-								it(
-									'Then the error response should be handled',
-									then.theErrorResponseShouldBeHandled,
-								);
-							});
-						});
+							},
+						);
 					});
-				});
-				describe('#verifyMessage', () => {
-					Given(
-						'a message "Hello World" with a public key "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and a signature "2a3ca127efcf7b2bf62ac8c3b1f5acf6997cab62ba9fde3567d188edcbacbc5dc8177fb88d03a8691ce03348f569b121bca9e7a3c43bf5c056382f35ff843c09"',
-						given.aMessageWithAPublicKeyAndASignature,
-						() => {
-							When(
-								'no error occurs attempting to verify the message using the public key and the signature',
-								when.noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
-								() => {
-									Then(
-										'lisk-js crypto should be used to verify the message',
-										then.liskJSCryptoShouldBeUsedToVerifyTheMessage,
-									);
-									Then(
-										'the the message verification should be returned',
-										then.theMessageVerificationShouldBeReturned,
-									);
-								},
-							);
-							When(
-								'an error occurs attempting to verify the message using the public key and the signature',
-								when.anErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
-								() => {
-									Then(
-										'the error response should be handled',
-										then.theErrorResponseShouldBeHandled,
-									);
-								},
-							);
-						},
-					);
+					describe('#verifyMessage', () => {
+						Given(
+							'the message under the passphrase has signature "1fef64a0bc78019a04ba9735cf94c1403683908f4a42ed500cf5d65f1cd5be16971838bfd810f4ab2a5526ee7de82ad9f971ee500771db02d983237f65fa9f01"',
+							given.theMessageUnderThePassphraseHasSignature,
+							() => {
+								When(
+									'no error occurs attempting to verify the message using the public key and the signature',
+									when.noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
+									() => {
+										Then(
+											'lisk-js crypto should be used to verify the message',
+											then.liskJSCryptoShouldBeUsedToVerifyTheMessage,
+										);
+										Then(
+											'the the message verification should be returned',
+											then.theMessageVerificationShouldBeReturned,
+										);
+									},
+								);
+								When(
+									'an error occurs attempting to verify the message using the public key and the signature',
+									when.anErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
+									() => {
+										Then(
+											'the error response should be handled',
+											then.theErrorResponseShouldBeHandled,
+										);
+									},
+								);
+							},
+						);
+					});
 				});
 				Given(
 					'a recipient passphrase "polar save winner any focus slide runway ghost finish invite regret laugh" with private key "08595f178e7470ad2cbe054b29f60311a0f808be969cde6c274819580a428dcd31919b459d28b1c611afb4db3de95c5769f4891c3f771c7dbcb53a45c452cc25" and public key "31919b459d28b1c611afb4db3de95c5769f4891c3f771c7dbcb53a45c452cc25"',
