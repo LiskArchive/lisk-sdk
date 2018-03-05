@@ -17,27 +17,35 @@ pipeline {
 	stages {
 		stage('Install dependencies') {
 			steps {
-				sh '''
-				cp -r ~/cache/${CHANGE_TARGET:-${BRANCH_NAME:-development}}/node_modules ./ || true
-				npm install --verbose
-				cp ~/.coveralls.yml .
-				'''
+				sh 'npm install --verbose'
 			}
 		}
 		stage('Run lint') {
-			steps{
-				sh 'grunt eslint-ci'
+			steps {
+				ansiColor('xterm') {
+					sh 'npm run lint'
+				}
 			}
 		}
-		stage('Run node tests') {
+		stage('Build') {
 			steps {
-				sh 'npm run jenkins'
+				sh 'npm run build'
+			}
+		}
+		stage('Run tests') {
+			steps {
+				ansiColor('xterm') {
+					sh 'npm run test'
+					sh '''
+					cp ~/.coveralls.yml .coveralls.yml
+					npm run cover
+					'''
+				}
 			}
 		}
 		stage('Run browser tests') {
 			steps {
 				sh '''
-				npm run build
 				npm run build:check
 				npm run build:browsertest
 				HTTP_PORT=808${EXECUTOR_NUMBER:-0}
@@ -50,9 +58,17 @@ pipeline {
 	post {
 		success {
 			deleteDir()
+			githubNotify context: 'continuous-integration/jenkins/lisk-js', description: 'The build passed.', status: 'SUCCESS'
 		}
 		failure {
 			archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/screenshots/'
+			githubNotify context: 'continuous-integration/jenkins/lisk-js', description: 'The build failed.', status: 'FAILURE'
+		}
+		aborted {
+			githubNotify context: 'continuous-integration/jenkins/lisk-js', description: 'The build was aborted.', status: 'ERROR'
+		}
+		always {
+			archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/*'
 		}
 	}
 }

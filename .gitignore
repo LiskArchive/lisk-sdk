@@ -49,6 +49,7 @@ jspm_packages
 
 # IDE directories
 .idea
+tmp
 
 # Distribution folders
 dist-browser/*.js
@@ -59,3 +60,6 @@ dist-node
 browsertest/package.json
 browsertest/browsertest.js
 browsertest/browsertest.min.js
+
+# Lock files
+yarn.lock

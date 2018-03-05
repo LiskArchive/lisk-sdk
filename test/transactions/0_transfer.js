@@ -50,7 +50,7 @@ describe('#transfer transaction', () => {
 			});
 
 			it('should create a transfer transaction', () => {
-				return transferTransaction.should.be.ok();
+				return transferTransaction.should.be.ok;
 			});
 
 			it('should use time.getTimeWithOffset to calculate the timestamp', () => {
@@ -70,68 +70,65 @@ describe('#transfer transaction', () => {
 			});
 
 			it('should be an object', () => {
-				return transferTransaction.should.be.type('object');
+				return transferTransaction.should.be.an('object');
 			});
 
 			it('should have id string', () => {
 				return transferTransaction.should.have
 					.property('id')
-					.and.be.type('string');
+					.and.be.a('string');
 			});
 
 			it('should have type number equal to 0', () => {
 				return transferTransaction.should.have
 					.property('type')
-					.and.be.type('number')
+					.and.be.a('number')
 					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to provided amount', () => {
 				return transferTransaction.should.have
 					.property('amount')
-					.and.be.type('string')
+					.and.be.a('string')
 					.and.equal(amount);
 			});
 
 			it('should have fee string equal to transfer fee', () => {
 				return transferTransaction.should.have
 					.property('fee')
-					.and.be.type('string')
+					.and.be.a('string')
 					.and.equal(fee);
 			});
 
 			it('should have recipientId string equal to provided recipient id', () => {
 				return transferTransaction.should.have
 					.property('recipientId')
-					.and.be.type('string')
+					.and.be.a('string')
 					.and.equal(recipientId);
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
 				return transferTransaction.should.have
 					.property('senderPublicKey')
-					.and.be.hexString()
-					.and.equal(publicKey);
+					.and.be.hexString.and.equal(publicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
 				return transferTransaction.should.have
 					.property('timestamp')
-					.and.be.type('number')
+					.and.be.a('number')
 					.and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				return transferTransaction.should.have
-					.property('signature')
-					.and.be.hexString();
+				return transferTransaction.should.have.property('signature').and.be
+					.hexString;
 			});
 
 			it('should have an empty asset object', () => {
 				return transferTransaction.should.have
 					.property('asset')
-					.and.be.type('object')
-					.and.be.empty();
+					.and.be.an('object').and.be.empty;
 			});
 
 			it('should not have the second signature property', () => {
@@ -165,7 +162,7 @@ describe('#transfer transaction', () => {
 			it('should have fee string equal to transfer with data fee', () => {
 				return transferTransaction.should.have
 					.property('fee')
-					.and.be.type('string')
+					.and.be.a('string')
 					.and.equal(feeWithData);
 			});
 
@@ -173,7 +170,7 @@ describe('#transfer transaction', () => {
 				it('should be a string equal to provided data', () => {
 					return transferTransaction.asset.should.have
 						.property('data')
-						.and.be.type('string')
+						.and.be.a('string')
 						.and.equal(testData);
 				});
 			});
@@ -203,9 +200,8 @@ describe('#transfer transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			return transferTransaction.should.have
-				.property('signSignature')
-				.and.be.hexString();
+			return transferTransaction.should.have.property('signSignature').and.be
+				.hexString;
 		});
 	});
 

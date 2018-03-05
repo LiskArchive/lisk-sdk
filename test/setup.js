@@ -12,33 +12,45 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import should from 'should';
 import sinon from 'sinon';
-import 'should-sinon';
+import chai, { Assertion } from 'chai';
+import 'chai/register-should';
+import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
 import naclFactory from 'js-nacl';
 
 process.env.NODE_ENV = 'test';
 
-should.use((_, Assertion) => {
-	Assertion.add('hexString', function hexString() {
-		this.params = {
-			operator: 'to be hex string',
-		};
-		Buffer.from(this.obj, 'hex')
-			.toString('hex')
-			.should.equal(this.obj);
-	});
+/* eslint-disable no-underscore-dangle */
+Assertion.addProperty('hexString', function handleAssert() {
+	const actual = this._obj;
 
-	Assertion.add('integer', function integer() {
-		this.params = {
-			operator: 'to be an integer',
-		};
-		parseInt(this.obj, 10).should.equal(this.obj);
-	});
+	new Assertion(actual).to.be.a('string');
+
+	const expected = Buffer.from(actual, 'hex').toString('hex');
+	this.assert(
+		expected === actual,
+		'expected #{this} to be a hexString',
+		'expected #{this} not to be a hexString',
+	);
 });
 
-// See https://github.com/shouldjs/should.js/issues/41
-Object.defineProperty(global, 'should', { value: should });
+Assertion.addProperty('integer', function handleAssert() {
+	const actual = this._obj;
+
+	new Assertion(actual).to.be.a('number');
+
+	const expected = parseInt(actual, 10);
+	this.assert(
+		actual === expected,
+		'expected #{this} to be an integer',
+		'expected #{this} not to be an integer',
+	);
+});
+/* eslint-enable no-underscore-dangle */
+
+[sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
+
 global.sinon = sinon;
 global.sandbox = sinon.sandbox.create();
 
