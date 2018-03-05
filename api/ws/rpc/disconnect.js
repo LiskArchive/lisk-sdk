@@ -12,14 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+'use strict';
 
-/*
-  DESCRIPTION: Convert a virgin account to non-virgin state
+const disconnect = peer => {
+	if (peer.socket) {
+		peer.socket.disconnect();
+	}
+	return peer;
+};
 
-  PARAMETERS:
-  	address - Address of the particular account
-*/
-
-UPDATE mem_accounts
-SET virgin = 0
-WHERE address = ${address}
+module.exports = disconnect;

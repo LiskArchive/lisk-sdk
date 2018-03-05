@@ -14,12 +14,13 @@
 
 
 /*
-  DESCRIPTION: Convert a virgin account to non-virgin state
-
-  PARAMETERS:
-  	address - Address of the particular account
+  DESCRIPTION: Change to uppercase all recipient ids existing on table trs
+  PARAMETERS: None
 */
 
-UPDATE mem_accounts
-SET virgin = 0
-WHERE address = ${address}
+UPDATE
+  trs
+SET
+  "recipientId" = UPPER("recipientId")
+WHERE
+  "recipientId" = LOWER("recipientId");

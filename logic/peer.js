@@ -16,7 +16,6 @@
 
 const _ = require('lodash');
 const ip = require('ip');
-const wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 /**
  * Main peer logic. Creates a peer.
@@ -31,16 +30,8 @@ const wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
  * @returns Calls accept method
  * @todo Add description for the params
  */
-// Constructor
 class Peer {
 	constructor(peer) {
-		Object.defineProperties(this, {
-			rpc: {
-				get: function() {
-					return wsRPC.getClientRPCStub(this.ip, this.wsPort);
-				}.bind(this),
-			},
-		});
 		return this.accept(peer || {});
 	}
 
@@ -184,6 +175,8 @@ Peer.prototype.properties = [
 ];
 
 Peer.prototype.immutable = ['ip', 'wsPort', 'httpPort', 'string'];
+
+Peer.prototype.connectionProperties = ['rpc', 'socket', 'connectionOptions'];
 
 Peer.prototype.headers = ['os', 'version', 'broadhash', 'height', 'nonce'];
 

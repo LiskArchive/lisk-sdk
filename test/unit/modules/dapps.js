@@ -38,7 +38,7 @@ describe('dapps', () => {
 
 			describe('when filter.category exists', () => {
 				/**
-				 * ToDo: it is possible to list the undefined category
+				 * TODO: it is possible to list the undefined category
 				 * when passed a one which is not present in dappCategories.
 				 * Check should be replaced from
 				 * category != null to category !== undefined
