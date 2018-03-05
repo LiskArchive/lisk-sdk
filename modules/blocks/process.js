@@ -277,7 +277,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 				peer = library.logic.peers.create(peer);
 				peer.rpc.blocksCommon({ ids }, (err, res) => {
 					if (err) {
-						peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
+						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					} else if (!res.common) {
 						// FIXME: Need better checking here, is base on 'common' property enough?
