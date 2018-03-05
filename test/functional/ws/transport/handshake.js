@@ -20,29 +20,38 @@ var randomstring = require('randomstring');
 var scClient = require('socketcluster-client');
 var testConfig = require('../../../data/config.json');
 var failureCodes = require('../../../../api/ws/rpc/failure_codes');
-var ws = require('../../../common/ws/communication'); // eslint-disable-line no-unused-vars
 var wsServer = require('../../../common/ws/server');
 var WSServerMaster = require('../../../common/ws/server_master');
 
 describe('handshake', () => {
 	var wsServerPort = 9999;
-	var frozenHeaders = WSServerMaster.generatePeerHeaders({
-		wsPort: wsServerPort,
-		nonce: wsServer.validNonce,
-	});
+	var frozenHeaders = WSServerMaster.generatePeerHeaders();
 	var validClientSocketOptions;
 	var clientSocket;
-	var currentConnectedSocket;
 
 	var connectAbortStub;
 	var disconnectStub;
+	var connectStub;
+	var closeStub;
 	var errorStub;
 
 	function connect() {
 		clientSocket = scClient.connect(validClientSocketOptions);
-		clientSocket.on('connectAbort', connectAbortStub);
-		clientSocket.on('disconnect', disconnectStub);
-		clientSocket.on('error', errorStub);
+		clientSocket.on('connectAbort', () => {
+			connectAbortStub();
+		});
+		clientSocket.on('disconnect', () => {
+			disconnectStub();
+		});
+		clientSocket.on('error', () => {
+			errorStub();
+		});
+		clientSocket.on('close', () => {
+			closeStub();
+		});
+		clientSocket.on('connect', () => {
+			connectStub();
+		});
 	}
 
 	function disconnect() {
@@ -51,38 +60,40 @@ describe('handshake', () => {
 		}
 	}
 
-	function expectDisconnect(test, cb) {
-		var disconnectHandler = function(code, description) {
+	function turnListenersOff(socket, listeners) {
+		listeners.forEach(listener => socket.off(listener));
+	}
+
+	function expectNotToConnect(test, cb) {
+		const closeHandler = function(...args) {
 			// Prevent from calling done() multiple times
-			clientSocket.off('disconnect', disconnectHandler);
-			return cb(code, description);
+			turnListenersOff(clientSocket, ['close', 'connect']);
+			clientSocket.off('close', closeHandler);
+			return cb(null, ...args);
 		};
-		clientSocket.on('disconnect', disconnectHandler);
+		const connectHandler = () => {
+			// Prevent from calling done() multiple times
+			turnListenersOff(clientSocket, ['close', 'connect']);
+			return cb('Socket should not connect but it did');
+		};
+		clientSocket.on('close', closeHandler);
+		clientSocket.on('connect', connectHandler);
 		test.timeout(1000);
 	}
 
 	function expectConnect(test, cb) {
-		var disconnectHandler = function(code, description) {
-			currentConnectedSocket = null;
-			clientSocket.off('disconnect', disconnectHandler);
-			expect(
-				`socket had been disconnected with error code: ${code} - ${description ||
-					failureCodes.errorMessages[code]}`
-			).equal('socket should stay connected');
-			return cb(code);
+		const closeHandler = function(code, description) {
+			turnListenersOff(clientSocket, ['close', 'connect']);
+			return cb(
+				`socket should stay connected but was closed due to: ${code}: ${description}`
+			);
 		};
-		var acceptedHandler = function() {
-			clientSocket.off('accepted', acceptedHandler);
-			clientSocket.off('disconnect', disconnectHandler);
-			return cb(null, currentConnectedSocket);
+		const connectedHandler = function() {
+			turnListenersOff(clientSocket, ['close', 'connect']);
+			return cb(null);
 		};
-		var connectedHandler = function(socket) {
-			currentConnectedSocket = socket;
-			clientSocket.off('connect', connectedHandler);
-		};
-		clientSocket.on('accepted', acceptedHandler);
 		clientSocket.on('connect', connectedHandler);
-		clientSocket.on('disconnect', disconnectHandler);
+		clientSocket.on('close', closeHandler);
 		test.timeout(1000);
 	}
 
@@ -91,10 +102,15 @@ describe('handshake', () => {
 			protocol: 'http',
 			hostname: '127.0.0.1',
 			port: testConfig.wsPort,
-			query: _.clone(frozenHeaders),
+			query: Object.assign({}, frozenHeaders),
+			connectTimeout: 1000,
+			ackTimeout: 1000,
+			pingTimeout: 1000,
 		};
 		connectAbortStub = sinonSandbox.spy();
 		disconnectStub = sinonSandbox.spy();
+		closeStub = sinonSandbox.spy();
+		connectStub = sinonSandbox.spy();
 		errorStub = sinonSandbox.spy();
 		done();
 	});
@@ -103,13 +119,15 @@ describe('handshake', () => {
 		return disconnect();
 	});
 
+	// Define new error codes for all of the errors occuring on Server side - they can be easily passed now
 	describe('with invalid headers', () => {
 		describe('should fail with INVALID_HEADERS code and description', () => {
 			it('without headers', function(done) {
 				delete validClientSocketOptions.query;
 				connect();
-				expectDisconnect(this, code => {
+				expectNotToConnect(this, (err, code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
+					expect(description).contain('Missing required property');
 					done();
 				});
 			});
@@ -117,7 +135,7 @@ describe('handshake', () => {
 			it('with empty headers', function(done) {
 				validClientSocketOptions.query = {};
 				connect();
-				expectDisconnect(this, (code, description) => {
+				expectNotToConnect(this, (err, code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Missing required property');
 					done();
@@ -127,7 +145,7 @@ describe('handshake', () => {
 			it('without port', function(done) {
 				delete validClientSocketOptions.query.wsPort;
 				connect();
-				expectDisconnect(this, (code, description) => {
+				expectNotToConnect(this, (err, code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain(
 						'Expected type integer but found type not-a-number'
@@ -139,7 +157,7 @@ describe('handshake', () => {
 			it('without height', function(done) {
 				delete validClientSocketOptions.query.height;
 				connect();
-				expectDisconnect(this, (code, description) => {
+				expectNotToConnect(this, (err, code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain(
 						'height: Expected type integer but found type not-a-number'
@@ -151,7 +169,7 @@ describe('handshake', () => {
 			it('without version', function(done) {
 				delete validClientSocketOptions.query.version;
 				connect();
-				expectDisconnect(this, (code, description) => {
+				expectNotToConnect(this, (err, code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Missing required property: version');
 					done();
@@ -161,9 +179,43 @@ describe('handshake', () => {
 			it('without nethash', function(done) {
 				delete validClientSocketOptions.query.nethash;
 				connect();
-				expectDisconnect(this, (code, description) => {
+				expectNotToConnect(this, (err, code, description) => {
 					expect(code).equal(failureCodes.INVALID_HEADERS);
 					expect(description).contain('Missing required property: nethash');
+					done();
+				});
+			});
+		});
+	});
+
+	// TODO: Redesign the following tests
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('when reaching', () => {
+		describe('not reachable server', () => {
+			const invalidServerIp = '1.1.1.1';
+			const invalidServerPort = 1111;
+
+			it('should close client WS connection with HANDSHAKE_ERROR', done => {
+				validClientSocketOptions.hostname = invalidServerIp;
+				validClientSocketOptions.port = invalidServerPort;
+				connect();
+				expectNotToConnect(this, (err, code) => {
+					expect(code).equal(4007);
+					done();
+				});
+			});
+		});
+
+		describe('not existing server', () => {
+			const validServerIp = '127.0.0.1';
+			const invalidServerPort = 1111;
+
+			it('should close client WS connection with HANDSHAKE_ERROR', done => {
+				validClientSocketOptions.hostname = validServerIp;
+				validClientSocketOptions.port = invalidServerPort;
+				connect();
+				expectNotToConnect(this, (err, code) => {
+					expect(code).equal(1006);
 					done();
 				});
 			});
@@ -240,7 +292,7 @@ describe('handshake', () => {
 					validClientSocketOptions.query.state = 1;
 					validClientSocketOptions.query.ip = '127.0.0.1';
 					clientSocket
-						.wampSend('updateMyself', validClientSocketOptions.query)
+						.call('updateMyself', validClientSocketOptions.query)
 						.then(() => {
 							done();
 						})

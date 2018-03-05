@@ -84,8 +84,7 @@
 		"valid-url": "=1.0.9",
 		"validator": "=7.0.0",
 		"validator.js": "=2.0.3",
-		"wamp-socket-cluster":
-			"LiskHQ/wamp-socket-cluster#77326d47d24eea6903a3cbf5172f7b88908c9d84",
+		"wamp-socket-cluster": "LiskHQ/wamp-socket-cluster#b068f39b3335c4ccc29f4635711a2e1e9e26a6e3",
 		"z-schema": "=3.18.2"
 	},
 	"devDependencies": {

@@ -811,7 +811,10 @@ Loader.prototype.findGoodPeers = function(peers) {
 		.map(item => library.logic.peers.create(item));
 
 	library.logger.trace('Good peers - accepted', { count: peers.length });
-	library.logger.debug('Good peers', peers);
+	library.logger.debug(
+		'Good peers',
+		peers.map(peer => `${peer.ip}.${peer.wsPort}`)
+	);
 
 	return { height, peers };
 };

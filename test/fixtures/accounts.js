@@ -73,7 +73,16 @@ const Account = stampit({
 		rewards: '0',
 		virgin: true,
 	},
-	init({ isDelegate, username, u_username, address, publicKey, blockId }) {
+	init({
+		isDelegate,
+		username,
+		u_username,
+		address,
+		publicKey,
+		blockId,
+		missedBlocks,
+		balance,
+	}) {
 		this.isDelegate = isDelegate || this.isDelegate;
 		this.username = username || randomstring.generate(10).toLowerCase();
 		this.u_username = u_username || null;
@@ -89,6 +98,9 @@ const Account = stampit({
 			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
 
 		this.vote = randomstring.generate({ charset: '123456789', length: 5 });
+
+		this.missedBlocks = missedBlocks || '0';
+		this.balance = balance || '0';
 
 		if (this.isDelegate) {
 			this.virgin = false;
