@@ -2012,12 +2012,16 @@ describe('transport', () => {
 			});
 
 			describe('postSignatures', () => {
+				beforeEach(done => {
+					query = {
+						signatures: [SAMPLE_SIGNATURE_1],
+					};
+					__private.receiveSignatures = sinonSandbox.stub();
+					done();
+				});
+
 				describe('when library.schema.validate succeeds', () => {
 					beforeEach(done => {
-						query = {
-							signatures: [SAMPLE_SIGNATURE_1],
-						};
-						__private.receiveSignatures = sinonSandbox.stub();
 						transportInstance.shared.postSignatures(query);
 						done();
 					});
@@ -2032,16 +2036,12 @@ describe('transport', () => {
 					var validateErr;
 
 					beforeEach(done => {
-						query = {
-							signatures: [SAMPLE_SIGNATURE_1],
-						};
 						validateErr = new Error('Transaction query did not match schema');
 						validateErr.code = 'INVALID_FORMAT';
 
 						library.schema.validate = sinonSandbox
 							.stub()
 							.callsArgWith(2, validateErr);
-						__private.receiveSignatures = sinonSandbox.stub();
 						transportInstance.shared.postSignatures(query);
 						done();
 					});
