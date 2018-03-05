@@ -405,6 +405,70 @@ __private.applyUnconfirmedStep = function(block, appliedTransactions, tx) {
 };
 
 /**
+ * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount.
+ * If there is no error, calls removeUnconfirmedTransaction from modules.transactions
+ *
+ * @private
+ * @func applyConfirmedStep
+ * @param {Object} block - Block object
+ * @param {function} tx - Postgres transaction
+ * @returns {Promise<reject|resolve>} new Promise. Resolve if ok, reject if error ocurred
+ * @todo check descriptions
+ */
+__private.applyConfirmedStep = function(block, tx) {
+	return Promise.mapSeries(
+		block.transactions,
+		transaction =>
+			new Promise((resolve, reject) => {
+				modules.accounts.getAccount(
+					{ publicKey: transaction.senderPublicKey },
+					(err, sender) => {
+						if (err) {
+							// Fatal error, memory tables will be inconsistent
+							err = [
+								'Failed to apply transaction:',
+								transaction.id,
+								'-',
+								err,
+							].join(' ');
+							library.logger.error(err);
+							library.logger.error('Transaction', transaction);
+							return setImmediate(reject, err);
+						}
+						// DATABASE: write
+						modules.transactions.apply(
+							transaction,
+							block,
+							sender,
+							err => {
+								if (err) {
+									// Fatal error, memory tables will be inconsistent
+									err = [
+										'Failed to apply transaction:',
+										transaction.id,
+										'-',
+										err,
+									].join(' ');
+									library.logger.error(err);
+									library.logger.error('Transaction', transaction);
+									return setImmediate(reject, err);
+								}
+								// Transaction applied, removed from the unconfirmed list
+								modules.transactions.removeUnconfirmedTransaction(
+									transaction.id
+								);
+								return setImmediate(resolve);
+							},
+							tx
+						);
+					},
+					tx
+				);
+			})
+	);
+};
+
+/**
  * Description of the function.
  *
  * @param  {Object}   block - Full normalized genesis block
@@ -416,68 +480,6 @@ __private.applyUnconfirmedStep = function(block, appliedTransactions, tx) {
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 	// Transactions to rewind in case of error.
 	var appliedTransactions = {};
-
-	/**
-	 * Description of the function.
-	 *
-	 * @private
-	 * @func applyConfirmedStep
-	 * @param {Object} tx
-	 * @todo Add description for the function and the params
-	 * @todo Add @returns tag
-	 */
-	var applyConfirmedStep = function(tx) {
-		return Promise.mapSeries(
-			block.transactions,
-			transaction =>
-				new Promise((resolve, reject) => {
-					modules.accounts.getAccount(
-						{ publicKey: transaction.senderPublicKey },
-						(err, sender) => {
-							if (err) {
-								// Fatal error, memory tables will be inconsistent
-								err = [
-									'Failed to apply transaction:',
-									transaction.id,
-									'-',
-									err,
-								].join(' ');
-								library.logger.error(err);
-								library.logger.error('Transaction', transaction);
-								return setImmediate(reject, err);
-							}
-							// DATABASE: write
-							modules.transactions.apply(
-								transaction,
-								block,
-								sender,
-								err => {
-									if (err) {
-										// Fatal error, memory tables will be inconsistent
-										err = [
-											'Failed to apply transaction:',
-											transaction.id,
-											'-',
-											err,
-										].join(' ');
-										library.logger.error(err);
-										library.logger.error('Transaction', transaction);
-										return setImmediate(reject, err);
-									}
-									// Transaction applied, removed from the unconfirmed list
-									modules.transactions.removeUnconfirmedTransaction(
-										transaction.id
-									);
-									return setImmediate(resolve);
-								},
-								tx
-							);
-						},
-						tx
-					);
-				})
-		);
-	};
 
 	/**
 	 * Description of the function.
@@ -552,7 +554,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 				.then(() =>
 					__private.applyUnconfirmedStep(block, appliedTransactions, tx)
 				)
-				.then(() => applyConfirmedStep(tx))
+				.then(() => __private.applyConfirmedStep(block, tx))
 				.then(() => saveBlockStep(tx));
 		})
 		.then(() => {
