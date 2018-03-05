@@ -307,7 +307,7 @@ describe('integration sign and verify', () => {
 						return verifyTransaction(
 							transaction,
 							secondPublicKey,
-						).should.be.equal(true);
+						).should.be.true();
 					});
 				});
 			});
