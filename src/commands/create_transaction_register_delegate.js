@@ -36,20 +36,25 @@ export const actionCreator = vorpal => async ({ username, options }) => {
 	const {
 		passphrase: passphraseSource,
 		'second-passphrase': secondPassphraseSource,
+		signature,
 	} = options;
 
-	return getInputsFromSources(vorpal, {
-		passphrase: {
-			source: passphraseSource,
-			repeatPrompt: true,
-		},
-		secondPassphrase: !secondPassphraseSource
-			? null
-			: {
-					source: secondPassphraseSource,
+	const processFunction = processInputs(username);
+
+	return signature === false
+		? processFunction({ passphrase: null, secondPassphrase: null })
+		: getInputsFromSources(vorpal, {
+				passphrase: {
+					source: passphraseSource,
 					repeatPrompt: true,
 				},
-	}).then(processInputs(username));
+				secondPassphrase: !secondPassphraseSource
+					? null
+					: {
+							source: secondPassphraseSource,
+							repeatPrompt: true,
+						},
+			}).then(processFunction);
 };
 
 const createTransactionRegisterDelegate = createCommand({
@@ -57,7 +62,11 @@ const createTransactionRegisterDelegate = createCommand({
 	alias: 'create transaction 2',
 	description,
 	actionCreator,
-	options: [commonOptions.passphrase, commonOptions.secondPassphrase],
+	options: [
+		commonOptions.noSignature,
+		commonOptions.passphrase,
+		commonOptions.secondPassphrase,
+	],
 	errorPrefix: 'Could not create "register delegate" transaction',
 });
 

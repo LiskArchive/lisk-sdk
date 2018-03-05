@@ -25,7 +25,7 @@ const description = `Creates a transaction which will register a second passphra
 	- create transaction 1
 `;
 
-export const processInputs = ({ passphrase, secondPassphrase }) =>
+export const processInputs = () => ({ passphrase, secondPassphrase }) =>
 	transactions.registerSecondPassphrase({
 		passphrase,
 		secondPassphrase,
@@ -35,18 +35,29 @@ export const actionCreator = vorpal => async ({ options }) => {
 	const {
 		passphrase: passphraseSource,
 		'second-passphrase': secondPassphraseSource,
+		signature,
 	} = options;
 
-	return getInputsFromSources(vorpal, {
-		passphrase: {
-			source: passphraseSource,
-			repeatPrompt: true,
-		},
-		secondPassphrase: {
-			source: secondPassphraseSource,
-			repeatPrompt: true,
-		},
-	}).then(processInputs);
+	const processFunction = processInputs();
+
+	return signature === false
+		? getInputsFromSources(vorpal, {
+				passphrase: null,
+				secondPassphrase: {
+					source: secondPassphraseSource,
+					repeatPrompt: true,
+				},
+			}).then(processFunction)
+		: getInputsFromSources(vorpal, {
+				passphrase: {
+					source: passphraseSource,
+					repeatPrompt: true,
+				},
+				secondPassphrase: {
+					source: secondPassphraseSource,
+					repeatPrompt: true,
+				},
+			}).then(processFunction);
 };
 
 const createTransactionRegisterSecondPassphrase = createCommand({
@@ -54,7 +65,11 @@ const createTransactionRegisterSecondPassphrase = createCommand({
 	alias: 'create transaction 1',
 	description,
 	actionCreator,
-	options: [commonOptions.passphrase, commonOptions.secondPassphrase],
+	options: [
+		commonOptions.noSignature,
+		commonOptions.passphrase,
+		commonOptions.secondPassphrase,
+	],
 	errorPrefix: 'Could not create "register second passphrase" transaction',
 });
 

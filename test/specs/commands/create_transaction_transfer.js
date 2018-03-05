@@ -26,12 +26,12 @@ describe('create transaction transfer command', () => {
 		() => {
 			Given('an action "create transaction transfer"', given.anAction, () => {
 				Given(
-					'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"',
-					given.aPassphrase,
+					'a Lisk object that can create transactions',
+					given.aLiskObjectThatCanCreateTransactions,
 					() => {
 						Given(
-							'a Lisk object that can create transactions',
-							given.aLiskObjectThatCanCreateTransactions,
+							'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"',
+							given.aPassphrase,
 							() => {
 								Given(
 									'an empty options object',
@@ -311,6 +311,34 @@ describe('create transaction transfer command', () => {
 																},
 															);
 														},
+													);
+												},
+											);
+										});
+									},
+								);
+							},
+						);
+						Given(
+							'an options object with signature set to "false"',
+							given.anOptionsObjectWithSignatureSetTo,
+							() => {
+								Given(
+									'an address "13356260975429434553L"',
+									given.anAddress,
+									() => {
+										Given('an amount "123"', given.anAmount, () => {
+											When(
+												'the action is called with the amount, the address and the options',
+												when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
+												() => {
+													Then(
+														'it should create a transfer transaction using the address and the amount',
+														then.itShouldCreateATransferTransactionUsingTheAddressAndTheAmount,
+													);
+													Then(
+														'it should resolve to the created transaction',
+														then.itShouldResolveToTheCreatedTransaction,
 													);
 												},
 											);

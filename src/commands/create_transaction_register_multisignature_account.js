@@ -55,6 +55,7 @@ export const actionCreator = vorpal => async ({
 	const {
 		passphrase: passphraseSource,
 		'second-passphrase': secondPassphraseSource,
+		signature,
 	} = options;
 
 	const publicKeys = validatePublicKeys(keysgroup);
@@ -65,25 +66,26 @@ export const actionCreator = vorpal => async ({
 
 	const transactionLifetime = parseInt(lifetime, 10);
 	const transactionMinimumConfirmations = parseInt(minimum, 10);
+	const processFunction = processInputs(
+		transactionLifetime,
+		transactionMinimumConfirmations,
+		publicKeysWithPlus,
+	);
 
-	return getInputsFromSources(vorpal, {
-		passphrase: {
-			source: passphraseSource,
-			repeatPrompt: true,
-		},
-		secondPassphrase: !secondPassphraseSource
-			? null
-			: {
-					source: secondPassphraseSource,
+	return signature === false
+		? processFunction({ passphrase: null, secondPassphrase: null })
+		: getInputsFromSources(vorpal, {
+				passphrase: {
+					source: passphraseSource,
 					repeatPrompt: true,
 				},
-	}).then(
-		processInputs(
-			transactionLifetime,
-			transactionMinimumConfirmations,
-			publicKeysWithPlus,
-		),
-	);
+				secondPassphrase: !secondPassphraseSource
+					? null
+					: {
+							source: secondPassphraseSource,
+							repeatPrompt: true,
+						},
+			}).then(processFunction);
 };
 
 const createTransactionRegisterMultisignatureAccount = createCommand({
@@ -92,7 +94,11 @@ const createTransactionRegisterMultisignatureAccount = createCommand({
 	alias: 'create transaction 4',
 	description,
 	actionCreator,
-	options: [commonOptions.passphrase, commonOptions.secondPassphrase],
+	options: [
+		commonOptions.noSignature,
+		commonOptions.passphrase,
+		commonOptions.secondPassphrase,
+	],
 	errorPrefix: 'Could not create "register multisignature account" transaction',
 });
 
