@@ -1933,22 +1933,37 @@ describe('transport', () => {
 					return expect(error).to.be.equal(null);
 				});
 
-				it('should call callback with a result object whose properties match those in the headers object', () => {
-					expect(result)
+				it('should call callback with a result containing status = true', () => {
+					return expect(result)
 						.to.have.property('success')
 						.which.equals(true);
-					expect(result)
+				});
+
+				it('should call callback with a result containing height = 123', () => {
+					return expect(result)
 						.to.have.property('height')
 						.which.equals(headers.height);
-					expect(result)
+				});
+
+				it('should call callback with a result containing broadhash = "258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea"', () => {
+					return expect(result)
 						.to.have.property('broadhash')
 						.which.equals(headers.broadhash);
-					expect(result)
+				});
+
+				it('should call callback with a result containing httpPort = 8000', () => {
+					return expect(result)
 						.to.have.property('httpPort')
 						.which.equals(headers.httpPort);
-					expect(result)
+				});
+
+				it('should call callback with a result containing version = "v0.8.0"', () => {
+					return expect(result)
 						.to.have.property('version')
 						.which.equals(headers.version);
+				});
+
+				it('should call callback with a result containing os = "debian"', () => {
 					return expect(result)
 						.to.have.property('os')
 						.which.equals(headers.os);
