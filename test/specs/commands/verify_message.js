@@ -110,7 +110,7 @@ describe('verify message command', () => {
 													},
 												);
 												Given(
-													'the message can be retreived from its source',
+													'the message can be retrieved from its source',
 													given.theMessageCanBeRetrievedFromItsSource,
 													() => {
 														When(
