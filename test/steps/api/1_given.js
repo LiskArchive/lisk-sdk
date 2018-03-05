@@ -16,11 +16,5 @@
 import liskAPIInstance from '../../../src/utils/api';
 
 export function aLiskAPIInstance() {
-	const sendRequestDefaultResult = { success: true };
-	sandbox
-		.stub(liskAPIInstance, 'sendRequest')
-		.resolves(sendRequestDefaultResult);
-	sandbox.stub(liskAPIInstance, 'setTestnet');
 	this.test.ctx.liskAPIInstance = liskAPIInstance;
-	this.test.ctx.sendRequestResult = sendRequestDefaultResult;
 }

@@ -198,7 +198,7 @@ export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues()
 	return expect(returnValue[0]).to.eql(values);
 }
 
-export function theReturnedTableShouldHaveARowWithTheCyclicObjectValuesIncludingAnErrorForTheCyclicValue() {
+export function theReturnedTableShouldHaveARowWithTheCyclicObjectValuesIncludingAMessageForTheCyclicValue() {
 	const { returnValue } = this.test.ctx;
 	const values = [
 		'value',

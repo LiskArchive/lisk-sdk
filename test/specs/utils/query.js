@@ -13,11 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { setUpLiskJSAPIInstance } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('Query class', () => {
+	beforeEach(setUpLiskJSAPIInstance);
 	Given('a Lisk API instance', given.aLiskAPIInstance, () => {
 		Given('a query instance', given.aQueryInstance, () => {
 			Then(
@@ -42,8 +44,8 @@ describe('Query class', () => {
 			);
 			describe('#sendRequest', () => {
 				When(
-					'the query instance sends a request and the lisk API instance returns the success response',
-					when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceReturnsTheSuccessResponse,
+					'the query instance sends a request and the lisk API instance resolves with a successful response',
+					when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulResponse,
 					() => {
 						Then(
 							'it should resolve to the result of sending the request',
@@ -52,8 +54,8 @@ describe('Query class', () => {
 					},
 				);
 				When(
-					'the query instance sends a request and the lisk API instance returns the fail response',
-					when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceReturnsTheFailResponse,
+					'the query instance sends a request and the lisk API instance resolves with a failed response',
+					when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithAFailedResponse,
 					() => {
 						Then(
 							'it should reject with the error message',

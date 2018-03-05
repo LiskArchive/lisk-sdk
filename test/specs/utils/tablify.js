@@ -73,8 +73,8 @@ describe('tablify util', () => {
 				then.theReturnedTableShouldHaveAHeadWithTheCyclicObjectKeys,
 			);
 			Then(
-				'the returned table should have a row with the cyclic object’s values including an error for the cyclic value',
-				then.theReturnedTableShouldHaveARowWithTheCyclicObjectValuesIncludingAnErrorForTheCyclicValue,
+				'the returned table should have a row with the cyclic object’s values including a message for the cyclic value',
+				then.theReturnedTableShouldHaveARowWithTheCyclicObjectValuesIncludingAMessageForTheCyclicValue,
 			);
 		});
 	});
