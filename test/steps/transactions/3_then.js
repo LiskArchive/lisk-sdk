@@ -82,6 +82,16 @@ export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublic
 	});
 }
 
+export function itShouldCreateATransferTransactionUsingTheAddressAndTheAmount() {
+	const { address, amount } = this.test.ctx;
+	return expect(transactions.transfer).to.be.calledWithExactly({
+		recipientId: address,
+		amount,
+		passphrase: null,
+		secondPassphrase: null,
+	});
+}
+
 export function itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase() {
 	const { passphrase, secondPassphrase, address, amount } = this.test.ctx;
 	return expect(transactions.transfer).to.be.calledWithExactly({
@@ -113,6 +123,14 @@ export function itShouldHaveAFunctionForCreatingATypeTransaction() {
 		.and.be.a('function');
 }
 
+export function itShouldCreateARegisterSecondPassphraseTransactionUsingTheSecondPassphrase() {
+	const { secondPassphrase } = this.test.ctx;
+	return expect(transactions.registerSecondPassphrase).to.be.calledWithExactly({
+		passphrase: null,
+		secondPassphrase,
+	});
+}
+
 export function itShouldCreateARegisterSecondPassphraseTransactionUsingThePassphraseAndTheSecondPassphrase() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
 	return expect(transactions.registerSecondPassphrase).to.be.calledWithExactly({
@@ -135,12 +153,35 @@ export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseAndT
 	});
 }
 
+export function itShouldCreateARegisterDelegateTransactionUsingTheDelegateUsername() {
+	const { delegateUsername } = this.test.ctx;
+	return expect(transactions.registerDelegate).to.be.calledWithExactly({
+		passphrase: null,
+		username: delegateUsername,
+		secondPassphrase: null,
+	});
+}
+
 export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheSecondPassphraseAndTheDelegateUsername() {
 	const { passphrase, secondPassphrase, delegateUsername } = this.test.ctx;
 	return expect(transactions.registerDelegate).to.be.calledWithExactly({
 		passphrase,
 		username: delegateUsername,
 		secondPassphrase,
+	});
+}
+
+export function itShouldCreateARegisterMultisignatureAccountTransactionUsingTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
+	const { keysgroup, lifetime, minimum } = this.test.ctx;
+	const publicKeysWithPlus = keysgroup.map(publicKey => {
+		return `+${publicKey}`;
+	});
+	return expect(transactions.registerMultisignature).to.be.calledWithExactly({
+		passphrase: null,
+		secondPassphrase: null,
+		keysgroup: publicKeysWithPlus,
+		lifetime,
+		minimum,
 	});
 }
 
