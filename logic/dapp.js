@@ -101,7 +101,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 	}
 
 	let foundCategory = false;
-	for (const i in dappCategories) {
+	for (const i of Object.keys(dappCategories)) {
 		if (dappCategories[i] === transaction.asset.dapp.category) {
 			foundCategory = true;
 			break;
@@ -435,7 +435,7 @@ DApp.prototype.schema = {
  * @todo Add description for the params
  */
 DApp.prototype.objectNormalize = function(transaction) {
-	for (const i in transaction.asset.dapp) {
+	for (const i of Object.keys(transaction.asset.dapp)) {
 		if (
 			transaction.asset.dapp[i] === null ||
 			typeof transaction.asset.dapp[i] === 'undefined'

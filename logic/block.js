@@ -229,7 +229,7 @@ class Block {
 	 * @todo Add description for the function and the params
 	 */
 	objectNormalize(block) {
-		for (const i in block) {
+		for (const i of Object.keys(block)) {
 			if (block[i] == null || typeof block[i] === 'undefined') {
 				delete block[i];
 			}

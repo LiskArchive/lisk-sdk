@@ -1080,7 +1080,7 @@ class Transaction {
 			throw `Unknown transaction type ${transaction.type}`;
 		}
 
-		for (const i in transaction) {
+		for (const i of Object.keys(transaction)) {
 			if (
 				transaction[i] === null ||
 				typeof transaction[i] === 'undefined' ||
