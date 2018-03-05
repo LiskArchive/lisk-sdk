@@ -13,13 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { setUpLiskJSAPIInstance } from '../../steps/setup';
+import { setUpUtilQuery } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('Query class', () => {
-	beforeEach(setUpLiskJSAPIInstance);
+	beforeEach(setUpUtilQuery);
 	Given('a Lisk API instance', given.aLiskAPIInstance, () => {
 		Given('a query instance', given.aQueryInstance, () => {
 			Then(

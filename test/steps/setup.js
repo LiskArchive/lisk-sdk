@@ -192,9 +192,6 @@ const restoreEnvVariable = variable =>
 			delete process.env[variable];
 		}
 	};
-export function setUpLiskJSAPIInstance() {
-	setUpLiskJSAPIStubs.call(this);
-}
 
 export function setUpCommandBroadcastSignature() {
 	setUpLiskJSAPIStubs.call(this);
@@ -325,6 +322,10 @@ export function setUpUtilInputUtils() {
 
 export function tearDownUtilInputUtils() {
 	restoreEnvVariable(TEST_PASSPHRASE).call(this);
+}
+
+export function setUpUtilQuery() {
+	setUpLiskJSAPIStubs.call(this);
 }
 
 export function setUpUtilPrint() {
