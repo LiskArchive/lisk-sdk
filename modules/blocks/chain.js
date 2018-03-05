@@ -469,6 +469,73 @@ __private.applyConfirmedStep = function(block, tx) {
 };
 
 /**
+ * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount.
+ * If there is no error, calls removeUnconfirmedTransaction from modules.transactions
+ *
+ * @private
+ * @func applyConfirmedStep
+ * @param {Object} block - Block object
+ * @param {boolean} saveBlock - Flag to save block into database
+ * @param {function} tx - Postgres transaction
+ * @returns {Promise<reject|resolve>} new Promise. Resolve if ok, reject if error ocurred
+ * @todo check descriptions
+ */
+__private.saveBlockStep = function(block, saveBlock, tx) {
+	return new Promise((resolve, reject) => {
+		modules.blocks.lastBlock.set(block);
+
+		if (saveBlock) {
+			// DATABASE: write
+			self.saveBlock(
+				block,
+				err => {
+					if (err) {
+						// Fatal error, memory tables will be inconsistent
+						library.logger.error('Failed to save block...', err);
+						library.logger.error('Block', block);
+						return reject(err);
+					}
+
+					library.logger.debug(
+						`Block applied correctly with ${
+							block.transactions.length
+						} transactions`
+					);
+					library.bus.message('newBlock', block);
+
+					// DATABASE write. Update delegates accounts
+					modules.rounds.tick(
+						block,
+						err => {
+							if (err) {
+								return reject(err);
+							}
+							return resolve();
+						},
+						tx
+					);
+				},
+				tx
+			);
+		} else {
+			library.bus.message('newBlock', block);
+
+			// DATABASE write. Update delegates accounts
+			modules.rounds.tick(
+				block,
+				err => {
+					if (err) {
+						return reject(err);
+					}
+					return resolve();
+				},
+				tx
+			);
+		}
+	});
+};
+
+/**
  * Description of the function.
  *
  * @param  {Object}   block - Full normalized genesis block
@@ -481,70 +548,6 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 	// Transactions to rewind in case of error.
 	var appliedTransactions = {};
 
-	/**
-	 * Description of the function.
-	 *
-	 * @private
-	 * @func saveBlockStep
-	 * @param {Object} tx
-	 * @todo Add description for the function and the params
-	 * @todo Add @returns tag
-	 */
-	var saveBlockStep = function(tx) {
-		return new Promise((resolve, reject) => {
-			modules.blocks.lastBlock.set(block);
-
-			if (saveBlock) {
-				// DATABASE: write
-				self.saveBlock(
-					block,
-					err => {
-						if (err) {
-							// Fatal error, memory tables will be inconsistent
-							library.logger.error('Failed to save block...', err);
-							library.logger.error('Block', block);
-							return reject(err);
-						}
-
-						library.logger.debug(
-							`Block applied correctly with ${
-								block.transactions.length
-							} transactions`
-						);
-						library.bus.message('newBlock', block);
-
-						// DATABASE write. Update delegates accounts
-						modules.rounds.tick(
-							block,
-							err => {
-								if (err) {
-									return reject(err);
-								}
-								return resolve();
-							},
-							tx
-						);
-					},
-					tx
-				);
-			} else {
-				library.bus.message('newBlock', block);
-
-				// DATABASE write. Update delegates accounts
-				modules.rounds.tick(
-					block,
-					err => {
-						if (err) {
-							return reject(err);
-						}
-						return resolve();
-					},
-					tx
-				);
-			}
-		});
-	};
-
 	library.db
 		.tx('Chain:applyBlock', tx => {
 			modules.blocks.isActive.set(true);
@@ -555,7 +558,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 					__private.applyUnconfirmedStep(block, appliedTransactions, tx)
 				)
 				.then(() => __private.applyConfirmedStep(block, tx))
-				.then(() => saveBlockStep(tx));
+				.then(() => __private.saveBlockStep(block, saveBlock, tx));
 		})
 		.then(() => {
 			modules.blocks.isActive.set(false);
