@@ -300,14 +300,8 @@ describe('integration sign and verify', () => {
 					'f9666bfed9ef2ff52a04408f22f2bfffaa81384c9433463697330224f10032a4';
 				it('should verify all the transactions', () => {
 					return validTransactions.forEach(transaction => {
-						if (!transaction.signSignature) {
-							return verifyTransaction(transaction).should.be.true();
-						}
-
-						return verifyTransaction(
-							transaction,
-							secondPublicKey,
-						).should.be.true();
+						return verifyTransaction(transaction, secondPublicKey).should.be
+							.true;
 					});
 				});
 			});
