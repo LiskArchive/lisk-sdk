@@ -947,8 +947,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call callback with error = null and result = undefined', () => {
-					expect(error).to.equal(null);
+				it('should call callback with error = null', () => {
+					return expect(error).to.equal(null);
+				});
+
+				it('should call callback with result = undefined', () => {
 					return expect(result).to.equal(undefined);
 				});
 			});
@@ -1705,8 +1708,11 @@ describe('transport', () => {
 							});
 						});
 
-						it('should call callback with error = null and result = { blocks: [] }', () => {
-							expect(error).to.be.equal(null);
+						it('should call callback with error = null', () => {
+							return expect(error).to.be.equal(null);
+						});
+
+						it('should call callback with result = { blocks: [] }', () => {
 							return expect(result)
 								.to.have.property('blocks')
 								.which.is.an('array').that.is.empty;
@@ -1887,8 +1893,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call callback with error = null and result = {success: true, height: modules.system.getHeight()}', () => {
-					expect(error).to.be.equal(null);
+				it('should call callback with error = null', () => {
+					return expect(error).to.be.equal(null);
+				});
+
+				it('should call callback with result = {success: true, height: modules.system.getHeight()}', () => {
 					expect(result)
 						.to.have.property('success')
 						.which.is.equal(true);
@@ -1920,8 +1929,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call callback with error = null and result = {success: true, height: modules.system.getHeight(), broadhash: modules.system.getBroadhash(), nonce: modules.system.getNonce()}', () => {
-					expect(error).to.be.equal(null);
+				it('should call callback with error = null', () => {
+					return expect(error).to.be.equal(null);
+				});
+
+				it('should call callback with a result object whose properties match those in the headers object', () => {
 					expect(result)
 						.to.have.property('success')
 						.which.equals(true);
@@ -2070,8 +2082,11 @@ describe('transport', () => {
 				});
 
 				describe('when all transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature transactions', () => {
-					it('should call callback with error = null and result = {success: true, signatures: signatures} where signatures contains all transactions', () => {
-						expect(error).to.equal(null);
+					it('should call callback with error = null', () => {
+						return expect(error).to.equal(null);
+					});
+
+					it('should call callback with result = {success: true, signatures: signatures} where signatures contains all transactions', () => {
 						expect(result)
 							.to.have.property('success')
 							.which.equals(true);
@@ -2111,8 +2126,11 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call callback with error = null and result = {success: true, signatures: signatures} where signatures does not contain multisignature registration transactions', () => {
-						expect(error).to.equal(null);
+					it('should call callback with error = null', () => {
+						return expect(error).to.equal(null);
+					});
+
+					it('should call callback with result = {success: true, signatures: signatures} where signatures does not contain multisignature registration transactions', () => {
 						expect(result)
 							.to.have.property('success')
 							.which.equals(true);
@@ -2144,8 +2162,11 @@ describe('transport', () => {
 					).to.be.true;
 				});
 
-				it('should call callback with error = null and result = {success: true, transactions: transactions}', () => {
-					expect(error).to.equal(null);
+				it('should call callback with error = null', () => {
+					return expect(error).to.equal(null);
+				});
+
+				it('should call callback with result = {success: true, transactions: transactions}', () => {
 					expect(result)
 						.to.have.property('success')
 						.which.is.equal(true);
