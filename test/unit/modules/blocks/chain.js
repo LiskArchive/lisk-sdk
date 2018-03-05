@@ -1378,6 +1378,198 @@ describe('blocks/chain', () => {
 			});
 		});
 	});
+
+	describe('__private.saveBlockStep', () => {
+		let saveBlockTemp;
+		beforeEach(done => {
+			saveBlockTemp = blocksChainModule.saveBlock;
+			blocksChainModule.saveBlock = sinonSandbox
+				.stub()
+				.callsArgWith(1, null, true);
+			modules.rounds.tick.callsArgWith(1, null, true);
+			process.emit = sinonSandbox.stub();
+			library.db.tx = (desc, tx) => {
+				return tx();
+			};
+			done();
+		});
+		afterEach(done => {
+			blocksChainModule.saveBlock = saveBlockTemp;
+			expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+			expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal({
+				id: 5,
+				height: 5,
+				transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+			});
+			done();
+		});
+		describe('when saveBlock is true', () => {
+			describe('when self.saveBlock fails', () => {
+				beforeEach(() => {
+					return blocksChainModule.saveBlock.callsArgWith(
+						1,
+						'saveBlock-ERR',
+						null
+					);
+				});
+				afterEach(() => {
+					expect(loggerStub.error.args[0][0]).to.contains(
+						'Failed to save block...'
+					);
+					expect(loggerStub.error.args[0][1]).to.contains('saveBlock-ERR');
+					expect(loggerStub.error.args[1][0]).to.equal('Block');
+					expect(loggerStub.error.args[1][1]).to.deep.equal({
+						id: 5,
+						height: 5,
+						transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+					});
+					return expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal({
+						id: 5,
+						height: 5,
+						transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+					});
+				});
+				it('should call a callback with error', done => {
+					__private
+						.saveBlockStep(
+							{
+								id: 5,
+								height: 5,
+								transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+							},
+							true,
+							dbStub.tx
+						)
+						.catch(err => {
+							expect(err).to.equal('saveBlock-ERR');
+							done();
+						});
+				});
+			});
+			describe('when self.saveBlock succeeds', () => {
+				beforeEach(() => {
+					return blocksChainModule.saveBlock.callsArgWith(1, null, true);
+				});
+				afterEach(() => {
+					expect(loggerStub.debug.args[0][0]).to.contains(
+						'Block applied correctly with 2 transactions'
+					);
+					expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal({
+						id: 5,
+						height: 5,
+						transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+					});
+					expect(library.bus.message.calledOnce).to.be.true;
+					expect(library.bus.message.args[0][0]).to.deep.equal('newBlock');
+					return expect(library.bus.message.args[0][1]).to.deep.equal({
+						id: 5,
+						height: 5,
+						transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+					});
+				});
+				describe('modules.rounds.tick', () => {
+					describe('when fails', () => {
+						beforeEach(() => {
+							return modules.rounds.tick.callsArgWith(1, 'tick-ERR', null);
+						});
+						it('should call a callback with error', done => {
+							__private
+								.saveBlockStep(
+									{
+										id: 5,
+										height: 5,
+										transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+									},
+									true,
+									dbStub.tx
+								)
+								.catch(err => {
+									expect(err).to.equal('tick-ERR');
+									done();
+								});
+						});
+					});
+					describe('when succeeds', () => {
+						beforeEach(() => {
+							return modules.rounds.tick.callsArgWith(1, null, true);
+						});
+						it('should call a callback with no error', done => {
+							__private
+								.saveBlockStep(
+									{
+										id: 5,
+										height: 5,
+										transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+									},
+									true,
+									dbStub.tx
+								)
+								.then(resolve => {
+									expect(resolve).to.be.undefined;
+									done();
+								});
+						});
+					});
+				});
+			});
+		});
+		describe('when saveBlock is false', () => {
+			afterEach(() => {
+				expect(library.bus.message.calledOnce).to.be.true;
+				expect(library.bus.message.args[0][0]).to.deep.equal('newBlock');
+				return expect(library.bus.message.args[0][1]).to.deep.equal({
+					id: 5,
+					height: 5,
+					transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+				});
+			});
+			describe('modules.rounds.tick', () => {
+				describe('when fails', () => {
+					beforeEach(() => {
+						return modules.rounds.tick.callsArgWith(1, 'tick-ERR', null);
+					});
+					it('should call a callback with error', done => {
+						__private
+							.saveBlockStep(
+								{
+									id: 5,
+									height: 5,
+									transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+								},
+								true,
+								dbStub.tx
+							)
+							.catch(err => {
+								expect(err).to.equal('tick-ERR');
+								done();
+							});
+					});
+				});
+				describe('when succeeds', () => {
+					beforeEach(() => {
+						return modules.rounds.tick.callsArgWith(1, null, true);
+					});
+					it('should call a callback with no error', done => {
+						__private
+							.saveBlockStep(
+								{
+									id: 5,
+									height: 5,
+									transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
+								},
+								true,
+								dbStub.tx
+							)
+							.then(resolve => {
+								expect(resolve).to.be.undefined;
+								done();
+							});
+					});
+				});
+			});
+		});
+	});
+
 	describe('applyBlock', () => {
 		var saveBlockTemp;
 		beforeEach(done => {
