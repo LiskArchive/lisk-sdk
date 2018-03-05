@@ -57,6 +57,12 @@ class Peers {
 	}
 }
 
+// TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
+/**
+ * Returns current peer state and system headers.
+ *
+ * @returns {peer} Clone of peer
+ */
 Peers.prototype.me = function() {
 	const me = _.extend(System.getHeaders(), { state: Peer.STATE.CONNECTED });
 	delete me.ip;
