@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import liskAPIInstance from '../../../src/utils/api';
 import queryInstance from '../../../src/utils/query';
 import { getFirstQuotedString, getQuotedStrings } from '../utils';
 
@@ -61,13 +60,5 @@ export function aQueryInstanceHasBeenInitialised() {
 }
 
 export function aQueryInstance() {
-	const sendRequestResult = {
-		someKey: 'some value',
-	};
-
-	sandbox.stub(liskAPIInstance, 'sendRequest').resolves(sendRequestResult);
-	sandbox.stub(liskAPIInstance, 'setTestnet');
-
 	this.test.ctx.queryInstance = queryInstance;
-	this.test.ctx.sendRequestResult = sendRequestResult;
 }

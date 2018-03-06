@@ -138,21 +138,12 @@ export function theReturnedTableShouldHaveARowWithTheObjectValues() {
 
 export function theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys() {
 	const { returnValue } = this.test.ctx;
-	const keys = ['root', 'nested.object', 'nested.testing', 'nested.nullValue'];
-	return expect(returnValue.options)
-		.to.have.property('head')
-		.eql(keys);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys() {
-	const { returnValue } = this.test.ctx;
 	const keys = [
 		'root',
 		'nested.object',
 		'nested.testing',
 		'nested.nullValue',
-		'nested.asset.publicKey',
-		'nested.asset.keys.more',
+		'nested.keys.more',
 	];
 	return expect(returnValue.options)
 		.to.have.property('head')
@@ -161,20 +152,7 @@ export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys() {
 
 export function theReturnedTableShouldHaveAHeadWithTheObjectNestedValues() {
 	const { returnValue } = this.test.ctx;
-	const values = ['value', 'values', 123, null];
-	return expect(returnValue[0]).to.eql(values);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues() {
-	const { returnValue } = this.test.ctx;
-	const values = [
-		'value',
-		'values',
-		123,
-		null,
-		'aPublicKeyString',
-		'publicKey1\npublicKey2',
-	];
+	const values = ['value', 'values', 123, null, 'publicKey1\npublicKey2'];
 	return expect(returnValue[0]).to.eql(values);
 }
 

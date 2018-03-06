@@ -57,12 +57,16 @@ describe('tablify util', () => {
 	Given('a deeply nested object', given.aDeeplyNestedObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
 			Then(
-				'the returned table should have a head with the object’s deeply nested keys',
-				then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys,
+				'it should throw print error "Output cannot be displayed in table format: Maximum object depth of 3 was exceeded. Consider using JSON output format."',
+				then.itShouldThrowPrintError,
 			);
+		});
+	});
+	Given('a cyclic object', given.aCyclicObject, () => {
+		When('the object is tablified', when.theObjectIsTablified, () => {
 			Then(
-				'the returned table should have a row with the object’s deeply nested values',
-				then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues,
+				'it should throw print error "Output cannot be displayed in table format: Maximum object depth of 3 was exceeded. Consider using JSON output format."',
+				then.itShouldThrowPrintError,
 			);
 		});
 	});

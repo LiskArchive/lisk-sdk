@@ -44,6 +44,7 @@ class Query {
 
 		const handleSuccess = async result => {
 			if (overrideTestnetSetting) this.resetTestnetSetting();
+			if (!result.success) throw new Error(result.message);
 			return result;
 		};
 		const handleFailure = async result => {

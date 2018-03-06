@@ -55,12 +55,28 @@ export function theResultIsPrintedUsingTheActiveCommandContext() {
 
 export function theObjectIsTablified() {
 	const { testObject } = this.test.ctx;
-	this.test.ctx.returnValue = tablify(testObject);
+	try {
+		const returnValue = tablify(testObject);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue;
+	} catch (error) {
+		const testFunction = tablify.bind(null, testObject);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
 }
 
 export function theArrayIsTablified() {
 	const { testArray } = this.test.ctx;
-	this.test.ctx.returnValue = tablify(testArray);
+	try {
+		const returnValue = tablify(testArray);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue;
+	} catch (error) {
+		const testFunction = tablify.bind(null, testArray);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
 }
 
 export function shouldUseJSONOutputIsCalledWithTheConfigAndOptions() {
