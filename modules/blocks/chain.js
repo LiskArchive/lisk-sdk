@@ -574,7 +574,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 
 			// Finish here if snapshotting.
 			// FIXME: Not the best place to do that
-			if (reason === 'Snapshot finished') {
+			if (reason.name === 'Snapshot finished') {
 				library.logger.info(reason);
 				process.emit('SIGTERM');
 			}
