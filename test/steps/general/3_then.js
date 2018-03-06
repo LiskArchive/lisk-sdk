@@ -20,7 +20,7 @@ import {
 	PrintError,
 } from '../../../src/utils/error';
 
-export function theErrorShouldBeInstanceOfNodesBuiltInError() {
+export function theErrorShouldBeAnInstanceOfNodesBuiltInError() {
 	const { testError } = this.test.ctx;
 	return expect(testError).to.be.instanceOf(Error);
 }

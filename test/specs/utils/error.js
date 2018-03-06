@@ -36,7 +36,7 @@ describe('Custom Errors', () => {
 					);
 					Then(
 						'the error should be an instance of Node’s built-in Error',
-						then.theErrorShouldBeInstanceOfNodesBuiltInError,
+						then.theErrorShouldBeAnInstanceOfNodesBuiltInError,
 					);
 				},
 			);
@@ -60,7 +60,7 @@ describe('Custom Errors', () => {
 					);
 					Then(
 						'the error should be an instance of Node’s built-in Error',
-						then.theErrorShouldBeInstanceOfNodesBuiltInError,
+						then.theErrorShouldBeAnInstanceOfNodesBuiltInError,
 					);
 				},
 			);
@@ -81,7 +81,7 @@ describe('Custom Errors', () => {
 				);
 				Then(
 					'the error should be an instance of Node’s built-in Error',
-					then.theErrorShouldBeInstanceOfNodesBuiltInError,
+					then.theErrorShouldBeAnInstanceOfNodesBuiltInError,
 				);
 			});
 		},

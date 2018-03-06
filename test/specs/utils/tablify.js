@@ -57,7 +57,7 @@ describe('tablify util', () => {
 	Given('a deeply nested object', given.aDeeplyNestedObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
 			Then(
-				'it should throw a print error "Maximum nesting of the object is exceeded to be displayed as a table."',
+				'it should throw print error "Output cannot be displayed in table format: Maximum object depth of 3 was exceeded. Consider using JSON output format."',
 				then.itShouldThrowPrintError,
 			);
 		});
@@ -65,7 +65,7 @@ describe('tablify util', () => {
 	Given('a cyclic object', given.aCyclicObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
 			Then(
-				'it should throw a print error "Maximum nesting of the object is exceeded to be displayed as a table."',
+				'it should throw print error "Output cannot be displayed in table format: Maximum object depth of 3 was exceeded. Consider using JSON output format."',
 				then.itShouldThrowPrintError,
 			);
 		});

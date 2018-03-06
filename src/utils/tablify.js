@@ -58,7 +58,7 @@ const reduceKeys = (keys, row) => {
 const getKeys = (data, limit = 3, loop = 1) => {
 	if (loop > limit) {
 		throw new PrintError(
-			'Maximum nesting of the object is exceeded to be displayed as a table.',
+			`Output cannot be displayed in table format: Maximum object depth of ${limit} was exceeded. Consider using JSON output format.`,
 		);
 	}
 	return Object.entries(data)
