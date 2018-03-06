@@ -240,7 +240,7 @@ __private.updatePeerStatus = function(err, status, peer) {
 			// state so that the node doesn't keep trying to reconnect to itself.
 			peer.applyHeaders({ state: Peer.STATE.BANNED });
 		} else {
-			peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
+			library.logic.peers.remove(peer);
 		}
 	} else {
 		peer.applyHeaders({

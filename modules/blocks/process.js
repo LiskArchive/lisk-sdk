@@ -17,7 +17,6 @@
 var _ = require('lodash');
 var async = require('async');
 var constants = require('../../helpers/constants.js');
-var Peer = require('../../logic/peer.js');
 var slots = require('../../helpers/slots.js');
 
 var modules;
@@ -277,7 +276,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 				peer = library.logic.peers.create(peer);
 				peer.rpc.blocksCommon({ ids }, (err, res) => {
 					if (err) {
-						peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
+						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					} else if (!res.common) {
 						// FIXME: Need better checking here, is base on 'common' property enough?
@@ -470,7 +469,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 			(err, res) => {
 				err = err || res.error;
 				if (err) {
-					peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
+					modules.peers.remove(peer);
 					return setImmediate(seriesCb, err);
 				}
 				return setImmediate(seriesCb, null, res.blocks);
@@ -729,6 +728,7 @@ Process.prototype.onBind = function(scope) {
 		blocks: scope.blocks,
 		delegates: scope.delegates,
 		loader: scope.loader,
+		peers: scope.peers,
 		rounds: scope.rounds,
 		transactions: scope.transactions,
 		transport: scope.transport,
