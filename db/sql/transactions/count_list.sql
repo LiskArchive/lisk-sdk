@@ -21,4 +21,4 @@
 
 SELECT count(*)
 FROM trs_list
-WHERE ${conditions:raw}
+${conditions:raw}

@@ -213,25 +213,15 @@ describe('db', () => {
 			it('should use the correct SQL with correct parameters', function*() {
 				sinonSandbox.spy(db, 'one');
 				const params = {
-					where: ["t_id = '1234'"],
+					where: ['t_id = ${id}'],
 					owner: '"t_blockId" = \'1111\'',
+					id: '123',
 				};
 				yield db.transactions.countList(params);
 
 				expect(db.one.firstCall.args[0]).to.eql(transactionsSQL.countList);
 				expect(db.one.firstCall.args[1]).to.eql({
-					conditions: "t_id = '1234' AND \"t_blockId\" = '1111'",
-				});
-				return expect(db.one.firstCall.args[2]).to.be.a('function');
-			});
-
-			it('should use dummy condition if no parameter is specified', function*() {
-				sinonSandbox.spy(db, 'one');
-				yield db.transactions.countList();
-
-				expect(db.one.firstCall.args[0]).to.eql(transactionsSQL.countList);
-				expect(db.one.firstCall.args[1]).to.eql({
-					conditions: '1 = 1',
+					conditions: "WHERE t_id = '123' AND \"t_blockId\" = '1111'",
 				});
 				return expect(db.one.firstCall.args[2]).to.be.a('function');
 			});
