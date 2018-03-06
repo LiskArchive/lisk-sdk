@@ -46,9 +46,11 @@ describe('transactionPool', () => {
 		error: sinon.spy(),
 	};
 
-	const accountsSpy = sinon.spy();
-	const transactionsSpy = sinon.spy();
-	const loaderSpy = sinon.spy();
+	const accountsStub = {
+		setAccountAndGet: sinon.stub(),
+	};
+	const transactionsStub = sinon.stub();
+	const loaderStub = sinon.stub();
 
 	const resetStates = function() {
 		transactionPool.unconfirmed = _.cloneDeep(freshListState);
@@ -100,9 +102,9 @@ describe('transactionPool', () => {
 
 		// Bind fake modules
 		transactionPool.bind(
-			accountsSpy, // accounts
-			transactionsSpy, // transactions
-			loaderSpy // loader
+			accountsStub, // accounts
+			transactionsStub, // transactions
+			loaderStub // loader
 		);
 		done();
 	});
@@ -138,9 +140,9 @@ describe('transactionPool', () => {
 			it('should assign accounts, transactions, loader', () => {
 				const modules = TransactionPool.__get__('modules');
 				return expect(modules).to.eql({
-					accounts: accountsSpy,
-					transactions: transactionsSpy,
-					loader: loaderSpy,
+					accounts: accountsStub,
+					transactions: transactionsStub,
+					loader: loaderStub,
 				});
 			});
 		});
@@ -442,7 +444,56 @@ describe('transactionPool', () => {
 		});
 	});
 
-	describe('receiveTransactions', () => {});
+	describe('receiveTransactions', () => {
+		it('should throw error when transaction in invalid', () => {
+			const invalidTransaction = {
+				id: '10431411423423423L',
+				type: transactionTypes.MULTI,
+			};
+			return expect(() => {
+				transactionPool.receiveTransactions(invalidTransaction, {});
+			}).to.throw();
+		});
+
+		it('should receive transaction already processed error when the transaction is processed before', done => {
+			const transaction = [
+				{ id: '10431411423423423L', type: transactionTypes.MULTI },
+			];
+			transactionPool.processUnconfirmedTransaction = sinonSandbox
+				.stub()
+				.callsArgWith(
+					2,
+					'Transaction is already processed: 10431411423423423L',
+					null
+				);
+
+			expect(
+				transactionPool.receiveTransactions(transaction, {}, (err, res) => {
+					expect(err).to.eql(
+						'Transaction is already processed: 10431411423423423L'
+					);
+					expect(res).to.deep.eql(transaction);
+					done();
+				})
+			);
+		});
+
+		it('should add transaction to queue when bundle is enabled', done => {
+			const transaction = [
+				{ id: '109249333874723L', type: transactionTypes.MULTI, bundled: true },
+			];
+			transactionPool.processUnconfirmedTransaction = sinonSandbox
+				.stub()
+				.callsArgWith(2, null, transaction);
+			expect(
+				transactionPool.receiveTransactions(transaction, {}, (err, res) => {
+					expect(err).to.be.null;
+					expect(res).to.deep.eql(transaction);
+					done();
+				})
+			);
+		});
+	});
 
 	describe('reindexQueues', () => {});
 
