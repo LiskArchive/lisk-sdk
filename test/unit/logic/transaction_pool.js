@@ -253,7 +253,6 @@ describe('transactionPool', () => {
 		it('should be able to add unconfirmed transaction if not exists', () => {
 			const unconfirmedTransaction = { id: '1123' };
 			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction);
-			console.info(transactionPool.unconfirmed.transactions);
 			return expect(transactionPool.unconfirmed.transactions).that.does.include(
 				unconfirmedTransaction
 			);
@@ -265,7 +264,6 @@ describe('transactionPool', () => {
 				type: transactionTypes.MULTI,
 			};
 			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction);
-			console.info(transactionPool.unconfirmed.transactions);
 			return expect(transactionPool.unconfirmed.transactions).that.does.include(
 				unconfirmedTransaction
 			);
@@ -307,11 +305,36 @@ describe('transactionPool', () => {
 		});
 	});
 
-	describe('addBundledTransaction', () => {});
+	describe('addBundledTransaction', () => {
+		it('should be able to add bundled transaction if not exists', () => {
+			const bundledTransaction = { id: '3423423423L' };
+			transactionPool.addBundledTransaction(bundledTransaction);
+			return expect(transactionPool.bundled.transactions).that.does.include(
+				bundledTransaction
+			);
+		});
+	});
 
-	describe('removeBundledTransaction', () => {});
+	describe('removeBundledTransaction', () => {
+		it('should be able to remove bundled transaction if exists', () => {
+			const bundledTransaction = { id: '3423423423L' };
+			transactionPool.removeBundledTransaction(bundledTransaction.id);
+			return expect(transactionPool.bundled.transactions).that.does.not.include(
+				bundledTransaction
+			);
+		});
+	});
 
-	describe('countBundled', () => {});
+	describe('countBundled', () => {
+		it('should return count of bundled transaction exists in pool', () => {
+			return expect(transactionPool.countBundled()).to.deep.eql(1);
+		});
+
+		it('should return the count of bundled transaction exists in pool after removal', () => {
+			transactionPool.removeBundledTransaction('123');
+			return expect(transactionPool.countBundled()).to.deep.eql(0);
+		});
+	});
 
 	describe('addQueuedTransaction', () => {});
 
