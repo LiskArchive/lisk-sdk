@@ -60,6 +60,8 @@ dist-node
 browsertest/package.json
 browsertest/browsertest.js
 browsertest/browsertest.min.js
+browsertest/src
+browsertest/test
 
 # Lock files
 yarn.lock

@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import cryptography from 'cryptography';
 import {
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
 } from 'transactions/utils';
-
-import cryptography from 'cryptography';
+// The list of valid transactions was created with lisk-js 0.5.1
+// using the below mentioned passphrases.
+import validTransactions from './transactions.json';
 
 const getTransactionHash = require('transactions/utils/getTransactionHash');
 
@@ -246,6 +248,62 @@ describe('signAndVerify transaction utils', () => {
 					defaultSecondPublicKey,
 				);
 				return verification.should.be.true;
+			});
+		});
+	});
+});
+
+describe('integration sign and verify', () => {
+	describe('given a set of transactions', () => {
+		describe('#signTransaction', () => {
+			describe('given a passphrase and a second passphrase', () => {
+				const passphrase =
+					'wagon stock borrow episode laundry kitten salute link globe zero feed marble';
+				const secondPassphrase =
+					'trouble float modify long valve group ozone possible remove dirt bicycle riot';
+
+				describe('when tested on the first signature', () => {
+					it('should create the correct signature', () => {
+						return validTransactions.forEach(transaction => {
+							const { signature } = transaction;
+							const rawTx = Object.assign({}, transaction);
+							delete rawTx.signature;
+							delete rawTx.signSignature;
+							return signTransaction(rawTx, passphrase).should.be.equal(
+								signature,
+							);
+						});
+					});
+				});
+
+				describe('when tested on the second signature', () => {
+					it('should create the correct signature', () => {
+						return validTransactions.forEach(transaction => {
+							const { signSignature } = transaction;
+							if (signSignature) {
+								const rawTx = Object.assign({}, transaction);
+								delete rawTx.signSignature;
+								return signTransaction(rawTx, secondPassphrase).should.be.equal(
+									signSignature,
+								);
+							}
+							return true;
+						});
+					});
+				});
+			});
+		});
+
+		describe('#verifyTransaction', () => {
+			describe('when executed', () => {
+				const secondPublicKey =
+					'f9666bfed9ef2ff52a04408f22f2bfffaa81384c9433463697330224f10032a4';
+				it('should verify all the transactions', () => {
+					return validTransactions.forEach(transaction => {
+						return verifyTransaction(transaction, secondPublicKey).should.be
+							.true;
+					});
+				});
 			});
 		});
 	});

@@ -18,7 +18,7 @@ import {
 } from 'transactions/utils/time';
 
 describe('time module', () => {
-	const nowRealTime = 1464109220000;
+	const nowRealTime = new Date(1464109220000);
 	const nowEpochTime = 20;
 	let clock;
 
