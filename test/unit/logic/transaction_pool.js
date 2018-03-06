@@ -85,7 +85,10 @@ describe('transactionPool', () => {
 	before(done => {
 		// Use fresh instance of jobsQueue inside transaction pool
 		TransactionPool.__set__('jobsQueue', jobsQueue);
+
+		// Init balance sequence
 		balancesSequence = new Sequence();
+
 		// Init test subject
 		transactionPool = new TransactionPool(
 			config.broadcasts.broadcastInterval,

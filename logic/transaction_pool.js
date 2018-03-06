@@ -43,7 +43,7 @@ var __private = {};
  * @param {Transaction} transaction - Transaction logic instance
  * @param {bus} bus - Bus instance
  * @param {Object} logger - Logger instance
- * @param {Sequence} balancesSequence - Balances sequence.
+ * @param {Sequence} balancesSequence - Balances sequence
  */
 // Constructor
 function TransactionPool(
@@ -504,8 +504,7 @@ TransactionPool.prototype.processBundled = function(cb) {
 				__private.processVerifyTransaction(transaction, true, err => {
 					// Remove bundled transaction after asynchronous processVerifyTransaction to avoid race conditions
 					self.removeBundledTransaction(transaction.id);
-					// Delete bundled flag from transaction
-					// so it is qualified as "queued" in queueTransaction
+					// Delete bundled flag from transaction so it is qualified as "queued" in queueTransaction
 					delete transaction.bundled;
 
 					if (err) {
@@ -638,7 +637,7 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 							return setImmediate(eachSeriesCb);
 						}
 
-						// Transaction successfully undone from unconfirmed states, try move it to queued list
+						// Transaction successfully undone from unconfirmed states, try moving it to queued list
 						library.balancesSequence.add(balancesSequenceCb => {
 							self.processUnconfirmedTransaction(
 								transaction,
@@ -771,8 +770,9 @@ __private.getTransactionList = function(transactions, reverse, limit) {
 
 /**
  * Check if transaction exists in unconfirmed queue.
+ *
  * @private
- * @param {Object} transaction - Transaction object.
+ * @param {Object} transaction - Transaction object
  * @returns {Boolean}
  */
 __private.isTransactionInUnconfirmedQueue = function(transaction) {
@@ -793,8 +793,8 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 		return setImmediate(cb, 'Missing transaction');
 	}
 
-	// At this point, transaction should not be in unconfirmed state, but this is a final barrier to stop us from
-	// making unconfirmed state dirty.
+	// At this point, transaction should not be in unconfirmed state,
+	// but this is a final barrier to stop us from making unconfirmed state dirty.
 	if (__private.isTransactionInUnconfirmedQueue(transaction)) {
 		return setImmediate(cb, 'Transaction is already in unconfirmed state');
 	}
