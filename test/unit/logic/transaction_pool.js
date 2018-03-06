@@ -378,11 +378,69 @@ describe('transactionPool', () => {
 		});
 	});
 
-	describe('addMultisignatureTransaction', () => {});
+	describe('addMultisignatureTransaction', () => {
+		it('should be able to add multi transaction', () => {
+			const transaction = {
+				id: '103111423423423L',
+				type: transactionTypes.MULTI,
+			};
+			expect(transactionPool.multisignature.transactions)
+				.to.be.an('array')
+				.that.does.not.include(transaction);
 
-	describe('removeMultisignatureTransaction', () => {});
+			transactionPool.addMultisignatureTransaction(transaction);
 
-	describe('countMultisignature', () => {});
+			return expect(transactionPool.multisignature.transactions)
+				.to.be.an('array')
+				.that.does.include(transaction);
+		});
+
+		it('should not add existing multi transaction', () => {
+			const transaction = {
+				id: '1043111423423423L',
+				type: transactionTypes.MULTI,
+			};
+			transactionPool.addMultisignatureTransaction(transaction);
+			expect(transactionPool.multisignature.transactions)
+				.to.be.an('array')
+				.that.does.include(transaction);
+			expect(transactionPool.multisignature.transactions.length).to.eql(3);
+			transactionPool.addMultisignatureTransaction(transaction);
+			expect(transactionPool.multisignature.transactions.length).to.eql(3);
+			return expect(transactionPool.multisignature.transactions)
+				.to.be.an('array')
+				.that.does.include(transaction);
+		});
+	});
+
+	describe('removeMultisignatureTransaction', () => {
+		it('should be able to remove multi transaction', () => {
+			const transaction = {
+				id: '10431411423423423L',
+				type: transactionTypes.MULTI,
+			};
+			transactionPool.addMultisignatureTransaction(transaction);
+			expect(transactionPool.multisignature.transactions)
+				.to.be.an('array')
+				.that.does.include(transaction);
+			transactionPool.removeMultisignatureTransaction(transaction.id);
+			return expect(transactionPool.multisignature.transactions)
+				.to.be.an('array')
+				.that.does.not.include(transaction);
+		});
+	});
+
+	describe('countMultisignature', () => {
+		it('should return count of multi signature transaction exists', () => {
+			expect(transactionPool.countMultisignature()).to.deep.eql(2);
+			const transaction = {
+				id: '10431411423423423L',
+				type: transactionTypes.MULTI,
+			};
+			transactionPool.addMultisignatureTransaction(transaction);
+			return expect(transactionPool.countMultisignature()).to.deep.eql(3);
+		});
+	});
 
 	describe('receiveTransactions', () => {});
 
