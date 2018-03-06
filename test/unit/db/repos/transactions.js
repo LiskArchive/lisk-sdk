@@ -789,6 +789,83 @@ describe('db', () => {
 					done();
 				});
 			});
+
+			it('should call respective transaction type save function once for each transaction type', function*() {
+				const block = seeder.getLastBlock();
+				const transactions = [];
+				Object.keys(transactionTypes).forEach(type => {
+					transactions.push(
+						transactionsFixtures.Transaction({
+							blockId: block.id,
+							type: transactionTypes[type],
+						})
+					);
+					// Create two transactions of each type to test respective transaction type
+					//  save function called once for both transactions
+					transactions.push(
+						transactionsFixtures.Transaction({
+							blockId: block.id,
+							type: transactionTypes[type],
+						})
+					);
+				});
+
+				return yield db.tx(function*(t) {
+					sinonSandbox.spy(t['transactions.transfer'], 'save');
+					sinonSandbox.spy(t['transactions.dapp'], 'save');
+					sinonSandbox.spy(t['transactions.delegate'], 'save');
+					sinonSandbox.spy(t['transactions.inTransfer'], 'save');
+					sinonSandbox.spy(t['transactions.outTransfer'], 'save');
+					sinonSandbox.spy(t['transactions.multisignature'], 'save');
+					sinonSandbox.spy(t['transactions.signature'], 'save');
+					sinonSandbox.spy(t['transactions.vote'], 'save');
+
+					yield t.transactions.save(transactions);
+
+					// Expect that each transaction type save function called once
+					// with two transactions that we created above
+
+					expect(t['transactions.transfer'].save).to.be.calledOnce;
+					expect(
+						t['transactions.transfer'].save.firstCall.args[0]
+					).to.have.lengthOf(2);
+
+					expect(t['transactions.dapp'].save).to.be.calledOnce;
+					expect(
+						t['transactions.dapp'].save.firstCall.args[0]
+					).to.have.lengthOf(2);
+
+					expect(t['transactions.delegate'].save).to.be.calledOnce;
+					expect(
+						t['transactions.delegate'].save.firstCall.args[0]
+					).to.have.lengthOf(2);
+
+					expect(t['transactions.inTransfer'].save).to.be.calledOnce;
+					expect(
+						t['transactions.inTransfer'].save.firstCall.args[0]
+					).to.have.lengthOf(2);
+
+					expect(t['transactions.outTransfer'].save).to.be.calledOnce;
+					expect(
+						t['transactions.outTransfer'].save.firstCall.args[0]
+					).to.have.lengthOf(2);
+
+					expect(t['transactions.multisignature'].save).to.be.calledOnce;
+					expect(
+						t['transactions.multisignature'].save.firstCall.args[0]
+					).to.have.lengthOf(2);
+
+					expect(t['transactions.signature'].save).to.be.calledOnce;
+					expect(
+						t['transactions.signature'].save.firstCall.args[0]
+					).to.have.lengthOf(2);
+
+					expect(t['transactions.vote'].save).to.be.calledOnce;
+					expect(
+						t['transactions.vote'].save.firstCall.args[0]
+					).to.have.lengthOf(2);
+				});
+			});
 		});
 	});
 });
