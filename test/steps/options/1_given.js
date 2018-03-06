@@ -20,6 +20,11 @@ import {
 	getBooleans,
 } from '../utils';
 
+export function anOptionsObjectWithSignatureSetTo() {
+	const signature = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { signature };
+}
+
 export function anArrayOfOptions() {
 	const options = getQuotedStrings(this.test.parent.title);
 	this.test.ctx.options = options;
@@ -70,6 +75,12 @@ export function anOptionsObjectWithUnvotesSetTo() {
 export function anOptionsObjectWithVotesSetTo() {
 	const votes = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.options = { votes };
+}
+
+export function anOptionsObjectWithSignatureSetToAndVotesSetTo() {
+	const votes = getFirstQuotedString(this.test.parent.title);
+	const signature = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { votes, signature };
 }
 
 export function anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo() {

@@ -41,23 +41,31 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 	const {
 		passphrase: passphraseSource,
 		'second-passphrase': secondPassphraseSource,
+		signature,
 	} = options;
 
 	validateAmount(amount);
 	validateAddress(address);
 
-	return getInputsFromSources(vorpal, {
-		passphrase: {
-			source: passphraseSource,
-			repeatPrompt: true,
-		},
-		secondPassphrase: !secondPassphraseSource
-			? null
-			: {
-					source: secondPassphraseSource,
+	const processFunction = processInputs(amount, address);
+
+	return signature === false
+		? processFunction({
+				passphrase: null,
+				secondPassphrase: null,
+			})
+		: getInputsFromSources(vorpal, {
+				passphrase: {
+					source: passphraseSource,
 					repeatPrompt: true,
 				},
-	}).then(processInputs(amount, address));
+				secondPassphrase: !secondPassphraseSource
+					? null
+					: {
+							source: secondPassphraseSource,
+							repeatPrompt: true,
+						},
+			}).then(processFunction);
 };
 
 const createTransactionTransfer = createCommand({
@@ -65,7 +73,11 @@ const createTransactionTransfer = createCommand({
 	alias: 'create transaction 0',
 	description,
 	actionCreator,
-	options: [commonOptions.passphrase, commonOptions.secondPassphrase],
+	options: [
+		commonOptions.noSignature,
+		commonOptions.passphrase,
+		commonOptions.secondPassphrase,
+	],
 	errorPrefix: 'Could not create "transfer" transaction',
 });
 

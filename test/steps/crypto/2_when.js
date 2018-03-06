@@ -16,6 +16,39 @@
 import lisk from 'lisk-js';
 import { DEFAULT_ERROR_MESSAGE } from '../utils';
 
+export function anErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature() {
+	const { cryptography, publicKey, message, signature } = this.test.ctx;
+
+	lisk.crypto.verifyMessageWithPublicKey.throws(
+		new TypeError(DEFAULT_ERROR_MESSAGE),
+	);
+
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
+	this.test.ctx.returnValue = cryptography.verifyMessage({
+		publicKey,
+		signature,
+		message,
+	});
+}
+
+export function noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature() {
+	const {
+		cryptography,
+		message,
+		keys: { publicKey },
+		signature,
+	} = this.test.ctx;
+	const verifyReturnMessage = true;
+
+	lisk.crypto.verifyMessageWithPublicKey.returns(verifyReturnMessage);
+
+	this.test.ctx.returnValue = cryptography.verifyMessage({
+		publicKey,
+		signature,
+		message,
+	});
+}
+
 export function noErrorOccursAttemptingToSignTheMessageUsingThePassphrase() {
 	const { cryptography, message, passphrase, signature } = this.test.ctx;
 

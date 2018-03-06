@@ -75,6 +75,16 @@ export function thePassphraseCanBeRetrievedFromItsSource() {
 	});
 }
 
+export function theSecondPassphraseCanBeRetrievedFromItsSource() {
+	const { secondPassphrase } = this.test.ctx;
+	getInputsFromSources.resolves({
+		passphrase: null,
+		secondPassphrase,
+		password: null,
+		data: null,
+	});
+}
+
 export function thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
 	getInputsFromSources.resolves({
@@ -112,6 +122,16 @@ export function thePassphraseAndPasswordCanBeRetrievedFromTheirSources() {
 		secondPassphrase: null,
 		password,
 		data: null,
+	});
+}
+
+export function theMessageCanBeRetrievedFromItsSource() {
+	const { message } = this.test.ctx;
+	getInputsFromSources.resolves({
+		passphrase: null,
+		secondPassphrase: null,
+		password: null,
+		data: message,
 	});
 }
 
