@@ -309,7 +309,7 @@ __private.forge = function(cb) {
 							slots.calcRound(forgedBlock.height),
 							'slot:',
 							slots.getSlotNumber(currentBlockData.time),
-							`reward:${forgedBlock.reward}`,
+							`reward: ${forgedBlock.reward}`,
 						].join(' ')
 					);
 
