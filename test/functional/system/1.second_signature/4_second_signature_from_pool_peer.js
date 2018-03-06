@@ -105,7 +105,7 @@ describe('signature', () => {
 				});
 			});
 
-			describe('when receiving block with signature transaction with different Id', () => {
+			describe('when receiving block with signature transaction with different id', () => {
 				let signatureTransaction2;
 
 				beforeEach(done => {
@@ -159,7 +159,7 @@ describe('signature', () => {
 				});
 
 				// TODO: This tests will be unskipped as part of #1652
-				describe.skip('when receiving block with multiple signature transaction with different Id for same account', () => {
+				describe.skip('when receiving block with multiple signature transaction with different id for same account', () => {
 					let signatureTransaction2;
 					let signatureTransaction3;
 					let blockId;

@@ -105,7 +105,7 @@ describe('delegate', () => {
 				});
 			});
 
-			describe('when receiving block with delegate transaction with different Id', () => {
+			describe('when receiving block with delegate transaction with different id', () => {
 				let delegateTransaction2;
 				let username2;
 
