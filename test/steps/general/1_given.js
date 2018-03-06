@@ -14,7 +14,11 @@
  *
  */
 import { getFirstQuotedString, getQuotedStrings } from '../utils';
-import { FileSystemError, ValidationError } from '../../../src/utils/error';
+import {
+	FileSystemError,
+	ValidationError,
+	PrintError,
+} from '../../../src/utils/error';
 
 export function stringArguments() {
 	this.test.ctx.testArguments = getQuotedStrings(this.test.parent.title);
@@ -38,6 +42,16 @@ export function aFunctionThatThrowsAValidationError() {
 
 	this.test.ctx.errorMessage = errorMessage;
 	this.test.ctx.validationErrorFn = validationErrorFn;
+}
+
+export function aFunctionThatThrowsAPrintError() {
+	const errorMessage = getFirstQuotedString(this.test.parent.title);
+	const printErrorFn = () => {
+		throw new PrintError(errorMessage);
+	};
+
+	this.test.ctx.errorMessage = errorMessage;
+	this.test.ctx.printErrorFn = printErrorFn;
 }
 
 export function anErrorObject() {
@@ -74,6 +88,19 @@ export function aDeeplyNestedObject() {
 	};
 }
 
+export function aCyclicObject() {
+	const obj = {
+		root: 'value',
+		nested: {
+			object: 'values',
+			testing: 123,
+			nullValue: null,
+		},
+	};
+	obj.circular = obj;
+	this.test.ctx.testObject = obj;
+}
+
 export function aNestedObject() {
 	this.test.ctx.testObject = {
 		root: 'value',
@@ -81,6 +108,9 @@ export function aNestedObject() {
 			object: 'values',
 			testing: 123,
 			nullValue: null,
+			keys: {
+				more: ['publicKey1', 'publicKey2'],
+			},
 		},
 	};
 }

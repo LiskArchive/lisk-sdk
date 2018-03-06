@@ -79,15 +79,21 @@ const setUpReadlineStubs = () => {
 };
 
 function setUpLiskJSAPIStubs() {
+	const sendRequestDefaultResult = { success: true };
 	const broadcastTransactionResponse = {
 		message: 'Transaction accepted by the node for processing',
 	};
 	const broadcastSignaturesResponse = {
 		message: 'Signature is accepted by the node for processing',
 	};
+	this.test.ctx.sendRequestResult = sendRequestDefaultResult;
 	this.test.ctx.broadcastTransactionResponse = broadcastTransactionResponse;
 	this.test.ctx.broadcastSignaturesResponse = broadcastSignaturesResponse;
 
+	sandbox
+		.stub(liskAPIInstance, 'sendRequest')
+		.resolves(sendRequestDefaultResult);
+	sandbox.stub(liskAPIInstance, 'setTestnet');
 	sandbox
 		.stub(liskAPIInstance, 'broadcastTransaction')
 		.returns(broadcastTransactionResponse);
@@ -323,6 +329,10 @@ export function setUpUtilInputUtils() {
 
 export function tearDownUtilInputUtils() {
 	restoreEnvVariable(TEST_PASSPHRASE).call(this);
+}
+
+export function setUpUtilQuery() {
+	setUpLiskJSAPIStubs.call(this);
 }
 
 export function setUpUtilPrint() {

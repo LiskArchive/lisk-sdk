@@ -13,11 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { setUpUtilQuery } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('Query class', () => {
+	beforeEach(setUpUtilQuery);
 	Given('a Lisk API instance', given.aLiskAPIInstance, () => {
 		Given('a query instance', given.aQueryInstance, () => {
 			Then(
@@ -41,6 +43,26 @@ describe('Query class', () => {
 				then.theQueryInstanceShouldHaveAHandlerFor,
 			);
 			describe('#sendRequest', () => {
+				When(
+					'the query instance sends a request and the lisk API instance resolves with a successful response',
+					when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulResponse,
+					() => {
+						Then(
+							'it should resolve to the result of sending the request',
+							then.itShouldResolveToTheResultOfSendingTheRequest,
+						);
+					},
+				);
+				When(
+					'the query instance sends a request and the lisk API instance resolves with a failed response',
+					when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithAFailedResponse,
+					() => {
+						Then(
+							'it should reject with the error message',
+							then.itShouldRejectWithTheErrorMessage,
+						);
+					},
+				);
 				Given('an endpoint "delegates/get"', given.anEndpoint, () => {
 					Given('a parameters object', given.aParametersObject, () => {
 						Given(

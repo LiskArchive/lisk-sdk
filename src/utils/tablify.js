@@ -14,6 +14,7 @@
  *
  */
 import Table from 'cli-table2';
+import { PrintError } from './error';
 
 const chars = {
 	top: '═',
@@ -54,12 +55,17 @@ const reduceKeys = (keys, row) => {
 	return keys.concat(newKeys);
 };
 
-const getKeys = data =>
-	Object.entries(data)
+const getKeys = (data, limit = 3, loop = 1) => {
+	if (loop > limit) {
+		throw new PrintError(
+			`Output cannot be displayed in table format: Maximum object depth of ${limit} was exceeded. Consider using JSON output format.`,
+		);
+	}
+	return Object.entries(data)
 		.map(
 			([parentKey, value]) =>
 				Object.prototype.toString.call(value) === '[object Object]'
-					? getKeys(value).reduce(
+					? getKeys(value, limit, loop + 1).reduce(
 							(nestedKeys, childKey) => [
 								...nestedKeys,
 								`${parentKey}.${childKey}`,
@@ -75,6 +81,7 @@ const getKeys = data =>
 			],
 			[],
 		);
+};
 
 const tablify = data => {
 	const dataIsArray = Array.isArray(data);
