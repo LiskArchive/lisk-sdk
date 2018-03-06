@@ -57,24 +57,16 @@ describe('tablify util', () => {
 	Given('a deeply nested object', given.aDeeplyNestedObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
 			Then(
-				'the returned table should have a head with the object’s deeply nested keys',
-				then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys,
-			);
-			Then(
-				'the returned table should have a row with the object’s deeply nested values',
-				then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues,
+				'it should throw a print error "Maximum nesting of the object is exceeded to be displayed as a table."',
+				then.itShouldThrowPrintError,
 			);
 		});
 	});
 	Given('a cyclic object', given.aCyclicObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
 			Then(
-				'the returned table should have a head with the cyclic object’s keys',
-				then.theReturnedTableShouldHaveAHeadWithTheCyclicObjectKeys,
-			);
-			Then(
-				'the returned table should have a row with the cyclic object’s values including a message for the cyclic value',
-				then.theReturnedTableShouldHaveARowWithTheCyclicObjectValuesIncludingAMessageForTheCyclicValue,
+				'it should throw a print error "Maximum nesting of the object is exceeded to be displayed as a table."',
+				then.itShouldThrowPrintError,
 			);
 		});
 	});

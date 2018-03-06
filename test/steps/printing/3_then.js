@@ -138,41 +138,12 @@ export function theReturnedTableShouldHaveARowWithTheObjectValues() {
 
 export function theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys() {
 	const { returnValue } = this.test.ctx;
-	const keys = ['root', 'nested.object', 'nested.testing', 'nested.nullValue'];
-	return expect(returnValue.options)
-		.to.have.property('head')
-		.eql(keys);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys() {
-	const { returnValue } = this.test.ctx;
 	const keys = [
 		'root',
 		'nested.object',
 		'nested.testing',
 		'nested.nullValue',
-		'nested.asset.publicKey',
-		'nested.asset.keys',
-	];
-	return expect(returnValue.options)
-		.to.have.property('head')
-		.eql(keys);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheCyclicObjectKeys() {
-	const { returnValue } = this.test.ctx;
-	const keys = [
-		'root',
-		'nested.object',
-		'nested.testing',
-		'nested.nullValue',
-		'circular.root',
-		'circular.nested.object',
-		'circular.nested.testing',
-		'circular.nested.nullValue',
-		'circular.circular.root',
-		'circular.circular.nested',
-		'circular.circular.circular',
+		'nested.keys.more',
 	];
 	return expect(returnValue.options)
 		.to.have.property('head')
@@ -181,38 +152,7 @@ export function theReturnedTableShouldHaveAHeadWithTheCyclicObjectKeys() {
 
 export function theReturnedTableShouldHaveAHeadWithTheObjectNestedValues() {
 	const { returnValue } = this.test.ctx;
-	const values = ['value', 'values', 123, null];
-	return expect(returnValue[0]).to.eql(values);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues() {
-	const { returnValue } = this.test.ctx;
-	const values = [
-		'value',
-		'values',
-		123,
-		null,
-		'aPublicKeyString',
-		'publicKey1\npublicKey2',
-	];
-	return expect(returnValue[0]).to.eql(values);
-}
-
-export function theReturnedTableShouldHaveARowWithTheCyclicObjectValuesIncludingAMessageForTheCyclicValue() {
-	const { returnValue } = this.test.ctx;
-	const values = [
-		'value',
-		'values',
-		123,
-		null,
-		'value',
-		'values',
-		123,
-		null,
-		'value',
-		'{"object":"values","testing":123,"nullValue":null}',
-		'Cyclic object cannot be displayed.',
-	];
+	const values = ['value', 'values', 123, null, 'publicKey1\npublicKey2'];
 	return expect(returnValue[0]).to.eql(values);
 }
 

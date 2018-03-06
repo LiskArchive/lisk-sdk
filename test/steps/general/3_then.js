@@ -14,7 +14,11 @@
  *
  */
 import { getFirstQuotedString, getFirstNumber } from '../utils';
-import { ValidationError, FileSystemError } from '../../../src/utils/error';
+import {
+	ValidationError,
+	FileSystemError,
+	PrintError,
+} from '../../../src/utils/error';
 
 export function theErrorShouldBeInstanceOfNodesBuiltInError() {
 	const { testError } = this.test.ctx;
@@ -46,6 +50,14 @@ export function itShouldThrowFileSystemError() {
 	return expect(testFunction)
 		.to.throw()
 		.and.be.customError(new FileSystemError(message));
+}
+
+export function itShouldThrowPrintError() {
+	const { testFunction } = this.test.ctx;
+	const message = getFirstQuotedString(this.test.title);
+	return expect(testFunction)
+		.to.throw()
+		.and.be.customError(new PrintError(message));
 }
 
 export function itShouldExitWithCode() {
