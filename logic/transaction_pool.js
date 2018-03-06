@@ -547,7 +547,8 @@ TransactionPool.prototype.processBundled = function(cb) {
 TransactionPool.prototype.processUnconfirmedTransaction = function(
 	transaction,
 	broadcast,
-	cb
+	cb,
+	tx
 ) {
 	if (self.transactionInPool(transaction.id)) {
 		return setImmediate(
@@ -565,12 +566,17 @@ TransactionPool.prototype.processUnconfirmedTransaction = function(
 		return self.queueTransaction(transaction, cb);
 	}
 
-	__private.processVerifyTransaction(transaction, broadcast, err => {
-		if (!err) {
-			return self.queueTransaction(transaction, cb);
-		}
-		return setImmediate(cb, err);
-	});
+	__private.processVerifyTransaction(
+		transaction,
+		broadcast,
+		err => {
+			if (!err) {
+				return self.queueTransaction(transaction, cb);
+			}
+			return setImmediate(cb, err);
+		},
+		tx
+	);
 };
 
 /**
@@ -631,19 +637,25 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 							);
 							return setImmediate(eachSeriesCb);
 						}
+
 						// Transaction successfully undone from unconfirmed states, try move it to queued list
 						library.balancesSequence.add(balancesSequenceCb => {
-							self.processUnconfirmedTransaction(transaction, false, err => {
-								if (err) {
-									library.logger.debug(
-										`Failed to queue transaction back after successful undo unconfirmed: ${
-											transaction.id
-										}`,
-										err
-									);
-								}
-								return setImmediate(balancesSequenceCb);
-							});
+							self.processUnconfirmedTransaction(
+								transaction,
+								false,
+								err => {
+									if (err) {
+										library.logger.debug(
+											`Failed to queue transaction back after successful undo unconfirmed: ${
+												transaction.id
+											}`,
+											err
+										);
+									}
+									return setImmediate(balancesSequenceCb);
+								},
+								tx
+							);
 						}, eachSeriesCb);
 					},
 					tx
