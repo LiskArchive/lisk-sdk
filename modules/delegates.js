@@ -910,7 +910,11 @@ Delegates.prototype.onBind = function(scope) {
 };
 
 /**
- * job queue event for checking/forging a block
+ * Forge the next block and then fill the transaction pool.
+ * Registered by jobs queue every __private.forgeInterval.
+ *
+ * @private
+ * @param {function} cb - Callback function
  */
 __private.nextForge = function(cb) {
 	async.series([__private.forge, modules.transactions.fillPool], cb);
