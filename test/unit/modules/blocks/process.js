@@ -891,7 +891,7 @@ describe('blocks/process', () => {
 								() => {
 									expect(
 										modules.peers.remove
-									).calledOnce;
+									).to.have.been.calledOnce;
 									done();
 								}
 							);
@@ -1528,7 +1528,7 @@ describe('blocks/process', () => {
 							blocksProcessModule.loadBlocksFromPeer(
 								{ id: 1, string: 'test' },
 								() => {
-									expect(modules.peers.remove).calledOnce;
+									expect(modules.peers.remove).to.have.been.calledOnce;
 									done();
 								}
 							);
