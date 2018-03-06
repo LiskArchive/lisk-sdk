@@ -15,6 +15,7 @@
 'use strict';
 
 const randomstring = require('randomstring');
+const faker = require('faker');
 const stampit = require('stampit');
 const transactionTypes = require('../../helpers/transaction_types');
 const Dapps = require('./dapps');
@@ -58,26 +59,52 @@ const Transaction = stampit({
 
 			case transactionTypes.SIGNATURE:
 				this.asset.signature = {
-					publicKey:
-						'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
+					publicKey: randomstring.generate({
+						charset: 'hex',
+						length: 64,
+						capitalization: 'lowercase',
+					}),
 				};
 				break;
 
 			case transactionTypes.DELEGATE:
-				this.asset.delegate = { username: delegateName || 'DummyDelegate' };
+				this.asset.delegate = {
+					username:
+						delegateName ||
+						randomstring.generate({ length: 10, charset: 'alphabetic' }),
+				};
 				break;
 
 			case transactionTypes.VOTE:
-				this.asset.votes = votes || [];
+				this.asset.votes = votes || [
+					randomstring.generate({
+						charset: 'hex',
+						length: 64,
+						capitalization: 'lowercase',
+					}),
+					randomstring.generate({
+						charset: 'hex',
+						length: 64,
+						capitalization: 'lowercase',
+					}),
+				];
 				break;
 
 			case transactionTypes.MULTI:
 				this.asset.multisignature = {
-					min: 2,
+					min: faker.random.number({ min: 2 }),
 					lifetime: +(new Date() / 1000).toFixed(),
 					keysgroup: [
-						'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
-						'23488598af49776e26120202e1111111e6c1987055a1d837db3dc01233145565',
+						randomstring.generate({
+							charset: 'hex',
+							length: 64,
+							capitalization: 'lowercase',
+						}),
+						randomstring.generate({
+							charset: 'hex',
+							length: 64,
+							capitalization: 'lowercase',
+						}),
 					],
 				};
 				break;

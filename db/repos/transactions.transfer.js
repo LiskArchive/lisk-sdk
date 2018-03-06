@@ -14,10 +14,10 @@
 
 'use strict';
 
-var _ = require('lodash');
-var Promise = require('bluebird');
+const _ = require('lodash');
+const Promise = require('bluebird');
 
-var columnSet;
+let columnSet;
 
 /**
  * Transfer transactions database interaction class.
@@ -31,60 +31,62 @@ var columnSet;
  * @param {Object} pgp - pg-promise instance to utilize helpers
  * @returns {Object} An instance of a TransferTransactionsRepo
  */
-function TransferTransactionsRepo(db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class TransferTransactionsRepo {
+	constructor(db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
 
-	this.dbTable = 'transfer';
+		this.dbTable = 'transfer';
 
-	this.dbFields = ['data', 'transactionId'];
+		this.dbFields = ['data', 'transactionId'];
 
-	if (!columnSet) {
-		columnSet = {};
-		var table = new pgp.helpers.TableName({
-			table: this.dbTable,
-		});
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table,
-		});
-	}
-
-	this.cs = columnSet;
-}
-
-/**
- * Save transfer transactions.
- *
- * @param {Array} transactions
- * @returns {Promise}
- * @todo Add description for the params and the return value
- */
-TransferTransactionsRepo.prototype.save = function(transactions) {
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
-	}
-
-	transactions = transactions.map(transaction => {
-		if (transaction.asset && transaction.asset.data) {
-			try {
-				return {
-					transactionId: transaction.id,
-					data: Buffer.from(transaction.asset.data, 'utf8'),
-				};
-			} catch (ex) {
-				throw ex;
-			}
+		if (!columnSet) {
+			columnSet = {};
+			var table = new pgp.helpers.TableName({
+				table: this.dbTable,
+			});
+			columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+				table,
+			});
 		}
-		return null;
-	});
 
-	transactions = _.compact(transactions);
-
-	if (_.isEmpty(transactions)) {
-		return Promise.resolve();
+		this.cs = columnSet;
 	}
 
-	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
-};
+	/**
+	 * Save transfer transactions.
+	 *
+	 * @param {Array} transactions
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
+	 */
+	save(transactions) {
+		if (!_.isArray(transactions)) {
+			transactions = [transactions];
+		}
+
+		transactions = transactions.map(transaction => {
+			if (transaction.asset && transaction.asset.data) {
+				try {
+					return {
+						transactionId: transaction.id,
+						data: Buffer.from(transaction.asset.data, 'utf8'),
+					};
+				} catch (ex) {
+					throw ex;
+				}
+			}
+			return null;
+		});
+
+		transactions = _.compact(transactions);
+
+		if (_.isEmpty(transactions)) {
+			return Promise.resolve();
+		}
+
+		return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
+	}
+}
 
 module.exports = TransferTransactionsRepo;
