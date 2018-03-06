@@ -495,9 +495,81 @@ describe('transactionPool', () => {
 		});
 	});
 
-	describe('reindexQueues', () => {});
+	describe('reindexQueues', () => {
+		before(() => {
+			transactionPool.addBundledTransaction({ id: '123', bundled: true });
+			transactionPool.addQueuedTransaction({ id: '456' });
+			transactionPool.addUnconfirmedTransaction({ id: '789' });
+			return transactionPool.addMultisignatureTransaction({ id: '012' });
+		});
 
-	describe('processBundled', () => {});
+		it('should be able to reindex bundled, queued, multisignature, unconfirmed transactions', () => {
+			expect(transactionPool.countQueued()).to.deep.eql(1);
+			expect(transactionPool.countBundled()).to.deep.eql(1);
+			expect(transactionPool.countMultisignature()).to.deep.eql(4);
+			expect(transactionPool.countUnconfirmed()).to.deep.eql(1);
+			return expect(transactionPool.reindexQueues());
+		});
+	});
+
+	describe('processBundled', () => {
+		let processVerifyTransaction;
+		beforeEach(done => {
+			resetStates();
+			transactionPool.addBundledTransaction({ id: '123', bundled: true });
+			processVerifyTransaction = TransactionPool.__get__(
+				'__private.processVerifyTransaction'
+			);
+			done();
+		});
+
+		afterEach(done => {
+			TransactionPool.__set__(
+				'__private.processVerifyTransaction',
+				processVerifyTransaction
+			);
+			done();
+		});
+
+		it('should fail to process the bundle transaction', done => {
+			const processVerifyTransactionStub = sinon
+				.stub()
+				.callsArgWith(2, 'Failed to process bundle transaction');
+			TransactionPool.__set__(
+				'__private.processVerifyTransaction',
+				processVerifyTransactionStub
+			);
+			transactionPool.processBundled(() => {
+				expect(logger.debug.args[0][0]).to.deep.eql(
+					'Failed to process / verify bundled transaction: 123'
+				);
+				expect(logger.debug.args[0][1]).to.deep.eql(
+					'Failed to process bundle transaction'
+				);
+				done();
+			});
+		});
+
+		it('should fail to queue bundled transaction', done => {
+			const processVerifyTransactionStub = sinon.stub().callsArgWith(2, null);
+			TransactionPool.__set__(
+				'__private.processVerifyTransaction',
+				processVerifyTransactionStub
+			);
+			sinon
+				.stub(transactionPool, 'queueTransaction')
+				.callsArgWith(1, 'Failed to queue bundled transaction');
+			transactionPool.processBundled(() => {
+				expect(logger.debug.args[0][0]).to.deep.eql(
+					'Failed to queue bundled transaction: 123'
+				);
+				expect(logger.debug.args[0][1]).to.deep.eql(
+					'Failed to queue bundled transaction'
+				);
+				done();
+			});
+		});
+	});
 
 	describe('processUnconfirmedTransaction', () => {});
 
