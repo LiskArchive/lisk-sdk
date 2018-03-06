@@ -336,11 +336,47 @@ describe('transactionPool', () => {
 		});
 	});
 
-	describe('addQueuedTransaction', () => {});
+	describe('addQueuedTransaction', () => {
+		it('should be able to add transaction to queue', () => {
+			const transaction = { id: '103111423423423L' };
+			expect(transactionPool.queued.transactions)
+				.to.be.an('array')
+				.that.does.not.include(transaction);
 
-	describe('removeQueuedTransaction', () => {});
+			transactionPool.addQueuedTransaction(transaction);
 
-	describe('countQueued', () => {});
+			return expect(transactionPool.queued.transactions)
+				.to.be.an('array')
+				.that.does.include(transaction);
+		});
+	});
+
+	describe('removeQueuedTransaction', () => {
+		it('should be able to remove transaction to queue', () => {
+			const transaction = { id: '103111423423423L' };
+
+			transactionPool.addQueuedTransaction(transaction);
+			transactionPool.removeQueuedTransaction(transaction.id);
+
+			return expect(transactionPool.queued.transactions)
+				.to.be.an('array')
+				.that.does.not.include(transaction);
+		});
+	});
+
+	describe('countQueued', () => {
+		it('should return count of queued transaction exists in pool', () => {
+			expect(transactionPool.countQueued()).to.deep.eql(0);
+			const transaction = { id: '103111423423423L' };
+			transactionPool.addQueuedTransaction(transaction);
+			return expect(transactionPool.countQueued()).to.deep.eql(1);
+		});
+
+		it('should return the count of queued transaction exists in pool after removal', () => {
+			transactionPool.removeQueuedTransaction('103111423423423L');
+			return expect(transactionPool.countQueued()).to.deep.eql(0);
+		});
+	});
 
 	describe('addMultisignatureTransaction', () => {});
 
