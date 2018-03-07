@@ -21,7 +21,8 @@ import vorpal from 'vorpal';
 import { version } from '../package.json';
 import { getConfig } from './utils/config';
 
-const name = getConfig().name || 'lisk-commander';
+const name = getConfig().name || 'Lisk Commander';
+const delimiter = getConfig().delimiter || 'lisk';
 const liskCommander = vorpal();
 
 const commandsDir = path.join(__dirname, 'commands');
@@ -53,7 +54,7 @@ Type \`help\` to get started.
 `;
 const intro = `${copyright}${logo}${message}`;
 
-liskCommander.delimiter(`${name}>`).history(name);
+liskCommander.delimiter(`${delimiter}>`).history(delimiter);
 
 if (process.env.NON_INTERACTIVE_MODE !== 'true') {
 	liskCommander.log(intro).show();

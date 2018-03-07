@@ -1,5 +1,7 @@
 {
-	"name": "lisk-commander",
+	"name": "Lisk Commander",
+	"version": "1.0.0",
+	"delimiter": "lisk",
 	"json": false,
 	"api": {
 		"nodes": [],
