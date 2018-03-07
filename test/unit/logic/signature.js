@@ -323,14 +323,6 @@ describe('signature', () => {
 				).to.be.true;
 			});
 
-			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 0', () => {
-				return expect(
-					accountsMock.setAccountAndGet.calledWith(
-						sinonSandbox.match({ u_secondSignature: 0 })
-					)
-				).to.be.true;
-			});
-
 			it('should call modules.accounts.setAccountAndGet with secondPublicKey = validTransaction.asset.signature.publicKey', () => {
 				return expect(
 					accountsMock.setAccountAndGet.calledWith(
@@ -363,14 +355,6 @@ describe('signature', () => {
 				return expect(
 					accountsMock.setAccountAndGet.calledWith(
 						sinonSandbox.match({ secondSignature: 0 })
-					)
-				).to.be.true;
-			});
-
-			it('should call modules.accounts.setAccountAndGet with u_secondSignature = 1', () => {
-				return expect(
-					accountsMock.setAccountAndGet.calledWith(
-						sinonSandbox.match({ u_secondSignature: 1 })
 					)
 				).to.be.true;
 			});

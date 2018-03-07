@@ -155,7 +155,6 @@ Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
 		{
 			address: sender.address,
 			secondSignature: 1,
-			u_secondSignature: 0,
 			secondPublicKey: transaction.asset.signature.publicKey,
 		},
 		cb,
@@ -177,7 +176,6 @@ Signature.prototype.undo = function(transaction, block, sender, cb) {
 		{
 			address: sender.address,
 			secondSignature: 0,
-			u_secondSignature: 1,
 			secondPublicKey: null,
 		},
 		cb

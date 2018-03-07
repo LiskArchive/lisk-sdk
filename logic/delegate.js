@@ -278,10 +278,8 @@ Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
 	const data = {
 		publicKey: transaction.senderPublicKey,
 		address: sender.address,
-		u_isDelegate: 0,
 		isDelegate: 1,
 		vote: 0,
-		u_username: null,
 		username: transaction.asset.delegate.username,
 	};
 
@@ -311,11 +309,9 @@ Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
 Delegate.prototype.undo = function(transaction, block, sender, cb) {
 	const data = {
 		address: sender.address,
-		u_isDelegate: 1,
 		isDelegate: 0,
 		vote: 0,
 		username: null,
-		u_username: transaction.asset.delegate.username,
 	};
 
 	modules.accounts.setAccountAndGet(data, cb);
@@ -334,8 +330,6 @@ Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 		publicKey: transaction.senderPublicKey,
 		address: sender.address,
 		u_isDelegate: 1,
-		isDelegate: 0,
-		username: null,
 		u_username: transaction.asset.delegate.username,
 	};
 
@@ -364,8 +358,6 @@ Delegate.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
 	const data = {
 		address: sender.address,
 		u_isDelegate: 0,
-		isDelegate: 0,
-		username: null,
 		u_username: null,
 	};
 
