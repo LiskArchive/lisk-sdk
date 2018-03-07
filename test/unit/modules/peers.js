@@ -909,11 +909,10 @@ describe('peers', () => {
 		var revertPrivateStubs;
 
 		beforeEach(done => {
-			revertPrivateStubs = PeersRewired.__set__({
-				__private: {
-					updatePeerStatus: sinonSandbox.spy(),
-				},
-			});
+			revertPrivateStubs = PeersRewired.__set__(
+				'__private.updatePeerStatus',
+				sinonSandbox.spy()
+			);
 			randomPeerStub = {
 				rpc: {
 					status: sinonSandbox
@@ -927,7 +926,7 @@ describe('peers', () => {
 		});
 
 		afterEach(() => {
-			return revertPrivateStubs();
+			return revertPrivateStubs;
 		});
 
 		it('should not call randomPeer.rpc.list if randomPeer.rpc.status operation has failed', done => {
