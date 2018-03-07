@@ -682,10 +682,6 @@ TransactionPool.prototype.expireTransactions = function(cb) {
  * @returns {SetImmediate|applyUnconfirmedList}
  */
 TransactionPool.prototype.fillPool = function(cb) {
-	if (modules.loader.syncing()) {
-		return setImmediate(cb);
-	}
-
 	var unconfirmedCount = self.countUnconfirmed();
 	library.logger.debug(`Transaction pool size: ${unconfirmedCount}`);
 
