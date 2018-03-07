@@ -84,12 +84,10 @@ TransactionsController.getTransactions = function(context, next) {
 			transaction.senderId = transaction.senderId || '';
 			transaction.recipientId = transaction.recipientId || '';
 			transaction.recipientPublicKey = transaction.recipientPublicKey || '';
-			transaction.multisignatures = transaction.signatures;
 
 			transaction.amount = transaction.amount.toString();
 			transaction.fee = transaction.fee.toString();
 
-			delete transaction.signatures;
 			return transaction;
 		});
 
