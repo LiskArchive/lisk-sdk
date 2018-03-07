@@ -168,11 +168,11 @@ export function anArrayOfObjectsWithDivergentKeys() {
 			version: 1,
 		},
 		{
-			lisky: 'ts',
+			'lisk-commander': 'ts',
 			version: 2,
 		},
 		{
-			nano: 'jsx',
+			hub: 'jsx',
 			react: true,
 		},
 	];
@@ -217,7 +217,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 export function aCopyrightInformationText() {
 	this.test.ctx.copyright = `
-Lisky  Copyright (C) 2017  Lisk Foundation
+Lisk Commander  Copyright (C) 2016–2018  Lisk Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

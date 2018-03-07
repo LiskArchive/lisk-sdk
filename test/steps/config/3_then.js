@@ -100,7 +100,7 @@ export function theUserShouldBeInformedThatTheConfigFileCannotBeReadOrIsNotValid
 export function theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath() {
 	const path = getFirstQuotedString(this.test.title);
 	return expect(logger.error).to.be.calledWithExactly(
-		`Config lockfile at ${path} found. Are you running Lisky in another process?`,
+		`Config lockfile at ${path} found. Are you running Lisk Commander in another process?`,
 	);
 }
 

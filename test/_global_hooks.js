@@ -13,6 +13,8 @@ afterEach(function globalAfterEach() {
 });
 
 after(() => {
-	const configLockfilePath = `${process.env.LISKY_CONFIG_DIR}/config.lock`;
+	const configLockfilePath = `${
+		process.env.LISK_COMMANDER_CONFIG_DIR
+	}/config.lock`;
 	return lockfile.unlockSync(configLockfilePath);
 });

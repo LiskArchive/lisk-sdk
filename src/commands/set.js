@@ -25,7 +25,7 @@ const description = `Sets configuration <variable> to [value(s)...]. Variables a
 
 	Examples:
 	- set json true
-	- set name my_custom_lisky
+	- set name my_custom_lisk_cli
 	- set api.network main
 	- set api.nodes https://127.0.0.1:4000,http://mynode.com:7000
 `;
@@ -52,7 +52,7 @@ const setNestedConfigProperty = (config, path, value) => {
 				throw new ValidationError(
 					`Config file could not be written: property '${dotNotationArray.join(
 						'.',
-					)}' was not found. It looks like your configuration file is corrupted. Please check the file at ${configFilePath()} or remove it (a fresh default configuration file will be created when you run Lisky again).`,
+					)}' was not found. It looks like your configuration file is corrupted. Please check the file at ${configFilePath()} or remove it (a fresh default configuration file will be created when you run Lisk Commander again).`,
 				);
 			}
 			// eslint-disable-next-line no-param-reassign

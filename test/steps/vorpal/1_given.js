@@ -119,9 +119,9 @@ export function theVorpalInstanceHasAUIParent() {
 	vorpal.ui.parent = parent;
 }
 
-export function aLiskyInstance() {
-	const lisky = {
+export function aLiskCommanderInstance() {
+	const liskCommander = {
 		log: sandbox.spy(),
 	};
-	this.test.ctx.lisky = lisky;
+	this.test.ctx.liskCommander = liskCommander;
 }

@@ -21,8 +21,8 @@ import vorpal from 'vorpal';
 import { version } from '../package.json';
 import { getConfig } from './utils/config';
 
-const name = getConfig().name || 'lisky';
-const lisky = vorpal();
+const name = getConfig().name || 'lisk-commander';
+const liskCommander = vorpal();
 
 const commandsDir = path.join(__dirname, 'commands');
 
@@ -30,10 +30,10 @@ fs.readdirSync(commandsDir).forEach(command => {
 	const commandPath = path.join(commandsDir, command);
 	// eslint-disable-next-line global-require, import/no-dynamic-require
 	const commandModule = require(commandPath);
-	lisky.use(commandModule.default);
+	liskCommander.use(commandModule.default);
 });
 
-const copyright = chalk.dim(`Lisky  Copyright (C) 2017  Lisk Foundation
+const copyright = chalk.dim(`Lisk Commander  Copyright (C) 2016–2018  Lisk Foundation
 This program comes with ABSOLUTELY NO WARRANTY; for details type \`show w\`.
 This is free software, and you are welcome to redistribute it under certain conditions; type \`show c\` for details.
 `);
@@ -53,13 +53,13 @@ Type \`help\` to get started.
 `;
 const intro = `${copyright}${logo}${message}`;
 
-lisky.delimiter(`${name}>`).history(name);
+liskCommander.delimiter(`${name}>`).history(name);
 
 if (process.env.NON_INTERACTIVE_MODE !== 'true') {
-	lisky.log(intro).show();
+	liskCommander.log(intro).show();
 }
 
-lisky.find('help').alias('?');
-lisky.find('exit').description(`Exits ${name}.`);
+liskCommander.find('help').alias('?');
+liskCommander.find('exit').description(`Exits ${name}.`);
 
-export default lisky;
+export default liskCommander;

@@ -94,5 +94,5 @@ export function thereIsAConfigLockfile() {
 export function thereIsNoConfigLockfile() {}
 
 export function theConfigDirectoryPathIsNotSpecifiedInAnEnvironmentalVariable() {
-	delete process.env.LISKY_CONFIG_DIR;
+	delete process.env.LISK_COMMANDER_CONFIG_DIR;
 }

@@ -184,22 +184,28 @@ export function theActionIsCalledWithTheEncryptedPassphraseAndTheOptions() {
 	return returnValue.catch(e => e);
 }
 
-export function execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction() {
-	const { lisky, filePath, exit } = this.test.ctx;
+export function execFileIsCalledWithTheLiskCommanderInstanceTheFilePathAndTheExitFunction() {
+	const { liskCommander, filePath, exit } = this.test.ctx;
 	try {
-		const returnValue = execFile(lisky, filePath, null, exit);
+		const returnValue = execFile(liskCommander, filePath, null, exit);
 		this.test.ctx.returnValue = returnValue;
 		return returnValue.catch(e => e);
 	} catch (error) {
-		const testFunction = execFile.bind(null, lisky, filePath, null, exit);
+		const testFunction = execFile.bind(
+			null,
+			liskCommander,
+			filePath,
+			null,
+			exit,
+		);
 		this.test.ctx.testFunction = testFunction;
 		return testFunction;
 	}
 }
 
-export function execFileIsCalledWithTheLiskyInstanceTheFilePathTheOptionsAndTheExitFunction() {
-	const { lisky, filePath, options, exit } = this.test.ctx;
-	const returnValue = execFile(lisky, filePath, options, exit);
+export function execFileIsCalledWithTheLiskCommanderInstanceTheFilePathTheOptionsAndTheExitFunction() {
+	const { liskCommander, filePath, options, exit } = this.test.ctx;
+	const returnValue = execFile(liskCommander, filePath, options, exit);
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
 }

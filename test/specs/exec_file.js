@@ -18,7 +18,7 @@ import * as given from '../steps/1_given';
 import * as when from '../steps/2_when';
 import * as then from '../steps/3_then';
 
-const validFileContents = `#!/usr/bin/env lisky
+const validFileContents = `#!/usr/bin/env lisk-commander
 
 # some comment
 get delegate lightcurve
@@ -32,13 +32,13 @@ list blocks 100 200
 
 describe('execFile', () => {
 	beforeEach(setUpExecFile);
-	Given('a Lisky instance', given.aLiskyInstance, () => {
-		Given('a file path "/path/to/script.lisky"', given.aFilePath, () => {
+	Given('a Lisk Commander instance', given.aLiskCommanderInstance, () => {
+		Given('a file path "/path/to/script.lisk"', given.aFilePath, () => {
 			Given('an exit function', given.anExitFunction, () => {
 				Given('the file cannot be read', given.theFileCannotBeRead, () => {
 					When(
-						'execFile is called with the Lisky instance, the file path and the exit function',
-						when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction,
+						'execFile is called with the Lisk Commander instance, the file path and the exit function',
+						when.execFileIsCalledWithTheLiskCommanderInstanceTheFilePathAndTheExitFunction,
 						() => {
 							Then(
 								'it should throw file system error "EACCES: permission denied"',
@@ -60,8 +60,8 @@ describe('execFile', () => {
 									given.theSecondChildProcessExitsWithError,
 									() => {
 										When(
-											'execFile is called with the Lisky instance, the file path and the exit function',
-											when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction,
+											'execFile is called with the Lisk Commander instance, the file path and the exit function',
+											when.execFileIsCalledWithTheLiskCommanderInstanceTheFilePathAndTheExitFunction,
 											() => {
 												Then(
 													'it should execute a script executing "get delegate lightcurve" first in a separate child process',
@@ -76,12 +76,12 @@ describe('execFile', () => {
 													then.itShouldNotExecuteAThirdScriptInASeparateChildProcess,
 												);
 												Then(
-													'the Lisky instance should log the first child process output first',
-													then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst,
+													'the Lisk Commander instance should log the first child process output first',
+													then.theLiskCommanderInstanceShouldLogTheFirstChildProcessOutputFirst,
 												);
 												Then(
-													'the Lisky instance should log the second child process error second',
-													then.theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond,
+													'the Lisk Commander instance should log the second child process error second',
+													then.theLiskCommanderInstanceShouldLogTheSecondChildProcessErrorSecond,
 												);
 												Then(
 													'it should exit with code 1',
@@ -96,8 +96,8 @@ describe('execFile', () => {
 									given.theSecondChildProcessExitsWithAnErrorThatCannotBeTrimmed,
 									() => {
 										When(
-											'execFile is called with the Lisky instance, the file path and the exit function',
-											when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction,
+											'execFile is called with the Lisk Commander instance, the file path and the exit function',
+											when.execFileIsCalledWithTheLiskCommanderInstanceTheFilePathAndTheExitFunction,
 											() => {
 												Then(
 													'it should execute a script executing "get delegate lightcurve" first in a separate child process',
@@ -112,12 +112,12 @@ describe('execFile', () => {
 													then.itShouldNotExecuteAThirdScriptInASeparateChildProcess,
 												);
 												Then(
-													'the Lisky instance should log the first child process output first',
-													then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst,
+													'the Lisk Commander instance should log the first child process output first',
+													then.theLiskCommanderInstanceShouldLogTheFirstChildProcessOutputFirst,
 												);
 												Then(
-													'the Lisky instance should log the second child process error second',
-													then.theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond,
+													'the Lisk Commander instance should log the second child process error second',
+													then.theLiskCommanderInstanceShouldLogTheSecondChildProcessErrorSecond,
 												);
 												Then(
 													'it should exit with code 1',
@@ -132,8 +132,8 @@ describe('execFile', () => {
 									given.theSecondChildProcessOutputsToStdErr,
 									() => {
 										When(
-											'execFile is called with the Lisky instance, the file path and the exit function',
-											when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction,
+											'execFile is called with the Lisk Commander instance, the file path and the exit function',
+											when.execFileIsCalledWithTheLiskCommanderInstanceTheFilePathAndTheExitFunction,
 											() => {
 												Then(
 													'it should execute a script executing "get delegate lightcurve" first in a separate child process',
@@ -148,12 +148,12 @@ describe('execFile', () => {
 													then.itShouldNotExecuteAThirdScriptInASeparateChildProcess,
 												);
 												Then(
-													'the Lisky instance should log the first child process output first',
-													then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst,
+													'the Lisk Commander instance should log the first child process output first',
+													then.theLiskCommanderInstanceShouldLogTheFirstChildProcessOutputFirst,
 												);
 												Then(
-													'the Lisky instance should log the second child process error second',
-													then.theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond,
+													'the Lisk Commander instance should log the second child process error second',
+													then.theLiskCommanderInstanceShouldLogTheSecondChildProcessErrorSecond,
 												);
 												Then(
 													'it should exit with code 1',
@@ -172,8 +172,8 @@ describe('execFile', () => {
 											given.theThirdChildProcessOutputs,
 											() => {
 												When(
-													'execFile is called with the Lisky instance, the file path and the exit function',
-													when.execFileIsCalledWithTheLiskyInstanceTheFilePathAndTheExitFunction,
+													'execFile is called with the Lisk Commander instance, the file path and the exit function',
+													when.execFileIsCalledWithTheLiskCommanderInstanceTheFilePathAndTheExitFunction,
 													() => {
 														Then(
 															'it should execute a script executing "get delegate lightcurve" first in a separate child process',
@@ -188,16 +188,16 @@ describe('execFile', () => {
 															then.itShouldExecuteAScriptExecutingThirdInASeparateChildProcess,
 														);
 														Then(
-															'the Lisky instance should log the first child process output first',
-															then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst,
+															'the Lisk Commander instance should log the first child process output first',
+															then.theLiskCommanderInstanceShouldLogTheFirstChildProcessOutputFirst,
 														);
 														Then(
-															'the Lisky instance should log the second child process output second',
-															then.theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond,
+															'the Lisk Commander instance should log the second child process output second',
+															then.theLiskCommanderInstanceShouldLogTheSecondChildProcessOutputSecond,
 														);
 														Then(
-															'the Lisky instance should log the third child process output third',
-															then.theLiskyInstanceShouldLogTheThirdChildProcessOutputThird,
+															'the Lisk Commander instance should log the third child process output third',
+															then.theLiskCommanderInstanceShouldLogTheThirdChildProcessOutputThird,
 														);
 														Then(
 															'it should exit with code 0',
@@ -210,8 +210,8 @@ describe('execFile', () => {
 													given.anArrayOfOptions,
 													() => {
 														When(
-															'execFile is called with the Lisky instance, the file path, the options and the exit function',
-															when.execFileIsCalledWithTheLiskyInstanceTheFilePathTheOptionsAndTheExitFunction,
+															'execFile is called with the Lisk Commander instance, the file path, the options and the exit function',
+															when.execFileIsCalledWithTheLiskCommanderInstanceTheFilePathTheOptionsAndTheExitFunction,
 															() => {
 																Then(
 																	'it should execute a script executing "get delegate lightcurve --json --testnet=false" first in a separate child process',
@@ -226,16 +226,16 @@ describe('execFile', () => {
 																	then.itShouldExecuteAScriptExecutingThirdInASeparateChildProcess,
 																);
 																Then(
-																	'the Lisky instance should log the first child process output first',
-																	then.theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst,
+																	'the Lisk Commander instance should log the first child process output first',
+																	then.theLiskCommanderInstanceShouldLogTheFirstChildProcessOutputFirst,
 																);
 																Then(
-																	'the Lisky instance should log the second child process output second',
-																	then.theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond,
+																	'the Lisk Commander instance should log the second child process output second',
+																	then.theLiskCommanderInstanceShouldLogTheSecondChildProcessOutputSecond,
 																);
 																Then(
-																	'the Lisky instance should log the third child process output third',
-																	then.theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond,
+																	'the Lisk Commander instance should log the third child process output third',
+																	then.theLiskCommanderInstanceShouldLogTheSecondChildProcessOutputSecond,
 																);
 																Then(
 																	'it should exit with code 0',

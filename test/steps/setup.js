@@ -34,7 +34,7 @@ const query = require('../../src/utils/query');
 
 const NON_INTERACTIVE_MODE = 'NON_INTERACTIVE_MODE';
 const EXEC_FILE_CHILD = 'EXEC_FILE_CHILD';
-const LISKY_CONFIG_DIR = 'LISKY_CONFIG_DIR';
+const LISK_COMMANDER_CONFIG_DIR = 'LISK_COMMANDER_CONFIG_DIR';
 const TEST_PASSPHRASE = 'TEST_PASSPHRASE';
 const CONFIG_PATH = '../../src/utils/config';
 
@@ -331,7 +331,7 @@ export function setUpUtilAPI() {
 
 export function setUpUtilConfig() {
 	setUpEnvVariable(EXEC_FILE_CHILD).call(this);
-	setUpEnvVariable(LISKY_CONFIG_DIR).call(this);
+	setUpEnvVariable(LISK_COMMANDER_CONFIG_DIR).call(this);
 	setUpFsStubs();
 	setUpFsUtilsStubs();
 	setUpConsoleStubs();
@@ -344,7 +344,7 @@ export function setUpUtilConfig() {
 
 export function tearDownUtilConfig() {
 	restoreEnvVariable(EXEC_FILE_CHILD).call(this);
-	restoreEnvVariable(LISKY_CONFIG_DIR).call(this);
+	restoreEnvVariable(LISK_COMMANDER_CONFIG_DIR).call(this);
 }
 
 export function setUpUtilCreateCommand() {

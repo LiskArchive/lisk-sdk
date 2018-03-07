@@ -28,7 +28,7 @@ piping-related conflicts in your shell.
 		- broadcast transaction '{"type":0,"amount":"100",...}'
 		- create transaction transfer 100 13356260975429434553L --json | broadcast transaction
 	- Non-interactive mode:
-		- lisky "create transaction transfer 100 13356260975429434553L --json | broadcast transaction"
+		- lisk-commander "create transaction transfer 100 13356260975429434553L --json | broadcast transaction"
 `;
 
 const getTransactionInput = ({ transaction, stdin, shouldUseStdIn }) => {

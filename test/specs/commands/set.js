@@ -22,7 +22,7 @@ describe('set command', () => {
 	beforeEach(setUpCommandSet);
 	afterEach(tearDownCommandSet);
 	Given(
-		`a directory path "${process.env.LISKY_CONFIG_DIR}"`,
+		`a directory path "${process.env.LISK_COMMANDER_CONFIG_DIR}"`,
 		given.aDirectoryPath,
 		() => {
 			Given('a config file name "config.json"', given.aConfigFileName, () => {
@@ -39,8 +39,8 @@ describe('set command', () => {
 										() => {
 											Then(
 												`it should reject with validation error and message "Config file could not be written: property 'api.nodes' was not found. It looks like your configuration file is corrupted. Please check the file at ${
-													process.env.LISKY_CONFIG_DIR
-												}/config.json or remove it (a fresh default configuration file will be created when you run Lisky again)."`,
+													process.env.LISK_COMMANDER_CONFIG_DIR
+												}/config.json or remove it (a fresh default configuration file will be created when you run Lisk Commander again)."`,
 												then.itShouldRejectWithValidationErrorAndMessage,
 											);
 										},
@@ -283,7 +283,7 @@ describe('set command', () => {
 							});
 						});
 						Given('a variable "name"', given.aVariable, () => {
-							Given('values "my_custom_lisky"', given.values, () => {
+							Given('values "my_custom_lisk_cli"', given.values, () => {
 								Given(
 									'the config file cannot be written',
 									given.theConfigFileCannotBeWritten,
@@ -321,7 +321,7 @@ describe('set command', () => {
 															then.itShouldResolveToAnObjectWithWarning,
 														);
 														Then(
-															'it should resolve to an object with message "Successfully set name to my_custom_lisky."',
+															'it should resolve to an object with message "Successfully set name to my_custom_lisk_cli."',
 															then.itShouldResolveToAnObjectWithMessage,
 														);
 													},
@@ -351,7 +351,7 @@ describe('set command', () => {
 															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
-															'it should resolve to an object with message "Successfully set name to my_custom_lisky."',
+															'it should resolve to an object with message "Successfully set name to my_custom_lisk_cli."',
 															then.itShouldResolveToAnObjectWithMessage,
 														);
 													},
@@ -375,7 +375,7 @@ describe('set command', () => {
 															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
-															'it should resolve to an object with message "Successfully set name to my_custom_lisky."',
+															'it should resolve to an object with message "Successfully set name to my_custom_lisk_cli."',
 															then.itShouldResolveToAnObjectWithMessage,
 														);
 													},
