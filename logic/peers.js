@@ -56,9 +56,7 @@ function Peers(logger, cb) {
 }
 
 Peers.prototype.me = function() {
-	var me = _.extend(System.getHeaders(), { state: Peer.STATE.CONNECTED });
-	delete me.ip;
-	return me;
+	return _.extend(System.getHeaders(), { state: Peer.STATE.CONNECTED });
 };
 
 /**
