@@ -1,4 +1,3 @@
-/* eslint class-methods-use-this: ["error", { "exceptMethods": ["mergeBlockGenerator", "updateVotes"] }] */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -31,7 +30,6 @@ const RoundChanges = require('../helpers/round_changes.js');
  * @param {Task} t
  * @todo Add description for the params
  */
-// Constructor
 class Round {
 	constructor(scope, t) {
 		this.scope = {

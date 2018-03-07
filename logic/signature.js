@@ -33,7 +33,6 @@ let library;
  * @param {Object} logger
  * @todo Add description for the params
  */
-// Constructor
 class Signature {
 	constructor(schema, logger) {
 		library = {

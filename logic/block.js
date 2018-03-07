@@ -43,7 +43,6 @@ const __private = {};
  * @returns {SetImmediate} error, this
  * @todo Add description for the params
  */
-// Constructor
 class Block {
 	constructor(ed, schema, transaction, cb) {
 		this.scope = {
@@ -258,7 +257,6 @@ class Block {
 	}
 }
 
-// TODO: To maintain backward compatibility, the below listed methods have to use prototype otherwise these must be converted to static attributes
 // Private methods
 
 /**
@@ -284,6 +282,7 @@ __private.getAddressByPublicKey = function(publicKey) {
 	return address;
 };
 
+// TODO: To maintain backward compatibility, the below listed methods have to use prototype otherwise these must be converted to static attributes
 /**
  * @typedef {Object} block
  * @property {string} id - Between 1 and 20 chars

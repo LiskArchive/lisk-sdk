@@ -46,7 +46,6 @@ __private.unconfirmedSignatures = {};
  * @param {Object} logger
  * @todo Add description for the params
  */
-// Constructor
 class Multisignature {
 	constructor(schema, network, transaction, account, logger) {
 		library = {

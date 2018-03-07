@@ -30,7 +30,6 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires helpers/constants
  */
-// Constructor
 class BlockReward {
 	constructor() {
 		// Array of milestones
@@ -136,7 +135,6 @@ class BlockReward {
 	}
 }
 
-// TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
 // Private methods
 /**
  * Returns absolute value from number.

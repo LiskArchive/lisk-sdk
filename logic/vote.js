@@ -26,7 +26,6 @@ let modules;
 let library;
 let self;
 
-// Constructor
 /**
  * Main vote logic.
  * Allows validate and undo transactions, verify votes.

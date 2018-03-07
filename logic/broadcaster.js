@@ -47,7 +47,6 @@ const __private = {};
  * @param {Object} logger
  * @todo Add description for the params
  */
-// Constructor
 class Broadcaster {
 	constructor(broadcasts, force, peers, transaction, logger) {
 		library = {

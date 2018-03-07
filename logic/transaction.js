@@ -50,7 +50,6 @@ const __private = {};
  * @returns {SetImmediate} error, this
  * @todo Add description for the params
  */
-// Constructor
 class Transaction {
 	constructor(db, ed, schema, genesisblock, account, logger, cb) {
 		/**

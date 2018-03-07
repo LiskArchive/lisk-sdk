@@ -42,7 +42,6 @@ let modules;
  * @returns {SetImmediate} null, this
  * @todo Add description for the params
  */
-// Constructor
 class Peers {
 	constructor(logger, cb) {
 		library = {
@@ -64,7 +63,9 @@ class Peers {
  * @returns {peer} Clone of peer
  */
 Peers.prototype.me = function() {
-	const me = _.extend(System.getHeaders(), { state: Peer.STATE.CONNECTED });
+	const me = Object.assign({}, System.getHeaders(), {
+		state: Peer.STATE.CONNECTED,
+	});
 	delete me.ip;
 	return me;
 };
