@@ -1647,6 +1647,9 @@ definitions:
         format: 'date-time'
       relays:
         type: integer
+      ready:
+        type: boolean
+        example: false
 
   Signature:
     type: object
