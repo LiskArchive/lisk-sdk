@@ -19,6 +19,7 @@ const rewire = require('rewire');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 const transactionTypes = require('../../../helpers/transaction_types.js');
+const constants = require('../../../helpers/constants.js');
 // Load config file - global (one from test directory)
 const config = require('../../../config.json');
 
@@ -35,6 +36,10 @@ describe('transactionPool', () => {
 	let dummyApplyUnconfirmed;
 	let dummyUndoUnconfirmed;
 	let countBundled;
+	let applyUnconfirmedList;
+	let processVerifyTransaction;
+	let transactionTimeOut;
+	let expireTransactions;
 	const freshListState = { transactions: [], index: {} };
 
 	// Init fake logger
@@ -51,7 +56,9 @@ describe('transactionPool', () => {
 		setAccountAndGet: sinon.stub(),
 	};
 	const transactionsStub = sinon.stub();
-	const loaderStub = sinon.stub();
+	const loaderStub = {
+		syncing: sinon.stub().returns(false),
+	};
 
 	const resetStates = function() {
 		transactionPool.unconfirmed = _.cloneDeep(freshListState);
@@ -114,6 +121,18 @@ describe('transactionPool', () => {
 		countBundled = TransactionPool.__get__(
 			'TransactionPool.prototype.countBundled'
 		);
+		applyUnconfirmedList = TransactionPool.__get__(
+			'__private.applyUnconfirmedList'
+		);
+		processVerifyTransaction = TransactionPool.__get__(
+			'__private.processVerifyTransaction'
+		);
+		transactionTimeOut = TransactionPool.__get__(
+			'__private.transactionTimeOut'
+		);
+		expireTransactions = TransactionPool.__get__(
+			'__private.expireTransactions'
+		);
 		done();
 	});
 
@@ -122,6 +141,16 @@ describe('transactionPool', () => {
 			'TransactionPool.prototype.countBundled',
 			countBundled
 		);
+		TransactionPool.__set__(
+			'__private.applyUnconfirmedList',
+			applyUnconfirmedList
+		);
+		TransactionPool.__set__(
+			'__private.processVerifyTransaction',
+			processVerifyTransaction
+		);
+		TransactionPool.__set__('__private.transactionTimeOut', transactionTimeOut);
+		TransactionPool.__set__('__private.expireTransactions', expireTransactions);
 		done();
 	});
 
@@ -990,14 +1019,6 @@ describe('transactionPool', () => {
 	});
 
 	describe('expireTransactions', () => {
-		let expireTransactions;
-		beforeEach(done => {
-			expireTransactions = TransactionPool.__get__(
-				'__private.expireTransactions'
-			);
-			done();
-		});
-
 		it('should throw error for invalid transaction', () => {
 			const invalidTransactions = [{ id: '123' }];
 			return expect(() => {
@@ -1022,10 +1043,10 @@ describe('transactionPool', () => {
 		});
 
 		it('should remove unconfirmed trasactions', done => {
-			const invalidTransactions = [
+			const validTransactions = [
 				{ id: '123', receivedAt: new Date('2018-03-06') },
 			];
-			expireTransactions(invalidTransactions, [], (err, res) => {
+			expireTransactions(validTransactions, [], (err, res) => {
 				expect(err).to.be.null;
 				expect(res).to.be.eql(['123']);
 				done();
@@ -1043,13 +1064,62 @@ describe('transactionPool', () => {
 		});
 	});
 
-	describe('fillPool', () => {});
+	describe('fillPool', () => {
+		beforeEach(() => {
+			return resetStates();
+		});
+
+		it('should return when modules loader is in syncing', done => {
+			loaderStub.syncing.returns(true);
+			transactionPool.fillPool(res => {
+				expect(res).to.be.undefined;
+				expect(logger.debug.args).to.eql([]);
+				done();
+			});
+		});
+
+		it('should return countUnconfirmed is greater than maxTxsPerBlock', done => {
+			const unconfirmedCount = 1001;
+			loaderStub.syncing.returns(false);
+			transactionPool.countUnconfirmed = sinon.stub().returns(unconfirmedCount);
+			transactionPool.fillPool(res => {
+				expect(res).to.be.undefined;
+				expect(logger.debug.args[0][0]).to.deep.eql(
+					`Transaction pool size: ${unconfirmedCount}`
+				);
+				done();
+			});
+		});
+
+		it('should call applyUnconfirmed', done => {
+			const transaction = {
+				id: '103111423423423L',
+				type: transactionTypes.MULTI,
+			};
+			transactionPool.getMultisignatureTransactionList = sinon
+				.stub()
+				.returns([transaction]);
+			const unconfirmedCount = 0;
+			transactionPool.countUnconfirmed = sinon.stub().returns(unconfirmedCount);
+			let applyUnconfirmedListStub = TransactionPool.__get__(
+				'__private.applyUnconfirmedList'
+			);
+			applyUnconfirmedListStub = sinon.stub().callsArgWith(1, null);
+			TransactionPool.__set__(
+				'__private.applyUnconfirmedList',
+				applyUnconfirmedListStub
+			);
+			transactionPool.fillPool(res => {
+				expect(applyUnconfirmedListStub.called).to.be.true;
+				expect(applyUnconfirmedListStub.args[0][0]).to.deep.eql([transaction]);
+				expect(applyUnconfirmedListStub.args[0][1]).to.be.an('function');
+				expect(res).to.be.null;
+				done();
+			});
+		});
+	});
 
 	describe('__private', () => {
-		describe('getTransactionList', () => {});
-
-		describe('processVerifyTransaction', () => {});
-
 		describe('applyUnconfirmedList', () => {
 			let lastError;
 
@@ -1058,6 +1128,13 @@ describe('transactionPool', () => {
 					'__private.applyUnconfirmedList'
 				);
 				done();
+			});
+
+			it('should return immediately when transaction is null', done => {
+				applyUnconfirmed([null], () => {
+					expect(dummyProcessVerifyTransaction.called).to.be.false;
+					done();
+				});
 			});
 
 			describe('called with array', () => {
@@ -1343,8 +1420,90 @@ describe('transactionPool', () => {
 			});
 		});
 
-		describe('transactionTimeOut', () => {});
+		describe('transactionTimeOut', () => {
+			it('should return timeout for MULTI transaction type', () => {
+				const transaction = {
+					id: '103111423423423L',
+					type: transactionTypes.MULTI,
+					asset: {
+						multisignature: {
+							lifetime: 10,
+						},
+					},
+				};
+				return expect(transactionTimeOut(transaction)).to.deep.eql(10 * 3600);
+			});
 
-		describe('expireTransactions', () => {});
+			it('should return timeout for transaction with signatures and type not equal to MULTI', () => {
+				const transaction = {
+					id: '103111423423423L',
+					signatures: [],
+				};
+				return expect(transactionTimeOut(transaction)).to.deep.eql(
+					constants.unconfirmedTransactionTimeOut * 8
+				);
+			});
+
+			it('should return default timeout for transaction without signatures and type not equal to MULTI', () => {
+				const transaction = {
+					id: '103111423423423L',
+				};
+				return expect(transactionTimeOut(transaction)).to.deep.eql(
+					constants.unconfirmedTransactionTimeOut
+				);
+			});
+		});
+
+		describe('expireTransactions', () => {
+			beforeEach(() => {
+				transactionTimeOut = sinon.stub().returns(0);
+				transactionPool.removeUnconfirmedTransaction = sinon.spy();
+				return resetStates();
+			});
+
+			it('should return immediately when transactions are invalid', done => {
+				expireTransactions([undefined], [], () => {
+					expect(transactionTimeOut.called).to.be.false;
+					done();
+				});
+			});
+
+			it('should be able to add parentIds with the transaction ids', done => {
+				const transactions = [
+					{
+						id: '10313L',
+						type: transactionTypes.MULTI,
+						receivedAt: new Date(new Date() - 180 * 60000),
+					},
+				];
+				transactionTimeOut.returns(0);
+				expireTransactions(transactions, ['10314L'], (err, res) => {
+					expect(err).to.be.null;
+					expect(res).to.be.eql(['10313L', '10314L']);
+					expect(logger.info.called).to.be.true;
+					expect(logger.info.args[0][0]).to.deep.eql(
+						`Expired transaction: ${
+							transactions[0].id
+						} received at: ${transactions[0].receivedAt.toUTCString()}`
+					);
+					done();
+				});
+			});
+
+			it('should return only parentIds', done => {
+				const transactions = [
+					{
+						id: '10313L',
+						type: transactionTypes.MULTI,
+						receivedAt: new Date(),
+					},
+				];
+				expireTransactions(transactions, ['10314L'], (err, res) => {
+					expect(err).to.be.null;
+					expect(res).to.be.eql(['10314L']);
+					done();
+				});
+			});
+		});
 	});
 });
