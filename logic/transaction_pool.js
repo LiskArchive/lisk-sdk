@@ -21,7 +21,6 @@ const constants = require('../helpers/constants.js');
 let jobsQueue = require('../helpers/jobs_queue.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 
-// Private fields
 let modules;
 let library;
 let self;
@@ -703,7 +702,6 @@ TransactionPool.prototype.fillPool = function(cb) {
 	return __private.applyUnconfirmedList(transactions, cb);
 };
 
-// Private
 /**
  * Returns a given list of transactions, reversed and/or limited.
  *
@@ -938,5 +936,4 @@ __private.expireTransactions = function(transactions, parentIds, cb) {
 	);
 };
 
-// Export
 module.exports = TransactionPool;

@@ -21,7 +21,6 @@ const exceptions = require('../helpers/exceptions.js');
 const Diff = require('../helpers/diff.js');
 const slots = require('../helpers/slots.js');
 
-// Private fields
 let modules;
 let library;
 let self;
@@ -466,5 +465,4 @@ Vote.prototype.ready = function(transaction, sender) {
 	return true;
 };
 
-// Export
 module.exports = Vote;

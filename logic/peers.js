@@ -60,7 +60,7 @@ class Peers {
 /**
  * Returns current peer state and system headers.
  *
- * @returns {peer} Clone of peer
+ * @returns {Object} system headers and peer status
  */
 Peers.prototype.me = function() {
 	const me = Object.assign({}, System.getHeaders(), {

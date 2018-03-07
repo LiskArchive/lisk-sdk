@@ -21,7 +21,6 @@ const Diff = require('../helpers/diff.js');
 const exceptions = require('../helpers/exceptions.js');
 const slots = require('../helpers/slots.js');
 
-// Private fields
 let modules;
 let library;
 const __private = {};
@@ -592,5 +591,4 @@ Multisignature.prototype.ready = function(transaction, sender) {
 	return transaction.signatures.length >= sender.multimin;
 };
 
-// Export
 module.exports = Multisignature;

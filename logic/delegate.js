@@ -18,7 +18,6 @@ const async = require('async');
 const constants = require('../helpers/constants.js');
 const exceptions = require('../helpers/exceptions.js');
 
-// Private fields
 let modules;
 let library;
 let self;
@@ -47,7 +46,6 @@ class Delegate {
 }
 
 // TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
-// Public methods
 /**
  * Binds input parameters to private variables modules.
  *
@@ -437,5 +435,4 @@ Delegate.prototype.ready = function(transaction, sender) {
 	return true;
 };
 
-// Export
 module.exports = Delegate;

@@ -21,7 +21,6 @@ const constants = require('../helpers/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const bson = require('../helpers/bson.js');
 
-// Private fields
 let modules;
 let library;
 let self;
@@ -237,7 +236,6 @@ function nextRelease(cb) {
 	});
 }
 
-// Private
 /**
  * Filters private queue based on broadcasts.
  *
@@ -380,5 +378,4 @@ __private.releaseQueue = function(cb) {
 	);
 };
 
-// Export
 module.exports = Broadcaster;

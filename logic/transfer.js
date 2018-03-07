@@ -18,7 +18,6 @@ const constants = require('../helpers/constants.js');
 const bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
 
-// Private fields
 let modules;
 let library;
 
@@ -300,5 +299,4 @@ Transfer.prototype.ready = function(transaction, sender) {
 	return true;
 };
 
-// Export
 module.exports = Transfer;

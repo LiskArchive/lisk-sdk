@@ -23,7 +23,6 @@ const constants = require('../helpers/constants.js');
 const exceptions = require('../helpers/exceptions.js');
 const slots = require('../helpers/slots.js');
 
-// Private fields
 const __private = {};
 
 /**
@@ -1294,5 +1293,4 @@ Transaction.prototype.schema = {
 	required: ['type', 'timestamp', 'senderPublicKey', 'signature'],
 };
 
-// Export
 module.exports = Transaction;

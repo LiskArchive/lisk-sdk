@@ -19,7 +19,6 @@ const ByteBuffer = require('bytebuffer');
 const constants = require('../helpers/constants.js');
 const dappCategories = require('../helpers/dapp_categories.js');
 
-// Private fields
 let library;
 const __private = {};
 
@@ -54,7 +53,6 @@ class DApp {
 	}
 }
 
-// Public methods
 // TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
 /**
  * Binds scope.modules to private variable modules.
@@ -516,5 +514,4 @@ DApp.prototype.ready = function(transaction, sender) {
 	return true;
 };
 
-// Export
 module.exports = DApp;

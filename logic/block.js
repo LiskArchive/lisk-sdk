@@ -21,7 +21,6 @@ const constants = require('../helpers/constants.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 const BlockReward = require('./block_reward.js');
 
-// Private fields
 const __private = {};
 
 /**
@@ -256,8 +255,6 @@ class Block {
 		return block;
 	}
 }
-
-// Private methods
 
 /**
  * Gets address by public.
@@ -506,5 +503,4 @@ Block.prototype.dbRead = function(raw) {
 	return block;
 };
 
-// Export
 module.exports = Block;

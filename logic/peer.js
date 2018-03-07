@@ -186,7 +186,6 @@ Peer.STATE = {
 	CONNECTED: 2,
 };
 
-// Public methods
 /**
  * Checks number or assigns default value from parameter.
  *
@@ -202,5 +201,4 @@ Peer.prototype.parseInt = function(integer, fallback) {
 	return integer;
 };
 
-// Export
 module.exports = Peer;

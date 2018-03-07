@@ -17,7 +17,6 @@
 const ByteBuffer = require('bytebuffer');
 const constants = require('../helpers/constants.js');
 
-// Private fields
 let modules;
 let library;
 
@@ -295,5 +294,4 @@ Signature.prototype.ready = function(transaction, sender) {
 	return true;
 };
 
-// Export
 module.exports = Signature;

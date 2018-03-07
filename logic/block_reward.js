@@ -16,7 +16,6 @@
 
 const constants = require('../helpers/constants.js');
 
-// Private fields
 const __private = {};
 /**
  * Main BlockReward logic.
@@ -135,7 +134,6 @@ class BlockReward {
 	}
 }
 
-// Private methods
 /**
  * Returns absolute value from number.
  *
@@ -153,5 +151,4 @@ __private.parseHeight = function(height) {
 	}
 };
 
-// Export
 module.exports = BlockReward;

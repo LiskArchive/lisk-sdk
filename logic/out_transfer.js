@@ -18,7 +18,6 @@ const constants = require('../helpers/constants.js');
 const slots = require('../helpers/slots.js');
 const milestones = require('../helpers/milestones.js');
 
-// Private fields
 let modules;
 let library;
 const __private = {};
@@ -375,5 +374,4 @@ OutTransfer.prototype.ready = function(transaction, sender) {
 	return true;
 };
 
-// Export
 module.exports = OutTransfer;

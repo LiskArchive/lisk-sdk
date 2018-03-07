@@ -436,5 +436,4 @@ class Round {
 	}
 }
 
-// Export
 module.exports = Round;
