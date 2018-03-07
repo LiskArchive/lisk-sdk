@@ -36,6 +36,7 @@ __private.assetTypes = {};
 __private.loaded = false;
 __private.keypairs = {};
 __private.tmpKeypairs = {};
+__private.forgeInterval = 1000;
 
 /**
  * Main delegates methods. Initializes library with scope content and generates a Delegate instance.
@@ -262,55 +263,55 @@ __private.forge = function(cb) {
 				return setImmediate(cb);
 			}
 
-			library.sequence.add(
-				cb => {
-					if (modules.transport.poorConsensus()) {
-						return setImmediate(
-							cb,
-							[
-								'Inadequate broadhash consensus',
-								modules.peers.getLastConsensus(),
-								'%',
-							].join(' ')
-						);
-					}
-					library.logger.info(
-						[
-							'Broadhash consensus now',
-							modules.peers.getLastConsensus(),
-							'%',
-						].join(' ')
-					);
-					modules.blocks.process.generateBlock(
-						currentBlockData.keypair,
-						currentBlockData.time,
-						cb
-					);
-				},
-				err => {
-					if (err) {
+			if (modules.transport.poorConsensus()) {
+				var consensusErr = [
+					'Inadequate broadhash consensus',
+					modules.peers.getLastConsensus(),
+					'%',
+				].join(' ');
+
+				library.logger.error(
+					'Failed to generate block within delegate slot',
+					consensusErr
+				);
+				return setImmediate(cb);
+			}
+
+			library.logger.info(
+				['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(
+					' '
+				)
+			);
+
+			modules.blocks.process.generateBlock(
+				currentBlockData.keypair,
+				currentBlockData.time,
+				blockGenerationErr => {
+					if (blockGenerationErr) {
 						library.logger.error(
 							'Failed to generate block within delegate slot',
-							err
+							blockGenerationErr
 						);
-					} else {
-						var forgedBlock = modules.blocks.lastBlock.get();
-						modules.blocks.lastReceipt.update();
 
-						library.logger.info(
-							[
-								'Forged new block id:',
-								forgedBlock.id,
-								'height:',
-								forgedBlock.height,
-								'round:',
-								slots.calcRound(forgedBlock.height),
-								'slot:',
-								slots.getSlotNumber(currentBlockData.time),
-								`reward:${forgedBlock.reward}`,
-							].join(' ')
-						);
+						return setImmediate(cb);
 					}
+
+					var forgedBlock = modules.blocks.lastBlock.get();
+					modules.blocks.lastReceipt.update();
+
+					library.logger.info(
+						[
+							'Forged new block id:',
+							forgedBlock.id,
+							'height:',
+							forgedBlock.height,
+							'round:',
+							slots.calcRound(forgedBlock.height),
+							'slot:',
+							slots.getSlotNumber(currentBlockData.time),
+							`reward: ${forgedBlock.reward}`,
+						].join(' ')
+					);
 
 					return setImmediate(cb);
 				}
@@ -909,6 +910,17 @@ Delegates.prototype.onBind = function(scope) {
 };
 
 /**
+ * Forge the next block and then fill the transaction pool.
+ * Registered by jobs queue every __private.forgeInterval.
+ *
+ * @private
+ * @param {function} cb - Callback function
+ */
+__private.nextForge = function(cb) {
+	async.series([__private.forge, modules.transactions.fillPool], cb);
+};
+
+/**
  * Loads delegates.
  */
 Delegates.prototype.onBlockchainReady = function() {
@@ -918,13 +930,16 @@ Delegates.prototype.onBlockchainReady = function() {
 		if (err) {
 			library.logger.error('Failed to load delegates', err);
 		}
-		function nextForge(cb) {
-			async.series([__private.forge, modules.transactions.fillPool], () =>
-				setImmediate(cb)
-			);
-		}
 
-		jobsQueue.register('delegatesNextForge', nextForge, 1000);
+		jobsQueue.register(
+			'delegatesNextForge',
+			cb => {
+				library.sequence.add(sequenceCb => {
+					__private.nextForge(sequenceCb);
+				}, cb);
+			},
+			__private.forgeInterval
+		);
 	});
 };
 
