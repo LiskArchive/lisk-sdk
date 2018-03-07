@@ -34,6 +34,7 @@ describe('transactionPool', () => {
 	let dummyProcessVerifyTransaction;
 	let dummyApplyUnconfirmed;
 	let dummyUndoUnconfirmed;
+	let countBundled;
 	const freshListState = { transactions: [], index: {} };
 
 	// Init fake logger
@@ -105,6 +106,21 @@ describe('transactionPool', () => {
 			accountsStub, // accounts
 			transactionsStub, // transactions
 			loaderStub // loader
+		);
+		done();
+	});
+
+	beforeEach(done => {
+		countBundled = TransactionPool.__get__(
+			'TransactionPool.prototype.countBundled'
+		);
+		done();
+	});
+
+	afterEach(done => {
+		TransactionPool.__set__(
+			'TransactionPool.prototype.countBundled',
+			countBundled
 		);
 		done();
 	});
@@ -444,6 +460,204 @@ describe('transactionPool', () => {
 		});
 	});
 
+	describe('queueTransaction', () => {
+		afterEach(done => {
+			transactionPool.countBundled = sinon.stub().returns(0);
+			done();
+		});
+
+		it('should thow error when called without any params', () => {
+			return expect(() => {
+				transactionPool.queueTransaction();
+			}).to.throw();
+		});
+
+		it('should return transaction pool is full when bundled is greater than maxTxsPerQueue', done => {
+			const transaction = {
+				id: '131123423423L',
+				bundled: true,
+			};
+			transactionPool.countBundled = sinon.stub().returns(10000);
+			transactionPool.queueTransaction(transaction, res => {
+				expect(res).to.deep.eql('Transaction pool is full');
+				expect(transactionPool.getBundledTransaction(transaction.id)).to.be
+					.undefined;
+				done();
+			});
+		});
+
+		describe('when transaction type is MULTI', () => {
+			afterEach(done => {
+				transactionPool.countMultisignature = sinon.stub().returns(0);
+				transactionPool.countQueued = sinon.stub().returns(0);
+				done();
+			});
+
+			it('should return error multisignature transactionPool is greater than maxTxsPerQueue', done => {
+				const transaction = {
+					id: '131992423L',
+					bundled: false,
+					type: transactionTypes.MULTI,
+				};
+				transactionPool.countMultisignature = sinon.stub().returns(1001);
+				transactionPool.queueTransaction(transaction, res => {
+					expect(res).to.deep.eql('Transaction pool is full');
+					expect(transactionPool.getMultisignatureTransaction(transaction.id))
+						.to.be.undefined;
+					done();
+				});
+			});
+
+			it('should add transaction to multisignature queue', done => {
+				const transaction = {
+					id: '131992423L',
+					bundled: false,
+					type: transactionTypes.MULTI,
+				};
+				transactionPool.countMultisignature = sinon.stub().returns(100);
+				transactionPool.queueTransaction(transaction, res => {
+					expect(res).to.be.undefined;
+					expect(transactionPool.getMultisignatureTransaction(transaction.id))
+						.to.be.an('object')
+						.to.have.keys(['id', 'receivedAt', 'bundled', 'type'])
+						.that.does.include(transaction);
+					done();
+				});
+			});
+		});
+
+		it('should be able to add transaction to bundle', done => {
+			const transaction = {
+				id: '13118423423423L',
+				bundled: true,
+			};
+			transactionPool.queueTransaction(transaction, () => {
+				expect(transactionPool.getBundledTransaction(transaction.id))
+					.to.be.an('object')
+					.to.have.keys(['id', 'receivedAt', 'bundled'])
+					.that.does.include(transaction);
+				done();
+			});
+		});
+
+		it('should be able to add transaction to queue', done => {
+			const transaction = {
+				id: '1311188423423423L',
+			};
+			transactionPool.queueTransaction(transaction, () => {
+				expect(transactionPool.getQueuedTransaction(transaction.id))
+					.to.be.an('object')
+					.to.have.keys(['id', 'receivedAt'])
+					.that.does.include(transaction);
+				done();
+			});
+		});
+	});
+
+	describe('processUnconfirmedTransaction', () => {
+		let processVerifyTransaction;
+		beforeEach(done => {
+			resetStates();
+			processVerifyTransaction = TransactionPool.__get__(
+				'__private.processVerifyTransaction'
+			);
+			transactionPool.transactionInPool = sinon.stub();
+			done();
+		});
+
+		afterEach(done => {
+			TransactionPool.__set__(
+				'__private.processVerifyTransaction',
+				processVerifyTransaction
+			);
+			transactionPool.transactionInPool.returns(false);
+			done();
+		});
+
+		it('should return error when transaciton is already processed', done => {
+			const transaction = {
+				id: '1311188423423423L',
+				type: transactionTypes.MULTI,
+			};
+			transactionPool.transactionInPool.returns(true);
+			transactionPool.processUnconfirmedTransaction(transaction, true, res => {
+				expect(res).to.deep.eql(
+					'Transaction is already processed: 1311188423423423L'
+				);
+				done();
+			});
+		});
+
+		it('should fail to add transaction to queue when bundled is enabled', done => {
+			const transaction = {
+				id: '1234L',
+				type: transactionTypes.MULTI,
+				bundled: true,
+			};
+			sinon
+				.stub(transactionPool, 'queueTransaction')
+				.callsArgWith(1, 'Failed to queue bundled transaction');
+			transactionPool.processUnconfirmedTransaction(transaction, true, res => {
+				expect(res).to.deep.eql('Failed to queue bundled transaction');
+				done();
+			});
+		});
+
+		it('should add transaction to queue when bundled is enabled', done => {
+			const transaction = {
+				id: '1234L',
+				type: transactionTypes.MULTI,
+				bundled: true,
+			};
+			transactionPool.queueTransaction.callsArgWith(1, transaction);
+			transactionPool.processUnconfirmedTransaction(transaction, true, res => {
+				expect(res).to.deep.eql(transaction);
+				done();
+			});
+		});
+
+		it('should fail to process and verify transaction', done => {
+			const transaction = {
+				id: '1234L',
+				type: transactionTypes.MULTI,
+				bundled: false,
+			};
+
+			const processVerifyTransactionStub = sinon
+				.stub()
+				.callsArgWith(2, 'Failed to process unconfirmed transaction');
+			TransactionPool.__set__(
+				'__private.processVerifyTransaction',
+				processVerifyTransactionStub
+			);
+
+			transactionPool.processUnconfirmedTransaction(transaction, true, res => {
+				expect(res).to.deep.eql('Failed to process unconfirmed transaction');
+				done();
+			});
+		});
+
+		it('should process and verify transaction', done => {
+			const transaction = {
+				id: '1235674L',
+				type: transactionTypes.MULTI,
+				bundled: false,
+			};
+
+			const processVerifyTransactionStub = sinon
+				.stub()
+				.callsArgWith(2, transaction);
+			TransactionPool.__set__(
+				'__private.processVerifyTransaction',
+				processVerifyTransactionStub
+			);
+			transactionPool.processUnconfirmedTransaction(transaction, true, res => {
+				expect(res.id).to.deep.eql(transaction.id);
+				done();
+			});
+		});
+	});
+
 	describe('receiveTransactions', () => {
 		it('should throw error when transaction in invalid', () => {
 			const invalidTransaction = {
@@ -459,7 +673,7 @@ describe('transactionPool', () => {
 			const transaction = [
 				{ id: '10431411423423423L', type: transactionTypes.MULTI },
 			];
-			transactionPool.processUnconfirmedTransaction = sinonSandbox
+			transactionPool.processUnconfirmedTransaction = sinon
 				.stub()
 				.callsArgWith(
 					2,
@@ -482,7 +696,7 @@ describe('transactionPool', () => {
 			const transaction = [
 				{ id: '109249333874723L', type: transactionTypes.MULTI, bundled: true },
 			];
-			transactionPool.processUnconfirmedTransaction = sinonSandbox
+			transactionPool.processUnconfirmedTransaction = sinon
 				.stub()
 				.callsArgWith(2, null, transaction);
 			expect(
@@ -492,23 +706,6 @@ describe('transactionPool', () => {
 					done();
 				})
 			);
-		});
-	});
-
-	describe('reindexQueues', () => {
-		before(() => {
-			transactionPool.addBundledTransaction({ id: '123', bundled: true });
-			transactionPool.addQueuedTransaction({ id: '456' });
-			transactionPool.addUnconfirmedTransaction({ id: '789' });
-			return transactionPool.addMultisignatureTransaction({ id: '012' });
-		});
-
-		it('should be able to reindex bundled, queued, multisignature, unconfirmed transactions', () => {
-			expect(transactionPool.countQueued()).to.deep.eql(1);
-			expect(transactionPool.countBundled()).to.deep.eql(1);
-			expect(transactionPool.countMultisignature()).to.deep.eql(4);
-			expect(transactionPool.countUnconfirmed()).to.deep.eql(1);
-			return expect(transactionPool.reindexQueues());
 		});
 	});
 
@@ -556,9 +753,10 @@ describe('transactionPool', () => {
 				'__private.processVerifyTransaction',
 				processVerifyTransactionStub
 			);
-			sinon
-				.stub(transactionPool, 'queueTransaction')
-				.callsArgWith(1, 'Failed to queue bundled transaction');
+			transactionPool.queueTransaction.callsArgWith(
+				1,
+				'Failed to queue bundled transaction'
+			);
 			transactionPool.processBundled(() => {
 				expect(logger.debug.args[0][0]).to.deep.eql(
 					'Failed to queue bundled transaction: 123'
@@ -570,10 +768,6 @@ describe('transactionPool', () => {
 			});
 		});
 	});
-
-	describe('processUnconfirmedTransaction', () => {});
-
-	describe('queueTransaction', () => {});
 
 	describe('undoUnconfirmedList', () => {
 		let undoUnconfirmedList;
