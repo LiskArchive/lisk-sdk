@@ -1069,15 +1069,6 @@ describe('transactionPool', () => {
 			return resetStates();
 		});
 
-		it('should return when modules loader is in syncing', done => {
-			loaderStub.syncing.returns(true);
-			transactionPool.fillPool(res => {
-				expect(res).to.be.undefined;
-				expect(logger.debug.args).to.eql([]);
-				done();
-			});
-		});
-
 		it('should return countUnconfirmed is greater than maxTxsPerBlock', done => {
 			const unconfirmedCount = 1001;
 			loaderStub.syncing.returns(false);
