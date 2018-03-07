@@ -1,6 +1,5 @@
 /**
  * @namespace helpers
- * @property {module:helpers/bson} BSON
  * @property {module:helpers/cache} Cache
  * @property {module:helpers/config} Config
  * @property {module:helpers/diff} Diff
