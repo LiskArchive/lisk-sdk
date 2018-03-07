@@ -125,8 +125,8 @@ export default class LiskAPI {
 		if (this.ssl !== newSSLValue) {
 			const nonSSLPort = this.testnet ? TEST_PORT : LIVE_PORT;
 
-			this.ssl = newSSLValue;
-			this.port = newSSLValue ? SSL_PORT : nonSSLPort;
+			this.ssl = !this.ssl;
+			this.port = this.ssl ? SSL_PORT : nonSSLPort;
 			this.bannedNodes = [];
 
 			this.selectNewNode();
@@ -137,8 +137,8 @@ export default class LiskAPI {
 		if (this.testnet !== newTestnetValue) {
 			const nonTestnetPort = this.ssl ? SSL_PORT : LIVE_PORT;
 
-			this.testnet = newTestnetValue;
-			this.port = newTestnetValue ? TEST_PORT : nonTestnetPort;
+			this.testnet = !this.testnet;
+			this.port = this.testnet ? TEST_PORT : nonTestnetPort;
 			this.bannedNodes = [];
 
 			this.selectNewNode();

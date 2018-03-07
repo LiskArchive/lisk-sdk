@@ -31,6 +31,8 @@ describe('API method module', () => {
 	};
 	const errorArgumentNumber =
 		'This endpoint must be supplied with the following parameters: related,id';
+	const firstURLParam = 'r-123';
+	const secondURLParam = 'id-123';
 	let resource;
 	let requestResult;
 	let handler;
@@ -100,34 +102,38 @@ describe('API method module', () => {
 			});
 
 			it('should be rejected with error without enough param', () => {
-				return handler('r-123').should.be.rejectedWith(
+				return handler(firstURLParam).should.be.rejectedWith(
 					Error,
 					errorArgumentNumber,
 				);
 			});
 
 			it('should be rejected with no data', () => {
-				return handler('r-123', 'id-123').should.be.rejectedWith(
+				return handler(firstURLParam, secondURLParam).should.be.rejectedWith(
 					validationError,
 				);
 			});
 
 			it('should call request with the given data', () => {
-				return handler('r-123', 'id-123', { needed: true }).then(() => {
-					resource.request.should.be.calledOnce;
-					return resource.request.should.be.calledWithExactly(
-						{
-							method: POST,
-							url: `${defaultFullPath}/r-123/ids/id-123`,
-							headers: defaultHeaders,
-							body: {
-								needed: true,
-								sort: 'id',
+				return handler(firstURLParam, secondURLParam, { needed: true }).then(
+					() => {
+						resource.request.should.be.calledOnce;
+						return resource.request.should.be.calledWithExactly(
+							{
+								method: POST,
+								url: `${defaultFullPath}/${firstURLParam}/ids/${
+									secondURLParam
+								}`,
+								headers: defaultHeaders,
+								body: {
+									needed: true,
+									sort: 'id',
+								},
 							},
-						},
-						true,
-					);
-				});
+							true,
+						);
+					},
+				);
 			});
 		});
 
@@ -157,30 +163,34 @@ describe('API method module', () => {
 			});
 
 			it('should be rejected with error without enough parameters', () => {
-				return handler('r-123').should.be.rejectedWith(
+				return handler(firstURLParam).should.be.rejectedWith(
 					Error,
 					errorArgumentNumber,
 				);
 			});
 
 			it('should be rejected with no data', () => {
-				return handler('r-123', 'id-123').should.be.rejectedWith(
+				return handler(firstURLParam, secondURLParam).should.be.rejectedWith(
 					validationError,
 				);
 			});
 
 			it('should be request with the given data', () => {
-				return handler('r-123', 'id-123', { needed: true }).then(() => {
-					resource.request.should.be.calledOnce;
-					return resource.request.should.be.calledWithExactly(
-						{
-							method: GET,
-							url: `${defaultFullPath}/r-123/ids/id-123?sort=id&needed=true`,
-							headers: defaultHeaders,
-						},
-						false,
-					);
-				});
+				return handler(firstURLParam, secondURLParam, { needed: true }).then(
+					() => {
+						resource.request.should.be.calledOnce;
+						return resource.request.should.be.calledWithExactly(
+							{
+								method: GET,
+								url: `${defaultFullPath}/${firstURLParam}/ids/${
+									secondURLParam
+								}?sort=id&needed=true`,
+								headers: defaultHeaders,
+							},
+							false,
+						);
+					},
+				);
 			});
 		});
 	});

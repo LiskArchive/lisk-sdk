@@ -53,7 +53,7 @@ const apiMethod = (params = {}) => {
 			}
 		}
 
-		const urlData = urlParams.reduce(
+		const resolvedURLObject = urlParams.reduce(
 			(accumulator, param, i) =>
 				Object.assign({}, accumulator, { [param]: args[i] }),
 			{},
@@ -61,7 +61,7 @@ const apiMethod = (params = {}) => {
 
 		const requestData = {
 			method,
-			url: solveURLParams(`${this.resourcePath}${path}`, urlData),
+			url: solveURLParams(`${this.resourcePath}${path}`, resolvedURLObject),
 			headers: this.headers,
 		};
 
