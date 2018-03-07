@@ -40,6 +40,7 @@ describe('transactionPool', () => {
 	let processVerifyTransaction;
 	let transactionTimeOut;
 	let expireTransactions;
+	let transactionInPool;
 	const freshListState = { transactions: [], index: {} };
 
 	// Init fake logger
@@ -133,6 +134,9 @@ describe('transactionPool', () => {
 		expireTransactions = TransactionPool.__get__(
 			'__private.expireTransactions'
 		);
+		transactionInPool = TransactionPool.__get__(
+			'TransactionPool.prototype.transactionInPool'
+		);
 		done();
 	});
 
@@ -151,6 +155,10 @@ describe('transactionPool', () => {
 		);
 		TransactionPool.__set__('__private.transactionTimeOut', transactionTimeOut);
 		TransactionPool.__set__('__private.expireTransactions', expireTransactions);
+		TransactionPool.__set__(
+			'TransactionPool.prototype.transactionInPool',
+			transactionInPool
+		);
 		done();
 	});
 
@@ -189,6 +197,86 @@ describe('transactionPool', () => {
 					transactions: transactionsStub,
 					loader: loaderStub,
 				});
+			});
+		});
+	});
+
+	describe('transactionInPool', () => {
+		afterEach(() => {
+			return resetStates();
+		});
+
+		describe('when transaction is in pool', () => {
+			var tx = '123';
+
+			describe('unconfirmed list', () => {
+				describe('with index 0', () => {
+					it('should return true', () => {
+						transactionPool.unconfirmed.index[tx] = 0;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', () => {
+					it('should return true', () => {
+						transactionPool.unconfirmed.index[tx] = 1;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('bundled list', () => {
+				describe('with index 0', () => {
+					it('should return true', () => {
+						transactionPool.bundled.index[tx] = 0;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', () => {
+					it('should return true', () => {
+						transactionPool.bundled.index[tx] = 1;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('queued list', () => {
+				describe('with index 0', () => {
+					it('should return true', () => {
+						transactionPool.queued.index[tx] = 0;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', () => {
+					it('should return true', () => {
+						transactionPool.queued.index[tx] = 1;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('multisignature list', () => {
+				describe('with index 0', () => {
+					it('should return true', () => {
+						transactionPool.multisignature.index[tx] = 0;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', () => {
+					it('should return true', () => {
+						transactionPool.multisignature.index[tx] = 1;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+		});
+
+		describe('when transaction is not in pool', () => {
+			it('should return false', () => {
+				return expect(transactionPool.transactionInPool('123')).to.equal(false);
 			});
 		});
 	});
@@ -288,13 +376,67 @@ describe('transactionPool', () => {
 		});
 	});
 
-	describe('getBundledTransactionList', () => {});
+	describe('getBundledTransactionList', () => {
+		it('should be able to get existing bundled transactions', () => {
+			return expect(transactionPool.getBundledTransactionList())
+				.to.be.an('Array')
+				.to.have.lengthOf.above(0);
+		});
 
-	describe('getQueuedTransactionList', () => {});
+		it('should be able to get newly added bundled transaction', () => {
+			const transaction = { id: '1233123L' };
+			transactionPool.addBundledTransaction(transaction);
+			expect(transactionPool.getBundledTransactionList())
+				.to.be.an('Array')
+				.to.have.lengthOf.above(1)
+				.that.does.include(transaction);
+			return transactionPool.removeBundledTransaction(transaction.id);
+		});
+	});
 
-	describe('getMultisignatureTransactionList', () => {});
+	describe('getQueuedTransactionList', () => {
+		it('should be able to get existing queued transactions', () => {
+			return expect(transactionPool.getQueuedTransactionList())
+				.to.be.an('Array')
+				.to.have.lengthOf.above(0);
+		});
 
-	describe('getMergedTransactionList', () => {});
+		it('should be able to get newly added queued transaction', () => {
+			const transaction = { id: '1233123L' };
+			transactionPool.addQueuedTransaction(transaction);
+			expect(transactionPool.getQueuedTransactionList())
+				.to.be.an('Array')
+				.to.have.lengthOf.above(1)
+				.that.does.include(transaction);
+			return transactionPool.removeQueuedTransaction(transaction.id);
+		});
+	});
+
+	describe('getMultisignatureTransactionList', () => {
+		it('should be able to get existing multisignature transactions', () => {
+			return expect(transactionPool.getMultisignatureTransactionList())
+				.to.be.an('Array')
+				.to.have.lengthOf.above(0);
+		});
+
+		it('should be able to get newly added multisignature transaction', () => {
+			const transaction = { id: '1233123L' };
+			transactionPool.addMultisignatureTransaction(transaction);
+			expect(transactionPool.getMultisignatureTransactionList())
+				.to.be.an('Array')
+				.to.have.lengthOf.above(1)
+				.that.does.include(transaction);
+			return transactionPool.removeMultisignatureTransaction(transaction.id);
+		});
+	});
+
+	describe('getMergedTransactionList', () => {
+		it('should be able to get merged transactions', () => {
+			return expect(transactionPool.getMergedTransactionList())
+				.to.be.an('Array')
+				.to.have.lengthOf.above(1);
+		});
+	});
 
 	describe('addUnconfirmedTransaction', () => {
 		it('should be able to add unconfirmed transaction if not exists', () => {
@@ -451,9 +593,9 @@ describe('transactionPool', () => {
 			expect(transactionPool.multisignature.transactions)
 				.to.be.an('array')
 				.that.does.include(transaction);
-			expect(transactionPool.multisignature.transactions.length).to.eql(3);
+			expect(transactionPool.multisignature.transactions.length).to.eql(4);
 			transactionPool.addMultisignatureTransaction(transaction);
-			expect(transactionPool.multisignature.transactions.length).to.eql(3);
+			expect(transactionPool.multisignature.transactions.length).to.eql(4);
 			return expect(transactionPool.multisignature.transactions)
 				.to.be.an('array')
 				.that.does.include(transaction);
@@ -1494,86 +1636,6 @@ describe('transactionPool', () => {
 					expect(res).to.be.eql(['10314L']);
 					done();
 				});
-			});
-		});
-	});
-
-	describe('transactionInPool', () => {
-		afterEach(() => {
-			return resetStates();
-		});
-
-		describe('when transaction is in pool', () => {
-			var tx = '123';
-
-			describe('unconfirmed list', () => {
-				describe('with index 0', () => {
-					it('should return true', () => {
-						transactionPool.unconfirmed.index[tx] = 0;
-						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					});
-				});
-
-				describe('with other index', () => {
-					it('should return true', () => {
-						transactionPool.unconfirmed.index[tx] = 1;
-						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					});
-				});
-			});
-
-			describe('bundled list', () => {
-				describe('with index 0', () => {
-					it('should return true', () => {
-						transactionPool.bundled.index[tx] = 0;
-						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					});
-				});
-
-				describe('with other index', () => {
-					it('should return true', () => {
-						transactionPool.bundled.index[tx] = 1;
-						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					});
-				});
-			});
-
-			describe('queued list', () => {
-				describe('with index 0', () => {
-					it('should return true', () => {
-						transactionPool.queued.index[tx] = 0;
-						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					});
-				});
-
-				describe('with other index', () => {
-					it('should return true', () => {
-						transactionPool.queued.index[tx] = 1;
-						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					});
-				});
-			});
-
-			describe('multisignature list', () => {
-				describe('with index 0', () => {
-					it('should return true', () => {
-						transactionPool.multisignature.index[tx] = 0;
-						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					});
-				});
-
-				describe('with other index', () => {
-					it('should return true', () => {
-						transactionPool.multisignature.index[tx] = 1;
-						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
-					});
-				});
-			});
-		});
-
-		describe('when transaction is not in pool', () => {
-			it('should return false', () => {
-				return expect(transactionPool.transactionInPool('123')).to.equal(false);
 			});
 		});
 	});
