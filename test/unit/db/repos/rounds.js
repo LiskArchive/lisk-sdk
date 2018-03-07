@@ -102,7 +102,10 @@ describe('db', () => {
 				expect(result1).to.have.lengthOf(3);
 				expect(result2).to.have.lengthOf(2);
 				expect(result2[0]).to.have.all.keys('round');
-				return expect(result2.map(r => r.round)).to.be.eql(['1', '2']);
+				return expect(result2.map(r => r.round)).to.have.all.members([
+					'1',
+					'2',
+				]);
 			});
 		});
 
