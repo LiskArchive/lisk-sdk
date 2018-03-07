@@ -31,7 +31,7 @@ var commandArgIsFilePath = false;
 process.env.LISK_COMMANDER_CONFIG_DIR = process.env.LISK_COMMANDER_CONFIG_DIR || `${os.homedir()}/.lisk-commander`;
 configLockfilePath = `${process.env.LISK_COMMANDER_CONFIG_DIR}/config.lock`;
 
-process.env.NON_INTERACTIVE_MODE = !(nonInteractiveLiskCommanderArg.endsWith('lisk-commander') && process.argv.length === 2);
+process.env.NON_INTERACTIVE_MODE = !(nonInteractiveLiskCommanderArg.endsWith('lisk') && process.argv.length === 2);
 
 function exit(code) {
 	process.exit(code || 0);
