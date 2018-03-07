@@ -1,8 +1,8 @@
-# Testing Lisky
+# Testing Lisk Commander
 
-Tests are an incredibly important component of the Lisky project and all pull requests must have strong tests with complete coverage to be accepted. We encourage the practice of test-driven development to make meaningful, complete test suites an integral aspect of development rather than an afterthought.
+Tests are an incredibly important component of the Lisk Commander project and all pull requests must have strong tests with complete coverage to be accepted. We encourage the practice of test-driven development to make meaningful, complete test suites an integral aspect of development rather than an afterthought.
 
-In Lisky we’re using BDD-style (behaviour-driven development) tests, dividing tests into two components:
+In Lisk Commander we’re using BDD-style (behaviour-driven development) tests, dividing tests into two components:
 
 1. _Executable specifications_ which consist of a series of nested but atomic steps.
 1. _Step definitions_ for each of those steps.

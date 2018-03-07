@@ -22,7 +22,7 @@ def slack_send(color, message) {
 }
 
 pipeline {
-	agent { node { label 'lisky' } }
+	agent { node { label 'lisk-commander' } }
 	stages {
 		stage('Install dependencies') {
 			steps {
@@ -44,9 +44,9 @@ pipeline {
 		stage('Run tests') {
 			steps {
 				ansiColor('xterm') {
-					sh 'LISKY_CONFIG_DIR=$WORKSPACE/.lisky npm run test'
+					sh 'LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk-commander npm run test'
 					sh '''
-					cp ~/.coveralls.yml-lisky .coveralls.yml
+					cp ~/.coveralls.yml-lisk-commander .coveralls.yml
 					npm run cover
 					'''
 				}
@@ -59,7 +59,7 @@ pipeline {
 				build_info = get_build_info()
 				slack_send('good', "Recovery: build ${build_info} was successful.")
 			}
-			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build passed.', status: 'SUCCESS'
+			githubNotify context: 'continuous-integration/jenkins/lisk-commander', description: 'The build passed.', status: 'SUCCESS'
 			dir('node_modules') {
 				deleteDir()
 			}
@@ -69,13 +69,13 @@ pipeline {
 				build_info = get_build_info()
 				slack_send('danger', "Build ${build_info} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)\n")
 			}
-			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build failed.', status: 'FAILURE'
+			githubNotify context: 'continuous-integration/jenkins/lisk-commander', description: 'The build failed.', status: 'FAILURE'
 		}
 		aborted {
-			githubNotify context: 'continuous-integration/jenkins/lisky', description: 'The build was aborted.', status: 'ERROR'
+			githubNotify context: 'continuous-integration/jenkins/lisk-commander', description: 'The build was aborted.', status: 'ERROR'
 		}
 		always {
-			sh 'rm -f $WORKSPACE/.lisky/config.lock'
+			sh 'rm -f $WORKSPACE/.lisk-commander/config.lock'
 		}
 	}
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * LiskHQ/lisky
+ * LiskHQ/lisk-commander
  * Copyright © 2017 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
@@ -17,22 +17,21 @@
 var os = require('os');
 var lockfile = require('lockfile');
 var semver = require('semver');
-
 var packageJSON = require('../package.json');
 
 var configLockfilePath;
-var lisky;
+var liskCommander;
 var execFile;
 var firstCommandWords;
-var nonInteractiveLiskyArg = process.argv[1];
+var nonInteractiveLiskCommanderArg = process.argv[1];
 var nonInteractiveCommandArg = process.argv[2];
 var nonInteractiveOptions;
 var commandArgIsFilePath = false;
 
-process.env.LISKY_CONFIG_DIR = process.env.LISKY_CONFIG_DIR || `${os.homedir()}/.lisky`;
-configLockfilePath = `${process.env.LISKY_CONFIG_DIR}/config.lock`;
+process.env.LISK_COMMANDER_CONFIG_DIR = process.env.LISK_COMMANDER_CONFIG_DIR || `${os.homedir()}/.lisk-commander`;
+configLockfilePath = `${process.env.LISK_COMMANDER_CONFIG_DIR}/config.lock`;
 
-process.env.NON_INTERACTIVE_MODE = !(nonInteractiveLiskyArg.endsWith('lisky') && process.argv.length === 2);
+process.env.NON_INTERACTIVE_MODE = !(nonInteractiveLiskCommanderArg.endsWith('lisk-commander') && process.argv.length === 2);
 
 function exit(code) {
 	process.exit(code || 0);
@@ -59,17 +58,17 @@ default:
 	// continue...
 }
 
-lisky = require('../dist').default;
+liskCommander = require('../dist').default;
 execFile = require('../dist/exec_file').default;
 
 // eslint-disable-next-line no-underscore-dangle
-firstCommandWords = lisky.commands.map(c => c._name.split(' ')[0]);
+firstCommandWords = liskCommander.commands.map(c => c._name.split(' ')[0]);
 
 if (firstCommandWords.indexOf(nonInteractiveCommandArg) === -1) {
 	commandArgIsFilePath = true;
 	try {
 		nonInteractiveOptions = process.argv.slice(3);
-		execFile(lisky, nonInteractiveCommandArg, nonInteractiveOptions, exit);
+		execFile(liskCommander, nonInteractiveCommandArg, nonInteractiveOptions, exit);
 	} catch (error) {
 		commandArgIsFilePath = false;
 	}
@@ -77,6 +76,6 @@ if (firstCommandWords.indexOf(nonInteractiveCommandArg) === -1) {
 
 if (!commandArgIsFilePath) {
 	module.exports = process.env.NON_INTERACTIVE_MODE === 'true'
-		? (lisky.parse(process.argv))
-		: lisky;
+		? (liskCommander.parse(process.argv))
+		: liskCommander;
 }
