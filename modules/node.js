@@ -14,18 +14,18 @@
 
 'use strict';
 
-var _ = require('lodash');
-var BlockReward = require('../logic/block_reward.js');
-var constants = require('../helpers/constants.js');
+const _ = require('lodash');
+const BlockReward = require('../logic/block_reward.js');
+const constants = require('../helpers/constants.js');
 
 // Private fields
-var modules;
-var library;
-var blockReward;
-var loaded;
+let modules;
+let library;
+let blockReward;
+let loaded;
 
 /**
- * Main node methods. Initializes library with scope content and private variables:
+ * Main node methods. Initializes library with scope content and private constiables:
  * - library
  * - blockReward
  *
@@ -39,21 +39,23 @@ var loaded;
  * @param {scope} scope - App instance
  */
 // Constructor
-function Node(cb, scope) {
-	library = {
-		build: scope.build,
-		lastCommit: scope.lastCommit,
-		config: {
-			version: scope.config.version,
-			nethash: scope.config.nethash,
-			nonce: scope.config.nonce,
-			forging: {
-				secret: scope.config.forging.secret,
+class Node {
+	constructor(cb, scope) {
+		library = {
+			build: scope.build,
+			lastCommit: scope.lastCommit,
+			config: {
+				version: scope.config.version,
+				nethash: scope.config.nethash,
+				nonce: scope.config.nonce,
+				forging: {
+					secret: scope.config.forging.secret,
+				},
 			},
-		},
-	};
-	blockReward = new BlockReward();
-	setImmediate(cb, null, this);
+		};
+		blockReward = new BlockReward();
+		setImmediate(cb, null, this);
+	}
 }
 
 Node.prototype.internal = {
@@ -66,10 +68,10 @@ Node.prototype.internal = {
 	 * @todo Add description for the return value
 	 */
 	getForgingStatus(publicKey, cb) {
-		var keyPairs = modules.delegates.getForgersKeyPairs();
-		var internalForgers = library.config.forging.secret;
+		const keyPairs = modules.delegates.getForgersKeyPairs();
+		const internalForgers = library.config.forging.secret;
 
-		var fullList = internalForgers.map(forger => ({
+		const fullList = internalForgers.map(forger => ({
 			forging: !!forger.publicKey,
 			publicKey: forger.publicKey,
 		}));
@@ -131,7 +133,7 @@ Node.prototype.shared = {
 		if (!loaded) {
 			return setImmediate(cb, 'Blockchain is loading');
 		}
-		var height = modules.blocks.lastBlock.get().height;
+		const height = modules.blocks.lastBlock.get().height;
 		return setImmediate(cb, null, {
 			build: library.build,
 			commit: library.lastCommit,
@@ -173,7 +175,7 @@ Node.prototype.shared = {
 
 // Events
 /**
- * Assigns used modules to modules variable.
+ * Assigns used modules to modules constiable.
  *
  * @param {modules} scope - Loaded modules
  */
