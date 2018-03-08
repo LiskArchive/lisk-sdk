@@ -80,7 +80,7 @@ describe('emitMiddleware', () => {
 				});
 
 				describe('when nonce is matched with [validSocketId] in connectionsTables', () => {
-					const validNonce = randomstring.generate(15);
+					const validNonce = randomstring.generate(16);
 					before(done => {
 						connectionsTable.getNonce.returns(validNonce);
 						done();
