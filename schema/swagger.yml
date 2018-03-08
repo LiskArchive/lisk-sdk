@@ -2669,8 +2669,14 @@ definitions:
     x-private: true
     type: object
     required:
+      - nonce
       - signatures
     properties:
+      nonce:
+        type: string
+        example: sYHEDBKcScaAAAYg
+        minLength: 16
+        maxLength: 16
       signatures:
         type: array
         items:
@@ -2698,8 +2704,14 @@ definitions:
     x-private: true
     type: object
     required:
+      - nonce
       - transactions
     properties:
+      nonce:
+        type: string
+        example: sYHEDBKcScaAAAYg
+        minLength: 16
+        maxLength: 16
       transactions:
         type: array
         items:
@@ -2729,7 +2741,6 @@ definitions:
     type: object
     required:
       - transactions
-      - nonce
     properties:
       transactions:
         type: array
@@ -2757,10 +2768,10 @@ definitions:
       - block
       - nonce
     properties:
+      nonce:
+        type: string
+        example: sYHEDBKcScaAAAYg
+        minLength: 16
+        maxLength: 16
       block:
         $ref: '#/definitions/ReducedBlock'
-	  nonce:
-		type: string
-		minLength: 16
-		maxLength: 16
-
