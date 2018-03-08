@@ -26,11 +26,13 @@ describe('#prepareTransaction', () => {
 
 	beforeEach(() => {
 		inputTransaction = Object.assign({}, defaultTransaction);
+		return Promise.resolve();
 	});
 
 	describe('without second signature', () => {
 		beforeEach(() => {
 			preparedTransaction = prepareTransaction(inputTransaction, passphrase);
+			return Promise.resolve();
 		});
 
 		it('should not mutate the original transaction', () => {
@@ -58,6 +60,7 @@ describe('#prepareTransaction', () => {
 				passphrase,
 				secondPassphrase,
 			);
+			return Promise.resolve();
 		});
 
 		it('should not mutate the original transaction', () => {

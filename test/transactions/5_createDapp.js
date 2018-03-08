@@ -13,7 +13,7 @@
  *
  */
 import createDapp from 'transactions/5_createDapp';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#createDapp transaction', () => {
@@ -51,11 +51,13 @@ describe('#createDapp transaction', () => {
 			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
 		options = Object.assign({}, defaultOptions);
+		return Promise.resolve();
 	});
 
 	describe('with first passphrase', () => {
 		beforeEach(() => {
 			createDappTransaction = createDapp({ passphrase, options });
+			return Promise.resolve();
 		});
 
 		it('should create a create dapp transaction', () => {
@@ -268,6 +270,7 @@ describe('#createDapp transaction', () => {
 				secondPassphrase,
 				options,
 			});
+			return Promise.resolve();
 		});
 
 		it('should have the second signature property as hex string', () => {
@@ -282,6 +285,7 @@ describe('#createDapp transaction', () => {
 				createDappTransaction = createDapp({
 					options,
 				});
+				return Promise.resolve();
 			});
 
 			it('should have the type', () => {

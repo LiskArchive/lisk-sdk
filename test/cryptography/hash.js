@@ -25,6 +25,7 @@ describe('hash', () => {
 			'hex',
 		);
 		arrayToHash = [1, 2, 3];
+		return Promise.resolve();
 	});
 
 	it('should generate a sha256 hash from a Buffer', () => {

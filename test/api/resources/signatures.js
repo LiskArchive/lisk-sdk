@@ -32,6 +32,7 @@ describe('SignaturesResource', () => {
 			banActiveSignatureAndSelect: () => {},
 		};
 		resource = new SignatureResource(LiskAPI);
+		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {

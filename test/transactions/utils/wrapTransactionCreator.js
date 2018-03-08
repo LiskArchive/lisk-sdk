@@ -1,5 +1,19 @@
+/*
+ * Copyright © 2017 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import wrapTransactionCreator from 'transactions/utils/wrapTransactionCreator';
-
+// Require is used for stubbing
 const prepareTransaction = require('transactions/utils/prepareTransaction');
 
 describe('#wrapTransactionCreator', () => {
@@ -21,6 +35,7 @@ describe('#wrapTransactionCreator', () => {
 			.stub(prepareTransaction, 'default')
 			.returnsArg(0);
 		wrappedTransactionCreator = wrapTransactionCreator(transactionCreator);
+		return Promise.resolve();
 	});
 
 	it('should return a function', () => {
@@ -30,6 +45,7 @@ describe('#wrapTransactionCreator', () => {
 	describe('when a transaction is created with no passphrase', () => {
 		beforeEach(() => {
 			result = wrappedTransactionCreator({});
+			return Promise.resolve();
 		});
 
 		it('should set a default amount of 0', () => {
@@ -64,6 +80,7 @@ describe('#wrapTransactionCreator', () => {
 			});
 			wrappedTransactionCreator = wrapTransactionCreator(transactionCreator);
 			result = wrappedTransactionCreator({});
+			return Promise.resolve();
 		});
 
 		it('should have the amount', () => {
@@ -80,6 +97,7 @@ describe('#wrapTransactionCreator', () => {
 	describe('when a passphrase is provided', () => {
 		beforeEach(() => {
 			result = wrappedTransactionCreator({ passphrase: defaultPassphrase });
+			return Promise.resolve();
 		});
 
 		it('should set a default amount of 0', () => {
@@ -111,6 +129,7 @@ describe('#wrapTransactionCreator', () => {
 				passphrase: defaultPassphrase,
 				secondPassphrase: defaultSecondPassphrase,
 			});
+			return Promise.resolve();
 		});
 
 		it('should set a default amount of 0', () => {

@@ -14,7 +14,7 @@
  */
 import cryptography from 'cryptography';
 import registerMultisignatureAccount from 'transactions/4_registerMultisignatureAccount';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#registerMultisignatureAccount transaction', () => {
@@ -54,6 +54,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 		tooShortPublicKeyKeysgroup = [
 			'd019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9',
 		];
+		return Promise.resolve();
 	});
 
 	describe('with first passphrase', () => {
@@ -64,6 +65,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 				lifetime,
 				minimum,
 			});
+			return Promise.resolve();
 		});
 
 		it('should create a register multisignature transaction', () => {
@@ -198,6 +200,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 				lifetime,
 				minimum,
 			});
+			return Promise.resolve();
 		});
 
 		it('should have the second signature property as hex string', () => {
@@ -262,6 +265,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 						cryptography.getPrivateAndPublicKeyFromPassphrase(index.toString())
 							.publicKey,
 				);
+			return Promise.resolve();
 		});
 
 		it('should throw an error', () => {
@@ -282,6 +286,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 	describe('when the register multisignature account transaction is created with duplicated public keys', () => {
 		beforeEach(() => {
 			keysgroup = [keys.publicKey, keys.publicKey];
+			return Promise.resolve();
 		});
 
 		it('should throw an error', () => {
@@ -307,6 +312,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 					lifetime,
 					minimum,
 				});
+				return Promise.resolve();
 			});
 
 			it('should have the type', () => {

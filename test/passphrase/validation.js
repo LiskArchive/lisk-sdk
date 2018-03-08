@@ -331,7 +331,7 @@ describe('passphrase validation', () => {
 			});
 		});
 
-		describe('given a string with extra whitespaces', () => {
+		describe('given a string with extra whitespaces with special characters', () => {
 			const string = 'abc  defghijk\t \nlkmnop \u00A0';
 			const expectedWhitespaceLocation = [4, 14, 15, 23];
 			it('should return the array with the location of the whitespaces', () => {

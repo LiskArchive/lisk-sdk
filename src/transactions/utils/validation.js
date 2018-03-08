@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { MAX_ADDRESS_NUMBER } from 'constants';
 import bignum from 'browserify-bignum';
 import { hexToBuffer } from 'cryptography/convert';
-import { MAX_ADDRESS_NUMBER } from 'constants';
 
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = hexToBuffer(publicKey);

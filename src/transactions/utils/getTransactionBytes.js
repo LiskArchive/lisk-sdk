@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { MAX_TRANSACTION_AMOUNT } from 'constants';
 import bignum from 'browserify-bignum';
 import cryptography from 'cryptography';
-import { MAX_TRANSACTION_AMOUNT } from 'constants';
 
 export const isValidValue = value => ![undefined, false, NaN].includes(value);
 

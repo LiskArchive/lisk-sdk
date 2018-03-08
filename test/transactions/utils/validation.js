@@ -120,6 +120,7 @@ describe('public key validation', () => {
 					'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 				];
+				return Promise.resolve();
 			});
 			it('the validated keysgroup should return true', () => {
 				return validateKeysgroup(keysgroup).should.be.true;
@@ -129,6 +130,7 @@ describe('public key validation', () => {
 		describe('Given an empty keysgroup', () => {
 			beforeEach(() => {
 				keysgroup = [];
+				return Promise.resolve();
 			});
 			it('should throw the error', () => {
 				return validateKeysgroup
@@ -149,6 +151,7 @@ describe('public key validation', () => {
 								index.toString(),
 							).publicKey,
 					);
+				return Promise.resolve();
 			});
 			it('should throw the error', () => {
 				return validateKeysgroup

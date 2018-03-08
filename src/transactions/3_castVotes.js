@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'cryptography';
 import { VOTE_FEE } from 'constants';
+import cryptography from 'cryptography';
 import {
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,

@@ -24,7 +24,7 @@ import {
 	bigNumberToBuffer,
 	bufferToBigNumberString,
 } from 'cryptography/convert';
-
+// Require is used for stubbing
 const hash = require('cryptography/hash');
 
 describe('convert', () => {
@@ -141,7 +141,7 @@ describe('convert', () => {
 
 	describe('#getAddressFromPublicKey', () => {
 		beforeEach(() => {
-			sandbox.stub(hash, 'default').returns(defaultPublicKeyHash);
+			return sandbox.stub(hash, 'default').returns(defaultPublicKeyHash);
 		});
 
 		it('should generate address from publicKey', () => {
@@ -152,7 +152,7 @@ describe('convert', () => {
 
 	describe('#getAddress', () => {
 		beforeEach(() => {
-			sandbox.stub(hash, 'default').returns(defaultPublicKeyHash);
+			return sandbox.stub(hash, 'default').returns(defaultPublicKeyHash);
 		});
 
 		it('should generate address from publicKey', () => {

@@ -13,7 +13,7 @@
  *
  */
 import transferOutOfDapp from 'transactions/7_transferOutOfDapp';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#transferOutOfDapp', () => {
@@ -38,6 +38,7 @@ describe('#transferOutOfDapp', () => {
 		getTimeWithOffsetStub = sandbox
 			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
+		return Promise.resolve();
 	});
 
 	describe('with first passphrase', () => {
@@ -49,6 +50,7 @@ describe('#transferOutOfDapp', () => {
 				amount,
 				passphrase,
 			});
+			return Promise.resolve();
 		});
 
 		it('should create an out transfer dapp transaction', () => {
@@ -167,6 +169,7 @@ describe('#transferOutOfDapp', () => {
 					passphrase,
 					secondPassphrase,
 				});
+				return Promise.resolve();
 			});
 
 			it('should have the second signature property as hex string', () => {
@@ -186,6 +189,7 @@ describe('#transferOutOfDapp', () => {
 					recipientId,
 					amount,
 				});
+				return Promise.resolve();
 			});
 
 			it('should have the type', () => {

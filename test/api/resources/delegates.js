@@ -32,6 +32,7 @@ describe('DelegatesResource', () => {
 			banActiveNodeAndSelect: () => {},
 		};
 		resource = new DelegateResource(LiskAPI);
+		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {

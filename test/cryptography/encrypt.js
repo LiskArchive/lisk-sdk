@@ -19,7 +19,7 @@ import {
 	decryptPassphraseWithPassword,
 } from 'cryptography/encrypt';
 import { version } from '../../package.json';
-
+// Require is used for stubbing
 const convert = require('cryptography/convert');
 const keys = require('cryptography/keys');
 const hash = require('cryptography/hash');
@@ -92,6 +92,7 @@ describe('encrypt', () => {
 					'hex',
 				),
 			);
+		return Promise.resolve();
 	});
 
 	describe('#encryptMessageWithPassphrase', () => {
@@ -103,6 +104,7 @@ describe('encrypt', () => {
 				defaultPassphrase,
 				defaultPublicKey,
 			);
+			return Promise.resolve();
 		});
 
 		it('should encrypt a message', () => {
@@ -159,7 +161,7 @@ describe('encrypt', () => {
 
 	describe('encrypt and decrypt passphrase with password', () => {
 		beforeEach(() => {
-			hashStub.returns(
+			return hashStub.returns(
 				Buffer.from(
 					'e09dfc943d65d63f4f31e444c81afc6d5cf442c988fb87180165dd7119d3ae61',
 					'hex',
@@ -177,6 +179,7 @@ describe('encrypt', () => {
 					defaultPassphrase,
 					defaultPassword,
 				);
+				return Promise.resolve();
 			});
 
 			it('should encrypt a passphrase', () => {
@@ -228,6 +231,7 @@ describe('encrypt', () => {
 					tag: '7498e143aba4335b942c7c5f68f90402',
 					version,
 				};
+				return Promise.resolve();
 			});
 
 			it('should decrypt a text with a password', () => {

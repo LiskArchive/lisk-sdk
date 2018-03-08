@@ -32,6 +32,7 @@ describe('DappsResource', () => {
 			banActiveNodeAndSelect: () => {},
 		};
 		resource = new DappResource(LiskAPI);
+		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {

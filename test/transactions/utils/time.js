@@ -22,11 +22,11 @@ describe('time module', () => {
 	const nowEpochTime = 20;
 
 	beforeEach(() => {
-		sandbox.useFakeTimers(nowRealTime);
+		return sandbox.useFakeTimers(nowRealTime);
 	});
 
 	afterEach(() => {
-		sandbox.clock.restore();
+		return sandbox.clock.restore();
 	});
 
 	describe('#getTimeFromBlockchainEpoch', () => {

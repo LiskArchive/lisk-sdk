@@ -32,6 +32,7 @@ describe('TransactionsResource', () => {
 			banActiveNodeAndSelect: () => {},
 		};
 		resource = new TransactionResource(LiskAPI);
+		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {

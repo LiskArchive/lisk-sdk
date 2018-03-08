@@ -22,7 +22,7 @@ import {
 	signData,
 	verifyData,
 } from 'cryptography/sign';
-
+// Require is used for stubbing
 const keys = require('cryptography/keys');
 
 const makeInvalid = str => {
@@ -106,7 +106,7 @@ ${defaultSecondSignature}
 				privateKey: Buffer.from(defaultPrivateKey, 'hex'),
 				publicKey: Buffer.from(defaultPublicKey, 'hex'),
 			});
-		getPrivateAndPublicKeyBytesFromPassphraseStub
+		return getPrivateAndPublicKeyBytesFromPassphraseStub
 			.withArgs(defaultSecondPassphrase)
 			.returns({
 				privateKey: Buffer.from(defaultSecondPrivateKey, 'hex'),
@@ -295,6 +295,7 @@ ${defaultSecondSignature}
 
 		beforeEach(() => {
 			signature = signData(defaultData, defaultPassphrase);
+			return Promise.resolve();
 		});
 
 		it('should sign a transaction', () => {

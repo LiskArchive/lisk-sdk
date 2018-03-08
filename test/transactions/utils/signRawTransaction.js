@@ -13,7 +13,7 @@
  *
  */
 import signRawTransaction from 'transactions/utils/signRawTransaction';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#signRawTransaction', () => {
@@ -30,6 +30,7 @@ describe('#signRawTransaction', () => {
 		getTimeWithOffsetStub = sandbox
 			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
+		return Promise.resolve();
 	});
 
 	describe('given a raw transaction', () => {
@@ -46,6 +47,7 @@ describe('#signRawTransaction', () => {
 				recipientPublicKey: null,
 				asset,
 			};
+			return Promise.resolve();
 		});
 
 		describe('given a passphrase', () => {
@@ -67,6 +69,7 @@ describe('#signRawTransaction', () => {
 						transaction,
 					};
 					signedTransaction = signRawTransaction(signingProperties);
+					return Promise.resolve();
 				});
 
 				it('should have the type', () => {
@@ -151,6 +154,7 @@ describe('#signRawTransaction', () => {
 							secondPassphrase,
 						};
 						signedTransaction = signRawTransaction(signingProperties);
+						return Promise.resolve();
 					});
 
 					it('should have the type', () => {
@@ -236,7 +240,7 @@ describe('#signRawTransaction', () => {
 								secondPassphrase,
 								timeOffset,
 							};
-							signRawTransaction(signingProperties);
+							return signRawTransaction(signingProperties);
 						});
 
 						it('should calculate the time with the time offset', () => {
@@ -281,6 +285,7 @@ describe('#signRawTransaction', () => {
 				recipientPublicKey: null,
 				asset,
 			};
+			return Promise.resolve();
 		});
 
 		describe('when executed', () => {
@@ -293,10 +298,11 @@ describe('#signRawTransaction', () => {
 					transaction,
 				};
 				signedTransaction = signRawTransaction(signingProperties);
+				return Promise.resolve();
 			});
 
 			it('should sign the transaction', () => {
-				signedTransaction.should.be.ok;
+				return signedTransaction.should.be.ok;
 			});
 
 			it('should have the updated senderPublicKey', () => {
