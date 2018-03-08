@@ -2729,6 +2729,7 @@ definitions:
     type: object
     required:
       - transactions
+      - nonce
     properties:
       transactions:
         type: array
@@ -2754,9 +2755,12 @@ definitions:
     type: object
     required:
       - block
-      - peer
+      - nonce
     properties:
       block:
         $ref: '#/definitions/ReducedBlock'
-      peer:
-        $ref: '#/definitions/Peer'
+	  nonce:
+		type: string
+		minLength: 16
+		maxLength: 16
+
