@@ -14,6 +14,32 @@
 
 'use strict';
 
-describe('emitMiddleware', () => {
+const expect = require('chai').expect;
+const sinon = require('sinon');
+const emitMiddleware = require('../../../../../api/ws/workers/middlewares/emit');
 
+describe('emitMiddleware', () => {
+	let validReq;
+	let validNext;
+
+	beforeEach(done => {
+		emitMiddleware(validReq, validNext);
+		done();
+	});
+
+	describe('when valid req and next params provided', () => {
+		before(done => {
+			validReq = {};
+			validNext = sinon.spy();
+			done();
+		});
+
+		afterEach(() => {
+			return validNext.reset();
+		});
+
+		it('should call validNext', () => {
+			return expect(validNext).calledOnce;
+		});
+	});
 });

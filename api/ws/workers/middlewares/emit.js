@@ -14,8 +14,14 @@
 
 'use strict';
 
-function emitMiddleware() {
-
+/**
+ * Middleware used to process every emit event received by SlaveWAMPServer in workers_controller.js
+ * @param {Object} req
+ * @param {function }next
+ * @returns {*}
+ */
+function emitMiddleware(req, next) {
+	return next();
 }
 
 module.exports = emitMiddleware;

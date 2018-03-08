@@ -19,8 +19,11 @@ var async = require('async');
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 var Peer = require('./logic/peer');
 var System = require('./modules/system');
-var Handshake = require('./helpers/ws_api').middleware.Handshake;
-var extractHeaders = require('./helpers/ws_api').extractHeaders;
+var Handshake = require('./api/ws/workers/middlewares/handshake').middleware
+	.Handshake;
+var extractHeaders = require('./api/ws/workers/middlewares/handshake')
+	.extractHeaders;
+var emitMiddleware = require('./api/ws/workers/middlewares/emit');
 var PeersUpdateRules = require('./api/ws/workers/peers_update_rules');
 var Rules = require('./api/ws/workers/rules');
 var failureCodes = require('./api/ws/rpc/failure_codes');
@@ -115,6 +118,8 @@ SCWorker.create({
 						});
 					}
 				);
+
+				scServer.addMiddleware(scServer.MIDDLEWARE_EMIT, emitMiddleware);
 
 				scServer.on('handshake', socket => {
 					// We can access the HTTP request (which instantiated the WebSocket connection) using socket.request
