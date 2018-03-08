@@ -2,13 +2,13 @@
 
 const expect = require('chai').expect;
 const Rx = require('rx');
-const localCommon = require('../../common.js');
-const jobsQueue = require('../../../../../helpers/jobs_queue.js');
+const localCommon = require('../common.js');
+const jobsQueue = require('../../../../helpers/jobs_queue.js');
 
-describe('synchronousTasks', () => {
+describe('system test (delegates) - synchronous tasks', () => {
 	let library;
 
-	localCommon.beforeBlock('lisk_test_synchronous_tasks', lib => {
+	localCommon.beforeBlock('system_delegates_synchronous_tasks', lib => {
 		library = lib;
 	});
 
