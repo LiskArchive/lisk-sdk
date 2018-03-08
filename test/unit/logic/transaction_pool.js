@@ -377,64 +377,59 @@ describe('transactionPool', () => {
 	});
 
 	describe('getBundledTransactionList', () => {
-		it('should be able to get existing bundled transactions', () => {
-			return expect(transactionPool.getBundledTransactionList())
-				.to.be.an('Array')
-				.to.have.lengthOf.above(0);
-		});
-
-		it('should be able to get newly added bundled transaction', () => {
-			const transaction = { id: '1233123L' };
-			transactionPool.addBundledTransaction(transaction);
+		it('should be able to get list of transactions', () => {
+			const transaction1 = { id: '1233123L' };
+			const transaction2 = { id: '14443123L' };
+			transactionPool.addBundledTransaction(transaction1);
+			transactionPool.addBundledTransaction(transaction2);
 			expect(transactionPool.getBundledTransactionList())
 				.to.be.an('Array')
-				.to.have.lengthOf.above(1)
-				.that.does.include(transaction);
-			return transactionPool.removeBundledTransaction(transaction.id);
+				.that.does.include(transaction1, transaction2);
+			transactionPool.removeBundledTransaction(transaction1.id);
+			return transactionPool.removeBundledTransaction(transaction2.id);
 		});
 	});
 
 	describe('getQueuedTransactionList', () => {
-		it('should be able to get existing queued transactions', () => {
-			return expect(transactionPool.getQueuedTransactionList())
-				.to.be.an('Array')
-				.to.have.lengthOf.above(0);
-		});
-
-		it('should be able to get newly added queued transaction', () => {
-			const transaction = { id: '1233123L' };
-			transactionPool.addQueuedTransaction(transaction);
+		it('should be able to get queued transactions', () => {
+			const transaction1 = { id: '1233123L' };
+			const transaction2 = { id: '14443123L' };
+			transactionPool.addQueuedTransaction(transaction1);
+			transactionPool.addQueuedTransaction(transaction2);
 			expect(transactionPool.getQueuedTransactionList())
 				.to.be.an('Array')
-				.to.have.lengthOf.above(1)
-				.that.does.include(transaction);
-			return transactionPool.removeQueuedTransaction(transaction.id);
+				.that.does.include(transaction1, transaction2);
+			transactionPool.removeQueuedTransaction(transaction1.id);
+			return transactionPool.removeQueuedTransaction(transaction2.id);
 		});
 	});
 
 	describe('getMultisignatureTransactionList', () => {
-		it('should be able to get existing multisignature transactions', () => {
-			return expect(transactionPool.getMultisignatureTransactionList())
-				.to.be.an('Array')
-				.to.have.lengthOf.above(0);
-		});
-
-		it('should be able to get newly added multisignature transaction', () => {
-			const transaction = { id: '1233123L' };
-			transactionPool.addMultisignatureTransaction(transaction);
+		it('should be able to get multisignature transactions', () => {
+			const transaction1 = { id: '1233123L' };
+			const transaction2 = { id: '14443123L' };
+			transactionPool.addMultisignatureTransaction(transaction1);
+			transactionPool.addMultisignatureTransaction(transaction2);
 			expect(transactionPool.getMultisignatureTransactionList())
 				.to.be.an('Array')
-				.to.have.lengthOf.above(1)
-				.that.does.include(transaction);
-			return transactionPool.removeMultisignatureTransaction(transaction.id);
+				.that.does.include(transaction1, transaction2);
+			transactionPool.removeMultisignatureTransaction(transaction1.id);
+			return transactionPool.removeMultisignatureTransaction(transaction2.id);
 		});
 	});
 
 	describe('getMergedTransactionList', () => {
 		it('should be able to get merged transactions', () => {
+			const transaction1 = { id: '1233123L' };
+			const transaction2 = { id: '14443123L' };
+			const transaction3 = { id: '19921123L' };
+			transactionPool.addQueuedTransaction(transaction1);
+			transactionPool.addMultisignatureTransaction(transaction2);
+			transactionPool.addBundledTransaction(transaction3);
 			return expect(transactionPool.getMergedTransactionList())
 				.to.be.an('Array')
-				.to.have.lengthOf.above(1);
+				.that.does.include(transaction1, transaction2)
+				.that.does.not.include(transaction3);
 		});
 	});
 
@@ -516,12 +511,9 @@ describe('transactionPool', () => {
 
 	describe('countBundled', () => {
 		it('should return count of bundled transaction exists in pool', () => {
-			return expect(transactionPool.countBundled()).to.deep.eql(1);
-		});
-
-		it('should return the count of bundled transaction exists in pool after removal', () => {
-			transactionPool.removeBundledTransaction('123');
-			return expect(transactionPool.countBundled()).to.deep.eql(0);
+			return expect(transactionPool.countBundled()).to.not.be.an.instanceof(
+				Number
+			);
 		});
 	});
 
@@ -555,15 +547,9 @@ describe('transactionPool', () => {
 
 	describe('countQueued', () => {
 		it('should return count of queued transaction exists in pool', () => {
-			expect(transactionPool.countQueued()).to.deep.eql(0);
-			const transaction = { id: '103111423423423L' };
-			transactionPool.addQueuedTransaction(transaction);
-			return expect(transactionPool.countQueued()).to.deep.eql(1);
-		});
-
-		it('should return the count of queued transaction exists in pool after removal', () => {
-			transactionPool.removeQueuedTransaction('103111423423423L');
-			return expect(transactionPool.countQueued()).to.deep.eql(0);
+			return expect(transactionPool.countQueued()).to.not.be.an.instanceof(
+				Number
+			);
 		});
 	});
 
@@ -593,9 +579,9 @@ describe('transactionPool', () => {
 			expect(transactionPool.multisignature.transactions)
 				.to.be.an('array')
 				.that.does.include(transaction);
-			expect(transactionPool.multisignature.transactions.length).to.eql(4);
+			const beforeCount = transactionPool.countMultisignature();
 			transactionPool.addMultisignatureTransaction(transaction);
-			expect(transactionPool.multisignature.transactions.length).to.eql(4);
+			expect(transactionPool.countMultisignature()).to.eql(beforeCount);
 			return expect(transactionPool.multisignature.transactions)
 				.to.be.an('array')
 				.that.does.include(transaction);
@@ -621,13 +607,9 @@ describe('transactionPool', () => {
 
 	describe('countMultisignature', () => {
 		it('should return count of multi signature transaction exists', () => {
-			expect(transactionPool.countMultisignature()).to.deep.eql(2);
-			const transaction = {
-				id: '10431411423423423L',
-				type: transactionTypes.MULTI,
-			};
-			transactionPool.addMultisignatureTransaction(transaction);
-			return expect(transactionPool.countMultisignature()).to.deep.eql(3);
+			return expect(
+				transactionPool.countMultisignature()
+			).to.not.be.an.instanceof(Number);
 		});
 	});
 
