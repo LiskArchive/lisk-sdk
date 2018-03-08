@@ -1642,16 +1642,6 @@ describe('transport', () => {
 								).to.be.true;
 							});
 
-							it('should call __private.removePeer with {peer: query.peer, code: "ECOMMON"}', () => {
-								expect(__private.removePeer.calledOnce).to.be.true;
-								return expect(
-									__private.removePeer.calledWith({
-										nonce: query.peer.nonce,
-										code: 'ECOMMON',
-									})
-								).to.be.true;
-							});
-
 							it('should call callback with error = "Invalid block id sequence"', () => {
 								return expect(error).to.be.equal('Invalid block id sequence');
 							});
