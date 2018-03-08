@@ -15,61 +15,87 @@
 
 'use strict';
 
+const os = require('os');
+const rewire = require('rewire');
+
+const System = rewire('../../../modules/system.js');
+
 describe('system', () => {
+	let systemModule;
+	let library;
+	let __private;
+	let self;
+	let loggerStub;
+	let dbStub;
+	let dummyConfig;
+
+	beforeEach(done => {
+		// Library
+		loggerStub = {
+			trace: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
+			debug: sinonSandbox.spy(),
+		};
+		dbStub = sinonSandbox.stub();
+		dummyConfig = {
+			version: '1.0.0-alpha.3',
+			wsPort: 1,
+			httpPort: 1,
+			nethash: 1,
+			minVersion: '>=1.0.0-alpha.0',
+			nonce: 1,
+		};
+
+		systemModule = new System((err, cbSelf) => {
+			library = System.__get__('library');
+			__private = System.__get__('__private');
+			self = cbSelf;
+			expect(err).to.be.null;
+			done();
+		}, {
+			logger: loggerStub,
+			db: dbStub,
+			config: dummyConfig,
+		});
+	});
 	describe('constructor', () => {
-		describe('library', () => {
-			it('should assign logger');
-
-			it('should assign db');
-
-			it('should assign config.version');
-
-			it('should assign config.wsPort');
-
-			it('should assign config.nethash');
-
-			it('should assign config.minVersion');
-
-			it('should assign config.nonce');
+		it('should assign params to library', () => {
+			expect(library.logger).to.eql(loggerStub);
+			expect(library.db).to.eql(dbStub);
+			return expect(library.config).to.deep.equal(dummyConfig);
 		});
 
-		describe('__private', () => {
-			describe('os', () => {
-				it('should call platform on os library');
-
-				it('should call release on os library');
-
-				it('should assign os as concat of os.platform and os.release results');
-			});
-
-			it('should assign version from config.version');
-
-			it('should assign port from config.wsPort');
-
-			it('should assign httpPort from config.httpPort');
-
-			it('should assign height = 1');
-
-			it('should assign nethash from config.nethash');
-
-			it('should assign broadhash from config.nethash');
-
-			it('should assign minVersion from config.minVersion');
-
-			it('should assign nonce from config.nonce');
+		it('should assign params to __private', () => {
+			expect(__private.os).to.eql(os.platform() + os.release());
+			expect(__private.version).to.eql(dummyConfig.version);
+			expect(__private.wsPort).to.eql(dummyConfig.wsPort);
+			expect(__private.httpPort).to.eql(dummyConfig.httpPort);
+			expect(__private.height).to.eql(1);
+			expect(__private.nethash).to.eql(dummyConfig.nethash);
+			expect(__private.broadhash).to.eql(dummyConfig.nethash);
+			expect(__private.minVersion).to.eql(dummyConfig.minVersion);
+			return expect(__private.nonce).to.eql(dummyConfig.nonce);
 		});
 
-		describe('version', () => {
-			describe('when version contains a letter', () => {
-				it('should assign this.minVersion without any letter');
-
-				it('should assign the last character to this.minVersionChar');
-			});
+		it('should return self', () => {
+			expect(self).to.be.an('object');
+			expect(self.headers).to.be.a('function');
+			expect(self.getOS).to.be.a('function');
+			expect(self.getVersion).to.be.a('function');
+			expect(self.getPort).to.be.a('function');
+			expect(self.getHeight).to.be.a('function');
+			expect(self.getNethash).to.be.a('function');
+			expect(self.getNonce).to.be.a('function');
+			expect(self.getBroadhash).to.be.a('function');
+			expect(self.getMinVersion).to.be.a('function');
+			expect(self.networkCompatible).to.be.a('function');
+			expect(self.versionCompatible).to.be.a('function');
+			expect(self.nonceCompatible).to.be.a('function');
+			expect(self.update).to.be.a('function');
+			return expect(self.onBind).to.be.a('function');
 		});
-
-		it('should return error = null');
-
-		it('should return the System instance');
 	});
 
 	describe('static', () => {
