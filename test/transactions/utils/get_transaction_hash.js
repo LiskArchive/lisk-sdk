@@ -13,8 +13,8 @@
  *
  */
 import { getTransactionHash } from 'transactions/utils';
-// Require is used for stubbing
-const getTransactionBytes = require('transactions/utils/getTransactionBytes');
+
+const getTransactionBytes = require('transactions/utils/get_transaction_bytes');
 
 describe('#getTransactionHash', () => {
 	let defaultTransactionBytes;

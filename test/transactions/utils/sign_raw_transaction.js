@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import signRawTransaction from 'transactions/utils/signRawTransaction';
-// Require is used for stubbing
+import signRawTransaction from 'transactions/utils/sign_raw_transaction';
+
 const time = require('transactions/utils/time');
 
 describe('#signRawTransaction', () => {

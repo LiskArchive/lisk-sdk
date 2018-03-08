@@ -14,18 +14,18 @@
  */
 export {
 	default as getAddressAndPublicKeyFromRecipientData,
-} from './getAddressAndPublicKeyFromRecipientData';
-export { default as getTransactionBytes } from './getTransactionBytes';
-export { default as getTransactionHash } from './getTransactionHash';
-export { default as getTransactionId } from './getTransactionId';
+} from './get_address_and_public_key_from_recipient_data';
+export { default as getTransactionBytes } from './get_transaction_bytes';
+export { default as getTransactionHash } from './get_transaction_hash';
+export { default as getTransactionId } from './get_transaction_id';
 export { prependPlusToPublicKeys, prependMinusToPublicKeys } from './format';
-export { default as prepareTransaction } from './prepareTransaction';
+export { default as prepareTransaction } from './prepare_transaction';
 export {
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
-} from './signAndVerify';
-export { default as signRawTransaction } from './signRawTransaction';
+} from './sign_and_verify';
+export { default as signRawTransaction } from './sign_raw_transaction';
 export { getTimeFromBlockchainEpoch, getTimeWithOffset } from './time';
 export {
 	checkPublicKeysForDuplicates,
@@ -34,4 +34,4 @@ export {
 	validateKeysgroup,
 	validateAddress,
 } from './validation';
-export { default as wrapTransactionCreator } from './wrapTransactionCreator';
+export { default as wrapTransactionCreator } from './wrap_transaction_creator';

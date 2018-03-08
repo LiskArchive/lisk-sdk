@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import registerSecondPassphrase from 'transactions/1_registerSecondPassphrase';
-// Require is used for stubbing
+import registerSecondPassphrase from 'transactions/1_register_second_passphrase';
+
 const time = require('transactions/utils/time');
 
 describe('#registerSecondPassphrase transaction', () => {

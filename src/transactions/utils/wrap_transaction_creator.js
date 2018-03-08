@@ -13,7 +13,7 @@
  *
  */
 import cryptography from 'cryptography';
-import prepareTransaction from './prepareTransaction';
+import prepareTransaction from './prepare_transaction';
 import { getTimeWithOffset } from './time';
 
 const wrapTransactionCreator = transactionCreator => transactionParameters => {

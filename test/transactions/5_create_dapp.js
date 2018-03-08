@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createDapp from 'transactions/5_createDapp';
-// Require is used for stubbing
+import createDapp from 'transactions/5_create_dapp';
+
 const time = require('transactions/utils/time');
 
 describe('#createDapp transaction', () => {

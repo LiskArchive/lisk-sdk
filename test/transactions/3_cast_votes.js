@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import castVotes from 'transactions/3_castVotes';
-// Require is used for stubbing
+import castVotes from 'transactions/3_cast_votes';
+
 const time = require('transactions/utils/time');
 
 describe('#castVotes transaction', () => {

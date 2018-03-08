@@ -13,8 +13,13 @@
  *
  */
 
+<<<<<<< HEAD
 import APIResource from 'api/apiResource';
 // Require is used for stubbing
+=======
+import APIResource from 'api/api_resource';
+
+>>>>>>> :recycle: rename files camelcase to underscore seperated
 const popsicle = require('popsicle');
 
 describe('API resource module', () => {

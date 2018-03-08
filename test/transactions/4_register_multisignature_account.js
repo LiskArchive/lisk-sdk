@@ -13,8 +13,8 @@
  *
  */
 import cryptography from 'cryptography';
-import registerMultisignatureAccount from 'transactions/4_registerMultisignatureAccount';
-// Require is used for stubbing
+import registerMultisignatureAccount from 'transactions/4_register_multisignature_account';
+
 const time = require('transactions/utils/time');
 
 describe('#registerMultisignatureAccount transaction', () => {

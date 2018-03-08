@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transferOutOfDapp from 'transactions/7_transferOutOfDapp';
-// Require is used for stubbing
+import transferOutOfDapp from 'transactions/7_transfer_out_of_dapp';
+
 const time = require('transactions/utils/time');
 
 describe('#transferOutOfDapp', () => {

@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import registerDelegate from 'transactions/2_registerDelegate';
-// Require is used for stubbing
+import registerDelegate from 'transactions/2_register_delegate';
+
 const time = require('transactions/utils/time');
 
 describe('#registerDelegate transaction', () => {

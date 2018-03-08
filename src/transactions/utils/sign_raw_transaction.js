@@ -14,7 +14,7 @@
  */
 import cryptography from 'cryptography';
 import { getTimeWithOffset } from './time';
-import prepareTransaction from './prepareTransaction';
+import prepareTransaction from './prepare_transaction';
 
 export default function signRawTransaction({
 	transaction,

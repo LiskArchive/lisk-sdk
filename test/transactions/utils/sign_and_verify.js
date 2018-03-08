@@ -21,8 +21,8 @@ import {
 // The list of valid transactions was created with lisk-js 0.5.1
 // using the below mentioned passphrases.
 import validTransactions from '../../../fixtures/transactions.json';
-// Require is used for stubbing
-const getTransactionHash = require('transactions/utils/getTransactionHash');
+
+const getTransactionHash = require('transactions/utils/get_transaction_hash');
 
 describe('signAndVerify module', () => {
 	describe('signAndVerify transaction utils', () => {
@@ -271,7 +271,7 @@ describe('signAndVerify module', () => {
 
 					describe('when tested on the first signature', () => {
 						it('should create the correct signature', () => {
-							return validTransactions.forEach(transaction => {
+							return validTransactions.forEach((transaction) => {
 								const { signature } = transaction;
 								const rawTx = Object.assign({}, transaction);
 								delete rawTx.signature;
@@ -285,7 +285,7 @@ describe('signAndVerify module', () => {
 
 					describe('when tested on the second signature', () => {
 						it('should create the correct signature', () => {
-							return validTransactions.forEach(transaction => {
+							return validTransactions.forEach((transaction) => {
 								const { signSignature } = transaction;
 								if (signSignature) {
 									const rawTx = Object.assign({}, transaction);
@@ -307,7 +307,7 @@ describe('signAndVerify module', () => {
 					const secondPublicKey =
 						'f9666bfed9ef2ff52a04408f22f2bfffaa81384c9433463697330224f10032a4';
 					it('should verify all the transactions', () => {
-						return validTransactions.forEach(transaction => {
+						return validTransactions.forEach((transaction) => {
 							return verifyTransaction(transaction, secondPublicKey).should.be
 								.true;
 						});

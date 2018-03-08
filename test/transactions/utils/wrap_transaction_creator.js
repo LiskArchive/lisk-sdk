@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import wrapTransactionCreator from 'transactions/utils/wrapTransactionCreator';
-// Require is used for stubbing
-const prepareTransaction = require('transactions/utils/prepareTransaction');
+import wrapTransactionCreator from 'transactions/utils/wrap_transaction_creator';
+
+const prepareTransaction = require('transactions/utils/prepare_transaction');
 
 describe('#wrapTransactionCreator', () => {
 	const defaultPassphrase = 'secret';
