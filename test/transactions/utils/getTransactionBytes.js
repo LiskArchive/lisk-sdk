@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import bignum from 'browserify-bignum';
 import getTransactionBytes, {
 	getAssetDataForTransferTransaction,
 	getAssetDataForRegisterSecondSignatureTransaction,
@@ -92,6 +93,40 @@ describe('#getTransactionBytes', () => {
 			return getTransactionBytes
 				.bind(null, defaultTransaction)
 				.should.throw('Transaction asset data exceeds size of 64.');
+		});
+
+		it('should throw on type 0 with an amount that is too small', () => {
+			const amount = -1;
+			defaultTransaction.amount = amount;
+			return getTransactionBytes
+				.bind(null, defaultTransaction)
+				.should.throw('Transaction amount must not be negative.');
+		});
+
+		it('should not throw on type 0 with an amount that is 0', () => {
+			const amount = 0;
+			defaultTransaction.amount = amount;
+			return getTransactionBytes
+				.bind(null, defaultTransaction)
+				.should.not.throw();
+		});
+
+		it('should throw on type 0 with an amount that is too large', () => {
+			const amount = bignum
+				.fromBuffer(Buffer.from(new Array(8).fill(255)))
+				.plus(1);
+			defaultTransaction.amount = amount;
+			return getTransactionBytes
+				.bind(null, defaultTransaction)
+				.should.throw('Transaction amount is too large.');
+		});
+
+		it('should not throw on type 0 with an amount that is the maximum possible', () => {
+			const amount = bignum.fromBuffer(Buffer.from(new Array(8).fill(255)));
+			defaultTransaction.amount = amount;
+			return getTransactionBytes
+				.bind(null, defaultTransaction)
+				.should.not.throw();
 		});
 
 		it('should return Buffer of transaction with second signature', () => {

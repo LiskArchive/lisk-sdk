@@ -14,6 +14,7 @@
  */
 import bignum from 'browserify-bignum';
 import cryptography from 'cryptography';
+import { MAX_TRANSACTION_AMOUNT } from 'constants';
 
 export const isValidValue = value => ![undefined, false, NaN].includes(value);
 
@@ -179,7 +180,16 @@ const getTransactionBytes = transaction => {
 			)
 		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
-	const transactionAmount = bignum(amount).toBuffer({
+	const amountBigNum = bignum(amount);
+	if (amountBigNum.lt(0)) {
+		throw new Error('Transaction amount must not be negative.');
+	}
+	// BUG in browserify-bignum prevents us using `.gt` directly.
+	// See https://github.com/bored-engineer/browserify-bignum/pull/2
+	if (amountBigNum.gte(bignum(MAX_TRANSACTION_AMOUNT).plus(1))) {
+		throw new Error('Transaction amount is too large.');
+	}
+	const transactionAmount = amountBigNum.toBuffer({
 		endian: 'little',
 		size: BYTESIZES.AMOUNT,
 	});

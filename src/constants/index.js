@@ -37,6 +37,8 @@ export const POST = 'POST';
 
 // Largest possible address. Derived from bignum.fromBuffer(Buffer.from(new Array(8).fill(255))).
 export const MAX_ADDRESS_NUMBER = '18446744073709551615';
+// Largest possible amount. Derived from bignum.fromBuffer(Buffer.from(new Array(8).fill(255))).
+export const MAX_TRANSACTION_AMOUNT = '18446744073709551615';
 
 export const TESTNET_NETHASH =
 	'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
