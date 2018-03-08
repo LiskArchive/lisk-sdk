@@ -2237,7 +2237,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					query = {
 						transaction,
-						peer: peerMock,
+						nonce: validNonce,
 						extraLogMessage: 'This is a log message',
 					};
 					__private.receiveTransaction = sinonSandbox
@@ -2254,7 +2254,7 @@ describe('transport', () => {
 					return expect(
 						__private.receiveTransaction.calledWith(
 							query.transaction,
-							query.peer,
+							validNonce,
 							query.extraLogMessage
 						)
 					).to.be.true;
@@ -2303,7 +2303,7 @@ describe('transport', () => {
 					beforeEach(done => {
 						query = {
 							transactions: transactionsList,
-							peer: peerMock,
+							nonce: validNonce,
 							extraLogMessage: 'This is a log message',
 						};
 						__private.receiveTransactions = sinonSandbox.stub();
@@ -2315,7 +2315,7 @@ describe('transport', () => {
 						return expect(
 							__private.receiveTransactions.calledWith(
 								query.transactions,
-								query.peer,
+								validNonce,
 								query.extraLogMessage
 							)
 						).to.be.true;
