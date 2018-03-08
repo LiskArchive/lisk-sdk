@@ -34,6 +34,8 @@ function blockchainReady(cb, retries, timeout, baseUrl) {
 		timeout = 1000;
 	}
 
+	const totalRetries = retries;
+
 	baseUrl =
 		baseUrl ||
 		`http://${__testContext.config.address}:${__testContext.config.httpPort}`;
@@ -44,6 +46,11 @@ function blockchainReady(cb, retries, timeout, baseUrl) {
 				retries -= 1;
 				res = JSON.parse(res.body);
 				if (!res.data.loaded && retries >= 0) {
+					__testContext.debug(
+						`Retrying ${totalRetries -
+							retries} time loading blockchain in next ${timeout /
+							1000.0} seconds...`
+					);
 					return setTimeout(() => {
 						fetchBlockchainStatus();
 					}, timeout);
@@ -55,6 +62,11 @@ function blockchainReady(cb, retries, timeout, baseUrl) {
 			.catch(() => {
 				retries -= 1;
 				if (retries >= 0) {
+					__testContext.debug(
+						`Retrying ${totalRetries -
+							retries} time loading blockchain in next ${timeout /
+							1000.0} seconds...`
+					);
 					return setTimeout(() => {
 						fetchBlockchainStatus();
 					}, timeout);
