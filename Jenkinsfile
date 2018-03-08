@@ -67,8 +67,5 @@ pipeline {
 		aborted {
 			githubNotify context: 'continuous-integration/jenkins/lisk-js', description: 'The build was aborted.', status: 'ERROR'
 		}
-		always {
-			archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/*'
-		}
 	}
 }
