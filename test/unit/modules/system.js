@@ -40,25 +40,28 @@ describe('system', () => {
 		};
 		dbStub = sinonSandbox.stub();
 		dummyConfig = {
-			version: '1.0.0-alpha.3',
+			version: '1.0.0-beta.3',
 			wsPort: 1,
 			httpPort: 1,
 			nethash: 1,
-			minVersion: '>=1.0.0-alpha.0',
+			minVersion: '>=1.0.0-beta.0',
 			nonce: 1,
 		};
 
-		systemModule = new System((err, cbSelf) => {
-			library = System.__get__('library');
-			__private = System.__get__('__private');
-			self = cbSelf;
-			expect(err).to.be.null;
-			done();
-		}, {
-			logger: loggerStub,
-			db: dbStub,
-			config: dummyConfig,
-		});
+		systemModule = new System(
+			(err, cbSelf) => {
+				library = System.__get__('library');
+				__private = System.__get__('__private');
+				self = cbSelf;
+				expect(err).to.be.null;
+				done();
+			},
+			{
+				logger: loggerStub,
+				db: dbStub,
+				config: dummyConfig,
+			}
+		);
 	});
 	describe('constructor', () => {
 		it('should assign params to library', () => {
@@ -183,34 +186,22 @@ describe('system', () => {
 	});
 
 	describe('versionCompatible', () => {
-		describe('when version contains', () => {
-			describe('when system version contains a letter', () => {
-				it(
-					'should return true if both version number and version letter are equals with system'
-				);
-
-				it(
-					'should return false if both version number and version letter are different than system'
-				);
-
-				it('should return false if version number is different than system');
-
-				it('should return false if version letter is different than system');
-			});
-
-			describe('when system version does not contain a letter', () => {
-				it('should call semver.satisfies with system minVersion');
-
-				it('should call semver.satisfies with version with stripped letter');
-
-				it('should call semver.satisfies with version with stripped letters');
+		describe('when version is equal to system version', () => {
+			it('should return true', () => {
+				return expect(systemModule.versionCompatible('1.0.0-beta.0')).to.be
+					.true;
 			});
 		});
-
-		describe('when version without a letter passed', () => {
-			it('should call semver.satisfies with system minVersion');
-
-			it('should call semver.satisfies with version');
+		describe('when version is greather than system version', () => {
+			it('should return true', () => {
+				return expect(systemModule.versionCompatible('1.0.0-rc.0')).to.be.true;
+			});
+		});
+		describe('when version is less than system version', () => {
+			it('should return false', () => {
+				return expect(systemModule.versionCompatible('1.0.0-alpha.10')).to.be
+					.false;
+			});
 		});
 	});
 
