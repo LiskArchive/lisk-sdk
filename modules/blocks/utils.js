@@ -14,14 +14,14 @@
 
 'use strict';
 
-var _ = require('lodash');
-var constants = require('../../helpers/constants.js');
-var transactionTypes = require('../../helpers/transaction_types.js');
+const _ = require('lodash');
+const constants = require('../../helpers/constants.js');
+const transactionTypes = require('../../helpers/transaction_types.js');
 
-var modules;
-var library;
-var self;
-var __private = {};
+const __private = {};
+let modules;
+let library;
+let self;
 
 /**
  * Main utils logic. Allows utils functions for blocks. Initializes library.
@@ -41,30 +41,32 @@ var __private = {};
  * @param {Object} genesisblock
  * @todo Add description for the params
  */
-function Utils(
-	logger,
-	account,
-	block,
-	transaction,
-	db,
-	dbSequence,
-	genesisblock
-) {
-	library = {
+class Utils {
+	constructor(
 		logger,
+		account,
+		block,
+		transaction,
 		db,
 		dbSequence,
-		genesisblock,
-		logic: {
-			account,
-			block,
-			transaction,
-		},
-	};
-	self = this;
+		genesisblock
+	) {
+		library = {
+			logger,
+			db,
+			dbSequence,
+			genesisblock,
+			logic: {
+				account,
+				block,
+				transaction,
+			},
+		};
+		self = this;
 
-	library.logger.trace('Blocks->Utils: Submodule initialized.');
-	return self;
+		library.logger.trace('Blocks->Utils: Submodule initialized.');
+		return self;
+	}
 }
 
 /**
@@ -74,13 +76,13 @@ function Utils(
  * @returns {Array} blocks - List of normalized blocks with transactions
  */
 Utils.prototype.readDbRows = function(rows) {
-	var blocks = {};
-	var order = [];
+	let blocks = {};
+	const order = [];
 
-	for (var i = 0, length = rows.length; i < length; i++) {
+	for (let i = 0, length = rows.length; i < length; i++) {
 		// Normalize block
 		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-		var block = library.logic.block.dbRead(rows[i]);
+		const block = library.logic.block.dbRead(rows[i]);
 
 		if (block) {
 			// If block is not already in the list...
@@ -97,7 +99,7 @@ Utils.prototype.readDbRows = function(rows) {
 			}
 
 			// Normalize transaction
-			var transaction = library.logic.transaction.dbRead(rows[i]);
+			const transaction = library.logic.transaction.dbRead(rows[i]);
 			// Set empty object if there are no transactions in block
 			blocks[block.id].transactions = blocks[block.id].transactions || {};
 
@@ -134,7 +136,7 @@ Utils.prototype.readDbRows = function(rows) {
  */
 Utils.prototype.loadBlocksPart = function(filter, cb) {
 	self.loadBlocksData(filter, (err, rows) => {
-		var blocks;
+		let blocks;
 
 		if (!err) {
 			// Normalize list of blocks
@@ -161,7 +163,7 @@ Utils.prototype.loadLastBlock = function(cb) {
 			.loadLastBlock()
 			.then(rows => {
 				// Normalize block
-				var block = modules.blocks.utils.readDbRows(rows)[0];
+				const block = modules.blocks.utils.readDbRows(rows)[0];
 
 				// Sort block's transactions
 				block.transactions = block.transactions.sort(a => {
@@ -201,7 +203,7 @@ Utils.prototype.loadLastBlock = function(cb) {
  * @returns {string} cb.res.ids - Comma separated list of blocks IDs
  */
 Utils.prototype.getIdSequence = function(height, cb) {
-	var lastBlock = modules.blocks.lastBlock.get();
+	const lastBlock = modules.blocks.lastBlock.get();
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
 	library.db.blocks
@@ -218,11 +220,11 @@ Utils.prototype.getIdSequence = function(height, cb) {
 				);
 			}
 
-			var ids = [];
+			const ids = [];
 
 			// Add genesis block at the end if the set doesn't contain it already
 			if (library.genesisblock && library.genesisblock.block) {
-				var __genesisblock = {
+				const __genesisblock = {
 					id: library.genesisblock.block.id,
 					height: library.genesisblock.block.height,
 				};
@@ -271,7 +273,7 @@ Utils.prototype.getIdSequence = function(height, cb) {
  * @returns {Object} cb.rows - List of blocks
  */
 Utils.prototype.loadBlocksData = function(filter, cb) {
-	var params = { limit: filter.limit || 1 };
+	const params = { limit: filter.limit || 1 };
 
 	// FIXME: filter.id is not used
 	if (filter.id && filter.lastId) {
@@ -288,9 +290,9 @@ Utils.prototype.loadBlocksData = function(filter, cb) {
 		library.db.blocks
 			.getHeightByLastId(filter.lastId || null)
 			.then(rows => {
-				var height = rows.length ? rows[0].height : 0;
+				const height = rows.length ? rows[0].height : 0;
 				// Calculate max block height for database query
-				var realLimit = height + (parseInt(filter.limit) || 1);
+				const realLimit = height + (parseInt(filter.limit) || 1);
 
 				params.limit = realLimit;
 				params.height = height;
@@ -393,7 +395,7 @@ Utils.prototype.getBlockProgressLogger = function(
  * @returns {number} cb.data.count - Blocks count
  */
 Utils.prototype.aggregateBlocksReward = function(filter, cb) {
-	var params = {};
+	const params = {};
 
 	library.logic.account.get({ address: filter.address }, (err, account) => {
 		if (err) {
@@ -421,7 +423,7 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		library.db.blocks
 			.aggregateBlocksReward(params)
 			.then(rows => {
-				var data = rows[0];
+				let data = rows[0];
 				if (data.delegate === null) {
 					return setImmediate(cb, 'Account is not a delegate');
 				}
