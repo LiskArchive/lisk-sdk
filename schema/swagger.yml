@@ -16,7 +16,7 @@ swagger: '2.0'
 info:
   description: Lisk API Documentation
   title: Lisk API Documentation
-  version: '1.0.22'
+  version: '1.0.23'
   contact:
     email: admin@lisk.io
   license:
@@ -123,6 +123,7 @@ paths:
           description: Address of account
           type: string
           format: address
+          pattern: '^[0-9]+L$'
           required: true
           minLength: 2
           maxLength: 22
@@ -166,6 +167,7 @@ paths:
           description: Address of account
           type: string
           format: address
+          pattern: '^[0-9]+L$'
           required: true
           minLength: 2
           maxLength: 22
@@ -623,6 +625,7 @@ paths:
           required: true
           type: string
           format: address
+          pattern: '^[0-9]+L$'
         - $ref: '#/parameters/fromTimestamp'
         - $ref: '#/parameters/toTimestamp'
       responses:
@@ -1020,6 +1023,7 @@ parameters:
     required: false
     type: string
     format: address
+    pattern: '^[0-9]+L$'
     minLength: 2
     maxLength: 22
   publicKey:
@@ -1064,6 +1068,7 @@ parameters:
     description: Recipient address to query
     type: string
     format: address
+    pattern: '^[0-9]+L$'
     minLength: 1
     maxLength: 22
   recipientPublicKey:
@@ -1079,6 +1084,7 @@ parameters:
     description: Sender address to query
     type: string
     format: address
+    pattern: '^[0-9]+L$'
     minLength: 1
     maxLength: 22
   senderPublicKey:
@@ -1625,7 +1631,7 @@ definitions:
         type: string
         format: signature
         example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
-      multisignatures:
+      signatures:
         type: array
         items:
           type: string
@@ -1641,6 +1647,9 @@ definitions:
         format: 'date-time'
       relays:
         type: integer
+      ready:
+        type: boolean
+        example: false
 
   Signature:
     type: object
@@ -1697,6 +1706,7 @@ definitions:
       generatorAddress:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       generatorPublicKey:
         type: string
@@ -1736,6 +1746,60 @@ definitions:
       totalForged:
         type: string
         example: "65000000"
+
+  ReducedBlock:
+    type: object
+    required:
+      - id
+      - height
+      - timestamp
+      - generatorPublicKey
+    properties:
+      id:
+        type: string
+        format: id
+        minLength: 1
+        maxLength: 20
+        example: "6258354802676165798"
+      version:
+        type: integer
+        example: 0
+        minimum: 0
+      height:
+        type: integer
+        example: 123
+        minimum: 1
+      timestamp:
+        type: integer
+        example: 28227090
+      generatorAddress:
+        type: string
+        format: address
+        pattern: '^[0-9]+L$'
+        example: 12668885769632475474L
+      generatorPublicKey:
+        type: string
+        format: publicKey
+        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+      payloadLength:
+        type: integer
+        example: 117
+        minimum: 0
+      payloadHash:
+        type: string
+        format: hex
+        example: 4e4d91be041e09a2e54bb7dd38f1f2a02ee7432ec9f169ba63cd1f193a733dd2
+      blockSignature:
+        type: string
+        format: signature
+        example: a3733254aad600fa787d6223002278c3400be5e8ed4763ae27f9a15b80e20c22ac9259dc926f4f4cabdf0e4f8cec49308fa8296d71c288f56b9d1e11dfe81e07
+      confirmations:
+        type: integer
+        example: 200
+      previousBlockId:
+        type: string
+        format: id
+        example: "15918760246746894806"
 
   CommonBlock:
     x-private: true
@@ -1848,6 +1912,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 6251001604903637008L
       nextSlot:
         type: number
@@ -1912,7 +1977,6 @@ definitions:
   Peer:
     type: object
     required:
-      - ip
       - wsPort
       - state
     properties:
@@ -2248,6 +2312,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       publicKey:
         type: string
@@ -2269,6 +2334,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       publicKey:
         type: string
@@ -2301,6 +2367,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       publicKey:
         type: string
@@ -2424,6 +2491,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       balance:
         type: string
@@ -2443,6 +2511,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       publicKey:
         description: Public key to query
@@ -2466,6 +2535,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       balance:
         type: string
@@ -2501,6 +2571,7 @@ definitions:
       address:
         type: string
         format: address
+        pattern: '^[0-9]+L$'
         example: 12668885769632475474L
       publicKey:
         description: Public key to query
@@ -2677,3 +2748,15 @@ definitions:
         maxItems: 100
         items:
           type: object
+
+  WSBlocksBroadcast:
+    x-private: true
+    type: object
+    required:
+      - block
+      - peer
+    properties:
+      block:
+        $ref: '#/definitions/ReducedBlock'
+      peer:
+        $ref: '#/definitions/Peer'

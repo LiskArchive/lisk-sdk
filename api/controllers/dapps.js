@@ -23,7 +23,7 @@ var modules;
  * Description of the function.
  *
  * @class
- * @memberof api/controllers
+ * @memberof api.controllers
  * @requires lodash
  * @param {Object} scope - App instance
  * @todo Add description of DappsController

@@ -53,6 +53,7 @@ JsonSchema.addRule('type', {
 	 * Description of the function.
 	 *
 	 * @func type_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @param {string} accept
 	 * @param {Object} value
 	 * @todo Add @returns tag
@@ -79,6 +80,7 @@ JsonSchema.addRule('default', {
 	 * Description of the function.
 	 *
 	 * @func default_filter
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @param {string} accept
 	 * @param {Object} value
 	 * @todo Add @returns tag
@@ -97,6 +99,7 @@ JsonSchema.addRule('enum', {
 	 * Description of the function.
 	 *
 	 * @func enum_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @param {string} accept
 	 * @param {Object} value
 	 * @todo Add @returns tag
@@ -114,6 +117,7 @@ JsonSchema.addRule('case', {
 	 * Description of the function.
 	 *
 	 * @func case_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @param {string} accept
 	 * @param {Object} value
 	 * @todo Add @returns tag
@@ -134,6 +138,7 @@ JsonSchema.addRule('minLength', {
 	 * Description of the function.
 	 *
 	 * @func minLength_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @param {string} accept
 	 * @param {Object} value
 	 * @todo Add @returns tag
@@ -149,6 +154,7 @@ JsonSchema.addRule('maxLength', {
 	 * Description of the function.
 	 *
 	 * @func maxLength_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @param {string} accept
 	 * @param {Object} value
 	 * @todo Add @returns tag
@@ -164,6 +170,7 @@ JsonSchema.addRule('pattern', {
 	 * Description of the function.
 	 *
 	 * @func pattern_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @param {string} accept
 	 * @param {Object} value
 	 * @todo Add @returns tag
@@ -184,6 +191,7 @@ JsonSchema.addRule('minimum', {
 	 * Description of the function.
 	 *
 	 * @func minimum_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @param {number} accept
 	 * @param {number} value
 	 * @param {Object} field
@@ -205,6 +213,7 @@ JsonSchema.addRule('maximum', {
 	 * Description of the function.
 	 *
 	 * @func maximum_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @param {number} accept
 	 * @param {number} value
 	 * @param {Object} field
@@ -226,6 +235,7 @@ JsonSchema.addRule('divisibleBy', {
 	 * Description of the function.
 	 *
 	 * @func divisibleBy_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @param {number} accept
 	 * @param {number} value
 	 * @todo Add @returns tag
@@ -243,6 +253,7 @@ JsonSchema.addRule('properties', {
 	 * Description of the function.
 	 *
 	 * @func properties_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @param {number} accept
 	 * @param {number} value
 	 * @todo Add @returns tag
@@ -328,6 +339,7 @@ JsonSchema.addRule('minProperties', {
 	 * Description of the function.
 	 *
 	 * @func minProperties_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @todo Add @returns tag and @param tags
 	 * @todo Add description for the function and the params
 	 */
@@ -341,6 +353,7 @@ JsonSchema.addRule('maxProperties', {
 	 * Description of the function.
 	 *
 	 * @func maxProperties_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @todo Add @returns tag and @param tags
 	 * @todo Add description for the function and the params
 	 */
@@ -354,6 +367,7 @@ JsonSchema.addRule('required', {
 	 * Description of the function.
 	 *
 	 * @func required_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @todo Add @returns tag and @param tags
 	 * @todo Add description for the function and the params
 	 */
@@ -381,6 +395,7 @@ JsonSchema.addRule('items', {
 	 * Description of the function.
 	 *
 	 * @func items_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @todo Add @returns tag and @param tags
 	 * @todo Add description for the function and the params
 	 */
@@ -430,6 +445,7 @@ JsonSchema.addRule('minItems', {
 	 * Description of the function.
 	 *
 	 * @func minItems_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @todo Add @returns tag and @param tags
 	 * @todo Add description for the function and the params
 	 */
@@ -443,6 +459,7 @@ JsonSchema.addRule('maxItems', {
 	 * Description of the function.
 	 *
 	 * @func maxItems_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @todo Add @returns tag and @param tags
 	 * @todo Add description for the function and the params
 	 */
@@ -456,6 +473,7 @@ JsonSchema.addRule('uniqueItems', {
 	 * Description of the function.
 	 *
 	 * @func uniqueItems_validate
+	 * @memberof helpers.json-schema.JsonSchema
 	 * @todo Add @returns tag and @param tags
 	 * @todo Add description for the function and the params
 	 */

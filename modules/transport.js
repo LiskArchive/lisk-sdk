@@ -16,7 +16,6 @@
 
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
-var bson = require('../helpers/bson.js');
 var constants = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failure_codes');
 var PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
@@ -44,7 +43,6 @@ __private.messages = {};
  * @requires api/ws/rpc/failure_codes
  * @requires api/ws/workers/rules
  * @requires api/ws/rpc/ws_rpc
- * @requires helpers/bson
  * @requires helpers/constants
  * @requires logic/broadcaster
  * @param {function} cb - Callback function
@@ -118,26 +116,17 @@ __private.removePeer = function(options, extraMessage) {
  * Validates signatures body and for each signature calls receiveSignature.
  *
  * @private
- * @implements {library.schema.validate}
  * @implements {__private.receiveSignature}
  * @param {Array} signatures - Array of signatures
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
  */
-__private.receiveSignatures = function(signatures, cb) {
-	async.eachSeries(
-		signatures,
-		(signature, eachSeriesCb) => {
-			__private.receiveSignature(signature, err => {
-				if (err) {
-					library.logger.debug(err, signature);
-				}
-
-				return setImmediate(eachSeriesCb);
-			});
-		},
-		err => setImmediate(cb, err)
-	);
+__private.receiveSignatures = function(signatures = []) {
+	signatures.forEach(signature => {
+		__private.receiveSignature(signature, err => {
+			if (err) {
+				library.logger.debug(err, signature);
+			}
+		});
+	});
 };
 
 /**
@@ -174,30 +163,22 @@ __private.receiveSignature = function(query, cb) {
  * @param {Array} transactions - Array of transactions
  * @param {peer} peer - Peer object
  * @param {string} extraLogMessage - Extra log message
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
  */
 __private.receiveTransactions = function(
-	transactions,
+	transactions = [],
 	peer,
-	extraLogMessage,
-	cb
+	extraLogMessage
 ) {
-	async.eachSeries(
-		transactions,
-		(transaction, eachSeriesCb) => {
-			if (transaction) {
-				transaction.bundled = true;
+	transactions.forEach(transaction => {
+		if (transaction) {
+			transaction.bundled = true;
+		}
+		__private.receiveTransaction(transaction, peer, extraLogMessage, err => {
+			if (err) {
+				library.logger.debug(err, transaction);
 			}
-			__private.receiveTransaction(transaction, peer, extraLogMessage, err => {
-				if (err) {
-					library.logger.debug(err, transaction);
-				}
-				return setImmediate(eachSeriesCb);
-			});
-		},
-		err => setImmediate(cb, err)
-	);
+		});
+	});
 };
 
 /**
@@ -549,30 +530,34 @@ Transport.prototype.shared = {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	postBlock(query, cb) {
+	postBlock(query) {
 		query = query || {};
-		var block;
-		try {
-			if (query.block) {
-				query.block = bson.deserialize(Buffer.from(query.block));
-				block = modules.blocks.verify.addBlockProperties(query.block);
+		library.schema.validate(query, definitions.WSBlocksBroadcast, err => {
+			if (err) {
+				return library.logger.debug(
+					'Received post block broadcast request in unexpected format',
+					{
+						err,
+						module: 'transport',
+						query,
+					}
+				);
 			}
-			block = library.logic.block.objectNormalize(block);
-		} catch (e) {
-			library.logger.debug('Block normalization failed', {
-				err: e.toString(),
-				module: 'transport',
-				block: query.block,
-			});
+			let block;
+			try {
+				block = modules.blocks.verify.addBlockProperties(query.block);
+				block = library.logic.block.objectNormalize(block);
+			} catch (e) {
+				library.logger.debug('Block normalization failed', {
+					err: e.toString(),
+					module: 'transport',
+					block: query.block,
+				});
 
-			__private.removePeer({ peer: query.peer, code: 'EBLOCK' });
-
-			return setImmediate(cb, e.toString());
-		}
-
-		library.bus.message('receiveBlock', block);
-
-		return setImmediate(cb, null, { success: true, blockId: block.id });
+				__private.removePeer({ peer: query.peer, code: 'EBLOCK' });
+			}
+			library.bus.message('receiveBlock', block);
+		});
 	},
 
 	/**
@@ -653,20 +638,12 @@ Transport.prototype.shared = {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	postSignatures(query, cb) {
+	postSignatures(query) {
 		library.schema.validate(query, definitions.WSSignaturesList, err => {
 			if (err) {
-				return setImmediate(cb, null, {
-					success: false,
-					message: 'Invalid signatures body',
-				});
+				return library.logger.debug('Invalid signatures body', err);
 			}
-			__private.receiveSignatures(query.signatures, err => {
-				if (err) {
-					return setImmediate(cb, null, { success: false, message: err });
-				}
-				return setImmediate(cb, null, { success: true });
-			});
+			__private.receiveSignatures(query.signatures);
 		});
 	},
 
@@ -748,24 +725,15 @@ Transport.prototype.shared = {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	postTransactions(query, cb) {
+	postTransactions(query) {
 		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {
-				return setImmediate(cb, null, {
-					success: false,
-					message: 'Invalid transactions body',
-				});
+				return library.logger.debug('Invalid transactions body', err);
 			}
 			__private.receiveTransactions(
 				query.transactions,
 				query.peer,
-				query.extraLogMessage,
-				err => {
-					if (err) {
-						return setImmediate(cb, null, { success: false, message: err });
-					}
-					return setImmediate(cb, null, { success: true });
-				}
+				query.extraLogMessage
 			);
 		});
 	},

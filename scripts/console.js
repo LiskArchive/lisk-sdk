@@ -67,32 +67,12 @@ application.init(
 	{}
 );
 
-/**
- * Event reporting an uncaughtException.
- * @event uncaughtException
- */
-/**
- * Receives a 'uncaughtException' signal and emits a cleanup.
- * @listens uncaughtException
- */
 process.on('uncaughtException', err => {
 	// Handle error safely
 	console.error('System error', { message: err.message, stack: err.stack });
-	/**
-	 * emits cleanup once 'uncaughtException'.
-	 * @emits cleanup
-	 */
 	process.emit('cleanup');
 });
 
-/**
- * Event reporting an unhandledRejection.
- * @event unhandledRejection
- */
-/**
- * Receives a 'unhandledRejection' signal and emits a cleanup.
- * @listens unhandledRejection
- */
 process.on('unhandledRejection', (reason, p) => {
 	console.warn('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });

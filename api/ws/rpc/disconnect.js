@@ -11,8 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/**
- * Functional Module `transactions`
- *
- * @module transactions
- */
+
+'use strict';
+
+const disconnect = peer => {
+	if (peer.socket) {
+		peer.socket.disconnect();
+	}
+	return peer;
+};
+
+module.exports = disconnect;

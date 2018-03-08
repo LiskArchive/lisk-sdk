@@ -22,6 +22,7 @@ propose changes to this document in a pull request.
 1. [Styleguides](#styleguides)
    1. [Git Commit Messages](#git-commit-messages)
    1. [JavaScript Styleguide](#javascript-styleguide)
+   1. [Code Documentation Styleguide](#code-documentation-styleguide)
 
 ## Code of Conduct
 
@@ -244,6 +245,53 @@ On Lisk we are using [Prettier](https://prettier.io/) and
 [Airbnb’s](https://github.com/airbnb/javascript) style settings and expresses
 some opinions not covered by Prettier’s formatting concerns. You can get more
 details here: https://github.com/LiskHQ/eslint-config-lisk-base
+
+### Code Documentation Styleguide
+
+For code documentation, we use [JSDoc](http://usejsdoc.org/).
+With JSDoc you can generate a static HTML documentation site.
+To build the documentation site, run the following command:
+
+```
+npm run docs:build
+```
+
+To host the documentation site (e.g. for easy access via a browser), use the following command:
+
+```
+npm run docs:serve
+```
+
+If you add or change code, please always provide or update the corresponding code documentation.
+
+**Always mandatory:** A general description of what the code is doing.
+If tags follow, leave a blank line between the description and the tags.
+
+**Tags to use:**
+
+| Tag          | When to use                                                                             |
+| ------------ | --------------------------------------------------------------------------------------- |
+| `@class`     | Describes the constructor of a class.                                                   |
+| `@event`     | Describes an event, that the app is listening to.                                       |
+| `@example`   | If convenient, provide an example.                                                      |
+| `@func`      | Only if JSDoc does not recognize the code as a function, but it is one.                 |
+| `@link`      | Adds internal or external inline links.                                                 |
+| `@memberof`  | Describes child-parent hierarchies. Usable for code tagged as `@class` or `@namespace`. |
+| `@module`    | When a module is exported and it is not a `@class`.                                     |
+| `@namespace` | Describes a parent folder or object.                                                    |
+| `@param`     | **Required** for each parameter of a function.                                          |
+| `@private`   | For private functions.                                                                  |
+| `@property`  | Describes the property of an object.                                                    |
+| `@requires`  | Describes the modules required by a class or module.                                    |
+| `@returns`   | **Required** for all functions with an explicit return statement.                       |
+| `@see`       | Adds additional information, e.g. about the parent.                                     |
+| `@throws`    | When an error can be thrown.                                                            |
+| `@todo`      | If there are open todos for the following code.                                         |
+| `@typedef`   | For defining custom types to be used in other JSDoc blocks.                             |
+
+For examples please have a look in the existing code.
+
+---
 
 These contribution guidelines were inspired by and are based on Atom’s
 contribution guidelines. They were modified for the purposes of this repository.
