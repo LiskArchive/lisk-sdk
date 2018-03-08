@@ -20,7 +20,7 @@ import {
 } from 'transactions/utils';
 // The list of valid transactions was created with lisk-js 0.5.1
 // using the below mentioned passphrases.
-import validTransactions from './transactions.json';
+import validTransactions from '../../../fixtures/transactions.json';
 
 const getTransactionHash = require('transactions/utils/getTransactionHash');
 
