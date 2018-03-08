@@ -67,7 +67,7 @@ describe('Lisk API module', () => {
 		});
 
 		it('should set node string by default', () => {
-			return LSK.should.have.property('node').and.be.a('string');
+			return LSK.should.have.property('currentNode').and.be.a('string');
 		});
 
 		describe('with option testnet true', () => {
@@ -156,7 +156,7 @@ describe('Lisk API module', () => {
 
 			it('should set node to provided node on initialization when passed as an option', () => {
 				LSK = new LiskAPI({ node: defaultUrl });
-				return LSK.should.have.property('node').be.equal(defaultUrl);
+				return LSK.should.have.property('currentNode').be.equal(defaultUrl);
 			});
 		});
 
@@ -382,20 +382,20 @@ describe('Lisk API module', () => {
 	});
 
 	describe('#banActiveNode', () => {
-		let node;
+		let currentNode;
 
 		beforeEach(() => {
-			({ node } = LSK);
+			({ currentNode } = LSK);
 			return Promise.resolve();
 		});
 
 		it('should add current node to banned nodes', () => {
 			LSK.banActiveNode();
-			return LSK.isBanned(node).should.be.true;
+			return LSK.isBanned(currentNode).should.be.true;
 		});
 
 		it('should not duplicate a banned node', () => {
-			const bannedNodes = [node];
+			const bannedNodes = [currentNode];
 			LSK.bannedNodes = bannedNodes;
 			LSK.banActiveNode();
 
@@ -404,11 +404,11 @@ describe('Lisk API module', () => {
 	});
 
 	describe('#banActiveNodeAndSelect', () => {
-		let node;
+		let currentNode;
 		let selectNewNodeStub;
 
 		beforeEach(() => {
-			({ node } = LSK);
+			({ currentNode } = LSK);
 			selectNewNodeStub = sandbox
 				.stub(LSK, 'selectNewNode')
 				.returns(defaultSelectedNode);
@@ -417,7 +417,7 @@ describe('Lisk API module', () => {
 
 		it('should call ban current node', () => {
 			LSK.banActiveNodeAndSelect();
-			return LSK.isBanned(node).should.be.true;
+			return LSK.isBanned(currentNode).should.be.true;
 		});
 
 		it('should call selectNewNode when the node is banned', () => {
@@ -426,7 +426,7 @@ describe('Lisk API module', () => {
 		});
 
 		it('should not call selectNewNode when the node is not banned', () => {
-			const bannedNodes = [node];
+			const bannedNodes = [currentNode];
 			LSK.bannedNodes = bannedNodes;
 			LSK.banActiveNodeAndSelect();
 			return selectNewNodeStub.should.not.be.called;
@@ -497,7 +497,7 @@ describe('Lisk API module', () => {
 		});
 
 		it('should show the current node', () => {
-			return nodes.should.have.property('current').equal(LSK.node);
+			return nodes.should.have.property('current').equal(LSK.currentNode);
 		});
 
 		it('should list all default nodes', () => {

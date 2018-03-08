@@ -49,14 +49,14 @@ export default class LiskAPI {
 				: this.getDefaultPort();
 		this.randomizeNodes = options.randomizeNodes !== false;
 		this.providedNode = options.node || null;
-		this.node = options.node || this.selectNewNode();
+		this.currentNode = options.node || this.selectNewNode();
 		this.headers = this.getDefaultHeaders(nethash);
 
 		this.accounts = new resources.AccountsResource(this);
 		this.blocks = new resources.BlocksResource(this);
 		this.dapps = new resources.DappsResource(this);
 		this.delegates = new resources.DelegatesResource(this);
-		this.nodes = new resources.NodesResource(this);
+		this.node = new resources.NodeResource(this);
 		this.peers = new resources.PeersResource(this);
 		this.signatures = new resources.SignaturesResource(this);
 		this.transactions = new resources.TransactionsResource(this);
@@ -66,7 +66,7 @@ export default class LiskAPI {
 
 	get allNodes() {
 		return {
-			current: this.node,
+			current: this.currentNode,
 			default: this.defaultNodes,
 			testnet: this.defaultTestnetNodes,
 		};
@@ -84,7 +84,9 @@ export default class LiskAPI {
 	}
 
 	get nodeFullURL() {
-		const nodeUrl = this.port ? `${this.node}:${this.port}` : this.node;
+		const nodeUrl = this.port
+			? `${this.currentNode}:${this.port}`
+			: this.currentNode;
 		return `${this.urlProtocol}://${nodeUrl}`;
 	}
 
@@ -148,8 +150,8 @@ export default class LiskAPI {
 	}
 
 	banActiveNode() {
-		if (!this.isBanned(this.node)) {
-			this.bannedNodes.push(this.node);
+		if (!this.isBanned(this.currentNode)) {
+			this.bannedNodes.push(this.currentNode);
 			return true;
 		}
 		return false;
@@ -158,7 +160,7 @@ export default class LiskAPI {
 	banActiveNodeAndSelect() {
 		const banned = this.banActiveNode();
 		if (banned) {
-			this.node = this.selectNewNode();
+			this.currentNode = this.selectNewNode();
 		}
 		return banned;
 	}

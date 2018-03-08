@@ -14,11 +14,11 @@
  */
 
 import APIResource from 'api/apiResource';
-import NodeResource from 'api/resources/nodes';
+import NodeResource from 'api/resources/node';
 
-describe('NodesResource', () => {
+describe('NodeResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/nodes';
+	const path = '/node';
 
 	let LiskAPI;
 	let resource;
@@ -46,9 +46,7 @@ describe('NodesResource', () => {
 		});
 
 		it('should have correcrt full path', () => {
-			return resource.resourcePath.should.eql(
-				`${defaultBasePath}/api${path}`,
-			);
+			return resource.resourcePath.should.eql(`${defaultBasePath}/api${path}`);
 		});
 
 		it('should set resource path', () => {

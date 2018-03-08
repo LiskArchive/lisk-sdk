@@ -17,10 +17,10 @@ import { GET, PUT } from 'constants';
 import apiMethod from '../apiMethod';
 import APIResource from '../apiResource';
 
-export default class NodesResource extends APIResource {
+export default class NodeResource extends APIResource {
 	constructor(liskAPI) {
 		super(liskAPI);
-		this.path = '/nodes';
+		this.path = '/node';
 
 		this.getConstants = apiMethod({
 			method: GET,
