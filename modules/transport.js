@@ -377,7 +377,10 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 						peer.rpc.updateMyself(library.logic.peers.me(), err => {
 							if (err) {
 								library.logger.debug('Failed to notify peer about self', err);
-								__private.removePeer({ nonce: peer.nonce, code: 'ECOMMUNICATION' });
+								__private.removePeer({
+									nonce: peer.nonce,
+									code: 'ECOMMUNICATION',
+								});
 							} else {
 								library.logger.debug(
 									'Successfully notified peer about self',
@@ -477,8 +480,6 @@ Transport.prototype.shared = {
 						err: 'ESCAPE',
 						req: query.ids,
 					});
-
-					__private.removePeer({ nonce: query.peer.nonce, code: 'ECOMMON' });
 
 					return setImmediate(cb, 'Invalid block id sequence');
 				}
@@ -704,7 +705,7 @@ Transport.prototype.shared = {
 	postTransaction(query, cb) {
 		__private.receiveTransaction(
 			query.transaction,
-			query.peer,
+			query.nonce,
 			query.extraLogMessage,
 			(err, id) => {
 				if (err) {
@@ -732,7 +733,7 @@ Transport.prototype.shared = {
 			}
 			__private.receiveTransactions(
 				query.transactions,
-				query.peer,
+				query.nonce,
 				query.extraLogMessage
 			);
 		});
