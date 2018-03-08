@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2016–2018 Lisk Foundation
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -217,7 +217,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 export function aCopyrightInformationText() {
 	this.test.ctx.copyright = `
-Lisk Commander  Copyright (C) 2016–2018  Lisk Foundation
+Lisk Commander  Copyright (C) 2017–2018  Lisk Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

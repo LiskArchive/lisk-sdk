@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2016–2018 Lisk Foundation
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -34,7 +34,7 @@ fs.readdirSync(commandsDir).forEach(command => {
 	liskCommander.use(commandModule.default);
 });
 
-const copyright = chalk.dim(`Lisk Commander  Copyright (C) 2016–2018  Lisk Foundation
+const copyright = chalk.dim(`Lisk Commander  Copyright (C) 2017–2018  Lisk Foundation
 This program comes with ABSOLUTELY NO WARRANTY; for details type \`show w\`.
 This is free software, and you are welcome to redistribute it under certain conditions; type \`show c\` for details.
 `);

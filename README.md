@@ -41,11 +41,11 @@ npm run build
 
 WARNING: If you have installed Lisk Commander globally via NPM (see [Install Lisk Commander via NPM](docs:lisk-commander-installation-npm)), following the instructions in this section is not recommended as they will introduce conflicts.
 
-If you would like to add the `lisk-commander` executable to your PATH you have two options: option 1 will install the current state of the code you are installing globally, while option 2 will only link to the code and therefore automatically reflect changes you make going forward.
+If you would like to add the `lisk` executable to your PATH you have two options: option 1 will install the current state of the code you are installing globally, while option 2 will only link to the code and therefore automatically reflect changes you make going forward.
 
 ##### 1. Install globally
 
-Running this command from within the repository will add Lisk Commander to your global NPM packages, and add the `lisk-commander` executable to your PATH. Be aware that any previous globally installed Lisk Commander version will get overridden with this local version.
+Running this command from within the repository will add Lisk Commander to your global NPM packages, and add the `lisk` executable to your PATH. Be aware that any previous globally installed Lisk Commander version will get overridden with this local version.
 
 ```sh
 $ npm install --global --production
@@ -61,7 +61,7 @@ The other option is to ask NPM to create a symlink in the global folder that lin
 $ npm link
 ```
 
-This will also add `lisk-commander` to your PATH, but you won't have to repeat the process if you pull or create a new build. Be aware that any previous globally installed Lisk Commander version will get overridden with this local version.
+This will also add `lisk` to your PATH, but you won't have to repeat the process if you pull or create a new build. Be aware that any previous globally installed Lisk Commander version will get overridden with this local version.
 
 ## Usage
 
@@ -70,7 +70,7 @@ This will also add `lisk-commander` to your PATH, but you won't have to repeat t
 To run commands interactively:
 
 ```sh
-$ lisk-commander
+$ lisk
  _      _     _       _____                                          _
 | |    (_)   | |     / ____|                                        | |
 | |     _ ___| | __ | |     ___  _ __ ___  _ __ ___   __ _ _ __   __| | ___ _ __
@@ -81,7 +81,7 @@ $ lisk-commander
 Running v0.3.0.
 Type `help` to get started.
 
-lisk-commander> help
+lisk> help
 
   Commands:
 
@@ -98,7 +98,7 @@ lisk-commander> help
                                          E.g. list blocks 5510510593472232540 16450842638530591789
     set <variable> <value>               Set configuration <variable> to <value>. Configuration is
                                          persisted in `~/.lisk-commander/config.json`.
-lisk-commander>
+lisk>
 ```
 
 ### Non-interactive use
@@ -106,7 +106,7 @@ lisk-commander>
 To run commands and options directly from the command line:
 
 ```sh
-$ lisk-commander get delegate lightcurve --json
+$ lisk get delegate lightcurve --json
 ```
 
 ## Settings
@@ -181,7 +181,7 @@ https://github.com/LiskHQ/lisk-commander/graphs/contributors
 
 ## License
 
-Copyright © 2016–2018 Lisk Foundation
+Copyright © 2017–2018 Lisk Foundation
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
