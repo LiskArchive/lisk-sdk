@@ -12,109 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const utils = require('api/utils');
+import { toQueryString, solveURLParams } from 'api/utils';
 
 describe('api utils module', () => {
-	const POST = 'POST';
-	const defaultMethod = POST;
-	const defaultEndpoint = 'transactions';
-	const defaultPort = 7000;
-
-	let LSK;
-	let sendRequestResult;
-
-	beforeEach(() => {
-		sendRequestResult = { success: true, sendRequest: true };
-		LSK = {
-			port: defaultPort,
-			sendRequest: sandbox.stub().resolves(sendRequestResult),
-		};
-	});
-
-	describe('#netHashOptions', () => {
-		const { netHashOptions } = utils;
-		let result;
-
-		beforeEach(() => {
-			result = netHashOptions({ port: defaultPort });
-		});
-
-		it('should return an object with a testnet nethash', () => {
-			const { testnet } = result;
-			testnet.should.have.property('Content-Type').and.be.a('string');
-			testnet.should.have.property('nethash').and.be.a('string');
-			testnet.should.have.property('broadhash').and.be.a('string');
-			testnet.should.have.property('os').and.be.a('string');
-			testnet.should.have.property('version').and.be.a('string');
-			testnet.should.have.property('minVersion').and.be.a('string');
-			return testnet.should.have.property('port').and.be.a('number');
-		});
-		it('should return an object with a mainnet nethash', () => {
-			const { mainnet } = result;
-			mainnet.should.have.property('Content-Type').and.be.a('string');
-			mainnet.should.have.property('nethash').and.be.a('string');
-			mainnet.should.have.property('broadhash').and.be.a('string');
-			mainnet.should.have.property('os').and.be.a('string');
-			mainnet.should.have.property('version').and.be.a('string');
-			mainnet.should.have.property('minVersion').and.be.a('string');
-			return mainnet.should.have.property('port').and.be.a('number');
-		});
-	});
-
-	describe('#getURLPrefix', () => {
-		const { getURLPrefix } = utils;
-
-		it('should return http when ssl is set to false', () => {
-			const ssl = false;
-			const result = getURLPrefix({ ssl });
-			return result.should.be.equal('http');
-		});
-
-		it('should return https when ssl is set to true', () => {
-			const ssl = true;
-			const result = getURLPrefix({ ssl });
-			return result.should.be.equal('https');
-		});
-	});
-
-	describe('#getFullURL', () => {
-		const { getFullURL } = utils;
-		const URLPrefix = 'ftp';
-
-		let getURLPrefixStub;
-		let restoreGetURLPrefixStub;
-		let result;
-
-		beforeEach(() => {
-			getURLPrefixStub = sandbox.stub().returns(URLPrefix);
-			// eslint-disable-next-line no-underscore-dangle
-			restoreGetURLPrefixStub = utils.__set__('getURLPrefix', getURLPrefixStub);
-			result = getFullURL(LSK);
-		});
-
-		afterEach(() => {
-			restoreGetURLPrefixStub();
-		});
-
-		it('should get the URL prefix', () => {
-			const { ssl } = LSK;
-			return getURLPrefixStub.should.be.calledWithExactly({ ssl });
-		});
-
-		it('should add the prefix to the node URL and the port', () => {
-			return result.should.equal(`${URLPrefix}://${LSK.node}:${defaultPort}`);
-		});
-
-		it('should not include a port if not set', () => {
-			delete LSK.port;
-			result = getFullURL(LSK);
-			return result.should.equal(`${URLPrefix}://${LSK.node}`);
-		});
-	});
+	const defaultURL = 'http://localhost:8080/api/resources';
 
 	describe('#toQueryString', () => {
-		const { toQueryString } = utils;
-
 		it('should create a query string from an object', () => {
 			const queryString = toQueryString({
 				key1: 'value1',
@@ -132,96 +35,46 @@ describe('api utils module', () => {
 		});
 	});
 
-	describe('#checkOptions', () => {
-		const { checkOptions } = utils;
-		const goodOptions = {
-			key1: 'value 1',
-			key2: 2,
-		};
-
-		it('should throw an error if any option is undefined', () => {
-			const optionsWithUndefined = Object.assign(
-				{
-					badKey: undefined,
-				},
-				goodOptions,
-			);
-
-			return checkOptions
-				.bind(null, optionsWithUndefined)
-				.should.throw('"badKey" option should not be undefined');
+	describe('#solveURLParams', () => {
+		it('should return original URL with no param', () => {
+			const solvedURL = solveURLParams(defaultURL);
+			return solvedURL.should.be.equal(defaultURL);
 		});
 
-		it('should throw an error if any option is NaN', () => {
-			const optionsWithNaN = Object.assign(
-				{
-					badKey: NaN,
-				},
-				goodOptions,
-			);
-
-			return checkOptions
-				.bind(null, optionsWithNaN)
-				.should.throw('"badKey" option should not be NaN');
+		it('should throw error if url has variable but no param', () => {
+			return solveURLParams
+				.bind(null, `${defaultURL}/{id}`)
+				.should.throw(Error, 'URL is not completely solved');
 		});
 
-		it('should return the options if they are all ok', () => {
-			const result = checkOptions(Object.assign({}, goodOptions));
-			return result.should.be.eql(goodOptions);
+		it('should throw error if url has variable but not matching params', () => {
+			return solveURLParams
+				.bind(null, `${defaultURL}/{id}`, { accountId: '123' })
+				.should.throw(Error, 'URL is not completely solved');
 		});
 
-		it('should have a default empty object when passed undefined', () => {
-			const options = {};
-			const result = checkOptions(undefined);
-			return result.should.be.eql(options);
-		});
-	});
-
-	describe('#wrapSendRequest', () => {
-		const { wrapSendRequest } = utils;
-		const value = '123';
-
-		let options;
-		let getDataFnResult;
-		let getDataFnStub;
-		let returnedFunction;
-
-		beforeEach(() => {
-			options = {
-				key1: 'value 1',
-				key2: 2,
-			};
-			getDataFnResult = {
-				key3: 'value3',
-				key4: 4,
-			};
-			getDataFnStub = sandbox
-				.stub()
-				.returns(Object.assign({}, getDataFnResult));
-
-			returnedFunction = wrapSendRequest(
-				defaultMethod,
-				defaultEndpoint,
-				getDataFnStub,
-			);
-		});
-
-		it('should return a function', () => {
-			return returnedFunction.should.be.a('function');
-		});
-
-		describe('returned function', () => {
-			it('should call the provided getData function on the provided value and options', () => {
-				return returnedFunction.call(LSK, value, options).then(() => {
-					getDataFnStub.should.be.calledWithExactly(value, options);
-				});
+		it('should replace variable with correct id', () => {
+			const solvedURL = solveURLParams(`${defaultURL}/{id}`, {
+				id: '456',
+				accountId: '123',
 			});
+			return solvedURL.should.be.equal(`${defaultURL}/456`);
+		});
 
-			it('should return the result of the sent request', () => {
-				return returnedFunction.call(LSK, value).then(result => {
-					result.should.be.eql(sendRequestResult);
-				});
+		it('should replace multiple variables with correct id and accountId', () => {
+			const solvedURL = solveURLParams(`${defaultURL}/{accountId}/{id}`, {
+				id: '456',
+				accountId: '123',
 			});
+			return solvedURL.should.be.equal(`${defaultURL}/123/456`);
+		});
+
+		it('should replace variable with correct id and encode special characters', () => {
+			const solvedURL = solveURLParams(`${defaultURL}/{id}`, {
+				id: '456ß1234sd',
+				accountId: '123',
+			});
+			return solvedURL.should.be.equal(`${defaultURL}/456%C3%9F1234sd`);
 		});
 	});
 });
