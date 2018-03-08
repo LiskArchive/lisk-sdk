@@ -54,7 +54,6 @@ __private.retries = 5;
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
  */
-// Constructor
 class Loader {
 	constructor(cb, scope) {
 		library = {

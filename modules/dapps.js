@@ -59,7 +59,6 @@ __private.assetTypes = {};
  * @todo Apply node pattern for callbacks: callback always at the end
  * @todo Add 'use strict';
  */
-// Constructor
 class DApps {
 	constructor(cb, scope) {
 		library = {

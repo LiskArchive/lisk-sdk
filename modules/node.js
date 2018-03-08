@@ -38,7 +38,6 @@ let loaded;
  * @param {setImmediateCallback} cb - Callback function
  * @param {scope} scope - App instance
  */
-// Constructor
 class Node {
 	constructor(cb, scope) {
 		library = {

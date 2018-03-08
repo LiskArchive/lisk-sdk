@@ -59,7 +59,6 @@ __private.forgeInterval = 1000;
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, self
  */
-// Constructor
 class Delegates {
 	constructor(cb, scope) {
 		library = {

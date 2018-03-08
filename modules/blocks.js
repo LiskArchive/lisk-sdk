@@ -51,7 +51,6 @@ __private.isActive = false;
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, err, self
  */
-// Constructor
 class Blocks {
 	constructor(cb, scope) {
 		library = {
