@@ -16,7 +16,6 @@
 
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
-var bson = require('../helpers/bson.js');
 var constants = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failure_codes');
 var PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
@@ -44,7 +43,6 @@ __private.messages = {};
  * @requires api/ws/rpc/failure_codes
  * @requires api/ws/workers/rules
  * @requires api/ws/rpc/ws_rpc
- * @requires helpers/bson
  * @requires helpers/constants
  * @requires logic/broadcaster
  * @param {function} cb - Callback function
@@ -221,34 +219,28 @@ __private.receiveTransaction = function(
 		return setImmediate(cb, `Invalid transaction body - ${e.toString()}`);
 	}
 
-	library.balancesSequence.add(cb => {
-		if (!peer) {
-			library.logger.debug(
-				`Received transaction ${transaction.id} from public client`
-			);
-		} else {
-			library.logger.debug(
-				`Received transaction ${
-					transaction.id
-				} from peer ${library.logic.peers.peersManager.getAddress(peer.nonce)}`
-			);
-		}
-		modules.transactions.processUnconfirmedTransaction(
-			transaction,
-			true,
-			err => {
-				if (err) {
-					library.logger.debug(['Transaction', id].join(' '), err.toString());
-					if (transaction) {
-						library.logger.debug('Transaction', transaction);
-					}
-
-					return setImmediate(cb, err.toString());
-				}
-				return setImmediate(cb, null, transaction.id);
-			}
+	if (!peer) {
+		library.logger.debug(
+			`Received transaction ${transaction.id} from public client`
 		);
-	}, cb);
+	} else {
+		library.logger.debug(
+			`Received transaction ${
+				transaction.id
+			} from peer ${library.logic.peers.peersManager.getAddress(peer.nonce)}`
+		);
+	}
+	modules.transactions.processUnconfirmedTransaction(transaction, true, err => {
+		if (err) {
+			library.logger.debug(['Transaction', id].join(' '), err.toString());
+			if (transaction) {
+				library.logger.debug('Transaction', transaction);
+			}
+
+			return setImmediate(cb, err.toString());
+		}
+		return setImmediate(cb, null, transaction.id);
+	});
 };
 
 // Public methods
@@ -535,7 +527,7 @@ Transport.prototype.shared = {
 	postBlock(query) {
 		query = query || {};
 		library.schema.validate(query, definitions.WSBlocksBroadcast, err => {
-			if (err || !query.block.base64) {
+			if (err) {
 				return library.logger.debug(
 					'Received post block broadcast request in unexpected format',
 					{
@@ -547,7 +539,6 @@ Transport.prototype.shared = {
 			}
 			let block;
 			try {
-				query.block = bson.deserialize(Buffer.from(query.block.data, 'base64'));
 				block = modules.blocks.verify.addBlockProperties(query.block);
 				block = library.logic.block.objectNormalize(block);
 			} catch (e) {
