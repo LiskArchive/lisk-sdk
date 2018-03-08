@@ -20,22 +20,22 @@ describe('NodeResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/node';
 
-	let LiskAPI;
+	let liskAPI;
 	let resource;
 
 	beforeEach(() => {
-		LiskAPI = {
+		liskAPI = {
 			headers: {},
 			nodeFullURL: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new NodeResource(LiskAPI);
+		resource = new NodeResource(liskAPI);
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without LiskAPI input', () => {
+		it('should throw error without liskAPI input', () => {
 			return (() => new NodeResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
@@ -45,7 +45,7 @@ describe('NodeResource', () => {
 			return resource.should.be.instanceOf(APIResource);
 		});
 
-		it('should have correcrt full path', () => {
+		it('should have correct full path', () => {
 			return resource.resourcePath.should.eql(`${defaultBasePath}/api${path}`);
 		});
 
@@ -53,16 +53,32 @@ describe('NodeResource', () => {
 			return resource.path.should.equal(path);
 		});
 
-		it('should have methods', () => {
-			return resource.should.have.keys(
-				'liskAPI',
-				'path',
-				'getConstants',
-				'getStatus',
-				'getTransactions',
-				'getForgingStatus',
-				'updateForgingStatus',
-			);
+		it('should have a "getConstants" function', () => {
+			return resource.should.have
+				.property('getConstants')
+				.which.is.a('function');
+		});
+
+		it('should have a "getStatus" function', () => {
+			return resource.should.have.property('getStatus').which.is.a('function');
+		});
+
+		it('should have a "getTransactions" function', () => {
+			return resource.should.have
+				.property('getTransactions')
+				.which.is.a('function');
+		});
+
+		it('should have a "getForgingStatus" function', () => {
+			return resource.should.have
+				.property('getForgingStatus')
+				.which.is.a('function');
+		});
+
+		it('should have a "updateForgingStatus" function', () => {
+			return resource.should.have
+				.property('getForgingStatus')
+				.which.is.a('function');
 		});
 	});
 });

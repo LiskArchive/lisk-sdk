@@ -20,23 +20,23 @@ describe('SignaturesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/signatures';
 
-	let LiskAPI;
+	let liskAPI;
 	let resource;
 
 	beforeEach(() => {
-		LiskAPI = {
+		liskAPI = {
 			headers: {},
 			nodeFullURL: defaultBasePath,
 			hasAvailableSignatures: () => {},
 			randomizeSignatures: () => {},
 			banActiveSignatureAndSelect: () => {},
 		};
-		resource = new SignatureResource(LiskAPI);
+		resource = new SignatureResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without LiskAPI input', () => {
+		it('should throw error without liskAPI input', () => {
 			return (() => new SignatureResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
@@ -54,8 +54,8 @@ describe('SignaturesResource', () => {
 			return resource.path.should.equal(path);
 		});
 
-		it('should have methods', () => {
-			return resource.should.have.keys('liskAPI', 'path', 'create');
+		it('should have a "create" function', () => {
+			return resource.should.have.property('create').which.is.a('function');
 		});
 	});
 });

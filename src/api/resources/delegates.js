@@ -29,7 +29,7 @@ export default class DelegatesResource extends APIResource {
 		this.getStandby = apiMethod({
 			method: GET,
 			defaultData: {
-				orderBy: 'rate:asc',
+				sort: 'rate:asc',
 				offset: 101,
 			},
 		}).bind(this);

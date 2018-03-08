@@ -20,23 +20,23 @@ describe('TransactionsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/transactions';
 
-	let LiskAPI;
+	let liskAPI;
 	let resource;
 
 	beforeEach(() => {
-		LiskAPI = {
+		liskAPI = {
 			headers: {},
 			nodeFullURL: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new TransactionResource(LiskAPI);
+		resource = new TransactionResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without LiskAPI input', () => {
+		it('should throw error without liskAPI input', () => {
 			return (() => new TransactionResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
@@ -54,8 +54,12 @@ describe('TransactionsResource', () => {
 			return resource.path.should.equal(path);
 		});
 
-		it('should have methods', () => {
-			return resource.should.have.keys('liskAPI', 'path', 'get', 'create');
+		it('should have a "get" function', () => {
+			return resource.should.have.property('get').which.is.a('function');
+		});
+
+		it('should have a "create" function', () => {
+			return resource.should.have.property('create').which.is.a('function');
 		});
 	});
 });

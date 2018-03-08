@@ -20,22 +20,22 @@ describe('PeersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/peers';
 
-	let LiskAPI;
+	let liskAPI;
 	let resource;
 
 	beforeEach(() => {
-		LiskAPI = {
+		liskAPI = {
 			headers: {},
 			nodeFullURL: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new PeerResource(LiskAPI);
+		resource = new PeerResource(liskAPI);
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without LiskAPI input', () => {
+		it('should throw error without liskAPI input', () => {
 			return (() => new PeerResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
@@ -45,18 +45,16 @@ describe('PeersResource', () => {
 			return resource.should.be.instanceOf(APIResource);
 		});
 
-		it('should have correcrt full path', () => {
-			return resource.resourcePath.should.eql(
-				`${defaultBasePath}/api${path}`,
-			);
+		it('should have correct full path', () => {
+			return resource.resourcePath.should.eql(`${defaultBasePath}/api${path}`);
 		});
 
 		it('should set resource path', () => {
 			return resource.path.should.equal(path);
 		});
 
-		it('should have methods', () => {
-			return resource.should.have.keys('liskAPI', 'path', 'get');
+		it('should have a "get" function', () => {
+			return resource.should.have.property('get').which.is.a('function');
 		});
 	});
 });
