@@ -71,6 +71,9 @@ function Transport(cb, scope) {
 			forging: {
 				force: scope.config.forging.force,
 			},
+			broadcasts: {
+				on: scope.config.broadcasts.on,
+			},
 		},
 	};
 	self = this;
@@ -525,6 +528,9 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postBlock(query) {
+		if (!library.config.broadcaster.on) {
+			return library.logger.debug('Receiving blocks disabled by user through config.json');
+		}
 		query = query || {};
 		library.schema.validate(query, definitions.WSBlocksBroadcast, err => {
 			if (err) {
@@ -617,6 +623,9 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postSignature(query, cb) {
+		if (!library.config.broadcaster.on) {
+			return library.logger.debug('Receiving signatures disabled by user through config.json');
+		}
 		__private.receiveSignature(query.signature, err => {
 			if (err) {
 				return setImmediate(cb, null, { success: false, message: err });
@@ -720,6 +729,9 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postTransactions(query) {
+		if (!library.config.broadcaster.on) {
+			return library.logger.debug('Receiving transactions disabled by user through config.json');
+		}
 		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {
 				return library.logger.debug('Invalid transactions body', err);
