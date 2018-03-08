@@ -17,17 +17,17 @@ import { GET } from 'constants';
 import { solveURLParams, toQueryString } from './utils';
 
 // Bind to resource class
-const apiMethod = (params = {}) => {
-	const {
+const apiMethod = (
+	{
 		method = GET,
 		path = '',
 		urlParams = [],
 		validator = null,
 		defaultData = {},
 		retry = false,
-	} = params;
-
-	return function apiHandler(...args) {
+	} = {},
+) =>
+	function apiHandler(...args) {
 		if (urlParams.length > 0 && args.length < urlParams.length) {
 			return Promise.reject(
 				new Error(
@@ -74,6 +74,5 @@ const apiMethod = (params = {}) => {
 		}
 		return this.request(requestData, retry);
 	};
-};
 
 export default apiMethod;
