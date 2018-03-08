@@ -38,7 +38,9 @@ describe('system', () => {
 			warn: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
 		};
+
 		dbStub = sinonSandbox.stub();
+
 		dummyConfig = {
 			version: '1.0.0-beta.3',
 			wsPort: 1,
@@ -63,6 +65,7 @@ describe('system', () => {
 			}
 		);
 	});
+
 	describe('constructor', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
