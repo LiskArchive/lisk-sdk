@@ -28,8 +28,7 @@ const receiveDataEvents = ['postBlock', 'postTransactions', 'postSignatures'];
 /**
  * Middleware used to process every emit event received by SlaveWAMPServer in workers_controller.js
  * @param {Object} req
- * @param {function }next
- * @returns {*}
+ * @param {function} next
  */
 function emitMiddleware(req, next) {
 	if (receiveDataEvents.indexOf(req.event) !== -1) {
