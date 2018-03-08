@@ -252,7 +252,7 @@ describe('blocks/process', () => {
 		});
 
 		it('should load block 6 from db and return block timestamp error', done => {
-			blocks.lastBlock.set(loadTables[0].data[3]);
+			blocks.lastBlock.set(loadTables[0].data[4]);
 
 			blocksProcess.loadBlocksOffset(1, 6, true, (err, loadedBlock) => {
 				if (err) {

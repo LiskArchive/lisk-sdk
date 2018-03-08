@@ -17,7 +17,6 @@
 require('../../functional.js');
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const genesisblock = require('../../../data/genesis_block.json');
-const bson = require('../../../../helpers/bson');
 const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
 const WsTestClient = require('../../../common/ws/client');
 
@@ -293,7 +292,7 @@ describe('WS transport blocks', () => {
 				}
 			});
 			connectedPeer.rpc.postBlock({
-				block: bson.serialize(testBlock),
+				block: testBlock,
 				peer: connectedPeerHeaders,
 			});
 			done();

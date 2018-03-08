@@ -63,11 +63,9 @@ class Peers {
  * @returns {Object} system headers and peer status
  */
 Peers.prototype.me = function() {
-	const me = Object.assign({}, System.getHeaders(), {
+	return Object.assign({}, System.getHeaders(), {
 		state: Peer.STATE.CONNECTED,
 	});
-	delete me.ip;
-	return me;
 };
 
 /**
