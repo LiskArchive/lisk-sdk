@@ -13,8 +13,8 @@
  *
  */
 
-import APIResource from 'api/apiResource';
-import PeerResource from 'api/resources/peers';
+import APIResource from 'api/api_resource';
+import PeersResource from 'api/resources/peers';
 
 describe('PeersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
@@ -31,12 +31,13 @@ describe('PeersResource', () => {
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new PeerResource(liskAPI);
+		resource = new PeersResource(liskAPI);
+		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should throw error without liskAPI input', () => {
-			return (() => new PeerResource()).should.throw(
+			return (() => new PeersResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});

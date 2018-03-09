@@ -14,7 +14,7 @@
  */
 
 import APIResource from 'api/api_resource';
-import TransactionResource from 'api/resources/transactions';
+import TransactionsResource from 'api/resources/transactions';
 
 describe('TransactionsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
@@ -31,13 +31,13 @@ describe('TransactionsResource', () => {
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new TransactionResource(liskAPI);
+		resource = new TransactionsResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should throw error without liskAPI input', () => {
-			return (() => new TransactionResource()).should.throw(
+			return (() => new TransactionsResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});

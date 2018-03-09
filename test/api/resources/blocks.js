@@ -14,7 +14,7 @@
  */
 
 import APIResource from 'api/api_resource';
-import BlockResource from 'api/resources/blocks';
+import BlocksResource from 'api/resources/blocks';
 
 describe('BlocksResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
@@ -31,13 +31,13 @@ describe('BlocksResource', () => {
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new BlockResource(liskAPI);
+		resource = new BlocksResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should throw error without liskAPI input', () => {
-			return (() => new BlockResource()).should.throw(
+			return (() => new BlocksResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});

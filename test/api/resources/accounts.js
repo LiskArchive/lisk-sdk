@@ -14,7 +14,7 @@
  */
 
 import APIResource from 'api/api_resource';
-import AccountResource from 'api/resources/accounts';
+import AccountsResource from 'api/resources/accounts';
 
 describe('AccountsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
@@ -31,13 +31,13 @@ describe('AccountsResource', () => {
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new AccountResource(liskAPI);
+		resource = new AccountsResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should throw error without liskAPI input', () => {
-			return (() => new AccountResource()).should.throw(
+			return (() => new AccountsResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});

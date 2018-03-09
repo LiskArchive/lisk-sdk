@@ -14,7 +14,7 @@
  */
 
 import APIResource from 'api/api_resource';
-import DelegateResource from 'api/resources/delegates';
+import DelegatesResource from 'api/resources/delegates';
 
 describe('DelegatesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
@@ -31,13 +31,13 @@ describe('DelegatesResource', () => {
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new DelegateResource(liskAPI);
+		resource = new DelegatesResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should throw error without liskAPI input', () => {
-			return (() => new DelegateResource()).should.throw(
+			return (() => new DelegatesResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});
@@ -66,9 +66,9 @@ describe('DelegatesResource', () => {
 			return resource.should.have.property('getForgers').which.is.a('function');
 		});
 
-		it('should have a "getForgingStatus" function', () => {
+		it('should have a "getForgingStats" function', () => {
 			return resource.should.have
-				.property('getForgingStatus')
+				.property('getForgingStats')
 				.which.is.a('function');
 		});
 	});

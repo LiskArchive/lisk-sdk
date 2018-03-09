@@ -14,7 +14,7 @@
  */
 
 import APIResource from 'api/api_resource';
-import VoteResource from 'api/resources/votes';
+import VotesResource from 'api/resources/votes';
 
 describe('VotesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
@@ -31,13 +31,13 @@ describe('VotesResource', () => {
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new VoteResource(liskAPI);
+		resource = new VotesResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should throw error without liskAPI input', () => {
-			return (() => new VoteResource()).should.throw(
+			return (() => new VotesResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});

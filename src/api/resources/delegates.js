@@ -39,7 +39,7 @@ export default class DelegatesResource extends APIResource {
 			path: '/forgers',
 		}).bind(this);
 
-		this.getForgingStatus = apiMethod({
+		this.getForgingStats = apiMethod({
 			method: GET,
 			path: '/{address}/forging_stats',
 			urlParams: ['address'],

@@ -13,7 +13,7 @@
  *
  */
 
-import APIResource from 'api/apiResource';
+import APIResource from 'api/api_resource';
 import NodeResource from 'api/resources/node';
 
 describe('NodeResource', () => {
@@ -32,6 +32,7 @@ describe('NodeResource', () => {
 			banActiveNodeAndSelect: () => {},
 		};
 		resource = new NodeResource(liskAPI);
+		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
@@ -63,12 +64,6 @@ describe('NodeResource', () => {
 			return resource.should.have.property('getStatus').which.is.a('function');
 		});
 
-		it('should have a "getTransactions" function', () => {
-			return resource.should.have
-				.property('getTransactions')
-				.which.is.a('function');
-		});
-
 		it('should have a "getForgingStatus" function', () => {
 			return resource.should.have
 				.property('getForgingStatus')
@@ -78,6 +73,12 @@ describe('NodeResource', () => {
 		it('should have a "updateForgingStatus" function', () => {
 			return resource.should.have
 				.property('updateForgingStatus')
+				.which.is.a('function');
+		});
+
+		it('should have a "getTransactions" function', () => {
+			return resource.should.have
+				.property('getTransactions')
 				.which.is.a('function');
 		});
 	});

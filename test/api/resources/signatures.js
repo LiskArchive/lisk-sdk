@@ -14,7 +14,7 @@
  */
 
 import APIResource from 'api/api_resource';
-import SignatureResource from 'api/resources/signatures';
+import SignaturesResource from 'api/resources/signatures';
 
 describe('SignaturesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
@@ -31,13 +31,13 @@ describe('SignaturesResource', () => {
 			randomizeSignatures: () => {},
 			banActiveSignatureAndSelect: () => {},
 		};
-		resource = new SignatureResource(liskAPI);
+		resource = new SignaturesResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should throw error without liskAPI input', () => {
-			return (() => new SignatureResource()).should.throw(
+			return (() => new SignaturesResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});

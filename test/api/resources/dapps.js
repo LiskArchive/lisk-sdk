@@ -14,7 +14,7 @@
  */
 
 import APIResource from 'api/api_resource';
-import DappResource from 'api/resources/dapps';
+import DappsResource from 'api/resources/dapps';
 
 describe('DappsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
@@ -31,13 +31,13 @@ describe('DappsResource', () => {
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new DappResource(liskAPI);
+		resource = new DappsResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should throw error without liskAPI input', () => {
-			return (() => new DappResource()).should.throw(
+			return (() => new DappsResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});
