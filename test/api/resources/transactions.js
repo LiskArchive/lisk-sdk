@@ -14,30 +14,30 @@
  */
 
 import APIResource from 'api/api_resource';
-import TransactionResource from 'api/resources/transactions';
+import TransactionsResource from 'api/resources/transactions';
 
 describe('TransactionsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/transactions';
 
-	let LiskAPI;
+	let liskAPI;
 	let resource;
 
 	beforeEach(() => {
-		LiskAPI = {
+		liskAPI = {
 			headers: {},
 			nodeFullURL: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new TransactionResource(LiskAPI);
+		resource = new TransactionsResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without LiskAPI input', () => {
-			return (() => new TransactionResource()).should.throw(
+		it('should throw error without liskAPI input', () => {
+			return (() => new TransactionsResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});
@@ -54,14 +54,12 @@ describe('TransactionsResource', () => {
 			return resource.path.should.equal(path);
 		});
 
-		it('should have methods', () => {
-			return resource.should.have.keys(
-				'liskAPI',
-				'path',
-				'get',
-				'create',
-				'getUnsignedMultisignature',
-			);
+		it('should have a "get" function', () => {
+			return resource.should.have.property('get').which.is.a('function');
+		});
+
+		it('should have a "broadcast" function', () => {
+			return resource.should.have.property('broadcast').which.is.a('function');
 		});
 	});
 });

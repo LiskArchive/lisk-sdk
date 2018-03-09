@@ -34,6 +34,7 @@ export const SSL_PORT = '443';
 
 export const GET = 'GET';
 export const POST = 'POST';
+export const PUT = 'PUT';
 
 // Largest possible address. Derived from bignum.fromBuffer(Buffer.from(new Array(8).fill(255))).
 export const MAX_ADDRESS_NUMBER = '18446744073709551615';

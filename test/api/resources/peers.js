@@ -14,11 +14,11 @@
  */
 
 import APIResource from 'api/api_resource';
-import DappsResource from 'api/resources/dapps';
+import PeersResource from 'api/resources/peers';
 
-describe('DappsResource', () => {
+describe('PeersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/dapps';
+	const path = '/peers';
 
 	let liskAPI;
 	let resource;
@@ -31,13 +31,13 @@ describe('DappsResource', () => {
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new DappsResource(liskAPI);
+		resource = new PeersResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should throw error without liskAPI input', () => {
-			return (() => new DappsResource()).should.throw(
+			return (() => new PeersResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});

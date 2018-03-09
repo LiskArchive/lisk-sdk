@@ -14,30 +14,30 @@
  */
 
 import APIResource from 'api/api_resource';
-import AccountResource from 'api/resources/accounts';
+import AccountsResource from 'api/resources/accounts';
 
 describe('AccountsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/accounts';
 
-	let LiskAPI;
+	let liskAPI;
 	let resource;
 
 	beforeEach(() => {
-		LiskAPI = {
+		liskAPI = {
 			headers: {},
 			nodeFullURL: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new AccountResource(LiskAPI);
+		resource = new AccountsResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without LiskAPI input', () => {
-			return (() => new AccountResource()).should.throw(
+		it('should throw error without liskAPI input', () => {
+			return (() => new AccountsResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});
@@ -54,8 +54,20 @@ describe('AccountsResource', () => {
 			return resource.path.should.equal(path);
 		});
 
-		it('should have methods', () => {
-			return resource.should.have.keys('liskAPI', 'path', 'get');
+		it('should have a "get" function', () => {
+			return resource.should.have.property('get').which.is.a('function');
+		});
+
+		it('should have a "getMultisignatureGroup" function', () => {
+			return resource.should.have
+				.property('getMultisignatureGroup')
+				.which.is.a('function');
+		});
+
+		it('should have a "getMultisignatureMembership" function', () => {
+			return resource.should.have
+				.property('getMultisignatureMembership')
+				.which.is.a('function');
 		});
 	});
 });

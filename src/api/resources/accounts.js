@@ -26,5 +26,17 @@ export default class AccountsResource extends APIResource {
 		this.get = apiMethod({
 			method: GET,
 		}).bind(this);
+
+		this.getMultisignatureGroup = apiMethod({
+			method: GET,
+			path: '/{address}/multisignature_groups',
+			urlParams: ['address'],
+		}).bind(this);
+
+		this.getMultisignatureMembership = apiMethod({
+			method: GET,
+			path: '/{address}/multisignature_memberships',
+			urlParams: ['address'],
+		}).bind(this);
 	}
 }

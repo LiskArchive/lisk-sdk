@@ -13,36 +13,39 @@
  *
  */
 
-import { GET } from 'constants';
+import { GET, PUT } from 'constants';
 import apiMethod from '../api_method';
 import APIResource from '../api_resource';
 
-export default class DelegatesResource extends APIResource {
+export default class NodeResource extends APIResource {
 	constructor(liskAPI) {
 		super(liskAPI);
-		this.path = '/delegates';
+		this.path = '/node';
 
-		this.get = apiMethod({
+		this.getConstants = apiMethod({
 			method: GET,
+			path: '/constants',
 		}).bind(this);
 
-		this.getStandby = apiMethod({
+		this.getStatus = apiMethod({
 			method: GET,
-			defaultData: {
-				sort: 'rate:asc',
-				offset: 101,
-			},
+			path: '/status',
 		}).bind(this);
 
-		this.getForgers = apiMethod({
+		this.getForgingStatus = apiMethod({
 			method: GET,
-			path: '/forgers',
+			path: '/status/forging',
 		}).bind(this);
 
-		this.getForgingStats = apiMethod({
+		this.updateForgingStatus = apiMethod({
+			method: PUT,
+			path: '/status/forging',
+		}).bind(this);
+
+		this.getTransactions = apiMethod({
 			method: GET,
-			path: '/{address}/forging_stats',
-			urlParams: ['address'],
+			path: '/transactions/{state}',
+			urlParams: ['state'],
 		}).bind(this);
 	}
 }

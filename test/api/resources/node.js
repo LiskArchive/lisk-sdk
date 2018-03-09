@@ -14,11 +14,11 @@
  */
 
 import APIResource from 'api/api_resource';
-import DappsResource from 'api/resources/dapps';
+import NodeResource from 'api/resources/node';
 
-describe('DappsResource', () => {
+describe('NodeResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/dapps';
+	const path = '/node';
 
 	let liskAPI;
 	let resource;
@@ -31,13 +31,13 @@ describe('DappsResource', () => {
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new DappsResource(liskAPI);
+		resource = new NodeResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should throw error without liskAPI input', () => {
-			return (() => new DappsResource()).should.throw(
+			return (() => new NodeResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});
@@ -54,8 +54,32 @@ describe('DappsResource', () => {
 			return resource.path.should.equal(path);
 		});
 
-		it('should have a "get" function', () => {
-			return resource.should.have.property('get').which.is.a('function');
+		it('should have a "getConstants" function', () => {
+			return resource.should.have
+				.property('getConstants')
+				.which.is.a('function');
+		});
+
+		it('should have a "getStatus" function', () => {
+			return resource.should.have.property('getStatus').which.is.a('function');
+		});
+
+		it('should have a "getForgingStatus" function', () => {
+			return resource.should.have
+				.property('getForgingStatus')
+				.which.is.a('function');
+		});
+
+		it('should have a "updateForgingStatus" function', () => {
+			return resource.should.have
+				.property('updateForgingStatus')
+				.which.is.a('function');
+		});
+
+		it('should have a "getTransactions" function', () => {
+			return resource.should.have
+				.property('getTransactions')
+				.which.is.a('function');
 		});
 	});
 });

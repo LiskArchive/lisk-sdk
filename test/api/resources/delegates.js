@@ -14,30 +14,30 @@
  */
 
 import APIResource from 'api/api_resource';
-import DelegateResource from 'api/resources/delegates';
+import DelegatesResource from 'api/resources/delegates';
 
 describe('DelegatesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/delegates';
 
-	let LiskAPI;
+	let liskAPI;
 	let resource;
 
 	beforeEach(() => {
-		LiskAPI = {
+		liskAPI = {
 			headers: {},
 			nodeFullURL: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new DelegateResource(LiskAPI);
+		resource = new DelegatesResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without LiskAPI input', () => {
-			return (() => new DelegateResource()).should.throw(
+		it('should throw error without liskAPI input', () => {
+			return (() => new DelegatesResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});
@@ -54,8 +54,22 @@ describe('DelegatesResource', () => {
 			return resource.path.should.equal(path);
 		});
 
-		it('should have methods', () => {
-			return resource.should.have.keys('liskAPI', 'path', 'get', 'getStandby');
+		it('should have a "get" function', () => {
+			return resource.should.have.property('get').which.is.a('function');
+		});
+
+		it('should have a "getStandby" function', () => {
+			return resource.should.have.property('getStandby').which.is.a('function');
+		});
+
+		it('should have a "getForgers" function', () => {
+			return resource.should.have.property('getForgers').which.is.a('function');
+		});
+
+		it('should have a "getForgingStats" function', () => {
+			return resource.should.have
+				.property('getForgingStats')
+				.which.is.a('function');
 		});
 	});
 });

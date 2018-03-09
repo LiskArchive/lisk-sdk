@@ -14,30 +14,30 @@
  */
 
 import APIResource from 'api/api_resource';
-import VoterResource from 'api/resources/voters';
+import VotersResource from 'api/resources/voters';
 
 describe('VotersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/voters';
 
-	let LiskAPI;
+	let liskAPI;
 	let resource;
 
 	beforeEach(() => {
-		LiskAPI = {
+		liskAPI = {
 			headers: {},
 			nodeFullURL: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new VoterResource(LiskAPI);
+		resource = new VotersResource(liskAPI);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without LiskAPI input', () => {
-			return (() => new VoterResource()).should.throw(
+		it('should throw error without liskAPI input', () => {
+			return (() => new VotersResource()).should.throw(
 				'Require LiskAPI instance to be initialized.',
 			);
 		});
@@ -54,8 +54,8 @@ describe('VotersResource', () => {
 			return resource.path.should.equal(path);
 		});
 
-		it('should have methods', () => {
-			return resource.should.have.keys('liskAPI', 'path', 'get');
+		it('should have a "get" function', () => {
+			return resource.should.have.property('get').which.is.a('function');
 		});
 	});
 });
