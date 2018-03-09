@@ -12,14 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-<<<<<<< HEAD
-import APIResource from 'api/apiResource';
-// Require is used for stubbing
-=======
 import APIResource from 'api/api_resource';
-
->>>>>>> :recycle: rename files camelcase to underscore seperated
+// Require is used for stubbing
 const popsicle = require('popsicle');
 
 describe('API resource module', () => {

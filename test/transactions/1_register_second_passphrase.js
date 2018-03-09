@@ -13,7 +13,7 @@
  *
  */
 import registerSecondPassphrase from 'transactions/1_register_second_passphrase';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#registerSecondPassphrase transaction', () => {

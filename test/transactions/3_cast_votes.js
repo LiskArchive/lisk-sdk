@@ -13,7 +13,7 @@
  *
  */
 import castVotes from 'transactions/3_cast_votes';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#castVotes transaction', () => {

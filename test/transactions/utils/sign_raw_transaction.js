@@ -13,7 +13,7 @@
  *
  */
 import signRawTransaction from 'transactions/utils/sign_raw_transaction';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#signRawTransaction', () => {

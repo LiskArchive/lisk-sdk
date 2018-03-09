@@ -13,7 +13,7 @@
  *
  */
 import createDapp from 'transactions/5_create_dapp';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#createDapp transaction', () => {

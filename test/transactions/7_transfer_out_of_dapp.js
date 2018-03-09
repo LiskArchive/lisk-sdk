@@ -13,7 +13,7 @@
  *
  */
 import transferOutOfDapp from 'transactions/7_transfer_out_of_dapp';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#transferOutOfDapp', () => {

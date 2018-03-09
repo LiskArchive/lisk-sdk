@@ -13,7 +13,7 @@
  *
  */
 import wrapTransactionCreator from 'transactions/utils/wrap_transaction_creator';
-
+// Require is used for stubbing
 const prepareTransaction = require('transactions/utils/prepare_transaction');
 
 describe('#wrapTransactionCreator', () => {

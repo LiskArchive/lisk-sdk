@@ -13,7 +13,7 @@
  *
  */
 import registerDelegate from 'transactions/2_register_delegate';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#registerDelegate transaction', () => {
