@@ -13,7 +13,6 @@
  *
  */
 import { TESTNET_NETHASH, MAINNET_NETHASH } from 'lisk-constants';
-import { LIVE_PORT, SSL_PORT, TEST_PORT } from './constants';
 import config from '../../config.json';
 import {
 	AccountsResource,
@@ -27,6 +26,7 @@ import {
 	VotersResource,
 	VotesResource,
 } from './resources';
+import { LIVE_PORT, SSL_PORT, TEST_PORT } from './constants';
 
 const commonHeaders = {
 	'Content-Type': 'application/json',
