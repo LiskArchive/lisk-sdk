@@ -26,7 +26,7 @@ export default class TransactionsResource extends APIResource {
 			method: GET,
 		}).bind(this);
 
-		this.create = apiMethod({
+		this.broadcast = apiMethod({
 			method: POST,
 		}).bind(this);
 	}

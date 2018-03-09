@@ -22,7 +22,7 @@ export default class SignaturesResource extends APIResource {
 		super(liskAPI);
 		this.path = '/signatures';
 
-		this.create = apiMethod({
+		this.broadcast = apiMethod({
 			method: POST,
 		}).bind(this);
 	}

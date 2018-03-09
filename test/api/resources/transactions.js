@@ -58,8 +58,8 @@ describe('TransactionsResource', () => {
 			return resource.should.have.property('get').which.is.a('function');
 		});
 
-		it('should have a "create" function', () => {
-			return resource.should.have.property('create').which.is.a('function');
+		it('should have a "broadcast" function', () => {
+			return resource.should.have.property('broadcast').which.is.a('function');
 		});
 	});
 });
