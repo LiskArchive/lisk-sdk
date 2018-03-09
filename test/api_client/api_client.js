@@ -60,6 +60,7 @@ describe('APIClient module', () => {
 
 	beforeEach(() => {
 		apiClient = new APIClient(defaultNodes, mainnetHash);
+		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
@@ -93,13 +94,6 @@ describe('APIClient module', () => {
 
 		it('should throw an error if second argument is passed to constructor is not string', () => {
 			return (() => new APIClient(defaultNodes, 123)).should.throw(
-				Error,
-				'Require nethash to be initialized.',
-			);
-		});
-
-		it('should throw an error if second argument is passed to constructor is empty string', () => {
-			return (() => new APIClient(defaultNodes, '')).should.throw(
 				Error,
 				'Require nethash to be initialized.',
 			);
@@ -213,23 +207,25 @@ describe('APIClient module', () => {
 			while (nextResult === firstResult) {
 				nextResult = apiClient.getNewNode();
 			}
+			return Promise.resolve();
 		});
 	});
 
 	describe('#banActiveNode', () => {
-		let node;
+		let currentNode;
 
 		beforeEach(() => {
-			node = apiClient.node;
+			({ currentNode } = apiClient);
+			return Promise.resolve();
 		});
 
 		it('should add current node to banned nodes', () => {
 			apiClient.banActiveNode();
-			return apiClient.isBanned(node).should.be.true;
+			return apiClient.isBanned(currentNode).should.be.true;
 		});
 
 		it('should not duplicate a banned node', () => {
-			const bannedNodes = [node];
+			const bannedNodes = [currentNode];
 			apiClient.bannedNodes = bannedNodes;
 			apiClient.banActiveNode();
 
@@ -238,19 +234,20 @@ describe('APIClient module', () => {
 	});
 
 	describe('#banActiveNodeAndSelect', () => {
-		let node;
+		let currentNode;
 		let getNewNodeStub;
 
 		beforeEach(() => {
-			node = apiClient.node;
+			({ currentNode } = apiClient);
 			getNewNodeStub = sandbox
 				.stub(apiClient, 'getNewNode')
 				.returns(defaultSelectedNode);
+			return Promise.resolve();
 		});
 
 		it('should call ban current node', () => {
 			apiClient.banActiveNodeAndSelect();
-			return apiClient.isBanned(node).should.be.true;
+			return apiClient.isBanned(currentNode).should.be.true;
 		});
 
 		it('should call selectNewNode when the node is banned', () => {
@@ -259,7 +256,7 @@ describe('APIClient module', () => {
 		});
 
 		it('should not call selectNewNode when the node is not banned', () => {
-			const bannedNodes = [node];
+			const bannedNodes = [currentNode];
 			apiClient.bannedNodes = bannedNodes;
 			apiClient.banActiveNodeAndSelect();
 			return getNewNodeStub.should.not.be.called;
@@ -294,6 +291,7 @@ describe('APIClient module', () => {
 		let client;
 		beforeEach(() => {
 			client = getMainnetClient();
+			return Promise.resolve();
 		});
 
 		it('should return APIClient instance', () => {
@@ -313,6 +311,7 @@ describe('APIClient module', () => {
 		let client;
 		beforeEach(() => {
 			client = getTestnetClient();
+			return Promise.resolve();
 		});
 
 		it('should return APIClient instance', () => {

@@ -81,8 +81,8 @@ export default class APIClient {
 	}
 
 	banActiveNode() {
-		if (!this.isBanned(this.node)) {
-			this.bannedNodes.push(this.node);
+		if (!this.isBanned(this.currentNode)) {
+			this.bannedNodes.push(this.currentNode);
 			return true;
 		}
 		return false;
