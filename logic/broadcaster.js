@@ -20,7 +20,6 @@ const _ = require('lodash');
 const constants = require('../helpers/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 
-// Private fields
 let modules;
 let library;
 let self;
@@ -45,7 +44,6 @@ const __private = {};
  * @param {Object} logger
  * @todo Add description for the params
  */
-// Constructor
 class Broadcaster {
 	constructor(broadcasts, force, peers, transaction, logger) {
 		library = {
@@ -167,7 +165,8 @@ class Broadcaster {
 	}
 }
 
-// Public methods
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Adds new object {params, options} to queue array.
  *
@@ -227,7 +226,6 @@ function nextRelease(cb) {
 	});
 }
 
-// Private
 /**
  * Filters private queue based on broadcasts.
  *
@@ -370,5 +368,4 @@ __private.releaseQueue = function(cb) {
 	);
 };
 
-// Export
 module.exports = Broadcaster;

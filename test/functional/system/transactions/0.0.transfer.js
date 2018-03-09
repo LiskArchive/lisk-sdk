@@ -15,10 +15,10 @@
 'use strict';
 
 var lisk = require('lisk-js');
-var accountFixtures = require('../../fixtures/accounts');
-var randomUtil = require('../../common/utils/random');
-var normalizer = require('../../common/utils/normalizer');
-var localCommon = require('./common');
+var accountFixtures = require('../../../fixtures/accounts');
+var randomUtil = require('../../../common/utils/random');
+var normalizer = require('../../../common/utils/normalizer');
+var localCommon = require('../common');
 
 describe('system test (type 0) - double transfers', () => {
 	var library;

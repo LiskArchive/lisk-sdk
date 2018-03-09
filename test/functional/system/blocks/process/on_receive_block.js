@@ -28,13 +28,13 @@ var genesisDelegates = require('../../../../data/genesis_delegates.json')
 	.delegates;
 var application = require('../../../../common/application.js');
 
-describe('onReceiveBlock()', () => {
+describe('system test (blocks) - process onReceiveBlock()', () => {
 	var library;
 	var db;
 
 	before(done => {
 		application.init(
-			{ sandbox: { name: 'lisk_test_blocks_process' } },
+			{ sandbox: { name: 'system_blocks_process_on_receive_block' } },
 			(err, scope) => {
 				library = scope;
 				db = scope.db;

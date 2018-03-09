@@ -16,7 +16,6 @@
 
 const constants = require('../helpers/constants.js');
 
-// Private fields
 const __private = {};
 /**
  * Main BlockReward logic.
@@ -30,7 +29,6 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires helpers/constants
  */
-// Constructor
 class BlockReward {
 	constructor() {
 		// Array of milestones
@@ -43,7 +41,6 @@ class BlockReward {
 		this.rewardOffset = Math.floor(constants.rewards.offset);
 	}
 
-	// Public methods
 	/**
 	 * Description of the function.
 	 *
@@ -136,7 +133,6 @@ class BlockReward {
 	}
 }
 
-// Private methods
 /**
  * Returns absolute value from number.
  *
@@ -154,5 +150,4 @@ __private.parseHeight = function(height) {
 	}
 };
 
-// Export
 module.exports = BlockReward;

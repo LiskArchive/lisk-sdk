@@ -22,6 +22,7 @@ const transactionTypes = require('../../../helpers/transaction_types.js');
 const constants = require('../../../helpers/constants.js');
 // Load config file - global (one from test directory)
 const config = require('../../../config.json');
+const Sequence = require('../../../helpers/sequence.js');
 
 // Instantiate test subject
 const TransactionPool = rewire('../../../logic/transaction_pool.js');
@@ -41,6 +42,7 @@ describe('transactionPool', () => {
 	let transactionTimeOut;
 	let expireTransactions;
 	let transactionInPool;
+	let balancesSequence;
 	const freshListState = { transactions: [], index: {} };
 
 	// Init fake logger
@@ -100,13 +102,17 @@ describe('transactionPool', () => {
 		// Use fresh instance of jobsQueue inside transaction pool
 		TransactionPool.__set__('jobsQueue', jobsQueue);
 
+		// Init balance sequence
+		balancesSequence = new Sequence();
+
 		// Init test subject
 		transactionPool = new TransactionPool(
 			config.broadcasts.broadcastInterval,
 			config.broadcasts.releaseLimit,
 			sinon.spy(), // transaction
 			sinon.spy(), // bus
-			logger // logger
+			logger, // logger
+			balancesSequence
 		);
 
 		// Bind fake modules
@@ -1029,6 +1035,7 @@ describe('transactionPool', () => {
 
 						describe('queued', () => {
 							it('index should be set', () => {
+								transactionPool.addQueuedTransaction(validTransaction);
 								index = transactionPool.queued.index[validTransaction.id];
 								return expect(index).to.be.a('number');
 							});
