@@ -13,7 +13,7 @@
  *
  */
 import transfer from 'transactions/0_transfer';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#transfer transaction', () => {
@@ -37,6 +37,7 @@ describe('#transfer transaction', () => {
 		getTimeWithOffsetStub = sandbox
 			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
+		return Promise.resolve();
 	});
 
 	describe('with first passphrase', () => {
@@ -47,6 +48,7 @@ describe('#transfer transaction', () => {
 					amount,
 					passphrase,
 				});
+				return Promise.resolve();
 			});
 
 			it('should create a transfer transaction', () => {
@@ -144,6 +146,7 @@ describe('#transfer transaction', () => {
 					passphrase,
 					data: testData,
 				});
+				return Promise.resolve();
 			});
 
 			it('should handle invalid (non-utf8 string) data', () => {
@@ -185,6 +188,7 @@ describe('#transfer transaction', () => {
 				passphrase,
 				secondPassphrase,
 			});
+			return Promise.resolve();
 		});
 
 		it('should create a transfer transaction with data property', () => {
@@ -212,6 +216,7 @@ describe('#transfer transaction', () => {
 					recipientId,
 					amount,
 				});
+				return Promise.resolve();
 			});
 
 			it('should have the type', () => {

@@ -13,7 +13,7 @@
  *
  */
 import { getTransactionHash } from 'transactions/utils';
-
+// Require is used for stubbing
 const getTransactionBytes = require('transactions/utils/getTransactionBytes');
 
 describe('#getTransactionHash', () => {
@@ -43,6 +43,7 @@ describe('#getTransactionHash', () => {
 			id: '13987348420913138422',
 		};
 		result = getTransactionHash(transaction);
+		return Promise.resolve();
 	});
 
 	it('should get transaction bytes', () => {

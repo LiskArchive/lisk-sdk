@@ -14,7 +14,7 @@
  */
 
 import APIResource from 'api/apiResource';
-
+// Require is used for stubbing
 const popsicle = require('popsicle');
 
 describe('API resource module', () => {
@@ -52,6 +52,7 @@ describe('API resource module', () => {
 			banActiveNodeAndSelect: sandbox.stub(),
 		};
 		resource = new APIResource(LiskAPI);
+		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
@@ -94,6 +95,7 @@ describe('API resource module', () => {
 				use: () => Promise.resolve(sendRequestResult),
 			});
 			handleRetryStub = sandbox.stub(resource, 'handleRetry');
+			return Promise.resolve();
 		});
 
 		it('should make a request to API without calling retry', () => {
@@ -130,6 +132,7 @@ describe('API resource module', () => {
 			requestStub = sandbox
 				.stub(resource, 'request')
 				.returns(Promise.resolve(sendRequestResult.body));
+			return Promise.resolve();
 		});
 
 		describe('when there is available node', () => {
@@ -138,10 +141,11 @@ describe('API resource module', () => {
 			beforeEach(() => {
 				clock = sinon.useFakeTimers();
 				LiskAPI.hasAvailableNodes = () => true;
+				return Promise.resolve();
 			});
 
 			afterEach(() => {
-				clock.restore();
+				return clock.restore();
 			});
 
 			it('should call banActiveNode when randomizeNodes is true', () => {
@@ -170,6 +174,7 @@ describe('API resource module', () => {
 		describe('when there is no available node', () => {
 			beforeEach(() => {
 				LiskAPI.hasAvailableNodes = () => false;
+				return Promise.resolve();
 			});
 
 			it('should resolve with failure response', () => {

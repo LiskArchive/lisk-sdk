@@ -13,7 +13,7 @@
  *
  */
 import { getTransactionId } from 'transactions/utils';
-
+// Require is used for stubbing
 const hash = require('cryptography/hash');
 const utils = require('transactions/utils');
 
@@ -33,7 +33,7 @@ describe('#getTransactionId', () => {
 
 	beforeEach(() => {
 		sandbox.stub(hash, 'default').returns(defaultTransactionHash);
-		sandbox.stub(utils, 'getTransactionBytes');
+		return sandbox.stub(utils, 'getTransactionBytes');
 	});
 
 	it('should return an id of 13987348420913138422 for a transaction', () => {

@@ -32,6 +32,7 @@ describe('VotesResource', () => {
 			banActiveNodeAndSelect: () => {},
 		};
 		resource = new VoteResource(LiskAPI);
+		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {

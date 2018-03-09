@@ -32,6 +32,7 @@ describe('BlocksResource', () => {
 			banActiveNodeAndSelect: () => {},
 		};
 		resource = new BlockResource(LiskAPI);
+		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {

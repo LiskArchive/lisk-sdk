@@ -18,7 +18,7 @@ import {
 	getKeys,
 	getAddressAndPublicKeyFromPassphrase,
 } from 'cryptography/keys';
-
+// Require is used for stubbing
 const convert = require('cryptography/convert');
 const hash = require('cryptography/hash');
 
@@ -45,7 +45,7 @@ describe('keys', () => {
 		bufferToHexStub
 			.withArgs(Buffer.from(defaultPublicKey, 'hex'))
 			.returns(defaultPublicKey);
-		sandbox
+		return sandbox
 			.stub(hash, 'default')
 			.returns(Buffer.from(defaultPassphraseHash, 'hex'));
 	});
@@ -55,6 +55,7 @@ describe('keys', () => {
 
 		beforeEach(() => {
 			keyPair = getPrivateAndPublicKeyBytesFromPassphrase(defaultPassphrase);
+			return Promise.resolve();
 		});
 
 		it('should create buffer publicKey', () => {
@@ -75,6 +76,7 @@ describe('keys', () => {
 
 		beforeEach(() => {
 			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
+			return Promise.resolve();
 		});
 
 		it('should generate the correct publicKey from a passphrase', () => {
@@ -95,6 +97,7 @@ describe('keys', () => {
 
 		beforeEach(() => {
 			keyPair = getKeys(defaultPassphrase);
+			return Promise.resolve();
 		});
 
 		it('should generate the correct publicKey from a passphrase', () => {

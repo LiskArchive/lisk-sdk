@@ -13,7 +13,7 @@
  *
  */
 import registerSecondPassphrase from 'transactions/1_registerSecondPassphrase';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#registerSecondPassphrase transaction', () => {
@@ -43,6 +43,7 @@ describe('#registerSecondPassphrase transaction', () => {
 			passphrase,
 			secondPassphrase,
 		});
+		return Promise.resolve();
 	});
 
 	it('should create a register second passphrase transaction', () => {
@@ -174,6 +175,7 @@ describe('#registerSecondPassphrase transaction', () => {
 				registerSecondPassphraseTransaction = registerSecondPassphrase({
 					secondPassphrase,
 				});
+				return Promise.resolve();
 			});
 
 			it('should have the type', () => {

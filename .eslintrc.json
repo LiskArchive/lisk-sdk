@@ -1,15 +1,7 @@
 {
 	"extends": ["lisk-base"],
 	"plugins": ["mocha"],
-	"globals": {
-		"naclInstance": true
-	},
 	"rules": {
-		"arrow-parens": ["error", "as-needed"],
-		"curly": "off",
-		"indent": "off",
-		"no-confusing-arrow": "off",
-		"no-mixed-operators": "off",
 		"import/no-extraneous-dependencies": [
 			"error", {
 				"devDependencies": [
@@ -20,6 +12,9 @@
 				"packageDir": "./"
 			}
 		]
+	},
+	"globals": {
+		"naclInstance": true
 	},
 	"settings": {
 		"import/resolver": {

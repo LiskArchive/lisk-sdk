@@ -13,7 +13,7 @@
  *
  */
 import registerDelegate from 'transactions/2_registerDelegate';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#registerDelegate transaction', () => {
@@ -35,6 +35,7 @@ describe('#registerDelegate transaction', () => {
 		getTimeWithOffsetStub = sandbox
 			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
+		return Promise.resolve();
 	});
 
 	describe('with first passphrase', () => {
@@ -43,6 +44,7 @@ describe('#registerDelegate transaction', () => {
 				passphrase,
 				username,
 			});
+			return Promise.resolve();
 		});
 
 		it('should create a register delegate transaction', () => {
@@ -148,6 +150,7 @@ describe('#registerDelegate transaction', () => {
 				username,
 				secondPassphrase,
 			});
+			return Promise.resolve();
 		});
 
 		it('should have the second signature property as hex string', () => {
@@ -162,6 +165,7 @@ describe('#registerDelegate transaction', () => {
 				registerDelegateTransaction = registerDelegate({
 					username,
 				});
+				return Promise.resolve();
 			});
 
 			it('should have the type', () => {

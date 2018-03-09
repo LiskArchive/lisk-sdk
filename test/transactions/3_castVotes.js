@@ -13,7 +13,7 @@
  *
  */
 import castVotes from 'transactions/3_castVotes';
-
+// Require is used for stubbing
 const time = require('transactions/utils/time');
 
 describe('#castVotes transaction', () => {
@@ -47,6 +47,7 @@ describe('#castVotes transaction', () => {
 		getTimeWithOffsetStub = sandbox
 			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
+		return Promise.resolve();
 	});
 
 	describe('when the transaction is created with one passphrase and the votes', () => {
@@ -55,6 +56,7 @@ describe('#castVotes transaction', () => {
 				passphrase,
 				votes: votePublicKeys,
 			});
+			return Promise.resolve();
 		});
 
 		it('should create a cast votes transaction', () => {
@@ -164,6 +166,7 @@ describe('#castVotes transaction', () => {
 				vote: [firstPublicKey],
 				secondPassphrase,
 			});
+			return Promise.resolve();
 		});
 
 		it('should have the second signature property as hex string', () => {
@@ -179,6 +182,7 @@ describe('#castVotes transaction', () => {
 				votes: votePublicKeys,
 				unvotes: unvotePublicKeys,
 			});
+			return Promise.resolve();
 		});
 
 		it('the transaction should have the votes as an array', () => {
@@ -204,6 +208,7 @@ describe('#castVotes transaction', () => {
 				passphrase,
 				unvotes: unvotePublicKeys,
 			});
+			return Promise.resolve();
 		});
 
 		it('the transaction should have the votes array', () => {
@@ -297,6 +302,7 @@ describe('#castVotes transaction', () => {
 					votes: votePublicKeys,
 					unvotes: unvotePublicKeys,
 				});
+				return Promise.resolve();
 			});
 
 			it('should have the type', () => {

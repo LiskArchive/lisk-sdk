@@ -58,6 +58,7 @@ describe('Lisk API module', () => {
 		config.nodes.mainnet = defaultNodes;
 		config.nodes.testnet = defaultTestnetNodes;
 		LSK = new LiskAPI({});
+		return Promise.resolve();
 	});
 
 	describe('LiskAPI()', () => {
@@ -72,6 +73,7 @@ describe('Lisk API module', () => {
 		describe('with option testnet true', () => {
 			beforeEach(() => {
 				LSK = new LiskAPI({ testnet: true });
+				return Promise.resolve();
 			});
 
 			it('should set the port to 7000 on initialization', () => {
@@ -268,6 +270,7 @@ describe('Lisk API module', () => {
 			LSK = new LiskAPI();
 			nodesStub = sandbox.stub(LSK, 'currentNodes');
 			nodesStub.get(() => [...defaultNodes]);
+			return Promise.resolve();
 		});
 
 		it('should throw an error if all relevant nodes are banned', () => {
@@ -291,6 +294,7 @@ describe('Lisk API module', () => {
 			while (nextResult === firstResult) {
 				nextResult = LSK.getRandomNode();
 			}
+			return Promise.resolve();
 		});
 	});
 
@@ -299,16 +303,19 @@ describe('Lisk API module', () => {
 		const getRandomNodeResult = externalNode;
 
 		beforeEach(() => {
-			sandbox.stub(LSK, 'getRandomNode').returns(getRandomNodeResult);
+			return sandbox.stub(LSK, 'getRandomNode').returns(getRandomNodeResult);
 		});
 
 		describe('if a node was provided in the options', () => {
 			beforeEach(() => {
 				LSK.providedNode = customNode;
+				return Promise.resolve();
 			});
+
 			describe('if randomizeNodes is set to false', () => {
 				beforeEach(() => {
 					LSK.randomizeNodes = false;
+					return Promise.resolve();
 				});
 
 				it('should throw an error if the provided node is banned', () => {
@@ -329,6 +336,7 @@ describe('Lisk API module', () => {
 			describe('if randomizeNodes is set to true', () => {
 				beforeEach(() => {
 					LSK.randomizeNodes = true;
+					return Promise.resolve();
 				});
 
 				it('should return a random node', () => {
@@ -341,11 +349,13 @@ describe('Lisk API module', () => {
 		describe('if a node was not provided in the options', () => {
 			beforeEach(() => {
 				LSK.providedNode = null;
+				return Promise.resolve();
 			});
 
 			describe('if randomizeNodes is set to false', () => {
 				beforeEach(() => {
 					LSK.randomizeNodes = false;
+					return Promise.resolve();
 				});
 
 				it('should throw an error', () => {
@@ -360,6 +370,7 @@ describe('Lisk API module', () => {
 			describe('if randomizeNodes is set to true', () => {
 				beforeEach(() => {
 					LSK.randomizeNodes = true;
+					return Promise.resolve();
 				});
 
 				it('should return a random node', () => {
@@ -374,7 +385,8 @@ describe('Lisk API module', () => {
 		let node;
 
 		beforeEach(() => {
-			node = LSK.node;
+			({ node } = LSK);
+			return Promise.resolve();
 		});
 
 		it('should add current node to banned nodes', () => {
@@ -396,10 +408,11 @@ describe('Lisk API module', () => {
 		let selectNewNodeStub;
 
 		beforeEach(() => {
-			node = LSK.node;
+			({ node } = LSK);
 			selectNewNodeStub = sandbox
 				.stub(LSK, 'selectNewNode')
 				.returns(defaultSelectedNode);
+			return Promise.resolve();
 		});
 
 		it('should call ban current node', () => {
@@ -425,12 +438,13 @@ describe('Lisk API module', () => {
 
 		beforeEach(() => {
 			nodesStub = sandbox.stub(LSK, 'currentNodes');
-			nodesStub.get(() => [...defaultNodes]);
+			return nodesStub.get(() => [...defaultNodes]);
 		});
 
 		describe('with randomized nodes', () => {
 			beforeEach(() => {
 				LSK.randomizeNodes = true;
+				return Promise.resolve();
 			});
 
 			it('should return false without nodes left', () => {
@@ -449,6 +463,7 @@ describe('Lisk API module', () => {
 		describe('without randomized nodes', () => {
 			beforeEach(() => {
 				LSK.randomizeNodes = false;
+				return Promise.resolve();
 			});
 
 			it('should return false', () => {
@@ -478,6 +493,7 @@ describe('Lisk API module', () => {
 
 		beforeEach(() => {
 			nodes = LSK.allNodes;
+			return Promise.resolve();
 		});
 
 		it('should show the current node', () => {
@@ -499,16 +515,18 @@ describe('Lisk API module', () => {
 			selectNewNodeStub = sandbox
 				.stub(LSK, 'selectNewNode')
 				.returns(defaultSelectedNode);
+			return Promise.resolve();
 		});
 
 		describe('when testnet is initially true', () => {
 			beforeEach(() => {
 				LSK.testnet = true;
+				return Promise.resolve();
 			});
 			describe('to true', () => {
 				it('should not call selectNewNode', () => {
 					LSK.setTestnet(true);
-					selectNewNodeStub.should.not.be.called;
+					return selectNewNodeStub.should.not.be.called;
 				});
 
 				it('should have testnet set to true', () => {
@@ -550,7 +568,7 @@ describe('Lisk API module', () => {
 				});
 
 				it('should select a node', () => {
-					const callCount = selectNewNodeStub.callCount;
+					const { callCount } = selectNewNodeStub;
 					LSK.setTestnet(false);
 					return selectNewNodeStub.should.have.callCount(callCount + 1);
 				});
@@ -560,7 +578,9 @@ describe('Lisk API module', () => {
 		describe('when testnet is initially false', () => {
 			beforeEach(() => {
 				LSK.testnet = false;
+				return Promise.resolve();
 			});
+
 			describe('to true', () => {
 				it('should set testnet to true', () => {
 					LSK.setTestnet(true);
@@ -586,20 +606,16 @@ describe('Lisk API module', () => {
 				});
 
 				it('should select a node', () => {
-					const callCount = selectNewNodeStub.callCount;
+					const { callCount } = selectNewNodeStub;
 					LSK.setTestnet(true);
 					return selectNewNodeStub.should.have.callCount(callCount + 1);
 				});
 			});
+
 			describe('to false', () => {
 				it('should not call selectNewNode', () => {
 					LSK.setTestnet(false);
-					selectNewNodeStub.should.not.be.called;
-				});
-
-				it('should not call selectNewNode', () => {
-					LSK.setTestnet(false);
-					selectNewNodeStub.should.not.be.called;
+					return selectNewNodeStub.should.not.be.called;
 				});
 
 				it('should have testnet set to true', () => {
@@ -624,11 +640,13 @@ describe('Lisk API module', () => {
 			selectNewNodeStub = sandbox
 				.stub(LSK, 'selectNewNode')
 				.returns(defaultSelectedNode);
+			return Promise.resolve();
 		});
 
 		describe('when ssl is initially true', () => {
 			beforeEach(() => {
 				LSK.ssl = true;
+				return Promise.resolve();
 			});
 
 			describe('when set to true', () => {
@@ -646,7 +664,7 @@ describe('Lisk API module', () => {
 				});
 
 				it('should not select a node', () => {
-					const callCount = selectNewNodeStub.callCount;
+					const { callCount } = selectNewNodeStub;
 					LSK.setSSL(true);
 					return selectNewNodeStub.should.have.callCount(callCount);
 				});
@@ -677,7 +695,7 @@ describe('Lisk API module', () => {
 				});
 
 				it('should select a node', () => {
-					const callCount = selectNewNodeStub.callCount;
+					const { callCount } = selectNewNodeStub;
 					LSK.setSSL(false);
 					return selectNewNodeStub.should.have.callCount(callCount + 1);
 				});
@@ -687,6 +705,7 @@ describe('Lisk API module', () => {
 		describe('when ssl is initially false', () => {
 			beforeEach(() => {
 				LSK.ssl = false;
+				return Promise.resolve();
 			});
 
 			describe('when set to true', () => {
@@ -713,7 +732,7 @@ describe('Lisk API module', () => {
 				});
 
 				it('should select a node', () => {
-					const callCount = selectNewNodeStub.callCount;
+					const { callCount } = selectNewNodeStub;
 					LSK.setSSL(true);
 					return selectNewNodeStub.should.have.callCount(callCount + 1);
 				});
@@ -734,7 +753,7 @@ describe('Lisk API module', () => {
 				});
 
 				it('should select a node', () => {
-					const callCount = selectNewNodeStub.callCount;
+					const { callCount } = selectNewNodeStub;
 					LSK.setSSL(false);
 					return selectNewNodeStub.should.have.callCount(callCount);
 				});
