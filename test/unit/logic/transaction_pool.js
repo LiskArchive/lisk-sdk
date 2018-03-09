@@ -17,7 +17,6 @@
 const _ = require('lodash');
 const rewire = require('rewire');
 const expect = require('chai').expect;
-const sinon = require('sinon');
 const transactionTypes = require('../../../helpers/transaction_types.js');
 const constants = require('../../../helpers/constants.js');
 // Load config file - global (one from test directory)
@@ -47,20 +46,20 @@ describe('transactionPool', () => {
 
 	// Init fake logger
 	const logger = {
-		trace: sinon.spy(),
-		debug: sinon.spy(),
-		info: sinon.spy(),
-		log: sinon.spy(),
-		warn: sinon.spy(),
-		error: sinon.spy(),
+		trace: sinonSandbox.spy(),
+		debug: sinonSandbox.spy(),
+		info: sinonSandbox.spy(),
+		log: sinonSandbox.spy(),
+		warn: sinonSandbox.spy(),
+		error: sinonSandbox.spy(),
 	};
 
 	const accountsStub = {
-		setAccountAndGet: sinon.stub(),
+		setAccountAndGet: sinonSandbox.stub(),
 	};
-	const transactionsStub = sinon.stub();
+	const transactionsStub = sinonSandbox.stub();
 	const loaderStub = {
-		syncing: sinon.stub().returns(false),
+		syncing: sinonSandbox.stub().returns(false),
 	};
 
 	const resetStates = function() {
@@ -75,21 +74,23 @@ describe('transactionPool', () => {
 		logger.warn.reset();
 		logger.error.reset();
 
-		dummyProcessVerifyTransaction = sinon.spy((transaction, broadcast, cb) => {
-			return cb();
-		});
+		dummyProcessVerifyTransaction = sinonSandbox.spy(
+			(transaction, broadcast, cb) => {
+				return cb();
+			}
+		);
 		TransactionPool.__set__(
 			'__private.processVerifyTransaction',
 			dummyProcessVerifyTransaction
 		);
-		dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => {
+		dummyApplyUnconfirmed = sinonSandbox.spy((transaction, sender, cb) => {
 			return cb();
 		});
 		TransactionPool.__set__(
 			'modules.transactions.applyUnconfirmed',
 			dummyApplyUnconfirmed
 		);
-		dummyUndoUnconfirmed = sinon.spy((transaction, cb) => {
+		dummyUndoUnconfirmed = sinonSandbox.spy((transaction, cb) => {
 			return cb();
 		});
 		TransactionPool.__set__(
@@ -109,8 +110,8 @@ describe('transactionPool', () => {
 		transactionPool = new TransactionPool(
 			config.broadcasts.broadcastInterval,
 			config.broadcasts.releaseLimit,
-			sinon.spy(), // transaction
-			sinon.spy(), // bus
+			sinonSandbox.spy(), // transaction
+			sinonSandbox.spy(), // bus
 			logger, // logger
 			balancesSequence
 		);
@@ -621,7 +622,7 @@ describe('transactionPool', () => {
 
 	describe('queueTransaction', () => {
 		afterEach(done => {
-			transactionPool.countBundled = sinon.stub().returns(0);
+			transactionPool.countBundled = sinonSandbox.stub().returns(0);
 			done();
 		});
 
@@ -636,7 +637,7 @@ describe('transactionPool', () => {
 				id: '131123423423L',
 				bundled: true,
 			};
-			transactionPool.countBundled = sinon.stub().returns(10000);
+			transactionPool.countBundled = sinonSandbox.stub().returns(10000);
 			transactionPool.queueTransaction(transaction, res => {
 				expect(res).to.deep.eql('Transaction pool is full');
 				expect(transactionPool.getBundledTransaction(transaction.id)).to.be
@@ -647,8 +648,8 @@ describe('transactionPool', () => {
 
 		describe('when transaction type is MULTI', () => {
 			afterEach(done => {
-				transactionPool.countMultisignature = sinon.stub().returns(0);
-				transactionPool.countQueued = sinon.stub().returns(0);
+				transactionPool.countMultisignature = sinonSandbox.stub().returns(0);
+				transactionPool.countQueued = sinonSandbox.stub().returns(0);
 				done();
 			});
 
@@ -658,7 +659,7 @@ describe('transactionPool', () => {
 					bundled: false,
 					type: transactionTypes.MULTI,
 				};
-				transactionPool.countMultisignature = sinon.stub().returns(1001);
+				transactionPool.countMultisignature = sinonSandbox.stub().returns(1001);
 				transactionPool.queueTransaction(transaction, res => {
 					expect(res).to.deep.eql('Transaction pool is full');
 					expect(transactionPool.getMultisignatureTransaction(transaction.id))
@@ -673,7 +674,7 @@ describe('transactionPool', () => {
 					bundled: false,
 					type: transactionTypes.MULTI,
 				};
-				transactionPool.countMultisignature = sinon.stub().returns(100);
+				transactionPool.countMultisignature = sinonSandbox.stub().returns(100);
 				transactionPool.queueTransaction(transaction, res => {
 					expect(res).to.be.undefined;
 					expect(transactionPool.getMultisignatureTransaction(transaction.id))
@@ -720,7 +721,7 @@ describe('transactionPool', () => {
 			processVerifyTransaction = TransactionPool.__get__(
 				'__private.processVerifyTransaction'
 			);
-			transactionPool.transactionInPool = sinon.stub();
+			transactionPool.transactionInPool = sinonSandbox.stub();
 			done();
 		});
 
@@ -753,7 +754,7 @@ describe('transactionPool', () => {
 				type: transactionTypes.MULTI,
 				bundled: true,
 			};
-			sinon
+			sinonSandbox
 				.stub(transactionPool, 'queueTransaction')
 				.callsArgWith(1, 'Failed to queue bundled transaction');
 			transactionPool.processUnconfirmedTransaction(transaction, true, res => {
@@ -782,7 +783,7 @@ describe('transactionPool', () => {
 				bundled: false,
 			};
 
-			const processVerifyTransactionStub = sinon
+			const processVerifyTransactionStub = sinonSandbox
 				.stub()
 				.callsArgWith(2, 'Failed to process unconfirmed transaction');
 			TransactionPool.__set__(
@@ -803,7 +804,7 @@ describe('transactionPool', () => {
 				bundled: false,
 			};
 
-			const processVerifyTransactionStub = sinon
+			const processVerifyTransactionStub = sinonSandbox
 				.stub()
 				.callsArgWith(2, transaction);
 			TransactionPool.__set__(
@@ -832,7 +833,7 @@ describe('transactionPool', () => {
 			const transaction = [
 				{ id: '10431411423423423L', type: transactionTypes.MULTI },
 			];
-			transactionPool.processUnconfirmedTransaction = sinon
+			transactionPool.processUnconfirmedTransaction = sinonSandbox
 				.stub()
 				.callsArgWith(
 					2,
@@ -855,7 +856,7 @@ describe('transactionPool', () => {
 			const transaction = [
 				{ id: '109249333874723L', type: transactionTypes.MULTI, bundled: true },
 			];
-			transactionPool.processUnconfirmedTransaction = sinon
+			transactionPool.processUnconfirmedTransaction = sinonSandbox
 				.stub()
 				.callsArgWith(2, null, transaction);
 			expect(
@@ -888,7 +889,7 @@ describe('transactionPool', () => {
 		});
 
 		it('should fail to process the bundle transaction', done => {
-			const processVerifyTransactionStub = sinon
+			const processVerifyTransactionStub = sinonSandbox
 				.stub()
 				.callsArgWith(2, 'Failed to process bundle transaction');
 			TransactionPool.__set__(
@@ -907,7 +908,9 @@ describe('transactionPool', () => {
 		});
 
 		it('should fail to queue bundled transaction', done => {
-			const processVerifyTransactionStub = sinon.stub().callsArgWith(2, null);
+			const processVerifyTransactionStub = sinonSandbox
+				.stub()
+				.callsArgWith(2, null);
 			TransactionPool.__set__(
 				'__private.processVerifyTransaction',
 				processVerifyTransactionStub
@@ -1065,7 +1068,7 @@ describe('transactionPool', () => {
 					const error = 'undo error';
 
 					before(done => {
-						dummyUndoUnconfirmed = sinon.spy((transaction, cb) => {
+						dummyUndoUnconfirmed = sinonSandbox.spy((transaction, cb) => {
 							return cb(error);
 						});
 						TransactionPool.__set__(
@@ -1203,7 +1206,9 @@ describe('transactionPool', () => {
 		it('should return countUnconfirmed is greater than maxTxsPerBlock', done => {
 			const unconfirmedCount = 1001;
 			loaderStub.syncing.returns(false);
-			transactionPool.countUnconfirmed = sinon.stub().returns(unconfirmedCount);
+			transactionPool.countUnconfirmed = sinonSandbox
+				.stub()
+				.returns(unconfirmedCount);
 			transactionPool.fillPool(res => {
 				expect(res).to.be.undefined;
 				expect(logger.debug.args[0][0]).to.deep.eql(
@@ -1218,15 +1223,17 @@ describe('transactionPool', () => {
 				id: '103111423423423L',
 				type: transactionTypes.MULTI,
 			};
-			transactionPool.getMultisignatureTransactionList = sinon
+			transactionPool.getMultisignatureTransactionList = sinonSandbox
 				.stub()
 				.returns([transaction]);
 			const unconfirmedCount = 0;
-			transactionPool.countUnconfirmed = sinon.stub().returns(unconfirmedCount);
+			transactionPool.countUnconfirmed = sinonSandbox
+				.stub()
+				.returns(unconfirmedCount);
 			let applyUnconfirmedListStub = TransactionPool.__get__(
 				'__private.applyUnconfirmedList'
 			);
-			applyUnconfirmedListStub = sinon.stub().callsArgWith(1, null);
+			applyUnconfirmedListStub = sinonSandbox.stub().callsArgWith(1, null);
 			TransactionPool.__set__(
 				'__private.applyUnconfirmedList',
 				applyUnconfirmedListStub
@@ -1376,7 +1383,7 @@ describe('transactionPool', () => {
 						const error = 'verify error';
 
 						before(done => {
-							dummyProcessVerifyTransaction = sinon.spy(
+							dummyProcessVerifyTransaction = sinonSandbox.spy(
 								(transaction, broadcast, cb) => {
 									return cb(error);
 								}
@@ -1459,9 +1466,11 @@ describe('transactionPool', () => {
 						const error = 'apply error';
 
 						before(done => {
-							dummyApplyUnconfirmed = sinon.spy((transaction, sender, cb) => {
-								return cb(error);
-							});
+							dummyApplyUnconfirmed = sinonSandbox.spy(
+								(transaction, sender, cb) => {
+									return cb(error);
+								}
+							);
 							TransactionPool.__set__(
 								'modules.transactions.applyUnconfirmed',
 								dummyApplyUnconfirmed
@@ -1578,8 +1587,8 @@ describe('transactionPool', () => {
 
 		describe('expireTransactions', () => {
 			beforeEach(() => {
-				transactionTimeOut = sinon.stub().returns(0);
-				transactionPool.removeUnconfirmedTransaction = sinon.spy();
+				transactionTimeOut = sinonSandbox.stub().returns(0);
+				transactionPool.removeUnconfirmedTransaction = sinonSandbox.spy();
 				return resetStates();
 			});
 
