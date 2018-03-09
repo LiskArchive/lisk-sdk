@@ -13,32 +13,32 @@
  *
  */
 
-import APIResource from 'api/api_resource';
-import BlocksResource from 'api/resources/blocks';
+import APIResource from 'api_client/api_resource';
+import TransactionsResource from 'api_client/resources/transactions';
 
-describe('BlocksResource', () => {
+describe('TransactionsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/blocks';
+	const path = '/transactions';
 
-	let liskAPI;
+	let apiClient;
 	let resource;
 
 	beforeEach(() => {
-		liskAPI = {
+		apiClient = {
 			headers: {},
-			nodeFullURL: defaultBasePath,
+			currentNode: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new BlocksResource(liskAPI);
+		resource = new TransactionsResource(apiClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without liskAPI input', () => {
-			return (() => new BlocksResource()).should.throw(
-				'Require LiskAPI instance to be initialized.',
+		it('should throw error without apiClient input', () => {
+			return (() => new TransactionsResource()).should.throw(
+				'Require APIClient instance to be initialized.',
 			);
 		});
 
@@ -56,6 +56,10 @@ describe('BlocksResource', () => {
 
 		it('should have a "get" function', () => {
 			return resource.should.have.property('get').which.is.a('function');
+		});
+
+		it('should have a "broadcast" function', () => {
+			return resource.should.have.property('broadcast').which.is.a('function');
 		});
 	});
 });

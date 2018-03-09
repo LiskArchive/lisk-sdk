@@ -13,7 +13,7 @@
  *
  */
 
-import apiMethod from 'api/api_method';
+import apiMethod from 'api_client/api_method';
 
 describe('API method module', () => {
 	const GET = 'GET';
@@ -48,14 +48,12 @@ describe('API method module', () => {
 			handleRetry: () => {},
 		};
 		validationError = new Error('No data');
-		return Promise.resolve();
 	});
 
 	describe('#apiMethod', () => {
 		describe('when no parameters are passed', () => {
 			beforeEach(() => {
 				handler = apiMethod().bind(resource);
-				return Promise.resolve();
 			});
 
 			it('should return function', () => {
@@ -93,7 +91,6 @@ describe('API method module', () => {
 					},
 					retry: true,
 				}).bind(resource);
-				return Promise.resolve();
 			});
 
 			it('should return function', () => {
@@ -155,7 +152,6 @@ describe('API method module', () => {
 						sort: 'id',
 					},
 				}).bind(resource);
-				return Promise.resolve();
 			});
 
 			it('should return a function', () => {

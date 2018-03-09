@@ -13,17 +13,17 @@
  *
  */
 
-import { GET } from '../constants';
+import { POST } from '../constants';
 import apiMethod from '../api_method';
 import APIResource from '../api_resource';
 
-export default class DappsResource extends APIResource {
-	constructor(liskAPI) {
-		super(liskAPI);
-		this.path = '/dapps';
+export default class SignaturesResource extends APIResource {
+	constructor(apiClient) {
+		super(apiClient);
+		this.path = '/signatures';
 
-		this.get = apiMethod({
-			method: GET,
+		this.broadcast = apiMethod({
+			method: POST,
 		}).bind(this);
 	}
 }

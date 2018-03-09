@@ -13,6 +13,17 @@
  *
  */
 
-import liskAPI from './lisk_api';
+import { GET } from '../constants';
+import apiMethod from '../api_method';
+import APIResource from '../api_resource';
 
-export default liskAPI;
+export default class DappsResource extends APIResource {
+	constructor(apiClient) {
+		super(apiClient);
+		this.path = '/dapps';
+
+		this.get = apiMethod({
+			method: GET,
+		}).bind(this);
+	}
+}

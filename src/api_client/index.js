@@ -13,17 +13,7 @@
  *
  */
 
-import { GET } from '../constants';
-import apiMethod from '../api_method';
-import APIResource from '../api_resource';
+import APIClient from './api_client';
 
-export default class VotesResource extends APIResource {
-	constructor(liskAPI) {
-		super(liskAPI);
-		this.path = '/votes';
-
-		this.get = apiMethod({
-			method: GET,
-		}).bind(this);
-	}
-}
+export default APIClient;
+export { getMainnetClient, getTestnetClient } from './api_client';

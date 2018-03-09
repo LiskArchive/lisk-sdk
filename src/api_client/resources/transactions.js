@@ -13,17 +13,21 @@
  *
  */
 
-import { GET } from '../constants';
+import { GET, POST } from '../constants';
 import apiMethod from '../api_method';
 import APIResource from '../api_resource';
 
-export default class BlocksResource extends APIResource {
-	constructor(liskAPI) {
-		super(liskAPI);
-		this.path = '/blocks';
+export default class TransactionsResource extends APIResource {
+	constructor(apiClient) {
+		super(apiClient);
+		this.path = '/transactions';
 
 		this.get = apiMethod({
 			method: GET,
+		}).bind(this);
+
+		this.broadcast = apiMethod({
+			method: POST,
 		}).bind(this);
 	}
 }

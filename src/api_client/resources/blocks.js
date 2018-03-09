@@ -17,10 +17,10 @@ import { GET } from '../constants';
 import apiMethod from '../api_method';
 import APIResource from '../api_resource';
 
-export default class VotersResource extends APIResource {
-	constructor(liskAPI) {
-		super(liskAPI);
-		this.path = '/voters';
+export default class BlocksResource extends APIResource {
+	constructor(apiClient) {
+		super(apiClient);
+		this.path = '/blocks';
 
 		this.get = apiMethod({
 			method: GET,

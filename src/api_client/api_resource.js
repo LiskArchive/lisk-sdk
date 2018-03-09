@@ -16,20 +16,20 @@
 import * as popsicle from 'popsicle';
 
 export default class APIResource {
-	constructor(liskAPI) {
-		if (!liskAPI) {
-			throw Error('Require LiskAPI instance to be initialized.');
+	constructor(apiClient) {
+		if (!apiClient) {
+			throw Error('Require APIClient instance to be initialized.');
 		}
-		this.liskAPI = liskAPI;
+		this.apiClient = apiClient;
 		this.path = '';
 	}
 
 	get headers() {
-		return this.liskAPI.headers;
+		return this.apiClient.headers;
 	}
 
 	get resourcePath() {
-		return `${this.liskAPI.nodeFullURL}/api${this.path}`;
+		return `${this.apiClient.currentNode}/api${this.path}`;
 	}
 
 	request(req, retry) {
@@ -45,10 +45,10 @@ export default class APIResource {
 	}
 
 	handleRetry(error, req) {
-		if (this.liskAPI.hasAvailableNodes()) {
+		if (this.apiClient.hasAvailableNodes()) {
 			return new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
-				if (this.liskAPI.randomizeNodes) {
-					this.liskAPI.banActiveNodeAndSelect();
+				if (this.apiClient.randomizeNodes) {
+					this.apiClient.banActiveNodeAndSelect();
 				}
 				return this.request(req, true);
 			});

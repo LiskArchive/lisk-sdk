@@ -14,28 +14,34 @@
  */
 
 import { GET } from '../constants';
-import APIResource from '../api_resource';
 import apiMethod from '../api_method';
+import APIResource from '../api_resource';
 
-export default class AccountsResource extends APIResource {
-	constructor(liskAPI) {
-		super(liskAPI);
-
-		this.path = '/accounts';
+export default class DelegatesResource extends APIResource {
+	constructor(apiClient) {
+		super(apiClient);
+		this.path = '/delegates';
 
 		this.get = apiMethod({
 			method: GET,
 		}).bind(this);
 
-		this.getMultisignatureGroup = apiMethod({
+		this.getStandby = apiMethod({
 			method: GET,
-			path: '/{address}/multisignature_groups',
-			urlParams: ['address'],
+			defaultData: {
+				sort: 'rate:asc',
+				offset: 101,
+			},
 		}).bind(this);
 
-		this.getMultisignatureMembership = apiMethod({
+		this.getForgers = apiMethod({
 			method: GET,
-			path: '/{address}/multisignature_memberships',
+			path: '/forgers',
+		}).bind(this);
+
+		this.getForgingStats = apiMethod({
+			method: GET,
+			path: '/{address}/forging_stats',
 			urlParams: ['address'],
 		}).bind(this);
 	}

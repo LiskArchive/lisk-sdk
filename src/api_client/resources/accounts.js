@@ -13,21 +13,30 @@
  *
  */
 
-import { GET, POST } from '../constants';
-import apiMethod from '../api_method';
+import { GET } from '../constants';
 import APIResource from '../api_resource';
+import apiMethod from '../api_method';
 
-export default class TransactionsResource extends APIResource {
-	constructor(liskAPI) {
-		super(liskAPI);
-		this.path = '/transactions';
+export default class AccountsResource extends APIResource {
+	constructor(apiClient) {
+		super(apiClient);
+
+		this.path = '/accounts';
 
 		this.get = apiMethod({
 			method: GET,
 		}).bind(this);
 
-		this.broadcast = apiMethod({
-			method: POST,
+		this.getMultisignatureGroup = apiMethod({
+			method: GET,
+			path: '/{address}/multisignature_groups',
+			urlParams: ['address'],
+		}).bind(this);
+
+		this.getMultisignatureMembership = apiMethod({
+			method: GET,
+			path: '/{address}/multisignature_memberships',
+			urlParams: ['address'],
 		}).bind(this);
 	}
 }

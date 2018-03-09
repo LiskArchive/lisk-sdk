@@ -17,32 +17,13 @@ import { GET } from '../constants';
 import apiMethod from '../api_method';
 import APIResource from '../api_resource';
 
-export default class DelegatesResource extends APIResource {
-	constructor(liskAPI) {
-		super(liskAPI);
-		this.path = '/delegates';
+export default class VotesResource extends APIResource {
+	constructor(apiClient) {
+		super(apiClient);
+		this.path = '/votes';
 
 		this.get = apiMethod({
 			method: GET,
-		}).bind(this);
-
-		this.getStandby = apiMethod({
-			method: GET,
-			defaultData: {
-				sort: 'rate:asc',
-				offset: 101,
-			},
-		}).bind(this);
-
-		this.getForgers = apiMethod({
-			method: GET,
-			path: '/forgers',
-		}).bind(this);
-
-		this.getForgingStats = apiMethod({
-			method: GET,
-			path: '/{address}/forging_stats',
-			urlParams: ['address'],
 		}).bind(this);
 	}
 }

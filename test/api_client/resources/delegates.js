@@ -13,32 +13,32 @@
  *
  */
 
-import APIResource from 'api/api_resource';
-import AccountsResource from 'api/resources/accounts';
+import APIResource from 'api_client/api_resource';
+import DelegatesResource from 'api_client/resources/delegates';
 
-describe('AccountsResource', () => {
+describe('DelegatesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/accounts';
+	const path = '/delegates';
 
-	let liskAPI;
+	let apiClient;
 	let resource;
 
 	beforeEach(() => {
-		liskAPI = {
+		apiClient = {
 			headers: {},
-			nodeFullURL: defaultBasePath,
+			currentNode: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new AccountsResource(liskAPI);
+		resource = new DelegatesResource(apiClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without liskAPI input', () => {
-			return (() => new AccountsResource()).should.throw(
-				'Require LiskAPI instance to be initialized.',
+		it('should throw error without apiClient input', () => {
+			return (() => new DelegatesResource()).should.throw(
+				'Require APIClient instance to be initialized.',
 			);
 		});
 
@@ -58,15 +58,17 @@ describe('AccountsResource', () => {
 			return resource.should.have.property('get').which.is.a('function');
 		});
 
-		it('should have a "getMultisignatureGroup" function', () => {
-			return resource.should.have
-				.property('getMultisignatureGroup')
-				.which.is.a('function');
+		it('should have a "getStandby" function', () => {
+			return resource.should.have.property('getStandby').which.is.a('function');
 		});
 
-		it('should have a "getMultisignatureMembership" function', () => {
+		it('should have a "getForgers" function', () => {
+			return resource.should.have.property('getForgers').which.is.a('function');
+		});
+
+		it('should have a "getForgingStats" function', () => {
 			return resource.should.have
-				.property('getMultisignatureMembership')
+				.property('getForgingStats')
 				.which.is.a('function');
 		});
 	});

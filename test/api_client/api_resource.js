@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import APIResource from 'api/api_resource';
-// Require is used for stubbing
+
+import APIResource from 'api_client/api_resource';
+
 const popsicle = require('popsicle');
 
 describe('API resource module', () => {
@@ -40,18 +41,17 @@ describe('API resource module', () => {
 		body: { success: true, sendRequest: true },
 	};
 	let resource;
-	let LiskAPI;
+	let apiClient;
 
 	beforeEach(() => {
-		LiskAPI = {
+		apiClient = {
 			headers: Object.assign({}, defaultHeaders),
-			nodeFullURL: defaultBasePath,
+			currentNode: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: sandbox.stub(),
 		};
-		resource = new APIResource(LiskAPI);
-		return Promise.resolve();
+		resource = new APIResource(apiClient);
 	});
 
 	describe('#constructor', () => {
@@ -61,13 +61,13 @@ describe('API resource module', () => {
 
 		it('should throw an error without an input', () => {
 			return (() => new APIResource()).should.throw(
-				'Require LiskAPI instance to be initialized.',
+				'Require APIClient instance to be initialized.',
 			);
 		});
 	});
 
 	describe('get headers', () => {
-		it('should return header set to liskAPI', () => {
+		it('should return header set to apiClient', () => {
 			return resource.headers.should.eql(defaultHeaders);
 		});
 	});
@@ -94,7 +94,6 @@ describe('API resource module', () => {
 				use: () => Promise.resolve(sendRequestResult),
 			});
 			handleRetryStub = sandbox.stub(resource, 'handleRetry');
-			return Promise.resolve();
 		});
 
 		it('should make a request to API without calling retry', () => {
@@ -131,7 +130,6 @@ describe('API resource module', () => {
 			requestStub = sandbox
 				.stub(resource, 'request')
 				.returns(Promise.resolve(sendRequestResult.body));
-			return Promise.resolve();
 		});
 
 		describe('when there is available node', () => {
@@ -139,31 +137,30 @@ describe('API resource module', () => {
 
 			beforeEach(() => {
 				clock = sinon.useFakeTimers();
-				LiskAPI.hasAvailableNodes = () => true;
-				return Promise.resolve();
+				apiClient.hasAvailableNodes = () => true;
 			});
 
 			afterEach(() => {
-				return clock.restore();
+				clock.restore();
 			});
 
 			it('should call banActiveNode when randomizeNodes is true', () => {
-				LiskAPI.randomizeNodes = true;
+				apiClient.randomizeNodes = true;
 				const req = resource.handleRetry(defaultError, defaultRequest);
 				clock.tick(1000);
 				return req.then(res => {
-					LiskAPI.banActiveNodeAndSelect.should.be.calledOnce;
+					apiClient.banActiveNodeAndSelect.should.be.calledOnce;
 					requestStub.should.be.calledWith(defaultRequest, true);
 					return res.should.be.eql(sendRequestResult.body);
 				});
 			});
 
 			it('should not call ban active node when randomizeNodes is false', () => {
-				LiskAPI.randomizeNodes = false;
+				apiClient.randomizeNodes = false;
 				const req = resource.handleRetry(defaultError, defaultRequest);
 				clock.tick(1000);
 				return req.then(res => {
-					LiskAPI.banActiveNodeAndSelect.should.not.be.called;
+					apiClient.banActiveNodeAndSelect.should.not.be.called;
 					requestStub.should.be.calledWith(defaultRequest, true);
 					return res.should.be.eql(sendRequestResult.body);
 				});
@@ -172,8 +169,7 @@ describe('API resource module', () => {
 
 		describe('when there is no available node', () => {
 			beforeEach(() => {
-				LiskAPI.hasAvailableNodes = () => false;
-				return Promise.resolve();
+				apiClient.hasAvailableNodes = () => false;
 			});
 
 			it('should resolve with failure response', () => {

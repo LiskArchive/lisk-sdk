@@ -13,32 +13,32 @@
  *
  */
 
-import APIResource from 'api/api_resource';
-import TransactionsResource from 'api/resources/transactions';
+import APIResource from 'api_client/api_resource';
+import SignaturesResource from 'api_client/resources/signatures';
 
-describe('TransactionsResource', () => {
+describe('SignaturesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/transactions';
+	const path = '/signatures';
 
-	let liskAPI;
+	let apiClient;
 	let resource;
 
 	beforeEach(() => {
-		liskAPI = {
+		apiClient = {
 			headers: {},
-			nodeFullURL: defaultBasePath,
-			hasAvailableNodes: () => {},
-			randomizeNodes: () => {},
-			banActiveNodeAndSelect: () => {},
+			currentNode: defaultBasePath,
+			hasAvailableSignatures: () => {},
+			randomizeSignatures: () => {},
+			banActiveSignatureAndSelect: () => {},
 		};
-		resource = new TransactionsResource(liskAPI);
+		resource = new SignaturesResource(apiClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without liskAPI input', () => {
-			return (() => new TransactionsResource()).should.throw(
-				'Require LiskAPI instance to be initialized.',
+		it('should throw error without apiClient input', () => {
+			return (() => new SignaturesResource()).should.throw(
+				'Require APIClient instance to be initialized.',
 			);
 		});
 
@@ -52,10 +52,6 @@ describe('TransactionsResource', () => {
 
 		it('should set resource path', () => {
 			return resource.path.should.equal(path);
-		});
-
-		it('should have a "get" function', () => {
-			return resource.should.have.property('get').which.is.a('function');
 		});
 
 		it('should have a "broadcast" function', () => {
