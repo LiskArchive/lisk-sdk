@@ -385,8 +385,7 @@ describe('Lisk API module', () => {
 		let node;
 
 		beforeEach(() => {
-			// eslint-disable-next-line prefer-destructuring
-			node = LSK.node;
+			({ node } = LSK);
 			return Promise.resolve();
 		});
 
@@ -409,8 +408,7 @@ describe('Lisk API module', () => {
 		let selectNewNodeStub;
 
 		beforeEach(() => {
-			// eslint-disable-next-line prefer-destructuring
-			node = LSK.node;
+			({ node } = LSK);
 			selectNewNodeStub = sandbox
 				.stub(LSK, 'selectNewNode')
 				.returns(defaultSelectedNode);
