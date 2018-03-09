@@ -18,8 +18,8 @@ import apiMethod from '../api_method';
 import APIResource from '../api_resource';
 
 export default class PeersResource extends APIResource {
-	constructor(liskAPI) {
-		super(liskAPI);
+	constructor(apiClient) {
+		super(apiClient);
 		this.path = '/peers';
 
 		this.get = apiMethod({

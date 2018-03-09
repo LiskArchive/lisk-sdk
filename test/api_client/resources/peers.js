@@ -13,32 +13,32 @@
  *
  */
 
-import APIResource from 'api/api_resource';
-import PeersResource from 'api/resources/peers';
+import APIResource from 'api_client/api_resource';
+import PeersResource from 'api_client/resources/peers';
 
 describe('PeersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/peers';
 
-	let liskAPI;
+	let apiClient;
 	let resource;
 
 	beforeEach(() => {
-		liskAPI = {
+		apiClient = {
 			headers: {},
-			nodeFullURL: defaultBasePath,
+			currentNode: defaultBasePath,
 			hasAvailableNodes: () => {},
 			randomizeNodes: () => {},
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new PeersResource(liskAPI);
+		resource = new PeersResource(apiClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without liskAPI input', () => {
+		it('should throw error without apiClient input', () => {
 			return (() => new PeersResource()).should.throw(
-				'Require LiskAPI instance to be initialized.',
+				'APIResource requires APIClient instance for initialization.',
 			);
 		});
 
