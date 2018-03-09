@@ -1019,6 +1019,9 @@ describe('transport', () => {
 						forging: {
 							force: false,
 						},
+						broadcasts: {
+							active: true,
+						},
 					},
 					network: {
 						io: {
@@ -1740,6 +1743,23 @@ describe('transport', () => {
 						message: sinonSandbox.stub(),
 					};
 					done();
+				});
+
+				describe('when library.config.broadcasts.active option is false', () => {
+					beforeEach(done => {
+						library.config.broadcasts.active = false;
+						transportInstance.shared.postBlock(query);
+						done();
+					});
+
+					it('should call library.logger.debug', () => {
+						expect(
+							library.logger.debug.calledWith(
+								'Receiving blocks disabled by user through config.json'
+							)
+						).to.be.true;
+						return expect(library.schema.validate.called).to.be.false;
+					});
 				});
 
 				describe('when query is specified', () => {
