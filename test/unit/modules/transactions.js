@@ -189,7 +189,7 @@ describe('transactions', () => {
 										snapshot: false,
 									},
 									syncing: {
-										on: true,
+										active: true,
 									},
 								},
 							},

@@ -82,14 +82,16 @@ class Broadcaster {
 			},
 		];
 
-		if (broadcasts.on) {
+		if (broadcasts.active) {
 			jobsQueue.register(
 				'broadcasterNextRelease',
 				nextRelease,
 				self.config.broadcastInterval
 			);
 		} else {
-			library.logger.info('Broadcasting data disabled by user through config.json');
+			library.logger.info(
+				'Broadcasting data disabled by user through config.json'
+			);
 		}
 	}
 

@@ -210,7 +210,7 @@ describe('transport', () => {
 				},
 				forging: {},
 				broadcasts: {
-					on: true,
+					active: true,
 					broadcastInterval: 10000,
 					releaseLimit: 10,
 				},

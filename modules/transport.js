@@ -72,7 +72,7 @@ function Transport(cb, scope) {
 				force: scope.config.forging.force,
 			},
 			broadcasts: {
-				on: scope.config.broadcasts.on,
+				active: scope.config.broadcasts.active,
 			},
 		},
 	};
@@ -528,8 +528,10 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postBlock(query) {
-		if (!library.config.broadcasts.on) {
-			return library.logger.debug('Receiving blocks disabled by user through config.json');
+		if (!library.config.broadcasts.active) {
+			return library.logger.debug(
+				'Receiving blocks disabled by user through config.json'
+			);
 		}
 		query = query || {};
 		library.schema.validate(query, definitions.WSBlocksBroadcast, err => {
@@ -623,8 +625,10 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postSignature(query, cb) {
-		if (!library.config.broadcasts.on) {
-			return library.logger.debug('Receiving signatures disabled by user through config.json');
+		if (!library.config.broadcasts.active) {
+			return library.logger.debug(
+				'Receiving signatures disabled by user through config.json'
+			);
 		}
 		__private.receiveSignature(query.signature, err => {
 			if (err) {
@@ -729,8 +733,10 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postTransactions(query) {
-		if (!library.config.broadcasts.on) {
-			return library.logger.debug('Receiving transactions disabled by user through config.json');
+		if (!library.config.broadcasts.active) {
+			return library.logger.debug(
+				'Receiving transactions disabled by user through config.json'
+			);
 		}
 		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {

@@ -61,7 +61,7 @@
 		}
 	},
 	"broadcasts": {
-		"on": true,
+		"active": true,
 		"broadcastInterval": 5000,
 		"broadcastLimit": 20,
 		"parallelLimit": 20,
@@ -687,7 +687,7 @@
 		}
 	},
 	"syncing": {
-		"on": true
+		"active": true
 	},
 	"loading": {
 		"verifyOnLoading": false,
