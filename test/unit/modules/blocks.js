@@ -16,6 +16,7 @@
 'use strict';
 
 const rewire = require('rewire');
+const constants = require('../../../helpers/constants.js');
 
 const Blocks = rewire('../../../modules/blocks.js');
 
@@ -53,7 +54,9 @@ describe('blocks', () => {
 		};
 		dbStub = {
 			blocks: {
-				getGenesisBlockId: sinonSandbox.stub().resolves([{ id: '6524861224470851795' }]),
+				getGenesisBlockId: sinonSandbox
+					.stub()
+					.resolves([{ id: '6524861224470851795' }]),
 				deleteBlock: sinonSandbox.stub(),
 				deleteAfterBlock: sinonSandbox.stub(),
 			},
@@ -141,11 +144,60 @@ describe('blocks', () => {
 	});
 
 	describe('lastBlock', () => {
-		it('should assign get');
-
-		it('should assign set');
-
-		it('should assign isFresh');
+		beforeEach(done => {
+			__private.lastBlock = dummyGenesisblock;
+			done();
+		});
+		describe('get', () => {
+			it('should return __private.lastBlock', () => {
+				return expect(blocksInstance.lastBlock.get()).to.deep.equal(
+					dummyGenesisblock
+				);
+			});
+		});
+		describe('set', () => {
+			it('should assign input parameter block to __private.lastBlock and return input parameter', () => {
+				expect(blocksInstance.lastBlock.set({ id: 2 })).to.deep.equal({
+					id: 2,
+				});
+				return expect(__private.lastBlock).to.deep.equal({ id: 2 });
+			});
+		});
+		describe('isFresh', () => {
+			describe('when __private.lastBlock is undefined', () => {
+				beforeEach(done => {
+					__private.lastBlock = undefined;
+					done();
+				});
+				it('should return false', () => {
+					return expect(blocksInstance.lastBlock.isFresh()).to.be.false;
+				});
+			});
+			describe('when __private.lastBlock is set', () => {
+				describe('when secondsAgo < constants.blockReceiptTimeOut', () => {
+					beforeEach(done => {
+						const timestamp =
+							10000 +
+							Math.floor(Date.now() / 1000) -
+							Math.floor(constants.epochTime / 1000);
+						__private.lastBlock = { timestamp };
+						done();
+					});
+					it('should return true', () => {
+						return expect(blocksInstance.lastBlock.isFresh()).to.be.true;
+					});
+				});
+				describe('when secondsAgo >= constants.blockReceiptTimeOut', () => {
+					beforeEach(done => {
+						__private.lastBlock = { timestamp: 555555 };
+						done();
+					});
+					it('should return false', () => {
+						return expect(blocksInstance.lastBlock.isFresh()).to.be.false;
+					});
+				});
+			});
+		});
 	});
 
 	describe('lastReciept', () => {
