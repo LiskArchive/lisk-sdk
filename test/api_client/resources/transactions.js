@@ -38,7 +38,7 @@ describe('TransactionsResource', () => {
 	describe('#constructor', () => {
 		it('should throw error without apiClient input', () => {
 			return (() => new TransactionsResource()).should.throw(
-				'Require APIClient instance to be initialized.',
+				'APIResource requires APIClient instance for initialization.',
 			);
 		});
 

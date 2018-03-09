@@ -38,7 +38,7 @@ describe('VotersResource', () => {
 	describe('#constructor', () => {
 		it('should throw error without apiClient input', () => {
 			return (() => new VotersResource()).should.throw(
-				'Require APIClient instance to be initialized.',
+				'APIResource requires APIClient instance for initialization.',
 			);
 		});
 

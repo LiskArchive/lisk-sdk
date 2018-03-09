@@ -16,4 +16,4 @@
 import APIClient from './api_client';
 
 export default APIClient;
-export { getMainnetClient, getTestnetClient } from './api_client';
+export { createMainnetClient, createTestnetClient } from './api_client';

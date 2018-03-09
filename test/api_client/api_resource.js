@@ -62,7 +62,7 @@ describe('API resource module', () => {
 
 		it('should throw an error without an input', () => {
 			return (() => new APIResource()).should.throw(
-				'Require APIClient instance to be initialized.',
+				'APIResource requires APIClient instance for initialization.',
 			);
 		});
 	});

@@ -42,11 +42,11 @@ const getHeaders = (nethash, version, minVersion) =>
 export default class APIClient {
 	constructor(nodes, nethash, providedOptions = {}) {
 		if (!Array.isArray(nodes) || nodes.length <= 0) {
-			throw Error('Require nodes to be initialized.');
+			throw new Error('APIClient requires nodes for initialization.');
 		}
 
 		if (typeof nethash !== 'string' || nethash === '') {
-			throw Error('Require nethash to be initialized.');
+			throw new Error('APIClient requires nethash for initialization.');
 		}
 
 		const options = Object.assign({}, defaultOptions, providedOptions);
@@ -71,21 +71,23 @@ export default class APIClient {
 		const nodes = this.nodes.filter(node => !this.isBanned(node));
 
 		if (nodes.length === 0) {
-			throw new Error(
-				'Cannot get random node: all relevant nodes have been banned.',
-			);
+			throw new Error('Cannot get new node: all nodes have been banned.');
 		}
 
 		const randomIndex = Math.floor(Math.random() * nodes.length);
 		return nodes[randomIndex];
 	}
 
-	banActiveNode() {
-		if (!this.isBanned(this.currentNode)) {
-			this.bannedNodes.push(this.currentNode);
+	banNode(node) {
+		if (!this.isBanned(node)) {
+			this.bannedNodes.push(node);
 			return true;
 		}
 		return false;
+	}
+
+	banActiveNode() {
+		return this.banNode(this.currentNode);
 	}
 
 	banActiveNodeAndSelect() {
@@ -105,8 +107,8 @@ export default class APIClient {
 	}
 }
 
-export const getMainnetClient = options =>
+export const createMainnetAPIClient = options =>
 	new APIClient(MAINNET_NODES, MAINNET_NETHASH, options);
 
-export const getTestnetClient = options =>
+export const createTestnetAPIClient = options =>
 	new APIClient(TESTNET_NODES, TESTNET_NETHASH, options);

@@ -38,7 +38,7 @@ describe('SignaturesResource', () => {
 	describe('#constructor', () => {
 		it('should throw error without apiClient input', () => {
 			return (() => new SignaturesResource()).should.throw(
-				'Require APIClient instance to be initialized.',
+				'APIResource requires APIClient instance for initialization.',
 			);
 		});
 

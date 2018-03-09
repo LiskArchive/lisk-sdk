@@ -13,8 +13,8 @@
  *
  */
 import APIClient, {
-	getMainnetClient,
-	getTestnetClient,
+	createMainnetAPIClient,
+	createTestnetAPIClient,
 } from 'api_client/api_client';
 
 describe('APIClient module', () => {
@@ -67,42 +67,42 @@ describe('APIClient module', () => {
 		it('should throw an error if no arguments are passed to constructor', () => {
 			return (() => new APIClient()).should.throw(
 				Error,
-				'Require nodes to be initialized.',
+				'APIClient requires nodes for initialization.',
 			);
 		});
 
 		it('should throw an error if first argument passed to constructor is not array', () => {
 			return (() => new APIClient('non-array')).should.throw(
 				Error,
-				'Require nodes to be initialized.',
+				'APIClient requires nodes for initialization.',
 			);
 		});
 
 		it('should throw an error if first argument passed to constructor is empty array', () => {
 			return (() => new APIClient([])).should.throw(
 				Error,
-				'Require nodes to be initialized.',
+				'APIClient requires nodes for initialization.',
 			);
 		});
 
 		it('should throw an error if no second argument is passed to constructor', () => {
 			return (() => new APIClient(defaultNodes)).should.throw(
 				Error,
-				'Require nethash to be initialized.',
+				'APIClient requires nethash for initialization.',
 			);
 		});
 
-		it('should throw an error if second argument is passed to constructor is not string', () => {
+		it('should throw an error if second argument passed to constructor is not string', () => {
 			return (() => new APIClient(defaultNodes, 123)).should.throw(
 				Error,
-				'Require nethash to be initialized.',
+				'APIClient requires nethash for initialization.',
 			);
 		});
 
-		it('should throw an error if second argument is passed to constructor is empty string', () => {
+		it('should throw an error if second argument passed to constructor is empty string', () => {
 			return (() => new APIClient(defaultNodes, '')).should.throw(
 				Error,
-				'Require nethash to be initialized.',
+				'APIClient requires nethash for initialization.',
 			);
 		});
 
@@ -119,15 +119,15 @@ describe('APIClient module', () => {
 
 			it('should set custom headers with supplied options', () => {
 				apiClient = new APIClient(defaultNodes, testnetHash, {
-					version: '0.5.0',
-					minVersion: '>=0.1.0',
+					version: customHeaders.version,
+					minVersion: customHeaders.minVersion,
 				});
 				return apiClient.should.have.property('headers').and.eql(customHeaders);
 			});
 		});
 
 		describe('nodes', () => {
-			it('should set with random node with initialized setup if no node is specified by options', () => {
+			it('should have nodes supplied to constructor', () => {
 				return apiClient.should.have.property('nodes').and.equal(defaultNodes);
 			});
 		});
@@ -148,7 +148,7 @@ describe('APIClient module', () => {
 
 		describe('currentNode', () => {
 			it('should set with random node with initialized setup if no node is specified by options', () => {
-				return apiClient.should.have.property('currentNode').and.not.empty;
+				return apiClient.should.have.property('currentNode').and.not.be.empty;
 			});
 
 			it('should set with supplied node if node is specified by options', () => {
@@ -190,9 +190,7 @@ describe('APIClient module', () => {
 			apiClient.bannedNodes = [...defaultNodes];
 			return apiClient.getNewNode
 				.bind(apiClient)
-				.should.throw(
-					'Cannot get random node: all relevant nodes have been banned.',
-				);
+				.should.throw('Cannot get new node: all nodes have been banned.');
 		});
 
 		it('should return a node', () => {
@@ -211,6 +209,23 @@ describe('APIClient module', () => {
 		});
 	});
 
+	describe('#banNode', () => {
+		it('should add node to banned nodes', () => {
+			const banned = apiClient.banNode(localNode);
+			banned.should.be.true;
+			return apiClient.isBanned(localNode).should.be.true;
+		});
+
+		it('should not duplicate a banned node', () => {
+			const bannedNodes = [localNode];
+			apiClient.bannedNodes = bannedNodes;
+			const banned = apiClient.banNode(localNode);
+
+			banned.should.be.false;
+			return apiClient.bannedNodes.should.be.eql(bannedNodes);
+		});
+	});
+
 	describe('#banActiveNode', () => {
 		let currentNode;
 
@@ -220,15 +235,17 @@ describe('APIClient module', () => {
 		});
 
 		it('should add current node to banned nodes', () => {
-			apiClient.banActiveNode();
+			const banned = apiClient.banActiveNode();
+			banned.should.be.true;
 			return apiClient.isBanned(currentNode).should.be.true;
 		});
 
 		it('should not duplicate a banned node', () => {
 			const bannedNodes = [currentNode];
 			apiClient.bannedNodes = bannedNodes;
-			apiClient.banActiveNode();
+			const banned = apiClient.banActiveNode();
 
+			banned.should.be.false;
 			return apiClient.bannedNodes.should.be.eql(bannedNodes);
 		});
 	});
@@ -287,10 +304,10 @@ describe('APIClient module', () => {
 		});
 	});
 
-	describe('#getMainnetClient', () => {
+	describe('#createMainnetAPIClient', () => {
 		let client;
 		beforeEach(() => {
-			client = getMainnetClient();
+			client = createMainnetAPIClient();
 			return Promise.resolve();
 		});
 
@@ -307,10 +324,10 @@ describe('APIClient module', () => {
 		});
 	});
 
-	describe('#getTestnetClient', () => {
+	describe('#createTestnetAPIClient', () => {
 		let client;
 		beforeEach(() => {
-			client = getTestnetClient();
+			client = createTestnetAPIClient();
 			return Promise.resolve();
 		});
 

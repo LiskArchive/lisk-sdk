@@ -13,7 +13,10 @@
  *
  */
 import naclFactory from 'js-nacl';
-import APIClient, { getMainnetClient, getTestnetClient } from './api_client';
+import APIClient, {
+	createMainnetClient,
+	createTestnetClient,
+} from './api_client';
 import cryptography from './cryptography';
 import passphrase from './passphrase';
 import * as time from './transactions/utils/time';
@@ -28,7 +31,7 @@ naclFactory.instantiate(nacl => {
 
 export default {
 	APIClient,
-	apiUtils: { getMainnetClient, getTestnetClient },
+	apiUtils: { createMainnetClient, createTestnetClient },
 	cryptography,
 	passphrase,
 	transaction,

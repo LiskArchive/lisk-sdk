@@ -18,7 +18,9 @@ import * as popsicle from 'popsicle';
 export default class APIResource {
 	constructor(apiClient) {
 		if (!apiClient) {
-			throw Error('Require APIClient instance to be initialized.');
+			throw new Error(
+				'APIResource requires APIClient instance for initialization.',
+			);
 		}
 		this.apiClient = apiClient;
 		this.path = '';
