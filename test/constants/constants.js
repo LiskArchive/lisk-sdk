@@ -28,6 +28,7 @@ import {
 	EPOCH_TIME_MILLISECONDS,
 	MAX_ADDRESS_NUMBER,
 	MAX_TRANSACTION_AMOUNT,
+	PUT,
 } from 'constants';
 
 describe('constants', () => {
@@ -89,5 +90,9 @@ describe('constants', () => {
 
 	it('MAX_TRANSACTION_AMOUNT should be a string', () => {
 		return MAX_TRANSACTION_AMOUNT.should.be.a('string');
+	});
+
+	it('PUT should be a string', () => {
+		return PUT.should.be.a('string');
 	});
 });
