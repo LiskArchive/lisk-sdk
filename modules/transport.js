@@ -625,11 +625,6 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postSignature(query, cb) {
-		if (!library.config.broadcasts.active) {
-			return library.logger.debug(
-				'Receiving signatures disabled by user through config.json'
-			);
-		}
 		__private.receiveSignature(query.signature, err => {
 			if (err) {
 				return setImmediate(cb, null, { success: false, message: err });
@@ -646,6 +641,11 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postSignatures(query) {
+		if (!library.config.broadcasts.active) {
+			return library.logger.debug(
+				'Receiving signatures disabled by user through config.json'
+			);
+		}
 		library.schema.validate(query, definitions.WSSignaturesList, err => {
 			if (err) {
 				return library.logger.debug('Invalid signatures body', err);
