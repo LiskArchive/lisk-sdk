@@ -22,7 +22,7 @@ import {
 // using the below mentioned passphrases.
 import validTransactions from '../../../fixtures/transactions.json';
 // Require is used for stubbing
-const getTransactionHash = require('transactions/utils/getTransactionHash');
+const getTransactionHash = require('transactions/utils/get_transaction_hash');
 
 describe('signAndVerify module', () => {
 	describe('signAndVerify transaction utils', () => {

@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import APIResource from 'api/apiResource';
+import APIResource from 'api/api_resource';
 // Require is used for stubbing
 const popsicle = require('popsicle');
 

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createDapp from 'transactions/5_createDapp';
+import createDapp from 'transactions/5_create_dapp';
 // Require is used for stubbing
 const time = require('transactions/utils/time');
 

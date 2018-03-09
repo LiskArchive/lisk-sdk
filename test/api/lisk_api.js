@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import LiskAPI from 'api/liskApi';
+import LiskAPI from 'api/lisk_api';
 import config from '../../config.json';
 
 describe('Lisk API module', () => {

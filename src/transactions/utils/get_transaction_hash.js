@@ -13,7 +13,7 @@
  *
  */
 import cryptography from 'cryptography';
-import getTransactionBytes from './getTransactionBytes';
+import getTransactionBytes from './get_transaction_bytes';
 
 const getTransactionHash = transaction => {
 	const bytes = getTransactionBytes(transaction);

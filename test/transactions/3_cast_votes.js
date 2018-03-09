@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import castVotes from 'transactions/3_castVotes';
+import castVotes from 'transactions/3_cast_votes';
 // Require is used for stubbing
 const time = require('transactions/utils/time');
 

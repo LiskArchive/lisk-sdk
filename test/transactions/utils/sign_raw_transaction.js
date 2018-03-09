@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import signRawTransaction from 'transactions/utils/signRawTransaction';
+import signRawTransaction from 'transactions/utils/sign_raw_transaction';
 // Require is used for stubbing
 const time = require('transactions/utils/time');
 

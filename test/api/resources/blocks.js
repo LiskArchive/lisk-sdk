@@ -13,7 +13,7 @@
  *
  */
 
-import APIResource from 'api/apiResource';
+import APIResource from 'api/api_resource';
 import BlockResource from 'api/resources/blocks';
 
 describe('BlocksResource', () => {

@@ -13,7 +13,7 @@
  *
  */
 
-import APIResource from 'api/apiResource';
+import APIResource from 'api/api_resource';
 import SignatureResource from 'api/resources/signatures';
 
 describe('SignaturesResource', () => {

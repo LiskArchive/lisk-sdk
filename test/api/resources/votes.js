@@ -13,7 +13,7 @@
  *
  */
 
-import APIResource from 'api/apiResource';
+import APIResource from 'api/api_resource';
 import VoteResource from 'api/resources/votes';
 
 describe('VotesResource', () => {

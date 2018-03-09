@@ -13,13 +13,13 @@
  *
  */
 import transfer from './0_transfer';
-import registerSecondPassphrase from './1_registerSecondPassphrase';
-import registerDelegate from './2_registerDelegate';
-import castVotes from './3_castVotes';
-import registerMultisignature from './4_registerMultisignatureAccount';
-import createDapp from './5_createDapp';
-import transferIntoDapp from './6_transferIntoDapp';
-import transferOutOfDapp from './7_transferOutOfDapp';
+import registerSecondPassphrase from './1_register_second_passphrase';
+import registerDelegate from './2_register_delegate';
+import castVotes from './3_cast_votes';
+import registerMultisignature from './4_register_multisignature_account';
+import createDapp from './5_create_dapp';
+import transferIntoDapp from './6_transfer_into_dapp';
+import transferOutOfDapp from './7_transfer_out_of_dapp';
 import * as utils from './utils';
 
 export default {

@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { signTransaction } from './signAndVerify';
-import getTransactionId from './getTransactionId';
+import { signTransaction } from './sign_and_verify';
+import getTransactionId from './get_transaction_id';
 
 const secondSignTransaction = (transactionObject, secondPassphrase) =>
 	Object.assign({}, transactionObject, {

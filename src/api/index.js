@@ -13,6 +13,6 @@
  *
  */
 
-import liskAPI from './liskApi';
+import liskAPI from './lisk_api';
 
 export default liskAPI;

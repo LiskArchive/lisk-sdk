@@ -13,7 +13,7 @@
  *
  */
 import cryptography from 'cryptography';
-import getTransactionHash from './getTransactionHash';
+import getTransactionHash from './get_transaction_hash';
 
 export const signTransaction = (transaction, passphrase) => {
 	const transactionHash = getTransactionHash(transaction);

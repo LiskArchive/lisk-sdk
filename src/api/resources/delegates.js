@@ -14,8 +14,8 @@
  */
 
 import { GET } from 'constants';
-import apiMethod from '../apiMethod';
-import APIResource from '../apiResource';
+import apiMethod from '../api_method';
+import APIResource from '../api_resource';
 
 export default class DelegatesResource extends APIResource {
 	constructor(liskAPI) {

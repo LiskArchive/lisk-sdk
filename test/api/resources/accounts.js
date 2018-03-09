@@ -13,7 +13,7 @@
  *
  */
 
-import APIResource from 'api/apiResource';
+import APIResource from 'api/api_resource';
 import AccountResource from 'api/resources/accounts';
 
 describe('AccountsResource', () => {

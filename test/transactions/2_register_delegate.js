@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import registerDelegate from 'transactions/2_registerDelegate';
+import registerDelegate from 'transactions/2_register_delegate';
 // Require is used for stubbing
 const time = require('transactions/utils/time');
 
