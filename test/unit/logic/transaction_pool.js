@@ -869,6 +869,42 @@ describe('transactionPool', () => {
 		});
 	});
 
+	describe('reindexQueues', () => {
+		before(() => {
+			transactionPool.addBundledTransaction({ id: '12345L', bundled: true });
+			transactionPool.addQueuedTransaction({ id: '126785L' });
+			transactionPool.addMultisignatureTransaction({
+				id: '123445L',
+				type: transactionTypes.MULTI,
+			});
+			return transactionPool.addUnconfirmedTransaction({ id: '129887L' });
+		});
+
+		it('should be able to reindex previously removed/falsified transactions', () => {
+			transactionPool.removeBundledTransaction('12345L');
+			transactionPool.removeQueuedTransaction('126785L');
+			transactionPool.removeMultisignatureTransaction('123445L');
+			transactionPool.removeUnconfirmedTransaction('129887L');
+			expect(transactionPool.bundled.transactions).that.does.include(false);
+			expect(transactionPool.queued.transactions).that.does.include(false);
+			expect(transactionPool.multisignature.transactions).that.does.include(
+				false
+			);
+			expect(transactionPool.unconfirmed.transactions).that.does.include(false);
+			transactionPool.reindexQueues();
+			expect(transactionPool.queued.transactions).that.does.not.include(false);
+			expect(transactionPool.multisignature.transactions).that.does.not.include(
+				false
+			);
+			expect(transactionPool.unconfirmed.transactions).that.does.not.include(
+				false
+			);
+			return expect(transactionPool.bundled.transactions).that.does.not.include(
+				false
+			);
+		});
+	});
+
 	describe('processBundled', () => {
 		let processVerifyTransaction;
 		beforeEach(done => {
