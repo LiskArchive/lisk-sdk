@@ -14,17 +14,17 @@
 
 'use strict';
 
-var async = require('async');
-var config = require('../config.json');
-var constants = require('../helpers/constants.js');
-var jobsQueue = require('../helpers/jobs_queue.js');
-var transactionTypes = require('../helpers/transaction_types.js');
+const async = require('async');
+const config = require('../config.json');
+const constants = require('../helpers/constants.js');
+// eslint-disable-next-line  prefer-const
+let jobsQueue = require('../helpers/jobs_queue.js');
+const transactionTypes = require('../helpers/transaction_types.js');
 
-// Private fields
-var modules;
-var library;
-var self;
-var __private = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 /**
  * Transaction pool logic. Initializes variables, sets bundled transaction timer and
@@ -45,74 +45,75 @@ var __private = {};
  * @param {Object} logger - Logger instance
  * @param {Sequence} balancesSequence - Balances sequence
  */
-// Constructor
-function TransactionPool(
-	broadcastInterval,
-	releaseLimit,
-	transaction,
-	bus,
-	logger,
-	balancesSequence
-) {
-	library = {
-		logger,
+class TransactionPool {
+	constructor(
+		broadcastInterval,
+		releaseLimit,
+		transaction,
 		bus,
-		logic: {
-			transaction,
-		},
-		config: {
-			broadcasts: {
-				broadcastInterval,
-				releaseLimit,
+		logger,
+		balancesSequence
+	) {
+		library = {
+			logger,
+			bus,
+			logic: {
+				transaction,
 			},
-		},
-		balancesSequence,
-	};
-	self = this;
+			config: {
+				broadcasts: {
+					broadcastInterval,
+					releaseLimit,
+				},
+			},
+			balancesSequence,
+		};
+		self = this;
+		self.unconfirmed = { transactions: [], index: {} };
+		self.bundled = { transactions: [], index: {} };
+		self.queued = { transactions: [], index: {} };
+		self.multisignature = { transactions: [], index: {} };
+		self.expiryInterval = 30000;
+		self.bundledInterval = library.config.broadcasts.broadcastInterval;
+		self.bundleLimit = library.config.broadcasts.releaseLimit;
+		self.processed = 0;
 
-	self.unconfirmed = { transactions: [], index: {} };
-	self.bundled = { transactions: [], index: {} };
-	self.queued = { transactions: [], index: {} };
-	self.multisignature = { transactions: [], index: {} };
-	self.expiryInterval = 30000;
-	self.bundledInterval = library.config.broadcasts.broadcastInterval;
-	self.bundleLimit = library.config.broadcasts.releaseLimit;
-	self.processed = 0;
+		jobsQueue.register(
+			'transactionPoolNextBundle',
+			nextBundle,
+			self.bundledInterval
+		);
 
-	// Bundled transaction timer
-	function nextBundle(cb) {
-		self.processBundled(err => {
-			if (err) {
-				library.logger.log('Bundled transaction timer', err);
-			}
-			return setImmediate(cb);
-		});
+		jobsQueue.register(
+			'transactionPoolNextExpiry',
+			nextExpiry,
+			self.expiryInterval
+		);
 	}
-
-	jobsQueue.register(
-		'transactionPoolNextBundle',
-		nextBundle,
-		self.bundledInterval
-	);
-
-	// Transaction expiry timer
-	function nextExpiry(cb) {
-		self.expireTransactions(err => {
-			if (err) {
-				library.logger.log('Transaction expiry timer', err);
-			}
-			return setImmediate(cb);
-		});
-	}
-
-	jobsQueue.register(
-		'transactionPoolNextExpiry',
-		nextExpiry,
-		self.expiryInterval
-	);
 }
 
-// Public methods
+// Bundled transaction timer
+function nextBundle(cb) {
+	self.processBundled(err => {
+		if (err) {
+			library.logger.log('Bundled transaction timer', err);
+		}
+		return setImmediate(cb);
+	});
+}
+
+// Transaction expiry timer
+function nextExpiry(cb) {
+	self.expireTransactions(err => {
+		if (err) {
+			library.logger.log('Transaction expiry timer', err);
+		}
+		return setImmediate(cb);
+	});
+}
+
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Bounds input parameters to private variable modules.
  *
@@ -151,7 +152,7 @@ TransactionPool.prototype.transactionInPool = function(id) {
  * @returns {Object|undefined} Transaction or undefined
  */
 TransactionPool.prototype.getUnconfirmedTransaction = function(id) {
-	var index = self.unconfirmed.index[id];
+	const index = self.unconfirmed.index[id];
 	return self.unconfirmed.transactions[index];
 };
 
@@ -163,7 +164,7 @@ TransactionPool.prototype.getUnconfirmedTransaction = function(id) {
  * @todo This function is never called
  */
 TransactionPool.prototype.getBundledTransaction = function(id) {
-	var index = self.bundled.index[id];
+	const index = self.bundled.index[id];
 	return self.bundled.transactions[index];
 };
 
@@ -174,7 +175,7 @@ TransactionPool.prototype.getBundledTransaction = function(id) {
  * @returns {Object|undefined} Transaction or undefined
  */
 TransactionPool.prototype.getQueuedTransaction = function(id) {
-	var index = self.queued.index[id];
+	const index = self.queued.index[id];
 	return self.queued.transactions[index];
 };
 
@@ -185,7 +186,7 @@ TransactionPool.prototype.getQueuedTransaction = function(id) {
  * @returns {Object[]} Array of multisignature transactions
  */
 TransactionPool.prototype.getMultisignatureTransaction = function(id) {
-	var index = self.multisignature.index[id];
+	const index = self.multisignature.index[id];
 	return self.multisignature.transactions[index];
 };
 
@@ -267,25 +268,25 @@ TransactionPool.prototype.getMultisignatureTransactionList = function(
  * @todo Limit is only implemented with queued transactions
  */
 TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
-	var minLimit = constants.maxTxsPerBlock + 2;
+	const minLimit = constants.maxTxsPerBlock + 2;
 
 	if (limit <= minLimit || limit > constants.maxSharedTxs) {
 		limit = minLimit;
 	}
 
-	var unconfirmed = self.getUnconfirmedTransactionList(
+	const unconfirmed = self.getUnconfirmedTransactionList(
 		false,
 		constants.maxTxsPerBlock
 	);
 	limit -= unconfirmed.length;
 
-	var multisignatures = self.getMultisignatureTransactionList(
+	const multisignatures = self.getMultisignatureTransactionList(
 		false,
 		constants.maxTxsPerBlock
 	);
 	limit -= multisignatures.length;
 
-	var queued = self.getQueuedTransactionList(false, limit);
+	const queued = self.getQueuedTransactionList(false, limit);
 	limit -= queued.length;
 
 	return unconfirmed.concat(multisignatures).concat(queued);
@@ -308,7 +309,7 @@ TransactionPool.prototype.addUnconfirmedTransaction = function(transaction) {
 
 	if (self.unconfirmed.index[transaction.id] === undefined) {
 		self.unconfirmed.transactions.push(transaction);
-		var index = self.unconfirmed.transactions.indexOf(transaction);
+		const index = self.unconfirmed.transactions.indexOf(transaction);
 		self.unconfirmed.index[transaction.id] = index;
 	}
 };
@@ -320,7 +321,7 @@ TransactionPool.prototype.addUnconfirmedTransaction = function(transaction) {
  * @param {string} id - Transaction id
  */
 TransactionPool.prototype.removeUnconfirmedTransaction = function(id) {
-	var index = self.unconfirmed.index[id];
+	const index = self.unconfirmed.index[id];
 
 	if (index !== undefined) {
 		self.unconfirmed.transactions[index] = false;
@@ -348,7 +349,7 @@ TransactionPool.prototype.countUnconfirmed = function() {
 TransactionPool.prototype.addBundledTransaction = function(transaction) {
 	if (self.bundled.index[transaction.id] === undefined) {
 		self.bundled.transactions.push(transaction);
-		var index = self.bundled.transactions.indexOf(transaction);
+		const index = self.bundled.transactions.indexOf(transaction);
 		self.bundled.index[transaction.id] = index;
 	}
 };
@@ -359,7 +360,7 @@ TransactionPool.prototype.addBundledTransaction = function(transaction) {
  * @param {string} id - Transaction id
  */
 TransactionPool.prototype.removeBundledTransaction = function(id) {
-	var index = self.bundled.index[id];
+	const index = self.bundled.index[id];
 
 	if (index !== undefined) {
 		self.bundled.transactions[index] = false;
@@ -384,7 +385,7 @@ TransactionPool.prototype.countBundled = function() {
 TransactionPool.prototype.addQueuedTransaction = function(transaction) {
 	if (self.queued.index[transaction.id] === undefined) {
 		self.queued.transactions.push(transaction);
-		var index = self.queued.transactions.indexOf(transaction);
+		const index = self.queued.transactions.indexOf(transaction);
 		self.queued.index[transaction.id] = index;
 	}
 };
@@ -395,7 +396,7 @@ TransactionPool.prototype.addQueuedTransaction = function(transaction) {
  * @param {string} id - Transaction id
  */
 TransactionPool.prototype.removeQueuedTransaction = function(id) {
-	var index = self.queued.index[id];
+	const index = self.queued.index[id];
 
 	if (index !== undefined) {
 		self.queued.transactions[index] = false;
@@ -420,7 +421,7 @@ TransactionPool.prototype.countQueued = function() {
 TransactionPool.prototype.addMultisignatureTransaction = function(transaction) {
 	if (self.multisignature.index[transaction.id] === undefined) {
 		self.multisignature.transactions.push(transaction);
-		var index = self.multisignature.transactions.indexOf(transaction);
+		const index = self.multisignature.transactions.indexOf(transaction);
 		self.multisignature.index[transaction.id] = index;
 	}
 };
@@ -431,7 +432,7 @@ TransactionPool.prototype.addMultisignatureTransaction = function(transaction) {
  * @param {string} id - Transaction id
  */
 TransactionPool.prototype.removeMultisignatureTransaction = function(id) {
-	var index = self.multisignature.index[id];
+	const index = self.multisignature.index[id];
 
 	if (index !== undefined) {
 		self.multisignature.transactions[index] = false;
@@ -478,7 +479,7 @@ TransactionPool.prototype.reindexQueues = function() {
 		self[queue].index = {};
 		self[queue].transactions = self[queue].transactions.filter(Boolean);
 		self[queue].transactions.forEach(transaction => {
-			var index = self[queue].transactions.indexOf(transaction);
+			const index = self[queue].transactions.indexOf(transaction);
 			self[queue].index[transaction.id] = index;
 		});
 	});
@@ -492,7 +493,7 @@ TransactionPool.prototype.reindexQueues = function() {
  * @todo Compare / standardize the returns-description
  */
 TransactionPool.prototype.processBundled = function(cb) {
-	var bundled = self.getBundledTransactionList(true, self.bundleLimit);
+	const bundled = self.getBundledTransactionList(true, self.bundleLimit);
 
 	async.eachSeries(
 		bundled,
@@ -617,7 +618,7 @@ TransactionPool.prototype.queueTransaction = function(transaction, cb) {
  * @returns {SetImmediate} error, ids[]
  */
 TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
-	var ids = [];
+	const ids = [];
 
 	async.eachSeries(
 		self.getUnconfirmedTransactionList(false),
@@ -674,7 +675,7 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
  * @returns {SetImmediate} error, ids[]
  */
 TransactionPool.prototype.expireTransactions = function(cb) {
-	var ids = [];
+	const ids = [];
 
 	async.waterfall(
 		[
@@ -712,21 +713,19 @@ TransactionPool.prototype.expireTransactions = function(cb) {
  * @returns {SetImmediate|applyUnconfirmedList}
  */
 TransactionPool.prototype.fillPool = function(cb) {
-	var unconfirmedCount = self.countUnconfirmed();
+	const unconfirmedCount = self.countUnconfirmed();
 	library.logger.debug(`Transaction pool size: ${unconfirmedCount}`);
 
 	if (unconfirmedCount >= constants.maxTxsPerBlock) {
 		return setImmediate(cb);
 	}
-	var spare = 0;
-	var spareMulti;
-	var multisignatures;
-	var multisignaturesLimit = 5;
-	var transactions;
+	let spare = 0;
+	const multisignaturesLimit = 5;
+	let transactions;
 
 	spare = constants.maxTxsPerBlock - unconfirmedCount;
-	spareMulti = spare >= multisignaturesLimit ? multisignaturesLimit : 0;
-	multisignatures = self
+	const spareMulti = spare >= multisignaturesLimit ? multisignaturesLimit : 0;
+	const multisignatures = self
 		.getMultisignatureTransactionList(true, multisignaturesLimit, true)
 		.slice(0, spareMulti);
 	spare = Math.abs(spare - multisignatures.length);
@@ -738,7 +737,6 @@ TransactionPool.prototype.fillPool = function(cb) {
 	return __private.applyUnconfirmedList(transactions, cb);
 };
 
-// Private
 /**
  * Returns a given list of transactions, reversed and/or limited.
  *
@@ -749,23 +747,23 @@ TransactionPool.prototype.fillPool = function(cb) {
  * @returns {Object[]} Of transactions, reversed and/or limited
  */
 __private.getTransactionList = function(transactions, reverse, limit) {
-	var a = [];
+	let transactionList = [];
 
-	for (var i = 0; i < transactions.length; i++) {
-		var transaction = transactions[i];
+	for (let i = 0; i < transactions.length; i++) {
+		const transaction = transactions[i];
 
 		if (transaction !== false) {
-			a.push(transaction);
+			transactionList.push(transaction);
 		}
 	}
 
-	a = reverse ? a.reverse() : a;
+	transactionList = reverse ? transactionList.reverse() : transactionList;
 
 	if (limit) {
-		a.splice(limit);
+		transactionList.splice(limit);
 	}
 
-	return a;
+	return transactionList;
 };
 
 /**
@@ -809,7 +807,7 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 				);
 			},
 			function getRequester(sender, waterCb) {
-				var multisignatures =
+				const multisignatures =
 					Array.isArray(sender.multisignatures) &&
 					sender.multisignatures.length;
 
@@ -963,7 +961,7 @@ __private.transactionTimeOut = function(transaction) {
  * @returns {SetImmediate} error, ids[]
  */
 __private.expireTransactions = function(transactions, parentIds, cb) {
-	var ids = [];
+	const ids = [];
 
 	async.eachSeries(
 		transactions,
@@ -972,10 +970,10 @@ __private.expireTransactions = function(transactions, parentIds, cb) {
 				return setImmediate(eachSeriesCb);
 			}
 
-			var timeNow = Math.floor(Date.now() / 1000);
-			var timeOut = __private.transactionTimeOut(transaction);
+			const timeNow = Math.floor(Date.now() / 1000);
+			const timeOut = __private.transactionTimeOut(transaction);
 			// transaction.receivedAt is instance of Date
-			var seconds =
+			const seconds =
 				timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
 
 			if (seconds > timeOut) {
@@ -994,5 +992,4 @@ __private.expireTransactions = function(transactions, parentIds, cb) {
 	);
 };
 
-// Export
 module.exports = TransactionPool;

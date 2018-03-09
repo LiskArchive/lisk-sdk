@@ -23,7 +23,6 @@ const constants = require('../helpers/constants.js');
 const exceptions = require('../helpers/exceptions.js');
 const slots = require('../helpers/slots.js');
 
-// Private fields
 const __private = {};
 
 /**
@@ -50,7 +49,6 @@ const __private = {};
  * @returns {SetImmediate} error, this
  * @todo Add description for the params
  */
-// Constructor
 class Transaction {
 	constructor(db, ed, schema, genesisblock, account, logger, cb) {
 		/**
@@ -80,7 +78,6 @@ class Transaction {
 		}
 	}
 
-	// Public methods
 	/**
 	 * Creates a signature.
 	 *
@@ -1080,7 +1077,7 @@ class Transaction {
 			throw `Unknown transaction type ${transaction.type}`;
 		}
 
-		for (const i in transaction) {
+		for (const i of Object.keys(transaction)) {
 			if (
 				transaction[i] === null ||
 				typeof transaction[i] === 'undefined' ||
@@ -1170,7 +1167,8 @@ class Transaction {
 	}
 }
 
-// TODO: To maintain backward compatibility, have to use prototype otherwise these must be converted to static attributes
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Sets private type based on type id after instance object validation.
  *
@@ -1295,5 +1293,4 @@ Transaction.prototype.schema = {
 	required: ['type', 'timestamp', 'senderPublicKey', 'signature'],
 };
 
-// Export
 module.exports = Transaction;
