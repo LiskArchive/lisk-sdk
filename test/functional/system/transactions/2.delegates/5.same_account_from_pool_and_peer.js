@@ -1,15 +1,31 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const lisk = require('lisk-js');
 const expect = require('chai').expect;
-const accountFixtures = require('../../../fixtures/accounts');
-const localCommon = require('../common.js');
-const genesisBlock = require('../../../data/genesis_block.json');
-const randomUtil = require('../../../common/utils/random');
+const accountFixtures = require('../../../../fixtures/accounts');
+const localCommon = require('../../common.js');
+const genesisBlock = require('../../../../data/genesis_block.json');
+const randomUtil = require('../../../../common/utils/random');
 
 describe('delegate', () => {
 	let library;
 	let db;
 
-	localCommon.beforeBlock('system_delegate_from_pool_and_peer', lib => {
+	localCommon.beforeBlock('system_2_2_delegates_5', lib => {
 		library = lib;
 		db = lib.db;
 	});

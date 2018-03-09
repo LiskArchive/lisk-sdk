@@ -72,7 +72,8 @@ function Transactions(cb, scope) {
 		scope.config.broadcasts.releaseLimit,
 		scope.logic.transaction,
 		scope.bus,
-		scope.logger
+		scope.logger,
+		scope.balancesSequence
 	);
 
 	__private.assetTypes[
@@ -380,7 +381,7 @@ __private.getPooledTransactions = function(method, filters, cb) {
 		filters.recipientPublicKey ||
 		filters.senderId ||
 		filters.senderPublicKey ||
-		filters.type
+		filters.hasOwnProperty('type')
 	) {
 		toSend = _.filter(
 			transactions,

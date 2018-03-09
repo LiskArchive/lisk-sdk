@@ -43,9 +43,17 @@ const __private = {};
  * @param {Transaction} transaction - Transaction logic instance
  * @param {bus} bus - Bus instance
  * @param {Object} logger - Logger instance
+ * @param {Sequence} balancesSequence - Balances sequence
  */
 class TransactionPool {
-	constructor(broadcastInterval, releaseLimit, transaction, bus, logger) {
+	constructor(
+		broadcastInterval,
+		releaseLimit,
+		transaction,
+		bus,
+		logger,
+		balancesSequence
+	) {
 		library = {
 			logger,
 			bus,
@@ -58,9 +66,9 @@ class TransactionPool {
 					releaseLimit,
 				},
 			},
+			balancesSequence,
 		};
 		self = this;
-
 		self.unconfirmed = { transactions: [], index: {} };
 		self.bundled = { transactions: [], index: {} };
 		self.queued = { transactions: [], index: {} };
@@ -70,31 +78,11 @@ class TransactionPool {
 		self.bundleLimit = library.config.broadcasts.releaseLimit;
 		self.processed = 0;
 
-		// Bundled transaction timer
-		function nextBundle(cb) {
-			self.processBundled(err => {
-				if (err) {
-					library.logger.log('Bundled transaction timer', err);
-				}
-				return setImmediate(cb);
-			});
-		}
-
 		jobsQueue.register(
 			'transactionPoolNextBundle',
 			nextBundle,
 			self.bundledInterval
 		);
-
-		// Transaction expiry timer
-		function nextExpiry(cb) {
-			self.expireTransactions(err => {
-				if (err) {
-					library.logger.log('Transaction expiry timer', err);
-				}
-				return setImmediate(cb);
-			});
-		}
 
 		jobsQueue.register(
 			'transactionPoolNextExpiry',
@@ -102,6 +90,26 @@ class TransactionPool {
 			self.expiryInterval
 		);
 	}
+}
+
+// Bundled transaction timer
+function nextBundle(cb) {
+	self.processBundled(err => {
+		if (err) {
+			library.logger.log('Bundled transaction timer', err);
+		}
+		return setImmediate(cb);
+	});
+}
+
+// Transaction expiry timer
+function nextExpiry(cb) {
+	self.expireTransactions(err => {
+		if (err) {
+			library.logger.log('Transaction expiry timer', err);
+		}
+		return setImmediate(cb);
+	});
 }
 
 // TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
@@ -493,29 +501,33 @@ TransactionPool.prototype.processBundled = function(cb) {
 			if (!transaction) {
 				return setImmediate(eachSeriesCb);
 			}
+			library.balancesSequence.add(balancesSequenceCb => {
+				__private.processVerifyTransaction(transaction, true, err => {
+					// Remove bundled transaction after asynchronous processVerifyTransaction to avoid race conditions
+					self.removeBundledTransaction(transaction.id);
+					// Delete bundled flag from transaction so it is qualified as "queued" in queueTransaction
+					delete transaction.bundled;
 
-			self.removeBundledTransaction(transaction.id);
-			delete transaction.bundled;
-
-			__private.processVerifyTransaction(transaction, true, err => {
-				if (err) {
-					library.logger.debug(
-						`Failed to process / verify bundled transaction: ${transaction.id}`,
-						err
-					);
-					self.removeUnconfirmedTransaction(transaction);
-					return setImmediate(eachSeriesCb);
-				}
-				self.queueTransaction(transaction, err => {
 					if (err) {
 						library.logger.debug(
-							`Failed to queue bundled transaction: ${transaction.id}`,
+							`Failed to process / verify bundled transaction: ${
+								transaction.id
+							}`,
 							err
 						);
+						return setImmediate(balancesSequenceCb);
 					}
-					return setImmediate(eachSeriesCb);
+					self.queueTransaction(transaction, err => {
+						if (err) {
+							library.logger.debug(
+								`Failed to queue bundled transaction: ${transaction.id}`,
+								err
+							);
+						}
+						return setImmediate(balancesSequenceCb);
+					});
 				});
-			});
+			}, eachSeriesCb);
 		},
 		err => setImmediate(cb, err)
 	);
@@ -535,7 +547,8 @@ TransactionPool.prototype.processBundled = function(cb) {
 TransactionPool.prototype.processUnconfirmedTransaction = function(
 	transaction,
 	broadcast,
-	cb
+	cb,
+	tx
 ) {
 	if (self.transactionInPool(transaction.id)) {
 		return setImmediate(
@@ -553,12 +566,17 @@ TransactionPool.prototype.processUnconfirmedTransaction = function(
 		return self.queueTransaction(transaction, cb);
 	}
 
-	__private.processVerifyTransaction(transaction, broadcast, err => {
-		if (!err) {
-			return self.queueTransaction(transaction, cb);
-		}
-		return setImmediate(cb, err);
-	});
+	__private.processVerifyTransaction(
+		transaction,
+		broadcast,
+		err => {
+			if (!err) {
+				return self.queueTransaction(transaction, cb);
+			}
+			return setImmediate(cb, err);
+		},
+		tx
+	);
 };
 
 /**
@@ -617,11 +635,28 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 								`Failed to undo unconfirmed transaction: ${transaction.id}`,
 								err
 							);
-						} else {
-							// Transaction successfully undone from unconfirmed states, move it to queued list
-							self.addQueuedTransaction(transaction);
+							return setImmediate(eachSeriesCb);
 						}
-						return setImmediate(eachSeriesCb);
+
+						// Transaction successfully undone from unconfirmed states, try moving it to queued list
+						library.balancesSequence.add(balancesSequenceCb => {
+							self.processUnconfirmedTransaction(
+								transaction,
+								false,
+								err => {
+									if (err) {
+										library.logger.debug(
+											`Failed to queue transaction back after successful undo unconfirmed: ${
+												transaction.id
+											}`,
+											err
+										);
+									}
+									return setImmediate(balancesSequenceCb);
+								},
+								tx
+							);
+						}, eachSeriesCb);
 					},
 					tx
 				);
@@ -732,6 +767,17 @@ __private.getTransactionList = function(transactions, reverse, limit) {
 };
 
 /**
+ * Check if transaction exists in unconfirmed queue.
+ *
+ * @private
+ * @param {Object} transaction - Transaction object
+ * @returns {Boolean}
+ */
+__private.isTransactionInUnconfirmedQueue = function(transaction) {
+	return typeof self.unconfirmed.index[transaction.id] === 'number';
+};
+
+/**
  * Processes and verifies a transaction.
  *
  * @private
@@ -743,6 +789,12 @@ __private.getTransactionList = function(transactions, reverse, limit) {
 __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 	if (!transaction) {
 		return setImmediate(cb, 'Missing transaction');
+	}
+
+	// At this point, transaction should not be in unconfirmed state,
+	// but this is a final barrier to stop us from making unconfirmed state dirty.
+	if (__private.isTransactionInUnconfirmedQueue(transaction)) {
+		return setImmediate(cb, 'Transaction is already in unconfirmed state');
 	}
 
 	async.waterfall(
@@ -839,41 +891,45 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 			if (!transaction) {
 				return setImmediate(eachSeriesCb);
 			}
-			__private.processVerifyTransaction(
-				transaction,
-				false,
-				(err, sender) => {
-					if (err) {
-						library.logger.error(
-							`Failed to process / verify unconfirmed transaction: ${
-								transaction.id
-							}`,
-							err
+			library.balancesSequence.add(balancesSequenceCb => {
+				__private.processVerifyTransaction(
+					transaction,
+					false,
+					(err, sender) => {
+						if (err) {
+							library.logger.error(
+								`Failed to process / verify unconfirmed transaction: ${
+									transaction.id
+								}`,
+								err
+							);
+							self.removeQueuedTransaction(transaction.id);
+							return setImmediate(balancesSequenceCb);
+						}
+						modules.transactions.applyUnconfirmed(
+							transaction,
+							sender,
+							err => {
+								if (err) {
+									library.logger.error(
+										`Failed to apply unconfirmed transaction: ${
+											transaction.id
+										}`,
+										err
+									);
+									self.removeQueuedTransaction(transaction.id);
+								} else {
+									// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
+									self.addUnconfirmedTransaction(transaction);
+								}
+								return setImmediate(balancesSequenceCb);
+							},
+							tx
 						);
-						self.removeUnconfirmedTransaction(transaction.id);
-						return setImmediate(eachSeriesCb);
-					}
-					modules.transactions.applyUnconfirmed(
-						transaction,
-						sender,
-						err => {
-							if (err) {
-								library.logger.error(
-									`Failed to apply unconfirmed transaction: ${transaction.id}`,
-									err
-								);
-								self.removeUnconfirmedTransaction(transaction.id);
-							} else {
-								// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
-								self.addUnconfirmedTransaction(transaction);
-							}
-							return setImmediate(eachSeriesCb);
-						},
-						tx
-					);
-				},
-				tx
-			);
+					},
+					tx
+				);
+			}, eachSeriesCb);
 		},
 		cb
 	);
