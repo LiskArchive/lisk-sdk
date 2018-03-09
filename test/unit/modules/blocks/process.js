@@ -889,9 +889,7 @@ describe('blocks/process', () => {
 								{ ip: 1, wsPort: 2 },
 								10,
 								() => {
-									expect(
-										modules.peers.remove
-									).to.have.been.calledOnce;
+									expect(modules.peers.remove).to.have.been.calledOnce;
 									done();
 								}
 							);
