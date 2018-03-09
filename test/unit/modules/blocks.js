@@ -200,12 +200,58 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('lastReciept', () => {
-		it('should assign get');
-
-		it('should assign update');
-
-		it('should assign isStale');
+	describe('lastReceipt', () => {
+		const dummyLastReceipt = 1520593240;
+		beforeEach(done => {
+			__private.lastReceipt = dummyLastReceipt;
+			done();
+		});
+		describe('get', () => {
+			it('should return __private.lastReceipt', () => {
+				return expect(blocksInstance.lastReceipt.get()).to.equal(
+					dummyLastReceipt
+				);
+			});
+		});
+		describe('update', () => {
+			it('should assign update __private.lastReceipt with latest time and return new value', () => {
+				expect(blocksInstance.lastReceipt.update()).to.be.above(
+					dummyLastReceipt
+				);
+				return expect(__private.lastReceipt).to.be.above(dummyLastReceipt);
+			});
+		});
+		describe('isStale', () => {
+			describe('when __private.lastReceipt is null', () => {
+				beforeEach(done => {
+					__private.lastBlock = null;
+					done();
+				});
+				it('should return false', () => {
+					return expect(blocksInstance.lastReceipt.isStale()).to.be.true;
+				});
+			});
+			describe('when __private.lastReceipt is set', () => {
+				describe('when secondsAgo > constants.blockReceiptTimeOut', () => {
+					beforeEach(done => {
+						__private.lastReceipt = dummyLastReceipt;
+						done();
+					});
+					it('should return true', () => {
+						return expect(blocksInstance.lastReceipt.isStale()).to.be.true;
+					});
+				});
+				describe('when secondsAgo <= constants.blockReceiptTimeOut', () => {
+					beforeEach(done => {
+						__private.lastReceipt = Math.floor(Date.now() / 1000) + 10000;
+						done();
+					});
+					it('should return false', () => {
+						return expect(blocksInstance.lastReceipt.isStale()).to.be.false;
+					});
+				});
+			});
+		});
 	});
 
 	describe('isActive', () => {
