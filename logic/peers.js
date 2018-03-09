@@ -56,7 +56,8 @@ class Peers {
 	}
 }
 
-// TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Returns current peer state and system headers.
  *
@@ -248,7 +249,6 @@ Peers.prototype.list = function(normalize) {
 	);
 };
 
-// Public methods
 /**
  * Modules are not required in this file.
  *

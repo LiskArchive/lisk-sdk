@@ -44,8 +44,8 @@ class InTransfer {
 	}
 }
 
-// TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
-// Public methods
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Binds input parameters to private variables modules and shared.
  *

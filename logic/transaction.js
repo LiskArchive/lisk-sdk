@@ -78,7 +78,6 @@ class Transaction {
 		}
 	}
 
-	// Public methods
 	/**
 	 * Creates a signature.
 	 *
@@ -1168,7 +1167,8 @@ class Transaction {
 	}
 }
 
-// TODO: To maintain backward compatibility, have to use prototype otherwise these must be converted to static attributes
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Sets private type based on type id after instance object validation.
  *

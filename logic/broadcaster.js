@@ -165,7 +165,8 @@ class Broadcaster {
 	}
 }
 
-// Public methods
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Adds new object {params, options} to queue array.
  *

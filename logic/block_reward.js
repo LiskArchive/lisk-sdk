@@ -41,7 +41,6 @@ class BlockReward {
 		this.rewardOffset = Math.floor(constants.rewards.offset);
 	}
 
-	// Public methods
 	/**
 	 * Description of the function.
 	 *

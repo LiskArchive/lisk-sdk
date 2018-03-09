@@ -55,7 +55,6 @@ class Block {
 		}
 	}
 
-	// Public methods
 	/**
 	 * Sorts input data transactions.
 	 * Calculates reward based on previous block data.
@@ -279,7 +278,8 @@ __private.getAddressByPublicKey = function(publicKey) {
 	return address;
 };
 
-// TODO: To maintain backward compatibility, the below listed methods have to use prototype otherwise these must be converted to static attributes
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * @typedef {Object} block
  * @property {string} id - Between 1 and 20 chars
