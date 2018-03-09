@@ -15,51 +15,129 @@
 
 'use strict';
 
-var application = require('../../common/application');
+const rewire = require('rewire');
+
+const Blocks = rewire('../../../modules/blocks.js');
 
 describe('blocks', () => {
-	describe('Blocks constructor', () => {
-		describe('library', () => {
-			it('should assign logger');
+	let blocksInstance;
+	let self;
+	let library;
+	let __private;
+	let dbStub;
+	let loggerStub;
+	let logicBlockStub;
+	let logicTransactionStub;
+	let schemaStub;
+	let dbSequenceStub;
+	let sequenceStub;
+	let peersStub;
+	let dummyGenesisblock;
+	let accountStub;
+	let busStub;
+	let balancesSequenceStub;
+	let scope;
+	beforeEach(done => {
+		dummyGenesisblock = {
+			block: {
+				id: '6524861224470851795',
+				height: 1,
+			},
+		};
+		loggerStub = {
+			trace: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
+			debug: sinonSandbox.spy(),
+		};
+		dbStub = {
+			blocks: {
+				getGenesisBlockId: sinonSandbox.stub().resolves([{ id: '6524861224470851795' }]),
+				deleteBlock: sinonSandbox.stub(),
+				deleteAfterBlock: sinonSandbox.stub(),
+			},
+			tx: sinonSandbox.stub(),
+		};
+		logicBlockStub = sinonSandbox.stub();
+		logicTransactionStub = sinonSandbox.stub();
+		schemaStub = sinonSandbox.stub();
+		dbSequenceStub = sinonSandbox.stub();
+		sequenceStub = sinonSandbox.stub();
+		accountStub = sinonSandbox.stub();
+		busStub = sinonSandbox.stub();
+		balancesSequenceStub = sinonSandbox.stub();
+		scope = {
+			logger: loggerStub,
+			db: dbStub,
+			logic: {
+				account: accountStub,
+				block: logicBlockStub,
+				transaction: logicTransactionStub,
+				peers: peersStub,
+			},
+			schema: schemaStub,
+			dbSequence: dbSequenceStub,
+			sequence: sequenceStub,
+			genesisblock: dummyGenesisblock,
+			bus: busStub,
+			balancesSequence: balancesSequenceStub,
+		};
+
+		blocksInstance = new Blocks((err, cbSelf) => {
+			self = cbSelf;
+			library = Blocks.__get__('library');
+			__private = Blocks.__get__('__private');
+			expect(err).to.be.undefined;
+			done();
+		}, scope);
+	});
+	afterEach(done => {
+		sinonSandbox.restore();
+		done();
+	});
+	describe('constructor', () => {
+		it('should assign params to library', () => {
+			return expect(library.logger).to.eql(loggerStub);
 		});
 
-		describe('this.submodules', () => {
-			it('should assign api');
-
-			it('should assign verify');
-
-			it('should assign process');
-
-			it('should assign utils');
-
-			it('should assign chain');
+		it('should instanciate submodules', () => {
+			expect(self.submodules.api).to.be.an('object');
+			expect(self.submodules.chain).to.be.an('object');
+			expect(self.submodules.process).to.be.an('object');
+			expect(self.submodules.utils).to.be.an('object');
+			return expect(self.submodules.verify).to.be.an('object');
 		});
 
-		it('should set this.shared = this.submodules.api');
+		it('should assign submodules to this', () => {
+			expect(self.submodules.api).to.deep.equal(self.shared);
+			expect(self.submodules.chain).to.deep.equal(self.chain);
+			expect(self.submodules.process).to.deep.equal(self.process);
+			expect(self.submodules.utils).to.deep.equal(self.utils);
+			return expect(self.submodules.verify).to.deep.equal(self.verify);
+		});
 
-		it('should set this.verify = this.submodules.verify');
-
-		it('should set this.process = this.submodules.process');
-
-		it('should set this.utils = this.submodules.utils');
-
-		it('should set this.chain = this.submodules.chain');
-
-		it('should set self = this');
-
-		it('should call this.submodules.chain.saveGenesisBlock');
-
-		it('should call callback with result = self');
+		it('should call callback with result = self', () => {
+			return expect(self.submodules.api).to.be.an('object');
+		});
 
 		describe('when this.submodules.chain.saveGenesisBlock fails', () => {
-			it('should call callback with error');
+			it('should call callback with error', done => {
+				dbStub.blocks.getGenesisBlockId.resolves([]);
+				blocksInstance = new Blocks((err, cbSelf) => {
+					self = cbSelf;
+					library = Blocks.__get__('library');
+					__private = Blocks.__get__('__private');
+					expect(err).to.equal('Blocks#saveGenesisBlock error');
+					expect(self.submodules.api).to.be.an('object');
+					expect(self.submodules.chain).to.be.an('object');
+					expect(self.submodules.process).to.be.an('object');
+					expect(self.submodules.utils).to.be.an('object');
+					expect(self.submodules.verify).to.be.an('object');
+					done();
+				}, scope);
+			});
 		});
-
-		describe('when this.submodules.chain.saveGenesisBlock succeeds', () => {
-			it('should call callback with error = undefined');
-		});
-
-		describe('callback for this.submodules.chain.saveGenesisBlock', () => {});
 	});
 
 	describe('lastBlock', () => {
@@ -118,51 +196,5 @@ describe('blocks', () => {
 
 	describe('isLoaded', () => {
 		it('should return __private.loaded');
-	});
-
-	//= =========== old code begins ============================
-
-	var blocks;
-
-	before(done => {
-		application.init(
-			{ sandbox: { name: 'lisk_test_modules_blocks' } },
-			(err, scope) => {
-				blocks = scope.modules.blocks;
-				done();
-			}
-		);
-	});
-
-	after(done => {
-		application.cleanup(done);
-	});
-
-	describe('getBlockProgressLogger', () => {
-		it('should logs correctly', () => {
-			var tracker = blocks.utils.getBlockProgressLogger(5, 2, '');
-			tracker.log = sinonSandbox.spy();
-			expect(tracker.applied).to.equals(0);
-			expect(tracker.step).to.equals(2);
-			tracker.applyNext();
-			expect(tracker.log.calledOnce).to.ok;
-			expect(tracker.applied).to.equals(1);
-			tracker.applyNext();
-			expect(tracker.log.calledTwice).to.not.ok;
-			expect(tracker.applied).to.equals(2);
-			tracker.applyNext();
-			expect(tracker.log.calledTwice).to.ok;
-			expect(tracker.applied).to.equals(3);
-			tracker.applyNext();
-			expect(tracker.log.calledThrice).to.not.ok;
-			expect(tracker.applied).to.equals(4);
-			tracker.applyNext();
-			expect(tracker.log.calledThrice).to.ok;
-			expect(tracker.applied).to.equals(5);
-
-			return expect(tracker.applyNext.bind(tracker)).to.throw(
-				'Cannot apply transaction over the limit: 5'
-			);
-		});
 	});
 });
