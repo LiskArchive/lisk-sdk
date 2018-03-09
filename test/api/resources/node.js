@@ -77,7 +77,7 @@ describe('NodeResource', () => {
 
 		it('should have a "updateForgingStatus" function', () => {
 			return resource.should.have
-				.property('getForgingStatus')
+				.property('updateForgingStatus')
 				.which.is.a('function');
 		});
 	});

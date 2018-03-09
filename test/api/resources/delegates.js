@@ -59,15 +59,17 @@ describe('DelegatesResource', () => {
 		});
 
 		it('should have a "getStandby" function', () => {
-			return resource.should.have.property('get').which.is.a('function');
+			return resource.should.have.property('getStandby').which.is.a('function');
 		});
 
 		it('should have a "getForgers" function', () => {
-			return resource.should.have.property('get').which.is.a('function');
+			return resource.should.have.property('getForgers').which.is.a('function');
 		});
 
 		it('should have a "getForgingStatus" function', () => {
-			return resource.should.have.property('get').which.is.a('function');
+			return resource.should.have
+				.property('getForgingStatus')
+				.which.is.a('function');
 		});
 	});
 });
