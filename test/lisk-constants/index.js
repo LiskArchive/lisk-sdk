@@ -28,17 +28,9 @@ import {
 	EPOCH_TIME_MILLISECONDS,
 	MAX_ADDRESS_NUMBER,
 	MAX_TRANSACTION_AMOUNT,
-	LIVE_PORT,
-	SSL_PORT,
-	TEST_PORT,
-	GET,
-	POST,
-	PUT,
-	MAINNET_NETHASH,
-	TESTNET_NETHASH,
-} from 'constants';
+} from 'lisk-constants';
 
-describe('constants', () => {
+describe('lisk-constants', () => {
 	it('FIXED_POINT should be an integer', () => {
 		return FIXED_POINT.should.be.an.integer;
 	});
@@ -97,37 +89,5 @@ describe('constants', () => {
 
 	it('MAX_TRANSACTION_AMOUNT should be a string', () => {
 		return MAX_TRANSACTION_AMOUNT.should.be.a('string');
-	});
-
-	it('LIVE_PORT should be a string', () => {
-		return LIVE_PORT.should.be.a('string');
-	});
-
-	it('SSL_PORT should be a string', () => {
-		return SSL_PORT.should.be.a('string');
-	});
-
-	it('TEST_PORT should be a string', () => {
-		return TEST_PORT.should.be.a('string');
-	});
-
-	it('GET should be a string', () => {
-		return GET.should.be.a('string');
-	});
-
-	it('POST should be a string', () => {
-		return POST.should.be.a('string');
-	});
-
-	it('PUT should be a string', () => {
-		return PUT.should.be.a('string');
-	});
-
-	it('MAINNET_NETHASH should be a string', () => {
-		return MAINNET_NETHASH.should.be.a('string');
-	});
-
-	it('TESTNET_NETHASH should be a string', () => {
-		return TESTNET_NETHASH.should.be.a('string');
 	});
 });

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { VOTE_FEE } from 'constants';
+import { VOTE_FEE } from 'lisk-constants';
 import cryptography from 'cryptography';
 import {
 	prependMinusToPublicKeys,

@@ -13,7 +13,7 @@
  *
  */
 
-import { POST } from 'constants';
+import { POST } from '../constants';
 import apiMethod from '../api_method';
 import APIResource from '../api_resource';
 
