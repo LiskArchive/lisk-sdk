@@ -67,7 +67,7 @@
 		"lodash": "=4.17.4",
 		"method-override": "=2.3.10",
 		"pg-monitor": "=0.9.0",
-		"pg-promise": "=8.2.0",
+		"pg-promise": "=8.2.1",
 		"popsicle": "=9.1.0",
 		"randomstring": "=1.1.5",
 		"redis": "=2.7.1",
