@@ -508,7 +508,7 @@ describe('db', () => {
 		});
 
 		describe('getCommonBlock()', () => {
-			it('should use a function for the SQL parameters', function*() {
+			it('should call a function with SQL parameters', function*() {
 				sinonSandbox.spy(db, 'any');
 
 				const params = {
