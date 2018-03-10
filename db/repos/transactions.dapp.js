@@ -48,12 +48,8 @@ function DappsTransactionsRepo(db, pgp) {
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({
-			table: this.dbTable,
-			schema: 'public',
-		});
 		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table,
+			table: this.dbTable,
 		});
 	}
 
@@ -83,7 +79,9 @@ DappsTransactionsRepo.prototype.save = function(transactions) {
 		transactionId: transaction.id,
 	}));
 
-	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
+	const query = () => this.pgp.helpers.insert(transactions, this.cs.insert);
+
+	return this.db.none(query);
 };
 
 module.exports = DappsTransactionsRepo;
