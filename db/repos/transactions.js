@@ -122,12 +122,11 @@ class TransactionsRepository {
 	 * @param {Object} params
 	 * @param {Array} params.where
 	 * @param {string} params.owner
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
+	 * @returns {Promise<number>}
+	 * Transactions counter.
 	 */
 	countList(params) {
-		// TODO: Get rid of the in-code query, and a result-specific query method
-		return this.db.query(Queries.countList(params), params);
+		return this.db.one(Queries.countList, params, a => +a.count);
 	}
 
 	/**
@@ -140,12 +139,11 @@ class TransactionsRepository {
 	 * @param {string} params.sortMethod
 	 * @param {int} params.limit
 	 * @param {int} params.offset
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
+	 * @returns {Promise<[]>}
+	 * List of transactions.
 	 */
 	list(params) {
-		// TODO: Get rid of the in-code query, and a result-specific query method
-		return this.db.query(Queries.list(params), params);
+		return this.db.any(Queries.list, params);
 	}
 
 	/**
@@ -268,7 +266,7 @@ class TransactionsRepository {
 
 		const batch = [];
 		batch.push(
-			this.db.none(this.pgp.helpers.insert(saveTransactions, cs.insert))
+			this.db.none(() => this.pgp.helpers.insert(saveTransactions, cs.insert))
 		);
 
 		const groupedTransactions = _.groupBy(saveTransactions, 'type');
