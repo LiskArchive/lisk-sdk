@@ -41,12 +41,8 @@ function DelegateTransactionsRepo(db, pgp) {
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({
-			table: this.dbTable,
-			schema: 'public',
-		});
 		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table,
+			table: this.dbTable,
 		});
 	}
 
@@ -70,7 +66,9 @@ DelegateTransactionsRepo.prototype.save = function(transactions) {
 		username: transaction.asset.delegate.username,
 	}));
 
-	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
+	const query = () => this.pgp.helpers.insert(transactions, this.cs.insert);
+
+	return this.db.none(query);
 };
 
 module.exports = DelegateTransactionsRepo;
