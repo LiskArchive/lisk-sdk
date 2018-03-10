@@ -57,16 +57,18 @@ function DelegateTransactionsRepo(db, pgp) {
  * @todo Add description for the params and the return value
  */
 DelegateTransactionsRepo.prototype.save = function(transactions) {
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
-	}
+	const query = () => {
+		if (!_.isArray(transactions)) {
+			transactions = [transactions];
+		}
 
-	transactions = transactions.map(transaction => ({
-		transactionId: transaction.id,
-		username: transaction.asset.delegate.username,
-	}));
+		transactions = transactions.map(transaction => ({
+			transactionId: transaction.id,
+			username: transaction.asset.delegate.username,
+		}));
 
-	const query = () => this.pgp.helpers.insert(transactions, this.cs.insert);
+		return this.pgp.helpers.insert(transactions, this.cs.insert);
+	};
 
 	return this.db.none(query);
 };

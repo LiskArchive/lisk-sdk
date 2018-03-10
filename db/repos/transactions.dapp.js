@@ -64,22 +64,23 @@ function DappsTransactionsRepo(db, pgp) {
  * @todo Add description for the params and the return value
  */
 DappsTransactionsRepo.prototype.save = function(transactions) {
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
-	}
+	const query = () => {
+		if (!_.isArray(transactions)) {
+			transactions = [transactions];
+		}
 
-	transactions = transactions.map(transaction => ({
-		type: transaction.asset.dapp.type,
-		name: transaction.asset.dapp.name,
-		description: transaction.asset.dapp.description || null,
-		tags: transaction.asset.dapp.tags || null,
-		link: transaction.asset.dapp.link || null,
-		icon: transaction.asset.dapp.icon || null,
-		category: transaction.asset.dapp.category,
-		transactionId: transaction.id,
-	}));
-
-	const query = () => this.pgp.helpers.insert(transactions, this.cs.insert);
+		transactions = transactions.map(transaction => ({
+			type: transaction.asset.dapp.type,
+			name: transaction.asset.dapp.name,
+			description: transaction.asset.dapp.description || null,
+			tags: transaction.asset.dapp.tags || null,
+			link: transaction.asset.dapp.link || null,
+			icon: transaction.asset.dapp.icon || null,
+			category: transaction.asset.dapp.category,
+			transactionId: transaction.id,
+		}));
+		return this.pgp.helpers.insert(transactions, this.cs.insert);
+	};
 
 	return this.db.none(query);
 };

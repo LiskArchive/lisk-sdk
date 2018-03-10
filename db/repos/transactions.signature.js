@@ -56,20 +56,18 @@ function SignatureTransactionsRepo(db, pgp) {
  * @todo Add description for the params and the return value
  */
 SignatureTransactionsRepo.prototype.save = function(transactions) {
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
-	}
+	const query = () => {
+		if (!_.isArray(transactions)) {
+			transactions = [transactions];
+		}
 
-	try {
 		transactions = transactions.map(transaction => ({
 			transactionId: transaction.id,
 			publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex'),
 		}));
-	} catch (e) {
-		throw e;
-	}
 
-	const query = () => this.pgp.helpers.insert(transactions, this.cs.insert);
+		return this.pgp.helpers.insert(transactions, this.cs.insert);
+	};
 
 	return this.db.none(query);
 };

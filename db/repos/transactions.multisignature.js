@@ -57,18 +57,20 @@ function MultiSigTransactionsRepo(db, pgp) {
  * @todo Add description for the params and the return value
  */
 MultiSigTransactionsRepo.prototype.save = function(transactions) {
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
-	}
+	const query = () => {
+		if (!_.isArray(transactions)) {
+			transactions = [transactions];
+		}
 
-	transactions = transactions.map(transaction => ({
-		min: transaction.asset.multisignature.min,
-		lifetime: transaction.asset.multisignature.lifetime,
-		keysgroup: transaction.asset.multisignature.keysgroup.join(),
-		transactionId: transaction.id,
-	}));
+		transactions = transactions.map(transaction => ({
+			min: transaction.asset.multisignature.min,
+			lifetime: transaction.asset.multisignature.lifetime,
+			keysgroup: transaction.asset.multisignature.keysgroup.join(),
+			transactionId: transaction.id,
+		}));
 
-	const query = () => this.pgp.helpers.insert(transactions, this.cs.insert);
+		return this.pgp.helpers.insert(transactions, this.cs.insert);
+	};
 
 	return this.db.none(query);
 };

@@ -57,16 +57,18 @@ function InTransferTransactionsRepo(db, pgp) {
  * @todo Add description for the params and the return value
  */
 InTransferTransactionsRepo.prototype.save = function(transactions) {
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
-	}
+	const query = () => {
+		if (!_.isArray(transactions)) {
+			transactions = [transactions];
+		}
 
-	transactions = transactions.map(transaction => ({
-		dappId: transaction.asset.inTransfer.dappId,
-		transactionId: transaction.id,
-	}));
+		transactions = transactions.map(transaction => ({
+			dappId: transaction.asset.inTransfer.dappId,
+			transactionId: transaction.id,
+		}));
 
-	const query = () => this.pgp.helpers.insert(transactions, this.cs.insert);
+		return this.pgp.helpers.insert(transactions, this.cs.insert);
+	};
 
 	return this.db.none(query);
 };

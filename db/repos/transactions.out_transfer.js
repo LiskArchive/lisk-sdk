@@ -57,17 +57,19 @@ function OutTransferTransactionsRepo(db, pgp) {
  * @todo Add description for the params and the return value
  */
 OutTransferTransactionsRepo.prototype.save = function(transactions) {
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
-	}
+	const query = () => {
+		if (!_.isArray(transactions)) {
+			transactions = [transactions];
+		}
 
-	transactions = transactions.map(transaction => ({
-		dappId: transaction.asset.outTransfer.dappId,
-		outTransactionId: transaction.asset.outTransfer.transactionId,
-		transactionId: transaction.id,
-	}));
+		transactions = transactions.map(transaction => ({
+			dappId: transaction.asset.outTransfer.dappId,
+			outTransactionId: transaction.asset.outTransfer.transactionId,
+			transactionId: transaction.id,
+		}));
 
-	const query = () => this.pgp.helpers.insert(transactions, this.cs.insert);
+		return this.pgp.helpers.insert(transactions, this.cs.insert);
+	};
 
 	return this.db.none(query);
 };

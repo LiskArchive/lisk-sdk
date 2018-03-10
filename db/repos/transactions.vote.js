@@ -55,18 +55,20 @@ function VoteTransactionsRepo(db, pgp) {
  * @todo Add description for the params and the return value
  */
 VoteTransactionsRepo.prototype.save = function(transactions) {
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
-	}
+	const query = () => {
+		if (!_.isArray(transactions)) {
+			transactions = [transactions];
+		}
 
-	transactions = transactions.map(transaction => ({
-		votes: Array.isArray(transaction.asset.votes)
-			? transaction.asset.votes.join()
-			: null,
-		transactionId: transaction.id,
-	}));
+		transactions = transactions.map(transaction => ({
+			votes: Array.isArray(transaction.asset.votes)
+				? transaction.asset.votes.join()
+				: null,
+			transactionId: transaction.id,
+		}));
 
-	const query = () => this.pgp.helpers.insert(transactions, this.cs.insert);
+		return this.pgp.helpers.insert(transactions, this.cs.insert);
+	};
 
 	return this.db.none(query);
 };
