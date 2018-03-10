@@ -15,8 +15,8 @@
 'use strict';
 
 const _ = require('lodash');
-const transactionTypes = require('../../helpers/transaction_types');
-const sql = require('../sql').transactions;
+const transactionTypes = require('../../../helpers/transaction_types');
+const sql = require('../../sql').transactions;
 
 const cs = {}; // Reusable ColumnSet objects
 

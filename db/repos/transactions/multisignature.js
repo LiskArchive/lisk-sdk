@@ -15,12 +15,12 @@
 'use strict';
 
 var _ = require('lodash');
-require('../../helpers/transaction_types');
+require('../../../helpers/transaction_types');
 
 var columnSet;
 
 /**
- * OutTransfer transactions database interaction class.
+ * Multisignature transactions database interaction class.
  *
  * @class
  * @memberof db.repos
@@ -29,15 +29,15 @@ var columnSet;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} An instance of a OutTransferTransactionsRepo
+ * @returns {Object} An instance of a MultiSigTransactionsRepo
  */
-function OutTransferTransactionsRepo(db, pgp) {
+function MultiSigTransactionsRepo(db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
-	this.dbTable = 'outtransfer';
+	this.dbTable = 'multisignatures';
 
-	this.dbFields = ['dappId', 'outTransactionId', 'transactionId'];
+	this.dbFields = ['min', 'lifetime', 'keysgroup', 'transactionId'];
 
 	if (!columnSet) {
 		columnSet = {};
@@ -54,24 +54,25 @@ function OutTransferTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save outTransfer transactions.
+ * Save multisignature transactions.
  *
  * @param {Array} transactions
  * @returns {Promise}
  * @todo Add description for the params and the return value
  */
-OutTransferTransactionsRepo.prototype.save = function(transactions) {
+MultiSigTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
 	transactions = transactions.map(transaction => ({
-		dappId: transaction.asset.outTransfer.dappId,
-		outTransactionId: transaction.asset.outTransfer.transactionId,
+		min: transaction.asset.multisignature.min,
+		lifetime: transaction.asset.multisignature.lifetime,
+		keysgroup: transaction.asset.multisignature.keysgroup.join(),
 		transactionId: transaction.id,
 	}));
 
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
-module.exports = OutTransferTransactionsRepo;
+module.exports = MultiSigTransactionsRepo;

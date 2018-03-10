@@ -15,12 +15,12 @@
 'use strict';
 
 var _ = require('lodash');
-require('../../helpers/transaction_types');
+require('../../../helpers/transaction_types');
 
 var columnSet;
 
 /**
- * InTransfer transactions database interaction class.
+ * OutTransfer transactions database interaction class.
  *
  * @class
  * @memberof db.repos
@@ -29,15 +29,15 @@ var columnSet;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} An instance of a InTransferTransactionsRepo
+ * @returns {Object} An instance of a OutTransferTransactionsRepo
  */
-function InTransferTransactionsRepo(db, pgp) {
+function OutTransferTransactionsRepo(db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
-	this.dbTable = 'intransfer';
+	this.dbTable = 'outtransfer';
 
-	this.dbFields = ['dappId', 'transactionId'];
+	this.dbFields = ['dappId', 'outTransactionId', 'transactionId'];
 
 	if (!columnSet) {
 		columnSet = {};
@@ -54,23 +54,24 @@ function InTransferTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save inTransfer transactions.
+ * Save outTransfer transactions.
  *
  * @param {Array} transactions
  * @returns {Promise}
  * @todo Add description for the params and the return value
  */
-InTransferTransactionsRepo.prototype.save = function(transactions) {
+OutTransferTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
 	transactions = transactions.map(transaction => ({
-		dappId: transaction.asset.inTransfer.dappId,
+		dappId: transaction.asset.outTransfer.dappId,
+		outTransactionId: transaction.asset.outTransfer.transactionId,
 		transactionId: transaction.id,
 	}));
 
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
-module.exports = InTransferTransactionsRepo;
+module.exports = OutTransferTransactionsRepo;

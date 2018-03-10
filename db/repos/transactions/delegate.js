@@ -15,12 +15,12 @@
 'use strict';
 
 var _ = require('lodash');
-require('../../helpers/transaction_types');
+require('../../../helpers/transaction_types');
 
 var columnSet;
 
 /**
- * Multisignature transactions database interaction class.
+ * Delegates transactions database interaction class.
  *
  * @class
  * @memberof db.repos
@@ -29,15 +29,15 @@ var columnSet;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} An instance of a MultiSigTransactionsRepo
+ * @returns {Object} An instance of a DelegateTransactionsRepo
  */
-function MultiSigTransactionsRepo(db, pgp) {
+function DelegateTransactionsRepo(db, pgp) {
 	this.db = db;
 	this.pgp = pgp;
 
-	this.dbTable = 'multisignatures';
+	this.dbTable = 'delegates';
 
-	this.dbFields = ['min', 'lifetime', 'keysgroup', 'transactionId'];
+	this.dbFields = ['transactionId', 'username'];
 
 	if (!columnSet) {
 		columnSet = {};
@@ -54,25 +54,23 @@ function MultiSigTransactionsRepo(db, pgp) {
 }
 
 /**
- * Save multisignature transactions.
+ * Save dapp transactions.
  *
  * @param {Array} transactions
  * @returns {Promise}
  * @todo Add description for the params and the return value
  */
-MultiSigTransactionsRepo.prototype.save = function(transactions) {
+DelegateTransactionsRepo.prototype.save = function(transactions) {
 	if (!_.isArray(transactions)) {
 		transactions = [transactions];
 	}
 
 	transactions = transactions.map(transaction => ({
-		min: transaction.asset.multisignature.min,
-		lifetime: transaction.asset.multisignature.lifetime,
-		keysgroup: transaction.asset.multisignature.keysgroup.join(),
 		transactionId: transaction.id,
+		username: transaction.asset.delegate.username,
 	}));
 
 	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
 };
 
-module.exports = MultiSigTransactionsRepo;
+module.exports = DelegateTransactionsRepo;
