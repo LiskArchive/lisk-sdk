@@ -24,7 +24,6 @@ const cs = {}; // Static namespace for reusable ColumnSet objects
  * @class
  * @memberof db.repos
  * @requires lodash
- * @requires helpers/transaction_types
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
@@ -47,7 +46,7 @@ class SignatureTransactionsRepository {
 	}
 
 	/**
-	 * Save signature transactions.
+	 * Saves signature transactions.
 	 *
 	 * @param {Array} transactions
 	 * @returns {Promise<null>}

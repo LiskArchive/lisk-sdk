@@ -14,10 +14,10 @@
 
 'use strict';
 
-var _ = require('lodash');
-var Promise = require('bluebird');
+const _ = require('lodash');
+const Promise = require('bluebird');
 
-var columnSet;
+const cs = {}; // Static namespace for reusable ColumnSet objects
 
 /**
  * Transfer transactions database interaction class.
@@ -29,61 +29,59 @@ var columnSet;
  * @requires lodash
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} An instance of a TransferTransactionsRepo
+ * @returns {Object} An instance of a TransferTransactionsRepository
  */
-function TransferTransactionsRepo(db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class TransferTransactionsRepository {
+	constructor(db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
+		this.cs = cs;
+		this.dbTable = 'transfer';
 
-	this.dbTable = 'transfer';
+		this.dbFields = ['data', 'transactionId'];
 
-	this.dbFields = ['data', 'transactionId'];
-
-	if (!columnSet) {
-		columnSet = {};
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: this.dbTable,
-		});
+		if (!cs.insert) {
+			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+				table: this.dbTable,
+			});
+		}
 	}
 
-	this.cs = columnSet;
+	/**
+	 * Saves transfer transactions.
+	 *
+	 * @param {Array} transactions
+	 * @returns {Promise<null>}
+	 * Success/failure of the operation.
+	 */
+	save(transactions) {
+		try {
+			if (!_.isArray(transactions)) {
+				transactions = [transactions];
+			}
+
+			transactions = transactions.map(transaction => {
+				if (transaction.asset && transaction.asset.data) {
+					return {
+						transactionId: transaction.id,
+						data: Buffer.from(transaction.asset.data, 'utf8'),
+					};
+				}
+			});
+
+			transactions = _.compact(transactions);
+		} catch (e) {
+			return Promise.reject(e);
+		}
+
+		if (_.isEmpty(transactions)) {
+			return Promise.resolve(null);
+		}
+
+		const query = () => this.pgp.helpers.insert(transactions, this.cs.insert);
+
+		return this.db.none(query);
+	}
 }
 
-/**
- * Save transfer transactions.
- *
- * @param {Array} transactions
- * @returns {Promise}
- * @todo Add description for the params and the return value
- */
-TransferTransactionsRepo.prototype.save = function(transactions) {
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
-	}
-
-	transactions = transactions.map(transaction => {
-		if (transaction.asset && transaction.asset.data) {
-			try {
-				return {
-					transactionId: transaction.id,
-					data: Buffer.from(transaction.asset.data, 'utf8'),
-				};
-			} catch (ex) {
-				throw ex;
-			}
-		}
-		return null;
-	});
-
-	transactions = _.compact(transactions);
-
-	if (_.isEmpty(transactions)) {
-		return Promise.resolve();
-	}
-
-	const query = () => this.pgp.helpers.insert(transactions, this.cs.insert);
-
-	return this.db.none(query);
-};
-
-module.exports = TransferTransactionsRepo;
+module.exports = TransferTransactionsRepository;
