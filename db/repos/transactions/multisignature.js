@@ -14,10 +14,9 @@
 
 'use strict';
 
-var _ = require('lodash');
-require('../../../helpers/transaction_types');
+const _ = require('lodash');
 
-var columnSet;
+const cs = {}; // Static namespace for reusable ColumnSet objects
 
 /**
  * Multisignature transactions database interaction class.
@@ -29,50 +28,49 @@ var columnSet;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} An instance of a MultiSigTransactionsRepo
+ * @returns {Object} An instance of a MultiSigTransactionsRepository
  */
-function MultiSigTransactionsRepo(db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class MultiSigTransactionsRepository {
+	constructor(db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
+		this.cs = cs;
+		this.dbTable = 'multisignatures';
 
-	this.dbTable = 'multisignatures';
+		this.dbFields = ['min', 'lifetime', 'keysgroup', 'transactionId'];
 
-	this.dbFields = ['min', 'lifetime', 'keysgroup', 'transactionId'];
-
-	if (!columnSet) {
-		columnSet = {};
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: this.dbTable,
-		});
+		if (!cs.insert) {
+			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+				table: this.dbTable,
+			});
+		}
 	}
 
-	this.cs = columnSet;
+	/**
+	 * Saves multisignature transactions.
+	 *
+	 * @param {Array} transactions
+	 * @returns {Promise<null>}
+	 * Success/failure of the operation.
+	 */
+	save(transactions) {
+		const query = () => {
+			if (!_.isArray(transactions)) {
+				transactions = [transactions];
+			}
+
+			transactions = transactions.map(transaction => ({
+				min: transaction.asset.multisignature.min,
+				lifetime: transaction.asset.multisignature.lifetime,
+				keysgroup: transaction.asset.multisignature.keysgroup.join(),
+				transactionId: transaction.id,
+			}));
+
+			return this.pgp.helpers.insert(transactions, this.cs.insert);
+		};
+
+		return this.db.none(query);
+	}
 }
 
-/**
- * Save multisignature transactions.
- *
- * @param {Array} transactions
- * @returns {Promise}
- * @todo Add description for the params and the return value
- */
-MultiSigTransactionsRepo.prototype.save = function(transactions) {
-	const query = () => {
-		if (!_.isArray(transactions)) {
-			transactions = [transactions];
-		}
-
-		transactions = transactions.map(transaction => ({
-			min: transaction.asset.multisignature.min,
-			lifetime: transaction.asset.multisignature.lifetime,
-			keysgroup: transaction.asset.multisignature.keysgroup.join(),
-			transactionId: transaction.id,
-		}));
-
-		return this.pgp.helpers.insert(transactions, this.cs.insert);
-	};
-
-	return this.db.none(query);
-};
-
-module.exports = MultiSigTransactionsRepo;
+module.exports = MultiSigTransactionsRepository;

@@ -47,7 +47,7 @@ class InTransferTransactionsRepository {
 	}
 
 	/**
-	 * Save inTransfer transactions.
+	 * Saves inTransfer transactions.
 	 *
 	 * @param {Array} transactions
 	 * @returns {Promise<null>}
