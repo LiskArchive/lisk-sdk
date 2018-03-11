@@ -14,9 +14,9 @@
 
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 
-var columnSet;
+const cs = {}; // Static namespace for reusable ColumnSet objects
 
 /**
  * Signatures transactions database interaction class.
@@ -28,48 +28,47 @@ var columnSet;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} An instance of a SignatureTransactionsRepo
+ * @returns {Object} An instance of a SignatureTransactionsRepository
  */
-function SignatureTransactionsRepo(db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class SignatureTransactionsRepository {
+	constructor(db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
+		this.cs = cs;
+		this.dbTable = 'signatures';
 
-	this.dbTable = 'signatures';
+		this.dbFields = ['transactionId', 'publicKey'];
 
-	this.dbFields = ['transactionId', 'publicKey'];
-
-	if (!columnSet) {
-		columnSet = {};
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: this.dbTable,
-		});
+		if (!cs.insert) {
+			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+				table: this.dbTable,
+			});
+		}
 	}
 
-	this.cs = columnSet;
+	/**
+	 * Save signature transactions.
+	 *
+	 * @param {Array} transactions
+	 * @returns {Promise<null>}
+	 * Success/failure of the operation.
+	 */
+	save(transactions) {
+		const query = () => {
+			if (!_.isArray(transactions)) {
+				transactions = [transactions];
+			}
+
+			transactions = transactions.map(transaction => ({
+				transactionId: transaction.id,
+				publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex'),
+			}));
+
+			return this.pgp.helpers.insert(transactions, this.cs.insert);
+		};
+
+		return this.db.none(query);
+	}
 }
 
-/**
- * Save signature transactions.
- *
- * @param {Array} transactions
- * @returns {Promise}
- * @todo Add description for the params and the return value
- */
-SignatureTransactionsRepo.prototype.save = function(transactions) {
-	const query = () => {
-		if (!_.isArray(transactions)) {
-			transactions = [transactions];
-		}
-
-		transactions = transactions.map(transaction => ({
-			transactionId: transaction.id,
-			publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex'),
-		}));
-
-		return this.pgp.helpers.insert(transactions, this.cs.insert);
-	};
-
-	return this.db.none(query);
-};
-
-module.exports = SignatureTransactionsRepo;
+module.exports = SignatureTransactionsRepository;
