@@ -15,6 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
+const Promise = require('bluebird');
 const transactionTypes = require('../../../helpers/transaction_types');
 const sql = require('../../sql').transactions;
 
@@ -26,7 +27,7 @@ const cs = {}; // Static namespace for reusable ColumnSet objects
  * @class
  * @memberof db.repos
  * @requires lodash
- * @requires pg-promise
+ * @requires bluebird
  * @requires helpers/transaction_types
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
@@ -239,17 +240,19 @@ class TransactionsRepository {
 	 *
 	 * @param {Array.<Object>} transactions - Each object should justify *logic/transaction.prototype.schema*
 	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
+	 * Batch-result of the operation.
 	 */
 	save(transactions) {
-		let saveTransactions = _.cloneDeep(transactions);
+		const batch = [];
 
-		if (!_.isArray(saveTransactions)) {
-			saveTransactions = [saveTransactions];
-		}
+		try {
+			let saveTransactions = _.cloneDeep(transactions);
 
-		saveTransactions.forEach(t => {
-			try {
+			if (!_.isArray(saveTransactions)) {
+				saveTransactions = [saveTransactions];
+			}
+
+			saveTransactions.forEach(t => {
 				t.senderPublicKey = Buffer.from(t.senderPublicKey, 'hex');
 				t.signature = Buffer.from(t.signature, 'hex');
 				t.signSignature = t.signSignature
@@ -259,24 +262,24 @@ class TransactionsRepository {
 					? Buffer.from(t.requesterPublicKey, 'hex')
 					: null;
 				t.signatures = t.signatures ? t.signatures.join() : null;
-			} catch (e) {
-				throw e;
-			}
-		});
+			});
 
-		const batch = [];
-		batch.push(
-			this.db.none(() => this.pgp.helpers.insert(saveTransactions, cs.insert))
-		);
-
-		const groupedTransactions = _.groupBy(saveTransactions, 'type');
-
-		Object.keys(groupedTransactions).forEach(type => {
 			batch.push(
-				this.db[this.transactionsRepoMap[type]].save(groupedTransactions[type])
+				this.db.none(this.pgp.helpers.insert(saveTransactions, cs.insert))
 			);
-		});
 
+			const groupedTransactions = _.groupBy(saveTransactions, 'type');
+
+			Object.keys(groupedTransactions).forEach(type => {
+				batch.push(
+					this.db[this.transactionsRepoMap[type]].save(
+						groupedTransactions[type]
+					)
+				);
+			});
+		} catch (e) {
+			return Promise.reject(e);
+		}
 		return this.db.txIf('transactions:save', t => t.batch(batch));
 	}
 }

@@ -24,7 +24,7 @@ const monitor = require('pg-monitor');
 const pgpLib = require('pg-promise');
 const repos = require('./repos');
 
-// TODO: Had to change below from 'const' into 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
+// TODO: Had to change below from 'const' to 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
 // eslint-disable-next-line prefer-const
 let initOptions = {
 	capSQL: true,
