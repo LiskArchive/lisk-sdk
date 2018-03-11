@@ -14,10 +14,9 @@
 
 'use strict';
 
-var _ = require('lodash');
-require('../../../helpers/transaction_types');
+const _ = require('lodash');
 
-var columnSet;
+const cs = {}; // Static namespace for reusable ColumnSet objects
 
 /**
  * InTransfer transactions database interaction class.
@@ -29,48 +28,47 @@ var columnSet;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} An instance of a InTransferTransactionsRepo
+ * @returns {Object} An instance of a InTransferTransactionsRepository
  */
-function InTransferTransactionsRepo(db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class InTransferTransactionsRepository {
+	constructor(db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
+		this.cs = cs;
+		this.dbTable = 'intransfer';
 
-	this.dbTable = 'intransfer';
+		this.dbFields = ['dappId', 'transactionId'];
 
-	this.dbFields = ['dappId', 'transactionId'];
-
-	if (!columnSet) {
-		columnSet = {};
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: this.dbTable,
-		});
+		if (!cs.insert) {
+			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+				table: this.dbTable,
+			});
+		}
 	}
 
-	this.cs = columnSet;
+	/**
+	 * Save inTransfer transactions.
+	 *
+	 * @param {Array} transactions
+	 * @returns {Promise<null>}
+	 * Success/failure of the operation.
+	 */
+	save(transactions) {
+		const query = () => {
+			if (!_.isArray(transactions)) {
+				transactions = [transactions];
+			}
+
+			transactions = transactions.map(transaction => ({
+				dappId: transaction.asset.inTransfer.dappId,
+				transactionId: transaction.id,
+			}));
+
+			return this.pgp.helpers.insert(transactions, this.cs.insert);
+		};
+
+		return this.db.none(query);
+	}
 }
 
-/**
- * Save inTransfer transactions.
- *
- * @param {Array} transactions
- * @returns {Promise}
- * @todo Add description for the params and the return value
- */
-InTransferTransactionsRepo.prototype.save = function(transactions) {
-	const query = () => {
-		if (!_.isArray(transactions)) {
-			transactions = [transactions];
-		}
-
-		transactions = transactions.map(transaction => ({
-			dappId: transaction.asset.inTransfer.dappId,
-			transactionId: transaction.id,
-		}));
-
-		return this.pgp.helpers.insert(transactions, this.cs.insert);
-	};
-
-	return this.db.none(query);
-};
-
-module.exports = InTransferTransactionsRepo;
+module.exports = InTransferTransactionsRepository;
