@@ -51,7 +51,7 @@ class DelegateTransactionsRepository {
 	 *
 	 * @param {Array} transactions
 	 * @returns {Promise<null>}
-	 * Success/failure of saving the transaction.
+	 * Success/failure of the operation.
 	 */
 	save(transactions) {
 		const query = () => {

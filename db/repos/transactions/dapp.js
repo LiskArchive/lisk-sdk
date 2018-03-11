@@ -59,7 +59,7 @@ class DappsTransactionsRepository {
 	 *
 	 * @param {Array} transactions
 	 * @returns {Promise<null>}
-	 * Indication of success/failure of the operation.
+	 * Success/failure of the operation.
 	 */
 	save(transactions) {
 		const query = () => {
