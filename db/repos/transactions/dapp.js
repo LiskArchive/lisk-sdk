@@ -33,7 +33,7 @@ class DappsTransactionsRepository {
 	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
-
+		this.cs = cs;
 		this.dbTable = 'dapps';
 
 		this.dbFields = [
@@ -77,7 +77,7 @@ class DappsTransactionsRepository {
 				category: transaction.asset.dapp.category,
 				transactionId: transaction.id,
 			}));
-			return this.pgp.helpers.insert(transactions, cs.insert);
+			return this.pgp.helpers.insert(transactions, this.cs.insert);
 		};
 
 		return this.db.none(query);

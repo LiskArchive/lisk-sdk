@@ -14,10 +14,9 @@
 
 'use strict';
 
-var _ = require('lodash');
-require('../../../helpers/transaction_types');
+const _ = require('lodash');
 
-var columnSet;
+const cs = {}; // Static namespace for reusable ColumnSet objects
 
 /**
  * Delegates transactions database interaction class.
@@ -29,48 +28,47 @@ var columnSet;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} An instance of a DelegateTransactionsRepo
+ * @returns {Object} An instance of a DelegateTransactionsRepository
  */
-function DelegateTransactionsRepo(db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class DelegateTransactionsRepository {
+	constructor(db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
+		this.cs = cs;
+		this.dbTable = 'delegates';
 
-	this.dbTable = 'delegates';
+		this.dbFields = ['transactionId', 'username'];
 
-	this.dbFields = ['transactionId', 'username'];
-
-	if (!columnSet) {
-		columnSet = {};
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: this.dbTable,
-		});
+		if (!cs.insert) {
+			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+				table: this.dbTable,
+			});
+		}
 	}
 
-	this.cs = columnSet;
+	/**
+	 * Saves dapp transactions.
+	 *
+	 * @param {Array} transactions
+	 * @returns {Promise<null>}
+	 * Success/failure of saving the transaction.
+	 */
+	save(transactions) {
+		const query = () => {
+			if (!_.isArray(transactions)) {
+				transactions = [transactions];
+			}
+
+			transactions = transactions.map(transaction => ({
+				transactionId: transaction.id,
+				username: transaction.asset.delegate.username,
+			}));
+
+			return this.pgp.helpers.insert(transactions, this.cs.insert);
+		};
+
+		return this.db.none(query);
+	}
 }
 
-/**
- * Save dapp transactions.
- *
- * @param {Array} transactions
- * @returns {Promise}
- * @todo Add description for the params and the return value
- */
-DelegateTransactionsRepo.prototype.save = function(transactions) {
-	const query = () => {
-		if (!_.isArray(transactions)) {
-			transactions = [transactions];
-		}
-
-		transactions = transactions.map(transaction => ({
-			transactionId: transaction.id,
-			username: transaction.asset.delegate.username,
-		}));
-
-		return this.pgp.helpers.insert(transactions, this.cs.insert);
-	};
-
-	return this.db.none(query);
-};
-
-module.exports = DelegateTransactionsRepo;
+module.exports = DelegateTransactionsRepository;
