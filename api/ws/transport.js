@@ -36,6 +36,9 @@ function TransportWSApi(transportModule) {
 		getTransactions: transportModule.shared.getTransactions,
 		getSignatures: transportModule.shared.getSignatures,
 		status: transportModule.shared.status,
+	});
+
+	wsRPC.getServer().registerEventEndpoints({
 		postBlock: transportModule.shared.postBlock,
 		postSignatures: transportModule.shared.postSignatures,
 		postTransactions: transportModule.shared.postTransactions,

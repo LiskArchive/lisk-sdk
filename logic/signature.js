@@ -14,12 +14,11 @@
 
 'use strict';
 
-var ByteBuffer = require('bytebuffer');
-var constants = require('../helpers/constants.js');
+const ByteBuffer = require('bytebuffer');
+const constants = require('../helpers/constants.js');
 
-// Private fields
-var modules;
-var library;
+let modules;
+let library;
 
 /**
  * Main signature logic. Initializes library.
@@ -33,14 +32,17 @@ var library;
  * @param {Object} logger
  * @todo Add description for the params
  */
-// Constructor
-function Signature(schema, logger) {
-	library = {
-		schema,
-		logger,
-	};
+class Signature {
+	constructor(schema, logger) {
+		library = {
+			schema,
+			logger,
+		};
+	}
 }
 
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Binds input parameters to private variable modules.
  *
@@ -120,24 +122,22 @@ Signature.prototype.process = function(transaction, sender, cb) {
  * @todo Check if this function is called
  */
 Signature.prototype.getBytes = function(transaction) {
-	var bb;
-
 	try {
-		bb = new ByteBuffer(32, true);
-		var publicKeyBuffer = Buffer.from(
+		const byteBuffer = new ByteBuffer(32, true);
+		const publicKeyBuffer = Buffer.from(
 			transaction.asset.signature.publicKey,
 			'hex'
 		);
 
-		for (var i = 0; i < publicKeyBuffer.length; i++) {
-			bb.writeByte(publicKeyBuffer[i]);
+		for (let i = 0; i < publicKeyBuffer.length; i++) {
+			byteBuffer.writeByte(publicKeyBuffer[i]);
 		}
 
-		bb.flip();
+		byteBuffer.flip();
+		return byteBuffer.toBuffer();
 	} catch (e) {
 		throw e;
 	}
-	return bb.toBuffer();
 };
 
 /**
@@ -154,7 +154,6 @@ Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
 		{
 			address: sender.address,
 			secondSignature: 1,
-			u_secondSignature: 0,
 			secondPublicKey: transaction.asset.signature.publicKey,
 		},
 		cb,
@@ -176,7 +175,6 @@ Signature.prototype.undo = function(transaction, block, sender, cb) {
 		{
 			address: sender.address,
 			secondSignature: 0,
-			u_secondSignature: 1,
 			secondPublicKey: null,
 		},
 		cb
@@ -245,7 +243,7 @@ Signature.prototype.schema = {
  * @returns {transaction} Validated transaction
  */
 Signature.prototype.objectNormalize = function(transaction) {
-	var report = library.schema.validate(
+	const report = library.schema.validate(
 		transaction.asset.signature,
 		Signature.prototype.schema
 	);
@@ -271,7 +269,7 @@ Signature.prototype.dbRead = function(raw) {
 	if (!raw.s_publicKey) {
 		return null;
 	}
-	var signature = {
+	const signature = {
 		transactionId: raw.t_id,
 		publicKey: raw.s_publicKey,
 	};
@@ -297,5 +295,4 @@ Signature.prototype.ready = function(transaction, sender) {
 	return true;
 };
 
-// Export
 module.exports = Signature;

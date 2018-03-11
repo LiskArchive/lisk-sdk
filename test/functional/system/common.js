@@ -22,22 +22,70 @@ var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
 var accountFixtures = require('../../fixtures/accounts');
 
+function getDelegateForSlot(library, slot, cb) {
+	var lastBlock = library.modules.blocks.lastBlock.get();
+
+	library.modules.delegates.generateDelegateList(
+		lastBlock.height,
+		null,
+		(err, list) => {
+			var delegatePublicKey = list[slot % slots.delegates];
+			return cb(err, delegatePublicKey);
+		}
+	);
+}
+
+function createBlock(library, transactions, timestamp, keypair, previousBlock) {
+	var block = library.logic.block.create({
+		keypair,
+		timestamp,
+		previousBlock,
+		transactions,
+	});
+
+	block.id = library.logic.block.getId(block);
+	block.height = previousBlock.height + 1;
+	return block;
+}
+
+function createValidBlock(library, transactions, cb) {
+	var lastBlock = library.modules.blocks.lastBlock.get();
+	var slot = slots.getSlotNumber();
+	var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
+	getDelegateForSlot(library, slot, (err, delegateKey) => {
+		var block = createBlock(
+			library,
+			transactions,
+			slots.getSlotTime(slot),
+			keypairs[delegateKey],
+			lastBlock
+		);
+		cb(err, block);
+	});
+}
+
+function getBlocks(library, cb) {
+	library.sequence.add(sequenceCb => {
+		library.db
+			.query('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
+			.then(rows => {
+				sequenceCb();
+				cb(null, _.map(rows, 'id'));
+			})
+			.catch(err => {
+				__testContext.debug(err.stack);
+				cb(err);
+			});
+	});
+}
+
 function forge(library, cb) {
 	function getNextForger(offset, cb) {
 		offset = !offset ? 1 : offset;
-		var last_block = library.modules.blocks.lastBlock.get();
-		var slot = slots.getSlotNumber(last_block.timestamp);
-		library.modules.delegates.generateDelegateList(
-			last_block.height,
-			null,
-			(err, delegateList) => {
-				if (err) {
-					return cb(err);
-				}
-				var nextForger = delegateList[(slot + offset) % slots.delegates];
-				return cb(nextForger);
-			}
-		);
+
+		var lastBlock = library.modules.blocks.lastBlock.get();
+		var slot = slots.getSlotNumber(lastBlock.timestamp);
+		getDelegateForSlot(library, slot + offset, cb);
 	}
 
 	var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
@@ -48,9 +96,7 @@ function forge(library, cb) {
 				fillPool(library, seriesCb);
 			},
 			function(seriesCb) {
-				getNextForger(null, delegatePublicKey => {
-					seriesCb(null, delegatePublicKey);
-				});
+				getNextForger(null, seriesCb);
 			},
 			function(delegate, seriesCb) {
 				var last_block = library.modules.blocks.lastBlock.get();
@@ -111,6 +157,24 @@ function addTransaction(library, transaction, cb) {
 			}
 		);
 	}, cb);
+}
+
+function addTransactionToUnconfirmedQueue(library, transaction, cb) {
+	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
+	// See: modules.transport.__private.receiveTransaction
+	library.modules.transactions.processUnconfirmedTransaction(
+		transaction,
+		true,
+		err => {
+			if (err) {
+				return setImmediate(cb, err.toString());
+			}
+			var transactionPool = library.rewiredModules.transactions.__get__(
+				'__private.transactionPool'
+			);
+			transactionPool.fillPool(cb);
+		}
+	);
 }
 
 function addTransactionsAndForge(library, transactions, cb) {
@@ -273,7 +337,10 @@ module.exports = {
 	forge,
 	fillPool,
 	addTransaction,
+	addTransactionToUnconfirmedQueue,
 	addTransactionsAndForge,
+	createValidBlock,
+	getBlocks,
 	getAccountFromDb,
 	getTransactionFromModule,
 	getUnconfirmedTransactionFromModule,

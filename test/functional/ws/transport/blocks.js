@@ -15,12 +15,37 @@
 'use strict';
 
 require('../../functional.js');
-var ws = require('../../../common/ws/communication');
-var genesisblock = require('../../../data/genesis_block.json');
-var verify = require('../../../../modules/blocks/verify');
-var bson = require('../../../../helpers/bson');
+const WAMPServer = require('wamp-socket-cluster/WAMPServer');
+const genesisblock = require('../../../data/genesis_block.json');
+const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
+const WsTestClient = require('../../../common/ws/client');
 
 describe('WS transport blocks', () => {
+	let connectedPeer;
+	let connectedPeerHeaders;
+
+	before('establish client WS connection to server', done => {
+		// Setup stub for blocks endpoints
+		const wampServer = new WAMPServer();
+		wampServer.registerRPCEndpoints({
+			blocks: () => {},
+			blocksCommon: () => {},
+		});
+		wampServer.registerEventEndpoints({
+			postBlock: () => {},
+		});
+		wsRPC.setServer(wampServer);
+
+		// Register client
+		const wsTestClient = new WsTestClient();
+		wsTestClient.start();
+		connectedPeer = wsTestClient.client;
+		connectedPeerHeaders = Object.assign({}, wsTestClient.headers, {
+			ip: '127.0.0.1',
+		});
+		done();
+	});
+
 	var testBlock = {
 		id: '2807833455815592401',
 		version: 0,
@@ -46,7 +71,7 @@ describe('WS transport blocks', () => {
 
 	describe('blocks', () => {
 		it('using valid headers should be ok', done => {
-			ws.call('blocks', null, (err, res) => {
+			connectedPeer.rpc.blocks((err, res) => {
 				__testContext.debug(
 					'> Error / Response:'.grey,
 					JSON.stringify(err),
@@ -130,7 +155,7 @@ describe('WS transport blocks', () => {
 
 	describe('blocksCommon', () => {
 		it('using no params should fail', done => {
-			ws.call('blocksCommon', (err, res) => {
+			connectedPeer.rpc.blocksCommon((err, res) => {
 				__testContext.debug(
 					'> Error / Response:'.grey,
 					JSON.stringify(err),
@@ -143,7 +168,7 @@ describe('WS transport blocks', () => {
 		});
 
 		it('using ids == "";"";"" should fail', done => {
-			ws.call('blocksCommon', { ids: '"";"";""' }, (err, res) => {
+			connectedPeer.rpc.blocksCommon({ ids: '"";"";""' }, (err, res) => {
 				__testContext.debug(
 					'> Error / Response:'.grey,
 					JSON.stringify(err),
@@ -155,7 +180,7 @@ describe('WS transport blocks', () => {
 		});
 
 		it("using ids == '','','' should fail", done => {
-			ws.call('blocksCommon', { ids: "'','',''" }, (err, res) => {
+			connectedPeer.rpc.blocksCommon({ ids: "'','',''" }, (err, res) => {
 				__testContext.debug(
 					'> Error / Response:'.grey,
 					JSON.stringify(err),
@@ -168,7 +193,7 @@ describe('WS transport blocks', () => {
 		});
 
 		it('using ids == "","","" should fail', done => {
-			ws.call('blocksCommon', { ids: '"","",""' }, (err, res) => {
+			connectedPeer.rpc.blocksCommon({ ids: '"","",""' }, (err, res) => {
 				__testContext.debug(
 					'> Error / Response:'.grey,
 					JSON.stringify(err),
@@ -180,7 +205,7 @@ describe('WS transport blocks', () => {
 		});
 
 		it('using ids == one,two,three should fail', done => {
-			ws.call('blocksCommon', { ids: 'one,two,three' }, (err, res) => {
+			connectedPeer.rpc.blocksCommon({ ids: 'one,two,three' }, (err, res) => {
 				__testContext.debug(
 					'> Error / Response:'.grey,
 					JSON.stringify(err),
@@ -192,7 +217,7 @@ describe('WS transport blocks', () => {
 		});
 
 		it('using ids == "1","2","3" should be ok and return null common block', done => {
-			ws.call('blocksCommon', { ids: '"1","2","3"' }, (err, res) => {
+			connectedPeer.rpc.blocksCommon({ ids: '"1","2","3"' }, (err, res) => {
 				__testContext.debug(
 					'> Error / Response:'.grey,
 					JSON.stringify(err),
@@ -205,7 +230,7 @@ describe('WS transport blocks', () => {
 		});
 
 		it("using ids == '1','2','3' should be ok and return null common block", done => {
-			ws.call('blocksCommon', { ids: "'1','2','3'" }, (err, res) => {
+			connectedPeer.rpc.blocksCommon({ ids: "'1','2','3'" }, (err, res) => {
 				__testContext.debug(
 					'> Error / Response:'.grey,
 					JSON.stringify(err),
@@ -218,7 +243,7 @@ describe('WS transport blocks', () => {
 		});
 
 		it('using ids == 1,2,3 should be ok and return null common block', done => {
-			ws.call('blocksCommon', { ids: '1,2,3' }, (err, res) => {
+			connectedPeer.rpc.blocksCommon({ ids: '1,2,3' }, (err, res) => {
 				__testContext.debug(
 					'> Error / Response:'.grey,
 					JSON.stringify(err),
@@ -231,8 +256,7 @@ describe('WS transport blocks', () => {
 		});
 
 		it('using ids which include genesisblock.id should be ok', done => {
-			ws.call(
-				'blocksCommon',
+			connectedPeer.rpc.blocksCommon(
 				{ ids: [genesisblock.id.toString(), '2', '3'].join() },
 				(err, res) => {
 					__testContext.debug(
@@ -261,56 +285,17 @@ describe('WS transport blocks', () => {
 	});
 
 	describe('postBlock', () => {
-		it('using no block should fail', done => {
-			ws.call('postBlock', (err, res) => {
-				__testContext.debug(
-					'> Error / Response:'.grey,
-					JSON.stringify(err),
-					JSON.stringify(res)
-				);
-				expect(err).to.contain('Failed to validate block schema');
-				done();
-			});
-		});
-
-		it('using invalid block schema should fail', done => {
-			var blockSignature = genesisblock.blockSignature;
-			genesisblock.blockSignature = null;
-			genesisblock = verify.prototype.deleteBlockProperties(genesisblock);
-
-			ws.call(
-				'postBlock',
-				{ block: bson.serialize(genesisblock) },
-				(err, res) => {
-					__testContext.debug(
-						'> Error / Response:'.grey,
-						JSON.stringify(err),
-						JSON.stringify(res)
-					);
-					expect(err).to.contain('Failed to validate block schema');
-					genesisblock.blockSignature = blockSignature;
-					done();
-				}
-			);
-		});
-
-		it('using valid block schema should be ok', done => {
+		it('should broadcast valid block', done => {
 			testBlock.transactions.forEach(transaction => {
 				if (transaction.asset && transaction.asset.delegate) {
 					transaction.asset.delegate.publicKey = transaction.senderPublicKey;
 				}
 			});
-			ws.call('postBlock', { block: bson.serialize(testBlock) }, (err, res) => {
-				__testContext.debug(
-					'> Error / Response:'.grey,
-					JSON.stringify(err),
-					JSON.stringify(res)
-				);
-				expect(res)
-					.to.have.property('blockId')
-					.to.equal('2807833455815592401');
-				done();
+			connectedPeer.rpc.postBlock({
+				block: testBlock,
+				peer: connectedPeerHeaders,
 			});
+			done();
 		});
 	});
 });

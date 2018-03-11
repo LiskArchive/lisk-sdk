@@ -16,15 +16,15 @@
 'use strict';
 
 var async = require('async');
-var constants = require('../../../../helpers/constants');
-var genesisBlock = require('../../../data/genesis_block.json');
-var application = require('../../../common/application');
-var modulesLoader = require('../../../common/modules_loader');
-var clearDatabaseTable = require('../../../common/db_sandbox')
+var constants = require('../../../../../helpers/constants');
+var genesisBlock = require('../../../../data/genesis_block.json');
+var application = require('../../../../common/application');
+var modulesLoader = require('../../../../common/modules_loader');
+var clearDatabaseTable = require('../../../../common/db_sandbox')
 	.clearDatabaseTable;
 var loadTables = require('./process_tables_data.json');
 
-describe('blocks/process', () => {
+describe('system test (blocks) - process', () => {
 	var blocksProcess;
 	var blocks;
 	var db;
@@ -36,7 +36,7 @@ describe('blocks/process', () => {
 		originalBlockRewardsOffset = constants.rewards.offset;
 		constants.rewards.offset = 150;
 		application.init(
-			{ sandbox: { name: 'lisk_test_blocks_process' } },
+			{ sandbox: { name: 'system_blocks_process' } },
 			(err, scopeInit) => {
 				blocksProcess = scopeInit.modules.blocks.process;
 				blocks = scopeInit.modules.blocks;
@@ -252,7 +252,7 @@ describe('blocks/process', () => {
 		});
 
 		it('should load block 6 from db and return block timestamp error', done => {
-			blocks.lastBlock.set(loadTables[0].data[3]);
+			blocks.lastBlock.set(loadTables[0].data[4]);
 
 			blocksProcess.loadBlocksOffset(1, 6, true, (err, loadedBlock) => {
 				if (err) {

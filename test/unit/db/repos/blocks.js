@@ -583,7 +583,7 @@ describe('db', () => {
 				return expect(db.blocks.getHeightByLastId()).to.be.eventually.eql([]);
 			});
 
-			it('should resolved with correct height of the given block id', function*() {
+			it('should resolve with correct height of the given block id', function*() {
 				const genesisBlock = blocksFixtures.GenesisBlock();
 				const height = yield db.blocks.getHeightByLastId(genesisBlock.id);
 

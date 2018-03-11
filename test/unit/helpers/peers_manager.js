@@ -280,4 +280,32 @@ describe('PeersManager', () => {
 			});
 		});
 	});
+
+	describe('multiple instances', () => {
+		describe('when required 2 times', () => {
+			const peersManagerA = require('../../../helpers/peers_manager');
+			const peersManagerB = require('../../../helpers/peers_manager');
+			describe('when [peersManagerA] adds data', () => {
+				let validPeer;
+
+				beforeEach(done => {
+					validPeer = new Peer(prefixedPeer);
+					peersManagerA.add(validPeer);
+					done();
+				});
+
+				it('should be reflected in [peersManagerA]', () => {
+					return expect(peersManagerA.getByAddress(validPeer.string)).eql(
+						validPeer
+					);
+				});
+
+				it('should be reflected in [peersManagerB]', () => {
+					return expect(peersManagerB.getByAddress(validPeer.string)).eql(
+						validPeer
+					);
+				});
+			});
+		});
+	});
 });

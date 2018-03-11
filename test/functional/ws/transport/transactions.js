@@ -15,77 +15,65 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
-var phases = require('../../common/phases');
-var ws = require('../../../common/ws/communication');
-var randomUtil = require('../../../common/utils/random');
-var normalizeTransactionObject = require('../../../common/helpers/api')
+const lisk = require('lisk-js');
+const WAMPServer = require('wamp-socket-cluster/WAMPServer');
+const phases = require('../../common/phases');
+const randomUtil = require('../../../common/utils/random');
+const normalizeTransactionObject = require('../../../common/helpers/api')
 	.normalizeTransactionObject;
-
-function postTransaction(transaction, cb) {
-	transaction = normalizeTransactionObject(transaction);
-
-	ws.call(
-		'postTransactions',
-		{
-			transactions: [transaction],
-		},
-		cb,
-		true
-	);
-}
+const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
+const WsTestClient = require('../../../common/ws/client');
 
 describe('Posting transaction (type 0)', () => {
-	var account;
-	var transaction;
-	var error;
-	var response;
-	var goodTransactions = [];
-	var badTransactions = [];
+	let transaction;
+	const goodTransactions = [];
+	const badTransactions = [];
+	const account = randomUtil.account();
+	let wsTestClient;
+
+	function postTransaction(transaction) {
+		transaction = normalizeTransactionObject(transaction);
+		wsTestClient.client.rpc.postTransactions({
+			peer: wsTestClient.headers,
+			transactions: [transaction],
+		});
+	}
+
+	before('establish client WS connection to server', done => {
+		// Setup stub for post transactions endpoint
+		const wampServer = new WAMPServer();
+		wampServer.registerEventEndpoints({
+			postTransactions: () => {},
+		});
+		wsRPC.setServer(wampServer);
+		// Register client
+		wsTestClient = new WsTestClient();
+		wsTestClient.start();
+		done();
+	});
 
 	beforeEach(done => {
-		account = randomUtil.account();
 		transaction = randomUtil.transaction();
 		done();
 	});
 
-	describe('when sender has no funds for a transaction in batch', () => {
-		beforeEach(done => {
+	describe('transaction processing', () => {
+		it('when sender has no funds should broadcast transaction but not confirm', done => {
 			transaction = lisk.transaction.createTransaction(
 				'1L',
 				1,
 				account.password
 			);
-			postTransaction(transaction, (err, res) => {
-				error = err;
-				response = res;
-				done();
-			});
-		});
 
-		// For peer-to-peer communiation, the peer does not need to send back
-		// an error message if one of the transactions in the batch fails.
-		// Either the peer acknowledges the receipt of the batch or their don't.
-		it('operation should succeed', () => {
+			postTransaction(transaction);
 			badTransactions.push(transaction);
-			expect(error).to.be.null;
-			return expect(response).to.have.property('success').to.be.ok;
-		});
-	});
-
-	describe('when sender has funds for a transaction in batch', () => {
-		beforeEach(done => {
-			postTransaction(transaction, (err, res) => {
-				error = err;
-				response = res;
-				done();
-			});
+			done();
 		});
 
-		it('operation should succeed', () => {
+		it('when sender has funds should broadcast transaction and confirm', done => {
+			postTransaction(transaction);
 			goodTransactions.push(transaction);
-			expect(error).to.be.null;
-			return expect(response).to.have.property('success').to.be.ok;
+			done();
 		});
 	});
 
