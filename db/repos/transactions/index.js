@@ -18,7 +18,7 @@ const _ = require('lodash');
 const transactionTypes = require('../../../helpers/transaction_types');
 const sql = require('../../sql').transactions;
 
-const cs = {}; // Reusable ColumnSet objects
+const cs = {}; // Static namespace for reusable ColumnSet objects
 
 /**
  * Transactions database interaction class.

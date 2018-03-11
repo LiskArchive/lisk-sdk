@@ -14,9 +14,9 @@
 
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 
-var columnSet;
+const cs = {}; // Static namespace for reusable ColumnSet objects
 
 /**
  * Dapps transactions database interaction class.
@@ -27,62 +27,61 @@ var columnSet;
  * @see Parent: {@link db.repos}
  * @param {Database} db - Instance of database object from pg-promise
  * @param {Object} pgp - pg-promise instance to utilize helpers
- * @returns {Object} An instance of a DappsTransactionsRepo
+ * @returns {Object} An instance of a DappsTransactionsRepository
  */
-function DappsTransactionsRepo(db, pgp) {
-	this.db = db;
-	this.pgp = pgp;
+class DappsTransactionsRepository {
+	constructor(db, pgp) {
+		this.db = db;
+		this.pgp = pgp;
 
-	this.dbTable = 'dapps';
+		this.dbTable = 'dapps';
 
-	this.dbFields = [
-		'type',
-		'name',
-		'description',
-		'tags',
-		'link',
-		'category',
-		'icon',
-		'transactionId',
-	];
+		this.dbFields = [
+			'type',
+			'name',
+			'description',
+			'tags',
+			'link',
+			'category',
+			'icon',
+			'transactionId',
+		];
 
-	if (!columnSet) {
-		columnSet = {};
-		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table: this.dbTable,
-		});
+		if (!cs.insert) {
+			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {
+				table: this.dbTable,
+			});
+		}
 	}
 
-	this.cs = columnSet;
+	/**
+	 * Saves dapp transactions.
+	 *
+	 * @param {Array} transactions
+	 * @returns {Promise<null>}
+	 * Indication of success/failure of the operation.
+	 */
+	save(transactions) {
+		const query = () => {
+			if (!_.isArray(transactions)) {
+				transactions = [transactions];
+			}
+
+			transactions = transactions.map(transaction => ({
+				type: transaction.asset.dapp.type,
+				name: transaction.asset.dapp.name,
+				description: transaction.asset.dapp.description || null,
+				tags: transaction.asset.dapp.tags || null,
+				link: transaction.asset.dapp.link || null,
+				icon: transaction.asset.dapp.icon || null,
+				category: transaction.asset.dapp.category,
+				transactionId: transaction.id,
+			}));
+			return this.pgp.helpers.insert(transactions, cs.insert);
+		};
+
+		return this.db.none(query);
+	}
 }
 
-/**
- * Save dapp transactions.
- *
- * @param {Array} transactions
- * @returns {Promise}
- * @todo Add description for the params and the return value
- */
-DappsTransactionsRepo.prototype.save = function(transactions) {
-	const query = () => {
-		if (!_.isArray(transactions)) {
-			transactions = [transactions];
-		}
-
-		transactions = transactions.map(transaction => ({
-			type: transaction.asset.dapp.type,
-			name: transaction.asset.dapp.name,
-			description: transaction.asset.dapp.description || null,
-			tags: transaction.asset.dapp.tags || null,
-			link: transaction.asset.dapp.link || null,
-			icon: transaction.asset.dapp.icon || null,
-			category: transaction.asset.dapp.category,
-			transactionId: transaction.id,
-		}));
-		return this.pgp.helpers.insert(transactions, this.cs.insert);
-	};
-
-	return this.db.none(query);
-};
-
-module.exports = DappsTransactionsRepo;
+module.exports = DappsTransactionsRepository;
