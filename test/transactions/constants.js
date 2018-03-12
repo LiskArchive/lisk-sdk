@@ -23,22 +23,9 @@ import {
 	TRANSFER_FEE,
 	VOTE_FEE,
 	DATA_FEE,
-	EPOCH_TIME,
-	EPOCH_TIME_SECONDS,
-	EPOCH_TIME_MILLISECONDS,
-	MAX_ADDRESS_NUMBER,
-	MAX_TRANSACTION_AMOUNT,
-	LIVE_PORT,
-	SSL_PORT,
-	TEST_PORT,
-	GET,
-	POST,
-	PUT,
-	MAINNET_NETHASH,
-	TESTNET_NETHASH,
-} from 'constants';
+} from 'transactions/constants';
 
-describe('constants', () => {
+describe('transactions constants module', () => {
 	it('FIXED_POINT should be an integer', () => {
 		return FIXED_POINT.should.be.an.integer;
 	});
@@ -77,57 +64,5 @@ describe('constants', () => {
 
 	it('DATA_FEE should be an integer', () => {
 		return DATA_FEE.should.be.an.integer;
-	});
-
-	it('EPOCH_TIME should be a Date instance', () => {
-		return EPOCH_TIME.should.be.instanceOf(Date);
-	});
-
-	it('EPOCH_TIME_SECONDS should be an integer', () => {
-		return EPOCH_TIME_SECONDS.should.be.an.integer;
-	});
-
-	it('EPOCH_TIME_MILLISECONDS should be an integer', () => {
-		return EPOCH_TIME_MILLISECONDS.should.be.an.integer;
-	});
-
-	it('MAX_ADDRESS_NUMBER should be a string', () => {
-		return MAX_ADDRESS_NUMBER.should.be.a('string');
-	});
-
-	it('MAX_TRANSACTION_AMOUNT should be a string', () => {
-		return MAX_TRANSACTION_AMOUNT.should.be.a('string');
-	});
-
-	it('LIVE_PORT should be a string', () => {
-		return LIVE_PORT.should.be.a('string');
-	});
-
-	it('SSL_PORT should be a string', () => {
-		return SSL_PORT.should.be.a('string');
-	});
-
-	it('TEST_PORT should be a string', () => {
-		return TEST_PORT.should.be.a('string');
-	});
-
-	it('GET should be a string', () => {
-		return GET.should.be.a('string');
-	});
-
-	it('POST should be a string', () => {
-		return POST.should.be.a('string');
-	});
-
-	it('PUT should be a string', () => {
-		return PUT.should.be.a('string');
-	});
-
-	it('MAINNET_NETHASH should be a string', () => {
-		return MAINNET_NETHASH.should.be.a('string');
-	});
-
-	it('TESTNET_NETHASH should be a string', () => {
-		return TESTNET_NETHASH.should.be.a('string');
 	});
 });

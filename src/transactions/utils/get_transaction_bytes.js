@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { MAX_TRANSACTION_AMOUNT } from 'constants';
 import bignum from 'browserify-bignum';
+import { MAX_TRANSACTION_AMOUNT } from 'lisk-constants';
 import cryptography from 'cryptography';
 
 export const isValidValue = value => ![undefined, false, NaN].includes(value);

@@ -13,7 +13,7 @@
  *
  */
 
-import { GET, PUT } from 'constants';
+import { GET, PUT } from '../constants';
 import apiMethod from '../api_method';
 import APIResource from '../api_resource';
 

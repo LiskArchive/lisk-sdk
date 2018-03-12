@@ -12,17 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { DELEGATE_FEE } from './constants';
-import { wrapTransactionCreator } from './utils';
 
-const registerDelegate = ({ username }) => ({
-	type: 2,
-	fee: DELEGATE_FEE.toString(),
-	asset: {
-		delegate: {
-			username,
-		},
-	},
-});
+export const LIVE_PORT = '8000';
+export const TEST_PORT = '7000';
+export const SSL_PORT = '443';
 
-export default wrapTransactionCreator(registerDelegate);
+export const GET = 'GET';
+export const POST = 'POST';
+export const PUT = 'PUT';
