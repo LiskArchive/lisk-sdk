@@ -272,7 +272,15 @@ describe('blocks', () => {
 	});
 
 	describe('isCleaning', () => {
-		it('should assign get');
+		beforeEach(done => {
+			__private.cleanup = false;
+			done();
+		});
+		describe('get', () => {
+			it('should return __private.cleanup', () => {
+				return expect(blocksInstance.isCleaning.get()).to.be.false;
+			});
+		});
 	});
 
 	describe('onBind', () => {
