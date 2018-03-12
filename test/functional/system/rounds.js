@@ -102,6 +102,8 @@ describe('rounds', () => {
 			{ minify: true }
 		);
 
+		// Set rewards start at 150-th block
+		constants.rewards.offset = 150;
 		application.init(
 			{ sandbox: { name: 'lisk_functional_rounds' } },
 			(err, scope) => {
