@@ -41,12 +41,8 @@ function InTransferTransactionsRepo(db, pgp) {
 
 	if (!columnSet) {
 		columnSet = {};
-		var table = new pgp.helpers.TableName({
-			table: this.dbTable,
-			schema: 'public',
-		});
 		columnSet.insert = new pgp.helpers.ColumnSet(this.dbFields, {
-			table,
+			table: this.dbTable,
 		});
 	}
 
@@ -61,16 +57,20 @@ function InTransferTransactionsRepo(db, pgp) {
  * @todo Add description for the params and the return value
  */
 InTransferTransactionsRepo.prototype.save = function(transactions) {
-	if (!_.isArray(transactions)) {
-		transactions = [transactions];
-	}
+	const query = () => {
+		if (!_.isArray(transactions)) {
+			transactions = [transactions];
+		}
 
-	transactions = transactions.map(transaction => ({
-		dappId: transaction.asset.inTransfer.dappId,
-		transactionId: transaction.id,
-	}));
+		transactions = transactions.map(transaction => ({
+			dappId: transaction.asset.inTransfer.dappId,
+			transactionId: transaction.id,
+		}));
 
-	return this.db.none(this.pgp.helpers.insert(transactions, this.cs.insert));
+		return this.pgp.helpers.insert(transactions, this.cs.insert);
+	};
+
+	return this.db.none(query);
 };
 
 module.exports = InTransferTransactionsRepo;

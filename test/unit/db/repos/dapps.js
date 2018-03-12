@@ -218,15 +218,15 @@ describe('db', () => {
 
 		describe('list(params)', () => {
 			it('should pass correct params to inline sql', function*() {
-				sinonSandbox.spy(db, 'query');
+				sinonSandbox.spy(db, 'any');
 				const params = {
 					limit: 10,
 					offset: 20,
 				};
 				yield db.dapps.list(params);
 
-				expect(db.query.firstCall.args[0]).to.be.a('string');
-				return expect(db.query.firstCall.args[1]).to.be.eql(params);
+				expect(db.any.firstCall.args[0]).to.be.a('function');
+				return expect(db.any.firstCall.args[1]).to.be.eql(params);
 			});
 
 			it('should be rejected with error if required param "limit" is not passed', () => {
