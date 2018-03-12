@@ -358,6 +358,13 @@ describe('blocks', () => {
 	});
 
 	describe('isLoaded', () => {
-		it('should return __private.loaded');
+		beforeEach(done => {
+			__private.loaded = true;
+			done();
+		});
+		it('should return __private.loaded', () => {
+			blocksInstance.onBind();
+			return expect(__private.loaded).to.be.true;
+		});
 	});
 });
