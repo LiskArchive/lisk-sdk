@@ -306,10 +306,7 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
  * @todo Add description for the function
  */
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
-	// Transactions to rewind in case of error.
-	var appliedTransactions = {};
-
-	var undoUnconfirmedListStep = function(tx) {
+	var undoUnconfirmedListStep = function() {
 		return new Promise((resolve, reject) => {
 			modules.transactions.undoUnconfirmedList(err => {
 				if (err) {
@@ -320,7 +317,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 				} else {
 					return setImmediate(resolve);
 				}
-			}, tx);
+			});
 		});
 	};
 
@@ -340,25 +337,20 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 				new Promise((resolve, reject) => {
 					modules.accounts.setAccountAndGet(
 						{ publicKey: transaction.senderPublicKey },
-						(err, sender) => {
+						(accountErr, sender) => {
 							// DATABASE: write
 							modules.transactions.applyUnconfirmed(
 								transaction,
 								sender,
 								err => {
-									if (err) {
-										err = [
-											'Failed to apply unconfirmed transaction:',
-											transaction.id,
-											'-',
-											err,
-										].join(' ');
+									if (err || accountErr) {
+										err = `Failed to apply unconfirmed transaction: ${
+											transaction.id
+										} '-' ${err || accountErr}`;
 										library.logger.error(err);
 										library.logger.error('Transaction', transaction);
 										return setImmediate(reject, err);
 									}
-
-									appliedTransactions[transaction.id] = transaction;
 
 									return setImmediate(resolve);
 								},
@@ -368,41 +360,6 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 						tx
 					);
 				})
-		).catch(() =>
-			Promise.mapSeries(
-				block.transactions,
-				transaction =>
-					new Promise((resolve, reject) => {
-						// Rewind any already applied unconfirmed transactions
-						// Leaves the database state as per the previous block
-						modules.accounts.getAccount(
-							{ publicKey: transaction.senderPublicKey },
-							(err, sender) => {
-								if (err) {
-									return setImmediate(reject, err);
-								}
-								// The transaction has been applied?
-								if (appliedTransactions[transaction.id]) {
-									// DATABASE: write
-									library.logic.transaction.undoUnconfirmed(
-										transaction,
-										sender,
-										error => {
-											if (error) {
-												return setImmediate(reject, error);
-											}
-											return setImmediate(resolve);
-										},
-										tx
-									);
-								} else {
-									return setImmediate(resolve);
-								}
-							},
-							tx
-						);
-					})
-			)
 		);
 	};
 
@@ -422,20 +379,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 				new Promise((resolve, reject) => {
 					modules.accounts.getAccount(
 						{ publicKey: transaction.senderPublicKey },
-						(err, sender) => {
-							if (err) {
-								// Fatal error, memory tables will be inconsistent
-								err = [
-									'Failed to apply transaction:',
-									transaction.id,
-									'-',
-									err,
-								].join(' ');
-								library.logger.error(err);
-								library.logger.error('Transaction', transaction);
-
-								reject(err);
-							}
+						(accountErr, sender) => {
 							// DATABASE: write
 							modules.transactions.apply(
 								transaction,
@@ -444,12 +388,9 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 								err => {
 									if (err) {
 										// Fatal error, memory tables will be inconsistent
-										err = [
-											'Failed to apply transaction:',
-											transaction.id,
-											'-',
-											err,
-										].join(' ');
+										err = `Failed to apply transaction: ${
+											transaction.id
+										} - ${err || accountErr}`;
 										library.logger.error(err);
 										library.logger.error('Transaction', transaction);
 
@@ -493,7 +434,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 							library.logger.error('Failed to save block...', err);
 							library.logger.error('Block', block);
 							var errObj = new Error('Failed to save block');
-							reject(errObj);
+							return reject(errObj);
 						}
 
 						library.logger.debug(
@@ -535,36 +476,33 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 		});
 	};
 
-	library.db
-		.tx('Chain:applyBlock', tx => {
-			modules.blocks.isActive.set(true);
+	undoUnconfirmedListStep().then(() => {
+		library.db
+			.tx('Chain:applyBlock', tx => {
+				modules.blocks.isActive.set(true);
 
-			return undoUnconfirmedListStep(tx)
-				.then(() => applyUnconfirmedStep(tx))
-				.then(() => applyConfirmedStep(tx))
-				.then(() => saveBlockStep(tx));
-		})
-		.then(() => {
-			modules.blocks.isActive.set(false);
-			block = null;
-			appliedTransactions = null;
+				return applyUnconfirmedStep(tx)
+					.then(() => applyConfirmedStep(tx))
+					.then(() => saveBlockStep(tx));
+			})
+			.then(() => {
+				modules.blocks.isActive.set(false);
+				block = null;
+				return setImmediate(cb, null);
+			})
+			.catch(reason => {
+				modules.blocks.isActive.set(false);
+				block = null;
+				// Finish here if snapshotting.
+				// FIXME: Not the best place to do that
+				if (reason === 'Snapshot finished') {
+					library.logger.info(reason);
+					process.emit('SIGTERM');
+				}
 
-			return setImmediate(cb, null);
-		})
-		.catch(reason => {
-			modules.blocks.isActive.set(false);
-			block = null;
-			appliedTransactions = null;
-
-			// Finish here if snapshotting.
-			// FIXME: Not the best place to do that
-			if (reason === 'Snapshot finished') {
-				library.logger.info(reason);
-				process.emit('SIGTERM');
-			}
-
-			return setImmediate(cb, reason);
-		});
+				return setImmediate(cb, reason);
+			});
+	});
 };
 
 /**
