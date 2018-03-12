@@ -14,9 +14,9 @@
 
 'use strict';
 
+const path = require('path');
 const async = require('async');
 const elements = require('lisk-js');
-const path = require('path');
 const Promise = require('bluebird');
 const QueryFile = require('pg-promise').QueryFile;
 const application = require('../../common/application');
