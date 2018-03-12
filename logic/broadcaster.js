@@ -80,11 +80,17 @@ class Broadcaster {
 			},
 		];
 
-		jobsQueue.register(
-			'broadcasterNextRelease',
-			nextRelease,
-			self.config.broadcastInterval
-		);
+		if (broadcasts.active) {
+			jobsQueue.register(
+				'broadcasterNextRelease',
+				nextRelease,
+				self.config.broadcastInterval
+			);
+		} else {
+			library.logger.info(
+				'Broadcasting data disabled by user through config.json'
+			);
+		}
 	}
 
 	/**
