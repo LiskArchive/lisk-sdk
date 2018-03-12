@@ -82,8 +82,8 @@ describe('rounds', () => {
 					_.each(rows, row => {
 						rewards[row.publicKey] = {
 							publicKey: row.publicKey,
-							fees: Number(row.fees),
-							rewards: Number(row.rewards),
+							fees: row.fees,
+							rewards: row.rewards,
 						};
 					});
 					return rewards;
