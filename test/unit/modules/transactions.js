@@ -188,6 +188,9 @@ describe('transactions', () => {
 										verifyOnLoading: false,
 										snapshot: false,
 									},
+									syncing: {
+										active: true,
+									},
 								},
 							},
 							cb
