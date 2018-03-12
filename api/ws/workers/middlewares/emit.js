@@ -20,6 +20,7 @@ const connectionsTable = require('../../workers/connections_table');
  * @param {object} request
  */
 function addNonceToRequest(request) {
+	request.data = request.data || {};
 	request.data.nonce = connectionsTable.getNonce(request.socket.id);
 }
 

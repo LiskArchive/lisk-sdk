@@ -77,6 +77,19 @@ describe('emitMiddleware', () => {
 					it('should add nonce = undefined property to req.data', () => {
 						return expect(validReq.data).to.have.property('nonce').to.be.undefined;
 					});
+
+					describe('when req.data = null', () => {
+						before(done => {
+							validReq.data = null;
+							done();
+						});
+						it('should change req.data to an object', () => {
+							return expect(validNext).calledOnce;
+						});
+						it('should add nonce = undefined property to req.data', () => {
+							return expect(validReq.data).to.have.property('nonce').to.be.undefined;
+						});
+					});
 				});
 
 				describe('when nonce is matched with [validSocketId] in connectionsTables', () => {
