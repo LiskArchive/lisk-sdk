@@ -54,6 +54,16 @@ describe('rounds', () => {
 					return rows;
 				});
 		},
+		getBlocks: round => {
+			return library.db
+				.query(
+					'SELECT * FROM blocks WHERE CEIL(height / 101::float)::int = ${round} ORDER BY height ASC',
+					{ round }
+				)
+				.then(rows => {
+					return rows;
+				});
+		},
 	};
 
 	before(done => {
