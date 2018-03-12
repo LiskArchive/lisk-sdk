@@ -480,4 +480,51 @@ describe('rounds', () => {
 			});
 		});
 	});
+
+	describe('round 1', () => {
+		let deleteLastBlockPromise;
+		let generateDelegateListPromise;
+		const round = {
+			current: 1,
+			outsiderPublicKey:
+				'948b8b509579306694c00833ec1c0f81e964487db2206ddb1517bfeca2b0dc1b',
+		};
+
+		describe('forge block with 1 TRANSFER transaction to random account', () => {
+		});
+
+		describe('forge block with 25 TRANSFER transactions to random accounts', () => {
+		});
+
+		describe('should forge 97 blocks with 1 TRANSFER transaction each to random account', () => {
+		});
+
+		describe('forge block with 1 TRANSFER transaction to random account (last block of round)', () => {
+		});
+
+		describe('after round 1 is finished', () => {
+			it('last block height should equal active delegates count', () => {
+			});
+
+			it('should calculate rewards for round 1 correctly - all should be the same (native, rounds_rewards, mem_accounts)', () => {
+			});
+
+			it('should generate a different delegate list than one generated at the beginning of round 1', () => {
+			});
+		});
+
+		describe('delete last block of round 1, block contains 1 transaction type SEND', () => {
+			it('round rewards should be empty (rewards for round 1 deleted from rounds_rewards table)', () => {
+			});
+
+			it('mem_accounts table should be equal to one generated before last block of round deletion', () => {
+			});
+
+			it('mem_accounts table should not contain changes from transaction included in deleted block', () => {
+			});
+
+			it('delegates list should be equal to one generated at the beginning of round 1', () => {
+			});
+		});
+	});
 });
