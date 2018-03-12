@@ -73,65 +73,75 @@ describe('#signRawTransaction', () => {
 				});
 
 				it('should have the type', () => {
-					return signedTransaction.should.have.property('type').equal(type);
+					return expect(signedTransaction)
+						.to.have.property('type')
+						.equal(type);
 				});
 
 				it('should have the amount', () => {
-					return signedTransaction.should.have.property('amount').equal(amount);
+					return expect(signedTransaction)
+						.to.have.property('amount')
+						.equal(amount);
 				});
 
 				it('should have the asset', () => {
-					return signedTransaction.should.have.property('asset').eql(asset);
+					return expect(signedTransaction)
+						.to.have.property('asset')
+						.eql(asset);
 				});
 
 				it('should have the senderPublicKey', () => {
-					return signedTransaction.should.have
-						.property('senderPublicKey')
+					return expect(signedTransaction)
+						.to.have.property('senderPublicKey')
 						.equal(senderPublicKey);
 				});
 
 				it('should have the senderId', () => {
-					return signedTransaction.should.have
-						.property('senderId')
+					return expect(signedTransaction)
+						.to.have.property('senderId')
 						.equal(senderId);
 				});
 
 				it('should have the recipientId', () => {
-					return signedTransaction.should.have
-						.property('recipientId')
+					return expect(signedTransaction)
+						.to.have.property('recipientId')
 						.equal(recipientId);
 				});
 
 				it('should have the fee', () => {
-					return signedTransaction.should.have.property('fee').equal(fee);
+					return expect(signedTransaction)
+						.to.have.property('fee')
+						.equal(fee);
 				});
 
 				it('should have the updated timestamp', () => {
-					return signedTransaction.should.have
-						.property('timestamp')
+					return expect(signedTransaction)
+						.to.have.property('timestamp')
 						.be.equal(timeWithOffset);
 				});
 
 				it('should have the senderSecondPublicKey', () => {
-					return signedTransaction.should.have
-						.property('senderSecondPublicKey')
+					return expect(signedTransaction)
+						.to.have.property('senderSecondPublicKey')
 						.equal(null);
 				});
 
 				it('should have the signature', () => {
-					return signedTransaction.should.have
-						.property('signature')
+					return expect(signedTransaction)
+						.to.have.property('signature')
 						.be.equal(signature);
 				});
 
 				it('should have the id', () => {
-					return signedTransaction.should.have
-						.property('id')
+					return expect(signedTransaction)
+						.to.have.property('id')
 						.be.equal(transactionId);
 				});
 
 				it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-					return getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
+					return expect(getTimeWithOffsetStub).to.be.calledWithExactly(
+						undefined,
+					);
 				});
 			});
 
@@ -158,73 +168,81 @@ describe('#signRawTransaction', () => {
 					});
 
 					it('should have the type', () => {
-						return signedTransaction.should.have.property('type').equal(type);
+						return expect(signedTransaction)
+							.to.have.property('type')
+							.equal(type);
 					});
 
 					it('should have the amount', () => {
-						return signedTransaction.should.have
-							.property('amount')
+						return expect(signedTransaction)
+							.to.have.property('amount')
 							.equal(amount);
 					});
 
 					it('should have the asset', () => {
-						return signedTransaction.should.have.property('asset').eql(asset);
+						return expect(signedTransaction)
+							.to.have.property('asset')
+							.eql(asset);
 					});
 
 					it('should have the senderPublicKey', () => {
-						return signedTransaction.should.have
-							.property('senderPublicKey')
+						return expect(signedTransaction)
+							.to.have.property('senderPublicKey')
 							.equal(senderPublicKey);
 					});
 
 					it('should have the senderId', () => {
-						return signedTransaction.should.have
-							.property('senderId')
+						return expect(signedTransaction)
+							.to.have.property('senderId')
 							.equal(senderId);
 					});
 
 					it('should have the recipientId', () => {
-						return signedTransaction.should.have
-							.property('recipientId')
+						return expect(signedTransaction)
+							.to.have.property('recipientId')
 							.equal(recipientId);
 					});
 
 					it('should have the fee', () => {
-						return signedTransaction.should.have.property('fee').equal(fee);
+						return expect(signedTransaction)
+							.to.have.property('fee')
+							.equal(fee);
 					});
 
 					it('should have the updated timestamp', () => {
-						return signedTransaction.should.have
-							.property('timestamp')
+						return expect(signedTransaction)
+							.to.have.property('timestamp')
 							.be.equal(timeWithOffset);
 					});
 
 					it('should have the senderSecondPublicKey', () => {
-						return signedTransaction.should.have
-							.property('senderSecondPublicKey')
+						return expect(signedTransaction)
+							.to.have.property('senderSecondPublicKey')
 							.equal(senderSecondPublicKey);
 					});
 
 					it('should have the signature', () => {
-						return signedTransaction.should.have
-							.property('signature')
+						return expect(signedTransaction)
+							.to.have.property('signature')
 							.be.eql(signature);
 					});
 
 					it('should have the second signature', () => {
-						return signedTransaction.should.have
-							.property('signSignature')
+						return expect(signedTransaction)
+							.to.have.property('signSignature')
 							.be.equal(signSignature);
 					});
 
 					it('should have the id', () => {
-						return signedTransaction.should.have
-							.property('id')
+						return expect(signedTransaction)
+							.to.have.property('id')
 							.be.equal(secondSignedTransactionId);
 					});
 
 					it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-						return getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
+						return expect(getTimeWithOffsetStub).to.be.calledWithExactly(
+							undefined,
+						);
 					});
 				});
 
@@ -244,7 +262,7 @@ describe('#signRawTransaction', () => {
 						});
 
 						it('should calculate the time with the time offset', () => {
-							return getTimeWithOffsetStub.should.be.calledWithExactly(
+							return expect(getTimeWithOffsetStub).to.be.calledWithExactly(
 								timeOffset,
 							);
 						});
@@ -302,30 +320,30 @@ describe('#signRawTransaction', () => {
 			});
 
 			it('should sign the transaction', () => {
-				return signedTransaction.should.be.ok;
+				return expect(signedTransaction).to.be.ok;
 			});
 
 			it('should have the updated senderPublicKey', () => {
-				return signedTransaction.should.have
-					.property('senderPublicKey')
+				return expect(signedTransaction)
+					.to.have.property('senderPublicKey')
 					.equal(updatedSignerPublicKey);
 			});
 
 			it('should have the updated senderId', () => {
-				return signedTransaction.should.have
-					.property('senderId')
+				return expect(signedTransaction)
+					.to.have.property('senderId')
 					.equal(updatedSignerAddress);
 			});
 
 			it('should have the updated transactionId', () => {
-				return signedTransaction.should.have
-					.property('id')
+				return expect(signedTransaction)
+					.to.have.property('id')
 					.equal(updatedSignerId);
 			});
 
 			it('should have the updated signature', () => {
-				return signedTransaction.should.have
-					.property('signature')
+				return expect(signedTransaction)
+					.to.have.property('signature')
 					.equal(updatedSignerSignature);
 			});
 		});

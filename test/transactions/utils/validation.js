@@ -27,9 +27,9 @@ describe('public key validation', () => {
 			const invalidHexPublicKey =
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc';
 			it('should throw an error', () => {
-				return validatePublicKey
-					.bind(null, invalidHexPublicKey)
-					.should.throw('Argument must have a valid length of hex string.');
+				return expect(
+					validatePublicKey.bind(null, invalidHexPublicKey),
+				).to.throw('Argument must have a valid length of hex string.');
 			});
 		});
 
@@ -37,9 +37,9 @@ describe('public key validation', () => {
 			const invalidHexPublicKey =
 				'12345678123456781234567812345678123456781234567812345678123456gg';
 			it('should throw an error', () => {
-				return validatePublicKey
-					.bind(null, invalidHexPublicKey)
-					.should.throw('Argument must be a valid hex string.');
+				return expect(
+					validatePublicKey.bind(null, invalidHexPublicKey),
+				).to.throw('Argument must be a valid hex string.');
 			});
 		});
 
@@ -47,11 +47,9 @@ describe('public key validation', () => {
 			const tooLongPublicKey =
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca12';
 			it('should throw an error', () => {
-				return validatePublicKey
-					.bind(null, tooLongPublicKey)
-					.should.throw(
-						'Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca12 length differs from the expected 32 bytes for a public key.',
-					);
+				return expect(validatePublicKey.bind(null, tooLongPublicKey)).to.throw(
+					'Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca12 length differs from the expected 32 bytes for a public key.',
+				);
 			});
 		});
 
@@ -59,11 +57,9 @@ describe('public key validation', () => {
 			const tooShortPublicKey =
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b';
 			it('should throw an error', () => {
-				return validatePublicKey
-					.bind(null, tooShortPublicKey)
-					.should.throw(
-						'Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b length differs from the expected 32 bytes for a public key.',
-					);
+				return expect(validatePublicKey.bind(null, tooShortPublicKey)).to.throw(
+					'Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b length differs from the expected 32 bytes for a public key.',
+				);
 			});
 		});
 
@@ -71,7 +67,7 @@ describe('public key validation', () => {
 			const publicKey =
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca';
 			it('should return true', () => {
-				return validatePublicKey(publicKey).should.be.true;
+				return expect(validatePublicKey(publicKey)).to.be.true;
 			});
 		});
 
@@ -79,7 +75,7 @@ describe('public key validation', () => {
 			const publicKey =
 				'1234567812345678123456781234567812345678123456781234567812345678';
 			it('should return true', () => {
-				return validatePublicKey(publicKey).should.be.true;
+				return expect(validatePublicKey(publicKey)).to.be.true;
 			});
 		});
 	});
@@ -93,9 +89,9 @@ describe('public key validation', () => {
 				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc',
 			];
 			it('should throw an error', () => {
-				return validatePublicKeys
-					.bind(null, publicKeys)
-					.should.throw('Argument must have a valid length of hex string.');
+				return expect(validatePublicKeys.bind(null, publicKeys)).to.throw(
+					'Argument must have a valid length of hex string.',
+				);
 			});
 		});
 
@@ -106,7 +102,7 @@ describe('public key validation', () => {
 				'1234567812345678123456781234567812345678123456781234567812345678',
 			];
 			it('should return true', () => {
-				return validatePublicKeys(publicKeys).should.be.true;
+				return expect(validatePublicKeys(publicKeys)).to.be.true;
 			});
 		});
 	});
@@ -123,7 +119,7 @@ describe('public key validation', () => {
 				return Promise.resolve();
 			});
 			it('the validated keysgroup should return true', () => {
-				return validateKeysgroup(keysgroup).should.be.true;
+				return expect(validateKeysgroup(keysgroup)).to.be.true;
 			});
 		});
 
@@ -133,11 +129,9 @@ describe('public key validation', () => {
 				return Promise.resolve();
 			});
 			it('should throw the error', () => {
-				return validateKeysgroup
-					.bind(null, keysgroup)
-					.should.throw(
-						'Expected between 1 and 16 public keys in the keysgroup.',
-					);
+				return expect(validateKeysgroup.bind(null, keysgroup)).to.throw(
+					'Expected between 1 and 16 public keys in the keysgroup.',
+				);
 			});
 		});
 
@@ -154,11 +148,9 @@ describe('public key validation', () => {
 				return Promise.resolve();
 			});
 			it('should throw the error', () => {
-				return validateKeysgroup
-					.bind(null, keysgroup)
-					.should.throw(
-						'Expected between 1 and 16 public keys in the keysgroup.',
-					);
+				return expect(validateKeysgroup.bind(null, keysgroup)).to.throw(
+					'Expected between 1 and 16 public keys in the keysgroup.',
+				);
 			});
 		});
 	});
@@ -171,7 +163,7 @@ describe('public key validation', () => {
 				'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 			];
 			it('should return true', () => {
-				return checkPublicKeysForDuplicates(publicKeys).should.be.true;
+				return expect(checkPublicKeysForDuplicates(publicKeys)).to.be.true;
 			});
 		});
 
@@ -182,11 +174,11 @@ describe('public key validation', () => {
 				'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 			];
 			it('should throw', () => {
-				return checkPublicKeysForDuplicates
-					.bind(null, publicKeys)
-					.should.throw(
-						'Duplicated public key: 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa.',
-					);
+				return expect(
+					checkPublicKeysForDuplicates.bind(null, publicKeys),
+				).to.throw(
+					'Duplicated public key: 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa.',
+				);
 			});
 		});
 	});
@@ -201,7 +193,7 @@ describe('public key validation', () => {
 
 			it('should return true', () => {
 				return addresses.forEach(address => {
-					return validateAddress(address).should.be.true;
+					return expect(validateAddress(address)).to.be.true;
 				});
 			});
 		});
@@ -212,7 +204,7 @@ describe('public key validation', () => {
 				'Address length does not match requirements. Expected between 2 and 22 characters.';
 
 			it('should throw', () => {
-				return validateAddress.bind(null, address).should.throw(error);
+				return expect(validateAddress.bind(null, address)).to.throw(error);
 			});
 		});
 
@@ -222,7 +214,7 @@ describe('public key validation', () => {
 				'Address length does not match requirements. Expected between 2 and 22 characters.';
 
 			it('should throw', () => {
-				return validateAddress.bind(null, address).should.throw(error);
+				return expect(validateAddress.bind(null, address)).to.throw(error);
 			});
 		});
 
@@ -232,7 +224,7 @@ describe('public key validation', () => {
 				'Address format does not match requirements. Expected "L" at the end.';
 
 			it('should throw', () => {
-				return validateAddress.bind(null, address).should.throw(error);
+				return expect(validateAddress.bind(null, address)).to.throw(error);
 			});
 		});
 
@@ -242,7 +234,7 @@ describe('public key validation', () => {
 				'Address format does not match requirements. Address out of maximum range.';
 
 			it('should throw', () => {
-				return validateAddress.bind(null, address).should.throw(error);
+				return expect(validateAddress.bind(null, address)).to.throw(error);
 			});
 		});
 	});

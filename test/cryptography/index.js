@@ -16,6 +16,6 @@ import cryptography from 'cryptography';
 
 describe('cryptography index.js', () => {
 	it('should export an object', () => {
-		return cryptography.should.be.an('object');
+		return expect(cryptography).to.be.an('object');
 	});
 });

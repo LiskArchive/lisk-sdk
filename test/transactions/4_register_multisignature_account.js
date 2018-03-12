@@ -69,11 +69,11 @@ describe('#registerMultisignatureAccount transaction', () => {
 		});
 
 		it('should create a register multisignature transaction', () => {
-			return registerMultisignatureTransaction.should.be.ok;
+			return expect(registerMultisignatureTransaction).to.be.ok;
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-			return getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
+			return expect(getTimeWithOffsetStub).to.be.calledWithExactly(undefined);
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
@@ -86,94 +86,95 @@ describe('#registerMultisignatureAccount transaction', () => {
 				timeOffset: offset,
 			});
 
-			return getTimeWithOffsetStub.should.be.calledWithExactly(offset);
+			return expect(getTimeWithOffsetStub).to.be.calledWithExactly(offset);
 		});
 
 		describe('returned register multisignature transaction', () => {
 			it('should be an object', () => {
-				return registerMultisignatureTransaction.should.be.an('object');
+				return expect(registerMultisignatureTransaction).to.be.an('object');
 			});
 
 			it('should have id string', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('id')
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('id')
 					.and.be.a('string');
 			});
 
 			it('should have type number equal to 4', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('type')
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('type')
 					.and.be.a('number')
 					.and.equal(transactionType);
 			});
 
 			it('should have amount string equal to 0', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('amount')
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('amount')
 					.and.be.a('string')
 					.and.equal(amount);
 			});
 
 			it('should have fee string equal to 15 LSK', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('fee')
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('fee')
 					.and.be.a('string')
 					.and.equal(fee);
 			});
 
 			it('should have recipientId string equal to null', () => {
-				return registerMultisignatureTransaction.should.have.property(
+				return expect(registerMultisignatureTransaction).to.have.property(
 					'recipientId',
 				).and.be.null;
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('senderPublicKey')
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('senderPublicKey')
 					.and.be.hexString.and.equal(keys.publicKey);
 			});
 
 			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('timestamp')
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('timestamp')
 					.and.be.a('number')
 					.and.equal(timeWithOffset);
 			});
 
 			it('should have signature hex string', () => {
-				return registerMultisignatureTransaction.should.have.property(
+				return expect(registerMultisignatureTransaction).to.have.property(
 					'signature',
 				).and.be.hexString;
 			});
 
 			it('should have asset', () => {
-				return registerMultisignatureTransaction.should.have.property('asset')
-					.and.not.be.empty;
+				return expect(registerMultisignatureTransaction).to.have.property(
+					'asset',
+				).and.not.be.empty;
 			});
 
 			it('should not have a second signature', () => {
-				return registerMultisignatureTransaction.should.not.have.property(
+				return expect(registerMultisignatureTransaction).not.to.have.property(
 					'signSignature',
 				);
 			});
 
 			describe('multisignature asset', () => {
 				it('should be object', () => {
-					return registerMultisignatureTransaction.asset.should.have
-						.property('multisignature')
+					return expect(registerMultisignatureTransaction.asset)
+						.to.have.property('multisignature')
 						.and.be.an('object');
 				});
 
 				it('should have a min number equal to provided minimum', () => {
-					return registerMultisignatureTransaction.asset.multisignature.should.have
-						.property('min')
+					return expect(registerMultisignatureTransaction.asset.multisignature)
+						.to.have.property('min')
 						.and.be.a('number')
 						.and.be.equal(minimum);
 				});
 
 				it('should have a lifetime number equal to provided lifetime', () => {
-					return registerMultisignatureTransaction.asset.multisignature.should.have
-						.property('lifetime')
+					return expect(registerMultisignatureTransaction.asset.multisignature)
+						.to.have.property('lifetime')
 						.and.be.a('number')
 						.and.be.equal(lifetime);
 				});
@@ -183,8 +184,8 @@ describe('#registerMultisignatureAccount transaction', () => {
 						'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 						'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					];
-					return registerMultisignatureTransaction.asset.multisignature.should.have
-						.property('keysgroup')
+					return expect(registerMultisignatureTransaction.asset.multisignature)
+						.to.have.property('keysgroup')
 						.and.be.eql(expectedArray);
 				});
 			});
@@ -204,7 +205,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			return registerMultisignatureTransaction.should.have.property(
+			return expect(registerMultisignatureTransaction).to.have.property(
 				'signSignature',
 			).and.be.hexString;
 		});
@@ -212,47 +213,45 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 	describe('when the register multisignature account transaction is created with one too short public key', () => {
 		it('should throw an error', () => {
-			return registerMultisignatureAccount
-				.bind(null, {
+			return expect(
+				registerMultisignatureAccount.bind(null, {
 					passphrase,
 					secondPassphrase,
 					keysgroup: tooShortPublicKeyKeysgroup,
 					lifetime,
 					minimum,
-				})
-				.should.throw(
-					'Public key d019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9 length differs from the expected 32 bytes for a public key.',
-				);
+				}),
+			).to.throw(
+				'Public key d019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9 length differs from the expected 32 bytes for a public key.',
+			);
 		});
 	});
 
 	describe('when the register multisignature account transaction is created with one plus prepended public key', () => {
 		it('should throw an error', () => {
-			return registerMultisignatureAccount
-				.bind(null, {
+			return expect(
+				registerMultisignatureAccount.bind(null, {
 					passphrase,
 					secondPassphrase,
 					keysgroup: plusPrependedPublicKeyKeysgroup,
 					lifetime,
 					minimum,
-				})
-				.should.throw('Argument must be a valid hex string.');
+				}),
+			).to.throw('Argument must be a valid hex string.');
 		});
 	});
 
 	describe('when the register multisignature account transaction is created with one empty keysgroup', () => {
 		it('should throw an error', () => {
-			return registerMultisignatureAccount
-				.bind(null, {
+			return expect(
+				registerMultisignatureAccount.bind(null, {
 					passphrase,
 					secondPassphrase,
 					keysgroup: [],
 					lifetime,
 					minimum,
-				})
-				.should.throw(
-					'Expected between 1 and 16 public keys in the keysgroup.',
-				);
+				}),
+			).to.throw('Expected between 1 and 16 public keys in the keysgroup.');
 		});
 	});
 
@@ -269,17 +268,15 @@ describe('#registerMultisignatureAccount transaction', () => {
 		});
 
 		it('should throw an error', () => {
-			return registerMultisignatureAccount
-				.bind(null, {
+			return expect(
+				registerMultisignatureAccount.bind(null, {
 					passphrase,
 					secondPassphrase,
 					keysgroup,
 					lifetime,
 					minimum,
-				})
-				.should.throw(
-					'Expected between 1 and 16 public keys in the keysgroup.',
-				);
+				}),
+			).to.throw('Expected between 1 and 16 public keys in the keysgroup.');
 		});
 	});
 
@@ -290,17 +287,17 @@ describe('#registerMultisignatureAccount transaction', () => {
 		});
 
 		it('should throw an error', () => {
-			return registerMultisignatureAccount
-				.bind(null, {
+			return expect(
+				registerMultisignatureAccount.bind(null, {
 					passphrase,
 					secondPassphrase,
 					keysgroup,
 					lifetime,
 					minimum,
-				})
-				.should.throw(
-					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
-				);
+				}),
+			).to.throw(
+				'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
+			);
 		});
 	});
 
@@ -316,55 +313,57 @@ describe('#registerMultisignatureAccount transaction', () => {
 			});
 
 			it('should have the type', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('type')
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('type')
 					.equal(transactionType);
 			});
 
 			it('should have the amount', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('amount')
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('amount')
 					.equal(amount);
 			});
 
 			it('should have the fee', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('fee')
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('fee')
 					.equal(fee);
 			});
 
 			it('should have the recipient id', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('recipientId')
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('recipientId')
 					.equal(null);
 			});
 
 			it('should have the sender public key', () => {
-				return registerMultisignatureTransaction.should.have
-					.property('senderPublicKey')
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('senderPublicKey')
 					.equal(null);
 			});
 
 			it('should have the timestamp', () => {
-				return registerMultisignatureTransaction.should.have.property(
+				return expect(registerMultisignatureTransaction).to.have.property(
 					'timestamp',
 				);
 			});
 
 			it('should have the asset with the multisignature with the min, lifetime and keysgroup', () => {
-				return registerMultisignatureTransaction.should.have.nested
-					.property('asset.multisignature')
+				return expect(registerMultisignatureTransaction)
+					.to.have.nested.property('asset.multisignature')
 					.with.all.keys('min', 'lifetime', 'keysgroup');
 			});
 
 			it('should not have the signature', () => {
-				return registerMultisignatureTransaction.should.not.have.property(
+				return expect(registerMultisignatureTransaction).not.to.have.property(
 					'signature',
 				);
 			});
 
 			it('should not have the id', () => {
-				return registerMultisignatureTransaction.should.not.have.property('id');
+				return expect(registerMultisignatureTransaction).not.to.have.property(
+					'id',
+				);
 			});
 		});
 	});

@@ -59,15 +59,15 @@ describe('keys', () => {
 		});
 
 		it('should create buffer publicKey', () => {
-			return Buffer.from(keyPair.publicKey)
-				.toString('hex')
-				.should.be.equal(defaultPublicKey);
+			return expect(Buffer.from(keyPair.publicKey).toString('hex')).to.be.equal(
+				defaultPublicKey,
+			);
 		});
 
 		it('should create buffer privateKey', () => {
-			return Buffer.from(keyPair.privateKey)
-				.toString('hex')
-				.should.be.equal(defaultPrivateKey);
+			return expect(
+				Buffer.from(keyPair.privateKey).toString('hex'),
+			).to.be.equal(defaultPrivateKey);
 		});
 	});
 
@@ -80,14 +80,14 @@ describe('keys', () => {
 		});
 
 		it('should generate the correct publicKey from a passphrase', () => {
-			return keyPair.should.have
-				.property('publicKey')
+			return expect(keyPair)
+				.to.have.property('publicKey')
 				.and.be.equal(defaultPublicKey);
 		});
 
 		it('should generate the correct privateKey from a passphrase', () => {
-			return keyPair.should.have
-				.property('privateKey')
+			return expect(keyPair)
+				.to.have.property('privateKey')
 				.and.be.equal(defaultPrivateKey);
 		});
 	});
@@ -101,23 +101,23 @@ describe('keys', () => {
 		});
 
 		it('should generate the correct publicKey from a passphrase', () => {
-			return keyPair.should.have
-				.property('publicKey')
+			return expect(keyPair)
+				.to.have.property('publicKey')
 				.and.be.equal(defaultPublicKey);
 		});
 
 		it('should generate the correct privateKey from a passphrase', () => {
-			return keyPair.should.have
-				.property('privateKey')
+			return expect(keyPair)
+				.to.have.property('privateKey')
 				.and.be.equal(defaultPrivateKey);
 		});
 	});
 
 	describe('#getAddressAndPublicKeyFromPassphrase', () => {
 		it('should create correct address and publicKey', () => {
-			return getAddressAndPublicKeyFromPassphrase(defaultPassphrase).should.eql(
-				defaultAddressAndPublicKey,
-			);
+			return expect(
+				getAddressAndPublicKeyFromPassphrase(defaultPassphrase),
+			).to.eql(defaultAddressAndPublicKey);
 		});
 	});
 });

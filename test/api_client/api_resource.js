@@ -57,11 +57,11 @@ describe('API resource module', () => {
 
 	describe('#constructor', () => {
 		it('should create an API resource instance', () => {
-			return resource.should.be.instanceOf(APIResource);
+			return expect(resource).to.be.instanceOf(APIResource);
 		});
 
 		it('should throw an error without an input', () => {
-			return (() => new APIResource()).should.throw(
+			return expect(() => new APIResource()).to.throw(
 				'APIResource requires APIClient instance for initialization.',
 			);
 		});
@@ -69,18 +69,18 @@ describe('API resource module', () => {
 
 	describe('get headers', () => {
 		it('should return header set to apiClient', () => {
-			return resource.headers.should.eql(defaultHeaders);
+			return expect(resource.headers).to.eql(defaultHeaders);
 		});
 	});
 
 	describe('get resourcePath', () => {
 		it('should return the resource’s full path', () => {
-			return resource.resourcePath.should.equal(`${defaultBasePath}/api`);
+			return expect(resource.resourcePath).to.equal(`${defaultBasePath}/api`);
 		});
 
 		it('should return the resource’s full path with set path', () => {
 			resource.path = defaultResourcePath;
-			return resource.resourcePath.should.equal(
+			return expect(resource.resourcePath).to.equal(
 				`${defaultBasePath}/api${defaultResourcePath}`,
 			);
 		});
@@ -100,17 +100,17 @@ describe('API resource module', () => {
 
 		it('should make a request to API without calling retry', () => {
 			return resource.request(defaultRequest, false).then(res => {
-				popsicleStub.should.be.calledOnce;
-				handleRetryStub.should.not.be.called;
-				return res.should.eql(sendRequestResult.body);
+				expect(popsicleStub).to.be.calledOnce;
+				expect(handleRetryStub).not.to.be.called;
+				return expect(res).to.eql(sendRequestResult.body);
 			});
 		});
 
 		it('should make a request to API without calling retry when it successes', () => {
 			return resource.request(defaultRequest, true).then(res => {
-				popsicleStub.should.be.calledOnce;
-				handleRetryStub.should.not.be.called;
-				return res.should.eql(sendRequestResult.body);
+				expect(popsicleStub).to.be.calledOnce;
+				expect(handleRetryStub).not.to.be.called;
+				return expect(res).to.eql(sendRequestResult.body);
 			});
 		});
 
@@ -119,9 +119,9 @@ describe('API resource module', () => {
 				use: () => Promise.reject(defaultError),
 			});
 			return resource.request(defaultRequest, true).catch(err => {
-				popsicleStub.should.be.calledOnce;
-				handleRetryStub.should.be.calledOnce;
-				return err.should.eql(defaultError);
+				expect(popsicleStub).to.be.calledOnce;
+				expect(handleRetryStub).to.be.calledOnce;
+				return expect(err).to.eql(defaultError);
 			});
 		});
 	});
@@ -153,9 +153,9 @@ describe('API resource module', () => {
 				const req = resource.handleRetry(defaultError, defaultRequest);
 				clock.tick(1000);
 				return req.then(res => {
-					apiClient.banActiveNodeAndSelect.should.be.calledOnce;
-					requestStub.should.be.calledWith(defaultRequest, true);
-					return res.should.be.eql(sendRequestResult.body);
+					expect(apiClient.banActiveNodeAndSelect).to.be.calledOnce;
+					expect(requestStub).to.be.calledWith(defaultRequest, true);
+					return expect(res).to.be.eql(sendRequestResult.body);
 				});
 			});
 
@@ -164,9 +164,9 @@ describe('API resource module', () => {
 				const req = resource.handleRetry(defaultError, defaultRequest);
 				clock.tick(1000);
 				return req.then(res => {
-					apiClient.banActiveNodeAndSelect.should.not.be.called;
-					requestStub.should.be.calledWith(defaultRequest, true);
-					return res.should.be.eql(sendRequestResult.body);
+					expect(apiClient.banActiveNodeAndSelect).not.to.be.called;
+					expect(requestStub).to.be.calledWith(defaultRequest, true);
+					return expect(res).to.be.eql(sendRequestResult.body);
 				});
 			});
 		});
@@ -180,9 +180,9 @@ describe('API resource module', () => {
 			it('should resolve with failure response', () => {
 				const req = resource.handleRetry(defaultError, defaultRequest);
 				return req.then(res => {
-					res.success.should.be.false;
-					res.error.should.eql(defaultError);
-					return res.message.should.equal(
+					expect(res.success).to.be.false;
+					expect(res.error).to.eql(defaultError);
+					return expect(res.message).to.equal(
 						'Could not create an HTTP request to any known nodes.',
 					);
 				});

@@ -120,29 +120,29 @@ ${defaultSecondSignature}
 				defaultMessage,
 				defaultPassphrase,
 			);
-			return signedMessage.should.be.eql(defaultSignedMessage);
+			return expect(signedMessage).to.be.eql(defaultSignedMessage);
 		});
 	});
 
 	describe('#verifyMessageWithPublicKey', () => {
 		it('should detect invalid publicKeys', () => {
-			return verifyMessageWithPublicKey
-				.bind(null, {
+			return expect(
+				verifyMessageWithPublicKey.bind(null, {
 					message: defaultMessage,
 					signature: defaultSignature,
 					publicKey: changeLength(defaultPublicKey),
-				})
-				.should.throw('Invalid publicKey, expected 32-byte publicKey');
+				}),
+			).to.throw('Invalid publicKey, expected 32-byte publicKey');
 		});
 
 		it('should detect invalid signatures', () => {
-			return verifyMessageWithPublicKey
-				.bind(null, {
+			return expect(
+				verifyMessageWithPublicKey.bind(null, {
 					message: defaultMessage,
 					signature: changeLength(defaultSignature),
 					publicKey: defaultPublicKey,
-				})
-				.should.throw('Invalid signature length, expected 64-byte signature');
+				}),
+			).to.throw('Invalid signature length, expected 64-byte signature');
 		});
 
 		it('should return false if the signature is invalid', () => {
@@ -151,12 +151,12 @@ ${defaultSecondSignature}
 				signature: makeInvalid(defaultSignature),
 				publicKey: defaultPublicKey,
 			});
-			return verification.should.be.false;
+			return expect(verification).to.be.false;
 		});
 
 		it('should return true if the signature is valid', () => {
 			const verification = verifyMessageWithPublicKey(defaultSignedMessage);
-			return verification.should.be.true;
+			return expect(verification).to.be.true;
 		});
 	});
 
@@ -168,57 +168,53 @@ ${defaultSecondSignature}
 				defaultSecondPassphrase,
 			);
 
-			return signature.should.be.eql(defaultDoubleSignedMessage);
+			return expect(signature).to.be.eql(defaultDoubleSignedMessage);
 		});
 	});
 
 	describe('#verifyMessageWithTwoPublicKeys', () => {
 		it('should throw on invalid first publicKey length', () => {
-			return verifyMessageWithTwoPublicKeys
-				.bind(
+			return expect(
+				verifyMessageWithTwoPublicKeys.bind(
 					null,
 					Object.assign({}, defaultDoubleSignedMessage, {
 						publicKey: changeLength(defaultPublicKey),
 					}),
-				)
-				.should.throw('Invalid first publicKey, expected 32-byte publicKey');
+				),
+			).to.throw('Invalid first publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid second publicKey length', () => {
-			return verifyMessageWithTwoPublicKeys
-				.bind(
+			return expect(
+				verifyMessageWithTwoPublicKeys.bind(
 					null,
 					Object.assign({}, defaultDoubleSignedMessage, {
 						secondPublicKey: changeLength(defaultSecondPublicKey),
 					}),
-				)
-				.should.throw('Invalid second publicKey, expected 32-byte publicKey');
+				),
+			).to.throw('Invalid second publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid primary signature length', () => {
-			return verifyMessageWithTwoPublicKeys
-				.bind(
+			return expect(
+				verifyMessageWithTwoPublicKeys.bind(
 					null,
 					Object.assign({}, defaultDoubleSignedMessage, {
 						signature: changeLength(defaultSignature),
 					}),
-				)
-				.should.throw(
-					'Invalid first signature length, expected 64-byte signature',
-				);
+				),
+			).to.throw('Invalid first signature length, expected 64-byte signature');
 		});
 
 		it('should throw on invalid secondary signature length', () => {
-			return verifyMessageWithTwoPublicKeys
-				.bind(
+			return expect(
+				verifyMessageWithTwoPublicKeys.bind(
 					null,
 					Object.assign({}, defaultDoubleSignedMessage, {
 						secondSignature: changeLength(defaultSecondSignature),
 					}),
-				)
-				.should.throw(
-					'Invalid second signature length, expected 64-byte signature',
-				);
+				),
+			).to.throw('Invalid second signature length, expected 64-byte signature');
 		});
 
 		it('should return false for incorrect first signature', () => {
@@ -227,7 +223,7 @@ ${defaultSecondSignature}
 					signature: makeInvalid(defaultSignature),
 				}),
 			);
-			return verified.should.be.false;
+			return expect(verified).to.be.false;
 		});
 
 		it('should return false for incorrect second signature', () => {
@@ -236,14 +232,14 @@ ${defaultSecondSignature}
 					secondSignature: makeInvalid(defaultSecondSignature),
 				}),
 			);
-			return verified.should.be.false;
+			return expect(verified).to.be.false;
 		});
 
 		it('should return true for two valid signatures', () => {
 			const verified = verifyMessageWithTwoPublicKeys(
 				defaultDoubleSignedMessage,
 			);
-			return verified.should.be.true;
+			return expect(verified).to.be.true;
 		});
 	});
 
@@ -254,7 +250,7 @@ ${defaultSecondSignature}
 				signature: defaultSignature,
 				publicKey: defaultPublicKey,
 			});
-			return printedMessage.should.be.equal(defaultPrintedMessage);
+			return expect(printedMessage).to.be.equal(defaultPrintedMessage);
 		});
 
 		it('should wrap a second signed message into a printed Lisk template', () => {
@@ -265,7 +261,9 @@ ${defaultSecondSignature}
 				secondSignature: defaultSecondSignature,
 				secondPublicKey: defaultSecondPublicKey,
 			});
-			return printedMessage.should.be.equal(defaultSecondSignedPrintedMessage);
+			return expect(printedMessage).to.be.equal(
+				defaultSecondSignedPrintedMessage,
+			);
 		});
 	});
 
@@ -275,7 +273,7 @@ ${defaultSecondSignature}
 				defaultMessage,
 				defaultPassphrase,
 			);
-			return signedAndPrintedMessage.should.be.equal(defaultPrintedMessage);
+			return expect(signedAndPrintedMessage).to.be.equal(defaultPrintedMessage);
 		});
 
 		it('should sign the message twice and wrap it into a printed Lisk template', () => {
@@ -284,7 +282,7 @@ ${defaultSecondSignature}
 				defaultPassphrase,
 				defaultSecondPassphrase,
 			);
-			return signedAndPrintedMessage.should.be.equal(
+			return expect(signedAndPrintedMessage).to.be.equal(
 				defaultSecondSignedPrintedMessage,
 			);
 		});
@@ -299,7 +297,7 @@ ${defaultSecondSignature}
 		});
 
 		it('should sign a transaction', () => {
-			return signature.should.be.equal(defaultDataSignature);
+			return expect(signature).to.be.equal(defaultDataSignature);
 		});
 	});
 
@@ -310,7 +308,7 @@ ${defaultSecondSignature}
 				makeInvalid(defaultDataSignature),
 				defaultPublicKey,
 			);
-			return verification.should.be.false;
+			return expect(verification).to.be.false;
 		});
 
 		it('should return true for a valid signature', () => {
@@ -319,7 +317,7 @@ ${defaultSecondSignature}
 				defaultDataSignature,
 				defaultPublicKey,
 			);
-			return verification.should.be.true;
+			return expect(verification).to.be.true;
 		});
 	});
 });

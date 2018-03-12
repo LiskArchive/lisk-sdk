@@ -14,49 +14,53 @@
  */
 import transaction from 'transactions';
 
-describe('transactions', () => {
+describe('expect(transaction)s', () => {
 	describe('exports', () => {
-		it('should have the create transfer transaction function', () => {
-			return transaction.should.have.property('transfer').and.be.a('function');
-		});
-
-		it('should have the register second passphrase transaction function', () => {
-			return transaction.should.have
-				.property('registerSecondPassphrase')
+		it('to have the create transfer expect(transaction) function', () => {
+			return expect(transaction)
+				.to.have.property('transfer')
 				.and.be.a('function');
 		});
 
-		it('should have the register delegate transaction function', () => {
-			return transaction.should.have
-				.property('registerDelegate')
+		it('to have the register second passphrase expect(transaction) function', () => {
+			return expect(transaction)
+				.to.have.property('registerSecondPassphrase')
 				.and.be.a('function');
 		});
 
-		it('should have the cast votes transaction function', () => {
-			return transaction.should.have.property('castVotes').and.be.a('function');
-		});
-
-		it('should have the register multisignature transaction function', () => {
-			return transaction.should.have
-				.property('registerMultisignature')
+		it('to have the register delegate expect(transaction) function', () => {
+			return expect(transaction)
+				.to.have.property('registerDelegate')
 				.and.be.a('function');
 		});
 
-		it('should have the create dapp transaction function', () => {
-			return transaction.should.have
-				.property('createDapp')
+		it('to have the cast votes expect(transaction) function', () => {
+			return expect(transaction)
+				.to.have.property('castVotes')
 				.and.be.a('function');
 		});
 
-		it('should have the transfer into dapp transaction function', () => {
-			return transaction.should.have
-				.property('transferIntoDapp')
+		it('to have the register multisignature expect(transaction) function', () => {
+			return expect(transaction)
+				.to.have.property('registerMultisignature')
 				.and.be.a('function');
 		});
 
-		it('should have the transfer out of dapp transaction function', () => {
-			return transaction.should.have
-				.property('transferOutOfDapp')
+		it('to have the create dapp expect(transaction) function', () => {
+			return expect(transaction)
+				.to.have.property('createDapp')
+				.and.be.a('function');
+		});
+
+		it('to have the transfer into dapp expect(transaction) function', () => {
+			return expect(transaction)
+				.to.have.property('transferIntoDapp')
+				.and.be.a('function');
+		});
+
+		it('to have the transfer out of dapp expect(transaction) function', () => {
+			return expect(transaction)
+				.to.have.property('transferOutOfDapp')
 				.and.be.a('function');
 		});
 	});

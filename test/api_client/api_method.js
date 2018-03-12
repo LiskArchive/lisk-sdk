@@ -59,13 +59,13 @@ describe('API method module', () => {
 			});
 
 			it('should return function', () => {
-				return handler.should.be.a('function');
+				return expect(handler).to.be.a('function');
 			});
 
 			it('should request GET with default URL', () => {
 				return handler().then(() => {
-					resource.request.should.be.calledOnce;
-					return resource.request.should.be.calledWithExactly(
+					expect(resource.request).to.be.calledOnce;
+					return expect(resource.request).to.be.calledWithExactly(
 						{
 							method: GET,
 							url: defaultFullPath,
@@ -97,31 +97,31 @@ describe('API method module', () => {
 			});
 
 			it('should return function', () => {
-				return handler.should.be.a('function');
+				return expect(handler).to.be.a('function');
 			});
 
 			it('should be rejected with error without param', () => {
-				return handler().should.be.rejectedWith(Error, errorArgumentNumber);
+				return expect(handler()).to.be.rejectedWith(Error, errorArgumentNumber);
 			});
 
 			it('should be rejected with error without enough param', () => {
-				return handler(firstURLParam).should.be.rejectedWith(
+				return expect(handler(firstURLParam)).to.be.rejectedWith(
 					Error,
 					errorArgumentNumber,
 				);
 			});
 
 			it('should be rejected with no data', () => {
-				return handler(firstURLParam, secondURLParam).should.be.rejectedWith(
-					validationError,
-				);
+				return expect(
+					handler(firstURLParam, secondURLParam),
+				).to.be.rejectedWith(validationError);
 			});
 
 			it('should call request with the given data', () => {
 				return handler(firstURLParam, secondURLParam, { needed: true }).then(
 					() => {
-						resource.request.should.be.calledOnce;
-						return resource.request.should.be.calledWithExactly(
+						expect(resource.request).to.be.calledOnce;
+						return expect(resource.request).to.be.calledWithExactly(
 							{
 								method: POST,
 								url: `${defaultFullPath}/${firstURLParam}/ids/${
@@ -159,31 +159,31 @@ describe('API method module', () => {
 			});
 
 			it('should return a function', () => {
-				return handler.should.be.a('function');
+				return expect(handler).to.be.a('function');
 			});
 
 			it('should be rejected with error without parameters', () => {
-				return handler().should.be.rejectedWith(Error, errorArgumentNumber);
+				return expect(handler()).to.be.rejectedWith(Error, errorArgumentNumber);
 			});
 
 			it('should be rejected with error without enough parameters', () => {
-				return handler(firstURLParam).should.be.rejectedWith(
+				return expect(handler(firstURLParam)).to.be.rejectedWith(
 					Error,
 					errorArgumentNumber,
 				);
 			});
 
 			it('should be rejected with no data', () => {
-				return handler(firstURLParam, secondURLParam).should.be.rejectedWith(
-					validationError,
-				);
+				return expect(
+					handler(firstURLParam, secondURLParam),
+				).to.be.rejectedWith(validationError);
 			});
 
 			it('should be request with the given data', () => {
 				return handler(firstURLParam, secondURLParam, { needed: true }).then(
 					() => {
-						resource.request.should.be.calledOnce;
-						return resource.request.should.be.calledWithExactly(
+						expect(resource.request).to.be.calledOnce;
+						return expect(resource.request).to.be.calledWithExactly(
 							{
 								method: GET,
 								url: `${defaultFullPath}/${firstURLParam}/ids/${

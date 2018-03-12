@@ -26,43 +26,43 @@ import {
 } from 'transactions/constants';
 
 describe('transactions constants module', () => {
-	it('FIXED_POINT should be an integer', () => {
-		return FIXED_POINT.should.be.an.integer;
+	it('FIXED_POINT to be an integer', () => {
+		return expect(FIXED_POINT).to.be.an.integer;
 	});
 
-	it('DAPP_FEE should be an integer', () => {
-		return DAPP_FEE.should.be.an.integer;
+	it('DAPP_FEE to be an integer', () => {
+		return expect(DAPP_FEE).to.be.an.integer;
 	});
 
-	it('DELEGATE_FEE should be an integer', () => {
-		return DELEGATE_FEE.should.be.an.integer;
+	it('DELEGATE_FEE to be an integer', () => {
+		return expect(DELEGATE_FEE).to.be.an.integer;
 	});
 
-	it('IN_TRANSFER_FEE should be an integer', () => {
-		return IN_TRANSFER_FEE.should.be.an.integer;
+	it('IN_TRANSFER_FEE to be an integer', () => {
+		return expect(IN_TRANSFER_FEE).to.be.an.integer;
 	});
 
-	it('OUT_TRANSFER_FEE should be an integer', () => {
-		return OUT_TRANSFER_FEE.should.be.an.integer;
+	it('OUT_TRANSFER_FEE to be an integer', () => {
+		return expect(OUT_TRANSFER_FEE).to.be.an.integer;
 	});
 
-	it('MULTISIGNATURE_FEE should be an integer', () => {
-		return MULTISIGNATURE_FEE.should.be.an.integer;
+	it('MULTISIGNATURE_FEE to be an integer', () => {
+		return expect(MULTISIGNATURE_FEE).to.be.an.integer;
 	});
 
-	it('SIGNATURE_FEE should be an integer', () => {
-		return SIGNATURE_FEE.should.be.an.integer;
+	it('SIGNATURE_FEE to be an integer', () => {
+		return expect(SIGNATURE_FEE).to.be.an.integer;
 	});
 
-	it('TRANSFER_FEE should be an integer', () => {
-		return TRANSFER_FEE.should.be.an.integer;
+	it('TRANSFER_FEE to be an integer', () => {
+		return expect(TRANSFER_FEE).to.be.an.integer;
 	});
 
-	it('VOTE_FEE should be an integer', () => {
-		return VOTE_FEE.should.be.an.integer;
+	it('VOTE_FEE to be an integer', () => {
+		return expect(VOTE_FEE).to.be.an.integer;
 	});
 
-	it('DATA_FEE should be an integer', () => {
-		return DATA_FEE.should.be.an.integer;
+	it('DATA_FEE to be an integer', () => {
+		return expect(DATA_FEE).to.be.an.integer;
 	});
 });

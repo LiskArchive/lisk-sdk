@@ -50,18 +50,18 @@ describe('#prepareTransaction', () => {
 		});
 
 		it('should not mutate the original transaction', () => {
-			return inputTransaction.should.eql(defaultTransaction);
+			return expect(inputTransaction).to.eql(defaultTransaction);
 		});
 
 		it('should add a signature to a transaction', () => {
-			return preparedTransaction.should.have
-				.property('signature')
+			return expect(preparedTransaction)
+				.to.have.property('signature')
 				.and.be.hexString.and.equal(signature);
 		});
 
 		it('should add an id to a transaction', () => {
-			return preparedTransaction.should.have
-				.property('id')
+			return expect(preparedTransaction)
+				.to.have.property('id')
 				.and.match(/^[0-9]+$/)
 				.and.equal(id);
 		});
@@ -78,12 +78,12 @@ describe('#prepareTransaction', () => {
 		});
 
 		it('should not mutate the original transaction', () => {
-			return inputTransaction.should.eql(defaultTransaction);
+			return expect(inputTransaction).to.eql(defaultTransaction);
 		});
 
 		it('should add a second signature to a transaction if a second passphrase is provided', () => {
-			return preparedTransaction.should.have
-				.property('signSignature')
+			return expect(preparedTransaction)
+				.to.have.property('signSignature')
 				.and.be.hexString.and.equal(secondSignature);
 		});
 
@@ -101,7 +101,7 @@ describe('#prepareTransaction', () => {
 				passphrase,
 				secondPassphrase,
 			);
-			return preparedTransaction.should.not.have.property('signSignature');
+			return expect(preparedTransaction).not.to.have.property('signSignature');
 		});
 	});
 });

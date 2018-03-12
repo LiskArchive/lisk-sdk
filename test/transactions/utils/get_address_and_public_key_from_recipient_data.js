@@ -23,37 +23,43 @@ describe('#getAddressAndPublicKeyFromRecipientData', () => {
 
 	describe('When both recipientPublicKey and an address are given', () => {
 		it('when they match, it should return the address and publicKey', () => {
-			return getAddressAndPublicKeyFromRecipientData({
-				recipientId,
-				recipientPublicKey,
-			}).should.be.eql({ address: recipientId, publicKey: recipientPublicKey });
+			return expect(
+				getAddressAndPublicKeyFromRecipientData({
+					recipientId,
+					recipientPublicKey,
+				}),
+			).to.be.eql({ address: recipientId, publicKey: recipientPublicKey });
 		});
 
 		it('when they do not match, it should throw', () => {
-			return getAddressAndPublicKeyFromRecipientData
-				.bind(null, {
+			return expect(
+				getAddressAndPublicKeyFromRecipientData.bind(null, {
 					recipientId,
 					recipientPublicKey: recipientPublicKeyThatDoesNotMatchRecipientId,
-				})
-				.should.throw(
-					'Could not create transaction: recipientId does not match recipientPublicKey.',
-				);
+				}),
+			).to.throw(
+				'Could not create transaction: recipientId does not match recipientPublicKey.',
+			);
 		});
 	});
 
 	describe('When a recipientPublicKey and no address is given', () => {
 		it('it should return the address and the publicKey', () => {
-			return getAddressAndPublicKeyFromRecipientData({
-				recipientPublicKey,
-			}).should.be.eql({ address: recipientId, publicKey: recipientPublicKey });
+			return expect(
+				getAddressAndPublicKeyFromRecipientData({
+					recipientPublicKey,
+				}),
+			).to.be.eql({ address: recipientId, publicKey: recipientPublicKey });
 		});
 	});
 
 	describe('When an address is given but no publicKey', () => {
 		it('it should return the address and null for the publicKey', () => {
-			return getAddressAndPublicKeyFromRecipientData({
-				recipientId,
-			}).should.be.eql({
+			return expect(
+				getAddressAndPublicKeyFromRecipientData({
+					recipientId,
+				}),
+			).to.be.eql({
 				address: recipientId,
 				publicKey: null,
 			});

@@ -26,38 +26,38 @@ import {
 
 describe('lisk-constants', () => {
 	it('EPOCH_TIME should be a Date instance', () => {
-		return EPOCH_TIME.should.be.instanceOf(Date);
+		return expect(EPOCH_TIME).to.be.instanceOf(Date);
 	});
 
 	it('EPOCH_TIME_SECONDS should be an integer', () => {
-		return EPOCH_TIME_SECONDS.should.be.an.integer;
+		return expect(EPOCH_TIME_SECONDS).to.be.an.integer;
 	});
 
 	it('EPOCH_TIME_MILLISECONDS should be an integer', () => {
-		return EPOCH_TIME_MILLISECONDS.should.be.an.integer;
+		return expect(EPOCH_TIME_MILLISECONDS).to.be.an.integer;
 	});
 
 	it('MAX_ADDRESS_NUMBER should be a string', () => {
-		return MAX_ADDRESS_NUMBER.should.be.a('string');
+		return expect(MAX_ADDRESS_NUMBER).to.be.a('string');
 	});
 
 	it('MAX_TRANSACTION_AMOUNT should be a string', () => {
-		return MAX_TRANSACTION_AMOUNT.should.be.a('string');
+		return expect(MAX_TRANSACTION_AMOUNT).to.be.a('string');
 	});
 
 	it('TESTNET_NETHASH should be a string', () => {
-		return TESTNET_NETHASH.should.be.a('string');
+		return expect(TESTNET_NETHASH).to.be.a('string');
 	});
 
 	it('TESTNET_NODES should be a string', () => {
-		return TESTNET_NODES.should.be.an('array');
+		return expect(TESTNET_NODES).to.be.an('array');
 	});
 
 	it('MAINNET_NETHASH should be a string', () => {
-		return MAINNET_NETHASH.should.be.a('string');
+		return expect(MAINNET_NETHASH).to.be.a('string');
 	});
 
 	it('MAINNET_NODES should be a string', () => {
-		return MAINNET_NODES.should.be.an('array');
+		return expect(MAINNET_NODES).to.be.an('array');
 	});
 });
