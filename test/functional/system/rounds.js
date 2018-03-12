@@ -209,6 +209,9 @@ describe('rounds', () => {
 									expect(delegate.username).to.equal(
 										found.asset.delegate.username
 									);
+									expect(delegate.u_username).to.equal(
+										found.asset.delegate.username
+									);
 									expect(delegate.address).to.equal(found.senderId);
 									expect(delegate.publicKey.toString('hex')).to.equal(
 										found.senderPublicKey
@@ -259,6 +262,7 @@ describe('rounds', () => {
 									expect(delegate.producedBlocks).to.equal(0);
 									expect(delegate.missedBlocks).to.equal(0);
 									expect(delegate.isDelegate).to.equal(1);
+									expect(delegate.u_isDelegate).to.equal(1);
 									expect(delegate.virgin).to.equal(1);
 								});
 							});
@@ -361,6 +365,7 @@ describe('rounds', () => {
 									);
 
 									expect(genesisAccount.balance).to.be.equal(balance);
+									expect(genesisAccount.u_balance).to.be.equal(balance);
 									expect(genesisAccount.publicKey.toString('hex')).to.equal(
 										genesisAccountTransaction.senderPublicKey
 									);
