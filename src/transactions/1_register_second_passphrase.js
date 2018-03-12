@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { SIGNATURE_FEE } from 'lisk-constants';
 import cryptography from 'cryptography';
+import { SIGNATURE_FEE } from './constants';
 import { wrapTransactionCreator } from './utils';
 
 const registerSecondPassphrase = ({ secondPassphrase }) => {

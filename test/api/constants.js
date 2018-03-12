@@ -12,16 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	LIVE_PORT,
-	SSL_PORT,
-	TEST_PORT,
-	GET,
-	POST,
-	PUT,
-	MAINNET_NETHASH,
-	TESTNET_NETHASH,
-} from 'api/constants';
+import { LIVE_PORT, SSL_PORT, TEST_PORT, GET, POST, PUT } from 'api/constants';
 
 describe('api constants module', () => {
 	it('LIVE_PORT should be a string', () => {
@@ -46,13 +37,5 @@ describe('api constants module', () => {
 
 	it('PUT should be a string', () => {
 		return PUT.should.be.a('string');
-	});
-
-	it('MAINNET_NETHASH should be a string', () => {
-		return MAINNET_NETHASH.should.be.a('string');
-	});
-
-	it('TESTNET_NETHASH should be a string', () => {
-		return TESTNET_NETHASH.should.be.a('string');
 	});
 });
