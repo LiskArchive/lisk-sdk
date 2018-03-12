@@ -255,9 +255,20 @@ describe('blocks', () => {
 	});
 
 	describe('isActive', () => {
-		it('should assign get');
-
-		it('should assign set');
+		beforeEach(done => {
+			__private.isActive = false;
+			done();
+		});
+		describe('get', () => {
+			it('should return __private.isActive', () => {
+				return expect(blocksInstance.isActive.get()).to.be.false;
+			});
+		});
+		describe('set', () => {
+			it('should assign input parameter block to __private.isActive and return input parameter', () => {
+				return expect(blocksInstance.isActive.set(true)).to.be.true;
+			});
+		});
 	});
 
 	describe('isCleaning', () => {
