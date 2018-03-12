@@ -30,46 +30,62 @@ var result;
 
 describe('failure_codes', () => {
 	beforeEach(done => {
-    errorCode = 1234;
-    errorMessage = 'Peer failed...';
-    errorDesc = 'Something went wrong.';
-    peerUpdateErrorInstance = new PeerUpdateError(errorCode, errorMessage, errorDesc);
-    done();
+		errorCode = 1234;
+		errorMessage = 'Peer failed...';
+		errorDesc = 'Something went wrong.';
+		peerUpdateErrorInstance = new PeerUpdateError(
+			errorCode,
+			errorMessage,
+			errorDesc
+		);
+		done();
 	});
 
-  describe('PeerUpdateError', () => {
-    describe('constructor', () => {
-      beforeEach(done => {
-        peerUpdateErrorInstance = new PeerUpdateError(errorCode, errorMessage, errorDesc);
-        done();
-      });
+	describe('PeerUpdateError', () => {
+		describe('constructor', () => {
+			beforeEach(done => {
+				peerUpdateErrorInstance = new PeerUpdateError(
+					errorCode,
+					errorMessage,
+					errorDesc
+				);
+				done();
+			});
 
-      it('should be an instance of Error', () => {
-        return expect(peerUpdateErrorInstance).to.be.an.instanceOf(Error);
-      });
+			it('should be an instance of Error', () => {
+				return expect(peerUpdateErrorInstance).to.be.an.instanceOf(Error);
+			});
 
-      it('should have a valid code property', () => {
-        return expect(peerUpdateErrorInstance).to.have.property('code').which.equals(errorCode);
-      });
+			it('should have a valid code property', () => {
+				return expect(peerUpdateErrorInstance)
+					.to.have.property('code')
+					.which.equals(errorCode);
+			});
 
-      it('should have a valid message property', () => {
-        return expect(peerUpdateErrorInstance).to.have.property('message').which.equals(errorMessage);
-      });
+			it('should have a valid message property', () => {
+				return expect(peerUpdateErrorInstance)
+					.to.have.property('message')
+					.which.equals(errorMessage);
+			});
 
-      it('should have a valid description property', () => {
-        return expect(peerUpdateErrorInstance).to.have.property('description').which.equals(errorDesc);
-      });
-    });
+			it('should have a valid description property', () => {
+				return expect(peerUpdateErrorInstance)
+					.to.have.property('description')
+					.which.equals(errorDesc);
+			});
+		});
 
-    describe('toString', () => {
-      beforeEach(done => {
-        result = peerUpdateErrorInstance.toString();
-        done();
-      });
+		describe('toString', () => {
+			beforeEach(done => {
+				result = peerUpdateErrorInstance.toString();
+				done();
+			});
 
-      it('should return a JSON string representation of the error', () => {
-        return expect(result).to.equal('{"code":1234,"message":"Peer failed...","description":"Something went wrong."}');
-      });
-    });
-  });
+			it('should return a JSON string representation of the error', () => {
+				return expect(result).to.equal(
+					'{"code":1234,"message":"Peer failed...","description":"Something went wrong."}'
+				);
+			});
+		});
+	});
 });
