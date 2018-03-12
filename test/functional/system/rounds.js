@@ -137,27 +137,27 @@ describe('rounds', () => {
 
 			describe('consistency', () => {
 				it('should contain transactions', () => {
-					expect(library.genesisblock.block.transactions.length).to.be.above(0);
+					return expect(library.genesisblock.block.transactions.length).to.be.above(0);
 				});
 			});
 
 			describe('insert to database', () => {
 				describe('database block at height 1', () => {
 					it('ID should match genesis block ID', () => {
-						expect(genesisBlock.id).to.equal(library.genesisblock.block.id);
+						return expect(genesisBlock.id).to.equal(library.genesisblock.block.id);
 					});
 
 					it('should contain transactions', () => {
-						expect(genesisBlock.transactions.length).to.be.above(0);
+						return expect(genesisBlock.transactions.length).to.be.above(0);
 					});
 
 					it('number of transactions should match genesis number of transactions in block', () => {
-						expect(genesisBlock.transactions.length).to.equal(
+						return expect(genesisBlock.transactions.length).to.equal(
 							library.genesisblock.block.transactions.length
 						);
 					});
 
-					it('all transactions IDs should be present in genesis block', () => {
+					it('all transactions IDs should be present in genesis block', done => {
 						var found;
 						_.each(genesisBlock.transactions, databaseTransaction => {
 							found = _.find(library.genesisblock.block.transactions, {
@@ -167,6 +167,7 @@ describe('rounds', () => {
 							expect(found).to.have.an.own.property('id');
 							expect(found.id).to.equal(databaseTransaction.id);
 						});
+						done();
 					});
 				});
 
@@ -188,15 +189,15 @@ describe('rounds', () => {
 
 					it('should be populated', () => {
 						expect(delegates).to.be.an('array');
-						expect(delegates.length).to.be.above(0);
+						return expect(delegates.length).to.be.above(0);
 					});
 
 					it('count should match delegates created in genesis block', () => {
-						expect(delegateTransactions.length).to.equal(delegates.length);
+						return expect(delegateTransactions.length).to.equal(delegates.length);
 					});
 
 					describe('delegates rows', () => {
-						it('should have proper fields', () => {
+						it('should have proper fields', done => {
 							_.each(delegates, delegate => {
 								expect(delegate).to.be.an('object');
 								// We require here 'transactionId' field that is not part of 'mem_accounts', but comes from join with 'delegates' table
@@ -205,10 +206,11 @@ describe('rounds', () => {
 									'transactionId',
 								]);
 							});
+							done();
 						});
 
 						describe('values', () => {
-							it('fields transactionId, username, address, publicKey should match genesis block transactions', () => {
+							it('fields transactionId, username, address, publicKey should match genesis block transactions', done => {
 								let found;
 								_.each(delegates, delegate => {
 									found = _.find(library.genesisblock.block.transactions, {
@@ -226,9 +228,10 @@ describe('rounds', () => {
 										found.senderPublicKey
 									);
 								});
+								done();
 							});
 
-							it('fields vote, blocks_forged_count, blocks_missed_count, isDelegate, virgin should be valid', () => {
+							it('fields vote, blocks_forged_count, blocks_missed_count, isDelegate, virgin should be valid', done => {
 								_.each(delegates, delegate => {
 									// Find accounts that vote for delegate
 									const voters = _.filter(
@@ -274,6 +277,7 @@ describe('rounds', () => {
 									expect(delegate.u_isDelegate).to.equal(1);
 									expect(delegate.virgin).to.equal(1);
 								});
+								done();
 							});
 						});
 					});
@@ -318,21 +322,22 @@ describe('rounds', () => {
 
 					it('should be populated', () => {
 						expect(accounts).to.be.an('array');
-						expect(accounts.length).to.be.above(0);
+						return expect(accounts.length).to.be.above(0);
 					});
 
 					it('count should match accounts created in genesis block', () => {
-						expect(accounts.length).to.equal(genesisAccounts.length);
+						return expect(accounts.length).to.equal(genesisAccounts.length);
 					});
 
 					describe('accounts rows', () => {
-						it('should have proper fields', () => {
+						it('should have proper fields', done => {
 							_.each(accounts, delegate => {
 								expect(delegate).to.be.an('object');
 								expect(delegate).to.have.all.keys(
 									roundsFixtures.mem_accountsFields
 								);
 							});
+							done();
 						});
 
 						describe('values', () => {
@@ -340,23 +345,24 @@ describe('rounds', () => {
 								let genesisAccount;
 								let genesisAccountTransaction;
 
-								before(() => {
+								before(done => {
 									genesisAccountTransaction =
 										library.genesisblock.block.transactions[0];
 									genesisAccount = _.find(accounts, {
 										address: genesisAddress,
 									});
+									done();
 								});
 
 								it('should exists', () => {
-									expect(genesisAccount).to.be.an('object');
+									return expect(genesisAccount).to.be.an('object');
 								});
 
 								it('balance should be negative', () => {
-									expect(Number(genesisAccount.balance)).to.be.below(0);
+									return expect(Number(genesisAccount.balance)).to.be.below(0);
 								});
 
-								it('fields address, balance, publicKey should match genesis block transaction', () => {
+								it('fields address, balance, publicKey should match genesis block transaction', done => {
 									expect(genesisAccount.address).to.equal(
 										genesisAccountTransaction.senderId
 									);
@@ -378,6 +384,7 @@ describe('rounds', () => {
 									expect(genesisAccount.publicKey.toString('hex')).to.equal(
 										genesisAccountTransaction.senderPublicKey
 									);
+									done();
 								});
 							});
 
@@ -411,14 +418,14 @@ describe('rounds', () => {
 				});
 
 				it('should be an array', () => {
-					expect(delegatesList).to.be.an('array');
+					return expect(delegatesList).to.be.an('array');
 				});
 
 				it('should have a length of 101', () => {
-					expect(delegatesList.length).to.equal(101);
+					return expect(delegatesList.length).to.equal(101);
 				});
 
-				it('should contain public keys of all 101 genesis delegates', () => {
+				it('should contain public keys of all 101 genesis delegates', done => {
 					_.each(delegatesList, pk => {
 						// Search for that pk in genesis block
 						var found = _.find(library.genesisblock.block.transactions, {
@@ -426,10 +433,11 @@ describe('rounds', () => {
 						});
 						expect(found).to.be.an('object');
 					});
+					done();
 				});
 
 				it('should be equal to one generated with Lisk-Core 0.9.3', () => {
-					expect(delegatesList).to.deep.equal(
+					return expect(delegatesList).to.deep.equal(
 						roundsFixtures.expectedDelegatesOrder
 					);
 				});
@@ -451,21 +459,22 @@ describe('rounds', () => {
 				describe('__private.keypairs', () => {
 					it('should not be empty', () => {
 						expect(keypairs).to.be.an('object');
-						expect(Object.keys(keypairs).length).to.be.above(0);
+						return expect(Object.keys(keypairs).length).to.be.above(0);
 					});
 
 					it('length should match delegates length from config file', () => {
-						expect(Object.keys(keypairs).length).to.equal(
+						return expect(Object.keys(keypairs).length).to.equal(
 							__testContext.config.forging.secret.length
 						);
 					});
 
-					it('every keypairs property should match contained object public key', () => {
+					it('every keypairs property should match contained object public key', done => {
 						_.each(keypairs, (keypair, pk) => {
 							expect(keypair.publicKey).to.be.instanceOf(Buffer);
 							expect(keypair.privateKey).to.be.instanceOf(Buffer);
 							expect(pk).to.equal(keypair.publicKey.toString('hex'));
 						});
+						done();
 					});
 				});
 			});
