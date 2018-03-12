@@ -26,7 +26,7 @@ pipeline {
 				sh """
 				json_files_copy() {
 					case \$1 in
-						0*)
+						0* | master)
 							cp test/config.json .
 							cp test/genesisBlock.json .
 							;;

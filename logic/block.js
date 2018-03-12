@@ -21,7 +21,6 @@ const constants = require('../helpers/constants.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 const BlockReward = require('./block_reward.js');
 
-// Private fields
 const __private = {};
 
 /**
@@ -43,7 +42,6 @@ const __private = {};
  * @returns {SetImmediate} error, this
  * @todo Add description for the params
  */
-// Constructor
 class Block {
 	constructor(ed, schema, transaction, cb) {
 		this.scope = {
@@ -57,7 +55,6 @@ class Block {
 		}
 	}
 
-	// Public methods
 	/**
 	 * Sorts input data transactions.
 	 * Calculates reward based on previous block data.
@@ -229,7 +226,7 @@ class Block {
 	 * @todo Add description for the function and the params
 	 */
 	objectNormalize(block) {
-		for (const i in block) {
+		for (const i of Object.keys(block)) {
 			if (block[i] == null || typeof block[i] === 'undefined') {
 				delete block[i];
 			}
@@ -258,9 +255,6 @@ class Block {
 	}
 }
 
-// TODO: To maintain backward compatibility, the below listed methods have to use prototype otherwise these must be converted to static attributes
-// Private methods
-
 /**
  * Gets address by public.
  *
@@ -284,6 +278,8 @@ __private.getAddressByPublicKey = function(publicKey) {
 	return address;
 };
 
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * @typedef {Object} block
  * @property {string} id - Between 1 and 20 chars
@@ -507,5 +503,4 @@ Block.prototype.dbRead = function(raw) {
 	return block;
 };
 
-// Export
 module.exports = Block;

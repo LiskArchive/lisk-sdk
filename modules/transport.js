@@ -71,6 +71,9 @@ function Transport(cb, scope) {
 			forging: {
 				force: scope.config.forging.force,
 			},
+			broadcasts: {
+				active: scope.config.broadcasts.active,
+			},
 		},
 	};
 	self = this;
@@ -219,34 +222,28 @@ __private.receiveTransaction = function(
 		return setImmediate(cb, `Invalid transaction body - ${e.toString()}`);
 	}
 
-	library.balancesSequence.add(cb => {
-		if (!peer) {
-			library.logger.debug(
-				`Received transaction ${transaction.id} from public client`
-			);
-		} else {
-			library.logger.debug(
-				`Received transaction ${
-					transaction.id
-				} from peer ${library.logic.peers.peersManager.getAddress(peer.nonce)}`
-			);
-		}
-		modules.transactions.processUnconfirmedTransaction(
-			transaction,
-			true,
-			err => {
-				if (err) {
-					library.logger.debug(['Transaction', id].join(' '), err.toString());
-					if (transaction) {
-						library.logger.debug('Transaction', transaction);
-					}
-
-					return setImmediate(cb, err.toString());
-				}
-				return setImmediate(cb, null, transaction.id);
-			}
+	if (!peer) {
+		library.logger.debug(
+			`Received transaction ${transaction.id} from public client`
 		);
-	}, cb);
+	} else {
+		library.logger.debug(
+			`Received transaction ${
+				transaction.id
+			} from peer ${library.logic.peers.peersManager.getAddress(peer.nonce)}`
+		);
+	}
+	modules.transactions.processUnconfirmedTransaction(transaction, true, err => {
+		if (err) {
+			library.logger.debug(['Transaction', id].join(' '), err.toString());
+			if (transaction) {
+				library.logger.debug('Transaction', transaction);
+			}
+
+			return setImmediate(cb, err.toString());
+		}
+		return setImmediate(cb, null, transaction.id);
+	});
 };
 
 // Public methods
@@ -531,6 +528,11 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postBlock(query) {
+		if (!library.config.broadcasts.active) {
+			return library.logger.debug(
+				'Receiving blocks disabled by user through config.json'
+			);
+		}
 		query = query || {};
 		library.schema.validate(query, definitions.WSBlocksBroadcast, err => {
 			if (err) {
@@ -639,6 +641,11 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postSignatures(query) {
+		if (!library.config.broadcasts.active) {
+			return library.logger.debug(
+				'Receiving signatures disabled by user through config.json'
+			);
+		}
 		library.schema.validate(query, definitions.WSSignaturesList, err => {
 			if (err) {
 				return library.logger.debug('Invalid signatures body', err);
@@ -726,6 +733,11 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postTransactions(query) {
+		if (!library.config.broadcasts.active) {
+			return library.logger.debug(
+				'Receiving transactions disabled by user through config.json'
+			);
+		}
 		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {
 				return library.logger.debug('Invalid transactions body', err);
