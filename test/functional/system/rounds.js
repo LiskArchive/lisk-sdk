@@ -20,9 +20,9 @@ const path = require('path');
 const Promise = require('bluebird');
 const QueryFile = require('pg-promise').QueryFile;
 const application = require('../../common/application');
-const bignum = require('../../../helpers/bignum.js');
 const constants = require('../../../helpers/constants');
 const slots = require('../../../helpers/slots');
+const Bignum = require('../../../helpers/bignum');
 const accountsFixtures = require('../../fixtures/accounts');
 const roundsFixtures = require('../../fixtures/rounds').rounds;
 const randomUtil = require('../../common/utils/random');
@@ -250,11 +250,11 @@ describe('rounds', () => {
 											library.genesisblock.block.transactions,
 											(balance, acc) => {
 												if (acc.recipientId === voter.senderId) {
-													return new bignum(balance)
+													return new Bignum(balance)
 														.plus(acc.amount)
 														.toString();
 												} else if (acc.senderId === voter.senderId) {
-													return new bignum(balance)
+													return new Bignum(balance)
 														.minus(acc.amount)
 														.toString();
 												}
@@ -262,7 +262,7 @@ describe('rounds', () => {
 											},
 											'0'
 										);
-										voters_balance = new bignum(voters_balance)
+										voters_balance = new Bignum(voters_balance)
 											.plus(balance)
 											.toString();
 									});
@@ -366,7 +366,7 @@ describe('rounds', () => {
 										library.genesisblock.block.transactions,
 										(balance, acc) => {
 											if (acc.senderId === genesisAccount.address) {
-												return new bignum(balance).minus(acc.amount).toString();
+												return new Bignum(balance).minus(acc.amount).toString();
 											}
 											return balance;
 										},
