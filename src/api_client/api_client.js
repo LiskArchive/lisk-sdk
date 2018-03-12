@@ -18,7 +18,18 @@ import {
 	MAINNET_NETHASH,
 	MAINNET_NODES,
 } from 'constants';
-import * as resources from './resources';
+import {
+	AccountsResource,
+	BlocksResource,
+	DappsResource,
+	DelegatesResource,
+	NodeResource,
+	PeersResource,
+	SignaturesResource,
+	TransactionsResource,
+	VotersResource,
+	VotesResource,
+} from './resources';
 
 const defaultOptions = {
 	bannedNode: [],
@@ -57,14 +68,24 @@ export default class APIClient {
 		this.currentNode = options.node || this.getNewNode();
 		this.randomizeNodes = options.randomizeNodes !== false;
 
-		this.accounts = new resources.AccountsResource(this);
-		this.blocks = new resources.BlocksResource(this);
-		this.dapps = new resources.DappsResource(this);
-		this.delegates = new resources.DelegatesResource(this);
-		this.signatures = new resources.SignaturesResource(this);
-		this.transactions = new resources.TransactionsResource(this);
-		this.voters = new resources.VotersResource(this);
-		this.votes = new resources.VotesResource(this);
+		this.accounts = new AccountsResource(this);
+		this.blocks = new BlocksResource(this);
+		this.dapps = new DappsResource(this);
+		this.delegates = new DelegatesResource(this);
+		this.node = new NodeResource(this);
+		this.peers = new PeersResource(this);
+		this.signatures = new SignaturesResource(this);
+		this.transactions = new TransactionsResource(this);
+		this.voters = new VotersResource(this);
+		this.votes = new VotesResource(this);
+	}
+
+	static createMainnetAPIClient(options) {
+		return new APIClient(MAINNET_NODES, MAINNET_NETHASH, options);
+	}
+
+	static createTestnetAPIClient(options) {
+		return new APIClient(TESTNET_NODES, TESTNET_NETHASH, options);
 	}
 
 	getNewNode() {
@@ -106,9 +127,3 @@ export default class APIClient {
 		return this.bannedNodes.includes(node);
 	}
 }
-
-export const createMainnetAPIClient = options =>
-	new APIClient(MAINNET_NODES, MAINNET_NETHASH, options);
-
-export const createTestnetAPIClient = options =>
-	new APIClient(TESTNET_NODES, TESTNET_NETHASH, options);

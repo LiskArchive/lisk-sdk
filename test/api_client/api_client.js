@@ -12,27 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import APIClient, {
-	createMainnetAPIClient,
-	createTestnetAPIClient,
-} from 'api_client/api_client';
+import APIClient from 'api_client/api_client';
 
 describe('APIClient module', () => {
 	const mainnetHash =
 		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
 	const mainnetNodes = [
-		'node01.lisk.io',
-		'node02.lisk.io',
-		'node03.lisk.io',
-		'node04.lisk.io',
-		'node05.lisk.io',
-		'node06.lisk.io',
-		'node07.lisk.io',
-		'node08.lisk.io',
+		'https://node01.lisk.io:443',
+		'https://node02.lisk.io:443',
+		'https://node03.lisk.io:443',
+		'https://node04.lisk.io:443',
+		'https://node05.lisk.io:443',
+		'https://node06.lisk.io:443',
+		'https://node07.lisk.io:443',
+		'https://node08.lisk.io:443',
 	];
 	const testnetHash =
 		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
-	const testnetNodes = ['testnet.lisk.io'];
+	const testnetNodes = ['http://testnet.lisk.io:7000'];
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
 		nethash: mainnetHash,
@@ -108,6 +105,46 @@ describe('APIClient module', () => {
 
 		it('should create a new instance of APIClient', () => {
 			return apiClient.should.be.an('object').and.be.instanceof(APIClient);
+		});
+
+		describe('#createMainnetAPIClient', () => {
+			let client;
+			beforeEach(() => {
+				client = APIClient.createMainnetAPIClient();
+				return Promise.resolve();
+			});
+
+			it('should return APIClient instance', () => {
+				return client.should.be.instanceof(APIClient);
+			});
+
+			it('should contain mainnet nodes', () => {
+				return client.nodes.should.eql(mainnetNodes);
+			});
+
+			it('should be set to mainnet hash', () => {
+				return client.headers.nethash.should.equal(mainnetHash);
+			});
+		});
+
+		describe('#createTestnetAPIClient', () => {
+			let client;
+			beforeEach(() => {
+				client = APIClient.createTestnetAPIClient();
+				return Promise.resolve();
+			});
+
+			it('should return APIClient instance', () => {
+				return client.should.be.instanceof(APIClient);
+			});
+
+			it('should contain testnet nodes', () => {
+				return client.nodes.should.eql(testnetNodes);
+			});
+
+			it('should be set to testnet hash', () => {
+				return client.headers.nethash.should.equal(testnetHash);
+			});
 		});
 
 		describe('headers', () => {
@@ -301,46 +338,6 @@ describe('APIClient module', () => {
 		it('should return true if nodes are available', () => {
 			const result = apiClient.hasAvailableNodes();
 			return result.should.be.true;
-		});
-	});
-
-	describe('#createMainnetAPIClient', () => {
-		let client;
-		beforeEach(() => {
-			client = createMainnetAPIClient();
-			return Promise.resolve();
-		});
-
-		it('should return APIClient instance', () => {
-			return client.should.be.instanceof(APIClient);
-		});
-
-		it('should contain mainnet nodes', () => {
-			return client.nodes.should.eql(mainnetNodes);
-		});
-
-		it('should be set to mainnet hash', () => {
-			return client.headers.nethash.should.equal(mainnetHash);
-		});
-	});
-
-	describe('#createTestnetAPIClient', () => {
-		let client;
-		beforeEach(() => {
-			client = createTestnetAPIClient();
-			return Promise.resolve();
-		});
-
-		it('should return APIClient instance', () => {
-			return client.should.be.instanceof(APIClient);
-		});
-
-		it('should contain testnet nodes', () => {
-			return client.nodes.should.eql(testnetNodes);
-		});
-
-		it('should be set to testnet hash', () => {
-			return client.headers.nethash.should.equal(testnetHash);
 		});
 	});
 });

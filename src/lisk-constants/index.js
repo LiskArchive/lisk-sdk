@@ -23,16 +23,16 @@ export const MAX_TRANSACTION_AMOUNT = '18446744073709551615';
 
 export const TESTNET_NETHASH =
 	'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
-export const TESTNET_NODES = ['testnet.lisk.io'];
+export const TESTNET_NODES = ['http://testnet.lisk.io:7000'];
 export const MAINNET_NETHASH =
 	'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
 export const MAINNET_NODES = [
-	'node01.lisk.io',
-	'node02.lisk.io',
-	'node03.lisk.io',
-	'node04.lisk.io',
-	'node05.lisk.io',
-	'node06.lisk.io',
-	'node07.lisk.io',
-	'node08.lisk.io',
+	'https://node01.lisk.io:443',
+	'https://node02.lisk.io:443',
+	'https://node03.lisk.io:443',
+	'https://node04.lisk.io:443',
+	'https://node05.lisk.io:443',
+	'https://node06.lisk.io:443',
+	'https://node07.lisk.io:443',
+	'https://node08.lisk.io:443',
 ];
