@@ -42,6 +42,9 @@ describe('transactionPool', () => {
 	let expireTransactions;
 	let transactionInPool;
 	let balancesSequence;
+	const _processVerifyTransaction = TransactionPool.__get__(
+		'__private.processVerifyTransaction'
+	);
 	const freshListState = { transactions: [], index: {} };
 
 	// Init fake logger
@@ -56,10 +59,26 @@ describe('transactionPool', () => {
 
 	const accountsStub = {
 		setAccountAndGet: sinonSandbox.stub(),
+		getAccount: sinonSandbox.stub(),
 	};
-	const transactionsStub = sinonSandbox.stub();
+
+	const transactionsStub = {
+		undoUnconfirmed: sinonSandbox.spy(),
+		applyUnconfirmed: sinonSandbox.spy(),
+	};
+
 	const loaderStub = {
 		syncing: sinonSandbox.stub().returns(false),
+	};
+
+	const transactionStub = {
+		process: sinonSandbox.stub().callsArgWith(3, null),
+		objectNormalize: sinonSandbox.stub(),
+		verify: sinonSandbox.stub().callsArgWith(2, null),
+	};
+
+	const busSpy = {
+		message: sinonSandbox.spy(),
 	};
 
 	const resetStates = function() {
@@ -110,8 +129,8 @@ describe('transactionPool', () => {
 		transactionPool = new TransactionPool(
 			config.broadcasts.broadcastInterval,
 			config.broadcasts.releaseLimit,
-			sinonSandbox.spy(), // transaction
-			sinonSandbox.spy(), // bus
+			transactionStub, // transaction
+			busSpy, // bus
 			logger, // logger
 			balancesSequence
 		);
@@ -1624,7 +1643,6 @@ describe('transactionPool', () => {
 		describe('expireTransactions', () => {
 			beforeEach(() => {
 				transactionTimeOut = sinonSandbox.stub().returns(0);
-				transactionPool.removeUnconfirmedTransaction = sinonSandbox.spy();
 				return resetStates();
 			});
 
@@ -1669,6 +1687,110 @@ describe('transactionPool', () => {
 					expect(err).to.be.null;
 					expect(res).to.be.eql(['10314L']);
 					done();
+				});
+			});
+		});
+
+		describe('processVerifyTransaction', () => {
+			let transaction;
+			beforeEach(done => {
+				transaction = {
+					id: 'Tx',
+					receivedAt: new Date(),
+					requesterPublicKey: 123,
+				};
+				accountsStub.setAccountAndGet.callsArgWith(1, null, [transaction]);
+				accountsStub.getAccount.callsArgWith(1, null, [transaction]);
+				done();
+			});
+
+			afterEach(() => {
+				return transactionPool.removeUnconfirmedTransaction(transaction.id);
+			});
+
+			it('should return error when transaciton is empty', done => {
+				_processVerifyTransaction(null, true, err => {
+					expect(err).to.deep.eql('Missing transaction');
+					done();
+				});
+			});
+
+			it('should return error when transaciton is in unconfirmed queue', done => {
+				transactionPool.addUnconfirmedTransaction(transaction);
+				_processVerifyTransaction(transaction, true, err => {
+					expect(err).to.deep.eql(
+						'Transaction is already in unconfirmed state'
+					);
+					done();
+				});
+			});
+
+			it('should return error when requester not found', done => {
+				const sender = _.cloneDeep(transaction);
+				sender.multisignatures = [{ id: '23423' }];
+				sender.signatures = [{ id: '11999' }];
+				accountsStub.setAccountAndGet.callsArgWith(1, null, sender);
+				accountsStub.getAccount.callsArgWith(1, 'Requester not found', null);
+				_processVerifyTransaction(transaction, true, err => {
+					expect(err).to.deep.eql('Requester not found');
+					done();
+				});
+			});
+
+			it('should be able tp process when requester is available', done => {
+				const sender = _.cloneDeep(transaction);
+				sender.multisignatures = [{ id: '23423' }];
+				sender.signatures = [{ id: '11999' }];
+				accountsStub.setAccountAndGet.callsArgWith(1, null, sender);
+				accountsStub.getAccount.callsArgWith(1, null, sender);
+				_processVerifyTransaction(transaction, true, err => {
+					expect(err).to.eql(null);
+					done();
+				});
+			});
+
+			it('should be able to process transaction in queue', done => {
+				transactionPool.addQueuedTransaction(transaction);
+				_processVerifyTransaction(transaction, true, (err, sender) => {
+					expect(err).to.be.null;
+					expect(sender).to.deep.eql([transaction]);
+					done();
+				});
+			});
+
+			describe('library.logic.transaction', () => {
+				it('should error when process called', done => {
+					transactionStub.process = sinonSandbox
+						.stub()
+						.callsArgWith(3, 'error while processing');
+					transactionPool.addQueuedTransaction(transaction);
+					_processVerifyTransaction(transaction, true, (err, sender) => {
+						expect(err).to.deep.eql('error while processing');
+						expect(sender).to.deep.eql(sender);
+						done();
+					});
+				});
+
+				it('should error when objectNormalize called', () => {
+					transactionStub.objectNormalize.throws();
+					transactionPool.addQueuedTransaction(transaction);
+					return expect(() => {
+						_processVerifyTransaction(transaction, true, () => {});
+					}).to.throw;
+				});
+
+				it('should error when verify called', done => {
+					transactionStub.objectNormalize.returns(true);
+					transactionStub.process = sinonSandbox.stub().callsArgWith(3, null);
+					transactionStub.verify = sinonSandbox
+						.stub()
+						.callsArgWith(2, 'error while verifying');
+					transactionPool.addQueuedTransaction(transaction);
+					_processVerifyTransaction(transaction, true, (err, sender) => {
+						expect(err).to.deep.eql('error while verifying');
+						expect(sender).to.deep.eql(undefined);
+						done();
+					});
 				});
 			});
 		});
