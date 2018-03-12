@@ -291,22 +291,65 @@ describe('blocks', () => {
 	});
 
 	describe('cleanup', () => {
-		it('should set __private.loaded = false');
-
-		it('should set __private.cleanup = true');
-
+		afterEach(() => {
+			expect(__private.loaded).to.be.false;
+			return expect(__private.cleanup).to.be.true;
+		});
 		describe('when __private.isActive = false', () => {
-			it('should call callback');
+			beforeEach(done => {
+				__private.isActive = false;
+				done();
+			});
+			it('should call callback', done => {
+				blocksInstance.cleanup(cb => {
+					expect(cb).to.be.undefined;
+					done();
+				});
+			});
 		});
 
 		describe('when __private.isActive = true', () => {
+			beforeEach(done => {
+				__private.isActive = true;
+				done();
+			});
 			describe('after 10 seconds', () => {
-				it(
-					'should call library.logger.info with "Waiting for block processing to finish..."'
-				);
+				afterEach(() => {
+					expect(loggerStub.info.callCount).to.equal(1);
+					return expect(loggerStub.info.args[0][0]).to.equal(
+						'Waiting for block processing to finish...'
+					);
+				});
+				it('should log info "Waiting for block processing to finish..."', done => {
+					setTimeout(() => {
+						__private.isActive = false;
+					}, 5000);
+					blocksInstance.cleanup(cb => {
+						expect(cb).to.be.undefined;
+						done();
+					});
+				});
 			});
 
-			describe('after 100 seconds', () => {
+			describe('after 20 seconds', () => {
+				afterEach(() => {
+					expect(loggerStub.info.callCount).to.equal(2);
+					expect(loggerStub.info.args[0][0]).to.equal(
+						'Waiting for block processing to finish...'
+					);
+					return expect(loggerStub.info.args[1][0]).to.equal(
+						'Waiting for block processing to finish...'
+					);
+				});
+				it('should log info "Waiting for block processing to finish..." 2 times', done => {
+					setTimeout(() => {
+						__private.isActive = false;
+					}, 15000);
+					blocksInstance.cleanup(cb => {
+						expect(cb).to.be.undefined;
+						done();
+					});
+				});
 				it(
 					'should call library.logger.info with "Waiting for block processing to finish..." 10 times'
 				);
