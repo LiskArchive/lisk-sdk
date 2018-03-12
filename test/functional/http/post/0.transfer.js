@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 var crypto = require('crypto');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var typesRepresentatives = require('../../../fixtures/types_representatives');
 var phases = require('../../common/phases');

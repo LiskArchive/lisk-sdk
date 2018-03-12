@@ -16,7 +16,7 @@
 
 require('../../../functional.js');
 var Promise = require('bluebird');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
 var swaggerEndpoint = require('../../../../common/swagger_spec');

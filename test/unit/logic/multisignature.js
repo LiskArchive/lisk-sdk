@@ -16,7 +16,7 @@
 
 var crypto = require('crypto');
 var rewire = require('rewire');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var modulesLoader = require('../../common/modules_loader');
 var randomUtil = require('../../common/utils/random');
 var constants = require('../../../helpers/constants');

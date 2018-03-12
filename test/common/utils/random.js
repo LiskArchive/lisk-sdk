@@ -15,7 +15,7 @@
 'use strict';
 
 var randomstring = require('randomstring');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var constants = require('../../../helpers/constants');
 var accountFixtures = require('../../fixtures/accounts');
 

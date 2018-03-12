@@ -16,7 +16,7 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var Promise = require('bluebird');
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');

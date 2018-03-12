@@ -15,7 +15,7 @@
 'use strict';
 
 var async = require('async');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var normalizer = require('../../../common/utils/normalizer');
 var localCommon = require('../common');

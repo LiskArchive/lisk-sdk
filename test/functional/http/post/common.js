@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var typesRepresentatives = require('../../../fixtures/types_representatives');
 var accountFixtures = require('../../../fixtures/accounts');
 var apiHelpers = require('../../../common/helpers/api');

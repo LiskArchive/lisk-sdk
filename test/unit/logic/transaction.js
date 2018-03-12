@@ -15,7 +15,7 @@
 'use strict';
 
 var crypto = require('crypto');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var accountFixtures = require('../../fixtures/accounts');
 var modulesLoader = require('../../common/modules_loader');
 var application = require('../../common/application');

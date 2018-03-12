@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var phases = require('../../common/phases');
 var Scenarios = require('../../common/scenarios');
 var accountFixtures = require('../../../fixtures/accounts');

@@ -14,7 +14,7 @@
 
 'use strict';
 
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var randomUtil = require('../../../../common/utils/random');
 var Scenarios = require('../../../common/scenarios');
 var transactionTypes = require('../../../../../helpers/transaction_types.js');
