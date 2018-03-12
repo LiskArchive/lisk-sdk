@@ -42,6 +42,7 @@ describe('Broadcaster', () => {
 
 	beforeEach(done => {
 		broadcasts = {
+			active: true,
 			broadcastInterval: 10000,
 			releaseLimit: 10,
 			parallelLimit: 10,
@@ -252,7 +253,7 @@ describe('Broadcaster', () => {
 				expect(err).to.be.null;
 				expect(res).to.be.an('object').that.is.not.empty;
 				expect(res).to.deep.equal({ body: null, peer: peerList });
-				expect(options.data.block).to.be.instanceOf(Buffer);
+				expect(options.data.block).to.be.instanceOf(Object);
 				done();
 			});
 		});
@@ -279,11 +280,11 @@ describe('Broadcaster', () => {
 				expect(err).to.be.null;
 				expect(res).to.be.an('object').that.is.not.empty;
 				expect(res).to.deep.equal({ body: null, peer: peerList });
-				expect(options.data.block).to.be.instanceOf(Buffer);
+				expect(options.data.block).to.be.instanceOf(Object);
 				expect(peerList[0].rpc.blocks.called).to.be.true;
 				expect(peerList[0].rpc.blocks.args[0][0].peer).to.eql(peersStub.me());
 				expect(peerList[0].rpc.blocks.args[0][0].block).to.be.instanceOf(
-					Buffer
+					Object
 				);
 				done();
 			});

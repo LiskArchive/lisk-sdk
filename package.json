@@ -44,7 +44,6 @@
 		"bignumber.js": "=4.0.2",
 		"bluebird": "=3.5.1",
 		"body-parser": "=1.18.2",
-		"bson": "=1.0.4",
 		"bytebuffer": "=5.0.1",
 		"change-case": "=3.0.1",
 		"colors": "=1.1.2",
@@ -68,7 +67,7 @@
 		"lodash": "=4.17.4",
 		"method-override": "=2.3.10",
 		"pg-monitor": "=0.9.0",
-		"pg-promise": "=8.1.0",
+		"pg-promise": "=8.2.1",
 		"popsicle": "=9.1.0",
 		"randomstring": "=1.1.5",
 		"redis": "=2.7.1",
@@ -84,7 +83,8 @@
 		"valid-url": "=1.0.9",
 		"validator": "=7.0.0",
 		"validator.js": "=2.0.3",
-		"wamp-socket-cluster": "LiskHQ/wamp-socket-cluster#b068f39b3335c4ccc29f4635711a2e1e9e26a6e3",
+		"wamp-socket-cluster":
+			"LiskHQ/wamp-socket-cluster#b068f39b3335c4ccc29f4635711a2e1e9e26a6e3",
 		"z-schema": "=3.18.2"
 	},
 	"devDependencies": {
@@ -117,6 +117,7 @@
 		"pm2": "=2.4.6",
 		"prettier": "=1.10.2",
 		"rewire": "=2.5.2",
+		"rx": "=4.1.0",
 		"sinon": "=3.2.1",
 		"sinon-chai": "=2.14.0",
 		"snyk": "^1.69.6",

@@ -348,7 +348,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 								err => {
 									if (err) {
 										err = [
-											'Failed to apply transaction:',
+											'Failed to apply unconfirmed transaction:',
 											transaction.id,
 											'-',
 											err,

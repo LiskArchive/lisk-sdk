@@ -23,7 +23,7 @@ var localCommon = require('../common');
 
 describe('system test (blocks) - chain/deleteLastBlock', () => {
 	var library;
-	localCommon.beforeBlock('system_blocks_chain', lib => {
+	localCommon.beforeBlock('system_blocks_chain_delete_last_block', lib => {
 		library = lib;
 	});
 
@@ -249,7 +249,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.publicKey).to.not.be.null;
 							expect(res.secondPublicKey).to.not.be.null;
 							expect(res.secondSignature).to.equal(true);
-							expect(res.u_secondSignature).to.equal(false);
+							expect(res.u_secondSignature).to.equal(true);
 							done();
 						}
 					);
@@ -374,9 +374,9 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.virgin).to.equal(false);
 							expect(res.publicKey).to.not.be.null;
 							expect(res.isDelegate).to.equal(true);
-							expect(res.u_isDelegate).to.equal(false);
+							expect(res.u_isDelegate).to.equal(true);
 							expect(res.username).to.be.equal(testAccount.username);
-							expect(res.u_username).to.be.null;
+							expect(res.u_username).to.be.equal(testAccount.username);
 							expect(res.missedBlocks).to.equal('0');
 							expect(res.producedBlocks).to.equal('0');
 							expect(res.rank).to.equal('102');
@@ -436,11 +436,13 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 								testAccountDataAfterBlock.publicKey
 							);
 							expect(res.isDelegate).to.equal(true);
-							expect(res.u_isDelegate).to.equal(false);
+							expect(res.u_isDelegate).to.equal(true);
 							expect(res.username).to.be.equal(
 								testAccountDataAfterBlock.username
 							);
-							expect(res.u_username).to.be.null;
+							expect(res.u_username).to.be.equal(
+								testAccountDataAfterBlock.username
+							);
 							expect(res.virgin).to.equal(false);
 							expect(res.missedBlocks).to.equal('0');
 							expect(res.producedBlocks).to.equal('0');

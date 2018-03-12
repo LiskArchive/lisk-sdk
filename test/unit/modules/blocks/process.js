@@ -213,6 +213,10 @@ describe('blocks/process', () => {
 			poorConsensus: sinonSandbox.stub(),
 		};
 
+		var modulesPeersStub = {
+			remove: sinonSandbox.spy(),
+		};
+
 		var swaggerDefinitionsStub = sinonSandbox.stub();
 
 		modulesStub = {
@@ -220,6 +224,7 @@ describe('blocks/process', () => {
 			blocks: modulesBlocksStub,
 			delegates: modulesDelegatesStub,
 			loader: modulesLoaderStub,
+			peers: modulesPeersStub,
 			rounds: modulesRoundsStub,
 			transactions: modulesTransactionsStub,
 			transport: modulesTransportStub,
@@ -872,13 +877,19 @@ describe('blocks/process', () => {
 								{ ip: 1, wsPort: 2 },
 								10,
 								(err, block) => {
-									expect(
-										library.logic.peers.applyHeaders.calledWithExactly({
-											state: 1,
-										})
-									).to.be.true;
 									expect(err).to.equal('rpc.blocksCommon-ERR');
 									expect(block).to.be.undefined;
+									done();
+								}
+							);
+						});
+
+						it('should call peers.remove', done => {
+							blocksProcessModule.getCommonBlock(
+								{ ip: 1, wsPort: 2 },
+								10,
+								() => {
+									expect(modules.peers.remove).to.have.been.calledOnce;
 									done();
 								}
 							);
@@ -1491,14 +1502,7 @@ describe('blocks/process', () => {
 
 		describe('getFromPeer', () => {
 			describe('peer.rpc.blocks', () => {
-				describe('when fails', () => {
-					afterEach(() => {
-						expect(library.logic.peers.applyHeaders.calledOnce).to.be.true;
-						return expect(
-							library.logic.peers.applyHeaders.calledWithExactly({ state: 1 })
-						).to.be.true;
-					});
-
+				describe('when blocks.lastBlock.get fails', () => {
 					describe('err parameter', () => {
 						beforeEach(() => {
 							return modules.blocks.lastBlock.get.returns({
@@ -1513,6 +1517,16 @@ describe('blocks/process', () => {
 								(err, lastBlock) => {
 									expect(err).to.equal('Error loading blocks: rpc.blocks-ERR');
 									expect(lastBlock).to.deep.equal({ id: 'ERR', peer: 'me' });
+									done();
+								}
+							);
+						});
+
+						it('should call modules.peers.remove', done => {
+							blocksProcessModule.loadBlocksFromPeer(
+								{ id: 1, string: 'test' },
+								() => {
+									expect(modules.peers.remove).to.have.been.calledOnce;
 									done();
 								}
 							);
