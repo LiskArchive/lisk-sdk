@@ -256,8 +256,8 @@ describe('rounds', () => {
 									});
 
 									expect(delegate.vote).to.equal(voters_balance);
-									expect(delegate.producedblocks).to.equal(0);
-									expect(delegate.missedblocks).to.equal(0);
+									expect(delegate.producedBlocks).to.equal(0);
+									expect(delegate.missedBlocks).to.equal(0);
 									expect(delegate.isDelegate).to.equal(1);
 									expect(delegate.virgin).to.equal(1);
 								});
