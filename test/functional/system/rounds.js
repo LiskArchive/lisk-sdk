@@ -14,11 +14,18 @@
 
 'use strict';
 
+const async = require('async');
+const elements = require('lisk-js');
 const path = require('path');
+const Promise = require('bluebird');
 const QueryFile = require('pg-promise').QueryFile;
 const application = require('../../common/application');
-const roundsFixtures = require('../../fixtures/rounds');
 const bignum = require('../../../helpers/bignum.js');
+const constants = require('../../../helpers/constants');
+const slots = require('../../../helpers/slots');
+const accountsFixtures = require('../../fixtures/accounts');
+const roundsFixtures = require('../../fixtures/rounds').rounds;
+const randomUtil = require('../../common/utils/random');
 
 describe('rounds', () => {
 	var library;
