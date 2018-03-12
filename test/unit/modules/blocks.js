@@ -284,7 +284,10 @@ describe('blocks', () => {
 	});
 
 	describe('onBind', () => {
-		it('should set __private.loaded = true');
+		it('should set __private.loaded = true', () => {
+			blocksInstance.onBind();
+			return expect(__private.loaded).to.be.true;
+		});
 	});
 
 	describe('cleanup', () => {
