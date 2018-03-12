@@ -171,8 +171,8 @@ describe('rounds', () => {
 				});
 
 				describe('mem_accounts (delegates)', () => {
-					var delegates;
-					var delegateTransactions;
+					let delegates;
+					let delegateTransactions;
 
 					before(() => {
 						// Filter register delegates transactions (type 2) from genesis block
@@ -209,7 +209,7 @@ describe('rounds', () => {
 
 						describe('values', () => {
 							it('fields transactionId, username, address, publicKey should match genesis block transactions', () => {
-								var found;
+								let found;
 								_.each(delegates, delegate => {
 									found = _.find(library.genesisblock.block.transactions, {
 										id: delegate.transactionId,
@@ -231,7 +231,7 @@ describe('rounds', () => {
 							it('fields vote, blocks_forged_count, blocks_missed_count, isDelegate, virgin should be valid', () => {
 								_.each(delegates, delegate => {
 									// Find accounts that vote for delegate
-									var voters = _.filter(
+									const voters = _.filter(
 										library.genesisblock.block.transactions,
 										transaction => {
 											return (
@@ -244,9 +244,9 @@ describe('rounds', () => {
 									);
 
 									// Calculate voters balance for current delegate
-									var voters_balance = '0';
+									let voters_balance = '0';
 									_.each(voters, voter => {
-										var balance = _.reduce(
+										const balance = _.reduce(
 											library.genesisblock.block.transactions,
 											(balance, acc) => {
 												if (acc.recipientId === voter.senderId) {
@@ -280,9 +280,9 @@ describe('rounds', () => {
 				});
 
 				describe('mem_accounts (other accounts)', () => {
-					var accounts;
-					var genesisAccounts;
-					var genesisAddress;
+					let accounts;
+					let genesisAccounts;
+					let genesisAddress;
 
 					before(() => {
 						// Get genesis accounts address - should be senderId from first transaction
@@ -337,8 +337,8 @@ describe('rounds', () => {
 
 						describe('values', () => {
 							describe('genesis account', () => {
-								var genesisAccount;
-								var genesisAccountTransaction;
+								let genesisAccount;
+								let genesisAccountTransaction;
 
 								before(() => {
 									genesisAccountTransaction =
@@ -362,7 +362,7 @@ describe('rounds', () => {
 									);
 
 									// Sum all outgoing transactions from genesis account
-									var balance = _.reduce(
+									const balance = _.reduce(
 										library.genesisblock.block.transactions,
 										(balance, acc) => {
 											if (acc.senderId === genesisAccount.address) {
@@ -397,7 +397,7 @@ describe('rounds', () => {
 
 		describe('modules.delegates', () => {
 			describe('__private.delegatesList', () => {
-				var delegatesList;
+				let delegatesList;
 
 				before(done => {
 					library.modules.delegates.generateDelegateList(
@@ -437,7 +437,7 @@ describe('rounds', () => {
 
 			describe('__private.loadDelegates', () => {
 				before(done => {
-					var loadDelegates = library.rewiredModules.delegates.__get__(
+					const loadDelegates = library.rewiredModules.delegates.__get__(
 						'__private.loadDelegates'
 					);
 					loadDelegates(err => {
