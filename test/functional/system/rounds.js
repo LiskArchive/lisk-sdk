@@ -82,7 +82,7 @@ describe('rounds', () => {
 					return rewards;
 				});
 		},
-		getVotes: () => {
+		getVoters: () => {
 			return library.db
 				.query(
 					'SELECT "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"'
