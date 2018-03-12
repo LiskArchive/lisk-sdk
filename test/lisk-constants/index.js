@@ -18,6 +18,10 @@ import {
 	EPOCH_TIME_MILLISECONDS,
 	MAX_ADDRESS_NUMBER,
 	MAX_TRANSACTION_AMOUNT,
+	TESTNET_NETHASH,
+	TESTNET_NODES,
+	MAINNET_NETHASH,
+	MAINNET_NODES,
 } from 'lisk-constants';
 
 describe('lisk-constants', () => {
@@ -39,5 +43,21 @@ describe('lisk-constants', () => {
 
 	it('MAX_TRANSACTION_AMOUNT should be a string', () => {
 		return MAX_TRANSACTION_AMOUNT.should.be.a('string');
+	});
+
+	it('TESTNET_NETHASH should be a string', () => {
+		return TESTNET_NETHASH.should.be.a('string');
+	});
+
+	it('TESTNET_NODES should be a string', () => {
+		return TESTNET_NODES.should.be.an('array');
+	});
+
+	it('MAINNET_NETHASH should be a string', () => {
+		return MAINNET_NETHASH.should.be.a('string');
+	});
+
+	it('MAINNET_NODES should be a string', () => {
+		return MAINNET_NODES.should.be.an('array');
 	});
 });

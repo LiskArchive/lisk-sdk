@@ -12,21 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { LIVE_PORT, SSL_PORT, TEST_PORT, GET, POST, PUT } from 'api/constants';
+import { GET, POST, PUT } from 'api_client/constants';
 
 describe('api constants module', () => {
-	it('LIVE_PORT should be a string', () => {
-		return LIVE_PORT.should.be.a('string');
-	});
-
-	it('SSL_PORT should be a string', () => {
-		return SSL_PORT.should.be.a('string');
-	});
-
-	it('TEST_PORT should be a string', () => {
-		return TEST_PORT.should.be.a('string');
-	});
-
 	it('GET should be a string', () => {
 		return GET.should.be.a('string');
 	});

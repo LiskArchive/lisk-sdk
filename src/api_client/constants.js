@@ -12,11 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-export const LIVE_PORT = '8000';
-export const TEST_PORT = '7000';
-export const SSL_PORT = '443';
-
 export const GET = 'GET';
 export const POST = 'POST';
 export const PUT = 'PUT';

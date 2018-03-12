@@ -17,7 +17,7 @@ import {
 	TESTNET_NODES,
 	MAINNET_NETHASH,
 	MAINNET_NODES,
-} from 'constants';
+} from 'lisk-constants';
 import {
 	AccountsResource,
 	BlocksResource,
