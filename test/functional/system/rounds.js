@@ -64,6 +64,24 @@ describe('rounds', () => {
 					return rows;
 				});
 		},
+		getRoundRewards: round => {
+			return library.db
+				.query(
+					'SELECT ENCODE("publicKey", \'hex\') AS "publicKey", SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = ${round} GROUP BY "publicKey"',
+					{ round }
+				)
+				.then(rows => {
+					var rewards = {};
+					_.each(rows, row => {
+						rewards[row.publicKey] = {
+							publicKey: row.publicKey,
+							fees: Number(row.fees),
+							rewards: Number(row.rewards),
+						};
+					});
+					return rewards;
+				});
+		},
 	};
 
 	before(done => {
