@@ -374,10 +374,10 @@ describe('rounds', () => {
 
 							describe('all accounts', () => {
 								it('balances should be valid against blockchain balances', () => {
-									// Perform validation of accounts balances against blockchain after every test
-									return Queries.validateAccountsBalances().then(results => {
-										expect(results).to.be.an('array').that.is.empty;
-									});
+									// Perform validation of accounts balances against blockchain
+									return expect(
+										Queries.validateAccountsBalances()
+									).to.eventually.be.an('array').that.is.empty;
 								});
 							});
 						});
