@@ -1059,6 +1059,22 @@ describe('rounds', () => {
 		});
 
 		describe('forge block with 1 TRANSFER transaction to random account (last block of round)', () => {
+			const transactions = [];
+
+			before(() => {
+				const transaction = elements.transaction.createTransaction(
+					randomUtil.account().address,
+					randomUtil.number(100000000, 1000000000),
+					accountsFixtures.genesis.password
+				);
+				transactions.push(transaction);
+
+				return getMemAccounts().then(_accounts => {
+					round.accountsBeforeLastBlock = _.cloneDeep(_accounts);
+				});
+			});
+
+			tickAndValidate(transactions);
 		});
 
 		describe('after round 1 is finished', () => {
