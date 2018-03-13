@@ -164,17 +164,7 @@ function __init(initScope, done) {
 					logger(cb) {
 						cb(null, logger);
 					},
-					dbSequence: [
-						'logger',
-						function(scope, cb) {
-							var sequence = new Sequence({
-								onWarning(current) {
-									scope.logger.warn('DB queue', current);
-								},
-							});
-							cb(null, sequence);
-						},
-					],
+
 					sequence: [
 						'logger',
 						function(scope, cb) {
@@ -384,7 +374,6 @@ function __init(initScope, done) {
 						'logger',
 						'bus',
 						'sequence',
-						'dbSequence',
 						'balancesSequence',
 						'db',
 						'logic',

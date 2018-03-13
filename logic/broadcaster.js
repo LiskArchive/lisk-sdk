@@ -136,7 +136,6 @@ class Broadcaster {
 	 * @todo Add description for the params
 	 */
 	broadcast(params, options, cb) {
-		options.data.peer = library.logic.peers.me();
 		params.limit = params.limit || this.config.peerLimit;
 		params.broadhash = params.broadhash || null;
 

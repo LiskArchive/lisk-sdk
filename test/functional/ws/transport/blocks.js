@@ -22,7 +22,6 @@ const WsTestClient = require('../../../common/ws/client');
 
 describe('WS transport blocks', () => {
 	let connectedPeer;
-	let connectedPeerHeaders;
 
 	before('establish client WS connection to server', done => {
 		// Setup stub for blocks endpoints
@@ -40,9 +39,6 @@ describe('WS transport blocks', () => {
 		const wsTestClient = new WsTestClient();
 		wsTestClient.start();
 		connectedPeer = wsTestClient.client;
-		connectedPeerHeaders = Object.assign({}, wsTestClient.headers, {
-			ip: '127.0.0.1',
-		});
 		done();
 	});
 
@@ -293,7 +289,6 @@ describe('WS transport blocks', () => {
 			});
 			connectedPeer.rpc.postBlock({
 				block: testBlock,
-				peer: connectedPeerHeaders,
 			});
 			done();
 		});
