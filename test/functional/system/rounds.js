@@ -31,6 +31,7 @@ describe('rounds', () => {
 	var library;
 	var keypairs;
 	var validateAccountsBalancesQuery;
+	let generateDelegateListPromise;
 
 	const Queries = {
 		validateAccountsBalances: () => {
@@ -124,6 +125,11 @@ describe('rounds', () => {
 			{ sandbox: { name: 'lisk_functional_rounds' } },
 			(err, scope) => {
 				library = scope;
+
+				generateDelegateListPromise = Promise.promisify(
+					library.modules.delegates.generateDelegateList
+				);
+
 				done(err);
 			}
 		);
@@ -421,15 +427,10 @@ describe('rounds', () => {
 			describe('__private.delegatesList', () => {
 				let delegatesList;
 
-				before(done => {
-					library.modules.delegates.generateDelegateList(
-						1,
-						null,
-						(err, list) => {
-							delegatesList = list;
-							done(err);
-						}
-					);
+				before(() => {
+					return generateDelegateListPromise(1, null).then(_delegatesList => {
+						delegatesList = _delegatesList;
+					});
 				});
 
 				it('should be an array', () => {
@@ -498,7 +499,6 @@ describe('rounds', () => {
 
 	describe('round 1', () => {
 		let deleteLastBlockPromise;
-		let generateDelegateListPromise;
 		const round = {
 			current: 1,
 			outsiderPublicKey:
@@ -510,10 +510,6 @@ describe('rounds', () => {
 
 			deleteLastBlockPromise = Promise.promisify(
 				library.modules.blocks.chain.deleteLastBlock
-			);
-
-			generateDelegateListPromise = Promise.promisify(
-				library.modules.delegates.generateDelegateList
 			);
 
 			// Copy initial states for later comparison
