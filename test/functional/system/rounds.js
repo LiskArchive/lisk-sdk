@@ -864,6 +864,38 @@ describe('rounds', () => {
 				cb
 			);
 		}
+
+		function tickAndValidate(transactions) {
+			const tick = { before: {}, after: {} };
+
+			describe('new block', () => {
+				});
+
+				it('ID should be different than last block ID', () => {
+				});
+
+				it('height should be greather by 1', () => {
+				});
+
+				it('should contain all expected transactions', done => {
+				});
+
+				describe('mem_accounts table', () => {
+					it('if block contains at least one transaction states before and after block should be different', done => {
+					});
+
+					it('delegates list should be the same for same round', () => {
+					});
+
+					it('accounts table states should match expected states', () => {
+					});
+
+					it('balances should be valid against blockchain balances', () => {
+					});
+				});
+			});
+		}
+
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
 		});
 
