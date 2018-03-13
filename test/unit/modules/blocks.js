@@ -121,7 +121,7 @@ describe('blocks', () => {
 		});
 
 		it('should call callback with result = self', () => {
-			return expect(self.submodules.api).to.be.an('object');
+			return expect(self).to.be.deep.equal(blocksInstance);
 		});
 
 		describe('when this.submodules.chain.saveGenesisBlock fails', () => {
