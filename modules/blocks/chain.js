@@ -306,18 +306,15 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
  * @todo Add description for the function
  */
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
-	var undoUnconfirmedListStep = function() {
-		return new Promise((resolve, reject) => {
-			modules.transactions.undoUnconfirmedList(err => {
-				if (err) {
-					// Fatal error, memory tables will be inconsistent
-					library.logger.error('Failed to undo unconfirmed list', err);
-					var errObj = new Error('Failed to undo unconfirmed list');
-					reject(errObj);
-				} else {
-					return setImmediate(resolve);
-				}
-			});
+	var undoUnconfirmedListStep = function(cb) {
+		modules.transactions.undoUnconfirmedList(err => {
+			if (err) {
+				// Fatal error, memory tables will be inconsistent
+				library.logger.error('Failed to undo unconfirmed list', err);
+				var errObj = new Error('Failed to undo unconfirmed list');
+				return setImmediate(cb, errObj);
+			}
+			return setImmediate(cb);
 		});
 	};
 
@@ -488,7 +485,10 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 		});
 	};
 
-	undoUnconfirmedListStep().then(() => {
+	undoUnconfirmedListStep(err => {
+		if (err) {
+			return setImmediate(cb, err);
+		}
 		library.db
 			.tx('Chain:applyBlock', tx => {
 				modules.blocks.isActive.set(true);
