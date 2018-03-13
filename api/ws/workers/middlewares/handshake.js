@@ -16,9 +16,9 @@
 
 var url = require('url');
 var _ = require('lodash');
-var failureCodes = require('../api/ws/rpc/failure_codes.js');
-var swaggerHelper = require('../helpers/swagger');
-var Peer = require('../logic/peer.js');
+var failureCodes = require('../../rpc/failure_codes.js');
+var swaggerHelper = require('../../../../helpers/swagger');
+var Peer = require('../../../../logic/peer.js');
 
 /**
  * Description of the module.
