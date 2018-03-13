@@ -1312,8 +1312,12 @@ describe('rounds', () => {
 
 				it('expected forger of last block of round should have proper votes again', () => {
 					return getDelegates().then(_delegates => {
-						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(0);
-						return expect(_delegates[lastBlockForger].vote).to.equal('10000000000000000');
+						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
+							0
+						);
+						return expect(_delegates[lastBlockForger].vote).to.equal(
+							'10000000000000000'
+						);
 					});
 			});
 		});
