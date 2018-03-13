@@ -920,25 +920,71 @@ describe('rounds', () => {
 				});
 
 				it('ID should be different than last block ID', () => {
+					return expect(tick.after.block.id).to.not.equal(tick.before.block.id);
 				});
 
 				it('height should be greather by 1', () => {
+					return expect(tick.after.block.height).to.equal(
+						tick.before.block.height + 1
+					);
 				});
 
 				it('should contain all expected transactions', done => {
+					_.each(transactions, transaction => {
+						const found = _.find(tick.after.block.transactions, {
+							id: transaction.id,
+						});
+						expect(found).to.be.an('object');
+					});
+					done();
 				});
 
 				describe('mem_accounts table', () => {
 					it('if block contains at least one transaction states before and after block should be different', done => {
+						if (transactions.length > 0) {
+							expect(tick.before.accounts).to.not.deep.equal(
+								tick.after.accounts
+							);
+						}
+						done();
 					});
 
 					it('delegates list should be the same for same round', () => {
+						if (tick.isRoundChanged) {
+							return expect(tick.before.delegatesList).to.not.deep.equal(
+								tick.after.delegatesList
+							);
+						}
+
+						return expect(tick.before.delegatesList).to.deep.equal(
+							tick.after.delegatesList
+						);
 					});
 
 					it('accounts table states should match expected states', () => {
+						let expected;
+
+						expected = expectedMemState(transactions, tick.before.accounts);
+
+						// Last block of round - apply round expectactions
+						if (tick.isLastBlockOfRound) {
+							expected = applyRoundRewards(expected, tick.roundBlocks);
+							expected = recalculateVoteWeights(expected, tick.voters);
+							expected = applyOutsiders(
+								expected,
+								tick.after.delegatesList,
+								tick.roundBlocks
+							);
+						}
+
+						return expect(tick.after.accounts).to.deep.equal(expected);
 					});
 
 					it('balances should be valid against blockchain balances', () => {
+						// Perform validation of accounts balances against blockchain after every test
+						return expect(
+							Queries.validateAccountsBalances()
+						).to.eventually.be.an('array').that.is.empty;
 					});
 				});
 			});
