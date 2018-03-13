@@ -701,6 +701,67 @@ describe('rounds', () => {
 
 			return accounts;
 		}
+
+		function getExpectedRoundRewards(blocks) {
+			const rewards = {};
+
+			const feesTotal = _.reduce(
+				blocks,
+				(fees, block) => {
+					return new Bignum(fees).plus(block.totalFee);
+				},
+				0
+			);
+
+			const rewardsTotal = _.reduce(
+				blocks,
+				(reward, block) => {
+					return new Bignum(reward).plus(block.reward);
+				},
+				0
+			);
+
+			const feesPerDelegate = new Bignum(feesTotal.toPrecision(15))
+				.dividedBy(slots.delegates)
+				.floor();
+			const feesRemaining = new Bignum(feesTotal.toPrecision(15)).minus(
+				feesPerDelegate.times(slots.delegates)
+			);
+
+			__testContext.debug(
+				`	Total fees: ${feesTotal.toString()} Fees per delegates: ${feesPerDelegate.toString()} Remaining fees: ${feesRemaining}Total rewards: ${rewardsTotal}`
+			);
+
+			_.each(blocks, (block, index) => {
+				const publicKey = block.generatorPublicKey.toString('hex');
+				if (rewards[publicKey]) {
+					rewards[publicKey].fees = rewards[publicKey].fees.plus(
+						feesPerDelegate
+					);
+					rewards[publicKey].rewards = rewards[publicKey].rewards.plus(
+						block.reward
+					);
+				} else {
+					rewards[publicKey] = {
+						publicKey,
+						fees: new Bignum(feesPerDelegate),
+						rewards: new Bignum(block.reward),
+					};
+				}
+
+				if (index === blocks.length - 1) {
+					// Apply remaining fees to last delegate
+					rewards[publicKey].fees = rewards[publicKey].fees.plus(feesRemaining);
+				}
+			});
+
+			_.each(rewards, delegate => {
+				delegate.fees = delegate.fees.toString();
+				delegate.rewards = delegate.rewards.toString();
+			});
+
+			return rewards;
+		}
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
 		});
 
