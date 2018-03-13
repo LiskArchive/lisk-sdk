@@ -523,6 +523,20 @@ describe('rounds', () => {
 				}
 			);
 		});
+
+		function getMemAccounts() {
+			return Queries.getAccounts().then(rows => {
+				return _.cloneDeep(normalizeMemAccounts(rows));
+			});
+		}
+
+		function normalizeMemAccounts(_accounts) {
+			const accounts = {};
+			_.map(_accounts, acc => {
+				accounts[acc.address] = acc;
+			});
+			return accounts;
+		}
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
 		});
 
