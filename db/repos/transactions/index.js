@@ -142,7 +142,7 @@ class TransactionsRepository {
 	countList(params) {
 		// Add dummy condition in case of blank to avoid conditional where clause
 		let conditions =
-			params && params.where && params.where.length ? params.where : ['1 = 1'];
+			params && params.where && params.where.length ? params.where : [];
 
 		// Handle the case if single condition is provided
 		if (typeof conditions === 'string') {
@@ -155,7 +155,7 @@ class TransactionsRepository {
 		}
 
 		if (conditions.length) {
-			conditions = `${this.pgp.as.format(conditions.join(' '), params)}`;
+			conditions = `WHERE ${this.pgp.as.format(conditions.join(' '), params)}`;
 		} else {
 			conditions = '';
 		}
@@ -309,6 +309,8 @@ class TransactionsRepository {
 					t[this.transactionsRepoMap[type]].save(groupedTransactions[type])
 				);
 			});
+
+			return t.batch(batch);
 		};
 
 		return this.inTransaction
