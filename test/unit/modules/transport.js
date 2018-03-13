@@ -213,6 +213,7 @@ describe('transport', () => {
 				},
 				forging: {},
 				broadcasts: {
+					active: true,
 					broadcastInterval: 10000,
 					releaseLimit: 10,
 				},
@@ -1026,6 +1027,9 @@ describe('transport', () => {
 						forging: {
 							force: false,
 						},
+						broadcasts: {
+							active: true,
+						},
 					},
 					network: {
 						io: {
@@ -1739,6 +1743,26 @@ describe('transport', () => {
 					done();
 				});
 
+				describe('when library.config.broadcasts.active option is false', () => {
+					beforeEach(done => {
+						library.config.broadcasts.active = false;
+						transportInstance.shared.postBlock(query);
+						done();
+					});
+
+					it('should call library.logger.debug', () => {
+						return expect(
+							library.logger.debug.calledWith(
+								'Receiving blocks disabled by user through config.json'
+							)
+						).to.be.true;
+					});
+
+					it('should not call library.schema.validate; function should return before', () => {
+						return expect(library.schema.validate.called).to.be.false;
+					});
+				});
+
 				describe('when query is specified', () => {
 					beforeEach(done => {
 						transportInstance.shared.postBlock(query);
@@ -2075,6 +2099,27 @@ describe('transport', () => {
 					done();
 				});
 
+				describe('when library.config.broadcasts.active option is false', () => {
+					beforeEach(done => {
+						library.config.broadcasts.active = false;
+						library.schema.validate = sinonSandbox.stub().callsArg(2);
+						transportInstance.shared.postSignatures(query);
+						done();
+					});
+
+					it('should call library.logger.debug', () => {
+						return expect(
+							library.logger.debug.calledWith(
+								'Receiving signatures disabled by user through config.json'
+							)
+						).to.be.true;
+					});
+
+					it('should not call library.schema.validate; function should return before', () => {
+						return expect(library.schema.validate.called).to.be.false;
+					});
+				});
+
 				describe('when library.schema.validate succeeds', () => {
 					beforeEach(done => {
 						transportInstance.shared.postSignatures(query);
@@ -2299,6 +2344,27 @@ describe('transport', () => {
 			});
 
 			describe('postTransactions', () => {
+				describe('when library.config.broadcasts.active option is false', () => {
+					beforeEach(done => {
+						library.config.broadcasts.active = false;
+						library.schema.validate = sinonSandbox.stub().callsArg(2);
+						transportInstance.shared.postTransactions(query);
+						done();
+					});
+
+					it('should call library.logger.debug', () => {
+						return expect(
+							library.logger.debug.calledWith(
+								'Receiving transactions disabled by user through config.json'
+							)
+						).to.be.true;
+					});
+
+					it('should not call library.schema.validate; function should return before', () => {
+						return expect(library.schema.validate.called).to.be.false;
+					});
+				});
+
 				describe('when library.schema.validate succeeds', () => {
 					beforeEach(done => {
 						query = {

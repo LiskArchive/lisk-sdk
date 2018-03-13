@@ -14,7 +14,6 @@
 
 'use strict';
 
-const Promise = require('bluebird');
 const sql = require('../sql').peers;
 
 const cs = {}; // Reusable ColumnSet objects
@@ -79,17 +78,12 @@ class PeersRepository {
 	 * Inserts a new peer into database.
 	 *
 	 * @param {Array} peers - Array of peer objects to be inserted
-	 * @returns {Promise}
-	 * @todo Add description for the return value
+	 * @returns {Promise<null>}
+	 * Resolves with `null` when successfully inserted.
 	 */
 	insert(peers) {
-		let data;
-		try {
-			data = this.pgp.helpers.insert(peers, cs.insert);
-		} catch (error) {
-			return Promise.reject(error);
-		}
-		return this.db.none(data);
+		const query = () => this.pgp.helpers.insert(peers, cs.insert);
+		return this.db.none(query);
 	}
 }
 
