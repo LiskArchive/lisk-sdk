@@ -375,10 +375,10 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 
 			async.eachSeries(
 				blocks,
-				(block, cb) => {
+				(block, eachBlockSeriesCb) => {
 					// Stop processing if node shutdown was requested
 					if (modules.blocks.isCleaning.get()) {
-						return setImmediate(cb);
+						return setImmediate(eachBlockSeriesCb);
 					}
 
 					library.logger.debug('Processing block', block.id);
@@ -412,22 +412,22 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 							},
 							err => {
 								if (err) {
-									return setImmediate(cb, err);
+									return setImmediate(eachBlockSeriesCb, err);
 								}
 								// Apply block - saveBlock: false
 								modules.blocks.chain.applyBlock(block, false, err => {
-									setImmediate(cb, err);
+									setImmediate(eachBlockSeriesCb, err);
 								});
 							}
 						);
 					} else if (block.id === library.genesisblock.block.id) {
 						modules.blocks.chain.applyGenesisBlock(block, err => {
-							setImmediate(cb, err);
+							setImmediate(eachBlockSeriesCb, err);
 						});
 					} else {
 						// Apply block - saveBlock: false
 						modules.blocks.chain.applyBlock(block, false, err => {
-							setImmediate(cb, err);
+							setImmediate(eachBlockSeriesCb, err);
 						});
 					}
 				},
