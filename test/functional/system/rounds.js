@@ -1157,7 +1157,9 @@ describe('rounds', () => {
 				);
 
 				_.each(lastBlock.transactions, transaction => {
-					expect(transactionPool.transactionInPool(transaction.id)).to.equal(true);
+					expect(transactionPool.transactionInPool(transaction.id)).to.equal(
+						true
+					);
 					// Remove transaction from pool
 					transactionPool.removeUnconfirmedTransaction(transaction.id);
 				});
