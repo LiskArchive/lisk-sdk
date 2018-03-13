@@ -24,9 +24,7 @@ const transactionTypes = require('../helpers/transaction_types.js');
 let modules;
 let library;
 let self;
-// To stub private functions in test, keeping this let.
-// eslint-disable-next-line  prefer-const
-let __private = {};
+const __private = {};
 
 /**
  * Transaction pool logic. Initializes variables, sets bundled transaction timer and
@@ -703,9 +701,7 @@ TransactionPool.prototype.expireTransactions = function(cb) {
 				);
 			},
 		],
-		(err, ids) => {
-			setImmediate(cb, err, ids);
-		}
+		(err, ids) => setImmediate(cb, err, ids)
 	);
 };
 
