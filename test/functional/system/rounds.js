@@ -869,6 +869,54 @@ describe('rounds', () => {
 			const tick = { before: {}, after: {} };
 
 			describe('new block', () => {
+				before(() => {
+					tick.before.block = library.modules.blocks.lastBlock.get();
+					tick.before.round = slots.calcRound(tick.before.block.height);
+
+					return Promise.join(
+						getMemAccounts(),
+						getDelegates(),
+						generateDelegateListPromise(tick.before.block.height, null),
+						(_accounts, _delegates, _delegatesList) => {
+							tick.before.delegatesList = _delegatesList;
+							tick.before.accounts = _.cloneDeep(_accounts);
+							tick.before.delegates = _.cloneDeep(_delegates);
+						}
+					).then(() => {
+						return Promise.promisify(addTransactionsAndForge)(
+							transactions
+						).then(() => {
+							tick.after.block = library.modules.blocks.lastBlock.get();
+							tick.after.round = slots.calcRound(tick.after.block.height);
+							// Detect change of round
+							tick.isRoundChanged = tick.before.round !== tick.after.round;
+							// Detect last block of round
+							tick.isLastBlockOfRound =
+								tick.after.block.height % slots.delegates === 0;
+
+							return Promise.join(
+								getMemAccounts(),
+								getDelegates(),
+								generateDelegateListPromise(tick.after.block.height, null),
+								(_accounts, _delegates, _delegatesList) => {
+									tick.after.accounts = _.cloneDeep(_accounts);
+									tick.after.delegates = _.cloneDeep(_delegates);
+									tick.after.delegatesList = _delegatesList;
+
+									if (tick.isLastBlockOfRound) {
+										return Promise.join(
+											Queries.getBlocks(tick.after.round),
+											Queries.getVoters(),
+											(_blocks, _voters) => {
+												tick.roundBlocks = _blocks;
+												tick.voters = _voters;
+											}
+										);
+									}
+								}
+							);
+						});
+					});
 				});
 
 				it('ID should be different than last block ID', () => {
