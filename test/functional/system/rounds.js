@@ -631,6 +631,37 @@ describe('rounds', () => {
 			});
 			return accounts;
 		}
+
+		function applyRoundRewards(_accounts, blocks) {
+			const accounts = _.cloneDeep(_accounts);
+			const lastBlock = library.modules.blocks.lastBlock.get();
+
+			const expectedRewards = getExpectedRoundRewards(blocks);
+			_.each(expectedRewards, reward => {
+				const found = _.find(accounts, {
+					publicKey: Buffer.from(reward.publicKey, 'hex'),
+				});
+				if (found) {
+					found.blockId = lastBlock.id;
+					found.fees = new Bignum(found.fees)
+						.plus(new Bignum(reward.fees))
+						.toString();
+					found.rewards = new Bignum(found.rewards)
+						.plus(new Bignum(reward.rewards))
+						.toString();
+					found.balance = new Bignum(found.balance)
+						.plus(new Bignum(reward.fees))
+						.plus(new Bignum(reward.rewards))
+						.toString();
+					found.u_balance = new Bignum(found.u_balance)
+						.plus(new Bignum(reward.fees))
+						.plus(new Bignum(reward.rewards))
+						.toString();
+				}
+			});
+
+			return accounts;
+		}
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
 		});
 
