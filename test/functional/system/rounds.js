@@ -1079,6 +1079,8 @@ describe('rounds', () => {
 
 		describe('after round 1 is finished', () => {
 			it('last block height should equal active delegates count', () => {
+				const lastBlock = library.modules.blocks.lastBlock.get();
+				return expect(lastBlock.height).to.be.equal(slots.delegates);
 			});
 
 			it('should calculate rewards for round 1 correctly - all should be the same (native, rounds_rewards, mem_accounts)', () => {
