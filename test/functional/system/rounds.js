@@ -991,6 +991,19 @@ describe('rounds', () => {
 		}
 
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
+			const transactions = [];
+
+			before(done => {
+				const transaction = elements.transaction.createTransaction(
+					randomUtil.account().address,
+					randomUtil.number(100000000, 1000000000),
+					accountsFixtures.genesis.password
+				);
+				transactions.push(transaction);
+				done();
+			});
+
+			tickAndValidate(transactions);
 		});
 
 		describe('forge block with 25 TRANSFER transactions to random accounts', () => {
