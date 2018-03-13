@@ -1157,15 +1157,15 @@ describe('rounds', () => {
 				).to.eventually.deep.equal({});
 			});
 
+			// eslint-disable-next-line
 			it.skip('mem_accounts table should be equal to one generated before last block of round deletion', () => {
-				// eslint-disable-line
 				return getMemAccounts().then(_accounts => {
 					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
 				});
 			});
 
+			// eslint-disable-next-line
 			it('mem_accounts table should not contain changes from transaction included in deleted block', () => {
-				// eslint-disable-line
 			});
 
 			it('delegates list should be equal to one generated at the beginning of round 1', () => {
