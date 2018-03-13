@@ -39,17 +39,20 @@ describe('blocks/verify', () => {
 			warn: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
 		};
+
 		dbStub = {
 			blocks: {
 				loadLastNBlockIds: sinonSandbox.stub(),
 				blockExists: sinonSandbox.stub(),
 			},
 		};
+
 		logicBlockStub = {
 			verifySignature: sinonSandbox.stub(),
 			getId: sinonSandbox.stub(),
 			objectNormalize: sinonSandbox.stub(),
 		};
+
 		logicTransactionStub = {
 			getId: sinonSandbox.stub(),
 			checkConfirmed: sinonSandbox.stub(),
@@ -72,14 +75,17 @@ describe('blocks/verify', () => {
 			getAccount: sinonSandbox.stub(),
 			validateBlockSlot: sinonSandbox.stub(),
 		};
+
 		const modulesDelegatesStub = {
 			fork: sinonSandbox.stub(),
 			validateBlockSlot: sinonSandbox.stub(),
 		};
+
 		const modulesTransactionsStub = {
 			undoUnconfirmed: sinonSandbox.stub(),
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
 		};
+
 		const modulesBlocksStub = {
 			lastBlock: {
 				get: sinonSandbox.stub(),
@@ -92,6 +98,7 @@ describe('blocks/verify', () => {
 				applyBlock: sinonSandbox.stub(),
 			},
 		};
+
 		modulesStub = {
 			accounts: modulesAccountsStub,
 			blocks: modulesBlocksStub,
@@ -143,11 +150,13 @@ describe('blocks/verify', () => {
 	describe('__private.checkTransaction', () => {
 		const dummyBlock = { id: '5', height: 5 };
 		const dummyTransaction = { id: '5', type: 0 };
+
 		describe('library.logic.transaction.getId', () => {
 			describe('when fails', () => {
 				beforeEach(() => {
 					return library.logic.transaction.getId.throws('getId-ERR');
 				});
+
 				it('should call a callback with error', done => {
 					__private.checkTransaction(dummyBlock, dummyTransaction, err => {
 						expect(err).to.equal('getId-ERR');
@@ -155,10 +164,12 @@ describe('blocks/verify', () => {
 					});
 				});
 			});
+
 			describe('when succeeds', () => {
 				beforeEach(() => {
 					return library.logic.transaction.getId.returns('4');
 				});
+
 				describe('library.logic.transaction.checkConfirmed', () => {
 					describe('when fails', () => {
 						beforeEach(() => {
@@ -168,6 +179,7 @@ describe('blocks/verify', () => {
 								null
 							);
 						});
+
 						afterEach(() => {
 							expect(modules.delegates.fork.calledOnce).to.be.true;
 							expect(modules.delegates.fork.args[0][0]).to.deep.equal(
@@ -175,6 +187,7 @@ describe('blocks/verify', () => {
 							);
 							return expect(modules.delegates.fork.args[0][1]).to.equal(2);
 						});
+
 						describe('modules.transactions.undoUnconfirmed', () => {
 							describe('when fails', () => {
 								beforeEach(() => {
@@ -184,6 +197,7 @@ describe('blocks/verify', () => {
 										null
 									);
 								});
+
 								afterEach(() => {
 									expect(
 										modules.transactions.removeUnconfirmedTransaction.calledOnce
@@ -192,6 +206,7 @@ describe('blocks/verify', () => {
 										modules.transactions.removeUnconfirmedTransaction.args[0][0]
 									).to.equal('4');
 								});
+
 								it('should call a callback with error', done => {
 									__private.checkTransaction(
 										dummyBlock,
@@ -203,6 +218,7 @@ describe('blocks/verify', () => {
 									);
 								});
 							});
+
 							describe('when succeeds', () => {
 								beforeEach(() => {
 									return modules.transactions.undoUnconfirmed.callsArgWith(
@@ -211,6 +227,7 @@ describe('blocks/verify', () => {
 										true
 									);
 								});
+
 								afterEach(() => {
 									expect(
 										modules.transactions.removeUnconfirmedTransaction.calledOnce
@@ -219,6 +236,7 @@ describe('blocks/verify', () => {
 										modules.transactions.removeUnconfirmedTransaction.args[0][0]
 									).to.equal('4');
 								});
+
 								it('should call a callback with error', done => {
 									__private.checkTransaction(
 										dummyBlock,
@@ -232,6 +250,7 @@ describe('blocks/verify', () => {
 							});
 						});
 					});
+
 					describe('when succeeds', () => {
 						beforeEach(() => {
 							return library.logic.transaction.checkConfirmed.callsArgWith(
@@ -240,6 +259,7 @@ describe('blocks/verify', () => {
 								true
 							);
 						});
+
 						describe('modules.accounts.getAccount', () => {
 							describe('when fails', () => {
 								beforeEach(() => {
@@ -249,6 +269,7 @@ describe('blocks/verify', () => {
 										null
 									);
 								});
+
 								it('should call a callback with error', done => {
 									__private.checkTransaction(
 										dummyBlock,
@@ -260,6 +281,7 @@ describe('blocks/verify', () => {
 									);
 								});
 							});
+
 							describe('when succeeds', () => {
 								beforeEach(() => {
 									return modules.accounts.getAccount.callsArgWith(
@@ -268,6 +290,7 @@ describe('blocks/verify', () => {
 										true
 									);
 								});
+
 								describe('library.logic.transaction.verify', () => {
 									describe('when fails', () => {
 										beforeEach(() => {
@@ -277,6 +300,7 @@ describe('blocks/verify', () => {
 												null
 											);
 										});
+
 										it('should call a callback with error', done => {
 											__private.checkTransaction(
 												dummyBlock,
@@ -288,6 +312,7 @@ describe('blocks/verify', () => {
 											);
 										});
 									});
+
 									describe('when succeeds', () => {
 										beforeEach(() => {
 											return library.logic.transaction.verify.callsArgWith(
@@ -296,6 +321,7 @@ describe('blocks/verify', () => {
 												true
 											);
 										});
+
 										it('should call a callback with no error', done => {
 											__private.checkTransaction(
 												dummyBlock,
@@ -325,6 +351,7 @@ describe('blocks/verify', () => {
 			id: '5',
 			height: 5,
 		};
+
 		describe('when fails', () => {
 			describe('when block is undefined', () => {
 				it('should return error', () => {
@@ -334,6 +361,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when lastBlock is undefined', () => {
 				it('should return error', () => {
 					const blockError = __private.setHeight(dummyBlock, undefined);
@@ -343,6 +371,7 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when succeeds', () => {
 			it('should return block with increased height based on last block', () => {
 				return expect(
@@ -364,6 +393,7 @@ describe('blocks/verify', () => {
 							'verifySignature-ERR'
 						);
 					});
+
 					it('should return error', () => {
 						const verifySignature = __private.verifySignature(
 							{ id: 6 },
@@ -375,10 +405,12 @@ describe('blocks/verify', () => {
 						);
 					});
 				});
+
 				describe('if is not valid', () => {
 					beforeEach(() => {
 						return library.logic.block.verifySignature.returns(false);
 					});
+
 					it('should return error', () => {
 						const verifySignature = __private.verifySignature(
 							{ id: 6 },
@@ -390,10 +422,12 @@ describe('blocks/verify', () => {
 					});
 				});
 			});
+
 			describe('when succeeds', () => {
 				beforeEach(() => {
 					return library.logic.block.verifySignature.returns(true);
 				});
+
 				it('should return no error', () => {
 					const verifySignature = __private.verifySignature(
 						{ id: 6 },
@@ -417,6 +451,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('if block.previousBlock is not defined and height !== 1', () => {
 				it('should return error', () => {
 					const verifyPreviousBlock = __private.verifyPreviousBlock(
@@ -429,6 +464,7 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when succeeds', () => {
 			describe('if block.previousBlock is not defined and height === 1', () => {
 				it('should return no error', () => {
@@ -439,6 +475,7 @@ describe('blocks/verify', () => {
 					return expect(verifyPreviousBlock.errors.length).to.equal(0);
 				});
 			});
+
 			describe('if block.previousBlock is defined and block.height !== 1', () => {
 				it('should return no error', () => {
 					const verifyPreviousBlock = __private.verifyPreviousBlock(
@@ -448,6 +485,7 @@ describe('blocks/verify', () => {
 					return expect(verifyPreviousBlock.errors.length).to.equal(0);
 				});
 			});
+
 			describe('if block.previousBlock is defined and block.height === 1', () => {
 				it('should return no error', () => {
 					const verifyPreviousBlock = __private.verifyPreviousBlock(
@@ -462,15 +500,18 @@ describe('blocks/verify', () => {
 
 	describe('__private.verifyAgainstLastNBlockIds', () => {
 		let lastNBlockIdsTemp;
+
 		beforeEach(done => {
 			lastNBlockIdsTemp = __private.lastNBlockIds;
 			__private.lastNBlockIds = [1, 2, 3, 4];
 			done();
 		});
+
 		afterEach(done => {
 			__private.lastNBlockIds = lastNBlockIdsTemp;
 			done();
 		});
+
 		describe('fails', () => {
 			describe('when block is undefined', () => {
 				it('should return error', () => {
@@ -483,6 +524,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when block is in list', () => {
 				it('should return error', () => {
 					const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
@@ -495,6 +537,7 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when succeeds', () => {
 			it('should return no error', () => {
 				const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
@@ -508,6 +551,7 @@ describe('blocks/verify', () => {
 
 	describe('__private.verifyVersion', () => {
 		let verifyVersion;
+
 		describe('fails', () => {
 			describe('when block is undefined', () => {
 				it('should return error', () => {
@@ -517,6 +561,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when block version > 0', () => {
 				it('should return error', () => {
 					verifyVersion = __private.verifyVersion(
@@ -529,6 +574,7 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when succeeds', () => {
 			it('should return no error', () => {
 				verifyVersion = __private.verifyVersion({ version: 0 }, { errors: [] });
@@ -542,6 +588,7 @@ describe('blocks/verify', () => {
 		let blockRewardTemp;
 		let exceptions;
 		let exceptionsTemp;
+
 		beforeEach(done => {
 			blockRewardTemp = __private.blockReward;
 			__private.blockReward = {
@@ -552,11 +599,13 @@ describe('blocks/verify', () => {
 			exceptions.blockRewards = [1, 2, 3, 4];
 			done();
 		});
+
 		afterEach(done => {
 			__private.blockReward = blockRewardTemp;
 			exceptions = exceptionsTemp;
 			done();
 		});
+
 		describe('when block is undefined', () => {
 			it('should return error', () => {
 				verifyReward = __private.verifyReward(undefined, { errors: [] });
@@ -565,11 +614,13 @@ describe('blocks/verify', () => {
 				);
 			});
 		});
+
 		describe('__private.blockReward.calcReward', () => {
 			describe('when fails', () => {
 				beforeEach(() => {
 					return __private.blockReward.calcReward.throws('calcReward-ERR');
 				});
+
 				it('should return error', () => {
 					verifyReward = __private.verifyReward(
 						{ height: 'ERR' },
@@ -578,10 +629,12 @@ describe('blocks/verify', () => {
 					return expect(verifyReward.errors[0]).to.equal('calcReward-ERR');
 				});
 			});
+
 			describe('when succeeds', () => {
 				beforeEach(() => {
 					return __private.blockReward.calcReward.returns(5);
 				});
+
 				describe('if block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
 					it('should return error', () => {
 						verifyReward = __private.verifyReward(
@@ -593,6 +646,7 @@ describe('blocks/verify', () => {
 						);
 					});
 				});
+
 				describe('if block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
 					it('should return no error', () => {
 						verifyReward = __private.verifyReward(
@@ -602,6 +656,7 @@ describe('blocks/verify', () => {
 						return expect(verifyReward.errors.length).to.equal(0);
 					});
 				});
+
 				describe('if block.height !== 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
 					it('should return no error', () => {
 						verifyReward = __private.verifyReward(
@@ -611,6 +666,7 @@ describe('blocks/verify', () => {
 						return expect(verifyReward.errors.length).to.equal(0);
 					});
 				});
+
 				describe('if block.height !== 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
 					it('should return no error', () => {
 						verifyReward = __private.verifyReward(
@@ -620,6 +676,7 @@ describe('blocks/verify', () => {
 						return expect(verifyReward.errors.length).to.equal(0);
 					});
 				});
+
 				describe('if block.height === 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
 					it('should return no error', () => {
 						verifyReward = __private.verifyReward(
@@ -629,6 +686,7 @@ describe('blocks/verify', () => {
 						return expect(verifyReward.errors.length).to.equal(0);
 					});
 				});
+
 				describe('if block.height === 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
 					it('should return no error', () => {
 						verifyReward = __private.verifyReward(
@@ -638,6 +696,7 @@ describe('blocks/verify', () => {
 						return expect(verifyReward.errors.length).to.equal(0);
 					});
 				});
+
 				describe('if block.height === 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
 					it('should return no error', () => {
 						verifyReward = __private.verifyReward(
@@ -647,6 +706,7 @@ describe('blocks/verify', () => {
 						return expect(verifyReward.errors.length).to.equal(0);
 					});
 				});
+
 				describe('if block.height === 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
 					it('should return no error', () => {
 						verifyReward = __private.verifyReward(
@@ -662,6 +722,7 @@ describe('blocks/verify', () => {
 
 	describe('__private.verifyId', () => {
 		let verifyId;
+
 		describe('when block is undefined', () => {
 			it('should return error', () => {
 				verifyId = __private.verifyId(undefined, { errors: [] });
@@ -670,20 +731,24 @@ describe('blocks/verify', () => {
 				);
 			});
 		});
+
 		describe('library.logic.block.getId', () => {
 			describe('when fails', () => {
 				beforeEach(() => {
 					return library.logic.block.getId.throws('getId-ERR');
 				});
+
 				it('should return error', () => {
 					verifyId = __private.verifyId({ id: 5 }, { errors: [] });
 					return expect(verifyId.errors[0]).to.equal('getId-ERR');
 				});
 			});
+
 			describe('when succeeds', () => {
 				beforeEach(() => {
 					return library.logic.block.getId.returns(5);
 				});
+
 				it('should return no error', () => {
 					verifyId = __private.verifyId({ id: 5 }, { errors: [] });
 					return expect(verifyId.errors.length).to.equal(0);
@@ -714,12 +779,14 @@ describe('blocks/verify', () => {
 				},
 			],
 		};
+
 		describe('fails', () => {
 			afterEach(() => {
 				return expect(verifyPayload.errors)
 					.to.be.an('array')
 					.with.lengthOf(1);
 			});
+
 			describe('when block is undefined', () => {
 				it('should return error', () => {
 					verifyPayload = __private.verifyPayload(undefined, { errors: [] });
@@ -728,6 +795,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when payload lenght is too long', () => {
 				it('should return error', () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
@@ -740,6 +808,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when transactions do not match block transactions count', () => {
 				it('should return error', () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
@@ -752,6 +821,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when number of transactions exceeds maximum per block', () => {
 				it('should return error', () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
@@ -767,6 +837,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('library.logic.transaction.getBytes fails', () => {
 				describe('when throws error', () => {
 					beforeEach(() => {
@@ -776,15 +847,18 @@ describe('blocks/verify', () => {
 							.onCall(1)
 							.returns(0);
 					});
+
 					it('should return error', () => {
 						verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
 						return expect(verifyPayload.errors[0]).to.equal('getBytes-ERR');
 					});
 				});
+
 				describe('when returns invalid bytes', () => {
 					beforeEach(() => {
 						return library.logic.transaction.getBytes.returns('abc');
 					});
+
 					it('should return error', () => {
 						verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
 						return expect(verifyPayload.errors[0]).to.equal(
@@ -793,6 +867,7 @@ describe('blocks/verify', () => {
 					});
 				});
 			});
+
 			describe('when encountered duplicate transaction', () => {
 				it('should return error', () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
@@ -805,6 +880,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when payload hash is invalid', () => {
 				it('should return error', () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
@@ -817,6 +893,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when total amount is invalid', () => {
 				it('should return error', () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
@@ -829,6 +906,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when total fee is invalid', () => {
 				it('should return error', () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
@@ -840,6 +918,7 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when succeeds', () => {
 			it('should return no error', () => {
 				verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
@@ -852,6 +931,7 @@ describe('blocks/verify', () => {
 		let verifyForkOne;
 		let block;
 		let lastBlock;
+
 		describe('fails', () => {
 			describe('when block is undefined', () => {
 				it('should return error', () => {
@@ -865,6 +945,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when lastBlock is undefined', () => {
 				it('should return error', () => {
 					block = { previousBlock: 6 };
@@ -877,12 +958,14 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when block.previousBlock && block.previousBlock !== lastBlock.id', () => {
 				afterEach(() => {
 					expect(modules.delegates.fork.calledOnce).to.be.true;
 					expect(modules.delegates.fork.args[0][0]).to.deep.equal(block);
 					return expect(modules.delegates.fork.args[0][1]).to.equal(1);
 				});
+
 				it('should return error', () => {
 					block = { previousBlock: 4 };
 					lastBlock = { id: 5 };
@@ -895,11 +978,13 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('succeeds', () => {
 			describe('when block.previousBlock is undefined', () => {
 				afterEach(() => {
 					return expect(modules.delegates.fork.calledOnce).to.be.false;
 				});
+
 				it('should return no error', () => {
 					block = { id: 6 };
 					lastBlock = { id: 5 };
@@ -909,10 +994,12 @@ describe('blocks/verify', () => {
 					return expect(verifyForkOne.errors.length).to.equal(0);
 				});
 			});
+
 			describe('when block.previousBlock === lastBlock.id', () => {
 				afterEach(() => {
 					return expect(modules.delegates.fork.calledOnce).to.be.false;
 				});
+
 				it('should return no error', () => {
 					block = { previousBlock: 5 };
 					lastBlock = { id: 5 };
@@ -940,11 +1027,13 @@ describe('blocks/verify', () => {
 			};
 			done();
 		});
+
 		afterEach(done => {
 			slots = slotsTemp;
 			done();
 		});
-		describe('fails', () => {
+
+		describe('when fails', () => {
 			describe('when block is undefined', () => {
 				it('should return error', () => {
 					block = undefined;
@@ -957,6 +1046,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when lastBlock is undefined', () => {
 				it('should return error', () => {
 					block = { timestamp: 5 };
@@ -969,6 +1059,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when blockSlotNumber > slots.getSlotNumber()', () => {
 				it('should return error', () => {
 					block = { timestamp: 5 };
@@ -981,6 +1072,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when blockSlotNumber <= lastBlockSlotNumber', () => {
 				it('should return error', () => {
 					block = { timestamp: 3 };
@@ -994,6 +1086,7 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when succeeds', () => {
 			it('should return no error', () => {
 				block = { timestamp: 4 };
@@ -1019,11 +1112,13 @@ describe('blocks/verify', () => {
 			};
 			done();
 		});
+
 		afterEach(done => {
 			slots = slotsTemp;
 			done();
 		});
-		describe('fails', () => {
+
+		describe('when fails', () => {
 			describe('when block is undefined', () => {
 				it('should return error', () => {
 					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(undefined, {
@@ -1034,6 +1129,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when currentApplicationSlot - blockSlot > constants.blockSlotWindow', () => {
 				it('should return error', () => {
 					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
@@ -1045,6 +1141,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('currentApplicationSlot < blockSlot', () => {
 				it('should return error', () => {
 					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
@@ -1057,6 +1154,7 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when succeeds', () => {
 			it('should return no error', () => {
 				verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
@@ -1075,6 +1173,7 @@ describe('blocks/verify', () => {
 		let verifyReceipt;
 		const dummyBlock = { id: 5 };
 		const dummylastBlock = { id: 4 };
+
 		beforeEach(done => {
 			privateTemp = __private;
 			__private.setHeight = sinonSandbox.stub().returns(dummyBlock);
@@ -1105,6 +1204,7 @@ describe('blocks/verify', () => {
 			modules.blocks.lastBlock.get.returns(dummylastBlock);
 			done();
 		});
+
 		afterEach(done => {
 			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
 			expect(__private.setHeight).to.have.been.calledWith(
@@ -1146,6 +1246,7 @@ describe('blocks/verify', () => {
 			__private = privateTemp;
 			done();
 		});
+
 		it('should call private functions with correct parameters', () => {
 			verifyReceipt = blocksVerifyModule.verifyReceipt(dummyBlock);
 			return expect(verifyReceipt).to.deep.equal({
@@ -1163,6 +1264,7 @@ describe('blocks/verify', () => {
 						'loadLastNBlockIds-ERR'
 					);
 				});
+
 				afterEach(() => {
 					expect(loggerStub.error.args[0][0]).to.equal(
 						'Unable to load last 5 block ids'
@@ -1171,10 +1273,12 @@ describe('blocks/verify', () => {
 						'loadLastNBlockIds-ERR'
 					);
 				});
+
 				it('should log error', () => {
 					return blocksVerifyModule.onBlockchainReady();
 				});
 			});
+
 			describe('when succeeds', () => {
 				beforeEach(() => {
 					return library.db.blocks.loadLastNBlockIds.resolves([
@@ -1184,10 +1288,12 @@ describe('blocks/verify', () => {
 						{ id: 4 },
 					]);
 				});
+
 				afterEach(() => {
 					expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4]);
 					return expect(loggerStub.error.args.length).to.equal(0);
 				});
+
 				it('should log error', () => {
 					return blocksVerifyModule.onBlockchainReady();
 				});
@@ -1201,23 +1307,28 @@ describe('blocks/verify', () => {
 				__private.lastNBlockIds = [1, 2, 3, 4, 5, 6];
 				done();
 			});
+
 			afterEach(() => {
 				expect(__private.lastNBlockIds).to.deep.equal([2, 3, 4, 5, 6, 7]);
 				return expect();
 			});
+
 			it('should add new id to the end of lastNBlockIds array and delete first one', () => {
 				return blocksVerifyModule.onNewBlock({ id: 7 });
 			});
 		});
+
 		describe('when __private.lastNBlockIds.length <= constants.blockSlotWindow', () => {
 			beforeEach(done => {
 				__private.lastNBlockIds = [1, 2, 3, 4];
 				done();
 			});
+
 			afterEach(() => {
 				expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4, 5]);
 				return expect();
 			});
+
 			it('should add new id to the end of lastNBlockIds array', () => {
 				return blocksVerifyModule.onNewBlock({ id: 5 });
 			});
@@ -1229,6 +1340,7 @@ describe('blocks/verify', () => {
 		let verifyReceipt;
 		const dummyBlock = { id: 5 };
 		const dummylastBlock = { id: 4 };
+
 		beforeEach(done => {
 			modules.blocks.lastBlock.get.returns(dummylastBlock);
 			privateTemp = __private;
@@ -1259,6 +1371,7 @@ describe('blocks/verify', () => {
 				.returns({ verified: false, errors: [] });
 			done();
 		});
+
 		afterEach(done => {
 			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
 			expect(__private.setHeight).to.have.been.calledWith(
@@ -1302,6 +1415,7 @@ describe('blocks/verify', () => {
 			__private = privateTemp;
 			done();
 		});
+
 		it('should call private functions with correct parameters', () => {
 			verifyReceipt = blocksVerifyModule.verifyBlock(dummyBlock);
 			return expect(verifyReceipt).to.deep.equal({
@@ -1323,9 +1437,11 @@ describe('blocks/verify', () => {
 			payloadLength: 0,
 			reward: 0,
 		};
+
 		afterEach(() => {
 			return expect(dummyBlockReturned).to.deep.equal(dummyBlock);
 		});
+
 		describe('when block.version === undefined', () => {
 			it('should add version = 0', () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
@@ -1336,6 +1452,7 @@ describe('blocks/verify', () => {
 				return dummyBlockReturned;
 			});
 		});
+
 		describe('when block.numberOfTransactions === undefined', () => {
 			describe('and block.transactions === undefined', () => {
 				it('should add numberOfTransactions = 0', () => {
@@ -1348,6 +1465,7 @@ describe('blocks/verify', () => {
 					return dummyBlockReturned;
 				});
 			});
+
 			describe('and block.transactions !== undefined', () => {
 				it('should add numberOfTransactions = block.transactions.length', () => {
 					const dummyBlockReduced = _.cloneDeep(dummyBlock);
@@ -1359,6 +1477,7 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when block.totalAmount === undefined', () => {
 			it('should add totalAmount = 0', () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
@@ -1369,6 +1488,7 @@ describe('blocks/verify', () => {
 				return dummyBlockReturned;
 			});
 		});
+
 		describe('when block.totalFee === undefined', () => {
 			it('should add totalFee = 0', () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
@@ -1379,6 +1499,7 @@ describe('blocks/verify', () => {
 				return dummyBlockReturned;
 			});
 		});
+
 		describe('when block.payloadLength === undefined', () => {
 			it('should add payloadLength = 0', () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
@@ -1389,6 +1510,7 @@ describe('blocks/verify', () => {
 				return dummyBlockReturned;
 			});
 		});
+
 		describe('when block.reward === undefined', () => {
 			it('should add reward = 0', () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
@@ -1399,6 +1521,7 @@ describe('blocks/verify', () => {
 				return dummyBlockReturned;
 			});
 		});
+
 		describe('when block.transactions === undefined', () => {
 			it('should add transactions = []', () => {
 				const dummyBlockReduced = _.cloneDeep(dummyBlock);
@@ -1423,6 +1546,7 @@ describe('blocks/verify', () => {
 			payloadLength: 1,
 			reward: 1,
 		};
+
 		describe('when block.version === 0', () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.not.have.property('version');
@@ -1433,6 +1557,7 @@ describe('blocks/verify', () => {
 				expect(dummyBlockReduced).to.have.property('reward');
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
+
 			it('should delete version property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.version = 0;
@@ -1442,6 +1567,7 @@ describe('blocks/verify', () => {
 				return dummyBlockReduced;
 			});
 		});
+
 		describe('when block.numberOfTransactions === number', () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
@@ -1452,6 +1578,7 @@ describe('blocks/verify', () => {
 				expect(dummyBlockReduced).to.have.property('reward');
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
+
 			it('should delete numberOfTransactions property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
@@ -1460,6 +1587,7 @@ describe('blocks/verify', () => {
 				return dummyBlockReduced;
 			});
 		});
+
 		describe('when block.totalAmount === 0', () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
@@ -1470,6 +1598,7 @@ describe('blocks/verify', () => {
 				expect(dummyBlockReduced).to.have.property('reward');
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
+
 			it('should delete totalAmount property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.totalAmount = 0;
@@ -1479,6 +1608,7 @@ describe('blocks/verify', () => {
 				return dummyBlockReduced;
 			});
 		});
+
 		describe('when block.totalFee === 0', () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
@@ -1489,6 +1619,7 @@ describe('blocks/verify', () => {
 				expect(dummyBlockReduced).to.have.property('reward');
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
+
 			it('should delete totalFee property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.totalFee = 0;
@@ -1498,6 +1629,7 @@ describe('blocks/verify', () => {
 				return dummyBlockReduced;
 			});
 		});
+
 		describe('when block.payloadLength === 0', () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
@@ -1508,6 +1640,7 @@ describe('blocks/verify', () => {
 				expect(dummyBlockReduced).to.have.property('reward');
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
+
 			it('should delete totalFee property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.payloadLength = 0;
@@ -1517,6 +1650,7 @@ describe('blocks/verify', () => {
 				return dummyBlockReduced;
 			});
 		});
+
 		describe('when block.reward === 0', () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
@@ -1527,6 +1661,7 @@ describe('blocks/verify', () => {
 				expect(dummyBlockReduced).to.not.have.property('reward');
 				return expect(dummyBlockReduced).to.have.property('transactions');
 			});
+
 			it('should delete totalFee property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.reward = 0;
@@ -1536,6 +1671,7 @@ describe('blocks/verify', () => {
 				return dummyBlockReduced;
 			});
 		});
+
 		describe('when block.transactions.length === 0', () => {
 			afterEach(() => {
 				expect(dummyBlockReduced).to.have.property('version');
@@ -1546,6 +1682,7 @@ describe('blocks/verify', () => {
 				expect(dummyBlockReduced).to.have.property('reward');
 				return expect(dummyBlockReduced).to.not.have.property('transactions');
 			});
+
 			it('should delete totalFee property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.transactions = [];
@@ -1560,15 +1697,18 @@ describe('blocks/verify', () => {
 	describe('__private.addBlockProperties', () => {
 		let addBlockPropertiesTemp;
 		const dummyBlock = { id: 1 };
+
 		beforeEach(done => {
 			addBlockPropertiesTemp = blocksVerifyModule.addBlockProperties;
 			blocksVerifyModule.addBlockProperties = sinonSandbox.stub();
 			done();
 		});
+
 		afterEach(done => {
 			blocksVerifyModule.addBlockProperties = addBlockPropertiesTemp;
 			done();
 		});
+
 		describe('when broadcast is false', () => {
 			describe('self.addBlockProperties', () => {
 				describe('when fails', () => {
@@ -1577,6 +1717,7 @@ describe('blocks/verify', () => {
 							'addBlockProperties-ERR'
 						);
 					});
+
 					it('should call a callback with error', done => {
 						__private.addBlockProperties(dummyBlock, false, err => {
 							expect(err.name).to.equal('addBlockProperties-ERR');
@@ -1584,6 +1725,7 @@ describe('blocks/verify', () => {
 						});
 					});
 				});
+
 				describe('when succeeds', () => {
 					beforeEach(() => {
 						return blocksVerifyModule.addBlockProperties.returns({
@@ -1591,6 +1733,7 @@ describe('blocks/verify', () => {
 							version: 0,
 						});
 					});
+
 					it('should call a callback with no error', done => {
 						__private.addBlockProperties(dummyBlock, false, err => {
 							expect(err).to.be.undefined;
@@ -1600,6 +1743,7 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when broadcast is true', () => {
 			beforeEach(() => {
 				return blocksVerifyModule.addBlockProperties.returns({
@@ -1607,6 +1751,7 @@ describe('blocks/verify', () => {
 					version: 0,
 				});
 			});
+
 			it('should call a callback with no error', done => {
 				__private.addBlockProperties(dummyBlock, true, err => {
 					expect(err).to.be.undefined;
@@ -1618,6 +1763,7 @@ describe('blocks/verify', () => {
 
 	describe('__private.normalizeBlock', () => {
 		const dummyBlock = { id: 1 };
+
 		describe('library.logic.block.objectNormalize', () => {
 			describe('when fails', () => {
 				beforeEach(() => {
@@ -1625,6 +1771,7 @@ describe('blocks/verify', () => {
 						'objectNormalize-ERR'
 					);
 				});
+
 				it('should call a callback with error', done => {
 					__private.normalizeBlock(dummyBlock, err => {
 						expect(err.name).to.equal('objectNormalize-ERR');
@@ -1632,6 +1779,7 @@ describe('blocks/verify', () => {
 					});
 				});
 			});
+
 			describe('when succeeds', () => {
 				beforeEach(() => {
 					return library.logic.block.objectNormalize.returns({
@@ -1639,6 +1787,7 @@ describe('blocks/verify', () => {
 						version: 0,
 					});
 				});
+
 				it('should call a callback with no error', done => {
 					__private.normalizeBlock(dummyBlock, err => {
 						expect(err).to.be.undefined;
@@ -1652,15 +1801,18 @@ describe('blocks/verify', () => {
 	describe('__private.verifyBlock', () => {
 		let verifyBlockTemp;
 		const dummyBlock = { id: 1 };
+
 		beforeEach(done => {
 			verifyBlockTemp = blocksVerifyModule.verifyBlock;
 			blocksVerifyModule.verifyBlock = sinonSandbox.stub();
 			done();
 		});
+
 		afterEach(done => {
 			blocksVerifyModule.verifyBlock = verifyBlockTemp;
 			done();
 		});
+
 		describe('self.verifyBlock', () => {
 			describe('when fails', () => {
 				beforeEach(() => {
@@ -1669,6 +1821,7 @@ describe('blocks/verify', () => {
 						errors: ['verifyBlock-ERR'],
 					});
 				});
+
 				afterEach(() => {
 					expect(loggerStub.error.args[0][0]).to.be.equal(
 						'Block 1 verification failed'
@@ -1677,6 +1830,7 @@ describe('blocks/verify', () => {
 						'verifyBlock-ERR'
 					);
 				});
+
 				it('should call a callback with error', done => {
 					__private.verifyBlock(dummyBlock, err => {
 						expect(err).to.equal('verifyBlock-ERR');
@@ -1684,6 +1838,7 @@ describe('blocks/verify', () => {
 					});
 				});
 			});
+
 			describe('when succeeds', () => {
 				beforeEach(() => {
 					return blocksVerifyModule.verifyBlock.returns({
@@ -1691,6 +1846,7 @@ describe('blocks/verify', () => {
 						errors: [],
 					});
 				});
+
 				it('should call a callback with no error', done => {
 					__private.verifyBlock(dummyBlock, err => {
 						expect(err).to.be.undefined;
@@ -1706,6 +1862,7 @@ describe('blocks/verify', () => {
 		let deleteBlockPropertiesTemp;
 		const dummyBlock = { id: 1, version: 0 };
 		const dummyBlockReduced = { id: 1 };
+
 		beforeEach(done => {
 			broadcastReducedBlockTemp = blocksVerifyModule.broadcastReducedBlock;
 			deleteBlockPropertiesTemp = blocksVerifyModule.deleteBlockProperties;
@@ -1715,11 +1872,13 @@ describe('blocks/verify', () => {
 				.returns(dummyBlock);
 			done();
 		});
+
 		afterEach(done => {
 			blocksVerifyModule.broadcastReducedBlock = broadcastReducedBlockTemp;
 			blocksVerifyModule.deleteBlockProperties = deleteBlockPropertiesTemp;
 			done();
 		});
+
 		describe('when broadcast is true', () => {
 			describe('self.deleteBlockProperties', () => {
 				describe('when fails', () => {
@@ -1728,10 +1887,12 @@ describe('blocks/verify', () => {
 							'deleteBlockProperties-ERR'
 						);
 					});
+
 					afterEach(() => {
 						return expect(modules.blocks.chain.broadcastReducedBlock.calledOnce)
 							.to.be.false;
 					});
+
 					it('should call a callback with error', done => {
 						__private.broadcastBlock(dummyBlock, true, err => {
 							expect(err.name).to.equal('deleteBlockProperties-ERR');
@@ -1739,12 +1900,14 @@ describe('blocks/verify', () => {
 						});
 					});
 				});
+
 				describe('when succeeds', () => {
 					beforeEach(() => {
 						return blocksVerifyModule.deleteBlockProperties.returns(
 							dummyBlockReduced
 						);
 					});
+
 					afterEach(() => {
 						expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to.be
 							.true;
@@ -1752,6 +1915,7 @@ describe('blocks/verify', () => {
 							modules.blocks.chain.broadcastReducedBlock
 						).to.have.been.calledWith(dummyBlockReduced, true);
 					});
+
 					it('should call a callback with no error', done => {
 						__private.broadcastBlock(dummyBlock, true, err => {
 							expect(err).to.be.undefined;
@@ -1761,12 +1925,14 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when broadcast is false', () => {
 			afterEach(() => {
 				expect(blocksVerifyModule.deleteBlockProperties.calledOnce).to.be.false;
 				return expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to
 					.be.false;
 			});
+
 			it('should call a callback with no error', done => {
 				__private.broadcastBlock(dummyBlock, false, err => {
 					expect(err).to.be.undefined;
@@ -1778,16 +1944,19 @@ describe('blocks/verify', () => {
 
 	describe('__private.checkExists', () => {
 		const dummyBlock = { id: 1 };
+
 		describe('library.db.blocks.blockExists', () => {
 			describe('when fails', () => {
 				beforeEach(() => {
 					return library.db.blocks.blockExists.rejects('blockExists-ERR');
 				});
+
 				afterEach(() => {
 					return expect(loggerStub.error.args[0][0].name).to.equal(
 						'blockExists-ERR'
 					);
 				});
+
 				it('should call a callback with error', done => {
 					__private.checkExists(dummyBlock, err => {
 						expect(err).to.equal('Block#blockExists error');
@@ -1795,11 +1964,13 @@ describe('blocks/verify', () => {
 					});
 				});
 			});
+
 			describe('when succeeds', () => {
 				describe('if rows is true', () => {
 					beforeEach(() => {
 						return library.db.blocks.blockExists.resolves(true);
 					});
+
 					it('should call a callback with error', done => {
 						__private.checkExists(dummyBlock, err => {
 							expect(err).to.be.equal('Block 1 already exists');
@@ -1807,10 +1978,12 @@ describe('blocks/verify', () => {
 						});
 					});
 				});
+
 				describe('if rows is false', () => {
 					beforeEach(() => {
 						return library.db.blocks.blockExists.resolves(false);
 					});
+
 					it('should call a callback with no error', done => {
 						__private.checkExists(dummyBlock, err => {
 							expect(err).to.be.undefined;
@@ -1824,6 +1997,7 @@ describe('blocks/verify', () => {
 
 	describe('__private.validateBlockSlot', () => {
 		const dummyBlock = { id: 1 };
+
 		describe('modules.delegates.validateBlockSlot', () => {
 			describe('when fails', () => {
 				beforeEach(() => {
@@ -1833,10 +2007,12 @@ describe('blocks/verify', () => {
 						null
 					);
 				});
+
 				afterEach(() => {
 					expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
 					return expect(modules.delegates.fork).calledWith(dummyBlock, 3);
 				});
+
 				it('should call a callback with error', done => {
 					__private.validateBlockSlot(dummyBlock, err => {
 						expect(err).to.equal('validateBlockSlot-ERR');
@@ -1844,6 +2020,7 @@ describe('blocks/verify', () => {
 					});
 				});
 			});
+
 			describe('when succeeds', () => {
 				beforeEach(() => {
 					return modules.delegates.validateBlockSlot.callsArgWith(
@@ -1852,10 +2029,12 @@ describe('blocks/verify', () => {
 						true
 					);
 				});
+
 				afterEach(() => {
 					expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
 					return expect(modules.delegates.fork.calledOnce).to.be.false;
 				});
+
 				it('should call a callback with no error', done => {
 					__private.validateBlockSlot(dummyBlock, err => {
 						expect(err).to.be.undefined;
@@ -1869,19 +2048,23 @@ describe('blocks/verify', () => {
 	describe('__private.checkTransactions', () => {
 		let checkTransactionTemp;
 		let dummyBlock;
+
 		beforeEach(done => {
 			checkTransactionTemp = __private.checkTransaction;
 			__private.checkTransaction = sinonSandbox.stub();
 			done();
 		});
+
 		afterEach(done => {
 			__private.checkTransaction = checkTransactionTemp;
 			done();
 		});
+
 		describe('when block.transactions is empty', () => {
 			afterEach(() => {
 				return expect(__private.checkTransaction.called).to.be.false;
 			});
+
 			it('should call a callback with no error', done => {
 				dummyBlock = { id: 1, transactions: [] };
 				__private.checkTransactions(dummyBlock, err => {
@@ -1890,10 +2073,12 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when block.transactions is not empty', () => {
 			afterEach(() => {
 				return expect(__private.checkTransaction.called).to.be.true;
 			});
+
 			describe('__private.checkTransaction', () => {
 				describe('when fails', () => {
 					beforeEach(() => {
@@ -1903,6 +2088,7 @@ describe('blocks/verify', () => {
 							null
 						);
 					});
+
 					it('should call a callback with error', done => {
 						dummyBlock = { id: 1, transactions: [{ id: 1 }] };
 						__private.checkTransactions(dummyBlock, err => {
@@ -1911,10 +2097,12 @@ describe('blocks/verify', () => {
 						});
 					});
 				});
+
 				describe('when succeeds', () => {
 					beforeEach(() => {
 						return __private.checkTransaction.callsArgWith(2, null, true);
 					});
+
 					it('should call a callback with no error', done => {
 						dummyBlock = { id: 1, transactions: [{ id: 1 }] };
 						__private.checkTransactions(dummyBlock, err => {
@@ -1932,6 +2120,7 @@ describe('blocks/verify', () => {
 		const dummyBlock = { id: 5 };
 		let broadcast;
 		let saveBlock;
+
 		beforeEach(done => {
 			privateTemp = __private;
 			__private.addBlockProperties = sinonSandbox
@@ -1954,6 +2143,7 @@ describe('blocks/verify', () => {
 			modules.blocks.chain.applyBlock.callsArgWith(2, null, true);
 			done();
 		});
+
 		afterEach(done => {
 			expect(modules.blocks.isCleaning.get.calledOnce).to.be.true;
 			expect(__private.addBlockProperties).to.have.been.calledWith(
@@ -1976,6 +2166,7 @@ describe('blocks/verify', () => {
 			__private = privateTemp;
 			done();
 		});
+
 		describe('when broadcast is true', () => {
 			describe('when saveBlock is true', () => {
 				it('should call private functions with correct parameters', done => {
@@ -1992,6 +2183,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when saveBlock is false', () => {
 				it('should call private functions with correct parameters', done => {
 					broadcast = true;
@@ -2008,6 +2200,7 @@ describe('blocks/verify', () => {
 				});
 			});
 		});
+
 		describe('when broadcast is false', () => {
 			describe('when saveBlock is true', () => {
 				it('should call private functions with correct parameters', done => {
@@ -2024,6 +2217,7 @@ describe('blocks/verify', () => {
 					);
 				});
 			});
+
 			describe('when saveBlock is false', () => {
 				it('should call private functions with correct parameters', done => {
 					broadcast = false;

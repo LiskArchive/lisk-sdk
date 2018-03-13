@@ -227,6 +227,7 @@ describe('blocks/verify', () => {
 	describe('__private', () => {
 		var privateFunctions;
 		var RewiredVerify;
+
 		before(done => {
 			RewiredVerify = rewire('../../../../modules/blocks/verify.js');
 			var verify = new RewiredVerify(
