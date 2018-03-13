@@ -36,15 +36,19 @@ function createBlock(
 			.update(secret, 'utf8')
 			.digest()
 	);
+
 	blocksModule.lastBlock.set(previousBlock);
+
 	var newBlock = blockLogic.create({
 		keypair,
 		timestamp,
 		previousBlock: blocksModule.lastBlock.get(),
 		transactions,
 	});
+
 	newBlock.id = blockLogic.getId(newBlock);
 	newBlock.height = previousBlock ? previousBlock.height + 1 : 1;
+
 	return newBlock;
 }
 
@@ -70,9 +74,7 @@ describe('blocks/chain', () => {
 				genesisBlock = scope.genesisblock.block;
 				blocksModule.onBind(scope.modules);
 				blocksChainModule.onBind(scope.modules);
-
 				previousBlock = genesisBlock;
-
 				done();
 			}
 		);

@@ -542,7 +542,7 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
  * @todo Add description for the function
  */
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
-	// Transactions to rewind in case of error.
+	// Transactions to rewind in case of error
 	var appliedTransactions = {};
 
 	library.db
@@ -569,7 +569,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 			block = null;
 			appliedTransactions = null;
 
-			// Finish here if snapshotting.
+			// Finish here if snapshotting
 			// FIXME: Not the best place to do that
 			if (reason.name === 'Snapshot finished') {
 				library.logger.info(reason);
