@@ -1269,19 +1269,43 @@ describe('rounds', () => {
 				});
 			});
 
+			tickAndValidate([]);
+
 			describe('after round finish', () => {
-				it('delegates list should be different than one generated at the beginning of round 1', done => {
+				it('delegates list should be different than one generated at the beginning of round 1', () => {
+					const lastBlock = library.modules.blocks.lastBlock.get();
+					return generateDelegateListPromise(lastBlock.height + 1, null).then(
+						delegatesList => {
+							expect(delegatesList).to.not.deep.equal(round.delegatesList);
+						}
+					);
 				});
 
-				it('forger of last block of previous round should have voters_balance and voters_cnt 0', () => {
+				it('forger of last block of previous round should have vote = 0', () => {
+					return getDelegates().then(_delegates => {
+						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(1);
+						return expect(_delegates[lastBlockForger].vote).to.equal('0');
+					});
 				});
 			});
 
 			describe('after last block of round is deleted', () => {
-				it('delegates list should be equal to one generated at the beginning of round 1', done => {
+				it('delegates list should be equal to one generated at the beginning of round 1', () => {
+					return deleteLastBlockPromise().then(() => {
+						const lastBlock = library.modules.blocks.lastBlock.get();
+						return generateDelegateListPromise(lastBlock.height, null).then(
+							delegatesList => {
+								expect(delegatesList).to.deep.equal(round.delegatesList);
+							}
+						);
+					});
 				});
 
 				it('expected forger of last block of round should have proper votes again', () => {
+					return getDelegates().then(_delegates => {
+						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(0);
+						return expect(_delegates[lastBlockForger].vote).to.equal('10000000000000000');
+					});
 			});
 		});
 	});
