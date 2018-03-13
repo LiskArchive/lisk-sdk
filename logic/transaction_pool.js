@@ -495,39 +495,42 @@ TransactionPool.prototype.reindexQueues = function() {
 TransactionPool.prototype.processBundled = function(cb) {
 	const bundled = self.getBundledTransactionList(true, self.bundleLimit);
 
-	async.eachSeries(
-		bundled,
-		(transaction, eachSeriesCb) => {
-			if (!transaction) {
-				return setImmediate(eachSeriesCb);
-			}
-			library.balancesSequence.add(balancesSequenceCb => {
-				__private.processVerifyTransaction(transaction, true, err => {
-					// Remove bundled transaction after asynchronous processVerifyTransaction to avoid race conditions
-					self.removeBundledTransaction(transaction.id);
-					// Delete bundled flag from transaction so it is qualified as "queued" in queueTransaction
-					delete transaction.bundled;
-
-					if (err) {
-						library.logger.debug(
-							`Failed to process / verify bundled transaction: ${
-								transaction.id
-							}`,
-							err
-						);
-						return setImmediate(balancesSequenceCb);
+	library.balancesSequence.add(
+		balancesSequenceCb => {
+			async.eachSeries(
+				bundled,
+				(transaction, eachSeriesCb) => {
+					if (!transaction) {
+						return setImmediate(eachSeriesCb);
 					}
-					self.queueTransaction(transaction, err => {
+					__private.processVerifyTransaction(transaction, true, err => {
+						// Remove bundled transaction after asynchronous processVerifyTransaction to avoid race conditions
+						self.removeBundledTransaction(transaction.id);
+						// Delete bundled flag from transaction so it is qualified as "queued" in queueTransaction
+						delete transaction.bundled;
+
 						if (err) {
 							library.logger.debug(
-								`Failed to queue bundled transaction: ${transaction.id}`,
+								`Failed to process / verify bundled transaction: ${
+									transaction.id
+								}`,
 								err
 							);
+							return setImmediate(eachSeriesCb);
 						}
-						return setImmediate(balancesSequenceCb);
+						self.queueTransaction(transaction, err => {
+							if (err) {
+								library.logger.debug(
+									`Failed to queue bundled transaction: ${transaction.id}`,
+									err
+								);
+							}
+							return setImmediate(eachSeriesCb);
+						});
 					});
-				});
-			}, eachSeriesCb);
+				},
+				balancesSequenceCb
+			);
 		},
 		err => setImmediate(cb, err)
 	);
