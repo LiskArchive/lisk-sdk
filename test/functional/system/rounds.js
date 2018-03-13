@@ -59,6 +59,7 @@ describe('rounds', () => {
 					height,
 				})
 				.then(rows => {
+					// Normalize blocks
 					return library.modules.blocks.utils.readDbRows(rows);
 				});
 		},
