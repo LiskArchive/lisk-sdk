@@ -97,6 +97,7 @@
 		}
 	},
 	"broadcasts": {
+		"active": true,
 		"broadcastInterval": 5000,
 		"broadcastLimit": 20,
 		"parallelLimit": 20,
@@ -112,6 +113,9 @@
 		"access": {
 			"whiteList": ["127.0.0.1"]
 		}
+	},
+	"syncing": {
+		"active": true
 	},
 	"loading": {
 		"verifyOnLoading": false,

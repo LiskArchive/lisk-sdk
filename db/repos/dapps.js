@@ -82,26 +82,26 @@ class DappsRepository {
 	 * @param {string} params.sortMethod
 	 * @param {int} params.limit
 	 * @param {int} params.offset
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
+	 * @returns {Promise<>[]}
+	 * List of dapps.
 	 */
 	list(params) {
 		// TODO: Use cases need to be reviewed, and new methods added before it can be made into a proper external SQL
-		const query = [
-			'SELECT "name" COLLATE "C", "description", "tags", "link", "type", "category", "icon", "transactionId" FROM dapps',
-			params.where && params.where.length
-				? `WHERE ${params.where.join(' OR ')}`
-				: '',
-			params.sortField
-				? `ORDER BY ${[params.sortField, params.sortMethod].join(' ')}`
-				: '',
-			'LIMIT ${limit} OFFSET ${offset}',
-		]
-			.filter(Boolean)
-			.join(' ');
+		const query = values =>
+			[
+				'SELECT "name" COLLATE "C", "description", "tags", "link", "type", "category", "icon", "transactionId" FROM dapps',
+				values.where && values.where.length
+					? `WHERE ${values.where.join(' OR ')}`
+					: '',
+				values.sortField
+					? `ORDER BY ${[values.sortField, values.sortMethod].join(' ')}`
+					: '',
+				'LIMIT ${limit} OFFSET ${offset}',
+			]
+				.filter(Boolean)
+				.join(' ');
 
-		// TODO: Should use a result-specific method, not .query
-		return this.db.query(query, params);
+		return this.db.any(query, params);
 	}
 
 	// TODO: Remove DappsRepository#getGenesis and use relevant function from db/blocks

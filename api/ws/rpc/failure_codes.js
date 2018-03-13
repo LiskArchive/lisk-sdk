@@ -123,6 +123,8 @@ function PeerUpdateError(code, message, description) {
 	this.description = description;
 }
 
+PeerUpdateError.prototype = new Error();
+
 PeerUpdateError.prototype.toString = function() {
 	return JSON.stringify({
 		code: this.code,
@@ -130,7 +132,5 @@ PeerUpdateError.prototype.toString = function() {
 		description: this.description,
 	});
 };
-
-PeerUpdateError.prototype = new Error();
 
 module.exports.PeerUpdateError = PeerUpdateError;
