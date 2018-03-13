@@ -84,7 +84,7 @@ describe('db', () => {
 	});
 
 	describe('TransactionsRepository', () => {
-		describe('constructor()', () => {
+		describe('constructor', () => {
 			it('should assign param and data members properly', () => {
 				expect(db.transactions.db).to.be.eql(db);
 				expect(db.transactions.pgp).to.be.eql(db.$config.pgp);
@@ -139,7 +139,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('count()', () => {
+		describe('count', () => {
 			it('should use the correct SQL with no parameters', function*() {
 				sinonSandbox.spy(db, 'one');
 				yield db.transactions.count();
@@ -168,7 +168,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('countById()', () => {
+		describe('countById', () => {
 			it('should fulfil with zero if parameter "id" is not provided', () => {
 				return expect(db.transactions.countById()).to.be.eventually.eql(0);
 			});
@@ -205,7 +205,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('countList()', () => {
+		describe('countList', () => {
 			it('should fulfil with zero if no parameter provided', () => {
 				return expect(db.transactions.countList()).to.be.eventually.eql(0);
 			});
@@ -251,7 +251,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('list()', () => {
+		describe('list', () => {
 			it('should throw error if called without parameters', () => {
 				return expect(db.transactions.list()).to.be.rejectedWith("Cannot read property 'where' of undefined");
 			});
@@ -677,7 +677,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('save()', () => {
+		describe('save', () => {
 			it('should save single transaction', function*() {
 				const block = seeder.getLastBlock();
 				const transaction = transactionsFixtures.Transaction({
