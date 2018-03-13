@@ -71,6 +71,15 @@ describe('rounds', () => {
 					return rows;
 				});
 		},
+		getFullBlock: height => {
+			return library.db
+				.query('SELECT * FROM full_blocks_list WHERE b_height = ${height}', {
+					height,
+				})
+				.then(function(rows) {
+					return rows;
+				});
+		},
 		getRoundRewards: round => {
 			return library.db
 				.query(
