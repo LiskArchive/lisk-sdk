@@ -537,6 +537,21 @@ describe('rounds', () => {
 			});
 			return accounts;
 		}
+
+		function getDelegates() {
+			return Queries.getDelegates().then(rows => {
+				return _.cloneDeep(normalizeDelegates(rows));
+			});
+		}
+
+		function normalizeDelegates(_delegates) {
+			const delegates = {};
+			_.map(_delegates, d => {
+				d.publicKey = d.publicKey.toString('hex');
+				delegates[d.publicKey] = d;
+			});
+			return delegates;
+		}
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
 		});
 
