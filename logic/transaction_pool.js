@@ -891,53 +891,56 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
  * @returns {SetImmediate} error
  */
 __private.applyUnconfirmedList = function(transactions, cb, tx) {
-	async.eachSeries(
-		transactions,
-		(transaction, eachSeriesCb) => {
-			if (!transaction) {
-				return setImmediate(eachSeriesCb);
-			}
-			library.balancesSequence.add(balancesSequenceCb => {
-				__private.processVerifyTransaction(
-					transaction,
-					false,
-					(err, sender) => {
-						if (err) {
-							library.logger.error(
-								`Failed to process / verify unconfirmed transaction: ${
-									transaction.id
-								}`,
-								err
+	library.balancesSequence.add(
+		balancesSequenceCb => {
+			async.eachSeries(
+				transactions,
+				(transaction, eachSeriesCb) => {
+					if (!transaction) {
+						return setImmediate(eachSeriesCb);
+					}
+					__private.processVerifyTransaction(
+						transaction,
+						false,
+						(err, sender) => {
+							if (err) {
+								library.logger.error(
+									`Failed to process / verify unconfirmed transaction: ${
+										transaction.id
+									}`,
+									err
+								);
+								self.removeQueuedTransaction(transaction.id);
+								return setImmediate(eachSeriesCb);
+							}
+							modules.transactions.applyUnconfirmed(
+								transaction,
+								sender,
+								err => {
+									if (err) {
+										library.logger.error(
+											`Failed to apply unconfirmed transaction: ${
+												transaction.id
+											}`,
+											err
+										);
+										self.removeQueuedTransaction(transaction.id);
+									} else {
+										// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
+										self.addUnconfirmedTransaction(transaction);
+									}
+									return setImmediate(eachSeriesCb);
+								},
+								tx
 							);
-							self.removeQueuedTransaction(transaction.id);
-							return setImmediate(balancesSequenceCb);
-						}
-						modules.transactions.applyUnconfirmed(
-							transaction,
-							sender,
-							err => {
-								if (err) {
-									library.logger.error(
-										`Failed to apply unconfirmed transaction: ${
-											transaction.id
-										}`,
-										err
-									);
-									self.removeQueuedTransaction(transaction.id);
-								} else {
-									// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
-									self.addUnconfirmedTransaction(transaction);
-								}
-								return setImmediate(balancesSequenceCb);
-							},
-							tx
-						);
-					},
-					tx
-				);
-			}, eachSeriesCb);
+						},
+						tx
+					);
+				},
+				balancesSequenceCb
+			);
 		},
-		cb
+		() => setImmediate(cb)
 	);
 };
 
