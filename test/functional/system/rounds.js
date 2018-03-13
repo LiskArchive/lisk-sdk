@@ -1084,6 +1084,49 @@ describe('rounds', () => {
 			});
 
 			it('should calculate rewards for round 1 correctly - all should be the same (native, rounds_rewards, mem_accounts)', () => {
+				return Promise.join(
+					getMemAccounts(),
+					Queries.getBlocks(round.current),
+					Queries.getRoundRewards(round.current),
+					getDelegates(),
+					(_accounts, _blocks, _rewards, _delegates) => {
+						const delegates = {};
+
+						// Get genesis accounts address - should be senderId from first transaction
+						const genesisAddress =
+							library.genesisblock.block.transactions[0].senderId;
+						// Inject and normalize genesis account to delegates (it's not a delegate, but will get rewards split from first round)
+						const genesisPublicKey = _accounts[
+							genesisAddress
+						].publicKey.toString('hex');
+						_delegates[genesisPublicKey] = _accounts[genesisAddress];
+						_delegates[genesisPublicKey].publicKey = genesisPublicKey;
+
+						// Get expected rewards for round (native)
+						const expectedRewards = getExpectedRoundRewards(_blocks);
+						// Rewards from database table rounds_rewards should match native rewards
+						expect(_rewards).to.deep.equal(expectedRewards);
+
+						// Because first block of round 1 is genesis block - there will be always 1 outsider in first round
+						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
+							1
+						);
+
+						_.map(_delegates, d => {
+							if (d.fees > 0 || d.rewards > 0) {
+								// Normalize database data
+								delegates[d.publicKey] = {
+									publicKey: d.publicKey,
+									fees: d.fees,
+									rewards: d.rewards,
+								};
+							}
+						});
+
+						// Compare mem_accounts delegates with native
+						expect(delegates).to.deep.equal(expectedRewards);
+					}
+				);
 			});
 
 			it('should generate a different delegate list than one generated at the beginning of round 1', () => {
