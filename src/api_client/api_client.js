@@ -52,21 +52,7 @@ const getHeaders = (nethash, version, minVersion) =>
 
 export default class APIClient {
 	constructor(nodes, nethash, providedOptions = {}) {
-		if (!Array.isArray(nodes) || nodes.length <= 0) {
-			throw new Error('APIClient requires nodes for initialization.');
-		}
-
-		if (typeof nethash !== 'string' || nethash === '') {
-			throw new Error('APIClient requires nethash for initialization.');
-		}
-
-		const options = Object.assign({}, defaultOptions, providedOptions);
-
-		this.headers = getHeaders(nethash, options.version, options.minVersion);
-		this.nodes = nodes;
-		this.bannedNodes = [...(options.bannedNodes || [])];
-		this.currentNode = options.node || this.getNewNode();
-		this.randomizeNodes = options.randomizeNodes !== false;
+		this.initialize(nodes, nethash, providedOptions);
 
 		this.accounts = new AccountsResource(this);
 		this.blocks = new BlocksResource(this);
@@ -86,6 +72,24 @@ export default class APIClient {
 
 	static createTestnetAPIClient(options) {
 		return new APIClient(TESTNET_NODES, TESTNET_NETHASH, options);
+	}
+
+	initialize(nodes, nethash, providedOptions = {}) {
+		if (!Array.isArray(nodes) || nodes.length <= 0) {
+			throw new Error('APIClient requires nodes for initialization.');
+		}
+
+		if (typeof nethash !== 'string' || nethash === '') {
+			throw new Error('APIClient requires nethash for initialization.');
+		}
+
+		const options = Object.assign({}, defaultOptions, providedOptions);
+
+		this.headers = getHeaders(nethash, options.version, options.minVersion);
+		this.nodes = nodes;
+		this.bannedNodes = [...(options.bannedNodes || [])];
+		this.currentNode = options.node || this.getNewNode();
+		this.randomizeNodes = options.randomizeNodes !== false;
 	}
 
 	getNewNode() {

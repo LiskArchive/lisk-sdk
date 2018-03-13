@@ -61,90 +61,98 @@ describe('APIClient module', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should throw an error if no arguments are passed to constructor', () => {
-			return (() => new APIClient()).should.throw(
-				Error,
-				'APIClient requires nodes for initialization.',
-			);
-		});
+		let initializeStub;
 
-		it('should throw an error if first argument passed to constructor is not array', () => {
-			return (() => new APIClient('non-array')).should.throw(
-				Error,
-				'APIClient requires nodes for initialization.',
-			);
-		});
-
-		it('should throw an error if first argument passed to constructor is empty array', () => {
-			return (() => new APIClient([])).should.throw(
-				Error,
-				'APIClient requires nodes for initialization.',
-			);
-		});
-
-		it('should throw an error if no second argument is passed to constructor', () => {
-			return (() => new APIClient(defaultNodes)).should.throw(
-				Error,
-				'APIClient requires nethash for initialization.',
-			);
-		});
-
-		it('should throw an error if second argument passed to constructor is not string', () => {
-			return (() => new APIClient(defaultNodes, 123)).should.throw(
-				Error,
-				'APIClient requires nethash for initialization.',
-			);
-		});
-
-		it('should throw an error if second argument passed to constructor is empty string', () => {
-			return (() => new APIClient(defaultNodes, '')).should.throw(
-				Error,
-				'APIClient requires nethash for initialization.',
-			);
+		beforeEach(() => {
+			initializeStub = sandbox.stub(APIClient.prototype, 'initialize');
+			return Promise.resolve();
 		});
 
 		it('should create a new instance of APIClient', () => {
 			return apiClient.should.be.an('object').and.be.instanceof(APIClient);
 		});
 
-		describe('#createMainnetAPIClient', () => {
-			let client;
-			beforeEach(() => {
-				client = APIClient.createMainnetAPIClient();
-				return Promise.resolve();
-			});
+		it('should call initialize', () => {
+			apiClient = new APIClient(defaultNodes, mainnetHash);
+			return initializeStub.should.be.calledOnce;
+		});
+	});
 
-			it('should return APIClient instance', () => {
-				return client.should.be.instanceof(APIClient);
-			});
-
-			it('should contain mainnet nodes', () => {
-				return client.nodes.should.eql(mainnetNodes);
-			});
-
-			it('should be set to mainnet hash', () => {
-				return client.headers.nethash.should.equal(mainnetHash);
-			});
+	describe('#createMainnetAPIClient', () => {
+		let client;
+		beforeEach(() => {
+			client = APIClient.createMainnetAPIClient();
+			return Promise.resolve();
 		});
 
-		describe('#createTestnetAPIClient', () => {
-			let client;
-			beforeEach(() => {
-				client = APIClient.createTestnetAPIClient();
-				return Promise.resolve();
-			});
+		it('should return APIClient instance', () => {
+			return client.should.be.instanceof(APIClient);
+		});
 
-			it('should return APIClient instance', () => {
-				return client.should.be.instanceof(APIClient);
-			});
+		it('should contain mainnet nodes', () => {
+			return client.nodes.should.eql(mainnetNodes);
+		});
 
-			it('should contain testnet nodes', () => {
-				return client.nodes.should.eql(testnetNodes);
-			});
+		it('should be set to mainnet hash', () => {
+			return client.headers.nethash.should.equal(mainnetHash);
+		});
+	});
 
-			it('should be set to testnet hash', () => {
-				return client.headers.nethash.should.equal(testnetHash);
-			});
+	describe('#createTestnetAPIClient', () => {
+		let client;
+		beforeEach(() => {
+			client = APIClient.createTestnetAPIClient();
+			return Promise.resolve();
+		});
+
+		it('should return APIClient instance', () => {
+			return client.should.be.instanceof(APIClient);
+		});
+
+		it('should contain testnet nodes', () => {
+			return client.nodes.should.eql(testnetNodes);
+		});
+
+		it('should be set to testnet hash', () => {
+			return client.headers.nethash.should.equal(testnetHash);
+		});
+	});
+
+	describe('#initialize', () => {
+		it('should throw an error if no arguments are passed to constructor', () => {
+			return apiClient.initialize
+				.bind(apiClient)
+				.should.throw(Error, 'APIClient requires nodes for initialization.');
+		});
+
+		it('should throw an error if first argument passed to constructor is not array', () => {
+			return apiClient.initialize
+				.bind(apiClient, 'non-array')
+				.should.throw(Error, 'APIClient requires nodes for initialization.');
+		});
+
+		it('should throw an error if first argument passed to constructor is empty array', () => {
+			return apiClient.initialize
+				.bind(apiClient, [])
+				.should.throw(Error, 'APIClient requires nodes for initialization.');
+		});
+
+		it('should throw an error if no second argument is passed to constructor', () => {
+			return apiClient.initialize
+				.bind(apiClient, defaultNodes)
+				.should.throw(Error, 'APIClient requires nethash for initialization.');
+		});
+
+		it('should throw an error if second argument passed to constructor is not string', () => {
+			return apiClient.initialize
+				.bind(apiClient, defaultNodes, 123)
+				.should.throw(Error, 'APIClient requires nethash for initialization.');
+		});
+
+		it('should throw an error if second argument passed to constructor is empty string', () => {
+			return apiClient.initialize
+				.bind(apiClient, defaultNodes, '')
+				.should.throw(Error, 'APIClient requires nethash for initialization.');
 		});
 
 		describe('headers', () => {
