@@ -1140,6 +1140,11 @@ describe('rounds', () => {
 		});
 
 		describe('delete last block of round 1, block contains 1 transaction type SEND', () => {
+			before(() => {
+				// Delete last block of round
+				return deleteLastBlockPromise();
+			});
+
 			it('round rewards should be empty (rewards for round 1 deleted from rounds_rewards table)', () => {
 			});
 
