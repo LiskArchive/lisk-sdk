@@ -137,14 +137,18 @@ describe('rounds', () => {
 
 			describe('consistency', () => {
 				it('should contain transactions', () => {
-					return expect(library.genesisblock.block.transactions.length).to.be.above(0);
+					return expect(
+						library.genesisblock.block.transactions.length
+					).to.be.above(0);
 				});
 			});
 
 			describe('insert to database', () => {
 				describe('database block at height 1', () => {
 					it('ID should match genesis block ID', () => {
-						return expect(genesisBlock.id).to.equal(library.genesisblock.block.id);
+						return expect(genesisBlock.id).to.equal(
+							library.genesisblock.block.id
+						);
 					});
 
 					it('should contain transactions', () => {
@@ -193,7 +197,9 @@ describe('rounds', () => {
 					});
 
 					it('count should match delegates created in genesis block', () => {
-						return expect(delegateTransactions.length).to.equal(delegates.length);
+						return expect(delegateTransactions.length).to.equal(
+							delegates.length
+						);
 					});
 
 					describe('delegates rows', () => {
@@ -1152,12 +1158,14 @@ describe('rounds', () => {
 			});
 
 			it.skip('mem_accounts table should be equal to one generated before last block of round deletion', () => {
+				// eslint-disable-line
 				return getMemAccounts().then(_accounts => {
 					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
 				});
 			});
 
 			it('mem_accounts table should not contain changes from transaction included in deleted block', () => {
+				// eslint-disable-line
 			});
 
 			it('delegates list should be equal to one generated at the beginning of round 1', () => {
