@@ -12,24 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import naclFactory from 'js-nacl';
-import APIClient from './api_client';
-import cryptography from './cryptography';
-import * as constants from './lisk-constants';
-import passphrase from './passphrase';
-import transaction from './transactions';
 
-global.naclFactory = naclFactory;
+import { POST } from '../constants';
+import apiMethod from '../api_method';
+import APIResource from '../api_resource';
 
-global.naclInstance = null;
-naclFactory.instantiate(nacl => {
-	naclInstance = nacl;
-});
+export default class SignaturesResource extends APIResource {
+	constructor(apiClient) {
+		super(apiClient);
+		this.path = '/signatures';
 
-export default {
-	APIClient,
-	cryptography,
-	passphrase,
-	transaction,
-	constants,
-};
+		this.broadcast = apiMethod({
+			method: POST,
+		}).bind(this);
+	}
+}

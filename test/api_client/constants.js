@@ -12,24 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import naclFactory from 'js-nacl';
-import APIClient from './api_client';
-import cryptography from './cryptography';
-import * as constants from './lisk-constants';
-import passphrase from './passphrase';
-import transaction from './transactions';
+import { GET, POST, PUT } from 'api_client/constants';
 
-global.naclFactory = naclFactory;
+describe('api constants module', () => {
+	it('GET should be a string', () => {
+		return GET.should.be.a('string');
+	});
 
-global.naclInstance = null;
-naclFactory.instantiate(nacl => {
-	naclInstance = nacl;
+	it('POST should be a string', () => {
+		return POST.should.be.a('string');
+	});
+
+	it('PUT should be a string', () => {
+		return PUT.should.be.a('string');
+	});
 });
-
-export default {
-	APIClient,
-	cryptography,
-	passphrase,
-	transaction,
-	constants,
-};

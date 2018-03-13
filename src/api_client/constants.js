@@ -12,24 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import naclFactory from 'js-nacl';
-import APIClient from './api_client';
-import cryptography from './cryptography';
-import * as constants from './lisk-constants';
-import passphrase from './passphrase';
-import transaction from './transactions';
-
-global.naclFactory = naclFactory;
-
-global.naclInstance = null;
-naclFactory.instantiate(nacl => {
-	naclInstance = nacl;
-});
-
-export default {
-	APIClient,
-	cryptography,
-	passphrase,
-	transaction,
-	constants,
-};
+export const GET = 'GET';
+export const POST = 'POST';
+export const PUT = 'PUT';
