@@ -35,15 +35,13 @@ var modules; // eslint-disable-line no-unused-vars
  * @param {Database} db
  * @param {Block} block
  * @param {ZSchema} schema
- * @param {Sequence} dbSequence
  * @todo Add description for the params
  */
-function API(logger, db, block, schema, dbSequence) {
+function API(logger, db, block, schema) {
 	library = {
 		logger,
 		db,
 		schema,
-		dbSequence,
 		logic: {
 			block,
 		},
@@ -187,18 +185,16 @@ API.prototype.getBlocks = function(filters, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	library.dbSequence.add(cb => {
-		__private.list(filters, (err, data) => {
-			if (err) {
-				return setImmediate(
-					cb,
-					new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR)
-				);
-			}
+	__private.list(filters, (err, data) => {
+		if (err) {
+			return setImmediate(
+				cb,
+				new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR)
+			);
+		}
 
-			return setImmediate(cb, null, data);
-		});
-	}, cb);
+		return setImmediate(cb, null, data);
+	});
 };
 
 /**

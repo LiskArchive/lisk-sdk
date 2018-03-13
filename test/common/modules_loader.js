@@ -63,11 +63,6 @@ var modulesLoader = new function() {
 			},
 		},
 		nonce: randomstring.generate(16),
-		dbSequence: new Sequence({
-			onWarning(current) {
-				this.logger.warn('DB queue', current);
-			},
-		}),
 		sequence: new Sequence({
 			onWarning(current) {
 				this.logger.warn('Main queue', current);
