@@ -69,12 +69,14 @@ describe('APIClient module', () => {
 		});
 
 		it('should create a new instance of APIClient', () => {
-			return apiClient.should.be.an('object').and.be.instanceof(APIClient);
+			return expect(apiClient)
+				.to.be.an('object')
+				.and.be.instanceof(APIClient);
 		});
 
 		it('should call initialize', () => {
 			apiClient = new APIClient(defaultNodes, mainnetHash);
-			return initializeStub.should.be.calledOnce;
+			return expect(initializeStub).to.be.calledOnce;
 		});
 	});
 
@@ -86,15 +88,15 @@ describe('APIClient module', () => {
 		});
 
 		it('should return APIClient instance', () => {
-			return client.should.be.instanceof(APIClient);
+			return expect(client).to.be.instanceof(APIClient);
 		});
 
 		it('should contain mainnet nodes', () => {
-			return client.nodes.should.eql(mainnetNodes);
+			return expect(client.nodes).to.eql(mainnetNodes);
 		});
 
 		it('should be set to mainnet hash', () => {
-			return client.headers.nethash.should.equal(mainnetHash);
+			return expect(client.headers.nethash).to.equal(mainnetHash);
 		});
 	});
 
@@ -106,59 +108,62 @@ describe('APIClient module', () => {
 		});
 
 		it('should return APIClient instance', () => {
-			return client.should.be.instanceof(APIClient);
+			return expect(client).to.be.instanceof(APIClient);
 		});
 
 		it('should contain testnet nodes', () => {
-			return client.nodes.should.eql(testnetNodes);
+			return expect(client.nodes).to.eql(testnetNodes);
 		});
 
 		it('should be set to testnet hash', () => {
-			return client.headers.nethash.should.equal(testnetHash);
+			return expect(client.headers.nethash).to.equal(testnetHash);
 		});
 	});
 
 	describe('#initialize', () => {
 		it('should throw an error if no arguments are passed to constructor', () => {
-			return apiClient.initialize
-				.bind(apiClient)
-				.should.throw(Error, 'APIClient requires nodes for initialization.');
+			return expect(apiClient.initialize.bind(apiClient)).to.throw(
+				Error,
+				'APIClient requires nodes for initialization.',
+			);
 		});
 
 		it('should throw an error if first argument passed to constructor is not array', () => {
-			return apiClient.initialize
-				.bind(apiClient, 'non-array')
-				.should.throw(Error, 'APIClient requires nodes for initialization.');
+			return expect(apiClient.initialize.bind(apiClient, 'non-array')).to.throw(
+				Error,
+				'APIClient requires nodes for initialization.',
+			);
 		});
 
 		it('should throw an error if first argument passed to constructor is empty array', () => {
-			return apiClient.initialize
-				.bind(apiClient, [])
-				.should.throw(Error, 'APIClient requires nodes for initialization.');
+			return expect(apiClient.initialize.bind(apiClient, [])).to.throw(
+				Error,
+				'APIClient requires nodes for initialization.',
+			);
 		});
 
 		it('should throw an error if no second argument is passed to constructor', () => {
-			return apiClient.initialize
-				.bind(apiClient, defaultNodes)
-				.should.throw(Error, 'APIClient requires nethash for initialization.');
+			return expect(
+				apiClient.initialize.bind(apiClient, defaultNodes),
+			).to.throw(Error, 'APIClient requires nethash for initialization.');
 		});
 
 		it('should throw an error if second argument passed to constructor is not string', () => {
-			return apiClient.initialize
-				.bind(apiClient, defaultNodes, 123)
-				.should.throw(Error, 'APIClient requires nethash for initialization.');
+			return expect(
+				apiClient.initialize.bind(apiClient, defaultNodes, 123),
+			).to.throw(Error, 'APIClient requires nethash for initialization.');
 		});
 
 		it('should throw an error if second argument passed to constructor is empty string', () => {
-			return apiClient.initialize
-				.bind(apiClient, defaultNodes, '')
-				.should.throw(Error, 'APIClient requires nethash for initialization.');
+			return expect(
+				apiClient.initialize.bind(apiClient, defaultNodes, ''),
+			).to.throw(Error, 'APIClient requires nethash for initialization.');
 		});
 
 		describe('headers', () => {
 			it('should set with passed nethash, with default options', () => {
-				return apiClient.should.have
-					.property('headers')
+				return expect(apiClient)
+					.to.have.property('headers')
 					.and.eql(defaultHeaders);
 			});
 
@@ -167,41 +172,48 @@ describe('APIClient module', () => {
 					version: customHeaders.version,
 					minVersion: customHeaders.minVersion,
 				});
-				return apiClient.should.have.property('headers').and.eql(customHeaders);
+				return expect(apiClient)
+					.to.have.property('headers')
+					.and.eql(customHeaders);
 			});
 		});
 
 		describe('nodes', () => {
 			it('should have nodes supplied to constructor', () => {
-				return apiClient.should.have.property('nodes').and.equal(defaultNodes);
+				return expect(apiClient)
+					.to.have.property('nodes')
+					.and.equal(defaultNodes);
 			});
 		});
 
 		describe('bannedNodes', () => {
 			it('should set empty array if no option is passed', () => {
-				return apiClient.should.have.property('bannedNodes').be.eql([]);
+				return expect(apiClient)
+					.to.have.property('bannedNodes')
+					.be.eql([]);
 			});
 
 			it('should set bannedNodes when passed as an option', () => {
 				const bannedNodes = ['a', 'b'];
 				apiClient = new APIClient(defaultNodes, mainnetHash, { bannedNodes });
-				return apiClient.should.have
-					.property('bannedNodes')
+				return expect(apiClient)
+					.to.have.property('bannedNodes')
 					.be.eql(bannedNodes);
 			});
 		});
 
 		describe('currentNode', () => {
 			it('should set with random node with initialized setup if no node is specified by options', () => {
-				return apiClient.should.have.property('currentNode').and.not.be.empty;
+				return expect(apiClient).to.have.property('currentNode').and.not.be
+					.empty;
 			});
 
 			it('should set with supplied node if node is specified by options', () => {
 				apiClient = new APIClient(defaultNodes, mainnetHash, {
 					node: externalTestnetNode,
 				});
-				return apiClient.should.have
-					.property('currentNode')
+				return expect(apiClient)
+					.to.have.property('currentNode')
 					.and.equal(externalTestnetNode);
 			});
 		});
@@ -211,21 +223,21 @@ describe('APIClient module', () => {
 				apiClient = new APIClient(defaultNodes, mainnetHash, {
 					randomizeNodes: undefined,
 				});
-				return apiClient.should.have.property('randomizeNodes').be.true;
+				return expect(apiClient).to.have.property('randomizeNodes').be.true;
 			});
 
 			it('should set randomizeNodes to true on initialization when passed as an option', () => {
 				apiClient = new APIClient(defaultNodes, mainnetHash, {
 					randomizeNodes: true,
 				});
-				return apiClient.should.have.property('randomizeNodes').be.true;
+				return expect(apiClient).to.have.property('randomizeNodes').be.true;
 			});
 
 			it('should set randomizeNodes to false on initialization when passed as an option', () => {
 				apiClient = new APIClient(defaultNodes, mainnetHash, {
 					randomizeNodes: false,
 				});
-				return apiClient.should.have.property('randomizeNodes').be.false;
+				return expect(apiClient).to.have.property('randomizeNodes').be.false;
 			});
 		});
 	});
@@ -233,14 +245,14 @@ describe('APIClient module', () => {
 	describe('#getNewNode', () => {
 		it('should throw an error if all relevant nodes are banned', () => {
 			apiClient.bannedNodes = [...defaultNodes];
-			return apiClient.getNewNode
-				.bind(apiClient)
-				.should.throw('Cannot get new node: all nodes have been banned.');
+			return expect(apiClient.getNewNode.bind(apiClient)).to.throw(
+				'Cannot get new node: all nodes have been banned.',
+			);
 		});
 
 		it('should return a node', () => {
 			const result = apiClient.getNewNode();
-			return defaultNodes.should.contain(result);
+			return expect(defaultNodes).to.contain(result);
 		});
 
 		it('should randomly select the node', () => {
@@ -257,8 +269,8 @@ describe('APIClient module', () => {
 	describe('#banNode', () => {
 		it('should add node to banned nodes', () => {
 			const banned = apiClient.banNode(localNode);
-			banned.should.be.true;
-			return apiClient.isBanned(localNode).should.be.true;
+			expect(banned).to.be.true;
+			return expect(apiClient.isBanned(localNode)).to.be.true;
 		});
 
 		it('should not duplicate a banned node', () => {
@@ -266,8 +278,8 @@ describe('APIClient module', () => {
 			apiClient.bannedNodes = bannedNodes;
 			const banned = apiClient.banNode(localNode);
 
-			banned.should.be.false;
-			return apiClient.bannedNodes.should.be.eql(bannedNodes);
+			expect(banned).to.be.false;
+			return expect(apiClient.bannedNodes).to.be.eql(bannedNodes);
 		});
 	});
 
@@ -281,8 +293,8 @@ describe('APIClient module', () => {
 
 		it('should add current node to banned nodes', () => {
 			const banned = apiClient.banActiveNode();
-			banned.should.be.true;
-			return apiClient.isBanned(currentNode).should.be.true;
+			expect(banned).to.be.true;
+			return expect(apiClient.isBanned(currentNode)).to.be.true;
 		});
 
 		it('should not duplicate a banned node', () => {
@@ -290,8 +302,8 @@ describe('APIClient module', () => {
 			apiClient.bannedNodes = bannedNodes;
 			const banned = apiClient.banActiveNode();
 
-			banned.should.be.false;
-			return apiClient.bannedNodes.should.be.eql(bannedNodes);
+			expect(banned).to.be.false;
+			return expect(apiClient.bannedNodes).to.be.eql(bannedNodes);
 		});
 	});
 
@@ -309,30 +321,30 @@ describe('APIClient module', () => {
 
 		it('should call ban current node', () => {
 			apiClient.banActiveNodeAndSelect();
-			return apiClient.isBanned(currentNode).should.be.true;
+			return expect(apiClient.isBanned(currentNode)).to.be.true;
 		});
 
 		it('should call selectNewNode when the node is banned', () => {
 			apiClient.banActiveNodeAndSelect();
-			return getNewNodeStub.should.be.calledOnce;
+			return expect(getNewNodeStub).to.be.calledOnce;
 		});
 
 		it('should not call selectNewNode when the node is not banned', () => {
 			const bannedNodes = [currentNode];
 			apiClient.bannedNodes = bannedNodes;
 			apiClient.banActiveNodeAndSelect();
-			return getNewNodeStub.should.not.be.called;
+			return expect(getNewNodeStub).not.to.be.called;
 		});
 	});
 
 	describe('#isBanned', () => {
 		it('should return true when provided node is banned', () => {
 			apiClient.bannedNodes.push(localNode);
-			return apiClient.isBanned(localNode).should.be.true;
+			return expect(apiClient.isBanned(localNode)).to.be.true;
 		});
 
 		it('should return false when provided node is not banned', () => {
-			return apiClient.isBanned(localNode).should.be.false;
+			return expect(apiClient.isBanned(localNode)).to.be.false;
 		});
 	});
 
@@ -340,12 +352,12 @@ describe('APIClient module', () => {
 		it('should return false without nodes left', () => {
 			apiClient.bannedNodes = [...defaultNodes];
 			const result = apiClient.hasAvailableNodes();
-			return result.should.be.false;
+			return expect(result).to.be.false;
 		});
 
 		it('should return true if nodes are available', () => {
 			const result = apiClient.hasAvailableNodes();
-			return result.should.be.true;
+			return expect(result).to.be.true;
 		});
 	});
 });
