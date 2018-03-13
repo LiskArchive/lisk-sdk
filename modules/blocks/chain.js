@@ -336,7 +336,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 						{ publicKey: transaction.senderPublicKey },
 						(accountErr, sender) => {
 							if (accountErr) {
-								const err = `Failed to get account for apply unconfirmed transaction: ${
+								const err = `Failed to get account to apply unconfirmed transaction: ${
 									transaction.id
 								} '-' ${accountErr}`;
 								library.logger.error(err);
@@ -386,7 +386,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 						{ publicKey: transaction.senderPublicKey },
 						(accountErr, sender) => {
 							if (accountErr) {
-								const err = `Failed to get account for apply transaction: ${
+								const err = `Failed to get account to apply transaction: ${
 									transaction.id
 								} '-' ${accountErr}`;
 								library.logger.error(err);
