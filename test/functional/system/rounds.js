@@ -1146,15 +1146,28 @@ describe('rounds', () => {
 			});
 
 			it('round rewards should be empty (rewards for round 1 deleted from rounds_rewards table)', () => {
+				return expect(
+					Queries.getRoundRewards(round.current)
+				).to.eventually.deep.equal({});
 			});
 
 			it('mem_accounts table should be equal to one generated before last block of round deletion', () => {
+				return getMemAccounts().then(_accounts => {
+					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
+				});
 			});
 
 			it('mem_accounts table should not contain changes from transaction included in deleted block', () => {
 			});
 
 			it('delegates list should be equal to one generated at the beginning of round 1', () => {
+				const lastBlock = library.modules.blocks.lastBlock.get();
+				return generateDelegateListPromise(lastBlock.height + 1, null).then(
+					delegatesList => {
+						expect(delegatesList).to.deep.equal(round.delegatesList);
+					}
+				);
+			});
 			});
 		});
 	});
