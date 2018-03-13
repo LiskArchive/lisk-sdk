@@ -108,14 +108,14 @@ describe('encrypt', () => {
 		});
 
 		it('should encrypt a message', () => {
-			return encryptedMessage.should.have
-				.property('encryptedMessage')
+			return expect(encryptedMessage)
+				.to.have.property('encryptedMessage')
 				.be.hexString.with.length(68);
 		});
 
 		it('should output the nonce', () => {
-			return encryptedMessage.should.have
-				.property('nonce')
+			return expect(encryptedMessage)
+				.to.have.property('nonce')
 				.be.hexString.with.length(48);
 		});
 	});
@@ -129,33 +129,33 @@ describe('encrypt', () => {
 				defaultPublicKey,
 			);
 
-			return decryptedMessage.should.be.equal(defaultMessage);
+			return expect(decryptedMessage).to.be.equal(defaultMessage);
 		});
 
 		it('should inform the user if the nonce is the wrong length', () => {
-			return decryptMessageWithPassphrase
-				.bind(
+			return expect(
+				decryptMessageWithPassphrase.bind(
 					null,
 					defaultEncryptedMessageWithNonce.encryptedMessage,
 					defaultEncryptedMessageWithNonce.encryptedMessage.slice(0, 2),
 					defaultPassphrase,
 					defaultPublicKey,
-				)
-				.should.throw('Expected 24-byte nonce but got length 1.');
+				),
+			).to.throw('Expected 24-byte nonce but got length 1.');
 		});
 
 		it('should inform the user if something goes wrong during decryption', () => {
-			return decryptMessageWithPassphrase
-				.bind(
+			return expect(
+				decryptMessageWithPassphrase.bind(
 					null,
 					defaultEncryptedMessageWithNonce.encryptedMessage.slice(0, 2),
 					defaultEncryptedMessageWithNonce.nonce,
 					defaultSecondPassphrase,
 					defaultPublicKey,
-				)
-				.should.throw(
-					'Something went wrong during decryption. Is this the full encrypted message?',
-				);
+				),
+			).to.throw(
+				'Something went wrong during decryption. Is this the full encrypted message?',
+			);
 		});
 	});
 
@@ -183,39 +183,41 @@ describe('encrypt', () => {
 			});
 
 			it('should encrypt a passphrase', () => {
-				return cipher.should.have.property('cipher').and.be.hexString;
+				return expect(cipher).to.have.property('cipher').and.be.hexString;
 			});
 
 			it('should output the IV', () => {
-				return cipher.should.have
-					.property('iv')
+				return expect(cipher)
+					.to.have.property('iv')
 					.and.be.hexString.and.have.length(32);
 			});
 
 			it('should output the salt', () => {
-				return cipher.should.have
-					.property('salt')
+				return expect(cipher)
+					.to.have.property('salt')
 					.and.be.hexString.and.have.length(32);
 			});
 
 			it('should output the tag', () => {
-				return cipher.should.have
-					.property('tag')
+				return expect(cipher)
+					.to.have.property('tag')
 					.and.be.hexString.and.have.length(32);
 			});
 
 			it('should output the current version of LiskJS', () => {
-				return cipher.should.have.property('version').which.is.equal(version);
+				return expect(cipher)
+					.to.have.property('version')
+					.which.is.equal(version);
 			});
 
 			it('should take more than 0.5 seconds @node-only', () => {
 				const endTime = Date.now();
-				return (endTime - startTime).should.be.above(500);
+				return expect(endTime - startTime).to.be.above(500);
 			});
 
 			it('should take less than 2 seconds @node-only', () => {
 				const endTime = Date.now();
-				return (endTime - startTime).should.be.below(2e3);
+				return expect(endTime - startTime).to.be.below(2e3);
 			});
 		});
 
@@ -239,16 +241,20 @@ describe('encrypt', () => {
 					cipherIvSaltTagAndVersion,
 					defaultPassword,
 				);
-				return decrypted.should.be.eql(defaultPassphrase);
+				return expect(decrypted).to.be.eql(defaultPassphrase);
 			});
 
 			it('should inform the user if the salt has been altered', () => {
 				cipherIvSaltTagAndVersion.salt = `00${cipherIvSaltTagAndVersion.salt.slice(
 					2,
 				)}`;
-				return decryptPassphraseWithPassword
-					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
-					.should.throw('Unsupported state or unable to authenticate data');
+				return expect(
+					decryptPassphraseWithPassword.bind(
+						null,
+						cipherIvSaltTagAndVersion,
+						defaultPassword,
+					),
+				).to.throw('Unsupported state or unable to authenticate data');
 			});
 
 			it('should inform the user if the tag has been shortened', () => {
@@ -256,9 +262,13 @@ describe('encrypt', () => {
 					0,
 					30,
 				);
-				return decryptPassphraseWithPassword
-					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
-					.should.throw('Tag must be 16 bytes.');
+				return expect(
+					decryptPassphraseWithPassword.bind(
+						null,
+						cipherIvSaltTagAndVersion,
+						defaultPassword,
+					),
+				).to.throw('Tag must be 16 bytes.');
 			});
 
 			it('should inform the user if the tag is not a hex string', () => {
@@ -266,18 +276,26 @@ describe('encrypt', () => {
 					0,
 					30,
 				)}gg`;
-				return decryptPassphraseWithPassword
-					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
-					.should.throw('Argument must be a valid hex string.');
+				return expect(
+					decryptPassphraseWithPassword.bind(
+						null,
+						cipherIvSaltTagAndVersion,
+						defaultPassword,
+					),
+				).to.throw('Argument must be a valid hex string.');
 			});
 
 			it('should inform the user if the tag has been altered', () => {
 				cipherIvSaltTagAndVersion.tag = `00${cipherIvSaltTagAndVersion.tag.slice(
 					2,
 				)}`;
-				return decryptPassphraseWithPassword
-					.bind(null, cipherIvSaltTagAndVersion, defaultPassword)
-					.should.throw('Unsupported state or unable to authenticate data');
+				return expect(
+					decryptPassphraseWithPassword.bind(
+						null,
+						cipherIvSaltTagAndVersion,
+						defaultPassword,
+					),
+				).to.throw('Unsupported state or unable to authenticate data');
 			});
 		});
 
@@ -291,7 +309,7 @@ describe('encrypt', () => {
 					cipher,
 					defaultPassword,
 				);
-				return decryptedString.should.be.eql(defaultPassphrase);
+				return expect(decryptedString).to.be.eql(defaultPassphrase);
 			});
 		});
 	});

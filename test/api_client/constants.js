@@ -16,14 +16,14 @@ import { GET, POST, PUT } from 'api_client/constants';
 
 describe('api constants module', () => {
 	it('GET should be a string', () => {
-		return GET.should.be.a('string');
+		return expect(GET).to.be.a('string');
 	});
 
 	it('POST should be a string', () => {
-		return POST.should.be.a('string');
+		return expect(POST).to.be.a('string');
 	});
 
 	it('PUT should be a string', () => {
-		return PUT.should.be.a('string');
+		return expect(PUT).to.be.a('string');
 	});
 });

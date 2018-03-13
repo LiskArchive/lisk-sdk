@@ -37,79 +37,81 @@ import {
 describe('transaction utils', () => {
 	describe('exports', () => {
 		it('should have checkPublicKeysForDuplicates', () => {
-			return checkPublicKeysForDuplicates.should.be.a('function');
+			return expect(checkPublicKeysForDuplicates).to.be.a('function');
 		});
 
 		it('should have getAddressAndPublicKeyFromRecipientData', () => {
-			return getAddressAndPublicKeyFromRecipientData.should.be.a('function');
+			return expect(getAddressAndPublicKeyFromRecipientData).to.be.a(
+				'function',
+			);
 		});
 
 		it('should have getTimeFromBlockchainEpoch', () => {
-			return getTimeFromBlockchainEpoch.should.be.a('function');
+			return expect(getTimeFromBlockchainEpoch).to.be.a('function');
 		});
 
 		it('should have getTimeWithOffset', () => {
-			return getTimeWithOffset.should.be.a('function');
+			return expect(getTimeWithOffset).to.be.a('function');
 		});
 
 		it('should have getTransactionBytes', () => {
-			return getTransactionBytes.should.be.a('function');
+			return expect(getTransactionBytes).to.be.a('function');
 		});
 
 		it('should have getTransactionHash', () => {
-			return getTransactionHash.should.be.a('function');
+			return expect(getTransactionHash).to.be.a('function');
 		});
 
 		it('should have getTransactionId', () => {
-			return getTransactionId.should.be.a('function');
+			return expect(getTransactionId).to.be.a('function');
 		});
 
 		it('should have prepareTransaction', () => {
-			return prepareTransaction.should.be.a('function');
+			return expect(prepareTransaction).to.be.a('function');
 		});
 
 		it('should have prependMinusToPublicKeys', () => {
-			return prependMinusToPublicKeys.should.be.a('function');
+			return expect(prependMinusToPublicKeys).to.be.a('function');
 		});
 
 		it('should have prependPlusToPublicKeys', () => {
-			return prependPlusToPublicKeys.should.be.a('function');
+			return expect(prependPlusToPublicKeys).to.be.a('function');
 		});
 
 		it('should have signRawTransaction', () => {
-			return signRawTransaction.should.be.a('function');
+			return expect(signRawTransaction).to.be.a('function');
 		});
 
 		it('should have signTransaction', () => {
-			return signTransaction.should.be.a('function');
+			return expect(signTransaction).to.be.a('function');
 		});
 
 		it('should have multiSignTransaction', () => {
-			return multiSignTransaction.should.be.a('function');
+			return expect(multiSignTransaction).to.be.a('function');
 		});
 
 		it('should have verifyTransaction', () => {
-			return verifyTransaction.should.be.a('function');
+			return expect(verifyTransaction).to.be.a('function');
 		});
 
 		it('should have validateAddress', () => {
-			return validateAddress.should.be.a('function');
+			return expect(validateAddress).to.be.a('function');
 		});
 
 		it('should have validateKeysgroup', () => {
-			return validateKeysgroup.should.be.a('function');
+			return expect(validateKeysgroup).to.be.a('function');
 		});
 
 		it('should have validatePublicKey', () => {
-			return validatePublicKey.should.be.a('function');
+			return expect(validatePublicKey).to.be.a('function');
 		});
 
 		it('should have validatePublicKeys', () => {
-			return validatePublicKeys.should.be.a('function');
+			return expect(validatePublicKeys).to.be.a('function');
 		});
 
 		it('should have wrapTransactionCreator', () => {
-			return wrapTransactionCreator.should.be.a('function');
+			return expect(wrapTransactionCreator).to.be.a('function');
 		});
 	});
 });

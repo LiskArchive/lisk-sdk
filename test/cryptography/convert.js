@@ -56,59 +56,63 @@ describe('convert', () => {
 	describe('#bufferToHex', () => {
 		it('should create a hex string from a Buffer', () => {
 			const hex = bufferToHex(defaultBuffer);
-			return hex.should.be.equal(defaultHex);
+			return expect(hex).to.be.equal(defaultHex);
 		});
 	});
 
 	describe('#hexToBuffer', () => {
 		it('should create a Buffer from a hex string', () => {
 			const buffer = hexToBuffer(defaultHex);
-			return buffer.should.be.eql(defaultBuffer);
+			return expect(buffer).to.be.eql(defaultBuffer);
 		});
 
 		it('should throw TypeError with number', () => {
-			return hexToBuffer
-				.bind(null, 123)
-				.should.throw(TypeError, 'Argument must be a string.');
+			return expect(hexToBuffer.bind(null, 123)).to.throw(
+				TypeError,
+				'Argument must be a string.',
+			);
 		});
 
 		it('should throw TypeError with object', () => {
-			return hexToBuffer
-				.bind(null, {})
-				.should.throw(TypeError, 'Argument must be a string.');
+			return expect(hexToBuffer.bind(null, {})).to.throw(
+				TypeError,
+				'Argument must be a string.',
+			);
 		});
 
 		it('should throw TypeError with non hex string', () => {
-			return hexToBuffer
-				.bind(null, 'yKJj')
-				.should.throw(TypeError, 'Argument must be a valid hex string.');
+			return expect(hexToBuffer.bind(null, 'yKJj')).to.throw(
+				TypeError,
+				'Argument must be a valid hex string.',
+			);
 		});
 
 		it('should throw TypeError with partially correct hex string', () => {
-			return hexToBuffer
-				.bind(null, 'Abxzzzz')
-				.should.throw(TypeError, 'Argument must be a valid hex string.');
+			return expect(hexToBuffer.bind(null, 'Abxzzzz')).to.throw(
+				TypeError,
+				'Argument must be a valid hex string.',
+			);
 		});
 
 		it('should throw TypeError with odd number of string with partially correct hex string', () => {
-			return hexToBuffer
-				.bind(null, 'Abxzzab')
-				.should.throw(TypeError, 'Argument must be a valid hex string.');
+			return expect(hexToBuffer.bind(null, 'Abxzzab')).to.throw(
+				TypeError,
+				'Argument must be a valid hex string.',
+			);
 		});
 
 		it('should throw TypeError with odd number hex string with invalid hex', () => {
-			return hexToBuffer
-				.bind(null, '123xxxx')
-				.should.throw(TypeError, 'Argument must be a valid hex string.');
+			return expect(hexToBuffer.bind(null, '123xxxx')).to.throw(
+				TypeError,
+				'Argument must be a valid hex string.',
+			);
 		});
 
 		it('should throw TypeError with odd number of hex string', () => {
-			return hexToBuffer
-				.bind(null, 'c3a5c3a4c3b6a')
-				.should.throw(
-					TypeError,
-					'Argument must have a valid length of hex string.',
-				);
+			return expect(hexToBuffer.bind(null, 'c3a5c3a4c3b6a')).to.throw(
+				TypeError,
+				'Argument must have a valid length of hex string.',
+			);
 		});
 	});
 
@@ -116,7 +120,7 @@ describe('convert', () => {
 		it('should get the first eight bytes reversed from a Buffer', () => {
 			const bufferEntry = Buffer.from(defaultStringWithMoreThanEightCharacters);
 			const reversedAndCut = getFirstEightBytesReversed(bufferEntry);
-			return reversedAndCut.should.be.eql(
+			return expect(reversedAndCut).to.be.eql(
 				Buffer.from(defaultFirstEightCharactersReversed),
 			);
 		});
@@ -125,7 +129,7 @@ describe('convert', () => {
 			const reversedAndCut = getFirstEightBytesReversed(
 				defaultStringWithMoreThanEightCharacters,
 			);
-			return reversedAndCut.should.be.eql(
+			return expect(reversedAndCut).to.be.eql(
 				Buffer.from(defaultFirstEightCharactersReversed),
 			);
 		});
@@ -135,7 +139,7 @@ describe('convert', () => {
 		it('should create an address from a buffer', () => {
 			const bufferInit = Buffer.from(defaultDataForBuffer);
 			const address = toAddress(bufferInit);
-			return address.should.be.eql(defaultAddressFromBuffer);
+			return expect(address).to.be.eql(defaultAddressFromBuffer);
 		});
 	});
 
@@ -146,7 +150,7 @@ describe('convert', () => {
 
 		it('should generate address from publicKey', () => {
 			const address = getAddressFromPublicKey(defaultPublicKey);
-			return address.should.be.equal(defaultAddress);
+			return expect(address).to.be.equal(defaultAddress);
 		});
 	});
 
@@ -157,23 +161,25 @@ describe('convert', () => {
 
 		it('should generate address from publicKey', () => {
 			const address = getAddress(defaultPublicKey);
-			return address.should.be.equal(defaultAddress);
+			return expect(address).to.be.equal(defaultAddress);
 		});
 	});
 
 	describe('#convertPublicKeyEd2Curve', () => {
 		it('should convert publicKey ED25519 to Curve25519 key', () => {
 			const curveRepresentation = convertPublicKeyEd2Curve(defaultPublicKey);
-			return defaultPublicKeyCurve.equals(Buffer.from(curveRepresentation))
-				.should.be.true;
+			return expect(
+				defaultPublicKeyCurve.equals(Buffer.from(curveRepresentation)),
+			).to.be.true;
 		});
 	});
 
 	describe('#convertPrivateKeyEd2Curve', () => {
 		it('should convert privateKey ED25519 to Curve25519 key', () => {
 			const curveRepresentation = convertPrivateKeyEd2Curve(defaultPrivateKey);
-			return defaultPrivateKeyCurve.equals(Buffer.from(curveRepresentation))
-				.should.be.true;
+			return expect(
+				defaultPrivateKeyCurve.equals(Buffer.from(curveRepresentation)),
+			).to.be.true;
 		});
 	});
 
@@ -182,7 +188,7 @@ describe('convert', () => {
 			const bigNumber = '58191285901858109';
 			const addressSize = 8;
 			const expectedBuffer = Buffer.from('00cebcaa8d34153d', 'hex');
-			return bigNumberToBuffer(bigNumber, addressSize).should.be.eql(
+			return expect(bigNumberToBuffer(bigNumber, addressSize)).to.be.eql(
 				expectedBuffer,
 			);
 		});
@@ -192,7 +198,7 @@ describe('convert', () => {
 		it('should convert a buffer to a big number', () => {
 			const bigNumber = '58191285901858109';
 			const buffer = Buffer.from('00cebcaa8d34153d', 'hex');
-			return bufferToBigNumberString(buffer).should.be.equal(bigNumber);
+			return expect(bufferToBigNumberString(buffer)).to.be.equal(bigNumber);
 		});
 	});
 });

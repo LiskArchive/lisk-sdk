@@ -37,38 +37,46 @@ describe('DelegatesResource', () => {
 
 	describe('#constructor', () => {
 		it('should throw error without apiClient input', () => {
-			return (() => new DelegatesResource()).should.throw(
+			return expect(() => new DelegatesResource()).to.throw(
 				'APIResource requires APIClient instance for initialization.',
 			);
 		});
 
 		it('should be instance of APIResource', () => {
-			return resource.should.be.instanceOf(APIResource);
+			return expect(resource).to.be.instanceOf(APIResource);
 		});
 
 		it('should have correct full path', () => {
-			return resource.resourcePath.should.eql(`${defaultBasePath}/api${path}`);
+			return expect(resource.resourcePath).to.eql(
+				`${defaultBasePath}/api${path}`,
+			);
 		});
 
 		it('should set resource path', () => {
-			return resource.path.should.equal(path);
+			return expect(resource.path).to.equal(path);
 		});
 
 		it('should have a "get" function', () => {
-			return resource.should.have.property('get').which.is.a('function');
+			return expect(resource)
+				.to.have.property('get')
+				.which.is.a('function');
 		});
 
 		it('should have a "getStandby" function', () => {
-			return resource.should.have.property('getStandby').which.is.a('function');
+			return expect(resource)
+				.to.have.property('getStandby')
+				.which.is.a('function');
 		});
 
 		it('should have a "getForgers" function', () => {
-			return resource.should.have.property('getForgers').which.is.a('function');
+			return expect(resource)
+				.to.have.property('getForgers')
+				.which.is.a('function');
 		});
 
 		it('should have a "getForgingStats" function', () => {
-			return resource.should.have
-				.property('getForgingStats')
+			return expect(resource)
+				.to.have.property('getForgingStats')
 				.which.is.a('function');
 		});
 	});

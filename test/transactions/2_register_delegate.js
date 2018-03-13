@@ -48,95 +48,95 @@ describe('#registerDelegate transaction', () => {
 		});
 
 		it('should create a register delegate transaction', () => {
-			return registerDelegateTransaction.should.be.ok;
+			return expect(registerDelegateTransaction).to.be.ok;
 		});
 
 		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-			return getTimeWithOffsetStub.should.be.calledWithExactly(undefined);
+			return expect(getTimeWithOffsetStub).to.be.calledWithExactly(undefined);
 		});
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
 			registerDelegate({ passphrase, username, timeOffset: offset });
 
-			return getTimeWithOffsetStub.should.be.calledWithExactly(offset);
+			return expect(getTimeWithOffsetStub).to.be.calledWithExactly(offset);
 		});
 
 		it('should be an object', () => {
-			return registerDelegateTransaction.should.be.an('object');
+			return expect(registerDelegateTransaction).to.be.an('object');
 		});
 
 		it('should have an id string', () => {
-			return registerDelegateTransaction.should.have
-				.property('id')
+			return expect(registerDelegateTransaction)
+				.to.have.property('id')
 				.and.be.a('string');
 		});
 
 		it('should have type number equal to 2', () => {
-			return registerDelegateTransaction.should.have
-				.property('type')
+			return expect(registerDelegateTransaction)
+				.to.have.property('type')
 				.and.be.a('number')
 				.and.equal(transactionType);
 		});
 
 		it('should have amount string equal to 0', () => {
-			return registerDelegateTransaction.should.have
-				.property('amount')
+			return expect(registerDelegateTransaction)
+				.to.have.property('amount')
 				.and.be.a('string')
 				.and.equal(amount);
 		});
 
 		it('should have fee string equal to 25 LSK', () => {
-			return registerDelegateTransaction.should.have
-				.property('fee')
+			return expect(registerDelegateTransaction)
+				.to.have.property('fee')
 				.and.be.a('string')
 				.and.equal(fee);
 		});
 
 		it('should have recipientId equal to null', () => {
-			return registerDelegateTransaction.should.have.property('recipientId').and
-				.be.null;
+			return expect(registerDelegateTransaction).to.have.property('recipientId')
+				.and.be.null;
 		});
 
 		it('should have senderPublicKey hex string equal to sender public key', () => {
-			return registerDelegateTransaction.should.have
-				.property('senderPublicKey')
+			return expect(registerDelegateTransaction)
+				.to.have.property('senderPublicKey')
 				.and.be.hexString.and.equal(publicKey);
 		});
 
 		it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-			return registerDelegateTransaction.should.have
-				.property('timestamp')
+			return expect(registerDelegateTransaction)
+				.to.have.property('timestamp')
 				.and.be.a('number')
 				.and.equal(timeWithOffset);
 		});
 
 		it('should have signature hex string', () => {
-			return registerDelegateTransaction.should.have.property('signature').and
-				.be.hexString;
+			return expect(registerDelegateTransaction).to.have.property('signature')
+				.and.be.hexString;
 		});
 
 		it('should not have the second signature property', () => {
-			return registerDelegateTransaction.should.not.have.property(
+			return expect(registerDelegateTransaction).not.to.have.property(
 				'signSignature',
 			);
 		});
 
 		it('should have asset', () => {
-			return registerDelegateTransaction.should.have.property('asset').and.not
-				.be.empty;
+			return expect(registerDelegateTransaction).to.have.property('asset').and
+				.not.be.empty;
 		});
 
 		describe('delegate asset', () => {
 			it('should be an object', () => {
-				return registerDelegateTransaction.asset.should.have
-					.property('delegate')
+				return expect(registerDelegateTransaction.asset)
+					.to.have.property('delegate')
 					.and.be.an('object');
 			});
 
 			it('should have the provided username as a string', () => {
-				return registerDelegateTransaction.asset.delegate.should.have
-					.property('username')
+				return expect(registerDelegateTransaction.asset.delegate)
+					.to.have.property('username')
 					.and.be.a('string')
 					.and.equal(username);
 			});
@@ -154,8 +154,9 @@ describe('#registerDelegate transaction', () => {
 		});
 
 		it('should have the second signature property as hex string', () => {
-			return registerDelegateTransaction.should.have.property('signSignature')
-				.and.be.hexString;
+			return expect(registerDelegateTransaction).to.have.property(
+				'signSignature',
+			).and.be.hexString;
 		});
 	});
 
@@ -169,54 +170,56 @@ describe('#registerDelegate transaction', () => {
 			});
 
 			it('should have the type', () => {
-				return registerDelegateTransaction.should.have
-					.property('type')
+				return expect(registerDelegateTransaction)
+					.to.have.property('type')
 					.equal(transactionType);
 			});
 
 			it('should have the amount', () => {
-				return registerDelegateTransaction.should.have
-					.property('amount')
+				return expect(registerDelegateTransaction)
+					.to.have.property('amount')
 					.equal(amount);
 			});
 
 			it('should have the fee', () => {
-				return registerDelegateTransaction.should.have
-					.property('fee')
+				return expect(registerDelegateTransaction)
+					.to.have.property('fee')
 					.equal(fee);
 			});
 
 			it('should have the recipient id', () => {
-				return registerDelegateTransaction.should.have
-					.property('recipientId')
+				return expect(registerDelegateTransaction)
+					.to.have.property('recipientId')
 					.equal(null);
 			});
 
 			it('should have the sender public key', () => {
-				return registerDelegateTransaction.should.have
-					.property('senderPublicKey')
+				return expect(registerDelegateTransaction)
+					.to.have.property('senderPublicKey')
 					.equal(null);
 			});
 
 			it('should have the timestamp', () => {
-				return registerDelegateTransaction.should.have.property('timestamp');
+				return expect(registerDelegateTransaction).to.have.property(
+					'timestamp',
+				);
 			});
 
 			it('should have the asset with the delegate', () => {
-				return registerDelegateTransaction.should.have
-					.property('asset')
+				return expect(registerDelegateTransaction)
+					.to.have.property('asset')
 					.with.property('delegate')
 					.with.property('username');
 			});
 
 			it('should not have the signature', () => {
-				return registerDelegateTransaction.should.not.have.property(
+				return expect(registerDelegateTransaction).not.to.have.property(
 					'signature',
 				);
 			});
 
 			it('should not have the id', () => {
-				return registerDelegateTransaction.should.not.have.property('id');
+				return expect(registerDelegateTransaction).not.to.have.property('id');
 			});
 		});
 	});

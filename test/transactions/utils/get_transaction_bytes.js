@@ -73,7 +73,7 @@ describe('getTransactionBytes module', () => {
 				);
 				const transactionBytes = getTransactionBytes(defaultTransaction);
 
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 
 			it('should return Buffer of type 0 (transfer LSK) with data', () => {
@@ -84,7 +84,7 @@ describe('getTransactionBytes module', () => {
 				);
 				const transactionBytes = getTransactionBytes(defaultTransaction);
 
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 
 			it('should throw on type 0 with too much data', () => {
@@ -92,25 +92,25 @@ describe('getTransactionBytes module', () => {
 				defaultTransaction.asset.data = new Array(maxDataLength + 1)
 					.fill('1')
 					.join('');
-				return getTransactionBytes
-					.bind(null, defaultTransaction)
-					.should.throw('Transaction asset data exceeds size of 64.');
+				return expect(
+					getTransactionBytes.bind(null, defaultTransaction),
+				).to.throw('Transaction asset data exceeds size of 64.');
 			});
 
 			it('should throw on type 0 with an amount that is too small', () => {
 				const amount = -1;
 				defaultTransaction.amount = amount;
-				return getTransactionBytes
-					.bind(null, defaultTransaction)
-					.should.throw('Transaction amount must not be negative.');
+				return expect(
+					getTransactionBytes.bind(null, defaultTransaction),
+				).to.throw('Transaction amount must not be negative.');
 			});
 
 			it('should not throw on type 0 with an amount that is 0', () => {
 				const amount = 0;
 				defaultTransaction.amount = amount;
-				return getTransactionBytes
-					.bind(null, defaultTransaction)
-					.should.not.throw();
+				return expect(
+					getTransactionBytes.bind(null, defaultTransaction),
+				).not.to.throw();
 			});
 
 			it('should throw on type 0 with an amount that is too large', () => {
@@ -118,17 +118,17 @@ describe('getTransactionBytes module', () => {
 					.fromBuffer(Buffer.from(new Array(8).fill(255)))
 					.plus(1);
 				defaultTransaction.amount = amount;
-				return getTransactionBytes
-					.bind(null, defaultTransaction)
-					.should.throw('Transaction amount is too large.');
+				return expect(
+					getTransactionBytes.bind(null, defaultTransaction),
+				).to.throw('Transaction amount is too large.');
 			});
 
 			it('should not throw on type 0 with an amount that is the maximum possible', () => {
 				const amount = bignum.fromBuffer(Buffer.from(new Array(8).fill(255)));
 				defaultTransaction.amount = amount;
-				return getTransactionBytes
-					.bind(null, defaultTransaction)
-					.should.not.throw();
+				return expect(
+					getTransactionBytes.bind(null, defaultTransaction),
+				).not.to.throw();
 			});
 
 			it('should return Buffer of transaction with second signature', () => {
@@ -138,7 +138,7 @@ describe('getTransactionBytes module', () => {
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(defaultTransaction);
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 
 			it('should return Buffer from multisignature type 0 (transfer LSK) transaction', () => {
@@ -162,7 +162,7 @@ describe('getTransactionBytes module', () => {
 				);
 				const transactionBytes = getTransactionBytes(multiSignatureTransaction);
 
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 
 			it('should return Buffer of type 0 (transfer LSK) with additional properties', () => {
@@ -173,7 +173,7 @@ describe('getTransactionBytes module', () => {
 				);
 				const transactionBytes = getTransactionBytes(defaultTransaction);
 
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 
 			it('should throw on missing required parameters', () => {
@@ -187,9 +187,9 @@ describe('getTransactionBytes module', () => {
 				return requiredProperties.forEach(parameter => {
 					const defaultTransactionClone = Object.assign({}, defaultTransaction);
 					delete defaultTransactionClone[parameter];
-					getTransactionBytes
-						.bind(null, defaultTransactionClone)
-						.should.throw(`${parameter} is a required parameter.`);
+					expect(
+						getTransactionBytes.bind(null, defaultTransactionClone),
+					).to.throw(`${parameter} is a required parameter.`);
 				});
 			});
 
@@ -204,9 +204,9 @@ describe('getTransactionBytes module', () => {
 				return requiredProperties.forEach(parameter => {
 					const defaultTransactionClone = Object.assign({}, defaultTransaction);
 					defaultTransactionClone[parameter] = undefined;
-					getTransactionBytes
-						.bind(null, defaultTransactionClone)
-						.should.throw(`${parameter} is a required parameter.`);
+					expect(
+						getTransactionBytes.bind(null, defaultTransactionClone),
+					).to.throw(`${parameter} is a required parameter.`);
 				});
 			});
 		});
@@ -231,7 +231,7 @@ describe('getTransactionBytes module', () => {
 				);
 				const transactionBytes = getTransactionBytes(signatureTransaction);
 
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 		});
 
@@ -257,7 +257,7 @@ describe('getTransactionBytes module', () => {
 					delegateRegistrationTransaction,
 				);
 
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 		});
 
@@ -286,7 +286,7 @@ describe('getTransactionBytes module', () => {
 				);
 				const transactionBytes = getTransactionBytes(voteTransaction);
 
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 		});
 
@@ -321,7 +321,7 @@ describe('getTransactionBytes module', () => {
 					createMultiSignatureTransaction,
 				);
 
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 		});
 
@@ -356,7 +356,7 @@ describe('getTransactionBytes module', () => {
 				);
 				const transactionBytes = getTransactionBytes(dappTransaction);
 
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 		});
 
@@ -380,7 +380,7 @@ describe('getTransactionBytes module', () => {
 				);
 				const transactionBytes = getTransactionBytes(inTransferTransction);
 
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 		});
 
@@ -409,7 +409,7 @@ describe('getTransactionBytes module', () => {
 				);
 				const transactionBytes = getTransactionBytes(outTransferTransaction);
 
-				return transactionBytes.should.be.eql(expectedBuffer);
+				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 		});
 	});
@@ -425,7 +425,7 @@ describe('getTransactionBytes module', () => {
 					1: 10,
 				};
 
-				return checkRequiredFields(arrayToCheck, objectParameter).should.be
+				return expect(checkRequiredFields(arrayToCheck, objectParameter)).to.be
 					.true;
 			});
 
@@ -436,9 +436,9 @@ describe('getTransactionBytes module', () => {
 					1: 10,
 				};
 
-				return checkRequiredFields
-					.bind(null, arrayToCheck, objectParameter)
-					.should.throw('ThirdValue is a required parameter.');
+				return expect(
+					checkRequiredFields.bind(null, arrayToCheck, objectParameter),
+				).to.throw('ThirdValue is a required parameter.');
 			});
 		});
 
@@ -450,12 +450,12 @@ describe('getTransactionBytes module', () => {
 					data: 'my data input',
 				});
 
-				return assetDataBuffer.should.be.eql(expectedBuffer);
+				return expect(assetDataBuffer).to.be.eql(expectedBuffer);
 			});
 
 			it('should return empty Buffer for no asset data', () => {
 				const assetDataBuffer = getAssetDataForTransferTransaction({});
-				return assetDataBuffer.should.be.eql(defaultEmptyBuffer);
+				return expect(assetDataBuffer).to.be.eql(defaultEmptyBuffer);
 			});
 		});
 
@@ -470,13 +470,15 @@ describe('getTransactionBytes module', () => {
 					},
 				);
 
-				return assetSignaturesPublicKeyBuffer.should.be.eql(expectedBuffer);
+				return expect(assetSignaturesPublicKeyBuffer).to.be.eql(expectedBuffer);
 			});
 
 			it('should throw on missing publicKey in the signature asset', () => {
-				return getAssetDataForRegisterSecondSignatureTransaction
-					.bind(null, { signature: {} })
-					.should.throw('publicKey is a required parameter.');
+				return expect(
+					getAssetDataForRegisterSecondSignatureTransaction.bind(null, {
+						signature: {},
+					}),
+				).to.throw('publicKey is a required parameter.');
 			});
 		});
 
@@ -491,13 +493,15 @@ describe('getTransactionBytes module', () => {
 					},
 				);
 
-				return assetDelegateUsernameBuffer.should.be.eql(expectedBuffer);
+				return expect(assetDelegateUsernameBuffer).to.be.eql(expectedBuffer);
 			});
 
 			it('should throw on missing username in the delegate asset', () => {
-				return getAssetDataForRegisterDelegateTransaction
-					.bind(null, { delegate: {} })
-					.should.throw('username is a required parameter.');
+				return expect(
+					getAssetDataForRegisterDelegateTransaction.bind(null, {
+						delegate: {},
+					}),
+				).to.throw('username is a required parameter.');
 			});
 		});
 
@@ -515,13 +519,13 @@ describe('getTransactionBytes module', () => {
 				);
 				const assetVoteBuffer = getAssetDataForCastVotesTransaction(votesAsset);
 
-				return assetVoteBuffer.should.be.eql(expectedBuffer);
+				return expect(assetVoteBuffer).to.be.eql(expectedBuffer);
 			});
 
 			it('should throw on missing votes in the vote asset', () => {
-				return getAssetDataForCastVotesTransaction
-					.bind(null, { votes: {} })
-					.should.throw('votes parameter must be an Array.');
+				return expect(
+					getAssetDataForCastVotesTransaction.bind(null, { votes: {} }),
+				).to.throw('votes parameter must be an Array.');
 			});
 		});
 
@@ -556,7 +560,7 @@ describe('getTransactionBytes module', () => {
 					multisignatureAsset,
 				);
 
-				return multisignatureBuffer.should.be.eql(expectedBuffer);
+				return expect(multisignatureBuffer).to.be.eql(expectedBuffer);
 			});
 
 			it('should throw on missing required parameters', () => {
@@ -568,9 +572,11 @@ describe('getTransactionBytes module', () => {
 						multisignatureAsset.multisignature,
 					);
 					delete multisigAsset[parameter];
-					getAssetDataForRegisterMultisignatureAccountTransaction
-						.bind(null, { multisignature: multisigAsset })
-						.should.throw(`${parameter} is a required parameter.`);
+					expect(
+						getAssetDataForRegisterMultisignatureAccountTransaction.bind(null, {
+							multisignature: multisigAsset,
+						}),
+					).to.throw(`${parameter} is a required parameter.`);
 				});
 			});
 		});
@@ -629,7 +635,7 @@ describe('getTransactionBytes module', () => {
 				]);
 				const dappBuffer = getAssetDataForCreateDappTransaction(dappAsset);
 
-				return dappBuffer.should.be.eql(expectedBuffer);
+				return expect(dappBuffer).to.be.eql(expectedBuffer);
 			});
 
 			it('should throw for create dapp asset without required fields', () => {
@@ -647,9 +653,11 @@ describe('getTransactionBytes module', () => {
 				return requiredProperties.forEach(parameter => {
 					const dappClone = Object.assign({}, dapp);
 					delete dappClone[parameter];
-					getAssetDataForCreateDappTransaction
-						.bind(null, { dapp: dappClone })
-						.should.throw(`${parameter} is a required parameter.`);
+					expect(
+						getAssetDataForCreateDappTransaction.bind(null, {
+							dapp: dappClone,
+						}),
+					).to.throw(`${parameter} is a required parameter.`);
 				});
 			});
 		});
@@ -666,13 +674,15 @@ describe('getTransactionBytes module', () => {
 					dappInAsset,
 				);
 
-				return dappInTransferBuffer.should.be.eql(expectedBuffer);
+				return expect(dappInTransferBuffer).to.be.eql(expectedBuffer);
 			});
 
 			it('should throw on missing votes in the vote asset', () => {
-				return getAssetDataForTransferIntoDappTransaction
-					.bind(null, { inTransfer: {} })
-					.should.throw('dappId is a required parameter.');
+				return expect(
+					getAssetDataForTransferIntoDappTransaction.bind(null, {
+						inTransfer: {},
+					}),
+				).to.throw('dappId is a required parameter.');
 			});
 		});
 
@@ -694,13 +704,15 @@ describe('getTransactionBytes module', () => {
 					dappOutAsset,
 				);
 
-				return dappOutTransferBuffer.should.be.eql(expectedBuffer);
+				return expect(dappOutTransferBuffer).to.be.eql(expectedBuffer);
 			});
 
 			it('should throw on missing votes in the vote asset', () => {
-				return getAssetDataForTransferOutOfDappTransaction
-					.bind(null, { outTransfer: {} })
-					.should.throw('dappId is a required parameter.');
+				return expect(
+					getAssetDataForTransferOutOfDappTransaction.bind(null, {
+						outTransfer: {},
+					}),
+				).to.throw('dappId is a required parameter.');
 			});
 		});
 
@@ -727,16 +739,16 @@ describe('getTransactionBytes module', () => {
 				defaultTransaction.asset.data = new Array(maxDataLength + 1)
 					.fill('1')
 					.join('');
-				return checkTransaction
-					.bind(null, defaultTransaction)
-					.should.throw('Transaction asset data exceeds size of 64.');
+				return expect(checkTransaction.bind(null, defaultTransaction)).to.throw(
+					'Transaction asset data exceeds size of 64.',
+				);
 			});
 
 			it('should return true on asset data exactly at max data length', () => {
 				defaultTransaction.asset.data = new Array(maxDataLength)
 					.fill('1')
 					.join('');
-				return checkTransaction(defaultTransaction).should.be.true;
+				return expect(checkTransaction(defaultTransaction)).to.be.true;
 			});
 		});
 
@@ -745,14 +757,14 @@ describe('getTransactionBytes module', () => {
 				const allInvalidValues = [NaN, false, undefined];
 				return allInvalidValues.forEach(value => {
 					const invalid = isValidValue(value);
-					invalid.should.be.false;
+					expect(invalid).to.be.false;
 				});
 			});
 			it('should return true on valid values', () => {
 				const exampleValidValues = ['123', 123, { 1: 2, 3: 4 }, [1, 2, 3]];
 				return exampleValidValues.forEach(value => {
 					const valid = isValidValue(value);
-					valid.should.be.true;
+					expect(valid).to.be.true;
 				});
 			});
 		});

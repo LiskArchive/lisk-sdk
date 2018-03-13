@@ -80,18 +80,20 @@ describe('signAndVerify module', () => {
 			});
 
 			it('should get the transaction hash', () => {
-				return getTransactionHashStub.should.be.calledWithExactly(transaction);
+				return expect(getTransactionHashStub).to.be.calledWithExactly(
+					transaction,
+				);
 			});
 
 			it('should sign the transaction hash with the passphrase', () => {
-				return cryptoSignDataStub.should.be.calledWithExactly(
+				return expect(cryptoSignDataStub).to.be.calledWithExactly(
 					defaultHash,
 					defaultPassphrase,
 				);
 			});
 
 			it('should return the signature', () => {
-				return signature.should.be.equal(defaultSignature);
+				return expect(signature).to.be.equal(defaultSignature);
 			});
 		});
 
@@ -128,21 +130,23 @@ describe('signAndVerify module', () => {
 			});
 
 			it('should remove the signature and second signature before getting transaction hash', () => {
-				getTransactionHashStub.args[0].should.not.have.property('signature');
-				return getTransactionHashStub.args[0].should.not.have.property(
+				expect(getTransactionHashStub.args[0]).not.to.have.property(
+					'signature',
+				);
+				return expect(getTransactionHashStub.args[0]).not.to.have.property(
 					'signSignature',
 				);
 			});
 
 			it('should sign the transaction hash with the passphrase', () => {
-				return cryptoSignDataStub.should.be.calledWithExactly(
+				return expect(cryptoSignDataStub).to.be.calledWithExactly(
 					defaultMultisignatureHash,
 					defaultPassphrase,
 				);
 			});
 
 			it('should return the signature', () => {
-				return signature.should.be.equal(defaultSignature);
+				return expect(signature).to.be.equal(defaultSignature);
 			});
 		});
 
@@ -159,14 +163,14 @@ describe('signAndVerify module', () => {
 
 				it('should remove the signature before getting transaction hash', () => {
 					verifyTransaction(transaction);
-					return getTransactionHashStub.args[0].should.not.have.property(
+					return expect(getTransactionHashStub.args[0]).not.to.have.property(
 						'signature',
 					);
 				});
 
 				it('should verify the transaction using the hash, the signature and the public key', () => {
 					verifyTransaction(transaction);
-					return cryptoVerifyDataStub.should.be.calledWithExactly(
+					return expect(cryptoVerifyDataStub).to.be.calledWithExactly(
 						defaultHash,
 						defaultSignature,
 						defaultPublicKey,
@@ -176,12 +180,12 @@ describe('signAndVerify module', () => {
 				it('should return false for an invalid signature', () => {
 					cryptoVerifyDataStub.returns(false);
 					const verification = verifyTransaction(transaction);
-					return verification.should.be.false;
+					return expect(verification).to.be.false;
 				});
 
 				it('should return true for a valid signature', () => {
 					const verification = verifyTransaction(transaction);
-					return verification.should.be.true;
+					return expect(verification).to.be.true;
 				});
 			});
 
@@ -202,25 +206,23 @@ describe('signAndVerify module', () => {
 				});
 
 				it('should throw if attempting to verify without a secondPublicKey', () => {
-					return verifyTransaction
-						.bind(null, transaction)
-						.should.throw(
-							'Cannot verify signSignature without secondPublicKey.',
-						);
+					return expect(verifyTransaction.bind(null, transaction)).to.throw(
+						'Cannot verify signSignature without secondPublicKey.',
+					);
 				});
 
 				it('should remove the second signature before getting the first transaction hash', () => {
 					verifyTransaction(transaction, defaultSecondPublicKey);
-					return getTransactionHashStub.firstCall.args[0].should.not.have.property(
-						'signSignature',
-					);
+					return expect(
+						getTransactionHashStub.firstCall.args[0],
+					).not.to.have.property('signSignature');
 				});
 
 				it('should remove the first signature before getting the second transaction hash', () => {
 					verifyTransaction(transaction, defaultSecondPublicKey);
-					return getTransactionHashStub.secondCall.args[0].should.not.have.property(
-						'signature',
-					);
+					return expect(
+						getTransactionHashStub.secondCall.args[0],
+					).not.to.have.property('signature');
 				});
 
 				it('should return false for an invalid second signature', () => {
@@ -229,7 +231,7 @@ describe('signAndVerify module', () => {
 						transaction,
 						defaultSecondPublicKey,
 					);
-					return verification.should.be.false;
+					return expect(verification).to.be.false;
 				});
 
 				it('should return false for an invalid first signature', () => {
@@ -246,7 +248,7 @@ describe('signAndVerify module', () => {
 						transaction,
 						defaultSecondPublicKey,
 					);
-					return verification.should.be.false;
+					return expect(verification).to.be.false;
 				});
 
 				it('should return true for a valid signature', () => {
@@ -254,7 +256,7 @@ describe('signAndVerify module', () => {
 						transaction,
 						defaultSecondPublicKey,
 					);
-					return verification.should.be.true;
+					return expect(verification).to.be.true;
 				});
 			});
 		});
@@ -276,7 +278,7 @@ describe('signAndVerify module', () => {
 								const rawTx = Object.assign({}, transaction);
 								delete rawTx.signature;
 								delete rawTx.signSignature;
-								return signTransaction(rawTx, passphrase).should.be.equal(
+								return expect(signTransaction(rawTx, passphrase)).to.be.equal(
 									signature,
 								);
 							});
@@ -290,10 +292,9 @@ describe('signAndVerify module', () => {
 								if (signSignature) {
 									const rawTx = Object.assign({}, transaction);
 									delete rawTx.signSignature;
-									return signTransaction(
-										rawTx,
-										secondPassphrase,
-									).should.be.equal(signSignature);
+									return expect(
+										signTransaction(rawTx, secondPassphrase),
+									).to.be.equal(signSignature);
 								}
 								return true;
 							});
@@ -308,8 +309,8 @@ describe('signAndVerify module', () => {
 						'f9666bfed9ef2ff52a04408f22f2bfffaa81384c9433463697330224f10032a4';
 					it('should verify all the transactions', () => {
 						return validTransactions.forEach(transaction => {
-							return verifyTransaction(transaction, secondPublicKey).should.be
-								.true;
+							return expect(verifyTransaction(transaction, secondPublicKey)).to
+								.be.true;
 						});
 					});
 				});

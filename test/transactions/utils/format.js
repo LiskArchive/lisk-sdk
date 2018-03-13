@@ -31,7 +31,7 @@ describe('format', () => {
 					'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 				];
-				return prependPlusToPublicKeys(publicKeys).should.be.eql(
+				return expect(prependPlusToPublicKeys(publicKeys)).to.be.eql(
 					expectedOutput,
 				);
 			});
@@ -51,7 +51,7 @@ describe('format', () => {
 					'-922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					'-5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 				];
-				return prependMinusToPublicKeys(publicKeys).should.be.eql(
+				return expect(prependMinusToPublicKeys(publicKeys)).to.be.eql(
 					expectedOutput,
 				);
 			});
