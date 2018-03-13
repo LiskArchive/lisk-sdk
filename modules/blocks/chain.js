@@ -338,15 +338,23 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 					modules.accounts.setAccountAndGet(
 						{ publicKey: transaction.senderPublicKey },
 						(accountErr, sender) => {
+							if (accountErr) {
+								const err = `Failed to get account for apply unconfirmed transaction: ${
+									transaction.id
+								} '-' ${accountErr}`;
+								library.logger.error(err);
+								library.logger.error('Transaction', transaction);
+								return setImmediate(reject, err);
+							}
 							// DATABASE: write
 							modules.transactions.applyUnconfirmed(
 								transaction,
 								sender,
 								err => {
-									if (err || accountErr) {
+									if (err) {
 										err = `Failed to apply unconfirmed transaction: ${
 											transaction.id
-										} '-' ${err || accountErr}`;
+										} '-' ${err}`;
 										library.logger.error(err);
 										library.logger.error('Transaction', transaction);
 										return setImmediate(reject, err);
@@ -380,6 +388,14 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 					modules.accounts.getAccount(
 						{ publicKey: transaction.senderPublicKey },
 						(accountErr, sender) => {
+							if (accountErr) {
+								const err = `Failed to get account for apply transaction: ${
+									transaction.id
+								} '-' ${accountErr}`;
+								library.logger.error(err);
+								library.logger.error('Transaction', transaction);
+								return setImmediate(reject, err);
+							}
 							// DATABASE: write
 							modules.transactions.apply(
 								transaction,
@@ -390,11 +406,11 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 										// Fatal error, memory tables will be inconsistent
 										err = `Failed to apply transaction: ${
 											transaction.id
-										} - ${err || accountErr}`;
+										} - ${err}`;
 										library.logger.error(err);
 										library.logger.error('Transaction', transaction);
 
-										reject(err);
+										return setImmediate(reject, err);
 									}
 									return setImmediate(resolve);
 								},
@@ -430,7 +446,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 							library.logger.error('Failed to save block...', err);
 							library.logger.error('Block', block);
 							var errObj = new Error('Failed to save block');
-							return reject(errObj);
+							return setImmediate(reject, errObj);
 						}
 
 						library.logger.debug(
@@ -445,9 +461,9 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 							block,
 							err => {
 								if (err) {
-									return reject(err);
+									return setImmediate(reject, err);
 								}
-								return resolve();
+								return setImmediate(resolve);
 							},
 							tx
 						);
@@ -462,9 +478,9 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 					block,
 					err => {
 						if (err) {
-							return reject(err);
+							return setImmediate(reject, err);
 						}
-						return resolve();
+						return setImmediate(resolve);
 					},
 					tx
 				);
