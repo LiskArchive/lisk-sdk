@@ -669,6 +669,12 @@ describe('rounds', () => {
 		function recalculateVoteWeights(_accounts, voters) {
 			const accounts = _.cloneDeep(_accounts);
 
+			// Reset vote for all accounts
+			_.each(accounts, account => {
+				account.vote = '0';
+			});
+
+			// Recalculate vote
 			_.each(voters, delegate => {
 				let votes = '0';
 				const found = _.find(accounts, {
