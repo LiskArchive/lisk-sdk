@@ -1151,7 +1151,7 @@ describe('rounds', () => {
 				).to.eventually.deep.equal({});
 			});
 
-			it('mem_accounts table should be equal to one generated before last block of round deletion', () => {
+			it.skip('mem_accounts table should be equal to one generated before last block of round deletion', () => {
 				return getMemAccounts().then(_accounts => {
 					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
 				});
