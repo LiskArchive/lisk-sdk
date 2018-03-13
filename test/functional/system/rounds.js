@@ -946,6 +946,13 @@ describe('rounds', () => {
 					done();
 				});
 
+				it('unconfirmed account balances should match confirmed account balances', done => {
+					_.each(tick.after.accounts, account => {
+						expect(account.u_balance).to.be.equal(account.balance);
+					});
+					done();
+				});
+
 				describe('mem_accounts table', () => {
 					it('if block contains at least one transaction states before and after block should be different', done => {
 						if (transactions.length > 0) {
