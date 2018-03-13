@@ -227,8 +227,8 @@ __private.list = function(filter, cb) {
 				params
 			)
 		)
-		.then(rows => {
-			count = rows.length ? rows[0].count : 0;
+		.then(data => {
+			count = data;
 			return library.db.transactions.list(
 				Object.assign(
 					{},

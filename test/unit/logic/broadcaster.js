@@ -42,6 +42,7 @@ describe('Broadcaster', () => {
 
 	beforeEach(done => {
 		broadcasts = {
+			active: true,
 			broadcastInterval: 10000,
 			releaseLimit: 10,
 			parallelLimit: 10,
