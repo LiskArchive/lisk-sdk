@@ -490,6 +490,17 @@ describe('rounds', () => {
 				'948b8b509579306694c00833ec1c0f81e964487db2206ddb1517bfeca2b0dc1b',
 		};
 
+		before(() => {
+			const lastBlock = library.modules.blocks.lastBlock.get();
+
+			deleteLastBlockPromise = Promise.promisify(
+				library.modules.blocks.chain.deleteLastBlock
+			);
+
+			generateDelegateListPromise = Promise.promisify(
+				library.modules.delegates.generateDelegateList
+			);
+		});
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
 		});
 
