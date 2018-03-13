@@ -59,13 +59,7 @@ function Blocks(cb, scope) {
 
 	// Initialize submodules with library content
 	this.submodules = {
-		api: new blocksAPI(
-			scope.logger,
-			scope.db,
-			scope.logic.block,
-			scope.schema,
-			scope.dbSequence
-		),
+		api: new blocksAPI(scope.logger, scope.db, scope.logic.block, scope.schema),
 		verify: new blocksVerify(
 			scope.logger,
 			scope.logic.block,
@@ -79,7 +73,6 @@ function Blocks(cb, scope) {
 			scope.logic.transaction,
 			scope.schema,
 			scope.db,
-			scope.dbSequence,
 			scope.sequence,
 			scope.genesisblock
 		),
@@ -89,7 +82,6 @@ function Blocks(cb, scope) {
 			scope.logic.block,
 			scope.logic.transaction,
 			scope.db,
-			scope.dbSequence,
 			scope.genesisblock
 		),
 		chain: new blocksChain(

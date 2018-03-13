@@ -63,7 +63,6 @@ var swaggerHelper = require('./helpers/swagger');
  * @property {Object} config
  * @property {undefined} connect
  * @property {Object} db
- * @property {function} dbSequence
  * @property {Object} ed
  * @property {Object} genesisblock
  * @property {string} lastCommit
@@ -369,27 +368,6 @@ d.run(() => {
 						scope.logger.info('Socket Cluster ready for incoming connections');
 						cb();
 					});
-				},
-			],
-
-			dbSequence: [
-				'logger',
-				/**
-				 * Description of the function.
-				 *
-				 * @func dbSequence[1]
-				 * @memberof! app
-				 * @param {Object} scope
-				 * @param {function} cb - Callback function
-				 * @todo Add description for the function and its params
-				 */
-				function(scope, cb) {
-					var sequence = new Sequence({
-						onWarning(current) {
-							scope.logger.warn('DB queue', current);
-						},
-					});
-					cb(null, sequence);
 				},
 			],
 
@@ -752,7 +730,6 @@ d.run(() => {
 				'logger',
 				'bus',
 				'sequence',
-				'dbSequence',
 				'balancesSequence',
 				'db',
 				'logic',

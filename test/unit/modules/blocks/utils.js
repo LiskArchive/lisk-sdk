@@ -112,7 +112,6 @@ describe('blocks/utils', () => {
 			blockMock,
 			transactionMock,
 			dbStub,
-			modulesLoader.scope.dbSequence,
 			modulesLoader.scope.genesisblock
 		);
 
@@ -150,7 +149,6 @@ describe('blocks/utils', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.db).to.eql(dbStub);
-			expect(library.dbSequence).to.eql(modulesLoader.scope.dbSequence);
 			expect(library.logic.account).to.eql(accountMock);
 			expect(library.logic.block).to.eql(blockMock);
 			return expect(library.logic.transaction).to.eql(transactionMock);
