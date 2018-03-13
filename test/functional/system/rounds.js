@@ -1192,5 +1192,40 @@ describe('rounds', () => {
 				);
 			});
 		});
+
+		describe('round rollback when forger of last block of round is unvoted', () => {
+
+			it('last block height should be at height 99 after deleting one more block', () => {
+			});
+
+			it('transactions from deleted block should be added back to transaction pool', done => {
+			});
+
+			it('expected forger of last block of round should have proper votes', () => {
+			});
+
+			describe('after forging 1 block', () => {
+				it('should unvote expected forger of last block of round (block data)', () => {
+				});
+
+				it('expected forger of last block of round should still have proper votes', () => {
+				});
+			});
+
+			describe('after round finish', () => {
+				it('delegates list should be different than one generated at the beginning of round 1', done => {
+				});
+
+				it('forger of last block of previous round should have voters_balance and voters_cnt 0', () => {
+				});
+			});
+
+			describe('after last block of round is deleted', () => {
+				it('delegates list should be equal to one generated at the beginning of round 1', done => {
+				});
+
+				it('expected forger of last block of round should have proper votes again', () => {
+			});
+		});
 	});
 });
