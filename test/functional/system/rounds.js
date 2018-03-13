@@ -58,7 +58,7 @@ describe('rounds', () => {
 					height,
 				})
 				.then(rows => {
-					return rows;
+					return library.modules.blocks.utils.readDbRows(rows);
 				});
 		},
 		getBlocks: round => {
