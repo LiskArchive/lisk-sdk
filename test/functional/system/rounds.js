@@ -500,6 +500,28 @@ describe('rounds', () => {
 			generateDelegateListPromise = Promise.promisify(
 				library.modules.delegates.generateDelegateList
 			);
+
+			// Copy initial states for later comparison
+			return Promise.join(
+				getMemAccounts(),
+				getDelegates(),
+				generateDelegateListPromise(lastBlock.height, null),
+				(_accounts, _delegates, _delegatesList) => {
+					// Get genesis accounts address - should be senderId from first transaction
+					const genesisAddress =
+						library.genesisblock.block.transactions[0].senderId;
+					// Inject and normalize genesis account to delegates (it's not a delegate, but will get rewards split from first round)
+					const genesisPublicKey = _accounts[genesisAddress].publicKey.toString(
+						'hex'
+					);
+					_delegates[genesisPublicKey] = _accounts[genesisAddress];
+					_delegates[genesisPublicKey].publicKey = genesisPublicKey;
+
+					round.delegatesList = _delegatesList;
+					round.accounts = _.cloneDeep(_accounts);
+					round.delegates = _.cloneDeep(_delegates);
+				}
+			);
 		});
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
 		});
