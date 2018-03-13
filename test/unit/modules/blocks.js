@@ -104,7 +104,7 @@ describe('blocks', () => {
 			return expect(library.logger).to.eql(loggerStub);
 		});
 
-		it('should instanciate submodules', () => {
+		it('should instantiate submodules', () => {
 			expect(self.submodules.api).to.be.an('object');
 			expect(self.submodules.chain).to.be.an('object');
 			expect(self.submodules.process).to.be.an('object');
@@ -164,7 +164,7 @@ describe('blocks', () => {
 			});
 		});
 		describe('isFresh', () => {
-			describe('when __private.lastBlock is undefined', () => {
+			describe('when __private.lastBlock = undefined', () => {
 				beforeEach(done => {
 					__private.lastBlock = undefined;
 					done();
@@ -173,7 +173,7 @@ describe('blocks', () => {
 					return expect(blocksInstance.lastBlock.isFresh()).to.be.false;
 				});
 			});
-			describe('when __private.lastBlock is set', () => {
+			describe('when __private.lastBlock exists', () => {
 				describe('when secondsAgo < constants.blockReceiptTimeOut', () => {
 					beforeEach(done => {
 						const timestamp =
