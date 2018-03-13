@@ -123,13 +123,13 @@ class TransactionsRepository {
 	 * The params to this method comes in this format
 	 *
 	 * { where:
- 	 *   [ '"t_recipientId" IN (${recipientId:csv})',
- 	 *     'AND "t_senderId" IN (${senderId:csv})' ],
- 	 *  owner: '',
- 	 *  recipientId: '1253213165192941997L',
- 	 *  senderId: '16313739661670634666L',
- 	 *  limit: 10,
- 	 *  offset: 0 }
+	 *   [ '"t_recipientId" IN (${recipientId:csv})',
+	 *     'AND "t_senderId" IN (${senderId:csv})' ],
+	 *  owner: '',
+	 *  recipientId: '1253213165192941997L',
+	 *  senderId: '16313739661670634666L',
+	 *  limit: 10,
+	 *  offset: 0 }
 	 *
 	 *   @todo Simplify the usage and pass direct params to the method
 	 *
@@ -295,7 +295,6 @@ class TransactionsRepository {
 					: null;
 				t.signatures = t.signatures ? t.signatures.join() : null;
 			});
-
 		} catch (e) {
 			return Promise.reject(e);
 		}
@@ -306,11 +305,15 @@ class TransactionsRepository {
 			const groupedTransactions = _.groupBy(saveTransactions, 'type');
 
 			Object.keys(groupedTransactions).forEach(type => {
-				batch.push(t[this.transactionsRepoMap[type]].save(groupedTransactions[type]));
+				batch.push(
+					t[this.transactionsRepoMap[type]].save(groupedTransactions[type])
+				);
 			});
 		};
 
-		return this.inTransaction ? job(this.db) : this.db.tx('transactions:save', job);
+		return this.inTransaction
+			? job(this.db)
+			: this.db.tx('transactions:save', job);
 	}
 }
 
