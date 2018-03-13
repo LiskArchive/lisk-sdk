@@ -266,7 +266,8 @@ describe('blocks', () => {
 		});
 		describe('set', () => {
 			it('should assign input parameter block to __private.isActive and return input parameter', () => {
-				return expect(blocksInstance.isActive.set(true)).to.be.true;
+				expect(blocksInstance.isActive.set(true)).to.be.true;
+				return expect(__private.isActive).to.be.true;
 			});
 		});
 	});
@@ -350,9 +351,6 @@ describe('blocks', () => {
 						done();
 					});
 				});
-				it(
-					'should call library.logger.info with "Waiting for block processing to finish..." 10 times'
-				);
 			});
 		});
 	});
