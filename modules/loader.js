@@ -75,6 +75,9 @@ class Loader {
 					verifyOnLoading: scope.config.loading.verifyOnLoading,
 					snapshot: scope.config.loading.snapshot,
 				},
+				syncing: {
+					active: scope.config.syncing.active,
+				},
 			},
 		};
 		self = this;
@@ -880,7 +883,9 @@ Loader.prototype.loaded = function() {
 Loader.prototype.onPeersReady = function() {
 	library.logger.trace('Peers ready', { module: 'loader' });
 	// Enforce sync early
-	__private.syncTimer();
+	if (library.config.syncing.active) {
+		__private.syncTimer();
+	}
 
 	setImmediate(() => {
 		async.series(

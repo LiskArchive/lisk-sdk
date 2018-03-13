@@ -16,18 +16,17 @@
 
 const async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
-const bson = require('../helpers/bson.js');
 const constants = require('../helpers/constants.js');
 const failureCodes = require('../api/ws/rpc/failure_codes');
 const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');
-var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
+const wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 // Private fields
-var __private = {};
-var modules;
-var definitions;
-var library;
+const __private = {};
+let modules;
+let definitions;
+let library;
 let self;
 
 __private.loaded = false;
@@ -44,7 +43,6 @@ __private.messages = {};
  * @requires api/ws/rpc/failure_codes
  * @requires api/ws/workers/rules
  * @requires api/ws/rpc/ws_rpc
- * @requires helpers/bson
  * @requires helpers/constants
  * @requires logic/broadcaster
  * @param {function} cb - Callback function
@@ -74,6 +72,9 @@ class Transport {
 				forging: {
 					force: scope.config.forging.force,
 				},
+			},
+			broadcasts: {
+				active: scope.config.broadcasts.active,
 			},
 		};
 		self = this;
@@ -223,34 +224,28 @@ __private.receiveTransaction = function(
 		return setImmediate(cb, `Invalid transaction body - ${e.toString()}`);
 	}
 
-	library.balancesSequence.add(cb => {
-		if (!peer) {
-			library.logger.debug(
-				`Received transaction ${transaction.id} from public client`
-			);
-		} else {
-			library.logger.debug(
-				`Received transaction ${
-					transaction.id
-				} from peer ${library.logic.peers.peersManager.getAddress(peer.nonce)}`
-			);
-		}
-		modules.transactions.processUnconfirmedTransaction(
-			transaction,
-			true,
-			err => {
-				if (err) {
-					library.logger.debug(['Transaction', id].join(' '), err.toString());
-					if (transaction) {
-						library.logger.debug('Transaction', transaction);
-					}
-
-					return setImmediate(cb, err.toString());
-				}
-				return setImmediate(cb, null, transaction.id);
-			}
+	if (!peer) {
+		library.logger.debug(
+			`Received transaction ${transaction.id} from public client`
 		);
-	}, cb);
+	} else {
+		library.logger.debug(
+			`Received transaction ${
+				transaction.id
+			} from peer ${library.logic.peers.peersManager.getAddress(peer.nonce)}`
+		);
+	}
+	modules.transactions.processUnconfirmedTransaction(transaction, true, err => {
+		if (err) {
+			library.logger.debug(['Transaction', id].join(' '), err.toString());
+			if (transaction) {
+				library.logger.debug('Transaction', transaction);
+			}
+
+			return setImmediate(cb, err.toString());
+		}
+		return setImmediate(cb, null, transaction.id);
+	});
 };
 
 // Public methods
@@ -535,9 +530,14 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postBlock(query) {
+		if (!library.config.broadcasts.active) {
+			return library.logger.debug(
+				'Receiving blocks disabled by user through config.json'
+			);
+		}
 		query = query || {};
 		library.schema.validate(query, definitions.WSBlocksBroadcast, err => {
-			if (err || !query.block.base64) {
+			if (err) {
 				return library.logger.debug(
 					'Received post block broadcast request in unexpected format',
 					{
@@ -549,7 +549,6 @@ Transport.prototype.shared = {
 			}
 			let block;
 			try {
-				query.block = bson.deserialize(Buffer.from(query.block.data, 'base64'));
 				block = modules.blocks.verify.addBlockProperties(query.block);
 				block = library.logic.block.objectNormalize(block);
 			} catch (e) {
@@ -644,6 +643,11 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postSignatures(query) {
+		if (!library.config.broadcasts.active) {
+			return library.logger.debug(
+				'Receiving signatures disabled by user through config.json'
+			);
+		}
 		library.schema.validate(query, definitions.WSSignaturesList, err => {
 			if (err) {
 				return library.logger.debug('Invalid signatures body', err);
@@ -731,6 +735,11 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postTransactions(query) {
+		if (!library.config.broadcasts.active) {
+			return library.logger.debug(
+				'Receiving transactions disabled by user through config.json'
+			);
+		}
 		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
 			if (err) {
 				return library.logger.debug('Invalid transactions body', err);

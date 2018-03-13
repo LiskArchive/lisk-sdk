@@ -329,8 +329,8 @@ describe('db', () => {
 		});
 
 		describe('list()', () => {
-			it('should use raw sql with provided parameters', function*() {
-				sinonSandbox.spy(db, 'query');
+			it('should use a function with provided parameters', function*() {
+				sinonSandbox.spy(db, 'any');
 				const params = {
 					where: '',
 					sortField: '',
@@ -339,9 +339,9 @@ describe('db', () => {
 				};
 				yield db.blocks.list(params);
 
-				expect(db.query.firstCall.args[0]).to.be.a('string');
-				expect(db.query.firstCall.args[1]).to.eql(params);
-				return expect(db.query).to.be.calledOnce;
+				expect(db.any.firstCall.args[0]).to.be.a('function');
+				expect(db.any.firstCall.args[1]).to.eql(params);
+				return expect(db.any).to.be.calledOnce;
 			});
 
 			it('should be rejected with error if where param is not provided as array', () => {
@@ -453,7 +453,7 @@ describe('db', () => {
 
 		describe('getIdSequence()', () => {
 			it('should use the correct SQL file with no parameters', function*() {
-				sinonSandbox.spy(db, 'query');
+				sinonSandbox.spy(db, 'any');
 
 				const params = {
 					delegates: 1,
@@ -462,9 +462,9 @@ describe('db', () => {
 				};
 				yield db.blocks.getIdSequence(params);
 
-				expect(db.query.firstCall.args[0]).to.eql(sql.getIdSequence);
-				expect(db.query.firstCall.args[1]).to.eql(params);
-				return expect(db.query).to.be.calledOnce;
+				expect(db.any.firstCall.args[0]).to.eql(sql.getIdSequence);
+				expect(db.any.firstCall.args[1]).to.eql(params);
+				return expect(db.any).to.be.calledOnce;
 			});
 
 			it('should be rejected if required param "delegates" is missing', () => {
@@ -508,8 +508,8 @@ describe('db', () => {
 		});
 
 		describe('getCommonBlock()', () => {
-			it('should use the correct SQL file with no parameters', function*() {
-				sinonSandbox.spy(db, 'query');
+			it('should call a function with SQL parameters', function*() {
+				sinonSandbox.spy(db, 'any');
 
 				const params = {
 					id: '1111',
@@ -517,9 +517,9 @@ describe('db', () => {
 				};
 				yield db.blocks.getCommonBlock(params);
 
-				expect(db.query.firstCall.args[0]).to.eql(sql.getCommonBlock);
-				expect(db.query.firstCall.args[1]).to.eql(params);
-				return expect(db.query).to.be.calledOnce;
+				expect(db.any.firstCall.args[0]).to.be.a('function');
+				expect(db.any.firstCall.args[1]).to.eql(params);
+				return expect(db.any).to.be.calledOnce;
 			});
 
 			it('should be rejected if required param "id" is missing', () => {
@@ -596,8 +596,8 @@ describe('db', () => {
 		});
 
 		describe('loadBlocksData()', () => {
-			it('should use the correct SQL file with no parameters', function*() {
-				sinonSandbox.spy(db, 'query');
+			it('should use a function for the query', function*() {
+				sinonSandbox.spy(db, 'any');
 
 				const params = {
 					id: '1111',
@@ -606,8 +606,8 @@ describe('db', () => {
 					limit: 10,
 				};
 				yield db.blocks.loadBlocksData(params);
-				expect(db.query.firstCall.args[1]).to.eql(params);
-				return expect(db.query).to.be.calledOnce;
+				expect(db.any.firstCall.args[1]).to.eql(params);
+				return expect(db.any).to.be.calledOnce;
 			});
 
 			it('should be rejected if required param "limit" is missing', () => {
@@ -673,13 +673,13 @@ describe('db', () => {
 
 		describe('loadBlocksOffset()', () => {
 			it('should use the correct SQL file two parameters', function*() {
-				sinonSandbox.spy(db, 'query');
+				sinonSandbox.spy(db, 'any');
 
 				yield db.blocks.loadBlocksOffset(10, 20);
 
-				expect(db.query.firstCall.args[0]).to.eql(sql.loadBlocksOffset);
-				expect(db.query.firstCall.args[1]).to.eql([10, 20]);
-				return expect(db.query).to.be.calledOnce;
+				expect(db.any.firstCall.args[0]).to.eql(sql.loadBlocksOffset);
+				expect(db.any.firstCall.args[1]).to.eql([10, 20]);
+				return expect(db.any).to.be.calledOnce;
 			});
 
 			it('should not be rejected if param "offset" is missing', () => {
@@ -881,40 +881,40 @@ describe('db', () => {
 				return expect(result).to.have.lengthOf(1);
 			});
 
-			it('should throw error if invalid block "id" is not provided', () => {
+			it('should be rejected with error, if invalid block "id" is not provided', () => {
 				const block = blocksFixtures.Block();
 				delete block.id;
 
-				return expect(() => {
-					db.blocks.save(block);
-				}).to.throw("Property 'id' doesn't exist");
+				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
+					"Property 'id' doesn't exist"
+				);
 			});
 
-			it('should throw error if invalid block "payloadHash" is provided', () => {
+			it('should be rejected with error, if invalid block "payloadHash" is provided', () => {
 				const block = blocksFixtures.Block();
 				delete block.payloadHash;
 
-				return expect(() => {
-					db.blocks.save(block);
-				}).to.throw('First argument must be a string, Buffer');
+				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
+					'First argument must be a string, Buffer'
+				);
 			});
 
-			it('should throw error if invalid block "generatorPublicKey" is provided', () => {
+			it('should be rejected with error, if invalid block "generatorPublicKey" is provided', () => {
 				const block = blocksFixtures.Block();
 				delete block.generatorPublicKey;
 
-				return expect(() => {
-					db.blocks.save(block);
-				}).to.throw('First argument must be a string, Buffer');
+				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
+					'First argument must be a string, Buffer'
+				);
 			});
 
-			it('should throw error if invalid block "blockSignature" is provided', () => {
+			it('should be rejected with error, if invalid block "blockSignature" is provided', () => {
 				const block = blocksFixtures.Block();
 				delete block.blockSignature;
 
-				return expect(() => {
-					db.blocks.save(block);
-				}).to.throw('First argument must be a string, Buffer');
+				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
+					'First argument must be a string, Buffer'
+				);
 			});
 
 			it('should be rejected with error if duplicate block id is provided', () => {
