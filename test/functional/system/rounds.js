@@ -28,9 +28,9 @@ const roundsFixtures = require('../../fixtures/rounds').rounds;
 const randomUtil = require('../../common/utils/random');
 
 describe('rounds', () => {
-	var library;
-	var keypairs;
-	var validateAccountsBalancesQuery;
+	let library;
+	let keypairs;
+	let validateAccountsBalancesQuery;
 	let generateDelegateListPromise;
 
 	const Queries = {
@@ -88,7 +88,7 @@ describe('rounds', () => {
 					{ round }
 				)
 				.then(rows => {
-					var rewards = {};
+					const rewards = {};
 					_.each(rows, row => {
 						rewards[row.publicKey] = {
 							publicKey: row.publicKey,
