@@ -1027,6 +1027,35 @@ describe('rounds', () => {
 		});
 
 		describe('should forge 97 blocks with 1 TRANSFER transaction each to random account', () => {
+			const blocks_cnt = 97;
+			let blocks_processed = 0;
+			const tx_cnt = 1;
+
+			async.doUntil(
+				untilCb => {
+					++blocks_processed;
+					const transactions = [];
+					for (let t = tx_cnt - 1; t >= 0; t--) {
+						const transaction = elements.transaction.createTransaction(
+							randomUtil.account().address,
+							randomUtil.number(100000000, 1000000000),
+							accountsFixtures.genesis.password
+						);
+						transactions.push(transaction);
+					}
+
+					__testContext.debug(
+						`	Processing block ${blocks_processed} of ${blocks_cnt} with ${
+							transactions.length
+						} transactions`
+					);
+					tickAndValidate(transactions);
+					untilCb();
+				},
+				err => {
+					return err || blocks_processed >= blocks_cnt;
+				}
+			);
 		});
 
 		describe('forge block with 1 TRANSFER transaction to random account (last block of round)', () => {
