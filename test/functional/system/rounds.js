@@ -1130,6 +1130,12 @@ describe('rounds', () => {
 			});
 
 			it('should generate a different delegate list than one generated at the beginning of round 1', () => {
+				const lastBlock = library.modules.blocks.lastBlock.get();
+				return generateDelegateListPromise(lastBlock.height + 1, null).then(
+					delegatesList => {
+						expect(delegatesList).to.not.deep.equal(round.delegatesList);
+					}
+				);
 			});
 		});
 
