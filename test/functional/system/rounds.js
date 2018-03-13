@@ -1194,6 +1194,29 @@ describe('rounds', () => {
 		});
 
 		describe('round rollback when forger of last block of round is unvoted', () => {
+			let lastBlock;
+			let lastBlockForger;
+			const transactions = [];
+
+			before(done => {
+				// Set last block forger
+				getNextForger(null, delegatePublicKey => {
+					lastBlockForger = delegatePublicKey;
+
+					// Create unvote transaction
+					const transaction = elements.vote.createVote(
+						accountsFixtures.genesis.password,
+						[`-${lastBlockForger}`]
+					);
+					transactions.push(transaction);
+
+					lastBlock = library.modules.blocks.lastBlock.get();
+					// Delete one block more
+					return deleteLastBlockPromise().then(() => {
+						done();
+					});
+				});
+			});
 
 			it('last block height should be at height 99 after deleting one more block', () => {
 			});
