@@ -1219,19 +1219,49 @@ describe('rounds', () => {
 			});
 
 			it('last block height should be at height 99 after deleting one more block', () => {
+				const lastBlock = library.modules.blocks.lastBlock.get();
+				return expect(lastBlock.height).to.equal(99);
 			});
 
 			it('transactions from deleted block should be added back to transaction pool', done => {
+				const transactionPool = library.rewiredModules.transactions.__get__(
+					'__private.transactionPool'
+				);
+
+				_.each(lastBlock.transactions, transaction => {
+					expect(transactionPool.transactionInPool(transaction.id)).to.equal(
+						true
+					);
+					// Remove transaction from pool
+					transactionPool.removeUnconfirmedTransaction(transaction.id);
+				});
+				done();
 			});
 
 			it('expected forger of last block of round should have proper votes', () => {
+				return getDelegates().then(delegates => {
+					const delegate = delegates[lastBlockForger];
+					expect(delegate.vote).to.equal('10000000000000000');
+				});
 			});
+
+			tickAndValidate(transactions);
 
 			describe('after forging 1 block', () => {
 				it('should unvote expected forger of last block of round (block data)', () => {
+					const lastBlock = library.modules.blocks.lastBlock.get();
+					return Queries.getFullBlock(lastBlock.height).then(blocks => {
+						expect(blocks[0].transactions[0].asset.votes[0]).to.equal(
+							`-${lastBlockForger}`
+						);
+					});
 				});
 
 				it('expected forger of last block of round should still have proper votes', () => {
+					return getDelegates().then(delegates => {
+						const delegate = delegates[lastBlockForger];
+						expect(delegate.vote).to.equal('10000000000000000');
+					});
 				});
 			});
 
