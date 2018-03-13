@@ -897,8 +897,6 @@ describe('rounds', () => {
 						).then(() => {
 							tick.after.block = library.modules.blocks.lastBlock.get();
 							tick.after.round = slots.calcRound(tick.after.block.height);
-							// Detect change of round
-							tick.isRoundChanged = tick.before.round !== tick.after.round;
 							// Detect last block of round
 							tick.isLastBlockOfRound =
 								tick.after.block.height % slots.delegates === 0;
@@ -906,7 +904,7 @@ describe('rounds', () => {
 							return Promise.join(
 								getMemAccounts(),
 								getDelegates(),
-								generateDelegateListPromise(tick.after.block.height, null),
+								generateDelegateListPromise(tick.after.block.height + 1, null),
 								(_accounts, _delegates, _delegatesList) => {
 									tick.after.accounts = _.cloneDeep(_accounts);
 									tick.after.delegates = _.cloneDeep(_delegates);
@@ -959,7 +957,7 @@ describe('rounds', () => {
 					});
 
 					it('delegates list should be the same for same round', () => {
-						if (tick.isRoundChanged) {
+						if (tick.isLastBlockOfRound) {
 							return expect(tick.before.delegatesList).to.not.deep.equal(
 								tick.after.delegatesList
 							);
