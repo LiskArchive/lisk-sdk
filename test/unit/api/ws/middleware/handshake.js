@@ -15,15 +15,15 @@
 'use strict';
 
 var randomstring = require('randomstring');
-var typeRepresentatives = require('../../fixtures/types_representatives.js');
-var wsApi = require('../../../helpers/ws_api');
-var failureCodes = require('../../../api/ws/rpc/failure_codes');
-var WSServerMaster = require('../../common/ws/server_master');
-var System = require('../../../modules/system');
+var typeRepresentatives = require('../../../../fixtures/types_representatives.js');
+var Handshake = require('../../../../../api/ws/workers/middlewares/handshake');
+var failureCodes = require('../../../../../api/ws/rpc/failure_codes');
+var WSServerMaster = require('../../../../common/ws/server_master');
+var System = require('../../../../../modules/system');
 
 var config = __testContext.config;
 
-describe('handshake', () => {
+describe('Handshake', () => {
 	var system;
 	var handshake;
 	var minVersion = '1.0.0';
@@ -42,7 +42,7 @@ describe('handshake', () => {
 	before(done => {
 		new System((err, __system) => {
 			system = __system;
-			handshake = wsApi.middleware.Handshake(system);
+			handshake = Handshake.middleware.Handshake(system);
 			done(err);
 		}, validConfig);
 	});
