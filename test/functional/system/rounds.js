@@ -762,6 +762,108 @@ describe('rounds', () => {
 
 			return rewards;
 		}
+
+		function addTransaction(transaction, cb) {
+			__testContext.debug(`	Add transaction ID: ${transaction.id}`);
+			// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
+			// See: modules.transport.__private.receiveTransaction
+			transaction = library.logic.transaction.objectNormalize(transaction);
+			library.balancesSequence.add(sequenceCb => {
+				library.modules.transactions.processUnconfirmedTransaction(
+					transaction,
+					true,
+					err => {
+						if (err) {
+							return setImmediate(sequenceCb, err.toString());
+						}
+						return setImmediate(sequenceCb, null, transaction.id);
+					}
+				);
+			}, cb);
+		}
+
+		function getNextForger(offset, cb) {
+			offset = !offset ? 1 : offset;
+			const lastBlock = library.modules.blocks.lastBlock.get();
+			const slot = slots.getSlotNumber(lastBlock.timestamp);
+			library.modules.delegates.generateDelegateList(
+				lastBlock.height + 1,
+				null,
+				(err, delegateList) => {
+					if (err) {
+						return cb(err);
+					}
+					const nextForger = delegateList[(slot + offset) % slots.delegates];
+					return cb(nextForger);
+				}
+			);
+		}
+
+		function forge(cb) {
+			const transactionPool = library.rewiredModules.transactions.__get__(
+				'__private.transactionPool'
+			);
+
+			async.waterfall(
+				[
+					transactionPool.fillPool,
+					function(waterCb) {
+						getNextForger(null, delegatePublicKey => {
+							waterCb(null, delegatePublicKey);
+						});
+					},
+					function(delegate, waterCb) {
+						let lastBlock = library.modules.blocks.lastBlock.get();
+						const slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
+						const keypair = keypairs[delegate];
+						__testContext.debug(
+							`		Last block height: ${lastBlock.height} Last block ID: ${
+								lastBlock.id
+							} Last block timestamp: ${
+								lastBlock.timestamp
+							} Next slot: ${slot} Next delegate PK: ${delegate} Next block timestamp: ${slots.getSlotTime(
+								slot
+							)}`
+						);
+						library.modules.blocks.process.generateBlock(
+							keypair,
+							slots.getSlotTime(slot),
+							err => {
+								if (err) {
+									return waterCb(err);
+								}
+								lastBlock = library.modules.blocks.lastBlock.get();
+								__testContext.debug(
+									`		New last block height: ${
+										lastBlock.height
+									} New last block ID: ${lastBlock.id}`
+								);
+								return waterCb(err);
+							}
+						);
+					},
+				],
+				cb
+			);
+		}
+
+		function addTransactionsAndForge(transactions, cb) {
+			async.waterfall(
+				[
+					function addTransactions(waterCb) {
+						async.eachSeries(
+							transactions,
+							(transaction, eachSeriesCb) => {
+								addTransaction(transaction, eachSeriesCb);
+							},
+							waterCb
+						);
+					},
+					forge,
+				],
+				cb
+			);
+		}
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
 		});
 
