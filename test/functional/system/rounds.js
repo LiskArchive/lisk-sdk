@@ -138,7 +138,7 @@ describe('rounds', () => {
 			before(() => {
 				// Get genesis block from database
 				return Queries.getFullBlock(1).then(rows => {
-					genesisBlock = library.modules.blocks.utils.readDbRows(rows)[0];
+					genesisBlock = rows[0];
 				});
 			});
 
