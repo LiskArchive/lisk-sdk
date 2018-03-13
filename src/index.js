@@ -15,8 +15,8 @@
 import naclFactory from 'js-nacl';
 import APIClient from './api_client';
 import cryptography from './cryptography';
+import * as constants from './lisk-constants';
 import passphrase from './passphrase';
-import * as time from './transactions/utils/time';
 import transaction from './transactions';
 
 global.naclFactory = naclFactory;
@@ -31,5 +31,5 @@ export default {
 	cryptography,
 	passphrase,
 	transaction,
-	time,
+	constants,
 };
