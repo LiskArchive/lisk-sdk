@@ -623,49 +623,52 @@ TransactionPool.prototype.queueTransaction = function(transaction, cb) {
 TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 	const ids = [];
 
-	async.eachSeries(
-		self.getUnconfirmedTransactionList(false),
-		(transaction, eachSeriesCb) => {
-			if (transaction) {
-				ids.push(transaction.id);
-				modules.transactions.undoUnconfirmed(
-					transaction,
-					err => {
-						// Remove transaction from unconfirmed, queued and multisignature lists
-						self.removeUnconfirmedTransaction(transaction.id);
-						if (err) {
-							library.logger.error(
-								`Failed to undo unconfirmed transaction: ${transaction.id}`,
-								err
-							);
-							return setImmediate(eachSeriesCb);
-						}
+	library.balancesSequence.add(
+		balancesSequenceCb => {
+			async.eachSeries(
+				self.getUnconfirmedTransactionList(false),
+				(transaction, eachSeriesCb) => {
+					if (transaction) {
+						ids.push(transaction.id);
+						modules.transactions.undoUnconfirmed(
+							transaction,
+							err => {
+								// Remove transaction from unconfirmed, queued and multisignature lists
+								self.removeUnconfirmedTransaction(transaction.id);
+								if (err) {
+									library.logger.error(
+										`Failed to undo unconfirmed transaction: ${transaction.id}`,
+										err
+									);
+									return setImmediate(eachSeriesCb);
+								}
 
-						// Transaction successfully undone from unconfirmed states, try moving it to queued list
-						library.balancesSequence.add(balancesSequenceCb => {
-							self.processUnconfirmedTransaction(
-								transaction,
-								false,
-								err => {
-									if (err) {
-										library.logger.debug(
-											`Failed to queue transaction back after successful undo unconfirmed: ${
-												transaction.id
-											}`,
-											err
-										);
-									}
-									return setImmediate(balancesSequenceCb);
-								},
-								tx
-							);
-						}, eachSeriesCb);
-					},
-					tx
-				);
-			} else {
-				return setImmediate(eachSeriesCb);
-			}
+								// Transaction successfully undone from unconfirmed states, try moving it to queued list
+								self.processUnconfirmedTransaction(
+									transaction,
+									false,
+									err => {
+										if (err) {
+											library.logger.debug(
+												`Failed to queue transaction back after successful undo unconfirmed: ${
+													transaction.id
+												}`,
+												err
+											);
+										}
+										return setImmediate(eachSeriesCb);
+									},
+									tx
+								);
+							},
+							tx
+						);
+					} else {
+						return setImmediate(eachSeriesCb);
+					}
+				},
+				err => setImmediate(balancesSequenceCb, err)
+			);
 		},
 		err => setImmediate(cb, err, ids)
 	);
