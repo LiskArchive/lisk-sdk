@@ -1143,9 +1143,25 @@ describe('rounds', () => {
 		});
 
 		describe('delete last block of round 1, block contains 1 transaction type SEND', () => {
+			let lastBlock;
+
 			before(() => {
+				lastBlock = library.modules.blocks.lastBlock.get();
 				// Delete last block of round
 				return deleteLastBlockPromise();
+			});
+
+			it('transactions from deleted block should be added back to transaction pool', done => {
+				const transactionPool = library.rewiredModules.transactions.__get__(
+					'__private.transactionPool'
+				);
+
+				_.each(lastBlock.transactions, transaction => {
+					expect(transactionPool.transactionInPool(transaction.id)).to.equal(true);
+					// Remove transaction from pool
+					transactionPool.removeUnconfirmedTransaction(transaction.id);
+				});
+				done();
 			});
 
 			it('round rewards should be empty (rewards for round 1 deleted from rounds_rewards table)', () => {
