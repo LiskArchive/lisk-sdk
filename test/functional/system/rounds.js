@@ -662,6 +662,27 @@ describe('rounds', () => {
 
 			return accounts;
 		}
+
+		function recalculateVoteWeights(_accounts, voters) {
+			const accounts = _.cloneDeep(_accounts);
+
+			_.each(voters, delegate => {
+				let votes = '0';
+				const found = _.find(accounts, {
+					publicKey: Buffer.from(delegate.dependentId, 'hex'),
+				});
+				expect(found).to.be.an('object');
+				_.each(delegate.array_agg, voter => {
+					const found = _.find(accounts, {
+						address: voter,
+					});
+					votes = new Bignum(votes).plus(found.balance).toString();
+				});
+				found.vote = votes;
+			});
+
+			return accounts;
+		}
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
 		});
 
