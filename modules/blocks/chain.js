@@ -396,10 +396,6 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 
 										reject(err);
 									}
-									// Transaction applied, removed from the unconfirmed list
-									modules.transactions.removeUnconfirmedTransaction(
-										transaction.id
-									);
 									return setImmediate(resolve);
 								},
 								tx
@@ -486,6 +482,10 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 					.then(() => saveBlockStep(tx));
 			})
 			.then(() => {
+				// Remove block transactions from transaction pool
+				block.transactions.forEach(transaction => {
+					modules.transactions.removeUnconfirmedTransaction(transaction.id);
+				});
 				modules.blocks.isActive.set(false);
 				block = null;
 				return setImmediate(cb, null);
