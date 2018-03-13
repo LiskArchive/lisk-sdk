@@ -683,6 +683,24 @@ describe('rounds', () => {
 
 			return accounts;
 		}
+
+		function applyOutsiders(_accounts, delegatesList, blocks) {
+			const accounts = _.cloneDeep(_accounts);
+
+			_.each(delegatesList, publicKey => {
+				const found = _.find(blocks, {
+					generatorPublicKey: Buffer.from(publicKey, 'hex'),
+				});
+				const account = _.find(accounts, {
+					publicKey: Buffer.from(publicKey, 'hex'),
+				});
+				if (!found) {
+					account.missedBlocks += 1;
+				}
+			});
+
+			return accounts;
+		}
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
 		});
 
