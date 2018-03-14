@@ -22,7 +22,7 @@ describe('blocks/api', () => {
 	let __private;
 	let blocksApiModule;
 	let library;
-	let loggerStub;
+	let loggerSpy;
 	let dbStub;
 	let blockStub;
 	let schemaStub;
@@ -45,7 +45,7 @@ describe('blocks/api', () => {
 			},
 		};
 
-		loggerStub = {
+		loggerSpy = {
 			trace: sinonSandbox.spy(),
 			info: sinonSandbox.spy(),
 			error: sinonSandbox.spy(),
@@ -57,7 +57,7 @@ describe('blocks/api', () => {
 
 		schemaStub = sinonSandbox.stub();
 
-		blocksApiModule = new BlocksApi(loggerStub, dbStub, blockStub, schemaStub);
+		blocksApiModule = new BlocksApi(loggerSpy, dbStub, blockStub, schemaStub);
 		library = BlocksApi.__get__('library');
 		__private = BlocksApi.__get__('__private');
 
@@ -71,7 +71,7 @@ describe('blocks/api', () => {
 
 	describe('constructor', () => {
 		it('should assign params to library', () => {
-			expect(library.logger).to.eql(loggerStub);
+			expect(library.logger).to.eql(loggerSpy);
 			expect(library.db).to.eql(dbStub);
 			expect(library.logic.block).to.eql(blockStub);
 			return expect(library.schema).to.eql(schemaStub);
