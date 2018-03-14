@@ -14,19 +14,17 @@
 
 'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-var constants = require('../helpers/constants.js');
-var exceptions = require('../helpers/exceptions.js');
-var Diff = require('../helpers/diff.js');
-var slots = require('../helpers/slots.js');
+const _ = require('lodash');
+const async = require('async');
+const constants = require('../helpers/constants.js');
+const exceptions = require('../helpers/exceptions.js');
+const Diff = require('../helpers/diff.js');
+const slots = require('../helpers/slots.js');
 
-// Private fields
-var modules;
-var library;
-var self;
+let modules;
+let library;
+let self;
 
-// Constructor
 /**
  * Main vote logic.
  * Allows validate and undo transactions, verify votes.
@@ -45,15 +43,72 @@ var self;
  * @param {ZSchema} schema
  * @todo Add description for the params
  */
-function Vote(logger, schema) {
-	self = this;
-	library = {
-		logger,
-		schema,
-	};
+class Vote {
+	constructor(logger, schema) {
+		self = this;
+		library = {
+			logger,
+			schema,
+		};
+	}
+
+	/**
+	 * Calls Diff.reverse to change asset.votes signs and merges account to
+	 * sender address with inverted votes as delegates.
+	 *
+	 * @param {transaction} transaction
+	 * @param {block} block
+	 * @param {account} sender
+	 * @param {function} cb - Callback function
+	 * @returns {SetImmediate} error
+	 * @todo Add description for the params
+	 */
+	undo(transaction, block, sender, cb) {
+		if (transaction.asset.votes === null) {
+			return setImmediate(cb);
+		}
+
+		const votesInvert = Diff.reverse(transaction.asset.votes);
+
+		this.scope.account.merge(
+			sender.address,
+			{
+				delegates: votesInvert,
+				blockId: block.id,
+				round: slots.calcRound(block.height),
+			},
+			err => setImmediate(cb, err)
+		);
+	}
+
+	/**
+	 * Calls Diff.reverse to change asset.votes signs and merges account to
+	 * sender address with inverted votes as unconfirmed delegates.
+	 *
+	 * @param {transaction} transaction
+	 * @param {account} sender
+	 * @param {function} cb - Callback function
+	 * @returns {SetImmediate} error
+	 * @todo Add description for the params
+	 */
+	undoUnconfirmed(transaction, sender, cb, tx) {
+		if (transaction.asset.votes === null) {
+			return setImmediate(cb);
+		}
+
+		const votesInvert = Diff.reverse(transaction.asset.votes);
+
+		this.scope.account.merge(
+			sender.address,
+			{ u_delegates: votesInvert },
+			err => setImmediate(cb, err),
+			tx
+		);
+	}
 }
 
-// Public methods
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Binds module content to private object modules.
  *
@@ -297,11 +352,11 @@ Vote.prototype.getBytes = function(transaction) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Delete unnecessary var parent = this
+ * @todo Delete unnecessary const parent = this
  * @todo Add description for the params
  */
 Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
-	var parent = this;
+	const parent = this;
 
 	async.series(
 		[
@@ -326,46 +381,17 @@ Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
 };
 
 /**
- * Calls Diff.reverse to change asset.votes signs and merges account to
- * sender address with inverted votes as delegates.
- *
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @returns {SetImmediate} error
- * @todo Add description for the params
- */
-Vote.prototype.undo = function(transaction, block, sender, cb) {
-	if (transaction.asset.votes === null) {
-		return setImmediate(cb);
-	}
-
-	var votesInvert = Diff.reverse(transaction.asset.votes);
-
-	this.scope.account.merge(
-		sender.address,
-		{
-			delegates: votesInvert,
-			blockId: block.id,
-			round: slots.calcRound(block.height),
-		},
-		err => setImmediate(cb, err)
-	);
-};
-
-/**
  * Calls checkUnconfirmedDelegates based on transaction data and
  * merges account to sender address with votes as unconfirmed delegates.
  *
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Delete unnecessary var parent = this
+ * @todo Delete unnecessary const parent = this
  * @todo Add description for the params
  */
 Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
-	var parent = this;
+	const parent = this;
 
 	async.series(
 		[
@@ -384,31 +410,6 @@ Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 			},
 		],
 		cb
-	);
-};
-
-/**
- * Calls Diff.reverse to change asset.votes signs and merges account to
- * sender address with inverted votes as unconfirmed delegates.
- *
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb - Callback function
- * @returns {SetImmediate} error
- * @todo Add description for the params
- */
-Vote.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
-	if (transaction.asset.votes === null) {
-		return setImmediate(cb);
-	}
-
-	var votesInvert = Diff.reverse(transaction.asset.votes);
-
-	this.scope.account.merge(
-		sender.address,
-		{ u_delegates: votesInvert },
-		err => setImmediate(cb, err),
-		tx
 	);
 };
 
@@ -441,7 +442,7 @@ Vote.prototype.schema = {
  * @todo Add description for the params
  */
 Vote.prototype.objectNormalize = function(transaction) {
-	var report = library.schema.validate(
+	const report = library.schema.validate(
 		transaction.asset,
 		Vote.prototype.schema
 	);
@@ -467,7 +468,7 @@ Vote.prototype.dbRead = function(raw) {
 	if (!raw.v_votes) {
 		return null;
 	}
-	var votes = raw.v_votes.split(',');
+	const votes = raw.v_votes.split(',');
 
 	return { votes };
 };
@@ -490,5 +491,4 @@ Vote.prototype.ready = function(transaction, sender) {
 	return true;
 };
 
-// Export
 module.exports = Vote;

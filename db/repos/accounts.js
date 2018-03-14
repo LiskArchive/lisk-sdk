@@ -255,7 +255,8 @@ class AccountsRepository {
 	 * @todo Add description for the return value
 	 */
 	insert(data) {
-		return this.db.none(this.pgp.helpers.insert(data, this.cs.insert));
+		const query = () => this.pgp.helpers.insert(data, this.cs.insert);
+		return this.db.none(query);
 	}
 
 	/**
@@ -283,10 +284,11 @@ class AccountsRepository {
 			return Promise.resolve();
 		}
 
-		return this.db.none(
+		const query = () =>
 			this.pgp.helpers.update(data, this.cs.update) +
-				this.pgp.as.format(' WHERE $1:name=$2', ['address', address])
-		);
+			this.pgp.as.format(' WHERE $1:name = $2', ['address', address]);
+
+		return this.db.none(query);
 	}
 
 	/**
@@ -414,76 +416,81 @@ class AccountsRepository {
 			options = {};
 		}
 
-		// Apply sort only if provided
-		if (options.sortField) {
-			if (typeof options.sortField === 'string') {
-				sortField = options.sortField;
-				sortMethod = options.sortMethod || 'DESC';
-				sql += ' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
-				// As per implementation of sort sortBy helper helpers/sort_by
-			} else if (Array.isArray(options.sortField) && options.sortField.length) {
-				const sortSQL = [];
+		const query = () => {
+			// Apply sort only if provided
+			if (options.sortField) {
+				if (typeof options.sortField === 'string') {
+					sortField = options.sortField;
+					sortMethod = options.sortMethod || 'DESC';
+					sql += ' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
+					// As per implementation of sort sortBy helper helpers/sort_by
+				} else if (
+					Array.isArray(options.sortField) &&
+					options.sortField.length
+				) {
+					const sortSQL = [];
 
-				options.sortField.map((field, index) => {
-					sortSQL.push(
-						this.pgp.as.format('$1:name $2:raw', [
-							field,
-							options.sortMethod[index],
-						])
-					);
-				});
-				sql += `ORDER BY ${sortSQL.join()}`;
-			}
-		}
-
-		// Limit the result only if limit param is provided
-		if (options.limit) {
-			limit = options.limit;
-			offset = options.offset || 0;
-
-			sql += ' LIMIT ${limit} OFFSET ${offset}';
-		}
-
-		const selectClause = Selects(this.cs.select, fields, pgp);
-
-		if (filters) {
-			const filterKeys = Object.keys(filters);
-			const filteredColumns = this.cs.insert.columns.filter(
-				column => filterKeys.indexOf(column.name) >= 0
-			);
-
-			// TODO: Improve this logic to convert set statement to composite logic
-			conditions = pgp.helpers
-				.sets(filters, filteredColumns)
-				.replace(/(,")/, ' AND "');
-		}
-
-		if (
-			conditions.length ||
-			options.extraCondition ||
-			dynamicConditions.length
-		) {
-			conditions = conditions.length ? [conditions] : [];
-
-			if (options.extraCondition) {
-				conditions.push(options.extraCondition);
+					options.sortField.map((field, index) => {
+						sortSQL.push(
+							this.pgp.as.format('$1:name $2:raw', [
+								field,
+								options.sortMethod[index],
+							])
+						);
+					});
+					sql += `ORDER BY ${sortSQL.join()}`;
+				}
 			}
 
-			if (dynamicConditions.length) {
-				conditions.push(dynamicConditions.join(' AND '));
+			// Limit the result only if limit param is provided
+			if (options.limit) {
+				limit = options.limit;
+				offset = options.offset || 0;
+
+				sql += ' LIMIT ${limit} OFFSET ${offset}';
 			}
 
-			conditions = ` WHERE ${conditions.join(' AND ')}`;
-		}
+			const selectClause = Selects(this.cs.select, fields, pgp);
 
-		const query = this.pgp.as.format(sql, {
-			fields: selectClause,
-			conditions,
-			sortField,
-			sortMethod,
-			limit,
-			offset,
-		});
+			if (filters) {
+				const filterKeys = Object.keys(filters);
+				const filteredColumns = this.cs.insert.columns.filter(
+					column => filterKeys.indexOf(column.name) >= 0
+				);
+
+				// TODO: Improve this logic to convert set statement to composite logic
+				conditions = pgp.helpers
+					.sets(filters, filteredColumns)
+					.replace(/(,")/, ' AND "');
+			}
+
+			if (
+				conditions.length ||
+				options.extraCondition ||
+				dynamicConditions.length
+			) {
+				conditions = conditions.length ? [conditions] : [];
+
+				if (options.extraCondition) {
+					conditions.push(options.extraCondition);
+				}
+
+				if (dynamicConditions.length) {
+					conditions.push(dynamicConditions.join(' AND '));
+				}
+
+				conditions = ` WHERE ${conditions.join(' AND ')}`;
+			}
+
+			return this.pgp.as.format(sql, {
+				fields: selectClause,
+				conditions,
+				sortField,
+				sortMethod,
+				limit,
+				offset,
+			});
+		};
 
 		return this.db.query(query);
 	}
@@ -545,12 +552,9 @@ class AccountsRepository {
 			); // eslint-disable-line prefer-promise-reject-errors
 		}
 
-		const dependentTable = new this.pgp.helpers.TableName({
-			table: `${this.dbTable}2${dependency}`,
-			schema: 'public',
-		});
+		const dependentTable = `${this.dbTable}2${dependency}`;
 
-		return this.db.none(
+		const query = () =>
 			this.pgp.helpers.insert(
 				{
 					accountId: address,
@@ -558,8 +562,9 @@ class AccountsRepository {
 				},
 				null,
 				dependentTable
-			)
-		);
+			);
+
+		return this.db.none(query);
 	}
 
 	/**

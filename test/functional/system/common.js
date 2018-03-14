@@ -26,7 +26,7 @@ function getDelegateForSlot(library, slot, cb) {
 	var lastBlock = library.modules.blocks.lastBlock.get();
 
 	library.modules.delegates.generateDelegateList(
-		lastBlock.height,
+		lastBlock.height + 1,
 		null,
 		(err, list) => {
 			var delegatePublicKey = list[slot % slots.delegates];
@@ -162,21 +162,19 @@ function addTransaction(library, transaction, cb) {
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	library.balancesSequence.add(sequenceCb => {
-		library.modules.transactions.processUnconfirmedTransaction(
-			transaction,
-			true,
-			err => {
-				if (err) {
-					return setImmediate(sequenceCb, err.toString());
-				}
-				var transactionPool = library.rewiredModules.transactions.__get__(
-					'__private.transactionPool'
-				);
-				transactionPool.fillPool(sequenceCb);
+	library.modules.transactions.processUnconfirmedTransaction(
+		transaction,
+		true,
+		err => {
+			if (err) {
+				return setImmediate(cb, err.toString());
 			}
-		);
-	}, cb);
+			var transactionPool = library.rewiredModules.transactions.__get__(
+				'__private.transactionPool'
+			);
+			transactionPool.fillPool(cb);
+		}
+	);
 }
 
 function addTransactionsAndForge(library, transactions, cb) {
@@ -340,8 +338,8 @@ module.exports = {
 	fillPool,
 	addTransaction,
 	addTransactionToUnconfirmedQueue,
-	addTransactionsAndForge,
 	createValidBlock,
+	addTransactionsAndForge,
 	getBlocks,
 	getAccountFromDb,
 	getTransactionFromModule,

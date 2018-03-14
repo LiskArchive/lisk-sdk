@@ -33,7 +33,6 @@ describe('blocks/process', () => {
 	var transactionStub;
 	var peersStub;
 	var schemaStub;
-	var dbSequenceStub;
 	var sequenceStub;
 	var genesisblockStub;
 	var modulesStub;
@@ -117,12 +116,6 @@ describe('blocks/process', () => {
 			validate: sinonSandbox.stub(),
 		};
 
-		dbSequenceStub = {
-			add: (cb, cbp) => {
-				cb(cbp);
-			},
-		};
-
 		sequenceStub = {
 			add: sinonSandbox.stub(),
 		};
@@ -141,7 +134,6 @@ describe('blocks/process', () => {
 			transactionStub,
 			schemaStub,
 			dbStub,
-			dbSequenceStub,
 			sequenceStub,
 			genesisblockStub
 		);
@@ -249,7 +241,6 @@ describe('blocks/process', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.schema).to.eql(schemaStub);
 			expect(library.db).to.eql(dbStub);
-			expect(library.dbSequence).to.eql(dbSequenceStub);
 			expect(library.sequence).to.eql(sequenceStub);
 			expect(library.genesisblock).to.eql(genesisblockStub);
 			expect(library.logic.block).to.eql(blockStub);
@@ -889,9 +880,7 @@ describe('blocks/process', () => {
 								{ ip: 1, wsPort: 2 },
 								10,
 								() => {
-									expect(
-										modules.peers.remove
-									).to.have.been.calledOnce;
+									expect(modules.peers.remove).to.have.been.calledOnce;
 									done();
 								}
 							);
