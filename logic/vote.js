@@ -260,7 +260,9 @@ Vote.prototype.getBytes = function(transaction) {
 			throw new Error('votes parameter must be an Array.');
 		}
 
-		if (!(votes.length > 0 && votes.length < 33)) {
+		if (
+			!(votes.length > 0 && votes.length < constants.maxVotesPerTransaction)
+		) {
 			throw new Error('number of votes is less than 0 or more than 33.');
 		}
 
