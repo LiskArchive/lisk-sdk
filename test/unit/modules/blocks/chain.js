@@ -754,8 +754,8 @@ describe('blocks/chain', () => {
 						'undoUnconfirmedList-ERR'
 					);
 				});
-				it('should return rejected promise with error', done => {
-					__private.undoUnconfirmedListStep(dbStub.tx).catch(err => {
+				it('should call a callback with error', done => {
+					__private.undoUnconfirmedListStep(err => {
 						expect(err).to.equal('Failed to undo unconfirmed list');
 						done();
 					});
@@ -769,9 +769,9 @@ describe('blocks/chain', () => {
 						true
 					);
 				});
-				it('should return resolved promise with no error', done => {
-					__private.undoUnconfirmedListStep(dbStub.tx).then(resolve => {
-						expect(resolve).to.be.undefined;
+				it('should call a callback with no error', done => {
+					__private.undoUnconfirmedListStep(err => {
+						expect(err).to.be.undefined;
 						done();
 					});
 				});
@@ -780,17 +780,11 @@ describe('blocks/chain', () => {
 	});
 
 	describe('__private.applyUnconfirmedStep', () => {
-		let appliedTransactions;
-		beforeEach(done => {
-			appliedTransactions = [];
-			done();
-		});
 		describe('when block.transactions is undefined', () => {
 			it('should return rejected promise with error', done => {
 				__private
 					.applyUnconfirmedStep(
 						{ id: 6, height: 6, transactions: undefined },
-						appliedTransactions,
 						dbStub.tx
 					)
 					.catch(err => {
@@ -806,7 +800,6 @@ describe('blocks/chain', () => {
 				__private
 					.applyUnconfirmedStep(
 						{ id: 6, height: 6, transactions: [] },
-						appliedTransactions,
 						dbStub.tx
 					)
 					.then(resolved => {
@@ -819,127 +812,42 @@ describe('blocks/chain', () => {
 			describe('modules.accounts.setAccountAndGet', () => {
 				describe('when fails', () => {
 					beforeEach(() => {
-						modules.accounts.setAccountAndGet
-							.onCall(0)
-							.callsArgWith(1, null, true)
-							.callsArgWith(1, 'setAccountAndGet-ERR', null);
-						return modules.transactions.applyUnconfirmed.callsArgWith(
-							2,
-							null,
+						return modules.accounts.setAccountAndGet.callsArgWith(
+							1,
+							'setAccountAndGet-ERR',
 							null
 						);
 					});
-					describe('catch', () => {
-						describe('modules.accounts.getAccount', () => {
-							describe('when fails', () => {
-								beforeEach(() => {
-									return modules.accounts.getAccount
-										.onCall(0)
-										.callsArgWith(1, 'getAccount-ERR', null)
-										.callsArgWith(1, null, 'sender1');
-								});
-								afterEach(() => {
-									expect(modules.accounts.setAccountAndGet.callCount).to.equal(
-										2
-									);
-									expect(
-										modules.transactions.applyUnconfirmed.callCount
-									).to.equal(1);
-									return expect(
-										Object.keys(appliedTransactions).length
-									).to.equal(1);
-								});
-								it('should return rejected promise with error', done => {
-									__private
-										.applyUnconfirmedStep(
-											{
-												id: 5,
-												height: 5,
-												transactions: [
-													{ id: 1, type: 0, senderPublicKey: 'a' },
-													{ id: 2, type: 1, senderPublicKey: 'b' },
-												],
-											},
-											appliedTransactions,
-											dbStub.tx
-										)
-										.catch(err => {
-											expect(err).to.equal('getAccount-ERR');
-											done();
-										});
-								});
-							});
-							describe('when succeeds', () => {
-								beforeEach(() => {
-									return modules.accounts.getAccount.callsArgWith(
-										1,
-										null,
-										'sender1'
-									);
-								});
-								describe('library.logic.transaction.undoUnconfirmed', () => {
-									describe('when fails', () => {
-										beforeEach(() => {
-											return library.logic.transaction.undoUnconfirmed.callsArgWith(
-												2,
-												'undoUnconfirmed-ERR',
-												null
-											);
-										});
-										it('should return rejected promise with error', done => {
-											__private
-												.applyUnconfirmedStep(
-													{
-														id: 5,
-														height: 5,
-														transactions: [
-															{ id: 1, type: 0, senderPublicKey: 'a' },
-															{ id: 2, type: 1, senderPublicKey: 'b' },
-														],
-													},
-													appliedTransactions,
-													dbStub.tx
-												)
-												.catch(err => {
-													expect(err).to.equal('undoUnconfirmed-ERR');
-													done();
-												});
-										});
-									});
-									describe('when succeeds', () => {
-										beforeEach(() => {
-											return library.logic.transaction.undoUnconfirmed.callsArgWith(
-												2,
-												null,
-												true
-											);
-										});
-										it('should return resolved promise with no error', done => {
-											__private
-												.applyUnconfirmedStep(
-													{
-														id: 5,
-														height: 5,
-														transactions: [
-															{ id: 1, type: 0, senderPublicKey: 'a' },
-															{ id: 2, type: 1, senderPublicKey: 'b' },
-														],
-													},
-													appliedTransactions,
-													dbStub.tx
-												)
-												.then(resolve => {
-													expect(resolve).to.be.deep.equal([
-														undefined,
-														undefined,
-													]);
-													done();
-												});
-										});
-									});
-								});
-							});
+					afterEach(() => {
+						expect(loggerStub.error.args[0][0]).to.equal(
+							'Failed to get account to apply unconfirmed transaction: 1 - setAccountAndGet-ERR'
+						);
+						expect(loggerStub.error.args[1][0]).to.equal('Transaction');
+						return expect(loggerStub.error.args[1][1]).to.deep.equal({
+							id: 1,
+							type: 0,
+							senderPublicKey: 'a',
 						});
+					});
+					it('should return rejected promise with error', done => {
+						__private
+							.applyUnconfirmedStep(
+								{
+									id: 5,
+									height: 5,
+									transactions: [
+										{ id: 1, type: 0, senderPublicKey: 'a' },
+										{ id: 2, type: 1, senderPublicKey: 'b' },
+									],
+								},
+								dbStub.tx
+							)
+							.catch(err => {
+								expect(err).to.equal(
+									'Failed to get account to apply unconfirmed transaction: 1 - setAccountAndGet-ERR'
+								);
+								done();
+							});
 					});
 				});
 				describe('when succeeds', () => {
@@ -952,236 +860,43 @@ describe('blocks/chain', () => {
 					});
 					describe('modules.transactions.applyUnconfirmed', () => {
 						describe('when fails', () => {
-							describe('if no transaction was applied', () => {
-								beforeEach(() => {
-									return modules.transactions.applyUnconfirmed.callsArgWith(
-										2,
-										'applyUnconfirmed-ERR',
-										null
-									);
-								});
-								afterEach(() => {
-									expect(modules.accounts.setAccountAndGet.callCount).to.equal(
-										1
-									);
-									expect(
-										modules.transactions.applyUnconfirmed.callCount
-									).to.equal(1);
-									expect(Object.keys(appliedTransactions).length).to.equal(0);
-									expect(loggerStub.error.args[0][0]).to.equal(
-										'Failed to apply transaction: 1 - applyUnconfirmed-ERR'
-									);
-									expect(loggerStub.error.args[1][0]).to.equal('Transaction');
-									return expect(loggerStub.error.args[1][1]).to.deep.equal({
-										id: 1,
-										type: 0,
-										senderPublicKey: 'a',
-									});
-								});
-								describe('catch', () => {
-									describe('modules.accounts.getAccount', () => {
-										afterEach(() => {
-											return expect(
-												library.logic.transaction.undoUnconfirmed.callCount
-											).to.equal(0);
-										});
-										describe('when fails', () => {
-											beforeEach(() => {
-												return modules.accounts.getAccount.callsArgWith(
-													1,
-													'getAccount-ERR',
-													null
-												);
-											});
-											it('should return rejected promise with error', done => {
-												__private
-													.applyUnconfirmedStep(
-														{
-															id: 5,
-															height: 5,
-															transactions: [
-																{ id: 1, type: 0, senderPublicKey: 'a' },
-																{ id: 2, type: 1, senderPublicKey: 'b' },
-															],
-														},
-														appliedTransactions,
-														dbStub.tx
-													)
-													.catch(err => {
-														expect(err).to.equal('getAccount-ERR');
-														done();
-													});
-											});
-										});
-										describe('when succeeds', () => {
-											beforeEach(() => {
-												return modules.accounts.getAccount.callsArgWith(
-													1,
-													null,
-													'sender1'
-												);
-											});
-											it('should return resolved promise with no error', done => {
-												__private
-													.applyUnconfirmedStep(
-														{
-															id: 5,
-															height: 5,
-															transactions: [
-																{ id: 1, type: 0, senderPublicKey: 'a' },
-																{ id: 2, type: 1, senderPublicKey: 'b' },
-															],
-														},
-														appliedTransactions,
-														dbStub.tx
-													)
-													.then(resolve => {
-														expect(resolve).to.deep.equal([
-															undefined,
-															undefined,
-														]);
-														done();
-													});
-											});
-										});
-									});
+							beforeEach(() => {
+								return modules.transactions.applyUnconfirmed.callsArgWith(
+									2,
+									'applyUnconfirmed-ERR',
+									null
+								);
+							});
+							afterEach(() => {
+								expect(loggerStub.error.args[0][0]).to.equal(
+									'Failed to apply unconfirmed transaction: 1 - applyUnconfirmed-ERR'
+								);
+								expect(loggerStub.error.args[1][0]).to.equal('Transaction');
+								return expect(loggerStub.error.args[1][1]).to.deep.equal({
+									id: 1,
+									type: 0,
+									senderPublicKey: 'a',
 								});
 							});
-							describe('if at least one transaction was applied', () => {
-								beforeEach(() => {
-									return modules.transactions.applyUnconfirmed
-										.onCall(0)
-										.callsArgWith(2, null, true)
-										.callsArgWith(2, 'applyUnconfirmed-ERR', null);
-								});
-								afterEach(() => {
-									expect(loggerStub.error.args[0][0]).to.equal(
-										'Failed to apply transaction: 2 - applyUnconfirmed-ERR'
-									);
-									expect(loggerStub.error.args[1][0]).to.equal('Transaction');
-									return expect(loggerStub.error.args[1][1]).to.deep.equal({
-										id: 2,
-										type: 1,
-										senderPublicKey: 'b',
+							it('should return rejected promise with error', done => {
+								__private
+									.applyUnconfirmedStep(
+										{
+											id: 5,
+											height: 5,
+											transactions: [
+												{ id: 1, type: 0, senderPublicKey: 'a' },
+												{ id: 2, type: 1, senderPublicKey: 'b' },
+											],
+										},
+										dbStub.tx
+									)
+									.catch(err => {
+										expect(err).to.equal(
+											'Failed to apply unconfirmed transaction: 1 - applyUnconfirmed-ERR'
+										);
+										done();
 									});
-								});
-								describe('catch', () => {
-									describe('modules.accounts.getAccount', () => {
-										describe('when fails', () => {
-											beforeEach(() => {
-												modules.accounts.getAccount
-													.onCall(0)
-													.callsArgWith(1, 'getAccount-ERR', null)
-													.callsArgWith(1, null, 'sender1');
-												return modules.transactions.apply.callsArgWith(
-													3,
-													null,
-													true
-												);
-											});
-											afterEach(() => {
-												expect(
-													modules.accounts.setAccountAndGet.callCount
-												).to.equal(2);
-												expect(
-													modules.transactions.applyUnconfirmed.callCount
-												).to.equal(2);
-												return expect(
-													Object.keys(appliedTransactions).length
-												).to.equal(1);
-											});
-											it('should return rejected promise with error', done => {
-												__private
-													.applyUnconfirmedStep(
-														{
-															id: 5,
-															height: 5,
-															transactions: [
-																{ id: 1, type: 0, senderPublicKey: 'a' },
-																{ id: 2, type: 1, senderPublicKey: 'b' },
-															],
-														},
-														appliedTransactions,
-														dbStub.tx
-													)
-													.catch(err => {
-														expect(err).to.equal('getAccount-ERR');
-														done();
-													});
-											});
-										});
-										describe('when succeeds', () => {
-											beforeEach(() => {
-												return modules.accounts.getAccount.callsArgWith(
-													1,
-													null,
-													'sender1'
-												);
-											});
-											describe('library.logic.transaction.undoUnconfirmed', () => {
-												describe('when fails', () => {
-													beforeEach(() => {
-														return library.logic.transaction.undoUnconfirmed.callsArgWith(
-															2,
-															'undoUnconfirmed-ERR',
-															null
-														);
-													});
-													it('should return rejected promise with error', done => {
-														__private
-															.applyUnconfirmedStep(
-																{
-																	id: 5,
-																	height: 5,
-																	transactions: [
-																		{ id: 1, type: 0, senderPublicKey: 'a' },
-																		{ id: 2, type: 1, senderPublicKey: 'b' },
-																	],
-																},
-																appliedTransactions,
-																dbStub.tx
-															)
-															.catch(err => {
-																expect(err).to.equal('undoUnconfirmed-ERR');
-																done();
-															});
-													});
-												});
-												describe('when succeeds', () => {
-													beforeEach(() => {
-														return library.logic.transaction.undoUnconfirmed.callsArgWith(
-															2,
-															null,
-															true
-														);
-													});
-													it('should return resolved promise with no error', done => {
-														__private
-															.applyUnconfirmedStep(
-																{
-																	id: 5,
-																	height: 5,
-																	transactions: [
-																		{ id: 1, type: 0, senderPublicKey: 'a' },
-																		{ id: 2, type: 1, senderPublicKey: 'b' },
-																	],
-																},
-																appliedTransactions,
-																dbStub.tx
-															)
-															.then(resolve => {
-																expect(resolve).to.be.deep.equal([
-																	undefined,
-																	undefined,
-																]);
-																done();
-															});
-													});
-												});
-											});
-										});
-									});
-								});
 							});
 						});
 						describe('when succeeds', () => {
@@ -1194,13 +909,9 @@ describe('blocks/chain', () => {
 							});
 							afterEach(() => {
 								expect(modules.accounts.setAccountAndGet.callCount).to.equal(2);
-								expect(
+								return expect(
 									modules.transactions.applyUnconfirmed.callCount
 								).to.equal(2);
-								expect(modules.accounts.getAccount.callCount).to.equal(0);
-								return expect(Object.keys(appliedTransactions).length).to.equal(
-									2
-								);
 							});
 							it('should return resolved promise with no error', done => {
 								__private
@@ -1213,7 +924,6 @@ describe('blocks/chain', () => {
 												{ id: 2, type: 1, senderPublicKey: 'b' },
 											],
 										},
-										appliedTransactions,
 										dbStub.tx
 									)
 									.then(resolve => {
@@ -1258,17 +968,17 @@ describe('blocks/chain', () => {
 			describe('modules.accounts.getAccount', () => {
 				describe('when fails', () => {
 					beforeEach(() => {
-						modules.accounts.getAccount
-							.onCall(0)
-							.callsArgWith(1, 'getAccount-ERR', null)
-							.callsArgWith(1, null, 'sender1');
-						return modules.transactions.apply.callsArgWith(3, null, true);
+						return modules.accounts.getAccount.callsArgWith(
+							1,
+							'getAccount-ERR',
+							null
+						);
 					});
 					afterEach(() => {
 						expect(modules.accounts.getAccount.callCount).to.equal(1);
 						expect(modules.transactions.apply.callCount).to.equal(0);
 						expect(loggerStub.error.args[0][0]).to.equal(
-							'Failed to apply transaction: 1 - getAccount-ERR'
+							'Failed to get account to apply transaction: 1 - getAccount-ERR'
 						);
 						expect(loggerStub.error.args[1][0]).to.equal('Transaction');
 						return expect(loggerStub.error.args[1][1]).to.deep.equal({
@@ -1292,7 +1002,7 @@ describe('blocks/chain', () => {
 							)
 							.catch(err => {
 								expect(err).to.equal(
-									'Failed to apply transaction: 1 - getAccount-ERR'
+									'Failed to get account to apply transaction: 1 - getAccount-ERR'
 								);
 								done();
 							});
@@ -1348,11 +1058,6 @@ describe('blocks/chain', () => {
 						describe('when succeeds', () => {
 							beforeEach(() => {
 								return modules.transactions.apply.callsArgWith(3, null, true);
-							});
-							afterEach(() => {
-								return expect(
-									modules.transactions.removeUnconfirmedTransaction.callCount
-								).to.equal(2);
 							});
 							it('should return resolved promise with no error', done => {
 								__private
@@ -1414,7 +1119,7 @@ describe('blocks/chain', () => {
 				});
 				afterEach(() => {
 					expect(loggerStub.error.args[0][0]).to.contains(
-						'Failed to save block...'
+						'Failed to save block'
 					);
 					expect(loggerStub.error.args[0][1]).to.contains('saveBlock-ERR');
 					expect(loggerStub.error.args[1][0]).to.equal('Block');
@@ -1441,7 +1146,7 @@ describe('blocks/chain', () => {
 							dbStub.tx
 						)
 						.catch(err => {
-							expect(err).to.equal('saveBlock-ERR');
+							expect(err).to.equal('Failed to save block');
 							done();
 						});
 				});
@@ -1573,7 +1278,6 @@ describe('blocks/chain', () => {
 	describe('applyBlock', () => {
 		let privateTemp;
 		let txTemp;
-		const appliedTransactions = {};
 		const dummyBlock = {
 			id: 5,
 			height: 5,
@@ -1583,21 +1287,14 @@ describe('blocks/chain', () => {
 			txTemp = library.db.tx;
 			privateTemp = __private;
 			process.emit = sinonSandbox.stub();
-			__private.undoUnconfirmedListStep = sinonSandbox
-				.stub()
-				.resolves(dummyBlock);
+			modules.transactions.undoUnconfirmedList.callsArgWith(0, null, true);
 			__private.applyUnconfirmedStep = sinonSandbox.stub().resolves(dummyBlock);
 			__private.applyConfirmedStep = sinonSandbox.stub().resolves(dummyBlock);
 			__private.saveBlockStep = sinonSandbox.stub().resolves(dummyBlock);
 			done();
 		});
 		afterEach(done => {
-			expect(__private.undoUnconfirmedListStep).calledWith(txTemp);
-			expect(__private.applyUnconfirmedStep).calledWith(
-				dummyBlock,
-				appliedTransactions,
-				txTemp
-			);
+			expect(__private.applyUnconfirmedStep).calledWith(dummyBlock, txTemp);
 			expect(__private.applyConfirmedStep).calledWith(dummyBlock, txTemp);
 			expect(__private.saveBlockStep).calledWith(dummyBlock, true, txTemp);
 			expect(modules.blocks.isActive.set.calledTwice).to.be.true;
@@ -1656,7 +1353,14 @@ describe('blocks/chain', () => {
 					library.db.tx = (desc, tx) => {
 						return tx(txTemp.resolves());
 					};
+					modules.transactions.removeUnconfirmedTransaction.returns(true);
 					done();
+				});
+				afterEach(() => {
+					expect(
+						modules.transactions.removeUnconfirmedTransaction.callCount
+					).to.equal(2);
+					return expect(modules.blocks.isActive.set.callCount).to.equal(2);
 				});
 				it('should call a callback with no error', done => {
 					blocksChainModule.applyBlock(dummyBlock, true, err => {

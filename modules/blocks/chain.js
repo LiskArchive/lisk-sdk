@@ -337,7 +337,7 @@ __private.applyUnconfirmedStep = function(block, tx) {
 						if (accountErr) {
 							const err = `Failed to get account to apply unconfirmed transaction: ${
 								transaction.id
-							} '-' ${accountErr}`;
+							} - ${accountErr}`;
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
 							return setImmediate(reject, err);
@@ -350,7 +350,7 @@ __private.applyUnconfirmedStep = function(block, tx) {
 								if (err) {
 									err = `Failed to apply unconfirmed transaction: ${
 										transaction.id
-									} '-' ${err}`;
+									} - ${err}`;
 									library.logger.error(err);
 									library.logger.error('Transaction', transaction);
 									return setImmediate(reject, err);
@@ -388,7 +388,7 @@ __private.applyConfirmedStep = function(block, tx) {
 						if (accountErr) {
 							const err = `Failed to get account to apply transaction: ${
 								transaction.id
-							} '-' ${accountErr}`;
+							} - ${accountErr}`;
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
 							return setImmediate(reject, err);
