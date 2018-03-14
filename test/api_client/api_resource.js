@@ -91,7 +91,7 @@ describe('API resource module', () => {
 		let defaultError;
 
 		beforeEach(() => {
-			defaultError = new Error('network error');
+			defaultError = new Error('could not connect to a node');
 			popsicleStub = sandbox.stub(popsicle, 'request').returns({
 				use: () => Promise.resolve(sendRequestResult),
 			});
@@ -131,7 +131,7 @@ describe('API resource module', () => {
 		let requestStub;
 		let defaultError;
 		beforeEach(() => {
-			defaultError = new Error('network error');
+			defaultError = new Error('could not connect to a node');
 			requestStub = sandbox
 				.stub(resource, 'request')
 				.returns(Promise.resolve(sendRequestResult.body));
@@ -188,9 +188,9 @@ describe('API resource module', () => {
 			});
 
 			it('should throw an error that is the same as input error', () => {
-				return expect(resource.handleRetry
-					.bind(resource, defaultError, defaultRequest, 1))
-					.to.throw(defaultError);
+				return expect(
+					resource.handleRetry.bind(resource, defaultError, defaultRequest, 1),
+				).to.throw(defaultError);
 			});
 		});
 	});

@@ -15,4 +15,4 @@
 export const GET = 'GET';
 export const POST = 'POST';
 export const PUT = 'PUT';
-export const MAX_RETRY_COUNT = 3;
+export const API_RECONNECT_MAX_RETRY_COUNT = 3;

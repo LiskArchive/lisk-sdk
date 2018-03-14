@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { GET, POST, PUT, MAX_RETRY_COUNT } from 'api_client/constants';
+import {
+	GET,
+	POST,
+	PUT,
+	API_RECONNECT_MAX_RETRY_COUNT,
+} from 'api_client/constants';
 
 describe('api constants module', () => {
 	it('GET should be a string', () => {
@@ -27,7 +32,7 @@ describe('api constants module', () => {
 		return expect(PUT).to.be.a('string');
 	});
 
-	it('MAX_RETRY_COUNT should be an integer', () => {
-		return MAX_RETRY_COUNT.should.be.an.integer;
+	it('API_RECONNECT_MAX_RETRY_COUNT should be an integer', () => {
+		return expect(API_RECONNECT_MAX_RETRY_COUNT).to.be.an.integer;
 	});
 });

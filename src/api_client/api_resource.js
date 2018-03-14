@@ -14,7 +14,7 @@
  */
 
 import * as popsicle from 'popsicle';
-import { MAX_RETRY_COUNT } from './constants';
+import { API_RECONNECT_MAX_RETRY_COUNT } from './constants';
 
 export default class APIResource {
 	constructor(apiClient) {
@@ -52,7 +52,7 @@ export default class APIResource {
 			return new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
 				if (this.apiClient.randomizeNodes) {
 					this.apiClient.banActiveNodeAndSelect();
-				} else if (retryCount > MAX_RETRY_COUNT) {
+				} else if (retryCount > API_RECONNECT_MAX_RETRY_COUNT) {
 					throw error;
 				}
 				return this.request(req, true, retryCount + 1);
