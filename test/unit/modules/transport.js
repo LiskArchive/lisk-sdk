@@ -17,6 +17,7 @@
 
 var rewire = require('rewire');
 var chai = require('chai');
+var randomstring = require('randomstring');
 var swaggerHelper = require('../../../helpers/swagger');
 var WSServer = require('../../common/ws/server_master');
 var constants = require('../../../helpers/constants');
@@ -66,6 +67,8 @@ describe('transport', () => {
 		signature:
 			'32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739',
 	};
+
+	const validNonce = randomstring.generate(16);
 
 	const SAMPLE_SIGNATURE_2 = {
 		transactionId: '222675625422353768',
@@ -367,7 +370,7 @@ describe('transport', () => {
 		});
 
 		describe('removePeer', () => {
-			describe('when options.peer is undefined', () => {
+			describe('when options.nonce is undefined', () => {
 				var result;
 
 				beforeEach(done => {
@@ -375,10 +378,10 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should call library.logger.debug with "Cannot remove empty peer"', () => {
+				it('should call library.logger.debug with "Cannot remove peer without nonce"', () => {
 					expect(library.logger.debug.called).to.be.true;
 					return expect(
-						library.logger.debug.calledWith('Cannot remove empty peer')
+						library.logger.debug.calledWith('Cannot remove peer without nonce')
 					).to.be.true;
 				});
 
@@ -387,9 +390,9 @@ describe('transport', () => {
 				});
 			});
 
-			describe('when options.peer is defined', () => {
+			describe('when options.nonce is defined', () => {
 				var removeSpy;
-				var peerData;
+				var validNonce;
 
 				beforeEach(done => {
 					removeSpy = sinonSandbox.spy();
@@ -398,14 +401,19 @@ describe('transport', () => {
 						remove: removeSpy,
 					};
 
-					peerData = {
-						ip: '127.0.0.1',
-						wsPort: 8000,
+					library.logic = {
+						peers: {
+							peersManager: {
+								getByNonce: sinonSandbox.stub().returns(peerMock),
+							},
+						},
 					};
+
+					validNonce = randomstring.generate(16);
 
 					__private.removePeer(
 						{
-							peer: peerData,
+							nonce: validNonce,
 						},
 						'Custom peer remove message'
 					);
@@ -417,7 +425,7 @@ describe('transport', () => {
 				});
 
 				it('should call modules.peers.remove with options.peer', () => {
-					return expect(removeSpy.calledWith(peerData)).to.be.true;
+					return expect(removeSpy.calledWith(peerMock)).to.be.true;
 				});
 			});
 		});
@@ -705,7 +713,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
-						peerMock,
+						validNonce,
 						'This is a log message',
 						() => {
 							done();
@@ -719,8 +727,8 @@ describe('transport', () => {
 					).to.be.true;
 				});
 
-				it('should not call library.balancesSequence.add', () => {
-					return expect(library.balancesSequence.add.called).to.be.false;
+				it('should call library.balancesSequence.add', () => {
+					return expect(library.balancesSequence.add.called).to.be.true;
 				});
 
 				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', () => {
@@ -748,7 +756,7 @@ describe('transport', () => {
 
 					__private.receiveTransaction(
 						transaction,
-						peerMock,
+						validNonce,
 						extraLogMessage,
 						err => {
 							error = err;
@@ -773,7 +781,7 @@ describe('transport', () => {
 				});
 
 				it('should call __private.removePeer with peer details object', () => {
-					var peerDetails = { peer: peerMock, code: 'ETRANSACTION' };
+					var peerDetails = { nonce: validNonce, code: 'ETRANSACTION' };
 					return expect(
 						__private.removePeer.calledWith(peerDetails, extraLogMessage)
 					).to.be.true;
@@ -786,7 +794,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('when peer is undefined', () => {
+			describe('when nonce is undefined', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
@@ -807,11 +815,11 @@ describe('transport', () => {
 				});
 			});
 
-			describe('when peer is defined', () => {
+			describe('when nonce is defined', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
-						peerMock,
+						validNonce,
 						'This is a log message',
 						() => {
 							done();
@@ -831,9 +839,7 @@ describe('transport', () => {
 
 				it('should call library.logic.peers.peersManager.getAddress with peer.nonce', () => {
 					return expect(
-						library.logic.peers.peersManager.getAddress.calledWith(
-							peerMock.nonce
-						)
+						library.logic.peers.peersManager.getAddress.calledWith(validNonce)
 					).to.be.true;
 				});
 			});
@@ -1481,7 +1487,7 @@ describe('transport', () => {
 							it('should call __private.removePeer with {peer: peer, code: "ECOMMUNICATION"}', () => {
 								return expect(
 									__private.removePeer.calledWith({
-										peer: peerMock,
+										nonce: peerMock.nonce,
 										code: 'ECOMMUNICATION',
 									})
 								).to.be.true;
@@ -1621,7 +1627,7 @@ describe('transport', () => {
 						describe('when escapedIds.length = 0', () => {
 							beforeEach(done => {
 								// All ids will be filtered out because they are non-numeric.
-								query = { ids: '"abc","def","ghi"' };
+								query = { ids: '"abc","def","ghi"', peer: peerMock };
 								transportInstance.shared.blocksCommon(query, err => {
 									error = err;
 									done();
@@ -1635,16 +1641,6 @@ describe('transport', () => {
 										'Common block request validation failed',
 										{ err: 'ESCAPE', req: query.ids }
 									)
-								).to.be.true;
-							});
-
-							it('should call __private.removePeer with {peer: query.peer, code: "ECOMMON"}', () => {
-								expect(__private.removePeer.calledOnce).to.be.true;
-								return expect(
-									__private.removePeer.calledWith({
-										peer: query.peer,
-										code: 'ECOMMON',
-									})
 								).to.be.true;
 							});
 
@@ -1737,7 +1733,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					query = {
 						block: blockMock,
-						peer: peerMock,
+						nonce: validNonce,
 					};
 					library.bus = {
 						message: sinonSandbox.stub(),
@@ -1795,7 +1791,7 @@ describe('transport', () => {
 						it('should call __private.removePeer with {peer: query.peer, code: "EBLOCK"}', () => {
 							return expect(
 								__private.removePeer.calledWith({
-									peer: query.peer,
+									nonce: validNonce,
 									code: 'EBLOCK',
 								})
 							).to.be.true;
@@ -2284,7 +2280,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					query = {
 						transaction,
-						peer: peerMock,
+						nonce: validNonce,
 						extraLogMessage: 'This is a log message',
 					};
 					__private.receiveTransaction = sinonSandbox
@@ -2301,7 +2297,7 @@ describe('transport', () => {
 					return expect(
 						__private.receiveTransaction.calledWith(
 							query.transaction,
-							query.peer,
+							validNonce,
 							query.extraLogMessage
 						)
 					).to.be.true;
@@ -2371,7 +2367,7 @@ describe('transport', () => {
 					beforeEach(done => {
 						query = {
 							transactions: transactionsList,
-							peer: peerMock,
+							nonce: validNonce,
 							extraLogMessage: 'This is a log message',
 						};
 						__private.receiveTransactions = sinonSandbox.stub();
@@ -2383,7 +2379,7 @@ describe('transport', () => {
 						return expect(
 							__private.receiveTransactions.calledWith(
 								query.transactions,
-								query.peer,
+								validNonce,
 								query.extraLogMessage
 							)
 						).to.be.true;

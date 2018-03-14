@@ -27,6 +27,10 @@ class DatabaseSeed {
 		return blocks;
 	}
 
+	static getLastBlock() {
+		return blocks[blocks.length - 1];
+	}
+
 	static getAccounts() {
 		return accounts;
 	}
@@ -145,6 +149,8 @@ class DatabaseSeed {
 			'mem_round',
 			'rounds_rewards',
 			'peers',
+			'trs',
+			'transfer',
 		];
 		const promises = [];
 
