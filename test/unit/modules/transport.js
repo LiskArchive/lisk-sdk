@@ -727,8 +727,8 @@ describe('transport', () => {
 					).to.be.true;
 				});
 
-				it('should not call library.balancesSequence.add', () => {
-					return expect(library.balancesSequence.add.called).to.be.false;
+				it('should call library.balancesSequence.add', () => {
+					return expect(library.balancesSequence.add.called).to.be.true;
 				});
 
 				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', () => {
