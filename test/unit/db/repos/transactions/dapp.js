@@ -86,7 +86,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('save', () => {
+		describe('save()', () => {
 			it('should insert entry into "dapps" table for type 5 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];

@@ -77,7 +77,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('save', () => {
+		describe('save()', () => {
 			it('should insert entry into "delegates" table for type 6 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];
