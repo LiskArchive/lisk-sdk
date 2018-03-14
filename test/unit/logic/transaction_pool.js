@@ -151,8 +151,7 @@ describe('transactionPool', () => {
 			expect(transactionPool.countQueued()).to.deep.eql(1);
 			expect(transactionPool.countMultisignature()).to.deep.eql(1);
 
-			transactionPool.expireTransactions(err => {
-				expect(err).to.be.null;
+			transactionPool.expireTransactions(() => {
 				expect(transactionPool.countUnconfirmed()).to.deep.eql(1);
 				expect(transactionPool.countQueued()).to.deep.eql(0);
 				expect(transactionPool.countMultisignature()).to.deep.eql(0);

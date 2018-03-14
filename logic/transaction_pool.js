@@ -696,7 +696,7 @@ TransactionPool.prototype.expireTransactions = function(cb) {
 				);
 			},
 		],
-		err => setImmediate(cb, err)
+		() => setImmediate(cb)
 	);
 };
 
@@ -980,7 +980,7 @@ __private.expireTransactions = function(transactions, cb) {
 			}
 			return setImmediate(eachSeriesCb);
 		},
-		err => setImmediate(cb, err)
+		() => setImmediate(cb)
 	);
 };
 
