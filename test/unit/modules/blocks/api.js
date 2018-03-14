@@ -14,80 +14,67 @@
 
 'use strict';
 
-var rewire = require('rewire');
-var modulesLoader = require('../../../common/modules_loader');
-var application = require('../../../common/application'); // eslint-disable-line no-unused-vars
+const rewire = require('rewire');
 
-var BlocksApi = rewire('../../../../modules/blocks/api.js');
+const BlocksApi = rewire('../../../../modules/blocks/api.js');
 
 describe('blocks/api', () => {
-	var blocksApi;
-	var __private;
-	var dbStub;
-	var blocksApiModule;
+	let __private;
+	let blocksApiModule;
+	let library;
+	let loggerSpy;
+	let dbStub;
+	let blockStub;
+	let schemaStub;
 
-	before(done => {
-		application.init(
-			{ sandbox: { name: 'lisk_test_blocks_api' }, waitForGenesisBlock: true },
-			(err, scope) => {
-				blocksApi = scope.modules.blocks.shared;
-				blocksApi.onBind(scope.modules);
+	beforeEach(done => {
+		dbStub = {
+			blocks: {
+				list: sinonSandbox.stub().resolves([]),
+				sortFields: [
+					'id',
+					'timestamp',
+					'height',
+					'previousBlock',
+					'totalAmount',
+					'totalFee',
+					'reward',
+					'numberOfTransactions',
+					'generatorPublicKey',
+				],
+			},
+		};
 
-				done();
-			}
-		);
+		loggerSpy = {
+			trace: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
+			debug: sinonSandbox.spy(),
+		};
+
+		blockStub = sinonSandbox.stub();
+
+		schemaStub = sinonSandbox.stub();
+
+		blocksApiModule = new BlocksApi(loggerSpy, dbStub, blockStub, schemaStub);
+		library = BlocksApi.__get__('library');
+		__private = BlocksApi.__get__('__private');
+
+		done();
+	});
+
+	afterEach(done => {
+		sinonSandbox.restore();
+		done();
 	});
 
 	describe('constructor', () => {
-		var library;
-		var blockStub;
-
-		before(done => {
-			dbStub = {
-				blocks: {
-					list: sinonSandbox.stub().resolves([]),
-					sortFields: [
-						'id',
-						'timestamp',
-						'height',
-						'previousBlock',
-						'totalAmount',
-						'totalFee',
-						'reward',
-						'numberOfTransactions',
-						'generatorPublicKey',
-					],
-				},
-			};
-
-			blockStub = sinonSandbox.stub();
-
-			blocksApiModule = new BlocksApi(
-				modulesLoader.scope.logger,
-				dbStub,
-				blockStub,
-				modulesLoader.scope.schema
-			);
-			library = BlocksApi.__get__('library');
-			__private = BlocksApi.__get__('__private');
-
-			done();
-		});
-
-		describe('library', () => {
-			it('should assign logger', () => {
-				return expect(library.logger).to.eql(modulesLoader.scope.logger);
-			});
-
-			it('should assign db', () => {
-				return expect(library.db).to.eql(dbStub);
-			});
-
-			describe('should assign logic', () => {
-				it('should assign block', () => {
-					return expect(library.logic.block).to.eql(blockStub);
-				});
-			});
+		it('should assign params to library', () => {
+			expect(library.logger).to.eql(loggerSpy);
+			expect(library.db).to.eql(dbStub);
+			expect(library.logic.block).to.eql(blockStub);
+			return expect(library.schema).to.eql(schemaStub);
 		});
 	});
 
@@ -287,6 +274,16 @@ describe('blocks/api', () => {
 	});
 
 	describe('getBlocks', () => {
+		let listTemp;
+		beforeEach(done => {
+			listTemp = __private.list;
+			__private.list = sinonSandbox.stub();
+			done();
+		});
+		afterEach(done => {
+			__private.list = listTemp;
+			done();
+		});
 		describe('when __private.loaded = false', () => {
 			before(done => {
 				__private.loaded = false;
@@ -302,25 +299,48 @@ describe('blocks/api', () => {
 		});
 
 		describe('when __private.loaded = true', () => {
-			it('should return data when filters are valid', done => {
-				blocksApi.getBlocks({ id: '6524861224470851795' }, (err, cb) => {
-					expect(cb[0].id).to.equal('6524861224470851795');
-					done();
+			before(done => {
+				__private.loaded = true;
+				done();
+			});
+			describe('when filters are invalid', () => {
+				beforeEach(() => {
+					return __private.list.callsArgWith(
+						1,
+						[{ message: 'list-ERR' }],
+						null
+					);
+				});
+				it('should call callback with error', done => {
+					blocksApiModule.getBlocks({ sort: 'invalidField:desc' }, err => {
+						expect(err.message).to.equal('list-ERR');
+						expect(err.code).to.equal(500);
+						done();
+					});
 				});
 			});
-
-			it('should return error when filters are invalid', done => {
-				blocksApi.getBlocks({ sort: 'invalidField:desc' }, err => {
-					expect(err.code).to.equal(500);
-					done();
+			describe('when filters are valid', () => {
+				beforeEach(() => {
+					return __private.list.callsArgWith(1, null, [
+						{ id: '6524861224470851795' },
+					]);
+				});
+				it('should call callback with no error', done => {
+					blocksApiModule.getBlocks(
+						{ id: '6524861224470851795' },
+						(err, cb) => {
+							expect(cb[0].id).to.equal('6524861224470851795');
+							done();
+						}
+					);
 				});
 			});
 		});
 	});
 
 	describe('onBind', () => {
-		var modules;
-		var modulesStub;
+		let modules;
+		let modulesStub;
 
 		before(done => {
 			modulesStub = {
