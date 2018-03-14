@@ -373,9 +373,8 @@ __private.applyUnconfirmedStep = function(block, tx) {
  * @private
  * @func applyConfirmedStep
  * @param {Object} block - Block object
- * @param {function} tx - Postgres transaction
- * @returns {Promise<reject|resolve>} new Promise. Resolve if ok, reject if error ocurred
- * @todo check descriptions
+ * @param {function} tx - Database transaction
+ * @returns {Promise<reject|resolve>}
  */
 __private.applyConfirmedStep = function(block, tx) {
 	return Promise.mapSeries(
@@ -427,9 +426,8 @@ __private.applyConfirmedStep = function(block, tx) {
  * @func applyConfirmedStep
  * @param {Object} block - Block object
  * @param {boolean} saveBlock - Flag to save block into database
- * @param {function} tx - Postgres transaction
- * @returns {Promise<reject|resolve>} new Promise. Resolve if ok, reject if error ocurred
- * @todo check descriptions
+ * @param {function} tx - Database transaction
+ * @returns {Promise<reject|resolve>}
  */
 __private.saveBlockStep = function(block, saveBlock, tx) {
 	return new Promise((resolve, reject) => {
@@ -489,10 +487,10 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 /**
  * Description of the function.
  *
- * @param  {Object}   block - Full normalized genesis block
- * @param  {function} cb - Callback function
+ * @param {Object} block - Full normalized genesis block
+ * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object}   cb.err - Error if occurred
+ * @returns {Object} cb.err - Error if occurred
  * @todo Add description for the function
  */
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
