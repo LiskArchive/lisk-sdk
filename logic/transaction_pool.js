@@ -503,36 +503,40 @@ TransactionPool.prototype.processBundled = function(cb) {
 					if (!transaction) {
 						return setImmediate(eachSeriesCb);
 					}
-					__private.processVerifyTransaction(transaction, true, err => {
-						// Remove bundled transaction after asynchronous processVerifyTransaction to avoid race conditions
-						self.removeBundledTransaction(transaction.id);
-						// Delete bundled flag from transaction so it is qualified as "queued" in queueTransaction
-						delete transaction.bundled;
+					__private.processVerifyTransaction(
+						transaction,
+						true,
+						processVerifyErr => {
+							// Remove bundled transaction after asynchronous processVerifyTransaction to avoid race conditions
+							self.removeBundledTransaction(transaction.id);
+							// Delete bundled flag from transaction so it is qualified as "queued" in queueTransaction
+							delete transaction.bundled;
 
-						if (err) {
-							library.logger.debug(
-								`Failed to process / verify bundled transaction: ${
-									transaction.id
-								}`,
-								err
-							);
-							return setImmediate(eachSeriesCb);
-						}
-						self.queueTransaction(transaction, err => {
-							if (err) {
+							if (processVerifyErr) {
 								library.logger.debug(
-									`Failed to queue bundled transaction: ${transaction.id}`,
-									err
+									`Failed to process / verify bundled transaction: ${
+										transaction.id
+									}`,
+									processVerifyErr
 								);
+								return setImmediate(eachSeriesCb);
 							}
-							return setImmediate(eachSeriesCb);
-						});
-					});
+							self.queueTransaction(transaction, queueErr => {
+								if (queueErr) {
+									library.logger.debug(
+										`Failed to queue bundled transaction: ${transaction.id}`,
+										queueErr
+									);
+								}
+								return setImmediate(eachSeriesCb);
+							});
+						}
+					);
 				},
 				balancesSequenceCb
 			);
 		},
-		err => setImmediate(cb, err)
+		balancesSequenceErr => setImmediate(cb, balancesSequenceErr)
 	);
 };
 
@@ -632,13 +636,13 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 						ids.push(transaction.id);
 						modules.transactions.undoUnconfirmed(
 							transaction,
-							err => {
+							undoUnconfirmErr => {
 								// Remove transaction from unconfirmed, queued and multisignature lists
 								self.removeUnconfirmedTransaction(transaction.id);
-								if (err) {
+								if (undoUnconfirmErr) {
 									library.logger.error(
 										`Failed to undo unconfirmed transaction: ${transaction.id}`,
-										err
+										undoUnconfirmErr
 									);
 									return setImmediate(eachSeriesCb);
 								}
@@ -647,13 +651,13 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 								self.processUnconfirmedTransaction(
 									transaction,
 									false,
-									err => {
-										if (err) {
+									processUnconfirmErr => {
+										if (processUnconfirmErr) {
 											library.logger.debug(
 												`Failed to queue transaction back after successful undo unconfirmed: ${
 													transaction.id
 												}`,
-												err
+												processUnconfirmErr
 											);
 										}
 										return setImmediate(eachSeriesCb);
@@ -667,10 +671,10 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 						return setImmediate(eachSeriesCb);
 					}
 				},
-				err => setImmediate(balancesSequenceCb, err)
+				eachSeriesErr => setImmediate(balancesSequenceCb, eachSeriesErr)
 			);
 		},
-		err => setImmediate(cb, err, ids)
+		balanceSequenceErr => setImmediate(cb, balanceSequenceErr, ids)
 	);
 };
 
@@ -902,13 +906,13 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 					__private.processVerifyTransaction(
 						transaction,
 						false,
-						(err, sender) => {
-							if (err) {
+						(processVerifyErr, sender) => {
+							if (processVerifyErr) {
 								library.logger.error(
 									`Failed to process / verify unconfirmed transaction: ${
 										transaction.id
 									}`,
-									err
+									processVerifyErr
 								);
 								self.removeQueuedTransaction(transaction.id);
 								return setImmediate(eachSeriesCb);
@@ -916,13 +920,13 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 							modules.transactions.applyUnconfirmed(
 								transaction,
 								sender,
-								err => {
-									if (err) {
+								applyUnconfirmErr => {
+									if (applyUnconfirmErr) {
 										library.logger.error(
 											`Failed to apply unconfirmed transaction: ${
 												transaction.id
 											}`,
-											err
+											applyUnconfirmErr
 										);
 										self.removeQueuedTransaction(transaction.id);
 									} else {
