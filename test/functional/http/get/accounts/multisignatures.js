@@ -87,18 +87,11 @@ describe('GET /api/accounts', () => {
 					});
 			});
 
-			it('using known lowercase address should respond with its multisignature_group', () => {
+			it('using known address in lowercase should fail', () => {
 				return multisigGroupsEndpoint
-					.makeRequest({ address: account.address.toLowerCase() }, 200)
+					.makeRequest({ address: account.address.toLowerCase() }, 400)
 					.then(res => {
-						expect(res.body.data).to.have.length(1);
-						var group = res.body.data[0];
-						expect(group.address).to.be.equal(account.address);
-						expect(group.publicKey).to.be.equal(account.publicKey);
-						expect(group.members).to.have.length(scenario.members.length);
-						expect(_.map(group.members, 'address').sort()).to.be.eql(
-							_.map(scenario.members, 'address').sort()
-						);
+						expectSwaggerParamError(res, 'address');
 					});
 			});
 
@@ -177,18 +170,14 @@ describe('GET /api/accounts', () => {
 					});
 			});
 
-			it('using known lowercase address should respond with its multisignature_group', () => {
+			it('using known address in lowercase should fail', () => {
 				return multisigMembersEndpoint
-					.makeRequest({ address: scenario.members[0].address }, 200)
+					.makeRequest(
+						{ address: scenario.members[0].address.toLowerCase() },
+						400
+					)
 					.then(res => {
-						expect(res.body.data).to.have.length(1);
-						var group = res.body.data[0];
-						expect(group.address).to.be.equal(account.address);
-						expect(group.publicKey).to.be.equal(account.publicKey);
-						expect(group.members).to.have.length(scenario.members.length);
-						expect(_.map(group.members, 'address')).to.include(
-							scenario.members[0].address
-						);
+						expectSwaggerParamError(res, 'address');
 					});
 			});
 

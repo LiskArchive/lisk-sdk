@@ -78,11 +78,12 @@ class PeersRepository {
 	 * Inserts a new peer into database.
 	 *
 	 * @param {Array} peers - Array of peer objects to be inserted
-	 * @returns {Promise}
-	 * @todo Add description for the return value
+	 * @returns {Promise<null>}
+	 * Resolves with `null` when successfully inserted.
 	 */
 	insert(peers) {
-		return this.db.none(this.pgp.helpers.insert(peers, cs.insert));
+		const query = () => this.pgp.helpers.insert(peers, cs.insert);
+		return this.db.none(query);
 	}
 }
 

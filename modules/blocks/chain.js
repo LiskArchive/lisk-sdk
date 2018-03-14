@@ -297,47 +297,49 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 };
 
 /**
- * Calls undoUnconfirmedList from modules transactions.
+ * Calls undoUnconfirmedList from modules transactions
  *
  * @private
  * @func undoUnconfirmedListStep
- * @param {function} tx - Postgres transaction
- * @returns {Promise<reject|resolve>} new Promise. Resolve if ok, reject if error ocurred
+ * @param  {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object}   cb.err - Error if occurred
  */
-__private.undoUnconfirmedListStep = function(tx) {
-	return new Promise((resolve, reject) => {
-		modules.transactions.undoUnconfirmedList(err => {
-			if (err) {
-				// Fatal error, memory tables will be inconsistent
-				library.logger.error('Failed to undo unconfirmed list', err);
-				return setImmediate(reject, 'Failed to undo unconfirmed list');
-			}
-			return setImmediate(resolve);
-		}, tx);
+__private.undoUnconfirmedListStep = function(cb) {
+	modules.transactions.undoUnconfirmedList(err => {
+		if (err) {
+			// Fatal error, memory tables will be inconsistent
+			library.logger.error('Failed to undo unconfirmed list', err);
+			return setImmediate(cb, 'Failed to undo unconfirmed list');
+		}
+		return setImmediate(cb);
 	});
 };
 
 /**
- * Calls applyUnconfirmed from modules.transactions for each transaction in block, and store them in appliedTransactions.
- * If any transaction fails, calls undoUnconfirmed from modules.transactions for each transaction in appliedTransactions.
+ * Calls applyUnconfirmed from modules.transactions for each transaction in block
  *
  * @private
  * @func applyUnconfirmedStep
  * @param {Object} block - Block object
- * @param {Object} appliedTransactions - Transactions Object by transaction id
  * @param {function} tx - Postgres transaction
  * @returns {Promise<reject|resolve>} new Promise. Resolve if ok, reject if error ocurred
  * @todo check descriptions
  */
-__private.applyUnconfirmedStep = function(block, appliedTransactions, tx) {
+__private.applyUnconfirmedStep = function(block, tx) {
 	return Promise.mapSeries(
 		block.transactions,
 		transaction =>
 			new Promise((resolve, reject) => {
 				modules.accounts.setAccountAndGet(
 					{ publicKey: transaction.senderPublicKey },
-					(err, sender) => {
-						if (err) {
+					(accountErr, sender) => {
+						if (accountErr) {
+							const err = `Failed to get account to apply unconfirmed transaction: ${
+								transaction.id
+							} '-' ${accountErr}`;
+							library.logger.error(err);
+							library.logger.error('Transaction', transaction);
 							return setImmediate(reject, err);
 						}
 						// DATABASE: write
@@ -346,18 +348,14 @@ __private.applyUnconfirmedStep = function(block, appliedTransactions, tx) {
 							sender,
 							err => {
 								if (err) {
-									err = [
-										'Failed to apply transaction:',
-										transaction.id,
-										'-',
-										err,
-									].join(' ');
+									err = `Failed to apply unconfirmed transaction: ${
+										transaction.id
+									} '-' ${err}`;
 									library.logger.error(err);
 									library.logger.error('Transaction', transaction);
 									return setImmediate(reject, err);
 								}
 
-								appliedTransactions[transaction.id] = transaction;
 								return setImmediate(resolve);
 							},
 							tx
@@ -366,47 +364,11 @@ __private.applyUnconfirmedStep = function(block, appliedTransactions, tx) {
 					tx
 				);
 			})
-	).catch(() =>
-		Promise.mapSeries(
-			block.transactions,
-			transaction =>
-				new Promise((resolve, reject) => {
-					// Rewind any already applied unconfirmed transactions
-					// Leaves the database state as per the previous block
-					modules.accounts.getAccount(
-						{ publicKey: transaction.senderPublicKey },
-						(err, sender) => {
-							if (err) {
-								return setImmediate(reject, err);
-							}
-							// The transaction has been applied?
-							if (appliedTransactions[transaction.id]) {
-								// DATABASE: write
-								library.logic.transaction.undoUnconfirmed(
-									transaction,
-									sender,
-									error => {
-										if (error) {
-											return setImmediate(reject, error);
-										}
-										return setImmediate(resolve);
-									},
-									tx
-								);
-							} else {
-								return setImmediate(resolve);
-							}
-						},
-						tx
-					);
-				})
-		)
 	);
 };
 
 /**
- * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount.
- * If there is no error, calls removeUnconfirmedTransaction from modules.transactions
+ * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
  *
  * @private
  * @func applyConfirmedStep
@@ -422,15 +384,11 @@ __private.applyConfirmedStep = function(block, tx) {
 			new Promise((resolve, reject) => {
 				modules.accounts.getAccount(
 					{ publicKey: transaction.senderPublicKey },
-					(err, sender) => {
-						if (err) {
-							// Fatal error, memory tables will be inconsistent
-							err = [
-								'Failed to apply transaction:',
-								transaction.id,
-								'-',
-								err,
-							].join(' ');
+					(accountErr, sender) => {
+						if (accountErr) {
+							const err = `Failed to get account to apply transaction: ${
+								transaction.id
+							} '-' ${accountErr}`;
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
 							return setImmediate(reject, err);
@@ -443,20 +401,14 @@ __private.applyConfirmedStep = function(block, tx) {
 							err => {
 								if (err) {
 									// Fatal error, memory tables will be inconsistent
-									err = [
-										'Failed to apply transaction:',
-										transaction.id,
-										'-',
-										err,
-									].join(' ');
+									err = `Failed to apply transaction: ${
+										transaction.id
+									} - ${err}`;
 									library.logger.error(err);
 									library.logger.error('Transaction', transaction);
+
 									return setImmediate(reject, err);
 								}
-								// Transaction applied, removed from the unconfirmed list
-								modules.transactions.removeUnconfirmedTransaction(
-									transaction.id
-								);
 								return setImmediate(resolve);
 							},
 							tx
@@ -469,8 +421,7 @@ __private.applyConfirmedStep = function(block, tx) {
 };
 
 /**
- * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount.
- * If there is no error, calls removeUnconfirmedTransaction from modules.transactions
+ * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
  *
  * @private
  * @func applyConfirmedStep
@@ -493,7 +444,7 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 						// Fatal error, memory tables will be inconsistent
 						library.logger.error('Failed to save block...', err);
 						library.logger.error('Block', block);
-						return reject(err);
+						return setImmediate(reject, 'Failed to save block');
 					}
 
 					library.logger.debug(
@@ -508,9 +459,9 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 						block,
 						err => {
 							if (err) {
-								return reject(err);
+								return setImmediate(reject, err);
 							}
-							return resolve();
+							return setImmediate(resolve);
 						},
 						tx
 					);
@@ -525,9 +476,9 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 				block,
 				err => {
 					if (err) {
-						return reject(err);
+						return setImmediate(reject, err);
 					}
-					return resolve();
+					return setImmediate(resolve);
 				},
 				tx
 			);
@@ -545,42 +496,43 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
  * @todo Add description for the function
  */
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
-	// Transactions to rewind in case of error.
-	var appliedTransactions = {};
+	__private.undoUnconfirmedListStep(err => {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+		library.db
+			.tx('Chain:applyBlock', tx => {
+				modules.blocks.isActive.set(true);
 
-	library.db
-		.tx('Chain:applyBlock', tx => {
-			modules.blocks.isActive.set(true);
+				return __private
+					.applyUnconfirmedStep(block, tx)
+					.then(() => __private.applyConfirmedStep(block, tx))
+					.then(() => __private.saveBlockStep(block, saveBlock, tx));
+			})
+			.then(() => {
+				// Remove block transactions from transaction pool
+				block.transactions.forEach(transaction => {
+					modules.transactions.removeUnconfirmedTransaction(transaction.id);
+				});
+				modules.blocks.isActive.set(false);
+				block = null;
 
-			return __private
-				.undoUnconfirmedListStep(tx)
-				.then(() =>
-					__private.applyUnconfirmedStep(block, appliedTransactions, tx)
-				)
-				.then(() => __private.applyConfirmedStep(block, tx))
-				.then(() => __private.saveBlockStep(block, saveBlock, tx));
-		})
-		.then(() => {
-			modules.blocks.isActive.set(false);
-			block = null;
-			appliedTransactions = null;
+				return setImmediate(cb, null);
+			})
+			.catch(reason => {
+				modules.blocks.isActive.set(false);
+				block = null;
 
-			return setImmediate(cb, null);
-		})
-		.catch(reason => {
-			modules.blocks.isActive.set(false);
-			block = null;
-			appliedTransactions = null;
+				// Finish here if snapshotting.
+				// FIXME: Not the best place to do that
+				if (reason.name === 'Snapshot finished') {
+					library.logger.info(reason);
+					process.emit('SIGTERM');
+				}
 
-			// Finish here if snapshotting.
-			// FIXME: Not the best place to do that
-			if (reason.name === 'Snapshot finished') {
-				library.logger.info(reason);
-				process.emit('SIGTERM');
-			}
-
-			return setImmediate(cb, reason);
-		});
+				return setImmediate(cb, reason);
+			});
+	});
 };
 
 /**

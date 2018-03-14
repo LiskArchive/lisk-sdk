@@ -1,4 +1,4 @@
-/* eslint-disable mocha/no-pending-tests, mocha/no-skipped-tests */
+/* eslint-disable mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -15,165 +15,437 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var lisk = require('lisk-js');
-var accountFixtures = require('../../../../fixtures/accounts');
-var randomUtil = require('../../../../common/utils/random');
-var application = require('../../../../common/application'); // eslint-disable-line no-unused-vars
+const async = require('async');
+const expect = require('chai').expect;
+const lisk = require('lisk-js');
+const accountFixtures = require('../../../../fixtures/accounts');
+const randomUtil = require('../../../../common/utils/random');
+const localCommon = require('../../common');
+const genesisBlock = require('../../../../data/genesis_block.json');
 
-var previousBlock;
+describe('system test (blocks) - chain/applyBlock', () => {
+	const transferAmount = 100000000 * 100;
+	let library;
+	let db;
 
-function createBlock(
-	blocksModule,
-	blockLogic,
-	secret,
-	timestamp,
-	transactions
-) {
-	var keypair = blockLogic.scope.ed.makeKeypair(
-		crypto
-			.createHash('sha256')
-			.update(secret, 'utf8')
-			.digest()
-	);
-	blocksModule.lastBlock.set(previousBlock);
-	var newBlock = blockLogic.create({
-		keypair,
-		timestamp,
-		previousBlock: blocksModule.lastBlock.get(),
-		transactions,
+	localCommon.beforeBlock('system_blocks_chain_apply_block', lib => {
+		library = lib;
+		db = library.db;
 	});
-	newBlock.id = blockLogic.getId(newBlock);
-	newBlock.height = previousBlock ? previousBlock.height + 1 : 1;
-	return newBlock;
-}
 
-describe('blocks/chain', () => {
-	var blocksModule;
-	var blocksChainModule;
-	var blockLogic;
-	var genesisBlock;
-	var db;
+	afterEach(done => {
+		db
+			.task(t => {
+				return t.batch([
+					db.none('DELETE FROM blocks WHERE "height" > 1;'),
+					db.none('DELETE FROM forks_stat;'),
+				]);
+			})
+			.then(() => {
+				library.modules.blocks.lastBlock.set(genesisBlock);
+				done();
+			})
+			.catch(err => {
+				__testContext.debug(err.stack);
+				done();
+			});
+	});
 
-	before(done => {
-		// Force rewards start at 150-th block
-		application.init(
-			{
-				sandbox: { name: 'lisk_test_blocks_chain' },
-				waitForGenesisBlock: true,
-			},
-			(err, scope) => {
-				db = scope.db;
-				blocksModule = scope.modules.blocks;
-				blocksChainModule = scope.modules.blocks.chain;
-				blockLogic = scope.logic.block;
-				genesisBlock = scope.genesisblock.block;
-				blocksModule.onBind(scope.modules);
-				blocksChainModule.onBind(scope.modules);
+	let blockAccount1;
+	let blockAccount2;
+	let poolAccount3;
+	let poolAccount4;
 
-				previousBlock = genesisBlock;
+	beforeEach('send funds to accounts', done => {
+		blockAccount1 = randomUtil.account();
+		blockAccount2 = randomUtil.account();
+		poolAccount3 = randomUtil.account();
+		poolAccount4 = randomUtil.account();
 
+		const fundTrsForAccount1 = lisk.transaction.createTransaction(
+			blockAccount1.address,
+			transferAmount,
+			accountFixtures.genesis.password
+		);
+
+		const fundTrsForAccount2 = lisk.transaction.createTransaction(
+			blockAccount2.address,
+			transferAmount,
+			accountFixtures.genesis.password
+		);
+
+		const fundTrsForAccount3 = lisk.transaction.createTransaction(
+			poolAccount3.address,
+			transferAmount,
+			accountFixtures.genesis.password
+		);
+
+		const fundTrsForAccount4 = lisk.transaction.createTransaction(
+			poolAccount4.address,
+			transferAmount,
+			accountFixtures.genesis.password
+		);
+
+		localCommon.addTransactionsAndForge(
+			library,
+			[
+				fundTrsForAccount1,
+				fundTrsForAccount2,
+				fundTrsForAccount3,
+				fundTrsForAccount4,
+			],
+			err => {
+				expect(err).to.not.exist;
 				done();
 			}
 		);
 	});
 
-	after(done => {
-		application.cleanup(done);
-	});
-
 	describe('applyBlock', () => {
-		var secret =
-			'lend crime turkey diary muscle donkey arena street industry innocent network lunar';
-		var block;
-		var transactions;
+		let block;
+		let blockTransaction1;
+		let blockTransaction2;
 
-		beforeEach(done => {
-			transactions = [];
-			var account = randomUtil.account();
-			var transaction = lisk.transaction.createTransaction(
-				account.address,
-				randomUtil.number(100000000, 1000000000),
-				accountFixtures.genesis.password
+		beforeEach('create block', done => {
+			blockTransaction1 = lisk.delegate.createDelegate(
+				blockAccount1.password,
+				blockAccount1.username
 			);
-			transaction.senderId = accountFixtures.genesis.address;
-			transactions.push(transaction);
-			done();
-		});
-
-		afterEach(done => {
-			previousBlock = block;
-			done();
-		});
-
-		it('should apply a valid block successfully', done => {
-			block = createBlock(
-				blocksModule,
-				blockLogic,
-				secret,
-				32578370,
-				transactions
+			blockTransaction2 = lisk.delegate.createDelegate(
+				blockAccount2.password,
+				blockAccount2.username
 			);
-
-			blocksChainModule.applyBlock(block, true, err => {
-				if (err) {
-					return done(err);
-				}
-
-				blocksModule.shared.getBlocks({ id: block.id }, (err, data) => {
-					expect(data).to.have.lengthOf(1);
-					expect(data[0].id).to.be.equal(block.id);
+			blockTransaction1.senderId = blockAccount1.address;
+			blockTransaction2.senderId = blockAccount2.address;
+			localCommon.createValidBlock(
+				library,
+				[blockTransaction1, blockTransaction2],
+				(err, b) => {
+					block = b;
 					done(err);
+				}
+			);
+		});
+
+		describe('undoUnconfirmedList', () => {
+			let transaction3;
+			let transaction4;
+
+			beforeEach('with transactions in unconfirmed queue', done => {
+				transaction3 = lisk.signature.createSignature(
+					poolAccount3.password,
+					poolAccount3.secondPassword
+				);
+
+				transaction4 = lisk.signature.createSignature(
+					poolAccount4.password,
+					poolAccount4.secondPassword
+				);
+
+				transaction3.senderId = poolAccount3.address;
+				transaction4.senderId = poolAccount4.address;
+
+				async.map(
+					[transaction3, transaction4],
+					(transaction, eachCb) => {
+						localCommon.addTransaction(library, transaction, err => {
+							expect(err).to.not.exist;
+							eachCb();
+						});
+					},
+					err => {
+						expect(err).to.not.exist;
+						localCommon.fillPool(library, done);
+					}
+				);
+			});
+
+			it('should have transactions from pool in unconfirmed state', done => {
+				async.forEach(
+					[poolAccount3, poolAccount4],
+					(account, eachCb) => {
+						localCommon
+							.getAccountFromDb(library, account.address)
+							.then(accountRow => {
+								expect(1).to.equal(accountRow.mem_accounts.u_secondSignature);
+								eachCb();
+							});
+					},
+					done
+				);
+			});
+
+			describe('after applying a new block', () => {
+				beforeEach(done => {
+					library.modules.blocks.chain.applyBlock(block, true, done);
+				});
+
+				it('should undo unconfirmed transactions', done => {
+					async.forEach(
+						[poolAccount3, poolAccount4],
+						(account, eachCb) => {
+							localCommon
+								.getAccountFromDb(library, account.address)
+								.then(accountRow => {
+									expect(0).to.equal(accountRow.mem_accounts.u_secondSignature);
+									eachCb();
+								});
+						},
+						done
+					);
 				});
 			});
 		});
 
-		// TODO: Need to enable it after making block part of the single transaction
-		it.skip('should apply block in a single transaction', done => {
-			block = createBlock(
-				blocksModule,
-				blockLogic,
-				secret,
-				32578370,
-				transactions
-			);
+		describe('applyUnconfirmedStep', () => {
+			describe('after applying new block fails on applyUnconfirmedStep', () => {
+				beforeEach(done => {
+					// Making block invalid
+					block.transactions[0].asset.delegate.username =
+						block.transactions[1].asset.delegate.username;
+					library.modules.blocks.chain.applyBlock(block, true, () => done());
+				});
 
-			db.$config.options.query = function(event) {
-				if (
-					!(
-						event.ctx &&
-						event.ctx.isTX &&
-						event.ctx.txLevel === 0 &&
-						event.ctx.tag === 'Chain:applyBlock'
-					)
-				) {
-					return done(
-						`Some query executed outside transaction context: ${event.query}`,
-						event
+				it('should have pooled transactions in queued state', done => {
+					async.forEach(
+						[poolAccount3, poolAccount4],
+						(account, eachCb) => {
+							localCommon
+								.getAccountFromDb(library, account.address)
+								.then(accountRow => {
+									expect(0).to.equal(accountRow.mem_accounts.u_secondSignature);
+									eachCb();
+								});
+						},
+						done
 					);
-				}
-			};
+				});
 
-			var connect = sinonSandbox.stub();
-			var disconnect = sinonSandbox.stub();
+				it('should not applyUnconfirmedStep on block transactions', done => {
+					async.forEach(
+						[blockAccount1, blockAccount2],
+						(account, eachCb) => {
+							localCommon
+								.getAccountFromDb(library, account.address)
+								.then(accountRow => {
+									expect(accountRow.mem_accounts.u_username).to.eql(null);
+									expect(accountRow.mem_accounts.u_isDelegate).to.equal(0);
+									eachCb();
+								});
+						},
+						done
+					);
+				});
+			});
 
-			db.$config.options.connect = connect;
-			db.$config.options.disconnect = disconnect;
+			describe('after applying new block passes', () => {
+				beforeEach(done => {
+					library.modules.blocks.chain.applyBlock(block, true, done);
+				});
 
-			blocksChainModule.applyBlock(block, true, err => {
-				if (err) {
-					done(err);
-				}
+				it('should applyUnconfirmedStep for block transactions', done => {
+					async.forEach(
+						[blockAccount1, blockAccount2],
+						(account, eachCb) => {
+							localCommon
+								.getAccountFromDb(library, account.address)
+								.then(accountRow => {
+									expect(accountRow.mem_accounts.u_username).to.equal(
+										account.username
+									);
+									expect(accountRow.mem_accounts.u_isDelegate).to.equal(1);
+									eachCb();
+								});
+						},
+						done
+					);
+				});
+			});
+		});
 
-				expect(connect.calledOnce).to.be.true;
-				expect(disconnect.calledOnce).to.be.true;
+		describe('applyConfirmedStep', () => {
+			const randomUsername = randomUtil.username();
+			describe('after applying new block fails', () => {
+				beforeEach(done => {
+					// Making mem_account invalid
+					library.logic.account.set(
+						blockAccount1.address,
+						{
+							isDelegate: 1,
+							username: randomUsername,
+							publicKey: blockTransaction1.senderPublicKey,
+						},
+						err => {
+							expect(err).to.not.exist;
+							library.modules.blocks.chain.applyBlock(block, true, () =>
+								done()
+							);
+						}
+					);
+				});
 
-				delete db.$config.options.connect;
-				delete db.$config.options.disconnect;
-				delete db.$config.options.query;
+				it('should have pooled transactions in queued state', done => {
+					async.forEach(
+						[poolAccount3, poolAccount4],
+						(account, eachCb) => {
+							localCommon
+								.getAccountFromDb(library, account.address)
+								.then(accountRow => {
+									expect(0).to.equal(accountRow.mem_accounts.u_secondSignature);
+									eachCb();
+								});
+						},
+						done
+					);
+				});
 
-				blocksModule.shared.getBlocks({ id: block.id }, err => {
-					done(err);
+				// Should be unskipped once transaction
+				it.skip('should revert applyconfirmedStep on block transactions', done => {
+					async.forEach(
+						[blockAccount1, blockAccount2],
+						(account, eachCb) => {
+							localCommon
+								.getAccountFromDb(library, account.address)
+								.then(accountRow => {
+									// the transaction will fail, so we will have the username, isDelegate we initially set
+									if (account == blockAccount1) {
+										expect(accountRow.mem_accounts.username).to.equal(
+											randomUsername
+										);
+										expect(accountRow.mem_accounts.isDelegate).to.equal(1);
+									}
+
+									if (account == blockAccount2) {
+										expect(accountRow.mem_accounts.username).to.eql(null);
+										expect(accountRow.mem_accounts.isDelegate).to.equal(0);
+									}
+
+									expect(accountRow.mem_accounts.u_username).to.equal(null);
+									expect(accountRow.mem_accounts.u_isDelegate).to.equal(0);
+									eachCb();
+								});
+						},
+						done
+					);
+				});
+			});
+
+			describe('after applying a new block', () => {
+				beforeEach(done => {
+					library.modules.blocks.chain.applyBlock(block, true, done);
+				});
+
+				it('should applyConfirmedStep', done => {
+					async.forEach(
+						[blockAccount1, blockAccount2],
+						(account, eachCb) => {
+							localCommon
+								.getAccountFromDb(library, account.address)
+								.then(accountRow => {
+									expect(accountRow.mem_accounts.username).to.equal(
+										account.username
+									);
+									expect(accountRow.mem_accounts.isDelegate).to.equal(1);
+									eachCb();
+								});
+						},
+						done
+					);
+				});
+			});
+		});
+
+		describe('saveBlockStep', () => {
+			describe('after applying new block fails', () => {
+				let blockId;
+				beforeEach(done => {
+					blockId = block.id;
+					// Make block invalid
+					block.id = null;
+					library.modules.blocks.chain.applyBlock(block, true, () => done());
+				});
+
+				it('should have pooled transactions in queued state', done => {
+					async.forEach(
+						[poolAccount3, poolAccount4],
+						(account, eachCb) => {
+							localCommon
+								.getAccountFromDb(library, account.address)
+								.then(accountRow => {
+									expect(0).to.equal(accountRow.mem_accounts.u_secondSignature);
+									eachCb();
+								});
+						},
+						done
+					);
+				});
+
+				it('should not save block in the blocks table', done => {
+					localCommon.getBlocks(library, (err, ids) => {
+						expect(ids).to.not.include(blockId);
+						return done();
+					});
+				});
+
+				it('should not save transactions in the trs table', done => {
+					async.forEach(
+						[blockTransaction1, blockTransaction2],
+						(transaction, eachCb) => {
+							const filter = {
+								id: transaction.id,
+							};
+							localCommon.getTransactionFromModule(
+								library,
+								filter,
+								(err, res) => {
+									expect(err).to.be.null;
+									expect(res)
+										.to.have.property('transactions')
+										.which.is.an('Array')
+										.to.have.length(0);
+									eachCb();
+								}
+							);
+						},
+						done
+					);
+				});
+			});
+
+			describe('after applying a new block', () => {
+				beforeEach(done => {
+					library.modules.blocks.chain.applyBlock(block, true, done);
+				});
+
+				it('should save block in the blocks table', done => {
+					localCommon.getBlocks(library, (err, ids) => {
+						expect(ids).to.include(block.id);
+						return done();
+					});
+				});
+
+				it('should save transactions in the trs table', done => {
+					async.forEach(
+						[blockTransaction1, blockTransaction2],
+						(transaction, eachCb) => {
+							const filter = {
+								id: transaction.id,
+							};
+							localCommon.getTransactionFromModule(
+								library,
+								filter,
+								(err, res) => {
+									expect(err).to.be.null;
+									expect(res)
+										.to.have.property('transactions')
+										.which.is.an('Array');
+									expect(res.transactions[0].id).to.equal(transaction.id);
+									eachCb();
+								}
+							);
+						},
+						done
+					);
 				});
 			});
 		});

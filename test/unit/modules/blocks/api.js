@@ -66,8 +66,7 @@ describe('blocks/api', () => {
 				modulesLoader.scope.logger,
 				dbStub,
 				blockStub,
-				modulesLoader.scope.schema,
-				modulesLoader.scope.dbSequence
+				modulesLoader.scope.schema
 			);
 			library = BlocksApi.__get__('library');
 			__private = BlocksApi.__get__('__private');
@@ -82,12 +81,6 @@ describe('blocks/api', () => {
 
 			it('should assign db', () => {
 				return expect(library.db).to.eql(dbStub);
-			});
-
-			it('should assign dbSequence', () => {
-				return expect(library.dbSequence).to.eql(
-					modulesLoader.scope.dbSequence
-				);
 			});
 
 			describe('should assign logic', () => {

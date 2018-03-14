@@ -20,6 +20,7 @@ var expect = require('chai').expect;
 var sinon = require('sinon');
 // Load config file - global (one from test directory)
 var config = require('../../../config.json');
+var Sequence = require('../../../helpers/sequence.js');
 
 // Instantiate test subject
 var TransactionPool = rewire('../../../logic/transaction_pool.js');
@@ -33,6 +34,7 @@ describe('transactionPool', () => {
 	var dummyProcessVerifyTransaction;
 	var dummyApplyUnconfirmed;
 	var dummyUndoUnconfirmed;
+	var balancesSequence;
 	var freshListState = { transactions: [], index: {} };
 
 	// Init fake logger
@@ -84,13 +86,17 @@ describe('transactionPool', () => {
 		// Use fresh instance of jobsQueue inside transaction pool
 		TransactionPool.__set__('jobsQueue', jobsQueue);
 
+		// Init balance sequence
+		balancesSequence = new Sequence();
+
 		// Init test subject
 		transactionPool = new TransactionPool(
 			config.broadcasts.broadcastInterval,
 			config.broadcasts.releaseLimit,
 			sinon.spy(), // transaction
 			sinon.spy(), // bus
-			logger // logger
+			logger, // logger
+			balancesSequence
 		);
 
 		// Bind fake modules
@@ -553,7 +559,7 @@ describe('transactionPool', () => {
 						after(resetStates);
 					});
 
-					describe('that results with error on modules.transactions.undoUnconfirme', () => {
+					describe('that results with error on modules.transactions.undoUnconfirmed', () => {
 						var badTransaction = { id: 'badTx' };
 						var transactions = [badTransaction];
 						var error = 'undo error';
@@ -641,6 +647,86 @@ describe('transactionPool', () => {
 						after(resetStates);
 					});
 				});
+			});
+		});
+	});
+
+	describe('transactionInPool', () => {
+		afterEach(() => {
+			return resetStates();
+		});
+
+		describe('when transaction is in pool', () => {
+			var tx = '123';
+
+			describe('unconfirmed list', () => {
+				describe('with index 0', () => {
+					it('should return true', () => {
+						transactionPool.unconfirmed.index[tx] = 0;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', () => {
+					it('should return true', () => {
+						transactionPool.unconfirmed.index[tx] = 1;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('bundled list', () => {
+				describe('with index 0', () => {
+					it('should return true', () => {
+						transactionPool.bundled.index[tx] = 0;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', () => {
+					it('should return true', () => {
+						transactionPool.bundled.index[tx] = 1;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('queued list', () => {
+				describe('with index 0', () => {
+					it('should return true', () => {
+						transactionPool.queued.index[tx] = 0;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', () => {
+					it('should return true', () => {
+						transactionPool.queued.index[tx] = 1;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+
+			describe('multisignature list', () => {
+				describe('with index 0', () => {
+					it('should return true', () => {
+						transactionPool.multisignature.index[tx] = 0;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+
+				describe('with other index', () => {
+					it('should return true', () => {
+						transactionPool.multisignature.index[tx] = 1;
+						return expect(transactionPool.transactionInPool(tx)).to.equal(true);
+					});
+				});
+			});
+		});
+
+		describe('when transaction is not in pool', () => {
+			it('should return false', () => {
+				return expect(transactionPool.transactionInPool('123')).to.equal(false);
 			});
 		});
 	});

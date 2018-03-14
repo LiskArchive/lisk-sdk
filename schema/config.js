@@ -218,6 +218,9 @@ module.exports = {
 			broadcasts: {
 				type: 'object',
 				properties: {
+					active: {
+						type: 'boolean',
+					},
 					broadcastInterval: {
 						type: 'integer',
 						minimum: 1000,

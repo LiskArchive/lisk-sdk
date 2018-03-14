@@ -93,12 +93,8 @@ WSServer.prototype.start = function() {
 					.callsArgWith(1, null, { success: true, common: null }),
 			});
 
-			self.socketClient
-				.start()
-				.then(resolve)
-				.catch(() => {
-					reject();
-				});
+			self.socketClient.start();
+			resolve();
 		});
 
 		self.socketCluster.on('fail', () => {
