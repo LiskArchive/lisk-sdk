@@ -552,6 +552,16 @@ describe('vote', () => {
 			}).to.throw();
 		});
 
+		it('should throw error for votes with invalid public key', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = [
+				'-9d3058175acab969f41ad9b86f7a2926c74258670fe56b',
+			];
+			return expect(() => {
+				vote.getBytes(transaction);
+			}).to.throw();
+		});
+
 		it('should return buffer for votes with plus and minus public keys', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			var data = {
@@ -569,7 +579,9 @@ describe('vote', () => {
 		it('should be okay for utf-8 data value', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			var data = {
-				votes: ['Zu¨¨¨¨ka Ωlaå'],
+				votes: [
+					'-Zu¨¨¨¨ka Ωlaå69145acab346f98ad9b23f7a2926c74258670fe98b37c100c01',
+				],
 			};
 			transaction.asset = data;
 

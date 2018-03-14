@@ -263,8 +263,25 @@ Vote.prototype.getBytes = function(transaction) {
 		if (
 			!(votes.length > 0 && votes.length < constants.maxVotesPerTransaction)
 		) {
-			throw new Error('number of votes is less than 0 or more than 33.');
+			throw new Error('number of votes must be between 0 and 33.');
 		}
+
+		votes.map(vote => {
+			const publicKeyPrefix = vote.charAt(0);
+			const publicKey = vote.substr(1, vote.length);
+			if (publicKeyPrefix !== '+' && publicKeyPrefix !== '-') {
+				throw new Error(
+					`Public key ${publicKey} does not have prefix ${publicKeyPrefix}`
+				);
+			}
+			if (publicKey.length !== constants.PUBLIC_KEY_LENGTH) {
+				throw new Error(
+					`Public key ${publicKey} length:${
+						publicKey.length
+					} differs from the expected 64 characters.`
+				);
+			}
+		});
 
 		return Buffer.from(votes.join(''), 'utf8');
 	} catch (e) {
