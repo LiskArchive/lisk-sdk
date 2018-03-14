@@ -32,9 +32,11 @@ describe('system test (type 1) - checking validated second signature registratio
 			recipientId: account.address,
 		}
 	);
-	var transaction = lisk.signature.createSignature(
-		account.password,
-		account.secondPassword
+	var transaction = lisk.transaction.registerSecondPassphrase(
+		{
+			passphrase: account.password,
+			secondPassphrase: account.secondPassword,
+		}
 	);
 	var dapp = randomUtil.application();
 	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);

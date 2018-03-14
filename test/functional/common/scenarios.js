@@ -56,9 +56,11 @@ function Multisig(options) {
 			recipientId: this.account.address,
 		}
 	);
-	this.secondSignatureTransaction = lisk.signature.createSignature(
-		this.account.password,
-		this.account.secondPassword
+	this.secondSignatureTransaction = lisk.transaction.registerSecondPassphrase(
+		{
+			passphrase: this.account.password,
+			secondPassphrase: this.account.secondPassword,
+		}
 	);
 }
 

@@ -36,9 +36,11 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
 	dapp.id = dappTransaction.id;
 	var transactionWith;
-	var transactionSecondSignature = lisk.signature.createSignature(
-		account.password,
-		account.secondPassword
+	var transactionSecondSignature = lisk.transaction.registerSecondPassphrase(
+		{
+			passphrase: account.password,
+			secondPassphrase: account.secondPassword,
+		}
 	);
 
 	localCommon.beforeBlock('system_1_X_second_sign_unconfirmed', lib => {
@@ -84,7 +86,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 					});
 
 					it(`type ${index}: ${key} with different timestamp should be ok`, done => {
-						transactionWith = lisk.signature.createSignature(
+						transactionWith = lisk.transaction.registerSecondPassphrase(
 							account.password,
 							account.secondPassword,
 							-10000

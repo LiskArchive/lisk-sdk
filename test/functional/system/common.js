@@ -276,9 +276,11 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 			);
 			break;
 		case 'SIGNATURE':
-			transaction = lisk.signature.createSignature(
-				account.password,
-				account.secondPassword
+			transaction = lisk.transaction.registerSecondPassphrase(
+				{
+					passphrase: account.password,
+					secondPassphrase: account.secondPassword,
+				}
 			);
 			break;
 		case 'DELEGATE':

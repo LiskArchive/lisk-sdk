@@ -64,9 +64,11 @@ describe('GET /api/node', () => {
 					})
 					.then(() => {
 						// Create Second Signature for sender account
-						transaction = lisk.signature.createSignature(
-							senderAccount.password,
-							senderAccount.secondPassword
+						transaction = lisk.transaction.registerSecondPassphrase(
+							{
+								passphrase: senderAccount.password,
+								secondPassphrase: senderAccount.secondPassword,
+							}
 						);
 
 						return sendTransactionPromise(transaction);

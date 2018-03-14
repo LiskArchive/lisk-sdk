@@ -65,9 +65,11 @@ describe('system test (type 1) - second signature transactions from pool and pee
 			let signatureTransaction;
 
 			beforeEach(done => {
-				signatureTransaction = lisk.signature.createSignature(
-					signatureAccount.password,
-					signatureAccount.secondPassword
+				signatureTransaction = lisk.transaction.registerSecondPassphrase(
+					{
+						passphrase: signatureAccount.password,
+						secondPassphrase: signatureAccount.secondPassword,
+					}
 				);
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
@@ -128,7 +130,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 				let signatureTransaction2;
 
 				beforeEach(done => {
-					signatureTransaction2 = lisk.signature.createSignature(
+					signatureTransaction2 = lisk.transaction.registerSecondPassphrase(
 						signatureAccount.password,
 						randomUtil.password()
 					);
@@ -184,13 +186,13 @@ describe('system test (type 1) - second signature transactions from pool and pee
 					let blockId;
 
 					beforeEach(done => {
-						signatureTransaction2 = lisk.signature.createSignature(
+						signatureTransaction2 = lisk.transaction.registerSecondPassphrase(
 							signatureAccount.password,
 							randomUtil.password()
 						);
 						signatureTransaction2.senderId = signatureAccount.address;
 
-						signatureTransaction3 = lisk.signature.createSignature(
+						signatureTransaction3 = lisk.transaction.registerSecondPassphrase(
 							signatureAccount.password,
 							randomUtil.password()
 						);

@@ -109,9 +109,11 @@ describe('GET /delegates', () => {
 					recipientId: secondSecretAccount.address,
 				}
 			);
-			var signatureTransaction = lisk.signature.createSignature(
-				secondSecretAccount.password,
-				secondSecretAccount.secondPassword
+			var signatureTransaction = lisk.transaction.registerSecondPassphrase(
+				{
+					passphrase: secondSecretAccount.password,
+					secondPassphrase: secondSecretAccount.secondPassword,
+				}
 			);
 			var delegateTransaction = lisk.delegate.createDelegate(
 				secondSecretAccount.password,

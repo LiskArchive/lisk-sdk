@@ -29,9 +29,11 @@ function invalidAssets(option, badTransactions) {
 		beforeEach(done => {
 			switch (option) {
 				case 'signature':
-					transaction = lisk.signature.createSignature(
-						accountFixtures.genesis.password,
-						randomUtil.password()
+					transaction = lisk.transaction.registerSecondPassphrase(
+						{
+							passphrase: accountFixtures.genesis.password,
+							secondPassphrase: randomUtil.password(),
+						}
 					);
 					break;
 				case 'delegate':
