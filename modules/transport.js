@@ -228,28 +228,40 @@ __private.receiveTransaction = function(
 		return setImmediate(cb, `Invalid transaction body - ${e.toString()}`);
 	}
 
-	if (!nonce) {
-		library.logger.debug(
-			`Received transaction ${transaction.id} from public client`
-		);
-	} else {
-		library.logger.debug(
-			`Received transaction ${
-				transaction.id
-			} from peer ${library.logic.peers.peersManager.getAddress(nonce)}`
-		);
-	}
-	modules.transactions.processUnconfirmedTransaction(transaction, true, err => {
-		if (err) {
-			library.logger.debug(['Transaction', id].join(' '), err.toString());
-			if (transaction) {
-				library.logger.debug('Transaction', transaction);
-			}
-
-			return setImmediate(cb, err.toString());
+	library.balancesSequence.add(balancesSequenceCb => {
+		if (!nonce) {
+			library.logger.debug(
+				`Received transaction ${transaction.id} from public client`
+			);
+		} else {
+			library.logger.debug(
+				`Received transaction ${
+					transaction.id
+				} from peer ${library.logic.peers.peersManager.getAddress(nonce)}`
+			);
 		}
-		return setImmediate(cb, null, transaction.id);
-	});
+		modules.transactions.processUnconfirmedTransaction(
+			transaction,
+			true,
+			processUnconfirmErr => {
+				if (processUnconfirmErr) {
+					library.logger.debug(
+						['Transaction', id].join(' '),
+						processUnconfirmErr.toString()
+					);
+					if (transaction) {
+						library.logger.debug('Transaction', transaction);
+					}
+
+					return setImmediate(
+						balancesSequenceCb,
+						processUnconfirmErr.toString()
+					);
+				}
+				return setImmediate(balancesSequenceCb, null, transaction.id);
+			}
+		);
+	}, cb);
 };
 
 // Public methods

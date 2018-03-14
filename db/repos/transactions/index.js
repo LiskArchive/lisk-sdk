@@ -38,6 +38,7 @@ class TransactionsRepository {
 	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
+		this.inTransaction = !!(db.ctx && db.ctx.inTransaction);
 
 		this.sortFields = [
 			'id',
@@ -119,6 +120,18 @@ class TransactionsRepository {
 
 	/**
 	 * Count transactions with extended params.
+	 * The params to this method comes in this format
+	 *
+	 * { where:
+	 *   [ '"t_recipientId" IN (${recipientId:csv})',
+	 *     'AND "t_senderId" IN (${senderId:csv})' ],
+	 *  owner: '',
+	 *  recipientId: '1253213165192941997L',
+	 *  senderId: '16313739661670634666L',
+	 *  limit: 10,
+	 *  offset: 0 }
+	 *
+	 *   @todo Simplify the usage and pass direct params to the method
 	 *
 	 * @param {Object} params
 	 * @param {Array} params.where
@@ -127,7 +140,27 @@ class TransactionsRepository {
 	 * Transactions counter.
 	 */
 	countList(params) {
-		return this.db.one(Queries.countList, params, a => +a.count);
+		// Add dummy condition in case of blank to avoid conditional where clause
+		let conditions =
+			params && params.where && params.where.length ? params.where : [];
+
+		// Handle the case if single condition is provided
+		if (typeof conditions === 'string') {
+			conditions = [conditions];
+		}
+
+		// FIXME: Backward compatibility, should be removed after transitional period
+		if (params && params.owner) {
+			conditions.push(`AND ${params.owner}`);
+		}
+
+		if (conditions.length) {
+			conditions = `WHERE ${this.pgp.as.format(conditions.join(' '), params)}`;
+		} else {
+			conditions = '';
+		}
+
+		return this.db.one(sql.countList, { conditions }, a => +a.count);
 	}
 
 	/**
@@ -244,10 +277,9 @@ class TransactionsRepository {
 	 */
 	save(transactions) {
 		const batch = [];
+		let saveTransactions = _.cloneDeep(transactions);
 
 		try {
-			let saveTransactions = _.cloneDeep(transactions);
-
 			if (!_.isArray(saveTransactions)) {
 				saveTransactions = [saveTransactions];
 			}
@@ -263,43 +295,32 @@ class TransactionsRepository {
 					: null;
 				t.signatures = t.signatures ? t.signatures.join() : null;
 			});
+		} catch (e) {
+			return Promise.reject(e);
+		}
 
-			batch.push(
-				this.db.none(this.pgp.helpers.insert(saveTransactions, cs.insert))
-			);
+		const job = t => {
+			batch.push(t.none(this.pgp.helpers.insert(saveTransactions, cs.insert)));
 
 			const groupedTransactions = _.groupBy(saveTransactions, 'type');
 
 			Object.keys(groupedTransactions).forEach(type => {
 				batch.push(
-					this.db[this.transactionsRepoMap[type]].save(
-						groupedTransactions[type]
-					)
+					t[this.transactionsRepoMap[type]].save(groupedTransactions[type])
 				);
 			});
-		} catch (e) {
-			return Promise.reject(e);
-		}
-		return this.db.txIf('transactions:save', t => t.batch(batch));
+
+			return t.batch(batch);
+		};
+
+		return this.inTransaction
+			? job(this.db)
+			: this.db.tx('transactions:save', job);
 	}
 }
 
 // TODO: All these queries need to be thrown away, and use proper implementation inside corresponding methods.
-
 const Queries = {
-	countList: params =>
-		[
-			'SELECT count(*) FROM trs_list',
-			params.where.length || params.owner ? 'WHERE' : '',
-			params.where.length ? `(${params.where.join(' ')})` : '',
-			// FIXME: Backward compatibility, should be removed after transitional period
-			params.where.length && params.owner
-				? ` AND ${params.owner}`
-				: params.owner,
-		]
-			.filter(Boolean)
-			.join(' '),
-
 	list: params =>
 		[
 			'SELECT t_id, b_height, "t_blockId", t_type, t_timestamp, "t_senderId", "t_recipientId",',

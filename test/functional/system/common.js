@@ -26,7 +26,7 @@ function getDelegateForSlot(library, slot, cb) {
 	var lastBlock = library.modules.blocks.lastBlock.get();
 
 	library.modules.delegates.generateDelegateList(
-		lastBlock.height,
+		lastBlock.height + 1,
 		null,
 		(err, list) => {
 			var delegatePublicKey = list[slot % slots.delegates];
@@ -338,8 +338,8 @@ module.exports = {
 	fillPool,
 	addTransaction,
 	addTransactionToUnconfirmedQueue,
-	addTransactionsAndForge,
 	createValidBlock,
+	addTransactionsAndForge,
 	getBlocks,
 	getAccountFromDb,
 	getTransactionFromModule,
