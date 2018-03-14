@@ -376,9 +376,12 @@ describe('GET /api/votes', () => {
 						}),
 					}
 				);
-				var voteTransaction = lisk.vote.createVote(account.password, [
-					`+${nonVoterDelegate.publicKey}`,
-				]);
+				var voteTransaction = lisk.transaction.castVotes(
+					{
+						passphrase: account.password,
+						votes: [`${nonVoterDelegate.publicKey}`],
+					}
+				);
 
 				apiHelpers
 					.sendTransactionPromise(creditTransaction)

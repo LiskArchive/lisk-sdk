@@ -494,9 +494,12 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should forge a block', done => {
-					var voteTransaction = lisk.vote.createVote(testAccount.password, [
-						`+${accountFixtures.existingDelegate.publicKey}`,
-					]);
+					var voteTransaction = lisk.transaction.castVotes(
+						{
+							passphrase: testAccount.password,
+							votes: [`${accountFixtures.existingDelegate.publicKey}`],
+						}
+					);
 					localCommon.addTransactionsAndForge(library, [voteTransaction], done);
 				});
 

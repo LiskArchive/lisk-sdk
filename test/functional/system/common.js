@@ -293,10 +293,12 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 			);
 			break;
 		case 'VOTE':
-			transaction = lisk.vote.createVote(
-				accountCopy.password,
-				[`+${accountFixtures.existingDelegate.publicKey}`],
-				accountCopy.secondPassword
+			transaction = lisk.transaction.castVotes(
+				{
+					passphrase: accountCopy.password,
+					secondPassphrase: accountCopy.secondPassword,
+					votes: [`${accountFixtures.existingDelegate.publicKey}`],
+				}
 			);
 			break;
 		case 'MULTI':

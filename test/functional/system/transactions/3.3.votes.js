@@ -55,11 +55,12 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 			});
 
 			it('adding to pool upvoting transaction should be ok', done => {
-				transaction1 = lisk.vote.createVote(
-					account.password,
-					[`+${accountFixtures.existingDelegate.publicKey}`],
-					null,
-					-10000
+				transaction1 = lisk.transaction.castVotes(
+					{
+						passphrase: account.password,
+						votes: [`${accountFixtures.existingDelegate.publicKey}`],
+						timeOffset: -10000,
+					}
 				);
 				localCommon.addTransaction(library, transaction1, (err, res) => {
 					expect(res).to.equal(transaction1.id);
@@ -68,9 +69,12 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 			});
 
 			it('adding to pool upvoting transaction for same delegate from same account with different id should be ok', done => {
-				transaction2 = lisk.vote.createVote(account.password, [
-					`+${accountFixtures.existingDelegate.publicKey}`,
-				]);
+				transaction2 = lisk.transaction.castVotes(
+					{
+						passphrase: account.password,
+						votes: [`${accountFixtures.existingDelegate.publicKey}`],
+					}
+				);
 				localCommon.addTransaction(library, transaction2, (err, res) => {
 					expect(res).to.equal(transaction2.id);
 					done();
@@ -125,11 +129,12 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 				});
 
 				it('adding to pool downvoting transaction to same delegate from same account should be ok', done => {
-					transaction3 = lisk.vote.createVote(
-						account.password,
-						[`-${accountFixtures.existingDelegate.publicKey}`],
-						null,
-						-10000
+					transaction3 = lisk.transaction.castVotes(
+						{
+							passphrase: account.password,
+							unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
+							timeOffset: -10000,
+						}
 					);
 					localCommon.addTransaction(library, transaction3, (err, res) => {
 						expect(res).to.equal(transaction3.id);
@@ -138,9 +143,12 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 				});
 
 				it('adding to pool downvoting transaction to same delegate from same account with different id should be ok', done => {
-					transaction4 = lisk.vote.createVote(account.password, [
-						`-${accountFixtures.existingDelegate.publicKey}`,
-					]);
+					transaction4 = lisk.transaction.castVotes(
+						{
+							passphrase: account.password,
+							unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
+						}
+					);
 					localCommon.addTransaction(library, transaction4, (err, res) => {
 						expect(res).to.equal(transaction4.id);
 						done();

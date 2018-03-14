@@ -45,9 +45,12 @@ function invalidAssets(option, badTransactions) {
 					);
 					break;
 				case 'votes':
-					transaction = lisk.vote.createVote(
-						accountFixtures.genesis.password,
-						[]
+					transaction = lisk.transaction.castVotes(
+						{
+							passphrase: accountFixtures.genesis.password,
+							votes: [],
+							unvotes: [],
+						}
 					);
 					break;
 				case 'multisignature':

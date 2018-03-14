@@ -261,9 +261,11 @@ describe('GET /api/voters', () => {
 					}
 				);
 
-				var voteByExtraDelegateVoterTransaction = lisk.vote.createVote(
-					validExtraDelegateVoter.password,
-					[`+${validVotedDelegate.publicKey}`]
+				var voteByExtraDelegateVoterTransaction = lisk.transaction.castVotes(
+					{
+						passphrase: validExtraDelegateVoter.password,
+						votes: [`${validVotedDelegate.publicKey}`],
+					}
 				);
 
 				return apiHelpers
