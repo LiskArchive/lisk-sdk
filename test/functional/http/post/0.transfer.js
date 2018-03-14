@@ -52,7 +52,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			transaction = randomUtil.transaction();
 			transaction.recipientId = transaction.recipientId.toLowerCase();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
-			transaction.id = lisk.crypto.getId(transaction);
+			transaction.id = lisk.transaction.utils.getTransactionId(transaction);
 
 			return sendTransactionPromise(
 				transaction,
@@ -66,7 +66,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('with invalid signature should fail', () => {
 			transaction = randomUtil.transaction();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
-			transaction.id = lisk.crypto.getId(transaction);
+			transaction.id = lisk.transaction.utils.getTransactionId(transaction);
 
 			return sendTransactionPromise(
 				transaction,
