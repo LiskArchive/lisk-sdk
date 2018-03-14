@@ -265,7 +265,7 @@ TransactionPool.prototype.getMultisignatureTransactionList = function(
  * @param {boolean} reverse - Reverse order of results
  * @param {number} limit - Limit applied to results
  * @returns {Object[]} Of unconfirmed, multisignatures, queued transactions
- * @todo Limit is only implemented with queued transactions
+ * @todo Limit is only implemented with queued transactions, reverse param is unused
  */
 TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
 	const minLimit = constants.maxTxsPerBlock + 2;
@@ -289,7 +289,7 @@ TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
 	const queued = self.getQueuedTransactionList(false, limit);
 	limit -= queued.length;
 
-	return unconfirmed.concat(multisignatures).concat(queued);
+	return [...unconfirmed, ...multisignatures, ...queued];
 };
 
 /**
@@ -731,7 +731,6 @@ TransactionPool.prototype.fillPool = function(cb) {
 	}
 	let spare = 0;
 	const multisignaturesLimit = 5;
-	let transactions;
 
 	spare = constants.maxTxsPerBlock - unconfirmedCount;
 	const spareMulti = spare >= multisignaturesLimit ? multisignaturesLimit : 0;
@@ -739,12 +738,14 @@ TransactionPool.prototype.fillPool = function(cb) {
 		.getMultisignatureTransactionList(true, multisignaturesLimit, true)
 		.slice(0, spareMulti);
 	spare = Math.abs(spare - multisignatures.length);
-	transactions = self
+	const queuedTransactions = self
 		.getQueuedTransactionList(true, constants.maxTxsPerBlock)
 		.slice(0, spare);
-	transactions = multisignatures.concat(transactions);
 
-	return __private.applyUnconfirmedList(transactions, cb);
+	return __private.applyUnconfirmedList(
+		[...multisignatures, ...queuedTransactions],
+		cb
+	);
 };
 
 /**
@@ -1001,7 +1002,7 @@ __private.expireTransactions = function(transactions, parentIds, cb) {
 			}
 			return setImmediate(eachSeriesCb);
 		},
-		err => setImmediate(cb, err, ids.concat(parentIds))
+		err => setImmediate(cb, err, [...ids, ...parentIds])
 	);
 };
 
