@@ -333,11 +333,13 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.transaction.createTransaction(
-					'1L',
-					1,
-					accountFixtures.genesis.password,
-					accountFixtures.genesis.secondPassword
+				var transaction = lisk.transaction.transfer(
+					{
+						amount: 1,
+						passphrase: accountFixtures.genesis.password,
+						secondPassphrase: accountFixtures.genesis.secondPassword,
+						recipientId: '1L',
+					}
 				);
 
 				cache.onTransactionsSaved([transaction], () => {

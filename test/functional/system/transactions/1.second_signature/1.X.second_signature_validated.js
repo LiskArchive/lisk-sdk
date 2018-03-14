@@ -25,10 +25,12 @@ describe('system test (type 1) - checking validated second signature registratio
 	var library;
 
 	var account = randomUtil.account();
-	var creditTransaction = lisk.transaction.createTransaction(
-		account.address,
-		1000 * normalizer,
-		accountFixtures.genesis.password
+	var creditTransaction = lisk.transaction.transfer(
+		{
+			amount: 1000 * normalizer,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: account.address,
+		}
 	);
 	var transaction = lisk.signature.createSignature(
 		account.password,

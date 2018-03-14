@@ -91,10 +91,12 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('using zero amount should fail', () => {
-			transaction = lisk.transaction.createTransaction(
-				account.address,
-				0,
-				accountFixtures.genesis.password
+			transaction = lisk.transaction.transfer(
+				{
+					amount: 0,
+					passphrase: accountFixtures.genesis.password,
+					recipientId: account.address,
+				}
 			);
 
 			return sendTransactionPromise(
@@ -107,10 +109,12 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('when sender has no funds should fail', () => {
-			transaction = lisk.transaction.createTransaction(
-				'1L',
-				1,
-				account.password
+			transaction = lisk.transaction.transfer(
+				{
+					amount: 1,
+					passphrase: account.password,
+					recipientId: '1L',
+				}
 			);
 
 			return sendTransactionPromise(
@@ -125,10 +129,12 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('using entire balance should fail', () => {
-			transaction = lisk.transaction.createTransaction(
-				account.address,
-				Math.floor(accountFixtures.genesis.balance),
-				accountFixtures.genesis.password
+			transaction = lisk.transaction.transfer(
+				{
+					amount: Math.floor(accountFixtures.genesis.balance),
+					passphrase: accountFixtures.genesis.password,
+					recipientId: account.address,
+				}
 			);
 
 			return sendTransactionPromise(
@@ -215,13 +221,13 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		describe('with offset', () => {
 			it('using -10000 should be ok', () => {
-				transaction = lisk.transaction.createTransaction(
-					accountOffset.address,
-					1,
-					accountFixtures.genesis.password,
-					null,
-					null,
-					-10000
+				transaction = lisk.transaction.transfer(
+					{
+						amount: 1,
+						passphrase: accountFixtures.genesis.password,
+						recipientId: accountOffset.address,
+						timeOffset: -10000,
+					}
 				);
 
 				return sendTransactionPromise(transaction).then(res => {
@@ -231,13 +237,13 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			});
 
 			it('using future timestamp should fail', () => {
-				transaction = lisk.transaction.createTransaction(
-					accountOffset.address,
-					1,
-					accountFixtures.genesis.password,
-					null,
-					null,
-					10000
+				transaction = lisk.transaction.transfer(
+					{
+						amount: 1,
+						passphrase: accountFixtures.genesis.password,
+						recipientId: accountOffset.address,
+						timeOffset: 10000,
+					}
 				);
 
 				return sendTransactionPromise(
@@ -261,10 +267,12 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				invalidCases.forEach(test => {
 					it(`using ${test.description} should fail`, () => {
 						var accountAdditionalData = randomUtil.account();
-						transaction = lisk.transaction.createTransaction(
-							accountAdditionalData.address,
-							1,
-							accountFixtures.genesis.password
+						transaction = lisk.transaction.transfer(
+							{
+								amount: 1,
+								passphrase: accountFixtures.genesis.password,
+								recipientId: accountAdditionalData.address,
+							}
 						);
 						transaction.asset.data = test.input;
 
@@ -287,12 +295,13 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				validCases.forEach(test => {
 					it(`using ${test.description} should be ok`, () => {
 						var accountAdditionalData = randomUtil.account();
-						transaction = lisk.transaction.createTransaction(
-							accountAdditionalData.address,
-							1,
-							accountFixtures.genesis.password,
-							null,
-							test.input
+						transaction = lisk.transaction.transfer(
+							{
+								amount: 1,
+								passphrase: accountFixtures.genesis.password,
+								recipientId: accountAdditionalData.address,
+								data: test.input,
+							}
 						);
 
 						return sendTransactionPromise(transaction).then(res => {

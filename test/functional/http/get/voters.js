@@ -240,12 +240,14 @@ describe('GET /api/voters', () => {
 			var validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
-				var enrichExtraDelegateVoterTransaction = lisk.transaction.createTransaction(
-					validExtraDelegateVoter.address,
-					constants.fees.delegate +
-						constants.fees.vote +
-						constants.fees.secondSignature,
-					accountFixtures.genesis.password
+				var enrichExtraDelegateVoterTransaction = lisk.transaction.transfer(
+					{
+						amount: constants.fees.delegate +
+								constants.fees.vote +
+								constants.fees.secondSignature,
+						passphrase: accountFixtures.genesis.password,
+						recipientId: validExtraDelegateVoter.address,
+					}
 				);
 
 				var registerExtraVoterAsADelegateTransaction = lisk.delegate.createDelegate(

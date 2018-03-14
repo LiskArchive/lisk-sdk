@@ -63,30 +63,40 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 	before(() => {
 		var transactions = [];
-		var transaction1 = lisk.transaction.createTransaction(
-			delegateAccount.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
+		var transaction1 = lisk.transaction.transfer(
+			{
+				amount: 1000 * normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: delegateAccount.address,
+			}
 		);
-		var transaction2 = lisk.transaction.createTransaction(
-			accountMinimalFunds.address,
-			constants.fees.vote,
-			accountFixtures.genesis.password
+		var transaction2 = lisk.transaction.transfer(
+			{
+				amount: constants.fees.vote,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: accountMinimalFunds.address,
+			}
 		);
-		var transaction3 = lisk.transaction.createTransaction(
-			accountFixtures.existingDelegate.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
+		var transaction3 = lisk.transaction.transfer(
+			{
+				amount: 1000 * normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: accountFixtures.existingDelegate.address,
+			}
 		);
-		var transaction4 = lisk.transaction.createTransaction(
-			accountMaxVotesPerTransaction.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
+		var transaction4 = lisk.transaction.transfer(
+			{
+				amount: 1000 * normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: accountMaxVotesPerTransaction.address,
+			}
 		);
-		var transaction5 = lisk.transaction.createTransaction(
-			accountMaxVotesPerAccount.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
+		var transaction5 = lisk.transaction.transfer(
+			{
+				amount: 1000 * normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: accountMaxVotesPerAccount.address,
+			}
 		);
 		transactions.push(
 			transaction1,
@@ -115,10 +125,12 @@ describe('POST /api/transactions (type 3) votes', () => {
 				for (var i = 0; i < constants.maxVotesPerTransaction; i++) {
 					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerTransaction.push(tempAccount);
-					var transaction = lisk.transaction.createTransaction(
-						tempAccount.address,
-						constants.fees.delegate,
-						accountFixtures.genesis.password
+					var transaction = lisk.transaction.transfer(
+						{
+							amount: constants.fees.delegate,
+							passphrase: accountFixtures.genesis.password,
+							recipientId: tempAccount.address,
+						}
 					);
 					transactionsCreditMaxVotesPerTransaction.push(transaction);
 					promisesCreditsMaxVotesPerTransaction.push(
@@ -145,10 +157,12 @@ describe('POST /api/transactions (type 3) votes', () => {
 				for (var i = 0; i < constants.activeDelegates; i++) {
 					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerAccount.push(tempAccount);
-					var transaction = lisk.transaction.createTransaction(
-						tempAccount.address,
-						constants.fees.delegate,
-						accountFixtures.genesis.password
+					var transaction = lisk.transaction.transfer(
+						{
+							amount: constants.fees.delegate,
+							passphrase: accountFixtures.genesis.password,
+							recipientId: tempAccount.address,
+						}
 					);
 					transactionsCreditMaxVotesPerAccount.push(transaction);
 					promisesCreditsMaxVotesPerAccount.push(

@@ -41,39 +41,48 @@ describe('system test (type 0) - address collision', () => {
 			.publicKey,
 	];
 
-	var firstTransaction = lisk.transaction.createTransaction(
-		accountFixtures.genesis.address,
-		10 * normalizer,
-		collision.passphrases[0]
+	var firstTransaction = lisk.transaction.transfer(
+		{
+			amount: 10 * normalizer,
+			passphrase: collision.passphrases[0],
+			recipientId: accountFixtures.genesis.address,
+		}
 	);
 
-	var secondTransaction = lisk.transaction.createTransaction(
-		accountFixtures.genesis.address,
-		10 * normalizer,
-		collision.passphrases[1]
+	var secondTransaction = lisk.transaction.transfer(
+		{
+			amount: 10 * normalizer,
+			passphrase: collision.passphrases[1],
+			recipientId: accountFixtures.genesis.address,
+		}
 	);
 
-	var firstTransactionWithData = lisk.transaction.createTransaction(
-		accountFixtures.genesis.address,
-		10 * normalizer,
-		collision.passphrases[0],
-		null,
-		'addtional data from 1'
+	var firstTransactionWithData = lisk.transaction.transfer(
+		{
+			amount: 10 * normalizer,
+			passphrase: collision.passphrases[0],
+			recipientId: accountFixtures.genesis.address,
+			data: 'addtional data from 1',
+		}
 	);
 
-	var secondTransactionWithData = lisk.transaction.createTransaction(
-		accountFixtures.genesis.address,
-		10 * normalizer,
-		collision.passphrases[1],
-		null,
-		'addtional data from 2'
+	var secondTransactionWithData = lisk.transaction.transfer(
+		{
+			amount: 10 * normalizer,
+			passphrase: collision.passphrases[1],
+			recipientId: accountFixtures.genesis.address,
+			data: 'addtional data from 2',
+		}
 	);
 
 	before(done => {
-		var creditTransaction = lisk.transaction.createTransaction(
-			collision.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
+		var creditTransaction = lisk.transaction.transfer(
+			{
+				amount: 1000 * normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: collision.address,
+				data: 'addtional data from 2',
+			}
 		);
 
 		localCommon.addTransactionsAndForge(library, [creditTransaction], () => {

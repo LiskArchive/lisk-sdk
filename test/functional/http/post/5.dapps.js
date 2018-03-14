@@ -42,15 +42,19 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 	// Crediting accounts
 	before(() => {
-		var transaction1 = lisk.transaction.createTransaction(
-			account.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
+		var transaction1 = lisk.transaction.transfer(
+			{
+				amount: 1000 * normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: account.address,
+			}
 		);
-		var transaction2 = lisk.transaction.createTransaction(
-			accountMinimalFunds.address,
-			constants.fees.dappRegistration,
-			accountFixtures.genesis.password
+		var transaction2 = lisk.transaction.transfer(
+			{
+				amount: constants.fees.dappRegistration,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: accountMinimalFunds.address,
+			}
 		);
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));

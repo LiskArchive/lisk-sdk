@@ -266,11 +266,13 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 	}
 	switch (key) {
 		case 'SEND':
-			transaction = lisk.transaction.createTransaction(
-				randomUtil.account().address,
-				1,
-				accountCopy.password,
-				accountCopy.secondPassword
+			transaction = lisk.transaction.transfer(
+				{
+					amount: 1,
+					passphrase: accountCopy.password,
+					secondPassphrase: accountCopy.secondPassword,
+					recipientId: randomUtil.account().address,
+				}
 			);
 			break;
 		case 'SIGNATURE':

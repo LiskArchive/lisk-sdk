@@ -344,10 +344,12 @@ describe('transaction', () => {
 		});
 
 		it('should not return error when transaction is not confirmed', done => {
-			var transaction = lisk.transaction.createTransaction(
-				transactionData.recipientId,
-				transactionData.amount,
-				transactionData.secret
+			var transaction = lisk.transaction.transfer(
+				{
+					amount: transactionData.amount,
+					passphrase: transactionData.secret,
+					recipientId: transactionData.recipientId,
+				}
 			);
 
 			transactionLogic.checkConfirmed(transaction, err => {
@@ -462,11 +464,13 @@ describe('transaction', () => {
 
 	describe('verify', () => {
 		function createAndProcess(transactionData, sender, cb) {
-			var transaction = lisk.transaction.createTransaction(
-				transactionData.recipientId,
-				transactionData.amount,
-				transactionData.secret,
-				transactionData.secondSecret
+			var transaction = lisk.transaction.transfer(
+				{
+					amount: transactionData.amount,
+					passphrase: transactionData.secret,
+					secondPassphrase: transactionData.secondSecret,
+					recipientId: transactionData.recipientId,
+				}
 			);
 
 			transactionLogic.process(transaction, sender, (err, transaction) => {

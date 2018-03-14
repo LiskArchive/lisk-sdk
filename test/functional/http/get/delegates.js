@@ -102,10 +102,12 @@ describe('GET /delegates', () => {
 		describe('secondPublicKey', () => {
 			var secondSecretAccount = randomUtil.account();
 
-			var creditTransaction = lisk.transaction.createTransaction(
-				secondSecretAccount.address,
-				constants.fees.secondSignature + constants.fees.delegate,
-				accountFixtures.genesis.password
+			var creditTransaction = lisk.transaction.transfer(
+				{
+					amount: constants.fees.secondSignature + constants.fees.delegate,
+					passphrase: accountFixtures.genesis.password,
+					recipientId: secondSecretAccount.address,
+				}
 			);
 			var signatureTransaction = lisk.signature.createSignature(
 				secondSecretAccount.password,

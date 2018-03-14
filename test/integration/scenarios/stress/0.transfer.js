@@ -58,10 +58,12 @@ module.exports = function(params) {
 							i < params.configurations[0].broadcasts.releaseLimit;
 							i++
 						) {
-							var transaction = lisk.transaction.createTransaction(
-								randomUtil.account().address,
-								randomUtil.number(100000000, 1000000000),
-								accountFixtures.genesis.password
+							var transaction = lisk.transaction.transfer(
+								{
+									amount: randomUtil.number(100000000, 1000000000),
+									passphrase: accountFixtures.genesis.password,
+									recipientId: randomUtil.account().address,
+								}
 							);
 							transactions.push(transaction);
 							bundled.push(transaction);
@@ -91,10 +93,12 @@ module.exports = function(params) {
 				transactions = [];
 				return Promise.all(
 					_.range(maximum).map(() => {
-						var transaction = lisk.transaction.createTransaction(
-							randomUtil.account().address,
-							randomUtil.number(100000000, 1000000000),
-							accountFixtures.genesis.password
+						var transaction = lisk.transaction.transfer(
+							{
+								amount: randomUtil.number(100000000, 1000000000),
+								passphrase: accountFixtures.genesis.password,
+								recipientId: randomUtil.account().address,
+							}
 						);
 						transactions.push(transaction);
 						return sendTransactionsPromise([transaction]);

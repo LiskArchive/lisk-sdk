@@ -21,6 +21,7 @@ const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common.js');
 const genesisBlock = require('../../../../data/genesis_block.json');
 const randomUtil = require('../../../../common/utils/random');
+const normalizer = require('../../../../common/utils/normalizer');
 
 describe('system test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
@@ -50,10 +51,12 @@ describe('system test (type 1) - second signature transactions from pool and pee
 
 		beforeEach('send funds to signature account', done => {
 			signatureAccount = randomUtil.account();
-			const sendTransaction = lisk.transaction.createTransaction(
-				signatureAccount.address,
-				1000000000 * 100,
-				accountFixtures.genesis.password
+			const sendTransaction = lisk.transaction.transfer(
+				{
+					amount: 1000 * normalizer,
+					passphrase: accountFixtures.genesis.password,
+					recipientId: signatureAccount.address,
+				}
 			);
 			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});

@@ -40,20 +40,26 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 
 	// Crediting accounts
 	before(() => {
-		var transaction1 = lisk.transaction.createTransaction(
-			account.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
+		var transaction1 = lisk.transaction.transfer(
+			{
+				amount: 1000 * normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: account.address,
+			}
 		);
-		var transaction2 = lisk.transaction.createTransaction(
-			accountMinimalFunds.address,
-			constants.fees.secondSignature,
-			accountFixtures.genesis.password
+		var transaction2 = lisk.transaction.transfer(
+			{
+				amount: constants.fees.secondSignature,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: accountMinimalFunds.address,
+			}
 		);
-		var transaction3 = lisk.transaction.createTransaction(
-			accountNoSecondPassword.address,
-			constants.fees.secondSignature,
-			accountFixtures.genesis.password
+		var transaction3 = lisk.transaction.transfer(
+			{
+				amount: constants.fees.secondSignature,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: accountNoSecondPassword.address,
+			}
 		);
 
 		var promises = [];
@@ -81,11 +87,13 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 
 	describe('transactions processing', () => {
 		it('using second passphrase on a fresh account should fail', () => {
-			transaction = lisk.transaction.createTransaction(
-				accountFixtures.existingDelegate.address,
-				1,
-				accountNoSecondPassword.password,
-				accountNoSecondPassword.secondPassword
+			transaction = lisk.transaction.transfer(
+				{
+					amount: 1,
+					passphrase: accountNoSecondPassword.password,
+					secondPassphrase: accountNoSecondPassword.secondPassword,
+					recipientId: accountFixtures.existingDelegate.address,
+				}
 			);
 
 			return apiHelpers

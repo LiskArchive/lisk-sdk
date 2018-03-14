@@ -49,10 +49,12 @@ function Multisig(options) {
 		this.lifetime,
 		this.min
 	);
-	this.creditTransaction = lisk.transaction.createTransaction(
-		this.account.address,
-		this.amount,
-		accountFixtures.genesis.password
+	this.creditTransaction = lisk.transaction.transfer(
+		{
+			amount: this.amount,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: this.account.address,
+		}
 	);
 	this.secondSignatureTransaction = lisk.signature.createSignature(
 		this.account.password,

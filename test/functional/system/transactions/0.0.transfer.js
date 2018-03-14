@@ -32,10 +32,12 @@ describe('system test (type 0) - double transfers', () => {
 	while (i < 1) {
 		describe('executing 30 times', () => {
 			var account = randomUtil.account();
-			var transaction = lisk.transaction.createTransaction(
-				account.address,
-				1100 * normalizer,
-				accountFixtures.genesis.password
+			var transaction = lisk.transaction.transfer(
+				{
+					amount: 1100 * normalizer,
+					passphrase: accountFixtures.genesis.password,
+					recipientId: account.address,
+				}
 			);
 			var transaction1;
 			var transaction2;
@@ -48,13 +50,13 @@ describe('system test (type 0) - double transfers', () => {
 			});
 
 			it('adding to pool transfer should be ok', done => {
-				transaction1 = lisk.transaction.createTransaction(
-					accountFixtures.genesis.address,
-					1000 * normalizer,
-					account.password,
-					null,
-					null,
-					-10000
+				transaction1 = lisk.transaction.transfer(
+					{
+						amount: 1000 * normalizer,
+						passphrase: account.password,
+						recipientId: accountFixtures.genesis.address,
+						timeOffset: -10000,
+					}
 				);
 				localCommon.addTransaction(library, transaction1, (err, res) => {
 					expect(res).to.equal(transaction1.id);
@@ -63,10 +65,12 @@ describe('system test (type 0) - double transfers', () => {
 			});
 
 			it('adding to pool same transfer with different timestamp should be ok', done => {
-				transaction2 = lisk.transaction.createTransaction(
-					accountFixtures.genesis.address,
-					1000 * normalizer,
-					account.password
+				transaction2 = lisk.transaction.transfer(
+					{
+						amount: 1000 * normalizer,
+						passphrase: account.password,
+						recipientId: accountFixtures.genesis.address,
+					}
 				);
 				localCommon.addTransaction(library, transaction2, (err, res) => {
 					expect(res).to.equal(transaction2.id);

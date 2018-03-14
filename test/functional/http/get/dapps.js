@@ -39,10 +39,12 @@ describe('GET /dapps', () => {
 	var registeredDappsAmount = 2;
 
 	before(() => {
-		var transaction = lisk.transaction.createTransaction(
-			account.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
+		var transaction = lisk.transaction.transfer(
+			{
+				amount: 1000 * normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: account.address,
+			}
 		);
 		transactionsToWaitFor.push(transaction.id);
 		return apiHelpers

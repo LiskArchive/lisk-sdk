@@ -46,25 +46,33 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	// Crediting accounts
 	before(() => {
 		var transactions = [];
-		var transaction1 = lisk.transaction.createTransaction(
-			account.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
+		var transaction1 = lisk.transaction.transfer(
+			{
+				amount: 1000 * normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: account.address,
+			}
 		);
-		var transaction2 = lisk.transaction.createTransaction(
-			accountMinimalFunds.address,
-			constants.fees.delegate,
-			accountFixtures.genesis.password
+		var transaction2 = lisk.transaction.transfer(
+			{
+				amount: constants.fees.delegate,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: accountMinimalFunds.address,
+			}
 		);
-		var transaction3 = lisk.transaction.createTransaction(
-			accountUpperCase.address,
-			constants.fees.delegate,
-			accountFixtures.genesis.password
+		var transaction3 = lisk.transaction.transfer(
+			{
+				amount: constants.fees.delegate,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: accountUpperCase.address,
+			}
 		);
-		var transaction4 = lisk.transaction.createTransaction(
-			accountFormerDelegate.address,
-			constants.fees.delegate,
-			accountFixtures.genesis.password
+		var transaction4 = lisk.transaction.transfer(
+			{
+				amount: constants.fees.delegate,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: accountFormerDelegate.address,
+			}
 		);
 		transactions.push(transaction1);
 		transactions.push(transaction2);

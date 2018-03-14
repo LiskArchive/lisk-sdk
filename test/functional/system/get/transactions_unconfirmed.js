@@ -24,15 +24,19 @@ var localCommon = require('./../common');
 describe('system test - get unconfirmed transactions', () => {
 	var account1 = randomUtil.account();
 	var account2 = randomUtil.account();
-	var transaction1 = lisk.transaction.createTransaction(
-		account1.address,
-		1100 * normalizer,
-		accountFixtures.genesis.password
+	var transaction1 = lisk.transaction.transfer(
+		{
+			amount: 1100 * normalizer,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: account1.address,
+		}
 	);
-	var transaction2 = lisk.transaction.createTransaction(
-		account2.address,
-		1100 * normalizer,
-		accountFixtures.genesis.password
+	var transaction2 = lisk.transaction.transfer(
+		{
+			amount: 1100 * normalizer,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: account2.address,
+		}
 	);
 
 	var library;

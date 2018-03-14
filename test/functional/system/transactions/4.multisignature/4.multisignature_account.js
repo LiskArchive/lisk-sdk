@@ -26,10 +26,12 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 	var multisigAccount = randomUtil.account();
 	var multisigTransaction;
-	var creditTransaction = lisk.transaction.createTransaction(
-		multisigAccount.address,
-		1000 * normalizer,
-		accountFixtures.genesis.password
+	var creditTransaction = lisk.transaction.transfer(
+		{
+			amount: 1000 * normalizer,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: multisigAccount.address,
+		}
 	);
 	var signer1 = randomUtil.account();
 	var signer2 = randomUtil.account();

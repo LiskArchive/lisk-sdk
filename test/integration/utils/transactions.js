@@ -28,10 +28,12 @@ module.exports = {
 			).publicKey
 		);
 
-		return lisk.transaction.createTransaction(
-			randomAddress,
-			1,
-			gAccountPassphrase
+		return lisk.transaction.transfer(
+			{
+				amount: 1,
+				passphrase: gAccountPassphrase,
+				recipientId: randomAddress,
+			}
 		);
 	},
 };

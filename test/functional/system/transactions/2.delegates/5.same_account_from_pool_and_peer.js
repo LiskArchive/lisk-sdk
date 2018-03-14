@@ -20,6 +20,7 @@ const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common.js');
 const genesisBlock = require('../../../../data/genesis_block.json');
 const randomUtil = require('../../../../common/utils/random');
+const normalizer = require('../../../../common/utils/normalizer');
 
 describe('delegate', () => {
 	let library;
@@ -49,10 +50,12 @@ describe('delegate', () => {
 
 		beforeEach('send funds to delegate account', done => {
 			delegateAccount = randomUtil.account();
-			const sendTransaction = lisk.transaction.createTransaction(
-				delegateAccount.address,
-				1000000000 * 100,
-				accountFixtures.genesis.password
+			const sendTransaction = lisk.transaction.transfer(
+				{
+					amount: 1000 * normalizer,
+					passphrase: accountFixtures.genesis.password,
+					recipientId: delegateAccount.address,
+				}
 			);
 			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});

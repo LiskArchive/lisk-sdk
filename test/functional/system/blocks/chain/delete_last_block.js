@@ -48,10 +48,12 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 
 			function createAccountWithFunds(done) {
 				testAccount = randomUtil.account();
-				var sendTransaction = lisk.transaction.createTransaction(
-					testAccount.address,
-					100000000 * 100,
-					accountFixtures.genesis.password
+				var sendTransaction = lisk.transaction.transfer(
+					{
+						amount: 100000000 * 100,
+						passphrase: accountFixtures.genesis.password,
+						recipientId: testAccount.address,
+					}
 				);
 				localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 			}
@@ -83,10 +85,12 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should create a transaction and forge a block', done => {
 					testReceipt = randomUtil.account();
-					var transferTransaction = lisk.transaction.createTransaction(
-						testReceipt.address,
-						10000000,
-						testAccount.password
+					var transferTransaction = lisk.transaction.transfer(
+						{
+							amount: 100000000,
+							passphrase: testAccount.password,
+							recipientId: testReceipt.address,
+						}
 					);
 					localCommon.addTransactionsAndForge(
 						library,

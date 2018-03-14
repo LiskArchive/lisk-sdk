@@ -42,15 +42,19 @@ describe('GET /api/transactions', () => {
 	before(() => {
 		var promises = [];
 
-		var transaction1 = lisk.transaction.createTransaction(
-			account.address,
-			maxAmount,
-			accountFixtures.genesis.password
+		var transaction1 = lisk.transaction.transfer(
+			{
+				amount: maxAmount,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: account.address,
+			}
 		);
-		var transaction2 = lisk.transaction.createTransaction(
-			account2.address,
-			minAmount,
-			accountFixtures.genesis.password
+		var transaction2 = lisk.transaction.transfer(
+			{
+				amount: minAmount,
+				passphrase: accountFixtures.genesis.password,
+				recpientId: account2.address,
+			}
 		);
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
