@@ -17,6 +17,7 @@
 
 var rewire = require('rewire');
 var chai = require('chai');
+var randomstring = require('randomstring');
 var swaggerHelper = require('../../../helpers/swagger');
 var WSServer = require('../../common/ws/server_master');
 var constants = require('../../../helpers/constants');
@@ -56,6 +57,7 @@ describe('transport', () => {
 	var blocksList;
 	var transactionsList;
 	var multisignatureTransactionsList;
+	var blockMock;
 	var error;
 
 	const SAMPLE_SIGNATURE_1 = {
@@ -65,6 +67,8 @@ describe('transport', () => {
 		signature:
 			'32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739',
 	};
+
+	const validNonce = randomstring.generate(16);
 
 	const SAMPLE_SIGNATURE_2 = {
 		transactionId: '222675625422353768',
@@ -94,6 +98,8 @@ describe('transport', () => {
 			signature:
 				'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
 		};
+
+		blockMock = Block();
 
 		transactionsList = [
 			{
@@ -207,6 +213,7 @@ describe('transport', () => {
 				},
 				forging: {},
 				broadcasts: {
+					active: true,
 					broadcastInterval: 10000,
 					releaseLimit: 10,
 				},
@@ -363,7 +370,7 @@ describe('transport', () => {
 		});
 
 		describe('removePeer', () => {
-			describe('when options.peer is undefined', () => {
+			describe('when options.nonce is undefined', () => {
 				var result;
 
 				beforeEach(done => {
@@ -371,10 +378,10 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should call library.logger.debug with "Cannot remove empty peer"', () => {
+				it('should call library.logger.debug with "Cannot remove peer without nonce"', () => {
 					expect(library.logger.debug.called).to.be.true;
 					return expect(
-						library.logger.debug.calledWith('Cannot remove empty peer')
+						library.logger.debug.calledWith('Cannot remove peer without nonce')
 					).to.be.true;
 				});
 
@@ -383,9 +390,9 @@ describe('transport', () => {
 				});
 			});
 
-			describe('when options.peer is defined', () => {
+			describe('when options.nonce is defined', () => {
 				var removeSpy;
-				var peerData;
+				var validNonce;
 
 				beforeEach(done => {
 					removeSpy = sinonSandbox.spy();
@@ -394,14 +401,19 @@ describe('transport', () => {
 						remove: removeSpy,
 					};
 
-					peerData = {
-						ip: '127.0.0.1',
-						wsPort: 8000,
+					library.logic = {
+						peers: {
+							peersManager: {
+								getByNonce: sinonSandbox.stub().returns(peerMock),
+							},
+						},
 					};
+
+					validNonce = randomstring.generate(16);
 
 					__private.removePeer(
 						{
-							peer: peerData,
+							nonce: validNonce,
 						},
 						'Custom peer remove message'
 					);
@@ -413,7 +425,7 @@ describe('transport', () => {
 				});
 
 				it('should call modules.peers.remove with options.peer', () => {
-					return expect(removeSpy.calledWith(peerData)).to.be.true;
+					return expect(removeSpy.calledWith(peerMock)).to.be.true;
 				});
 			});
 		});
@@ -701,7 +713,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
-						peerMock,
+						validNonce,
 						'This is a log message',
 						() => {
 							done();
@@ -744,7 +756,7 @@ describe('transport', () => {
 
 					__private.receiveTransaction(
 						transaction,
-						peerMock,
+						validNonce,
 						extraLogMessage,
 						err => {
 							error = err;
@@ -769,7 +781,7 @@ describe('transport', () => {
 				});
 
 				it('should call __private.removePeer with peer details object', () => {
-					var peerDetails = { peer: peerMock, code: 'ETRANSACTION' };
+					var peerDetails = { nonce: validNonce, code: 'ETRANSACTION' };
 					return expect(
 						__private.removePeer.calledWith(peerDetails, extraLogMessage)
 					).to.be.true;
@@ -782,7 +794,7 @@ describe('transport', () => {
 				});
 			});
 
-			describe('when peer is undefined', () => {
+			describe('when nonce is undefined', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
@@ -803,11 +815,11 @@ describe('transport', () => {
 				});
 			});
 
-			describe('when peer is defined', () => {
+			describe('when nonce is defined', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
-						peerMock,
+						validNonce,
 						'This is a log message',
 						() => {
 							done();
@@ -827,9 +839,7 @@ describe('transport', () => {
 
 				it('should call library.logic.peers.peersManager.getAddress with peer.nonce', () => {
 					return expect(
-						library.logic.peers.peersManager.getAddress.calledWith(
-							peerMock.nonce
-						)
+						library.logic.peers.peersManager.getAddress.calledWith(validNonce)
 					).to.be.true;
 				});
 			});
@@ -1015,6 +1025,9 @@ describe('transport', () => {
 						forging: {
 							force: false,
 						},
+						broadcasts: {
+							active: true,
+						},
 					},
 					network: {
 						io: {
@@ -1061,6 +1074,9 @@ describe('transport', () => {
 							loadBlocksData: sinonSandbox
 								.stub()
 								.callsArgWith(1, null, blocksList),
+						},
+						verify: {
+							addBlockProperties: sinonSandbox.stub().returns(blockMock),
 						},
 					},
 					transactions: {
@@ -1471,7 +1487,7 @@ describe('transport', () => {
 							it('should call __private.removePeer with {peer: peer, code: "ECOMMUNICATION"}', () => {
 								return expect(
 									__private.removePeer.calledWith({
-										peer: peerMock,
+										nonce: peerMock.nonce,
 										code: 'ECOMMUNICATION',
 									})
 								).to.be.true;
@@ -1611,7 +1627,7 @@ describe('transport', () => {
 						describe('when escapedIds.length = 0', () => {
 							beforeEach(done => {
 								// All ids will be filtered out because they are non-numeric.
-								query = { ids: '"abc","def","ghi"' };
+								query = { ids: '"abc","def","ghi"', peer: peerMock };
 								transportInstance.shared.blocksCommon(query, err => {
 									error = err;
 									done();
@@ -1625,16 +1641,6 @@ describe('transport', () => {
 										'Common block request validation failed',
 										{ err: 'ESCAPE', req: query.ids }
 									)
-								).to.be.true;
-							});
-
-							it('should call __private.removePeer with {peer: query.peer, code: "ECOMMON"}', () => {
-								expect(__private.removePeer.calledOnce).to.be.true;
-								return expect(
-									__private.removePeer.calledWith({
-										peer: query.peer,
-										code: 'ECOMMON',
-									})
 								).to.be.true;
 							});
 
@@ -1722,51 +1728,107 @@ describe('transport', () => {
 			});
 
 			describe('postBlock', () => {
+				var query;
+
 				beforeEach(done => {
+					query = {
+						block: blockMock,
+						nonce: validNonce,
+					};
 					library.bus = {
 						message: sinonSandbox.stub(),
 					};
 					done();
 				});
 
-				// TODO: Implement tests once modifications to block serialization have been made.
-				describe.skip('when query is specified', () => {
+				describe('when library.config.broadcasts.active option is false', () => {
+					beforeEach(done => {
+						library.config.broadcasts.active = false;
+						transportInstance.shared.postBlock(query);
+						done();
+					});
+
+					it('should call library.logger.debug', () => {
+						return expect(
+							library.logger.debug.calledWith(
+								'Receiving blocks disabled by user through config.json'
+							)
+						).to.be.true;
+					});
+
+					it('should not call library.schema.validate; function should return before', () => {
+						return expect(library.schema.validate.called).to.be.false;
+					});
+				});
+
+				describe('when query is specified', () => {
 					beforeEach(done => {
 						transportInstance.shared.postBlock(query);
 						done();
 					});
 
 					describe('when it throws', () => {
-						it(
-							'should call library.logger.debug with "Block normalization failed" and {err: e.toString(), module: "transport", block: query.block }'
-						);
+						var blockValidationError = 'Failed to validate block schema';
 
-						it(
-							'should call __private.removePeer with {peer: query.peer, code: "EBLOCK"}'
-						);
+						beforeEach(done => {
+							library.logic.block.objectNormalize = sinonSandbox
+								.stub()
+								.throws(blockValidationError);
+							transportInstance.shared.postBlock(query);
+							done();
+						});
 
-						it('should call callback with error = e.toString()');
+						it('should call library.logger.debug with "Block normalization failed" and {err: error, module: "transport", block: query.block }', () => {
+							return expect(
+								library.logger.debug.calledWith('Block normalization failed', {
+									err: blockValidationError.toString(),
+									module: 'transport',
+									block: blockMock,
+								})
+							).to.be.true;
+						});
+
+						it('should call __private.removePeer with {peer: query.peer, code: "EBLOCK"}', () => {
+							return expect(
+								__private.removePeer.calledWith({
+									nonce: validNonce,
+									code: 'EBLOCK',
+								})
+							).to.be.true;
+						});
 					});
 
 					describe('when it does not throw', () => {
-						describe('when query.block is defined', () => {
-							it('should call bson.deserialize with Buffer.from(query.block)');
+						beforeEach(done => {
+							library.logic.block.objectNormalize = sinonSandbox
+								.stub()
+								.returns(blockMock);
+							transportInstance.shared.postBlock(query);
+							done();
+						});
 
-							describe('block', () => {
-								it(
-									'should call modules.blocks.verify.addBlockProperties with query.block'
-								);
+						describe('when query.block is defined', () => {
+							it('should call modules.blocks.verify.addBlockProperties with query.block', () => {
+								return expect(
+									modules.blocks.verify.addBlockProperties.calledWith(
+										query.block
+									)
+								).to.be.true;
 							});
 						});
 
-						it('should call library.logic.block.objectNormalize');
+						it('should call library.logic.block.objectNormalize with block', () => {
+							return expect(
+								library.logic.block.objectNormalize.calledWith(blockMock)
+							).to.be.true;
+						});
+
+						it('should call library.bus.message with "receiveBlock" and block', () => {
+							return expect(
+								library.bus.message.calledWith('receiveBlock', blockMock)
+							).to.be.true;
+						});
 					});
-
-					it('should call library.bus.message with "receiveBlock" and block');
-
-					it(
-						'should call callback with error = null and result = {success: true, blockId: block.id}'
-					);
 				});
 			});
 
@@ -2035,6 +2097,27 @@ describe('transport', () => {
 					done();
 				});
 
+				describe('when library.config.broadcasts.active option is false', () => {
+					beforeEach(done => {
+						library.config.broadcasts.active = false;
+						library.schema.validate = sinonSandbox.stub().callsArg(2);
+						transportInstance.shared.postSignatures(query);
+						done();
+					});
+
+					it('should call library.logger.debug', () => {
+						return expect(
+							library.logger.debug.calledWith(
+								'Receiving signatures disabled by user through config.json'
+							)
+						).to.be.true;
+					});
+
+					it('should not call library.schema.validate; function should return before', () => {
+						return expect(library.schema.validate.called).to.be.false;
+					});
+				});
+
 				describe('when library.schema.validate succeeds', () => {
 					beforeEach(done => {
 						transportInstance.shared.postSignatures(query);
@@ -2197,7 +2280,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					query = {
 						transaction,
-						peer: peerMock,
+						nonce: validNonce,
 						extraLogMessage: 'This is a log message',
 					};
 					__private.receiveTransaction = sinonSandbox
@@ -2214,7 +2297,7 @@ describe('transport', () => {
 					return expect(
 						__private.receiveTransaction.calledWith(
 							query.transaction,
-							query.peer,
+							validNonce,
 							query.extraLogMessage
 						)
 					).to.be.true;
@@ -2259,11 +2342,32 @@ describe('transport', () => {
 			});
 
 			describe('postTransactions', () => {
+				describe('when library.config.broadcasts.active option is false', () => {
+					beforeEach(done => {
+						library.config.broadcasts.active = false;
+						library.schema.validate = sinonSandbox.stub().callsArg(2);
+						transportInstance.shared.postTransactions(query);
+						done();
+					});
+
+					it('should call library.logger.debug', () => {
+						return expect(
+							library.logger.debug.calledWith(
+								'Receiving transactions disabled by user through config.json'
+							)
+						).to.be.true;
+					});
+
+					it('should not call library.schema.validate; function should return before', () => {
+						return expect(library.schema.validate.called).to.be.false;
+					});
+				});
+
 				describe('when library.schema.validate succeeds', () => {
 					beforeEach(done => {
 						query = {
 							transactions: transactionsList,
-							peer: peerMock,
+							nonce: validNonce,
 							extraLogMessage: 'This is a log message',
 						};
 						__private.receiveTransactions = sinonSandbox.stub();
@@ -2275,7 +2379,7 @@ describe('transport', () => {
 						return expect(
 							__private.receiveTransactions.calledWith(
 								query.transactions,
-								query.peer,
+								validNonce,
 								query.extraLogMessage
 							)
 						).to.be.true;
@@ -2401,7 +2505,9 @@ describe('transport', () => {
 							expect(error)
 								.to.have.property('code')
 								.which.equals(errorCode);
-							expect(error).to.have.property('message').which.equals('Request is made on the wrong network');
+							expect(error)
+								.to.have.property('message')
+								.which.equals('Request is made on the wrong network');
 							return expect(error).to.have.property('description');
 						});
 					});

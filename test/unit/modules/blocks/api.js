@@ -26,7 +26,6 @@ describe('blocks/api', () => {
 	let dbStub;
 	let blockStub;
 	let schemaStub;
-	let dbSequenceStub;
 
 	beforeEach(done => {
 		dbStub = {
@@ -58,19 +57,7 @@ describe('blocks/api', () => {
 
 		schemaStub = sinonSandbox.stub();
 
-		dbSequenceStub = {
-			add: (cb, cbp) => {
-				cb(cbp);
-			},
-		};
-
-		blocksApiModule = new BlocksApi(
-			loggerStub,
-			dbStub,
-			blockStub,
-			schemaStub,
-			dbSequenceStub
-		);
+		blocksApiModule = new BlocksApi(loggerStub, dbStub, blockStub, schemaStub);
 		library = BlocksApi.__get__('library');
 		__private = BlocksApi.__get__('__private');
 
@@ -87,8 +74,7 @@ describe('blocks/api', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.db).to.eql(dbStub);
 			expect(library.logic.block).to.eql(blockStub);
-			expect(library.schema).to.eql(schemaStub);
-			return expect(library.dbSequence).to.eql(dbSequenceStub);
+			return expect(library.schema).to.eql(schemaStub);
 		});
 	});
 

@@ -17,13 +17,11 @@
 require('../../functional.js');
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const genesisblock = require('../../../data/genesis_block.json');
-const bson = require('../../../../helpers/bson');
 const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
 const WsTestClient = require('../../../common/ws/client');
 
 describe('WS transport blocks', () => {
 	let connectedPeer;
-	let connectedPeerHeaders;
 
 	before('establish client WS connection to server', done => {
 		// Setup stub for blocks endpoints
@@ -41,9 +39,6 @@ describe('WS transport blocks', () => {
 		const wsTestClient = new WsTestClient();
 		wsTestClient.start();
 		connectedPeer = wsTestClient.client;
-		connectedPeerHeaders = Object.assign({}, wsTestClient.headers, {
-			ip: '127.0.0.1',
-		});
 		done();
 	});
 
@@ -293,8 +288,7 @@ describe('WS transport blocks', () => {
 				}
 			});
 			connectedPeer.rpc.postBlock({
-				block: bson.serialize(testBlock),
-				peer: connectedPeerHeaders,
+				block: testBlock,
 			});
 			done();
 		});

@@ -14,14 +14,13 @@
 
 'use strict';
 
-var async = require('async');
-var constants = require('../helpers/constants.js');
-var exceptions = require('../helpers/exceptions.js');
+const async = require('async');
+const constants = require('../helpers/constants.js');
+const exceptions = require('../helpers/exceptions.js');
 
-// Private fields
-var modules;
-var library;
-var self;
+let modules;
+let library;
+let self;
 
 /**
  * Main delegate logic. Initializes library.
@@ -36,15 +35,18 @@ var self;
  * @param {ZSchema} schema
  * @todo Add description for the params
  */
-function Delegate(logger, schema) {
-	self = this;
-	library = {
-		schema,
-		logger,
-	};
+class Delegate {
+	constructor(logger, schema) {
+		self = this;
+		library = {
+			schema,
+			logger,
+		};
+	}
 }
 
-// Public methods
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Binds input parameters to private variables modules.
  *
@@ -105,10 +107,10 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Username must be lowercase');
 	}
 
-	var isAddress = /^[0-9]{1,21}[L|l]$/g;
-	var allowSymbols = /^[a-z0-9!@$&_.]+$/g;
+	const isAddress = /^[0-9]{1,21}[L|l]$/g;
+	const allowSymbols = /^[a-z0-9!@$&_.]+$/g;
 
-	var username = String(transaction.asset.delegate.username)
+	const username = String(transaction.asset.delegate.username)
 		.toLowerCase()
 		.trim();
 
@@ -165,15 +167,11 @@ Delegate.prototype.getBytes = function(transaction) {
 		return null;
 	}
 
-	var buf;
-
 	try {
-		buf = Buffer.from(transaction.asset.delegate.username, 'utf8');
+		return Buffer.from(transaction.asset.delegate.username, 'utf8');
 	} catch (e) {
 		throw e;
 	}
-
-	return buf;
 };
 
 /**
@@ -195,13 +193,13 @@ Delegate.prototype.checkDuplicates = function(
 	async.parallel(
 		{
 			duplicatedDelegate(eachCb) {
-				var query = {};
+				const query = {};
 				query[isDelegate] = 1;
 				query.publicKey = transaction.senderPublicKey;
 				return modules.accounts.getAccount(query, [username], eachCb, tx);
 			},
 			duplicatedUsername(eachCb) {
-				var query = {};
+				const query = {};
 				query[username] = transaction.asset.delegate.username;
 				return modules.accounts.getAccount(query, [username], eachCb, tx);
 			},
@@ -276,13 +274,11 @@ Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
  * @todo Add description for the params
  */
 Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
-	var data = {
+	const data = {
 		publicKey: transaction.senderPublicKey,
 		address: sender.address,
-		u_isDelegate: 0,
 		isDelegate: 1,
 		vote: 0,
-		u_username: null,
 		username: transaction.asset.delegate.username,
 	};
 
@@ -310,13 +306,11 @@ Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @todo Add description for the params
  */
 Delegate.prototype.undo = function(transaction, block, sender, cb) {
-	var data = {
+	const data = {
 		address: sender.address,
-		u_isDelegate: 1,
 		isDelegate: 0,
 		vote: 0,
 		username: null,
-		u_username: transaction.asset.delegate.username,
 	};
 
 	modules.accounts.setAccountAndGet(data, cb);
@@ -331,12 +325,10 @@ Delegate.prototype.undo = function(transaction, block, sender, cb) {
  * @todo Add description for the params
  */
 Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
-	var data = {
+	const data = {
 		publicKey: transaction.senderPublicKey,
 		address: sender.address,
 		u_isDelegate: 1,
-		isDelegate: 0,
-		username: null,
 		u_username: transaction.asset.delegate.username,
 	};
 
@@ -362,11 +354,9 @@ Delegate.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
  * @todo Add description for the params
  */
 Delegate.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
-	var data = {
+	const data = {
 		address: sender.address,
 		u_isDelegate: 0,
-		isDelegate: 0,
-		username: null,
 		u_username: null,
 	};
 
@@ -394,7 +384,7 @@ Delegate.prototype.schema = {
  * @todo Add description for the params
  */
 Delegate.prototype.objectNormalize = function(transaction) {
-	var report = library.schema.validate(
+	const report = library.schema.validate(
 		transaction.asset.delegate,
 		Delegate.prototype.schema
 	);
@@ -419,7 +409,7 @@ Delegate.prototype.dbRead = function(raw) {
 	if (!raw.d_username) {
 		return null;
 	}
-	var delegate = {
+	const delegate = {
 		username: raw.d_username,
 		publicKey: raw.t_senderPublicKey,
 		address: raw.t_senderId,
@@ -446,5 +436,4 @@ Delegate.prototype.ready = function(transaction, sender) {
 	return true;
 };
 
-// Export
 module.exports = Delegate;

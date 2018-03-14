@@ -16,6 +16,7 @@
 
 const path = require('path');
 const fs = require('fs-extra');
+const Promise = require('bluebird');
 const sql = require('../sql').migrations;
 const { sqlRoot } = require('../sql/config');
 
@@ -37,6 +38,7 @@ class MigrationsRepository {
 	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
+		this.inTransaction = !!(db.ctx && db.ctx.inTransaction);
 	}
 
 	/**
@@ -68,8 +70,9 @@ class MigrationsRepository {
 	 * @returns {Promise<null>} Promise object that resolves with `null`.
 	 */
 	applyRuntime() {
-		// Use a transaction only when not in one:
-		return this.db.txIf('migrations:applyRuntime', t => t.none(sql.runtime));
+		// Must use a transaction here when not in one:
+		const job = t => t.none(sql.runtime);
+		return this.inTransaction ? job(this.db) : this.db.tx('applyRuntime', job);
 	}
 
 	/**
@@ -78,10 +81,11 @@ class MigrationsRepository {
 	 * @returns {Promise<null>} Promise object that resolves with `null`.
 	 */
 	createMemoryTables() {
-		// Use a transaction only when not in one:
-		return this.db.txIf('migrations:createMemoryTables', t =>
-			t.none(sql.memoryTables)
-		);
+		// Must use a transaction here when not in one:
+		const job = t => t.none(sql.memoryTables);
+		return this.inTransaction
+			? job(this.db)
+			: this.db.tx('createMemoryTables', job);
 	}
 
 	/**
@@ -129,20 +133,21 @@ class MigrationsRepository {
 	 * @returns {Promise} Promise object that resolves with `undefined`.
 	 */
 	applyAll() {
-		return this.db.tx('migrations:applyAll', function*(t1) {
-			const hasMigrations = yield t1.migrations.hasMigrations();
-			const lastId = hasMigrations ? yield t1.migrations.getLastId() : 0;
-			const updates = yield t1.migrations.readPending(lastId);
-			for (let i = 0; i < updates.length; i++) {
-				const u = updates[i];
-				const tag = `update:${u.name}`;
-				yield t1.tx(tag, function*(t2) {
-					yield t2.none(u.file);
-					yield t2.none(sql.add, u);
-				});
-			}
-			yield t1.migrations.applyRuntime();
-		});
+		return this.db.tx('migrations:applyAll', t1 =>
+			t1.migrations
+				.hasMigrations()
+				.then(hasMigrations => (hasMigrations ? t1.migrations.getLastId() : 0))
+				.then(lastId => t1.migrations.readPending(lastId))
+				.then(updates =>
+					Promise.mapSeries(updates, u => {
+						const tag = `update:${u.name}`;
+						return t1.tx(tag, t2 =>
+							t2.none(u.file).then(() => t2.none(sql.add, u))
+						);
+					})
+				)
+				.then(() => t1.migrations.applyRuntime())
+		);
 	}
 }
 
