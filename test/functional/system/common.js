@@ -302,12 +302,14 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 			);
 			break;
 		case 'MULTI':
-			transaction = lisk.multisignature.createMultisignature(
-				accountCopy.password,
-				accountCopy.secondPassword,
-				[`+${accountFixtures.existingDelegate.publicKey}`],
-				1,
-				1
+			transaction = lisk.transaction.registerMultisignature(
+				{
+					passphrase: accountCopy.password,
+					secondPassphrase: accountCopy.secondPassword,
+					keysgroup: [`${accountFixtures.existingDelegate.publicKey}`],
+					lifetime: 1,
+					minimum: 1,
+				}
 			);
 			break;
 		case 'DAPP':

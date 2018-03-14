@@ -25,7 +25,7 @@ describe('system test (type 4) - double multisignature registrations', () => {
 		regular: new Scenarios.Multisig(),
 	};
 
-	var transactionToBeNotConfirmed = lisk.multisignature.createMultisignature(
+	var transactionToBeNotConfirmed = lisk.transaction.registerMultisignature(
 		scenarios.regular.account.password,
 		null,
 		scenarios.regular.keysgroup,

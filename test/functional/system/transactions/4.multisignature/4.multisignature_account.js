@@ -54,9 +54,12 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 	describe('forge block with multisignature transaction', () => {
 		before('forge block with multisignature transaction', done => {
-			var keysgroup = [`+${signer1.publicKey}`, `+${signer2.publicKey}`];
+			var keysgroup = [
+				`${signer1.publicKey}`,
+				`${signer2.publicKey}`,
+			];
 
-			multisigTransaction = lisk.multisignature.createMultisignature(
+			multisigTransaction = lisk.transaction.registerMultisignature(
 				multisigAccount.password,
 				null,
 				keysgroup,
@@ -283,9 +286,12 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 	describe('apply unconfirmed transaction', () => {
 		before('apply unconfirmed multisig transaction', done => {
-			var keysgroup = [`+${signer1.publicKey}`, `+${signer2.publicKey}`];
+			var keysgroup = [
+				`${signer1.publicKey}`,
+				`${signer2.publicKey}`,
+			];
 
-			multisigTransaction = lisk.multisignature.createMultisignature(
+			multisigTransaction = lisk.transaction.registerMultisignature(
 				multisigAccount.password,
 				null,
 				keysgroup,
@@ -403,8 +409,11 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			var signer4 = randomUtil.account();
 
 			before('process multisignature transaction', done => {
-				var keysgroup = [`+${signer3.publicKey}`, `+${signer4.publicKey}`];
-				multisigTransaction2 = lisk.multisignature.createMultisignature(
+				var keysgroup = [
+					`${signer3.publicKey}`,
+					`${signer4.publicKey}`,
+				];
+				multisigTransaction2 = lisk.transaction.registerMultisignature(
 					multisigAccount.password,
 					null,
 					keysgroup,

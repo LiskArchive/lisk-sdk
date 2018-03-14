@@ -16,7 +16,6 @@
 
 require('../../functional.js');
 var Promise = require('bluebird');
-var crypto = require('crypto');
 var lisk = require('lisk-js').default;
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');

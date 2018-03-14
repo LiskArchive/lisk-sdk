@@ -35,19 +35,20 @@ function Multisig(options) {
 	for (i = 0; i < options.members - 1; i++) {
 		auxAccount = randomUtil.account();
 		this.members.push(auxAccount);
-		this.keysgroup.push(`+${auxAccount.publicKey}`);
+		this.keysgroup.push(`${auxAccount.publicKey}`);
 	}
 
-	this.min = options.min || options.members - 1;
+	this.minimum = options.min || options.members - 1;
 	this.lifetime = options.lifetime || 1;
 	this.amount = options.amount || 100000000000;
 
-	this.multiSigTransaction = lisk.multisignature.createMultisignature(
-		this.account.password,
-		null,
-		this.keysgroup,
-		this.lifetime,
-		this.min
+	this.multiSigTransaction = lisk.transaction.registerMultisignature(
+		{
+			passphrase: this.account.password,
+			keysgroup: this.keysgroup,
+			lifetime: this.lifetime,
+			minimum: this.minimum,
+		}
 	);
 	this.creditTransaction = lisk.transaction.transfer(
 		{

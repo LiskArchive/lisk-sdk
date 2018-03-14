@@ -133,7 +133,7 @@ describe('multisignature', () => {
 	describe('calculateFee', () => {
 		it('should return correct fee based on formula for 1 keysgroup', () => {
 			transaction.asset.multisignature.keysgroup = [
-				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`,
+				`${lisk.crypto.getKeys(randomUtil.password()).publicKey}`,
 			];
 			return expect(
 				multisignature.calculateFee(transaction).toString()
@@ -142,7 +142,7 @@ describe('multisignature', () => {
 
 		it('should return correct fee based on formula for 4 keysgroup', () => {
 			transaction.asset.multisignature.keysgroup = new Array(4).fill(
-				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
+				`${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
 			);
 
 			return expect(
@@ -152,7 +152,7 @@ describe('multisignature', () => {
 
 		it('should return correct fee based on formula for 8 keysgroup', () => {
 			transaction.asset.multisignature.keysgroup = new Array(8).fill(
-				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
+				`${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
 			);
 
 			return expect(
@@ -162,7 +162,7 @@ describe('multisignature', () => {
 
 		it('should return correct fee based on formula for 16 keysgroup', () => {
 			transaction.asset.multisignature.keysgroup = new Array(16).fill(
-				`+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
+				`${lisk.crypto.getKeys(randomUtil.password()).publicKey}`
 			);
 
 			return expect(
@@ -175,10 +175,13 @@ describe('multisignature', () => {
 		describe('from multisignature.verify tests', () => {
 			it('should return error when min value is smaller than minimum acceptable value', done => {
 				var min = constants.multisigConstraints.min.minimum - 1;
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
-					[`+${multiSigAccount1.publicKey}`, `+${multiSigAccount2.publicKey}`],
+					[
+						`${multiSigAccount1.publicKey}`,
+						`${multiSigAccount2.publicKey}`,
+					],
 					1,
 					1
 				);
@@ -195,10 +198,13 @@ describe('multisignature', () => {
 
 		it('should return error when min value is greater than maximum acceptable value', done => {
 			var min = constants.multisigConstraints.min.maximum + 1;
-			var transaction = lisk.multisignature.createMultisignature(
+			var transaction = lisk.transaction.registerMultisignature(
 				accountFixtures.genesis.password,
 				null,
-				[`+${multiSigAccount1.publicKey}`, `+${multiSigAccount2.publicKey}`],
+				[
+					`${multiSigAccount1.publicKey}`,
+					`${multiSigAccount2.publicKey}`,
+				],
 				1,
 				min
 			);
@@ -287,7 +293,7 @@ describe('multisignature', () => {
 			before(done => {
 				transaction.asset.multisignature.min = 15;
 				transaction.asset.keysgroup = _.map(new Array(16), () => {
-					return `+${randomUtil.account().publicKey}`;
+					return `${randomUtil.account().publicKey}`;
 				});
 				done();
 			});
@@ -882,10 +888,13 @@ describe('multisignature', () => {
 		describe('min', () => {
 			it('should return error when value is not an integer', () => {
 				var min = '2';
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
-					[`+${multiSigAccount1.publicKey}`, `+${multiSigAccount2.publicKey}`],
+					[
+						`${multiSigAccount1.publicKey}`,
+						`${multiSigAccount2.publicKey}`,
+					],
 					1,
 					2
 				);
@@ -900,10 +909,13 @@ describe('multisignature', () => {
 
 			it('should return error when value is a negative integer', () => {
 				var min = -1;
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
-					[`+${multiSigAccount1.publicKey}`, `+${multiSigAccount2.publicKey}`],
+					[
+						`${multiSigAccount1.publicKey}`,
+						`${multiSigAccount2.publicKey}`,
+					],
 					1,
 					2
 				);
@@ -918,10 +930,13 @@ describe('multisignature', () => {
 
 			it('should return error when value is smaller than minimum acceptable value', () => {
 				var min = constants.multisigConstraints.min.minimum - 1;
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
-					[`+${multiSigAccount1.publicKey}`, `+${multiSigAccount2.publicKey}`],
+					[
+						`${multiSigAccount1.publicKey}`,
+						`${multiSigAccount2.publicKey}`,
+					],
 					1,
 					min
 				);
@@ -935,10 +950,13 @@ describe('multisignature', () => {
 
 			it('should return error when value is greater than maximum acceptable value', () => {
 				var min = constants.multisigConstraints.min.maximum + 1;
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
-					[`+${multiSigAccount1.publicKey}`, `-${multiSigAccount2.publicKey}`],
+					[
+						`${multiSigAccount1.publicKey}`,
+						`${multiSigAccount2.publicKey}`,
+					],
 					1,
 					min
 				);
@@ -952,10 +970,13 @@ describe('multisignature', () => {
 
 			it('should return error when value is an overflow number', () => {
 				var min = Number.MAX_VALUE + 1;
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
-					[`+${multiSigAccount1.publicKey}`, `-${multiSigAccount2.publicKey}`],
+					[
+						`${multiSigAccount1.publicKey}`,
+						`${multiSigAccount2.publicKey}`,
+					],
 					1,
 					2
 				);
@@ -972,10 +993,13 @@ describe('multisignature', () => {
 		describe('lifetime', () => {
 			it('should return error when value is not an integer', () => {
 				var lifetime = '2';
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
-					[`+${multiSigAccount1.publicKey}`, `-${multiSigAccount2.publicKey}`],
+					[
+						`${multiSigAccount1.publicKey}`,
+						`${multiSigAccount2.publicKey}`,
+					],
 					1,
 					2
 				);
@@ -990,10 +1014,13 @@ describe('multisignature', () => {
 
 			it('should return error when value is smaller than minimum acceptable value', () => {
 				var lifetime = constants.multisigConstraints.lifetime.minimum - 1;
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
-					[`+${multiSigAccount1.publicKey}`, `-${multiSigAccount2.publicKey}`],
+					[
+						`${multiSigAccount1.publicKey}`,
+						`${multiSigAccount2.publicKey}`,
+					],
 					lifetime,
 					2
 				);
@@ -1007,10 +1034,13 @@ describe('multisignature', () => {
 
 			it('should return error when value is greater than maximum acceptable value', () => {
 				var lifetime = constants.multisigConstraints.lifetime.maximum + 1;
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
-					[`+${multiSigAccount1.publicKey}`, `-${multiSigAccount2.publicKey}`],
+					[
+						`${multiSigAccount1.publicKey}`,
+						`${multiSigAccount2.publicKey}`,
+					],
 					lifetime,
 					2
 				);
@@ -1024,10 +1054,13 @@ describe('multisignature', () => {
 
 			it('should return error when value is an overflow number', () => {
 				var lifetime = Number.MAX_VALUE;
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
-					[`+${multiSigAccount1.publicKey}`, `-${multiSigAccount2.publicKey}`],
+					[
+						`${multiSigAccount1.publicKey}`,
+						`${multiSigAccount2.publicKey}`,
+					],
 					1,
 					2
 				);
@@ -1043,7 +1076,7 @@ describe('multisignature', () => {
 
 		describe('keysgroup', () => {
 			it('should return error when it is not an array', () => {
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
 					[''],
@@ -1061,7 +1094,7 @@ describe('multisignature', () => {
 
 			it('should return error when array length is smaller than minimum acceptable value', () => {
 				var keysgroup = [];
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
 					keysgroup,
@@ -1080,9 +1113,9 @@ describe('multisignature', () => {
 				var keysgroup = Array(
 					...Array(constants.multisigConstraints.keysgroup.maxItems + 1)
 				).map(() => {
-					return `+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`;
+					return `${lisk.crypto.getKeys(randomUtil.password()).publicKey}`;
 				});
-				var transaction = lisk.multisignature.createMultisignature(
+				var transaction = lisk.transaction.registerMultisignature(
 					accountFixtures.genesis.password,
 					null,
 					keysgroup,
@@ -1099,11 +1132,11 @@ describe('multisignature', () => {
 		});
 
 		it('should return transaction when created using createMultisignature', () => {
-			var transaction = lisk.multisignature.createMultisignature(
+			var transaction = lisk.transaction.registerMultisignature(
 				accountFixtures.genesis.password,
 				null,
 				Array(...Array(10)).map(() => {
-					return `+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`;
+					return `${lisk.crypto.getKeys(randomUtil.password()).publicKey}`;
 				}),
 				1,
 				2

@@ -82,12 +82,14 @@ describe('GET /api/node', () => {
 					})
 					.then(() => {
 						// Convert account to multisig account
-						transaction = lisk.multisignature.createMultisignature(
-							senderAccount.password,
-							senderAccount.secondPassword,
-							[`+${randomMember.publicKey}`],
-							1,
-							1
+						transaction = lisk.transaction.registerMultisignature(
+							{
+								passphrase: senderAccount.password,
+								secondPassphrase: senderAccount.secondPassword,
+								keysgroup: [`${randomMember.publicKey}`],
+								lifetime: 1,
+								minimum: 1,
+							}
 						);
 
 						return sendTransactionPromise(transaction);

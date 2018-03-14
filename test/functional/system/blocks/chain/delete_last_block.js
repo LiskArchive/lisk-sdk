@@ -615,10 +615,10 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should forge a block', done => {
-					var multisigTransaction = lisk.multisignature.createMultisignature(
+					var multisigTransaction = lisk.transaction.registerMultisignature(
 						testAccount.password,
 						null,
-						[`+${accountFixtures.existingDelegate.publicKey}`],
+						[`${accountFixtures.existingDelegate.publicKey}`],
 						1,
 						1
 					);

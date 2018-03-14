@@ -54,12 +54,13 @@ function invalidAssets(option, badTransactions) {
 					);
 					break;
 				case 'multisignature':
-					transaction = lisk.multisignature.createMultisignature(
-						accountFixtures.genesis.password,
-						null,
-						[`+${accountFixtures.existingDelegate.publicKey}`],
-						1,
-						2
+					transaction = lisk.transaction.registerMultisignature(
+						{
+							passphrase: accountFixtures.genesis.password,
+							keysgroup: [`${accountFixtures.existingDelegate.publicKey}`],
+							lifetime: 1,
+							minimum: 2,
+						}
 					);
 					break;
 				case 'dapp':
