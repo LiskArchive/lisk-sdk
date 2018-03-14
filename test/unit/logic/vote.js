@@ -523,12 +523,12 @@ describe('vote', () => {
 	});
 
 	describe('getBytes', () => {
-		it('should throw error for empty votes', () => {
+		it('should throw error for wrong votes asset format', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {};
 			return expect(() => {
 				vote.getBytes(transaction);
-			}).to.throw();
+			}).to.throw('votes parameter must be an Array');
 		});
 
 		it('should throw error for zero votes', () => {
@@ -536,7 +536,7 @@ describe('vote', () => {
 			transaction.asset.votes = [];
 			return expect(() => {
 				vote.getBytes(transaction);
-			}).to.throw();
+			}).to.throw('number of votes must be between 0 and 33.');
 		});
 
 		it('should throw error for votes greater than 33', () => {
@@ -549,17 +549,36 @@ describe('vote', () => {
 			transaction.asset.votes = votes;
 			return expect(() => {
 				vote.getBytes(transaction);
-			}).to.throw();
+			}).to.throw('number of votes must be between 0 and 33.');
 		});
 
 		it('should throw error for votes with invalid public key', () => {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = [
-				'-9d3058175acab969f41ad9b86f7a2926c74258670fe56b',
-			];
+			transaction.asset.votes = ['-9d3058175acab969f41ad9b86f7a2926c74258'];
+			const publicKey = transaction.asset.votes[0].substr(
+				1,
+				transaction.asset.votes[0].length
+			);
+			const err = `Public key ${publicKey} length:${
+				publicKey.length
+			} differs from the expected 64 characters.`;
+
 			return expect(() => {
 				vote.getBytes(transaction);
-			}).to.throw();
+			}).to.throw(err);
+		});
+
+		it('should throw error for missing prefix +/-', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = [
+				'$9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+			];
+			const prefix = transaction.asset.votes[0].charAt(0);
+			const err = `Expected a prefix '+' for vote and '-' for unvote in public key, but found ${prefix}`;
+
+			return expect(() => {
+				vote.getBytes(transaction);
+			}).to.throw(err);
 		});
 
 		it('should return buffer for votes with plus and minus public keys', () => {

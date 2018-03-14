@@ -326,10 +326,10 @@ Vote.prototype.getBytes = function(transaction) {
 			const publicKey = vote.substr(1, vote.length);
 			if (publicKeyPrefix !== '+' && publicKeyPrefix !== '-') {
 				throw new Error(
-					`Public key ${publicKey} does not have prefix ${publicKeyPrefix}`
+					`Expected a prefix '+' for vote and '-' for unvote in public key, but found ${publicKeyPrefix}`
 				);
 			}
-			if (publicKey.length !== constants.PUBLIC_KEY_LENGTH) {
+			if (publicKey.length !== constants.PUBLIC_KEY_HEX_LENGTH) {
 				throw new Error(
 					`Public key ${publicKey} length:${
 						publicKey.length
