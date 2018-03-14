@@ -561,7 +561,7 @@ describe('transactionPool', () => {
 
 	describe('addQueuedTransaction', () => {
 		it('should be able to add transaction to queue', () => {
-			const transaction = { id: '103111423423423L' };
+			const transaction = { id: '103111423423423' };
 			expect(transactionPool.queued.transactions)
 				.to.be.an('array')
 				.that.does.not.include(transaction);
@@ -576,7 +576,7 @@ describe('transactionPool', () => {
 
 	describe('removeQueuedTransaction', () => {
 		it('should be able to remove transaction to queue', () => {
-			const transaction = { id: '103111423423423L' };
+			const transaction = { id: '103111423423423' };
 
 			transactionPool.addQueuedTransaction(transaction);
 			transactionPool.removeQueuedTransaction(transaction.id);
@@ -598,7 +598,7 @@ describe('transactionPool', () => {
 	describe('addMultisignatureTransaction', () => {
 		it('should be able to add multi transaction', () => {
 			const transaction = {
-				id: '103111423423423L',
+				id: '103111423423423',
 				type: transactionTypes.MULTI,
 			};
 			expect(transactionPool.multisignature.transactions)
@@ -1291,7 +1291,7 @@ describe('transactionPool', () => {
 
 		it('should call applyUnconfirmed', done => {
 			const transaction = {
-				id: '103111423423423L',
+				id: '103111423423423',
 				type: transactionTypes.MULTI,
 			};
 			transactionPool.getMultisignatureTransactionList = sinonSandbox
@@ -1625,7 +1625,7 @@ describe('transactionPool', () => {
 		describe('transactionTimeOut', () => {
 			it('should return timeout for MULTI transaction type', () => {
 				const transaction = {
-					id: '103111423423423L',
+					id: '103111423423423',
 					type: transactionTypes.MULTI,
 					asset: {
 						multisignature: {
@@ -1638,7 +1638,7 @@ describe('transactionPool', () => {
 
 			it('should return timeout for transaction with signatures and type not equal to MULTI', () => {
 				const transaction = {
-					id: '103111423423423L',
+					id: '103111423423423',
 					signatures: [],
 				};
 				return expect(transactionTimeOut(transaction)).to.deep.eql(
@@ -1648,7 +1648,7 @@ describe('transactionPool', () => {
 
 			it('should return default timeout for transaction without signatures and type not equal to MULTI', () => {
 				const transaction = {
-					id: '103111423423423L',
+					id: '103111423423423',
 				};
 				return expect(transactionTimeOut(transaction)).to.deep.eql(
 					constants.unconfirmedTransactionTimeOut
@@ -1672,15 +1672,15 @@ describe('transactionPool', () => {
 			it('should be able to add parentIds with the transaction ids', done => {
 				const transactions = [
 					{
-						id: '10313L',
+						id: '10313',
 						type: transactionTypes.MULTI,
 						receivedAt: new Date(new Date() - 180 * 60000),
 					},
 				];
 				transactionTimeOut.returns(0);
-				expireTransactions(transactions, ['10314L'], (err, res) => {
+				expireTransactions(transactions, ['10314'], (err, res) => {
 					expect(err).to.be.null;
-					expect(res).to.be.eql(['10313L', '10314L']);
+					expect(res).to.be.eql(['10313', '10314']);
 					expect(logger.info.called).to.be.true;
 					expect(logger.info.args[0][0]).to.deep.eql(
 						`Expired transaction: ${
@@ -1694,14 +1694,14 @@ describe('transactionPool', () => {
 			it('should return only parentIds', done => {
 				const transactions = [
 					{
-						id: '10313L',
+						id: '10313',
 						type: transactionTypes.MULTI,
 						receivedAt: new Date(),
 					},
 				];
-				expireTransactions(transactions, ['10314L'], (err, res) => {
+				expireTransactions(transactions, ['10314'], (err, res) => {
 					expect(err).to.be.null;
-					expect(res).to.be.eql(['10314L']);
+					expect(res).to.be.eql(['10314']);
 					done();
 				});
 			});
