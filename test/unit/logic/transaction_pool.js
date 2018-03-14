@@ -134,6 +134,33 @@ describe('transactionPool', () => {
 		after(resetStates);
 	});
 
+	describe('expireTransactions', () => {
+		const receivedAt = new Date(new Date() - 1300 * 60000);
+		const unconfirmedTx = { id: 'unconfirmedTx', receivedAt };
+		const unconfirmedTx2 = { id: 'unconfirmedTx2', receivedAt: new Date() };
+		const multiSigTx = { id: 'multiSigTx', receivedAt };
+		const queuedTx = { id: 'queuedTx', receivedAt };
+
+		it('should be able to expire all the transaction', done => {
+			transactionPool.addUnconfirmedTransaction(unconfirmedTx);
+			transactionPool.addUnconfirmedTransaction(unconfirmedTx2);
+			transactionPool.addMultisignatureTransaction(multiSigTx);
+			transactionPool.addQueuedTransaction(queuedTx);
+
+			expect(transactionPool.countUnconfirmed()).to.deep.eql(2);
+			expect(transactionPool.countQueued()).to.deep.eql(1);
+			expect(transactionPool.countMultisignature()).to.deep.eql(1);
+
+			transactionPool.expireTransactions(err => {
+				expect(err).to.be.null;
+				expect(transactionPool.countUnconfirmed()).to.deep.eql(1);
+				expect(transactionPool.countQueued()).to.deep.eql(0);
+				expect(transactionPool.countMultisignature()).to.deep.eql(0);
+				done();
+			});
+		});
+	});
+
 	describe('__private', () => {
 		describe('applyUnconfirmedList', () => {
 			var lastError;
