@@ -576,9 +576,9 @@ describe('GET /delegates', () => {
 		});
 	});
 
-	describe('GET /{address}/forging_stats', () => {
+	describe('GET /{address}/forging_statistics', () => {
 		var forgedEndpoint = new swaggerEndpoint(
-			'GET /delegates/{address}/forging_stats'
+			'GET /delegates/{address}/forging_statistics'
 		);
 
 		describe('address', () => {
