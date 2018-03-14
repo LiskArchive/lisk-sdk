@@ -14,27 +14,27 @@
 
 'use strict';
 
-const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
-const transactionsFixtures = require('../../../fixtures').transactions;
-const seeder = require('../../../common/db_seed');
-const transactionTypes = require('../../../../helpers/transaction_types');
+const DBSandbox = require('../../../../common/db_sandbox').DBSandbox;
+const transactionsFixtures = require('../../../../fixtures/index').transactions;
+const seeder = require('../../../../common/db_seed');
+const transactionTypes = require('../../../../../helpers/transaction_types');
 
 const numSeedRecords = 5;
 
 let db;
 let dbSandbox;
-let signatureRepo;
+let outTransferRepo;
 
 describe('db', () => {
 	before(done => {
 		dbSandbox = new DBSandbox(
 			__testContext.config.db,
-			'lisk_test_db_transactions_signature'
+			'lisk_test_db_transactions_out_transfer'
 		);
 
 		dbSandbox.create((err, __db) => {
 			db = __db;
-			signatureRepo = db['transactions.signature'];
+			outTransferRepo = db['transactions.outTransfer'];
 			done(err);
 		});
 	});
@@ -60,49 +60,53 @@ describe('db', () => {
 	});
 
 	it('should initialize db.blocks repo', () => {
-		return expect(signatureRepo).to.be.not.null;
+		return expect(outTransferRepo).to.be.not.null;
 	});
 
-	describe('SignatureTransactionsRepo', () => {
+	describe('OutTransferTransactionsRepo', () => {
 		describe('constructor()', () => {
 			it('should assign param and data members properly', () => {
-				expect(signatureRepo.db).to.be.eql(db);
-				expect(signatureRepo.pgp).to.be.eql(db.$config.pgp);
-				expect(signatureRepo.dbTable).to.be.eql('signatures');
-				expect(signatureRepo.dbFields).to.be.eql([
+				expect(outTransferRepo.db).to.be.eql(db);
+				expect(outTransferRepo.pgp).to.be.eql(db.$config.pgp);
+				expect(outTransferRepo.dbTable).to.be.eql('outtransfer');
+				expect(outTransferRepo.dbFields).to.be.eql([
+					'dappId',
+					'outTransactionId',
 					'transactionId',
-					'publicKey',
 				]);
 
-				expect(signatureRepo.cs).to.be.an('object');
-				expect(signatureRepo.cs).to.not.empty;
-				return expect(signatureRepo.cs).to.have.all.keys('insert');
+				expect(outTransferRepo.cs).to.be.an('object');
+				expect(outTransferRepo.cs).to.not.empty;
+				return expect(outTransferRepo.cs).to.have.all.keys('insert');
 			});
 		});
 
 		describe('save', () => {
-			it('should insert entry into "delegates" table for type 1 transactions', function*() {
+			it('should insert entry into "delegates" table for type 7 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
 						transactionsFixtures.Transaction({
 							blockId: block.id,
-							type: transactionTypes.SIGNATURE,
+							type: transactionTypes.OUT_TRANSFER,
 						})
 					);
 				}
 				yield db.transactions.save(transactions);
 
-				const result = yield db.query('SELECT * FROM signatures');
+				const result = yield db.query('SELECT * FROM outtransfer');
 
 				expect(result).to.not.empty;
 				expect(result).to.have.lengthOf(numSeedRecords);
-				expect(
-					result.map(r => Buffer.from(r.publicKey).toString('hex'))
-				).to.be.eql(transactions.map(t => t.asset.signature.publicKey));
-				return expect(result.map(r => r.transactionId)).to.be.eql(
+				expect(result.map(r => r.transactionId)).to.be.eql(
 					transactions.map(t => t.id)
+				);
+				expect(result.map(r => r.dappId)).to.be.eql(
+					transactions.map(t => t.asset.outTransfer.dappId)
+				);
+				return expect(result.map(r => r.outTransactionId)).to.be.eql(
+					transactions.map(t => t.asset.outTransfer.transactionId)
 				);
 			});
 		});

@@ -14,27 +14,27 @@
 
 'use strict';
 
-const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
-const transactionsFixtures = require('../../../fixtures').transactions;
-const seeder = require('../../../common/db_seed');
-const transactionTypes = require('../../../../helpers/transaction_types');
+const DBSandbox = require('../../../../common/db_sandbox').DBSandbox;
+const transactionsFixtures = require('../../../../fixtures/index').transactions;
+const seeder = require('../../../../common/db_seed');
+const transactionTypes = require('../../../../../helpers/transaction_types');
 
 const numSeedRecords = 5;
 
 let db;
 let dbSandbox;
-let dappRepo;
+let signatureRepo;
 
 describe('db', () => {
 	before(done => {
 		dbSandbox = new DBSandbox(
 			__testContext.config.db,
-			'lisk_test_db_transactions_dapp'
+			'lisk_test_db_transactions_signature'
 		);
 
 		dbSandbox.create((err, __db) => {
 			db = __db;
-			dappRepo = db['transactions.dapp'];
+			signatureRepo = db['transactions.signature'];
 			done(err);
 		});
 	});
@@ -60,54 +60,50 @@ describe('db', () => {
 	});
 
 	it('should initialize db.blocks repo', () => {
-		return expect(dappRepo).to.be.not.null;
+		return expect(signatureRepo).to.be.not.null;
 	});
 
-	describe('DappsTransactionsRepo', () => {
+	describe('SignatureTransactionsRepo', () => {
 		describe('constructor()', () => {
 			it('should assign param and data members properly', () => {
-				expect(dappRepo.db).to.be.eql(db);
-				expect(dappRepo.pgp).to.be.eql(db.$config.pgp);
-				expect(dappRepo.dbTable).to.be.eql('dapps');
-				expect(dappRepo.dbFields).to.be.eql([
-					'type',
-					'name',
-					'description',
-					'tags',
-					'link',
-					'category',
-					'icon',
+				expect(signatureRepo.db).to.be.eql(db);
+				expect(signatureRepo.pgp).to.be.eql(db.$config.pgp);
+				expect(signatureRepo.dbTable).to.be.eql('signatures');
+				expect(signatureRepo.dbFields).to.be.eql([
 					'transactionId',
+					'publicKey',
 				]);
 
-				expect(dappRepo.cs).to.be.an('object');
-				expect(dappRepo.cs).to.not.empty;
-				return expect(dappRepo.cs).to.have.all.keys('insert');
+				expect(signatureRepo.cs).to.be.an('object');
+				expect(signatureRepo.cs).to.not.empty;
+				return expect(signatureRepo.cs).to.have.all.keys('insert');
 			});
 		});
 
 		describe('save', () => {
-			it('should insert entry into "dapps" table for type 5 transactions', function*() {
+			it('should insert entry into "delegates" table for type 1 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
 						transactionsFixtures.Transaction({
 							blockId: block.id,
-							type: transactionTypes.DAPP,
+							type: transactionTypes.SIGNATURE,
 						})
 					);
 				}
 				yield db.transactions.save(transactions);
 
-				const result = yield db.query('SELECT * FROM dapps');
+				const result = yield db.query('SELECT * FROM signatures');
 
 				expect(result).to.not.empty;
 				expect(result).to.have.lengthOf(numSeedRecords);
-				expect(result.map(r => r.transactionId)).to.be.eql(
+				expect(
+					result.map(r => Buffer.from(r.publicKey).toString('hex'))
+				).to.be.eql(transactions.map(t => t.asset.signature.publicKey));
+				return expect(result.map(r => r.transactionId)).to.be.eql(
 					transactions.map(t => t.id)
 				);
-				return expect(result).to.be.eql(transactions.map(t => t.asset.dapp));
 			});
 		});
 	});

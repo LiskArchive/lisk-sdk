@@ -15,11 +15,11 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
-const transactionsFixtures = require('../../../fixtures').transactions;
-const transactionsSQL = require('../../../../db/sql').transactions;
-const seeder = require('../../../common/db_seed');
-const transactionTypes = require('../../../../helpers/transaction_types');
+const DBSandbox = require('../../../../common/db_sandbox').DBSandbox;
+const transactionsFixtures = require('../../../../fixtures/index').transactions;
+const transactionsSQL = require('../../../../../db/sql/index').transactions;
+const seeder = require('../../../../common/db_seed');
+const transactionTypes = require('../../../../../helpers/transaction_types');
 
 const numSeedRecords = 5;
 

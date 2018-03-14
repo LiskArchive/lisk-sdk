@@ -14,27 +14,27 @@
 
 'use strict';
 
-const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
-const transactionsFixtures = require('../../../fixtures').transactions;
-const seeder = require('../../../common/db_seed');
-const transactionTypes = require('../../../../helpers/transaction_types');
+const DBSandbox = require('../../../../common/db_sandbox').DBSandbox;
+const transactionsFixtures = require('../../../../fixtures/index').transactions;
+const seeder = require('../../../../common/db_seed');
+const transactionTypes = require('../../../../../helpers/transaction_types');
 
 const numSeedRecords = 5;
 
 let db;
 let dbSandbox;
-let voteRepo;
+let transferRepo;
 
 describe('db', () => {
 	before(done => {
 		dbSandbox = new DBSandbox(
 			__testContext.config.db,
-			'lisk_test_db_transactions_vote'
+			'lisk_test_db_transactions_transfer'
 		);
 
 		dbSandbox.create((err, __db) => {
 			db = __db;
-			voteRepo = db['transactions.vote'];
+			transferRepo = db['transactions.transfer'];
 			done(err);
 		});
 	});
@@ -60,43 +60,43 @@ describe('db', () => {
 	});
 
 	it('should initialize db.blocks repo', () => {
-		return expect(voteRepo).to.be.not.null;
+		return expect(transferRepo).to.be.not.null;
 	});
 
-	describe('VoteTransactionsRepo', () => {
+	describe('TransferTransactionsRepo', () => {
 		describe('constructor()', () => {
 			it('should assign param and data members properly', () => {
-				expect(voteRepo.db).to.be.eql(db);
-				expect(voteRepo.pgp).to.be.eql(db.$config.pgp);
-				expect(voteRepo.dbTable).to.be.eql('votes');
-				expect(voteRepo.dbFields).to.be.eql(['votes', 'transactionId']);
+				expect(transferRepo.db).to.be.eql(db);
+				expect(transferRepo.pgp).to.be.eql(db.$config.pgp);
+				expect(transferRepo.dbTable).to.be.eql('transfer');
+				expect(transferRepo.dbFields).to.be.eql(['data', 'transactionId']);
 
-				expect(voteRepo.cs).to.be.an('object');
-				expect(voteRepo.cs).to.not.empty;
-				return expect(voteRepo.cs).to.have.all.keys('insert');
+				expect(transferRepo.cs).to.be.an('object');
+				expect(transferRepo.cs).to.not.empty;
+				return expect(transferRepo.cs).to.have.all.keys('insert');
 			});
 		});
 
 		describe('save', () => {
-			it('should insert entry into "delegates" table for type 3 transactions', function*() {
+			it('should insert entry into "delegates" table for type 0 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
 						transactionsFixtures.Transaction({
 							blockId: block.id,
-							type: transactionTypes.VOTE,
+							type: transactionTypes.TRANSFER,
 						})
 					);
 				}
 				yield db.transactions.save(transactions);
 
-				const result = yield db.query('SELECT * FROM votes');
+				const result = yield db.query('SELECT * FROM transfer');
 
 				expect(result).to.not.empty;
 				expect(result).to.have.lengthOf(numSeedRecords);
-				expect(result.map(r => r.votes)).to.be.eql(
-					transactions.map(t => t.asset.votes.join())
+				expect(result.map(r => Buffer.from(r.data).toString())).to.be.eql(
+					transactions.map(t => t.asset.data)
 				);
 				return expect(result.map(r => r.transactionId)).to.be.eql(
 					transactions.map(t => t.id)
