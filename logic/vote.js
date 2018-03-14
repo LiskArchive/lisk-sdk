@@ -254,17 +254,20 @@ Vote.prototype.process = function(transaction, sender, cb) {
  * @todo Check type and description of the return value
  */
 Vote.prototype.getBytes = function(transaction) {
-	var buf;
-
 	try {
-		buf = transaction.asset.votes
-			? Buffer.from(transaction.asset.votes.join(''), 'utf8')
-			: null;
+		const votes = transaction.asset.votes;
+		if (!Array.isArray(votes)) {
+			throw new Error('votes parameter must be an Array.');
+		}
+
+		if (!(votes.length > 0 && votes.length < 33)) {
+			throw new Error('number of votes is less than 0 or more than 33.');
+		}
+
+		return Buffer.from(votes.join(''), 'utf8');
 	} catch (e) {
 		throw e;
 	}
-
-	return buf;
 };
 
 /**
