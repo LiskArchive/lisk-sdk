@@ -523,24 +523,47 @@ describe('vote', () => {
 	});
 
 	describe('getBytes', () => {
-		it('should return null for empty asset', () => {
+		it('should throw error for empty votes', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {};
-			return expect(vote.getBytes(transaction)).to.eql(null);
+			return expect(() => {
+				vote.getBytes(transaction);
+			}).to.throw();
 		});
 
-		it('should return bytes of data asset', () => {
+		it('should throw error for zero votes', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.asset.votes = [];
+			return expect(() => {
+				vote.getBytes(transaction);
+			}).to.throw();
+		});
+
+		it('should throw error for votes greater than 33', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			const votes = new Array(34);
+			_.fill(
+				votes,
+				'-9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'
+			);
+			transaction.asset.votes = votes;
+			return expect(() => {
+				vote.getBytes(transaction);
+			}).to.throw();
+		});
+
+		it('should return buffer for votes with plus and minus public keys', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			var data = {
 				votes: [
 					'-9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					'+3d9069145acab346f98ad9b23f7a2926c74258670fe98b37c100c01fca9f2f0f',
 				],
 			};
 			transaction.asset = data;
+			const voteBuffer = Buffer.from(data.votes.join(''), 'utf8');
 
-			return expect(vote.getBytes(transaction)).to.eql(
-				Buffer.from(data.votes[0], 'utf8')
-			);
+			return expect(vote.getBytes(transaction)).to.eql(voteBuffer);
 		});
 
 		it('should be okay for utf-8 data value', () => {
