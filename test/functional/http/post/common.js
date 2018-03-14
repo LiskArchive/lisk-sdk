@@ -37,9 +37,11 @@ function invalidAssets(option, badTransactions) {
 					);
 					break;
 				case 'delegate':
-					transaction = lisk.delegate.createDelegate(
-						accountFixtures.genesis.password,
-						randomUtil.delegateName()
+					transaction = lisk.transaction.registerDelegate(
+						{
+							passphrase: accountFixtures.genesis.password,
+							username: randomUtil.delegateName(),
+						}
 					);
 					break;
 				case 'votes':

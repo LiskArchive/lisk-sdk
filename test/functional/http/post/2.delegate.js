@@ -99,9 +99,11 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 	describe('transactions processing', () => {
 		it('with no funds should fail', () => {
-			transaction = lisk.delegate.createDelegate(
-				accountNoFunds.password,
-				accountNoFunds.username
+			transaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: accountNoFunds.password,
+					username: accountNoFunds.username,
+				}
 			);
 
 			return sendTransactionPromise(
@@ -118,9 +120,11 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('with minimal required amount of funds should be ok', () => {
-			transaction = lisk.delegate.createDelegate(
-				accountMinimalFunds.password,
-				accountMinimalFunds.username
+			transaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: accountMinimalFunds.password,
+					username: accountMinimalFunds.username,
+				}
 			);
 
 			return sendTransactionPromise(transaction).then(res => {
@@ -130,7 +134,12 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using blank username should fail', () => {
-			transaction = lisk.delegate.createDelegate(account.password, '');
+			transaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: account.password,
+					username: '',
+				}
+			);
 
 			return sendTransactionPromise(
 				transaction,
@@ -143,7 +152,12 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using invalid username should fail', () => {
 			var username = '~!@#$ %^&*()_+.,?/';
-			transaction = lisk.delegate.createDelegate(account.password, username);
+			transaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: account.password,
+					username,
+				}
+			);
 
 			return sendTransactionPromise(
 				transaction,
@@ -158,9 +172,11 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using username longer than 20 characters should fail', () => {
 			var delegateName = `${randomUtil.delegateName()}x`;
-			transaction = lisk.delegate.createDelegate(
-				account.password,
-				delegateName
+			transaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: account.password,
+					username: delegateName,
+				}
 			);
 
 			return sendTransactionPromise(
@@ -175,9 +191,11 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using uppercase username should fail', () => {
-			transaction = lisk.delegate.createDelegate(
-				accountUpperCase.password,
-				accountUpperCase.username.toUpperCase()
+			transaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: accountUpperCase.password,
+					username: accountUpperCase.username.toUpperCase(),
+				}
 			);
 
 			return sendTransactionPromise(
@@ -190,9 +208,11 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using valid params should be ok', () => {
-			transaction = lisk.delegate.createDelegate(
-				account.password,
-				account.username
+			transaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: account.password,
+					username: account.username,
+				}
 			);
 
 			return sendTransactionPromise(transaction).then(res => {
@@ -208,9 +228,11 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 	describe('validation', () => {
 		it('setting same delegate twice should fail', () => {
-			transaction = lisk.delegate.createDelegate(
-				account.password,
-				account.username
+			transaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: account.password,
+					username: account.username,
+				}
 			);
 
 			return sendTransactionPromise(
@@ -223,9 +245,11 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using existing username should fail', () => {
-			transaction = lisk.delegate.createDelegate(
-				accountFormerDelegate.password,
-				account.username
+			transaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: accountFormerDelegate.password,
+					username: account.username,
+				}
 			);
 
 			return sendTransactionPromise(
@@ -240,9 +264,11 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('updating registered delegate should fail', () => {
-			transaction = lisk.delegate.createDelegate(
-				account.password,
-				'newusername'
+			transaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: account.password,
+					username: 'newusername',
+				}
 			);
 
 			return sendTransactionPromise(

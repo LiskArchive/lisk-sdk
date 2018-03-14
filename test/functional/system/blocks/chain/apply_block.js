@@ -107,13 +107,19 @@ describe('system test (blocks) - chain/applyBlock', () => {
 		let blockTransaction2;
 
 		beforeEach('create block', done => {
-			blockTransaction1 = lisk.delegate.createDelegate(
-				blockAccount1.password,
-				blockAccount1.username
+			blockTransaction1 = lisk.transaction.registerDelegate(
+				{
+					passphrase: blockAccount1.password,
+					username: blockAccount1.username,
+
+				}
 			);
-			blockTransaction2 = lisk.delegate.createDelegate(
-				blockAccount2.password,
-				blockAccount2.username
+			blockTransaction2 = lisk.transaction.registerDelegate(
+				{
+					passphrase: blockAccount2.password,
+					username: blockAccount2.username,
+
+				}
 			);
 			blockTransaction1.senderId = blockAccount1.address;
 			blockTransaction2.senderId = blockAccount2.address;

@@ -360,9 +360,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should forge a block', done => {
-					var delegateTransaction = lisk.delegate.createDelegate(
-						testAccount.password,
-						testAccount.username
+					var delegateTransaction = lisk.transaction.registerDelegate(
+						{
+							passphrase: testAccount.password,
+							username: testAccount.username,
+						}
 					);
 					localCommon.addTransactionsAndForge(
 						library,

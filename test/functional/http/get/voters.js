@@ -250,13 +250,15 @@ describe('GET /api/voters', () => {
 					}
 				);
 
-				var registerExtraVoterAsADelegateTransaction = lisk.delegate.createDelegate(
-					validExtraDelegateVoter.password,
-					randomstring.generate({
-						length: 10,
-						charset: 'alphabetic',
-						capitalization: 'lowercase',
-					})
+				var registerExtraVoterAsADelegateTransaction = lisk.transaction.registerDelegate(
+					{
+						passphrase: validExtraDelegateVoter.password,
+						username: randomstring.generate({
+							length: 10,
+							charset: 'alphabetic',
+							capitalization: 'lowercase',
+						}),
+					}
 				);
 
 				var voteByExtraDelegateVoterTransaction = lisk.vote.createVote(

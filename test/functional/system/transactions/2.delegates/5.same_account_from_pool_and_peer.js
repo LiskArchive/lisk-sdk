@@ -67,9 +67,11 @@ describe('delegate', () => {
 			beforeEach(done => {
 				username = randomUtil.username().toLowerCase();
 
-				delegateTransaction = lisk.delegate.createDelegate(
-					delegateAccount.password,
-					username
+				delegateTransaction = lisk.transaction.registerDelegate(
+					{
+						passphrase: delegateAccount.password,
+						username,
+					}
 				);
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
@@ -130,9 +132,11 @@ describe('delegate', () => {
 
 				beforeEach(done => {
 					username2 = randomUtil.username().toLowerCase();
-					delegateTransaction2 = lisk.delegate.createDelegate(
-						delegateAccount.password,
-						username2
+					delegateTransaction2 = lisk.transaction.registerDelegate(
+						{
+							passphrase: delegateAccount.password,
+							username: username2,
+						}
 					);
 					delegateTransaction2.senderId = delegateAccount.address;
 					localCommon.createValidBlock(

@@ -359,9 +359,11 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.delegate.createDelegate(
-					randomUtil.password(),
-					randomUtil.delegateName().toLowerCase()
+				var transaction = lisk.transaction.registerDelegate(
+					{
+						passphrase: randomUtil.password(),
+						username: randomUtil.delegateName().toLowerCase(),
+					}
 				);
 
 				cache.onTransactionsSaved([transaction], () => {
@@ -381,9 +383,11 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.delegate.createDelegate(
-					randomUtil.password(),
-					randomUtil.delegateName().toLowerCase()
+				var transaction = lisk.transaction.registerDelegate(
+					{
+						passphrase: randomUtil.password(),
+						username: randomUtil.delegateName().toLowerCase(),
+					}
 				);
 
 				cache.onSyncStarted();

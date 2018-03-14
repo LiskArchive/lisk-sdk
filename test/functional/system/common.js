@@ -284,10 +284,12 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 			);
 			break;
 		case 'DELEGATE':
-			transaction = lisk.delegate.createDelegate(
-				accountCopy.password,
-				accountCopy.username,
-				accountCopy.secondPassword
+			transaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: accountCopy.password,
+					secondPassphrase: accountCopy.secondPassword,
+					username: accountCopy.username,
+				}
 			);
 			break;
 		case 'VOTE':

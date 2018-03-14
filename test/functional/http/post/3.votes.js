@@ -186,9 +186,12 @@ describe('POST /api/transactions (type 3) votes', () => {
 			})
 			.then(() => {
 				transactionsToWaitFor = [];
-				var transaction = lisk.delegate.createDelegate(
-					delegateAccount.password,
-					delegateAccount.username
+				var transaction = lisk.transaction.registerDelegate(
+					{
+						passphrase: delegateAccount.password,
+						username: delegateAccount.username,
+
+					}
 				);
 				return sendTransactionPromise(transaction).then(result => {
 					expect(result.body.data.message).to.equal('Transaction(s) accepted');
@@ -199,9 +202,11 @@ describe('POST /api/transactions (type 3) votes', () => {
 				var promisesDelegatesMaxVotesPerTransaction = [];
 				var transactionsDelegateMaxForPerTransaction = [];
 				for (var i = 0; i < constants.maxVotesPerTransaction; i++) {
-					var transaction = lisk.delegate.createDelegate(
-						delegatesMaxVotesPerTransaction[i].password,
-						delegatesMaxVotesPerTransaction[i].username
+					var transaction = lisk.transaction.registerDelegate(
+						{
+							passphrase: delegatesMaxVotesPerTransaction[i].password,
+							username: delegatesMaxVotesPerTransaction[i].username,
+						}
 					);
 					transactionsDelegateMaxForPerTransaction.push(transaction);
 					promisesDelegatesMaxVotesPerTransaction.push(
@@ -226,9 +231,11 @@ describe('POST /api/transactions (type 3) votes', () => {
 				var transactionsDelegateMaxVotesPerAccount = [];
 				var promisesDelegatesMaxVotesPerAccount = [];
 				for (var i = 0; i < constants.activeDelegates; i++) {
-					var transaction = lisk.delegate.createDelegate(
-						delegatesMaxVotesPerAccount[i].password,
-						delegatesMaxVotesPerAccount[i].username
+					var transaction = lisk.transaction.registerDelegate(
+						{
+							passphrase: delegatesMaxVotesPerAccount[i].password,
+							username: delegatesMaxVotesPerAccount[i].username,
+						}
 					);
 					transactionsDelegateMaxVotesPerAccount.push(transaction);
 					promisesDelegatesMaxVotesPerAccount.push(

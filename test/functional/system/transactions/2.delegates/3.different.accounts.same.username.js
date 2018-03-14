@@ -64,9 +64,11 @@ describe('system test (type 2) - double delegate registrations', () => {
 				});
 
 				it('adding to pool delegate registration should be ok', done => {
-					transaction1 = lisk.delegate.createDelegate(
-						account.password,
-						account.username
+					transaction1 = lisk.transaction.registerDelegate(
+						{
+							passphrase: account.password,
+							username: account.username,
+						}
 					);
 					localCommon.addTransaction(library, transaction1, (err, res) => {
 						expect(res).to.equal(transaction1.id);
@@ -75,9 +77,11 @@ describe('system test (type 2) - double delegate registrations', () => {
 				});
 
 				it('adding to pool delegate registration from different account and same username should be ok', done => {
-					transaction2 = lisk.delegate.createDelegate(
-						account2.password,
-						account.username
+					transaction2 = lisk.transaction.registerDelegate(
+						{
+							passphrase: account2.password,
+							username: account.username,
+						}
 					);
 					localCommon.addTransaction(library, transaction2, (err, res) => {
 						expect(res).to.equal(transaction2.id);

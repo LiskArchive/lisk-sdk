@@ -366,13 +366,15 @@ describe('GET /api/votes', () => {
 						recipientId: account.address,
 					}
 				);
-				var delegateTransaction = lisk.delegate.createDelegate(
-					account.password,
-					randomstring.generate({
-						length: 10,
-						charset: 'alphabetic',
-						capitalization: 'lowercase',
-					})
+				var delegateTransaction = lisk.transaction.registerDelegate(
+					{
+						passphrase: account.password,
+						username: randomstring.generate({
+							length: 10,
+							charset: 'alphabetic',
+							capitalization: 'lowercase',
+						}),
+					}
 				);
 				var voteTransaction = lisk.vote.createVote(account.password, [
 					`+${nonVoterDelegate.publicKey}`,

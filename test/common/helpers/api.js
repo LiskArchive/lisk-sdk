@@ -251,9 +251,11 @@ function getCount(param, cb) {
 }
 
 function registerDelegate(account, cb) {
-	var transaction = lisk.delegate.createDelegate(
-		account.password,
-		account.username
+	var transaction = lisk.transaction.registerDelegate(
+		{
+			passphrase: account.password,
+			username: account.username,
+		}
 	);
 	sendTransactionPromise(transaction).then(cb);
 }

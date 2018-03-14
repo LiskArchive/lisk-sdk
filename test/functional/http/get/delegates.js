@@ -115,9 +115,11 @@ describe('GET /delegates', () => {
 					secondPassphrase: secondSecretAccount.secondPassword,
 				}
 			);
-			var delegateTransaction = lisk.delegate.createDelegate(
-				secondSecretAccount.password,
-				secondSecretAccount.username
+			var delegateTransaction = lisk.transaction.registerDelegate(
+				{
+					passphrase: secondSecretAccount.password,
+					username: secondSecretAccount.username,
+				}
 			);
 
 			before(() => {
