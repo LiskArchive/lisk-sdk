@@ -1062,14 +1062,6 @@ describe('db', () => {
 				});
 
 				describe('functions', () => {
-					it('should always return "address" as "upper(address)"', () => {
-						return db.accounts.list({}, ['address']).then(data => {
-							data.forEach(account => {
-								expect(account.address).to.eql(account.address.toUpperCase());
-							});
-						});
-					});
-
 					it('should always return "publicKey" as "encode(publicKey, \'hex\')"', () => {
 						return db.accounts.list({}, ['publicKey']).then(data => {
 							data.forEach(account => {

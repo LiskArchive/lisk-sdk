@@ -14,17 +14,17 @@
 
 'use strict';
 
-var _ = require('lodash');
-var failureCodes = require('../api/ws/rpc/failure_codes.js');
-var Peer = require('../logic/peer.js');
-var System = require('../modules/system.js');
-var peersManager = require('../helpers/peers_manager.js');
+const _ = require('lodash');
+const failureCodes = require('../api/ws/rpc/failure_codes.js');
+const Peer = require('../logic/peer.js');
+const System = require('../modules/system.js');
+const peersManager = require('../helpers/peers_manager.js');
 
 // Private fields
-var __private = {};
-var self;
-var library;
-var modules;
+const __private = {};
+let self;
+let library;
+let modules;
 
 /**
  * Main peers logic. Initializes library.
@@ -42,23 +42,31 @@ var modules;
  * @returns {SetImmediate} null, this
  * @todo Add description for the params
  */
-// Constructor
-function Peers(logger, cb) {
-	library = {
-		logger,
-	};
-	self = this;
-	__private.me = null;
+class Peers {
+	constructor(logger, cb) {
+		library = {
+			logger,
+		};
+		self = this;
+		__private.me = null;
 
-	this.peersManager = peersManager;
+		this.peersManager = peersManager;
 
-	return setImmediate(cb, null, this);
+		return setImmediate(cb, null, this);
+	}
 }
 
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * Returns current peer state and system headers.
+ *
+ * @returns {Object} system headers and peer status
+ */
 Peers.prototype.me = function() {
-	var me = _.extend(System.getHeaders(), { state: Peer.STATE.CONNECTED });
-	delete me.ip;
-	return me;
+	return Object.assign({}, System.getHeaders(), {
+		state: Peer.STATE.CONNECTED,
+	});
 };
 
 /**
@@ -112,16 +120,16 @@ Peers.prototype.get = function(peer) {
  */
 Peers.prototype.upsert = function(peer, insertOnly) {
 	// Insert new peer
-	var insert = function(peer) {
+	const insert = function(peer) {
 		peer.updated = Date.now();
 		return self.peersManager.add(peer);
 	};
 
 	// Update existing peer
-	var update = function(peer) {
+	const update = function(peer) {
 		peer.updated = Date.now();
 
-		var diff = {};
+		const diff = {};
 		_.each(peer, (value, key) => {
 			if (
 				key !== 'updated' &&
@@ -173,10 +181,10 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	}
 
 	// Stats for tracking changes
-	var cnt_total = 0;
-	var cnt_active = 0;
-	var cnt_empty_height = 0;
-	var cnt_empty_broadhash = 0;
+	let cnt_total = 0;
+	let cnt_active = 0;
+	let cnt_empty_height = 0;
+	let cnt_empty_broadhash = 0;
 
 	_.each(__private.peers, peer => {
 		++cnt_total;
@@ -213,13 +221,13 @@ Peers.prototype.remove = function(peer) {
 	// Remove peer if exists
 	if (self.exists(peer)) {
 		library.logger.info('Removed peer', peer.string);
-		library.logger.debug('Removed peer', { peer });
+		library.logger.debug('Removed peer', { peer: peer.object() });
 		self.peersManager.remove(peer);
 		return true;
 	}
 	library.logger.debug('Failed to remove peer', {
 		err: 'AREMOVED',
-		peer,
+		peer: peer.object(),
 	});
 	return failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST;
 };
@@ -241,7 +249,6 @@ Peers.prototype.list = function(normalize) {
 	);
 };
 
-// Public methods
 /**
  * Modules are not required in this file.
  *

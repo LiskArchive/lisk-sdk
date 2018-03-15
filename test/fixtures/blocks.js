@@ -16,6 +16,8 @@
 
 const randomstring = require('randomstring');
 const stampit = require('stampit');
+const faker = require('faker');
+const genesisBlock = require('../data/genesis_block');
 
 const Block = stampit({
 	props: {
@@ -47,11 +49,33 @@ const Block = stampit({
 				.generate({ charset: '0123456789ABCDE', length: 32 })
 				.toLowerCase();
 		this.height = height || Math.floor(Math.random() * Math.floor(5000));
+
+		this.reward = faker.random.number({ min: 10, max: 100 }).toString();
+		this.totalFee = faker.random.number({ min: 100, max: 1000 }).toString();
+		this.totalAmount = faker.random
+			.number({ min: 1000, max: 10000 })
+			.toString();
 	},
 });
 
-const blocks = {
-	Block,
-};
+const GenesisBlock = stampit(Block, {
+	init({ generatorPublicKey }) {
+		this.id = genesisBlock.id;
+		this.generatorPublicKey =
+			generatorPublicKey || genesisBlock.generatorPublicKey;
+		this.blockSignature = genesisBlock.blockSignature;
+		this.payloadHash = genesisBlock.payloadHash;
+		this.previousBlock = null;
+		this.height = 1;
+		this.numberOfTransactions = 0;
 
-module.exports = blocks;
+		this.reward = '111';
+		this.totalFee = '100000';
+		this.totalAmount = '10000000000000000';
+	},
+});
+
+module.exports = {
+	Block,
+	GenesisBlock,
+};

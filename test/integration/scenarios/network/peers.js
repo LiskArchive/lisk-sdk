@@ -23,7 +23,7 @@ module.exports = function(params) {
 			it('should return a list of peers mutually interconnected', () => {
 				return Promise.all(
 					params.sockets.map(socket => {
-						return socket.wampSend('list', {});
+						return socket.call('list', {});
 					})
 				).then(results => {
 					results.forEach(result => {
@@ -48,7 +48,7 @@ module.exports = function(params) {
 			function getNetworkStatus(cb) {
 				Promise.all(
 					params.sockets.map(socket => {
-						return socket.wampSend('status');
+						return socket.call('status');
 					})
 				)
 					.then(results => {
@@ -129,7 +129,7 @@ module.exports = function(params) {
 				it('should have different peers heights propagated correctly on peers lists', () => {
 					return Promise.all(
 						params.sockets.map(socket => {
-							return socket.wampSend('list', {});
+							return socket.call('list', {});
 						})
 					).then(results => {
 						expect(

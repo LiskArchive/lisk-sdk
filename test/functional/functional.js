@@ -16,10 +16,13 @@
 'use strict';
 
 before(done => {
-	setTimeout(() => {
-		require('../common/utils/wait_for').blockchainReady(reason => {
+	// Retry 20 times with 3 second gap
+	require('../common/utils/wait_for').blockchainReady(
+		reason => {
 			console.info(`Blockchain ready status: ${reason}`);
 			done();
-		});
-	}, 6000);
+		},
+		20,
+		3000
+	);
 });

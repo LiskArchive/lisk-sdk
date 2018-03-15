@@ -19,8 +19,11 @@ var async = require('async');
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 var Peer = require('./logic/peer');
 var System = require('./modules/system');
-var Handshake = require('./helpers/ws_api').middleware.Handshake;
-var extractHeaders = require('./helpers/ws_api').extractHeaders;
+var Handshake = require('./api/ws/workers/middlewares/handshake').middleware
+	.Handshake;
+var extractHeaders = require('./api/ws/workers/middlewares/handshake')
+	.extractHeaders;
+var emitMiddleware = require('./api/ws/workers/middlewares/emit');
 var PeersUpdateRules = require('./api/ws/workers/peers_update_rules');
 var Rules = require('./api/ws/workers/rules');
 var failureCodes = require('./api/ws/rpc/failure_codes');
@@ -96,39 +99,60 @@ SCWorker.create({
 				],
 			},
 			(err, scope) => {
+				scServer.addMiddleware(
+					scServer.MIDDLEWARE_HANDSHAKE_WS,
+					(req, next) => {
+						scope.handshake(extractHeaders(req), (err, peer) => {
+							if (err) {
+								// Set a custom property on the HTTP request object; we will check this property and handle
+								// this issue later.
+								// Because of WebSocket protocol handshake restrictions, we can't call next(err) here because the
+								// error will not be passed to the client. So we can attach the error to the request and disconnect later during the SC 'handshake' event.
+								req.failedHeadersValidationError = err;
+							} else {
+								req.peerObject = peer.object();
+							}
+							// Pass through the WebSocket MIDDLEWARE_HANDSHAKE_WS successfully, but
+							// we will handle the req.failedQueryValidation error later inside scServer.on('handshake', handler);
+							next();
+						});
+					}
+				);
+
+				scServer.addMiddleware(scServer.MIDDLEWARE_EMIT, emitMiddleware);
+
+				scServer.on('handshake', socket => {
+					// We can access the HTTP request (which instantiated the WebSocket connection) using socket.request
+					// so we can access our custom socket.request.failedQueryValidation property here.
+					// If the property exists then we disconnect the connection.
+					if (socket.request.failedHeadersValidationError) {
+						return socket.disconnect(
+							socket.request.failedHeadersValidationError.code,
+							socket.request.failedHeadersValidationError.description
+						);
+					}
+					updatePeerConnection(
+						Rules.UPDATES.INSERT,
+						socket,
+						socket.request.peerObject,
+						onUpdateError => {
+							if (onUpdateError) {
+								socket.disconnect(
+									onUpdateError.code,
+									onUpdateError.description
+								);
+							}
+						}
+					);
+				});
+
 				scServer.on('connection', socket => {
 					scope.slaveWAMPServer.upgradeToWAMP(socket);
 					socket.on('disconnect', removePeerConnection.bind(null, socket));
 					socket.on('error', err => {
 						socket.disconnect(err.code, err.message);
 					});
-
-					insertPeerConnection(socket);
 				});
-
-				function insertPeerConnection(socket) {
-					var headers = extractHeaders(socket.request);
-					scope.handshake(headers, (err, peer) => {
-						if (err) {
-							return socket.disconnect(err.code, err.description);
-						}
-						updatePeerConnection(
-							Rules.UPDATES.INSERT,
-							socket,
-							peer.object(),
-							onUpdateError => {
-								if (onUpdateError) {
-									socket.disconnect(
-										onUpdateError.code,
-										onUpdateError.description
-									);
-								} else {
-									socket.emit('accepted');
-								}
-							}
-						);
-					});
-				}
 
 				function removePeerConnection(socket, code) {
 					if (failureCodes.errorMessages[code]) {

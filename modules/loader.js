@@ -17,7 +17,6 @@
 var async = require('async');
 var constants = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobs_queue.js');
-var Peer = require('../logic/peer.js');
 var slots = require('../helpers/slots.js');
 
 require('colors');
@@ -75,6 +74,9 @@ function Loader(cb, scope) {
 			loading: {
 				verifyOnLoading: scope.config.loading.verifyOnLoading,
 				snapshot: scope.config.loading.snapshot,
+			},
+			syncing: {
+				active: scope.config.syncing.active,
 			},
 		},
 	};
@@ -202,7 +204,7 @@ __private.loadSignatures = function(cb) {
 				library.logger.log(`Loading signatures from: ${peer.string}`);
 				peer.rpc.getSignatures((err, res) => {
 					if (err) {
-						peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
+						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
 					library.schema.validate(res, definitions.WSSignaturesResponse, err =>
@@ -266,7 +268,7 @@ __private.loadTransactions = function(cb) {
 				library.logger.log(`Loading transactions from: ${peer.string}`);
 				peer.rpc.getTransactions((err, res) => {
 					if (err) {
-						peer.applyHeaders({ state: Peer.STATE.DISCONNECTED });
+						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
 					library.schema.validate(
@@ -811,7 +813,10 @@ Loader.prototype.findGoodPeers = function(peers) {
 		.map(item => library.logic.peers.create(item));
 
 	library.logger.trace('Good peers - accepted', { count: peers.length });
-	library.logger.debug('Good peers', peers);
+	library.logger.debug(
+		'Good peers',
+		peers.map(peer => `${peer.ip}.${peer.wsPort}`)
+	);
 
 	return { height, peers };
 };
@@ -875,7 +880,9 @@ Loader.prototype.loaded = function() {
 Loader.prototype.onPeersReady = function() {
 	library.logger.trace('Peers ready', { module: 'loader' });
 	// Enforce sync early
-	__private.syncTimer();
+	if (library.config.syncing.active) {
+		__private.syncTimer();
+	}
 
 	setImmediate(() => {
 		async.series(

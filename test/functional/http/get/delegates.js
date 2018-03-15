@@ -255,6 +255,38 @@ describe('GET /delegates', () => {
 				});
 			});
 
+			it('using unknown numeric string should be ok', () => {
+				return delegatesEndpoint
+					.makeRequest(
+						{
+							search: accountFixtures.genesis.address.slice(
+								0,
+								accountFixtures.genesis.address.length - 1
+							),
+						},
+						200
+					)
+					.then(res => {
+						expect(res.body.data).to.have.length.at.least(0);
+					});
+			});
+
+			it('using existing numeric string should be ok', () => {
+				return delegatesEndpoint
+					.makeRequest(
+						{
+							search: 99,
+						},
+						200
+					)
+					.then(res => {
+						expect(res.body.data).to.have.length.at.least(1);
+						res.body.data.map(d => {
+							expect(/99/.test(d.username)).to.be.true;
+						});
+					});
+			});
+
 			it('using valid search with length=1 should be ok', () => {
 				return delegatesEndpoint.makeRequest({ search: 'g' }, 200);
 			});
@@ -544,9 +576,9 @@ describe('GET /delegates', () => {
 		});
 	});
 
-	describe('GET /{address}/forging_stats', () => {
+	describe('GET /{address}/forging_statistics', () => {
 		var forgedEndpoint = new swaggerEndpoint(
-			'GET /delegates/{address}/forging_stats'
+			'GET /delegates/{address}/forging_statistics'
 		);
 
 		describe('address', () => {

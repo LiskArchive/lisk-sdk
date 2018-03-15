@@ -188,6 +188,9 @@ describe('transactions', () => {
 										verifyOnLoading: false,
 										snapshot: false,
 									},
+									syncing: {
+										active: true,
+									},
 								},
 							},
 							cb
@@ -471,7 +474,7 @@ describe('transactions', () => {
 					transactionsByType[transactionTypes.SEND].transactionId;
 				var transaction = transactionsByType[transactionTypes.SEND].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
+				dbStub.transactions.countList.onCall(0).resolves(1);
 
 				dbStub.transactions.list.onCall(0).resolves([
 					{
@@ -535,7 +538,7 @@ describe('transactions', () => {
 				var transaction =
 					transactionsByType[transactionTypes.SIGNATURE].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
+				dbStub.transactions.countList.onCall(0).resolves(1);
 
 				dbStub.transactions.list.onCall(0).resolves([
 					{
@@ -592,7 +595,7 @@ describe('transactions', () => {
 				var transaction =
 					transactionsByType[transactionTypes.DELEGATE].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
+				dbStub.transactions.countList.onCall(0).resolves(1);
 
 				dbStub.transactions.list.onCall(0).resolves([
 					{
@@ -653,7 +656,7 @@ describe('transactions', () => {
 					transactionsByType[transactionTypes.VOTE].transactionId;
 				var transaction = transactionsByType[transactionTypes.VOTE].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
+				dbStub.transactions.countList.onCall(0).resolves(1);
 
 				dbStub.transactions.list.onCall(0).resolves([
 					{
@@ -711,7 +714,7 @@ describe('transactions', () => {
 				var transaction =
 					transactionsByType[transactionTypes.MULTI].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
+				dbStub.transactions.countList.onCall(0).resolves(1);
 
 				dbStub.transactions.list.onCall(0).resolves([
 					{
@@ -776,7 +779,7 @@ describe('transactions', () => {
 					transactionsByType[transactionTypes.DAPP].transactionId;
 				var transaction = transactionsByType[transactionTypes.DAPP].transaction;
 
-				dbStub.transactions.countList.onCall(0).resolves([{ count: 1 }]);
+				dbStub.transactions.countList.onCall(0).resolves(1);
 
 				dbStub.transactions.list.onCall(0).resolves([
 					{
