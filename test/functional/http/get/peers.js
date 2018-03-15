@@ -65,8 +65,8 @@ describe('GET /peers', () => {
 			checkResponse: true,
 		},
 		version: {
-			valid: ['999.999.999a'],
-			invalid: ['9999.999.999ab'],
+			valid: ['999.999.999'],
+			invalid: ['9999.999.999a'],
 			checkResponse: true,
 		},
 		broadhash: {
