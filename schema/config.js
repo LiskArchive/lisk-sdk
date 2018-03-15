@@ -36,8 +36,6 @@ module.exports = {
 			version: {
 				type: 'string',
 				format: 'version',
-				minLength: 5,
-				maxLength: 12,
 			},
 			minVersion: {
 				type: 'string',
@@ -218,6 +216,9 @@ module.exports = {
 			broadcasts: {
 				type: 'object',
 				properties: {
+					active: {
+						type: 'boolean',
+					},
 					broadcastInterval: {
 						type: 'integer',
 						minimum: 1000,

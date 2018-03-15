@@ -143,12 +143,14 @@ class BlocksRepository {
 	 * @param {string} params.sortMethod
 	 * @param {int} params.limit
 	 * @param {int} params.offset
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
+	 * @returns {Promise<[]>}
+	 * Array of blocks.
 	 */
 	list(params) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(Queries.list(params), params);
+		if (params.where && !Array.isArray(params.where)) {
+			return Promise.reject(new Error('Invalid parameter "where" provided.'));
+		}
+		return this.db.any(Queries.list, params);
 	}
 
 	/**
@@ -158,12 +160,11 @@ class BlocksRepository {
 	 * @param {int} params.delegates - Number of delegates
 	 * @param {int} params.height
 	 * @param {int} params.limit
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
+	 * @returns {Promise<[]>}
+	 * Array of blocks.
 	 */
 	getIdSequence(params) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getIdSequence, params);
+		return this.db.any(sql.getIdSequence, params);
 	}
 
 	/**
@@ -177,11 +178,13 @@ class BlocksRepository {
 	 * @todo Add description for the params and the return value
 	 */
 	getCommonBlock(params) {
-		// TODO: Must use a result-specific method, not .query
-		params.comparePreviousBlock = params.previousBlock
-			? this.pgp.as.format('AND "previousBlock" = ${previousBlock}', params)
-			: '';
-		return this.db.query(sql.getCommonBlock, params);
+		const query = values => {
+			values.comparePreviousBlock = values.previousBlock
+				? this.pgp.as.format('AND "previousBlock" = ${previousBlock}', values)
+				: '';
+			return sql.getCommonBlock;
+		};
+		return this.db.any(query, params);
 	}
 
 	// TODO: Merge BlocksRepository#getHeightByLastId with BlocksRepository#list
@@ -205,12 +208,11 @@ class BlocksRepository {
 	 * @param {string} params.lastId
 	 * @param {int} params.height
 	 * @param {int} params.limit
-	 * @returns {Promise}
+	 * @returns {Promise<[]>}
 	 * @todo Add description for the params and the return value
 	 */
 	loadBlocksData(params) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(Queries.loadBlocksData(params), params);
+		return this.db.any(Queries.loadBlocksData, params);
 	}
 
 	/**
@@ -218,12 +220,11 @@ class BlocksRepository {
 	 *
 	 * @param {int} offset
 	 * @param {int} limit
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
+	 * @returns {Promise<[]>}
+	 * List of blocks.
 	 */
 	loadBlocksOffset(offset, limit) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.loadBlocksOffset, [offset, limit]);
+		return this.db.any(sql.loadBlocksOffset, [offset, limit]);
 	}
 
 	/**
@@ -290,9 +291,8 @@ class BlocksRepository {
 	 * @todo Add description for the return value
 	 */
 	save(block) {
-		var saveBlock;
-		try {
-			saveBlock = Object.assign({}, block);
+		const query = () => {
+			const saveBlock = Object.assign({}, block);
 			saveBlock.payloadHash = Buffer.from(block.payloadHash, 'hex');
 			saveBlock.generatorPublicKey = Buffer.from(
 				block.generatorPublicKey,
@@ -300,11 +300,9 @@ class BlocksRepository {
 			);
 			saveBlock.blockSignature = Buffer.from(block.blockSignature, 'hex');
 			saveBlock.reward = block.reward || 0;
-		} catch (e) {
-			throw e;
-		}
-
-		return this.db.none(this.pgp.helpers.insert(saveBlock, cs.insert));
+			return this.pgp.helpers.insert(saveBlock, cs.insert);
+		};
+		return this.db.none(query);
 	}
 }
 

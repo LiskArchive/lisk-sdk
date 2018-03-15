@@ -219,7 +219,7 @@ describe('delegate', () => {
 				});
 			});
 
-			it('should call callback with error if username is not lower case', done => {
+			it('should call callback with error if username is not lowercase', done => {
 				transaction.asset.delegate.username = 'UiOjKl';
 
 				delegate.verify(transaction, sender, err => {
@@ -827,10 +827,8 @@ describe('delegate', () => {
 				validConfirmedAccount = {
 					publicKey: validSender.publicKey,
 					address: validSender.address,
-					u_isDelegate: 0,
 					isDelegate: 1,
 					vote: 0,
-					u_username: null,
 					username: validTransaction.asset.delegate.username,
 				};
 				done();
@@ -893,8 +891,6 @@ describe('delegate', () => {
 					publicKey: validSender.publicKey,
 					address: validSender.address,
 					u_isDelegate: 1,
-					isDelegate: 0,
-					username: null,
 					u_username: validTransaction.asset.delegate.username,
 				};
 				done();

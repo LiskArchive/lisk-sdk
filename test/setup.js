@@ -91,7 +91,7 @@ _.mixin(
 					return sortFactor * 0;
 				}
 
-				// Convert to lower case and remove special characters
+				// Convert to lowercase and remove special characters
 				var s1lower = a.toLowerCase().replace(/[^a-z0-9]/g, '');
 				var s2lower = b.toLowerCase().replace(/[^a-z0-9]/g, '');
 

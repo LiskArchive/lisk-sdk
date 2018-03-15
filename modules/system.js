@@ -25,8 +25,6 @@ var library;
 var self;
 var __private = {};
 
-var rcRegExp = /[a-z]+$/;
-
 /**
  * Main system methods. Initializes library with scope content and private variables:
  * - os
@@ -71,15 +69,6 @@ function System(cb, scope) {
 	__private.broadhash = library.config.nethash;
 	__private.minVersion = library.config.minVersion;
 	__private.nonce = library.config.nonce;
-
-	if (rcRegExp.test(__private.minVersion)) {
-		this.minVersion = __private.minVersion.replace(rcRegExp, '');
-		this.minVersionChar = __private.minVersion.charAt(
-			__private.minVersion.length - 1
-		);
-	} else {
-		this.minVersion = __private.minVersion;
-	}
 
 	setImmediate(cb, null, self);
 }
@@ -238,25 +227,7 @@ System.prototype.networkCompatible = function(nethash) {
  * @todo Add description for the params and the return value
  */
 System.prototype.versionCompatible = function(version) {
-	var versionChar;
-
-	if (rcRegExp.test(version)) {
-		versionChar = version.charAt(version.length - 1);
-		version = version.replace(rcRegExp, '');
-	}
-
-	// if no range specifier is used for minVersion, check the complete version string (inclusive versionChar)
-	var rangeRegExp = /[\^~*]/;
-	if (
-		this.minVersionChar &&
-		versionChar &&
-		!rangeRegExp.test(this.minVersion)
-	) {
-		return version + versionChar === this.minVersion + this.minVersionChar;
-	}
-
-	// ignore versionChar, check only version
-	return semver.satisfies(version, this.minVersion);
+	return semver.satisfies(version, __private.minVersion);
 };
 
 /**

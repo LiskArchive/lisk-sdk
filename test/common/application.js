@@ -59,9 +59,8 @@ function __init(initScope, done) {
 	var pgp;
 	// Init dummy connection with database - valid, used for tests here
 	var options = {
+		capSQL: true,
 		promiseLib: Promise,
-
-		pgNative: true,
 
 		// Extending the database protocol with our custom repositories;
 		// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
@@ -70,6 +69,7 @@ function __init(initScope, done) {
 				object[repoName] = new dbRepos[repoName](object, pgp);
 			});
 		},
+		receive: (/* data, result, e */) => {},
 	};
 	var db = initScope.db;
 	if (!db) {
@@ -164,17 +164,7 @@ function __init(initScope, done) {
 					logger(cb) {
 						cb(null, logger);
 					},
-					dbSequence: [
-						'logger',
-						function(scope, cb) {
-							var sequence = new Sequence({
-								onWarning(current) {
-									scope.logger.warn('DB queue', current);
-								},
-							});
-							cb(null, sequence);
-						},
-					],
+
 					sequence: [
 						'logger',
 						function(scope, cb) {
@@ -384,7 +374,6 @@ function __init(initScope, done) {
 						'logger',
 						'bus',
 						'sequence',
-						'dbSequence',
 						'balancesSequence',
 						'db',
 						'logic',

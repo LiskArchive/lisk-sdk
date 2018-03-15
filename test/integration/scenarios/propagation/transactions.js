@@ -23,7 +23,7 @@ module.exports = function(params) {
 		before(() => {
 			return Promise.all(
 				params.sockets.map(socket => {
-					return socket.wampSend('blocks');
+					return socket.call('blocks');
 				})
 			).then(results => {
 				nodesTransactions = results.map(res => {

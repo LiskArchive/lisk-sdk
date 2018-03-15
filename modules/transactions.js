@@ -72,7 +72,8 @@ function Transactions(cb, scope) {
 		scope.config.broadcasts.releaseLimit,
 		scope.logic.transaction,
 		scope.bus,
-		scope.logger
+		scope.logger,
+		scope.balancesSequence
 	);
 
 	__private.assetTypes[
@@ -226,8 +227,8 @@ __private.list = function(filter, cb) {
 				params
 			)
 		)
-		.then(rows => {
-			count = rows.length ? rows[0].count : 0;
+		.then(data => {
+			count = data;
 			return library.db.transactions.list(
 				Object.assign(
 					{},
@@ -380,7 +381,7 @@ __private.getPooledTransactions = function(method, filters, cb) {
 		filters.recipientPublicKey ||
 		filters.senderId ||
 		filters.senderPublicKey ||
-		filters.type
+		filters.hasOwnProperty('type')
 	) {
 		toSend = _.filter(
 			transactions,

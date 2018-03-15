@@ -14,9 +14,8 @@
 
 'use strict';
 
-var _ = require('lodash');
-var ip = require('ip');
-var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
+const _ = require('lodash');
+const ip = require('ip');
 
 /**
  * Main peer logic. Creates a peer.
@@ -31,19 +30,122 @@ var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
  * @returns Calls accept method
  * @todo Add description for the params
  */
-// Constructor
-function Peer(peer) {
-	Object.defineProperties(this, {
-		rpc: {
-			get: function() {
-				return wsRPC.getClientRPCStub(this.ip, this.wsPort);
-			}.bind(this),
-		},
-	});
+class Peer {
+	constructor(peer) {
+		return this.accept(peer || {});
+	}
 
-	return this.accept(peer || {});
+	/**
+	 * Checks peer properties and adjusts according rules.
+	 *
+	 * @param {peer} peer
+	 * @returns {Object} this
+	 * @todo Add description for the params
+	 */
+	accept(peer) {
+		// Normalize peer data
+		peer = this.normalize(peer);
+
+		// Accept only supported and defined properties
+		_.each(this.properties, key => {
+			if (peer[key] !== null && peer[key] !== undefined) {
+				this[key] = peer[key];
+			}
+		});
+
+		// Adjust properties according to rules
+		if (/^[0-9]+$/.test(this.ip)) {
+			this.ip = ip.fromLong(this.ip);
+		}
+
+		if (this.ip && this.wsPort) {
+			this.string = `${this.ip}:${this.wsPort}`;
+		}
+
+		return this;
+	}
+
+	/**
+	 * Normalizes peer data.
+	 *
+	 * @param {peer} peer
+	 * @returns {peer}
+	 * @todo Add description for the params
+	 */
+	normalize(peer) {
+		if (peer.height) {
+			peer.height = this.parseInt(peer.height, 1);
+		}
+
+		peer.wsPort = this.parseInt(peer.wsPort, 0);
+
+		if (peer.httpPort != null) {
+			peer.httpPort = this.parseInt(peer.httpPort, 0);
+		}
+		peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
+
+		return peer;
+	}
+
+	/**
+	 * Normalizes headers.
+	 *
+	 * @param {Object} headers
+	 * @returns {Object} Normalized headers
+	 * @todo Add description for the params
+	 */
+	applyHeaders(headers) {
+		headers = headers || {};
+		headers = this.normalize(headers);
+		this.update(headers);
+		return headers;
+	}
+
+	/**
+	 * Updates peer values if mutable.
+	 *
+	 * @param {peer} peer
+	 * @returns {Object} this
+	 * @todo Add description for the params
+	 */
+	update(peer) {
+		peer = this.normalize(peer);
+
+		// Accept only supported properties
+		_.each(this.properties, key => {
+			// Change value only when is defined
+			if (
+				peer[key] !== null &&
+				peer[key] !== undefined &&
+				!_.includes(this.immutable, key)
+			) {
+				this[key] = peer[key];
+			}
+		});
+
+		return this;
+	}
+
+	/**
+	 * Description of the function.
+	 *
+	 * @returns {peer} Clone of peer
+	 * @todo Add description for the function
+	 */
+	object() {
+		const copy = {};
+
+		_.each(this.properties, key => {
+			copy[key] = this[key];
+		});
+
+		delete copy.rpc;
+		return copy;
+	}
 }
 
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * @typedef {Object} peer
  * @property {string} ip
@@ -59,7 +161,6 @@ function Peer(peer) {
  * @property {string} nonce
  * @property {string} string
  */
-// Public properties
 Peer.prototype.properties = [
 	'ip',
 	'wsPort',
@@ -76,65 +177,14 @@ Peer.prototype.properties = [
 
 Peer.prototype.immutable = ['ip', 'wsPort', 'httpPort', 'string'];
 
+Peer.prototype.connectionProperties = ['rpc', 'socket', 'connectionOptions'];
+
 Peer.prototype.headers = ['os', 'version', 'broadhash', 'height', 'nonce'];
 
 Peer.STATE = {
 	BANNED: 0,
 	DISCONNECTED: 1,
 	CONNECTED: 2,
-};
-
-// Public methods
-/**
- * Checks peer properties and adjusts according rules.
- *
- * @param {peer} peer
- * @returns {Object} this
- * @todo Add description for the params
- */
-Peer.prototype.accept = function(peer) {
-	// Normalize peer data
-	peer = this.normalize(peer);
-
-	// Accept only supported and defined properties
-	_.each(this.properties, key => {
-		if (peer[key] !== null && peer[key] !== undefined) {
-			this[key] = peer[key];
-		}
-	});
-
-	// Adjust properties according to rules
-	if (/^[0-9]+$/.test(this.ip)) {
-		this.ip = ip.fromLong(this.ip);
-	}
-
-	if (this.ip && this.wsPort) {
-		this.string = `${this.ip}:${this.wsPort}`;
-	}
-
-	return this;
-};
-
-/**
- * Normalizes peer data.
- *
- * @param {peer} peer
- * @returns {peer}
- * @todo Add description for the params
- */
-Peer.prototype.normalize = function(peer) {
-	if (peer.height) {
-		peer.height = this.parseInt(peer.height, 1);
-	}
-
-	peer.wsPort = this.parseInt(peer.wsPort, 0);
-
-	if (peer.httpPort != null) {
-		peer.httpPort = this.parseInt(peer.httpPort, 0);
-	}
-	peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);
-
-	return peer;
 };
 
 /**
@@ -152,61 +202,4 @@ Peer.prototype.parseInt = function(integer, fallback) {
 	return integer;
 };
 
-/**
- * Normalizes headers.
- *
- * @param {Object} headers
- * @returns {Object} Normalized headers
- * @todo Add description for the params
- */
-Peer.prototype.applyHeaders = function(headers) {
-	headers = headers || {};
-	headers = this.normalize(headers);
-	this.update(headers);
-	return headers;
-};
-
-/**
- * Updates peer values if mutable.
- *
- * @param {peer} peer
- * @returns {Object} this
- * @todo Add description for the params
- */
-Peer.prototype.update = function(peer) {
-	peer = this.normalize(peer);
-
-	// Accept only supported properties
-	_.each(this.properties, key => {
-		// Change value only when is defined
-		if (
-			peer[key] !== null &&
-			peer[key] !== undefined &&
-			!_.includes(this.immutable, key)
-		) {
-			this[key] = peer[key];
-		}
-	});
-
-	return this;
-};
-
-/**
- * Description of the function.
- *
- * @returns {peer} Clone of peer
- * @todo Add description for the function
- */
-Peer.prototype.object = function() {
-	var copy = {};
-
-	_.each(this.properties, key => {
-		copy[key] = this[key];
-	});
-
-	delete copy.rpc;
-	return copy;
-};
-
-// Export
 module.exports = Peer;
