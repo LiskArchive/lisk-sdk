@@ -1019,7 +1019,7 @@ describe('rounds', () => {
 					});
 
 					it('balances should be valid against blockchain balances', () => {
-						// Perform validation of accounts balances against blockchain after every test
+						// Perform validation of accounts balances against blockchain after every block
 						return expect(
 							Queries.validateAccountsBalances()
 						).to.eventually.be.an('array').that.is.empty;
