@@ -227,6 +227,32 @@ describe('transactionPool', () => {
 		});
 	});
 
+	describe('expireTransactions', () => {
+		const receivedAt = new Date(new Date() - 1300 * 60000);
+		const unconfirmedTx = { id: 'unconfirmedTx', receivedAt };
+		const unconfirmedTx2 = { id: 'unconfirmedTx2', receivedAt: new Date() };
+		const multiSigTx = { id: 'multiSigTx', receivedAt };
+		const queuedTx = { id: 'queuedTx', receivedAt };
+
+		it('should expire all the transaction', done => {
+			transactionPool.addUnconfirmedTransaction(unconfirmedTx);
+			transactionPool.addUnconfirmedTransaction(unconfirmedTx2);
+			transactionPool.addMultisignatureTransaction(multiSigTx);
+			transactionPool.addQueuedTransaction(queuedTx);
+
+			expect(transactionPool.countUnconfirmed()).to.deep.eql(2);
+			expect(transactionPool.countQueued()).to.deep.eql(1);
+			expect(transactionPool.countMultisignature()).to.deep.eql(1);
+
+			transactionPool.expireTransactions(() => {
+				expect(transactionPool.countUnconfirmed()).to.deep.eql(1);
+				expect(transactionPool.countQueued()).to.deep.eql(0);
+				expect(transactionPool.countMultisignature()).to.deep.eql(0);
+				done();
+			});
+		});
+	});
+
 	describe('transactionInPool', () => {
 		afterEach(() => {
 			return resetStates();
@@ -419,7 +445,7 @@ describe('transactionPool', () => {
 	});
 
 	describe('getBundledTransactionList', () => {
-		it('should be able to get list of transactions', () => {
+		it('should get list of transactions', () => {
 			const transaction1 = { id: '1233123L' };
 			const transaction2 = { id: '14443123L' };
 			transactionPool.addBundledTransaction(transaction1);
@@ -433,7 +459,7 @@ describe('transactionPool', () => {
 	});
 
 	describe('getQueuedTransactionList', () => {
-		it('should be able to get queued transactions', () => {
+		it('should get queued transactions', () => {
 			const transaction1 = { id: '1233123L' };
 			const transaction2 = { id: '14443123L' };
 			transactionPool.addQueuedTransaction(transaction1);
@@ -447,7 +473,7 @@ describe('transactionPool', () => {
 	});
 
 	describe('getMultisignatureTransactionList', () => {
-		it('should be able to get multisignature transactions', () => {
+		it('should get multisignature transactions', () => {
 			const transaction1 = { id: '1233123L' };
 			const transaction2 = { id: '14443123L' };
 			transactionPool.addMultisignatureTransaction(transaction1);
@@ -461,7 +487,7 @@ describe('transactionPool', () => {
 	});
 
 	describe('getMergedTransactionList', () => {
-		it('should be able to get merged transactions', () => {
+		it('should get merged transactions', () => {
 			const transaction1 = { id: '1233123L' };
 			const transaction2 = { id: '14443123L' };
 			const transaction3 = { id: '19921123L' };
@@ -476,7 +502,7 @@ describe('transactionPool', () => {
 	});
 
 	describe('addUnconfirmedTransaction', () => {
-		it('should be able to add unconfirmed transaction if not exists', () => {
+		it('should add unconfirmed transaction if not exists', () => {
 			const unconfirmedTransaction = { id: '1123' };
 			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction);
 			return expect(transactionPool.unconfirmed.transactions).that.does.include(
@@ -484,7 +510,7 @@ describe('transactionPool', () => {
 			);
 		});
 
-		it('should be able to remove multi transaction type and add unconfirmed transaction if not exists', () => {
+		it('should remove multi transaction type and add unconfirmed transaction if not exists', () => {
 			const unconfirmedTransaction = {
 				id: '104568989234234L',
 				type: transactionTypes.MULTI,
@@ -505,7 +531,7 @@ describe('transactionPool', () => {
 			return transactionPool.addUnconfirmedTransaction(unconfirmedTransaction);
 		});
 
-		it('should be able to remove unconfirmed transactions', () => {
+		it('should remove unconfirmed transactions', () => {
 			expect(transactionPool.unconfirmed.transactions)
 				.to.be.an('array')
 				.to.deep.include(unconfirmedTransaction);
@@ -532,7 +558,7 @@ describe('transactionPool', () => {
 	});
 
 	describe('addBundledTransaction', () => {
-		it('should be able to add bundled transaction if not exists', () => {
+		it('should add bundled transaction if not exists', () => {
 			const bundledTransaction = { id: '3423423423L' };
 			transactionPool.addBundledTransaction(bundledTransaction);
 			return expect(transactionPool.bundled.transactions).that.does.include(
@@ -542,7 +568,7 @@ describe('transactionPool', () => {
 	});
 
 	describe('removeBundledTransaction', () => {
-		it('should be able to remove bundled transaction if exists', () => {
+		it('should remove bundled transaction if exists', () => {
 			const bundledTransaction = { id: '3423423423L' };
 			transactionPool.removeBundledTransaction(bundledTransaction.id);
 			return expect(transactionPool.bundled.transactions).that.does.not.include(
@@ -560,7 +586,7 @@ describe('transactionPool', () => {
 	});
 
 	describe('addQueuedTransaction', () => {
-		it('should be able to add transaction to queue', () => {
+		it('should add transaction to queue', () => {
 			const transaction = { id: '103111423423423' };
 			expect(transactionPool.queued.transactions)
 				.to.be.an('array')
@@ -575,7 +601,7 @@ describe('transactionPool', () => {
 	});
 
 	describe('removeQueuedTransaction', () => {
-		it('should be able to remove transaction to queue', () => {
+		it('should remove transaction to queue', () => {
 			const transaction = { id: '103111423423423' };
 
 			transactionPool.addQueuedTransaction(transaction);
@@ -596,7 +622,7 @@ describe('transactionPool', () => {
 	});
 
 	describe('addMultisignatureTransaction', () => {
-		it('should be able to add multi transaction', () => {
+		it('should add multi transaction', () => {
 			const transaction = {
 				id: '103111423423423',
 				type: transactionTypes.MULTI,
@@ -631,7 +657,7 @@ describe('transactionPool', () => {
 	});
 
 	describe('removeMultisignatureTransaction', () => {
-		it('should be able to remove multi transaction', () => {
+		it('should remove multi transaction', () => {
 			const transaction = {
 				id: '10431411423423423L',
 				type: transactionTypes.MULTI,
@@ -721,7 +747,7 @@ describe('transactionPool', () => {
 			});
 		});
 
-		it('should be able to add transaction to bundle', done => {
+		it('should add transaction to bundle', done => {
 			const transaction = {
 				id: '13118423423423L',
 				bundled: true,
@@ -735,7 +761,7 @@ describe('transactionPool', () => {
 			});
 		});
 
-		it('should be able to add transaction to queue', done => {
+		it('should add transaction to queue', done => {
 			const transaction = {
 				id: '1311188423423423L',
 			};
@@ -769,7 +795,7 @@ describe('transactionPool', () => {
 			done();
 		});
 
-		it('should return error when transaciton is already processed', done => {
+		it('should return error when transaction is already processed', done => {
 			const transaction = {
 				id: '1311188423423423L',
 				type: transactionTypes.MULTI,
@@ -915,7 +941,7 @@ describe('transactionPool', () => {
 			return transactionPool.addUnconfirmedTransaction({ id: '129887L' });
 		});
 
-		it('should be able to reindex previously removed/falsified transactions', () => {
+		it('should reindex previously removed/falsified transactions', () => {
 			transactionPool.removeBundledTransaction('12345L');
 			transactionPool.removeQueuedTransaction('126785L');
 			transactionPool.removeMultisignatureTransaction('123445L');
@@ -1219,52 +1245,6 @@ describe('transactionPool', () => {
 
 					after(resetStates);
 				});
-			});
-		});
-	});
-
-	describe('expireTransactions', () => {
-		it('should throw error for invalid transaction', () => {
-			const invalidTransactions = [{ id: '123' }];
-			return expect(() => {
-				expireTransactions(invalidTransactions, []);
-			}).to.throw();
-		});
-
-		it('should throw error for transaction with invalid time', () => {
-			const invalidTransactions = [{ id: '123', receivedAt: '2018-03-06' }];
-			return expect(() => {
-				expireTransactions(invalidTransactions, []);
-			}).to.throw();
-		});
-
-		it('should return empty ids if there are no transactions', done => {
-			const invalidTransactions = [null];
-			expireTransactions(invalidTransactions, [], (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.be.eql([]);
-				done();
-			});
-		});
-
-		it('should remove unconfirmed trasactions', done => {
-			const validTransactions = [
-				{ id: '123', receivedAt: new Date('2018-03-06') },
-			];
-			expireTransactions(validTransactions, [], (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.be.eql(['123']);
-				done();
-			});
-		});
-
-		it('should get all trasactions for receivedAt time greater than current time', done => {
-			const receivedAt = new Date(new Date() + 30 * 60000);
-			const invalidTransactions = [{ id: '123', receivedAt }];
-			expireTransactions(invalidTransactions, [], (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.be.eql([]);
-				done();
 			});
 		});
 	});
@@ -1663,13 +1643,13 @@ describe('transactionPool', () => {
 			});
 
 			it('should return immediately when transactions are invalid', done => {
-				expireTransactions([undefined], [], () => {
+				expireTransactions([undefined], () => {
 					expect(transactionTimeOut.called).to.be.false;
 					done();
 				});
 			});
 
-			it('should be able to add parentIds with the transaction ids', done => {
+			it('should expire transaction and remove transactions from queue', done => {
 				const transactions = [
 					{
 						id: '10313',
@@ -1678,30 +1658,13 @@ describe('transactionPool', () => {
 					},
 				];
 				transactionTimeOut.returns(0);
-				expireTransactions(transactions, ['10314'], (err, res) => {
-					expect(err).to.be.null;
-					expect(res).to.be.eql(['10313', '10314']);
+				expireTransactions(transactions, () => {
 					expect(logger.info.called).to.be.true;
 					expect(logger.info.args[0][0]).to.deep.eql(
 						`Expired transaction: ${
 							transactions[0].id
 						} received at: ${transactions[0].receivedAt.toUTCString()}`
 					);
-					done();
-				});
-			});
-
-			it('should return only parentIds', done => {
-				const transactions = [
-					{
-						id: '10313',
-						type: transactionTypes.MULTI,
-						receivedAt: new Date(),
-					},
-				];
-				expireTransactions(transactions, ['10314'], (err, res) => {
-					expect(err).to.be.null;
-					expect(res).to.be.eql(['10314']);
 					done();
 				});
 			});
@@ -1724,14 +1687,14 @@ describe('transactionPool', () => {
 				return transactionPool.removeUnconfirmedTransaction(transaction.id);
 			});
 
-			it('should return error when transaciton is empty', done => {
+			it('should return error when transaction is empty', done => {
 				_processVerifyTransaction(null, true, err => {
 					expect(err).to.deep.eql('Missing transaction');
 					done();
 				});
 			});
 
-			it('should return error when transaciton is in unconfirmed queue', done => {
+			it('should return error when transaction is in unconfirmed queue', done => {
 				transactionPool.addUnconfirmedTransaction(transaction);
 				_processVerifyTransaction(transaction, true, err => {
 					expect(err).to.deep.eql(
@@ -1753,7 +1716,7 @@ describe('transactionPool', () => {
 				});
 			});
 
-			it('should be able tp process when requester is available', done => {
+			it('should process when requester is available', done => {
 				const sender = _.cloneDeep(transaction);
 				sender.multisignatures = [{ id: '23423' }];
 				sender.signatures = [{ id: '11999' }];
@@ -1765,7 +1728,7 @@ describe('transactionPool', () => {
 				});
 			});
 
-			it('should be able to process transaction in queue', done => {
+			it('should process transaction in queue', done => {
 				transactionPool.addQueuedTransaction(transaction);
 				_processVerifyTransaction(transaction, true, (err, sender) => {
 					expect(err).to.be.null;
