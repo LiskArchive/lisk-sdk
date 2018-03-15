@@ -313,10 +313,12 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 			);
 			break;
 		case 'DAPP':
-			transaction = lisk.dapp.createDapp(
-				accountCopy.password,
-				accountCopy.secondPassword,
-				randomUtil.guestbookDapp
+			transaction = lisk.transaction.createDapp(
+				{
+					passphrase: accountCopy.password,
+					secondPassphrase: accountCopy.secondPassword,
+					options: randomUtil.guestbookDapp,
+				}
 			);
 			break;
 		case 'IN_TRANSFER':

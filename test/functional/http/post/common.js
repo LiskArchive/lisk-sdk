@@ -64,10 +64,11 @@ function invalidAssets(option, badTransactions) {
 					);
 					break;
 				case 'dapp':
-					transaction = lisk.dapp.createDapp(
-						accountFixtures.genesis.password,
-						null,
-						randomUtil.guestbookDapp
+					transaction = lisk.transaction.createDapp(
+						{
+							passphrase: accountFixtures.genesis.password,
+							options: randomUtil.guestbookDapp,
+						}
 					);
 					break;
 				case 'inTransfer':

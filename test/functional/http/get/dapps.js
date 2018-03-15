@@ -58,8 +58,18 @@ describe('GET /dapps', () => {
 			.then(() => {
 				transactionsToWaitFor = [];
 
-				var transaction1 = lisk.dapp.createDapp(account.password, null, dapp1);
-				var transaction2 = lisk.dapp.createDapp(account.password, null, dapp2);
+				var transaction1 = lisk.transaction.createDapp(
+					{
+						passphrase: account.password,
+						options: dapp1,
+					}
+				);
+				var transaction2 = lisk.transaction.createDapp(
+					{
+						passphrase: account.password,
+						options: dapp2,
+					}
+				);
 				var promises = [];
 				promises.push(apiHelpers.sendTransactionPromise(transaction1));
 				promises.push(apiHelpers.sendTransactionPromise(transaction2));
@@ -255,7 +265,7 @@ describe('GET /dapps', () => {
 				var transactionsToWaitFor = [];
 
 				for (var i = 1; i <= 20; i++) {
-					transaction = lisk.dapp.createDapp(
+					transaction = lisk.transaction.createDapp(
 						account.password,
 						null,
 						randomUtil.application()

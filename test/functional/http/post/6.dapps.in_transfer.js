@@ -71,10 +71,11 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(() => {
-				transaction = lisk.dapp.createDapp(
-					account.password,
-					null,
-					randomUtil.guestbookDapp
+				transaction = lisk.transaction.createDapp(
+					{
+						passphrase: account.password,
+						options: randomUtil.guestbookDapp,
+					}
 				);
 
 				return sendTransactionPromise(transaction);
@@ -84,10 +85,11 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				randomUtil.guestbookDapp.id = transaction.id;
 				transactionsToWaitFor.push(randomUtil.guestbookDapp.id);
-				transaction = lisk.dapp.createDapp(
-					accountMinimalFunds.password,
-					null,
-					randomUtil.blockDataDapp
+				transaction = lisk.transaction.createDapp(
+					{
+						passphrase: accountMinimalFunds.password,
+						options: randomUtil.blockDataDapp,
+					}
 				);
 
 				return sendTransactionPromise(transaction);

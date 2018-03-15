@@ -33,7 +33,12 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 		}
 	);
 	var dapp = randomUtil.application();
-	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
+	var dappTransaction = lisk.transaction.createDapp(
+		{
+			passphrase: account.password,
+			options: dapp,
+		}
+	);
 	dapp.id = dappTransaction.id;
 	var transactionWith;
 	var transactionSecondSignature = lisk.transaction.registerSecondPassphrase(

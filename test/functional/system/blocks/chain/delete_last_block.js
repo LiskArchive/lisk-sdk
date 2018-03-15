@@ -748,10 +748,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					});
 
 					it('should forge a block', done => {
-						var dappTransaction = lisk.dapp.createDapp(
-							testAccount.password,
-							null,
-							randomUtil.guestbookDapp
+						var dappTransaction = lisk.transaction.createDapp(
+							{
+								passphrase: testAccount.password,
+								options: randomUtil.guestbookDapp,
+							}
 						);
 						randomUtil.guestbookDapp.id = dappTransaction.id;
 						localCommon.addTransactionsAndForge(

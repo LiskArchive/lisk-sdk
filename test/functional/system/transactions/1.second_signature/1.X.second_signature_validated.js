@@ -39,7 +39,12 @@ describe('system test (type 1) - checking validated second signature registratio
 		}
 	);
 	var dapp = randomUtil.application();
-	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
+	var dappTransaction = lisk.transaction.createDapp(
+		{
+			passphrase: account.password,
+			options: dapp,
+		}
+	);
 	dapp.id = dappTransaction.id;
 
 	localCommon.beforeBlock('system_1_X_second_sign_validated', lib => {
