@@ -443,7 +443,15 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for invalid version value', function() {
-			var invalidData = ['1a.1', '1111.11.11', '1.1.1.1.1', '1.1.1aa'];
+			var invalidData = [
+				'1a.1',
+				'1111.11.11',
+				'1.1.1.1.1',
+				'1.1.1aa',
+				'11.11.22-alpha.',
+				'11.11.22-abcd.0',
+				'11.11.22-',
+			];
 
 			return invalidData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(false);
@@ -451,7 +459,14 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true for valid version value', function() {
-			var validData = ['1.1.1', '111.1.1', '11.11.22c'];
+			var validData = [
+				'1.1.1',
+				'111.1.1',
+				'11.11.22',
+				'11.11.22-alpha.0',
+				'11.11.22-beta.1',
+				'11.11.22-rc.999',
+			];
 
 			return validData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(true);
