@@ -310,35 +310,9 @@ Vote.prototype.process = function(transaction, sender, cb) {
  */
 Vote.prototype.getBytes = function(transaction) {
 	try {
-		const votes = transaction.asset.votes;
-		if (!Array.isArray(votes)) {
-			throw new Error('votes parameter must be an Array.');
-		}
-
-		if (
-			!(votes.length > 0 && votes.length < constants.maxVotesPerTransaction)
-		) {
-			throw new Error('number of votes must be between 0 and 33.');
-		}
-
-		votes.map(vote => {
-			const publicKeyPrefix = vote.charAt(0);
-			const publicKey = vote.substr(1, vote.length);
-			if (publicKeyPrefix !== '+' && publicKeyPrefix !== '-') {
-				throw new Error(
-					`Expected a prefix '+' for vote and '-' for unvote in public key, but found ${publicKeyPrefix}`
-				);
-			}
-			if (publicKey.length !== constants.PUBLIC_KEY_HEX_LENGTH) {
-				throw new Error(
-					`Public key ${publicKey} length:${
-						publicKey.length
-					} differs from the expected 64 characters.`
-				);
-			}
-		});
-
-		return Buffer.from(votes.join(''), 'utf8');
+		return transaction.asset.votes
+			? Buffer.from(transaction.asset.votes.join(''), 'utf8')
+			: null;
 	} catch (e) {
 		throw e;
 	}
