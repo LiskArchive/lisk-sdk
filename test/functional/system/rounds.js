@@ -1583,4 +1583,29 @@ describe('rounds', () => {
 			});
 		});
 	});
+
+	describe('round 2', () => {
+		describe('rounds rewards consistency', () => {
+			describe('should forge 49 blocks with 1 TRANSFER transaction each to random account', () => {
+			});
+
+			describe('before rewards start', () => {
+				it('last block height should be at height 149', () => {
+				});
+
+				it('block just before rewards start should have reward = 0', () => {
+				});
+			});
+
+			describe('after rewards start', () => {
+				it('all blocks from now until round end should have proper rewards', done => {
+				});
+
+				it('rewards from table rounds_rewards should match rewards from blockchian', () => {
+				});
+
+				});
+			});
+		});
+	});
 });
