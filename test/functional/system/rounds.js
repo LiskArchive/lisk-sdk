@@ -526,16 +526,20 @@ describe('rounds', () => {
 					getMemAccounts(),
 					getDelegates(),
 					generateDelegateListPromise(tick.before.block.height, null),
-					(_accounts, _delegates, _delegatesList) => {
-						tick.before.delegatesList = _delegatesList;
+					Queries.getDelegatesForList(),
+					(_accounts, _delegates, _delegatesList, _delegatesForList) => {
 						tick.before.accounts = _.cloneDeep(_accounts);
 						tick.before.delegates = _.cloneDeep(_delegates);
+						tick.before.delegatesList = _.cloneDeep(_delegatesList);
+						tick.before.delegatesForList = _.cloneDeep(_delegatesForList);
 					}
 				).then(() => {
 					return Promise.promisify(addTransactionsAndForge)(transactions).then(
 						() => {
 							tick.after.block = library.modules.blocks.lastBlock.get();
 							tick.after.round = slots.calcRound(tick.after.block.height);
+							// Detect if round changed
+							tick.isRoundChanged = tick.before.round !== tick.after.round;
 							// Detect last block of round
 							tick.isLastBlockOfRound =
 								tick.after.block.height % slots.delegates === 0;
@@ -544,10 +548,12 @@ describe('rounds', () => {
 								getMemAccounts(),
 								getDelegates(),
 								generateDelegateListPromise(tick.after.block.height + 1, null),
-								(_accounts, _delegates, _delegatesList) => {
+								Queries.getDelegatesForList(),
+								(_accounts, _delegates, _delegatesList, _delegatesForList) => {
 									tick.after.accounts = _.cloneDeep(_accounts);
 									tick.after.delegates = _.cloneDeep(_delegates);
-									tick.after.delegatesList = _delegatesList;
+									tick.after.delegatesList = _.cloneDeep(_delegatesList);
+									tick.after.delegatesForList = _.cloneDeep(_delegatesForList);
 
 									if (tick.isLastBlockOfRound) {
 										return Promise.join(
