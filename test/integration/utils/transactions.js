@@ -21,7 +21,7 @@ module.exports = {
 		var gAccountPassphrase =
 			'wagon stock borrow episode laundry kitten salute link globe zero feed marble';
 		var randomAddress = lisk.crypto.getAddress(
-			lisk.crypto.getKeys(
+			lisk.cryptography.getKeys(
 				Math.random()
 					.toString(36)
 					.substring(7)

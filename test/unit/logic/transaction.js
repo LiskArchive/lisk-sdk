@@ -76,7 +76,7 @@ var transactionData = {
 	sender,
 	senderId: '16313739661670634666L',
 	recipientId: '5649948960790668770L',
-	fee: 10000000,
+	fee: '10000000',
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	secret: senderPassword,
 };
@@ -276,7 +276,7 @@ describe('transaction', () => {
 			var transactionBytesFromLogic = transactionLogic.getBytes(
 				validTransaction
 			);
-			var transactionBytesFromLiskJs = lisk.crypto.getBytes(validTransaction);
+			var transactionBytesFromLiskJs = lisk.transaction.utils.getTransactionBytes(validTransaction);
 
 			return expect(
 				transactionBytesFromLogic.equals(transactionBytesFromLiskJs)
@@ -464,15 +464,16 @@ describe('transaction', () => {
 
 	describe('verify', () => {
 		function createAndProcess(transactionData, sender, cb) {
+			var transferObject = {
+				amount: transactionData.amount,
+				passphrase: transactionData.secret,
+				secondPassphrase: transactionData.secondSecret,
+				recipientId: transactionData.recipientId,
+			};
 			var transaction = lisk.transaction.transfer(
-				{
-					amount: transactionData.amount,
-					passphrase: transactionData.secret,
-					secondPassphrase: transactionData.secondSecret,
-					recipientId: transactionData.recipientId,
-				}
+				transferObject
 			);
-
+			transaction.fee = Number(transaction.fee);
 			transactionLogic.process(transaction, sender, (err, transaction) => {
 				cb(err, transaction);
 			});
