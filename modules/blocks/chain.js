@@ -146,7 +146,6 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
  * Execute afterSave callback for transactions depends on transaction type.
  *
  * @private
- * @func afterSave
  * @param {Object} block - Full normalized block
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
@@ -264,7 +263,6 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
  * Apply transaction to unconfirmed and confirmed.
  *
  * @private
- * @func applyTransaction
  * @param {Object} block - Block object
  * @param {Object} transaction - Transaction object
  * @param {Object} sender - Sender account
@@ -300,7 +298,6 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
  * Calls undoUnconfirmedList from modules transactions
  *
  * @private
- * @func undoUnconfirmedListStep
  * @param  {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object}   cb.err - Error if occurred
@@ -320,7 +317,6 @@ __private.undoUnconfirmedListStep = function(cb) {
  * Calls applyUnconfirmed from modules.transactions for each transaction in block
  *
  * @private
- * @func applyUnconfirmedStep
  * @param {Object} block - Block object
  * @param {function} tx - Postgres transaction
  * @returns {Promise<reject|resolve>} new Promise. Resolve if ok, reject if error ocurred
@@ -371,7 +367,6 @@ __private.applyUnconfirmedStep = function(block, tx) {
  * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
  *
  * @private
- * @func applyConfirmedStep
  * @param {Object} block - Block object
  * @param {function} tx - Database transaction
  * @returns {Promise<reject|resolve>}
@@ -423,7 +418,6 @@ __private.applyConfirmedStep = function(block, tx) {
  * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
  *
  * @private
- * @func applyConfirmedStep
  * @param {Object} block - Block object
  * @param {boolean} saveBlock - Flag to save block into database
  * @param {function} tx - Database transaction
@@ -643,7 +637,6 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 /**
  * Deletes last block.
  *
- * @func deleteLastBlock
  * @param  {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
@@ -692,7 +685,6 @@ Chain.prototype.deleteLastBlock = function(cb) {
  * Recover chain - wrapper for deleteLastBlock.
  *
  * @private
- * @func recoverChain
  * @param  {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
