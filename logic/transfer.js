@@ -172,7 +172,7 @@ Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-Transfer.prototype.undo = function(transaction, block, sender, cb) {
+Transfer.prototype.undo = function(transaction, block, sender, cb, tx) {
 	modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		err => {
@@ -188,9 +188,11 @@ Transfer.prototype.undo = function(transaction, block, sender, cb) {
 					blockId: block.id,
 					round: slots.calcRound(block.height),
 				},
-				err => setImmediate(cb, err)
+				err => setImmediate(cb, err),
+				tx
 			);
-		}
+		},
+		tx
 	);
 };
 

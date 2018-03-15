@@ -875,7 +875,7 @@ class Transaction {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
-	undo(transaction, block, sender, cb) {
+	undo(transaction, block, sender, cb, tx) {
 		let amount = new bignum(transaction.amount.toString());
 		amount = amount.plus(transaction.fee.toString()).toNumber();
 
@@ -917,9 +917,11 @@ class Transaction {
 						} else {
 							return setImmediate(cb);
 						}
-					}
+					},
+					tx
 				);
-			}
+			},
+			tx
 		);
 	}
 
