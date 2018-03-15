@@ -1197,7 +1197,9 @@ describe('rounds', () => {
 						true
 					);
 					// Transaction should be present in queued list
-					expect(transactionPool.queued.index[transaction.id]).to.be.a('number');
+					expect(transactionPool.queued.index[transaction.id]).to.be.a(
+						'number'
+					);
 					// Remove transaction from pool
 					transactionPool.removeUnconfirmedTransaction(transaction.id);
 				});
@@ -1273,7 +1275,9 @@ describe('rounds', () => {
 						true
 					);
 					// Transaction should be present in queued list
-					expect(transactionPool.queued.index[transaction.id]).to.be.a('number');
+					expect(transactionPool.queued.index[transaction.id]).to.be.a(
+						'number'
+					);
 					// Remove transaction from pool
 					transactionPool.removeUnconfirmedTransaction(transaction.id);
 				});
