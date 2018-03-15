@@ -62,15 +62,15 @@ describe('AccountsResource', () => {
 				.which.is.a('function');
 		});
 
-		it('should have a "getMultisignatureGroup" function', () => {
+		it('should have a "getMultisignatureGroups" function', () => {
 			return expect(resource)
-				.to.have.property('getMultisignatureGroup')
+				.to.have.property('getMultisignatureGroups')
 				.which.is.a('function');
 		});
 
-		it('should have a "getMultisignatureMembership" function', () => {
+		it('should have a "getMultisignatureMemberships" function', () => {
 			return expect(resource)
-				.to.have.property('getMultisignatureMembership')
+				.to.have.property('getMultisignatureMemberships')
 				.which.is.a('function');
 		});
 	});

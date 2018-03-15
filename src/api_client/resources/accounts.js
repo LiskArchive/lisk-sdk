@@ -27,13 +27,13 @@ export default class AccountsResource extends APIResource {
 			method: GET,
 		}).bind(this);
 
-		this.getMultisignatureGroup = apiMethod({
+		this.getMultisignatureGroups = apiMethod({
 			method: GET,
 			path: '/{address}/multisignature_groups',
 			urlParams: ['address'],
 		}).bind(this);
 
-		this.getMultisignatureMembership = apiMethod({
+		this.getMultisignatureMemberships = apiMethod({
 			method: GET,
 			path: '/{address}/multisignature_memberships',
 			urlParams: ['address'],
