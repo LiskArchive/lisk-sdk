@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import queryInstance from '../../../src/utils/query';
 import { getFirstQuotedString, getQuotedStrings } from '../utils';
 
 export function theParametersObjectHasKeySetTo() {
@@ -42,23 +41,4 @@ export function aResultWithABlock() {
 
 	this.test.ctx.block = block;
 	this.test.ctx.result = result;
-}
-
-export function aQueryInstanceHasBeenInitialised() {
-	const queryResult = {
-		some: 'result',
-		testing: 123,
-	};
-
-	queryInstance.getAccount.resolves({ account: queryResult });
-	queryInstance.getBlock.resolves({ block: queryResult });
-	queryInstance.getDelegate.resolves({ delegate: queryResult });
-	queryInstance.getTransaction.resolves({ transaction: queryResult });
-
-	this.test.ctx.queryResult = queryResult;
-	this.test.ctx.queryInstance = queryInstance;
-}
-
-export function aQueryInstance() {
-	this.test.ctx.queryInstance = queryInstance;
 }

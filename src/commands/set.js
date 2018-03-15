@@ -18,7 +18,6 @@ import config, { configFilePath } from '../utils/config';
 import { FileSystemError, ValidationError } from '../utils/error';
 import { writeJSONSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
-import liskAPIInstance from '../utils/api';
 
 const description = `Sets configuration <variable> to <value>. Variables available: json, name, testnet. Configuration is persisted in \`${configFilePath}\`.
 
@@ -75,10 +74,6 @@ const setBoolean = (variable, path) => value => {
 
 	const newValue = value === 'true';
 	path.reduce(setNestedConfigProperty(newValue), config);
-
-	if (variable === 'testnet') {
-		liskAPIInstance.setTestnet(newValue);
-	}
 
 	return attemptWriteToFile(variable, value);
 };

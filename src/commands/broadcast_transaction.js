@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import liskAPIInstance from '../utils/api';
+import getAPIClient from '../utils/api';
 import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 
@@ -58,7 +58,7 @@ export const actionCreator = () => async ({ transaction, stdin }) => {
 
 	return shouldUseStdIn && transactionObject.error
 		? transactionObject
-		: liskAPIInstance.broadcastTransaction(transactionObject);
+		: getAPIClient().transactions.broadcast(transactionObject);
 };
 
 const broadcastTransaction = createCommand({
