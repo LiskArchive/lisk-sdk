@@ -1359,8 +1359,73 @@ describe('rounds', () => {
 		});
 
 		describe('round rollback when forger of last block of round is replaced in last block of round', () => {
+			let lastBlock;
+			let lastBlockForger;
+			let tmpAccount;
+			const transactions = {
+				transfer: [],
+				delegate: [],
+				vote: [],
+			};
+
+			before(done => {
+				// Set last block forger
+				getNextForger(null, delegatePublicKey => {
+					lastBlock = library.modules.blocks.lastBlock.get();
+					lastBlockForger = delegatePublicKey;
+					tmpAccount = randomUtil.account();
+
+					// Create transfer transaction (fund new account)
+					let transaction = elements.transaction.createTransaction(
+						tmpAccount.address,
+						5000000000,
+						accountsFixtures.genesis.password
+					);
+					transactions.transfer.push(transaction);
+
+					// Create register delegate transaction
+					transaction = elements.delegate.createDelegate(
+						tmpAccount.password,
+						'my_little_delegate'
+					);
+					transactions.delegate.push(transaction);
+
+					transaction = elements.vote.createVote(
+						accountsFixtures.genesis.password,
+						[`-${lastBlockForger}`, `+${tmpAccount.publicKey}`]
+					);
+					transactions.vote.push(transaction);
+
+					// Delete two blocks more
+					deleteLastBlockPromise().then(() => {
+						// done();
+						deleteLastBlockPromise().then(() => {
+							done();
+						});
+					});
+				});
+			});
+
+			tickAndValidate(transactions.transfer);
+			tickAndValidate(transactions.delegate);
+			tickAndValidate(transactions.vote);
 
 			describe('after round finish', () => {
+				let delegatesList;
+				let delegates;
+
+				before(() => {
+					lastBlock = library.modules.blocks.lastBlock.get();
+
+					return Promise.join(
+						getDelegates(),
+						generateDelegateListPromise(lastBlock.height + 1, null),
+						(_delegates, _delegatesList) => {
+							delegatesList = _delegatesList;
+							delegates = _delegates;
+						}
+					);
+				});
 
 				it('last block height should be at height 101', () => {
 				});
