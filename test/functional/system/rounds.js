@@ -53,6 +53,15 @@ describe('rounds', () => {
 					return rows;
 				});
 		},
+		getDelegatesForList: () => {
+			return library.db
+				.query(
+					`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${slots.delegates}`
+				)
+				.then(rows => {
+					return rows;
+				});
+		},
 		getFullBlock: height => {
 			return library.db
 				.query('SELECT * FROM full_blocks_list WHERE b_height = ${height}', {
