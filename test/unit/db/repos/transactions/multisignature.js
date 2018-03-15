@@ -83,7 +83,7 @@ describe('db', () => {
 		});
 
 		describe('save()', () => {
-			it('should insert entry into "delegates" table for type 4 transactions', function*() {
+			it('should insert entry into "multisignatures" table for type 4 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];
 				for (let i = 0; i < numSeedRecords; i++) {

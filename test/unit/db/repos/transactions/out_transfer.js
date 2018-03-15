@@ -82,7 +82,7 @@ describe('db', () => {
 		});
 
 		describe('save()', () => {
-			it('should insert entry into "delegates" table for type 7 transactions', function*() {
+			it('should insert entry into "outtransfer" table for type 7 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];
 				for (let i = 0; i < numSeedRecords; i++) {
