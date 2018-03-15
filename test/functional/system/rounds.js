@@ -1357,5 +1357,47 @@ describe('rounds', () => {
 				});
 			});
 		});
+
+		describe('round rollback when forger of last block of round is replaced in last block of round', () => {
+
+			describe('after round finish', () => {
+
+				it('last block height should be at height 101', () => {
+				});
+
+				it('after finishing round, should unvote expected forger of last block of round and vote new delegate (block data)', () => {
+				});
+
+				it('delegates list should be different than one generated at the beginning of round 1', () => {
+				});
+
+				it('unvoted delegate should not be on list', () => {
+				});
+
+				it('delegate who replaced unvoted one should be on list', () => {
+				});
+
+				it('forger of last block of previous round should have vote = 0', () => {
+				});
+
+				it('delegate who replaced last block forger should have proper votes', () => {
+				});
+			});
+
+			describe('after last block of round is deleted', () => {
+
+				it('delegates list should be equal to one generated at the beginning of round 1', () => {
+				});
+
+				it('last block height should be at height 100', () => {
+				});
+
+				it('expected forger of last block of round should have proper votes again', () => {
+				});
+
+				it('delegate who replaced last block forger should have vote, producedBlocks, missedBlocks = 0', () => {
+				});
+			});
+		});
 	});
 });
