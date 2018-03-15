@@ -51,7 +51,11 @@ describe('emitMiddleware', () => {
 		});
 
 		describe('when req.event is one of the events responsible for receiving data on P2P layer', () => {
-			const receiveDataEvents = ['postBlock', 'postTransactions', 'postSignatures'];
+			const receiveDataEvents = [
+				'postBlock',
+				'postTransactions',
+				'postSignatures',
+			];
 			receiveDataEvents.forEach(() => {
 				before(done => {
 					connectionsTable.getNonce = sinon.stub();
@@ -70,12 +74,15 @@ describe('emitMiddleware', () => {
 				});
 
 				it('should call connectionsTable.getNonce with [validSocketId]', () => {
-					return expect(connectionsTable.getNonce).calledWithExactly(validSocketId);
+					return expect(connectionsTable.getNonce).calledWithExactly(
+						validSocketId
+					);
 				});
 
 				describe('when nonce is not matched with [validSocketId] in connectionsTables', () => {
 					it('should add nonce = undefined property to req.data', () => {
-						return expect(validReq.data).to.have.property('nonce').to.be.undefined;
+						return expect(validReq.data).to.have.property('nonce').to.be
+							.undefined;
 					});
 
 					describe('when req.data = null', () => {
@@ -87,7 +94,8 @@ describe('emitMiddleware', () => {
 							return expect(validNext).calledOnce;
 						});
 						it('should add nonce = undefined property to req.data', () => {
-							return expect(validReq.data).to.have.property('nonce').to.be.undefined;
+							return expect(validReq.data).to.have.property('nonce').to.be
+								.undefined;
 						});
 					});
 				});
@@ -105,7 +113,9 @@ describe('emitMiddleware', () => {
 					});
 
 					it('should add nonce = undefined property to req.data', () => {
-						return expect(validReq.data).to.have.property('nonce').to.equal(validNonce);
+						return expect(validReq.data)
+							.to.have.property('nonce')
+							.to.equal(validNonce);
 					});
 				});
 			});
