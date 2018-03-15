@@ -1586,14 +1586,60 @@ describe('rounds', () => {
 
 	describe('round 2', () => {
 		describe('rounds rewards consistency', () => {
+			var expectedRewardsPerBlock;
+
 			describe('should forge 49 blocks with 1 TRANSFER transaction each to random account', () => {
+				const blocks_cnt = 49;
+				let blocks_processed = 0;
+				const tx_cnt = 1;
+
+				before(done => {
+					const transactionPool = library.rewiredModules.transactions.__get__(
+						'__private.transactionPool'
+					);
+					transactionPool.queued.transactions = [];
+
+					// Set expected reward per block as first milestone
+					expectedRewardsPerBlock = constants.rewards.milestones[0];
+					done();
+				});
+
+				async.doUntil(
+					untilCb => {
+						++blocks_processed;
+						const transactions = [];
+						for (let t = tx_cnt - 1; t >= 0; t--) {
+							const transaction = elements.transaction.createTransaction(
+								randomUtil.account().address,
+								randomUtil.number(100000000, 1000000000),
+								accountsFixtures.genesis.password
+							);
+							transactions.push(transaction);
+						}
+
+						__testContext.debug(
+							`	Processing block ${blocks_processed} of ${blocks_cnt} with ${
+								transactions.length
+							} transactions`
+						);
+						tickAndValidate(transactions);
+						untilCb();
+					},
+					err => {
+						return err || blocks_processed >= blocks_cnt;
+					}
+				);
 			});
 
 			describe('before rewards start', () => {
 				it('last block height should be at height 149', () => {
+					const lastBlock = library.modules.blocks.lastBlock.get();
+					return expect(lastBlock.height).to.equal(149);
 				});
 
 				it('block just before rewards start should have reward = 0', () => {
+					const lastBlock = library.modules.blocks.lastBlock.get();
+					return expect(lastBlock.reward).to.equal(0);
 				});
 			});
 
