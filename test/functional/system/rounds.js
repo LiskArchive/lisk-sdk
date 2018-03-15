@@ -598,6 +598,13 @@ describe('rounds', () => {
 						);
 					}
 
+					// Register delegate
+					if (transaction.type === 2) {
+						accounts[address].username = transaction.asset.delegate.username;
+						accounts[address].u_username = accounts[address].username;
+						accounts[address].isDelegate = 1;
+						accounts[address].u_isDelegate = 1;
+					}
 				}
 
 				address = transaction.recipientId;
