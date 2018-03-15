@@ -173,12 +173,16 @@ describe('rounds', () => {
 			found.blockId = lastBlock.id;
 		}
 
+		// Mutate states - apply every transaction to expected states
 		_.each(transactions, transaction => {
+			// SENDER: Get address from senderId or if not available - get from senderPublicKey
 			let address =
 				transaction.senderId ||
 				library.modules.accounts.generateAddressByPublicKey(
 					transaction.senderPublicKey
 				);
+
+			// If account with address exists - set expected values
 			if (accounts[address]) {
 				// Update sender
 				accounts[address].balance = new Bignum(accounts[address].balance)
@@ -202,7 +206,7 @@ describe('rounds', () => {
 					);
 				}
 
-				// Register delegate
+				// Apply register delegate transaction
 				if (transaction.type === 2) {
 					accounts[address].username = transaction.asset.delegate.username;
 					accounts[address].u_username = accounts[address].username;
@@ -211,8 +215,11 @@ describe('rounds', () => {
 				}
 			}
 
+			// RECIPIENT: Get address from recipientId
 			address = transaction.recipientId;
+			// Perform only when address exists (exclude non-standard tyransaction types)
 			if (address) {
+				// If account with address exists - set expected values
 				if (accounts[address]) {
 					// Update recipient
 					accounts[address].balance = new Bignum(accounts[address].balance)
@@ -223,7 +230,7 @@ describe('rounds', () => {
 						.toString();
 					accounts[address].blockId = lastBlock.id;
 				} else {
-					// Funds sent to new account
+					// Funds sent to new account - create object with default values
 					accounts[address] = {
 						address,
 						balance: new Bignum(transaction.amount).toString(),
