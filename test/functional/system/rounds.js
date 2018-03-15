@@ -1428,39 +1428,76 @@ describe('rounds', () => {
 				});
 
 				it('last block height should be at height 101', () => {
+					return expect(lastBlock.height).to.equal(101);
 				});
 
 				it('after finishing round, should unvote expected forger of last block of round and vote new delegate (block data)', () => {
+					return Queries.getFullBlock(lastBlock.height).then(blocks => {
+						expect(blocks[0].transactions[0].asset.votes).to.deep.equal([
+							`-${lastBlockForger}`,
+							`+${tmpAccount.publicKey}`,
+						]);
+					});
 				});
 
 				it('delegates list should be different than one generated at the beginning of round 1', () => {
+					return expect(delegatesList).to.not.deep.equal(round.delegatesList);
 				});
 
 				it('unvoted delegate should not be on list', () => {
+					return expect(delegatesList).to.not.contain(lastBlockForger);
 				});
 
 				it('delegate who replaced unvoted one should be on list', () => {
+					return expect(delegatesList).to.contain(tmpAccount.publicKey);
 				});
 
 				it('forger of last block of previous round should have vote = 0', () => {
+					expect(delegates[round.outsiderPublicKey].missedBlocks).to.equal(1);
+					return expect(delegates[lastBlockForger].vote).to.equal('0');
 				});
 
 				it('delegate who replaced last block forger should have proper votes', () => {
+					return expect(
+						Number(delegates[tmpAccount.publicKey].vote)
+					).to.be.above(0);
 				});
 			});
 
 			describe('after last block of round is deleted', () => {
 
 				it('delegates list should be equal to one generated at the beginning of round 1', () => {
+					return deleteLastBlockPromise().then(() => {
+						lastBlock = library.modules.blocks.lastBlock.get();
+						return generateDelegateListPromise(lastBlock.height, null).then(
+							delegatesList => {
+								expect(delegatesList).to.deep.equal(round.delegatesList);
+							}
+						);
+					});
 				});
 
 				it('last block height should be at height 100', () => {
+					return expect(lastBlock.height).to.equal(100);
 				});
 
 				it('expected forger of last block of round should have proper votes again', () => {
+					return getDelegates().then(_delegates => {
+						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
+							0
+						);
+						return expect(_delegates[lastBlockForger].vote).to.equal(
+							'10000000000000000'
+						);
+					});
 				});
 
 				it('delegate who replaced last block forger should have vote, producedBlocks, missedBlocks = 0', () => {
+					return getDelegates().then(_delegates => {
+						expect(_delegates[tmpAccount.publicKey].vote).to.equal('0');
+						expect(_delegates[tmpAccount.publicKey].producedBlocks).to.equal(0);
+						expect(_delegates[tmpAccount.publicKey].missedBlocks).to.equal(0);
+					});
 				});
 			});
 		});
