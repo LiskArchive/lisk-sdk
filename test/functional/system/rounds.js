@@ -709,7 +709,7 @@ describe('rounds', () => {
 					const found = _.find(accounts, {
 						address: voter,
 					});
-					votes = new Bignum(votes).plus(found.balance).toString();
+					votes = new Bignum(votes).plus(new Bignum(found.balance)).toString();
 				});
 				found.vote = votes;
 			});
