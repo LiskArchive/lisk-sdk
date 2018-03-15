@@ -218,9 +218,7 @@ describe('rounds', () => {
 					accounts[address].balance = new Bignum(accounts[address].balance)
 						.plus(new Bignum(transaction.amount))
 						.toString();
-					accounts[address].u_balance = new Bignum(
-						accounts[address].u_balance
-					)
+					accounts[address].u_balance = new Bignum(accounts[address].u_balance)
 						.plus(new Bignum(transaction.amount))
 						.toString();
 					accounts[address].blockId = lastBlock.id;
@@ -372,9 +370,7 @@ describe('rounds', () => {
 		_.each(blocks, (block, index) => {
 			const publicKey = block.generatorPublicKey.toString('hex');
 			if (rewards[publicKey]) {
-				rewards[publicKey].fees = rewards[publicKey].fees.plus(
-					feesPerDelegate
-				);
+				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesPerDelegate);
 				rewards[publicKey].rewards = rewards[publicKey].rewards.plus(
 					block.reward
 				);
@@ -444,21 +440,21 @@ describe('rounds', () => {
 		async.waterfall(
 			[
 				transactionPool.fillPool,
-				function (waterCb) {
+				function(waterCb) {
 					getNextForger(null, delegatePublicKey => {
 						waterCb(null, delegatePublicKey);
 					});
 				},
-				function (delegate, waterCb) {
+				function(delegate, waterCb) {
 					let lastBlock = library.modules.blocks.lastBlock.get();
 					const slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
 					const keypair = keypairs[delegate];
 					__testContext.debug(
 						`		Last block height: ${lastBlock.height} Last block ID: ${
 							lastBlock.id
-							} Last block timestamp: ${
+						} Last block timestamp: ${
 							lastBlock.timestamp
-							} Next slot: ${slot} Next delegate PK: ${delegate} Next block timestamp: ${slots.getSlotTime(
+						} Next slot: ${slot} Next delegate PK: ${delegate} Next block timestamp: ${slots.getSlotTime(
 							slot
 						)}`
 					);
@@ -473,7 +469,7 @@ describe('rounds', () => {
 							__testContext.debug(
 								`		New last block height: ${
 									lastBlock.height
-									} New last block ID: ${lastBlock.id}`
+								} New last block ID: ${lastBlock.id}`
 							);
 							return waterCb(err);
 						}
@@ -503,7 +499,7 @@ describe('rounds', () => {
 	}
 
 	function tickAndValidate(transactions) {
-		const tick = {before: {}, after: {}};
+		const tick = { before: {}, after: {} };
 
 		describe('new block', () => {
 			before(() => {
@@ -584,9 +580,7 @@ describe('rounds', () => {
 			describe('mem_accounts table', () => {
 				it('if block contains at least one transaction states before and after block should be different', done => {
 					if (transactions.length > 0) {
-						expect(tick.before.accounts).to.not.deep.equal(
-							tick.after.accounts
-						);
+						expect(tick.before.accounts).to.not.deep.equal(tick.after.accounts);
 					}
 					done();
 				});
@@ -629,9 +623,9 @@ describe('rounds', () => {
 
 				it('balances should be valid against blockchain balances', () => {
 					// Perform validation of accounts balances against blockchain after every block
-					return expect(
-						Queries.validateAccountsBalances()
-					).to.eventually.be.an('array').that.is.empty;
+					return expect(Queries.validateAccountsBalances()).to.eventually.be.an(
+						'array'
+					).that.is.empty;
 				});
 			});
 		});
