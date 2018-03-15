@@ -642,7 +642,7 @@ describe('rounds', () => {
 									// If absolute value is 1 beddows - pass the test, as reason is related to issue #716
 									if (absoluteDiff === 1) {
 										__testContext.debug(
-											`ERROR: Value of 'vote' for account ${key} doesn't match expectactions, actual: ${
+											`ERROR: Value of 'vote' for account ${key} doesn't match expectations, actual: ${
 												actualAccount.vote
 											}, expected: ${
 												expectedAccount.vote
