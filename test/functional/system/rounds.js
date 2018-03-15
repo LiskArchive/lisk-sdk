@@ -570,7 +570,11 @@ describe('rounds', () => {
 			}
 
 			_.each(transactions, transaction => {
-				let address = transaction.senderId;
+				let address =
+					transaction.senderId ||
+					library.modules.accounts.generateAddressByPublicKey(
+						transaction.senderPublicKey
+					);
 				if (accounts[address]) {
 					// Update sender
 					accounts[address].balance = new Bignum(accounts[address].balance)
@@ -585,51 +589,64 @@ describe('rounds', () => {
 						.toString();
 					accounts[address].blockId = lastBlock.id;
 					accounts[address].virgin = 0;
+
+					// Set public key if not present
+					if (!accounts[address].publicKey) {
+						accounts[address].publicKey = Buffer.from(
+							transaction.senderPublicKey,
+							'hex'
+						);
+					}
+
 				}
 
 				address = transaction.recipientId;
-				if (accounts[address]) {
-					// Update recipient
-					accounts[address].balance = new Bignum(accounts[address].balance)
-						.plus(new Bignum(transaction.amount))
-						.toString();
-					accounts[address].u_balance = new Bignum(accounts[address].u_balance)
-						.plus(new Bignum(transaction.amount))
-						.toString();
-					accounts[address].blockId = lastBlock.id;
-				} else {
-					// Funds sent to new account
-					accounts[address] = {
-						address,
-						balance: new Bignum(transaction.amount).toString(),
-						blockId: lastBlock.id,
-						delegates: null,
-						fees: '0',
-						isDelegate: 0,
-						missedBlocks: 0,
-						multilifetime: 0,
-						multimin: 0,
-						multisignatures: null,
-						nameexist: 0,
-						producedBlocks: 0,
-						publicKey: null,
-						rate: '0',
-						rewards: '0',
-						secondPublicKey: null,
-						secondSignature: 0,
-						u_balance: new Bignum(transaction.amount).toString(),
-						u_delegates: null,
-						u_isDelegate: 0,
-						u_multilifetime: 0,
-						u_multimin: 0,
-						u_multisignatures: null,
-						u_nameexist: 0,
-						u_secondSignature: 0,
-						u_username: null,
-						username: null,
-						virgin: 1,
-						vote: '0',
-					};
+				if (address) {
+					if (accounts[address]) {
+						// Update recipient
+						accounts[address].balance = new Bignum(accounts[address].balance)
+							.plus(new Bignum(transaction.amount))
+							.toString();
+						accounts[address].u_balance = new Bignum(
+							accounts[address].u_balance
+						)
+							.plus(new Bignum(transaction.amount))
+							.toString();
+						accounts[address].blockId = lastBlock.id;
+					} else {
+						// Funds sent to new account
+						accounts[address] = {
+							address,
+							balance: new Bignum(transaction.amount).toString(),
+							blockId: lastBlock.id,
+							delegates: null,
+							fees: '0',
+							isDelegate: 0,
+							missedBlocks: 0,
+							multilifetime: 0,
+							multimin: 0,
+							multisignatures: null,
+							nameexist: 0,
+							producedBlocks: 0,
+							publicKey: null,
+							rate: '0',
+							rewards: '0',
+							secondPublicKey: null,
+							secondSignature: 0,
+							u_balance: new Bignum(transaction.amount).toString(),
+							u_delegates: null,
+							u_isDelegate: 0,
+							u_multilifetime: 0,
+							u_multimin: 0,
+							u_multisignatures: null,
+							u_nameexist: 0,
+							u_secondSignature: 0,
+							u_username: null,
+							username: null,
+							virgin: 1,
+							vote: '0',
+						};
+					}
 				}
 			});
 			return accounts;
