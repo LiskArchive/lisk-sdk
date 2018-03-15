@@ -1465,7 +1465,6 @@ describe('rounds', () => {
 			});
 
 			describe('after last block of round is deleted', () => {
-
 				it('delegates list should be equal to one generated at the beginning of round 1', () => {
 					return deleteLastBlockPromise().then(() => {
 						lastBlock = library.modules.blocks.lastBlock.get();
