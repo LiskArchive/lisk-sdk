@@ -179,12 +179,10 @@ describe('API resource module', () => {
 
 			it('should resolve with failure response', () => {
 				const req = resource.handleRetry(defaultError, defaultRequest);
-				return req.then(res => {
-					expect(res.success).to.be.false;
-					expect(res.error).to.eql(defaultError);
-					return expect(res.message).to.equal(
-						'Could not create an HTTP request to any known nodes.',
-					);
+				return expect(req).eventually.to.eql({
+					success: false,
+					error: defaultError,
+					message: 'Could not create an HTTP request to any known nodes.',
 				});
 			});
 		});
