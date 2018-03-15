@@ -133,11 +133,7 @@ __private.checkTransaction = function(block, transaction, cb) {
  * @returns {Object} block - Target block
  */
 __private.setHeight = function(block, lastBlock) {
-	try {
-		block.height = lastBlock.height + 1;
-	} catch (err) {
-		return err;
-	}
+	block.height = lastBlock.height + 1;
 	return block;
 };
 
@@ -180,14 +176,9 @@ __private.verifySignature = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyPreviousBlock = function(block, result) {
-	try {
-		if (!block.previousBlock && block.height !== 1) {
-			result.errors.push('Invalid previous block');
-		}
-	} catch (e) {
-		result.errors.push(e.toString());
+	if (!block.previousBlock && block.height !== 1) {
+		result.errors.push('Invalid previous block');
 	}
-
 	return result;
 };
 
@@ -203,12 +194,8 @@ __private.verifyPreviousBlock = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyAgainstLastNBlockIds = function(block, result) {
-	try {
-		if (__private.lastNBlockIds.indexOf(block.id) !== -1) {
-			result.errors.push('Block already exists in chain');
-		}
-	} catch (e) {
-		result.errors.push(e.toString());
+	if (__private.lastNBlockIds.indexOf(block.id) !== -1) {
+		result.errors.push('Block already exists in chain');
 	}
 
 	return result;
@@ -226,12 +213,8 @@ __private.verifyAgainstLastNBlockIds = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyVersion = function(block, result) {
-	try {
-		if (block.version > 0) {
-			result.errors.push('Invalid block version');
-		}
-	} catch (e) {
-		result.errors.push(e.toString());
+	if (block.version > 0) {
+		result.errors.push('Invalid block version');
 	}
 
 	return result;
@@ -249,25 +232,18 @@ __private.verifyVersion = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyReward = function(block, result) {
-	try {
-		var expectedReward = __private.blockReward.calcReward(block.height);
+	var expectedReward = __private.blockReward.calcReward(block.height);
 
-		if (
-			block.height !== 1 &&
-			expectedReward !== block.reward &&
-			exceptions.blockRewards.indexOf(block.id) === -1
-		) {
-			result.errors.push(
-				[
-					'Invalid block reward:',
-					block.reward,
-					'expected:',
-					expectedReward,
-				].join(' ')
-			);
-		}
-	} catch (e) {
-		result.errors.push(e.toString());
+	if (
+		block.height !== 1 &&
+		expectedReward !== block.reward &&
+		exceptions.blockRewards.indexOf(block.id) === -1
+	) {
+		result.errors.push(
+			['Invalid block reward:', block.reward, 'expected:', expectedReward].join(
+				' '
+			)
+		);
 	}
 
 	return result;
@@ -308,63 +284,59 @@ __private.verifyId = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyPayload = function(block, result) {
-	try {
-		if (block.payloadLength > constants.maxPayloadLength) {
-			result.errors.push('Payload length is too long');
+	if (block.payloadLength > constants.maxPayloadLength) {
+		result.errors.push('Payload length is too long');
+	}
+
+	if (block.transactions.length !== block.numberOfTransactions) {
+		result.errors.push(
+			'Included transactions do not match block transactions count'
+		);
+	}
+
+	if (block.transactions.length > constants.maxTxsPerBlock) {
+		result.errors.push('Number of transactions exceeds maximum per block');
+	}
+
+	var totalAmount = 0;
+	var totalFee = 0;
+	var payloadHash = crypto.createHash('sha256');
+	var appliedTransactions = {};
+
+	for (var i in block.transactions) {
+		var transaction = block.transactions[i];
+		var bytes;
+
+		try {
+			bytes = library.logic.transaction.getBytes(transaction);
+		} catch (e) {
+			result.errors.push(e.toString());
 		}
 
-		if (block.transactions.length !== block.numberOfTransactions) {
+		if (appliedTransactions[transaction.id]) {
 			result.errors.push(
-				'Included transactions do not match block transactions count'
+				`Encountered duplicate transaction: ${transaction.id}`
 			);
 		}
 
-		if (block.transactions.length > constants.maxTxsPerBlock) {
-			result.errors.push('Number of transactions exceeds maximum per block');
+		appliedTransactions[transaction.id] = transaction;
+		if (bytes) {
+			payloadHash.update(bytes);
 		}
+		totalAmount += transaction.amount;
+		totalFee += transaction.fee;
+	}
 
-		var totalAmount = 0;
-		var totalFee = 0;
-		var payloadHash = crypto.createHash('sha256');
-		var appliedTransactions = {};
+	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
+		result.errors.push('Invalid payload hash');
+	}
 
-		for (var i in block.transactions) {
-			var transaction = block.transactions[i];
-			var bytes;
+	if (totalAmount !== block.totalAmount) {
+		result.errors.push('Invalid total amount');
+	}
 
-			try {
-				bytes = library.logic.transaction.getBytes(transaction);
-			} catch (e) {
-				result.errors.push(e.toString());
-			}
-
-			if (appliedTransactions[transaction.id]) {
-				result.errors.push(
-					`Encountered duplicate transaction: ${transaction.id}`
-				);
-			}
-
-			appliedTransactions[transaction.id] = transaction;
-			if (bytes) {
-				payloadHash.update(bytes);
-			}
-			totalAmount += transaction.amount;
-			totalFee += transaction.fee;
-		}
-
-		if (payloadHash.digest().toString('hex') !== block.payloadHash) {
-			result.errors.push('Invalid payload hash');
-		}
-
-		if (totalAmount !== block.totalAmount) {
-			result.errors.push('Invalid total amount');
-		}
-
-		if (totalFee !== block.totalFee) {
-			result.errors.push('Invalid total fee');
-		}
-	} catch (e) {
-		result.errors.push(e.toString());
+	if (totalFee !== block.totalFee) {
+		result.errors.push('Invalid total fee');
 	}
 
 	return result;
@@ -383,20 +355,16 @@ __private.verifyPayload = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyForkOne = function(block, lastBlock, result) {
-	try {
-		if (block.previousBlock && block.previousBlock !== lastBlock.id) {
-			modules.delegates.fork(block, 1);
-			result.errors.push(
-				[
-					'Invalid previous block:',
-					block.previousBlock,
-					'expected:',
-					lastBlock.id,
-				].join(' ')
-			);
-		}
-	} catch (e) {
-		result.errors.push(e.toString());
+	if (block.previousBlock && block.previousBlock !== lastBlock.id) {
+		modules.delegates.fork(block, 1);
+		result.errors.push(
+			[
+				'Invalid previous block:',
+				block.previousBlock,
+				'expected:',
+				lastBlock.id,
+			].join(' ')
+		);
 	}
 
 	return result;
@@ -415,18 +383,14 @@ __private.verifyForkOne = function(block, lastBlock, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyBlockSlot = function(block, lastBlock, result) {
-	try {
-		var blockSlotNumber = slots.getSlotNumber(block.timestamp);
-		var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
+	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
+	var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
-		if (
-			blockSlotNumber > slots.getSlotNumber() ||
-			blockSlotNumber <= lastBlockSlotNumber
-		) {
-			result.errors.push('Invalid block timestamp');
-		}
-	} catch (e) {
-		result.errors.push(e.toString());
+	if (
+		blockSlotNumber > slots.getSlotNumber() ||
+		blockSlotNumber <= lastBlockSlotNumber
+	) {
+		result.errors.push('Invalid block timestamp');
 	}
 
 	return result;
@@ -443,21 +407,17 @@ __private.verifyBlockSlot = function(block, lastBlock, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyBlockSlotWindow = function(block, result) {
-	try {
-		var currentApplicationSlot = slots.getSlotNumber();
-		var blockSlot = slots.getSlotNumber(block.timestamp);
+	var currentApplicationSlot = slots.getSlotNumber();
+	var blockSlot = slots.getSlotNumber(block.timestamp);
 
-		// Reject block if it's slot is older than constants.blockSlotWindow
-		if (currentApplicationSlot - blockSlot > constants.blockSlotWindow) {
-			result.errors.push('Block slot is too old');
-		}
+	// Reject block if it's slot is older than constants.blockSlotWindow
+	if (currentApplicationSlot - blockSlot > constants.blockSlotWindow) {
+		result.errors.push('Block slot is too old');
+	}
 
-		// Reject block if it's slot is in the future
-		if (currentApplicationSlot < blockSlot) {
-			result.errors.push('Block slot is in the future');
-		}
-	} catch (e) {
-		result.errors.push(e.toString());
+	// Reject block if it's slot is in the future
+	if (currentApplicationSlot < blockSlot) {
+		result.errors.push('Block slot is in the future');
 	}
 
 	return result;

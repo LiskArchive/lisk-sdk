@@ -352,34 +352,12 @@ describe('blocks/verify', () => {
 			height: 5,
 		};
 
-		describe('when fails', () => {
-			describe('when block is undefined', () => {
-				it('should return error', () => {
-					const blockError = __private.setHeight(undefined, dummyLastBlock);
-					return expect(blockError.message).to.equal(
-						"Cannot set property 'height' of undefined"
-					);
-				});
-			});
-
-			describe('when lastBlock is undefined', () => {
-				it('should return error', () => {
-					const blockError = __private.setHeight(dummyBlock, undefined);
-					return expect(blockError.message).to.equal(
-						"Cannot read property 'height' of undefined"
-					);
-				});
-			});
-		});
-
-		describe('when succeeds', () => {
-			it('should return block with increased height based on last block', () => {
-				return expect(
-					__private.setHeight(dummyBlock, dummyLastBlock)
-				).to.deep.equal({
-					id: '6',
-					height: 6,
-				});
+		it('should return block with increased height based on last block', () => {
+			return expect(
+				__private.setHeight(dummyBlock, dummyLastBlock)
+			).to.deep.equal({
+				id: '6',
+				height: 6,
 			});
 		});
 	});
@@ -441,17 +419,6 @@ describe('blocks/verify', () => {
 
 	describe('__private.verifyPreviousBlock', () => {
 		describe('when fails', () => {
-			describe('if block is undefined', () => {
-				it('should return error', () => {
-					const verifyPreviousBlock = __private.verifyPreviousBlock(undefined, {
-						errors: [],
-					});
-					return expect(verifyPreviousBlock.errors[0]).to.equal(
-						"TypeError: Cannot read property 'previousBlock' of undefined"
-					);
-				});
-			});
-
 			describe('if block.previousBlock is not defined and height !== 1', () => {
 				it('should return error', () => {
 					const verifyPreviousBlock = __private.verifyPreviousBlock(
@@ -512,74 +479,36 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('fails', () => {
-			describe('when block is undefined', () => {
-				it('should return error', () => {
-					const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
-						undefined,
-						{ errors: [] }
-					);
-					return expect(verifyAgainstLastNBlockIds.errors[0]).to.equal(
-						"TypeError: Cannot read property 'id' of undefined"
-					);
-				});
-			});
-
-			describe('when block is in list', () => {
-				it('should return error', () => {
-					const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
-						{ id: 3 },
-						{ errors: [] }
-					);
-					return expect(verifyAgainstLastNBlockIds.errors[0]).to.equal(
-						'Block already exists in chain'
-					);
-				});
-			});
+		it('should return error when block is in list', () => {
+			const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
+				{ id: 3 },
+				{ errors: [] }
+			);
+			return expect(verifyAgainstLastNBlockIds.errors[0]).to.equal(
+				'Block already exists in chain'
+			);
 		});
 
-		describe('when succeeds', () => {
-			it('should return no error', () => {
-				const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
-					{ id: 5 },
-					{ errors: [] }
-				);
-				return expect(verifyAgainstLastNBlockIds.errors.length).to.equal(0);
-			});
+		it('should return no error when block is not in list', () => {
+			const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
+				{ id: 5 },
+				{ errors: [] }
+			);
+			return expect(verifyAgainstLastNBlockIds.errors.length).to.equal(0);
 		});
 	});
 
 	describe('__private.verifyVersion', () => {
 		let verifyVersion;
 
-		describe('fails', () => {
-			describe('when block is undefined', () => {
-				it('should return error', () => {
-					verifyVersion = __private.verifyVersion(undefined, { errors: [] });
-					return expect(verifyVersion.errors[0]).to.equal(
-						"TypeError: Cannot read property 'version' of undefined"
-					);
-				});
-			});
-
-			describe('when block version > 0', () => {
-				it('should return error', () => {
-					verifyVersion = __private.verifyVersion(
-						{ version: 3 },
-						{ errors: [] }
-					);
-					return expect(verifyVersion.errors[0]).to.equal(
-						'Invalid block version'
-					);
-				});
-			});
+		it('should return error when block version > 0', () => {
+			verifyVersion = __private.verifyVersion({ version: 3 }, { errors: [] });
+			return expect(verifyVersion.errors[0]).to.equal('Invalid block version');
 		});
 
-		describe('when succeeds', () => {
-			it('should return no error', () => {
-				verifyVersion = __private.verifyVersion({ version: 0 }, { errors: [] });
-				return expect(verifyVersion.errors.length).to.equal(0);
-			});
+		it('should return no error when block version = 0', () => {
+			verifyVersion = __private.verifyVersion({ version: 0 }, { errors: [] });
+			return expect(verifyVersion.errors.length).to.equal(0);
 		});
 	});
 
@@ -606,19 +535,10 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('when block is undefined', () => {
-			it('should return error', () => {
-				verifyReward = __private.verifyReward(undefined, { errors: [] });
-				return expect(verifyReward.errors[0]).to.equal(
-					"TypeError: Cannot read property 'height' of undefined"
-				);
-			});
-		});
-
 		describe('__private.blockReward.calcReward', () => {
 			describe('when fails', () => {
 				beforeEach(() => {
-					return __private.blockReward.calcReward.throws('calcReward-ERR');
+					return __private.blockReward.calcReward.returns('calcReward-ERR');
 				});
 
 				it('should return error', () => {
@@ -626,7 +546,9 @@ describe('blocks/verify', () => {
 						{ height: 'ERR' },
 						{ errors: [] }
 					);
-					return expect(verifyReward.errors[0]).to.equal('calcReward-ERR');
+					return expect(verifyReward.errors[0]).to.equal(
+						'Invalid block reward:  expected: calcReward-ERR'
+					);
 				});
 			});
 
@@ -787,15 +709,6 @@ describe('blocks/verify', () => {
 					.with.lengthOf(1);
 			});
 
-			describe('when block is undefined', () => {
-				it('should return error', () => {
-					verifyPayload = __private.verifyPayload(undefined, { errors: [] });
-					return expect(verifyPayload.errors[0]).to.equal(
-						"TypeError: Cannot read property 'payloadLength' of undefined"
-					);
-				});
-			});
-
 			describe('when payload lenght is too long', () => {
 				it('should return error', () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
@@ -933,32 +846,6 @@ describe('blocks/verify', () => {
 		let lastBlock;
 
 		describe('fails', () => {
-			describe('when block is undefined', () => {
-				it('should return error', () => {
-					block = undefined;
-					lastBlock = { id: 5 };
-					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
-						errors: [],
-					});
-					return expect(verifyForkOne.errors[0]).to.equal(
-						"TypeError: Cannot read property 'previousBlock' of undefined"
-					);
-				});
-			});
-
-			describe('when lastBlock is undefined', () => {
-				it('should return error', () => {
-					block = { previousBlock: 6 };
-					lastBlock = undefined;
-					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
-						errors: [],
-					});
-					return expect(verifyForkOne.errors[0]).to.equal(
-						"TypeError: Cannot read property 'id' of undefined"
-					);
-				});
-			});
-
 			describe('when block.previousBlock && block.previousBlock !== lastBlock.id', () => {
 				afterEach(() => {
 					expect(modules.delegates.fork.calledOnce).to.be.true;
@@ -1034,32 +921,6 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when fails', () => {
-			describe('when block is undefined', () => {
-				it('should return error', () => {
-					block = undefined;
-					lastBlock = { timestamp: 5 };
-					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
-						errors: [],
-					});
-					return expect(verifyBlockSlot.errors[0]).to.equal(
-						"TypeError: Cannot read property 'timestamp' of undefined"
-					);
-				});
-			});
-
-			describe('when lastBlock is undefined', () => {
-				it('should return error', () => {
-					block = { timestamp: 5 };
-					lastBlock = undefined;
-					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
-						errors: [],
-					});
-					return expect(verifyBlockSlot.errors[0]).to.equal(
-						"TypeError: Cannot read property 'timestamp' of undefined"
-					);
-				});
-			});
-
 			describe('when blockSlotNumber > slots.getSlotNumber()', () => {
 				it('should return error', () => {
 					block = { timestamp: 5 };
@@ -1119,17 +980,6 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when fails', () => {
-			describe('when block is undefined', () => {
-				it('should return error', () => {
-					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(undefined, {
-						errors: [],
-					});
-					return expect(verifyBlockSlotWindow.errors[0]).to.equal(
-						"TypeError: Cannot read property 'timestamp' of undefined"
-					);
-				});
-			});
-
 			describe('when currentApplicationSlot - blockSlot > constants.blockSlotWindow', () => {
 				it('should return error', () => {
 					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
@@ -1158,12 +1008,10 @@ describe('blocks/verify', () => {
 		describe('when succeeds', () => {
 			it('should return no error', () => {
 				verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
-					{ timestamp: 101 },
+					{ timestamp: 99 },
 					{ errors: [] }
 				);
-				return expect(verifyBlockSlotWindow.errors[0]).to.equal(
-					'Block slot is in the future'
-				);
+				return expect(verifyBlockSlotWindow.errors.length).to.equal(0);
 			});
 		});
 	});
