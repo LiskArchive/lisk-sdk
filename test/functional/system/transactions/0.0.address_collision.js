@@ -35,9 +35,9 @@ describe('system test (type 0) - address collision', () => {
 	};
 
 	var publicKeys = [
-		lisk.crypto.getPrivateAndPublicKeyFromSecret(collision.passphrases[0])
+		lisk.cryptography.getPrivateAndPublicKeyFromPassphrase(collision.passphrases[0])
 			.publicKey,
-		lisk.crypto.getPrivateAndPublicKeyFromSecret(collision.passphrases[1])
+		lisk.cryptography.getPrivateAndPublicKeyFromPassphrase(collision.passphrases[1])
 			.publicKey,
 	];
 
@@ -91,8 +91,8 @@ describe('system test (type 0) - address collision', () => {
 	});
 
 	it('both passphrases should have the same address', done => {
-		expect(lisk.crypto.getAddressFromPublicKey(publicKeys[0])).to.equal(
-			lisk.crypto.getAddressFromPublicKey(publicKeys[1])
+		expect(lisk.cryptography.getAddressFromPublicKey(publicKeys[0])).to.equal(
+			lisk.cryptography.getAddressFromPublicKey(publicKeys[1])
 		);
 		done();
 	});
