@@ -56,7 +56,9 @@ describe('rounds', () => {
 		getDelegatesForList: () => {
 			return library.db
 				.query(
-					`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${slots.delegates}`
+					`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${
+						slots.delegates
+					}`
 				)
 				.then(rows => {
 					return rows;
@@ -620,11 +622,21 @@ describe('rounds', () => {
 				});
 
 				it('delegates list should be the same for same round', () => {
-					if((tick.isLastBlockOfRound && !_.isEqual(tick.before.delegatesForList, tick.after.delegatesForList)) || tick.isRoundChanged) {
+					if (
+						(tick.isLastBlockOfRound &&
+							!_.isEqual(
+								tick.before.delegatesForList,
+								tick.after.delegatesForList
+							)) ||
+						tick.isRoundChanged
+					) {
 						return expect(tick.before.delegatesList).to.not.deep.equal(
 							tick.after.delegatesList
 						);
-					} else if (tick.isLastBlockOfRound && _.isEqual(tick.before.delegatesForList, tick.after.delegatesForList)) {
+					} else if (
+						tick.isLastBlockOfRound &&
+						_.isEqual(tick.before.delegatesForList, tick.after.delegatesForList)
+					) {
 						return expect(tick.before.delegatesList).to.deep.equal(
 							tick.after.delegatesList
 						);
