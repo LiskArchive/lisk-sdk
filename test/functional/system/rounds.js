@@ -380,7 +380,7 @@ describe('rounds', () => {
 		);
 
 		__testContext.debug(
-			`	Total fees: ${feesTotal.toString()} Fees per delegates: ${feesPerDelegate.toString()} Remaining fees: ${feesRemaining}Total rewards: ${rewardsTotal}`
+			`	Total fees: ${feesTotal.toString()} Fees per delegates: ${feesPerDelegate.toString()} Remaining fees: ${feesRemaining} Total rewards: ${rewardsTotal}`
 		);
 
 		_.each(blocks, (block, index) => {
