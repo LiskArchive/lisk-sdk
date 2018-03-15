@@ -20,6 +20,7 @@ var Promise = require('bluebird');
 var lisk = require('lisk-js').default;
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
+var normalizer = require('../../../../common/utils/normalizer');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
 var accountFixtures = require('../../../../fixtures/accounts');
 
@@ -41,11 +42,11 @@ describe('GET /api/node', () => {
 				var data = 'extra information';
 
 				// Create numOfTransactions transactions
-				for (var i = 0; i < numOfTransactions; i++) {
+				for (var i = 1; i < numOfTransactions + 1; i++) {
 					transactionList.push(
 						lisk.transaction.transfer(
 							{
-								amount: Math.random() * 1000,
+								amount: i * normalizer,
 								passphrase: accountFixtures.genesis.password,
 								recipientId: account.address,
 								data,

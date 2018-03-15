@@ -37,25 +37,24 @@ describe('GET /api/transactions', () => {
 	var account2 = randomUtil.account();
 	var minAmount = 20 * normalizer; // 20 LSK
 	var maxAmount = 100 * normalizer; // 100 LSK
+	var transaction1 = lisk.transaction.transfer(
+		{
+			amount: maxAmount,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: account.address,
+		}
+	);
+	var transaction2 = lisk.transaction.transfer(
+		{
+			amount: minAmount,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: account2.address,
+		}
+	);
 
 	// Crediting accounts
 	before(() => {
 		var promises = [];
-
-		var transaction1 = lisk.transaction.transfer(
-			{
-				amount: maxAmount,
-				passphrase: accountFixtures.genesis.password,
-				recipientId: account.address,
-			}
-		);
-		var transaction2 = lisk.transaction.transfer(
-			{
-				amount: minAmount,
-				passphrase: accountFixtures.genesis.password,
-				recpientId: account2.address,
-			}
-		);
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
 		return Promise.all(promises).then(() => {

@@ -113,11 +113,11 @@ describe('GET /api/node', () => {
 					})
 					.then(() => {
 						// Create numOfTransactions transactions
-						for (var i = 0; i < numOfTransactions; i++) {
+						for (var i = 1; i < numOfTransactions + 1; i++) {
 							transactionList.push(
 								lisk.transaction.transfer(
 									{
-										amount: Math.random() * 5 * normalizer,
+										amount: i * normalizer,
 										passphrase: senderAccount.password,
 										secondPassphrase: senderAccount.secondPassword,
 										recipientId: recipientAccount.address,
