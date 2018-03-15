@@ -607,9 +607,25 @@ describe('rounds', () => {
 					done();
 				});
 
-				it('delegates list should be the same for same round', () => {
+				it('delegates with highest weight used for generating list should be the same for same round', () => {
 					if (tick.isLastBlockOfRound) {
+						return expect(tick.before.delegatesForList).to.not.deep.equal(
+							tick.after.delegatesForList
+						);
+					}
+
+					return expect(tick.before.delegatesForList).to.deep.equal(
+						tick.after.delegatesForList
+					);
+				});
+
+				it('delegates list should be the same for same round', () => {
+					if((tick.isLastBlockOfRound && !_.isEqual(tick.before.delegatesForList, tick.after.delegatesForList)) || tick.isRoundChanged) {
 						return expect(tick.before.delegatesList).to.not.deep.equal(
+							tick.after.delegatesList
+						);
+					} else if (tick.isLastBlockOfRound && _.isEqual(tick.before.delegatesForList, tick.after.delegatesForList)) {
+						return expect(tick.before.delegatesList).to.deep.equal(
 							tick.after.delegatesList
 						);
 					}
