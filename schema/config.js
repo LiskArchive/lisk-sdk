@@ -36,8 +36,6 @@ module.exports = {
 			version: {
 				type: 'string',
 				format: 'version',
-				minLength: 5,
-				maxLength: 12,
 			},
 			minVersion: {
 				type: 'string',
