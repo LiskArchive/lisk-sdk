@@ -15,23 +15,53 @@
 
 'use strict';
 
-var rewire = require('rewire');
+const rewire = require('rewire');
 
-var BlocksChain = rewire('../../../../modules/blocks/chain.js');
+const BlocksChain = rewire('../../../../modules/blocks/chain.js');
 
 describe('blocks/chain', () => {
-	var __private;
-	var library;
-	var modules;
-	var blocksChainModule;
-	var dbStub;
-	var loggerStub;
-	var blockStub;
-	var transactionStub;
-	var busStub;
-	var balancesSequenceStub;
-	var genesisblockStub;
-	var modulesStub;
+	let __private;
+	let library;
+	let modules;
+	let blocksChainModule;
+	let dbStub;
+	let loggerStub;
+	let blockStub;
+	let transactionStub;
+	let busStub;
+	let balancesSequenceStub;
+	let genesisblockStub;
+	let modulesStub;
+
+	const blockWithEmptyTransactions = {
+		id: 1,
+		height: 1,
+		transactions: [],
+	};
+	const blockWithUndefinedTransactions = {
+		id: 1,
+		height: 1,
+		transactions: undefined,
+	};
+	const blockWithTransactions = {
+		id: 3,
+		height: 3,
+		transactions: [
+			{ id: 5, type: 3, senderPublicKey: 'a' },
+			{ id: 6, type: 2, senderPublicKey: 'b' },
+			{ id: 7, type: 1, senderPublicKey: 'c' },
+		],
+	};
+	const genesisBlockWithTransactions = {
+		id: 1,
+		height: 1,
+		transactions: [
+			{ id: 5, type: 3, senderPublicKey: 'a' },
+			{ id: 6, type: 2, senderPublicKey: 'b' },
+			{ id: 7, type: 1, senderPublicKey: 'c' },
+		],
+	};
+	const blockReduced = { id: 3, height: 3 };
 
 	beforeEach(done => {
 		// Logic
@@ -94,12 +124,12 @@ describe('blocks/chain', () => {
 			applyNext: sinonSandbox.stub(),
 		};
 
-		var modulesAccountsStub = {
+		const modulesAccountsStub = {
 			getAccount: sinonSandbox.stub(),
 			setAccountAndGet: sinonSandbox.stub(),
 		};
 
-		var modulesBlocksStub = {
+		const modulesBlocksStub = {
 			lastBlock: {
 				get: sinonSandbox.stub(),
 				set: sinonSandbox.stub(),
@@ -113,12 +143,12 @@ describe('blocks/chain', () => {
 			},
 		};
 
-		var modulesRoundsStub = {
+		const modulesRoundsStub = {
 			backwardTick: sinonSandbox.stub(),
 			tick: sinonSandbox.stub(),
 		};
 
-		var modulesTransactionsStub = {
+		const modulesTransactionsStub = {
 			applyUnconfirmed: sinonSandbox.stub(),
 			apply: sinonSandbox.stub(),
 			receiveTransactions: sinonSandbox.stub(),
@@ -177,7 +207,7 @@ describe('blocks/chain', () => {
 	});
 
 	describe('saveGenesisBlock', () => {
-		var saveBlockTemp;
+		let saveBlockTemp;
 		describe('library.db.blocks.getGenesisBlockId', () => {
 			describe('when fails', () => {
 				beforeEach(() => {
@@ -278,7 +308,7 @@ describe('blocks/chain', () => {
 		});
 
 		describe('when tx param is passed', () => {
-			var txStub;
+			let txStub;
 			beforeEach(done => {
 				txStub = {
 					blocks: {
@@ -299,12 +329,8 @@ describe('blocks/chain', () => {
 					});
 
 					it('should call a callback with error', done => {
-						var block = {
-							id: 1,
-							transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-						};
 						blocksChainModule.saveBlock(
-							block,
+							blockWithTransactions,
 							err => {
 								expect(err).to.equal('Blocks#saveBlock error');
 								done();
@@ -324,12 +350,8 @@ describe('blocks/chain', () => {
 					});
 
 					it('should call __private.afterSave', done => {
-						var block = {
-							id: 1,
-							transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-						};
 						blocksChainModule.saveBlock(
-							block,
+							blockWithTransactions,
 							() => {
 								expect(__private.afterSave.calledOnce).to.be.true;
 								done();
@@ -342,7 +364,7 @@ describe('blocks/chain', () => {
 		});
 
 		describe('when tx param is not passed', () => {
-			var txStub;
+			let txStub;
 
 			beforeEach(done => {
 				txStub = {
@@ -365,11 +387,7 @@ describe('blocks/chain', () => {
 					});
 
 					it('should call a callback with error', done => {
-						var block = {
-							id: 1,
-							transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-						};
-						blocksChainModule.saveBlock(block, err => {
+						blocksChainModule.saveBlock(blockWithTransactions, err => {
 							expect(err).to.equal('Blocks#saveBlock error');
 							done();
 						});
@@ -386,11 +404,7 @@ describe('blocks/chain', () => {
 					});
 
 					it('should call __private.afterSave', done => {
-						var block = {
-							id: 1,
-							transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-						};
-						blocksChainModule.saveBlock(block, () => {
+						blocksChainModule.saveBlock(blockWithTransactions, () => {
 							expect(__private.afterSave.calledOnce).to.be.true;
 							done();
 						});
@@ -402,18 +416,13 @@ describe('blocks/chain', () => {
 
 	describe('__private.afterSave', () => {
 		it('should call afterSave for all transactions', done => {
-			var block = {
-				id: 1,
-				transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-			};
-			__private.afterSave(block, () => {
-				expect(library.logic.transaction.afterSave.callCount).to.equal(2);
+			__private.afterSave(blockWithTransactions, () => {
+				expect(library.logic.transaction.afterSave.callCount).to.equal(3);
 				expect(library.bus.message.calledOnce).to.be.true;
 				expect(library.bus.message.args[0][0]).to.equal('transactionsSaved');
-				expect(library.bus.message.args[0][1]).to.deep.equal([
-					{ id: 1, type: 0 },
-					{ id: 2, type: 1 },
-				]);
+				expect(library.bus.message.args[0][1]).to.deep.equal(
+					blockWithTransactions.transactions
+				);
 				done();
 			});
 		});
@@ -502,25 +511,18 @@ describe('blocks/chain', () => {
 
 		describe('when block.transactions is empty', () => {
 			it('modules.rouds.tick should call a callback', done => {
-				blocksChainModule.applyGenesisBlock(
-					{ id: 1, height: 1, transactions: [] },
-					() => {
-						expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
-							.true;
-						expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-						expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal({
-							id: 1,
-							height: 1,
-							transactions: [],
-						});
-						expect(modules.rounds.tick.args[0][0]).to.deep.equal({
-							id: 1,
-							height: 1,
-							transactions: [],
-						});
-						done();
-					}
-				);
+				blocksChainModule.applyGenesisBlock(blockWithEmptyTransactions, () => {
+					expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
+						.true;
+					expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+					expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
+						blockWithEmptyTransactions
+					);
+					expect(modules.rounds.tick.args[0][0]).to.deep.equal(
+						blockWithEmptyTransactions
+					);
+					done();
+				});
 			});
 		});
 
@@ -537,22 +539,11 @@ describe('blocks/chain', () => {
 
 					it('should return process.exit(0)', done => {
 						process.exit = done;
-						blocksChainModule.applyGenesisBlock(
-							{
-								id: 1,
-								height: 1,
-								transactions: [
-									{ id: 5, type: 3 },
-									{ id: 6, type: 2 },
-									{ id: 7, type: 1 },
-								],
-							},
-							() => {
-								expect(modules.blocks.utils.getBlockProgressLogger.calledOnce)
-									.to.be.true;
-								done();
-							}
-						);
+						blocksChainModule.applyGenesisBlock(blockWithTransactions, () => {
+							expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to
+								.be.true;
+							done();
+						});
 					});
 				});
 
@@ -578,15 +569,7 @@ describe('blocks/chain', () => {
 							it('should return process.exit(0)', done => {
 								process.exit = done;
 								blocksChainModule.applyGenesisBlock(
-									{
-										id: 1,
-										height: 1,
-										transactions: [
-											{ id: 5, type: 3 },
-											{ id: 6, type: 2 },
-											{ id: 7, type: 1 },
-										],
-									},
+									blockWithTransactions,
 									err => {
 										expect(err).to.equal('applyTransaction-ERR');
 										expect(
@@ -606,15 +589,7 @@ describe('blocks/chain', () => {
 
 							it('modules.rouds.tick should call a callback', done => {
 								blocksChainModule.applyGenesisBlock(
-									{
-										id: 1,
-										height: 1,
-										transactions: [
-											{ id: 5, type: 3 },
-											{ id: 6, type: 2 },
-											{ id: 7, type: 1 },
-										],
-									},
+									blockWithTransactions,
 									() => {
 										expect(
 											modules.blocks.utils.getBlockProgressLogger.calledOnce
@@ -623,24 +598,10 @@ describe('blocks/chain', () => {
 										expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
 										expect(
 											modules.blocks.lastBlock.set.args[0][0]
-										).to.deep.equal({
-											id: 1,
-											height: 1,
-											transactions: [
-												{ id: 6, type: 2 },
-												{ id: 7, type: 1 },
-												{ id: 5, type: 3 },
-											],
-										});
-										expect(modules.rounds.tick.args[0][0]).to.deep.equal({
-											id: 1,
-											height: 1,
-											transactions: [
-												{ id: 6, type: 2 },
-												{ id: 7, type: 1 },
-												{ id: 5, type: 3 },
-											],
-										});
+										).to.deep.equal(blockWithTransactions);
+										expect(modules.rounds.tick.args[0][0]).to.deep.equal(
+											blockWithTransactions
+										);
 										done();
 									}
 								);
@@ -664,16 +625,17 @@ describe('blocks/chain', () => {
 				});
 
 				it('should call a callback with error', done => {
-					var block = {
-						id: 1,
-						transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-					};
-					__private.applyTransaction(block, { id: 1, type: 1 }, 'a1', err => {
-						expect(err.message).to.equal('applyUnconfirmed-ERR');
-						expect(err.transaction).to.deep.equal({ id: 1, type: 1 });
-						expect(err.block).to.deep.equal(block);
-						done();
-					});
+					__private.applyTransaction(
+						blockWithTransactions,
+						{ id: 1, type: 1 },
+						'a1',
+						err => {
+							expect(err.message).to.equal('applyUnconfirmed-ERR');
+							expect(err.transaction).to.deep.equal({ id: 1, type: 1 });
+							expect(err.block).to.deep.equal(blockWithTransactions);
+							done();
+						}
+					);
 				});
 			});
 
@@ -697,12 +659,8 @@ describe('blocks/chain', () => {
 						});
 
 						it('should call a callback with error', done => {
-							var block = {
-								id: 1,
-								transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-							};
 							__private.applyTransaction(
-								block,
+								blockWithTransactions,
 								{ id: 1, type: 1 },
 								'a1',
 								err => {
@@ -710,7 +668,7 @@ describe('blocks/chain', () => {
 										'Failed to apply transaction: 1'
 									);
 									expect(err.transaction).to.deep.equal({ id: 1, type: 1 });
-									expect(err.block).to.deep.equal(block);
+									expect(err.block).to.deep.equal(blockWithTransactions);
 									done();
 								}
 							);
@@ -723,12 +681,8 @@ describe('blocks/chain', () => {
 						});
 
 						it('should call a callback with no error', done => {
-							var block = {
-								id: 1,
-								transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-							};
 							__private.applyTransaction(
-								block,
+								blockWithTransactions,
 								{ id: 1, type: 1 },
 								'a1',
 								() => {
@@ -792,10 +746,7 @@ describe('blocks/chain', () => {
 		describe('when block.transactions is undefined', () => {
 			it('should return rejected promise with error', done => {
 				__private
-					.applyUnconfirmedStep(
-						{ id: 6, height: 6, transactions: undefined },
-						dbStub.tx
-					)
+					.applyUnconfirmedStep(blockWithUndefinedTransactions, dbStub.tx)
 					.catch(err => {
 						expect(err.message).to.equal(
 							'expecting an array or an iterable object but got [object Null]'
@@ -808,10 +759,7 @@ describe('blocks/chain', () => {
 		describe('when block.transactions is empty', () => {
 			it('should return resolved promise with no error', done => {
 				__private
-					.applyUnconfirmedStep(
-						{ id: 6, height: 6, transactions: [] },
-						dbStub.tx
-					)
+					.applyUnconfirmedStep(blockWithEmptyTransactions, dbStub.tx)
 					.then(resolved => {
 						expect(resolved).to.be.an('array').that.is.empty;
 						done();
@@ -831,30 +779,18 @@ describe('blocks/chain', () => {
 					});
 					it('should return rejected promise with error', done => {
 						__private
-							.applyUnconfirmedStep(
-								{
-									id: 5,
-									height: 5,
-									transactions: [
-										{ id: 1, type: 0, senderPublicKey: 'a' },
-										{ id: 2, type: 1, senderPublicKey: 'b' },
-									],
-								},
-								dbStub.tx
-							)
+							.applyUnconfirmedStep(blockWithTransactions, dbStub.tx)
 							.catch(err => {
 								expect(err).to.equal(
-									'Failed to get account to apply unconfirmed transaction: 1 - setAccountAndGet-ERR'
+									'Failed to get account to apply unconfirmed transaction: 6 - setAccountAndGet-ERR'
 								);
 								expect(loggerStub.error.args[0][0]).to.equal(
-									'Failed to get account to apply unconfirmed transaction: 1 - setAccountAndGet-ERR'
+									'Failed to get account to apply unconfirmed transaction: 6 - setAccountAndGet-ERR'
 								);
 								expect(loggerStub.error.args[1][0]).to.equal('Transaction');
-								expect(loggerStub.error.args[1][1]).to.deep.equal({
-									id: 1,
-									type: 0,
-									senderPublicKey: 'a',
-								});
+								expect(loggerStub.error.args[1][1]).to.deep.equal(
+									blockWithTransactions.transactions[0]
+								);
 								done();
 							});
 					});
@@ -880,30 +816,18 @@ describe('blocks/chain', () => {
 							});
 							it('should return rejected promise with error', done => {
 								__private
-									.applyUnconfirmedStep(
-										{
-											id: 5,
-											height: 5,
-											transactions: [
-												{ id: 1, type: 0, senderPublicKey: 'a' },
-												{ id: 2, type: 1, senderPublicKey: 'b' },
-											],
-										},
-										dbStub.tx
-									)
+									.applyUnconfirmedStep(blockWithTransactions, dbStub.tx)
 									.catch(err => {
 										expect(err).to.equal(
-											'Failed to apply unconfirmed transaction: 1 - applyUnconfirmed-ERR'
+											'Failed to apply unconfirmed transaction: 6 - applyUnconfirmed-ERR'
 										);
 										expect(loggerStub.error.args[0][0]).to.equal(
-											'Failed to apply unconfirmed transaction: 1 - applyUnconfirmed-ERR'
+											'Failed to apply unconfirmed transaction: 6 - applyUnconfirmed-ERR'
 										);
 										expect(loggerStub.error.args[1][0]).to.equal('Transaction');
-										expect(loggerStub.error.args[1][1]).to.deep.equal({
-											id: 1,
-											type: 0,
-											senderPublicKey: 'a',
-										});
+										expect(loggerStub.error.args[1][1]).to.deep.equal(
+											blockWithTransactions.transactions[0]
+										);
 										done();
 									});
 							});
@@ -920,25 +844,19 @@ describe('blocks/chain', () => {
 
 							it('should return resolved promise with no error', done => {
 								__private
-									.applyUnconfirmedStep(
-										{
-											id: 5,
-											height: 5,
-											transactions: [
-												{ id: 1, type: 0, senderPublicKey: 'a' },
-												{ id: 2, type: 1, senderPublicKey: 'b' },
-											],
-										},
-										dbStub.tx
-									)
+									.applyUnconfirmedStep(blockWithTransactions, dbStub.tx)
 									.then(resolve => {
-										expect(resolve).to.deep.equal([undefined, undefined]);
+										expect(resolve).to.deep.equal([
+											undefined,
+											undefined,
+											undefined,
+										]);
 										expect(
 											modules.accounts.setAccountAndGet.callCount
-										).to.equal(2);
+										).to.equal(3);
 										expect(
 											modules.transactions.applyUnconfirmed.callCount
-										).to.equal(2);
+										).to.equal(3);
 										done();
 									});
 							});
@@ -953,10 +871,7 @@ describe('blocks/chain', () => {
 		describe('when block transaction is undefined', () => {
 			it('should return rejected promise with error', done => {
 				__private
-					.applyConfirmedStep(
-						{ id: 6, height: 6, transactions: undefined },
-						dbStub.tx
-					)
+					.applyConfirmedStep(blockWithUndefinedTransactions, dbStub.tx)
 					.catch(err => {
 						expect(err.message).to.equal(
 							'expecting an array or an iterable object but got [object Null]'
@@ -969,7 +884,7 @@ describe('blocks/chain', () => {
 		describe('when block transaction is empty', () => {
 			it('should return resolved promise with no error', done => {
 				__private
-					.applyConfirmedStep({ id: 6, height: 6, transactions: [] }, dbStub.tx)
+					.applyConfirmedStep(blockWithEmptyTransactions, dbStub.tx)
 					.then(resolved => {
 						expect(resolved).to.be.an('array').that.is.empty;
 						done();
@@ -990,32 +905,20 @@ describe('blocks/chain', () => {
 
 					it('should return rejected promise with error', done => {
 						__private
-							.applyConfirmedStep(
-								{
-									id: 5,
-									height: 5,
-									transactions: [
-										{ id: 1, type: 0, senderPublicKey: 'a' },
-										{ id: 2, type: 1, senderPublicKey: 'b' },
-									],
-								},
-								dbStub.tx
-							)
+							.applyConfirmedStep(blockWithTransactions, dbStub.tx)
 							.catch(err => {
 								expect(err).to.equal(
-									'Failed to get account to apply transaction: 1 - getAccount-ERR'
+									'Failed to get account to apply transaction: 6 - getAccount-ERR'
 								);
 								expect(modules.accounts.getAccount.callCount).to.equal(1);
 								expect(modules.transactions.apply.callCount).to.equal(0);
 								expect(loggerStub.error.args[0][0]).to.equal(
-									'Failed to get account to apply transaction: 1 - getAccount-ERR'
+									'Failed to get account to apply transaction: 6 - getAccount-ERR'
 								);
 								expect(loggerStub.error.args[1][0]).to.equal('Transaction');
-								expect(loggerStub.error.args[1][1]).to.deep.equal({
-									id: 1,
-									type: 0,
-									senderPublicKey: 'a',
-								});
+								expect(loggerStub.error.args[1][1]).to.deep.equal(
+									blockWithTransactions.transactions[0]
+								);
 								done();
 							});
 					});
@@ -1038,32 +941,20 @@ describe('blocks/chain', () => {
 
 							it('should return rejected promise with error', done => {
 								__private
-									.applyConfirmedStep(
-										{
-											id: 5,
-											height: 5,
-											transactions: [
-												{ id: 1, type: 0, senderPublicKey: 'a' },
-												{ id: 2, type: 1, senderPublicKey: 'b' },
-											],
-										},
-										dbStub.tx
-									)
+									.applyConfirmedStep(blockWithTransactions, dbStub.tx)
 									.catch(err => {
 										expect(err).to.equal(
-											'Failed to apply transaction: 1 - apply-ERR'
+											'Failed to apply transaction: 6 - apply-ERR'
 										);
 										expect(modules.accounts.getAccount.callCount).to.equal(1);
 										expect(modules.transactions.apply.callCount).to.equal(1);
 										expect(loggerStub.error.args[0][0]).to.equal(
-											'Failed to apply transaction: 1 - apply-ERR'
+											'Failed to apply transaction: 6 - apply-ERR'
 										);
 										expect(loggerStub.error.args[1][0]).to.equal('Transaction');
-										expect(loggerStub.error.args[1][1]).to.deep.equal({
-											id: 1,
-											type: 0,
-											senderPublicKey: 'a',
-										});
+										expect(loggerStub.error.args[1][1]).to.deep.equal(
+											blockWithTransactions.transactions[0]
+										);
 										done();
 									});
 							});
@@ -1075,19 +966,13 @@ describe('blocks/chain', () => {
 							});
 							it('should return resolved promise with no error', done => {
 								__private
-									.applyConfirmedStep(
-										{
-											id: 5,
-											height: 5,
-											transactions: [
-												{ id: 1, type: 0, senderPublicKey: 'a' },
-												{ id: 2, type: 1, senderPublicKey: 'b' },
-											],
-										},
-										dbStub.tx
-									)
+									.applyConfirmedStep(blockWithTransactions, dbStub.tx)
 									.then(resolve => {
-										expect(resolve).to.be.deep.equal([undefined, undefined]);
+										expect(resolve).to.be.deep.equal([
+											undefined,
+											undefined,
+											undefined,
+										]);
 										done();
 									});
 							});
@@ -1117,11 +1002,9 @@ describe('blocks/chain', () => {
 		afterEach(done => {
 			blocksChainModule.saveBlock = saveBlockTemp;
 			expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-			expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal({
-				id: 5,
-				height: 5,
-				transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-			});
+			expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
+				blockWithTransactions
+			);
 			done();
 		});
 
@@ -1137,15 +1020,7 @@ describe('blocks/chain', () => {
 
 				it('should call a callback with error', done => {
 					__private
-						.saveBlockStep(
-							{
-								id: 5,
-								height: 5,
-								transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-							},
-							true,
-							dbStub.tx
-						)
+						.saveBlockStep(blockWithTransactions, true, dbStub.tx)
 						.catch(err => {
 							expect(err).to.equal('Failed to save block');
 							expect(loggerStub.error.args[0][0]).to.contains(
@@ -1153,16 +1028,12 @@ describe('blocks/chain', () => {
 							);
 							expect(loggerStub.error.args[0][1]).to.contains('saveBlock-ERR');
 							expect(loggerStub.error.args[1][0]).to.equal('Block');
-							expect(loggerStub.error.args[1][1]).to.deep.equal({
-								id: 5,
-								height: 5,
-								transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-							});
-							expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal({
-								id: 5,
-								height: 5,
-								transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-							});
+							expect(loggerStub.error.args[1][1]).to.deep.equal(
+								blockWithTransactions
+							);
+							expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal(
+								blockWithTransactions
+							);
 							done();
 						});
 				});
@@ -1175,20 +1046,16 @@ describe('blocks/chain', () => {
 
 				afterEach(() => {
 					expect(loggerStub.debug.args[0][0]).to.contains(
-						'Block applied correctly with 2 transactions'
+						'Block applied correctly with 3 transactions'
 					);
-					expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal({
-						id: 5,
-						height: 5,
-						transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-					});
+					expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal(
+						blockWithTransactions
+					);
 					expect(library.bus.message.calledOnce).to.be.true;
 					expect(library.bus.message.args[0][0]).to.deep.equal('newBlock');
-					return expect(library.bus.message.args[0][1]).to.deep.equal({
-						id: 5,
-						height: 5,
-						transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-					});
+					return expect(library.bus.message.args[0][1]).to.deep.equal(
+						blockWithTransactions
+					);
 				});
 
 				describe('modules.rounds.tick', () => {
@@ -1199,15 +1066,7 @@ describe('blocks/chain', () => {
 
 						it('should call a callback with error', done => {
 							__private
-								.saveBlockStep(
-									{
-										id: 5,
-										height: 5,
-										transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-									},
-									true,
-									dbStub.tx
-								)
+								.saveBlockStep(blockWithTransactions, true, dbStub.tx)
 								.catch(err => {
 									expect(err).to.equal('tick-ERR');
 									done();
@@ -1222,15 +1081,7 @@ describe('blocks/chain', () => {
 
 						it('should call a callback with no error', done => {
 							__private
-								.saveBlockStep(
-									{
-										id: 5,
-										height: 5,
-										transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-									},
-									true,
-									dbStub.tx
-								)
+								.saveBlockStep(blockWithTransactions, true, dbStub.tx)
 								.then(resolve => {
 									expect(resolve).to.be.undefined;
 									done();
@@ -1245,11 +1096,9 @@ describe('blocks/chain', () => {
 			afterEach(() => {
 				expect(library.bus.message.calledOnce).to.be.true;
 				expect(library.bus.message.args[0][0]).to.deep.equal('newBlock');
-				return expect(library.bus.message.args[0][1]).to.deep.equal({
-					id: 5,
-					height: 5,
-					transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-				});
+				return expect(library.bus.message.args[0][1]).to.deep.equal(
+					blockWithTransactions
+				);
 			});
 
 			describe('modules.rounds.tick', () => {
@@ -1260,15 +1109,7 @@ describe('blocks/chain', () => {
 
 					it('should call a callback with error', done => {
 						__private
-							.saveBlockStep(
-								{
-									id: 5,
-									height: 5,
-									transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-								},
-								true,
-								dbStub.tx
-							)
+							.saveBlockStep(blockWithTransactions, true, dbStub.tx)
 							.catch(err => {
 								expect(err).to.equal('tick-ERR');
 								done();
@@ -1283,15 +1124,7 @@ describe('blocks/chain', () => {
 
 					it('should call a callback with no error', done => {
 						__private
-							.saveBlockStep(
-								{
-									id: 5,
-									height: 5,
-									transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-								},
-								true,
-								dbStub.tx
-							)
+							.saveBlockStep(blockWithTransactions, true, dbStub.tx)
 							.then(resolve => {
 								expect(resolve).to.be.undefined;
 								done();
@@ -1305,27 +1138,38 @@ describe('blocks/chain', () => {
 	describe('applyBlock', () => {
 		let privateTemp;
 		let txTemp;
-		const dummyBlock = {
-			id: 5,
-			height: 5,
-			transactions: [{ id: 1, type: 0 }, { id: 2, type: 1 }],
-		};
 
 		beforeEach(done => {
 			txTemp = library.db.tx;
 			privateTemp = __private;
 			process.emit = sinonSandbox.stub();
 			modules.transactions.undoUnconfirmedList.callsArgWith(0, null, true);
-			__private.applyUnconfirmedStep = sinonSandbox.stub().resolves(dummyBlock);
-			__private.applyConfirmedStep = sinonSandbox.stub().resolves(dummyBlock);
-			__private.saveBlockStep = sinonSandbox.stub().resolves(dummyBlock);
+			__private.applyUnconfirmedStep = sinonSandbox
+				.stub()
+				.resolves(blockWithTransactions);
+			__private.applyConfirmedStep = sinonSandbox
+				.stub()
+				.resolves(blockWithTransactions);
+			__private.saveBlockStep = sinonSandbox
+				.stub()
+				.resolves(blockWithTransactions);
 			done();
 		});
 
 		afterEach(done => {
-			expect(__private.applyUnconfirmedStep).calledWith(dummyBlock, txTemp);
-			expect(__private.applyConfirmedStep).calledWith(dummyBlock, txTemp);
-			expect(__private.saveBlockStep).calledWith(dummyBlock, true, txTemp);
+			expect(__private.applyUnconfirmedStep).calledWith(
+				blockWithTransactions,
+				txTemp
+			);
+			expect(__private.applyConfirmedStep).calledWith(
+				blockWithTransactions,
+				txTemp
+			);
+			expect(__private.saveBlockStep).calledWith(
+				blockWithTransactions,
+				true,
+				txTemp
+			);
 			expect(modules.blocks.isActive.set.calledTwice).to.be.true;
 			__private = privateTemp;
 			library.db.tx = txTemp;
@@ -1349,7 +1193,7 @@ describe('blocks/chain', () => {
 					});
 
 					it('should call a callback with error', done => {
-						blocksChainModule.applyBlock(dummyBlock, true, err => {
+						blocksChainModule.applyBlock(blockWithTransactions, true, err => {
 							expect(err.name).to.equal('Snapshot finished');
 							expect(loggerStub.info.args[0][0].name).to.equal(
 								'Snapshot finished'
@@ -1370,7 +1214,7 @@ describe('blocks/chain', () => {
 					});
 
 					it('should call a callback with error', done => {
-						blocksChainModule.applyBlock(dummyBlock, true, err => {
+						blocksChainModule.applyBlock(blockWithTransactions, true, err => {
 							expect(err.name).to.equal('Chain:applyBlock-ERR');
 							expect(process.emit.callCount).to.equal(0);
 							done();
@@ -1388,11 +1232,11 @@ describe('blocks/chain', () => {
 					done();
 				});
 				it('should call a callback with no error', done => {
-					blocksChainModule.applyBlock(dummyBlock, true, err => {
+					blocksChainModule.applyBlock(blockWithTransactions, true, err => {
 						expect(err).to.be.null;
 						expect(
 							modules.transactions.removeUnconfirmedTransaction.callCount
-						).to.equal(2);
+						).to.equal(3);
 						expect(modules.blocks.isActive.set.callCount).to.equal(2);
 						done();
 					});
@@ -1403,13 +1247,10 @@ describe('blocks/chain', () => {
 
 	describe('broadcastReducedBlock', () => {
 		it('should call library.bus.message with reducedBlock and broadcast', () => {
-			blocksChainModule.broadcastReducedBlock({ id: 3, height: 3 }, true);
+			blocksChainModule.broadcastReducedBlock(blockReduced, true);
 			expect(library.bus.message.calledOnce).to.be.true;
 			expect(library.bus.message.args[0][0]).to.equal('broadcastBlock');
-			expect(library.bus.message.args[0][1]).to.deep.equal({
-				id: 3,
-				height: 3,
-			});
+			expect(library.bus.message.args[0][1]).to.deep.equal(blockReduced);
 			return expect(library.bus.message.args[0][2]).to.be.true;
 		});
 	});
@@ -1427,7 +1268,7 @@ describe('blocks/chain', () => {
 					});
 
 					it('should call a callback with returned error', done => {
-						__private.popLastBlock({ id: 3, height: 3 }, err => {
+						__private.popLastBlock(blockReduced, err => {
 							expect(err).to.equal('loadBlocksPart-ERR');
 							done();
 						});
@@ -1444,7 +1285,7 @@ describe('blocks/chain', () => {
 					});
 
 					it('should call a callback with error "previousBlock is null"', done => {
-						__private.popLastBlock({ id: 3, height: 3 }, err => {
+						__private.popLastBlock(blockReduced, err => {
 							expect(err).to.equal('previousBlock is null');
 							done();
 						});
@@ -1472,23 +1313,20 @@ describe('blocks/chain', () => {
 
 							it('should return process.exit(0)', done => {
 								process.exit = done;
-								__private.popLastBlock(
-									{ id: 3, height: 3, transactions: [] },
-									() => {
-										expect(loggerStub.error.args[0][0]).to.equal(
-											'Failed to perform backwards tick'
-										);
-										expect(loggerStub.error.args[0][1]).to.equal(
-											'backwardTick-ERR'
-										);
-										done();
-									}
-								);
+								__private.popLastBlock(blockWithEmptyTransactions, () => {
+									expect(loggerStub.error.args[0][0]).to.equal(
+										'Failed to perform backwards tick'
+									);
+									expect(loggerStub.error.args[0][1]).to.equal(
+										'backwardTick-ERR'
+									);
+									done();
+								});
 							});
 						});
 
 						describe('when succeeds', () => {
-							var deleteBlockTemp;
+							let deleteBlockTemp;
 
 							beforeEach(done => {
 								modules.rounds.backwardTick.callsArgWith(2, null, true);
@@ -1514,22 +1352,15 @@ describe('blocks/chain', () => {
 
 									it('should call process.exit(0)', done => {
 										process.exit = done;
-										__private.popLastBlock(
-											{
-												id: 3,
-												height: 3,
-												transactions: [],
-											},
-											() => {
-												expect(loggerStub.error.args[0][0]).to.equal(
-													'Failed to delete block'
-												);
-												expect(loggerStub.error.args[0][1]).to.equal(
-													'deleteBlock-ERR'
-												);
-												done();
-											}
-										);
+										__private.popLastBlock(blockWithEmptyTransactions, () => {
+											expect(loggerStub.error.args[0][0]).to.equal(
+												'Failed to delete block'
+											);
+											expect(loggerStub.error.args[0][1]).to.equal(
+												'deleteBlock-ERR'
+											);
+											done();
+										});
 									});
 								});
 
@@ -1544,11 +1375,7 @@ describe('blocks/chain', () => {
 
 									it('should return previousBlock and no error', done => {
 										__private.popLastBlock(
-											{
-												id: 3,
-												height: 3,
-												transactions: [],
-											},
+											blockWithEmptyTransactions,
 											(err, previousBlock) => {
 												expect(err).to.be.null;
 												expect(previousBlock).to.deep.equal({
@@ -1578,18 +1405,15 @@ describe('blocks/chain', () => {
 
 							it('should return process.exit(0)', done => {
 								process.exit = done;
-								__private.popLastBlock(
-									{ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] },
-									() => {
-										expect(loggerStub.error.args[0][0]).to.equal(
-											'Failed to undo transactions'
-										);
-										expect(loggerStub.error.args[0][1]).to.equal(
-											'getAccount-ERR'
-										);
-										done();
-									}
-								);
+								__private.popLastBlock(blockWithTransactions, () => {
+									expect(loggerStub.error.args[0][0]).to.equal(
+										'Failed to undo transactions'
+									);
+									expect(loggerStub.error.args[0][1]).to.equal(
+										'getAccount-ERR'
+									);
+									done();
+								});
 							});
 						});
 
@@ -1605,8 +1429,9 @@ describe('blocks/chain', () => {
 							});
 
 							afterEach(() => {
-								return expect(modules.transactions.undoUnconfirmed.calledOnce)
-									.to.be.true;
+								return expect(
+									modules.transactions.undoUnconfirmed.callCount
+								).to.equal(3);
 							});
 
 							describe('modules.rounds.backwardTick', () => {
@@ -1621,23 +1446,20 @@ describe('blocks/chain', () => {
 
 									it('should return process.exit(0)', done => {
 										process.exit = done;
-										__private.popLastBlock(
-											{ id: 3, height: 3, transactions: [{ id: 7, type: 0 }] },
-											() => {
-												expect(loggerStub.error.args[0][0]).to.equal(
-													'Failed to perform backwards tick'
-												);
-												expect(loggerStub.error.args[0][1]).to.equal(
-													'backwardTick-ERR'
-												);
-												done();
-											}
-										);
+										__private.popLastBlock(blockWithTransactions, () => {
+											expect(loggerStub.error.args[0][0]).to.equal(
+												'Failed to perform backwards tick'
+											);
+											expect(loggerStub.error.args[0][1]).to.equal(
+												'backwardTick-ERR'
+											);
+											done();
+										});
 									});
 								});
 
 								describe('when succeeds', () => {
-									var deleteBlockTemp;
+									let deleteBlockTemp;
 									beforeEach(done => {
 										modules.rounds.backwardTick.callsArgWith(2, null, true);
 										deleteBlockTemp = blocksChainModule.deleteBlock;
@@ -1662,22 +1484,15 @@ describe('blocks/chain', () => {
 
 											it('should return process.exit(0)', done => {
 												process.exit = done;
-												__private.popLastBlock(
-													{
-														id: 3,
-														height: 3,
-														transactions: [{ id: 7, type: 0 }],
-													},
-													() => {
-														expect(loggerStub.error.args[0][0]).to.equal(
-															'Failed to delete block'
-														);
-														expect(loggerStub.error.args[0][1]).to.equal(
-															'deleteBlock-ERR'
-														);
-														done();
-													}
-												);
+												__private.popLastBlock(blockWithTransactions, () => {
+													expect(loggerStub.error.args[0][0]).to.equal(
+														'Failed to delete block'
+													);
+													expect(loggerStub.error.args[0][1]).to.equal(
+														'deleteBlock-ERR'
+													);
+													done();
+												});
 											});
 										});
 
@@ -1692,11 +1507,7 @@ describe('blocks/chain', () => {
 
 											it('should call a callback with previousBlock and no error', done => {
 												__private.popLastBlock(
-													{
-														id: 3,
-														height: 3,
-														transactions: [{ id: 7, type: 0 }],
-													},
+													blockWithTransactions,
 													(err, previousBlock) => {
 														expect(err).to.be.null;
 														expect(previousBlock).to.deep.equal({
@@ -1719,7 +1530,7 @@ describe('blocks/chain', () => {
 	});
 
 	describe('deleteLastBlock', () => {
-		var popLastBlockTemp;
+		let popLastBlockTemp;
 
 		beforeEach(done => {
 			popLastBlockTemp = __private.popLastBlock;
@@ -1736,16 +1547,17 @@ describe('blocks/chain', () => {
 
 		describe('when lastBlock.height = 1', () => {
 			beforeEach(() => {
-				return modules.blocks.lastBlock.get.returns({ id: 1, height: 1 });
+				return modules.blocks.lastBlock.get.returns(
+					genesisBlockWithTransactions
+				);
 			});
 
 			it('should call a callback with error "Cannot delete genesis block', done => {
 				blocksChainModule.deleteLastBlock(err => {
 					expect(err).to.equal('Cannot delete genesis block');
-					expect(loggerStub.warn.args[0][1]).to.deep.equal({
-						id: 1,
-						height: 1,
-					});
+					expect(loggerStub.warn.args[0][1]).to.deep.equal(
+						genesisBlockWithTransactions
+					);
 					done();
 				});
 			});
@@ -1753,11 +1565,7 @@ describe('blocks/chain', () => {
 
 		describe('when lastBlock.height != 1', () => {
 			beforeEach(() => {
-				return modules.blocks.lastBlock.get.returns({
-					id: 3,
-					height: 3,
-					transactions: [{ id: 7, type: 0 }, { id: 6, type: 0 }],
-				});
+				return modules.blocks.lastBlock.get.returns(blockWithTransactions);
 			});
 
 			describe('__private.popLastBlock', () => {
@@ -1776,11 +1584,9 @@ describe('blocks/chain', () => {
 							expect(loggerStub.error.args[0][0]).to.equal(
 								'Error deleting last block'
 							);
-							expect(loggerStub.error.args[0][1]).to.deep.equal({
-								id: 3,
-								height: 3,
-								transactions: [{ id: 7, type: 0 }, { id: 6, type: 0 }],
-							});
+							expect(loggerStub.error.args[0][1]).to.deep.equal(
+								blockWithTransactions
+							);
 							done();
 						});
 					});
@@ -1788,11 +1594,11 @@ describe('blocks/chain', () => {
 
 				describe('when succeeds', () => {
 					beforeEach(() => {
-						return __private.popLastBlock.callsArgWith(1, null, {
-							id: 2,
-							height: 2,
-							transactions: [{ id: 5, type: 0 }, { id: 4, type: 0 }],
-						});
+						return __private.popLastBlock.callsArgWith(
+							1,
+							null,
+							blockWithTransactions
+						);
 					});
 
 					describe('modules.transactions.receiveTransactions', () => {
@@ -1808,11 +1614,7 @@ describe('blocks/chain', () => {
 							it('should call a callback with no error', done => {
 								blocksChainModule.deleteLastBlock((err, newLastBlock) => {
 									expect(err).to.be.null;
-									expect(newLastBlock).to.deep.equal({
-										id: 2,
-										height: 2,
-										transactions: [{ id: 5, type: 0 }, { id: 4, type: 0 }],
-									});
+									expect(newLastBlock).to.deep.equal(blockWithTransactions);
 									expect(loggerStub.error.args[0][0]).to.equal(
 										'Error adding transactions'
 									);
@@ -1837,11 +1639,7 @@ describe('blocks/chain', () => {
 							it('should call a callback with no error', done => {
 								blocksChainModule.deleteLastBlock((err, newLastBlock) => {
 									expect(err).to.be.null;
-									expect(newLastBlock).to.deep.equal({
-										id: 2,
-										height: 2,
-										transactions: [{ id: 5, type: 0 }, { id: 4, type: 0 }],
-									});
+									expect(newLastBlock).to.deep.equal(blockWithTransactions);
 									expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
 									done();
 								});
@@ -1854,7 +1652,7 @@ describe('blocks/chain', () => {
 	});
 
 	describe('recoverChain', () => {
-		var deleteLastBlockTemp;
+		let deleteLastBlockTemp;
 
 		beforeEach(done => {
 			deleteLastBlockTemp = blocksChainModule.deleteLastBlock;
