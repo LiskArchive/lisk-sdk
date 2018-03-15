@@ -74,9 +74,9 @@ describe('DelegatesResource', () => {
 				.which.is.a('function');
 		});
 
-		it('should have a "getForgingStats" function', () => {
+		it('should have a "getForgingStatistics" function', () => {
 			return expect(resource)
-				.to.have.property('getForgingStats')
+				.to.have.property('getForgingStatistics')
 				.which.is.a('function');
 		});
 	});
