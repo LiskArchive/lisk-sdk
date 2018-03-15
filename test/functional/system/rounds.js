@@ -1010,7 +1010,7 @@ describe('rounds', () => {
 							expected = recalculateVoteWeights(expected, tick.voters);
 							expected = applyOutsiders(
 								expected,
-								tick.after.delegatesList,
+								tick.before.delegatesList,
 								tick.roundBlocks
 							);
 						}
