@@ -622,11 +622,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						1,
 						1
 					);
-					var signTransaction = lisk.multisignature.signTransaction(
+					var signature = lisk.transaction.utils.multiSignTransaction(
 						multisigTransaction,
 						accountFixtures.existingDelegate.password
 					);
-					multisigTransaction.signatures = [signTransaction];
+					multisigTransaction.signatures = [signature];
 					multisigTransaction.ready = true;
 					localCommon.addTransactionsAndForge(
 						library,

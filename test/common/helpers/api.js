@@ -353,7 +353,7 @@ function createSignatureObject(transaction, signer) {
 	return {
 		transactionId: transaction.id,
 		publicKey: signer.publicKey,
-		signature: lisk.multisignature.signTransaction(
+		signature: lisk.transaction.utils.multiSignTransaction(
 			transaction,
 			signer.password
 		),

@@ -567,9 +567,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			var scenario = scenarios.regular_with_second_signature;
 			var multiSigSecondPasswordTransaction = lisk.transaction.registerMultisignature(
 				{
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenario.account.password,
 					secondPassphrase: scenario.account.secondPassword,
-					keysgroup: scenarios.regular.keysgroup,
+					keysgroup: scenario.keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				}

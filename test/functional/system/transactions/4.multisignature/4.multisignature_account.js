@@ -55,22 +55,23 @@ describe('system test (type 4) - effect of multisignature registration on memory
 	describe('forge block with multisignature transaction', () => {
 		before('forge block with multisignature transaction', done => {
 			var keysgroup = [
-				`${signer1.publicKey}`,
-				`${signer2.publicKey}`,
+				signer1.publicKey,
+				signer2.publicKey,
 			];
 
 			multisigTransaction = lisk.transaction.registerMultisignature(
-				multisigAccount.password,
-				null,
-				keysgroup,
-				4,
-				2
+				{
+					passphrase: multisigAccount.password,
+					keysgroup,
+					lifetime: 4,
+					minimum: 2,
+				}
 			);
-			var sign1 = lisk.multisignature.signTransaction(
+			var sign1 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
 				signer1.password
 			);
-			var sign2 = lisk.multisignature.signTransaction(
+			var sign2 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
 				signer2.password
 			);
@@ -287,26 +288,25 @@ describe('system test (type 4) - effect of multisignature registration on memory
 	describe('apply unconfirmed transaction', () => {
 		before('apply unconfirmed multisig transaction', done => {
 			var keysgroup = [
-				`${signer1.publicKey}`,
-				`${signer2.publicKey}`,
+				signer1.publicKey,
+				signer2.publicKey,
 			];
-
 			multisigTransaction = lisk.transaction.registerMultisignature(
-				multisigAccount.password,
-				null,
-				keysgroup,
-				4,
-				2
+				{
+					passphrase: multisigAccount.password,
+					keysgroup,
+					lifetime: 4,
+					minimum: 2,
+				}
 			);
-			var sign1 = lisk.multisignature.signTransaction(
+			var sign1 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
 				signer1.password
 			);
-			var sign2 = lisk.multisignature.signTransaction(
+			var sign2 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
 				signer2.password
 			);
-
 			multisigTransaction.signatures = [sign1, sign2];
 			multisigTransaction.ready = true;
 
@@ -410,21 +410,22 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 			before('process multisignature transaction', done => {
 				var keysgroup = [
-					`${signer3.publicKey}`,
-					`${signer4.publicKey}`,
+					signer3.publicKey,
+					signer4.publicKey,
 				];
 				multisigTransaction2 = lisk.transaction.registerMultisignature(
-					multisigAccount.password,
-					null,
-					keysgroup,
-					4,
-					2
+					{
+						passphrase: multisigAccount.password,
+						keysgroup,
+						lifetime: 4,
+						minimum: 2,
+					}
 				);
-				var sign3 = lisk.multisignature.signTransaction(
+				var sign3 = lisk.transaction.utils.multiSignTransaction(
 					multisigTransaction2,
 					signer3.password
 				);
-				var sign4 = lisk.multisignature.signTransaction(
+				var sign4 = lisk.transaction.utils.multiSignTransaction(
 					multisigTransaction2,
 					signer4.password
 				);

@@ -26,12 +26,13 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	};
 
 	var transactionToBeNotConfirmed = lisk.transaction.registerMultisignature(
-		scenarios.regular.account.password,
-		null,
-		scenarios.regular.keysgroup,
-		scenarios.regular.lifetime,
-		scenarios.regular.min,
-		-10000
+		{
+			passphrase: scenarios.regular.account.password,
+			keysgroup: scenarios.regular.keysgroup,
+			lifetime: scenarios.regular.lifetime,
+			minimum: scenarios.regular.minimum,
+			timeOffset: -10000,
+		}
 	);
 
 	scenarios.regular.multiSigTransaction.ready = true;
@@ -40,12 +41,12 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	transactionToBeNotConfirmed.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		var signatureToBeNotconfirmed = lisk.multisignature.signTransaction(
+		var signatureToBeNotconfirmed = lisk.transaction.utils.multiSignTransaction(
 			transactionToBeNotConfirmed,
 			member.password
 		);
 		transactionToBeNotConfirmed.signatures.push(signatureToBeNotconfirmed);
-		var signature = lisk.multisignature.signTransaction(
+		var signature = lisk.transaction.utils.multiSignTransaction(
 			scenarios.regular.multiSigTransaction,
 			member.password
 		);
