@@ -131,6 +131,512 @@ describe('rounds', () => {
 		application.cleanup(done);
 	});
 
+	function getMemAccounts() {
+		return Queries.getAccounts().then(rows => {
+			return _.cloneDeep(normalizeMemAccounts(rows));
+		});
+	}
+
+	function normalizeMemAccounts(_accounts) {
+		const accounts = {};
+		_.map(_accounts, acc => {
+			accounts[acc.address] = acc;
+		});
+		return accounts;
+	}
+
+	function getDelegates() {
+		return Queries.getDelegates().then(rows => {
+			return _.cloneDeep(normalizeDelegates(rows));
+		});
+	}
+
+	function normalizeDelegates(_delegates) {
+		const delegates = {};
+		_.map(_delegates, d => {
+			d.publicKey = d.publicKey.toString('hex');
+			delegates[d.publicKey] = d;
+		});
+		return delegates;
+	}
+
+	function expectedMemState(transactions, _accounts) {
+		const accounts = _.cloneDeep(_accounts);
+		const lastBlock = library.modules.blocks.lastBlock.get();
+
+		// Update last block forger account
+		const found = _.find(accounts, {
+			publicKey: Buffer.from(lastBlock.generatorPublicKey, 'hex'),
+		});
+		if (found) {
+			found.producedBlocks += 1;
+			found.blockId = lastBlock.id;
+		}
+
+		_.each(transactions, transaction => {
+			let address =
+				transaction.senderId ||
+				library.modules.accounts.generateAddressByPublicKey(
+					transaction.senderPublicKey
+				);
+			if (accounts[address]) {
+				// Update sender
+				accounts[address].balance = new Bignum(accounts[address].balance)
+					.minus(
+						new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
+					)
+					.toString();
+				accounts[address].u_balance = new Bignum(accounts[address].u_balance)
+					.minus(
+						new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
+					)
+					.toString();
+				accounts[address].blockId = lastBlock.id;
+				accounts[address].virgin = 0;
+
+				// Set public key if not present
+				if (!accounts[address].publicKey) {
+					accounts[address].publicKey = Buffer.from(
+						transaction.senderPublicKey,
+						'hex'
+					);
+				}
+
+				// Register delegate
+				if (transaction.type === 2) {
+					accounts[address].username = transaction.asset.delegate.username;
+					accounts[address].u_username = accounts[address].username;
+					accounts[address].isDelegate = 1;
+					accounts[address].u_isDelegate = 1;
+				}
+			}
+
+			address = transaction.recipientId;
+			if (address) {
+				if (accounts[address]) {
+					// Update recipient
+					accounts[address].balance = new Bignum(accounts[address].balance)
+						.plus(new Bignum(transaction.amount))
+						.toString();
+					accounts[address].u_balance = new Bignum(
+						accounts[address].u_balance
+					)
+						.plus(new Bignum(transaction.amount))
+						.toString();
+					accounts[address].blockId = lastBlock.id;
+				} else {
+					// Funds sent to new account
+					accounts[address] = {
+						address,
+						balance: new Bignum(transaction.amount).toString(),
+						blockId: lastBlock.id,
+						delegates: null,
+						fees: '0',
+						isDelegate: 0,
+						missedBlocks: 0,
+						multilifetime: 0,
+						multimin: 0,
+						multisignatures: null,
+						nameexist: 0,
+						producedBlocks: 0,
+						publicKey: null,
+						rate: '0',
+						rewards: '0',
+						secondPublicKey: null,
+						secondSignature: 0,
+						u_balance: new Bignum(transaction.amount).toString(),
+						u_delegates: null,
+						u_isDelegate: 0,
+						u_multilifetime: 0,
+						u_multimin: 0,
+						u_multisignatures: null,
+						u_nameexist: 0,
+						u_secondSignature: 0,
+						u_username: null,
+						username: null,
+						virgin: 1,
+						vote: '0',
+					};
+				}
+			}
+		});
+		return accounts;
+	}
+
+	function applyRoundRewards(_accounts, blocks) {
+		const accounts = _.cloneDeep(_accounts);
+		const lastBlock = library.modules.blocks.lastBlock.get();
+
+		const expectedRewards = getExpectedRoundRewards(blocks);
+		_.each(expectedRewards, reward => {
+			const found = _.find(accounts, {
+				publicKey: Buffer.from(reward.publicKey, 'hex'),
+			});
+			if (found) {
+				found.blockId = lastBlock.id;
+				found.fees = new Bignum(found.fees)
+					.plus(new Bignum(reward.fees))
+					.toString();
+				found.rewards = new Bignum(found.rewards)
+					.plus(new Bignum(reward.rewards))
+					.toString();
+				found.balance = new Bignum(found.balance)
+					.plus(new Bignum(reward.fees))
+					.plus(new Bignum(reward.rewards))
+					.toString();
+				found.u_balance = new Bignum(found.u_balance)
+					.plus(new Bignum(reward.fees))
+					.plus(new Bignum(reward.rewards))
+					.toString();
+			}
+		});
+
+		return accounts;
+	}
+
+	function recalculateVoteWeights(_accounts, voters) {
+		const accounts = _.cloneDeep(_accounts);
+
+		// Reset vote for all accounts
+		_.each(accounts, account => {
+			account.vote = '0';
+		});
+
+		// Recalculate vote
+		_.each(voters, delegate => {
+			let votes = '0';
+			const found = _.find(accounts, {
+				publicKey: Buffer.from(delegate.dependentId, 'hex'),
+			});
+			expect(found).to.be.an('object');
+			_.each(delegate.array_agg, voter => {
+				const found = _.find(accounts, {
+					address: voter,
+				});
+				votes = new Bignum(votes).plus(new Bignum(found.balance)).toString();
+			});
+			found.vote = votes;
+		});
+
+		return accounts;
+	}
+
+	function applyOutsiders(_accounts, delegatesList, blocks) {
+		const accounts = _.cloneDeep(_accounts);
+
+		_.each(delegatesList, publicKey => {
+			const found = _.find(blocks, {
+				generatorPublicKey: Buffer.from(publicKey, 'hex'),
+			});
+			const account = _.find(accounts, {
+				publicKey: Buffer.from(publicKey, 'hex'),
+			});
+			if (!found) {
+				account.missedBlocks += 1;
+			}
+		});
+
+		return accounts;
+	}
+
+	function getExpectedRoundRewards(blocks) {
+		const rewards = {};
+
+		const feesTotal = _.reduce(
+			blocks,
+			(fees, block) => {
+				return new Bignum(fees).plus(block.totalFee);
+			},
+			0
+		);
+
+		const rewardsTotal = _.reduce(
+			blocks,
+			(reward, block) => {
+				return new Bignum(reward).plus(block.reward);
+			},
+			0
+		);
+
+		const feesPerDelegate = new Bignum(feesTotal.toPrecision(15))
+			.dividedBy(slots.delegates)
+			.floor();
+		const feesRemaining = new Bignum(feesTotal.toPrecision(15)).minus(
+			feesPerDelegate.times(slots.delegates)
+		);
+
+		__testContext.debug(
+			`	Total fees: ${feesTotal.toString()} Fees per delegates: ${feesPerDelegate.toString()} Remaining fees: ${feesRemaining}Total rewards: ${rewardsTotal}`
+		);
+
+		_.each(blocks, (block, index) => {
+			const publicKey = block.generatorPublicKey.toString('hex');
+			if (rewards[publicKey]) {
+				rewards[publicKey].fees = rewards[publicKey].fees.plus(
+					feesPerDelegate
+				);
+				rewards[publicKey].rewards = rewards[publicKey].rewards.plus(
+					block.reward
+				);
+			} else {
+				rewards[publicKey] = {
+					publicKey,
+					fees: new Bignum(feesPerDelegate),
+					rewards: new Bignum(block.reward),
+				};
+			}
+
+			if (index === blocks.length - 1) {
+				// Apply remaining fees to last delegate
+				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesRemaining);
+			}
+		});
+
+		_.each(rewards, delegate => {
+			delegate.fees = delegate.fees.toString();
+			delegate.rewards = delegate.rewards.toString();
+		});
+
+		return rewards;
+	}
+
+	function addTransaction(transaction, cb) {
+		__testContext.debug(`	Add transaction ID: ${transaction.id}`);
+		// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
+		// See: modules.transport.__private.receiveTransaction
+		transaction = library.logic.transaction.objectNormalize(transaction);
+		library.balancesSequence.add(sequenceCb => {
+			library.modules.transactions.processUnconfirmedTransaction(
+				transaction,
+				true,
+				err => {
+					if (err) {
+						return setImmediate(sequenceCb, err.toString());
+					}
+					return setImmediate(sequenceCb, null, transaction.id);
+				}
+			);
+		}, cb);
+	}
+
+	function getNextForger(offset, cb) {
+		offset = !offset ? 1 : offset;
+		const lastBlock = library.modules.blocks.lastBlock.get();
+		const slot = slots.getSlotNumber(lastBlock.timestamp);
+		library.modules.delegates.generateDelegateList(
+			lastBlock.height + 1,
+			null,
+			(err, delegateList) => {
+				if (err) {
+					return cb(err);
+				}
+				const nextForger = delegateList[(slot + offset) % slots.delegates];
+				return cb(nextForger);
+			}
+		);
+	}
+
+	function forge(cb) {
+		const transactionPool = library.rewiredModules.transactions.__get__(
+			'__private.transactionPool'
+		);
+
+		async.waterfall(
+			[
+				transactionPool.fillPool,
+				function (waterCb) {
+					getNextForger(null, delegatePublicKey => {
+						waterCb(null, delegatePublicKey);
+					});
+				},
+				function (delegate, waterCb) {
+					let lastBlock = library.modules.blocks.lastBlock.get();
+					const slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
+					const keypair = keypairs[delegate];
+					__testContext.debug(
+						`		Last block height: ${lastBlock.height} Last block ID: ${
+							lastBlock.id
+							} Last block timestamp: ${
+							lastBlock.timestamp
+							} Next slot: ${slot} Next delegate PK: ${delegate} Next block timestamp: ${slots.getSlotTime(
+							slot
+						)}`
+					);
+					library.modules.blocks.process.generateBlock(
+						keypair,
+						slots.getSlotTime(slot),
+						err => {
+							if (err) {
+								return waterCb(err);
+							}
+							lastBlock = library.modules.blocks.lastBlock.get();
+							__testContext.debug(
+								`		New last block height: ${
+									lastBlock.height
+									} New last block ID: ${lastBlock.id}`
+							);
+							return waterCb(err);
+						}
+					);
+				},
+			],
+			cb
+		);
+	}
+
+	function addTransactionsAndForge(transactions, cb) {
+		async.waterfall(
+			[
+				function addTransactions(waterCb) {
+					async.eachSeries(
+						transactions,
+						(transaction, eachSeriesCb) => {
+							addTransaction(transaction, eachSeriesCb);
+						},
+						waterCb
+					);
+				},
+				forge,
+			],
+			cb
+		);
+	}
+
+	function tickAndValidate(transactions) {
+		const tick = {before: {}, after: {}};
+
+		describe('new block', () => {
+			before(() => {
+				tick.before.block = library.modules.blocks.lastBlock.get();
+				tick.before.round = slots.calcRound(tick.before.block.height);
+
+				return Promise.join(
+					getMemAccounts(),
+					getDelegates(),
+					generateDelegateListPromise(tick.before.block.height, null),
+					(_accounts, _delegates, _delegatesList) => {
+						tick.before.delegatesList = _delegatesList;
+						tick.before.accounts = _.cloneDeep(_accounts);
+						tick.before.delegates = _.cloneDeep(_delegates);
+					}
+				).then(() => {
+					return Promise.promisify(addTransactionsAndForge)(transactions).then(
+						() => {
+							tick.after.block = library.modules.blocks.lastBlock.get();
+							tick.after.round = slots.calcRound(tick.after.block.height);
+							// Detect last block of round
+							tick.isLastBlockOfRound =
+								tick.after.block.height % slots.delegates === 0;
+
+							return Promise.join(
+								getMemAccounts(),
+								getDelegates(),
+								generateDelegateListPromise(tick.after.block.height + 1, null),
+								(_accounts, _delegates, _delegatesList) => {
+									tick.after.accounts = _.cloneDeep(_accounts);
+									tick.after.delegates = _.cloneDeep(_delegates);
+									tick.after.delegatesList = _delegatesList;
+
+									if (tick.isLastBlockOfRound) {
+										return Promise.join(
+											Queries.getBlocks(tick.after.round),
+											Queries.getVoters(),
+											(_blocks, _voters) => {
+												tick.roundBlocks = _blocks;
+												tick.voters = _voters;
+											}
+										);
+									}
+								}
+							);
+						}
+					);
+				});
+			});
+
+			it('ID should be different than last block ID', () => {
+				return expect(tick.after.block.id).to.not.equal(tick.before.block.id);
+			});
+
+			it('height should be greather by 1', () => {
+				return expect(tick.after.block.height).to.equal(
+					tick.before.block.height + 1
+				);
+			});
+
+			it('should contain all expected transactions', done => {
+				_.each(transactions, transaction => {
+					const found = _.find(tick.after.block.transactions, {
+						id: transaction.id,
+					});
+					expect(found).to.be.an('object');
+				});
+				done();
+			});
+
+			it('unconfirmed account balances should match confirmed account balances', done => {
+				_.each(tick.after.accounts, account => {
+					expect(account.u_balance).to.be.equal(account.balance);
+				});
+				done();
+			});
+
+			describe('mem_accounts table', () => {
+				it('if block contains at least one transaction states before and after block should be different', done => {
+					if (transactions.length > 0) {
+						expect(tick.before.accounts).to.not.deep.equal(
+							tick.after.accounts
+						);
+					}
+					done();
+				});
+
+				it('delegates list should be the same for same round', () => {
+					if (tick.isLastBlockOfRound) {
+						return expect(tick.before.delegatesList).to.not.deep.equal(
+							tick.after.delegatesList
+						);
+					}
+
+					return expect(tick.before.delegatesList).to.deep.equal(
+						tick.after.delegatesList
+					);
+				});
+
+				it('accounts table states should match expected states', done => {
+					let expected;
+
+					expected = expectedMemState(transactions, tick.before.accounts);
+
+					// Last block of round - apply round expectactions
+					if (tick.isLastBlockOfRound) {
+						expected = applyRoundRewards(expected, tick.roundBlocks);
+						expected = recalculateVoteWeights(expected, tick.voters);
+						expected = applyOutsiders(
+							expected,
+							tick.before.delegatesList,
+							tick.roundBlocks
+						);
+					}
+
+					try {
+						expect(tick.after.accounts).to.deep.equal(expected);
+					} catch (err) {
+						__testContext.debug(err);
+					}
+					done();
+				});
+
+				it('balances should be valid against blockchain balances', () => {
+					// Perform validation of accounts balances against blockchain after every block
+					return expect(
+						Queries.validateAccountsBalances()
+					).to.eventually.be.an('array').that.is.empty;
+				});
+			});
+		});
+	}
+
 	describe('environment', () => {
 		describe('genesis block', () => {
 			var genesisBlock;
@@ -526,507 +1032,6 @@ describe('rounds', () => {
 				}
 			);
 		});
-
-		function getMemAccounts() {
-			return Queries.getAccounts().then(rows => {
-				return _.cloneDeep(normalizeMemAccounts(rows));
-			});
-		}
-
-		function normalizeMemAccounts(_accounts) {
-			const accounts = {};
-			_.map(_accounts, acc => {
-				accounts[acc.address] = acc;
-			});
-			return accounts;
-		}
-
-		function getDelegates() {
-			return Queries.getDelegates().then(rows => {
-				return _.cloneDeep(normalizeDelegates(rows));
-			});
-		}
-
-		function normalizeDelegates(_delegates) {
-			const delegates = {};
-			_.map(_delegates, d => {
-				d.publicKey = d.publicKey.toString('hex');
-				delegates[d.publicKey] = d;
-			});
-			return delegates;
-		}
-
-		function expectedMemState(transactions, _accounts) {
-			const accounts = _.cloneDeep(_accounts);
-			const lastBlock = library.modules.blocks.lastBlock.get();
-
-			// Update last block forger account
-			const found = _.find(accounts, {
-				publicKey: Buffer.from(lastBlock.generatorPublicKey, 'hex'),
-			});
-			if (found) {
-				found.producedBlocks += 1;
-				found.blockId = lastBlock.id;
-			}
-
-			_.each(transactions, transaction => {
-				let address =
-					transaction.senderId ||
-					library.modules.accounts.generateAddressByPublicKey(
-						transaction.senderPublicKey
-					);
-				if (accounts[address]) {
-					// Update sender
-					accounts[address].balance = new Bignum(accounts[address].balance)
-						.minus(
-							new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
-						)
-						.toString();
-					accounts[address].u_balance = new Bignum(accounts[address].u_balance)
-						.minus(
-							new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
-						)
-						.toString();
-					accounts[address].blockId = lastBlock.id;
-					accounts[address].virgin = 0;
-
-					// Set public key if not present
-					if (!accounts[address].publicKey) {
-						accounts[address].publicKey = Buffer.from(
-							transaction.senderPublicKey,
-							'hex'
-						);
-					}
-
-					// Register delegate
-					if (transaction.type === 2) {
-						accounts[address].username = transaction.asset.delegate.username;
-						accounts[address].u_username = accounts[address].username;
-						accounts[address].isDelegate = 1;
-						accounts[address].u_isDelegate = 1;
-					}
-				}
-
-				address = transaction.recipientId;
-				if (address) {
-					if (accounts[address]) {
-						// Update recipient
-						accounts[address].balance = new Bignum(accounts[address].balance)
-							.plus(new Bignum(transaction.amount))
-							.toString();
-						accounts[address].u_balance = new Bignum(
-							accounts[address].u_balance
-						)
-							.plus(new Bignum(transaction.amount))
-							.toString();
-						accounts[address].blockId = lastBlock.id;
-					} else {
-						// Funds sent to new account
-						accounts[address] = {
-							address,
-							balance: new Bignum(transaction.amount).toString(),
-							blockId: lastBlock.id,
-							delegates: null,
-							fees: '0',
-							isDelegate: 0,
-							missedBlocks: 0,
-							multilifetime: 0,
-							multimin: 0,
-							multisignatures: null,
-							nameexist: 0,
-							producedBlocks: 0,
-							publicKey: null,
-							rate: '0',
-							rewards: '0',
-							secondPublicKey: null,
-							secondSignature: 0,
-							u_balance: new Bignum(transaction.amount).toString(),
-							u_delegates: null,
-							u_isDelegate: 0,
-							u_multilifetime: 0,
-							u_multimin: 0,
-							u_multisignatures: null,
-							u_nameexist: 0,
-							u_secondSignature: 0,
-							u_username: null,
-							username: null,
-							virgin: 1,
-							vote: '0',
-						};
-					}
-				}
-			});
-			return accounts;
-		}
-
-		function applyRoundRewards(_accounts, blocks) {
-			const accounts = _.cloneDeep(_accounts);
-			const lastBlock = library.modules.blocks.lastBlock.get();
-
-			const expectedRewards = getExpectedRoundRewards(blocks);
-			_.each(expectedRewards, reward => {
-				const found = _.find(accounts, {
-					publicKey: Buffer.from(reward.publicKey, 'hex'),
-				});
-				if (found) {
-					found.blockId = lastBlock.id;
-					found.fees = new Bignum(found.fees)
-						.plus(new Bignum(reward.fees))
-						.toString();
-					found.rewards = new Bignum(found.rewards)
-						.plus(new Bignum(reward.rewards))
-						.toString();
-					found.balance = new Bignum(found.balance)
-						.plus(new Bignum(reward.fees))
-						.plus(new Bignum(reward.rewards))
-						.toString();
-					found.u_balance = new Bignum(found.u_balance)
-						.plus(new Bignum(reward.fees))
-						.plus(new Bignum(reward.rewards))
-						.toString();
-				}
-			});
-
-			return accounts;
-		}
-
-		function recalculateVoteWeights(_accounts, voters) {
-			const accounts = _.cloneDeep(_accounts);
-
-			// Reset vote for all accounts
-			_.each(accounts, account => {
-				account.vote = '0';
-			});
-
-			// Recalculate vote
-			_.each(voters, delegate => {
-				let votes = '0';
-				const found = _.find(accounts, {
-					publicKey: Buffer.from(delegate.dependentId, 'hex'),
-				});
-				expect(found).to.be.an('object');
-				_.each(delegate.array_agg, voter => {
-					const found = _.find(accounts, {
-						address: voter,
-					});
-					votes = new Bignum(votes).plus(new Bignum(found.balance)).toString();
-				});
-				found.vote = votes;
-			});
-
-			return accounts;
-		}
-
-		function applyOutsiders(_accounts, delegatesList, blocks) {
-			const accounts = _.cloneDeep(_accounts);
-
-			_.each(delegatesList, publicKey => {
-				const found = _.find(blocks, {
-					generatorPublicKey: Buffer.from(publicKey, 'hex'),
-				});
-				const account = _.find(accounts, {
-					publicKey: Buffer.from(publicKey, 'hex'),
-				});
-				if (!found) {
-					account.missedBlocks += 1;
-				}
-			});
-
-			return accounts;
-		}
-
-		function getExpectedRoundRewards(blocks) {
-			const rewards = {};
-
-			const feesTotal = _.reduce(
-				blocks,
-				(fees, block) => {
-					return new Bignum(fees).plus(block.totalFee);
-				},
-				0
-			);
-
-			const rewardsTotal = _.reduce(
-				blocks,
-				(reward, block) => {
-					return new Bignum(reward).plus(block.reward);
-				},
-				0
-			);
-
-			const feesPerDelegate = new Bignum(feesTotal.toPrecision(15))
-				.dividedBy(slots.delegates)
-				.floor();
-			const feesRemaining = new Bignum(feesTotal.toPrecision(15)).minus(
-				feesPerDelegate.times(slots.delegates)
-			);
-
-			__testContext.debug(
-				`	Total fees: ${feesTotal.toString()} Fees per delegates: ${feesPerDelegate.toString()} Remaining fees: ${feesRemaining}Total rewards: ${rewardsTotal}`
-			);
-
-			_.each(blocks, (block, index) => {
-				const publicKey = block.generatorPublicKey.toString('hex');
-				if (rewards[publicKey]) {
-					rewards[publicKey].fees = rewards[publicKey].fees.plus(
-						feesPerDelegate
-					);
-					rewards[publicKey].rewards = rewards[publicKey].rewards.plus(
-						block.reward
-					);
-				} else {
-					rewards[publicKey] = {
-						publicKey,
-						fees: new Bignum(feesPerDelegate),
-						rewards: new Bignum(block.reward),
-					};
-				}
-
-				if (index === blocks.length - 1) {
-					// Apply remaining fees to last delegate
-					rewards[publicKey].fees = rewards[publicKey].fees.plus(feesRemaining);
-				}
-			});
-
-			_.each(rewards, delegate => {
-				delegate.fees = delegate.fees.toString();
-				delegate.rewards = delegate.rewards.toString();
-			});
-
-			return rewards;
-		}
-
-		function addTransaction(transaction, cb) {
-			__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-			// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
-			// See: modules.transport.__private.receiveTransaction
-			transaction = library.logic.transaction.objectNormalize(transaction);
-			library.balancesSequence.add(sequenceCb => {
-				library.modules.transactions.processUnconfirmedTransaction(
-					transaction,
-					true,
-					err => {
-						if (err) {
-							return setImmediate(sequenceCb, err.toString());
-						}
-						return setImmediate(sequenceCb, null, transaction.id);
-					}
-				);
-			}, cb);
-		}
-
-		function getNextForger(offset, cb) {
-			offset = !offset ? 1 : offset;
-			const lastBlock = library.modules.blocks.lastBlock.get();
-			const slot = slots.getSlotNumber(lastBlock.timestamp);
-			library.modules.delegates.generateDelegateList(
-				lastBlock.height + 1,
-				null,
-				(err, delegateList) => {
-					if (err) {
-						return cb(err);
-					}
-					const nextForger = delegateList[(slot + offset) % slots.delegates];
-					return cb(nextForger);
-				}
-			);
-		}
-
-		function forge(cb) {
-			const transactionPool = library.rewiredModules.transactions.__get__(
-				'__private.transactionPool'
-			);
-
-			async.waterfall(
-				[
-					transactionPool.fillPool,
-					function(waterCb) {
-						getNextForger(null, delegatePublicKey => {
-							waterCb(null, delegatePublicKey);
-						});
-					},
-					function(delegate, waterCb) {
-						let lastBlock = library.modules.blocks.lastBlock.get();
-						const slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
-						const keypair = keypairs[delegate];
-						__testContext.debug(
-							`		Last block height: ${lastBlock.height} Last block ID: ${
-								lastBlock.id
-							} Last block timestamp: ${
-								lastBlock.timestamp
-							} Next slot: ${slot} Next delegate PK: ${delegate} Next block timestamp: ${slots.getSlotTime(
-								slot
-							)}`
-						);
-						library.modules.blocks.process.generateBlock(
-							keypair,
-							slots.getSlotTime(slot),
-							err => {
-								if (err) {
-									return waterCb(err);
-								}
-								lastBlock = library.modules.blocks.lastBlock.get();
-								__testContext.debug(
-									`		New last block height: ${
-										lastBlock.height
-									} New last block ID: ${lastBlock.id}`
-								);
-								return waterCb(err);
-							}
-						);
-					},
-				],
-				cb
-			);
-		}
-
-		function addTransactionsAndForge(transactions, cb) {
-			async.waterfall(
-				[
-					function addTransactions(waterCb) {
-						async.eachSeries(
-							transactions,
-							(transaction, eachSeriesCb) => {
-								addTransaction(transaction, eachSeriesCb);
-							},
-							waterCb
-						);
-					},
-					forge,
-				],
-				cb
-			);
-		}
-
-		function tickAndValidate(transactions) {
-			const tick = { before: {}, after: {} };
-
-			describe('new block', () => {
-				before(() => {
-					tick.before.block = library.modules.blocks.lastBlock.get();
-					tick.before.round = slots.calcRound(tick.before.block.height);
-
-					return Promise.join(
-						getMemAccounts(),
-						getDelegates(),
-						generateDelegateListPromise(tick.before.block.height, null),
-						(_accounts, _delegates, _delegatesList) => {
-							tick.before.delegatesList = _delegatesList;
-							tick.before.accounts = _.cloneDeep(_accounts);
-							tick.before.delegates = _.cloneDeep(_delegates);
-						}
-					).then(() => {
-						return Promise.promisify(addTransactionsAndForge)(
-							transactions
-						).then(() => {
-							tick.after.block = library.modules.blocks.lastBlock.get();
-							tick.after.round = slots.calcRound(tick.after.block.height);
-							// Detect last block of round
-							tick.isLastBlockOfRound =
-								tick.after.block.height % slots.delegates === 0;
-
-							return Promise.join(
-								getMemAccounts(),
-								getDelegates(),
-								generateDelegateListPromise(tick.after.block.height + 1, null),
-								(_accounts, _delegates, _delegatesList) => {
-									tick.after.accounts = _.cloneDeep(_accounts);
-									tick.after.delegates = _.cloneDeep(_delegates);
-									tick.after.delegatesList = _delegatesList;
-
-									if (tick.isLastBlockOfRound) {
-										return Promise.join(
-											Queries.getBlocks(tick.after.round),
-											Queries.getVoters(),
-											(_blocks, _voters) => {
-												tick.roundBlocks = _blocks;
-												tick.voters = _voters;
-											}
-										);
-									}
-								}
-							);
-						});
-					});
-				});
-
-				it('ID should be different than last block ID', () => {
-					return expect(tick.after.block.id).to.not.equal(tick.before.block.id);
-				});
-
-				it('height should be greather by 1', () => {
-					return expect(tick.after.block.height).to.equal(
-						tick.before.block.height + 1
-					);
-				});
-
-				it('should contain all expected transactions', done => {
-					_.each(transactions, transaction => {
-						const found = _.find(tick.after.block.transactions, {
-							id: transaction.id,
-						});
-						expect(found).to.be.an('object');
-					});
-					done();
-				});
-
-				it('unconfirmed account balances should match confirmed account balances', done => {
-					_.each(tick.after.accounts, account => {
-						expect(account.u_balance).to.be.equal(account.balance);
-					});
-					done();
-				});
-
-				describe('mem_accounts table', () => {
-					it('if block contains at least one transaction states before and after block should be different', done => {
-						if (transactions.length > 0) {
-							expect(tick.before.accounts).to.not.deep.equal(
-								tick.after.accounts
-							);
-						}
-						done();
-					});
-
-					it('delegates list should be the same for same round', () => {
-						if (tick.isLastBlockOfRound) {
-							return expect(tick.before.delegatesList).to.not.deep.equal(
-								tick.after.delegatesList
-							);
-						}
-
-						return expect(tick.before.delegatesList).to.deep.equal(
-							tick.after.delegatesList
-						);
-					});
-
-					it('accounts table states should match expected states', () => {
-						let expected;
-
-						expected = expectedMemState(transactions, tick.before.accounts);
-
-						// Last block of round - apply round expectactions
-						if (tick.isLastBlockOfRound) {
-							expected = applyRoundRewards(expected, tick.roundBlocks);
-							expected = recalculateVoteWeights(expected, tick.voters);
-							expected = applyOutsiders(
-								expected,
-								tick.before.delegatesList,
-								tick.roundBlocks
-							);
-						}
-
-						return expect(tick.after.accounts).to.deep.equal(expected);
-					});
-
-					it('balances should be valid against blockchain balances', () => {
-						// Perform validation of accounts balances against blockchain after every block
-						return expect(
-							Queries.validateAccountsBalances()
-						).to.eventually.be.an('array').that.is.empty;
-					});
-				});
-			});
-		}
 
 		describe('forge block with 1 TRANSFER transaction to random account', () => {
 			const transactions = [];
