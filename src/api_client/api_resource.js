@@ -14,6 +14,7 @@
  */
 
 import * as popsicle from 'popsicle';
+import { API_RECONNECT_MAX_RETRY_COUNT } from './constants';
 
 export default class APIResource {
 	constructor(apiClient) {
@@ -34,31 +35,29 @@ export default class APIResource {
 		return `${this.apiClient.currentNode}/api${this.path}`;
 	}
 
-	request(req, retry) {
+	request(req, retry, retryCount = 1) {
 		const request = popsicle
 			.request(req)
 			.use(popsicle.plugins.parse(['json', 'urlencoded']))
 			.then(res => res.body);
 
 		if (retry) {
-			request.catch(err => this.handleRetry(err, req));
+			request.catch(err => this.handleRetry(err, req, retryCount));
 		}
 		return request;
 	}
 
-	handleRetry(error, req) {
+	handleRetry(error, req, retryCount) {
 		if (this.apiClient.hasAvailableNodes()) {
 			return new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
 				if (this.apiClient.randomizeNodes) {
 					this.apiClient.banActiveNodeAndSelect();
+				} else if (retryCount > API_RECONNECT_MAX_RETRY_COUNT) {
+					throw error;
 				}
-				return this.request(req, true);
+				return this.request(req, true, retryCount + 1);
 			});
 		}
-		return Promise.resolve({
-			success: false,
-			error,
-			message: 'Could not create an HTTP request to any known nodes.',
-		});
+		return Promise.reject(error);
 	}
 }
