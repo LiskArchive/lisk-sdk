@@ -30,7 +30,6 @@ describe('API resource module', () => {
 		minVersion: '>=0.5.0',
 		port: '443',
 	};
-	const defaultError = new Error('network error');
 	const defaultRequest = {
 		method: GET,
 		url: defaultFullPath,
@@ -89,8 +88,10 @@ describe('API resource module', () => {
 	describe('#request', () => {
 		let popsicleStub;
 		let handleRetryStub;
+		let defaultError;
 
 		beforeEach(() => {
+			defaultError = new Error('could not connect to a node');
 			popsicleStub = sandbox.stub(popsicle, 'request').returns({
 				use: () => Promise.resolve(sendRequestResult),
 			});
@@ -128,7 +129,9 @@ describe('API resource module', () => {
 
 	describe('#handleRetry', () => {
 		let requestStub;
+		let defaultError;
 		beforeEach(() => {
+			defaultError = new Error('could not connect to a node');
 			requestStub = sandbox
 				.stub(resource, 'request')
 				.returns(Promise.resolve(sendRequestResult.body));
@@ -150,7 +153,7 @@ describe('API resource module', () => {
 
 			it('should call banActiveNode when randomizeNodes is true', () => {
 				apiClient.randomizeNodes = true;
-				const req = resource.handleRetry(defaultError, defaultRequest);
+				const req = resource.handleRetry(defaultError, defaultRequest, 1);
 				clock.tick(1000);
 				return req.then(res => {
 					expect(apiClient.banActiveNodeAndSelect).to.be.calledOnce;
@@ -161,13 +164,20 @@ describe('API resource module', () => {
 
 			it('should not call ban active node when randomizeNodes is false', () => {
 				apiClient.randomizeNodes = false;
-				const req = resource.handleRetry(defaultError, defaultRequest);
+				const req = resource.handleRetry(defaultError, defaultRequest, 1);
 				clock.tick(1000);
 				return req.then(res => {
 					expect(apiClient.banActiveNodeAndSelect).not.to.be.called;
 					expect(requestStub).to.be.calledWith(defaultRequest, true);
 					return expect(res).to.be.eql(sendRequestResult.body);
 				});
+			});
+
+			it('should throw an error when randomizeNodes is false and the maximum retry count has been reached', () => {
+				apiClient.randomizeNodes = false;
+				const req = resource.handleRetry(defaultError, defaultRequest, 4);
+				clock.tick(1000);
+				return expect(req).to.be.rejectedWith(defaultError);
 			});
 		});
 
@@ -177,13 +187,9 @@ describe('API resource module', () => {
 				return Promise.resolve();
 			});
 
-			it('should resolve with failure response', () => {
-				const req = resource.handleRetry(defaultError, defaultRequest);
-				return expect(req).eventually.to.eql({
-					success: false,
-					error: defaultError,
-					message: 'Could not create an HTTP request to any known nodes.',
-				});
+			it('should throw an error that is the same as input error', () => {
+				const res = resource.handleRetry(defaultError, defaultRequest, 1);
+				return expect(res).to.be.rejectedWith(defaultError);
 			});
 		});
 	});

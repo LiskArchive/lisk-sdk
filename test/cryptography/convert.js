@@ -141,6 +141,15 @@ describe('convert', () => {
 			const address = toAddress(bufferInit);
 			return expect(address).to.be.eql(defaultAddressFromBuffer);
 		});
+
+		it('should throw on more than 8 bytes as input', () => {
+			const bufferExceedError =
+				'The buffer for Lisk addresses must not have more than 8 bytes';
+			const bufferInit = Buffer.from(defaultStringWithMoreThanEightCharacters);
+			return expect(toAddress.bind(null, bufferInit)).to.throw(
+				bufferExceedError,
+			);
+		});
 	});
 
 	describe('#getAddressFromPublicKey', () => {
