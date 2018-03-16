@@ -14,14 +14,15 @@
 
 'use strict';
 
-var apiCodes = require('../../helpers/api_codes.js');
-var ApiError = require('../../helpers/api_error.js');
-var sortBy = require('../../helpers/sort_by.js').sortBy;
+const apiCodes = require('../../helpers/api_codes.js');
+const ApiError = require('../../helpers/api_error.js');
+const sortBy = require('../../helpers/sort_by.js').sortBy;
 
-var library;
-var self;
-var __private = {};
-var modules; // eslint-disable-line no-unused-vars
+let library;
+let self;
+const __private = {};
+// eslint-disable-next-line no-unused-vars
+var modules;
 /**
  * Main API logic. Allows get information. Initializes library.
  *
@@ -38,19 +39,21 @@ var modules; // eslint-disable-line no-unused-vars
  * @param {Sequence} dbSequence
  * @todo Add description for the params
  */
-function API(logger, db, block, schema, dbSequence) {
-	library = {
-		logger,
-		db,
-		schema,
-		dbSequence,
-		logic: {
-			block,
-		},
-	};
-	self = this;
-	library.logger.trace('Blocks->API: Submodule initialized.');
-	return self;
+class API {
+	constructor(logger, db, block, schema, dbSequence) {
+		library = {
+			logger,
+			db,
+			schema,
+			dbSequence,
+			logic: {
+				block,
+			},
+		};
+		self = this;
+		library.logger.trace('Blocks->API: Submodule initialized.');
+		return self;
+	}
 }
 
 /**
@@ -76,8 +79,8 @@ function API(logger, db, block, schema, dbSequence) {
  * @returns {Object} cb.data - List of normalized blocks
  */
 __private.list = function(filter, cb) {
-	var params = {};
-	var where = [];
+	const params = {};
+	const where = [];
 
 	if (filter.id) {
 		where.push('"b_id" = ${id}');
@@ -139,7 +142,7 @@ __private.list = function(filter, cb) {
 		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
-	var sort = sortBy(filter.sort || 'height:desc', {
+	const sort = sortBy(filter.sort || 'height:desc', {
 		sortFields: library.db.blocks.sortFields,
 		fieldPrefix: 'b_',
 	});
@@ -161,11 +164,13 @@ __private.list = function(filter, cb) {
 			)
 		)
 		.then(rows => {
-			var blocks = [];
+			const blocks = [];
+			const rowCount = rows.length;
 			// Normalize blocks
-			for (var i = 0; i < rows.length; i++) {
+			for (let i = 0; i < rowCount; i++) {
 				// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-				blocks.push(library.logic.block.dbRead(rows[i]));
+				const block = library.logic.block.dbRead(rows[i]);
+				blocks.push(block);
 			}
 			return setImmediate(cb, null, blocks);
 		})
@@ -190,10 +195,11 @@ API.prototype.getBlocks = function(filters, cb) {
 	library.dbSequence.add(cb => {
 		__private.list(filters, (err, data) => {
 			if (err) {
-				return setImmediate(
-					cb,
-					new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR)
+				const errObject = new ApiError(
+					err[0].message,
+					apiCodes.INTERNAL_SERVER_ERROR
 				);
+				return setImmediate(cb, errObject);
 			}
 
 			return setImmediate(cb, null, data);
