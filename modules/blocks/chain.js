@@ -14,14 +14,14 @@
 
 'use strict';
 
-var Promise = require('bluebird');
-var async = require('async');
-var transactionTypes = require('../../helpers/transaction_types.js');
+const Promise = require('bluebird');
+const async = require('async');
+const transactionTypes = require('../../helpers/transaction_types.js');
 
-var modules;
-var library;
-var self;
-var __private = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 /**
  * Main chain logic. Allows set information. Initializes library.
@@ -41,30 +41,32 @@ var __private = {};
  * @param {Sequence} balancesSequence
  * @todo Add description for the params
  */
-function Chain(
-	logger,
-	block,
-	transaction,
-	db,
-	genesisblock,
-	bus,
-	balancesSequence
-) {
-	library = {
+class Chain {
+	constructor(
 		logger,
+		block,
+		transaction,
 		db,
 		genesisblock,
 		bus,
-		balancesSequence,
-		logic: {
-			block,
-			transaction,
-		},
-	};
-	self = this;
+		balancesSequence
+	) {
+		library = {
+			logger,
+			db,
+			genesisblock,
+			bus,
+			balancesSequence,
+			logic: {
+				block,
+				transaction,
+			},
+		};
+		self = this;
 
-	library.logger.trace('Blocks->Chain: Submodule initialized.');
-	return self;
+		library.logger.trace('Blocks->Chain: Submodule initialized.');
+		return self;
+	}
 }
 
 /**
@@ -80,7 +82,7 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 	library.db.blocks
 		.getGenesisBlockId(library.genesisblock.block.id)
 		.then(rows => {
-			var blockId = rows.length && rows[0].id;
+			const blockId = rows.length && rows[0].id;
 
 			if (!blockId) {
 				// If there is no block with genesis ID - save to database
@@ -115,7 +117,7 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 	});
 
 	function saveBlockBatch(tx) {
-		var promises = [tx.blocks.save(block)];
+		const promises = [tx.blocks.save(block)];
 
 		if (block.transactions.length) {
 			promises.push(tx.transactions.save(block.transactions));
@@ -217,7 +219,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		return 0;
 	});
 	// Initialize block progress tracker
-	var tracker = modules.blocks.utils.getBlockProgressLogger(
+	const tracker = modules.blocks.utils.getBlockProgressLogger(
 		block.transactions.length,
 		block.transactions.length / 100,
 		'Genesis block loading'
@@ -307,15 +309,15 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
  */
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 	// Transactions to rewind in case of error.
-	var appliedTransactions = {};
+	let appliedTransactions = {};
 
-	var undoUnconfirmedListStep = function(tx) {
+	const undoUnconfirmedListStep = function(tx) {
 		return new Promise((resolve, reject) => {
 			modules.transactions.undoUnconfirmedList(err => {
 				if (err) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error('Failed to undo unconfirmed list', err);
-					var errObj = new Error('Failed to undo unconfirmed list');
+					const errObj = new Error('Failed to undo unconfirmed list');
 					reject(errObj);
 				} else {
 					return setImmediate(resolve);
@@ -333,7 +335,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
-	var applyUnconfirmedStep = function(tx) {
+	const applyUnconfirmedStep = function(tx) {
 		return Promise.mapSeries(
 			block.transactions,
 			transaction =>
@@ -415,7 +417,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 	 * @todo Add description for the function and the params
 	 * @todo Add @returns tag
 	 */
-	var applyConfirmedStep = function(tx) {
+	const applyConfirmedStep = function(tx) {
 		return Promise.mapSeries(
 			block.transactions,
 			transaction =>
@@ -479,7 +481,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 	 * @todo Add description for the function and the params
 	 * @todo Add @returns tag
 	 */
-	var saveBlockStep = function(tx) {
+	const saveBlockStep = function(tx) {
 		return new Promise((resolve, reject) => {
 			modules.blocks.lastBlock.set(block);
 
@@ -492,7 +494,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 							// Fatal error, memory tables will be inconsistent
 							library.logger.error('Failed to save block...', err);
 							library.logger.error('Block', block);
-							var errObj = new Error('Failed to save block');
+							const errObj = new Error('Failed to save block');
 							reject(errObj);
 						}
 
@@ -684,7 +686,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
  * @returns {Object} cb.obj - New last block
  */
 Chain.prototype.deleteLastBlock = function(cb) {
-	var lastBlock = modules.blocks.lastBlock.get();
+	let lastBlock = modules.blocks.lastBlock.get();
 	library.logger.warn('Deleting last block', lastBlock);
 
 	if (lastBlock.height === 1) {
