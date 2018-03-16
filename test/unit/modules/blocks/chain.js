@@ -165,6 +165,8 @@ describe('blocks/chain', () => {
 			transactions: modulesTransactionsStub,
 		};
 
+		process.exit = sinonSandbox.stub().returns(0);
+
 		blocksChainModule.onBind(modulesStub);
 		modules = BlocksChain.__get__('modules');
 		done();
@@ -474,6 +476,19 @@ describe('blocks/chain', () => {
 		});
 	});
 
+	describe('asyncProcessExit', () => {
+		it('should call process exit with conde 0', done => {
+			blocksChainModule.asyncProcessExit(0, returns => {
+				expect(returns).to.equal('Killing the node, exit code: 0');
+				expect(loggerStub.error.args[0][0]).to.equal(
+					'Killing the node, exit code: 0'
+				);
+				expect(process.exit.callCount).to.equal(1);
+				done();
+			});
+		});
+	});
+
 	describe('applyGenesisBlock', () => {
 		let applyTransactionTemp;
 
@@ -516,11 +531,15 @@ describe('blocks/chain', () => {
 					);
 				});
 
-				it('should return process.exit(0)', done => {
-					process.exit = done;
-					blocksChainModule.applyGenesisBlock(blockWithTransactions, () => {
+				it('should call process.exit with 0', done => {
+					blocksChainModule.applyGenesisBlock(blockWithTransactions, result => {
 						expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
 							.true;
+						expect(loggerStub.error.args[0][0]).to.equal(
+							'Killing the node, exit code: 0'
+						);
+						expect(process.exit.callCount).to.equal(1);
+						expect(result).to.equal('Killing the node, exit code: 0');
 						done();
 					});
 				});
@@ -540,15 +559,21 @@ describe('blocks/chain', () => {
 						);
 					});
 
-					it('should return process.exit(0)', done => {
-						process.exit = done;
-						blocksChainModule.applyGenesisBlock(blockWithTransactions, err => {
-							expect(err).to.equal('applyTransaction-ERR');
-							expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to
-								.be.true;
-							expect(__private.applyTransaction.callCount).to.equal(1);
-							done();
-						});
+					it('should call process.exit with 0', done => {
+						blocksChainModule.applyGenesisBlock(
+							blockWithTransactions,
+							result => {
+								expect(
+									modules.blocks.utils.getBlockProgressLogger.callCount
+								).to.equal(1);
+								expect(loggerStub.error.args[0][0]).to.equal(
+									'Killing the node, exit code: 0'
+								);
+								expect(process.exit.callCount).to.equal(1);
+								expect(result).to.equal('Killing the node, exit code: 0');
+								done();
+							}
+						);
 					});
 				});
 
@@ -1241,14 +1266,17 @@ describe('blocks/chain', () => {
 						);
 					});
 
-					it('should return process.exit(0)', done => {
-						process.exit = done;
-						__private.popLastBlock(blockWithEmptyTransactions, () => {
+					it('should call process.exit with 0', done => {
+						__private.popLastBlock(blockWithEmptyTransactions, result => {
 							expect(loggerStub.error.args[0][0]).to.equal(
 								'Failed to perform backwards tick'
 							);
 							expect(loggerStub.error.args[0][1]).to.equal('backwardTick-ERR');
+							expect(loggerStub.error.args[1][0]).to.equal(
+								'Killing the node, exit code: 0'
+							);
 							expect(process.exit.callCount).to.equal(1);
+							expect(result).to.equal('Killing the node, exit code: 0');
 							done();
 						});
 					});
@@ -1278,13 +1306,17 @@ describe('blocks/chain', () => {
 							);
 						});
 
-						it('should call process.exit(0)', done => {
-							process.exit = done;
-							__private.popLastBlock(blockWithEmptyTransactions, () => {
+						it('should call process.exit with 0', done => {
+							__private.popLastBlock(blockWithEmptyTransactions, result => {
 								expect(loggerStub.error.args[0][0]).to.equal(
 									'Failed to delete block'
 								);
 								expect(loggerStub.error.args[0][1]).to.equal('deleteBlock-ERR');
+								expect(loggerStub.error.args[1][0]).to.equal(
+									'Killing the node, exit code: 0'
+								);
+								expect(process.exit.callCount).to.equal(1);
+								expect(result).to.equal('Killing the node, exit code: 0');
 								done();
 							});
 						});
@@ -1322,13 +1354,17 @@ describe('blocks/chain', () => {
 						);
 					});
 
-					it('should return process.exit(0)', done => {
-						process.exit = done;
-						__private.popLastBlock(blockWithTransactions, () => {
+					it('should return process.exit with 0', done => {
+						__private.popLastBlock(blockWithTransactions, result => {
 							expect(loggerStub.error.args[0][0]).to.equal(
 								'Failed to undo transactions'
 							);
 							expect(loggerStub.error.args[0][1]).to.equal('getAccount-ERR');
+							expect(loggerStub.error.args[1][0]).to.equal(
+								'Killing the node, exit code: 0'
+							);
+							expect(process.exit.callCount).to.equal(1);
+							expect(result).to.equal('Killing the node, exit code: 0');
 							done();
 						});
 					});
@@ -1360,15 +1396,19 @@ describe('blocks/chain', () => {
 							);
 						});
 
-						it('should return process.exit(0)', done => {
-							process.exit = done;
-							__private.popLastBlock(blockWithTransactions, () => {
+						it('should return process.exit with 0', done => {
+							__private.popLastBlock(blockWithTransactions, result => {
 								expect(loggerStub.error.args[0][0]).to.equal(
 									'Failed to perform backwards tick'
 								);
 								expect(loggerStub.error.args[0][1]).to.equal(
 									'backwardTick-ERR'
 								);
+								expect(loggerStub.error.args[1][0]).to.equal(
+									'Killing the node, exit code: 0'
+								);
+								expect(process.exit.callCount).to.equal(1);
+								expect(result).to.equal('Killing the node, exit code: 0');
 								done();
 							});
 						});
@@ -1397,15 +1437,19 @@ describe('blocks/chain', () => {
 								);
 							});
 
-							it('should return process.exit(0)', done => {
-								process.exit = done;
-								__private.popLastBlock(blockWithTransactions, () => {
+							it('should return process.exit with 0', done => {
+								__private.popLastBlock(blockWithTransactions, result => {
 									expect(loggerStub.error.args[0][0]).to.equal(
 										'Failed to delete block'
 									);
 									expect(loggerStub.error.args[0][1]).to.equal(
 										'deleteBlock-ERR'
 									);
+									expect(loggerStub.error.args[1][0]).to.equal(
+										'Killing the node, exit code: 0'
+									);
+									expect(process.exit.callCount).to.equal(1);
+									expect(result).to.equal('Killing the node, exit code: 0');
 									done();
 								});
 							});
