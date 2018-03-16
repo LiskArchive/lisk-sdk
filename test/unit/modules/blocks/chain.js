@@ -479,9 +479,11 @@ describe('blocks/chain', () => {
 	describe('asyncProcessExit', () => {
 		it('should call process exit with conde 0', done => {
 			blocksChainModule.asyncProcessExit(0, returns => {
-				expect(returns).to.equal('Killing the node, exit code: 0');
+				expect(returns).to.equal(
+					'Cannot proceed after block apply/remove failed, exiting with code: 0'
+				);
 				expect(loggerStub.error.args[0][0]).to.equal(
-					'Killing the node, exit code: 0'
+					'Cannot proceed after block apply/remove failed, exiting with code: 0'
 				);
 				expect(process.exit.callCount).to.equal(1);
 				done();
@@ -536,10 +538,12 @@ describe('blocks/chain', () => {
 						expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
 							.true;
 						expect(loggerStub.error.args[0][0]).to.equal(
-							'Killing the node, exit code: 0'
+							'Cannot proceed after block apply/remove failed, exiting with code: 0'
 						);
 						expect(process.exit.callCount).to.equal(1);
-						expect(result).to.equal('Killing the node, exit code: 0');
+						expect(result).to.equal(
+							'Cannot proceed after block apply/remove failed, exiting with code: 0'
+						);
 						done();
 					});
 				});
@@ -567,10 +571,12 @@ describe('blocks/chain', () => {
 									modules.blocks.utils.getBlockProgressLogger.callCount
 								).to.equal(1);
 								expect(loggerStub.error.args[0][0]).to.equal(
-									'Killing the node, exit code: 0'
+									'Cannot proceed after block apply/remove failed, exiting with code: 0'
 								);
 								expect(process.exit.callCount).to.equal(1);
-								expect(result).to.equal('Killing the node, exit code: 0');
+								expect(result).to.equal(
+									'Cannot proceed after block apply/remove failed, exiting with code: 0'
+								);
 								done();
 							}
 						);
@@ -1273,10 +1279,12 @@ describe('blocks/chain', () => {
 							);
 							expect(loggerStub.error.args[0][1]).to.equal('backwardTick-ERR');
 							expect(loggerStub.error.args[1][0]).to.equal(
-								'Killing the node, exit code: 0'
+								'Cannot proceed after block apply/remove failed, exiting with code: 0'
 							);
 							expect(process.exit.callCount).to.equal(1);
-							expect(result).to.equal('Killing the node, exit code: 0');
+							expect(result).to.equal(
+								'Cannot proceed after block apply/remove failed, exiting with code: 0'
+							);
 							done();
 						});
 					});
@@ -1313,10 +1321,12 @@ describe('blocks/chain', () => {
 								);
 								expect(loggerStub.error.args[0][1]).to.equal('deleteBlock-ERR');
 								expect(loggerStub.error.args[1][0]).to.equal(
-									'Killing the node, exit code: 0'
+									'Cannot proceed after block apply/remove failed, exiting with code: 0'
 								);
 								expect(process.exit.callCount).to.equal(1);
-								expect(result).to.equal('Killing the node, exit code: 0');
+								expect(result).to.equal(
+									'Cannot proceed after block apply/remove failed, exiting with code: 0'
+								);
 								done();
 							});
 						});
@@ -1361,10 +1371,12 @@ describe('blocks/chain', () => {
 							);
 							expect(loggerStub.error.args[0][1]).to.equal('getAccount-ERR');
 							expect(loggerStub.error.args[1][0]).to.equal(
-								'Killing the node, exit code: 0'
+								'Cannot proceed after block apply/remove failed, exiting with code: 0'
 							);
 							expect(process.exit.callCount).to.equal(1);
-							expect(result).to.equal('Killing the node, exit code: 0');
+							expect(result).to.equal(
+								'Cannot proceed after block apply/remove failed, exiting with code: 0'
+							);
 							done();
 						});
 					});
@@ -1405,10 +1417,12 @@ describe('blocks/chain', () => {
 									'backwardTick-ERR'
 								);
 								expect(loggerStub.error.args[1][0]).to.equal(
-									'Killing the node, exit code: 0'
+									'Cannot proceed after block apply/remove failed, exiting with code: 0'
 								);
 								expect(process.exit.callCount).to.equal(1);
-								expect(result).to.equal('Killing the node, exit code: 0');
+								expect(result).to.equal(
+									'Cannot proceed after block apply/remove failed, exiting with code: 0'
+								);
 								done();
 							});
 						});
@@ -1446,10 +1460,12 @@ describe('blocks/chain', () => {
 										'deleteBlock-ERR'
 									);
 									expect(loggerStub.error.args[1][0]).to.equal(
-										'Killing the node, exit code: 0'
+										'Cannot proceed after block apply/remove failed, exiting with code: 0'
 									);
 									expect(process.exit.callCount).to.equal(1);
-									expect(result).to.equal('Killing the node, exit code: 0');
+									expect(result).to.equal(
+										'Cannot proceed after block apply/remove failed, exiting with code: 0'
+									);
 									done();
 								});
 							});

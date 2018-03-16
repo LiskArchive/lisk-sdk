@@ -207,7 +207,7 @@ Chain.prototype.deleteAfterBlock = function(blockId, cb) {
  * @returns {Object} cb.err - Error if occurred
  */
 Chain.prototype.asyncProcessExit = function(code, cb) {
-	const error = `Killing the node, exit code: ${code}`;
+	const error = `Cannot proceed after block apply/remove failed, exiting with code: ${code}`;
 	library.logger.error(error);
 	process.exit(code);
 	return setImmediate(cb, error);
