@@ -44,7 +44,17 @@ export const getFirstEightBytesReversed = publicKeyBytes =>
 		.slice(0, 8)
 		.reverse();
 
-export const toAddress = buffer => `${bufferToBigNumberString(buffer)}L`;
+export const toAddress = buffer => {
+	if (
+		!Buffer.from(buffer)
+			.slice(0, 8)
+			.equals(buffer)
+	)
+		throw new Error(
+			'The buffer for Lisk addresses must not have more than 8 bytes',
+		);
+	return `${bufferToBigNumberString(buffer)}L`;
+};
 
 export const getAddressFromPublicKey = publicKey => {
 	const publicKeyHash = hash(publicKey, 'hex');
