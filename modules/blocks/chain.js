@@ -200,6 +200,20 @@ Chain.prototype.deleteAfterBlock = function(blockId, cb) {
 };
 
 /**
+ * Calls process.exit() based on entry code
+ *
+ * @param {number} code - ID of block to begin with
+ * @param {function} cb - Callback function
+ * @returns {Object} cb.err - Error if occurred
+ */
+Chain.prototype.asyncProcessExit = function(code, cb) {
+	const error = `Killing the node, exit code: ${code}`;
+	library.logger.error(error);
+	process.exit(code);
+	return setImmediate(cb, error);
+};
+
+/**
  * Apply genesis block's transactions to blockchain.
  *
  * @param {Object} block - Full normalized genesis block
@@ -248,7 +262,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		err => {
 			if (err) {
 				// If genesis block is invalid, kill the node...
-				return process.exit(0);
+				return self.asyncProcessExit(0, cb);
 			}
 			// Set genesis block as last block
 			modules.blocks.lastBlock.set(block);
@@ -601,7 +615,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 							// Fatal error, memory tables will be inconsistent
 							library.logger.error('Failed to undo transactions', err);
 
-							return process.exit(0);
+							return self.asyncProcessExit(0, cb);
 						}
 
 						// Perform backward tick on rounds
@@ -611,7 +625,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 								// Fatal error, memory tables will be inconsistent
 								library.logger.error('Failed to perform backwards tick', err);
 
-								return process.exit(0);
+								return self.asyncProcessExit(0, cb);
 							}
 
 							// Delete last block from blockchain
@@ -621,7 +635,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 									// Fatal error, memory tables will be inconsistent
 									library.logger.error('Failed to delete block', err);
 
-									return process.exit(0);
+									return self.asyncProcessExit(0, cb);
 								}
 
 								return setImmediate(cb, null, previousBlock);
