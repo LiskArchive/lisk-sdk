@@ -1109,9 +1109,9 @@ describe('rounds', () => {
 			const transactions = [];
 
 			before(done => {
-				const tx_cnt = 25;
+				const transactionsPerBlock = 25;
 
-				for (let i = tx_cnt - 1; i >= 0; i--) {
+				for (let i = transactionsPerBlock - 1; i >= 0; i--) {
 					const transaction = elements.transaction.createTransaction(
 						randomUtil.account().address,
 						randomUtil.number(100000000, 1000000000),
@@ -1126,15 +1126,15 @@ describe('rounds', () => {
 		});
 
 		describe('should forge 97 blocks with 1 TRANSFER transaction each to random account', () => {
-			const blocks_cnt = 97;
-			let blocks_processed = 0;
-			const tx_cnt = 1;
+			const blocksToForge = 97;
+			let blocksProcessed = 0;
+			const transactionsPerBlock = 1;
 
 			async.doUntil(
 				untilCb => {
-					++blocks_processed;
+					++blocksProcessed;
 					const transactions = [];
-					for (let t = tx_cnt - 1; t >= 0; t--) {
+					for (let t = transactionsPerBlock - 1; t >= 0; t--) {
 						const transaction = elements.transaction.createTransaction(
 							randomUtil.account().address,
 							randomUtil.number(100000000, 1000000000),
@@ -1144,7 +1144,7 @@ describe('rounds', () => {
 					}
 
 					__testContext.debug(
-						`	Processing block ${blocks_processed} of ${blocks_cnt} with ${
+						`	Processing block ${blocksProcessed} of ${blocksToForge} with ${
 							transactions.length
 						} transactions`
 					);
@@ -1152,7 +1152,7 @@ describe('rounds', () => {
 					untilCb();
 				},
 				err => {
-					return err || blocks_processed >= blocks_cnt;
+					return err || blocksProcessed >= blocksToForge;
 				}
 			);
 		});
@@ -1565,9 +1565,64 @@ describe('rounds', () => {
 			let expectedRewardsPerBlock;
 
 			describe('should forge 49 blocks with 1 TRANSFER transaction each to random account', () => {
-				const blocks_cnt = 49;
-				let blocks_processed = 0;
-				const tx_cnt = 1;
+				const blocksToForge = 49;
+				let blocksProcessed = 0;
+				const transactionsPerBlock = 1;
+
+				before(done => {
+					const transactionPool = library.rewiredModules.transactions.__get__(
+						'__private.transactionPool'
+					);
+					transactionPool.queued.transactions = [];
+
+					// Set expected reward per block
+					expectedRewardsPerBlock = 0;
+					done();
+				});
+
+				async.doUntil(
+					untilCb => {
+						++blocksProcessed;
+						const transactions = [];
+						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
+							const transaction = elements.transaction.createTransaction(
+								randomUtil.account().address,
+								randomUtil.number(100000000, 1000000000),
+								accountsFixtures.genesis.password
+							);
+							transactions.push(transaction);
+						}
+
+						__testContext.debug(
+							`	Processing block ${blocksProcessed} of ${blocksToForge} with ${
+								transactions.length
+							} transactions`
+						);
+						tickAndValidate(transactions);
+						untilCb();
+					},
+					err => {
+						return err || blocksProcessed >= blocksToForge;
+					}
+				);
+			});
+
+			describe('before rewards start', () => {
+				it('last block height should be at height 149', () => {
+					const lastBlock = library.modules.blocks.lastBlock.get();
+					return expect(lastBlock.height).to.equal(149);
+				});
+
+				it('block just before rewards start should have reward = 0', () => {
+					const lastBlock = library.modules.blocks.lastBlock.get();
+					return expect(lastBlock.reward).to.equal(expectedRewardsPerBlock);
+				});
+			});
+
+			describe('after rewards start', () => {
+				const blocksToForge = 53;
+				let blocksProcessed = 0;
+				const transactionsPerBlock = 1;
 
 				before(done => {
 					const transactionPool = library.rewiredModules.transactions.__get__(
@@ -1582,9 +1637,9 @@ describe('rounds', () => {
 
 				async.doUntil(
 					untilCb => {
-						++blocks_processed;
+						++blocksProcessed;
 						const transactions = [];
-						for (let t = tx_cnt - 1; t >= 0; t--) {
+						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
 							const transaction = elements.transaction.createTransaction(
 								randomUtil.account().address,
 								randomUtil.number(100000000, 1000000000),
@@ -1594,62 +1649,7 @@ describe('rounds', () => {
 						}
 
 						__testContext.debug(
-							`	Processing block ${blocks_processed} of ${blocks_cnt} with ${
-								transactions.length
-							} transactions`
-						);
-						tickAndValidate(transactions);
-						untilCb();
-					},
-					err => {
-						return err || blocks_processed >= blocks_cnt;
-					}
-				);
-			});
-
-			describe('before rewards start', () => {
-				it('last block height should be at height 149', () => {
-					const lastBlock = library.modules.blocks.lastBlock.get();
-					return expect(lastBlock.height).to.equal(149);
-				});
-
-				it('block just before rewards start should have reward = 0', () => {
-					const lastBlock = library.modules.blocks.lastBlock.get();
-					return expect(lastBlock.reward).to.equal(0);
-				});
-			});
-
-			describe('after rewards start', () => {
-				const blocks_cnt = 53;
-				let blocks_processed = 0;
-				const tx_cnt = 1;
-
-				before(done => {
-					const transactionPool = library.rewiredModules.transactions.__get__(
-						'__private.transactionPool'
-					);
-					transactionPool.queued.transactions = [];
-
-					// Set expected reward per block as first milestone
-					expectedRewardsPerBlock = constants.rewards.milestones[1];
-					done();
-				});
-
-				async.doUntil(
-					untilCb => {
-						++blocks_processed;
-						const transactions = [];
-						for (let t = tx_cnt - 1; t >= 0; t--) {
-							const transaction = elements.transaction.createTransaction(
-								randomUtil.account().address,
-								randomUtil.number(100000000, 1000000000),
-								accountsFixtures.genesis.password
-							);
-							transactions.push(transaction);
-						}
-
-						__testContext.debug(
-							`	Processing block ${blocks_processed} of ${blocks_cnt} with ${
+							`	Processing block ${blocksProcessed} of ${blocksToForge} with ${
 								transactions.length
 							} transactions`
 						);
@@ -1665,7 +1665,7 @@ describe('rounds', () => {
 						untilCb();
 					},
 					err => {
-						return err || blocks_processed >= blocks_cnt;
+						return err || blocksProcessed >= blocksToForge;
 					}
 				);
 			});
