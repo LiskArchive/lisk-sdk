@@ -40,7 +40,7 @@ export const locateUppercaseCharacters = passphrase => {
 	return positions;
 };
 
-export const locateWhitespaces = passphrase => {
+export const locateConsecutiveWhitespaces = passphrase => {
 	const positions = [];
 	const passphraseLength = passphrase.length;
 	const lastIndex = passphraseLength - 1;
@@ -97,7 +97,7 @@ export const getPassphraseValidationErrors = (passphrase, wordlist) => {
 			}. Please check the passphrase.`,
 			expected: expectedWhitespaces,
 			actual: whiteSpacesInPassphrase,
-			location: locateWhitespaces(passphrase),
+			location: locateConsecutiveWhitespaces(passphrase),
 		};
 		errors.push(whiteSpaceError);
 	}
