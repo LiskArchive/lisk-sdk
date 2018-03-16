@@ -63,6 +63,7 @@ class BlocksRepository {
 			'generatorPublicKey',
 			'blockSignature',
 		];
+		this.cs = cs;
 
 		if (!cs.insert) {
 			cs.insert = new pgp.helpers.ColumnSet(this.dbFields, {

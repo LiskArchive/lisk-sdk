@@ -14,8 +14,10 @@
 
 'use strict';
 
+const randomstring = require('randomstring');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const accountFixtures = require('../../../fixtures').accounts;
+const transactionsFixtures = require('../../../fixtures').transactions;
 const forksFixtures = require('../../../fixtures').forks;
 const delegatesSQL = require('../../../../db/sql').delegates;
 const seeder = require('../../../common/db_seed');
@@ -165,10 +167,50 @@ describe('db', () => {
 				return expect(db.one.firstCall.args[1]).to.eql([]);
 			});
 
-			// eslint-disable-next-line mocha/no-skipped-tests
-			it.skip('should return list of duplicate delegates', done => {
-				// TODO: Dependent on PR https://github.com/LiskHQ/lisk/pull/1607
-				done();
+			it('should return list of duplicate delegates', function*() {
+				const block = seeder.getLastBlock();
+
+				const trs1 = transactionsFixtures.Transaction({
+					blockId: block.id,
+					type: 2,
+				});
+				yield db.transactions.save(trs1);
+				yield db.query(
+					db.$config.pgp.helpers.insert(
+						{
+							transactionId: trs1.id,
+							username: randomstring.generate({
+								length: 10,
+								charset: 'alphabetic',
+							}),
+						},
+						null,
+						{ table: 'delegates' }
+					)
+				);
+
+				const trs2 = transactionsFixtures.Transaction({
+					blockId: block.id,
+					type: 2,
+				});
+				yield db.transactions.save(trs2);
+				yield db.query(
+					db.$config.pgp.helpers.insert(
+						{
+							transactionId: trs2.id,
+							username: randomstring.generate({
+								length: 10,
+								charset: 'alphabetic',
+							}),
+						},
+						null,
+						{ table: 'delegates' }
+					)
+				);
+
+				const result = yield db.delegates.countDuplicatedDelegates();
+
+				return expect(result).to.be.eql(2);
 			});
 		});
 	});
