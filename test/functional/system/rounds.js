@@ -63,14 +63,10 @@ describe('rounds', () => {
 				});
 		},
 		getBlocks: round => {
-			return library.db
-				.query(
-					'SELECT * FROM blocks WHERE CEIL(height / 101::float)::int = ${round} ORDER BY height ASC',
-					{ round }
-				)
-				.then(rows => {
-					return rows;
-				});
+			return library.db.query(
+				'SELECT * FROM blocks WHERE CEIL(height / 101::float)::int = ${round} ORDER BY height ASC',
+				{ round }
+			);
 		},
 		getRoundRewards: round => {
 			return library.db
@@ -91,13 +87,9 @@ describe('rounds', () => {
 				});
 		},
 		getVoters: () => {
-			return library.db
-				.query(
-					'SELECT "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"'
-				)
-				.then(rows => {
-					return rows;
-				});
+			return library.db.query(
+				'SELECT "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"'
+			);
 		},
 	};
 
