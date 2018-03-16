@@ -1620,10 +1620,68 @@ describe('rounds', () => {
 			});
 
 			describe('after rewards start', () => {
-				it('all blocks from now until round end should have proper rewards', done => {
+				const blocks_cnt = 53;
+				let blocks_processed = 0;
+				const tx_cnt = 1;
+
+				before(done => {
+					const transactionPool = library.rewiredModules.transactions.__get__(
+						'__private.transactionPool'
+					);
+					transactionPool.queued.transactions = [];
+
+					// Set expected reward per block as first milestone
+					expectedRewardsPerBlock = constants.rewards.milestones[1];
+					done();
 				});
 
-				it('rewards from table rounds_rewards should match rewards from blockchian', () => {
+				async.doUntil(
+					untilCb => {
+						++blocks_processed;
+						const transactions = [];
+						for (let t = tx_cnt - 1; t >= 0; t--) {
+							const transaction = elements.transaction.createTransaction(
+								randomUtil.account().address,
+								randomUtil.number(100000000, 1000000000),
+								accountsFixtures.genesis.password
+							);
+							transactions.push(transaction);
+						}
+
+						__testContext.debug(
+							`	Processing block ${blocks_processed} of ${blocks_cnt} with ${
+								transactions.length
+							} transactions`
+						);
+						tickAndValidate(transactions);
+
+						describe('rewards check', () => {
+							it('all blocks from now until round end should have proper rewards (5 LSK)', () => {
+								const lastBlock = library.modules.blocks.lastBlock.get();
+								return expect(lastBlock.reward).to.equal(expectedRewardsPerBlock);
+							});
+						});
+
+						untilCb();
+					},
+					err => {
+						return err || blocks_processed >= blocks_cnt;
+					}
+				);
+			});
+
+			describe('after finish round', () => {
+				it('should calculate rewards for round 2 correctly - all should be the same (native, rounds_rewards)', () => {
+					return Promise.join(
+						Queries.getBlocks(2),
+						Queries.getRoundRewards(2),
+						(_blocks, _rewards) => {
+							// Get expected rewards for round (native)
+							const expectedRewards = getExpectedRoundRewards(_blocks);
+							// Rewards from database table rounds_rewards should match native rewards
+							expect(_rewards).to.deep.equal(expectedRewards);
+						}
+					);
 				});
 			});
 		});
