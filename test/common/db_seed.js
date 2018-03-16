@@ -158,7 +158,7 @@ class DatabaseSeed {
 				const promises = [];
 
 				tables.forEach(table => {
-					promises.push(t.query(`TRUNCATE TABLE "${table}" CASCADE`));
+					promises.push(t.query('TRUNCATE TABLE ${table:name} CASCADE', { table }));
 				});
 
 				return t.batch(promises);
