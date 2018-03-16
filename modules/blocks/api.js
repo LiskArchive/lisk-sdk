@@ -36,16 +36,14 @@ var modules;
  * @param {Database} db
  * @param {Block} block
  * @param {ZSchema} schema
- * @param {Sequence} dbSequence
  * @todo Add description for the params
  */
 class API {
-	constructor(logger, db, block, schema, dbSequence) {
+	constructor(logger, db, block, schema) {
 		library = {
 			logger,
 			db,
 			schema,
-			dbSequence,
 			logic: {
 				block,
 			},
@@ -192,19 +190,16 @@ API.prototype.getBlocks = function(filters, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	library.dbSequence.add(cb => {
-		__private.list(filters, (err, data) => {
-			if (err) {
-				const errObject = new ApiError(
-					err[0].message,
-					apiCodes.INTERNAL_SERVER_ERROR
-				);
-				return setImmediate(cb, errObject);
-			}
+	__private.list(filters, (err, data) => {
+		if (err) {
+			return setImmediate(
+				cb,
+				new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR)
+			);
+		}
 
-			return setImmediate(cb, null, data);
-		});
-	}, cb);
+		return setImmediate(cb, null, data);
+	});
 };
 
 /**

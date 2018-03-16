@@ -15,7 +15,9 @@
 'use strict';
 
 const randomstring = require('randomstring');
+const faker = require('faker');
 const stampit = require('stampit');
+const transactionTypes = require('../../helpers/transaction_types');
 const Dapps = require('./dapps');
 
 const Transaction = stampit({
@@ -51,29 +53,83 @@ const Transaction = stampit({
 		this.type = type || 0;
 
 		switch (this.type) {
-			case 2:
-				this.asset.delegate.username = delegateName || 'DummyDelegate';
+			case transactionTypes.SEND:
+				this.asset.data = randomstring.generate({ length: 64 });
 				break;
 
-			case 3:
-				this.asset.votes = votes || [];
+			case transactionTypes.SIGNATURE:
+				this.asset.signature = {
+					publicKey: randomstring.generate({
+						charset: 'hex',
+						length: 64,
+						capitalization: 'lowercase',
+					}),
+				};
 				break;
 
-			case 5:
+			case transactionTypes.DELEGATE:
+				this.asset.delegate = {
+					username:
+						delegateName ||
+						randomstring.generate({ length: 10, charset: 'alphabetic' }),
+				};
+				break;
+
+			case transactionTypes.VOTE:
+				this.asset.votes = votes || [
+					randomstring.generate({
+						charset: 'hex',
+						length: 64,
+						capitalization: 'lowercase',
+					}),
+					randomstring.generate({
+						charset: 'hex',
+						length: 64,
+						capitalization: 'lowercase',
+					}),
+				];
+				break;
+
+			case transactionTypes.MULTI:
+				this.asset.multisignature = {
+					min: faker.random.number({ min: 2 }),
+					lifetime: +(new Date() / 1000).toFixed(),
+					keysgroup: [
+						randomstring.generate({
+							charset: 'hex',
+							length: 64,
+							capitalization: 'lowercase',
+						}),
+						randomstring.generate({
+							charset: 'hex',
+							length: 64,
+							capitalization: 'lowercase',
+						}),
+					],
+				};
+				break;
+
+			case transactionTypes.DAPP:
 				this.asset.dapp = Dapps.Dapp({ transactionId: this.id });
 				break;
 
-			case 6:
+			case transactionTypes.IN_TRANSFER:
 				this.asset.inTransfer = Dapps.OutTransfer({
-					dappId: dapp.id,
+					dappId: dapp
+						? dapp.id
+						: randomstring.generate({ length: 20, charset: 'numeric' }),
 					transactionId: this.id,
 				});
 				break;
 
-			case 7:
+			case transactionTypes.OUT_TRANSFER:
 				this.asset.outTransfer = Dapps.OutTransfer({
-					dappId: dapp.id,
-					transactionId: inTransfer.id,
+					dappId: dapp
+						? dapp.id
+						: randomstring.generate({ length: 20, charset: 'numeric' }),
+					transactionId: inTransfer
+						? inTransfer.id
+						: randomstring.generate({ length: 20, charset: 'numeric' }),
 					outTransactionId: this.id,
 				});
 				break;

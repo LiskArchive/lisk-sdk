@@ -34,7 +34,6 @@ describe('Posting transaction (type 0)', () => {
 	function postTransaction(transaction) {
 		transaction = normalizeTransactionObject(transaction);
 		wsTestClient.client.rpc.postTransactions({
-			peer: wsTestClient.headers,
 			transactions: [transaction],
 		});
 	}

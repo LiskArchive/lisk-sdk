@@ -63,8 +63,7 @@ class Blocks {
 				scope.logger,
 				scope.db,
 				scope.logic.block,
-				scope.schema,
-				scope.dbSequence
+				scope.schema
 			),
 			verify: new blocksVerify(
 				scope.logger,
@@ -79,7 +78,6 @@ class Blocks {
 				scope.logic.transaction,
 				scope.schema,
 				scope.db,
-				scope.dbSequence,
 				scope.sequence,
 				scope.genesisblock
 			),
@@ -89,7 +87,6 @@ class Blocks {
 				scope.logic.block,
 				scope.logic.transaction,
 				scope.db,
-				scope.dbSequence,
 				scope.genesisblock
 			),
 			chain: new blocksChain(

@@ -17,13 +17,13 @@
 
 var expect = require('chai').expect;
 var lisk = require('lisk-js');
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var localCommon = require('../common');
+var accountFixtures = require('../../../../fixtures/accounts');
+var randomUtil = require('../../../../common/utils/random');
+var localCommon = require('../../common');
 
 describe('system test (blocks) - chain/deleteLastBlock', () => {
 	var library;
-	localCommon.beforeBlock('system_blocks_chain_delete_last_block', lib => {
+	localCommon.beforeBlock('system_blocks_chain', lib => {
 		library = lib;
 	});
 

@@ -27,6 +27,10 @@ class DatabaseSeed {
 		return blocks;
 	}
 
+	static getLastBlock() {
+		return blocks[blocks.length - 1];
+	}
+
 	static getAccounts() {
 		return accounts;
 	}
@@ -145,15 +149,20 @@ class DatabaseSeed {
 			'mem_round',
 			'rounds_rewards',
 			'peers',
+			'trs',
+			'transfer',
 		];
-		const promises = [];
-
-		tables.forEach(table => {
-			promises.push(db.query(`TRUNCATE TABLE "${table}" CASCADE`));
-		});
 
 		return db
 			.task('db:seed:reset', t => {
+				const promises = [];
+
+				tables.forEach(table => {
+					promises.push(
+						t.query('TRUNCATE TABLE ${table:name} CASCADE', { table })
+					);
+				});
+
 				return t.batch(promises);
 			})
 			.then(() => {

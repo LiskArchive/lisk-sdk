@@ -42,7 +42,6 @@ let self;
  * @param {Transaction} transaction
  * @param {ZSchema} schema
  * @param {Database} db
- * @param {Sequence} dbSequence
  * @param {Sequence} sequence
  * @param {Object} genesisblock
  * @todo Add description for the params
@@ -55,7 +54,6 @@ class Process {
 		transaction,
 		schema,
 		db,
-		dbSequence,
 		sequence,
 		genesisblock
 	) {
@@ -63,7 +61,6 @@ class Process {
 			logger,
 			schema,
 			db,
-			dbSequence,
 			sequence,
 			genesisblock,
 			logic: {
@@ -369,85 +366,83 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 		offset,
 		verify,
 	});
-	// Execute in sequence via dbSequence
-	library.dbSequence.add(cb => {
-		// Loads full blocks from database
-		// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
-		library.db.blocks
-			.loadBlocksOffset(params.offset, params.limit)
-			.then(rows => {
-				// Normalize blocks
-				const blocks = modules.blocks.utils.readDbRows(rows);
 
-				async.eachSeries(
-					blocks,
-					(block, cb) => {
-						// Stop processing if node shutdown was requested
-						if (modules.blocks.isCleaning.get()) {
-							return setImmediate(cb);
-						}
+	// Loads full blocks from database
+	// FIXME: Weird logic in that SQL query, also ordering used can be performance bottleneck - to rewrite
+	library.db.blocks
+		.loadBlocksOffset(params.offset, params.limit)
+		.then(rows => {
+			// Normalize blocks
+			const blocks = modules.blocks.utils.readDbRows(rows);
 
-						library.logger.debug('Processing block', block.id);
+			async.eachSeries(
+				blocks,
+				(block, eachBlockSeriesCb) => {
+					// Stop processing if node shutdown was requested
+					if (modules.blocks.isCleaning.get()) {
+						return setImmediate(eachBlockSeriesCb);
+					}
 
-						if (verify && block.id !== library.genesisblock.block.id) {
-							async.series(
-								{
-									normalizeBlock(seriesCb) {
-										try {
-											block = library.logic.block.objectNormalize(block);
-										} catch (err) {
-											return setImmediate(seriesCb, err);
-										}
+					library.logger.debug('Processing block', block.id);
 
-										return setImmediate(seriesCb);
-									},
-									verifyBlock(seriesCb) {
-										// Sanity check of the block, if values are coherent.
-										// No access to database
-										const result = modules.blocks.verify.verifyBlock(block);
-
-										if (!result.verified) {
-											library.logger.error(
-												['Block', block.id, 'verification failed'].join(' '),
-												result.errors[0]
-											);
-											return setImmediate(seriesCb, result.errors[0]);
-										}
-										return setImmediate(seriesCb);
-									},
-								},
-								err => {
-									if (err) {
-										return setImmediate(cb, err);
+					if (verify && block.id !== library.genesisblock.block.id) {
+						async.series(
+							{
+								normalizeBlock(seriesCb) {
+									try {
+										block = library.logic.block.objectNormalize(block);
+									} catch (err) {
+										return setImmediate(seriesCb, err);
 									}
-									// Apply block - saveBlock: false
-									modules.blocks.chain.applyBlock(block, false, err => {
-										setImmediate(cb, err);
-									});
+
+									return setImmediate(seriesCb);
+								},
+								verifyBlock(seriesCb) {
+									// Sanity check of the block, if values are coherent.
+									// No access to database
+									var result = modules.blocks.verify.verifyBlock(block);
+
+									if (!result.verified) {
+										library.logger.error(
+											['Block', block.id, 'verification failed'].join(' '),
+											result.errors[0]
+										);
+										return setImmediate(seriesCb, result.errors[0]);
+									}
+									return setImmediate(seriesCb);
+								},
+							},
+							err => {
+								if (err) {
+									return setImmediate(eachBlockSeriesCb, err);
 								}
-							);
-						} else if (block.id === library.genesisblock.block.id) {
-							modules.blocks.chain.applyGenesisBlock(block, err => {
-								setImmediate(cb, err);
-							});
-						} else {
-							// Apply block - saveBlock: false
-							modules.blocks.chain.applyBlock(block, false, err => {
-								setImmediate(cb, err);
-							});
-						}
-					},
-					err => setImmediate(cb, err, modules.blocks.lastBlock.get())
-				);
-			})
-			.catch(err => {
-				library.logger.error(err);
-				return setImmediate(
-					cb,
-					['Blocks#loadBlocksOffset error', err].join(': ')
-				);
-			});
-	}, cb);
+								// Apply block - saveBlock: false
+								modules.blocks.chain.applyBlock(block, false, err => {
+									setImmediate(eachBlockSeriesCb, err);
+								});
+							}
+						);
+					} else if (block.id === library.genesisblock.block.id) {
+						modules.blocks.chain.applyGenesisBlock(block, err => {
+							setImmediate(eachBlockSeriesCb, err);
+						});
+					} else {
+						// Apply block - saveBlock: false
+						modules.blocks.chain.applyBlock(block, false, err => {
+							setImmediate(eachBlockSeriesCb, err);
+						});
+					}
+				},
+				err => setImmediate(cb, err, modules.blocks.lastBlock.get())
+			);
+		})
+		.catch(err => {
+			library.logger.error(err);
+			return setImmediate(
+				cb,
+				['Blocks#loadBlocksOffset error', err].join(': ')
+			);
+		});
 };
 
 /**

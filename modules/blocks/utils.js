@@ -37,24 +37,17 @@ let self;
  * @param {Block} block
  * @param {Transaction} transaction
  * @param {Database} db
- * @param {Sequence} dbSequence
  * @param {Object} genesisblock
  * @todo Add description for the params
  */
 class Utils {
-	constructor(
-		logger,
-		account,
-		block,
-		transaction,
-		db,
-		dbSequence,
-		genesisblock
-	) {
+	constructor(logger, account, block, transaction, db, genesisblock) {
 		library = {
 			logger,
+			account,
+			block,
+			transaction,
 			db,
-			dbSequence,
 			genesisblock,
 			logic: {
 				account,
@@ -63,7 +56,6 @@ class Utils {
 			},
 		};
 		self = this;
-
 		library.logger.trace('Blocks->Utils: Submodule initialized.');
 		return self;
 	}
@@ -156,39 +148,37 @@ Utils.prototype.loadBlocksPart = function(filter, cb) {
  * @returns {Object} cb.block - Full normalized last block
  */
 Utils.prototype.loadLastBlock = function(cb) {
-	library.dbSequence.add(cb => {
-		// Get full last block from database
-		// FIXME: Review SQL order by clause
-		library.db.blocks
-			.loadLastBlock()
-			.then(rows => {
-				// Normalize block
-				const block = modules.blocks.utils.readDbRows(rows)[0];
+	// Get full last block from database
+	// FIXME: Review SQL order by clause
+	library.db.blocks
+		.loadLastBlock()
+		.then(rows => {
+			// Normalize block
+			const block = modules.blocks.utils.readDbRows(rows)[0];
 
-				// Sort block's transactions
-				block.transactions = block.transactions.sort(a => {
-					if (block.id === library.genesisblock.block.id) {
-						if (a.type === transactionTypes.VOTE) {
-							return 1;
-						}
-					}
-
-					if (a.type === transactionTypes.SIGNATURE) {
+			// Sort block's transactions
+			block.transactions = block.transactions.sort(a => {
+				if (block.id === library.genesisblock.block.id) {
+					if (a.type === transactionTypes.VOTE) {
 						return 1;
 					}
+				}
 
-					return 0;
-				});
+				if (a.type === transactionTypes.SIGNATURE) {
+					return 1;
+				}
 
-				// Update last block
-				modules.blocks.lastBlock.set(block);
-				return setImmediate(cb, null, block);
-			})
-			.catch(err => {
-				library.logger.error(err.stack);
-				return setImmediate(cb, 'Blocks#loadLastBlock error');
+				return 0;
 			});
-	}, cb);
+
+			// Update last block
+			modules.blocks.lastBlock.set(block);
+			return setImmediate(cb, null, block);
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Blocks#loadLastBlock error');
+		});
 };
 
 /**
@@ -284,30 +274,27 @@ Utils.prototype.loadBlocksData = function(filter, cb) {
 		params.lastId = filter.lastId;
 	}
 
-	// Execute in sequence via dbSequence
-	library.dbSequence.add(cb => {
-		// Get height of block with supplied ID
-		library.db.blocks
-			.getHeightByLastId(filter.lastId || null)
-			.then(rows => {
-				const height = rows.length ? rows[0].height : 0;
-				// Calculate max block height for database query
-				const realLimit = height + (parseInt(filter.limit) || 1);
+	// Get height of block with supplied ID
+	library.db.blocks
+		.getHeightByLastId(filter.lastId || null)
+		.then(rows => {
+			const height = rows.length ? rows[0].height : 0;
+			// Calculate max block height for database query
+			const realLimit = height + (parseInt(filter.limit) || 1);
 
-				params.limit = realLimit;
-				params.height = height;
+			params.limit = realLimit;
+			params.height = height;
 
-				// Retrieve blocks from database
-				// FIXME: That SQL query have mess logic, need to be refactored
-				library.db.blocks
-					.loadBlocksData(Object.assign({}, filter, params))
-					.then(rows => setImmediate(cb, null, rows));
-			})
-			.catch(err => {
-				library.logger.error(err.stack);
-				return setImmediate(cb, 'Blocks#loadBlockData error');
-			});
-	}, cb);
+			// Retrieve blocks from database
+			// FIXME: That SQL query have mess logic, need to be refactored
+			library.db.blocks
+				.loadBlocksData(Object.assign({}, filter, params))
+				.then(rows => setImmediate(cb, null, rows));
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Blocks#loadBlockData error');
+		});
 };
 
 /**
