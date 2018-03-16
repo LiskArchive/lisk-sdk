@@ -709,15 +709,15 @@ describe('db', () => {
 					'hex'
 				);
 				transaction.signature = Buffer.from(transaction.signature, 'hex');
-				transaction.signSignature = transaction.signSignature
-					? Buffer.from(transaction.signSignature, 'hex')
-					: null;
-				transaction.requesterPublicKey = transaction.requesterPublicKey
-					? Buffer.from(transaction.requesterPublicKey, 'hex')
-					: null;
-				transaction.signatures = transaction.signatures
-					? transaction.signatures.join()
-					: null;
+				transaction.signSignature = Buffer.from(
+					transaction.signSignature,
+					'hex'
+				);
+				transaction.requesterPublicKey = Buffer.from(
+					transaction.requesterPublicKey,
+					'hex'
+				);
+				transaction.signatures = transaction.signatures.join();
 
 				// One call for trs table and one for transfer table
 				expect(db.$config.pgp.helpers.insert).to.have.callCount(2);

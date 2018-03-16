@@ -99,9 +99,7 @@ describe('db', () => {
 				return expect(db.$config.pgp.helpers.insert.secondCall.args).to.be.eql([
 					[
 						{
-							votes: Array.isArray(transaction.asset.votes)
-								? transaction.asset.votes.join()
-								: null,
+							votes: transaction.asset.votes.join(),
 							transactionId: transaction.id,
 						},
 					],

@@ -907,7 +907,7 @@ describe('db', () => {
 				block.payloadHash = Buffer.from(block.payloadHash, 'hex');
 				block.generatorPublicKey = Buffer.from(block.generatorPublicKey, 'hex');
 				block.blockSignature = Buffer.from(block.blockSignature, 'hex');
-				block.reward = block.reward || 0;
+				block.reward = block.reward;
 
 				return expect(db.$config.pgp.helpers.insert).to.be.calledWithExactly(
 					block,
