@@ -35,34 +35,22 @@ describe('rounds', () => {
 
 	const Queries = {
 		validateAccountsBalances: () => {
-			return library.db.query(validateAccountsBalancesQuery).then(rows => {
-				return rows;
-			});
+			return library.db.query(validateAccountsBalancesQuery);
 		},
 		getAccounts: () => {
-			return library.db.query('SELECT * FROM mem_accounts').then(rows => {
-				return rows;
-			});
+			return library.db.query('SELECT * FROM mem_accounts');
 		},
 		getDelegates: () => {
-			return library.db
-				.query(
-					'SELECT * FROM mem_accounts m LEFT JOIN delegates d ON d.username = m.username WHERE d."transactionId" IS NOT NULL'
-				)
-				.then(rows => {
-					return rows;
-				});
+			return library.db.query(
+				'SELECT * FROM mem_accounts m LEFT JOIN delegates d ON d.username = m.username WHERE d."transactionId" IS NOT NULL'
+			);
 		},
 		getDelegatesForList: () => {
-			return library.db
-				.query(
-					`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${
-						slots.delegates
-					}`
-				)
-				.then(rows => {
-					return rows;
-				});
+			return library.db.query(
+				`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${
+					slots.delegates
+				}`
+			);
 		},
 		getFullBlock: height => {
 			return library.db
