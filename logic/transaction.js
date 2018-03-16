@@ -912,7 +912,8 @@ class Transaction {
 									blockId: block.id,
 									round: slots.calcRound(block.height),
 								},
-								err => setImmediate(cb, err)
+								err => setImmediate(cb, err),
+								tx
 							);
 						} else {
 							return setImmediate(cb);
