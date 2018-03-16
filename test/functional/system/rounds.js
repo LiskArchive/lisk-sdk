@@ -1562,7 +1562,7 @@ describe('rounds', () => {
 
 	describe('round 2', () => {
 		describe('rounds rewards consistency', () => {
-			var expectedRewardsPerBlock;
+			let expectedRewardsPerBlock;
 
 			describe('should forge 49 blocks with 1 TRANSFER transaction each to random account', () => {
 				const blocks_cnt = 49;
@@ -1615,7 +1615,7 @@ describe('rounds', () => {
 
 				it('block just before rewards start should have reward = 0', () => {
 					const lastBlock = library.modules.blocks.lastBlock.get();
-					return expect(lastBlock.reward).to.equal(0);
+					return expect(lastBlock.reward).to.equal(expectedRewardsPerBlock);
 				});
 			});
 
