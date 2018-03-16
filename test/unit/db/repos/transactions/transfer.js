@@ -73,11 +73,39 @@ describe('db', () => {
 
 				expect(transferRepo.cs).to.be.an('object');
 				expect(transferRepo.cs).to.not.empty;
-				return expect(transferRepo.cs).to.have.all.keys('insert');
+				expect(transferRepo.cs).to.have.all.keys('insert');
+				return expect(
+					transferRepo.cs.insert.columns.map(c => c.name)
+				).to.be.eql(['data', 'transactionId']);
 			});
 		});
 
 		describe('save()', () => {
+			it('should use pgp.helpers.insert with correct parameters', function*() {
+				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
+
+				const block = seeder.getLastBlock();
+				const transaction = transactionsFixtures.Transaction({
+					blockId: block.id,
+					type: transactionTypes.TRANSFER,
+				});
+				yield db.transactions.save(transaction);
+
+				// One call for trs table and one for respective transaction type table
+				expect(db.$config.pgp.helpers.insert).to.have.callCount(2);
+
+				// Expect the second call for for respective transaction type
+				return expect(db.$config.pgp.helpers.insert.secondCall.args).to.be.eql([
+					[
+						{
+							transactionId: transaction.id,
+							data: Buffer.from(transaction.asset.data, 'utf8'),
+						},
+					],
+					transferRepo.cs.insert,
+				]);
+			});
+
 			it('should insert entry into "transfer" table for type 0 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];
