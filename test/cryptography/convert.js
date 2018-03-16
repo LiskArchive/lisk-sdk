@@ -38,11 +38,11 @@ describe('convert', () => {
 		'hex',
 	);
 	const defaultPrivateKeyCurve = Buffer.from(
-		'6073c8f6198112b558bb5a98d150f3a0e35fb2b7a9c192cae1bbf37752df1950',
+		'68b211b2c01cc88690ba76a07895a5b4805e1c11fdd3af4c863e6d4efeb14378',
 		'hex',
 	);
 	const defaultPublicKeyCurve = Buffer.from(
-		'd4e56ce5d0c7e2d4a9f05813ba37882985ee13a3f511bc6f99b905b2f87cdf11',
+		'6f9d780305bda43dd47a291d897f2d8845a06160632d82fb1f209fdd46ed3c1e',
 		'hex',
 	);
 	const defaultAddress = '18160565574430594874L';
@@ -167,7 +167,9 @@ describe('convert', () => {
 
 	describe('#convertPublicKeyEd2Curve', () => {
 		it('should convert publicKey ED25519 to Curve25519 key', () => {
-			const curveRepresentation = convertPublicKeyEd2Curve(defaultPublicKey);
+			const curveRepresentation = convertPublicKeyEd2Curve(
+				Buffer.from(defaultPublicKey, 'hex'),
+			);
 			return expect(
 				defaultPublicKeyCurve.equals(Buffer.from(curveRepresentation)),
 			).to.be.true;
@@ -176,7 +178,9 @@ describe('convert', () => {
 
 	describe('#convertPrivateKeyEd2Curve', () => {
 		it('should convert privateKey ED25519 to Curve25519 key', () => {
-			const curveRepresentation = convertPrivateKeyEd2Curve(defaultPrivateKey);
+			const curveRepresentation = convertPrivateKeyEd2Curve(
+				Buffer.from(defaultPrivateKey, 'hex'),
+			);
 			return expect(
 				defaultPrivateKeyCurve.equals(Buffer.from(curveRepresentation)),
 			).to.be.true;
