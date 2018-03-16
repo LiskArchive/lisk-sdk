@@ -76,11 +76,42 @@ describe('db', () => {
 
 				expect(signatureRepo.cs).to.be.an('object');
 				expect(signatureRepo.cs).to.not.empty;
-				return expect(signatureRepo.cs).to.have.all.keys('insert');
+				expect(signatureRepo.cs).to.have.all.keys('insert');
+				return expect(
+					signatureRepo.cs.insert.columns.map(c => c.name)
+				).to.be.eql(['transactionId', 'publicKey']);
 			});
 		});
 
 		describe('save()', () => {
+			it('should use pgp.helpers.insert with correct parameters', function*() {
+				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
+
+				const block = seeder.getLastBlock();
+				const transaction = transactionsFixtures.Transaction({
+					blockId: block.id,
+					type: transactionTypes.SIGNATURE,
+				});
+				yield db.transactions.save(transaction);
+
+				// One call for trs table and one for respective transaction type table
+				expect(db.$config.pgp.helpers.insert).to.have.callCount(2);
+
+				// Expect the second call for for respective transaction type
+				return expect(db.$config.pgp.helpers.insert.secondCall.args).to.be.eql([
+					[
+						{
+							transactionId: transaction.id,
+							publicKey: Buffer.from(
+								transaction.asset.signature.publicKey,
+								'hex'
+							),
+						},
+					],
+					signatureRepo.cs.insert,
+				]);
+			});
+
 			it('should insert entry into "signatures" table for type 1 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];

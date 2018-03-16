@@ -82,11 +82,93 @@ describe('db', () => {
 
 				expect(db.accounts.cs).to.an('object');
 				expect(db.accounts.cs).to.not.empty;
-				return expect(db.accounts.cs).to.have.all.keys([
-					'select',
-					'insert',
-					'update',
+				expect(db.accounts.cs).to.have.all.keys(['select', 'insert', 'update']);
+				expect(db.accounts.cs.select.columns.map(c => c.name)).to.be.eql([
+					'isDelegate',
+					'u_isDelegate',
+					'secondSignature',
+					'u_secondSignature',
+					'balance',
+					'u_balance',
+					'rate',
+					'multimin',
+					'u_multimin',
+					'multilifetime',
+					'u_multilifetime',
+					'blockId',
+					'nameexist',
+					'u_nameexist',
+					'fees',
+					'rewards',
+					'vote',
+					'producedBlocks',
+					'missedBlocks',
+					'username',
+					'u_username',
+					'publicKey',
+					'secondPublicKey',
+					'address',
+					'virgin',
+					'rank',
+					'delegates',
+					'u_delegates',
+					'multisignatures',
+					'u_multisignatures',
 				]);
+				expect(db.accounts.cs.insert.columns.map(c => c.name)).to.be.eql([
+					'isDelegate',
+					'u_isDelegate',
+					'secondSignature',
+					'u_secondSignature',
+					'balance',
+					'u_balance',
+					'rate',
+					'multimin',
+					'u_multimin',
+					'multilifetime',
+					'u_multilifetime',
+					'blockId',
+					'nameexist',
+					'u_nameexist',
+					'fees',
+					'rewards',
+					'vote',
+					'producedBlocks',
+					'missedBlocks',
+					'username',
+					'u_username',
+					'publicKey',
+					'secondPublicKey',
+					'address',
+					'virgin',
+				]);
+				return expect(db.accounts.cs.update.columns.map(c => c.name)).to.be.eql(
+					[
+						'isDelegate',
+						'u_isDelegate',
+						'secondSignature',
+						'u_secondSignature',
+						'balance',
+						'u_balance',
+						'rate',
+						'multimin',
+						'u_multimin',
+						'multilifetime',
+						'u_multilifetime',
+						'blockId',
+						'nameexist',
+						'u_nameexist',
+						'fees',
+						'rewards',
+						'vote',
+						'producedBlocks',
+						'missedBlocks',
+						'username',
+						'u_username',
+						'publicKey',
+						'secondPublicKey',
+					]
+				);
 			});
 		});
 
@@ -558,6 +640,18 @@ describe('db', () => {
 		});
 
 		describe('insert()', () => {
+			it('should use pgp.helpers.insert with correct parameters', function*() {
+				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
+
+				const account = accountFixtures.Account();
+				yield db.accounts.insert(account);
+
+				return expect(db.$config.pgp.helpers.insert).to.be.calledWithExactly(
+					account,
+					db.accounts.cs.insert
+				);
+			});
+
 			it('should insert account without any error', () => {
 				const account = accountFixtures.Account();
 
@@ -597,6 +691,18 @@ describe('db', () => {
 		});
 
 		describe('update()', () => {
+			it('should use pgp.helpers.update with correct parameters', function*() {
+				sinonSandbox.spy(db.$config.pgp.helpers, 'update');
+
+				const account = accountFixtures.Account();
+				yield db.accounts.update(account.address, account);
+
+				return expect(db.$config.pgp.helpers.update).to.be.calledWithExactly(
+					account,
+					db.accounts.cs.update
+				);
+			});
+
 			it('should update account without any error', () => {
 				const account = accountFixtures.Account();
 
@@ -1083,6 +1189,24 @@ describe('db', () => {
 			});
 
 			describe('filters', () => {
+				it('should use pgp.helpers.sets with correct parameters', function*() {
+					sinonSandbox.spy(db.$config.pgp.helpers, 'sets');
+
+					const account = accountFixtures.Account();
+					yield db.accounts.insert(account);
+					yield db.accounts.list({ address: account.address }, [
+						'address',
+						'publicKey',
+					]);
+
+					return expect(db.$config.pgp.helpers.sets).to.be.calledWithExactly(
+						{ address: account.address },
+						db.accounts.cs.select.columns.filter(
+							column => column.name === 'address'
+						)
+					);
+				});
+
 				it('should return a multisig account if filter.multisig is provided', function*() {
 					const account = accountFixtures.Account();
 					account.multimin = 1;
@@ -1370,27 +1494,55 @@ describe('db', () => {
 				'multisignatures',
 				'u_multisignatures',
 			].forEach(dependentTable => {
-				it(`should insert dependent account from ${dependentTable}`, function*() {
-					const accounts = yield db.accounts.list(
-						{},
-						['address', 'publicKey'],
-						{ limit: 2 }
-					);
+				describe(`${dependentTable}`, () => {
+					it(`should use pgp.helpers.insert with correct parameters for ${dependentTable}`, function*() {
+						sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
 
-					const before = yield db.one(
-						`SELECT count(*) from mem_accounts2${dependentTable}`
-					);
-					yield db.accounts.insertDependencies(
-						accounts[0].address,
-						accounts[1].publicKey,
-						dependentTable
-					);
-					const after = yield db.one(
-						`SELECT count(*) from mem_accounts2${dependentTable}`
-					);
+						const accounts = yield db.accounts.list(
+							{},
+							['address', 'publicKey'],
+							{ limit: 2 }
+						);
+						yield db.accounts.insertDependencies(
+							accounts[0].address,
+							accounts[1].publicKey,
+							dependentTable
+						);
 
-					expect(before.count).to.eql('0');
-					return expect(after.count).to.eql('1');
+						return expect(
+							db.$config.pgp.helpers.insert
+						).to.be.calledWithExactly(
+							{
+								accountId: accounts[0].address,
+								dependentId: accounts[1].publicKey,
+							},
+							null,
+							`mem_accounts2${dependentTable}`
+						);
+					});
+
+					it(`should insert dependent account from ${dependentTable}`, function*() {
+						const accounts = yield db.accounts.list(
+							{},
+							['address', 'publicKey'],
+							{ limit: 2 }
+						);
+
+						const before = yield db.one(
+							`SELECT count(*) from mem_accounts2${dependentTable}`
+						);
+						yield db.accounts.insertDependencies(
+							accounts[0].address,
+							accounts[1].publicKey,
+							dependentTable
+						);
+						const after = yield db.one(
+							`SELECT count(*) from mem_accounts2${dependentTable}`
+						);
+
+						expect(before.count).to.eql('0');
+						return expect(after.count).to.eql('1');
+					});
 				});
 			});
 		});
