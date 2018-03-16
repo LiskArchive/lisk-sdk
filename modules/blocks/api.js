@@ -21,7 +21,7 @@ const sortBy = require('../../helpers/sort_by.js').sortBy;
 let library;
 let self;
 const __private = {};
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars, no-var
 var modules;
 /**
  * Main API logic. Allows get information. Initializes library.

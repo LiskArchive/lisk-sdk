@@ -400,7 +400,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 								verifyBlock(seriesCb) {
 									// Sanity check of the block, if values are coherent.
 									// No access to database
-									var result = modules.blocks.verify.verifyBlock(block);
+									const result = modules.blocks.verify.verifyBlock(block);
 
 									if (!result.verified) {
 										library.logger.error(

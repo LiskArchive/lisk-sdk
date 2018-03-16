@@ -15,6 +15,7 @@
 'use strict';
 
 const async = require('async');
+// eslint-disable-next-line no-var
 var Broadcaster = require('../logic/broadcaster.js');
 const constants = require('../helpers/constants.js');
 const failureCodes = require('../api/ws/rpc/failure_codes');
