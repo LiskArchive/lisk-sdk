@@ -1615,7 +1615,7 @@ describe('rounds', () => {
 
 				it('block just before rewards start should have reward = 0', () => {
 					const lastBlock = library.modules.blocks.lastBlock.get();
-					return expect(lastBlock.reward).to.equal(expectedRewardsPerBlock);
+					return expect(lastBlock.reward).to.equal(0);
 				});
 			});
 
