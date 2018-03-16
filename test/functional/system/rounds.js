@@ -1280,10 +1280,6 @@ describe('rounds', () => {
 				});
 			});
 
-			// eslint-disable-next-line
-			it('mem_accounts table should not contain changes from transaction included in deleted block', () => {
-			});
-
 			it('delegates list should be equal to one generated at the beginning of round 1', () => {
 				const lastBlock = library.modules.blocks.lastBlock.get();
 				return generateDelegateListPromise(lastBlock.height + 1, null).then(
