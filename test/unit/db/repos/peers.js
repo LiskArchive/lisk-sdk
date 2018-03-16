@@ -63,7 +63,19 @@ describe('db', () => {
 		describe('constructor()', () => {
 			it('should assign param and data members properly', () => {
 				expect(db.peers.db).to.be.eql(db);
-				return expect(db.peers.pgp).to.be.eql(db.$config.pgp);
+				expect(db.peers.pgp).to.be.eql(db.$config.pgp);
+				expect(db.peers.cs).to.be.an('object');
+				expect(db.peers.cs).to.have.all.keys('insert');
+				return expect(db.peers.cs.insert.columns.map(c => c.name)).to.be.eql([
+					'ip',
+					'wsPort',
+					'state',
+					'height',
+					'os',
+					'version',
+					'clock',
+					'broadhash',
+				]);
 			});
 		});
 
