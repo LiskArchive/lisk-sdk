@@ -477,7 +477,7 @@ describe('blocks/chain', () => {
 	});
 
 	describe('asyncProcessExit', () => {
-		it('should call process exit with conde 0', done => {
+		it('should call process exit with code 0', done => {
 			blocksChainModule.asyncProcessExit(0, returns => {
 				expect(returns).to.equal(
 					'Cannot proceed after block apply/remove failed, exiting with code: 0'
