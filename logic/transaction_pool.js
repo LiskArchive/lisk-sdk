@@ -685,33 +685,28 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
  * @returns {SetImmediate} error, ids[]
  */
 TransactionPool.prototype.expireTransactions = function(cb) {
-	const ids = [];
-
 	async.waterfall(
 		[
 			function(seriesCb) {
 				__private.expireTransactions(
 					self.getUnconfirmedTransactionList(true),
-					ids,
 					seriesCb
 				);
 			},
-			function(res, seriesCb) {
+			function(seriesCb) {
 				__private.expireTransactions(
 					self.getQueuedTransactionList(true),
-					ids,
 					seriesCb
 				);
 			},
-			function(res, seriesCb) {
+			function(seriesCb) {
 				__private.expireTransactions(
 					self.getMultisignatureTransactionList(true),
-					ids,
 					seriesCb
 				);
 			},
 		],
-		(err, ids) => setImmediate(cb, err, ids)
+		() => setImmediate(cb)
 	);
 };
 
@@ -974,9 +969,7 @@ __private.transactionTimeOut = function(transaction) {
  * @param {function} cb - Callback function
  * @returns {SetImmediate} error, ids[]
  */
-__private.expireTransactions = function(transactions, parentIds, cb) {
-	const ids = [];
-
+__private.expireTransactions = function(transactions, cb) {
 	async.eachSeries(
 		transactions,
 		(transaction, eachSeriesCb) => {
@@ -991,7 +984,6 @@ __private.expireTransactions = function(transactions, parentIds, cb) {
 				timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
 
 			if (seconds > timeOut) {
-				ids.push(transaction.id);
 				self.removeUnconfirmedTransaction(transaction.id);
 				library.logger.info(
 					`Expired transaction: ${
@@ -1002,7 +994,7 @@ __private.expireTransactions = function(transactions, parentIds, cb) {
 			}
 			return setImmediate(eachSeriesCb);
 		},
-		err => setImmediate(cb, err, [...ids, ...parentIds])
+		() => setImmediate(cb)
 	);
 };
 
