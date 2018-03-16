@@ -454,7 +454,7 @@ class AccountsRepository {
 
 			if (filters) {
 				const filterKeys = Object.keys(filters);
-				const filteredColumns = this.cs.insert.columns.filter(
+				const filteredColumns = this.cs.select.columns.filter(
 					column => filterKeys.indexOf(column.name) >= 0
 				);
 
