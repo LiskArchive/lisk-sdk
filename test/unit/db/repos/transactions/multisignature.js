@@ -78,11 +78,41 @@ describe('db', () => {
 
 				expect(multiSignaturesRepo.cs).to.be.an('object');
 				expect(multiSignaturesRepo.cs).to.not.empty;
-				return expect(multiSignaturesRepo.cs).to.have.all.keys('insert');
+				expect(multiSignaturesRepo.cs).to.have.all.keys('insert');
+				return expect(
+					multiSignaturesRepo.cs.insert.columns.map(c => c.name)
+				).to.be.eql(['min', 'lifetime', 'keysgroup', 'transactionId']);
 			});
 		});
 
 		describe('save()', () => {
+			it('should use pgp.helpers.insert with correct parameters', function*() {
+				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
+
+				const block = seeder.getLastBlock();
+				const transaction = transactionsFixtures.Transaction({
+					blockId: block.id,
+					type: transactionTypes.MULTI,
+				});
+				yield db.transactions.save(transaction);
+
+				// One call for trs table and one for respective transaction type table
+				expect(db.$config.pgp.helpers.insert).to.have.callCount(2);
+
+				// Expect the second call for for respective transaction type
+				return expect(db.$config.pgp.helpers.insert.secondCall.args).to.be.eql([
+					[
+						{
+							min: transaction.asset.multisignature.min,
+							lifetime: transaction.asset.multisignature.lifetime,
+							keysgroup: transaction.asset.multisignature.keysgroup.join(),
+							transactionId: transaction.id,
+						},
+					],
+					multiSignaturesRepo.cs.insert,
+				]);
+			});
+
 			it('should insert entry into "multisignatures" table for type 4 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];
