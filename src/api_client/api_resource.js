@@ -58,6 +58,6 @@ export default class APIResource {
 				return this.request(req, true, retryCount + 1);
 			});
 		}
-		throw error;
+		return Promise.reject(error);
 	}
 }

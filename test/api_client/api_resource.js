@@ -173,7 +173,7 @@ describe('API resource module', () => {
 				});
 			});
 
-			it('should throw an error when randomizeNodes is false and if it exceed max retry count', () => {
+			it('should throw an error when randomizeNodes is false and the maximum retry count has been reached', () => {
 				apiClient.randomizeNodes = false;
 				const req = resource.handleRetry(defaultError, defaultRequest, 4);
 				clock.tick(1000);
@@ -188,9 +188,8 @@ describe('API resource module', () => {
 			});
 
 			it('should throw an error that is the same as input error', () => {
-				return expect(
-					resource.handleRetry.bind(resource, defaultError, defaultRequest, 1),
-				).to.throw(defaultError);
+				const res = resource.handleRetry(defaultError, defaultRequest, 1);
+				return expect(res).to.be.rejectedWith(defaultError);
 			});
 		});
 	});
