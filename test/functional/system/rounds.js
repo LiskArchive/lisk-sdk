@@ -1649,8 +1649,6 @@ describe('rounds', () => {
 
 				it('rewards from table rounds_rewards should match rewards from blockchian', () => {
 				});
-
-				});
 			});
 		});
 	});
