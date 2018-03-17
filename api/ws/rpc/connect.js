@@ -25,7 +25,7 @@ const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 const TIMEOUT = 2000;
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 
-const connect = (peer, onDisconnectCb) => {
+const connect = (peer, logger, onDisconnectCb) => {
 	connectSteps.addConnectionOptions(peer);
 	connectSteps.addSocket(peer);
 
@@ -34,7 +34,7 @@ const connect = (peer, onDisconnectCb) => {
 			connectSteps.upgradeSocket(peer);
 			connectSteps.registerRPC(peer);
 		},
-		() => connectSteps.registerSocketListeners(peer, onDisconnectCb),
+		() => connectSteps.registerSocketListeners(peer, logger, onDisconnectCb),
 	]);
 	return peer;
 };
@@ -112,7 +112,7 @@ const connectSteps = {
 		);
 	},
 
-	registerSocketListeners: (peer, onDisconnectCb = () => {}) => {
+	registerSocketListeners: (peer, logger, onDisconnectCb = () => {}) => {
 		// Unregister all the events just in case
 		peer.socket.off('connectAbort');
 		peer.socket.off('error');
@@ -131,7 +131,10 @@ const connectSteps = {
 		});
 
 		// When WS connection ends - remove peer
-		peer.socket.on('close', () => {
+		peer.socket.on('close', (code, reason) => {
+			logger.debug(
+				`Peer WebSocket connection failed with code ${code} and reason: "${reason}"`
+			);
 			onDisconnectCb();
 		});
 		return peer;
