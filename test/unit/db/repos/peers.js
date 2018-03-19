@@ -63,7 +63,19 @@ describe('db', () => {
 		describe('constructor()', () => {
 			it('should assign param and data members properly', () => {
 				expect(db.peers.db).to.be.eql(db);
-				return expect(db.peers.pgp).to.be.eql(db.$config.pgp);
+				expect(db.peers.pgp).to.be.eql(db.$config.pgp);
+				expect(db.peers.cs).to.be.an('object');
+				expect(db.peers.cs).to.have.all.keys('insert');
+				return expect(db.peers.cs.insert.columns.map(c => c.name)).to.be.eql([
+					'ip',
+					'wsPort',
+					'state',
+					'height',
+					'os',
+					'version',
+					'clock',
+					'broadhash',
+				]);
 			});
 		});
 
@@ -139,17 +151,17 @@ describe('db', () => {
 
 		describe('insert()', () => {
 			it('should use the correct query method with correct params', function*() {
-				// Few lines are commented due to issue in pg-promise
-				// https://github.com/vitaly-t/pg-promise/issues/473
-
 				sinonSandbox.spy(db, 'none');
-				// sinonSandbox.spy(db.peers.pgp.helpers, 'insert');
+				sinonSandbox.spy(db.peers.pgp.helpers, 'insert');
+
 				const peer = peersFixtures.DBPeer();
 				yield db.peers.insert(peer);
 
-				return expect(db.none).to.be.calledOnce;
-				// expect(db.peers.pgp.helpers.insert).to.be.calledOnce;
-				// return expect(db.peers.pgp.helpers.insert.firstCall.args[0]).to.be.eql(peer);
+				expect(db.none).to.be.calledOnce;
+				expect(db.peers.pgp.helpers.insert).to.be.calledOnce;
+				return expect(db.peers.pgp.helpers.insert.firstCall.args[0]).to.be.eql(
+					peer
+				);
 			});
 
 			it('should insert single peer to database', function*() {

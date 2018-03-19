@@ -73,11 +73,40 @@ describe('db', () => {
 
 				expect(voteRepo.cs).to.be.an('object');
 				expect(voteRepo.cs).to.not.empty;
-				return expect(voteRepo.cs).to.have.all.keys('insert');
+				expect(voteRepo.cs).to.have.all.keys('insert');
+				return expect(voteRepo.cs.insert.columns.map(c => c.name)).to.be.eql([
+					'votes',
+					'transactionId',
+				]);
 			});
 		});
 
 		describe('save()', () => {
+			it('should use pgp.helpers.insert with correct parameters', function*() {
+				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
+
+				const block = seeder.getLastBlock();
+				const transaction = transactionsFixtures.Transaction({
+					blockId: block.id,
+					type: transactionTypes.VOTE,
+				});
+				yield db.transactions.save(transaction);
+
+				// One call for trs table and one for respective transaction type table
+				expect(db.$config.pgp.helpers.insert).to.have.callCount(2);
+
+				// Expect the second call for for respective transaction type
+				return expect(db.$config.pgp.helpers.insert.secondCall.args).to.be.eql([
+					[
+						{
+							votes: transaction.asset.votes.join(),
+							transactionId: transaction.id,
+						},
+					],
+					voteRepo.cs.insert,
+				]);
+			});
+
 			it('should insert entry into "votes" table for type 3 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];

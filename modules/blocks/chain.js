@@ -148,7 +148,6 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
  * Execute afterSave callback for transactions depends on transaction type.
  *
  * @private
- * @func afterSave
  * @param {Object} block - Full normalized block
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
@@ -203,6 +202,20 @@ Chain.prototype.deleteAfterBlock = function(blockId, cb) {
 };
 
 /**
+ * Calls process.exit() based on entry code
+ *
+ * @param {number} code - ID of block to begin with
+ * @param {function} cb - Callback function
+ * @returns {Object} cb.err - Error if occurred
+ */
+Chain.prototype.asyncProcessExit = function(code, cb) {
+	const error = `Cannot proceed after block apply/remove failed, exiting with code: ${code}`;
+	library.logger.error(error);
+	process.exit(code);
+	return setImmediate(cb, error);
+};
+
+/**
  * Apply genesis block's transactions to blockchain.
  *
  * @param {Object} block - Full normalized genesis block
@@ -251,7 +264,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		err => {
 			if (err) {
 				// If genesis block is invalid, kill the node...
-				return process.exit(0);
+				return self.asyncProcessExit(0, cb);
 			}
 			// Set genesis block as last block
 			modules.blocks.lastBlock.set(block);
@@ -266,7 +279,6 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
  * Apply transaction to unconfirmed and confirmed.
  *
  * @private
- * @func applyTransaction
  * @param {Object} block - Block object
  * @param {Object} transaction - Transaction object
  * @param {Object} sender - Sender account
@@ -299,167 +311,112 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 };
 
 /**
- * Description of the function.
+ * Calls undoUnconfirmedList from modules transactions
  *
- * @param  {Object}   block - Full normalized genesis block
+ * @private
  * @param  {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object}   cb.err - Error if occurred
- * @todo Add description for the function
  */
-Chain.prototype.applyBlock = function(block, saveBlock, cb) {
-	const undoUnconfirmedListStep = function(cb) {
-		modules.transactions.undoUnconfirmedList(err => {
-			if (err) {
-				// Fatal error, memory tables will be inconsistent
-				library.logger.error('Failed to undo unconfirmed list', err);
-				const errObj = new Error('Failed to undo unconfirmed list');
-				return setImmediate(cb, errObj);
-			}
-			return setImmediate(cb);
-		});
-	};
+__private.undoUnconfirmedListStep = function(cb) {
+	modules.transactions.undoUnconfirmedList(err => {
+		if (err) {
+			// Fatal error, memory tables will be inconsistent
+			library.logger.error('Failed to undo unconfirmed list', err);
+			return setImmediate(cb, 'Failed to undo unconfirmed list');
+		}
+		return setImmediate(cb);
+	});
+};
 
-	/**
-	 * Apply transactions to unconfirmed mem_accounts fields.
-	 *
-	 * @private
-	 * @func applyUnconfirmedStep
-	 * @param {Object} tx
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
-	const applyUnconfirmedStep = function(tx) {
-		return Promise.mapSeries(
-			block.transactions,
-			transaction =>
-				new Promise((resolve, reject) => {
-					modules.accounts.setAccountAndGet(
-						{ publicKey: transaction.senderPublicKey },
-						(accountErr, sender) => {
-							if (accountErr) {
-								const err = `Failed to get account to apply unconfirmed transaction: ${
-									transaction.id
-								} '-' ${accountErr}`;
-								library.logger.error(err);
-								library.logger.error('Transaction', transaction);
-								return setImmediate(reject, err);
-							}
-							// DATABASE: write
-							modules.transactions.applyUnconfirmed(
-								transaction,
-								sender,
-								err => {
-									if (err) {
-										err = `Failed to apply unconfirmed transaction: ${
-											transaction.id
-										} '-' ${err}`;
-										library.logger.error(err);
-										library.logger.error('Transaction', transaction);
-										return setImmediate(reject, err);
-									}
-
-									return setImmediate(resolve);
-								},
-								tx
-							);
-						},
-						tx
-					);
-				})
-		);
-	};
-
-	/**
-	 * Description of the function.
-	 *
-	 * @private
-	 * @func applyConfirmedStep
-	 * @param {Object} tx
-	 * @todo Add description for the function and the params
-	 * @todo Add @returns tag
-	 */
-	const applyConfirmedStep = function(tx) {
-		return Promise.mapSeries(
-			block.transactions,
-			transaction =>
-				new Promise((resolve, reject) => {
-					modules.accounts.getAccount(
-						{ publicKey: transaction.senderPublicKey },
-						(accountErr, sender) => {
-							if (accountErr) {
-								const err = `Failed to get account to apply transaction: ${
-									transaction.id
-								} '-' ${accountErr}`;
-								library.logger.error(err);
-								library.logger.error('Transaction', transaction);
-								return setImmediate(reject, err);
-							}
-							// DATABASE: write
-							modules.transactions.apply(
-								transaction,
-								block,
-								sender,
-								err => {
-									if (err) {
-										// Fatal error, memory tables will be inconsistent
-										err = `Failed to apply transaction: ${
-											transaction.id
-										} - ${err}`;
-										library.logger.error(err);
-										library.logger.error('Transaction', transaction);
-
-										return setImmediate(reject, err);
-									}
-									return setImmediate(resolve);
-								},
-								tx
-							);
-						},
-						tx
-					);
-				})
-		);
-	};
-
-	/**
-	 * Description of the function.
-	 *
-	 * @private
-	 * @func saveBlockStep
-	 * @param {Object} tx
-	 * @todo Add description for the function and the params
-	 * @todo Add @returns tag
-	 */
-	const saveBlockStep = function(tx) {
-		return new Promise((resolve, reject) => {
-			modules.blocks.lastBlock.set(block);
-
-			if (saveBlock) {
-				// DATABASE: write
-				self.saveBlock(
-					block,
-					err => {
-						if (err) {
-							// Fatal error, memory tables will be inconsistent
-							library.logger.error('Failed to save block...', err);
-							library.logger.error('Block', block);
-							const errObj = new Error('Failed to save block');
-							return setImmediate(reject, errObj);
+/**
+ * Calls applyUnconfirmed from modules.transactions for each transaction in block
+ *
+ * @private
+ * @param {Object} block - Block object
+ * @param {function} tx - Postgres transaction
+ * @returns {Promise<reject|resolve>} new Promise. Resolve if ok, reject if error ocurred
+ * @todo check descriptions
+ */
+__private.applyUnconfirmedStep = function(block, tx) {
+	return Promise.mapSeries(
+		block.transactions,
+		transaction =>
+			new Promise((resolve, reject) => {
+				modules.accounts.setAccountAndGet(
+					{ publicKey: transaction.senderPublicKey },
+					(accountErr, sender) => {
+						if (accountErr) {
+							const err = `Failed to get account to apply unconfirmed transaction: ${
+								transaction.id
+							} - ${accountErr}`;
+							library.logger.error(err);
+							library.logger.error('Transaction', transaction);
+							return setImmediate(reject, err);
 						}
-
-						library.logger.debug(
-							`Block applied correctly with ${
-								block.transactions.length
-							} transactions`
-						);
-						library.bus.message('newBlock', block);
-
-						// DATABASE write. Update delegates accounts
-						modules.rounds.tick(
-							block,
+						// DATABASE: write
+						modules.transactions.applyUnconfirmed(
+							transaction,
+							sender,
 							err => {
 								if (err) {
+									err = `Failed to apply unconfirmed transaction: ${
+										transaction.id
+									} - ${err}`;
+									library.logger.error(err);
+									library.logger.error('Transaction', transaction);
+									return setImmediate(reject, err);
+								}
+
+								return setImmediate(resolve);
+							},
+							tx
+						);
+					},
+					tx
+				);
+			})
+	);
+};
+
+/**
+ * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ *
+ * @private
+ * @param {Object} block - Block object
+ * @param {function} tx - Database transaction
+ * @returns {Promise<reject|resolve>}
+ */
+__private.applyConfirmedStep = function(block, tx) {
+	return Promise.mapSeries(
+		block.transactions,
+		transaction =>
+			new Promise((resolve, reject) => {
+				modules.accounts.getAccount(
+					{ publicKey: transaction.senderPublicKey },
+					(accountErr, sender) => {
+						if (accountErr) {
+							const err = `Failed to get account to apply transaction: ${
+								transaction.id
+							} - ${accountErr}`;
+							library.logger.error(err);
+							library.logger.error('Transaction', transaction);
+							return setImmediate(reject, err);
+						}
+						// DATABASE: write
+						modules.transactions.apply(
+							transaction,
+							block,
+							sender,
+							err => {
+								if (err) {
+									// Fatal error, memory tables will be inconsistent
+									err = `Failed to apply transaction: ${
+										transaction.id
+									} - ${err}`;
+									library.logger.error(err);
+									library.logger.error('Transaction', transaction);
+
 									return setImmediate(reject, err);
 								}
 								return setImmediate(resolve);
@@ -469,25 +426,85 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 					},
 					tx
 				);
-			} else {
-				library.bus.message('newBlock', block);
+			})
+	);
+};
 
-				// DATABASE write. Update delegates accounts
-				modules.rounds.tick(
-					block,
-					err => {
-						if (err) {
-							return setImmediate(reject, err);
-						}
-						return setImmediate(resolve);
-					},
-					tx
-				);
-			}
-		});
-	};
+/**
+ * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ *
+ * @private
+ * @param {Object} block - Block object
+ * @param {boolean} saveBlock - Flag to save block into database
+ * @param {function} tx - Database transaction
+ * @returns {Promise<reject|resolve>}
+ */
+__private.saveBlockStep = function(block, saveBlock, tx) {
+	return new Promise((resolve, reject) => {
+		modules.blocks.lastBlock.set(block);
 
-	undoUnconfirmedListStep(err => {
+		if (saveBlock) {
+			// DATABASE: write
+			self.saveBlock(
+				block,
+				err => {
+					if (err) {
+						// Fatal error, memory tables will be inconsistent
+						library.logger.error('Failed to save block...', err);
+						library.logger.error('Block', block);
+						return setImmediate(reject, 'Failed to save block');
+					}
+
+					library.logger.debug(
+						`Block applied correctly with ${
+							block.transactions.length
+						} transactions`
+					);
+					library.bus.message('newBlock', block);
+
+					// DATABASE write. Update delegates accounts
+					modules.rounds.tick(
+						block,
+						err => {
+							if (err) {
+								return setImmediate(reject, err);
+							}
+							return setImmediate(resolve);
+						},
+						tx
+					);
+				},
+				tx
+			);
+		} else {
+			library.bus.message('newBlock', block);
+
+			// DATABASE write. Update delegates accounts
+			modules.rounds.tick(
+				block,
+				err => {
+					if (err) {
+						return setImmediate(reject, err);
+					}
+					return setImmediate(resolve);
+				},
+				tx
+			);
+		}
+	});
+};
+
+/**
+ * Description of the function.
+ *
+ * @param {Object} block - Full normalized genesis block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @todo Add description for the function
+ */
+Chain.prototype.applyBlock = function(block, saveBlock, cb) {
+	__private.undoUnconfirmedListStep(err => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -495,9 +512,10 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 			.tx('Chain:applyBlock', tx => {
 				modules.blocks.isActive.set(true);
 
-				return applyUnconfirmedStep(tx)
-					.then(() => applyConfirmedStep(tx))
-					.then(() => saveBlockStep(tx));
+				return __private
+					.applyUnconfirmedStep(block, tx)
+					.then(() => __private.applyConfirmedStep(block, tx))
+					.then(() => __private.saveBlockStep(block, saveBlock, tx));
 			})
 			.then(() => {
 				// Remove block transactions from transaction pool
@@ -506,14 +524,16 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 				});
 				modules.blocks.isActive.set(false);
 				block = null;
+
 				return setImmediate(cb, null);
 			})
 			.catch(reason => {
 				modules.blocks.isActive.set(false);
 				block = null;
+
 				// Finish here if snapshotting.
 				// FIXME: Not the best place to do that
-				if (reason === 'Snapshot finished') {
+				if (reason.name === 'Snapshot finished') {
 					library.logger.info(reason);
 					process.emit('SIGTERM');
 				}
@@ -597,7 +617,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 							// Fatal error, memory tables will be inconsistent
 							library.logger.error('Failed to undo transactions', err);
 
-							return process.exit(0);
+							return self.asyncProcessExit(0, cb);
 						}
 
 						// Perform backward tick on rounds
@@ -607,7 +627,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 								// Fatal error, memory tables will be inconsistent
 								library.logger.error('Failed to perform backwards tick', err);
 
-								return process.exit(0);
+								return self.asyncProcessExit(0, cb);
 							}
 
 							// Delete last block from blockchain
@@ -617,7 +637,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 									// Fatal error, memory tables will be inconsistent
 									library.logger.error('Failed to delete block', err);
 
-									return process.exit(0);
+									return self.asyncProcessExit(0, cb);
 								}
 
 								return setImmediate(cb, null, previousBlock);
@@ -633,7 +653,6 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 /**
  * Deletes last block.
  *
- * @func deleteLastBlock
  * @param  {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
@@ -649,27 +668,27 @@ Chain.prototype.deleteLastBlock = function(cb) {
 
 	async.waterfall(
 		[
-			function(seriesCb) {
+			function(waterCb) {
 				// Delete last block, replace last block with previous block, undo things
 				__private.popLastBlock(lastBlock, (err, newLastBlock) => {
 					if (err) {
 						library.logger.error('Error deleting last block', lastBlock);
 					}
-					return setImmediate(seriesCb, err, newLastBlock);
+					return setImmediate(waterCb, err, newLastBlock);
 				});
 			},
-			function(newLastBlock, seriesCb) {
+			function(newLastBlock, waterCb) {
 				// Put transactions back into transaction pool
 				modules.transactions.receiveTransactions(
 					lastBlock.transactions.reverse(),
 					false,
 					err => {
 						if (err) {
-							library.logger.error('Error adding transactions', lastBlock);
+							library.logger.error('Error adding transactions', err);
 						}
 						// Replace last block with previous
 						lastBlock = modules.blocks.lastBlock.set(newLastBlock);
-						return setImmediate(seriesCb, err, lastBlock);
+						return setImmediate(waterCb, null, newLastBlock);
 					}
 				);
 			},
@@ -682,7 +701,6 @@ Chain.prototype.deleteLastBlock = function(cb) {
  * Recover chain - wrapper for deleteLastBlock.
  *
  * @private
- * @func recoverChain
  * @param  {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
