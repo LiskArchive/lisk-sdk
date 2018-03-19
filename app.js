@@ -106,7 +106,7 @@ if (typeof gc !== 'undefined') {
  * @memberof! app
  * @default 'config.json'
  */
-var appConfig = AppConfig(require('./package.json'));
+var appConfig = AppConfig(require('./config.json'));
 
 // Define availability of top accounts endpoint
 process.env.TOP = appConfig.topAccounts;
