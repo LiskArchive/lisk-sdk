@@ -21,7 +21,7 @@ var application = require('../../common/application');
 
 describe('node', () => {
 	var testDelegate = genesisDelegates.delegates[0];
-
+	var defaultKey;
 	var library;
 
 	before(done => {
@@ -96,8 +96,6 @@ describe('node', () => {
 		}
 
 		describe('toggleForgingStatus', () => {
-			var defaultKey;
-
 			before(done => {
 				defaultKey = library.config.forging.defaultKey;
 				done();
@@ -178,6 +176,83 @@ describe('node', () => {
 							done();
 						}
 					);
+				});
+			});
+		});
+
+		describe('getForgingStatus', () => {
+			it('should return delegate full list when publicKey is not provided', done => {
+				node_module.internal.getForgingStatus(null, (err, data) => {
+					expect(err).to.be.null;
+					expect(data[0]).to.deep.equal({
+						forging: true,
+						publicKey: testDelegate.publicKey,
+					});
+					expect(data.length).to.equal(genesisDelegates.delegates.length);
+					done();
+				});
+			});
+
+			it('should return delegate status when publicKey is provided', done => {
+				node_module.internal.getForgingStatus(
+					testDelegate.publicKey,
+					(err, data) => {
+						expect(err).to.be.null;
+						expect(data[0]).to.deep.equal({
+							forging: true,
+							publicKey: testDelegate.publicKey,
+						});
+						expect(data.length).to.equal(1);
+						done();
+					}
+				);
+			});
+
+			it('should return delegate status when publicKey is provided and toggle forging from enabled to disabled', done => {
+				node_module.internal.toggleForgingStatus(
+					testDelegate.publicKey,
+					defaultKey,
+					(err, res) => {
+						expect(err).to.not.exist;
+						expect(res).to.eql({
+							publicKey: testDelegate.publicKey,
+							forging: false,
+						});
+						node_module.internal.getForgingStatus(
+							testDelegate.publicKey,
+							(err, data) => {
+								expect(err).to.be.null;
+								expect(data[0]).to.deep.equal({
+									forging: false,
+									publicKey: testDelegate.publicKey,
+								});
+								expect(data.length).to.equal(1);
+								done();
+							}
+						);
+					}
+				);
+			});
+
+			it('should return updated delegate full list when publicKey is not provided and forging status was changed', done => {
+				node_module.internal.getForgingStatus(null, (err, data) => {
+					expect(err).to.be.null;
+					expect(data[0]).to.deep.equal({
+						forging: false,
+						publicKey: testDelegate.publicKey,
+					});
+					expect(data.length).to.equal(genesisDelegates.delegates.length);
+					done();
+				});
+			});
+
+			it('should return empty array when invalid publicKey is provided', done => {
+				var invalidPublicKey =
+					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
+				node_module.internal.getForgingStatus(invalidPublicKey, (err, data) => {
+					expect(err).to.be.null;
+					expect(data.length).to.equal(0);
+					done();
 				});
 			});
 		});
