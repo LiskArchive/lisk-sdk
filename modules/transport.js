@@ -14,23 +14,20 @@
 
 'use strict';
 
-const async = require('async');
-// eslint-disable-next-line no-var
+var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
-const constants = require('../helpers/constants.js');
-const failureCodes = require('../api/ws/rpc/failure_codes');
-const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
-const Rules = require('../api/ws/workers/rules');
-// eslint-disable-next-line prefer-const
-let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
+var constants = require('../helpers/constants.js');
+var failureCodes = require('../api/ws/rpc/failure_codes');
+var PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
+var Rules = require('../api/ws/workers/rules');
+var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 // Private fields
-// eslint-disable-next-line prefer-const
-let __private = {};
-let modules;
-let definitions;
-let library;
-let self;
+var modules;
+var definitions;
+var library;
+var self;
+var __private = {};
 
 __private.loaded = false;
 __private.messages = {};
@@ -52,46 +49,44 @@ __private.messages = {};
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
  */
-class Transport {
-	constructor(cb, scope) {
-		library = {
-			logger: scope.logger,
-			db: scope.db,
-			bus: scope.bus,
-			schema: scope.schema,
-			network: scope.network,
-			balancesSequence: scope.balancesSequence,
-			logic: {
-				block: scope.logic.block,
-				transaction: scope.logic.transaction,
-				peers: scope.logic.peers,
+function Transport(cb, scope) {
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		bus: scope.bus,
+		schema: scope.schema,
+		network: scope.network,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			block: scope.logic.block,
+			transaction: scope.logic.transaction,
+			peers: scope.logic.peers,
+		},
+		config: {
+			peers: {
+				options: {
+					timeout: scope.config.peers.options.timeout,
+				},
 			},
-			config: {
-				peers: {
-					options: {
-						timeout: scope.config.peers.options.timeout,
-					},
-				},
-				forging: {
-					force: scope.config.forging.force,
-				},
+			forging: {
+				force: scope.config.forging.force,
 			},
 			broadcasts: {
 				active: scope.config.broadcasts.active,
 			},
-		};
-		self = this;
+		},
+	};
+	self = this;
 
-		__private.broadcaster = new Broadcaster(
-			scope.config.broadcasts,
-			scope.config.forging.force,
-			scope.logic.peers,
-			scope.logic.transaction,
-			scope.logger
-		);
+	__private.broadcaster = new Broadcaster(
+		scope.config.broadcasts,
+		scope.config.forging.force,
+		scope.logic.peers,
+		scope.logic.transaction,
+		scope.logger
+	);
 
-		setImmediate(cb, null, self);
-	}
+	setImmediate(cb, null, self);
 }
 
 /**
@@ -214,7 +209,7 @@ __private.receiveTransaction = function(
 	extraLogMessage,
 	cb
 ) {
-	const id = transaction ? transaction.id : 'null';
+	var id = transaction ? transaction.id : 'null';
 
 	try {
 		// This sanitizes the transaction object and then validates it.
@@ -320,7 +315,7 @@ Transport.prototype.onBind = function(scope) {
 };
 
 /**
- * Sets private constiable loaded to true.
+ * Sets private variable loaded to true.
  */
 Transport.prototype.onBlockchainReady = function() {
 	__private.loaded = true;
@@ -439,7 +434,7 @@ Transport.prototype.cleanup = function(cb) {
 };
 
 /**
- * Returns true if modules are loaded and private constiable loaded is true.
+ * Returns true if modules are loaded and private variable loaded is true.
  *
  * @returns {boolean}
  * @todo Add description for the return value
@@ -487,7 +482,7 @@ Transport.prototype.shared = {
 					return setImmediate(cb, err);
 				}
 
-				const escapedIds = query.ids
+				var escapedIds = query.ids
 					// Remove quotes
 					.replace(/['"]+/g, '')
 					// Separate by comma into an array
@@ -595,7 +590,7 @@ Transport.prototype.shared = {
 	 */
 	list(req, cb) {
 		req = req || {};
-		const peersFinder = !req.query
+		var peersFinder = !req.query
 			? modules.peers.list
 			: modules.peers.shared.getPeers;
 		peersFinder(
@@ -629,7 +624,7 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	status(req, cb) {
-		const headers = modules.system.headers();
+		var headers = modules.system.headers();
 		return setImmediate(cb, null, {
 			success: true,
 			height: headers.height,
@@ -686,11 +681,11 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	getSignatures(req, cb) {
-		const transactions = modules.transactions.getMultisignatureTransactionList(
+		var transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
 			constants.maxSharedTxs
 		);
-		const signatures = [];
+		var signatures = [];
 
 		async.eachSeries(
 			transactions,
@@ -715,7 +710,7 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	getTransactions(query, cb) {
-		const transactions = modules.transactions.getMergedTransactionList(
+		var transactions = modules.transactions.getMergedTransactionList(
 			true,
 			constants.maxSharedTxs
 		);
@@ -818,10 +813,10 @@ Transport.prototype.internal = {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			const updates = {};
+			var updates = {};
 			updates[Rules.UPDATES.INSERT] = modules.peers.update;
 			updates[Rules.UPDATES.REMOVE] = modules.peers.remove;
-			const updateResult = updates[query.updateType](query.peer);
+			var updateResult = updates[query.updateType](query.peer);
 			return setImmediate(
 				cb,
 				updateResult === true

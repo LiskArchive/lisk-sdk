@@ -14,21 +14,21 @@
 
 'use strict';
 
-const Promise = require('bluebird');
-const _ = require('lodash');
-const constants = require('../helpers/constants.js');
-const apiCodes = require('../helpers/api_codes.js');
-const ApiError = require('../helpers/api_error.js');
-const sortBy = require('../helpers/sort_by.js').sortBy;
-const TransactionPool = require('../logic/transaction_pool.js');
-const transactionTypes = require('../helpers/transaction_types.js');
-const Transfer = require('../logic/transfer.js');
+var Promise = require('bluebird');
+var _ = require('lodash');
+var constants = require('../helpers/constants.js');
+var apiCodes = require('../helpers/api_codes.js');
+var ApiError = require('../helpers/api_error.js');
+var sortBy = require('../helpers/sort_by.js').sortBy;
+var TransactionPool = require('../logic/transaction_pool.js');
+var transactionTypes = require('../helpers/transaction_types.js');
+var Transfer = require('../logic/transfer.js');
 
 // Private fields
-const __private = {};
-let modules;
-let library;
-let self;
+var __private = {};
+var modules;
+var library;
+var self;
 
 __private.assetTypes = {};
 
@@ -52,40 +52,38 @@ __private.assetTypes = {};
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
  */
-class Transactions {
-	constructor(cb, scope) {
-		library = {
-			logger: scope.logger,
-			db: scope.db,
-			schema: scope.schema,
-			ed: scope.ed,
-			balancesSequence: scope.balancesSequence,
-			logic: {
-				transaction: scope.logic.transaction,
-			},
-			genesisblock: scope.genesisblock,
-		};
+function Transactions(cb, scope) {
+	library = {
+		logger: scope.logger,
+		db: scope.db,
+		schema: scope.schema,
+		ed: scope.ed,
+		balancesSequence: scope.balancesSequence,
+		logic: {
+			transaction: scope.logic.transaction,
+		},
+		genesisblock: scope.genesisblock,
+	};
 
-		self = this;
+	self = this;
 
-		__private.transactionPool = new TransactionPool(
-			scope.config.broadcasts.broadcastInterval,
-			scope.config.broadcasts.releaseLimit,
-			scope.logic.transaction,
-			scope.bus,
-			scope.logger,
-			scope.balancesSequence
-		);
+	__private.transactionPool = new TransactionPool(
+		scope.config.broadcasts.broadcastInterval,
+		scope.config.broadcasts.releaseLimit,
+		scope.logic.transaction,
+		scope.bus,
+		scope.logger,
+		scope.balancesSequence
+	);
 
-		__private.assetTypes[
-			transactionTypes.SEND
-		] = library.logic.transaction.attachAssetType(
-			transactionTypes.SEND,
-			new Transfer(library.logger, library.schema)
-		);
+	__private.assetTypes[
+		transactionTypes.SEND
+	] = library.logic.transaction.attachAssetType(
+		transactionTypes.SEND,
+		new Transfer(library.logger, library.schema)
+	);
 
-		setImmediate(cb, null, self);
-	}
+	setImmediate(cb, null, self);
 }
 
 // Private methods
@@ -99,9 +97,9 @@ class Transactions {
  * @todo Add description for the params
  */
 __private.list = function(filter, cb) {
-	const params = {};
-	const where = [];
-	const allowedFieldsMap = {
+	var params = {};
+	var where = [];
+	var allowedFieldsMap = {
 		id: '"t_id" = ${id}',
 		blockId: '"t_blockId" = ${blockId}',
 		fromHeight: '"b_height" >= ${fromHeight}',
@@ -125,8 +123,8 @@ __private.list = function(filter, cb) {
 		ownerAddress: null,
 		ownerPublicKey: null,
 	};
-	let owner = '';
-	let isFirstWhere = true;
+	var owner = '';
+	var isFirstWhere = true;
 
 	/**
 	 * Description of processParams.
@@ -135,7 +133,7 @@ __private.list = function(filter, cb) {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	const processParams = function(value, field) {
+	var processParams = function(value, field) {
 		// Mutating parametres when unix timestamp is supplied
 		if (_.includes(['fromUnixTime', 'toUnixTime'], field)) {
 			// Lisk epoch is 1464109200 as unix timestamp
@@ -199,7 +197,7 @@ __private.list = function(filter, cb) {
 		return setImmediate(cb, 'Invalid limit, maximum is 1000');
 	}
 
-	const sort = sortBy(filter.sort, {
+	var sort = sortBy(filter.sort, {
 		sortFields: library.db.transactions.sortFields,
 		fieldPrefix(sortField) {
 			if (['height'].indexOf(sortField) > -1) {
@@ -215,8 +213,8 @@ __private.list = function(filter, cb) {
 		return setImmediate(cb, sort.error);
 	}
 
-	let rawTransactionRows;
-	let count;
+	var rawTransactionRows;
+	var count;
 
 	library.db.transactions
 		.countList(
@@ -249,12 +247,12 @@ __private.list = function(filter, cb) {
 			return __private.getAssetForIds(groupTransactionIdsByType(rows));
 		})
 		.then(rows => {
-			const assetRowsByTransactionId = {};
+			var assetRowsByTransactionId = {};
 			_.each(rows, row => {
 				assetRowsByTransactionId[row.transaction_id] = row;
 			});
 
-			const transactions = rawTransactionRows.map(rawTransactionRow =>
+			var transactions = rawTransactionRows.map(rawTransactionRow =>
 				library.logic.transaction.dbRead(
 					_.merge(
 						rawTransactionRow,
@@ -263,7 +261,7 @@ __private.list = function(filter, cb) {
 				)
 			);
 
-			const data = {
+			var data = {
 				transactions,
 				count,
 			};
@@ -284,9 +282,9 @@ __private.list = function(filter, cb) {
  * @todo Add description of the function
  */
 function groupTransactionIdsByType(rawTransactions) {
-	const groupedTransactions = _.groupBy(rawTransactions, 't_type');
-	const transactionIdsByType = _.map(_.keys(groupedTransactions), type => {
-		const groupedTransactionsId = {};
+	var groupedTransactions = _.groupBy(rawTransactions, 't_type');
+	var transactionIdsByType = _.map(_.keys(groupedTransactions), type => {
+		var groupedTransactionsId = {};
 		groupedTransactionsId[type] = _.map(groupedTransactions[type], 't_id');
 		return groupedTransactionsId;
 	});
@@ -303,7 +301,7 @@ function groupTransactionIdsByType(rawTransactions) {
  * @todo Add description of the function
  */
 __private.getAssetForIds = function(idsByType) {
-	const assetRawRows = _.values(
+	var assetRawRows = _.values(
 		_.mapValues(idsByType, __private.getAssetForIdsBasedOnType)
 	);
 	return Promise.all(assetRawRows).then(_.flatMap);
@@ -318,7 +316,7 @@ __private.getAssetForIds = function(idsByType) {
  * @todo Add description of the function
  */
 __private.getQueryNameByType = function(type) {
-	const queryNames = {};
+	var queryNames = {};
 	queryNames[transactionTypes.SEND] = 'getTransferByIds';
 	queryNames[transactionTypes.SIGNATURE] = 'getSignatureByIds';
 	queryNames[transactionTypes.DELEGATE] = 'getDelegateByIds';
@@ -328,7 +326,7 @@ __private.getQueryNameByType = function(type) {
 	queryNames[transactionTypes.IN_TRANSFER] = 'getInTransferByIds';
 	queryNames[transactionTypes.OUT_TRANSFER] = 'getOutTransferByIds';
 
-	const queryName = queryNames[type];
+	var queryName = queryNames[type];
 	return queryName;
 };
 
@@ -341,7 +339,7 @@ __private.getQueryNameByType = function(type) {
  * @todo Add description of the function
  */
 __private.getAssetForIdsBasedOnType = function(ids, type) {
-	const queryName = __private.getQueryNameByType(type);
+	var queryName = __private.getQueryNameByType(type);
 
 	return library.db.transactions[queryName](ids);
 };
@@ -366,8 +364,8 @@ __private.getAssetForIdsBasedOnType = function(ids, type) {
  * @returns {setImmediateCallback} cb, err, {transactions, count}
  */
 __private.getPooledTransactions = function(method, filters, cb) {
-	const transactions = self[method](true);
-	let toSend = [];
+	var transactions = self[method](true);
+	var toSend = [];
 
 	if (filters.recipientPublicKey) {
 		filters.recipientId = modules.accounts.generateAddressByPublicKey(
@@ -394,7 +392,7 @@ __private.getPooledTransactions = function(method, filters, cb) {
 	}
 
 	// Sort the results
-	const sortAttribute = sortBy(filters.sort, { quoteField: false });
+	var sortAttribute = sortBy(filters.sort, { quoteField: false });
 	toSend = _.orderBy(
 		toSend,
 		[sortAttribute.sortField],
@@ -726,8 +724,8 @@ Transactions.prototype.onBind = function(scope) {
  * @returns {setImmediateCallback} cb, error, response
  */
 __private.processPostResult = function(err, res, cb) {
-	let error = null;
-	let response = null;
+	var error = null;
+	var response = null;
 
 	if (err) {
 		error = new ApiError(err, apiCodes.PROCESSING_ERROR);

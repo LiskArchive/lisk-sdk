@@ -14,18 +14,18 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
+var constants = require('../helpers/constants.js');
 // Submodules
-const blocksAPI = require('./blocks/api');
-const blocksVerify = require('./blocks/verify');
-const blocksProcess = require('./blocks/process');
-const blocksUtils = require('./blocks/utils');
-const blocksChain = require('./blocks/chain');
+var blocksAPI = require('./blocks/api');
+var blocksVerify = require('./blocks/verify');
+var blocksProcess = require('./blocks/process');
+var blocksUtils = require('./blocks/utils');
+var blocksChain = require('./blocks/chain');
 
 // Private fields
-let library;
-let self;
-const __private = {};
+var library;
+var self;
+var __private = {};
 
 __private.lastBlock = {};
 __private.lastReceipt = null;
@@ -51,66 +51,60 @@ __private.isActive = false;
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, err, self
  */
-class Blocks {
-	constructor(cb, scope) {
-		library = {
-			logger: scope.logger,
-		};
+// Constructor
+function Blocks(cb, scope) {
+	library = {
+		logger: scope.logger,
+	};
 
-		// Initialize submodules with library content
-		this.submodules = {
-			api: new blocksAPI(
-				scope.logger,
-				scope.db,
-				scope.logic.block,
-				scope.schema
-			),
-			verify: new blocksVerify(
-				scope.logger,
-				scope.logic.block,
-				scope.logic.transaction,
-				scope.db
-			),
-			process: new blocksProcess(
-				scope.logger,
-				scope.logic.block,
-				scope.logic.peers,
-				scope.logic.transaction,
-				scope.schema,
-				scope.db,
-				scope.sequence,
-				scope.genesisblock
-			),
-			utils: new blocksUtils(
-				scope.logger,
-				scope.logic.account,
-				scope.logic.block,
-				scope.logic.transaction,
-				scope.db,
-				scope.genesisblock
-			),
-			chain: new blocksChain(
-				scope.logger,
-				scope.logic.block,
-				scope.logic.transaction,
-				scope.db,
-				scope.genesisblock,
-				scope.bus,
-				scope.balancesSequence
-			),
-		};
+	// Initialize submodules with library content
+	this.submodules = {
+		api: new blocksAPI(scope.logger, scope.db, scope.logic.block, scope.schema),
+		verify: new blocksVerify(
+			scope.logger,
+			scope.logic.block,
+			scope.logic.transaction,
+			scope.db
+		),
+		process: new blocksProcess(
+			scope.logger,
+			scope.logic.block,
+			scope.logic.peers,
+			scope.logic.transaction,
+			scope.schema,
+			scope.db,
+			scope.sequence,
+			scope.genesisblock
+		),
+		utils: new blocksUtils(
+			scope.logger,
+			scope.logic.account,
+			scope.logic.block,
+			scope.logic.transaction,
+			scope.db,
+			scope.genesisblock
+		),
+		chain: new blocksChain(
+			scope.logger,
+			scope.logic.block,
+			scope.logic.transaction,
+			scope.db,
+			scope.genesisblock,
+			scope.bus,
+			scope.balancesSequence
+		),
+	};
 
-		// Expose submodules
-		this.shared = this.submodules.api;
-		this.verify = this.submodules.verify;
-		this.process = this.submodules.process;
-		this.utils = this.submodules.utils;
-		this.chain = this.submodules.chain;
+	// Expose submodules
+	this.shared = this.submodules.api;
+	this.verify = this.submodules.verify;
+	this.process = this.submodules.process;
+	this.utils = this.submodules.utils;
+	this.chain = this.submodules.chain;
 
-		self = this;
+	self = this;
 
-		this.submodules.chain.saveGenesisBlock(err => setImmediate(cb, err, self));
-	}
+	this.submodules.chain.saveGenesisBlock(err => setImmediate(cb, err, self));
 }
 
 /**
@@ -151,7 +145,7 @@ Blocks.prototype.lastBlock = {
 			return false;
 		}
 		// Current time in seconds - (epoch start in seconds + block timestamp)
-		const secondsAgo =
+		var secondsAgo =
 			Math.floor(Date.now() / 1000) -
 			(Math.floor(constants.epochTime / 1000) + __private.lastBlock.timestamp);
 		return secondsAgo < constants.blockReceiptTimeOut;
@@ -183,7 +177,7 @@ Blocks.prototype.lastReceipt = {
 			return true;
 		}
 		// Current time in seconds - lastReceipt (seconds)
-		const secondsAgo = Math.floor(Date.now() / 1000) - __private.lastReceipt;
+		var secondsAgo = Math.floor(Date.now() / 1000) - __private.lastReceipt;
 		return secondsAgo > constants.blockReceiptTimeOut;
 	},
 };
