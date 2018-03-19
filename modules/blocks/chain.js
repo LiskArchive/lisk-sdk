@@ -541,6 +541,149 @@ Chain.prototype.broadcastReducedBlock = function(reducedBlock, broadcast) {
 };
 
 /**
+ * Loads 2nd last block from the database
+ * @param {String} secondLastBlockId - id of the second last block
+ * @param {Object} tx - database transaction
+ */
+__private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
+	return new Promise((resolve, reject) => {
+		// Load previous block from full_blocks_list table
+		// TODO: Can be inefficient, need performnce tests
+		modules.blocks.utils.loadBlocksPart(
+			{ id: secondLastBlockId },
+			(err, blocks) => {
+				if (err || !blocks.length) {
+					library.logger.error('Failed to get loadBlocksPart', err);
+					return setImmediate(reject, err || 'previousBlock is null');
+				}
+				return setImmediate(resolve, blocks[0]);
+			},
+			tx
+		);
+	});
+};
+
+/**
+ * Reverts changes on confirmed columns of mem_account for one transaction
+ * @param {Object} transaction - transaction to undo
+ * @param {Object} oldLastBlock - secondLastBlock
+ * @param {Object} tx - database transaction
+ */
+__private.undoStep = function(transaction, oldLastBlock, tx) {
+	return new Promise((resolve, reject) => {
+		// Retrieve sender by public key
+		modules.accounts.getAccount(
+			{ publicKey: transaction.senderPublicKey },
+			(accountErr, sender) => {
+				if (accountErr) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error(
+						'Failed to get account to undo transactions',
+						accountErr
+					);
+					return setImmediate(reject, accountErr);
+				}
+				// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
+				// WARNING: DB_WRITE
+				modules.transactions.undo(
+					transaction,
+					oldLastBlock,
+					sender,
+					undoErr => {
+						if (undoErr) {
+							// Fatal error, memory tables will be inconsistent
+							library.logger.error('Failed to undo transactions', undoErr);
+							return setImmediate(reject, undoErr);
+						}
+						return setImmediate(resolve);
+					},
+					tx
+				);
+			},
+			tx
+		);
+	});
+};
+
+/**
+ * Reverts changes on unconfirmed columns of mem_account for one transaction
+ * @param {Object} transaction - transaction to undo
+ * @param {Object} oldLastBlock - secondLastBlock
+ * @param {Object} tx - database transaction
+ */
+__private.undoUnconfirmStep = function(transaction, tx) {
+	return new Promise((resolve, reject) => {
+		// Undoing unconfirmed transaction - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)
+		// WARNING: DB_WRITE
+		modules.transactions.undoUnconfirmed(
+			transaction,
+			undoUnconfirmErr => {
+				if (undoUnconfirmErr) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to undo transactions', undoUnconfirmErr);
+					return setImmediate(reject, undoUnconfirmErr);
+				}
+				return setImmediate(resolve);
+			},
+			tx
+		);
+	});
+};
+
+/**
+ * Performs backward tick
+ * @param {Object} oldLastBlock - secondLastBlock
+ * @param {Object} previousBlock - block to delete
+ * @param {Object} tx - database transaction
+ */
+__private.backwardTickStep = function(oldLastBlock, previousBlock, tx) {
+	return new Promise((resolve, reject) => {
+		// Perform backward tick on rounds
+		// WARNING: DB_WRITE
+		modules.rounds.backwardTick(
+			oldLastBlock,
+			previousBlock,
+			backwardTickErr => {
+				if (backwardTickErr) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error(
+						'Failed to perform backwards tick',
+						backwardTickErr
+					);
+					return setImmediate(reject, backwardTickErr);
+				}
+				return setImmediate(resolve);
+			},
+			tx
+		);
+	});
+};
+
+/**
+ * deletes block and relevant transactions
+ * @param {Object} oldLastBlock - secondLastBlock
+ * @param {Object} tx - database transaction
+ */
+__private.deleteBlockStep = function(oldLastBlock, tx) {
+	return new Promise((resolve, reject) => {
+		// Delete last block from blockchain
+		// WARNING: Db_WRITE
+		self.deleteBlock(
+			oldLastBlock.id,
+			deleteBlockErr => {
+				if (deleteBlockErr) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to delete block', deleteBlockErr);
+					return setImmediate(reject, deleteBlockErr);
+				}
+				return setImmediate(resolve);
+			},
+			tx
+		);
+	});
+};
+
+/**
  * Deletes last block, undo transactions, recalculate round.
  *
  * @param  {function} cb - Callback function
@@ -549,140 +692,28 @@ Chain.prototype.broadcastReducedBlock = function(reducedBlock, broadcast) {
  * @returns {Object} cb.obj - New last block
  */
 __private.popLastBlock = function(oldLastBlock, cb) {
-	let previousBlock;
-
-	const loadSecondLastBlockStep = function(secondLastBlockId, tx) {
-		return new Promise((resolve, reject) => {
-			// Load previous block from full_blocks_list table
-			// TODO: Can be inefficient, need performnce tests
-			modules.blocks.utils.loadBlocksPart(
-				{ id: secondLastBlockId },
-				(err, blocks) => {
-					if (err || !blocks.length) {
-						library.logger.error('Failed to get loadBlocksPart', err);
-						return setImmediate(reject, err || 'previousBlock is null');
-					}
-					previousBlock = blocks[0];
-					return setImmediate(resolve);
-				},
-				tx
-			);
-		});
-	};
-
-	const undoStep = function(transaction, tx) {
-		return new Promise((resolve, reject) => {
-			// Retrieve sender by public key
-			modules.accounts.getAccount(
-				{ publicKey: transaction.senderPublicKey },
-				(accountErr, sender) => {
-					if (accountErr) {
-						// Fatal error, memory tables will be inconsistent
-						library.logger.error(
-							'Failed to get account to undo transactions',
-							accountErr
-						);
-						return setImmediate(reject, accountErr);
-					}
-					// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
-					// WARNING: DB_WRITE
-					modules.transactions.undo(
-						transaction,
-						oldLastBlock,
-						sender,
-						undoErr => {
-							if (undoErr) {
-								// Fatal error, memory tables will be inconsistent
-								library.logger.error('Failed to undo transactions', undoErr);
-								return setImmediate(reject, undoErr);
-							}
-							return setImmediate(resolve);
-						},
-						tx
-					);
-				},
-				tx
-			);
-		});
-	};
-
-	const undoUnconfirmStep = function(transaction, tx) {
-		return new Promise((resolve, reject) => {
-			// Undoing unconfirmed transaction - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)
-			// WARNING: DB_WRITE
-			modules.transactions.undoUnconfirmed(
-				transaction,
-				undoUnconfirmErr => {
-					if (undoUnconfirmErr) {
-						// Fatal error, memory tables will be inconsistent
-						library.logger.error(
-							'Failed to undo transactions',
-							undoUnconfirmErr
-						);
-						return setImmediate(reject, undoUnconfirmErr);
-					}
-					return setImmediate(resolve);
-				},
-				tx
-			);
-		});
-	};
-	const backwardTickStep = function(oldLastBlock, previousBlock, tx) {
-		return new Promise((resolve, reject) => {
-			// Perform backward tick on rounds
-			// WARNING: DB_WRITE
-			modules.rounds.backwardTick(
-				oldLastBlock,
-				previousBlock,
-				backwardTickErr => {
-					if (backwardTickErr) {
-						// Fatal error, memory tables will be inconsistent
-						library.logger.error(
-							'Failed to perform backwards tick',
-							backwardTickErr
-						);
-						return setImmediate(reject, backwardTickErr);
-					}
-					return setImmediate(resolve);
-				},
-				tx
-			);
-		});
-	};
-
-	const deleteBlockStep = function(oldLastBlock, tx) {
-		return new Promise((resolve, reject) => {
-			// Delete last block from blockchain
-			// WARNING: Db_WRITE
-			self.deleteBlock(
-				oldLastBlock.id,
-				deleteBlockErr => {
-					if (deleteBlockErr) {
-						// Fatal error, memory tables will be inconsistent
-						library.logger.error('Failed to delete block', deleteBlockErr);
-						return setImmediate(reject, deleteBlockErr);
-					}
-					return setImmediate(resolve);
-				},
-				tx
-			);
-		});
-	};
+	let secondLastBlock;
 
 	library.db
 		.tx('Chain:deleteBlock', tx =>
-			loadSecondLastBlockStep(oldLastBlock.previousBlock, tx)
+			__private
+				.loadSecondLastBlockStep(oldLastBlock.previousBlock, tx)
+				.then(res => {
+					secondLastBlock = res;
+					return Promise.mapSeries(
+						oldLastBlock.transactions.reverse(),
+						transaction =>
+							__private
+								.undoStep(transaction, secondLastBlock, tx)
+								.then(() => __private.undoUnconfirmStep(transaction, tx))
+					);
+				})
 				.then(() =>
-					Promise.mapSeries(oldLastBlock.transactions.reverse(), transaction =>
-						undoStep(transaction, tx).then(() =>
-							undoUnconfirmStep(transaction, tx)
-						)
-					)
+					__private.backwardTickStep(oldLastBlock, secondLastBlock, tx)
 				)
-				.then(() => backwardTickStep(oldLastBlock, previousBlock, tx))
-				.then(() => deleteBlockStep(oldLastBlock, tx))
+				.then(() => __private.deleteBlockStep(oldLastBlock, tx))
 		)
-		.then(() => setImmediate(cb, null, previousBlock))
+		.then(() => setImmediate(cb, null, secondLastBlock))
 		.catch(err => {
 			process.exit(0);
 			return setImmediate(cb, err);
