@@ -79,15 +79,15 @@ function getBlocks(library, cb) {
 	});
 }
 
+function getNextForger(library, offset, cb) {
+	offset = !offset ? 1 : offset;
+
+	var lastBlock = library.modules.blocks.lastBlock.get();
+	var slot = slots.getSlotNumber(lastBlock.timestamp);
+	getDelegateForSlot(library, slot + offset, cb);
+}
+
 function forge(library, cb) {
-	function getNextForger(offset, cb) {
-		offset = !offset ? 1 : offset;
-
-		var lastBlock = library.modules.blocks.lastBlock.get();
-		var slot = slots.getSlotNumber(lastBlock.timestamp);
-		getDelegateForSlot(library, slot + offset, cb);
-	}
-
 	var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
 
 	async.waterfall(
@@ -96,7 +96,7 @@ function forge(library, cb) {
 				fillPool(library, seriesCb);
 			},
 			function(seriesCb) {
-				getNextForger(null, seriesCb);
+				getNextForger(library, null, seriesCb);
 			},
 			function(delegate, seriesCb) {
 				var last_block = library.modules.blocks.lastBlock.get();
@@ -145,6 +145,9 @@ function fillPool(library, cb) {
 function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
+	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
+
+	transaction = library.logic.transaction.objectNormalize(transaction);
 	library.balancesSequence.add(sequenceCb => {
 		library.modules.transactions.processUnconfirmedTransaction(
 			transaction,
@@ -177,7 +180,12 @@ function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	);
 }
 
-function addTransactionsAndForge(library, transactions, cb) {
+function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
+	if (typeof forgeDelay === 'function') {
+		cb = forgeDelay;
+		forgeDelay = 800;
+	}
+
 	async.waterfall(
 		[
 			function addTransactions(waterCb) {
@@ -190,9 +198,13 @@ function addTransactionsAndForge(library, transactions, cb) {
 				);
 			},
 			function(waterCb) {
-				setTimeout(() => {
-					forge(library, waterCb);
-				}, 800);
+				if (forgeDelay > 0) {
+					setTimeout(() => {
+						forge(library, waterCb);
+					}, forgeDelay);
+				} else {
+					setImmediate(forge, library, waterCb);
+				}
 			},
 		],
 		err => {
@@ -334,6 +346,7 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 }
 
 module.exports = {
+	getNextForger,
 	forge,
 	fillPool,
 	addTransaction,

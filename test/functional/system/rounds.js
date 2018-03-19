@@ -19,19 +19,20 @@ const async = require('async');
 const elements = require('lisk-js');
 const Promise = require('bluebird');
 const QueryFile = require('pg-promise').QueryFile;
-const application = require('../../common/application');
 const constants = require('../../../helpers/constants');
 const slots = require('../../../helpers/slots');
 const Bignum = require('../../../helpers/bignum');
 const accountsFixtures = require('../../fixtures/accounts');
 const roundsFixtures = require('../../fixtures/rounds').rounds;
 const randomUtil = require('../../common/utils/random');
+const localCommon = require('./common');
 
 describe('rounds', () => {
 	let library;
 	let keypairs;
 	let validateAccountsBalancesQuery;
 	let generateDelegateListPromise;
+	let addTransactionsAndForgePromise;
 
 	const Queries = {
 		validateAccountsBalances: () => {
@@ -93,7 +94,12 @@ describe('rounds', () => {
 		},
 	};
 
-	before(done => {
+	// Set rewards start at 150-th block
+	constants.rewards.offset = 150;
+
+	localCommon.beforeBlock('lisk_functional_rounds', lib => {
+		library = lib;
+
 		validateAccountsBalancesQuery = new QueryFile(
 			path.join(
 				__dirname,
@@ -102,24 +108,13 @@ describe('rounds', () => {
 			{ minify: true }
 		);
 
-		// Set rewards start at 150-th block
-		constants.rewards.offset = 150;
-		application.init(
-			{ sandbox: { name: 'lisk_functional_rounds' } },
-			(err, scope) => {
-				library = scope;
-
-				generateDelegateListPromise = Promise.promisify(
-					library.modules.delegates.generateDelegateList
-				);
-
-				done(err);
-			}
+		generateDelegateListPromise = Promise.promisify(
+			library.modules.delegates.generateDelegateList
 		);
-	});
 
-	after(done => {
-		application.cleanup(done);
+		addTransactionsAndForgePromise = Promise.promisify(
+			localCommon.addTransactionsAndForge
+		);
 	});
 
 	function getMemAccounts() {
@@ -394,108 +389,6 @@ describe('rounds', () => {
 		return rewards;
 	}
 
-	function addTransaction(transaction, cb) {
-		__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-		// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
-		// See: modules.transport.__private.receiveTransaction
-		transaction = library.logic.transaction.objectNormalize(transaction);
-		library.balancesSequence.add(sequenceCb => {
-			library.modules.transactions.processUnconfirmedTransaction(
-				transaction,
-				true,
-				err => {
-					if (err) {
-						return setImmediate(sequenceCb, err.toString());
-					}
-					return setImmediate(sequenceCb, null, transaction.id);
-				}
-			);
-		}, cb);
-	}
-
-	function getNextForger(offset, cb) {
-		offset = !offset ? 1 : offset;
-		const lastBlock = library.modules.blocks.lastBlock.get();
-		const slot = slots.getSlotNumber(lastBlock.timestamp);
-		library.modules.delegates.generateDelegateList(
-			lastBlock.height + 1,
-			null,
-			(err, delegateList) => {
-				if (err) {
-					return cb(err);
-				}
-				const nextForger = delegateList[(slot + offset) % slots.delegates];
-				return cb(nextForger);
-			}
-		);
-	}
-
-	function forge(cb) {
-		const transactionPool = library.rewiredModules.transactions.__get__(
-			'__private.transactionPool'
-		);
-
-		async.waterfall(
-			[
-				transactionPool.fillPool,
-				function(waterCb) {
-					getNextForger(null, delegatePublicKey => {
-						waterCb(null, delegatePublicKey);
-					});
-				},
-				function(delegate, waterCb) {
-					let lastBlock = library.modules.blocks.lastBlock.get();
-					const slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
-					const keypair = keypairs[delegate];
-					__testContext.debug(
-						`		Last block height: ${lastBlock.height} Last block ID: ${
-							lastBlock.id
-						} Last block timestamp: ${
-							lastBlock.timestamp
-						} Next slot: ${slot} Next delegate PK: ${delegate} Next block timestamp: ${slots.getSlotTime(
-							slot
-						)}`
-					);
-					library.modules.blocks.process.generateBlock(
-						keypair,
-						slots.getSlotTime(slot),
-						err => {
-							if (err) {
-								return waterCb(err);
-							}
-							lastBlock = library.modules.blocks.lastBlock.get();
-							__testContext.debug(
-								`		New last block height: ${
-									lastBlock.height
-								} New last block ID: ${lastBlock.id}`
-							);
-							return waterCb(err);
-						}
-					);
-				},
-			],
-			cb
-		);
-	}
-
-	function addTransactionsAndForge(transactions, cb) {
-		async.waterfall(
-			[
-				function addTransactions(waterCb) {
-					async.eachSeries(
-						transactions,
-						(transaction, eachSeriesCb) => {
-							addTransaction(transaction, eachSeriesCb);
-						},
-						waterCb
-					);
-				},
-				forge,
-			],
-			cb
-		);
-	}
-
 	function tickAndValidate(transactions) {
 		const tick = { before: {}, after: {} };
 
@@ -516,7 +409,7 @@ describe('rounds', () => {
 						tick.before.delegatesForList = _.cloneDeep(_delegatesForList);
 					}
 				).then(() => {
-					return Promise.promisify(addTransactionsAndForge)(transactions).then(
+					return addTransactionsAndForgePromise(library, transactions, 0).then(
 						() => {
 							tick.after.block = library.modules.blocks.lastBlock.get();
 							tick.after.round = slots.calcRound(tick.after.block.height);
@@ -1297,7 +1190,7 @@ describe('rounds', () => {
 
 			before(done => {
 				// Set last block forger
-				getNextForger(null, delegatePublicKey => {
+				localCommon.getNextForger(library, null, (err, delegatePublicKey) => {
 					lastBlockForger = delegatePublicKey;
 
 					// Create unvote transaction
@@ -1427,7 +1320,7 @@ describe('rounds', () => {
 
 			before(done => {
 				// Set last block forger
-				getNextForger(null, delegatePublicKey => {
+				localCommon.getNextForger(library, null, (err, delegatePublicKey) => {
 					lastBlock = library.modules.blocks.lastBlock.get();
 					lastBlockForger = delegatePublicKey;
 					tmpAccount = randomUtil.account();
