@@ -225,7 +225,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 	);
 	async.eachSeries(
 		block.transactions,
-		(transaction, cb) => {
+		(transaction, eachSeriesCb) => {
 			// Apply transactions through setAccountAndGet, bypassing unconfirmed/confirmed states
 			// FIXME: Poor performance - every transaction cause SQL query to be executed
 			// WARNING: DB_WRITE
@@ -233,7 +233,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 				{ publicKey: transaction.senderPublicKey },
 				(err, sender) => {
 					if (err) {
-						return setImmediate(cb, {
+						return setImmediate(eachSeriesCb, {
 							message: err,
 							transaction,
 							block,
@@ -241,7 +241,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 					}
 					// Apply transaction to confirmed & unconfirmed balances
 					// WARNING: DB_WRITE
-					__private.applyTransaction(block, transaction, sender, cb);
+					__private.applyTransaction(block, transaction, sender, eachSeriesCb);
 					// Update block progress tracker
 					tracker.applyNext();
 				}
