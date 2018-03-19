@@ -443,7 +443,7 @@ describe('db', () => {
 					})
 					.catch(error => {
 						expect(error.message).to.be.eql(
-							'Error: db.accounts.upsert - invalid conflictingFields argument'
+							'Error: db.accounts.upsert - invalid "conflictingFields" argument.'
 						);
 						done();
 					});

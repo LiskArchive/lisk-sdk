@@ -149,7 +149,9 @@ class BlocksRepository {
 	 */
 	list(params) {
 		if (params.where && !Array.isArray(params.where)) {
-			return Promise.reject(new Error('Invalid parameter "where" provided.'));
+			return Promise.reject(
+				new TypeError('Invalid parameter "where" provided.')
+			);
 		}
 		return this.db.any(Queries.list, params);
 	}

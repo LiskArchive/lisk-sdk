@@ -763,7 +763,8 @@ describe('blocks/chain', () => {
 					__private
 						.applyUnconfirmedStep(blockWithTransactions, dbStub.tx)
 						.catch(err => {
-							expect(err).to.equal(
+							expect(err).instanceOf(Error);
+							expect(err.message).to.equal(
 								'Failed to get account to apply unconfirmed transaction: 6 - setAccountAndGet-ERR'
 							);
 							expect(loggerStub.error.args[0][0]).to.equal(
@@ -799,7 +800,8 @@ describe('blocks/chain', () => {
 						__private
 							.applyUnconfirmedStep(blockWithTransactions, dbStub.tx)
 							.catch(err => {
-								expect(err).to.equal(
+								expect(err).instanceOf(Error);
+								expect(err.message).to.equal(
 									'Failed to apply unconfirmed transaction: 6 - applyUnconfirmed-ERR'
 								);
 								expect(loggerStub.error.args[0][0]).to.equal(
@@ -883,7 +885,8 @@ describe('blocks/chain', () => {
 					__private
 						.applyConfirmedStep(blockWithTransactions, dbStub.tx)
 						.catch(err => {
-							expect(err).to.equal(
+							expect(err).instanceOf(Error);
+							expect(err.message).to.equal(
 								'Failed to get account to apply transaction: 6 - getAccount-ERR'
 							);
 							expect(modules.accounts.getAccount.callCount).to.equal(1);
@@ -918,7 +921,8 @@ describe('blocks/chain', () => {
 						__private
 							.applyConfirmedStep(blockWithTransactions, dbStub.tx)
 							.catch(err => {
-								expect(err).to.equal(
+								expect(err).instanceOf(Error);
+								expect(err.message).to.equal(
 									'Failed to apply transaction: 6 - apply-ERR'
 								);
 								expect(modules.accounts.getAccount.callCount).to.equal(1);
@@ -995,7 +999,8 @@ describe('blocks/chain', () => {
 					__private
 						.saveBlockStep(blockWithTransactions, true, dbStub.tx)
 						.catch(err => {
-							expect(err).to.equal('Failed to save block');
+							expect(err).instanceOf(Error);
+							expect(err.message).to.equal('Failed to save block');
 							expect(loggerStub.error.args[0][0]).to.contains(
 								'Failed to save block'
 							);
