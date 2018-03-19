@@ -22,37 +22,33 @@ describe('set command', () => {
 	beforeEach(setUpCommandSet);
 	afterEach(tearDownCommandSet);
 	Given(
-		'a config with unknown properties',
-		given.aConfigWithUnknownProperties,
+		`a directory path "${process.env.LISKY_CONFIG_DIR}"`,
+		given.aDirectoryPath,
 		() => {
-			Given(
-				`a directory path "${process.env.LISKY_CONFIG_DIR}"`,
-				given.aDirectoryPath,
-				() => {
-					Given(
-						'a config file name "config.json"',
-						given.aConfigFileName,
-						() => {
-							Given('an action "set"', given.anAction, () => {
-								Given('a variable "pretty"', given.aVariable, () => {
-									Given('a value "true"', given.aValue, () => {
-										When(
-											'the action is called with the variable and the value',
-											when.theActionIsCalledWithTheVariableAndTheValue,
-											() => {
-												Then(
-													'it should reject with validation error and message "Config file could not be written: property pretty was not found. It looks like your configuration file is corrupted. Please check the file or run \'lisky clean\' to remove it (a fresh default configuration file will be created when you run Lisky again."',
-													then.itShouldRejectWithValidationErrorAndMessage,
-												);
-											},
-										);
-									});
+			Given('a config file name "config.json"', given.aConfigFileName, () => {
+				Given(
+					'a config with unknown properties',
+					given.aConfigWithUnknownProperties,
+					() => {
+						Given('an action "set"', given.anAction, () => {
+							Given('a variable "api.port"', given.aVariable, () => {
+								Given('a value "true"', given.aValue, () => {
+									When(
+										'the action is called with the variable and the value',
+										when.theActionIsCalledWithTheVariableAndTheValue,
+										() => {
+											Then(
+												'it should reject with validation error and message "Config file could not be written: property \'api.port\' was not found. It looks like your configuration file is corrupted. Please check the file or run \'lisky clean\' to remove it (a fresh default configuration file will be created when you run Lisky again.)"',
+												then.itShouldRejectWithValidationErrorAndMessage,
+											);
+										},
+									);
 								});
 							});
-						},
-					);
-				},
-			);
+						});
+					},
+				);
+			});
 		},
 	);
 	Given('a config', given.aConfig, () => {

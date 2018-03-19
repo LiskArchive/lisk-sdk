@@ -49,9 +49,11 @@ const setNestedConfigProperty = newValue => (
 	dotNotationArray,
 ) => {
 	if (i === dotNotationArray.length - 1) {
-		if (obj[pathComponent] === undefined) {
+		if (obj === undefined) {
 			throw new ValidationError(
-				`Config file could not be written: property ${pathComponent} was not found. It looks like your configuration file is corrupted. Please check the file or run 'lisky clean' to remove it (a fresh default configuration file will be created when you run Lisky again.`,
+				`Config file could not be written: property '${dotNotationArray.join(
+					'.',
+				)}' was not found. It looks like your configuration file is corrupted. Please check the file or run 'lisky clean' to remove it (a fresh default configuration file will be created when you run Lisky again.)`,
 			);
 		}
 		// eslint-disable-next-line no-param-reassign
@@ -61,7 +63,7 @@ const setNestedConfigProperty = newValue => (
 	return obj[pathComponent];
 };
 
-const attemptWriteToFile = (value, dotNotationArray) => {
+const attemptWriteToFile = (value, dotNotation) => {
 	const writeSuccess = writeConfigToFile(config);
 
 	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
@@ -69,7 +71,7 @@ const attemptWriteToFile = (value, dotNotationArray) => {
 	}
 
 	const result = {
-		message: `Successfully set ${dotNotationArray.join('.')} to ${value}.`,
+		message: `Successfully set ${dotNotation} to ${value}.`,
 	};
 
 	if (!writeSuccess) {
@@ -87,13 +89,13 @@ const setBoolean = (dotNotation, value) => {
 	const newValue = value === 'true';
 	dotNotationArray.reduce(setNestedConfigProperty(newValue), config);
 
-	return attemptWriteToFile(value, dotNotationArray);
+	return attemptWriteToFile(value, dotNotation);
 };
 
 const setString = (dotNotation, value) => {
 	const dotNotationArray = dotNotation.split('.');
 	dotNotationArray.reduce(setNestedConfigProperty(value), config);
-	return attemptWriteToFile(value, dotNotationArray);
+	return attemptWriteToFile(value, dotNotation);
 };
 
 const handlers = {
