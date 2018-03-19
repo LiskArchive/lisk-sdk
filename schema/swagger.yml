@@ -2617,8 +2617,6 @@ definitions:
         type: string
         example: v0.8.0
         format: version
-        minLength: 5
-        maxLength: 12
       height:
         type: integer
         example: 123
