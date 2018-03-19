@@ -16,7 +16,8 @@
 
 const async = require('async');
 const constants = require('../helpers/constants.js');
-const Round = require('../logic/round.js');
+// eslint-disable-next-line prefer-const
+let Round = require('../logic/round.js');
 const slots = require('../helpers/slots.js');
 
 // Private fields

@@ -21,10 +21,12 @@ const constants = require('../helpers/constants.js');
 const failureCodes = require('../api/ws/rpc/failure_codes');
 const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');
-const wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
+// eslint-disable-next-line prefer-const
+let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 // Private fields
-const __private = {};
+// eslint-disable-next-line prefer-const
+let __private = {};
 let modules;
 let definitions;
 let library;

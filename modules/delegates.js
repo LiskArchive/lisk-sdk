@@ -368,7 +368,7 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 
 			const delegates =
 				state === 'confirmed' ? account.delegates : account.u_delegates;
-			const existing_votes = Array.isArray(delegates) ? delegates.length : 0;
+			const existingVotes = Array.isArray(delegates) ? delegates.length : 0;
 			let additions = 0;
 			let removals = 0;
 
@@ -439,10 +439,10 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 						return setImmediate(cb, err);
 					}
 
-					const total_votes = existing_votes + additions - removals;
+					const totalVotes = existingVotes + additions - removals;
 
-					if (total_votes > constants.activeDelegates) {
-						const exceeded = total_votes - constants.activeDelegates;
+					if (totalVotes > constants.activeDelegates) {
+						const exceeded = totalVotes - constants.activeDelegates;
 
 						return setImmediate(
 							cb,

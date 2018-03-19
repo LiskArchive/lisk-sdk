@@ -121,7 +121,7 @@ __private.getByFilter = function(filter, cb) {
 	 */
 	const sortPeers = function(field, asc) {
 		return function(a, b) {
-			const sort_res =
+			const sortedPeers =
 				// Nulls last
 				a[field] === b[field]
 					? 0
@@ -134,7 +134,7 @@ __private.getByFilter = function(filter, cb) {
 								? a[field] < b[field] ? -1 : 1
 								: // Descending
 									a[field] < b[field] ? 1 : -1;
-			return sort_res;
+			return sortedPeers;
 		};
 	};
 
