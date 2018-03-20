@@ -15,6 +15,7 @@
 'use strict';
 
 const randomstring = require('randomstring');
+const faker = require('faker');
 const stampit = require('stampit');
 const transactionTypes = require('../../helpers/transaction_types');
 const Dapps = require('./dapps');
@@ -28,7 +29,8 @@ const Transaction = stampit({
 		timestamp: 40080841,
 		senderPublicKey:
 			'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
-		requesterPublicKey: undefined,
+		requesterPublicKey:
+			'a0c4ebee8c0c50ebee32918655e089f6e1a604b83afa760367c61e0f18ac6a',
 		senderId: '2525786814299543383L',
 		recipientId: '16313739661670634666L',
 		recipientPublicKey:
@@ -37,7 +39,8 @@ const Transaction = stampit({
 		fee: 20000000,
 		signature:
 			'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
-		signSignature: undefined,
+		signSignature:
+			'ab94afee7ec0c50ebee32918455e089f6e1a604a83bcaa760293c61e0f18ab6a',
 		signatures: [],
 		confirmations: 12,
 		asset: null,
@@ -58,26 +61,52 @@ const Transaction = stampit({
 
 			case transactionTypes.SIGNATURE:
 				this.asset.signature = {
-					publicKey:
-						'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
+					publicKey: randomstring.generate({
+						charset: 'hex',
+						length: 64,
+						capitalization: 'lowercase',
+					}),
 				};
 				break;
 
 			case transactionTypes.DELEGATE:
-				this.asset.delegate = { username: delegateName || 'DummyDelegate' };
+				this.asset.delegate = {
+					username:
+						delegateName ||
+						randomstring.generate({ length: 10, charset: 'alphabetic' }),
+				};
 				break;
 
 			case transactionTypes.VOTE:
-				this.asset.votes = votes || [];
+				this.asset.votes = votes || [
+					randomstring.generate({
+						charset: 'hex',
+						length: 64,
+						capitalization: 'lowercase',
+					}),
+					randomstring.generate({
+						charset: 'hex',
+						length: 64,
+						capitalization: 'lowercase',
+					}),
+				];
 				break;
 
 			case transactionTypes.MULTI:
 				this.asset.multisignature = {
-					min: 2,
+					min: faker.random.number({ min: 2 }),
 					lifetime: +(new Date() / 1000).toFixed(),
 					keysgroup: [
-						'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
-						'23488598af49776e26120202e1111111e6c1987055a1d837db3dc01233145565',
+						randomstring.generate({
+							charset: 'hex',
+							length: 64,
+							capitalization: 'lowercase',
+						}),
+						randomstring.generate({
+							charset: 'hex',
+							length: 64,
+							capitalization: 'lowercase',
+						}),
 					],
 				};
 				break;

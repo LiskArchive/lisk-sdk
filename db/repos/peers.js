@@ -33,6 +33,7 @@ class PeersRepository {
 	constructor(db, pgp) {
 		this.db = db;
 		this.pgp = pgp;
+		this.cs = cs;
 
 		if (!cs.insert) {
 			cs.insert = new pgp.helpers.ColumnSet(

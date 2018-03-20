@@ -522,6 +522,47 @@ describe('vote', () => {
 		});
 	});
 
+	describe('getBytes', () => {
+		let transaction;
+		beforeEach(done => {
+			transaction = _.cloneDeep(validTransaction);
+			done();
+		});
+
+		it('should throw an error for undefined votes', () => {
+			transaction.asset = undefined;
+			return expect(() => {
+				vote.getBytes(transaction);
+			}).to.throw();
+		});
+
+		it('should return buffer for votes with plus and minus public keys', () => {
+			const data = {
+				votes: [
+					'-9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					'+3d9069145acab346f98ad9b23f7a2926c74258670fe98b37c100c01fca9f2f0f',
+				],
+			};
+			transaction.asset = data;
+			const voteBuffer = Buffer.from(data.votes.join(''), 'utf8');
+
+			return expect(vote.getBytes(transaction)).to.eql(voteBuffer);
+		});
+
+		it('should be okay for utf-8 data value', () => {
+			const data = {
+				votes: [
+					'-Zu¨¨¨¨ka Ωlaå69145acab346f98ad9b23f7a2926c74258670fe98b37c100c01',
+				],
+			};
+			transaction.asset = data;
+
+			return expect(vote.getBytes(transaction)).to.eql(
+				Buffer.from(data.votes[0], 'utf8')
+			);
+		});
+	});
+
 	describe('apply', () => {
 		it('should remove votes for delegates', done => {
 			var transaction = _.clone(validTransaction);

@@ -42,6 +42,8 @@ let initOptions = {
 		// to analyze performance of individual queries;
 		// API: http://vitaly-t.github.io/pg-promise/global.html#event:receive
 	},
+	// Prevent protocol locking, so we can redefine database properties in test environment
+	noLocking: process.env.NODE_ENV === 'test',
 };
 
 const pgp = pgpLib(initOptions);

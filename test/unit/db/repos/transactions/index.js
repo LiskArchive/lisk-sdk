@@ -15,11 +15,11 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
-const transactionsFixtures = require('../../../fixtures').transactions;
-const transactionsSQL = require('../../../../db/sql').transactions;
-const seeder = require('../../../common/db_seed');
-const transactionTypes = require('../../../../helpers/transaction_types');
+const DBSandbox = require('../../../../common/db_sandbox').DBSandbox;
+const transactionsFixtures = require('../../../../fixtures/index').transactions;
+const transactionsSQL = require('../../../../../db/sql/index').transactions;
+const seeder = require('../../../../common/db_seed');
+const transactionTypes = require('../../../../../helpers/transaction_types');
 
 const numSeedRecords = 5;
 
@@ -84,7 +84,7 @@ describe('db', () => {
 	});
 
 	describe('TransactionsRepository', () => {
-		describe('constructor', () => {
+		describe('constructor()', () => {
 			it('should assign param and data members properly', () => {
 				expect(db.transactions.db).to.be.eql(db);
 				expect(db.transactions.pgp).to.be.eql(db.$config.pgp);
@@ -124,6 +124,21 @@ describe('db', () => {
 				expect(db.transactions.cs).to.be.an('object');
 				expect(db.transactions.cs).to.not.empty;
 				expect(db.transactions.cs).to.have.all.keys('insert');
+				expect(db.transactions.cs.insert.columns.map(c => c.name)).to.be.eql([
+					'id',
+					'blockId',
+					'type',
+					'timestamp',
+					'senderPublicKey',
+					'requesterPublicKey',
+					'senderId',
+					'recipientId',
+					'amount',
+					'fee',
+					'signature',
+					'signSignature',
+					'signatures',
+				]);
 
 				expect(db.transactions.transactionsRepoMap).to.be.an('object');
 				return expect(db.transactions.transactionsRepoMap).to.have.all.keys(
@@ -139,7 +154,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('count', () => {
+		describe('count()', () => {
 			it('should use the correct SQL with no parameters', function*() {
 				sinonSandbox.spy(db, 'one');
 				yield db.transactions.count();
@@ -168,7 +183,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('countById', () => {
+		describe('countById()', () => {
 			it('should fulfil with zero if parameter "id" is not provided', () => {
 				return expect(db.transactions.countById()).to.be.eventually.eql(0);
 			});
@@ -205,7 +220,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('countList', () => {
+		describe('countList()', () => {
 			it('should fulfil with zero if no parameter provided', () => {
 				return expect(db.transactions.countList()).to.be.eventually.eql(0);
 			});
@@ -251,7 +266,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('list', () => {
+		describe('list()', () => {
 			it('should throw error if called without parameters', () => {
 				return expect(db.transactions.list()).to.be.rejectedWith(
 					"Cannot read property 'where' of undefined"
@@ -346,7 +361,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('getTransferByIds', () => {
+		describe('getTransferByIds()', () => {
 			it('should use the correct SQL file with correct parameters', function*() {
 				sinonSandbox.spy(db, 'any');
 				yield db.transactions.getTransferByIds(['12', '34']);
@@ -385,7 +400,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('getVotesByIds', () => {
+		describe('getVotesByIds()', () => {
 			it('should use the correct SQL file with correct parameters', function*() {
 				sinonSandbox.spy(db, 'any');
 				yield db.transactions.getVotesByIds(['12', '34']);
@@ -422,7 +437,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('getDelegateByIds', () => {
+		describe('getDelegateByIds()', () => {
 			it('should use the correct SQL file with correct parameters', function*() {
 				sinonSandbox.spy(db, 'any');
 				yield db.transactions.getDelegateByIds(['12', '34']);
@@ -464,7 +479,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('getSignatureByIds', () => {
+		describe('getSignatureByIds()', () => {
 			it('should use the correct SQL file with correct parameters', function*() {
 				sinonSandbox.spy(db, 'any');
 				yield db.transactions.getSignatureByIds(['12', '34']);
@@ -506,7 +521,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('getMultiByIds', () => {
+		describe('getMultiByIds()', () => {
 			it('should use the correct SQL file with correct parameters', function*() {
 				sinonSandbox.spy(db, 'any');
 				yield db.transactions.getMultiByIds(['12', '34']);
@@ -548,7 +563,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('getDappByIds', () => {
+		describe('getDappByIds()', () => {
 			it('should use the correct SQL file with correct parameters', function*() {
 				sinonSandbox.spy(db, 'any');
 				yield db.transactions.getDappByIds(['12', '34']);
@@ -594,7 +609,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('getInTransferByIds', () => {
+		describe('getInTransferByIds()', () => {
 			it('should use the correct SQL file with correct parameters', function*() {
 				sinonSandbox.spy(db, 'any');
 				yield db.transactions.getInTransferByIds(['12', '34']);
@@ -636,7 +651,7 @@ describe('db', () => {
 			});
 		});
 
-		describe('getOutTransferByIds', () => {
+		describe('getOutTransferByIds()', () => {
 			it('should use the correct SQL file with correct parameters', function*() {
 				sinonSandbox.spy(db, 'any');
 				yield db.transactions.getOutTransferByIds(['12', '34']);
@@ -679,7 +694,39 @@ describe('db', () => {
 			});
 		});
 
-		describe('save', () => {
+		describe('save()', () => {
+			it('should use pgp.helpers.insert with correct parameters', function*() {
+				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
+
+				const block = seeder.getLastBlock();
+				const transaction = transactionsFixtures.Transaction({
+					blockId: block.id,
+				});
+				yield db.transactions.save(transaction);
+
+				transaction.senderPublicKey = Buffer.from(
+					transaction.senderPublicKey,
+					'hex'
+				);
+				transaction.signature = Buffer.from(transaction.signature, 'hex');
+				transaction.signSignature = Buffer.from(
+					transaction.signSignature,
+					'hex'
+				);
+				transaction.requesterPublicKey = Buffer.from(
+					transaction.requesterPublicKey,
+					'hex'
+				);
+				transaction.signatures = transaction.signatures.join();
+
+				// One call for trs table and one for transfer table
+				expect(db.$config.pgp.helpers.insert).to.have.callCount(2);
+				return expect(db.$config.pgp.helpers.insert.firstCall.args).to.be.eql([
+					[transaction],
+					db.transactions.cs.insert,
+				]);
+			});
+
 			it('should save single transaction', function*() {
 				const block = seeder.getLastBlock();
 				const transaction = transactionsFixtures.Transaction({
