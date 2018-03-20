@@ -69,15 +69,20 @@ Node.prototype.internal = {
 	getForgingStatus(publicKey, cb) {
 		const keyPairs = modules.delegates.getForgersKeyPairs();
 		const internalForgers = library.config.forging.secret;
+		const forgersPublicKeys = {};
+
+		for (var pair in keyPairs) {
+			forgersPublicKeys[keyPairs[pair].publicKey.toString('hex')] = true;
+		}
 
 		const fullList = internalForgers.map(forger => ({
-			forging: !!forger.publicKey,
+			forging: !!forgersPublicKeys[forger.publicKey],
 			publicKey: forger.publicKey,
 		}));
 
 		if (publicKey && _.find(fullList, { publicKey })) {
 			return setImmediate(cb, null, [
-				{ publicKey, forging: !!keyPairs[publicKey] },
+				{ publicKey, forging: !!forgersPublicKeys[publicKey] },
 			]);
 		}
 

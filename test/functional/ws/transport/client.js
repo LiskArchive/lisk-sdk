@@ -29,7 +29,8 @@ describe('RPC Client', () => {
 	let socketClusterMock;
 
 	function reconnect(ip = validWSServerIp, wsPort = validWSServerPort) {
-		validClientRPCStub = connect({ ip, wsPort }).rpc;
+		validClientRPCStub = connect({ ip, wsPort }, { debug: sinonSandbox.stub() })
+			.rpc;
 	}
 
 	before(done => {
