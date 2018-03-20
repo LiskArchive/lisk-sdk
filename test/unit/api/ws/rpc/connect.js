@@ -30,6 +30,7 @@ describe('connect', () => {
 	let upgradeSocketSpy;
 	let registerRPCSpy;
 	let registerSocketListenersSpy;
+	let loggerMock;
 
 	before('spy on connectSteps', done => {
 		const connectionSteps = connectRewired.__get__('connectSteps');
@@ -58,19 +59,20 @@ describe('connect', () => {
 
 	beforeEach('provide non-mutated peer each time', done => {
 		validPeer = Object.assign({}, prefixedPeer);
+		loggerMock = {
+			error: sinonSandbox.stub(),
+			warn: sinonSandbox.stub(),
+			log: sinonSandbox.stub(),
+			debug: sinonSandbox.stub(),
+			trace: sinonSandbox.stub(),
+		};
 		done();
 	});
 
 	describe('connect', () => {
 		describe('connectSteps order', () => {
 			beforeEach(done => {
-				connectResult = connectRewired(validPeer, {
-					error: sinonSandbox.stub(),
-					warn: sinonSandbox.stub(),
-					log: sinonSandbox.stub(),
-					debug: sinonSandbox.stub(),
-					trace: sinonSandbox.stub(),
-				});
+				connectResult = connectRewired(validPeer, loggerMock);
 				done();
 			});
 
@@ -441,7 +443,7 @@ describe('connect', () => {
 					'connectSteps.registerSocketListeners'
 				);
 				validPeer.socket = validSocket;
-				peerAsResult = registerSocketListeners(validPeer);
+				peerAsResult = registerSocketListeners(validPeer, loggerMock);
 				done();
 			});
 
