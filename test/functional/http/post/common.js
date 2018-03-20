@@ -72,19 +72,23 @@ function invalidAssets(option, badTransactions) {
 					);
 					break;
 				case 'inTransfer':
-					transaction = lisk.transfer.createInTransfer(
-						randomUtil.guestbookDapp.id,
-						Date.now(),
-						accountFixtures.genesis.password
+					transaction = lisk.transaction.transferIntoDapp(
+						{
+							passphrase: accountFixtures.genesis.password,
+							amount: Date.now(),
+							dappId: randomUtil.guestbookDapp.id,
+						}
 					);
 					break;
 				case 'outTransfer':
-					transaction = lisk.transfer.createOutTransfer(
-						randomUtil.guestbookDapp.id,
-						randomUtil.transaction().id,
-						accountFixtures.genesis.address,
-						Date.now(),
-						accountFixtures.genesis.password
+					transaction = lisk.transaction.transferOutOfDapp(
+						{
+							passphrase: accountFixtures.genesis.password,
+							amount: Date.now(),
+							dappId: randomUtil.guestbookDapp.id,
+							transactionId: randomUtil.transaction().id,
+							recipientId: accountFixtures.genesis.address,
+						}
 					);
 					break;
 				// no default

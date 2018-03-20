@@ -14,7 +14,7 @@
 
 'use strict';
 
-const lisk = require('lisk-js');
+const lisk = require('lisk-js').default;
 const expect = require('chai').expect;
 const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common.js');

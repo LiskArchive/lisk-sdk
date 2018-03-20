@@ -685,13 +685,17 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 	describe('check frozen type', () => {
 		it('transaction should be rejected', () => {
-			transaction = lisk.transfer.createOutTransfer(
-				randomUtil.guestbookDapp.id,
-				randomUtil.transaction().id,
-				accountFixtures.genesis.address,
-				10 * normalizer,
-				account.password
+			transaction = lisk.transaction.transferOutOfDapp(
+				{
+					passphrase: account.password,
+					amount: 10 * normalizer,
+					dappId: randomUtil.guestbookDapp.id,
+					transactionId: randomUtil.transaction().id,
+					recipientId: accountFixtures.genesis.address,
+				}
 			);
+
+			console.log(transaction);
 
 			return sendTransactionPromise(
 				transaction,

@@ -297,7 +297,7 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 				{
 					passphrase: accountCopy.password,
 					secondPassphrase: accountCopy.secondPassword,
-					votes: [`${accountFixtures.existingDelegate.publicKey}`],
+					votes: [accountFixtures.existingDelegate.publicKey],
 				}
 			);
 			break;
@@ -306,7 +306,7 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 				{
 					passphrase: accountCopy.password,
 					secondPassphrase: accountCopy.secondPassword,
-					keysgroup: [`${accountFixtures.existingDelegate.publicKey}`],
+					keysgroup: [accountFixtures.existingDelegate.publicKey],
 					lifetime: 1,
 					minimum: 1,
 				}
@@ -322,21 +322,25 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 			);
 			break;
 		case 'IN_TRANSFER':
-			transaction = lisk.transfer.createInTransfer(
-				dapp.id,
-				1,
-				accountCopy.password,
-				accountCopy.secondPassword
+			transaction = lisk.transaction.transferIntoDapp(
+				{
+					passphrase: accountCopy.password,
+					secondPassphrase: accountCopy.secondPassword,
+					amount: 1,
+					dappId: dapp.id,
+				}
 			);
 			break;
 		case 'OUT_TRANSFER':
-			transaction = lisk.transfer.createOutTransfer(
-				dapp.id,
-				randomUtil.transaction().id,
-				randomUtil.account().address,
-				1,
-				accountCopy.password,
-				accountCopy.secondPassword
+			transaction = lisk.transaction.transferOutOfDapp(
+				{
+					passphrase: accountCopy.password,
+					secondPassphrase: accountCopy.secondPassword,
+					amount: 1,
+					dappId: dapp.id,
+					transactionId: randomUtil.transaction().id,
+					recipientId: randomUtil.account().address,
+				}
 			);
 			break;
 		// no default

@@ -41,10 +41,8 @@ describe('system test (type 4) - checking registered multisignature transaction 
 
 	scenarios.regular.members.map(member => {
 		var signature = lisk.transaction.utils.multiSignTransaction(
-			{
-				transaction: scenarios.regular.multiSigTransaction,
-				passphrase: member.password,
-			}
+			scenarios.regular.multiSigTransaction,
+			member.password
 		);
 		scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});

@@ -266,9 +266,10 @@ describe('GET /dapps', () => {
 
 				for (var i = 1; i <= 20; i++) {
 					transaction = lisk.transaction.createDapp(
-						account.password,
-						null,
-						randomUtil.application()
+						{
+							passphrase: account.password,
+							options: randomUtil.application(),
+						}
 					);
 					transactionsToWaitFor.push(transaction.id);
 					promises.push(apiHelpers.sendTransactionPromise(transaction));

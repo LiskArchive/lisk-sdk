@@ -17,7 +17,7 @@
 
 const async = require('async');
 const expect = require('chai').expect;
-const lisk = require('lisk-js');
+const lisk = require('lisk-js').default;
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../common/utils/random');
 const localCommon = require('../../common');
@@ -62,28 +62,36 @@ describe('system test (blocks) - chain/applyBlock', () => {
 		poolAccount3 = randomUtil.account();
 		poolAccount4 = randomUtil.account();
 
-		const fundTrsForAccount1 = lisk.transaction.createTransaction(
-			blockAccount1.address,
-			transferAmount,
-			accountFixtures.genesis.password
+		const fundTrsForAccount1 = lisk.transaction.transfer(
+			{
+				amount: transferAmount,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: blockAccount1.address,
+			}
 		);
 
-		const fundTrsForAccount2 = lisk.transaction.createTransaction(
-			blockAccount2.address,
-			transferAmount,
-			accountFixtures.genesis.password
+		const fundTrsForAccount2 = lisk.transaction.transfer(
+			{
+				amount: transferAmount,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: blockAccount2.address,
+			}
 		);
 
-		const fundTrsForAccount3 = lisk.transaction.createTransaction(
-			poolAccount3.address,
-			transferAmount,
-			accountFixtures.genesis.password
+		const fundTrsForAccount3 = lisk.transaction.transfer(
+			{
+				amount: transferAmount,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: poolAccount3.address,
+			}
 		);
 
-		const fundTrsForAccount4 = lisk.transaction.createTransaction(
-			poolAccount4.address,
-			transferAmount,
-			accountFixtures.genesis.password
+		const fundTrsForAccount4 = lisk.transaction.transfer(
+			{
+				amount: transferAmount,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: poolAccount4.address,
+			}
 		);
 
 		localCommon.addTransactionsAndForge(

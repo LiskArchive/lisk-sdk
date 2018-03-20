@@ -15,7 +15,7 @@
 'use strict';
 
 /* eslint-disable mocha/no-skipped-tests */
-const lisk = require('lisk-js');
+const lisk = require('lisk-js').default;
 const expect = require('chai').expect;
 const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common.js');
@@ -131,8 +131,10 @@ describe('system test (type 1) - second signature transactions from pool and pee
 
 				beforeEach(done => {
 					signatureTransaction2 = lisk.transaction.registerSecondPassphrase(
-						signatureAccount.password,
-						randomUtil.password()
+						{
+							passphrase: signatureAccount.password,
+							secondPassphrase: randomUtil.password(),
+						}
 					);
 					signatureTransaction2.senderId = signatureAccount.address;
 					localCommon.createValidBlock(
@@ -187,14 +189,18 @@ describe('system test (type 1) - second signature transactions from pool and pee
 
 					beforeEach(done => {
 						signatureTransaction2 = lisk.transaction.registerSecondPassphrase(
-							signatureAccount.password,
-							randomUtil.password()
+							{
+								passphrase: signatureAccount.password,
+								secondPassphrase: randomUtil.password(),
+							}
 						);
 						signatureTransaction2.senderId = signatureAccount.address;
 
 						signatureTransaction3 = lisk.transaction.registerSecondPassphrase(
-							signatureAccount.password,
-							randomUtil.password()
+							{
+								passphrase: signatureAccount.password,
+								secondPassphrase: randomUtil.password(),
+							}
 						);
 						signatureTransaction3.senderId = signatureAccount.address;
 						localCommon.createValidBlock(

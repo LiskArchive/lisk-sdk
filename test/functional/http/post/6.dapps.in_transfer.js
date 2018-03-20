@@ -401,10 +401,12 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 	describe('check frozen type', () => {
 		it('transaction should be rejected', () => {
-			transaction = lisk.transfer.createInTransfer(
-				randomUtil.guestbookDapp.id,
-				10 * normalizer,
-				accountFixtures.genesis.password
+			transaction = lisk.transaction.transferIntoDapp(
+				{
+					passphrase: accountFixtures.genesis.password,
+					amount: 10 * normalizer,
+					dappId: randomUtil.guestbookDapp.id,
+				}
 			);
 
 			return sendTransactionPromise(

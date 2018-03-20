@@ -92,9 +92,11 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 
 					it(`type ${index}: ${key} with different timestamp should be ok`, done => {
 						transactionWith = lisk.transaction.registerSecondPassphrase(
-							account.password,
-							account.secondPassword,
-							-10000
+							{
+								passphrase: account.password,
+								secondPassphrase: account.secondPassword,
+								timeOffset: -10000,
+							}
 						);
 						localCommon.addTransaction(library, transactionWith, (err, res) => {
 							expect(res).to.equal(transactionWith.id);
