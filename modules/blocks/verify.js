@@ -80,7 +80,7 @@ __private.checkTransaction = function(block, transaction, cb) {
 			function(waterCb) {
 				try {
 					// Calculate transaction ID
-					// FIXME: Can have poor performance, because of hash cancluation
+					// FIXME: Can have poor performance, because of hash calculation
 					transaction.id = library.logic.transaction.getId(transaction);
 				} catch (e) {
 					return setImmediate(waterCb, e.toString());
@@ -90,13 +90,13 @@ __private.checkTransaction = function(block, transaction, cb) {
 				return setImmediate(waterCb);
 			},
 			function(waterCb) {
-				// Check if transaction is already in database, otherwise fork 2.
+				// Check if transaction is already in database, otherwise fork 2
 				// DATABASE: read only
 				library.logic.transaction.checkConfirmed(transaction, err => {
 					if (err) {
-						// Fork: Transaction already confirmed.
+						// Fork: Transaction already confirmed
 						modules.delegates.fork(block, 2);
-						// Undo the offending transaction.
+						// Undo the offending transaction
 						// DATABASE: write
 						modules.transactions.undoUnconfirmed(transaction, err2 => {
 							modules.transactions.removeUnconfirmedTransaction(transaction.id);
@@ -108,7 +108,7 @@ __private.checkTransaction = function(block, transaction, cb) {
 				});
 			},
 			function(waterCb) {
-				// Get account from database if any (otherwise cold wallet).
+				// Get account from database if any (otherwise cold wallet)
 				// DATABASE: read only
 				modules.accounts.getAccount(
 					{ publicKey: transaction.senderPublicKey },
@@ -116,7 +116,7 @@ __private.checkTransaction = function(block, transaction, cb) {
 				);
 			},
 			function(sender, waterCb) {
-				// Check if transaction id valid against database state (mem_* tables).
+				// Check if transaction id valid against database state (mem_* tables)
 				// DATABASE: read only
 				library.logic.transaction.verify(transaction, sender, waterCb);
 			},
@@ -181,7 +181,6 @@ __private.verifyPreviousBlock = function(block, result) {
 	if (!block.previousBlock && block.height !== 1) {
 		result.errors.push('Invalid previous block');
 	}
-
 	return result;
 };
 
@@ -587,6 +586,175 @@ Verify.prototype.deleteBlockProperties = function(block) {
 };
 
 /**
+ * Adds block properties.
+ *
+ * @private
+ * @func addBlockProperties
+ * @param {Object} block - Full block
+ * @param {boolean} broadcast - Indicator that block needs to be broadcasted
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.addBlockProperties = function(block, broadcast, cb) {
+	if (!broadcast) {
+		try {
+			// Set default properties
+			block = self.addBlockProperties(block);
+		} catch (err) {
+			return setImmediate(cb, err);
+		}
+	}
+
+	return setImmediate(cb);
+};
+
+/**
+ * Validates block schema.
+ *
+ * @private
+ * @func normalizeBlock
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.normalizeBlock = function(block, cb) {
+	try {
+		block = library.logic.block.objectNormalize(block);
+	} catch (err) {
+		return setImmediate(cb, err);
+	}
+
+	return setImmediate(cb);
+};
+
+/**
+ * Verifies block.
+ *
+ * @private
+ * @func verifyBlock
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.verifyBlock = function(block, cb) {
+	// Sanity check of the block, if values are coherent
+	// No access to database
+	var result = self.verifyBlock(block);
+
+	if (!result.verified) {
+		library.logger.error(
+			['Block', block.id, 'verification failed'].join(' '),
+			result.errors[0]
+		);
+		return setImmediate(cb, result.errors[0]);
+	}
+	return setImmediate(cb);
+};
+
+/**
+ * Broadcasts block.
+ *
+ * @private
+ * @func broadcastBlock
+ * @param {Object} block - Full block
+ * @param {boolean} broadcast - Indicator that block needs to be broadcasted
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.broadcastBlock = function(block, broadcast, cb) {
+	if (broadcast) {
+		try {
+			// Delete default properties
+			var reducedBlock = self.deleteBlockProperties(block);
+			modules.blocks.chain.broadcastReducedBlock(reducedBlock, broadcast);
+		} catch (err) {
+			return setImmediate(cb, err);
+		}
+	}
+
+	return setImmediate(cb);
+};
+
+/**
+ * Checks if block is in database.
+ *
+ * @private
+ * @func checkExists
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.checkExists = function(block, cb) {
+	// Check if block id is already in the database (very low probability of hash collision)
+	// TODO: In case of hash-collision, to me it would be a special autofork...
+	// DATABASE: read only
+	library.db.blocks
+		.blockExists(block.id)
+		.then(rows => {
+			if (rows) {
+				return setImmediate(
+					cb,
+					['Block', block.id, 'already exists'].join(' ')
+				);
+			}
+			return setImmediate(cb);
+		})
+		.catch(err => {
+			library.logger.error(err);
+			return setImmediate(cb, 'Block#blockExists error');
+		});
+};
+
+/**
+ * Checks if block was generated by the right active delagate.
+ *
+ * @private
+ * @func validateBlockSlot
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.validateBlockSlot = function(block, cb) {
+	// Check if block was generated by the right active delagate. Otherwise, fork 3
+	// DATABASE: Read only to mem_accounts to extract active delegate list
+	modules.delegates.validateBlockSlot(block, err => {
+		if (err) {
+			// Fork: Delegate does not match calculated slot
+			modules.delegates.fork(block, 3);
+			return setImmediate(cb, err);
+		}
+		return setImmediate(cb);
+	});
+};
+
+/**
+ * Checks transactions in block.
+ *
+ * @private
+ * @func checkTransactions
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.checkTransactions = function(block, cb) {
+	// Check against the mem_* tables that we can perform the transactions included in the block
+	async.eachSeries(
+		block.transactions,
+		(transaction, eachSeriesCb) => {
+			__private.checkTransaction(block, transaction, eachSeriesCb);
+		},
+		err => setImmediate(cb, err)
+	);
+};
+
+/**
  * Main function to process a block:
  * - Verify the block looks ok
  * - Verify the block is compatible with database state (DATABASE readonly)
@@ -611,88 +779,25 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 	async.series(
 		{
 			addBlockProperties(seriesCb) {
-				if (!broadcast) {
-					try {
-						// Set default properties
-						block = self.addBlockProperties(block);
-					} catch (err) {
-						return setImmediate(seriesCb, err);
-					}
-				}
-
-				return setImmediate(seriesCb);
+				__private.addBlockProperties(block, broadcast, seriesCb);
 			},
 			normalizeBlock(seriesCb) {
-				try {
-					block = library.logic.block.objectNormalize(block);
-				} catch (err) {
-					return setImmediate(seriesCb, err);
-				}
-
-				return setImmediate(seriesCb);
+				__private.normalizeBlock(block, seriesCb);
 			},
 			verifyBlock(seriesCb) {
-				// Sanity check of the block, if values are coherent
-				// No access to database
-				const result = self.verifyBlock(block);
-
-				if (!result.verified) {
-					library.logger.error(
-						['Block', block.id, 'verification failed'].join(' '),
-						result.errors[0]
-					);
-					return setImmediate(seriesCb, result.errors[0]);
-				}
-				return setImmediate(seriesCb);
+				__private.verifyBlock(block, seriesCb);
 			},
 			broadcastBlock(seriesCb) {
-				if (broadcast) {
-					try {
-						// Delete default properties
-						const reducedBlock = self.deleteBlockProperties(block);
-						modules.blocks.chain.broadcastReducedBlock(reducedBlock, broadcast);
-					} catch (err) {
-						return setImmediate(seriesCb, err);
-					}
-				}
-
-				return setImmediate(seriesCb);
+				__private.broadcastBlock(block, broadcast, seriesCb);
 			},
 			checkExists(seriesCb) {
-				// Check if block id is already in the database (very low probability of hash collision)
-				// TODO: In case of hash-collision, to me it would be a special autofork...
-				// DATABASE: read only
-				library.db.blocks.blockExists(block.id).then(rows => {
-					if (rows) {
-						return setImmediate(
-							seriesCb,
-							['Block', block.id, 'already exists'].join(' ')
-						);
-					}
-					return setImmediate(seriesCb);
-				});
+				__private.checkExists(block, seriesCb);
 			},
 			validateBlockSlot(seriesCb) {
-				// Check if block was generated by the right active delagate. Otherwise, fork 3
-				// DATABASE: Read only to mem_accounts to extract active delegate list
-				modules.delegates.validateBlockSlot(block, err => {
-					if (err) {
-						// Fork: Delegate does not match calculated slot
-						modules.delegates.fork(block, 3);
-						return setImmediate(seriesCb, err);
-					}
-					return setImmediate(seriesCb);
-				});
+				__private.validateBlockSlot(block, seriesCb);
 			},
 			checkTransactions(seriesCb) {
-				// Check against the mem_* tables that we can perform the transactions included in the block
-				async.eachSeries(
-					block.transactions,
-					(transaction, eachSeriesCb) => {
-						__private.checkTransaction(block, transaction, eachSeriesCb);
-					},
-					err => setImmediate(seriesCb, err)
-				);
+				__private.checkTransactions(block, seriesCb);
 			},
 		},
 		err => {
