@@ -1469,10 +1469,11 @@ describe('blocks/chain', () => {
 				done();
 			});
 
-			it('should call process.exit', done => {
+			it('should call process.exit with 1', done => {
 				__private.popLastBlock(blockWithTransactions, err => {
 					expect(err.name).to.eql('db-tx_ERR');
 					expect(process.exit.calledOnce).to.equal(true);
+					expect(process.exit.calledWith(1)).to.equal(true);
 					done();
 				});
 			});
