@@ -65,7 +65,11 @@ describe('connect', () => {
 		describe('connectSteps order', () => {
 			beforeEach(done => {
 				connectResult = connectRewired(validPeer, {
+					error: sinonSandbox.stub(),
+					warn: sinonSandbox.stub(),
+					log: sinonSandbox.stub(),
 					debug: sinonSandbox.stub(),
+					trace: sinonSandbox.stub(),
 				});
 				done();
 			});

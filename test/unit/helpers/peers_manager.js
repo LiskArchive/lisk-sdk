@@ -23,7 +23,11 @@ var peersManagerInstance;
 describe('PeersManager', () => {
 	beforeEach(done => {
 		peersManagerInstance = new PeersManager({
+			error: sinonSandbox.stub(),
+			warn: sinonSandbox.stub(),
+			log: sinonSandbox.stub(),
 			debug: sinonSandbox.stub(),
+			trace: sinonSandbox.stub(),
 		});
 		done();
 	});
