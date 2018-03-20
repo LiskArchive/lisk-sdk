@@ -15,19 +15,22 @@
 'use strict';
 
 const async = require('async');
-const Broadcaster = require('../logic/broadcaster.js');
+// eslint-disable-next-line prefer-const
+let Broadcaster = require('../logic/broadcaster.js');
 const constants = require('../helpers/constants.js');
 const failureCodes = require('../api/ws/rpc/failure_codes');
 const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');
-const wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
+// eslint-disable-next-line prefer-const
+let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 // Private fields
 let modules;
 let definitions;
 let library;
 let self;
-const __private = {};
+// eslint-disable-next-line prefer-const
+let __private = {};
 
 __private.loaded = false;
 __private.messages = {};
