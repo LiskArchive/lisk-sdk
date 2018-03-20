@@ -85,7 +85,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 			done();
 		});
 
-		describe('when it fails', () => {
+		describe('when popLastBlock fails', () => {
 			describe('when loadBlockSecondLastBlockStep fails', () => {
 				beforeEach(done => {
 					block.previousBlock = null;
@@ -93,11 +93,12 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					return done();
 				});
 
-				it('should call process.exit', done => {
+				it('it should call process.exit(1)', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(process.exit.calledOnce).to.equal(true);
-						return done();
+						expect(process.exit.calledWith(1)).to.equal(true);
+						done();
 					});
 				});
 			});
@@ -120,6 +121,15 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				afterEach(done => {
 					library.modules.accounts.setAccountAndGet = setAccountAndGet;
 					done();
+				});
+
+				it.skip('it should call process.exit(1)', done => {
+					library.modules.blocks.chain.deleteLastBlock(err => {
+						expect(err).to.exist;
+						expect(process.exit.calledOnce).to.equal(true);
+						expect(process.exit.calledWith(1)).to.equal(true);
+						done();
+					});
 				});
 
 				it.skip('should not have perform undoStep on transactions of block', done => {
@@ -159,10 +169,18 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					done();
 				});
 
-				it('should not have perform undoStep on transactions of block', done => {
+				it('it should call process.exit(1)', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(process.exit.calledOnce).to.equal(true);
+						expect(process.exit.calledWith(1)).to.equal(true);
+						done();
+					});
+				});
+
+				it('should not change balance in mem_accounts table', done => {
+					library.modules.blocks.chain.deleteLastBlock(err => {
+						expect(err).to.exist;
 						localCommon
 							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
 							.then(account => {
@@ -174,7 +192,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					});
 				});
 
-				it('should not have perform undoUnconfirmStep on transactions of block', done => {
+				it('should not change u_balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(process.exit.calledOnce).to.equal(true);
@@ -209,7 +227,16 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					done();
 				});
 
-				it('backwardTick stub should be called once', done => {
+				it('it should call process.exit(1)', done => {
+					library.modules.blocks.chain.deleteLastBlock(err => {
+						expect(err).to.exist;
+						expect(process.exit.calledOnce).to.equal(true);
+						expect(process.exit.calledWith(1)).to.equal(true);
+						done();
+					});
+				});
+
+				it('modules.rounds.backwardTick stub should be called once', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(process.exit.calledOnce).to.equal(true);
@@ -220,7 +247,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					});
 				});
 
-				it('should not have perform undoStep on transactions of block', done => {
+				it('should not change balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(process.exit.calledOnce).to.equal(true);
@@ -235,7 +262,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					});
 				});
 
-				it('should not have perform undoUnconfirmStep on transactions of block', done => {
+				it('should not change u_balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(process.exit.calledOnce).to.equal(true);
@@ -270,10 +297,18 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					done();
 				});
 
-				it('deleteBlock should be called once', done => {
+				it('it should call process.exit(1)', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(process.exit.calledOnce).to.equal(true);
+						expect(process.exit.calledWith(1)).to.equal(true);
+						done();
+					});
+				});
+
+				it('modules.blocks.chain.deleteBlock should be called once', done => {
+					library.modules.blocks.chain.deleteLastBlock(err => {
+						expect(err).to.exist;
 						expect(
 							library.modules.blocks.chain.deleteBlock.calledOnce
 						).to.equal(true);
@@ -281,7 +316,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					});
 				});
 
-				it('should not have perform undoStep on transactions of block', done => {
+				it('should not change balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(process.exit.calledOnce).to.equal(true);
@@ -296,7 +331,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					});
 				});
 
-				it('should not have perform undoUnconfirmStep on transactions of block', done => {
+				it('should not change u_balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(process.exit.calledOnce).to.equal(true);
@@ -331,7 +366,15 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 			});
 		});
 
-		describe('when it passes', () => {
+		describe('when deleteLastBlock succeeds', () => {
+			it('should not call process.exit', done => {
+				library.modules.blocks.chain.deleteLastBlock(err => {
+					expect(err).to.not.exist;
+					expect(process.exit.calledOnce).to.equal(false);
+					done();
+				});
+			});
+
 			it('should delete block', done => {
 				library.modules.blocks.chain.deleteLastBlock(err => {
 					expect(err).to.not.exist;
@@ -343,7 +386,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				});
 			});
 
-			it('should delete all transactions', done => {
+			it('should delete all transactions of block', done => {
 				library.modules.blocks.chain.deleteLastBlock(err => {
 					expect(err).to.not.exist;
 					localCommon.getTransactionFromModule(
@@ -358,7 +401,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				});
 			});
 
-			it('should perform undoStep on transactions of block', done => {
+			it('should revert balance for accounts in block', done => {
 				library.modules.blocks.chain.deleteLastBlock(err => {
 					expect(err).to.not.exist;
 					localCommon
@@ -370,7 +413,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				});
 			});
 
-			it('should perform undoUnconfirmStep on transactions of block', done => {
+			it('should revert u_balance for accounts in block', done => {
 				library.modules.blocks.chain.deleteLastBlock(err => {
 					expect(err).to.not.exist;
 					localCommon
