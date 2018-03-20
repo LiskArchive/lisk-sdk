@@ -236,7 +236,6 @@ Cache.prototype.onNewBlock = function(block, cb) {
 		['Cache - onNewBlock', '| Status:', self.isConnected()].join(' ')
 	);
 	if (!self.isReady()) {
-		logger.debug(errorCacheDisabled);
 		return cb(errorCacheDisabled);
 	}
 	async.map(
