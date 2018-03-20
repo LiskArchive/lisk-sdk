@@ -459,8 +459,8 @@ describe('connect', () => {
 				return expect(peerAsResult.socket.on).to.be.calledWith('close');
 			});
 
-			it('should register 3 event listeners', () => {
-				return expect(peerAsResult.socket.on).to.be.calledThrice;
+			it('should register 5 event listeners', () => {
+				return expect(peerAsResult.socket.on).to.be.callCount(5);
 			});
 		});
 	});
