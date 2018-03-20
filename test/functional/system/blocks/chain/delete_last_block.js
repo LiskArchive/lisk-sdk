@@ -577,7 +577,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				});
 			});
 
-			describe.skip('(type 4) register multisignature', () => {
+			describe('(type 4) register multisignature', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
@@ -623,12 +623,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							minimum: 1,
 						}
 					);
-
 					var signature = lisk.transaction.utils.multiSignTransaction(
 						multisigTransaction,
 						accountFixtures.existingDelegate.password
 					);
-					multisigTransaction.signatures.push(signature);
+					multisigTransaction.signatures = [signature];
 					multisigTransaction.ready = true;
 
 					localCommon.addTransactionsAndForge(

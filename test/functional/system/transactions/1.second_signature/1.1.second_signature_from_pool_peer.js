@@ -58,6 +58,8 @@ describe('system test (type 1) - second signature transactions from pool and pee
 					recipientId: signatureAccount.address,
 				}
 			);
+			sendTransaction.amount = parseInt(sendTransaction.amount);
+			sendTransaction.fee = parseInt(sendTransaction.fee);
 			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});
 
@@ -71,6 +73,8 @@ describe('system test (type 1) - second signature transactions from pool and pee
 						secondPassphrase: signatureAccount.secondPassword,
 					}
 				);
+				signatureTransaction.amount = parseInt(signatureTransaction.amount);
+				signatureTransaction.fee = parseInt(signatureTransaction.fee);
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					signatureTransaction,
@@ -137,6 +141,8 @@ describe('system test (type 1) - second signature transactions from pool and pee
 						}
 					);
 					signatureTransaction2.senderId = signatureAccount.address;
+					signatureTransaction2.amount = parseInt(signatureTransaction2.amount);
+					signatureTransaction2.fee = parseInt(signatureTransaction2.fee);
 					localCommon.createValidBlock(
 						library,
 						[signatureTransaction2],

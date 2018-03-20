@@ -421,6 +421,8 @@ describe('system test (type 4) - effect of multisignature registration on memory
 						minimum: 2,
 					}
 				);
+				multisigTransaction2.amount = parseInt(multisigTransaction2.amount);
+				multisigTransaction2.fee = parseInt(multisigTransaction2.fee);
 				var sign3 = lisk.transaction.utils.multiSignTransaction(
 					multisigTransaction2,
 					signer3.password

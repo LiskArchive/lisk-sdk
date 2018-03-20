@@ -122,6 +122,8 @@ describe('system test (blocks) - chain/applyBlock', () => {
 
 				}
 			);
+			blockTransaction1.amount = parseInt(blockTransaction1.amount);
+			blockTransaction1.fee = parseInt(blockTransaction1.fee);
 			blockTransaction2 = lisk.transaction.registerDelegate(
 				{
 					passphrase: blockAccount2.password,
@@ -129,6 +131,8 @@ describe('system test (blocks) - chain/applyBlock', () => {
 
 				}
 			);
+			blockTransaction2.amount = parseInt(blockTransaction2.amount);
+			blockTransaction2.fee = parseInt(blockTransaction2.fee);
 			blockTransaction1.senderId = blockAccount1.address;
 			blockTransaction2.senderId = blockAccount2.address;
 			localCommon.createValidBlock(
@@ -146,14 +150,18 @@ describe('system test (blocks) - chain/applyBlock', () => {
 			let transaction4;
 
 			beforeEach('with transactions in unconfirmed queue', done => {
-				transaction3 = lisk.signature.createSignature(
-					poolAccount3.password,
-					poolAccount3.secondPassword
+				transaction3 = lisk.transaction.registerSecondPassphrase(
+					{
+						passphrase: poolAccount3.password,
+						secondPassphrase: poolAccount3.secondPassword,
+					}
 				);
 
-				transaction4 = lisk.signature.createSignature(
-					poolAccount4.password,
-					poolAccount4.secondPassword
+				transaction4 = lisk.transaction.registerSecondPassphrase(
+					{
+						passphrase: poolAccount4.password,
+						secondPassphrase: poolAccount4.secondPassword,
+					}
 				);
 
 				transaction3.senderId = poolAccount3.address;

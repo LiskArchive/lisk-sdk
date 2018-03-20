@@ -73,6 +73,8 @@ describe('delegate', () => {
 						username,
 					}
 				);
+				delegateTransaction.amount = parseInt(delegateTransaction.amount);
+				delegateTransaction.fee = parseInt(delegateTransaction.fee);
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					delegateTransaction,
@@ -139,6 +141,8 @@ describe('delegate', () => {
 						}
 					);
 					delegateTransaction2.senderId = delegateAccount.address;
+					delegateTransaction2.amount = parseInt(delegateTransaction2.amount);
+					delegateTransaction2.fee = parseInt(delegateTransaction2.fee);
 					localCommon.createValidBlock(
 						library,
 						[delegateTransaction2],
