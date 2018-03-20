@@ -133,7 +133,7 @@ const connectSteps = {
 		// When WS connection ends - remove peer
 		peer.socket.on('close', (code, reason) => {
 			logger.debug(
-				`Peer WebSocket connection failed with code ${code} and reason: "${reason}"`
+				`[Outbound socket] Peer WebSocket connection failed with code ${code} and reason: "${reason}"`
 			);
 			onDisconnectCb();
 		});
